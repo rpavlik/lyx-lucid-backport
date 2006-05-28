@@ -42,7 +42,6 @@ CONFIGURE_OPTIONS = --prefix=/usr \
                     --disable-debug \
                     --enable-optimization='\''$$CXXFLAGS'\'' \
                     --enable-assertions \
-                    --enable-shared \
                     --enable-nls \
                     --without-included-string \
                     --with-aiksaurus \
