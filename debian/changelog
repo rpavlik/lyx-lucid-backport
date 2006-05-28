@@ -23,7 +23,7 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
     included anymore.
   * Make all files in /usr/share/lyx/scripts/ executable. Closes:
     #348731.
-  * Supress error message from /usr/share/lyx/configure.
+  * Suppress error message from /usr/share/lyx/configure.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 21:22:49 +0200
 
