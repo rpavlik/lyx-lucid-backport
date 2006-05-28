@@ -5,8 +5,9 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
     and apparently it causes everything to be built twice.
   * Added myself and Sven to Uploaders. Removed Rob Weir since he is
     apparently MIA.
+  * Updated Standards-Version to 3.7.2.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 13:23:32 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 13:33:11 +0200
 
 lyx (1.3.6-1.1) unstable; urgency=medium
 
