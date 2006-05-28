@@ -1,0 +1,4 @@
+debian/man/dviprint.1
+debian/man/noweb2lyx.1
+update-lyxrc.1
+

@@ -1,0 +1,24 @@
+This is a prepackaged version of High Level
+Word Processor.  It was Debianised by Debian LyX
+Maintainers <pkg-lyx-devel@lists.alioth.debian.org>,
+and uploaded by Erinn Clark <erinn@double-helix.org>,
+Rob Weir <rweir@ertius.org>, using files obtained from
+<URL:ftp://ftp.lyx.org/pub/lyx/stable/lyx-([0-9].*)\.tar.gz>.
+
+More information about High Level Word Processor is available from
+<URL:http://www.lyx.org/>.
+
+Changes were made as follows:
+  [001] automake updates
+  [002] libboost support for unsupported CPUs
+  [004] debianized configure script
+  [005] htlatex in documentation
+
+Copyright and licence notice:
+
+  Copyright  (c)  1995,  1996,  1997,  1998,  1999,  2000,  2001, 2002 by
+  Matthias Ettrich (ettrich@informatik.uni-tuebingen.de) and the rest  of
+  the LyX Team (See About LyX under the Help menu item).
+
+On any Debian system, you can find the complete text of the GNU GPL
+(GNU General Public License) in the file  /usr/share/common-licenses/GPL

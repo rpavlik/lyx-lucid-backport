@@ -1,0 +1,88 @@
+Source: lyx
+Maintainer: Debian LyX Maintainers <pkg-lyx-devel@lists.alioth.debian.org>
+Uploaders: Rob Weir <rweir@ertius.org>
+Section: editors
+Priority: optional
+Standards-Version: 3.6.1
+Build-Depends: libqt3-mt-dev, libforms-dev, libforms-bin, tetex-bin, libaiksaurus-dev, python, debhelper ( >= 4.0), dpatch (>= 1.19), g++-4.0 (>= 4.0.1-8)
+Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
+
+Package: lyx
+Architecture: all
+Depends: lyx-common, lyx-xforms | lyx-qt, tetex-bin (>= 2.0.2-11), tetex-extra, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
+Recommends: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv
+Suggests: chktex, nowebm
+Description: High Level Word Processor
+ LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
+ System. It makes the power and typesetting quality of LaTeX available for
+ people who are used to word processors. Since LyX supports LaTeX's concept
+ of general mark-ups, it is even easier and faster to create professional
+ quality documents with it than with usual word processors. It is also
+ possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
+ lost.
+ .
+ This meta-package installs LyX common files, the frontend (Qt or XForms)
+ and other packages needed by LyX.
+ .
+ This package can be safely removed after install.
+ .
+ You can extend the functionality of LyX by installing these packages:
+  * ispell or aspell: an interactive spelling corrector
+  * kdeprint or lpr: a printing tool
+  * konqueror or www-browser: allows to view HTML documents
+  * kghostview or postscript-viewer: allows to view PostScript documents
+  * kghostview or pdf-viewer: allows to view PDF documents
+  * sgmltools-lite: allows to export SGML DocBook documents
+  * linuxdoc-tools: allows to export SGML LinuxDoc documents
+  * rcs: allows to use versioning feature
+  * tex4ht or hevea or tth or latex2html: allows to export HTML documents
+  * gnuhtml2latex: allows to import HTML documents
+  * wv: allows to import Word documents
+
+Package: lyx-common
+Architecture: all
+Depends: lyx-qt | lyx-xforms, perl, python (<< 2.4), tetex-bin (>= 2.0.2-11) 
+Recommends: tetex-extra, libtiff-tools, groff, imagemagick, mime-support
+Suggests: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv
+Conflicts: lyx (<< ${Source-Version}), lyx-qt (<< ${Source-Version}), lyx-xforms (<< ${Source-Version})
+Description: High Level Word Processor - common files
+ LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
+ System. It makes the power and typesetting quality of LaTeX available for
+ people who are used to word processors. Since LyX supports LaTeX's concept
+ of general mark-ups, it is even easier and faster to create professional
+ quality documents with it than with usual word processors. It is also
+ possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
+ lost.
+ .
+ This package provides common files not dependent on the frontend version.
+
+Package: lyx-qt
+Architecture: any
+Depends: latex-xft-fonts, lyx-common (= ${Source-Version}), ${shlibs:Depends}
+Suggests: menu
+Description: High Level Word Processor - Qt frontend
+ LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
+ System. It makes the power and typesetting quality of LaTeX available for
+ people who are used to word processors. Since LyX supports LaTeX's concept
+ of general mark-ups, it is even easier and faster to create professional
+ quality documents with it than with usual word processors. It is also
+ possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
+ lost.
+ .
+ This package provides Lyx with Qt frontend.
+
+Package: lyx-xforms
+Architecture: any
+Depends: lyx-common (= ${Source-Version}), ${shlibs:Depends}
+Suggests: menu
+Description: High Level Word Processor - XForms frontend
+ LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
+ System. It makes the power and typesetting quality of LaTeX available for
+ people who are used to word processors. Since LyX supports LaTeX's concept
+ of general mark-ups, it is even easier and faster to create professional
+ quality documents with it than with usual word processors. It is also
+ possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
+ lost.
+ .
+ This package provides Lyx with XForms frontend.
+

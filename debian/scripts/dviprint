@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# This script prints a dvi file using dvips regardless of the actual
+# configuration of dvips.
+#
+# Copyright 1996-2000 Michael Meskes <meskes@debian.org>
+# Placed under GPL
+#
+# Updated 1/6/98 to use tempfile.
+
+DVICONF=/usr/lib/texmf/dvips
+TMPFILE=`tempfile`
+
+#
+# Parse command line and remove -o and -P 
+#
+while [ $# -gt 0 ];
+do
+	case $1 in
+	-P*)	printer=`echo $1 | cut -b3-`
+		if [ -z ${printer} ]; then
+			printer=$2
+			shift 1
+		fi;;
+	-o*)	tofile="yes"
+		options="${options} $1";;
+	*)	options="${options} $1";;
+	esac
+	shift 1
+done
+
+#
+# Add corrected -o resp. -P arguments
+#
+if [ ! "${tofile}" ]; then
+	if [ "${printer}" ]; then
+		if [ -f ${DVICONF}/config.${printer} ]; then
+			options="${options} -P ${printer}"
+		else
+			options="${options} -o ${TMPFILE}"
+			printcmd="lpr -P ${printer}"
+		fi
+	else
+		options="${options} -o ${TMPFILE}"
+		printcmd="lpr" 
+	fi
+fi
+
+#
+# Call dvips
+#
+dvips ${options}
+if [ "${printcmd}" ]; then
+	${printcmd} ${TMPFILE}
+	/bin/rm -f ${TMPFILE}
+fi
+

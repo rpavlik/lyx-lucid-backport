@@ -1,0 +1,171 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+include /usr/share/dpatch/dpatch.make
+
+PACKAGE = lyx
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+
+CFLAGS = -Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+
+CONFIGURE_OPTIONS = --prefix=/usr \
+                    --infodir=/usr/share/info \
+                    --mandir=/usr/share/man
+                    --disable-dependency-tracking \
+                    --enable-warnings \
+                    --disable-debug \
+                    --enable-optimization='\''$$CXXFLAGS'\'' \
+                    --enable-assertions \
+                    --enable-shared \
+                    --enable-nls \
+                    --without-included-string \
+                    --with-aiksaurus \
+                    --with-gnu-ld \
+                    --without-pspell \
+                    --with-x \
+                    --without-included-gettext \
+        
+#Architecture 
+build: patch
+	dh_testdir
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	cp config/config.sub config/config.sub.backup
+	cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	cp config/config.guess config/config.guess.backup
+	cp -f /usr/share/misc/config.guess config/config.guess
+endif
+	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
+	test -d build-tree-qt || mkdir build-tree-qt
+	test -d debian/lyx-qt-tmp || mkdir debian/lyx-qt-tmp
+	cd build-tree-qt ; \
+	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend=qt --with-qt-dir=/usr/share/qt3 ; \
+	make ; \
+	make install DESTDIR=`pwd`/../debian/lyx-qt-tmp/
+	# cd .. # commented out since it's implied
+	test -d build-tree-xforms || mkdir build-tree-xforms
+	test -d debian/lyx-xforms-tmp || mkdir debian/lyx-xforms-tmp
+	cd build-tree-xforms ; \
+	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend=xforms ; \
+	make ; \
+	make install DESTDIR=`pwd`/../debian/lyx-xforms-tmp/
+	touch build-stamp
+
+build-arch: build-stamp
+
+build-indep: build-stamp
+
+clean: unpatch
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp
+	rm -rf build-tree-qt build-tree-xforms
+	rm -rf debian/lyx-{qt,xforms}-tmp
+	rm -rf debian/{lyx,lyx-xforms,lyx-qt,lyx-common}
+	rm -f update-lyxrc.1 || true
+	mv config/config.guess.backup config/config.guess || true
+	mv config/config.sub.backup config/config.sub || true
+
+	# Add here commands to clean up after the build process.
+	-$(MAKE) distclean
+	dh_clean 
+
+install: install-indep install-arch
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -i 
+	dh_installdirs -i
+
+	# FIXME: use mv, not cp?
+	cp build-tree-qt/lyx.1 build-tree-qt/lyx-qt.1
+	cp debian/lyx-icon.xpm build-tree-qt/lyx-qt.xpm
+	cp build-tree-xforms/lyx.1 build-tree-xforms/lyx-xforms.1
+	cp debian/lyx-icon.xpm build-tree-xforms/lyx-xforms.xpm
+	cd build-tree-qt && make install DESTDIR=`pwd`/../debian/lyx-common/ && cd ..
+	rm debian/lyx-common/usr/bin/lyx
+	rm debian/lyx-common/usr/share/man/man1/lyx.1
+	rm debian/lyx-common/usr/share/lyx/textclass.lst
+	rm debian/lyx-common/usr/share/lyx/lyxrc.defaults
+	rm debian/lyx-common/usr/share/lyx/lyxrc.example
+	rm debian/lyx-common/usr/share/lyx/packages.lst
+	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py
+	rm -r debian/lyx-common/usr/share/lyx/xfonts/
+	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
+	mv debian/lyx-common/usr/share/lyx/tex/* debian/lyx-common/usr/share/texmf/tex/latex/lyx/
+	rmdir debian/lyx-common/usr/share/lyx/tex/
+	sed -e 's/#\\print_command dvips/\\print_command dviprint/' < lib/lyxrc.example > debian/lyx-common/etc/lyxrc
+	ln -s ../../../../etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.example
+	dh_install -i
+
+install-arch: install-indep
+	dh_testdir
+	dh_testroot
+	dh_clean -k -s 
+	dh_installdirs -s
+
+	dh_install -s
+	# FIXME: use mv, not cp?
+	cp debian/lyx-xforms-tmp/usr/bin/lyx debian/lyx-xforms/usr/bin/lyx-xforms
+	cp debian/lyx-qt-tmp/usr/bin/lyx debian/lyx-qt/usr/bin/lyx-qt
+
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs -plyx-common ChangeLog
+	dh_installdocs
+	dh_installmenu
+	dh_installman
+	rm -rf debian/lyx-qt/usr/share/doc/lyx-qt
+	rm -rf debian/lyx-xforms/usr/share/doc/lyx-xforms
+	ln -s /usr/share/doc/lyx-common/ debian/lyx-qt/usr/share/doc/lyx-qt
+	ln -s /usr/share/doc/lyx-common/ debian/lyx-xforms/usr/share/doc/lyx-xforms
+	dh_link
+	dh_strip
+	dh_compress 
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture independant packages using the common target.
+binary-indep: build-indep install-indep
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
+
+binary: binary-arch binary-indep
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch
+

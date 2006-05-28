@@ -1,0 +1,4 @@
+?package(lyx-xforms):needs="X11" section="Apps/Editors" \
+  title="LyX (XForms)" command="/usr/bin/lyx-xforms" \
+  icon="/usr/share/pixmaps/lyx-xforms.xpm" hints="Word processors"
+
