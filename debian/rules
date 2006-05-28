@@ -123,6 +123,7 @@ install-indep:
 	sed -e 's/#\\print_command dvips/\\print_command dviprint/' < lib/lyxrc.example > debian/lyx-common/etc/lyxrc
 	ln -s ../../../../etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.example
 	dh_install -i
+	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 
 install-arch: install-indep
 	dh_testdir
