@@ -1,5 +1,6 @@
 lyx (1.4.1-1) UNRELEASED; urgency=low
 
+  [Per]
   * New upstream release.
   * Removed --enable-shared because we don't build any libraries anyway
     and apparently it causes everything to be built twice.
@@ -12,6 +13,9 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
     Recommends in lyx-common.
   * Don't depend on g++-4.0, use the default g++ (with versioned
     dependency).
+  
+  [Sven]
+  * Added dvipost to the recommened/suggested pacakges
 
  -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 17:12:50 +0200
 
