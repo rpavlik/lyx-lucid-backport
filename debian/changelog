@@ -13,11 +13,15 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
     Recommends in lyx-common.
   * Don't depend on g++-4.0, use the default g++ (with versioned
     dependency).
-  
+
   [ Sven Hoexter ]
   * Added dvipost to the recommended/suggested packages
 
- -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 17:12:50 +0200
+  [ Per Olofsson ]
+  * Removed manpage for noweb2lyx since the program in question is not
+    included anymore.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 19:58:44 +0200
 
 lyx (1.3.6-1.1) unstable; urgency=medium
 
