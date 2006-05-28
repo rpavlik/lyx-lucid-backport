@@ -10,7 +10,7 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
   * List lyx-qt as the first dependency alternative instead of lyx-
     xforms.
   * Break dependency loop by moving dependency on lyx-qt | lyx-xforms to
-    Recommends in lyx-common.
+    Recommends in lyx-common. Closes: #341848.
   * Don't depend on g++-4.0, use the default g++ (with versioned
     dependency).
 
