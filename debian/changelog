@@ -2,6 +2,7 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * New upstream release.
+    - Should build with g++ 4.1. Closes: #357119.
   * Removed --enable-shared because we don't build any libraries anyway
     and apparently it causes everything to be built twice.
   * Added myself and Sven to Uploaders. Removed Rob Weir since he is
