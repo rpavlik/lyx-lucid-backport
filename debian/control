@@ -4,7 +4,7 @@ Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
 Standards-Version: 3.7.2
-Build-Depends: libqt3-mt-dev, libforms-dev, libforms-bin, tetex-bin, libaiksaurus-dev, python, debhelper ( >= 4.0), dpatch (>= 1.19), g++-4.0 (>= 4.0.1-8)
+Build-Depends: libqt3-mt-dev, libforms-dev, libforms-bin, tetex-bin, libaiksaurus-dev, python, debhelper ( >= 4.0), dpatch (>= 1.19), g++ (>= 4:4.0.1-8)
 Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx
