@@ -15,7 +15,7 @@ lyx (1.4.1-1) UNRELEASED; urgency=low
     dependency).
   
   [Sven]
-  * Added dvipost to the recommened/suggested pacakges
+  * Added dvipost to the recommended/suggested packages
 
  -- Per Olofsson <pelle@debian.org>  Sun, 28 May 2006 17:12:50 +0200
 
