@@ -3,8 +3,9 @@ lyx (1.4.1-2) UNRELEASED; urgency=low
   [ Per Olofsson ]
   * Allow TeX Live as a substitute for teTeX. Closes: #349664.
   * Don't require python version to be lower than 2.4. Closes: #286555.
+  * Update build-deps.
 
- -- Per Olofsson <pelle@debian.org>  Tue, 30 May 2006 14:48:56 +0200
+ -- Per Olofsson <pelle@debian.org>  Tue, 30 May 2006 15:42:45 +0200
 
 lyx (1.4.1-1) unstable; urgency=low
 
