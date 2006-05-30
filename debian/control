@@ -42,7 +42,7 @@ Description: High Level Word Processor
 
 Package: lyx-common
 Architecture: all
-Depends: perl, python (<< 2.4), tetex-bin (>= 2.0.2-11) 
+Depends: perl, python, tetex-bin (>= 2.0.2-11) 
 Recommends: lyx-qt | lyx-xforms, tetex-extra, libtiff-tools, groff, imagemagick, mime-support
 Suggests: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Conflicts: lyx (<< ${Source-Version}), lyx-qt (<< ${Source-Version}), lyx-xforms (<< ${Source-Version})
