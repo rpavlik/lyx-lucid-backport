@@ -1,9 +1,26 @@
 #!/bin/sh -e
 
+pathfind() {
+    OLDIFS="$IFS"
+    IFS=:
+    for p in $PATH; do
+	if [ -x "$p/$*" ]; then
+	    IFS="$OLDIFS"
+	    return 0
+	fi
+    done
+    IFS="$OLDIFS"
+    return 1
+}
+
 if [ "$1" = configure ]; then
     update-alternatives --install /usr/bin/lyx lyx /usr/bin/lyx-qt 10 \
 	--slave /usr/share/man/man1/lyx.1.gz lyx.1.gz \
 	/usr/share/man/man1/lyx-qt.1.gz
+    
+    if pathfind update-desktop-database; then
+	update-desktop-database
+    fi
 fi
 
 #DEBHELPER#
