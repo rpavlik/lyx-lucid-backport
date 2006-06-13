@@ -14,6 +14,8 @@ include /usr/share/dpatch/dpatch.make
 
 PACKAGE = lyx
 
+FRONTENDS = qt xforms
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -49,9 +51,13 @@ CONFIGURE_OPTIONS = --prefix=/usr \
                     --without-pspell \
                     --with-x \
                     --without-included-gettext \
-        
+
+debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
+	cp debian/control.in $@
+	for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
+
 #Architecture 
-build: patch
+build-stamp: patch debian/control
 	dh_testdir
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
 	cp config/config.sub config/config.sub.backup
@@ -62,53 +68,49 @@ ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config/config.guess
 endif
 	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
-	test -d build-tree-qt || mkdir build-tree-qt
-	test -d debian/lyx-qt-tmp || mkdir debian/lyx-qt-tmp
-	cd build-tree-qt ; \
-	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend=qt --with-qt-dir=/usr/share/qt3 ; \
+	test -d build-tree || mkdir build-tree
+	cd build-tree ; \
+	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend="$(FRONTENDS)" --with-qt-dir=/usr/share/qt3 ; \
 	make ; \
-	make install DESTDIR=`pwd`/../debian/lyx-qt-tmp/
-	# cd .. # commented out since it's implied
-	test -d build-tree-xforms || mkdir build-tree-xforms
-	test -d debian/lyx-xforms-tmp || mkdir debian/lyx-xforms-tmp
-	cd build-tree-xforms ; \
-	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend=xforms ; \
-	make ; \
-	make install DESTDIR=`pwd`/../debian/lyx-xforms-tmp/
 	touch build-stamp
 
-build-arch: build-stamp
+build-arch: build-stamp debian/control
 
-build-indep: build-stamp
+build-indep: build-stamp debian/control
 
-clean: unpatch
+build: build-indep build-arch
+
+clean: unpatch debian/control
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp
-	rm -rf build-tree-qt build-tree-xforms
-	rm -rf debian/lyx-{qt,xforms}-tmp
-	rm -rf debian/{lyx,lyx-xforms,lyx-qt,lyx-common}
+	rm -rf build-tree
+	rm -rf debian/{lyx,lyx-common}
+	for i in $(FRONTENDS); do rm -rf debian/lyx-$$i; done
 	rm -f update-lyxrc.1 || true
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 
-	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
 	dh_clean 
 
-install: install-indep install-arch
-install-indep:
+install: install-indep install-arch debian/control
+install-indep: debian/control
 	dh_testdir
 	dh_testroot
 	dh_clean -k -i 
 	dh_installdirs -i
+	dh_install -i
 
-	# FIXME: use mv, not cp?
-	cp build-tree-qt/lyx.1 build-tree-qt/lyx-qt.1
-	cp debian/lyx-icon.xpm build-tree-qt/lyx-qt.xpm
-	cp build-tree-xforms/lyx.1 build-tree-xforms/lyx-xforms.1
-	cp debian/lyx-icon.xpm build-tree-xforms/lyx-xforms.xpm
-	cd build-tree-qt && make install DESTDIR=`pwd`/../debian/lyx-common/ && cd ..
+install-arch: install-indep debian/control
+	dh_testdir
+	dh_testroot
+	dh_clean -k -s 
+	dh_installdirs -s
+
+	for i in $(FRONTENDS); do cp build-tree/lyx.1 build-tree/lyx-$$i.1; done
+	for i in $(FRONTENDS); do cp debian/lyx-icon.xpm build-tree/lyx-$$i.xpm; done
+	cd build-tree && make install DESTDIR=`pwd`/../debian/lyx-common/ && cd ..
 	rm debian/lyx-common/usr/bin/lyx
 	rm debian/lyx-common/usr/share/man/man1/lyx.1
 	rm debian/lyx-common/usr/share/lyx/textclass.lst
@@ -122,31 +124,19 @@ install-indep:
 	rmdir debian/lyx-common/usr/share/lyx/tex/
 	sed -e 's/#\\print_command dvips/\\print_command dviprint/' < lib/lyxrc.example > debian/lyx-common/etc/lyxrc
 	ln -s ../../../../etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.example
-	dh_install -i
-	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
-
-install-arch: install-indep
-	dh_testdir
-	dh_testroot
-	dh_clean -k -s 
-	dh_installdirs -s
 
 	dh_install -s
-	# FIXME: use mv, not cp?
-	cp debian/lyx-xforms-tmp/usr/bin/lyx debian/lyx-xforms/usr/bin/lyx-xforms
-	cp debian/lyx-qt-tmp/usr/bin/lyx debian/lyx-qt/usr/bin/lyx-qt
+	for i in $(FRONTENDS); do cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; strip debian/lyx-$$i/usr/bin/lyx-$$i; done
 
-binary-common:
+binary-common: debian/control
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs -plyx-common ChangeLog
 	dh_installdocs
 	dh_installmenu
 	dh_installman
-	rm -rf debian/lyx-qt/usr/share/doc/lyx-qt
-	rm -rf debian/lyx-xforms/usr/share/doc/lyx-xforms
-	ln -s /usr/share/doc/lyx-common/ debian/lyx-qt/usr/share/doc/lyx-qt
-	ln -s /usr/share/doc/lyx-common/ debian/lyx-xforms/usr/share/doc/lyx-xforms
+	for i in $(FRONTENDS); do rm -rf debian/lyx-$$i/usr/share/doc/lyx-$$i; done
+	for i in $(FRONTENDS); do ln -s /usr/share/doc/lyx-common/ debian/lyx-$$i/usr/share/doc/lyx-$$i; done
 	dh_link
 	dh_strip
 	dh_compress 
@@ -159,13 +149,13 @@ binary-common:
 	dh_builddeb
 
 # Build architecture independant packages using the common target.
-binary-indep: build-indep install-indep
+binary-indep: build-indep install-indep debian/control
 	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
 # Build architecture dependant packages using the common target.
-binary-arch: build-arch install-arch
+binary-arch: build-arch install-arch debian/control
 	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
 
-binary: binary-arch binary-indep
+binary: binary-arch binary-indep debian/control
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch
 

@@ -1,2 +1,2 @@
-build-tree-qt/lyx-qt.xpm /usr/share/pixmaps
+build-tree/lyx-qt.xpm /usr/share/pixmaps
 debian/lyx-qt.desktop /usr/share/applications

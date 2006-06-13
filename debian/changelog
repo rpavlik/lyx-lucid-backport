@@ -8,8 +8,10 @@ lyx (1.4.1-2) UNRELEASED; urgency=low
   * Added desktop file for lyx-qt so it shows up in menus etc. Closes:
     #284624
   * Made lyx-common recommend psutils. Closes: #252077
+  * Applied Georg Baum's patch to get faster builds and optional GTK
+    frontend.
 
- -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 21:33:16 +0200
+ -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 21:57:07 +0200
 
 lyx (1.4.1-1) unstable; urgency=low
 
