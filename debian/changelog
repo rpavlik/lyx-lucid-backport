@@ -5,8 +5,10 @@ lyx (1.4.1-2) UNRELEASED; urgency=low
   * Don't require python version to be lower than 2.4. Closes: #286555.
   * Update build-deps.
   * Provide lyx binary using alternatives. Closes: #330124
+  * Added desktop file for lyx-qt so it shows up in menus etc. Closes:
+    #284624
 
- -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 20:52:22 +0200
+ -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 21:29:48 +0200
 
 lyx (1.4.1-1) unstable; urgency=low
 
