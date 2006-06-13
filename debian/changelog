@@ -1,4 +1,4 @@
-lyx (1.4.1-2) UNRELEASED; urgency=low
+lyx (1.4.1-2) unstable; urgency=low
 
   [ Per Olofsson ]
   * Allow TeX Live as a substitute for teTeX. Closes: #349664, #349665.
@@ -15,7 +15,7 @@ lyx (1.4.1-2) UNRELEASED; urgency=low
   * Don't conflict with older versions because it only makes life
     difficult for package managers.
 
- -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 22:40:41 +0200
+ -- Per Olofsson <pelle@debian.org>  Tue, 13 Jun 2006 23:01:39 +0200
 
 lyx (1.4.1-1) unstable; urgency=low
 
