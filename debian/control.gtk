@@ -1,7 +1,7 @@
 
 Package: lyx-gtk
 Architecture: any
-Depends: latex-xft-fonts, lyx-common (= ${Source-Version}), ${shlibs:Depends}
+Depends: latex-xft-fonts, lyx-common (= ${source:Version}), ${shlibs:Depends}
 Suggests: menu
 Description: High Level Word Processor - GTK frontend (experimental)
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
