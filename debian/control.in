@@ -10,7 +10,7 @@ Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 Package: lyx
 Architecture: all
 Depends: lyx-common, lyx-qt | lyx-xforms, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
-Recommends: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Recommends: aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Suggests: chktex, nowebm
 Description: High Level Word Processor
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
@@ -44,7 +44,7 @@ Package: lyx-common
 Architecture: all
 Depends: perl, python, tetex-bin (>= 2.0.2-11) | texlive-latex-base
 Recommends: lyx-qt | lyx-xforms, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
-Suggests: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Suggests: aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Conflicts: lyx (<< ${Source-Version}), lyx-qt (<< ${Source-Version}), lyx-xforms (<< ${Source-Version})
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
