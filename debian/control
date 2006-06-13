@@ -4,13 +4,13 @@ Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
 Standards-Version: 3.7.2
-Build-Depends: libqt3-mt-dev, libforms-dev, libforms-bin, tetex-bin, libaiksaurus-dev, python, debhelper (>= 4.0), dpatch (>= 1.19), g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libxft-dev, libxpm-dev, x-dev, libice-dev, libsm-dev, libjpeg-dev
+Build-Depends: libqt3-mt-dev, libforms-dev, libforms-bin, tetex-bin, libaiksaurus-dev, python, debhelper (>= 4.0), dpatch (>= 1.19), g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libxft-dev, libxpm-dev, x-dev, libice-dev, libsm-dev, libjpeg-dev, libaspell-dev
 Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx
 Architecture: all
 Depends: lyx-common, lyx-qt | lyx-xforms, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
-Recommends: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Suggests: chktex, nowebm
 Description: High Level Word Processor
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
@@ -28,7 +28,6 @@ Description: High Level Word Processor
  .
  You can extend the functionality of LyX by installing these packages:
   * dvipost: display tracked changes in the dvi output
-  * ispell or aspell: an interactive spelling corrector
   * kdeprint or lpr: a printing tool
   * konqueror or www-browser: allows to view HTML documents
   * kghostview or postscript-viewer: allows to view PostScript documents
@@ -44,7 +43,7 @@ Package: lyx-common
 Architecture: all
 Depends: perl, python, tetex-bin (>= 2.0.2-11) | texlive-latex-base
 Recommends: lyx-qt | lyx-xforms, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
-Suggests: ispell | aspell, kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Conflicts: lyx (<< ${Source-Version}), lyx-qt (<< ${Source-Version}), lyx-xforms (<< ${Source-Version})
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window

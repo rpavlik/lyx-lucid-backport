@@ -49,6 +49,7 @@ CONFIGURE_OPTIONS = --prefix=/usr \
                     --with-aiksaurus \
                     --with-gnu-ld \
                     --without-pspell \
+                    --with-aspell \
                     --with-x \
                     --without-included-gettext \
 
