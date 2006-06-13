@@ -11,5 +11,5 @@ Icon=lyx-qt.xpm
 StartupNotify=false
 StartupWMClass=Lyx-qt
 Terminal=false
-Categories=Qt;WordProcessor;
+Categories=Qt;Office;WordProcessor;
 MimeType=text/x-lyx;application/x-lyx;
