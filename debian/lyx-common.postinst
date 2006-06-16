@@ -1,10 +1,11 @@
-#!/bin/sh
-if [ -e /usr/bin/texconfig ] && fgrep -q TEXMFMAIN /etc/texmf/texmf.cnf; then
-     /usr/bin/texhash
+#!/bin/sh -e
+
+if [ "$1" = configure ]; then
+    texhash
+
+    printf "Running update-lyxrc..."
+    update-lyxrc --system >/dev/null
+    echo "done."
 fi
-echo -n "Running update-lyxrc... "
-update-lyxrc --system >/dev/null
-echo "done"
 
 #DEBHELPER#
-
