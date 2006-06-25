@@ -3,6 +3,7 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
   * Added Office and Application categories to desktop file.
+    Closes: #375307
   * Cleanup maintainer scripts:
     - Catch errors (use -e).
     - Don't use absolute paths.
