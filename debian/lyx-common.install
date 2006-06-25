@@ -3,4 +3,4 @@ debian/scripts/lyxpdflatex.sh usr/share/lyx/scripts/
 debian/scripts/lyxprint.sh usr/share/lyx/scripts/
 debian/scripts/lyxview.sh usr/share/lyx/scripts/
 debian/scripts/update-lyxrc usr/bin/
-debian/lyx.xpm /usr/share/pixmaps/
+lib/images/lyx.xpm /usr/share/pixmaps/
