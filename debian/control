@@ -10,7 +10,7 @@ Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 Package: lyx
 Architecture: all
 Depends: lyx-common, lyx-qt | lyx-xforms | lyx-gtk, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
-Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Suggests: chktex, nowebm
 Description: High Level Word Processor
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
@@ -31,7 +31,7 @@ Description: High Level Word Processor
   * kdeprint or lpr: a printing tool
   * konqueror or www-browser: allows to view HTML documents
   * kghostview or postscript-viewer: allows to view PostScript documents
-  * kghostview or pdf-viewer: allows to view PDF documents
+  * kpdf or pdf-viewer: allows to view PDF documents
   * sgmltools-lite: allows to export SGML DocBook documents
   * linuxdoc-tools: allows to export SGML LinuxDoc documents
   * rcs: allows to use versioning feature
@@ -43,7 +43,7 @@ Package: lyx-common
 Architecture: all
 Depends: perl, python, tetex-bin (>= 2.0.2-11) | texlive-latex-base
 Recommends: lyx-qt | lyx-xforms | lyx-gtk, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
-Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kghostview | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
  System. It makes the power and typesetting quality of LaTeX available for
