@@ -25,6 +25,9 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
   * Added debian/watch
   * Update debian/copyright
   * Use lib/images/lyx.xpm instead of debian/lyx.xpm
+  
+  [ Sven Hoexter ]
+  * Removed 03.latex8_counters.dpatch - no longer needed
 
  -- Per Olofsson <pelle@debian.org>  Sun, 25 Jun 2006 17:13:58 +0200
 
