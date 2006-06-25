@@ -20,7 +20,6 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
     Closes: #374033
   * Use dh_desktop.
   * Use debhelper v5.
-  * Use Debian's libboost instead of the included.
   * Fix indentation in debian/rules
   * Rename the icon to lyx.xpm and put it in lyx-common.
   * Added debian/watch

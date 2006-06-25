@@ -53,7 +53,6 @@ CONFIGURE_OPTIONS = \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--without-included-boost \
 
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
 	cp debian/control.in $@
