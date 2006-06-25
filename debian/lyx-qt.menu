@@ -1,4 +1,3 @@
 ?package(lyx-qt):needs="X11" section="Apps/Editors" \
   title="LyX (Qt)" command="/usr/bin/lyx-qt" \
-  icon="/usr/share/pixmaps/lyx-qt.xpm" hints="Word processors"
-
+  icon="/usr/share/pixmaps/lyx.xpm" hints="Word processors"
