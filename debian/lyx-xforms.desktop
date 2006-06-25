@@ -1,0 +1,15 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Name=LyX (XForms)
+GenericName=Structured Word Processor
+Comment=WYSIWYM (What You See Is What You Mean) word processor with LaTeX output
+Exec=lyx-xforms %F
+TryExec=lyx-xforms
+Icon=lyx-xforms.xpm
+StartupNotify=false
+StartupWMClass=XForm
+Terminal=false
+Categories=Application;Office;WordProcessor;
+MimeType=text/x-lyx;application/x-lyx;
