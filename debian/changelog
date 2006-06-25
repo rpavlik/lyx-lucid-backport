@@ -10,6 +10,7 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
     - Only run texhash when needed (i.e. not twice).
     - Remove unnecessary conditionals.
   * Removed debian/MANIFEST.lyx-common (what was its purpose?).
+  * Added "(Qt)" to the application name in the desktop file.
 
  -- Per Olofsson <pelle@debian.org>  Sat, 17 Jun 2006 00:27:43 +0200
 
