@@ -24,8 +24,9 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
   * Fix indentation in debian/rules
   * Rename the icon to lyx.xpm and put it in lyx-common.
   * Added debian/watch
+  * Update debian/copyright
 
- -- Per Olofsson <pelle@debian.org>  Sun, 25 Jun 2006 15:17:00 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 25 Jun 2006 17:01:08 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
