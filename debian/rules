@@ -36,23 +36,24 @@ else
 	CFLAGS += -O2
 endif
 
-CONFIGURE_OPTIONS = --prefix=/usr \
-                    --infodir=/usr/share/info \
-                    --mandir=/usr/share/man
-                    --disable-dependency-tracking \
-                    --enable-warnings \
-                    --disable-debug \
-                    --enable-optimization='\''$$CXXFLAGS'\'' \
-                    --enable-assertions \
-                    --enable-nls \
-                    --without-included-string \
-                    --with-aiksaurus \
-                    --with-gnu-ld \
-                    --without-pspell \
-                    --with-aspell \
-                    --with-x \
-                    --without-included-gettext \
-                    --without-included-boost \
+CONFIGURE_OPTIONS = \
+	--prefix=/usr \
+	--infodir=/usr/share/info \
+	--mandir=/usr/share/man
+	--disable-dependency-tracking \
+	--enable-warnings \
+	--disable-debug \
+	--enable-optimization='\''$$CXXFLAGS'\'' \
+	--enable-assertions \
+	--enable-nls \
+	--without-included-string \
+	--with-aiksaurus \
+	--with-gnu-ld \
+	--without-pspell \
+	--with-aspell \
+	--with-x \
+	--without-included-gettext \
+	--without-included-boost \
 
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
 	cp debian/control.in $@
