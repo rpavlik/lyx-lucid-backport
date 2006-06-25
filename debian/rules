@@ -102,6 +102,7 @@ install-indep: debian/control
 	dh_clean -k -i 
 	dh_installdirs -i
 	dh_install -i
+	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 
 install-arch: install-indep debian/control
 	dh_testdir
