@@ -137,6 +137,7 @@ binary-common: debian/control
 	dh_installdocs
 	dh_installmenu
 	dh_installman
+	dh_desktop
 	for i in $(FRONTENDS); do rm -rf debian/lyx-$$i/usr/share/doc/lyx-$$i; done
 	for i in $(FRONTENDS); do ln -s /usr/share/doc/lyx-common/ debian/lyx-$$i/usr/share/doc/lyx-$$i; done
 	dh_link
