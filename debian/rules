@@ -12,8 +12,6 @@
 
 include /usr/share/dpatch/dpatch.make
 
-PACKAGE = lyx
-
 FRONTENDS = qt xforms
 
 # Uncomment this to turn on verbose mode.
@@ -37,6 +35,8 @@ else
 endif
 
 CONFIGURE_OPTIONS = \
+	--host=$(DEB_HOST_GNU_TYPE) \
+	--build=$(DEB_BUILD_GNU_TYPE) \
 	--prefix=/usr \
 	--infodir=/usr/share/info \
 	--mandir=/usr/share/man
@@ -53,6 +53,8 @@ CONFIGURE_OPTIONS = \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
+	--with-frontend="$(FRONTENDS)" \
+	--with-qt-dir=/usr/share/qt3 \
 
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
 	cp debian/control.in $@
@@ -71,9 +73,8 @@ ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 endif
 	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
 	test -d build-tree || mkdir build-tree
-	cd build-tree ; \
-	CFLAGS="$(CFLAGS)" ../configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) $(CONFIGURE_OPTIONS) --with-frontend="$(FRONTENDS)" --with-qt-dir=/usr/share/qt3 ; \
-	make ; \
+	cd build-tree && CFLAGS="$(CFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+	cd build-tree && make
 	touch build-stamp
 
 build-arch: build-stamp debian/control
@@ -85,15 +86,15 @@ build: build-indep build-arch
 clean: unpatch debian/control
 	dh_testdir
 	dh_testroot
-	rm -f build-arch-stamp build-indep-stamp
+
+	-$(MAKE) distclean
+
+	rm -f build-arch-stamp build-indep-stamp build-stamp
 	rm -rf build-tree
-	rm -rf debian/{lyx,lyx-common}
-	for i in $(FRONTENDS); do rm -rf debian/lyx-$$i; done
-	rm -f update-lyxrc.1 || true
+	rm -f update-lyxrc.1
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 
-	-$(MAKE) distclean
 	dh_clean 
 
 install: install-indep install-arch debian/control
@@ -117,7 +118,7 @@ install-arch: install-indep debian/control
 
 	for i in $(FRONTENDS); do cp build-tree/lyx.1 build-tree/lyx-$$i.1; done
 	for i in $(FRONTENDS); do cp debian/lyx-icon.xpm build-tree/lyx-$$i.xpm; done
-	cd build-tree && make install DESTDIR=`pwd`/../debian/lyx-common/ && cd ..
+	cd build-tree && make install DESTDIR=`pwd`/../debian/lyx-common/
 	rm debian/lyx-common/usr/bin/lyx
 	rm debian/lyx-common/usr/share/man/man1/lyx.1
 	rm debian/lyx-common/usr/share/lyx/textclass.lst
@@ -127,13 +128,16 @@ install-arch: install-indep debian/control
 	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py
 	rm -r debian/lyx-common/usr/share/lyx/xfonts/
 	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
-	mv debian/lyx-common/usr/share/lyx/tex/* debian/lyx-common/usr/share/texmf/tex/latex/lyx/
+	mv debian/lyx-common/usr/share/lyx/tex/* \
+		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
 	rmdir debian/lyx-common/usr/share/lyx/tex/
 	sed -e 's/#\\print_command dvips/\\print_command dviprint/' < lib/lyxrc.example > debian/lyx-common/etc/lyxrc
 	ln -s ../../../../etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.example
 
 	dh_install -s
-	for i in $(FRONTENDS); do cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; strip debian/lyx-$$i/usr/bin/lyx-$$i; done
+	for i in $(FRONTENDS); do \
+		cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; \
+	done
 
 binary-common: debian/control
 	dh_testdir
