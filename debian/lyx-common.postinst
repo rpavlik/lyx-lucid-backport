@@ -6,6 +6,10 @@ if [ "$1" = configure ]; then
     printf "Running update-lyxrc..."
     update-lyxrc --system >/dev/null
     echo "done."
+
+    if [ -x "`which gtk-update-icon-cache 2>/dev/null`" ]; then
+	gtk-update-icon-cache /usr/share/icons/hicolor
+    fi
 fi
 
 #DEBHELPER#

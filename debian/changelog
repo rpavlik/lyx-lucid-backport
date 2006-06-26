@@ -21,7 +21,8 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
   * Use dh_desktop.
   * Use debhelper v5.
   * Fix indentation in debian/rules
-  * Rename the icon to lyx.xpm and put it in lyx-common.
+  * Put the icons in /usr/share/icons and also link to upstream's 48x48
+    size icon.
   * Added debian/watch
   * Update debian/copyright
   

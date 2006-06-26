@@ -1,4 +1,4 @@
 ?package(lyx-gtk):needs="X11" section="Apps/Editors" \
   title="LyX (Gtk)" command="/usr/bin/lyx-gtk" \
-  icon="/usr/share/pixmaps/lyx-gtk.xpm" hints="Word processors"
+  icon="/usr/share/icons/hicolor/32x32/apps/lyx.xpm" hints="Word processors"
 
