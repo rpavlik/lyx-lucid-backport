@@ -39,11 +39,11 @@ CONFIGURE_OPTIONS = \
 	--build=$(DEB_BUILD_GNU_TYPE) \
 	--prefix=/usr \
 	--infodir=/usr/share/info \
-	--mandir=/usr/share/man
+	--mandir=/usr/share/man \
 	--disable-dependency-tracking \
 	--enable-warnings \
 	--disable-debug \
-	--enable-optimization='\''$$CXXFLAGS'\'' \
+	--enable-optimization=$$CXXFLAGS \
 	--enable-assertions \
 	--enable-nls \
 	--without-included-string \
