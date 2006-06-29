@@ -31,8 +31,10 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Cleanup debian/rules
+  * Update config.{sub,guess} handling and build-depend on autotools-
+    dev.
 
- -- Per Olofsson <pelle@debian.org>  Mon, 26 Jun 2006 23:54:16 +0200
+ -- Per Olofsson <pelle@debian.org>  Thu, 29 Jun 2006 17:35:22 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 

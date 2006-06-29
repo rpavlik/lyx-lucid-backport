@@ -48,14 +48,17 @@ build: patch build-stamp debian/control
 build-stamp:
 	dh_testdir
 	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
-ifneq "$(wildcard /usr/share/misc/config.sub)" ""
-	cp config/config.sub config/config.sub.backup
-	ln -s /usr/share/misc/config.sub config.sub
-endif
-ifneq "$(wildcard /usr/share/misc/config.guess)" ""
-	cp config/config.guess config/config.guess.backup
-	cp -f /usr/share/misc/config.guess config/config.guess
-endif
+
+	[ -f config/config.sub.backup ] \
+		|| mv config/config.sub config/config.sub.backup
+	[ -f config/config.sub ] \
+		|| ln -s /usr/share/misc/config.sub config/config.sub
+
+	[ -f config/config.guess.backup ] \
+		|| mv config/config.guess config/config.guess.backup
+	[ -f config/config.guess ] \
+		|| ln -s /usr/share/misc/config.guess config/config.guess
+
 	test -d build-tree || mkdir build-tree
 	cd build-tree && CFLAGS="$(CFLAGS)" ../configure $(CONFIGURE_OPTIONS)
 	cd build-tree && $(MAKE)
