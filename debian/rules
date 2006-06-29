@@ -44,28 +44,22 @@ debian/control: debian/control.in debian/control.qt debian/control.xforms debian
 	cp debian/control.in $@
 	for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
 
-#Architecture 
-build-stamp: patch debian/control
+build: patch build-stamp debian/control
+build-stamp:
 	dh_testdir
+	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
 ifneq "$(wildcard /usr/share/misc/config.sub)" ""
 	cp config/config.sub config/config.sub.backup
-	cp -f /usr/share/misc/config.sub config.sub
+	ln -s /usr/share/misc/config.sub config.sub
 endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp config/config.guess config/config.guess.backup
 	cp -f /usr/share/misc/config.guess config/config.guess
 endif
-	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
 	test -d build-tree || mkdir build-tree
 	cd build-tree && CFLAGS="$(CFLAGS)" ../configure $(CONFIGURE_OPTIONS)
-	cd build-tree && make
+	cd build-tree && $(MAKE)
 	touch build-stamp
-
-build-arch: build-stamp debian/control
-
-build-indep: build-stamp debian/control
-
-build: build-indep build-arch
 
 clean: unpatch debian/control
 	dh_testdir
@@ -73,36 +67,24 @@ clean: unpatch debian/control
 
 	-$(MAKE) distclean
 
-	rm -f build-arch-stamp build-indep-stamp build-stamp
+	rm -f build-stamp
 	rm -rf build-tree
 	rm -f update-lyxrc.1
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 
-	dh_clean 
+	dh_clean
 
-install: install-indep install-arch debian/control
-install-indep: debian/control
+install:
 	dh_testdir
 	dh_testroot
-	dh_clean -k -i 
-	dh_installdirs -i
-	dh_install -i
-	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
-	ln -s ../../../../lyx/images/lyx.xpm \
-		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
-	cp debian/lyx-32x32.xpm \
-		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
+	dh_clean -k
 
-install-arch: install-indep debian/control
-	dh_testdir
-	dh_testroot
-	dh_clean -k -s 
-	dh_installdirs -s
+	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common/
 
-	for i in $(FRONTENDS); do cp build-tree/lyx.1 build-tree/lyx-$$i.1; done
-	for i in $(FRONTENDS); do cp debian/lyx-icon.xpm build-tree/lyx-$$i.xpm; done
-	cd build-tree && make install DESTDIR=`pwd`/../debian/lyx-common/
+	dh_installdirs
+	dh_install
+
 	rm debian/lyx-common/usr/bin/lyx
 	rm debian/lyx-common/usr/share/man/man1/lyx.1
 	rm debian/lyx-common/usr/share/lyx/textclass.lst
@@ -115,13 +97,23 @@ install-arch: install-indep debian/control
 	mv debian/lyx-common/usr/share/lyx/tex/* \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
 	rmdir debian/lyx-common/usr/share/lyx/tex/
-	sed -e 's/#\\print_command dvips/\\print_command dviprint/' < lib/lyxrc.example > debian/lyx-common/etc/lyxrc
+
+	sed -e 's/#\\print_command dvips/\\print_command dviprint/' \
+		< lib/lyxrc.example > debian/lyx-common/etc/lyxrc
+
 	ln -s ../../../../etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.example
 
-	dh_install -s
-	for i in $(FRONTENDS); do \
+	ln -s ../../../../lyx/images/lyx.xpm \
+		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
+	cp debian/lyx-32x32.xpm \
+		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
+
+	set -e; for i in $(FRONTENDS); do
 		cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; \
+		cp build-tree/lyx.1 build-tree/lyx-$$i.1; \
 	done
+
+	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 
 binary-common: debian/control
 	dh_testdir
@@ -131,13 +123,14 @@ binary-common: debian/control
 	dh_installmenu
 	dh_installman
 	dh_desktop
-	for i in $(FRONTENDS); do rm -rf debian/lyx-$$i/usr/share/doc/lyx-$$i; done
-	for i in $(FRONTENDS); do ln -s /usr/share/doc/lyx-common/ debian/lyx-$$i/usr/share/doc/lyx-$$i; done
+	set -e; for i in $(FRONTENDS); do \
+		rm -rf debian/lyx-$$i/usr/share/doc/lyx-$$i; \
+		ln -s lyx-common debian/lyx-$$i/usr/share/doc/lyx-$$i; \
+	done
 	dh_link
 	dh_strip
 	dh_compress 
 	dh_fixperms
-	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
@@ -145,13 +138,17 @@ binary-common: debian/control
 	dh_builddeb
 
 # Build architecture independant packages using the common target.
-binary-indep: build-indep install-indep debian/control
+binary-indep: build install
 	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
 # Build architecture dependant packages using the common target.
-binary-arch: build-arch install-arch debian/control
+binary-arch: build install
 	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
 
-binary: binary-arch binary-indep debian/control
-.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch
+binary: build install binary-common
 
+build-arch: build
+build-indep: build
+
+.PHONY: build build-arch build-indep clean binary-common \
+	binary-indep binary-arch binary install
