@@ -1,8 +1,6 @@
 #!/bin/sh
 
-# $Id: update-lyxrc,v 1.2 2004/03/04 11:51:20 dexter Exp $
-
-# pod2man --section=1 --release="Debian" --center=" " --date="26 Feb 2004"
+# pod2man --section=1 --release="Debian" --center=" " --date="28 June 2006"
 
 error () {
     echo "$@" 1>&2
@@ -11,21 +9,15 @@ error () {
 
 
 help () {
-    echo "Usage: update-lyxrc [ --system | --user ]"
+    echo "Usage: update-lyxrc [ --user ]"
     exit 1
 }
 
 
 configure () {
     test -d "$1" || error "Can't find directory $1"
-    touch "$1/lyxrc.defaults" || exit 1
     cd "$1" || exit 1
-    /usr/share/lyx/configure
-}
-
-
-system () {
-    configure /usr/share/lyx
+    /usr/share/lyx/configure.py
 }
 
 
@@ -39,13 +31,12 @@ if [ "$#" -gt 1 ]; then
 else
     if [ -n "$1" ]; then
         case "$1" in
-            --system) system;;
             --user) user;;
             *) help;;
         esac
     else
         if [ "$(id -u)" = "0" ]; then
-            system
+            echo "You should not use this script with uid 0!"
         else
             user
         fi
@@ -62,12 +53,12 @@ update-lyxrc - Update LyX default configuration
 
 =head1 SYNOPSIS
 
-B<update-lyxrc> S<[B<--system>|B<--user>]>
+B<update-lyxrc> S<[B<--user>]>
 
 =head1 DESCRIPTION
 
 B<update-lyxrc> is a tool for updating system or user's LyX
-configuration file. This is the same as running Edit->Reconfigure from
+configuration file. This is the same as running Tools->Reconfigure from
 LyX's menu.
 
 =head1 OPTIONS
@@ -76,11 +67,11 @@ LyX's menu.
 
 =item B<--system>
 
-Update system configuration. This is default for root.
+This function is deprecated since Lyx 1.4.2.
 
 =item B<--user>
 
-Update user's configuration. This is default for non-root.
+Update user's configuration.
 
 =back
 

@@ -1,5 +1,14 @@
-lyx (1.4.1-3) UNRELEASED; urgency=low
+lyx (1.4.1+1.4.2svn20060626-1) UNRELEASED; urgency=low
 
+  [ Sven Hoexter ]
+  * Changed scripts/update-lyxrc to trigger /usr/share/lyx/configure.py
+    instead of /usr/share/lyx/configure.
+  * Lyx 1.4.2 no longer uses a global lyxrc file - modified
+    scripts/update-lyxrc and rules to reflect this change.
+    Added a note to NEWS.Debian.
+  * Removed 02.htlatex_documentation.dpatch - included upstream
+  * Removed 03.latex8_counters.dpatch - no longer needed
+  
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
   * Added Office and Application categories to desktop file.
@@ -25,16 +34,10 @@ lyx (1.4.1-3) UNRELEASED; urgency=low
     size icon.
   * Added debian/watch
   * Update debian/copyright
-
-  [ Sven Hoexter ]
-  * Removed 03.latex8_counters.dpatch - no longer needed
-
-  [ Per Olofsson ]
   * Cleanup debian/rules
-  * Update config.{sub,guess} handling and build-depend on autotools-
-    dev.
+  * Update config.{sub,guess} handling and build-depend on autotools-dev.
 
- -- Per Olofsson <pelle@debian.org>  Thu, 29 Jun 2006 17:35:22 +0200
+ -- Per Olofsson <pelle@debian.org>  Mon, 26 Jun 2006 23:54:16 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
