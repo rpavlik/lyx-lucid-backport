@@ -9,6 +9,8 @@ lyx (1.4.1+1.4.2svn20060626-1) UNRELEASED; urgency=low
   * Removed 02.htlatex_documentation.dpatch - included upstream
   * Removed 03.latex8_counters.dpatch - no longer needed
   * Added dvipng in control(.in) to Suggests Closes: #297635
+  * Added debian/patches/05.configure.py_prog_prefer.dpatch
+    We now prefer sensible-(browser|editor) over other listed alternatives.
   
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
