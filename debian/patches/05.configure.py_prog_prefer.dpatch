@@ -1,0 +1,51 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 05.configure.py_prog_prefer.dpatch by Sven Hoexter <sven@timegate.de>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: configure.py should prefer some special programs from the debianutils 
+## DP: package
+
+@DPATCH@
+
+--- lyx-1.4.2svn/lib/configure.py-orig	2006-07-04 11:08:03.000000000 +0200
++++ lyx-1.4.2svn/lib/configure.py	2006-07-04 14:37:17.000000000 +0200
+@@ -232,7 +232,7 @@
+ \Format xpm        xpm     XPM                    "" "%s"	"%s"''' % \
+     (iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie) )
+   #
+-  checkViewer('a text editor', ['xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
++  checkViewer('a text editor', ['sensible-editor','xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
+     'nedit', 'gedit', 'notepad'],
+     rc_entry = [r'''\Format asciichess asc    "Plain text (chess output)"  "" ""	"%%"
+ \Format asciiimage asc    "Plain text (image)"         "" ""	"%%"
+@@ -249,17 +249,17 @@
+   #
+   #checkProg('a Postscript interpreter', ['gs'],
+   #  rc_entry = [ r'\ps_command "%%"' ])
+-  checkViewer('a Postscript previewer', ['gv', 'ghostview -swap', 'kghostview'],
++  checkViewer('a Postscript previewer', ['kghostview', 'gv','ghostview -swap', 'evince'],
+     rc_entry = [r'''\Format eps        eps     EPS                    "" "%%"	""
+ \Format ps         ps      Postscript             t  "%%"	""'''])
+   #
+-  checkViewer('a PDF previewer', ['acrobat', 'acroread', 'gv', 'ghostview', \
+-              'xpdf', 'kpdf', 'kghostview'],
++  checkViewer('a PDF previewer', ['xpdf', 'acroread', 'acrobat', 'gv', 'ghostview', \
++              'kpdf', 'kghostview','evince'],
+     rc_entry = [r'''\Format pdf        pdf    "PDF (ps2pdf)"          P  "%%"	""
+ \Format pdf2       pdf    "PDF (pdflatex)"        F  "%%"	""
+ \Format pdf3       pdf    "PDF (dvipdfm)"         m  "%%"	""'''])
+   #
+-  checkViewer('a DVI previewer', ['xdvi', 'kdvi'],
++  checkViewer('a DVI previewer', ['kdvi', 'xdvi','xgdvi','tkdvi','evince'],
+     rc_entry = [r'\Format dvi        dvi     DVI                    D  "%%"	""'])
+   if ((os.name == 'nt' or sys.platform == 'cygwin') and
+       checkProg('DVI to DTL converter', ['dv2dt']) != ['', ''] and
+@@ -267,7 +267,7 @@
+     # Windows only: DraftDVI
+     addToRC(r'\Format dvi2       dvi     DraftDVI               ""	""	""')
+   #
+-  checkViewer('a HTML previewer', ['mozilla file://$$p$$i', 'netscape'],
++  checkViewer('a HTML previewer', ['sensible-browser file://$$p$$i','mozilla file://$$p$$i', 'netscape'],
+     rc_entry = [r'\Format html       html    HTML                   H  "%%"	""'])
+   #
+   # entried that do not need checkProg
