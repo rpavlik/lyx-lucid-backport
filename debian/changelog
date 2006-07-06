@@ -1,4 +1,4 @@
-lyx (1.4.1+1.4.2svn20060626-1) UNRELEASED; urgency=low
+lyx (1.4.1+1.4.2svn20060706-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * Changed scripts/update-lyxrc to trigger /usr/share/lyx/configure.py
@@ -8,10 +8,11 @@ lyx (1.4.1+1.4.2svn20060626-1) UNRELEASED; urgency=low
     Added a note to NEWS.Debian.
   * Removed 02.htlatex_documentation.dpatch - included upstream
   * Removed 03.latex8_counters.dpatch - no longer needed
+  * Removed 04.fix_manpages.dpatch - included upstream
   * Added dvipng in control(.in) to Suggests Closes: #297635
   * Added debian/patches/05.configure.py_prog_prefer.dpatch
     We now prefer sensible-(browser|editor) over other listed alternatives.
-  
+
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
   * Added Office and Application categories to desktop file.
@@ -40,7 +41,7 @@ lyx (1.4.1+1.4.2svn20060626-1) UNRELEASED; urgency=low
   * Cleanup debian/rules
   * Update config.{sub,guess} handling and build-depend on autotools-dev.
 
- -- Sven Hoexter <sven@timegate.de>  Tue,  4 Jul 2006 16:23:15 +0200
+ -- Sven Hoexter <sven@timegate.de>  Thu,  6 Jul 2006 16:46:23 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
