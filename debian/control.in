@@ -41,7 +41,7 @@ Description: High Level Word Processor
 
 Package: lyx-common
 Architecture: all
-Depends: perl, python, tetex-bin (>= 2.0.2-11) | texlive-latex-base, xdg-open
+Depends: perl, python, tetex-bin (>= 2.0.2-11) | texlive-latex-base, xdg-utils
 Recommends: lyx-qt | lyx-xforms | lyx-gtk, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
 Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
 Description: High Level Word Processor - common files

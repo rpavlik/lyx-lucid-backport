@@ -13,7 +13,7 @@ lyx (1.4.1+1.4.2svn20060711-1) UNRELEASED; urgency=low
   * Added debian/patches/05.configure.py_prog_prefer.dpatch
     We now prefer sensible-(browser|editor) and xdg-open over other listed
     alternatives.
-  * lyx-common now depends on xdg-open.
+  * lyx-common now depends on xdg-utils
 
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
