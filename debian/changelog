@@ -1,4 +1,4 @@
-lyx (1.4.1+1.4.2svn20060706-1) UNRELEASED; urgency=low
+lyx (1.4.1+1.4.2svn200607011-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * Changed scripts/update-lyxrc to trigger /usr/share/lyx/configure.py
@@ -11,7 +11,9 @@ lyx (1.4.1+1.4.2svn20060706-1) UNRELEASED; urgency=low
   * Removed 04.fix_manpages.dpatch - included upstream
   * Added dvipng in control(.in) to Suggests Closes: #297635
   * Added debian/patches/05.configure.py_prog_prefer.dpatch
-    We now prefer sensible-(browser|editor) over other listed alternatives.
+    We now prefer sensible-(browser|editor) and xdg-open over other listed
+    alternatives.
+  * lyx-common now depends on xdg-open.
 
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
@@ -41,7 +43,7 @@ lyx (1.4.1+1.4.2svn20060706-1) UNRELEASED; urgency=low
   * Cleanup debian/rules
   * Update config.{sub,guess} handling and build-depend on autotools-dev.
 
- -- Sven Hoexter <sven@timegate.de>  Thu,  6 Jul 2006 16:46:23 +0200
+ -- Sven Hoexter <sven@timegate.de>  Tue, 11 Jul 2006 12:47:05 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
