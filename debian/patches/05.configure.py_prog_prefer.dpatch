@@ -7,8 +7,8 @@
 
 @DPATCH@
 
---- configure.py-orig	2006-07-11 12:40:53.000000000 +0200
-+++ configure.py	2006-07-11 12:38:23.000000000 +0200
+--- lyx-1.4.2svn/lib/configure.py-orig	2006-07-11 12:40:53.000000000 +0200
++++ lyx-1.4.2svn/lib/configure.py	2006-07-11 12:38:23.000000000 +0200
 @@ -209,7 +209,7 @@
    checkViewer('a FEN viewer and editor', ['xboard -lpf $$i -mode EditPosition'],
      rc_entry = [r'\Format fen        fen     FEN                    "" "%%"	"%%"'])
