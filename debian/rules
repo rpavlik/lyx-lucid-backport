@@ -105,7 +105,7 @@ install:
 	cp debian/lyx-32x32.xpm \
 		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
 
-	set -e; for i in $(FRONTENDS); do
+	set -e; for i in $(FRONTENDS); do \
 		cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; \
 		cp build-tree/lyx.1 build-tree/lyx-$$i.1; \
 	done
