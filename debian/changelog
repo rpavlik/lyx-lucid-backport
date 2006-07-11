@@ -1,4 +1,4 @@
-lyx (1.4.1+1.4.2svn20060711-1) UNRELEASED; urgency=low
+lyx (1.4.1+1.4.2svn20060711-1) unstable; urgency=low
 
   [ Sven Hoexter ]
   * Changed scripts/update-lyxrc to trigger /usr/share/lyx/configure.py
@@ -43,7 +43,7 @@ lyx (1.4.1+1.4.2svn20060711-1) UNRELEASED; urgency=low
   * Cleanup debian/rules
   * Update config.{sub,guess} handling and build-depend on autotools-dev.
 
- -- Sven Hoexter <sven@timegate.de>  Tue, 11 Jul 2006 12:47:05 +0200
+ -- Sven Hoexter <sven@timegate.de>  Tue, 11 Jul 2006 18:06:47 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
