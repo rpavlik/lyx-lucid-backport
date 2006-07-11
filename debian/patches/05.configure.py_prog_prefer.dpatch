@@ -54,7 +54,7 @@
      addToRC(r'\Format dvi2       dvi     DraftDVI               ""	""	""')
    #
 -  checkViewer('a HTML previewer', ['mozilla file://$$p$$i', 'netscape'],
-+  checkViewer('a HTML previewer', ['sensible-browser file://$$p$$i','mozilla file://$$p$$i', 'netscape'],
++  checkViewer('a HTML previewer', ['xdg-open file://$$p$$i','mozilla file://$$p$$i', 'netscape'],
      rc_entry = [r'\Format html       html    HTML                   H  "%%"	""'])
    #
    # entried that do not need checkProg
