@@ -41,8 +41,13 @@ CONFIGURE_OPTIONS = \
 	--with-qt-dir=/usr/share/qt3 \
 
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
-	cp debian/control.in $@
-	for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
+	set -e; \
+	build_deps=""; \
+	for i in $(FRONTENDS); do \
+		build_deps="$$build_deps, $$(cat debian/lyx-$$i.build-deps)"; \
+	done; \
+	sed "s/^\(Build-Depends:.*\)\$$/\\1$$build_deps/" debian/control.in >$@
+	set -e; for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
 
 build: build-stamp debian/control
 build-stamp:
