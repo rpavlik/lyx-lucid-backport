@@ -42,6 +42,7 @@ lyx (1.4.2-1) UNRELEASED; urgency=low
   * Update debian/copyright
   * Cleanup debian/rules
   * Update config.{sub,guess} handling and build-depend on autotools-dev.
+  * Switch from dpatch to quilt.
 
  -- Sven Hoexter <sven@timegate.de>  Tue, 11 Jul 2006 18:06:47 +0200
 

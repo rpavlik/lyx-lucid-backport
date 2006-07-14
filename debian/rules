@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-include /usr/share/dpatch/dpatch.make
+export QUILT_PATCHES = debian/patches
 
 FRONTENDS = qt xforms
 
@@ -44,9 +44,12 @@ debian/control: debian/control.in debian/control.qt debian/control.xforms debian
 	cp debian/control.in $@
 	for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
 
-build: patch build-stamp debian/control
+build: build-stamp debian/control
 build-stamp:
 	dh_testdir
+
+	quilt push -a || test $$? = 2
+
 	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
 
 	[ -f config/config.sub.backup ] \
@@ -64,7 +67,7 @@ build-stamp:
 	cd build-tree && $(MAKE)
 	touch build-stamp
 
-clean: unpatch debian/control
+clean: debian/control
 	dh_testdir
 	dh_testroot
 
@@ -75,6 +78,10 @@ clean: unpatch debian/control
 	rm -f update-lyxrc.1
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
+
+	quilt pop -a || test $$? = 2
+	! [ -e .pc/.version ] || rm .pc/.version
+	! [ -e .pc ] || rmdir .pc
 
 	dh_clean
 
