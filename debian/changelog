@@ -14,7 +14,9 @@ lyx (1.4.2-1) UNRELEASED; urgency=low
     We now prefer sensible-(browser|editor) and xdg-open over other listed
     alternatives.
   * lyx-common now depends on xdg-utils.
-
+  * Removed old and now unused scripts: dviprint, lyxview.sh, lyxprint.sh,
+    lyxpdflatex.sh
+  
   [ Per Olofsson ]
   * Version field in lyx-qt.desktop set to 1.0.
   * Added Office and Application categories to desktop file.
@@ -46,7 +48,7 @@ lyx (1.4.2-1) UNRELEASED; urgency=low
   * Updated build-deps.
   * Generate build-deps depending on which frontends to build.
 
- -- Sven Hoexter <sven@timegate.de>  Tue, 11 Jul 2006 18:06:47 +0200
+ -- Sven Hoexter <sven@timegate.de>  Sat, 15 Jul 2006 16:03:08 +0200
 
 lyx (1.4.1-2) unstable; urgency=low
 
