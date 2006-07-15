@@ -55,8 +55,6 @@ build-stamp:
 
 	quilt push -a || test $$? = 2
 
-	sh -c "eval pod2man $(grep '^# pod2man ' debian/scripts/update-lyxrc | sed 's/^# pod2man //') debian/scripts/update-lyxrc > ./update-lyxrc.1"
-
 	[ -f config/config.sub.backup ] \
 		|| mv config/config.sub config/config.sub.backup
 	[ -f config/config.sub ] \
@@ -80,7 +78,6 @@ clean: debian/control
 
 	rm -f build-stamp
 	rm -rf build-tree
-	rm -f update-lyxrc.1
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 

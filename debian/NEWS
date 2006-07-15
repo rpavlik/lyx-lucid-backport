@@ -1,10 +1,9 @@
 lyx (1.4.2) unstable; urgency=low
 
   * Since version 1.4.2, LyX no longer creates a global configuration file
-    with the '/usr/share/lyx/configure' script. Hence the update-lyxrc script
-    no longer provides the "--system" switch to update the global lyxrc file.
-    If you have a ~/.lyx directory you can still use "update-lyxrc --user",
-    run "cd ~/.lyx && /usr/share/lyx/configure.py" by hand or use
+    with the '/usr/share/lyx/configure' script.
+    If you want to reconfigure your LyX setup you can run
+    "cd ~/.lyx && /usr/share/lyx/configure.py" by hand or use
     Tools->Reconfigure from LyX's menu.
     A global configuration will be read from '/usr/share/lyx/lyxrc.defaults'
     (provided by the LyX developers) and from '/usr/share/lyx/lyxrc.dist'
