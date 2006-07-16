@@ -1,4 +1,4 @@
-lyx (1.4.2) unstable; urgency=low
+lyx (1.4.2-1) unstable; urgency=low
 
   * Since version 1.4.2, LyX no longer creates a global configuration file
     with the '/usr/share/lyx/configure' script.
