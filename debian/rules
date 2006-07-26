@@ -135,6 +135,8 @@ binary-common: debian/control
 		rm -rf debian/lyx-$$i/usr/share/doc/lyx-$$i; \
 		ln -s lyx-common debian/lyx-$$i/usr/share/doc/lyx-$$i; \
 	done
+	rm -rf debian/lyx/usr/share/doc/lyx
+	ln -s lyx-common debian/lyx/usr/share/doc/lyx
 	dh_link
 	dh_strip
 	dh_compress 
