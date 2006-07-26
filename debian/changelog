@@ -44,6 +44,7 @@ lyx (1.4.2-1) UNRELEASED; urgency=low
   * Switch from dpatch to quilt.
   * Updated build-deps.
   * Generate build-deps depending on which frontends to build.
+  * Made the lyx package arch: any and put shared binaries in it.
 
  -- Sven Hoexter <sven@timegate.de>  Sat, 15 Jul 2006 16:03:08 +0200
 

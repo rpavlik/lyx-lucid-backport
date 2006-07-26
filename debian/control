@@ -8,7 +8,7 @@ Build-Depends: tetex-bin, libaiksaurus-dev, python, debhelper (>= 5), quilt, g++
 Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx
-Architecture: all
+Architecture: any
 Depends: lyx-common, lyx-qt | lyx-xforms | lyx-gtk, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
 Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Suggests: chktex, nowebm
@@ -20,11 +20,6 @@ Description: High Level Word Processor
  quality documents with it than with usual word processors. It is also
  possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
  lost.
- .
- This meta-package installs LyX common files, the frontend (Qt or XForms)
- and other packages needed by LyX.
- .
- This package can be safely removed after install.
  .
  You can extend the functionality of LyX by installing these packages:
   * dvipost: display tracked changes in the dvi output

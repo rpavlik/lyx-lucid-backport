@@ -108,6 +108,8 @@ install:
 	mv debian/lyx-common/usr/share/lyx/tex/* \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
 	rmdir debian/lyx-common/usr/share/lyx/tex/
+	mv debian/lyx-common/usr/bin/tex2lyx debian/lyx/usr/bin/
+	mv debian/lyx-common/usr/bin/lyxclient debian/lyx/usr/bin/
 
 	ln -s ../../../../lyx/images/lyx.xpm \
 		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
