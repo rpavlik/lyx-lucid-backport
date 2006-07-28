@@ -1,7 +1,8 @@
 
 Package: lyx-qt
 Architecture: any
-Depends: latex-xft-fonts, lyx-common (= ${source:Version}), ${shlibs:Depends}
+Depends: lyx-common (= ${source:Version}), ${shlibs:Depends}
+Recommends: latex-xft-fonts
 Suggests: menu
 Description: High Level Word Processor - Qt frontend
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
