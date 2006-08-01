@@ -14,7 +14,7 @@ lyx (1.4.2-3) UNRELEASED; urgency=low
      - Replaced the lyx-common depend on python with ${python:Depends}
      - Added debian/pycompat file with version 2
      - Added dh_pycentral and dh_python calls to debian/rules
-     Closes: #380782
+     Closes: #380860
   
  -- Sven Hoexter <sven@timegate.de>  Tue,  1 Aug 2006 14:20:20 +0200
 
