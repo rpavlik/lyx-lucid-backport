@@ -1,5 +1,6 @@
 lyx (1.4.2-3) UNRELEASED; urgency=low
 
+  [ Sven Hoexter ]
   * Make use of the Meta key in the QT frontend.
     Thanks to Stelios Bounanos. Closes: #344147
   * lyx-qt now recommends latex-xft-fonts instead of depending on it.
@@ -16,7 +17,10 @@ lyx (1.4.2-3) UNRELEASED; urgency=low
      - Added dh_pycentral and dh_python calls to debian/rules
      Closes: #380860
   
- -- Sven Hoexter <sven@timegate.de>  Tue,  1 Aug 2006 14:20:20 +0200
+  [ Per Olofsson ]
+  * Added build-dep on python to shut up lintian.
+  
+ -- Sven Hoexter <sven@timegate.de>  Tue,  1 Aug 2006 20:35:23 +0200
 
 lyx (1.4.2-2) unstable; urgency=low
 
