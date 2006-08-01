@@ -144,7 +144,7 @@ binary-common: debian/control
 	dh_fixperms
 	dh_installdeb
 	dh_shlibdeps
-	dh_pycentral
+	dh_pycentral	lyx-common
 	dh_python	/usr/share/lyx/lyx2lyx \
 			/usr/share/lyx/scripts
 	dh_gencontrol
