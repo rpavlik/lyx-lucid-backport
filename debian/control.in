@@ -4,8 +4,7 @@ Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
 Standards-Version: 3.7.2
-XS-Python-Version: current
-Build-Depends: tetex-bin, libaiksaurus-dev, python, python-central (>= 0.5), debhelper (>= 5.0.37.2), quilt, g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libaspell-dev, dpkg-dev (>= 1.13.19), autotools-dev
+Build-Depends: tetex-bin, libaiksaurus-dev, python, python-support (>= 0.3), debhelper (>= 5.0.37.2), quilt, g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libaspell-dev, dpkg-dev (>= 1.13.19), autotools-dev
 Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx

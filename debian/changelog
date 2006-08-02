@@ -9,19 +9,18 @@ lyx (1.4.2-3) UNRELEASED; urgency=low
   * Updated the FSF postal address in the copyright file.
   * Python transition:
      - Added XB-Python-Version to debian/control(.in) (lyx-common)
-     - Added XS-Python-Version to debian/control(.in) (lyx src package)
-     - Replaced the build-dep on python with a build-dep on python-central
      - Now we build-dep on debhelper (>=5.0.37.2)
      - Replaced the lyx-common depend on python with ${python:Depends}
      - Added debian/pycompat file with version 2
-     - Added dh_pycentral and dh_python calls to debian/rules
+     - Added dh_pysupport and dh_python calls to debian/rules
      Closes: #380860
   
   [ Per Olofsson ]
   * Added build-dep on python to shut up lintian.
   * Made binary-indep and binary-arch separate.
+  * Use dh_pysupport.
   
- -- Sven Hoexter <sven@timegate.de>  Tue,  1 Aug 2006 20:35:23 +0200
+ -- Sven Hoexter <sven@timegate.de>  Wed,  2 Aug 2006 23:30:52 +0200
 
 lyx (1.4.2-2) unstable; urgency=low
 
