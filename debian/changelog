@@ -19,6 +19,7 @@ lyx (1.4.2-3) UNRELEASED; urgency=low
   
   [ Per Olofsson ]
   * Added build-dep on python to shut up lintian.
+  * Made binary-indep and binary-arch separate.
   
  -- Sven Hoexter <sven@timegate.de>  Tue,  1 Aug 2006 20:35:23 +0200
 
