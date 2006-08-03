@@ -9,7 +9,7 @@ Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx
 Architecture: any
-Depends: lyx-common, lyx-qt | lyx-xforms | lyx-gtk, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support
+Depends: lyx-common, lyx-qt | lyx-xforms | lyx-gtk, tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, ${shlibs:Depends}
 Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
 Suggests: chktex, nowebm
 Replaces: lyx-common (<< 1.4.2-1)
