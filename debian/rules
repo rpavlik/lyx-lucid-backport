@@ -130,12 +130,12 @@ binary-indep: build install
 	dh_installchangelogs -i ChangeLog
 	dh_installdocs -i
 	dh_installman -i
+	dh_pysupport -i /usr/share/lyx
+	dh_python -i /usr/share/lyx
 	dh_link -i
 	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
-	dh_pysupport -i /usr/share/lyx
-	dh_python -i /usr/share/lyx
 	dh_gencontrol -i
 	dh_md5sums -i
 	dh_builddeb -i
