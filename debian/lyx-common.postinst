@@ -2,12 +2,6 @@
 
 if [ "$1" = configure ]; then
     texhash
-
-
-    if [ -x "`which gtk-update-icon-cache 2>/dev/null`" ] \
-	&& [ -f /usr/share/icons/hicolor/index.theme ]; then
-	gtk-update-icon-cache /usr/share/icons/hicolor
-    fi
 fi
 
 #DEBHELPER#
