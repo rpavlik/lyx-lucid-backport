@@ -4,6 +4,7 @@ lyx (1.4.2-4) UNRELEASED; urgency=low
   * Add ${shlibs:Depends} to lyx Depends now that it's a arch package.
   * Removed call to gtk-update-icon-cache from lyx-common.postinst.
     Closes: #381976
+  * Remove old configure-generated stuff from /usr/share/lyx.
   
   [ Sven Hoexter ]
   * Build-Depend on python-dev instead of python.
