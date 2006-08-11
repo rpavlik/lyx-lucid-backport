@@ -5,11 +5,13 @@ lyx (1.4.2-4) UNRELEASED; urgency=low
   * Removed call to gtk-update-icon-cache from lyx-common.postinst.
     Closes: #381976
   * Remove old configure-generated stuff from /usr/share/lyx.
+  * Added patch 07.reconfigure_in_batch_mode which makes LyX automatically
+    reconfigure ~/.lyx even if running non-interactively.
   
   [ Sven Hoexter ]
   * Build-Depend on python-dev instead of python.
 
- -- Per Olofsson <pelle@debian.org>  Tue,  8 Aug 2006 09:50:40 +0200
+ -- Per Olofsson <pelle@debian.org>  Fri, 11 Aug 2006 11:58:42 +0200
 
 lyx (1.4.2-3) unstable; urgency=low
 
