@@ -4,13 +4,11 @@ lyx (1.4.2-4) UNRELEASED; urgency=low
   * Add ${shlibs:Depends} to lyx Depends now that it's a arch package.
   * Removed call to gtk-update-icon-cache from lyx-common.postinst.
     Closes: #381976
-  * Generate global default configuration in lyx-common.postinst.
-    Closes: #381622
   
   [ Sven Hoexter ]
   * Build-Depend on python-dev instead of python.
 
- -- Per Olofsson <pelle@debian.org>  Tue,  8 Aug 2006 15:14:29 +0200
+ -- Per Olofsson <pelle@debian.org>  Tue,  8 Aug 2006 09:50:40 +0200
 
 lyx (1.4.2-3) unstable; urgency=low
 
