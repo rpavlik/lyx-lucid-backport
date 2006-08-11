@@ -7,6 +7,7 @@ lyx (1.4.2-4) UNRELEASED; urgency=low
   * Remove old configure-generated stuff from /usr/share/lyx.
   * Added patch 07.reconfigure_in_batch_mode which makes LyX automatically
     reconfigure ~/.lyx even if running non-interactively.
+    Closes: #381622.
   
   [ Sven Hoexter ]
   * Build-Depend on python-dev instead of python.
