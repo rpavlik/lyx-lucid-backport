@@ -1,4 +1,4 @@
-lyx (1.4.2-4) UNRELEASED; urgency=low
+lyx (1.4.2-4) unstable; urgency=low
 
   [ Per Olofsson ]
   * Add ${shlibs:Depends} to lyx Depends now that it's a arch package.
@@ -12,7 +12,7 @@ lyx (1.4.2-4) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * Build-Depend on python-dev instead of python.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 11 Aug 2006 11:58:42 +0200
+ -- Per Olofsson <pelle@debian.org>  Fri, 11 Aug 2006 12:11:26 +0200
 
 lyx (1.4.2-3) unstable; urgency=low
 
