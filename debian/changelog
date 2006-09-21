@@ -1,3 +1,12 @@
+lyx (1.4.3-1) unstable; urgency=low
+
+  [ Sven Hoexter ]
+  * Removed the following patches integrated in the new upstream release
+    - 06.qt_frontend_metabutton
+    - 07.reconfigure_in_batch_mode
+
+ -- Sven Hoexter <sven@timegate.de>  Thu, 21 Sep 2006 17:20:29 +0200
+
 lyx (1.4.2-4) unstable; urgency=low
 
   [ Per Olofsson ]
