@@ -5,6 +5,7 @@ lyx (1.4.3-1) unstable; urgency=low
     - 06.qt_frontend_metabutton
     - 07.reconfigure_in_batch_mode
   * Updated patch 05.configure.py_prog_prefer
+  * Add a mime file and call dh_installmime -i 
   
  -- Sven Hoexter <sven@timegate.de>  Thu, 21 Sep 2006 17:20:29 +0200
 
