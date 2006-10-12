@@ -1,13 +1,15 @@
 lyx (1.4.3-1) unstable; urgency=low
 
   [ Sven Hoexter ]
+  * New upstream release - Closes: #392088
+  * lyx-qt crashes on figure updates Closes: #377399
   * Removed the following patches integrated in the new upstream release
     - 06.qt_frontend_metabutton
     - 07.reconfigure_in_batch_mode
   * Updated patch 05.configure.py_prog_prefer
   * Add a mime file and call dh_installmime -i 
-  
- -- Sven Hoexter <sven@timegate.de>  Thu, 21 Sep 2006 17:20:29 +0200
+
+ --
 
 lyx (1.4.2-4) unstable; urgency=low
 
