@@ -8,8 +8,14 @@ lyx (1.4.3-1) unstable; urgency=low
     - 07.reconfigure_in_batch_mode
   * Updated patch 05.configure.py_prog_prefer
   * Add a mime file and call dh_installmime -i 
-
- --
+  * Another try to comply with the current python policy
+    - Build-Depend on python-support (>= 0.5.3)
+    - Add "XS-P-V: all" to control
+    - Remove pycompat file and don't run dh_python
+    - Kill /usr/share/lyx2lyx/profiling.py including the .py(o|c)
+      Closes: #392486 
+  
+ -- Sven Hoexter <sven@timegate.de>  Sun, 15 Oct 2006 19:02:38 +0200
 
 lyx (1.4.2-4) unstable; urgency=low
 
