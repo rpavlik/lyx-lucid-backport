@@ -14,7 +14,7 @@ lyx (1.4.3-1) unstable; urgency=low
     - Remove pycompat file and don't run dh_python
     - Kill /usr/share/lyx2lyx/profiling.py including the .py(o|c)
       Closes: #392486
-  * Added X-Vcs-Svn to control
+  * Added XS-X-Vcs-Svn to control
   
  -- Sven Hoexter <sven@timegate.de>  Sun, 15 Oct 2006 19:02:38 +0200
 
