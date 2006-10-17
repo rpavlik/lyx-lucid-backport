@@ -16,6 +16,9 @@ lyx (1.4.3-1) UNRELEASED; urgency=low
       Closes: #392486
   * Added XS-X-Vcs-Svn to control
   
+  [ Per Olofsson ]
+  * Made lyx-common Recommend: lyx. Closes: #382674.
+  
  -- Sven Hoexter <sven@timegate.de>  Sun, 15 Oct 2006 19:02:38 +0200
 
 lyx (1.4.2-4) unstable; urgency=low

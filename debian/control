@@ -41,7 +41,7 @@ Package: lyx-common
 Architecture: all
 XB-Python-Version: ${python:Versions}
 Depends: perl, ${python:Depends}, tetex-bin (>= 2.0.2-11) | texlive-latex-base, xdg-utils
-Recommends: lyx-qt | lyx-xforms | lyx-gtk, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
+Recommends: lyx, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
 Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
