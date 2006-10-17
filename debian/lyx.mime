@@ -1,3 +1,3 @@
-application/x-lyx;      lyx-qt %s;      nametemplate=%s.lyx;    test=test "$DISPLAY" != "";	description="LyX Document";    priority=5
-application/x-lyx;      lyx-xforms %s;  nametemplate=%s.lyx;    test=test "$DISPLAY" != "";     description="LyX Document";    priority=4
-application/x-lyx;      lyx-gtk %s;     nametemplate=%s.lyx;    test=test "$DISPLAY" != "";     description="Lyx Document";    priority=3
+application/x-lyx;      lyx-qt '%s'; edit=lyx-qt '%s';     nametemplate=%s.lyx;    test=test "$DISPLAY" != "";	description="LyX Document";    priority=5
+application/x-lyx;      lyx-xforms '%s'; edit=lyx-xforms '%s';  nametemplate=%s.lyx;    test=test "$DISPLAY" != "";     description="LyX Document";    priority=4
+application/x-lyx;      lyx-gtk '%s'; edit='%s';    nametemplate=%s.lyx;    test=test "$DISPLAY" != "";     description="Lyx Document";    priority=3
