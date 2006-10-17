@@ -130,7 +130,6 @@ binary-indep: build install
 	dh_installchangelogs -i ChangeLog
 	dh_installdocs -i
 	dh_installman -i
-	dh_installmime -i
 	dh_pysupport -i /usr/share/lyx
 	dh_link -i
 	dh_compress -i
@@ -145,6 +144,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installmenu -a
 	dh_installman -a
+	dh_installmime -a
 	dh_desktop -a
 	set -e; for i in $(FRONTENDS); do \
 		mkdir -p debian/lyx-$$i/usr/share/doc; \
