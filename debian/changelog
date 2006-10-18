@@ -7,7 +7,7 @@ lyx (1.4.3-1) UNRELEASED; urgency=low
     - 06.qt_frontend_metabutton
     - 07.reconfigure_in_batch_mode
   * Updated patch 05.configure.py_prog_prefer
-  * Add a mime file and call dh_installmime -i 
+  * Add a mime file and call dh_installmime -a
   * Another try to comply with the current python policy
     - Build-Depend on python-support (>= 0.5.3)
     - Add "XS-P-V: all" to control
