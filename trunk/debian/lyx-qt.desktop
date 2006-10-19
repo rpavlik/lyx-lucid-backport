@@ -1,0 +1,15 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Name=LyX (Qt)
+GenericName=Structured Word Processor
+Comment=WYSIWYM (What You See Is What You Mean) word processor with LaTeX output
+Exec=lyx-qt %F
+TryExec=lyx-qt
+Icon=lyx
+StartupNotify=false
+StartupWMClass=Lyx-qt
+Terminal=false
+Categories=Qt;Application;Office;WordProcessor;
+MimeType=text/x-lyx;application/x-lyx;

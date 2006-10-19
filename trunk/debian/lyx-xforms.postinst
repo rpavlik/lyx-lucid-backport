@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+if [ "$1" = configure ]; then
+    update-alternatives --install /usr/bin/lyx lyx /usr/bin/lyx-xforms 8 \
+	--slave /usr/share/man/man1/lyx.1.gz lyx.1.gz \
+	/usr/share/man/man1/lyx-xforms.1.gz
+fi
+
+#DEBHELPER#

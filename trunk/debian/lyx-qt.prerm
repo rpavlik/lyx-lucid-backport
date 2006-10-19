@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+update-alternatives --remove lyx /usr/bin/lyx-qt
+
+#DEBHELPER#

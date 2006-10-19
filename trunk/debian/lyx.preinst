@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+if [ -d /usr/share/doc/lyx ] && ! readlink /usr/share/doc/lyx >/dev/null; then
+    rm -rf /usr/share/doc/lyx
+fi
+
+#DEBHELPER#

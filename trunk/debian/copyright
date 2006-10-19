@@ -1,0 +1,30 @@
+This is the Debian package of LyX, the high level word processor.
+
+It is maintained by the Debian LyX Maintainers
+<pkg-lyx-devel@lists.alioth.debian.org>.
+For more information, see http://wiki.debian.org/PkgLyx
+
+The upstream sources were retreived from: ftp://ftp.lyx.org/pub/lyx/stable/
+
+The LyX website is at: http://www.lyx.org/
+
+Copyright and licence notice:
+
+ LyX is Copyright (C) 1995 by Matthias Ettrich,
+ 1995-2001 LyX Team
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or (at
+ your option) any later version.
+
+ LyX is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.  You should have received a copy of the GNU General
+ Public License along with this program; if not, write to the Free
+ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+
+On any Debian system, you can find the complete text of the GNU GPL
+(GNU General Public License) in the file  /usr/share/common-licenses/GPL

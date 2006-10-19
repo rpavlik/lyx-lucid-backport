@@ -1,0 +1,171 @@
+#!/usr/bin/make -f
+
+export QUILT_PATCHES = debian/patches
+
+FRONTENDS = qt xforms
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+CFLAGS = -Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+
+CONFIGURE_OPTIONS = \
+	--host=$(DEB_HOST_GNU_TYPE) \
+	--build=$(DEB_BUILD_GNU_TYPE) \
+	--prefix=/usr \
+	--infodir=/usr/share/info \
+	--mandir=/usr/share/man \
+	--disable-dependency-tracking \
+	--enable-warnings \
+	--disable-debug \
+	--enable-optimization=$$CXXFLAGS \
+	--enable-assertions \
+	--enable-nls \
+	--without-included-string \
+	--with-aiksaurus \
+	--with-gnu-ld \
+	--without-pspell \
+	--with-aspell \
+	--with-x \
+	--without-included-gettext \
+	--with-frontend="$(FRONTENDS)" \
+	--with-qt-dir=/usr/share/qt3 \
+
+debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
+	set -e; \
+	build_deps=""; \
+	for i in $(FRONTENDS); do \
+		build_deps="$$build_deps, $$(cat debian/lyx-$$i.build-deps)"; \
+	done; \
+	sed "s/^\(Build-Depends:.*\)\$$/\\1$$build_deps/" debian/control.in >$@
+	set -e; for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
+
+build: debian/control build-stamp
+build-stamp:
+	dh_testdir
+
+	quilt push -a || test $$? = 2
+
+	[ -f config/config.sub.backup ] \
+		|| mv config/config.sub config/config.sub.backup
+	[ -f config/config.sub ] \
+		|| ln -s /usr/share/misc/config.sub config/config.sub
+
+	[ -f config/config.guess.backup ] \
+		|| mv config/config.guess config/config.guess.backup
+	[ -f config/config.guess ] \
+		|| ln -s /usr/share/misc/config.guess config/config.guess
+
+	test -d build-tree || mkdir build-tree
+	cd build-tree && CFLAGS="$(CFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+	cd build-tree && $(MAKE)
+	touch build-stamp
+
+clean: debian/control
+	dh_testdir
+	dh_testroot
+
+	-$(MAKE) distclean
+
+	rm -f build-stamp
+	rm -rf build-tree
+	mv config/config.guess.backup config/config.guess || true
+	mv config/config.sub.backup config/config.sub || true
+
+	quilt pop -a || test $$? = 2
+	! [ -e .pc/.version ] || rm .pc/.version
+	! [ -e .pc ] || rmdir .pc
+
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+
+	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common/
+
+	dh_installdirs
+	dh_install
+
+	rm debian/lyx-common/usr/bin/lyx
+	rm debian/lyx-common/usr/share/man/man1/lyx.1
+	mv debian/lyx-common/usr/share/lyx/lyxrc.example \
+		debian/lyx-common/etc/lyxrc
+	ln -s /etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.dist
+	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py*
+	rm -r debian/lyx-common/usr/share/lyx/xfonts/
+	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
+	mv debian/lyx-common/usr/share/lyx/tex/* \
+		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
+	rmdir debian/lyx-common/usr/share/lyx/tex/
+	mv debian/lyx-common/usr/bin/tex2lyx debian/lyx/usr/bin/
+	mv debian/lyx-common/usr/bin/lyxclient debian/lyx/usr/bin/
+
+	ln -s ../../../../lyx/images/lyx.xpm \
+		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
+	cp debian/lyx-32x32.xpm \
+		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
+
+	set -e; for i in $(FRONTENDS); do \
+		cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; \
+		cp build-tree/lyx.1 build-tree/lyx-$$i.1; \
+	done
+
+	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
+	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs -i ChangeLog
+	dh_installdocs -i
+	dh_installman -i
+	dh_pysupport -i /usr/share/lyx
+	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installmenu -a
+	dh_installman -a
+	dh_installmime -a
+	dh_desktop -a
+	set -e; for i in $(FRONTENDS); do \
+		mkdir -p debian/lyx-$$i/usr/share/doc; \
+		ln -s lyx-common debian/lyx-$$i/usr/share/doc/lyx-$$i; \
+	done
+	mkdir -p debian/lyx/usr/share/doc
+	ln -s lyx-common debian/lyx/usr/share/doc/lyx
+	dh_link -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+
+build-arch: build
+build-indep: build
+
+.PHONY: build build-arch build-indep clean \
+	binary-indep binary-arch binary install
