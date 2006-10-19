@@ -1,3 +1,11 @@
+lyx (1.4.3-2) UNRELEASED; urgency=low
+
+  * Removed CFLAGS related stuff from rules because it's useless since
+    LyX is C++ code only.
+  * Adding -ffunctions-sections as a workaround for builds on hppa.
+
+ --
+
 lyx (1.4.3-1) unstable; urgency=low
 
   [ Sven Hoexter ]
