@@ -1,8 +1,7 @@
 lyx (1.4.3-2) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
-  * Removed CFLAGS related stuff from rules because it's useless since
-    LyX is C++ code only.
+  * Use CFLAGS as CXXFLAGS because LyX is C++ code.
   * Adding -ffunctions-sections as a workaround for builds on hppa.
   * Adding texlive-latex-base as an alternative Build-Dep
     (wished by Gudjon I. Gudjonsson)
