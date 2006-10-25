@@ -2,13 +2,13 @@
 Encoding=UTF-8
 Version=1.0
 Type=Application
-Name=LyX (GTK)
+Name=LyX
 GenericName=Structured Word Processor
 Comment=WYSIWYM (What You See Is What You Mean) word processor with LaTeX output
-Exec=lyx-gtk %F
-TryExec=lyx-gtk
+Exec=lyx %F
+TryExec=lyx
 Icon=lyx
 StartupNotify=false
 Terminal=false
-Categories=GTK;Application;Office;WordProcessor;
+Categories=Application;Office;WordProcessor;
 MimeType=text/x-lyx;application/x-lyx;
