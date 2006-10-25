@@ -8,6 +8,7 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   
   [ Per Olofsson ]
   * Added -Wl,--as-needed to LDFLAGS.
+  * Only give both --build and --host to ./configure if cross-compiling.
   
  -- Per Olofsson <pelle@debian.org>  Wed, 25 Oct 2006 19:03:51 +0200
 
