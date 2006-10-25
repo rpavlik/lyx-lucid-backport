@@ -2,9 +2,9 @@
 Encoding=UTF-8
 Version=1.0
 Type=Application
-Name=LyX
-GenericName=Structured Word Processor
-Comment=WYSIWYM (What You See Is What You Mean) word processor with LaTeX output
+Name=LyX Document Processor
+GenericName=Document Processor
+Comment=WYSIWYM (What You See Is What You Mean) document processor with LaTeX output
 Exec=lyx %F
 TryExec=lyx
 Icon=lyx

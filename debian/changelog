@@ -15,6 +15,7 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   * Also unify Debian menu files.
   * Don't do make distclean - we have a separate build-tree which we
     remove anyway.
+  * Use the name "LyX Document Processor" as the menu title for lyx.
 
  -- Per Olofsson <pelle@debian.org>  Wed, 25 Oct 2006 19:03:51 +0200
 
