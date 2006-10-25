@@ -12,6 +12,7 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   * Unify LyX desktop files. Only include a .desktop file in the lyx
     package. It will use the frontend selected using the alternatives
     system.
+  * Also unify Debian menu files.
   
  -- Per Olofsson <pelle@debian.org>  Wed, 25 Oct 2006 19:03:51 +0200
 
