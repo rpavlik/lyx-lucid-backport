@@ -13,7 +13,9 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
     package. It will use the frontend selected using the alternatives
     system.
   * Also unify Debian menu files.
-  
+  * Don't do make distclean - we have a separate build-tree which we
+    remove anyway.
+
  -- Per Olofsson <pelle@debian.org>  Wed, 25 Oct 2006 19:03:51 +0200
 
 lyx (1.4.3-1) unstable; urgency=low

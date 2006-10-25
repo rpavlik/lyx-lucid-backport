@@ -85,8 +85,6 @@ clean: debian/control
 	dh_testdir
 	dh_testroot
 
-	-$(MAKE) distclean
-
 	rm -f build-stamp
 	rm -rf build-tree
 	mv config/config.guess.backup config/config.guess || true
