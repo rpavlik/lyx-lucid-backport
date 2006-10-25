@@ -38,7 +38,7 @@ CONFIGURE_OPTIONS += \
 
 CFLAGS += -g
 
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O2
 else
 	CFLAGS += -O0
