@@ -6,7 +6,10 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   * Adding texlive-latex-base as an alternative Build-Dep
     (wished by Gudjon I. Gudjonsson)
   
- --
+  [ Per Olofsson ]
+  * Added -Wl,--as-needed to LDFLAGS.
+  
+ -- Per Olofsson <pelle@debian.org>  Wed, 25 Oct 2006 19:03:51 +0200
 
 lyx (1.4.3-1) unstable; urgency=low
 

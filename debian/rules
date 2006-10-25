@@ -43,6 +43,8 @@ ifeq ($(DEB_HOST_ARCH),hppa)
 	CFLAGS += -ffunction-sections
 endif
 
+LDFLAGS += -Wl,--as-needed
+
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
 	set -e; \
 	build_deps=""; \
@@ -69,7 +71,8 @@ build-stamp:
 		|| ln -s /usr/share/misc/config.guess config/config.guess
 
 	test -d build-tree || mkdir build-tree
-	cd build-tree && CXXFLAGS="$(CFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+	cd build-tree && CXXFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
 	cd build-tree && $(MAKE)
 	touch build-stamp
 
