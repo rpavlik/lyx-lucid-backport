@@ -11,18 +11,6 @@ DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_ARCH       ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
-CFLAGS = -Wall -g
-
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-CFLAGS += -O0
-else
-CFLAGS += -O2
-endif
-
-ifeq ($(DEB_HOST_ARCH),hppa)
-	CFLAGS += -ffunction-sections
-endif
-
 CONFIGURE_OPTIONS = \
 	--host=$(DEB_HOST_GNU_TYPE) \
 	--build=$(DEB_BUILD_GNU_TYPE) \
@@ -31,8 +19,6 @@ CONFIGURE_OPTIONS = \
 	--mandir=/usr/share/man \
 	--disable-dependency-tracking \
 	--enable-warnings \
-	--disable-debug \
-	--enable-optimization=$$CXXFLAGS \
 	--enable-assertions \
 	--enable-nls \
 	--without-included-string \
@@ -44,6 +30,18 @@ CONFIGURE_OPTIONS = \
 	--without-included-gettext \
 	--with-frontend="$(FRONTENDS)" \
 	--with-qt-dir=/usr/share/qt3 \
+
+CFLAGS += -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O2
+else
+	CFLAGS += -O0
+endif
+
+ifeq ($(DEB_HOST_ARCH),hppa)
+	CFLAGS += -ffunction-sections
+endif
 
 debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
 	set -e; \
