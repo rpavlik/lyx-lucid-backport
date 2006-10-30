@@ -5,6 +5,7 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   * Adding -ffunctions-sections as a workaround for builds on hppa.
   * Adding texlive-latex-base as an alternative Build-Dep
     (wished by Gudjon I. Gudjonsson)
+  * Added the 'Boost Software License' to debian/copyright.
   
   [ Per Olofsson ]
   * Added -Wl,--as-needed to LDFLAGS.
