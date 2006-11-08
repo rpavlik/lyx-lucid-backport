@@ -1,4 +1,4 @@
-lyx (1.4.3-2) UNRELEASED; urgency=low
+lyx (1.4.3-2) unstable; urgency=low
 
   [ Sven Hoexter ]
   * Use CFLAGS as CXXFLAGS because LyX is C++ code.
@@ -19,7 +19,7 @@ lyx (1.4.3-2) UNRELEASED; urgency=low
   * Use the name "LyX Document Processor" as the menu title for lyx.
   * Added --disable-rpath configure option.
 
- -- Per Olofsson <pelle@debian.org>  Wed,  8 Nov 2006 20:46:15 +0100
+ -- Per Olofsson <pelle@debian.org>  Wed,  8 Nov 2006 20:47:35 +0100
 
 lyx (1.4.3-1) unstable; urgency=low
 
