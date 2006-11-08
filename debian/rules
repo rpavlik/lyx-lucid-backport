@@ -23,6 +23,7 @@ CONFIGURE_OPTIONS += \
 	--infodir=/usr/share/info \
 	--mandir=/usr/share/man \
 	--disable-dependency-tracking \
+	--disable-rpath \
 	--enable-warnings \
 	--enable-assertions \
 	--enable-nls \
