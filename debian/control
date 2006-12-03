@@ -6,7 +6,7 @@ Priority: optional
 Standards-Version: 3.7.2
 XS-Python-Version: all
 XS-Vcs-Svn: svn://svn.debian.org/svn/pkg-lyx/lyx/trunk
-Build-Depends: tetex-bin | texlive-latex-base, libaiksaurus-dev, python-dev, python-support (>= 0.5.3), debhelper (>= 5.0.37.2), quilt, g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libaspell-dev, dpkg-dev (>= 1.13.19), autotools-dev, libqt3-mt-dev, libforms-dev, libforms-bin, libxpm-dev, x11proto-core-dev
+Build-Depends: tetex-bin | texlive-latex-base, libaiksaurus-dev, python-dev, python-support (>= 0.5.3), debhelper (>= 5.0.37.2), quilt (>= 0.40-1), g++ (>= 4:4.0.1-8), libz-dev, libx11-dev, libaspell-dev, dpkg-dev (>= 1.13.19), autotools-dev, libqt3-mt-dev, libforms-dev, libforms-bin, libxpm-dev, x11proto-core-dev
 Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 
 Package: lyx

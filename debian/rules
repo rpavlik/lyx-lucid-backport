@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export QUILT_PATCHES = debian/patches
+include /usr/share/quilt/quilt.make
 
 FRONTENDS = qt xforms
 
@@ -60,11 +60,9 @@ debian/control: debian/control.in debian/control.qt debian/control.xforms debian
 	sed "s/^\(Build-Depends:.*\)\$$/\\1$$build_deps/" debian/control.in >$@
 	set -e; for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
 
-build: debian/control build-stamp
+build: debian/control patch build-stamp
 build-stamp:
 	dh_testdir
-
-	quilt push -a || test $$? = 2
 
 	[ -f config/config.sub.backup ] \
 		|| mv config/config.sub config/config.sub.backup
@@ -82,7 +80,8 @@ build-stamp:
 	cd build-tree && $(MAKE)
 	touch build-stamp
 
-clean: debian/control
+clean: clean1 unpatch
+clean1: debian/control
 	dh_testdir
 	dh_testroot
 
@@ -90,10 +89,6 @@ clean: debian/control
 	rm -rf build-tree
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
-
-	quilt pop -a || test $$? = 2
-	! [ -e .pc/.version ] || rm .pc/.version
-	! [ -e .pc ] || rmdir .pc
 
 	dh_clean
 
@@ -177,5 +172,5 @@ binary: binary-indep binary-arch
 build-arch: build
 build-indep: build
 
-.PHONY: build build-arch build-indep clean \
+.PHONY: build build-arch build-indep clean clean1 \
 	binary-indep binary-arch binary install
