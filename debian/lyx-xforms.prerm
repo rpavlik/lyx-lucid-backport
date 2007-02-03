@@ -1,5 +1,0 @@
-#!/bin/sh -e
-
-update-alternatives --remove lyx /usr/bin/lyx-xforms
-
-#DEBHELPER#

@@ -1,9 +1,0 @@
-#!/bin/sh -e
-
-if [ "$1" = configure ]; then
-    update-alternatives --install /usr/bin/lyx lyx /usr/bin/lyx-qt 10 \
-	--slave /usr/share/man/man1/lyx.1.gz lyx.1.gz \
-	/usr/share/man/man1/lyx-qt.1.gz
-fi
-
-#DEBHELPER#

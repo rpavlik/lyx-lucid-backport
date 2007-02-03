@@ -1,8 +1,10 @@
 lyx (1.5.0~svn20070203-1) UNRELEASED; urgency=low
 
   * Checked out upstream development snapshot.
+  * Remove support for multiple frontends. Only build the qt4 frontend,
+    and place it in the lyx package.
 
- -- Per Olofsson <pelle@debian.org>  Sat,  3 Feb 2007 18:40:01 +0100
+ -- Per Olofsson <pelle@debian.org>  Sat,  3 Feb 2007 19:10:40 +0100
 
 lyx (1.4.3-3) UNRELEASED; urgency=low
 

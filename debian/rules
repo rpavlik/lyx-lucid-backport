@@ -2,8 +2,6 @@
 
 include /usr/share/quilt/quilt.make
 
-FRONTENDS = qt xforms
-
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
@@ -34,7 +32,6 @@ CONFIGURE_OPTIONS += \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--with-frontend="$(FRONTENDS)" \
 	--with-qt-dir=/usr/share/qt3 \
 
 CFLAGS += -g
@@ -51,16 +48,7 @@ endif
 
 LDFLAGS += -Wl,--as-needed
 
-debian/control: debian/control.in debian/control.qt debian/control.xforms debian/control.gtk
-	set -e; \
-	build_deps=""; \
-	for i in $(FRONTENDS); do \
-		build_deps="$$build_deps, $$(cat debian/lyx-$$i.build-deps)"; \
-	done; \
-	sed "s/^\(Build-Depends:.*\)\$$/\\1$$build_deps/" debian/control.in >$@
-	set -e; for i in $(FRONTENDS); do cat debian/control.$$i >> $@; done
-
-build: debian/control patch build-stamp
+build: patch build-stamp
 build-stamp:
 	dh_testdir
 
@@ -81,7 +69,7 @@ build-stamp:
 	touch build-stamp
 
 clean: clean1 unpatch
-clean1: debian/control
+clean1:
 	dh_testdir
 	dh_testroot
 
@@ -102,8 +90,10 @@ install: build
 	dh_installdirs
 	dh_install
 
-	rm debian/lyx-common/usr/bin/lyx
-	rm debian/lyx-common/usr/share/man/man1/lyx.1
+	mv debian/lyx-common/usr/bin/lyx debian/lyx/usr/bin/
+	mv debian/lyx-common/usr/bin/tex2lyx debian/lyx/usr/bin/
+	mv debian/lyx-common/usr/bin/lyxclient debian/lyx/usr/bin/
+
 	mv debian/lyx-common/usr/share/lyx/lyxrc.example \
 		debian/lyx-common/etc/lyxrc
 	ln -s /etc/lyxrc debian/lyx-common/usr/share/lyx/lyxrc.dist
@@ -113,18 +103,11 @@ install: build
 	mv debian/lyx-common/usr/share/lyx/tex/* \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
 	rmdir debian/lyx-common/usr/share/lyx/tex/
-	mv debian/lyx-common/usr/bin/tex2lyx debian/lyx/usr/bin/
-	mv debian/lyx-common/usr/bin/lyxclient debian/lyx/usr/bin/
 
 	ln -s ../../../../lyx/images/lyx.xpm \
 		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
 	cp debian/lyx-32x32.xpm \
 		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
-
-	set -e; for i in $(FRONTENDS); do \
-		cp build-tree/src/lyx-$$i debian/lyx-$$i/usr/bin/lyx-$$i; \
-		cp build-tree/lyx.1 build-tree/lyx-$$i.1; \
-	done
 
 	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
@@ -151,12 +134,6 @@ binary-arch: build install
 	dh_installman -a
 	dh_installmime -a
 	dh_desktop -a
-	set -e; for i in $(FRONTENDS); do \
-		mkdir -p debian/lyx-$$i/usr/share/doc; \
-		ln -s lyx-common debian/lyx-$$i/usr/share/doc/lyx-$$i; \
-	done
-	mkdir -p debian/lyx/usr/share/doc
-	ln -s lyx-common debian/lyx/usr/share/doc/lyx
 	dh_link -a
 	dh_strip -a
 	dh_compress -a
