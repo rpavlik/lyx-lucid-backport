@@ -31,7 +31,7 @@ CONFIGURE_OPTIONS += \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--without-included-boost \
+	--with-included-boost \
 
 CFLAGS += -g
 
