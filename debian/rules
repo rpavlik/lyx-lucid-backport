@@ -47,8 +47,8 @@ endif
 
 LDFLAGS += -Wl,--as-needed
 
-build: patch build-stamp
-build-stamp:
+configure: patch configure-stamp
+configure-stamp:
 	dh_testdir
 
 	[ -f config/config.sub.backup ] \
@@ -64,6 +64,12 @@ build-stamp:
 	test -d build-tree || mkdir build-tree
 	cd build-tree && CXXFLAGS="$(CFLAGS)" \
 		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+
+	touch configure-stamp
+
+build: configure build-stamp
+build-stamp:
+	dh_testdir
 	cd build-tree && $(MAKE)
 	touch build-stamp
 
@@ -72,7 +78,7 @@ clean1:
 	dh_testdir
 	dh_testroot
 
-	rm -f build-stamp
+	rm -f build-stamp configure-stamp
 	rm -rf build-tree
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
