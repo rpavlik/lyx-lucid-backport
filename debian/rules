@@ -25,14 +25,12 @@ CONFIGURE_OPTIONS += \
 	--enable-warnings \
 	--enable-assertions \
 	--enable-nls \
-	--without-included-string \
 	--with-aiksaurus \
 	--with-gnu-ld \
 	--without-pspell \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--with-qt-dir=/usr/share/qt3 \
 
 CFLAGS += -g
 
