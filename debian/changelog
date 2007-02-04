@@ -3,6 +3,7 @@ lyx (1.5.0~svn20070203-1) UNRELEASED; urgency=low
   * Checked out upstream development snapshot.
   * Remove support for multiple frontends. Only build the qt4 frontend,
     and place it in the lyx package.
+  * Temporarily disable debug symbols (-g) because of a bug in binutils.
 
  -- Per Olofsson <pelle@debian.org>  Sat,  3 Feb 2007 19:10:40 +0100
 
