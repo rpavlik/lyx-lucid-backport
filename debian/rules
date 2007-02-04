@@ -134,7 +134,6 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installmenu -a
-	dh_installman -a
 	dh_installmime -a
 	dh_desktop -a
 	dh_link -a
