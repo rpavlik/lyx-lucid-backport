@@ -100,7 +100,6 @@ install: build
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
 	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py*
-	rm -r debian/lyx-common/usr/share/lyx/xfonts/
 	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
 	mv debian/lyx-common/usr/share/lyx/tex/* \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
