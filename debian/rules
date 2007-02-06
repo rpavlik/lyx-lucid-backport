@@ -149,4 +149,4 @@ build-arch: build
 build-indep: build
 
 .PHONY: build build-arch build-indep clean clean1 \
-	binary-indep binary-arch binary install
+	binary-indep binary-arch binary install configure
