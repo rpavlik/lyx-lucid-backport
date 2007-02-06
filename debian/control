@@ -10,8 +10,8 @@ Build-Depends: tetex-bin | texlive-latex-base, libaiksaurus-dev, python-dev, pyt
 
 Package: lyx
 Architecture: any
-Depends: lyx-common (= ${source:Version}), tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, ${shlibs:Depends}
-Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, latex-xft-fonts
+Depends: ${shlibs:Depends}, lyx-common (= ${source:Version}), tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, psutils, xdg-utils
+Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, latex-xft-fonts, dvipng
 Suggests: chktex, nowebm, menu
 Replaces: lyx-common (<< 1.4.2-1)
 Conflicts: lyx-qt, lyx-xforms
@@ -40,9 +40,8 @@ Description: High Level Word Processor
 Package: lyx-common
 Architecture: all
 XB-Python-Version: ${python:Versions}
-Depends: perl, ${python:Depends}, tetex-bin (>= 2.0.2-11) | texlive-latex-base, xdg-utils
-Recommends: lyx, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
-Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
+Depends: ${python:Depends}, tetex-bin (>= 2.0.2-11) | texlive-latex-base
+Recommends: lyx
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
  System. It makes the power and typesetting quality of LaTeX available for
