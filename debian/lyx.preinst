@@ -4,4 +4,9 @@ if [ -d /usr/share/doc/lyx ] && ! readlink /usr/share/doc/lyx >/dev/null; then
     rm -rf /usr/share/doc/lyx
 fi
 
+if readlink /usr/bin/lyx >/dev/null; then
+	update-alternatives --remove lyx /usr/bin/lyx-qt
+	update-alternatives --remove lyx /usr/bin/lyx-xforms
+fi
+
 #DEBHELPER#
