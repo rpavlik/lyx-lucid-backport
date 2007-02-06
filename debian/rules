@@ -131,7 +131,6 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installman -a
 	dh_installmenu -a
 	dh_installmime -a
 	dh_desktop -a
