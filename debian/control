@@ -11,8 +11,8 @@ Build-Depends: tetex-bin | texlive-latex-base, libaiksaurus-dev, python-dev, pyt
 Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, lyx-common (= ${source:Version}), tetex-bin (>= 2.0.2-11) | texlive-latex-base, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, psutils, xdg-utils
-Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, latex-xft-fonts, dvipng
-Suggests: chktex, nowebm, menu
+Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, latex-xft-fonts, dvipng
+Suggests: chktex, nowebm, menu, sgmltools-lite, linuxdoc-tools
 Replaces: lyx-common (<< 1.4.2-1)
 Conflicts: lyx-qt, lyx-xforms
 Description: High Level Word Processor
