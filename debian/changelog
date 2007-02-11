@@ -1,6 +1,7 @@
 lyx (1.5.0~svn20070203-1) UNRELEASED; urgency=low
 
   * Checked out upstream development snapshot.
+    - TeX is not a build-dep anymore.
   * Remove support for multiple frontends. Only build the qt4 frontend,
     and place it in the lyx package.
   * Temporarily disable debug symbols (-g) because of a bug in binutils.
