@@ -40,7 +40,7 @@ Description: High Level Word Processor
 Package: lyx-common
 Architecture: all
 XB-Python-Version: ${python:Versions}
-Depends: ${python:Depends}, tetex-bin (>= 2.0.2-11) | texlive-latex-base
+Depends: ${python:Depends}, texlive-latex-base | tetex-bin (>= 2.0.2-11)
 Recommends: lyx
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
