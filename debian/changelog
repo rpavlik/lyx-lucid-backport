@@ -8,8 +8,9 @@ lyx (1.5.0~svn20070203-1) UNRELEASED; urgency=low
   * Temporarily disable debug symbols (-g) because of a bug in binutils.
   * Simplify dependencies.
   * Depend on TeXlive instead of teTeX by default.
+  * Remove X[BS]-Python-Version fields, not needed anymore.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 11 Feb 2007 21:10:30 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 11 Feb 2007 21:15:21 +0100
 
 lyx (1.4.3-3) UNRELEASED; urgency=low
 
