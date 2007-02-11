@@ -62,6 +62,7 @@ configure-stamp:
 	test -d build-tree || mkdir build-tree
 	cd build-tree && CXXFLAGS="$(CFLAGS)" \
 		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+	echo '#define HAVE_KPSEWHICH 1' >> build-tree/config.h
 
 	touch configure-stamp
 
