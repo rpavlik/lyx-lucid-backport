@@ -4,7 +4,11 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
   * Include the quilt package's quilt.make instead of running quilt on our
     own. Simplifies debian/rules.
 
- -- Per Olofsson <pelle@debian.org>  Sun,  3 Dec 2006 14:09:11 +0100
+  [ Sven Hoexter]
+  * Adding a Conflicts: latex-beamer (<=3.06.dfsg.1-0.1) for lyx-common since
+    we ship the beamer.layout file now.
+  
+ -- Sven Hoexter <sven@timegate.de>  Fri, 16 Feb 2007 21:55:03 +0100
 
 lyx (1.4.3-2) unstable; urgency=low
 

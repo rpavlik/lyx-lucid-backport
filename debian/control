@@ -43,6 +43,7 @@ XB-Python-Version: ${python:Versions}
 Depends: perl, ${python:Depends}, tetex-bin (>= 2.0.2-11) | texlive-latex-base, xdg-utils
 Recommends: lyx, tetex-extra | texlive-latex-recommended, tetex-extra | texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
 Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
+Conflicts: latex-beamer (<=3.06.dfsg.1-0.1)
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
  System. It makes the power and typesetting quality of LaTeX available for
