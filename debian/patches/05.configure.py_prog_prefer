@@ -1,8 +1,8 @@
 Index: lyx-1.5/lib/configure.py
 ===================================================================
---- lyx-1.5.orig/lib/configure.py	2007-01-15 23:49:14.000000000 +0100
-+++ lyx-1.5/lib/configure.py	2007-02-03 21:27:36.000000000 +0100
-@@ -240,7 +240,7 @@
+--- lyx-1.5.orig/lib/configure.py	2007-02-15 21:14:12.000000000 +0100
++++ lyx-1.5/lib/configure.py	2007-03-16 21:44:36.000000000 +0100
+@@ -238,7 +238,7 @@
      checkViewer('a FEN viewer and editor', ['xboard -lpf $$i -mode EditPosition'],
          rc_entry = [r'\Format fen        fen     FEN                    "" "%%"	"%%"	""'])
      #
@@ -11,7 +11,7 @@ Index: lyx-1.5/lib/configure.py
      path, ie = checkViewer('a raster image editor', ['gimp'])
      addToRC(r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
  \Format gif        gif     GIF                    "" "%s"	"%s"	""
-@@ -254,7 +254,7 @@
+@@ -252,7 +252,7 @@
  \Format xpm        xpm     XPM                    "" "%s"	"%s"	""''' % \
          (iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie) )
      #
@@ -20,7 +20,7 @@ Index: lyx-1.5/lib/configure.py
          'nedit', 'gedit', 'notepad'],
          rc_entry = [r'''\Format asciichess asc    "Plain text (chess output)"  "" ""	"%%"	""
  \Format asciiimage asc    "Plain text (image)"         "" ""	"%%"	""
-@@ -275,23 +275,23 @@
+@@ -273,23 +273,23 @@
      #
      #checkProg('a Postscript interpreter', ['gs'],
      #  rc_entry = [ r'\ps_command "%%"' ])
