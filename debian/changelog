@@ -1,4 +1,4 @@
-lyx (1.5.0~svn20070203-1) UNRELEASED; urgency=low
+lyx (1.5.0~beta1-1) UNRELEASED; urgency=low
 
   * Checked out upstream development snapshot.
     - TeX is not a build-dep anymore.
