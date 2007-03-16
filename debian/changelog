@@ -1,4 +1,4 @@
-lyx (1.5.0~beta1-1) UNRELEASED; urgency=low
+lyx (1.5.0~beta1-1) experimental; urgency=low
 
   * Checked out upstream development snapshot.
     - TeX is not a build-dep anymore.
@@ -12,7 +12,7 @@ lyx (1.5.0~beta1-1) UNRELEASED; urgency=low
   * Remove build-dep on python-dev, not needed.
   * Versioned depends on lyx-common. Closes: #399799.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 11 Feb 2007 21:20:38 +0100
+ -- Per Olofsson <pelle@debian.org>  Fri, 16 Mar 2007 22:48:35 +0100
 
 lyx (1.4.3-3) UNRELEASED; urgency=low
 
