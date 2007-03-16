@@ -2,7 +2,7 @@ lyx (1.5.0~beta1-1) UNRELEASED; urgency=low
 
   * Checked out upstream development snapshot.
     - TeX is not a build-dep anymore.
-    - Supports UTF-8. Closes: #291186.
+    - Supports UTF-8. Closes: #291186, #372809, #412044.
   * Remove support for multiple frontends. Only build the qt4 frontend,
     and place it in the lyx package.
   * Temporarily disable debug symbols (-g) because of a bug in binutils.
@@ -10,6 +10,7 @@ lyx (1.5.0~beta1-1) UNRELEASED; urgency=low
   * Depend on TeXlive instead of teTeX by default.
   * Remove X[BS]-Python-Version fields, not needed anymore.
   * Remove build-dep on python-dev, not needed.
+  * Versioned depends on lyx-common. Closes: #399799.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 11 Feb 2007 21:20:38 +0100
 
