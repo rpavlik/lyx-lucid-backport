@@ -12,7 +12,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, lyx-common (= ${source:Version}), texlive-latex-recommended | tetex-extra, texlive-fonts-recommended | tetex-extra, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, psutils, xdg-utils
 Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, latex-xft-fonts, dvipng
 Suggests: chktex, nowebm, menu, sgmltools-lite, linuxdoc-tools
-Replaces: lyx-common (<< 1.4.2-1)
+Replaces: lyx-common (<< 1.5.0~beta1)
 Conflicts: lyx-qt, lyx-xforms
 Description: High Level Word Processor
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window

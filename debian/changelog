@@ -2,8 +2,10 @@ lyx (1.5.0~beta1-3) UNRELEASED; urgency=low
 
   * Added conflict with latex-beamer (<= 3.06.dfsg.1-0.1) to lyx-common,
     because both distribute beamer.layout.
+  * Replace lyx-common (<< 1.5.0~beta1), some man pages have moved to
+    the lyx package.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 23 Mar 2007 12:09:51 +0100
+ -- Per Olofsson <pelle@debian.org>  Fri, 23 Mar 2007 12:18:43 +0100
 
 lyx (1.5.0~beta1-2) experimental; urgency=low
 
