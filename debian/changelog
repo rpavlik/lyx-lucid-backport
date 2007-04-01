@@ -8,8 +8,9 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
   * Adding a Conflicts: latex-beamer (<=3.06.dfsg.1-0.1) for lyx-common since
     we ship the beamer.layout file now.
   * Added the new XS-Vcs-Browser field to control and control.in.
+  * New upstream release (closes: #414700)
 
- -- Sven Hoexter <sven@timegate.de>  Fri, 16 Feb 2007 21:55:03 +0100
+ -- Sven Hoexter <sven@timegate.de>  Sun,  1 Apr 2007 17:23:13 +0200
 
 lyx (1.4.3-2) unstable; urgency=low
 
