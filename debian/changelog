@@ -6,7 +6,7 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
   * Don't depend on tetex anymore since it's obsolete.
   * Depend on latex-xft-fonts instead of only recommending it.
 
-  [ Sven Hoexter]
+  [ Sven Hoexter ]
   * Adding a Conflicts: latex-beamer (<=3.06.dfsg.1-0.1) for lyx-common since
     we ship the beamer.layout file now.
   * Added the new XS-Vcs-Browser field to control and control.in.
