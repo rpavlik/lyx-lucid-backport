@@ -103,9 +103,9 @@ install: build
 	rmdir debian/lyx-common/usr/share/lyx/tex/
 
 	ln -s ../../../../lyx/images/lyx.xpm \
-		debian/lyx-common/usr/share/icons/hicolor/48x48/apps/lyx.xpm
+		debian/lyx/usr/share/icons/hicolor/48x48/apps/lyx.xpm
 	cp debian/lyx-32x32.xpm \
-		debian/lyx-common/usr/share/icons/hicolor/32x32/apps/lyx.xpm
+		debian/lyx/usr/share/icons/hicolor/32x32/apps/lyx.xpm
 
 	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx

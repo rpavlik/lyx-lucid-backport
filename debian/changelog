@@ -6,8 +6,10 @@ lyx (1.5.0~beta1-3) UNRELEASED; urgency=low
     the lyx package.
   * Remove alternative dependencies on tetex.
   * Depend on latex-xft-fonts, instead of merely recommending it.
+  * Move icons to the lyx package to avoid lintian warnings. Adjust
+    Replaces accordingly.
 
- -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 18:20:55 +0200
+ -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 18:27:08 +0200
 
 lyx (1.5.0~beta1-2) experimental; urgency=low
 
