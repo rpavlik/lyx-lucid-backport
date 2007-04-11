@@ -4,8 +4,9 @@ lyx (1.5.0~beta1-3) UNRELEASED; urgency=low
     because both distribute beamer.layout.
   * Replace lyx-common (<< 1.5.0~beta1), some man pages have moved to
     the lyx package.
+  * Remove alternative dependencies on tetex.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 23 Mar 2007 12:18:43 +0100
+ -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 18:18:16 +0200
 
 lyx (1.5.0~beta1-2) experimental; urgency=low
 
