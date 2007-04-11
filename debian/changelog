@@ -1,4 +1,4 @@
-lyx (1.4.4-1) UNRELEASED; urgency=low
+lyx (1.4.4-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * Include the quilt package's quilt.make instead of running quilt on our
@@ -15,7 +15,7 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
   [ Per Olofsson ]
   * Remove X[SB]-Python-Version: from debian/control.
 
- -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 20:26:28 +0200
+ -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 20:33:38 +0200
 
 lyx (1.4.3-3) unstable; urgency=low
 
