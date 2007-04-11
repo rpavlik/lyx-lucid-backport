@@ -3,7 +3,7 @@ lyx (1.5.0~beta1-3) UNRELEASED; urgency=low
   * Added conflict with latex-beamer (<= 3.06.dfsg.1-0.1) to lyx-common,
     because both distribute beamer.layout.
   * Replace lyx-common (<< 1.5.0~beta1), some man pages have moved to
-    the lyx package.
+    the lyx package. Closes: #418363.
   * Remove alternative dependencies on tetex.
   * Depend on latex-xft-fonts, instead of merely recommending it.
   * Move icons to the lyx package to avoid lintian warnings. Adjust
