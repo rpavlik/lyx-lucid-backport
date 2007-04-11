@@ -4,6 +4,7 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
   * Include the quilt package's quilt.make instead of running quilt on our
     own. Simplifies debian/rules.
   * Don't depend on tetex anymore since it's obsolete.
+  * Depend on latex-xft-fonts instead of only recommending it.
 
   [ Sven Hoexter]
   * Adding a Conflicts: latex-beamer (<=3.06.dfsg.1-0.1) for lyx-common since
