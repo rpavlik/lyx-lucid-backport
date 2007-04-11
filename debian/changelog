@@ -17,6 +17,14 @@ lyx (1.4.4-1) UNRELEASED; urgency=low
 
  -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 20:26:28 +0200
 
+lyx (1.4.3-3) unstable; urgency=low
+
+  * Adding patch 06.insetassertions (r16831 from upstream svn)
+    This is a fix for assertions reported by several people.
+    Closes: #411043
+
+ -- Sven Hoexter <sven@timegate.de>  Thu, 22 Feb 2007 16:09:16 +0100
+
 lyx (1.4.3-2) unstable; urgency=low
 
   [ Sven Hoexter ]
