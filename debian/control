@@ -11,7 +11,7 @@ Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, lyx-common (= ${source:Version}), texlive-latex-recommended, texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, psutils, xdg-utils, latex-xft-fonts
 Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
-Suggests: chktex, nowebm, menu, sgmltools-lite, linuxdoc-tools
+Suggests: chktex, nowebm, menu, sgmltools-lite, linuxdoc-tools, texlive-latex-extra
 Replaces: lyx-common (<< 1.5.0~beta1-3)
 Conflicts: lyx-qt, lyx-xforms
 Description: High Level Word Processor

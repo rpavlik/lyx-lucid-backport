@@ -1,3 +1,9 @@
+lyx (1.5.0~beta1-4) UNRELEASED; urgency=low
+
+  * Suggest texlive-latex-extra.
+
+ -- Per Olofsson <pelle@debian.org>  Tue, 17 Apr 2007 10:13:07 +0200
+
 lyx (1.5.0~beta1-3) experimental; urgency=low
 
   * Added conflict with latex-beamer (<= 3.06.dfsg.1-0.1) to lyx-common,
