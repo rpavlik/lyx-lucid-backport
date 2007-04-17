@@ -40,8 +40,7 @@ Description: High Level Word Processor
 Package: lyx-common
 Architecture: all
 Depends: perl, ${python:Depends}, texlive-latex-base, xdg-utils
-Recommends: lyx, texlive-latex-recommended, texlive-fonts-recommended, libtiff-tools, groff, imagemagick, mime-support, psutils
-Suggests: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost, dvipng
+Recommends: lyx
 Conflicts: latex-beamer (<=3.06.dfsg.1-0.1)
 Description: High Level Word Processor - common files
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
