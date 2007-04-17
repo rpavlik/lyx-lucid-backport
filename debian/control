@@ -12,8 +12,8 @@ Build-Conflicts: libboost-dev, libboost-regex-dev, libboost-signals-dev
 Package: lyx
 Architecture: any
 Depends: lyx-qt | lyx-xforms | lyx-gtk, texlive-latex-recommended, texlive-fonts-recommended, preview-latex-style, libtiff-tools, groff, imagemagick, mime-support, ${shlibs:Depends}
-Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, sgmltools-lite, linuxdoc-tools, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
-Suggests: chktex, nowebm, texlive-latex-extra
+Recommends: kdeprint | lpr, konqueror | www-browser, kghostview | postscript-viewer, kpdf | pdf-viewer, rcs, tex4ht | hevea | tth | latex2html, gnuhtml2latex, wv, dvipost
+Suggests: chktex, nowebm, texlive-latex-extra, sgmltools-lite, linuxdoc-tools
 Replaces: lyx-common (<< 1.4.2-1)
 Description: High Level Word Processor
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
