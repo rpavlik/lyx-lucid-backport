@@ -2,6 +2,7 @@
 Package: lyx-xforms
 Architecture: any
 Depends: lyx-common (= ${source:Version}), ${shlibs:Depends}
+Recommends: lyx
 Suggests: menu
 Description: High Level Word Processor - XForms frontend
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window

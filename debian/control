@@ -56,6 +56,7 @@ Description: High Level Word Processor - common files
 Package: lyx-qt
 Architecture: any
 Depends: lyx-common (= ${source:Version}), latex-xft-fonts, ${shlibs:Depends}
+Recommends: lyx
 Suggests: menu
 Description: High Level Word Processor - Qt frontend
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
@@ -71,6 +72,7 @@ Description: High Level Word Processor - Qt frontend
 Package: lyx-xforms
 Architecture: any
 Depends: lyx-common (= ${source:Version}), ${shlibs:Depends}
+Recommends: lyx
 Suggests: menu
 Description: High Level Word Processor - XForms frontend
  LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
