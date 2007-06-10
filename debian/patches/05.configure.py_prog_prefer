@@ -1,14 +1,14 @@
-Index: lyx-1.5/lib/configure.py
+Index: lyx-1.5.0rc1/lib/configure.py
 ===================================================================
---- lyx-1.5.orig/lib/configure.py	2007-02-15 21:14:12.000000000 +0100
-+++ lyx-1.5/lib/configure.py	2007-03-16 21:44:36.000000000 +0100
+--- lyx-1.5.0rc1.orig/lib/configure.py	2007-06-10 14:33:05.000000000 +0200
++++ lyx-1.5.0rc1/lib/configure.py	2007-06-10 14:41:14.000000000 +0200
 @@ -238,7 +238,7 @@
      checkViewer('a FEN viewer and editor', ['xboard -lpf $$i -mode EditPosition'],
          rc_entry = [r'\Format fen        fen     FEN                    "" "%%"	"%%"	""'])
      #
--    path, iv = checkViewer('a raster image viewer', ['xv', 'kview', 'gimp'])
-+    path, iv = checkViewer('a raster image viewer', ['xdg-open','xv', 'kview', 'gimp'])
-     path, ie = checkViewer('a raster image editor', ['gimp'])
+-    path, iv = checkViewer('a raster image viewer', ['xv', 'kview', 'gimp-remote', 'gimp'])
++    path, iv = checkViewer('a raster image viewer', ['xdg-open', 'xv', 'kview', 'gimp-remote', 'gimp'])
+     path, ie = checkViewer('a raster image editor', ['gimp-remote', 'gimp'])
      addToRC(r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
  \Format gif        gif     GIF                    "" "%s"	"%s"	""
 @@ -252,7 +252,7 @@
@@ -16,7 +16,7 @@ Index: lyx-1.5/lib/configure.py
          (iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie) )
      #
 -    checkViewer('a text editor', ['xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
-+    checkViewer('a text editor', ['sensible-editor','xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
++    checkViewer('a text editor', ['sensible-editor', 'xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
          'nedit', 'gedit', 'notepad'],
          rc_entry = [r'''\Format asciichess asc    "Plain text (chess output)"  "" ""	"%%"	""
  \Format asciiimage asc    "Plain text (image)"         "" ""	"%%"	""
@@ -43,8 +43,8 @@ Index: lyx-1.5/lib/configure.py
          # Windows only: DraftDVI
          addToRC(r'\Format dvi2       dvi     DraftDVI               ""	""	"document,vector"')
      #
--    checkViewer('an HTML previewer', ['mozilla file://$$p$$i', 'netscape'],
-+    checkViewer('an HTML previewer', ['xdg-open file://$$p$$i', 'mozilla file://$$p$$i', 'netscape'],
+-    checkViewer('an HTML previewer', ['firefox', 'mozilla file://$$p$$i', 'netscape'],
++    checkViewer('an HTML previewer', ['xdg-open file://$$p$$i', 'firefox', 'mozilla file://$$p$$i', 'netscape'],
          rc_entry = [r'\Format html       html    HTML                   H  "%%"	""	"document"'])
      #
      checkViewer('Noteedit', ['noteedit'],
