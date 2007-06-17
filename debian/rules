@@ -81,6 +81,9 @@ clean1:
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 
+# temporary hack since these files are not removed
+	rm -f lib/lyx2lyx/*.pyc
+
 	dh_clean
 
 install: build

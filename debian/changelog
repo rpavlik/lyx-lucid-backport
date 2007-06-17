@@ -10,8 +10,9 @@ lyx (1.5.0~rc1-1) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Force building with Qt 4.3 so that it gets proper testing.
+  * Temporary hack to remove *.pyc files from lib/lyx2lyx
 
- -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 18:43:52 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 18:53:34 +0100
 
 lyx (1.5.0~beta1-3) experimental; urgency=low
 
