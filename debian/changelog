@@ -1,14 +1,17 @@
 lyx (1.5.0~rc1-1) UNRELEASED; urgency=low
 
-  [ Per Olofsson ] 
+  [ Per Olofsson ]
   * Suggest texlive-latex-extra.
-  
+
   [ Sven Hoexter ]
   * New upstream pre-release
   * Refreshed patch 05.configure.py_prog_prefer
   * Added the new XS-Vcs-Browser field to control
-  
- -- Sven Hoexter <sven@timegate.de>  Sun, 10 Jun 2007 13:45:05 +0200
+
+  [ Per Olofsson ]
+  * Force building with Qt 4.3 so that it gets proper testing.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 18:43:52 +0100
 
 lyx (1.5.0~beta1-3) experimental; urgency=low
 
