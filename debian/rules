@@ -82,7 +82,7 @@ clean1:
 	mv config/config.sub.backup config/config.sub || true
 
 # temporary hack since these files are not removed
-	find lib -name '*.pyc' | xargs rm
+	find lib -name '*.pyc' -exec rm {} \;
 
 	dh_clean
 
@@ -114,7 +114,7 @@ install: build
 	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
 
 # remove compiled python files
-	find debian/lyx-common -name '*.pyc' | xargs rm
+	find debian/lyx-common -name '*.pyc' -exec rm {} \;
 
 binary-indep: build install
 	dh_testdir
