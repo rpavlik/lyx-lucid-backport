@@ -113,6 +113,9 @@ install: build
 	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
 
+# remove compiled python files
+	find debian/lyx-common -name '*.pyc' | xargs rm
+
 binary-indep: build install
 	dh_testdir
 	dh_testroot
