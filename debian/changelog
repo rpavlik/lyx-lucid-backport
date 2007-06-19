@@ -1,4 +1,4 @@
-lyx (1.5.0~rc1-1) UNRELEASED; urgency=low
+lyx (1.5.0~rc1-1) experimental; urgency=low
 
   [ Per Olofsson ]
   * Suggest texlive-latex-extra.
@@ -13,7 +13,7 @@ lyx (1.5.0~rc1-1) UNRELEASED; urgency=low
   * Temporary hack to remove *.pyc files from lib/lyx2lyx
   * Remove compiled Python modules from /usr/share/lyx.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 18:56:45 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 19:01:29 +0100
 
 lyx (1.5.0~beta1-3) experimental; urgency=low
 
