@@ -1,0 +1,723 @@
+Index: lyx-1.5.0rc1/boost/libs/filesystem/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/filesystem/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/filesystem/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = src
+ all: all-recursive
+Index: lyx-1.5.0rc1/boost/libs/filesystem/src/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/filesystem/src/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/filesystem/src/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -282,13 +282,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/boost/libs/iostreams/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/iostreams/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/iostreams/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = src
+ all: all-recursive
+Index: lyx-1.5.0rc1/boost/libs/iostreams/src/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/iostreams/src/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/iostreams/src/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -282,13 +282,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/boost/libs/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/Makefile.in	2007-06-01 01:52:46.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = filesystem iostreams regex signals
+ all: all-recursive
+Index: lyx-1.5.0rc1/boost/libs/regex/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/regex/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/regex/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = src
+ all: all-recursive
+Index: lyx-1.5.0rc1/boost/libs/regex/src/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/regex/src/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/regex/src/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -285,13 +285,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/boost/libs/signals/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/signals/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/signals/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = src
+ all: all-recursive
+Index: lyx-1.5.0rc1/boost/libs/signals/src/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/libs/signals/src/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/boost/libs/signals/src/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -282,13 +282,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/boost/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/boost/Makefile.in	2007-06-01 01:52:46.000000000 +0200
++++ lyx-1.5.0rc1/boost/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = libs
+ EXTRA_DIST = boost
+Index: lyx-1.5.0rc1/config/common.am
+===================================================================
+--- lyx-1.5.0rc1.orig/config/common.am	2006-04-20 22:44:05.000000000 +0200
++++ lyx-1.5.0rc1/config/common.am	2007-06-23 10:46:49.000000000 +0200
+@@ -36,10 +36,10 @@
+ BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ else
+ BOOST_INCLUDES =
+-BOOST_FILESYSTEM = -lboost_filesystem
+-BOOST_REGEX = -lboost_regex
+-BOOST_SIGNALS = -lboost_signals
+-BOOST_IOSTREAMS = -lboost_iostreams
++BOOST_FILESYSTEM = -lboost_filesystem-mt
++BOOST_REGEX = -lboost_regex-mt
++BOOST_SIGNALS = -lboost_signals-mt
++BOOST_IOSTREAMS = -lboost_iostreams-mt
+ endif
+ 
+ LIBS =
+Index: lyx-1.5.0rc1/config/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/config/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/config/Makefile.in	2007-06-23 10:46:49.000000000 +0200
+@@ -263,13 +263,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = \
+ 	common.am \
+Index: lyx-1.5.0rc1/development/MacOSX/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/development/MacOSX/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/development/MacOSX/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -289,13 +289,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = spotlight
+ bundledir = ${prefix}/Contents
+Index: lyx-1.5.0rc1/development/MacOSX/spotlight/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/development/MacOSX/spotlight/Makefile.in	2007-06-01 01:52:47.000000000 +0200
++++ lyx-1.5.0rc1/development/MacOSX/spotlight/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -279,13 +279,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ bundledir = $(prefix)/Contents
+ spotlightdir = $(bundledir)/Library/Spotlight/LyX-Metadata.mdimporter/Contents
+Index: lyx-1.5.0rc1/development/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/development/Makefile.in	2007-06-01 01:52:48.000000000 +0200
++++ lyx-1.5.0rc1/development/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -273,13 +273,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ @INSTALL_MACOSX_TRUE@SUBDIRS = MacOSX
+ EXTRA_DIST = boostworkaround.txt ChangeLog Code_rules FORMAT \
+Index: lyx-1.5.0rc1/lib/doc/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/lib/doc/Makefile.in	2007-06-01 01:52:48.000000000 +0200
++++ lyx-1.5.0rc1/lib/doc/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -328,13 +328,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = depend.py doc_toc.py README.Documentation $(DEPENDFILE) $(docfiles)
+ clipartdocdir = $(pkgdatadir)/doc/clipart
+Index: lyx-1.5.0rc1/lib/lyx2lyx/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/lib/lyx2lyx/Makefile.in	2007-06-01 01:52:48.000000000 +0200
++++ lyx-1.5.0rc1/lib/lyx2lyx/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -271,13 +271,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = lyx2lyx_version.py.in
+ CHMOD = chmod
+Index: lyx-1.5.0rc1/lib/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/lib/Makefile.in	2007-06-01 01:52:48.000000000 +0200
++++ lyx-1.5.0rc1/lib/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -363,13 +363,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = doc lyx2lyx
+ CHMOD = chmod
+Index: lyx-1.5.0rc1/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/Makefile.in	2007-06-01 01:52:46.000000000 +0200
++++ lyx-1.5.0rc1/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -292,13 +292,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ ACLOCAL_AMFLAGS = -I m4 -I config
+ DIST_SUBDIRS = m4 config development intl po boost src sourcedoc lib
+Index: lyx-1.5.0rc1/sourcedoc/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/sourcedoc/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/sourcedoc/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -261,13 +261,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = Doxyfile.in
+ all: all-am
+Index: lyx-1.5.0rc1/src/client/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/client/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/client/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -303,13 +303,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h lyxclient.man
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/src/frontends/controllers/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/frontends/controllers/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/frontends/controllers/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -313,13 +313,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = tests
+ EXTRA_DIST = pch.h BCView.tmpl
+Index: lyx-1.5.0rc1/src/frontends/controllers/tests/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/frontends/controllers/tests/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/frontends/controllers/tests/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -280,13 +280,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h test_biblio
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/src/frontends/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/frontends/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/frontends/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -300,13 +300,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = controllers $(FRONTENDS_SUBDIRS)
+ DIST_SUBDIRS = controllers qt4
+Index: lyx-1.5.0rc1/src/frontends/qt4/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/frontends/qt4/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/frontends/qt4/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -330,13 +330,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ UIFILES = \
+ 	AboutUi.ui \
+Index: lyx-1.5.0rc1/src/frontends/qt4/ui/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/frontends/qt4/ui/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/frontends/qt4/ui/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -263,13 +263,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ UIFILES = \
+ 	AboutUi.ui \
+Index: lyx-1.5.0rc1/src/graphics/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/graphics/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/graphics/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -293,13 +293,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/src/insets/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/insets/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/insets/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -304,13 +304,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ noinst_LTLIBRARIES = libinsets.la
+ EXTRA_DIST = \
+Index: lyx-1.5.0rc1/src/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/Makefile.in	2007-06-01 01:52:49.000000000 +0200
++++ lyx-1.5.0rc1/src/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -405,13 +405,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ @BUILD_CLIENT_SUBDIR_TRUE@CLIENT = client
+ SUBDIRS = mathed insets graphics support frontends . $(CLIENT) tex2lyx
+Index: lyx-1.5.0rc1/src/mathed/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/mathed/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/mathed/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -312,13 +312,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h InsetFormulaMacro.cpp
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/src/support/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/support/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/support/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -312,13 +312,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ SUBDIRS = . tests
+ EXTRA_DIST = Package.cpp.in pch.h \
+Index: lyx-1.5.0rc1/src/support/tests/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/support/tests/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/support/tests/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -300,13 +300,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = pch.h test_convert test_filetools test_lstrings regfiles
+ BUILT_SOURCES = $(PCH_FILE)
+Index: lyx-1.5.0rc1/src/tex2lyx/Makefile.in
+===================================================================
+--- lyx-1.5.0rc1.orig/src/tex2lyx/Makefile.in	2007-06-01 01:52:50.000000000 +0200
++++ lyx-1.5.0rc1/src/tex2lyx/Makefile.in	2007-06-23 10:46:50.000000000 +0200
+@@ -312,13 +312,13 @@
+ SUFFIXES = .gch
+ @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
+ @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
++@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
++@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
++@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
+-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
++@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
+ @USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
+ EXTRA_DIST = tex2lyx.man pch.h test-structure.tex test-insets.tex
+ 

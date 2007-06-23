@@ -28,7 +28,7 @@ CONFIGURE_OPTIONS += \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--with-included-boost \
+	--without-included-boost \
 
 # temporarily disable because of bug in binutils
 #CFLAGS += -g
