@@ -42,13 +42,7 @@ Architecture: all
 Depends: ${python:Depends}, texlive-latex-base
 Recommends: lyx
 Conflicts: latex-beamer (<= 3.06.dfsg.1-0.1)
-Description: High Level Word Processor - common files
- LyX is an almost WYSIWYG-frontend for LaTeX that runs under the X Window
- System. It makes the power and typesetting quality of LaTeX available for
- people who are used to word processors. Since LyX supports LaTeX's concept
- of general mark-ups, it is even easier and faster to create professional
- quality documents with it than with usual word processors. It is also
- possible to use LaTeX-commands within LyX, so nothing of LaTeX's power is
- lost.
- .
- This package provides common files which are not architecture-dependent.
+Description: Architecture-independent files for LyX
+ This package contains LyX's common files which are not
+ architecture-dependent. See the lyx package for a description of LyX
+ itself.
