@@ -4,8 +4,9 @@ lyx (1.5.0~rc2-1) UNRELEASED; urgency=low
   * Loosen up qt4 dependency, as 4.3 is now in unstable and it is not
     really necessary.
   * Reenable -g option, binutils should work now.
+  * Build-depend on python-support >= 0.6.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 17:52:46 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 17:56:32 +0200
 
 lyx (1.5.0~rc1-2) experimental; urgency=low
 
