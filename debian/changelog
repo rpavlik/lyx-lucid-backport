@@ -1,4 +1,4 @@
-lyx (1.5.0~rc2-1) UNRELEASED; urgency=low
+lyx (1.5.0~rc2-1) experimental; urgency=low
 
   * New upstream release.
   * Loosen up qt4 dependency, as 4.3 is now in unstable and it is not
@@ -6,7 +6,7 @@ lyx (1.5.0~rc2-1) UNRELEASED; urgency=low
   * Reenable -g option, binutils should work now.
   * Build-depend on python-support >= 0.6.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 17:56:32 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 18:03:00 +0200
 
 lyx (1.5.0~rc1-2) experimental; urgency=low
 
