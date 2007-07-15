@@ -30,8 +30,7 @@ CONFIGURE_OPTIONS += \
 	--without-included-gettext \
 	--without-included-boost \
 
-# temporarily disable because of bug in binutils
-#CFLAGS += -g
+CFLAGS += -g
 
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O2
