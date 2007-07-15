@@ -1,8 +1,10 @@
 lyx (1.5.0~rc2-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Loosen up qt4 dependency, as 4.3 is now in unstable and it is not
+    really necessary.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 12:14:54 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 17:30:47 +0200
 
 lyx (1.5.0~rc1-2) experimental; urgency=low
 
