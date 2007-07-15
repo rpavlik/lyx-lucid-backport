@@ -1,4 +1,4 @@
-lyx (1.5.0~rc1-2) UNRELEASED; urgency=low
+lyx (1.5.0~rc1-2) experimental; urgency=low
 
   [ Per Olofsson ]
   * Remove boost_ia64 patch, integrated upstream.
@@ -16,7 +16,7 @@ lyx (1.5.0~rc1-2) UNRELEASED; urgency=low
   * Only provide a small description of lyx-common, the real description
     should be in the lyx package.
 
- -- Per Olofsson <pelle@debian.org>  Sat, 23 Jun 2007 20:06:01 +0100
+ -- Per Olofsson <pelle@debian.org>  Sat, 23 Jun 2007 20:19:46 +0100
 
 lyx (1.5.0~rc1-1) experimental; urgency=low
 
