@@ -1,3 +1,9 @@
+lyx (1.4.5.1-1) unstable; urgency=low
+
+  * New upstream release, the last one in the 1.4.x series.
+
+ -- Sven Hoexter <sven@timegate.de>  Wed, 08 Aug 2007 19:08:54 +0200
+
 lyx (1.4.4-2) unstable; urgency=low
 
   * The patch 06.insetassertions was removed in the previous version, as
