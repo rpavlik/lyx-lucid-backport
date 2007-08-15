@@ -46,3 +46,12 @@ Description: Architecture-independent files for LyX
  This package contains LyX's common files which are not
  architecture-dependent. See the lyx package for a description of LyX
  itself.
+
+Package: lyx-dbg
+Architecture: any
+Depends: lyx (=${binary:Version})
+Suggests: gdb
+Description: lyx debug symbols
+ This package contains the debug symbols for LyX. It's useful if you
+ want to help to debug some problems with a source level debugger like
+ gdb.

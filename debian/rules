@@ -136,7 +136,7 @@ binary-arch: build install
 	dh_installmime -a
 	dh_desktop -a
 	dh_link -a
-	dh_strip -a
+	dh_strip -a --dbg-package=lyx-dbg
 	dh_compress -a
 	dh_fixperms -a
 	dh_installdeb -a
