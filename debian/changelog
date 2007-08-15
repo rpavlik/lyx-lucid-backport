@@ -2,8 +2,10 @@ lyx (1.5.1-1) UNRELEASED; urgency=low
 
   * New upstream release. Closes: #436717
   * Add lyx-dbg debug package, patch from Sven Hoexter. Closes: #438161
+  * Tighten boost dependency to >> 1.34, thanks to Tom Parker. Closes:
+    #438160
 
- -- Per Olofsson <pelle@debian.org>  Wed, 15 Aug 2007 20:57:44 +0200
+ -- Per Olofsson <pelle@debian.org>  Wed, 15 Aug 2007 21:01:37 +0200
 
 lyx (1.5.0~rc2-1) experimental; urgency=low
 
