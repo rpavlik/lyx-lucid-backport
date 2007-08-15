@@ -1,7 +1,7 @@
 lyx (1.5.1-1) UNRELEASED; urgency=low
 
   * New upstream release. Closes: #436717
-  * Add lyx-dbg debug package, patch from Sven Hoexter.
+  * Add lyx-dbg debug package, patch from Sven Hoexter. Closes: #438161
 
  -- Per Olofsson <pelle@debian.org>  Wed, 15 Aug 2007 20:57:44 +0200
 
