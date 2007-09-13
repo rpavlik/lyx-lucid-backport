@@ -1,11 +1,11 @@
-lyx (1.5.1-1) UNRELEASED; urgency=low
+lyx (1.5.1-1) experimental; urgency=low
 
   * New upstream release. Closes: #436717
   * Tighten boost dependency to >> 1.34, thanks to Tom Parker. Closes:
     #438160
   * Wrap build-deps to separate lines.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 17 Aug 2007 11:46:34 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 19 Aug 2007 15:27:30 +0200
 
 lyx (1.5.0~rc2-1) experimental; urgency=low
 
