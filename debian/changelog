@@ -1,8 +1,9 @@
 lyx (1.5.1-2) UNRELEASED; urgency=low
 
   * Update debian/copyright. Add BaKoMa font license.
+  * Remove fonts from lyx-common.
 
- -- Per Olofsson <pelle@debian.org>  Thu, 13 Sep 2007 18:23:42 +0200
+ -- Per Olofsson <pelle@debian.org>  Fri, 14 Sep 2007 12:32:16 +0200
 
 lyx (1.5.1-1) experimental; urgency=low
 
