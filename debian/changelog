@@ -2,8 +2,11 @@ lyx (1.5.1-2) UNRELEASED; urgency=low
 
   * Update debian/copyright. Add BaKoMa font license.
   * Remove fonts from lyx-common.
+  * Remove boost-mt patch and bump boost version build-dep. We don't
+    need -mt according to configure.ac, and there are now symlinks in
+    place.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 14 Sep 2007 12:32:16 +0200
+ -- Per Olofsson <pelle@debian.org>  Fri, 14 Sep 2007 18:18:13 +0200
 
 lyx (1.5.1-1) experimental; urgency=low
 
