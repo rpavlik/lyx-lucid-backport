@@ -1,9 +1,0 @@
-#!/bin/sh -e
-
-if [ "$1" = remove ]; then
-    if [ -x "`which texhash 2>/dev/null`" ]; then
-	texhash
-    fi
-fi
-
-#DEBHELPER#
