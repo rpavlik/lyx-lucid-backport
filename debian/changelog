@@ -5,8 +5,11 @@ lyx (1.5.1-2) UNRELEASED; urgency=low
   * Remove boost-mt patch and bump boost version build-dep. We don't
     need -mt according to configure.ac, and there are now symlinks in
     place.
+  * Move around Depends/Recommends/Suggests so that they mean what
+    they're supposed to mean.
+  * Update description.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 14 Sep 2007 18:18:13 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 15:31:42 +0200
 
 lyx (1.5.1-1) experimental; urgency=low
 
