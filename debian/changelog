@@ -9,8 +9,10 @@ lyx (1.5.1-2) UNRELEASED; urgency=low
     they're supposed to mean.
   * Update description.
   * Recommend more "standard" applications as alternatives.
+  * Remove Application category from lyx.desktop, as it's not in the
+    spec. Add Qt category.
 
- -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 17:38:34 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:14:05 +0200
 
 lyx (1.5.1-1) experimental; urgency=low
 

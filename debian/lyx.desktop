@@ -10,5 +10,5 @@ TryExec=lyx
 Icon=lyx
 StartupNotify=false
 Terminal=false
-Categories=Application;Office;WordProcessor;
+Categories=Office;WordProcessor;Qt;
 MimeType=text/x-lyx;application/x-lyx;
