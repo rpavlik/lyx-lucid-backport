@@ -16,8 +16,9 @@ lyx (1.5.1-2) UNRELEASED; urgency=low
     - Add StartupWMClass.
   * Change Debian menu section to Applications/Office.
   * Substitute non-ASCII character in lyxclient.1 man page.
+  * Add note about UTF-8 support to NEWS.Debian.
 
- -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:43:42 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:47:26 +0200
 
 lyx (1.5.1-1) experimental; urgency=low
 
