@@ -1,3 +1,117 @@
+lyx (1.5.1-2) UNRELEASED; urgency=low
+
+  * Update debian/copyright. Add BaKoMa font license.
+  * Remove fonts from lyx-common.
+  * Remove boost-mt patch and bump boost version build-dep. We don't
+    need -mt according to configure.ac, and there are now symlinks in
+    place.
+  * Move around Depends/Recommends/Suggests so that they mean what
+    they're supposed to mean.
+  * Update description.
+  * Recommend more "standard" applications as alternatives.
+  * lyx.desktop:
+    - Remove Application category, as it's not in the spec.
+    - Add Qt category.
+    - Update description.
+    - Add StartupWMClass.
+  * Change Debian menu section to Applications/Office.
+  * Substitute non-ASCII character in lyxclient.1 man page.
+  * Add note about UTF-8 support to NEWS.Debian.
+
+ -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:47:26 +0200
+
+lyx (1.5.1-1) experimental; urgency=low
+
+  * New upstream release. Closes: #436717
+  * Tighten boost dependency to >> 1.34, thanks to Tom Parker. Closes:
+    #438160
+  * Wrap build-deps to separate lines.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 19 Aug 2007 15:27:30 +0200
+
+lyx (1.5.0~rc2-1) experimental; urgency=low
+
+  * New upstream release.
+  * Loosen up qt4 dependency, as 4.3 is now in unstable and it is not
+    really necessary.
+  * Reenable -g option, binutils should work now.
+  * Build-depend on python-support >= 0.6.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 18:03:00 +0200
+
+lyx (1.5.0~rc1-2) experimental; urgency=low
+
+  [ Per Olofsson ]
+  * Remove boost_ia64 patch, integrated upstream.
+
+  [ Sven Hoexter ]
+  * Introducing patches/boost-mt. This patch changes
+    all -lboost_* to -lboost_*-mt. The rationale behind
+    this change is documented in the BTS #424038.
+    Now we're able to link against the external libboost 1.34
+    packages in the Debian archive.
+  * Reintroducing Per's changes to rules and control so
+    that we can build --without-included-boost.
+
+  [ Per Olofsson ]
+  * Only provide a small description of lyx-common, the real description
+    should be in the lyx package.
+
+ -- Per Olofsson <pelle@debian.org>  Sat, 23 Jun 2007 20:19:46 +0100
+
+lyx (1.5.0~rc1-1) experimental; urgency=low
+
+  [ Per Olofsson ]
+  * Suggest texlive-latex-extra.
+
+  [ Sven Hoexter ]
+  * New upstream pre-release
+  * Refreshed patch 05.configure.py_prog_prefer
+  * Added the new XS-Vcs-Browser field to control
+
+  [ Per Olofsson ]
+  * Force building with Qt 4.3 so that it gets proper testing.
+  * Temporary hack to remove *.pyc files from lib/lyx2lyx
+  * Remove compiled Python modules from /usr/share/lyx.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 19:01:29 +0100
+
+lyx (1.5.0~beta1-3) experimental; urgency=low
+
+  * Added conflict with latex-beamer (<= 3.06.dfsg.1-0.1) to lyx-common,
+    because both distribute beamer.layout.
+  * Replace lyx-common (<< 1.5.0~beta1), some man pages have moved to
+    the lyx package. Closes: #418363.
+  * Remove alternative dependencies on tetex.
+  * Depend on latex-xft-fonts, instead of merely recommending it.
+  * Move icons to the lyx package to avoid lintian warnings. Adjust
+    Replaces accordingly.
+
+ -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 22:21:48 +0200
+
+lyx (1.5.0~beta1-2) experimental; urgency=low
+
+  * Add patch boost_ia64 from upstream r17506 to add ia64 support to the
+    included boost library. Closes: #415636.
+
+ -- Per Olofsson <pelle@debian.org>  Fri, 23 Mar 2007 11:48:02 +0100
+
+lyx (1.5.0~beta1-1) experimental; urgency=low
+
+  * Checked out upstream development snapshot.
+    - TeX is not a build-dep anymore.
+    - Supports UTF-8. Closes: #291186, #372809, #412044.
+  * Remove support for multiple frontends. Only build the qt4 frontend,
+    and place it in the lyx package.
+  * Temporarily disable debug symbols (-g) because of a bug in binutils.
+  * Simplify dependencies.
+  * Depend on TeXlive instead of teTeX by default.
+  * Remove X[BS]-Python-Version fields, not needed anymore.
+  * Remove build-dep on python-dev, not needed.
+  * Versioned depends on lyx-common. Closes: #399799.
+
+ -- Per Olofsson <pelle@debian.org>  Fri, 16 Mar 2007 22:48:35 +0100
+
 lyx (1.4.5.1-1) unstable; urgency=low
 
   * New upstream release, the last one in the 1.4.x series.
