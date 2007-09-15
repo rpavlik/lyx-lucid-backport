@@ -1,8 +1,80 @@
-lyx (1.5.0~beta1-4) UNRELEASED; urgency=low
+lyx (1.5.1-2) UNRELEASED; urgency=low
 
+  * Update debian/copyright. Add BaKoMa font license.
+  * Remove fonts from lyx-common.
+  * Remove boost-mt patch and bump boost version build-dep. We don't
+    need -mt according to configure.ac, and there are now symlinks in
+    place.
+  * Move around Depends/Recommends/Suggests so that they mean what
+    they're supposed to mean.
+  * Update description.
+  * Recommend more "standard" applications as alternatives.
+  * lyx.desktop:
+    - Remove Application category, as it's not in the spec.
+    - Add Qt category.
+    - Update description.
+    - Add StartupWMClass.
+  * Change Debian menu section to Applications/Office.
+  * Substitute non-ASCII character in lyxclient.1 man page.
+  * Add note about UTF-8 support to NEWS.Debian.
+
+ -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:47:26 +0200
+
+lyx (1.5.1-1) experimental; urgency=low
+
+  * New upstream release. Closes: #436717
+  * Tighten boost dependency to >> 1.34, thanks to Tom Parker. Closes:
+    #438160
+  * Wrap build-deps to separate lines.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 19 Aug 2007 15:27:30 +0200
+
+lyx (1.5.0~rc2-1) experimental; urgency=low
+
+  * New upstream release.
+  * Loosen up qt4 dependency, as 4.3 is now in unstable and it is not
+    really necessary.
+  * Reenable -g option, binutils should work now.
+  * Build-depend on python-support >= 0.6.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 15 Jul 2007 18:03:00 +0200
+
+lyx (1.5.0~rc1-2) experimental; urgency=low
+
+  [ Per Olofsson ]
+  * Remove boost_ia64 patch, integrated upstream.
+
+  [ Sven Hoexter ]
+  * Introducing patches/boost-mt. This patch changes
+    all -lboost_* to -lboost_*-mt. The rationale behind
+    this change is documented in the BTS #424038.
+    Now we're able to link against the external libboost 1.34
+    packages in the Debian archive.
+  * Reintroducing Per's changes to rules and control so
+    that we can build --without-included-boost.
+
+  [ Per Olofsson ]
+  * Only provide a small description of lyx-common, the real description
+    should be in the lyx package.
+
+ -- Per Olofsson <pelle@debian.org>  Sat, 23 Jun 2007 20:19:46 +0100
+
+lyx (1.5.0~rc1-1) experimental; urgency=low
+
+  [ Per Olofsson ]
   * Suggest texlive-latex-extra.
 
- -- Per Olofsson <pelle@debian.org>  Tue, 17 Apr 2007 10:13:07 +0200
+  [ Sven Hoexter ]
+  * New upstream pre-release
+  * Refreshed patch 05.configure.py_prog_prefer
+  * Added the new XS-Vcs-Browser field to control
+
+  [ Per Olofsson ]
+  * Force building with Qt 4.3 so that it gets proper testing.
+  * Temporary hack to remove *.pyc files from lib/lyx2lyx
+  * Remove compiled Python modules from /usr/share/lyx.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 17 Jun 2007 19:01:29 +0100
 
 lyx (1.5.0~beta1-3) experimental; urgency=low
 
@@ -40,13 +112,50 @@ lyx (1.5.0~beta1-1) experimental; urgency=low
 
  -- Per Olofsson <pelle@debian.org>  Fri, 16 Mar 2007 22:48:35 +0100
 
-lyx (1.4.3-3) UNRELEASED; urgency=low
+lyx (1.4.5.1-1) unstable; urgency=low
+
+  * New upstream release, the last one in the 1.4.x series.
+
+ -- Sven Hoexter <sven@timegate.de>  Wed, 08 Aug 2007 19:08:54 +0200
+
+lyx (1.4.4-2) unstable; urgency=low
+
+  * The patch 06.insetassertions was removed in the previous version, as
+    it has been integrated upstream. Forgot to note this in the changelog.
+  * Suggest texlive-latex-extra. Closes: #419555
+  * Remove redundant dependencies.
+  * Remove redundant Recommends and Suggests from lyx-common.
+  * Move sgmltools-lite and linuxdoc-tools from Recommends to Suggests.
+  * Made lyx-qt and lyx-xforms Recommend: lyx. Closes: #426027
+
+ -- Per Olofsson <pelle@debian.org>  Mon, 18 Jun 2007 15:00:22 +0100
+
+lyx (1.4.4-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * Include the quilt package's quilt.make instead of running quilt on our
     own. Simplifies debian/rules.
+  * Don't depend on tetex anymore since it's obsolete.
+  * Depend on latex-xft-fonts instead of only recommending it.
 
- -- Per Olofsson <pelle@debian.org>  Sun,  3 Dec 2006 14:09:11 +0100
+  [ Sven Hoexter ]
+  * Adding a Conflicts: latex-beamer (<=3.06.dfsg.1-0.1) for lyx-common since
+    we ship the beamer.layout file now.
+  * Added the new XS-Vcs-Browser field to control and control.in.
+  * New upstream release (closes: #414700)
+
+  [ Per Olofsson ]
+  * Remove X[SB]-Python-Version: from debian/control.
+
+ -- Per Olofsson <pelle@debian.org>  Wed, 11 Apr 2007 20:33:38 +0200
+
+lyx (1.4.3-3) unstable; urgency=low
+
+  * Adding patch 06.insetassertions (r16831 from upstream svn)
+    This is a fix for assertions reported by several people.
+    Closes: #411043
+
+ -- Sven Hoexter <sven@timegate.de>  Thu, 22 Feb 2007 16:09:16 +0100
 
 lyx (1.4.3-2) unstable; urgency=low
 

@@ -28,10 +28,9 @@ CONFIGURE_OPTIONS += \
 	--with-aspell \
 	--with-x \
 	--without-included-gettext \
-	--with-included-boost \
+	--without-included-boost \
 
-# temporarily disable because of bug in binutils
-#CFLAGS += -g
+CFLAGS += -g
 
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O2
@@ -81,6 +80,9 @@ clean1:
 	mv config/config.guess.backup config/config.guess || true
 	mv config/config.sub.backup config/config.sub || true
 
+# temporary hack since these files are not removed
+	find lib -name '*.pyc' -exec rm {} \;
+
 	dh_clean
 
 install: build
@@ -97,6 +99,8 @@ install: build
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
 	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py*
+	rm -r debian/lyx-common/usr/share/lyx/fonts
+
 	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
 	mv debian/lyx-common/usr/share/lyx/tex/* \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
@@ -109,6 +113,9 @@ install: build
 
 	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
 	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
+
+# remove compiled python files
+	find debian/lyx-common -name '*.pyc' -exec rm {} \;
 
 binary-indep: build install
 	dh_testdir
