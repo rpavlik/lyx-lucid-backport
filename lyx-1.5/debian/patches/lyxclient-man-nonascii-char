@@ -1,0 +1,11 @@
+Index: lyx-1.5/src/client/lyxclient.man
+===================================================================
+--- lyx-1.5.orig/src/client/lyxclient.man	2007-09-15 21:41:56.000000000 +0200
++++ lyx-1.5/src/client/lyxclient.man	2007-09-15 21:42:26.000000000 +0200
+@@ -79,5 +79,5 @@
+ .SH SEE ALSO
+ lyx(1), xdvi(1), lyx functions <fixme>.
+ .SH AUTHORS
+-João Luis M. Assirati <assirati@fma.if.usp.br> is the principal author
++Jo\[~a]o Luis M. Assirati <assirati@fma.if.usp.br> is the principal author
+ of lyxclient.
