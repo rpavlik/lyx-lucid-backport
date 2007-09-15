@@ -20,7 +20,7 @@ Recommends: texlive-latex-recommended, texlive-fonts-recommended, preview-latex-
 Suggests: cupsys-client | lpr, iceweasel | www-browser, rcs, dvipost, tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, texlive-latex-extra
 Replaces: lyx-common (<< 1.5.0~beta1-3)
 Conflicts: lyx-qt, lyx-xforms
-Description: Graphical document processor using LaTeX
+Description: Document Processor
  LyX is an almost WYSIWYG-frontend for LaTeX. It makes the power and
  typesetting quality of LaTeX available for people who are used to
  word processors. Since LyX supports LaTeX's concept of general
