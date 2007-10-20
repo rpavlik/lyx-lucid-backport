@@ -1,8 +1,9 @@
 lyx (1.5.1-3) UNRELEASED; urgency=low
 
   * Vcs-* fields instead of X-Vcs-* as they are now official.
+  * Added new debian/watch file (somehow got lost).
 
- -- Per Olofsson <pelle@debian.org>  Thu, 11 Oct 2007 12:49:29 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 20 Oct 2007 13:32:11 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 
