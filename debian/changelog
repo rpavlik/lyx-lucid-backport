@@ -3,7 +3,7 @@ lyx (1.5.2-1) UNRELEASED; urgency=low
   * (NOT RELEASED YET) New upstream release
   * Vcs-* fields instead of X-Vcs-* as they are now official.
   * Added new debian/watch file (somehow got lost).
-  * Call dh_icons so icon cache is updated.
+  * Call dh_icons so icon cache is updated. Build-dep on debhelper 5.0.51.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 21 Oct 2007 16:49:26 +0200
 
