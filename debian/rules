@@ -137,6 +137,7 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_installmime -a
 	dh_desktop -a
+	dh_icons -a
 	dh_link -a
 	dh_strip -a
 	dh_compress -a
