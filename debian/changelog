@@ -4,8 +4,10 @@ lyx (1.5.2-1) UNRELEASED; urgency=low
   * Vcs-* fields instead of X-Vcs-* as they are now official.
   * Added new debian/watch file (somehow got lost).
   * Call dh_icons so icon cache is updated. Build-dep on debhelper 5.0.51.
+  * Recommend evince as PS/PDF viewer. It's quite good, and KDE users
+    will already have alternatives installed.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 21 Oct 2007 16:49:26 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 21 Oct 2007 17:06:59 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 
