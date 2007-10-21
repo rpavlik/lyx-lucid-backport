@@ -1,9 +1,10 @@
-lyx (1.5.1-3) UNRELEASED; urgency=low
+lyx (1.5.2-1) UNRELEASED; urgency=low
 
+  * (NOT RELEASED YET) New upstream release
   * Vcs-* fields instead of X-Vcs-* as they are now official.
   * Added new debian/watch file (somehow got lost).
 
- -- Per Olofsson <pelle@debian.org>  Sat, 20 Oct 2007 13:32:11 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 21 Oct 2007 15:21:27 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 
