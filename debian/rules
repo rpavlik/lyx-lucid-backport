@@ -30,16 +30,16 @@ CONFIGURE_OPTIONS += \
 	--without-included-gettext \
 	--without-included-boost \
 
-CFLAGS += -g
+CXXFLAGS += -g
 
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O2
+	CXXFLAGS += -O2
 else
-	CFLAGS += -O0
+	CXXFLAGS += -O0
 endif
 
 ifeq ($(DEB_HOST_ARCH),hppa)
-	CFLAGS += -ffunction-sections
+	CXXFLAGS += -ffunction-sections
 endif
 
 LDFLAGS += -Wl,--as-needed
@@ -59,7 +59,7 @@ configure-stamp:
 		|| ln -s /usr/share/misc/config.guess config/config.guess
 
 	test -d build-tree || mkdir build-tree
-	cd build-tree && CXXFLAGS="$(CFLAGS)" \
+	cd build-tree && CXXFLAGS="$(CXXFLAGS)" \
 		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
 
 	touch configure-stamp
