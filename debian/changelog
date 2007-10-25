@@ -7,8 +7,10 @@ lyx (1.5.2-1) UNRELEASED; urgency=low
   * Recommend evince as PS/PDF viewer. It's quite good, and KDE users
     will already have alternatives installed.
   * CFLAGS -> CXXFLAGS in debian/rules.
+  * Stop using separate build-tree directory, as it's not done by
+    upstream (.pyc files aren't cleaned etc.).
 
- -- Per Olofsson <pelle@debian.org>  Thu, 25 Oct 2007 20:18:04 +0200
+ -- Per Olofsson <pelle@debian.org>  Thu, 25 Oct 2007 20:24:43 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 
