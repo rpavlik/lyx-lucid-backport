@@ -119,7 +119,6 @@ binary-indep: build install
 	dh_installdocs -i
 	dh_pysupport -i /usr/share/lyx
 	dh_link -i
-	dh_icons -i
 	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
@@ -133,6 +132,7 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_installmime -a
 	dh_desktop -a
+	dh_icons -a
 	dh_link -a
 	dh_strip -a
 	dh_compress -a
