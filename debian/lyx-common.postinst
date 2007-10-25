@@ -7,7 +7,7 @@ remove_file()
 	fi
 }
 
-if [ "$1" = configure ]; then
+if [ "$1" = configure ] && [ -x "`which texhash 2>/dev/null`" ]; then
 	texhash
 fi
 
