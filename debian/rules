@@ -53,15 +53,16 @@ configure-stamp:
 		ln -s /usr/share/misc/config.sub config/config.sub; \
 	fi
 
-	CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
-		./configure $(CONFIGURE_OPTIONS)
+	test -d build-tree || mkdir build-tree
+	cd build-tree && CXXFLAGS="$(CXXFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
 
 	touch configure-stamp
 
 build: configure build-stamp
 build-stamp:
 	dh_testdir
-	$(MAKE)
+	cd build-tree && $(MAKE)
 	touch build-stamp
 
 clean: clean1 unpatch
@@ -69,11 +70,13 @@ clean1:
 	dh_testdir
 	dh_testroot
 
-	! [ -f Makefile ] || $(MAKE) distclean
-
 	rm -f build-stamp configure-stamp
+	rm -rf build-tree
 	! [ -f config/config.sub.backup ] || \
 		mv config/config.sub.backup config/config.sub
+
+# temporary hack since these files are not removed
+	find lib -name '*.pyc' -exec rm {} \;
 
 	dh_clean
 
@@ -82,7 +85,7 @@ install: build
 	dh_testroot
 	dh_clean -k
 
-	$(MAKE) install DESTDIR=`pwd`/debian/lyx-common/
+	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common/
 
 	dh_installdirs
 	dh_install
