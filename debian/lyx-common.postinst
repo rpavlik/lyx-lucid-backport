@@ -1,18 +1,11 @@
 #!/bin/sh -e
 
-remove_file()
-{
-	if [ -f "$1" ]; then
-		rm "$1"
-	fi
-}
-
 if [ "$1" = configure ] && [ -x "`which texhash 2>/dev/null`" ]; then
 	texhash
 fi
 
-remove_file /usr/share/lyx/lyxrc.defaults
-remove_file /usr/share/lyx/packages.lst
-remove_file /usr/share/lyx/textclass.lst
+rm -f /usr/share/lyx/lyxrc.defaults
+rm -f /usr/share/lyx/packages.lst
+rm -f /usr/share/lyx/textclass.lst
 
 #DEBHELPER#
