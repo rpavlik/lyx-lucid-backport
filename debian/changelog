@@ -9,8 +9,10 @@ lyx (1.5.2-1) UNRELEASED; urgency=low
   * CFLAGS -> CXXFLAGS in debian/rules.
   * Stop using separate build-tree directory, as it's not done by
     upstream (.pyc files aren't cleaned etc.).
+  * Don't replace config.guess (not needed), and clean up debian/rules a
+    bit.
 
- -- Per Olofsson <pelle@debian.org>  Thu, 25 Oct 2007 20:24:43 +0200
+ -- Per Olofsson <pelle@debian.org>  Thu, 25 Oct 2007 20:41:06 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 

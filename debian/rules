@@ -48,15 +48,10 @@ configure: patch configure-stamp
 configure-stamp:
 	dh_testdir
 
-	[ -f config/config.sub.backup ] \
-		|| mv config/config.sub config/config.sub.backup
-	[ -f config/config.sub ] \
-		|| ln -s /usr/share/misc/config.sub config/config.sub
-
-	[ -f config/config.guess.backup ] \
-		|| mv config/config.guess config/config.guess.backup
-	[ -f config/config.guess ] \
-		|| ln -s /usr/share/misc/config.guess config/config.guess
+	set -e; if ! [ -f config/config.sub.backup ]; then \
+		mv config/config.sub config/config.sub.backup; \
+		ln -s /usr/share/misc/config.sub config/config.sub; \
+	fi
 
 	CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
 		./configure $(CONFIGURE_OPTIONS)
@@ -77,8 +72,8 @@ clean1:
 	! [ -f Makefile ] || $(MAKE) distclean
 
 	rm -f build-stamp configure-stamp
-	mv config/config.guess.backup config/config.guess || true
-	mv config/config.sub.backup config/config.sub || true
+	! [ -f config/config.sub.backup ] || \
+		mv config/config.sub.backup config/config.sub
 
 	dh_clean
 
