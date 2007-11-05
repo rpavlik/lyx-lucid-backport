@@ -1,4 +1,4 @@
-lyx (1.5.2-1) UNRELEASED; urgency=low
+lyx (1.5.2-1) unstable; urgency=low
 
   * New upstream release.
   * Vcs-* fields instead of X-Vcs-* as they are now official.
@@ -12,7 +12,7 @@ lyx (1.5.2-1) UNRELEASED; urgency=low
   * Check if texhash exists before running it in postinst.
   * Simplify file removal code in lyx-common.postinst.
 
- -- Per Olofsson <pelle@debian.org>  Fri, 26 Oct 2007 00:37:24 +0200
+ -- Per Olofsson <pelle@debian.org>  Fri, 26 Oct 2007 12:45:30 +0200
 
 lyx (1.5.1-2) unstable; urgency=low
 
