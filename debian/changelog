@@ -1,3 +1,10 @@
+lyx (1.5.2-2) UNRELEASED; urgency=low
+
+  [ Sven Hoexter ]
+  * Added the Homepage field in control.
+
+ -- Sven Hoexter <sven@timegate.de>  Thu, 15 Nov 2007 08:52:30 +0100
+
 lyx (1.5.2-1) unstable; urgency=low
 
   * New upstream release.
