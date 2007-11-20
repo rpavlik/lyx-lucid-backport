@@ -7,6 +7,7 @@ lyx (1.5.2-2) UNRELEASED; urgency=low
   * Disable assertions per upstream advice. More specifically, don't pass
     --enable-assertions but let configure select whatever is the default
     (only enables assertions for prereleases and devel versions).
+    Closes: #410175
 
  -- Per Olofsson <pelle@debian.org>  Tue, 20 Nov 2007 18:04:19 +0100
 
