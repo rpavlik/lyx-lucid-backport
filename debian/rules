@@ -20,7 +20,6 @@ CONFIGURE_OPTIONS += \
 	--disable-dependency-tracking \
 	--disable-rpath \
 	--enable-warnings \
-	--enable-assertions \
 	--enable-nls \
 	--with-aiksaurus \
 	--with-gnu-ld \

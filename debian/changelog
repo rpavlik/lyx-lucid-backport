@@ -2,8 +2,13 @@ lyx (1.5.2-2) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * Added the Homepage field in control.
+  
+  [ Per Olofsson ]
+  * Disable assertions per upstream advice. More specifically, don't pass
+    --enable-assertions but let configure select whatever is the default
+    (only enables assertions for prereleases and devel versions).
 
- -- Sven Hoexter <sven@timegate.de>  Thu, 15 Nov 2007 08:52:30 +0100
+ -- Per Olofsson <pelle@debian.org>  Tue, 20 Nov 2007 18:04:19 +0100
 
 lyx (1.5.2-1) unstable; urgency=low
 
