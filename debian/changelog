@@ -2,6 +2,8 @@ lyx (1.5.2-2) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * Added the Homepage field in control.
+  * Added a note to the NEWS.Debian file about the removal of the old
+    -qt and -xforms frontend packages. Closes: #452888
   
   [ Per Olofsson ]
   * Disable assertions per upstream advice. More specifically, don't pass

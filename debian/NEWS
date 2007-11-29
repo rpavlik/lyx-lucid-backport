@@ -1,6 +1,11 @@
 lyx (1.5.1-2) unstable; urgency=low
 
   In the 1.5.x version series, LyX has finally gained UTF-8 support.
+  
+  Starting with the 1.5.x series LyX only provides one, Qt 4 based,
+  frontend. Subsequently of this change we removed the lyx-qt and
+  lyx-xforms packages. The new Qt based frontend is now integrated in
+  the lyx package which now contains the lyx binary.
 
  -- Per Olofsson <pelle@debian.org>  Sat, 15 Sep 2007 21:46:40 +0200
 
