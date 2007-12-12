@@ -9,12 +9,13 @@ lyx (1.5.2-2) UNRELEASED; urgency=low
     which is left from the LyX 1.4.x packages and would be otherwise
     left on the system even if you purge the latest package.
     Closes: #454713
-  
+
   [ Per Olofsson ]
   * Disable assertions per upstream advice. More specifically, don't pass
     --enable-assertions but let configure select whatever is the default
     (only enables assertions for prereleases and devel versions).
     Closes: #410175
+  * Add -Wl,-z,defs to make sure there are no undefined symbols.
 
  -- Sven Hoexter <sven@timegate.de>  Mon, 10 Dec 2007 10:37:50 +0100
 

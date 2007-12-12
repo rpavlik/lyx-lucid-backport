@@ -41,7 +41,7 @@ ifeq ($(DEB_HOST_ARCH),hppa)
 	CXXFLAGS += -ffunction-sections
 endif
 
-LDFLAGS += -Wl,--as-needed
+LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 configure: patch configure-stamp
 configure-stamp:
