@@ -5,6 +5,9 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
     + Document class "article (AMS)" no longer works properly. Closes: #448260
     + lyx-qt ignores "screen DPI" setting in Preferences. Closes: #316535
     + Lyx 1.5.2-1 crashes at startup on LANG=pt_BR.utf8. Closes: #453520
+  * Dropping patches lyxclient-man-nonascii-char and
+    05.configure.py_prog_prefer. Thanks to Andre' Poenitz and
+    Juergen Spitzmueller both are now included upstream.
   * Added the Homepage field in control.
   * Added a note to the NEWS.Debian file about the removal of the old
     -qt and -xforms frontend packages. Closes: #452888
