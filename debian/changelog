@@ -16,6 +16,8 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
     which is left from the LyX 1.4.x packages and would be otherwise
     left on the system even if you purge the latest package.
     Closes: #454713
+  * Added "-- -Z bzip2" to dh_builddeb so that we use bzip2 compression
+    for the binary packages instead of gzip.
 
   [ Per Olofsson ]
   * Disable assertions per upstream advice. More specifically, don't pass
