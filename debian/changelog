@@ -18,6 +18,8 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
     Closes: #454713
   * Added "-- -Z bzip2" to dh_builddeb so that we use bzip2 compression
     for the binary packages instead of gzip.
+  * Removed the explicit "Encoding=UTF-8" from lyx.desktop because it's
+    deprecated now.
 
   [ Per Olofsson ]
   * Disable assertions per upstream advice. More specifically, don't pass
