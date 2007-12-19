@@ -29,6 +29,7 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
   * Add -Wl,-z,defs to make sure there are no undefined symbols.
   * Remove old NEWS entry about /etc/lyxrc and lyxrc.dist, since they
     are both gone now.
+  * Reformat NEWS.Debian to comply with Dev Ref.
 
  -- Sven Hoexter <sven@timegate.de>  Mon, 17 Dec 2007 20:19:04 +0100
 
