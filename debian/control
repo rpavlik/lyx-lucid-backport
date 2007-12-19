@@ -5,7 +5,7 @@ Section: editors
 Priority: optional
 Standards-Version: 3.7.3
 Vcs-Svn: svn://svn.debian.org/svn/pkg-lyx/lyx/trunk
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-lyx/lyx/trunk
+Vcs-Browser: http://svn.debian.org/viewsvn/pkg-lyx/lyx/trunk
 Homepage: http://www.lyx.org/
 Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
  debhelper (>= 5.0.51), quilt (>= 0.40-1), g++ (>= 4:4.0.1-8),

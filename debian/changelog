@@ -30,6 +30,7 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
   * Remove old NEWS entry about /etc/lyxrc and lyxrc.dist, since they
     are both gone now.
   * Reformat NEWS.Debian to comply with Dev Ref.
+  * Change Vcs-Browser. viewsvn is a lot nicer than WebSVN.
 
  -- Sven Hoexter <sven@timegate.de>  Mon, 17 Dec 2007 20:19:04 +0100
 
