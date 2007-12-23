@@ -1,4 +1,4 @@
-lyx (1.5.3-1) UNRELEASED; urgency=low
+lyx (1.5.3-1) unstable; urgency=low
 
   [ Sven Hoexter ]
   * New upstream release should resolve the following problems:
@@ -32,7 +32,7 @@ lyx (1.5.3-1) UNRELEASED; urgency=low
   * Reformat NEWS.Debian to comply with Dev Ref.
   * Change Vcs-Browser. viewsvn is a lot nicer than WebSVN.
 
- -- Sven Hoexter <sven@timegate.de>  Mon, 17 Dec 2007 20:19:04 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 23 Dec 2007 15:41:45 +0100
 
 lyx (1.5.2-1) unstable; urgency=low
 
