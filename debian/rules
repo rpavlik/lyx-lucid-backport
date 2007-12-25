@@ -32,9 +32,9 @@ CONFIGURE_OPTIONS += \
 CXXFLAGS += -g
 
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CXXFLAGS += -O2
-else
 	CXXFLAGS += -O0
+else
+	CXXFLAGS += -O2
 endif
 
 ifeq ($(DEB_HOST_ARCH),hppa)
