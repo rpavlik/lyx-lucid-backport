@@ -1,0 +1,224 @@
+#LyX 1.5.2svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass scrartcl
+\language ngerman
+\inputencoding latin1
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language german
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Willkommen bei LyX!
+\newline
+
+\size large
+(Version 1.5.x)
+\end_layout
+
+\begin_layout Date
+letzte Änderung: 18.
+ August 2007
+\end_layout
+
+\begin_layout Section*
+Die wichtigsten Dinge, wenn Sie LyX verwenden 
+\end_layout
+
+\begin_layout Enumerate
+LyX besitzt eine exzellente Dokumentation --- bitte machen Sie regen Gebrauch
+ davon! Lesen Sie zunächst 
+\family sans
+\bar under
+H
+\bar default
+ilfe\SpecialChar \menuseparator
+
+\bar under
+E
+\bar default
+inführung
+\family default
+, dies gibt Ihnen einen kurzen Überblick über die vorhandene Dokumentation.
+ Wie Sie mit LyX arbeiten, erläutert Ihnen 
+\family sans
+\bar under
+H
+\bar default
+ilfe\SpecialChar \menuseparator
+
+\bar under
+T
+\bar default
+utorium
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+LyX kann man am besten als 
+\begin_inset Quotes gld
+\end_inset
+
+Dokumenten-Verarbeitung
+\begin_inset Quotes grd
+\end_inset
+
+ beschreiben.
+ Vom Design her unterscheidet es sich von gängigen Textverarbeitungen und
+ vereinfacht dadurch das Erstellen von komplexen Dokumenten.
+ Aber keine Sorge, die Unterschiede sind nur gering und werden in der Dokumentat
+ion erläutert.
+\end_layout
+
+\begin_layout Enumerate
+Mit LyX erstellte Texte sehen gut aus.
+ Überzeugen Sie sich davon mit 
+\family sans
+Ans
+\bar under
+i
+\bar default
+cht\SpecialChar \menuseparator
+
+\bar under
+D
+\bar default
+VI,
+\family default
+ 
+\family sans
+Strg+D,
+\family default
+ oder klicken Sie auf 
+\begin_inset Graphics
+	filename ../../images/buffer-view_dvi.xpm
+	scale 85
+	BoundingBox 0bp 6bp 20bp 20bp
+
+\end_inset
+
+, wenn Sie die Werkzeugleiste 
+\family sans
+Ans
+\bar under
+i
+\bar default
+cht\SpecialChar \menuseparator
+
+\bar under
+W
+\bar default
+erkzeugleisten
+\family default
+\SpecialChar \menuseparator
+
+\family sans
+Ansicht/Aktualisierung
+\family default
+ aktiviert haben.
+\end_layout
+
+\begin_layout Enumerate
+Ja, LyX kann (fast) die gesamte Funktionalität von LaTeX umsetzen.
+ Und, ja, LyX kann vorhandene LaTeX-Dateien importieren.
+ Erfahrene LaTeX-Anwender sollten das 
+\emph on
+Tutorium
+\emph default
+ überfliegen und dann den Abschnitt 
+\begin_inset Quotes gld
+\end_inset
+
+LyX für LaTeX-Benutzer
+\begin_inset Quotes grd
+\end_inset
+
+ lesen.
+ Alle anderen brauchen sich keine Gedanken zu machen: Sie müssen kein LaTeX
+ lernen, um mit LyX zu arbeiten.
+\end_layout
+
+\begin_layout Enumerate
+LyX bietet ausführliche Unterstützung für all diejenigen, die eine andere
+ Sprache als Englisch lesen und schreiben.
+ Darüberhinaus sind Dinge wie Tastaturbelegung, Werkzeugleiste und viele
+ weitere Charakteristiken frei konfigurierbar (das meiste durch 
+\family sans
+\bar under
+W
+\bar default
+erkzeuge\SpecialChar \menuseparator
+E
+\bar under
+i
+\bar default
+nstellungen\SpecialChar \ldots{}
+
+\family default
+).
+ Näheres erläutert 
+\family sans
+\bar under
+H
+\bar default
+ilfe\SpecialChar \menuseparator
+
+\bar under
+A
+\bar default
+npassung
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+Die Internet-Seite von LyX ist auf 
+\family typewriter
+
+\begin_inset LatexCommand url
+target "http://www.lyx.org/"
+
+\end_inset
+
+
+\family default
+.
+ Dort bekommen Sie aktuelle Informationen zu LyX, können Mailing-Listen
+ abonnieren, sich einen grafischen Rundgang durch LyX ansehen und vieles
+ mehr.
+\end_layout
+
+\end_body
+\end_document

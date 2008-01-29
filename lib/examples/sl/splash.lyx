@@ -1,0 +1,206 @@
+#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\language slovene
+\inputencoding latin2
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language german
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+Dobrodošli v LyXu!
+\end_layout
+
+\begin_layout Section*
+
+Najpomembnejše, kar morate vedeti, ko uporabljate LyX
+\end_layout
+
+\begin_layout Enumerate
+
+LyXu je priložena izvrstna dokumentacija (v angleščini, deloma tudi v slovenščin
+i) -- prosimo, uporabljajte jo! Začnite s
+\family default
+ 
+\family sans
+\bar under
+P
+\bar default
+omoč\SpecialChar \menuseparator
+
+\bar under
+U
+\bar default
+vod
+\family default
+, ki vam ponuja zelo kratek uvod v dokumentacijo.
+ Potem se učite uporabljati LyX s postavko
+\family default
+ 
+\family sans
+\bar under
+P
+\bar default
+omoč\SpecialChar \menuseparator
+Uč
+\bar under
+b
+\bar default
+enik
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+
+LyX je tako imenovani 
+\begin_inset Quotes gld
+\end_inset
+
+stavnik spisov
+\begin_inset Quotes grd
+\end_inset
+
+.
+ Po zasnovi se razlikuje od navadnih urejevalnikov besedil -- tako, da olajša
+ pisanje spisov.
+ Vendar se od njih razlikuje le malce, zato se nikar ne prestrašite.
+ V dokumentaciji je vse pojasnjeno
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+
+Saj smo omenili, da bi morali prebrati dokumentacijo, kajne?
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+
+Izhod LyXa je videti čudovit! Izberite
+\family default
+ 
+\family sans
+\bar under
+O
+\bar default
+gled\SpecialChar \menuseparator
+
+\bar under
+D
+\bar default
+VI
+\family default
+ in se o tem prepričajte sami.
+\end_layout
+
+\begin_layout Enumerate
+
+Da, LyX lahko posnema (skoraj) vso uporabnost LaTeXa.
+ In da, LyX lahko uvaža datoteke za LaTeX.
+ Izkušeni uporabniki LaTeXa naj bi preleteli preostanek
+\emph default
+ 
+\emph on
+Učbenika
+\emph default
+ in potem prebrali razdelek 
+\begin_inset Quotes gld
+\end_inset
+
+LyX za uporabnike LaTeXa
+\begin_inset Quotes grd
+\end_inset
+
+.
+ (Vsi drugi: ne skrbite: zato, da bi lahko uporabljali LyX vam ni treba
+ znati LaTeXa.)
+\end_layout
+
+\begin_layout Enumerate
+
+LyX skriva marsikaj koristnega za tiste, ki berejo ali pišejo v kakem drugem
+ jeziku, ne v angleščini.
+ Poleg tega so tipkovne povezave, orodna vrstica in številne druge značilnosti
+ silno nastavljive (večinoma z urejanjem datoteke
+\family default
+ 
+\family typewriter
+lyxrc
+\family default
+).
+ Podrobnosti najdete v
+\family default
+ 
+\family sans
+\bar under
+P
+\bar default
+omoč\SpecialChar \menuseparator
+
+\bar under
+P
+\bar default
+rilagoditev
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+
+Domača stran LyXa je
+\family typewriter
+\lang slovene
+ 
+\lang english
+
+\begin_inset LatexCommand url
+target "http://www.lyx.org/"
+\end_inset
+
+
+\family default
+.
+
+\lang slovene
+ Poučite se o LyXu, prijavite se na dopisne sezname o njem, podajte se na
+ grafično odpravo po njem in podobno.
+\end_layout
+
+\end_body
+\end_document

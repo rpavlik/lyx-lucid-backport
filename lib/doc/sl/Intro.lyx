@@ -1,0 +1,1156 @@
+#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\language slovene
+\inputencoding latin2
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language german
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Uvod v LyX
+\newline
+ali
+\newline
+Kako uporabljati dokumentacijo!
+\end_layout
+
+\begin_layout Author
+John Weiss in skupina LyX Team
+\newline
+
+\size normal
+Prevod: Roman Maurer
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Standard
+Jezikovni pregled: Dora Mali
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Date
+11.
+ marec 1999
+\end_layout
+
+\begin_layout Section
+Pot po dokumentaciji
+\end_layout
+
+\begin_layout Standard
+Dobrodošli v LyX!
+\end_layout
+
+\begin_layout Standard
+Dokumentacija je razdeljena na več različnih datotek, da bi lažje našli
+ odgovore na vprašanja, ki se vam zastavljajo, in spoznali vse odlike LyXa.
+ Vsak od teh spisov ima poseben namen, kot je opisano spodaj.
+ Preden se podaste v katerokoli od teh datotek, pa bi morali najprej podrobno
+ prebrati tole, saj boste tu izvedeli marsikaj uporabnega in si pozneje
+ prihranili precej časa.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+POZOR!!!!! POZOR!!!!! POZOR!!!!
+\end_layout
+
+\begin_layout Standard
+\align center
+Nevarnost, nevarnost!
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Čeprav ima različica LyXa zdaj številko 1.0 (in več), je morda nekaj dokumentacij
+e nepopolne ali pa se nanaša na starejše različice.
+ Tako kot preostanek LyXa so tudi priročniki delo skupine prostovoljcev
+ s 
+\begin_inset Quotes gld
+\end_inset
+
+pravimi službami
+\begin_inset Quotes grd
+\end_inset
+
+, z družinami, ki morajo pomivati posodo, menjati pesek v mačjem stranišču
+ in tako naprej in tako naprej.
+ Po svojih najboljših močeh se trudimo, da bi ohranili priročnike v tip-top
+ formi, vendar nam to morda kdaj tudi ne bo uspelo.
+ (Če želite to popraviti, poleg tega spisa preberite še razdelek\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "sec:Contrib"
+\end_inset
+
+.)
+\end_layout
+
+\begin_layout Standard
+In še nekaj vas prosimo -- če vas karkoli v teh priročnikih zmede, ker je
+ nejasno ali napačno, ne oklevajte in nam sporočite! S trenutnimi vzdrževalci
+ spisov lahko stopite v stik tudi po elektronski pošti na naslov
+\family default
+ 
+\family typewriter
+lyx-docs@lists.lyx.org
+\family default
+.
+\end_layout
+
+\begin_layout Section
+Oblika priročnikov
+\end_layout
+
+\begin_layout Standard
+Nekateri ste priročnik(e) za LyX že natisnili.
+ Drugi jih morda prebirate na zvezi, kot datoteko v LyXu.
+ Za tiste, ki jih berete na zvezi, je priročnik videti malce drugačen od
+ tiskane različice.
+ Najprej, naslov je preprosto na vrhu spisa, ne urejen na posebni strani
+ kot v nekaterih tiskanih različicah.
+ Opombe v nogi in kazalo vsebine niso vidni.
+ Na voljo je postavka menuja za ogled kazala vsebine.
+ Odprete ga tako, da z menuja
+\family default
+ 
+\family sans
+Uredi
+\family default
+ izberete postavko
+\family default
+ 
+\family sans
+Kazalo\InsetSpace ~
+vsebine
+\family default
+.
+ Opombo v nogi, ki je videti takole
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+Zdravo!
+\end_layout
+
+\begin_layout Standard
+Zaprete me lahko s klikom sive škatle z napisom 
+\begin_inset Quotes gld
+\end_inset
+
+foot
+\begin_inset Quotes grd
+\end_inset
+
+ na levi strani.
+\end_layout
+
+\end_inset
+
+, odprete , če jo kliknete z levim gumbom miške.
+\end_layout
+
+\begin_layout Standard
+V tiskanih priročnikih so vsa navzkrižna sklicevanja vidna kot prave številke
+ poglavja, razdelka, podrazdelka in tako naprej.
+ Na zvezi pa so vsa navzkrižna sklicevanja videti kot siva škatla, podobna
+ tej: 
+\begin_inset LatexCommand ref
+reference "sec:Contrib"
+\end_inset
+
+.
+ (V tiskanem priročniku boste namesto tega videli številko.) Če to škatlo
+ kliknete z levim gumbom miške, vas LyX popelje v tisti razdelek.
+ Nazaj se vrnete s
+\family default
+ 
+\family sans
+C-<
+\family default
+.
+ (Kaj pomeni 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+C-<
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+? Glej spodaj.)
+\end_layout
+
+\begin_layout Standard
+Zdaj, ko smo pojasnili nekatere razlike med tiskanimi in elektronskimi izvodi
+ te datoteke, si lahko začnemo ogledovati obliko tega spisa.
+ Tu in tam boste opazili različne pisave:
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Poudarjeni slog
+\emph default
+ se uporablja za splošne poudarke, splošne argumente, naslove knjig, imena
+ razdelkov v drugih priročnikih in opozorila avtorjev.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+Pisava pisalnega stroja
+\family default
+ prikazuje imena programov in datotek, kode za LaTeX ter kode in funkcije
+ za LyX.
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+Neserifna pisava
+\family default
+ 
+se uporablja za imena menujev, gumbov ali menujskih postavk ter imena tipk
+ na tipkovnici.
+\end_layout
+
+\begin_layout Itemize
+
+\noun on
+Velike črke 
+\noun default
+se uporabljajo za imena ljudi.
+\end_layout
+
+\begin_layout Standard
+Kar zadeva tipke in tipkovne povezave, vas bomo verjetno napotili k razdelku
+
+\emph default
+ 
+\emph on
+Key Bindings
+\emph default
+ v 
+\begin_inset Quotes gld
+\end_inset
+
+
+\emph on
+Referenčnem priročniku
+\emph default
+
+\begin_inset Quotes grd
+\end_inset
+
+ (datoteka
+\family default
+ 
+\family typewriter
+Reference.lyx
+\family default
+).
+ Ko se bomo morali sklicevati na tipke, bomo uporabili naslednje dogovore
+ o predponah:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+C-
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ označuje tipko
+\family default
+ 
+\family sans
+Control-
+\family default
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+S-
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ označuje tipko
+\family default
+ 
+\family sans
+Shift-
+\family default
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+M-
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ označuje tipko
+\family default
+ 
+\family sans
+Meta-
+\family default
+, ki bo na nekaterih tipkovnicah označena z
+\family default
+ 
+\family sans
+Alt-
+\family default
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+F1
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ \SpecialChar \ldots{}
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+F12
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ so funkcijske tipke.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Esc
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ je ubežna tipka.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Levo
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Desno
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Gor
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Dol
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+: pomen je očiten.
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+\begin_inset Quotes gld
+\end_inset
+
+Insert
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Delete
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Home
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+End
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+PageUp
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+PageDown
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+: teh šest tipk je na večini osebnih računalnikov nad kurzorskimi tipkami.
+ 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+PageUp
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ in 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+PageDown
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ se na nekaterih tipkovnicah imenujeta 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Prior
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ in 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+Next
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+Return
+\family default
+ in
+\family default
+ 
+\family sans
+Enter
+\family default
+ se nanašata na isto tipko.
+ Nekatere tipkovnice imajo tipko
+\family default
+ 
+\family sans
+Return
+\family default
+ označeno kot 
+\begin_inset Quotes gld
+\end_inset
+
+Return
+\begin_inset Quotes grd
+\end_inset
+
+, druge kot 
+\begin_inset Quotes gld
+\end_inset
+
+Enter
+\begin_inset Quotes grd
+\end_inset
+
+, tretje imajo dve tipki.
+ LyX ju obravnava kot eno samo, zato bomo izmenoma uporabljali oznaki
+\family default
+ 
+\family sans
+Return
+\family default
+ in
+\family default
+ 
+\family sans
+Enter
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+Včasih boste videli tudi kaj podobnega temu: 
+\begin_inset Quotes gld
+\end_inset
+
+[Glej
+\emph default
+ 
+\emph on
+,Referenčni priročnik`
+\emph default
+]
+\begin_inset Quotes grd
+\end_inset
+
+.
+ Privzete tipkovne kombinacije za posamezne funkcije smo zbrali v 
+\begin_inset Quotes gld
+\end_inset
+
+
+\emph on
+Referenčnem priročniku
+\emph default
+
+\begin_inset Quotes grd
+\end_inset
+
+, zato poglejte tudi tja.
+\end_layout
+
+\begin_layout Section
+Priročniki
+\end_layout
+
+\begin_layout Standard
+Na naslednjem seznamu je opisana vsebina vseh datotek v dokumentaciji:
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Uvod \InsetSpace ~
+
+\emph default
+
+\newline
+Ta datoteka.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Učbenik \InsetSpace ~
+
+\emph default
+
+\newline
+Če ste novinec v LyXu in niste nikoli prej uporabljali LaTeXa, bi se morali
+ branja lotiti tukaj.
+ Če mislite, da je LaTeX snov, iz katere izdelujejo kondome, morate vsekakor
+ prebrati
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+.
+ Vedite, da boste tudi potem še vedno mislili, da je LaTeX nekaj raztegljivega
+ -- vendar
+\emph default
+ 
+\emph on
+boste
+\emph default
+ vedeli, kako uporabljati LyX.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Tudi, če
+\emph default
+ 
+\emph on
+ste
+\emph default
+ 
+že prej uporabljali LaTeX, bi morali prebrati
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+, začenši z razdelkom 
+\begin_inset Quotes gld
+\end_inset
+
+LyX za uporabnike LaTeXa
+\begin_inset Quotes grd
+\end_inset
+
+ (pa tudi, če boste preleteli preostanek spisa, vam ne bo škodilo).
+\end_layout
+
+\begin_layout Standard
+Če kdaj ostanete brez navdiha v zvezi z LyXom, najprej vzemite v roke
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+, šele potem se poglobite v druge priročnike.
+ Učbenik je dobra odskočna deska.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\emph on
+Uporabniški\InsetSpace ~
+vodnik \InsetSpace ~
+
+\emph default
+
+\newline
+Primarna dokumentacija.
+ Tu bomo poskušali obdelati
+\emph default
+ 
+\emph on
+večino
+\emph default
+ osnovnih postopkov in dostopnih odlik LyXa.
+ Osrednji priročnik predpostavlja, da ste prebrali
+\emph default
+ 
+\emph on
+Učbenik
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+\SpecialChar \ldots{}
+ ali pa vsaj bežno poznate LaTeX.
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Razširjene\InsetSpace ~
+odlike \InsetSpace ~
+
+\newline
+
+\emph default
+Razširitev
+\emph default
+ 
+\emph on
+Uporabniškega vodnika
+\emph default
+.
+ Dodatni videzi sestavkov in možnosti za posebno urejanje, skupaj z nekaterimi
+ zvijačami mojstrov LaTeXa.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Prilagoditev \InsetSpace ~
+
+\emph default
+
+\newline
+Opis izpopolnjenih možnosti LyXa, skupaj s postopki za prilagoditev splošnega
+ vedenja LyXa.
+ Sem so vštete tudi kombinacije tipk, internacionalizacija in nastavitvene
+ datoteke.
+ Naj vam ne pride na misel, da bi pokukali semkaj, dokler ne preberete
+\emph default
+ 
+\emph on
+Učbenika
+\emph default
+.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Referenčni\InsetSpace ~
+priročnik \InsetSpace ~
+
+\emph default
+
+\newline
+Ta obsega izčrpen, podroben opis odlik LyXa, a brez uporabnih namigov, kako
+ ga uporabljati, ter napotke, kdaj pogledati v
+\emph default
+ 
+\emph on
+Uporabniški vodnik
+\emph default
+,
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+ ali druge priročnike.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Znani\InsetSpace ~
+hrošči \InsetSpace ~
+
+\emph default
+
+\newline
+V tej datoteki je seznam znanih hroščev v LyXu in napotki, kaj storiti,
+ če v LyXu naletite na hrošča.
+\end_layout
+
+\begin_layout Description
+
+\emph on
+Nastavitev\InsetSpace ~
+LaTeXa \InsetSpace ~
+
+\emph default
+
+\newline
+LyX takoj po namestitvi preišče sistem.
+ V tej datoteki so podatki, ki jih je LyX zbral o vaši namestitvi LaTeXa.
+ Preverite to datoteko in poglejte, ali vam manjka kaj, kar bi sicer želeli
+ imeti.
+\end_layout
+
+\begin_layout Standard
+Te datoteke se bodo po potrebi sklicevale druga na drugo.
+ V
+\emph default
+ 
+\emph on
+Uporabniškem vodniku
+\emph default
+, denimo, so zbrani
+\emph default
+ 
+\emph on
+nekateri
+\emph default
+ podatki o namestitvi in prilagoditvi, kaj več pa boste izvedeli v
+\emph default
+ 
+\emph on
+Prilagoditvenem priročniku
+\emph default
+.
+\end_layout
+
+\begin_layout Standard
+Še enkrat bomo zapisali pomemben nasvet:
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 0.51cm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+Če ste novinec v LyXu, si preberite
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+.
+ Takoj.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 0.51cm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Drugače se boste po nepotrebnem jezili.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sec:Contrib"
+\end_inset
+
+Prispevki k dokumentacijskem projektu
+\end_layout
+
+\begin_layout Subsection
+Poročanje o napakah v priročnikih
+\end_layout
+
+\begin_layout Standard
+To je zelo preprosto.
+ Sporočilo lahko pošljete na dopisni seznam za razvijalce ali za uporabnike
+ LyXa.
+ Dokumentacijska skupina pa bo najbolj vesela sporočila na naslov
+\family default
+ 
+\family typewriter
+lyx-docs@lists.lyx.org
+\family default
+.
+ Če gre za manjše popravke, jih bo kdo vnesel.
+ Če gre za kaj večjega, pa vam priporočamo, da se pridružite dopisnemu seznamu
+ in se, preden karkoli ukrenete, nekaj časa pogovarjate z nami.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 1.06cm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\emph on
+Nikoli ne spreminjajte vsebine priročnikov brez poprejšnjega soglasja dokumentac
+ijske skupine!
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 1.06cm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Takšne naključne spremembe ne bodo prišle v dokumentacijo, saj dokumentacijska
+ skupina vzdržuje osrednje izvode v drevesu CVS
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+CVS je sistem za nadzorovanje različic datotek prek omrežja.
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Pridružitev dokumentacijski skupini
+\end_layout
+
+\begin_layout Standard
+Dokumentacijskemu projektu za LyX, tako kot vsemu pri projektu LyX, vedno
+ prav pride pomoč! Če bi radi prispevali k Dokumentacijskem projektu,
+\emph default
+ 
+\emph on
+najprej
+\emph default
+ opravite tole:
+\end_layout
+
+\begin_layout Enumerate
+Pridobite zadnjo izvorno kodo LyXa.
+ Odtarajte jo
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+Bolj pustolovske duše med vami bodo anonimno pobrale zadnjo izvorno kodo
+ iz arhiva CVS za LyX.
+\end_layout
+
+\end_inset
+
+.
+ V glavnem drevesu boste našli imenik, imenovan
+\family default
+ 
+\family typewriter
+development
+\family default
+.
+ V njem je datoteka
+\family default
+ 
+\family typewriter
+DocStyle.lyx
+\family default
+.
+ Preberite jo; to je slogovna predloga za dokumentacijo.
+\end_layout
+
+\begin_layout Enumerate
+Vzemite si dan ali dva oddiha, potem pa še enkrat preberite
+\family default
+ 
+\family typewriter
+DocStyle.lyx
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+Zatem preberite
+\emph default
+ 
+\emph on
+Uporabniški vodnik
+\emph default
+ in
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Smisel te naloge je, da si ustvarite predstavo in da se vam utrnejo zamisli.
+
+\emph default
+ 
+\emph on
+Učbenik
+\emph default
+ in
+\emph default
+ 
+\emph on
+Uporabniški vodnik
+\emph default
+ bosta vedno najbolj osveženi del dokumentacije.
+ Pri ogledu bi morali spoznati, kako naj bi brali priročnike in kako naj
+ bi bili le-ti videti.
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+Spet preberite
+\family default
+ 
+\family typewriter
+DocStyle.lyx
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+Zdaj stopite v stik s skupino na naslovu:
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+
+\family typewriter
+lyx-docs@lists.lyx.org
+\end_layout
+
+\begin_layout Standard
+Radi bi dosegli, da bi razumeli
+\emph default
+ 
+\emph on
+slog
+\emph default
+, preden bi začeli pisati.
+ Drugače boste morali svoje prispevke vnovič napisati.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+Naj vam ne pride na misel, da bi se lotili pisanja, dokler ne poklepetamo
+ po e-pošti.
+ Trenutno stanje v dokumentaciji si boste lahko ogledali na spletni strani
+ dokumentacijske skupine (ko jo bomo usposobili) ali v arhivih dopisnih
+ seznamov na
+\family default
+ 
+\family typewriter
+www.lyx.org
+\family default
+.
+\end_layout
+
+\end_body
+\end_document

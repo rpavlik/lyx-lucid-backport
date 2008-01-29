@@ -1,0 +1,375 @@
+#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass chess
+\begin_preamble
+\usepackage{chess-workshop-symbols}
+\smallboard
+\end_preamble
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize 12
+\spacing single
+\papersize default
+\use_geometry true
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\topmargin 0in
+\bottommargin 0.5in
+\headheight 0in
+\headsep 0in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip smallskip
+\quotes_language english
+\papercolumns 2
+\papersides 1
+\paperpagestyle empty
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+Email Chess Game analyzed
+\end_layout
+
+\begin_layout Author
+
+Kayvan A.
+ Sylvan
+\newline
+<kayvan@sylvan.com>
+\end_layout
+
+\begin_layout Date
+
+
+\emph on
+Game start 05/29/2001
+\end_layout
+
+\begin_layout Standard
+
+The following game was played at the IECC (International Email Chess Club).
+ It is presented as an example of the fun you can have with LyX's new chess
+ support.
+ You must have xboard installed on your machine to be able to open and view
+ the chess positions from LyX.
+\end_layout
+
+
+\begin_layout Standard
+
+
+\lyxline
+
+\end_layout
+
+\begin_layout Standard
+
+
+\noun on
+Sylvan, Kayvan
+\hfill
+Wakeham, Marc 
+\newline
+(1623)
+\hfill
+(1639)
+\end_layout
+
+\begin_layout Standard
+
+
+\lyxline
+
+\end_layout
+
+
+\begin_layout Mainline
+
+1.
+ e4 c5 2.
+ Nc3 d6 3.
+ g3 Nc6 4.
+ Bg2 e6 5.
+ Nge2
+\end_layout
+
+\begin_layout Standard
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+\backslash
+vspace*{-0.2in}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+
+\begin_layout Standard
+
+
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+[
+\end_layout
+
+\end_inset
+
+
+\begin_inset External
+	template ChessDiagram
+	filename iecc05.fen
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout KnightMove
+
+g1->e2
+\end_layout
+
+\begin_layout HighLight
+
+d4,f4
+\end_layout
+
+\begin_layout Standard
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+\backslash
+vspace*{-0.5in} % This is a hack!
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+So far, so good.
+ This is all according to theory.
+\end_layout
+
+\begin_layout Mainline
+
+5...
+ Be7?!
+\end_layout
+
+\begin_layout Variation
+
+5...
+ Nge7 [ 
+\backslash
+equal{} ]
+\end_layout
+
+\begin_layout Mainline
+
+6.
+ d4 cxd4 7.
+ Nxd4 a6
+\end_layout
+
+\begin_layout Standard
+
+With 7...\InsetSpace ~
+a6, we are back in the well-trodden theory of this opening.
+\end_layout
+
+\begin_layout Standard
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+[
+\end_layout
+
+\end_inset
+
+
+\begin_inset External
+	template ChessDiagram
+	filename iecc07.fen
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Mainline
+
+8.
+ Nxc6 bxc6 9.
+ O-O Bb7 10.
+ Qg4 Bf6 11.
+ Bf4 Ne7 12.
+ Rad1
+\end_layout
+
+\begin_layout Standard
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+[
+\end_layout
+
+\end_inset
+
+
+\begin_inset External
+	template ChessDiagram
+	filename iecc12.fen
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Arrow
+
+a1->d1
+\end_layout
+
+\begin_layout Standard
+
+White continues to develop pieces and also sets a trap for Black.
+\end_layout
+
+\begin_layout Mainline
+
+12...O-O? [ This move loses instantly.
+ ]
+\end_layout
+
+\begin_layout Variation
+
+12...
+ e5 13.
+ Be3 Qc7 14.
+ Na4 O-O [ 
+\backslash
+wbetter{} is best ]
+\end_layout
+
+\begin_layout Mainline
+
+13.
+ e5!
+\end_layout
+
+\begin_layout Standard
+
+Black's knight and bishop are in each other's way.
+ The bishop is doomed.
+\end_layout
+
+\begin_layout Mainline
+
+13...
+ Nd5!? 14.
+ Bxd5 cxd5 15.
+ exf6 Qxf6 16.
+ Bxd6 Rfd8 17.
+ Bc7 Rd7 18.
+ Bf4 1-0
+\end_layout
+
+\begin_layout BoardCentered
+
+\end_layout
+
+\end_body
+\end_document

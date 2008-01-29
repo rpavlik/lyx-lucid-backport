@@ -1,0 +1,239 @@
+#% Do not delete he line below; configure depends on this
+#  \DeclareLaTeXClass[g-brief]{letter (g-brief, German)}
+# Letter textclass definition file.
+# Author : Thomas Hartkens <thomas@hartkens.de>
+
+Format 4
+Input stdfloats.inc
+Input stdcounters.inc
+
+Columns                 1
+Sides                   1
+PageStyle               Empty
+DefaultStyle            Brieftext
+
+
+Style Brieftext
+	Margin                Static
+	LatexType             Environment
+	LatexName             g-brief
+	ParSkip               0.4
+	KeepEmpty             1
+	Align                 Block
+	AlignPossible         Block, Left, Right, Center
+	LabelType             Top_Environment
+	LabelString           "Text:"
+	LabelFont
+	  Series              Bold
+	  Shape               Italic
+	  Color               Blue
+	EndFont
+End
+
+
+Style Name
+	Margin                Static
+	LatexType             Command
+	LatexName             Name
+	LeftMargin            RetourAdresse:xx
+	LabelSep              xx
+	KeepEmpty             1
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelType             Static
+	LabelString           "Name:"
+	LabelFont
+	  Series              Bold
+	  Shape               Italic
+	  Color               Blue
+	EndFont
+End
+
+
+Style Unterschrift
+	CopyStyle             Name
+	LatexName             Unterschrift
+	LabelString           "Unterschrift:"
+End
+
+
+Style Strasse
+	CopyStyle             Name
+	LatexName             Strasse
+	LabelString           "Strasse:"
+End
+
+
+Style Zusatz
+	CopyStyle             Name
+	LatexName             Zusatz
+	LabelString           "Zusatz:"
+End
+
+
+Style Ort
+	CopyStyle             Name
+	LatexName             Ort
+	LabelString           "Ort:"
+End
+
+
+Style Land
+	CopyStyle             Name
+	LatexName             Land
+	LabelString           "Land:"
+End
+
+
+Style RetourAdresse
+	CopyStyle             Name
+	LatexName             RetourAdresse
+	LabelString           "RetourAdresse:"
+End
+
+
+Style MeinZeichen
+	CopyStyle             Name
+	LatexName             MeinZeichen
+	LabelString           "MeinZeichen:"
+End
+
+
+Style IhrZeichen
+	CopyStyle             Name
+	LatexName             IhrZeichen
+	LabelString           "IhrZeichen:"
+End
+
+
+Style IhrSchreiben
+	CopyStyle             Name
+	LatexName             IhrSchreiben
+	LabelString           "IhrSchreiben:"
+End
+
+
+Style Telefon
+	CopyStyle             Name
+	LatexName             Telefon
+	LabelString           "Telefon:"
+End
+
+
+Style Telefax
+	CopyStyle             Name
+	LatexName             Telefax
+	LabelString           "Telefax:"
+End
+
+
+Style Telex
+	CopyStyle             Name
+	LatexName             Telex
+	LabelString           "Telex:"
+End
+
+
+Style EMail
+	CopyStyle             Name
+	LatexName             EMail
+	LabelString           "EMail:"
+End
+
+
+Style HTTP
+	CopyStyle             Name
+	LatexName             HTTP
+	LabelString           "HTTP:"
+End
+
+
+Style Bank
+	CopyStyle             Name
+	LatexName             Bank
+	LabelString           "Bank:"
+End
+
+
+Style BLZ
+	CopyStyle             Name
+	LatexName             BLZ
+	LabelString           "BLZ:"
+End
+
+
+Style Konto
+	CopyStyle             Name
+	LatexName             Konto
+	LabelString           "Konto:"
+End
+
+
+Style Postvermerk
+	CopyStyle             Name
+	LatexName             Postvermerk
+	LabelString           "Postvermerk:"
+End
+
+
+Style Adresse
+	CopyStyle             Name
+	LatexName             Adresse
+	TopSep                1.5
+	KeepEmpty             1
+	LabelString           "Adresse:"
+End
+
+
+Style Datum
+	CopyStyle             Name
+	LatexName             Datum
+	LabelString           "Datum:"
+End
+
+
+Style Betreff
+	CopyStyle             Name
+	LatexName             Betreff
+	TopSep                1.5
+	ParSep                0.4
+	LabelString           "Betreff:"
+End
+
+
+Style Anrede
+	CopyStyle             Name
+	LatexName             Anrede
+	TopSep                1.5
+	ParSep                0.4
+	LabelString           "Anrede:"
+End
+
+
+Style Anlagen
+	CopyStyle             Name
+	LatexName             Anlagen
+	ParSep                0.4
+	LabelString           "Anlagen:"
+End
+
+
+Style Verteiler
+	CopyStyle             Name
+	LatexName             Verteiler
+	KeepEmpty             1
+	ParSep                0.4
+	LabelString           "Verteiler:"
+End
+
+
+Style Gruss
+	CopyStyle             Name
+	LatexName             LyxGruss
+	BottomSep             1.5
+	ParSep                0.4
+	LabelString           "Gruss:"
+	Preamble
+		\newcommand{\LyxGruss}[1]{\Gruss{#1}{0.5cm}}
+	EndPreamble
+End
