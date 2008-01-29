@@ -1,0 +1,29 @@
+#% Do not delete the line below; configure depends on this
+#  \DeclareLaTeXClass[scrbook]{book (KOMA-Script)}
+# KOMA scrbook textclass definition file.
+# Bernd Rellermeyer <100.41728@germanynet.de>, 1998/7/11.
+
+Format 4
+Input scrclass.inc
+Input numreport.inc
+
+Sides                   2
+PageStyle               Headings
+
+NoStyle Abstract
+
+
+Style Chapter
+	LabelString          "\arabic{chapter}"
+	LabelStringAppendix  "\Alph{chapter}"
+End
+
+
+Style Bibliography
+	TopSep                4
+	LabelString           "Bibliography"
+	LabelFont
+	  Series              Bold
+	  Size                Largest
+	EndFont
+End

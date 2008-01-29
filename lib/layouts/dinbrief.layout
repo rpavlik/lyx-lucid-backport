@@ -1,0 +1,195 @@
+#% Do not delete the line below; configure depends on this
+#  \DeclareLaTeXClass{letter (DIN-Brief, German)}
+# German DIN-Brief textclass definition file.
+# Author : Juergen Vigna <jug@sad.it>
+# Modified by: Carsten Kaemmerer <kammerer@ips.cs.tu-bs.de>
+# Modifies only some things from letter.layout
+
+
+Format 4
+Input letter.layout
+
+
+Style My_Address
+	Margin                Static
+	LeftMargin            Unterschrift:
+	LabelType             Static
+	LabelString           "Briefkopf:"
+	LabelSep              x
+	LabelFont
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+	BottomSep             0.5
+	Spacing               Other 0.9
+End
+
+
+Style Send_To_Address
+	Margin                Static
+	BottomSep             0.1
+	LeftMargin            Unterschrift:
+	LabelType             Static
+	LabelString           "Adresse:"
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+	Spacing               Other 0.9
+End
+
+
+Style Opening
+	LeftMargin            Unterschrift:
+	LabelString           "Anrede:"
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style Signature
+	LeftMargin            Unterschrift:
+	LabelString           "Unterschrift:"
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style Closing
+	LeftMargin            Unterschrift:
+	LabelString           "Gruss:"
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style encl
+	LabelString           "Anlagen:"
+	LeftMargin            Unterschrift:
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style ps
+	Margin                Static
+	LatexType             Command
+	LatexName             ps
+	LeftMargin            Unterschrift:
+	LabelSep              x
+	TopSep                0.4
+	BottomSep             0.4
+	ParSep                0.4
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelType             Static
+	LabelString           "PS:"
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style cc
+	LabelString           "Verteiler:"
+	LeftMargin            Unterschrift:
+	LabelSep              x
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style Betreff
+	Margin                Static
+	LatexType             Command
+	LatexName             subject
+	LeftMargin            Unterschrift:
+	LabelSep              x
+	KeepEmpty             1
+	TopSep                0.4
+	BottomSep             0.4
+	ParSep                0.4
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelType             Static
+	LabelString           "Betreff:"
+	LabelFont
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+	TextFont
+	  Shape               Italic
+	EndFont
+End
+
+
+Style Stadt
+	Margin                Right_Address_Box
+	LatexType             Command
+	LatexName             place
+	LabelSep              x
+	TopSep                0.1
+	BottomSep             0.1
+	ParSep                0.1
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelType             Static
+	LabelString           "Stadt:"
+	LabelFont
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End
+
+
+Style Datum
+	Margin                Right_Address_Box
+	LatexType             Command
+	LatexName             date
+	LabelSep              x
+	TopSep                0.1
+	BottomSep             0.1
+	ParSep                0.1
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelType             Static
+	LabelString           "Datum:"
+	LabelFont
+	  Shape               Italic
+	  Size                Small
+	  Color               blue
+	EndFont
+End

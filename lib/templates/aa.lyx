@@ -1,0 +1,207 @@
+#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass aa
+\language english
+\inputencoding auto
+\font_roman times
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 2
+\papersides 2
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+This is your Title
+\end_layout
+
+\begin_layout Subtitle
+
+your subtitle
+\end_layout
+
+\begin_layout Author
+
+Me
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+inst{
+\end_layout
+
+\end_inset
+
+1
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+}
+\backslash
+and 
+\end_layout
+
+\end_inset
+
+You
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+inst{
+\end_layout
+
+\end_inset
+
+2
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Address
+
+Here 
+\newline
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+email{
+\end_layout
+
+\end_inset
+
+myaddress
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+}
+\end_layout
+
+\begin_layout Standard
+
+\backslash
+and
+\end_layout
+
+\end_inset
+
+ There
+\newline
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\backslash
+email{
+\end_layout
+
+\end_inset
+
+youraddress
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Offprint
+
+Me
+\end_layout
+
+\begin_layout Date
+
+Received ; Accepted
+\end_layout
+
+\begin_layout Abstract
+
+Short abstract
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+\backslash
+keywords{
+\end_layout
+
+\end_inset
+
+keywords
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+
+Introduction
+\end_layout
+
+\end_body
+\end_document
