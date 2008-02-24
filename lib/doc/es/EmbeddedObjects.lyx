@@ -1,4 +1,4 @@
-#LyX 1.5.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -10,12 +10,7 @@
 
 % set fonts for nicer pdf view
 \IfFileExists{lmodern.sty}
- {\usepackage{lmodern}} % if it exists
- {% if it exists not
-  \usepackage[scaled=0.92]{helvet}
-  \usepackage{mathptmx}
-  \usepackage{courier}
- } % end if it exists not
+ {\usepackage{lmodern}}{}
 
 % link all cross references and URLs
 % in pdf output
@@ -129,10 +124,10 @@
 
 % the pages of the TOC are numbered roman
 % and a PDF-bookmark for the TOC is added
-\pagenumbering{Roman}
+\pagenumbering{roman}
 \let\myTOC\tableofcontents
 \renewcommand{\tableofcontents}{%
- \pdfbookmark[1]{Índice General}{}
+ \pdfbookmark[1]{Índice general}{}
  \myTOC
  \cleardoublepage
  \pagenumbering{arabic}}
@@ -181,6 +176,10 @@
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
   {LyX }}
+
+% to translate the listing label
+% para traducir la etiqueta listing
+\renewcommand{\lstlistingname}{Listado}
 \end_preamble
 \options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
 \language spanish
@@ -267,25 +266,6 @@ status collapsed
 \end_inset
 
 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-
-\emph on
-N.
- del t
-\emph default
-.: En este documento muchos términos aparecen sin traducir.
- En la mayoría de los casos se trata de comandos o argumentos de LaTeX que
- deben utilizarse tal como están.
- En menos casos se trata de menús o diálogos de la interfaz gráfica de LyX
- que aún están sin traducir, y cuya traducción no es obvia.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Note Note
 status collapsed
 
@@ -311,7 +291,7 @@ Traducción de: Ignacio García
 \newline
 
 \family sans
-Versión 1.5.2-0
+Versión 1.5.4
 \end_layout
 
 \begin_layout Standard
@@ -381,7 +361,7 @@ name "Gráficos|see{Figuras}"
 \end_layout
 
 \begin_layout Section
-Diálogo Gráficos
+Diálogo de gráficos
 \begin_inset LatexCommand label
 name "sec:Diálogo-Gráficos"
 
@@ -389,7 +369,7 @@ name "sec:Diálogo-Gráficos"
 
 
 \begin_inset LatexCommand index
-name "Figuras ! Diálogo Gráficos"
+name "Figuras ! Diálogo de gráficos"
 
 \end_inset
 
@@ -410,6 +390,7 @@ Para insertar una imagen en un documento, sitúa el cursor en el lugar del
 Insertar\SpecialChar \menuseparator
 Imagen
 \family default
+.
  Aparecerá un diálogo para escoger el archivo a cargar.
  La imagen aparecerá en el archivo de salida exactamente en la misma posición
  en la que la has colocado.
@@ -435,7 +416,7 @@ reference "cha:Unidades-disponibles-en"
 \newline
 
 \begin_inset LatexCommand index
-name "Figuras ! rotadas"
+name "Figuras ! Rotar"
 
 \end_inset
 
@@ -445,7 +426,7 @@ Puedes girar los gráficos en el sentido de las agujas de reloj estableciendo
 \newline
 
 \begin_inset LatexCommand index
-name "Figuras ! escaladas"
+name "Figuras ! Escalar"
 
 \end_inset
 
@@ -612,6 +593,7 @@ reference "sec:Formatos-de-imagen"
 	filename ../clipart/mobius.eps
 	display color
 	scale 70
+	clip
 	rotateOrigin center
 
 \end_inset
@@ -638,7 +620,7 @@ Esta es la misma imagen pero en modo borrador:
 \end_layout
 
 \begin_layout Section
-Figuras Flotantes
+Figuras flotantes
 \begin_inset LatexCommand label
 name "sec:Figuras-Flotantes"
 
@@ -711,7 +693,7 @@ reference "fig:escher"
  Más información sobre ubicación de títulos en la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Colocación-de-Encabezados"
+reference "sec:Colocación-de-leyendas"
 
 \end_inset
 
@@ -722,7 +704,7 @@ reference "sec:Colocación-de-Encabezados"
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Standard
 \align center
@@ -763,7 +745,7 @@ Un platypus muy distorsionado en un flotante.
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Standard
 \begin_inset Caption
@@ -803,7 +785,7 @@ M.C.
 
 \begin_layout Standard
 \begin_inset LatexCommand index
-name "Referencias ! a Figuras"
+name "Referencias ! a figuras"
 
 \end_inset
 
@@ -823,7 +805,7 @@ reference "fig:escher"
  son ejemplos de figuras con referencias cruzadas.
  Las figuras pueden tener referencias cruzadas en el documento mediante
  referencia a su etiqueta.
- Para hacerlo inserta una etiqueta en el encabezado usando el menú 
+ Para hacerlo inserta una etiqueta en la leyenda usando el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
 Etiqueta
@@ -981,7 +963,7 @@ Dos imágenes distorsionadas.
 \end_layout
 
 \begin_layout Section
-Formatos de Imagen
+Formatos de imagen
 \begin_inset LatexCommand label
 name "sec:Formatos-de-imagen"
 
@@ -989,13 +971,13 @@ name "sec:Formatos-de-imagen"
 
 
 \begin_inset LatexCommand index
-name "Formatos de Imagen"
+name "Formatos de imagen"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Figuras ! Formatos de Imagen"
+name "Figuras ! Formatos de imagen"
 
 \end_inset
 
@@ -1036,7 +1018,7 @@ Como en el caso de las fuentes, hay dos tipos de formatos de imagen:
 
 \begin_layout Description
 Imágenes\InsetSpace ~
-Mapa\InsetSpace ~
+mapa\InsetSpace ~
 de\InsetSpace ~
 bits\InsetSpace ~
 (Bitmap) formadas por mapas de puntos (píxeles), generalmente
@@ -1061,7 +1043,7 @@ Graphics Interchange Format
 
 )
 \begin_inset LatexCommand index
-name "GIF|see{Formatos de Imagen}"
+name "GIF|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1083,7 +1065,7 @@ Portable Network Graphics
 
 )
 \begin_inset LatexCommand index
-name "PNG|see{Formatos de Imagen}"
+name "PNG|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1113,7 +1095,7 @@ Joint Photographic Experts Group
 
 )
 \begin_inset LatexCommand index
-name "JPG|see{Formatos de Imagen}"
+name "JPG|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1147,7 +1129,7 @@ Scalable Vector Graphics
 
 )
 \begin_inset LatexCommand index
-name "SVG|see{Formatos de Imagen}"
+name "SVG|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1169,7 +1151,7 @@ Encapsulated PostScript
 
 )
 \begin_inset LatexCommand index
-name "EPS|see{Formatos de Imagen}"
+name "EPS|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1191,7 +1173,7 @@ Portable Document Format
 
 )
 \begin_inset LatexCommand index
-name "PDF|see{Formatos de Imagen}"
+name "PDF|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1213,7 +1195,7 @@ Windows Metafile
 
 )
 \begin_inset LatexCommand index
-name "WMF|see{Formatos de Imagen}"
+name "WMF|see{Formatos de imagen}"
 
 \end_inset
 
@@ -1521,7 +1503,7 @@ C
 \end_layout
 
 \begin_layout Section
-Diálogo Tablas
+Diálogo de tablas
 \begin_inset LatexCommand index
 name "Tablas ! Diálogo"
 
@@ -1551,7 +1533,8 @@ contenido
 \family sans
 Configuración\InsetSpace ~
 de\InsetSpace ~
-Tabla
+la\InsetSpace ~
+tabla
 \family default
  Aquí puedes establecer la alineación horizontal y la anchura de la columna
  actual.
@@ -1627,7 +1610,7 @@ Bordes
 
 \family sans
 Tabla\InsetSpace ~
-Larga
+larga
 \family default
  Para hacer 
 \emph on
@@ -1651,9 +1634,9 @@ Si la barra de herramientas de tabla está abierta, puedes mover el cursor
 \end_layout
 
 \begin_layout Section
-Barra de Herramientas de Tablas
+Barra de herramientas de tabla
 \begin_inset LatexCommand index
-name "Tablas ! Barra de Herramientas"
+name "Tablas ! Barra de herramientas"
 
 \end_inset
 
@@ -1886,7 +1869,7 @@ Nota:
 \begin_layout Section
 Menú Editar Tabla
 \begin_inset LatexCommand index
-name "Tablas ! Menú Editar"
+name "Tablas ! Editar"
 
 \end_inset
 
@@ -1905,7 +1888,7 @@ Tabla
 \end_layout
 
 \begin_layout Section
-Tablas Flotantes
+Tablas flotantes
 \begin_inset LatexCommand label
 name "sec:Tablas-Flotantes"
 
@@ -1942,7 +1925,7 @@ reference "sec:IntroducciónFlotantes"
 placement h
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Caption
@@ -2188,10 +2171,10 @@ Tabla\InsetSpace ~
 \end_inset
 
  (# es el número actual).
- El texto que sigue a dicha etiqueta es el encabezado de tabla.
+ El texto que sigue a dicha etiqueta es la leyenda de la tabla.
  Para insertar una tabla en el flotante se sitúa el cursor al final del
- texto del encabezado y se pulsa Enter.
- El encabezado se imprime encima de la tabla.
+ texto del encabezado y se pulsa Intro.
+ La leyenda se imprime encima de la tabla.
 \end_layout
 
 \begin_layout Standard
@@ -2206,7 +2189,7 @@ reference "tab:una tabla flotante"
 \end_layout
 
 \begin_layout Standard
-Lo habitual es poner el encabezado sobre la tabla, lo que desafortunadamente
+Lo habitual es poner la leyenda sobre la tabla, lo que desafortunadamente
  no es soportado en las clases estándar de LaTeX.
  Esto significa que si estás usando las clases de documento 
 \family sans
@@ -2220,13 +2203,13 @@ book
 \family sans
 letter
 \family default
-, o 
+ o 
 \family sans
 report
 \family default
- no habrá espacio entre el encabezado y la tabla.
+ no habrá espacio entre la leyenda y la tabla.
  Para añadir un espacio entre ellos hay que poner en el preámbulo LaTeX
- del documento la siguiente opción al comando del paquete de LaTeX 
+ del documento la siguiente opción al comando del paquete LaTeX 
 \series bold
 caption
 \series default
@@ -2244,7 +2227,7 @@ status open
 Para más información ve a la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Colocación-de-Encabezados"
+reference "sec:Colocación-de-leyendas"
 
 \end_inset
 
@@ -2263,7 +2246,7 @@ tableposition=top
 \end_layout
 
 \begin_layout Standard
-El formato del encabezado se puede controlar mediante el paquete de LaTeX
+El formato de la leyenda se puede controlar mediante el paquete de LaTeX
  
 \series bold
 caption
@@ -2271,7 +2254,7 @@ caption
  como se describe en la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Formato-de-Encabezados"
+reference "sec:Formato-de-leyendas"
 
 \end_inset
 
@@ -2281,13 +2264,13 @@ reference "sec:Formato-de-Encabezados"
 
 \begin_layout Standard
 \begin_inset LatexCommand index
-name "Referencias ! a Tablas"
+name "Referencias ! a tablas"
 
 \end_inset
 
 Las tablas pueden tener referencias cruzadas en el texto referenciando su
  etiqueta.
- Para hacerlo inserta una etiqueta en el encabezado con el menú 
+ Para hacerlo inserta una etiqueta en la leyenda con el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
 Etiqueta
@@ -2326,7 +2309,7 @@ reference "sec:Referencias-a-Flotantes"
 \end_layout
 
 \begin_layout Section
-Tablas Largas
+Tablas largas
 \begin_inset LatexCommand label
 name "sec:Tablas-Largas"
 
@@ -2334,7 +2317,7 @@ name "sec:Tablas-Largas"
 
 
 \begin_inset LatexCommand index
-name "Tablas Largas"
+name "Tablas largas"
 
 \end_inset
 
@@ -4591,7 +4574,7 @@ fin
 
 
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -4610,7 +4593,7 @@ status collapsed
 Para comprender el uso de este comando, lee al final de la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sub:Encabezados-en-Tablas"
+reference "sub:Leyendas-en-Tablas"
 
 \end_inset
 
@@ -4624,7 +4607,7 @@ reference "sub:Encabezados-en-Tablas"
 \end_layout
 
 \begin_layout Subsection
-Notas al pie en Tablas Largas
+Notas al pie en tablas largas
 \begin_inset LatexCommand label
 name "sub:Notas-al-pie-en-Tablas-Largas"
 
@@ -4632,7 +4615,7 @@ name "sub:Notas-al-pie-en-Tablas-Largas"
 
 
 \begin_inset LatexCommand index
-name "Tablas Largas ! Notas al pie"
+name "Tablas largas ! Notas al pie"
 
 \end_inset
 
@@ -4646,7 +4629,7 @@ Se pueden insertar notas al pie en cada celda de una tabla larga.
  La tabla\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "tab:DifEncabezados"
+reference "tab:DifLeyendas"
 
 \end_inset
 
@@ -4654,9 +4637,9 @@ reference "tab:DifEncabezados"
 \end_layout
 
 \begin_layout Subsection
-Alineación de Tablas Largas
+Alineación de tablas largas
 \begin_inset LatexCommand index
-name "Tablas Largas ! Alineación"
+name "Tablas largas ! Alineación"
 
 \end_inset
 
@@ -4707,7 +4690,7 @@ reference "tab:Unidades"
 \series bold
 
 \backslash
-LTleft 
+LTlent 
 \series default
 controla la distancia entre el borde izquierdo de la página y la tabla.
  
@@ -5020,15 +5003,15 @@ fill}
 \end_layout
 
 \begin_layout Subsection
-Encabezados en Tablas Largas
+Leyendas en tablas largas
 \begin_inset LatexCommand index
-name "Tablas Largas ! Encabezados"
+name "Tablas largas ! Leyendas"
 
 \end_inset
 
 
 \begin_inset LatexCommand label
-name "sub:Encabezados-en-Tablas"
+name "sub:Leyendas-en-Tablas"
 
 \end_inset
 
@@ -5037,16 +5020,13 @@ name "sub:Encabezados-en-Tablas"
 
 \begin_layout Standard
 Una tabla larga no se puede poner flotante porque los flotantes sólo pueden
- estar en una página, aunque el entorno 
-\family sans
-encabezado
-\family default
- de flotantes sí puede usarse para tablas largas.
+ estar en una página, aunque el entorno leyendas de flotantes sí puede usarse
+ para tablas largas.
 \end_layout
 
 \begin_layout Standard
-LyX todavía no soporta totalmente encabezados en tablas largas, de modo
- que hay que crearlos de la sigiente forma:
+LyX todavía no soporta totalmente leyendas en tablas largas, de modo que
+ hay que crearlos de la sigiente forma:
 \end_layout
 
 \begin_layout Enumerate
@@ -5058,10 +5038,10 @@ Marca la primera fila y deshabilita su línea superior.
 \end_layout
 
 \begin_layout Enumerate
-Inserta un encabezado con el menú 
+Inserta una leyenda con el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
-Encabezado
+Leyenda
 \family default
  en la primera celda.
 \newline
@@ -5069,7 +5049,7 @@ También puedes añadir un
 \family sans
 título breve
 \family default
- para el encabezado.
+ para la leyenda .
 \end_layout
 
 \begin_layout Enumerate
@@ -5089,11 +5069,11 @@ Inserta un
 \begin_inset Quotes erd
 \end_inset
 
- como ERT detrás del encabezado.
+ como ERT detrás de la leyenda.
 \end_layout
 
 \begin_layout Standard
-En la Lista de Tablas aparecerá el título breve en vez del título completo.
+En la Lista de tablas aparecerá el título breve en vez del título completo.
  El 
 \series bold
 
@@ -5110,9 +5090,9 @@ En la Lista de Tablas aparecerá el título breve en vez del título completo.
 \begin_inset Quotes erd
 \end_inset
 
- detrás del encabezado elimina las líneas verticales entre las siguientes
+ detrás de la leyenda elimina las líneas verticales entre las siguientes
  celdas de la fila.
- Ahora, la primera fila de la tabla es sólo una fila postiza para el encabezado,
+ Ahora, la primera fila de la tabla es sólo una fila postiza para la leyenda,
  la tabla real comienza en la segunda fila.
 \end_layout
 
@@ -5137,12 +5117,12 @@ He aquí una pequeña tabla larga para mostrar cómo funciona:
 \begin_inset Caption
 
 \begin_layout Standard
-Tabla larga con encabezado
+Tabla larga con leyenda
 \begin_inset OptArg
-status collapsed
+status open
 
 \begin_layout Standard
-Tabla larga con encabezado
+Tabla larga
 \end_layout
 
 \end_inset
@@ -5465,13 +5445,13 @@ status open
 Nota
 \series default
 : El número de la tabla se incrementa para cada tabla larga, aunque no pongas
- encabezado en alguna de ellas.
+ leyenda en alguna de ellas.
  Por esto podría suceder que, p.\InsetSpace \thinspace{}
 e., la tabla\InsetSpace ~
 2.4 siga a la tabla\InsetSpace ~
 2.1 en la lista
- de tablas debido a que hay dos tablas largas sin encabezado.
- Para evitarlo, añade detrás de cada tabla larga sin encabezado este comando
+ de tablas debido a que hay dos tablas largas sin leyenda.
+ Para evitarlo, añade detrás de cada tabla larga sin leyenda este comando
  en ERT:
 \end_layout
 
@@ -5517,9 +5497,9 @@ name "LaTeX-paquetes ! hyperref"
 \end_layout
 
 \begin_layout Subsubsection
-Referencias a Tablas Largas
+Referencias a tablas largas
 \begin_inset LatexCommand index
-name "Tablas Largas ! Referencias a"
+name "Tablas largas ! Referencias a"
 
 \end_inset
 
@@ -5854,8 +5834,8 @@ asd
 \end_layout
 
 \begin_layout Standard
-Para referenciar una tabla larga, inserta una etiqueta en el encabezado.Observa
- que tienes que añadir el prefijo 
+Para referenciar una tabla larga, inserta una etiqueta en la leyenda.
+ Observa que tienes que añadir el prefijo 
 \begin_inset Quotes eld
 \end_inset
 
@@ -5883,8 +5863,8 @@ reference "tab:RefEjemplo"
 \end_layout
 
 \begin_layout Standard
-El formato del encabezado puede configurarse junto con todos los demás encabezad
-os del documento mediante el paquete LaTeX 
+El formato de la leyenda puede configurarse junto con todos las demás leyendas
+ del documento mediante el paquete LaTeX 
 \series bold
 caption
 \series default
@@ -5894,10 +5874,10 @@ name "LaTeX-paquetes ! caption"
 
 \end_inset
 
-, ver sección\InsetSpace ~
+, véase sección\InsetSpace ~
  
 \begin_inset LatexCommand ref
-reference "sec:Formato-de-Encabezados"
+reference "sec:Formato-de-leyendas"
 
 \end_inset
 
@@ -5905,9 +5885,9 @@ reference "sec:Formato-de-Encabezados"
 \end_layout
 
 \begin_layout Subsubsection
-Anchura de Encabezado
+Anchura de la leyenda
 \begin_inset LatexCommand index
-name "Tablas Largas ! Anchura de Encabezados"
+name "Tablas largas ! Anchura de la leyenda"
 
 \end_inset
 
@@ -5936,11 +5916,11 @@ pulgadas).
 \backslash
 setlength{
 \backslash
-LTcapwidth}{ancho}
+LTcapwidth}{anchura}
 \end_layout
 
 \begin_layout Standard
-donde el ancho puede ser una de las unidades listadas en el apéndice\InsetSpace ~
+donde la anchura puede ser una de las unidades listadas en el apéndice\InsetSpace ~
 
 \begin_inset LatexCommand ref
 reference "cha:Unidades-disponibles-en"
@@ -5971,13 +5951,13 @@ Las tablas siguientes muestran la diferencia:
 \begin_inset Caption
 
 \begin_layout Standard
-Encabezado completo con ancho predeterminado encabezado completo con ancho
- predeterminado encabezado completo con ancho predeterminado
+Leyenda larga completa con anchura predeterminada leyenda larga completa
+ con anchura predeterminada
 \begin_inset OptArg
-status collapsed
+status open
 
 \begin_layout Standard
-Encabezado con ancho predeterminado
+Leyenda con anchura predeterminada
 \end_layout
 
 \end_inset
@@ -6318,16 +6298,16 @@ LTcapwidth}{5cm}
 \begin_inset Caption
 
 \begin_layout Standard
-Encabezado completo con ancho de  5\InsetSpace \thinspace{}
-cm encabezado completo con ancho de 5\InsetSpace \thinspace{}
-cm
- encabezado completo con ancho de 5\InsetSpace \thinspace{}
+Leyenda larga completa con anchura de 5\InsetSpace \thinspace{}
+cm leyenda larga completa con anchura
+ de 5\InsetSpace \thinspace{}
+cm leyenda larga completa con anchura de 5\InsetSpace \thinspace{}
 cm
 \begin_inset OptArg
-status collapsed
+status open
 
 \begin_layout Standard
-Encabezado con anchura\InsetSpace \thinspace{}
+Leyenda con anchura\InsetSpace \thinspace{}
 =\InsetSpace \thinspace{}
 5\InsetSpace \thinspace{}
 cm
@@ -6707,9 +6687,9 @@ caption
 \end_layout
 
 \begin_layout Subsubsection
-Encabezados Distintos para cada Página
+Leyendas distintas para cada página
 \begin_inset LatexCommand index
-name "Tablas Largas ! Encabezados Diferentes para cada Página"
+name "Tablas largas ! Leyendas distintas para cada página"
 
 \end_inset
 
@@ -6717,11 +6697,11 @@ name "Tablas Largas ! Encabezados Diferentes para cada Página"
 \end_layout
 
 \begin_layout Standard
-Si los otros encabezados debieran ser diferentes del de la primera página,
- inserta un encabezado con un título breve no vacío en una fila postiza
- de encabezado marcado como primer encabezado.
- El encabezado para las restantes páginas se inserta como encabezado sin
- título breve en una fila postiza de encabezado marcado como primer encabezado.
+Si otras leyendas debieran ser diferentes de la leyenda de la primera página,
+ inserta una leyenda con un título breve no vacío en una fila postiza marcada
+ como primer encabezado.
+ La leyenda para las restantes páginas se inserta sin título breve en una
+ fila postiza de leyenda marcada como primer encabezado.
  Si este encabezado no ha de incluir el número de tabla, usa el comando
 \end_layout
 
@@ -6730,16 +6710,16 @@ Si los otros encabezados debieran ser diferentes del de la primera página,
 \series bold
 
 \backslash
-caption*{texto del encabezado}
+caption*{texto de la leyenda}
 \end_layout
 
 \begin_layout Standard
-en vez del recuadro de encabezados de LyX.
+en vez del recuadro de leyenda de LyX.
  La etiqueta para referenciar la tabla se inserta en el primer encabezado.
  La tabla\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "tab:DifEncabezados"
+reference "tab:DifLeyendas"
 
 \end_inset
 
@@ -6765,7 +6745,7 @@ reference "tab:DifEncabezados"
 \begin_layout Standard
 Ejemplo de lista telefónica
 \begin_inset LatexCommand label
-name "tab:DifEncabezados"
+name "tab:DifLeyendas"
 
 \end_inset
 
@@ -8690,13 +8670,13 @@ Roberto
 \end_layout
 
 \begin_layout Section
-Particularidades de las Tablas Largas
+Particularidades de las tablas largas
 \end_layout
 
 \begin_layout Subsection
 Cálculos
 \begin_inset LatexCommand index
-name "Tablas Largas ! Cálculos"
+name "Tablas largas ! Cálculos"
 
 \end_inset
 
@@ -8730,9 +8710,9 @@ setcounter{LTchunksize}{100}
 \end_layout
 
 \begin_layout Subsection
-Flotantes y Tablas Largas
+Flotantes y tablas largas
 \begin_inset LatexCommand index
-name "Tablas Largas ! Flotantes"
+name "Tablas largas ! Flotantes"
 
 \end_inset
 
@@ -8752,9 +8732,9 @@ clearpage
 \end_layout
 
 \begin_layout Subsection
-Saltos de Página Forzados
+Saltos de página forzados
 \begin_inset LatexCommand index
-name "Tablas Largas ! Saltos de Página Forzados"
+name "Tablas largas ! Saltos de página forzados"
 
 \end_inset
 
@@ -10229,11 +10209,11 @@ Franz
 \end_layout
 
 \begin_layout Section
-Líneas Múltiples en Columnas y Filas
+Líneas múltiples en columnas y filas
 \end_layout
 
 \begin_layout Subsection
-Líneas Múltiples en Celdas
+Líneas múltiples en celdas
 \begin_inset LatexCommand label
 name "sub:Líneas-Múltiples-en"
 
@@ -10241,13 +10221,13 @@ name "sub:Líneas-Múltiples-en"
 
 
 \begin_inset LatexCommand index
-name "Líneas Múltiples en Celdas"
+name "Líneas múltiples en celdas"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Tablas ! Saltos de Línea"
+name "Tablas ! Saltos de línea"
 
 \end_inset
 
@@ -10432,14 +10412,6 @@ linebreak
 
 \begin_layout Standard
 Si el texto es más ancho que la celda será automáticamente dividido en líneas.
-\end_layout
-
-\begin_layout Standard
-Para centrar verticalmente el texto en las otras dos celdas de la primera
- fila, haz clic-derecha en la segunda celda, ajusta una anchura de 0.5\InsetSpace \thinspace{}
-cm
- y marca alineaciones centrales.
- Haz lo mismo con la tercera celda de la fila.
 \end_layout
 
 \begin_layout Standard
@@ -10717,10 +10689,6 @@ i
 
 \end_layout
 
-\begin_layout Standard
-
-\end_layout
-
 \begin_layout Subsection
 Multicolumnas
 \begin_inset LatexCommand label
@@ -10744,7 +10712,7 @@ name "Tablas ! Multicolumnas"
 \end_layout
 
 \begin_layout Subsubsection
-Fundamentos de Multicolumna
+Fundamentos de multicolumna
 \end_layout
 
 \begin_layout Standard
@@ -10918,7 +10886,7 @@ D
 \end_layout
 
 \begin_layout Subsubsection
-Cálculos en Multicolumnas
+Cálculos en multicolumnas
 \begin_inset LatexCommand label
 name "sub:Cálculos-en-Multicolumnas"
 
@@ -11268,7 +11236,7 @@ a, es un poco mayor.
 \end_inset
 
  porque una celda es siempre algo mayor que la anchura dada.
- El Apéndice\InsetSpace ~
+ El apéndice\InsetSpace ~
 
 \begin_inset LatexCommand eqref
 reference "cha:Explicación-de-la-Ecuación"
@@ -11384,7 +11352,9 @@ b{ancho}
 \begin_layout Standard
 Al introducir un argumento LaTeX, todas las propiedades de celda puestas
  en el diálogo se ignoran.
- 
+\end_layout
+
+\begin_layout Standard
 \begin_inset Note Greyedout
 status open
 
@@ -11398,7 +11368,11 @@ Nota:
 
 \end_inset
 
- El comando 
+ 
+\end_layout
+
+\begin_layout Standard
+El comando 
 \series bold
 
 \backslash
@@ -11741,7 +11715,7 @@ raggedright
 \end_layout
 
 \begin_layout Section
-Tablas Formales
+Tablas formales
 \begin_inset LatexCommand label
 name "sec:Tablas-Formales"
 
@@ -11755,7 +11729,7 @@ name "Tablas Formales"
 
 
 \begin_inset LatexCommand index
-name "Tablas ! Estilo Formal"
+name "Tablas ! Estilo formal"
 
 \end_inset
 
@@ -12982,9 +12956,9 @@ in % of pixel size
 \end_layout
 
 \begin_layout Section
-Alineación Vertical en Tablas
+Alineación vertical de tablas
 \begin_inset LatexCommand index
-name "Tablas ! Alineación Vertical"
+name "Tablas ! Alineación vertical"
 
 \end_inset
 
@@ -13769,7 +13743,7 @@ raisebox
 \end_layout
 
 \begin_layout Section
-Tablas Coloreadas
+Tablas coloreadas
 \begin_inset LatexCommand label
 name "sec:Tablas-Coloreadas"
 
@@ -13785,15 +13759,15 @@ name "Tablas ! Coloreadas"
 \end_layout
 
 \begin_layout Subsection
-Celdas Coloreadas
+Celdas coloreadas
 \begin_inset LatexCommand index
-name "Tablas Coloreadas ! Celdas"
+name "Tablas coloreadas ! Celdas"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Color ! en Celdas de Tablas"
+name "Color ! en celdas de tablas"
 
 \end_inset
 
@@ -14339,16 +14313,18 @@ name "tab:Tabla-coloreada-con"
 
 \end_inset
 
-Tabla coloreada usando el paquete 
+Tabla coloreada con el paquete 
 \series bold
 colortbl
 \series default
 
 \begin_inset OptArg
-status collapsed
+status open
 
 \begin_layout Standard
-Tabla con colortbl
+Tabla con 
+\series bold
+colortbl
 \end_layout
 
 \end_inset
@@ -14568,13 +14544,13 @@ fi
 \begin_layout Subsection
 Líneas coloreadas
 \begin_inset LatexCommand index
-name "Tablas Coloreadas ! Líneas"
+name "Tablas coloreadas ! Líneas"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Color ! en Líneas de Tabla"
+name "Color ! en bordes de tabla"
 
 \end_inset
 
@@ -15212,9 +15188,9 @@ arrayrulewidth}{0.4pt}
 \end_layout
 
 \begin_layout Section
-Personalización de Tablas
+Personalización de tablas
 \begin_inset LatexCommand index
-name "Personalización de Tablas"
+name "Personalización de tablas"
 
 \end_inset
 
@@ -15228,7 +15204,7 @@ name "Tablas ! Personalización"
 \end_layout
 
 \begin_layout Subsection
-Espacio Adicional en Filas
+Espacio adicional en filas
 \begin_inset LatexCommand label
 name "sub:Espacio-adicional"
 
@@ -15236,7 +15212,7 @@ name "sub:Espacio-adicional"
 
 
 \begin_inset LatexCommand index
-name "Personalización de Tablas ! Espacio Adicional en Filas"
+name "Personalización de tablas ! Espacio adicional en filas"
 
 \end_inset
 
@@ -15554,9 +15530,9 @@ ined
 \end_layout
 
 \begin_layout Subsection
-Alineación Especial de Celdas
+Alineación especial de celdas
 \begin_inset LatexCommand index
-name "Personalización de Tablas ! Alineación Especial de Celdas"
+name "Personalización de tablas ! Alineación especial de celdas"
 
 \end_inset
 
@@ -15613,7 +15589,7 @@ Tabla con celdas alineadas con el separador decimal.
 \begin_inset Text
 
 \begin_layout Standard
-encabezado
+leyenda
 \end_layout
 
 \end_inset
@@ -15702,7 +15678,7 @@ encabezado
 
 \begin_layout Standard
 Esta es una tabla 4×2.
- El encabezado es una multicolumna centrada.
+ La leyenda es una multicolumna centrada.
  La primera columna está alineada a la derecha y contiene el punto decimal
  y los dígitos anteriores.
  La segunda columna está alineada a la izquierda y contiene los dígitos
@@ -16338,7 +16314,7 @@ times
 \end_layout
 
 \begin_layout Subsection
-Formato Personalizado de Celda/Columna
+Formato personalizado de celda/columna
 \begin_inset LatexCommand label
 name "sub:Formato-Personalizado"
 
@@ -16346,7 +16322,7 @@ name "sub:Formato-Personalizado"
 
 
 \begin_inset LatexCommand index
-name "Personalización de Tablas ! Formato de Celda/Columna"
+name "Personalización de tablas ! Formato de celda/columna"
 
 \end_inset
 
@@ -16778,7 +16754,7 @@ k
 \end_layout
 
 \begin_layout Subsection
-Grosor de Líneas
+Grosor de líneas
 \begin_inset LatexCommand label
 name "sub:Grosor-de-Líneas"
 
@@ -16786,7 +16762,7 @@ name "sub:Grosor-de-Líneas"
 
 
 \begin_inset LatexCommand index
-name "Personalización de Tablas ! Grosor de Línea"
+name "Personalización de tablas ! Grosor de línea"
 
 \end_inset
 
@@ -17453,9 +17429,9 @@ sd
 \end_layout
 
 \begin_layout Subsection
-Líneas de Trazos
+Líneas de trazos
 \begin_inset LatexCommand index
-name "Personalización de Tablas ! Líneas de Trazos"
+name "Personalización de tablas ! Líneas de trazos"
 
 \end_inset
 
@@ -17859,7 +17835,7 @@ Para líneas de trazos en multicolumna usa el comando
 \series bold
 
 \backslash
-cdashline{line number
+cdashline{número de líneas
 \series default
 }
 \end_layout
@@ -18105,48 +18081,19 @@ Insertar\SpecialChar \menuseparator
 Flotante
 \family default
 .
- En el documento se inserta un cuadro con etiqueta en el entorno 
+ Esto inserta un entorno 
 \family sans
-Encabezado
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-El entorno 
-\family sans
-Encabezado
+Leyenda,
 \family default
- se describe en 
-\emph on
-Guía\InsetSpace ~
-del\InsetSpace ~
-Usuario
-\emph default
- de LyX.
-\end_layout
-
-\end_inset
-
-.
-
-\family default
- Cada etiqueta acaba con el carácter 
-\begin_inset Quotes eld
-\end_inset
-
-#
-\begin_inset Quotes erd
-\end_inset
-
- como receptáculo para el número de flotante en la salida.
+ un recuadro con una etiqueta.
  La etiqueta será traducida automáticamente al lenguaje del documento.
- Tras la etiqueta se puede insertar el texto del encabezado.
- La imagen o tabla se inserta encima o debajo del encabezado en un párrafo
+ Tras la etiqueta puede insertar el texto de la leyenda.
+ La imagen o tabla se inserta encima o debajo de la leyenda en un párrafo
  separado dentro del flotante.
- Más sobre colocación de encabezados se describe en la sección\InsetSpace ~
+ Más sobre colocación de leyendas se describe en la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Colocación-de-Encabezados"
+reference "sec:Colocación-de-leyendas"
 
 \end_inset
 
@@ -18175,7 +18122,7 @@ Figuras o tablas ya existentes pueden ponerse en un flotante marcándolas
 \end_layout
 
 \begin_layout Section
-Tipos de Flotantes
+Tipos de flotantes
 \end_layout
 
 \begin_layout Standard
@@ -18200,13 +18147,13 @@ Algoritmo
 \series bold
 Ajustado\InsetSpace ~
 al\InsetSpace ~
-Texto
+texto
 \series default
 .
 \end_layout
 
 \begin_layout Subsection
-Algoritmos Flotantes
+Algoritmos flotantes
 \begin_inset LatexCommand index
 name "Flotantes ! Algoritmos"
 
@@ -18237,7 +18184,7 @@ name "alg:Ejemplo-de-Algoritmo-flotante"
 
 \end_inset
 
-Ejemplo de Algoritmo flotante
+Ejemplo de algoritmo flotante
 \end_layout
 
 \end_inset
@@ -18277,7 +18224,7 @@ Código-LyX
 \family default
 , descrito en 
 \emph on
-Guía del Usuario
+Guía del usuario
 \emph default
  de LyX.
  El algoritmo\InsetSpace ~
@@ -18447,7 +18394,7 @@ listof{Xalgorithm}{Lista de algoritmos}
 \series default
 
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Standard
 Usado al final de este documento
@@ -18528,9 +18475,9 @@ Ecuaciones
 \end_layout
 
 \begin_layout Subsection
-Flotantes Ajustados a Texto
+Flotantes ajustados a texto
 \begin_inset LatexCommand index
-name "Flotantes ! Ajustados a Texto"
+name "Flotantes ! Ajustados a texto"
 
 \end_inset
 
@@ -18599,13 +18546,11 @@ texto
 \family default
  si está instalado el paquete LaTeX 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "LaTeX-paquetes ! floatflt"
+name "LaTeX-paquetes ! wrapfig\\vspace{4mm}"
 
 \end_inset
 
@@ -18638,7 +18583,7 @@ col%.
 status collapsed
 
 \begin_layout Standard
-Ver unidades disponibles en\InsetSpace ~
+Ver unidades disponibles en el apéndice\InsetSpace ~
 
 \begin_inset LatexCommand ref
 reference "cha:Unidades-disponibles-en"
@@ -18650,27 +18595,23 @@ reference "cha:Unidades-disponibles-en"
 
 \end_inset
 
- Se ha añadido un espacio vertical bajo el encabezado para separarlo mejor
+ Se ha añadido un espacio vertical bajo la leyenda para separarla mejor
  del texto envolvente.
 \end_layout
 
 \begin_layout Standard
 El paquete LaTeX 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  también soporta tablas adosadas a texto pero aún no es soportado por LyX.
  Si lo necesitas, consulta la documentación de 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  
 \begin_inset LatexCommand cite
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -18691,33 +18632,6 @@ e.\InsetSpace ~
 si una figura está demasiado
  cerca de la parte inferior de la página se pueden perder cosas en el proceso
  de salida, el flotante puede no aparecer o situarse junto a otro texto.
-\begin_inset Foot
-status open
-
-\begin_layout Standard
-La mejor solución es usar el paquete LaTeX 
-\series bold
-wrapf\SpecialChar \textcompwordmark{}
-ig
-\series default
-
-\begin_inset LatexCommand index
-name "LaTeX-paquetes ! wrapfig\\vspace{4mm}"
-
-\end_inset
-
- en vez de 
-\series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
-\series default
- pero actualmente no es soportado por LyX.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -18751,7 +18665,7 @@ Los flotantes adosados no están permitidos en cabeceras de sección o tablas.
 \end_layout
 
 \begin_layout Section
-Numeración de Flotantes
+Numeración de flotantes
 \begin_inset LatexCommand label
 name "sec:Numeración-de-flotantes"
 
@@ -18882,7 +18796,7 @@ reference "sub:Numeración-de-Notas-al-Pie"
 \end_layout
 
 \begin_layout Section
-Referencias a Flotantes
+Referencias a flotantes
 \begin_inset LatexCommand label
 name "sec:Referencias-a-Flotantes"
 
@@ -18904,8 +18818,8 @@ name "Referencias"
 \end_layout
 
 \begin_layout Standard
-Para referirse a un flotante, inserta una etiqueta en su encabezado con
- el menú 
+Para referirse a un flotante, inserta una etiqueta en su leyenda con el
+ menú 
 \family sans
 Insertar\SpecialChar \menuseparator
 Etiqueta
@@ -18927,7 +18841,7 @@ Etiqueta
 \end_inset
 
 .
- LyX ofrece como texto las primeras palabras del encabezado con un prefijo.
+ LyX ofrece como texto las primeras palabras de la leyenda con un prefijo.
  El prefijo depende del tipo de flotante, p.\InsetSpace \thinspace{}
 e.\InsetSpace ~
 para figuras el prefijo será
@@ -19013,7 +18927,7 @@ Volver
 \end_layout
 
 \begin_layout Subsection
-Formatos de Referencia Cruzada
+Formatos de referencia cruzada
 \begin_inset LatexCommand label
 name "sub:Formatos-referencia-cruzada"
 
@@ -19173,7 +19087,7 @@ Formato
 \end_layout
 
 \begin_layout Subsection
-Referencias a Subfiguras 
+Referencias a subfiguras 
 \begin_inset LatexCommand label
 name "sub:Referencias-a-Subfiguras"
 
@@ -19181,7 +19095,7 @@ name "sub:Referencias-a-Subfiguras"
 
 
 \begin_inset LatexCommand index
-name "Referencias ! a Subfiguras"
+name "Referencias ! a subfiguras"
 
 \end_inset
 
@@ -19203,7 +19117,7 @@ label{fig:NombreEtiqueta}
 \end_layout
 
 \begin_layout Standard
-que se inserta directamente en el campo de encabezado de la subfigura.
+que se inserta directamente en el campo de leyenda de la subfigura.
  Para referenciar la etiqueta añade el siguiente comando en ERT
 \end_layout
 
@@ -19235,9 +19149,9 @@ ref{fig:Platypus}
 \end_layout
 
 \begin_layout Subsection
-Designación Automática de Referencias
+Designación automática de referencias
 \begin_inset LatexCommand index
-name "Referencias ! Designación Automática"
+name "Referencias ! Designación automática"
 
 \end_inset
 
@@ -19357,7 +19271,7 @@ reference "sub:Formatos-referencia-cruzada"
 \end_layout
 
 \begin_layout Subsection
-Colocación de Referencias
+Colocación de referencias
 \begin_inset LatexCommand label
 name "sub:Colocación-de-Referencias"
 
@@ -19385,8 +19299,8 @@ name "LaTeX-paquetes ! hyperref"
 
  para enlazar referencias cruzadas en la salida, verás que al pinchar sobre
  la referencia de una imagen flotante te lleva hasta la etiqueta de la imagen.
- El encabezado será la primera parte de texto en pantalla, de forma que
- para ver la imagen debes deslizar.
+ La leyenda será la primera parte del texto en pantalla, de forma que para
+ ver la imagen debes deslizar.
  Se debe a que el ancla de enlace de la referencia se sitúa en la etiqueta.
  Usando el paquete 
 \series bold
@@ -19421,8 +19335,7 @@ hypcap
 \series bold
 
 \backslash
-usepackage[f\SpecialChar \textcompwordmark{}
-igure]{hypcap}
+usepackage[figure]{hypcap}
 \end_layout
 
 \begin_layout Standard
@@ -19485,7 +19398,7 @@ Nota:
 \end_layout
 
 \begin_layout Section
-Colocación de Flotantes
+Colocación de flotantes
 \begin_inset LatexCommand label
 name "sec:Colocación-de-Flotantes"
 
@@ -19894,7 +19807,7 @@ Nota:
 \series bold
 endfloat
 \series default
- cuando el encabezado contiene el carácter alemán 
+ cuando la leyenda contiene el carácter alemán 
 \begin_inset Quotes eld
 \end_inset
 
@@ -19947,7 +19860,7 @@ key "latexcompanion,latexguide,latexbook"
 \end_layout
 
 \begin_layout Section
-Rotación de Flotantes
+Rotación de flotantes
 \begin_inset LatexCommand label
 name "sec:Rotación-de-Flotantes"
 
@@ -19964,7 +19877,7 @@ name "Flotantes ! Rotación"
 
 \begin_layout Standard
 Podrías necesitar girar flotantes, especialmente con tablas grandes.
- Para girar todo el flotante y su encabezado, pincha sobre su cuadro y marca
+ Para girar todo el flotante y su leyenda, pincha sobre su cuadro y marca
  la opción 
 \family sans
 Girar\InsetSpace ~
@@ -19993,7 +19906,7 @@ figuresright
 
 \begin_layout Standard
 Los flotantes girados se refieren igual que los normales, y el formato de
- encabezado también es el mismo: un ejemplo es la tabla\InsetSpace ~
+ la leyenda también es el mismo: un ejemplo es la tabla\InsetSpace ~
 
 \begin_inset LatexCommand ref
 reference "tab:Tabla-girada"
@@ -20113,15 +20026,187 @@ e
 \end_layout
 
 \begin_layout Section
-Formato de Encabezados
+Flotantes adosados
 \begin_inset LatexCommand index
-name "Encabezados ! Formato"
+name "Flotantes ! Adosados"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para colocar flotantes unos junto a otros, como en la figura\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "fig:Flotante-izquierda"
+
+\end_inset
+
+ y 
+\begin_inset LatexCommand ref
+reference "fig:Flotante-derecha"
+
+\end_inset
+
+, se pone 
+\emph on
+un
+\emph default
+ solo flotante.
+ En él se insertan dos cuadros tipo minipágina
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Las minipáginas se explican en la sección\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "sec:Minipáginas"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+.
+ La anchura se establece en 45-50\InsetSpace \thinspace{}
+% de la columna y la alineación en 
+\family sans
+Inferior
+\family default
+ para cada minipágina.
+ Las minipáginas contienen la imagen y su título, de igual forma que en
+ los flotantes.
+ La única diferencia es que el 
+\family sans
+Ancho\InsetSpace ~
+de\InsetSpace ~
+columna\InsetSpace ~
+%
+\family default
+ de la imagen se calcula en este caso en relación a la anchura de la minipágina.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../clipart/mobius.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Flotante-izquierda"
+
+\end_inset
+
+Flotante en el lado izquierdo.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\hfill
+
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../clipart/platypus.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Flotante-derecha"
+
+\end_inset
+
+Flotante en el lado derecho.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Formato de las leyendas
+\begin_inset LatexCommand index
+name "Leyendas ! Formato"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Flotantes ! Formato de Encabezados"
+name "Flotantes ! Formato de las leyendas"
 
 \end_inset
 
@@ -20133,7 +20218,7 @@ name "LaTeX-paquetes ! caption"
 
 
 \begin_inset LatexCommand label
-name "sec:Formato-de-Encabezados"
+name "sec:Formato-de-leyendas"
 
 \end_inset
 
@@ -20143,14 +20228,14 @@ name "sec:Formato-de-Encabezados"
 \begin_layout Standard
 El entorno 
 \family sans
-Encabezado
+Leyenda
 \family default
  es el predeterminado para los 
 \family sans
 Flotantes
 \family default
 .
- En LyX los encabezados se muestran como etiqueta, p.\InsetSpace \thinspace{}
+ En LyX las leyendas se muestran como etiqueta, p.\InsetSpace \thinspace{}
 e.\InsetSpace ~
 
 \begin_inset Quotes eld
@@ -20174,10 +20259,10 @@ Figura #
 \end_inset
 
  es el número real de referencia.
- Por defecto la etiqueta y el número usan la misma fuente que el texto del
- encabezado y el signo dos puntos sigue al número para separar la etiqueta
+ Por defecto la etiqueta y el número usan la misma fuente que el texto de
+ la leyenda y el signo dos puntos sigue al número para separar la etiqueta
  del texto.
- El formato de encabezado no es apropiado para todos los formatos de documento.
+ El formato de la leyenda no es apropiado para todos los formatos de documento.
  
 \end_layout
 
@@ -20205,8 +20290,8 @@ usepackage[definición de formato]{caption}
 
 \begin_layout Standard
 Para poner, por ejemplo, la etiqueta y el número en sans-serif negrita y
- los encabezados de tabla siempre sobre ella como en este documento, usa
- el comando:
+ las leyendas de tabla siempre sobre ella como en este documento, usa el
+ comando:
 \end_layout
 
 \begin_layout Standard
@@ -20218,7 +20303,7 @@ usepackage[labelfont={bf,sf}, tableposition=top]{caption}
 \end_layout
 
 \begin_layout Standard
-También puedes definir distintos formatos de encabezado para los distintos
+También puedes definir distintos formatos de leyenda para los distintos
  tipos de flotantes.
  En ese caso carga el paquete 
 \series bold
@@ -20238,7 +20323,7 @@ captionsetup[tipo de flotante]{definición de formato}
 
 \begin_layout Standard
 en el preámbulo del documento.
- Por ejemplo los encabezados de la Figura\InsetSpace ~
+ Por ejemplo las leyendas de la Figura\InsetSpace ~
 
 \begin_inset LatexCommand ref
 reference "fig:Esto-es-una-fig"
@@ -20268,8 +20353,7 @@ usepackage[tableposition=top]{caption}
 \series bold
 
 \backslash
-captionsetup[f\SpecialChar \textcompwordmark{}
-igure]{labelfont={tt}, textfont=it, indention=1cm,%
+captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm,%
 \newline
 
 \begin_inset ERT
@@ -20450,7 +20534,7 @@ setkomafont
 koma-script
 \series default
 .
- Por ejemplo, para poner en negrita la etiqueta del encabezado añade este
+ Por ejemplo, para poner en negrita la etiqueta de la leyenda añade este
  comando en el preámbulo del documento:
 \end_layout
 
@@ -20477,7 +20561,7 @@ koma-script
 \series default
  
 \begin_inset LatexCommand cite
-key "koma-script,koma-script-de"
+key "koma-script"
 
 \end_inset
 
@@ -20486,7 +20570,7 @@ key "koma-script,koma-script-de"
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -20503,7 +20587,7 @@ captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm, labelsep=period
 status open
 
 \begin_layout Standard
-El formato del encabezado se ha cambiado sólo para este ejemplo.
+El formato de la leyenda se ha cambiado sólo para este ejemplo.
 \end_layout
 
 \end_inset
@@ -20544,14 +20628,14 @@ name "fig:Esto-es-una-fig"
 status open
 
 \begin_layout Standard
-Figura con título muy largo
+Figura con leyenda muy larga
 \end_layout
 
 \end_inset
 
-Este es un ejemplo de figura con un título que es mayor de una línea para
+Este es un ejemplo de figura con una leyenda que es mayor de una línea para
  mostrar el formato diferente.
- Aquí se usa un título personalizado.
+ Aquí se usa una leyenda personalizada.
 \end_layout
 
 \end_inset
@@ -20566,7 +20650,7 @@ Este es un ejemplo de figura con un título que es mayor de una línea para
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -20586,7 +20670,7 @@ on}
 placement !p
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Caption
@@ -20602,14 +20686,14 @@ name "tab:Esto-es-una-tab"
 status collapsed
 
 \begin_layout Standard
-Tabla con encabezado muy largo
+Tabla con leyenda muy larga
 \end_layout
 
 \end_inset
 
-Este es un ejemplo de encabezado de tabla mayor que una línea para mostrar
+Este es un ejemplo de leyenda de tabla mayor que una línea para mostrar
  el formato diferente.
- Aquí se usa el formato de encabezado estándar para las tablas.
+ Aquí se usa el formato de leyenda estándar para las tablas.
 \end_layout
 
 \end_inset
@@ -20687,21 +20771,21 @@ e
 \end_layout
 
 \begin_layout Section
-Colocación de Encabezados
+Colocación de leyendas
 \begin_inset LatexCommand index
-name "Encabezados ! Colocación"
+name "Leyendas ! Colocación"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Flotantes ! Colocación de Encabezados"
+name "Flotantes ! Colocación de leyendas"
 
 \end_inset
 
 
 \begin_inset LatexCommand label
-name "sec:Colocación-de-Encabezados"
+name "sec:Colocación-de-leyendas"
 
 \end_inset
 
@@ -20709,20 +20793,20 @@ name "sec:Colocación-de-Encabezados"
 \end_layout
 
 \begin_layout Standard
-La norma habitual para colocar títulos o encabezados es:
+La norma habitual para colocar las leyendas es:
 \end_layout
 
 \begin_layout Description
-Figura: El título al pie de la figura
+Figura: La leyenda al pie de la figura
 \end_layout
 
 \begin_layout Description
-Tabla: El encabezado sobre la tabla
+Tabla: La leyenda sobre la tabla
 \end_layout
 
 \begin_layout Standard
-Desafortunadamente, las clases estándar de LaTeX no soportan encabezados
- sobre la tabla.
+Desafortunadamente, las clases estándar de LaTeX no soportan leyendas sobre
+ la tabla.
  Esto implica que si usas las clases de documento 
 \family sans
 article
@@ -20739,7 +20823,7 @@ letter
 \family sans
 report
 \family default
- no habrá espacio entre el encabezado y la tabla.
+ no habrá espacio entre la leyenda y la tabla.
  Para insertar el espacio adecuado añade la siguiente opción al comando
  del paquete LaTeX 
 \series bold
@@ -20753,7 +20837,7 @@ status collapsed
 Ver la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Formato-de-Encabezados"
+reference "sec:Formato-de-leyendas"
 
 \end_inset
 
@@ -20818,7 +20902,7 @@ tablecaptionabove
 \begin_inset VSpace bigskip
 \end_inset
 
-También es posible poner el encabezado junto a una figura o tabla.
+También es posible poner la leyenda junto a una figura o tabla.
  Para conseguirlo hay que cargar el paquete LaTeX 
 \series bold
 sidecap
@@ -20841,9 +20925,9 @@ usepackage[option]{sidecap}
 \end_layout
 
 \begin_layout Standard
-Si no se especifica opción, el encabezado se ubica del lado del margen externo
- de la página -- a la derecha en páginas impares, a la izquierda en las
- pares.
+Si no se especifica opción, la leyenda se ubica del lado del margen externo
+ de la página ---a la derecha en páginas impares, a la izquierda en las
+ pares---.
  Puedes cambiar la colocación al margen interno con la opción 
 \series bold
 innercaption
@@ -20862,7 +20946,7 @@ leftcaption
 \end_layout
 
 \begin_layout Standard
-Para situar en LyX el encabezado de un flotante al lado, es necesario añadir
+Para situar en LyX la leyenda de un flotante al lado, es necesario añadir
  estos comandos al preámbulo del documento:
 \end_layout
 
@@ -21025,8 +21109,7 @@ let
 \backslash
 MyFigure
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \newline
 
 \begin_inset ERT
@@ -21045,11 +21128,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure
+MyEndfigure
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \newline
 
 \begin_inset ERT
@@ -21066,14 +21147,11 @@ hphantom{ }
 
 
 \backslash
-renewenvironment{f\SpecialChar \textcompwordmark{}
-igure}{
+renewenvironment{figure}{
 \backslash
-begin{SCf\SpecialChar \textcompwordmark{}
-igure}}{
+begin{SCfigure}}{
 \backslash
-end{SCf\SpecialChar \textcompwordmark{}
-igure}}}
+end{SCfigure}}}
 \end_layout
 
 \begin_layout Standard
@@ -21102,8 +21180,7 @@ hphantom{ }
 \backslash
 let
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \backslash
 MyFigure
 \newline
@@ -21124,11 +21201,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure}
+MyEndfigure}
 \end_layout
 
 \begin_layout Standard
@@ -21138,8 +21213,8 @@ igure}
 \end_layout
 
 \begin_layout Standard
-Estos comandos permiten redefinir los flotantes de modo que el encabezado
- aparezca en un lado.
+Estos comandos permiten redefinir los flotantes de modo que la leyenda aparezca
+ en un lado.
  Para figuras flotantes usa el comando
 \end_layout
 
@@ -21298,8 +21373,7 @@ bottom
 \series bold
 
 \backslash
-sidecaptionvpos{f\SpecialChar \textcompwordmark{}
-igure}{c}
+sidecaptionvpos{figure}{c}
 \end_layout
 
 \begin_layout Standard
@@ -21356,7 +21430,7 @@ reference "sub:Colocación-de-Referencias"
 
 \end_inset
 
-, no afecta a flotantes con el encabezado al lado.
+, no afecta a flotantes con la leyenda al lado.
 \end_layout
 
 \end_inset
@@ -21405,7 +21479,7 @@ name "fig:encab-al-lado"
 
 \end_inset
 
-Título al lado de una figura.
+Leyenda al lado de una figura.
 \end_layout
 
 \end_inset
@@ -21449,7 +21523,7 @@ name "tab:encab-al-lado"
 
 \end_inset
 
-Título al lado de una tabla.
+Leyenda al lado de una tabla.
 \end_layout
 
 \end_inset
@@ -21668,7 +21742,7 @@ j
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -21684,7 +21758,7 @@ TabBesEnd
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -21720,7 +21794,7 @@ name "fig:encab-al-lado-de-fig"
 
 \end_inset
 
-Título junto a una figura centrado verticalmente.
+Leyenda centrada verticalmente junto a una figura.
 \end_layout
 
 \end_inset
@@ -21750,7 +21824,7 @@ FigBesEnd
 \end_layout
 
 \begin_layout Section
-Lista de Flotantes
+Lista de flotantes
 \begin_inset LatexCommand label
 name "sec:Lista-de-Flotantes"
 
@@ -22135,14 +22209,18 @@ Si quieres convertir un texto presente a nota, márcalo y pincha sobre el
 \family sans
 \series default
 \bar default
-nota
+Nota
 \family default
 .
- 
-\lang english
-To change a note to text, press the backspace key when the cursor is in
- the first position of a note, or press the deletey key when the cursor
- is in the very last position of the note, respectively.
+ Para cambiar una nota a texto, pulsa la tecla 
+\family sans
+Retroceso
+\family default
+ cuando el cursor está en la primera posición de una nota, o la tecla 
+\family sans
+Supr
+\family default
+ cuando el cursor está en la última posición de la nota, respectivamente.
 \end_layout
 
 \begin_layout Standard
@@ -22493,7 +22571,7 @@ definecolor{shadecolor}{rgb}{1,0,0}
 \end_layout
 
 \begin_layout Section
-Notas al Pie
+Notas al pie
 \begin_inset LatexCommand label
 name "sec:Notas-al-pie"
 
@@ -22501,13 +22579,13 @@ name "sec:Notas-al-pie"
 
 
 \begin_inset LatexCommand index
-name "Notas ! al Pie"
+name "Notas ! al pie"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Notas al Pie"
+name "Notas al pie"
 
 \end_inset
 
@@ -22564,35 +22642,16 @@ botón
 \series default
 \bar default
 .
+ Para cambiar una nota al pie a texto, pulsa la tecla 
+\family sans
+Retroceso
+\family default
+ cuando el cursor está en la primera posición de la nota al pie, o la tecla
  
-\lang english
-To change a 
-\family roman
-\series medium
-\bar no
-footnote
+\family sans
+Supr
 \family default
-\series default
-\bar default
- to text, press the Backspace key when the cursor is in the first position
- of a 
-\family roman
-\series medium
-\bar no
-footnote
-\family default
-\series default
-\bar default
-, or press the Delete key when the cursor is in the very last position of
- the 
-\family roman
-\series medium
-\bar no
-footnote
-\family default
-\series default
-\bar default
-, respectively.
+ cuando el cursor está en la última posición de la nota, respectivamente.
 \end_layout
 
 \begin_layout Standard
@@ -22814,7 +22873,7 @@ theMyRepeatFoot]
 \end_layout
 
 \begin_layout Subsection
-Numeración de Notas al Pie
+Numeración de notas al pie
 \begin_inset LatexCommand label
 name "sub:Numeración-de-Notas-al-Pie"
 
@@ -22822,7 +22881,7 @@ name "sub:Numeración-de-Notas-al-Pie"
 
 
 \begin_inset LatexCommand index
-name "Notas al Pie ! Numeración"
+name "Notas al pie ! Numeración"
 
 \end_inset
 
@@ -23185,9 +23244,9 @@ Roman{footnote}}
 \end_layout
 
 \begin_layout Subsection
-Colocación de Notas al Pie
+Colocación de notas al pie
 \begin_inset LatexCommand index
-name "Notas al Pie ! Colocación"
+name "Notas al pie ! Colocación"
 
 \end_inset
 
@@ -23381,8 +23440,8 @@ name "fig:Colocación-del-pie-en"
 
 \end_inset
 
-Colocación del pie en documentos a dos columnas cuando se usa el paquete
- LaTeX 
+Colocación de la nota al pie en documentos a dos columnas cuando se usa
+ el paquete LaTeX 
 \series bold
 ftnright
 \series default
@@ -23412,8 +23471,13 @@ reference "fig:Notas-al-final----notas-al-pie"
 \end_inset
 
 .
- Para usar notas finales en vez de notas al pie, carga el paquete LaTeX
- 
+ Para usar notas finales
+\begin_inset LatexCommand index
+name "Notas finales"
+
+\end_inset
+
+ en vez de notas al pie, carga el paquete LaTeX 
 \series bold
 endnotes
 \series default
@@ -23664,9 +23728,9 @@ key "latexcompanion,latexguide,latexbook"
 \end_layout
 
 \begin_layout Section
-Notas al Margen
+Notas al margen
 \begin_inset LatexCommand index
-name "Notas ! al Margen"
+name "Notas ! al margen"
 
 \end_inset
 
@@ -24537,7 +24601,7 @@ reference "sec:Cuadros-Enmarcados"
 , evitar la división de palabras, ver sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Evitar-la-Partición-con-Guiones"
+reference "sec:Evitar-la-Partición"
 
 \end_inset
 
@@ -24564,6 +24628,13 @@ Se insertan con el menú
 Insertar\SpecialChar \menuseparator
 Cuadro
 \family default
+ o con el botón 
+\begin_inset Graphics
+	filename ../../images/box-insert.xpm
+	scale 85
+
+\end_inset
+
 .
  Surge un recuadro gris con la etiqueta 
 \family sans
@@ -24652,24 +24723,6 @@ status open
 \series bold
 Nota:
 \series default
- Debido a un error en LyX hay que insertar un espacio protegido detrás de
- un cuadro si se desea separar con un espacio el cuadro y el texto siguiente.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Standard
-
-\series bold
-Nota:
-\series default
  Los cuadros no deben ser el ítem en un entorno 
 \family sans
 Enumeración
@@ -24713,7 +24766,7 @@ interior
  y sin marcos se explican en la sección\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Evitar-la-Partición-con-Guiones"
+reference "sec:Evitar-la-Partición"
 
 \end_inset
 
@@ -24726,7 +24779,7 @@ reference "sec:Evitar-la-Partición-con-Guiones"
 \end_layout
 
 \begin_layout Section
-Diálogo Cuadros
+Diálogo de cuadros
 \begin_inset LatexCommand label
 name "sec:Diálogo-Cuadros"
 
@@ -24734,7 +24787,7 @@ name "sec:Diálogo-Cuadros"
 
 
 \begin_inset LatexCommand index
-name "Cuadros ! Diálogo"
+name "Cuadros ! Configuración"
 
 \end_inset
 
@@ -24848,7 +24901,7 @@ Alto
 
 \begin_layout Description
 Alto\InsetSpace ~
-Total Esto es el Alto\InsetSpace \thinspace{}
+total Esto es el Alto\InsetSpace \thinspace{}
 +\InsetSpace \thinspace{}
 Profundidad: 
 \begin_inset Box Boxed
@@ -24925,7 +24978,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -24934,8 +24987,7 @@ Cuadro alineado arriba.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Description
@@ -24951,7 +25003,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -24960,8 +25012,7 @@ Cuadro alineado en medio.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Description
@@ -24977,7 +25028,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -24986,8 +25037,7 @@ Cuadro alineado abajo.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Standard
@@ -25020,7 +25070,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25029,8 +25079,7 @@ Cuadro con texto alineado arriba.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Description
@@ -25046,7 +25095,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25055,8 +25104,7 @@ Cuadro con texto alineado en medio.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Description
@@ -25072,7 +25120,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25081,8 +25129,7 @@ Cuadro con texto alineado abajo.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Description
@@ -25098,7 +25145,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25117,8 +25164,7 @@ estirado.
 
 \end_inset
 
-\InsetSpace ~
-Ejemplo de línea de texto.
+ Ejemplo de línea de texto.
 \end_layout
 
 \begin_layout Standard
@@ -25208,7 +25254,7 @@ Texto estirado horizontalmente.
 \end_layout
 
 \begin_layout Section
-Cuadros Enmarcados
+Cuadros enmarcados
 \begin_inset LatexCommand label
 name "sec:Cuadros-Enmarcados"
 
@@ -26327,7 +26373,7 @@ Nota:
 \end_layout
 
 \begin_layout Section
-Cuadros de Párrafo
+Cuadros de párrafo
 \begin_inset LatexCommand label
 name "sec:Cuadros-de-Párrafo"
 
@@ -26335,7 +26381,7 @@ name "sec:Cuadros-de-Párrafo"
 
 
 \begin_inset LatexCommand index
-name "Cuadros ! de Párrafo"
+name "Cuadros ! de párrafo"
 
 \end_inset
 
@@ -26385,9 +26431,9 @@ Esta es una nota en cuadro de párrafo y por eso no aparecerá.
 \end_layout
 
 \begin_layout Section
-Cuadros para Palabras y Caracteres
+Cuadros para palabras y caracteres
 \begin_inset LatexCommand index
-name "Cuadros ! para Palabras y Caracteres"
+name "Cuadros ! para palabras y caracteres"
 
 \end_inset
 
@@ -26395,15 +26441,15 @@ name "Cuadros ! para Palabras y Caracteres"
 \end_layout
 
 \begin_layout Subsection
-Evitar la Partición con Guiones
+Evitar la partición de palabras
 \begin_inset LatexCommand label
-name "sec:Evitar-la-Partición-con-Guiones"
+name "sec:Evitar-la-Partición"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Cuadros ! Prevenir Partición con Guiones"
+name "Cuadros ! para evitar la partición de palabras"
 
 \end_inset
 
@@ -26555,7 +26601,7 @@ de\InsetSpace ~
 \family default
 línea (atajo 
 \series bold
-Ctrl-Return
+Ctrl-Intro
 \series default
 ), un salto de línea antes de la palabra:
 \end_layout
@@ -26599,7 +26645,7 @@ status collapsed
 \end_layout
 
 \begin_layout Subsection
-Alineación Vertical
+Alineación vertical
 \begin_inset LatexCommand label
 name "sub:Alineación-Vertical"
 
@@ -26607,7 +26653,7 @@ name "sub:Alineación-Vertical"
 
 
 \begin_inset LatexCommand index
-name "Cuadros ! para Alineación Vertical"
+name "Cuadros ! para alineación vertical"
 
 \end_inset
 
@@ -26908,7 +26954,7 @@ status collapsed
 \end_layout
 
 \begin_layout Section
-Cuadros Coloreados
+Cuadros coloreados
 \begin_inset LatexCommand label
 name "sec:Cuadros-Coloreados"
 
@@ -26924,9 +26970,9 @@ name "Cuadros ! Color"
 \end_layout
 
 \begin_layout Subsection
-Color en Texto
+Color en texto
 \begin_inset LatexCommand index
-name "Color ! en Texto"
+name "Color ! en texto"
 
 \end_inset
 
@@ -27030,11 +27076,15 @@ Los siguientes colores están predefinidos:
 \newline
 
 \family sans
-negro
+red
 \family default
 , 
 \family sans
-azul
+green
+\family default
+, 
+\family sans
+yellow, blue
 \family default
 , 
 \family sans
@@ -27045,23 +27095,11 @@ cyan
 \series default
  
 \family sans
-verde
+magenta, black
 \family default
 , 
 \family sans
-magenta
-\family default
-, 
-\family sans
-rojo
-\family default
-, 
-\family sans
-blanco
-\family default
-, 
-\family sans
-amarillo
+white
 \family default
 .
 \newline
@@ -27340,7 +27378,7 @@ Nota:
 \end_layout
 
 \begin_layout Subsection
-Color en Párrafos
+Color en párrafos
 \begin_inset LatexCommand label
 name "sub:Color-en-Párrafos"
 
@@ -27348,7 +27386,7 @@ name "sub:Color-en-Párrafos"
 
 
 \begin_inset LatexCommand index
-name "Color ! en Párrafos"
+name "Color ! en párrafos"
 
 \end_inset
 
@@ -27560,7 +27598,7 @@ status collapsed
 \end_layout
 
 \begin_layout Section
-Cuadros Rotados y Escalados
+Cuadros rotados y escalados
 \end_layout
 
 \begin_layout Standard
@@ -27638,9 +27676,9 @@ Nota:
 \end_layout
 
 \begin_layout Subsection
-Cuadros Rotados
+Cuadros rotados
 \begin_inset LatexCommand index
-name "Cuadros ! rotados"
+name "Cuadros ! Rotar"
 
 \end_inset
 
@@ -27652,13 +27690,13 @@ name "Material rotado"
 
 
 \begin_inset LatexCommand index
-name "Figuras ! rotadas"
+name "Figuras ! Rotar"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Tablas ! Rotadas"
+name "Tablas ! Rotar"
 
 \end_inset
 
@@ -27850,7 +27888,7 @@ O una imagen o una tabla:
 \end_layout
 
 \begin_layout Standard
-En esta línea hay una imagen girada 
+Aquí hay una imagen girada 
 \begin_inset ERT
 status collapsed
 
@@ -27956,13 +27994,13 @@ status collapsed
 
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Subsection
-Cuadros Escalados
+Cuadros escalados
 \begin_inset LatexCommand index
-name "Cuadros ! escalados"
+name "Cuadros ! Escalar"
 
 \end_inset
 
@@ -27974,13 +28012,13 @@ name "Material escalado"
 
 
 \begin_inset LatexCommand index
-name "Figuras ! escaladas"
+name "Figuras ! Escalar"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Tablas ! Escaladas"
+name "Tablas ! Escalar"
 
 \end_inset
 
@@ -28570,7 +28608,7 @@ Insertar\SpecialChar \menuseparator
 URL
 \family default
 .
- Surge un diálogo con dos campos; el campo 
+ Surge un diálogo con dos campos: el campo 
 \family sans
 URL
 \family default
@@ -28578,8 +28616,8 @@ URL
 \family sans
 Nombre
 \family default
- para la descripción del URL, que saldrá impreso como texto normal inmediatament
-e antes del URL.
+ para la descripción del URL, que se imprimirá como texto normal inmediatamente
+ antes del URL.
 \end_layout
 
 \begin_layout Standard
@@ -28667,7 +28705,7 @@ e.\InsetSpace ~
 \end_inset
 
 .
- Los URLs no deben finalizar con una barra invertida.
+ Los URL no deben finalizar con una barra invertida.
 \end_layout
 
 \end_inset
@@ -28812,9 +28850,9 @@ href
 \end_layout
 
 \begin_layout Chapter
-Archivos
+Archivo
 \begin_inset LatexCommand index
-name "Archivos, insertar"
+name "Archivo, insertar"
 
 \end_inset
 
@@ -28865,9 +28903,9 @@ hijo Documentos LyX, LaTeX o texto simple.
 \end_layout
 
 \begin_layout Section
-Material Externo
+Material externo
 \begin_inset LatexCommand index
-name "Material Externo"
+name "Material externo"
 
 \end_inset
 
@@ -29345,7 +29383,7 @@ Personalización
 \end_layout
 
 \begin_layout Section
-Documento Hijo
+Documento hijo
 \begin_inset LatexCommand label
 name "sec:Documento-Hijo"
 
@@ -29353,7 +29391,7 @@ name "sec:Documento-Hijo"
 
 
 \begin_inset LatexCommand index
-name "Documento Hijo"
+name "Documento hijo"
 
 \end_inset
 
@@ -29702,10 +29740,12 @@ literal
 \end_layout
 
 \begin_layout Description
-Listings Este tipo se describe en el capítulo\InsetSpace ~
+Listado\InsetSpace ~
+de\InsetSpace ~
+programa Este tipo se describe en el capítulo\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "cha:Listings-código"
+reference "cha:Listado-de-programa"
 
 \end_inset
 
@@ -29731,34 +29771,27 @@ Nota:
 \end_layout
 
 \begin_layout Chapter
-\begin_inset Quotes eld
-\end_inset
-
-Listings
-\begin_inset Quotes erd
-\end_inset
-
- Código de Programa
+Listado de programa
 \begin_inset LatexCommand label
-name "cha:Listings-código"
+name "cha:Listado-de-programa"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Listings"
+name "Listado de programa"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Código de programa"
+name "Listado de programa ! list@\\textit{listings}"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Flotantes ! Listings"
+name "Flotantes ! Listado de programa"
 
 \end_inset
 
@@ -29770,12 +29803,9 @@ Para incluir y tipografiar código de programación puedes usar la opción
  de menú disponible en 
 \family sans
 Insertar\SpecialChar \menuseparator
-Program
-\family default
-\InsetSpace ~
-
-\family sans
-Listings.
+Listado\InsetSpace ~
+de\InsetSpace ~
+programa.
  
 \family default
 El paquete LaTeX 
@@ -29793,31 +29823,16 @@ name "LaTeX-paquetes ! listings"
 \end_layout
 
 \begin_layout Standard
-Al hacer clic-derecho sobre un recuadro de 
-\begin_inset Quotes eld
-\end_inset
-
-listings
-\begin_inset Quotes erd
-\end_inset
-
- surge un cuadro de diálogo en el que puedes establecer el formato del mismo.
+Al hacer clic-derecho sobre un recuadro de listado surge un cuadro de diálogo
+ en el que puedes establecer el formato del mismo.
 \end_layout
 
 \begin_layout Standard
-Por defecto, al insertar 
-\begin_inset Quotes eld
-\end_inset
-
-listings
-\begin_inset Quotes erd
-\end_inset
-
- se inicia un párrafo nuevo en la salida.
- La opción de colocación 
+Por defecto, al insertar un listado de programa se inicia un párrafo nuevo.
+ La opción de ubicación 
 \family sans
-Inline\InsetSpace ~
-listings
+Listado\InsetSpace ~
+insertado
 \family default
  lo imprime en la línea, como este ejemplo: 
 \begin_inset listings
@@ -29840,72 +29855,57 @@ int a=5;
 \family default
 La opción 
 \family sans
-Float
+Flotante
 \family default
- crea un 
-\family sans
-
-\begin_inset Quotes eld
-\end_inset
-
-
-\family default
-listing
-\family sans
-
+ crea un listado flotante cuya colocación se puede especificar mediante
+ las opciones 
 \begin_inset Quotes erd
 \end_inset
 
 
-\family default
- flotante cuya colocación se puede especificar mediante las opciones 
 \family sans
-
-\begin_inset Quotes eld
-\end_inset
-
 h
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
-
-\family default
 , 
-\family sans
-
 \begin_inset Quotes eld
 \end_inset
 
+
+\family sans
 t
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
-
-\family default
 , 
-\family sans
-
 \begin_inset Quotes eld
 \end_inset
 
+
+\family sans
 b
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
-
-\family default
  y 
-\family sans
-
 \begin_inset Quotes eld
 \end_inset
 
+
+\family sans
 p
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
-
-\family default
 , correspondientes a las opciones de colocación de flotantes descritas en
  la sección
 \family sans
@@ -29940,75 +29940,79 @@ htbp
 
 .
  La opción 
-\family sans
-
 \begin_inset Quotes eld
 \end_inset
 
+
+\family sans
 h
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
-
-\family default
  a veces no tiene efecto, pero no necesitas usar la opción 
 \family sans
-Float
+Flotante
 \family default
- en ese caso puesto que los
-\family sans
- 
-\begin_inset Quotes eld
-\end_inset
-
-
-\family default
-listings
-\family sans
-
-\begin_inset Quotes erd
-\end_inset
-
-
-\family default
- no flotantes también pueden tener encabezados y ser referenciados.
+ en ese caso puesto que los listados de programa no flotantes también pueden
+ tener leyendas y ser referenciadas.
 \end_layout
 
 \begin_layout Standard
-Los encabezados se pueden añadir a un 
-\begin_inset Quotes eld
-\end_inset
-
-listing
-\begin_inset Quotes erd
-\end_inset
-
- con el menú 
+Se puede añadir una leyenda a un listado de programa con el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
-Encabezado
+Leyenda
 \family default
-.
- Los 
+
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Para traducir la etiqueta 
 \begin_inset Quotes eld
 \end_inset
 
-listings
+Listado
 \begin_inset Quotes erd
 \end_inset
 
- se pueden referenciar como los flotantes: Listing\InsetSpace ~
+ de la leyenda, se añade al preámbulo del documento el comando 
+\series bold
+
+\backslash
+renewcommand{
+\backslash
+lstlistingname}{Listado}
+\series default
+.
+ (
+\emph on
+N.\InsetSpace \thinspace{}
+del t.
+\emph default
+)
+\end_layout
+
+\end_inset
+
+.
+ Los listados de programa se pueden referenciar como los flotantes: Listado\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "lst:Ejemplo-Listing"
+reference "lst:Ejemplo-de-listado-de-programa"
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 lstparams "language=Python"
 inline false
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -30016,16 +30020,16 @@ status open
 
 \begin_layout Standard
 \begin_inset LatexCommand label
-name "lst:Ejemplo-Listing"
+name "lst:Ejemplo-de-listado-de-programa"
 
 \end_inset
 
-Ejemplo de Listing flotante
+Ejemplo de listado de programa flotante
 \end_layout
 
 \end_inset
 
-# Example listing float
+# Ejemplo de listado flotante
 \end_layout
 
 \begin_layout Standard
@@ -30050,16 +30054,8 @@ def func(param):
 
 \begin_layout Standard
 Una vez que has escogido un lenguaje de programación en el cuadro de diálogo
- 
-\begin_inset Quotes eld
-\end_inset
-
-listing
-\begin_inset Quotes erd
-\end_inset
-
-, las palabras clave de ese lenguaje serán reconocidas y tipografiadas de
- manera especial en la salida.
+ de listado de programa, las palabras clave de ese lenguaje serán reconocidas
+ y tipografiadas de manera especial en la salida.
  En el ejemplo, la clave de Python 
 \begin_inset Quotes eld
 \end_inset
@@ -30073,7 +30069,7 @@ def
 
 \begin_layout Standard
 \begin_inset Note Greyedout
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -30116,13 +30112,14 @@ suministran negritas.)
 \begin_layout Standard
 En la sección 
 \family sans
-Line\InsetSpace ~
-numbering
+Numeración\InsetSpace ~
+de\InsetSpace ~
+líneas
 \family default
  del diálogo puedes elegir el estilo de numeración de las líneas.
  En el campo 
 \family sans
-Step 
+Paso 
 \family default
 puedes insertar un número para determinar qué líneas se numeran.
  Por ejemplo, si pones 
@@ -30142,8 +30139,10 @@ Además, puedes especificar un rango de líneas para que sólo éstas aparezcan
  en la salida.
  La opción 
 \family sans
-Extended\InsetSpace ~
-chars
+Tabla\InsetSpace ~
+de\InsetSpace ~
+caracteres\InsetSpace ~
+extendida
 \family default
  debería emplearse si se usan en el código caracteres nacionales como la
  diéresis alemana.
@@ -30169,7 +30168,7 @@ Python
 \begin_inset Quotes eld
 \end_inset
 
-Caracteres extendidos
+Tabla de caracteres extendida
 \begin_inset Quotes erd
 \end_inset
 
@@ -30185,7 +30184,7 @@ Espacio como símbolo
 \begin_inset listings
 lstparams "extendedchars=true,firstline=3,language=Python,lastline=8,numbers=left,showspaces=true,stepnumber=3"
 inline false
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -30250,7 +30249,7 @@ Nota:
 \series bold
 listings
 \series default
- la numeración de líneas cambia en una línea por cada listing previo.
+ la numeración de líneas cambia en una línea por cada listado previo.
  Por esto en el ejemplo de arriba se numeran las líneas 2 y 5 y no las líneas
  3 y 6.
 \end_layout
@@ -30268,15 +30267,7 @@ listings
 \end_layout
 
 \begin_layout Standard
-También es posible imprimir como 
-\begin_inset Quotes eld
-\end_inset
-
-listings
-\begin_inset Quotes erd
-\end_inset
-
- líneas de un archivo.
+También es posible imprimir como listado de programa líneas de un archivo.
  Para hacer esto, usa el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
@@ -30286,7 +30277,7 @@ hijo
 \family default
 y elige el tipo 
 \family sans
-Listings
+Listado de programa
 \family default
 .
 \begin_inset Foot
@@ -30305,14 +30296,7 @@ reference "sec:Documento-Hijo"
 
 \end_inset
 
- En el diálogo de documento hijo puedes especificar los parámetros de 
-\begin_inset Quotes eld
-\end_inset
-
-listing
-\begin_inset Quotes erd
-\end_inset
-
+ En el diálogo de documento hijo puedes especificar los parámetros del listado
  en el cuadro de texto.
  Para ver una lista de los parámetros disponibles teclea una interrogación
  
@@ -30327,16 +30311,8 @@ listing
 \end_layout
 
 \begin_layout Standard
-Para referenciar un documento hijo 
-\begin_inset Quotes eld
-\end_inset
-
-listings
-\begin_inset Quotes erd
-\end_inset
-
-, escribe el texto de la etiqueta en el campo correspondiente del diálogo
- de documento hijo.
+Para referenciar un documento hijo tipo listado, escribe el texto de la
+ etiqueta en el campo correspondiente del diálogo de documento hijo.
  Después se puede referenciar la etiqueta con el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
@@ -30344,10 +30320,10 @@ Referencia cruzada.
 \end_layout
 
 \begin_layout Standard
-A continuación hay un ejemplo, Listings\InsetSpace ~
+A continuación hay un ejemplo, Listado\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "lst:file-listing"
+reference "lst:archivo-listado"
 
 \end_inset
 
@@ -30358,7 +30334,7 @@ reference "lst:file-listing"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \lstinputlisting{EmbeddedObjects.lyx}[breaklines=true,caption={Líneas  10 - 15 de este archivo LyX},firstline=10,label={lst:file-listing},language={[LaTeX]TeX},lastline=15]
+\begin_inset Include \lstinputlisting{EmbeddedObjects.lyx}[breaklines=true,caption={Líneas  10 - 15 de este archivo LyX},firstline=10,label={lst:archivo-listado},language={[LaTeX]TeX},lastline=15]
 preview false
 
 \end_inset
@@ -30371,15 +30347,7 @@ preview false
 \end_layout
 
 \begin_layout Standard
-Las preferencias globales (
-\begin_inset Quotes eld
-\end_inset
-
-Listings settings
-\begin_inset Quotes erd
-\end_inset
-
-) se pueden establecer en el diálogo 
+Las preferencias globales se pueden establecer en el diálogo 
 \family sans
 Documento\SpecialChar \menuseparator
 Configuración\SpecialChar \menuseparator
@@ -30926,7 +30894,7 @@ em)
 \end_layout
 
 \begin_layout Chapter
-Formatos de Archivos de Salida con Gráficos
+Formatos de archivos de salida con gráficos
 \begin_inset LatexCommand label
 name "cha:Formatos-de-Archivos-de-Salida"
 
@@ -30938,13 +30906,13 @@ name "cha:Formatos-de-Archivos-de-Salida"
 \begin_layout Section
 DVI
 \begin_inset LatexCommand index
-name "Formatos de Archivo ! DVI"
+name "Formatos de archivo ! DVI"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "DVI|see{Formatos de Archivo}"
+name "DVI|see{Formatos de archivo}"
 
 \end_inset
 
@@ -30976,7 +30944,7 @@ device-independent
  (DVI), porque es completamente portable; se pueden mover de una máquina
  a otra sin necesidad de conversión alguna.
  En la época en que se desarrolló este formato, esto no era un asunto baladí.
- Los DVIs se usan para vistas preliminares rápidas y como preparación para
+ Los DVI se usan para vistas preliminares rápidas y como preparación para
  otros formatos de salida como PostScript.
 \end_layout
 
@@ -31038,13 +31006,13 @@ name "sec:PostScript"
 
 
 \begin_inset LatexCommand index
-name "Formatos de Archivo ! PostScript"
+name "Formatos de archivo ! PostScript"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "PostScript|see{Formatos de Archivo}"
+name "PostScript|see{Formatos de archivo}"
 
 \end_inset
 
@@ -31100,7 +31068,7 @@ key "pstricks"
 \end_inset
 
 .
- Por esto los archivos suelen ser más grandes que los PDFs.
+ Por esto los archivos suelen ser más grandes que los PDF.
 \end_layout
 
 \begin_layout Standard
@@ -31165,7 +31133,7 @@ name "sec:PDF"
 
 
 \begin_inset LatexCommand index
-name "Formatos de Archivo ! PDF"
+name "Formatos de archivo ! PDF"
 
 \end_inset
 
@@ -31364,7 +31332,7 @@ PDF\InsetSpace ~
 \end_layout
 
 \begin_layout Chapter
-Explicación de la Ecuación\InsetSpace ~
+Explicación de la ecuación\InsetSpace ~
 
 \begin_inset LatexCommand eqref
 reference "eq:Wgn"
@@ -31619,6 +31587,42 @@ name "LaTeX-paquetes ! caption"
 
 \begin_layout Bibliography
 \begin_inset LatexCommand bibitem
+key "caption-de"
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/anleitung.pdf}
+{
+\end_layout
+
+\end_inset
+
+Documentation
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ en alemán del paquete LaTeX 
+\series bold
+caption
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
 key "endfloat"
 
 \end_inset
@@ -31663,7 +31667,7 @@ name "LaTeX-paquetes ! endfloat"
 
 \begin_layout Bibliography
 \begin_inset LatexCommand bibitem
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -31675,8 +31679,7 @@ status collapsed
 
 
 \backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/floatflt/floatflt.pdf}
-{
+href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty}{
 \end_layout
 
 \end_inset
@@ -31694,11 +31697,11 @@ status collapsed
 
  del paquete LaTeX 
 \series bold
-floatflt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "LaTeX-paquetes ! floatflt"
+name "LaTeX-paquetes ! wrapfig\\vspace{4mm}"
 
 \end_inset
 

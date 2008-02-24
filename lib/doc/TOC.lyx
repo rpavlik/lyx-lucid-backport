@@ -1,4 +1,4 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -42,93 +42,2224 @@ LyX Documentation Table of Contents
 
 \begin_layout Section*
 
-Introduction to LyX
+Customizing LyX: Features for the Advanced User
 \end_layout
 
 \begin_layout Enumerate
 
-The Philosophy of LyX
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+LyX configuration files
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
 
-What is LyX?
+What's in 
+\family typewriter
+LyXDir
+\family default
+?
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Automatically generated files
 \end_layout
 
 \begin_layout Enumerate
 
-Differences between LyX and Other Word Processors
+Directories
 \end_layout
 
 \begin_layout Enumerate
 
-What is LaTeX?
+Files you don't want to modify
+\end_layout
+
+\begin_layout Enumerate
+
+Other files needing a line or two...
 \end_layout
 \end_deeper
 
 \begin_layout Enumerate
 
-Navigating the Documentation
+Your local configuration directory
+\end_layout
+
+\begin_layout Enumerate
+
+Running LyX with multiple configurations
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+The 
+\family sans
+Preferences
+\family default
+ dialog
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
 
-The Format of the Manuals
+Using the dialog for the first time
 \end_layout
 
 \begin_layout Enumerate
 
-Units used in the Manuals
+On-screen fonts
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+DPI setting and Font Zoom
 \end_layout
 
 \begin_layout Enumerate
 
-The Manuals
+Font definition commands
+\end_layout
+
+\begin_layout Enumerate
+
+Font encoding
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Bindings
+\end_layout
+
+\begin_layout Enumerate
+
+User Interface
+\end_layout
+
+\begin_layout Enumerate
+
+
+Converters, Formats, and Copiers
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Formats
+\end_layout
+
+\begin_layout Enumerate
+
+Copiers
+\end_layout
+
+\begin_layout Enumerate
+
+Converters
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+BibTeX and makeindex
+\end_layout
+
+\begin_layout Enumerate
+
+Plain text export options
+\end_layout
+
+\begin_layout Enumerate
+
+Printer
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Changing Colors
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+The autodetected settings
+\end_layout
+
+\begin_layout Enumerate
+
+The rest
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Internationalizing LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Selecting an alternative language for the user interface
+\end_layout
+
+\begin_layout Enumerate
+
+Translating LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Translating the graphical user interface (text messages).
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Ambigous messages
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Translating the documentation.
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+International Keyboard Support
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Defining Own Keymaps: Keymap File Format
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+International Keymap Stuff
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+The .kmap File
+\end_layout
+
+\begin_layout Enumerate
+
+The .cdef File
+\end_layout
+
+\begin_layout Enumerate
+
+Dead Keys
+\end_layout
+
+\begin_layout Enumerate
+
+Saving your Language Configuration
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Installing New Document Classes, Layouts, and Templates 
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Installing a new LaTeX package
+\end_layout
+
+\begin_layout Enumerate
+
+Layouts
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Supporting new document classes
+\end_layout
+
+\begin_layout Enumerate
+
+A layout for a 
+\family sans
+sty
+\family default
+ file
+\end_layout
+
+\begin_layout Enumerate
+
+Layout for a 
+\family sans
+cls
+\family default
+ file
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Declaring a new text class
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+File format
+\end_layout
+
+\begin_layout Enumerate
+
+General text class parameters
+\end_layout
+
+\begin_layout Enumerate
+
+\family typewriter
+ClassOptions
+\family default
+ section
+\end_layout
+
+\begin_layout Enumerate
+
+Specific Paragraph Layouts
+\end_layout
+
+\begin_layout Enumerate
+
+Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Character styles
+\end_layout
+
+\begin_layout Enumerate
+
+Counters
+\end_layout
+
+\begin_layout Enumerate
+
+Font description
+\end_layout
+
+\begin_layout Enumerate
+
+Upgrading old layout files
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Creating Templates
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Including External Material
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Background
+\end_layout
+
+\begin_layout Enumerate
+
+How does it work?
+\end_layout
+
+\begin_layout Enumerate
+
+External material dialog
+\end_layout
+
+\begin_layout Enumerate
+
+Examples
+\end_layout
+
+\begin_layout Enumerate
+
+The external template configuration file
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+The template header
+\end_layout
+
+\begin_layout Enumerate
+
+The Format section
+\end_layout
+
+\begin_layout Enumerate
+
+Preamble definitions
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+The substitution mechanism
+\end_layout
+
+\begin_layout Enumerate
+
+Security discussion
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+The LyX Server
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Starting the LyX Server
+\end_layout
+
+\begin_layout Enumerate
+
+Normal communication
+\end_layout
+
+\begin_layout Enumerate
+
+Notification
+\end_layout
+
+\begin_layout Enumerate
+
+The simple LyX Server Protocol
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Bindings
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Toolbar
+\end_layout
+
+\begin_layout Enumerate
+
+Menu
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+File
+\end_layout
+
+\begin_layout Enumerate
+
+Edit
+\end_layout
+
+\begin_layout Enumerate
+
+Insert
+\end_layout
+
+\begin_layout Enumerate
+
+Layout
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+\family sans
+Layout\SpecialChar \menuseparator
+Character
+\family default
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+View
+\end_layout
+
+\begin_layout Enumerate
+
+Navigate
+\end_layout
+
+\begin_layout Enumerate
+
+Help
+\end_layout
+
+\begin_layout Enumerate
+
+Paragraph Style
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Keyboard
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+emacs.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+cua.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+sciword.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Standard math bindings
+\end_layout
+
+\begin_layout Enumerate
+
+Other Accelerators
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Section*
+
+LyX's detailed Figure, Table, Floats, Notes, Boxes and External Material
+ manual
+\end_layout
+
+\begin_layout Enumerate
+
+Figures
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Graphics Dialog
+\end_layout
+
+\begin_layout Enumerate
+
+Figure Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Image Formats
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Tables
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Table Dialog
+\end_layout
+
+\begin_layout Enumerate
+
+Table Toolbar
+\end_layout
+
+\begin_layout Enumerate
+
+Edit Table Menu
+\end_layout
+
+\begin_layout Enumerate
+
+Table Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Longtables
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Footnotes in Longtables
+\end_layout
+
+\begin_layout Enumerate
+
+Longtable Alignment
+\end_layout
+
+\begin_layout Enumerate
+
+Longtable Captions
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+References to Longtables
+\end_layout
+
+\begin_layout Enumerate
+
+Caption Width
+\end_layout
+
+\begin_layout Enumerate
+
+Different Captions for Table Pages
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Special Longtable Issues
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Longtable Calculation
+\end_layout
+
+\begin_layout Enumerate
+
+Floats and Longtables
+\end_layout
+
+\begin_layout Enumerate
+
+Forced Page Breaks
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Multiple Lines Columns and Rows
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Multiple Lines in Table Cells
+\end_layout
+
+\begin_layout Enumerate
+
+Multicolumns
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Multicolumn Basics
+\end_layout
+
+\begin_layout Enumerate
+
+Multicolumn Calculations
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Multirows
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Formal Tables
+\end_layout
+
+\begin_layout Enumerate
+
+Vertical Table Alignment
+\end_layout
+
+\begin_layout Enumerate
+
+Colored Tables
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Colored Cells
+\end_layout
+
+\begin_layout Enumerate
+
+Colored Lines
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Table Customization
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Row Spacing
+\end_layout
+
+\begin_layout Enumerate
+
+Special Cell Alignment
+\end_layout
+
+\begin_layout Enumerate
+
+Customized Cell/Column Format
+\end_layout
+
+\begin_layout Enumerate
+
+Line Thickness
+\end_layout
+
+\begin_layout Enumerate
+
+Dashed Lines
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Floats
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Float Types
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Algorithm Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Text Wrap Floats
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Float Numbering
+\end_layout
+
+\begin_layout Enumerate
+
+Referencing Floats
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Cross-Reference Formats
+\end_layout
+
+\begin_layout Enumerate
+
+Referencing Subfigures
+\end_layout
+
+\begin_layout Enumerate
+
+Automatic Reference Naming
+\end_layout
+
+\begin_layout Enumerate
+
+Reference Position
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Float Placement
+\end_layout
+
+\begin_layout Enumerate
+
+Rotated Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Floats Side by Side
+\end_layout
+
+\begin_layout Enumerate
+
+Caption Formatting
+\end_layout
+
+\begin_layout Enumerate
+
+Caption Placement
+\end_layout
+
+\begin_layout Enumerate
+
+Listings of Floats
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Notes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+LyX Notes
+\end_layout
+
+\begin_layout Enumerate
+
+Footnotes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Footnote Numbering
+\end_layout
+
+\begin_layout Enumerate
+
+Footnote Placement
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Margin Notes
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Boxes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Box Dialog
+\end_layout
+
+\begin_layout Enumerate
+
+Framed Boxes
+\end_layout
+
+\begin_layout Enumerate
+
+Minipages
+\end_layout
+
+\begin_layout Enumerate
+
+Parboxes
+\end_layout
+
+\begin_layout Enumerate
+
+Boxes for Words and Characters
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Prevent Hyphenation
+\end_layout
+
+\begin_layout Enumerate
+
+Vertical Alignment
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Colored Boxes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Color for Text
+\end_layout
+
+\begin_layout Enumerate
+
+Color for Paragraphs
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Rotated and Scaled Boxes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Rotated Boxes
+\end_layout
+
+\begin_layout Enumerate
+
+Scaled Boxes
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+URLs (Uniform Resource Locators)
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+External Stuff
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+External Material
+\end_layout
+
+\begin_layout Enumerate
+
+Child Documents
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Program Code Listings
+\end_layout
+
+\begin_layout Enumerate
+
+Units available in LyX
+\end_layout
+
+\begin_layout Enumerate
+
+Output File Formats with Graphics
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+DVI
+\end_layout
+
+\begin_layout Enumerate
+
+PostScript
+\end_layout
+
+\begin_layout Enumerate
+
+PDF
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Explanation of Equation\InsetSpace ~
+\end_layout
+
+\begin_layout Section*
+
+Extended LyX Features
+\end_layout
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+LyX and LaTeX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+How LyX Uses LaTeX
+\end_layout
+
+\begin_layout Enumerate
+
+\begin_inset Quotes eld
+\end_inset
+
+Help! LyX generated an unreadable 
+\family typewriter
+.tex
+\family default
+ file!
+\begin_inset Quotes erd
+\end_inset
+\end_layout
+
+\begin_layout Enumerate
+
+Translating LaTeX files into LyX
+\end_layout
+
+\begin_layout Enumerate
+
+Inserting LaTeX Code into LyX Documents 
+\end_layout
+
+\begin_layout Enumerate
+
+LyX and the LaTeX Preamble
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+About the LaTeX Preamble
+\end_layout
+
+\begin_layout Enumerate
+
+Changing the Preamble
+\end_layout
+
+\begin_layout Enumerate
+
+Examples
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Example #1: Offsets
+\end_layout
+
+\begin_layout Enumerate
+
+Example #2: Labels
+\end_layout
+
+\begin_layout Enumerate
+
+Example #3: Paragraph Indentation
+\end_layout
+
+\begin_layout Enumerate
+
+Example #4: This Document
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+LyX and LaTeX Errors
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Supplemental Tools
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Preparing a Bibliography with BibTeX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Alternative Citation Styles
+\end_layout
+
+\begin_layout Enumerate
+
+Sectionated Bibliographies
+\end_layout
+
+\begin_layout Enumerate
+
+Multiple Bibliographies
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Multipart Documents
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+General Operation
+\end_layout
+
+\begin_layout Enumerate
+
+Cross-References Between Files
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Fancy Headers and Footers
+\end_layout
+
+\begin_layout Enumerate
+
+Itemize Bullet Selection
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+How it looks
+\end_layout
+
+\begin_layout Enumerate
+
+How to use it
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Special Document Classes
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+AMS LaTeX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+What these layouts provide
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Dinbrief
+\end_layout
+
+\begin_layout Enumerate
+
+Paper
+\end_layout
+
+\begin_layout Enumerate
+
+A&A Paper
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Getting started
+\end_layout
+
+\begin_layout Enumerate
+
+The header block
+\end_layout
+
+\begin_layout Enumerate
+
+The abstract
+\end_layout
+
+\begin_layout Enumerate
+
+Supported environments
+\end_layout
+
+\begin_layout Enumerate
+
+Commands not supported by LyX
+\end_layout
+
+\begin_layout Enumerate
+
+Figure and Table Floats
+\end_layout
+
+\begin_layout Enumerate
+
+Referee layout
+\end_layout
+
+\begin_layout Enumerate
+
+The example paper
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+AASTeX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Starting a New Paper
+\end_layout
+
+\begin_layout Enumerate
+
+Finishing Your Paper
+\end_layout
+
+\begin_layout Enumerate
+
+Comments On Specific Commands
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Things that work as expected
+\end_layout
+
+\begin_layout Enumerate
+
+Things that work, but require more comment
+\end_layout
+
+\begin_layout Enumerate
+
+Things not implemented, use ERT
+\end_layout
+
+\begin_layout Enumerate
+
+Things that cannot be implemented
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+FAQs, Tips, Tricks, and Other Ruminations
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Getting LyX and AASTeX to cooperate
+\end_layout
+
+\begin_layout Enumerate
+
+LaTeX error processing a table 
+\end_layout
+
+\begin_layout Enumerate
+
+References
+\end_layout
+
+\begin_layout Enumerate
+
+Including EPS files
+\end_layout
+
+\begin_layout Enumerate
+
+Things I could have done, but didn't
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Final Caveat
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+ijmpc and ijmpd
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Overview
+\end_layout
+
+\begin_layout Enumerate
+
+Writing a paper
+\end_layout
+
+\begin_layout Enumerate
+
+Preparing a paper for submission
+\end_layout
+
+\begin_layout Enumerate
+
+Use of ERT
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+iopart
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Overview
+\end_layout
+
+\begin_layout Enumerate
+
+Writing a paper
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Kluwer
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Overview
+\end_layout
+
+\begin_layout Enumerate
+
+Writing a paper
+\end_layout
+
+\begin_layout Enumerate
+
+Preparing a paper for submission
+\end_layout
+
+\begin_layout Enumerate
+
+\begin_inset Quotes eld
+\end_inset
+
+Peculiarities
+\begin_inset Quotes erd
+\end_inset
+
+ of the Kluwer package
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Koma-Script
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Overview
+\end_layout
+
+\begin_layout Enumerate
+
+article (koma-script), report (koma-script), and book (koma-script)
+\end_layout
+
+\begin_layout Enumerate
+
+letter (koma-script)
+\end_layout
+
+\begin_layout Enumerate
+
+The new letter class: letter (koma-script v.2)
+\end_layout
+
+\begin_layout Enumerate
+
+Problems
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Springer Journals (
+\family sans
+svjour
+\family default
+)
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Description
+\end_layout
+
+\begin_layout Enumerate
+
+New styles
+\end_layout
+
+\begin_layout Enumerate
+
+Supported journals
+\end_layout
+
+\begin_layout Enumerate
+
+Credits
+\end_layout
+
+\begin_layout Enumerate
+
+Bugs
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+AGU journals (
+\family sans
+aguplus
+\family default
+)
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Description
+\end_layout
+
+\begin_layout Enumerate
+
+New styles
+\end_layout
+
+\begin_layout Enumerate
+
+New floats
+\end_layout
+
+\begin_layout Enumerate
+
+Supported journals
+\end_layout
+
+\begin_layout Enumerate
+
+Bugs and things to remember
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+EGS journals (
+\family sans
+egs
+\family default
+)
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Description
+\end_layout
+
+\begin_layout Enumerate
+
+New styles
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Slides [aka 
+\noun on
+Sli
+\noun default
+TeX]
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Getting Started
+\end_layout
+
+\begin_layout Enumerate
+
+Paragraph Environments
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Supported Environments
+\end_layout
+
+\begin_layout Enumerate
+
+Quirks of the New Environments
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Making a Presentation with 
+\family sans
+Slide
+\family default
+, 
+\family sans
+Overlay
+\family default
+ and 
+\family sans
+Note
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Using the 
+\family sans
+Slide
+\family default
+ Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Using 
+\family sans
+Overlay
+\family default
+ with 
+\family sans
+Slide
+\end_layout
+
+\begin_layout Enumerate
+
+Using 
+\family sans
+Note
+\family default
+ with 
+\family sans
+Slide
+\family default
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+The 
+\family sans
+slides
+\family default
+ Class Template File
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Foils [aka 
+\family sans
+Foil
+\family default
+\noun on
+TeX
+\noun default
+]
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Getting Started
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Extra Options
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Supported Environments
+\end_layout
+
+\begin_layout Enumerate
+
+Building a Set of Foils
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Give It a Title Page
+\end_layout
+
+\begin_layout Enumerate
+
+Start a New Foil
+\end_layout
+
+\begin_layout Enumerate
+
+Theorems, Lemmas, Proofs and more
+\end_layout
+
+\begin_layout Enumerate
+
+Lists
+\end_layout
+
+\begin_layout Enumerate
+
+Figures and Tables
+\end_layout
+
+\begin_layout Enumerate
+
+Page Headers and Footers
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Unsupported 
+\family sans
+Foil
+\family default
+TeX Goodies
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Lengths
+\end_layout
+
+\begin_layout Enumerate
+
+Headers and Footers
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Latex8 (IEEE Conference Papers)
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Getting Started
+\end_layout
+
+\begin_layout Enumerate
+
+Supported Environments
+\end_layout
+
+\begin_layout Enumerate
+
+Differences Between Screen and Paper
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Hollywood (Hollywood spec scripts)
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Special problems
+\end_layout
+
+\begin_layout Enumerate
+
+Special features
+\end_layout
+
+\begin_layout Enumerate
+
+Paper size and Margins
+\end_layout
+
+\begin_layout Enumerate
+
+Environments
+\end_layout
+
+\begin_layout Enumerate
+
+Script jargon
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Broadway
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Special problems
+\end_layout
+
+\begin_layout Enumerate
+
+Special features
+\end_layout
+
+\begin_layout Enumerate
+
+Paper size and Margins
+\end_layout
+
+\begin_layout Enumerate
+
+Environments
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+RevTeX4
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Installation
+\end_layout
+
+\begin_layout Enumerate
+
+Preamble Matter
+\end_layout
+
+\begin_layout Enumerate
+
+Layouts
+\end_layout
+
+\begin_layout Enumerate
+
+Important Notes
+\end_layout
+
+\begin_layout Enumerate
+
+Drawbacks
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Article (mwart), book (mwbk) and report (mwrep)
+\end_layout
+
+\begin_layout Enumerate
+
+Elsevier Journals
+\end_layout
+
+\begin_layout Enumerate
+
+Memoir
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Overview
+\end_layout
+
+\begin_layout Enumerate
+
+Basic features and restrictions
+\end_layout
+
+\begin_layout Enumerate
+
+Extra features
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Importing and Exporting Alternate File Formats
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Considerations
+\end_layout
+
+\begin_layout Enumerate
+
+Importing Other Formats
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+LaTeX
+\end_layout
+
+\begin_layout Enumerate
+
+ASCII Text
+\end_layout
+
+\begin_layout Enumerate
+
+Noweb
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Exporting Other Formats
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+LaTeX
+\end_layout
+
+\begin_layout Enumerate
+
+Device Independent Files
+\end_layout
+
+\begin_layout Enumerate
+
+PostScript
+\end_layout
+
+\begin_layout Enumerate
+
+ASCII text
+\end_layout
+
+\begin_layout Enumerate
+
+HTML
+\end_layout
+
+\begin_layout Enumerate
+
+PDF
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Use pdfLaTeX
+\end_layout
+
+\begin_layout Enumerate
+
+Why does the text look so bad when viewed with Acrobat Reader?
+\end_layout
+
+\begin_layout Enumerate
+
+Why doesn't the 
+\backslash
+boldsymbol{} command work when I use pslatex?
+\end_layout
+
+\begin_layout Enumerate
+
+Is it possible to do write LaTeX-code which is processed only when running
+ pdfLaTeX?
+\end_layout
+
+\begin_layout Enumerate
+
+How can I make URLs clickable?
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Custom
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+LyX Features needing Extra Software
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Checking TeX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+How to use it
+\end_layout
+
+\begin_layout Enumerate
+
+How to fine tune it
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Version Control in LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+RCS commands in LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+\family sans
+Register
+\end_layout
+
+\begin_layout Enumerate
+
+\family sans
+Check In Changes
+\end_layout
+
+\begin_layout Enumerate
+
+\family sans
+Check Out For Edit
+\end_layout
+
+\begin_layout Enumerate
+
+\family sans
+Revert To Last Version
+\end_layout
+
+\begin_layout Enumerate
+
+\family sans
+Undo Last Checkin
+\end_layout
+
+\begin_layout Enumerate
+
+\family sans
+Show History
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Literate Programming
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+Literate Programming
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+References
 \end_layout
 \end_deeper
 
 \begin_layout Enumerate
 
 
-Contributing to the LyX Project
+LyX and Literate Programming
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
 
-Contributing to LyX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Reporting a bug
+Generating documents and code (weaving and tangling)
 \end_layout
 
 \begin_layout Enumerate
 
-Contributing fixes and new features
+Configuring LyX
 \end_layout
+
+\begin_layout Enumerate
+
+Debug extensions
+\end_layout
+
+\begin_layout Enumerate
+
+Toolbar extensions
+\end_layout
+
+\begin_layout Enumerate
+
+Colors customization
+\end_layout
+\end_deeper
+\end_deeper
 \end_deeper
 
 \begin_layout Enumerate
 
-Contributing to the Documentation
+Secrets of the LaTeX Masters
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
 
-Reporting Errors in the Manuals
+Multiple Columns
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Purpose
 \end_layout
 
 \begin_layout Enumerate
 
-Joining the Documentation Team.
+Limitations 
+\end_layout
+
+\begin_layout Enumerate
+
+Examples
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Two columns
+\end_layout
+
+\begin_layout Enumerate
+
+Multiple columns
+\end_layout
+
+\begin_layout Enumerate
+
+Columns inside columns
 \end_layout
 \end_deeper
+\end_deeper
+
+\begin_layout Enumerate
+
+Numbering in the 
+\family sans
+Enumerate
+\family default
+ Paragraph Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Dropped Capitals
+\end_layout
+
+\begin_layout Enumerate
+
+Non-standard Paragraph Shapes
+\end_layout
+
+\begin_layout Enumerate
+
+Summary
+\end_layout
 \end_deeper
 
 \begin_layout Section*
@@ -428,9 +2559,7 @@ How do I create PDF files from my LyX document?
 
 \begin_layout Enumerate
 
-Why do the fonts in my document look so bad in
-\family default
- 
+Why do the fonts in my document look so bad in 
 \family typewriter
 acroread
 \family default
@@ -502,6 +2631,683 @@ Authorship and acknowledgments.
 \begin_layout Enumerate
 
 Disclaimer and Copyright.
+\end_layout
+\end_deeper
+
+\begin_layout Section*
+
+Introduction to LyX
+\end_layout
+
+\begin_layout Enumerate
+
+The Philosophy of LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+What is LyX?
+\end_layout
+
+\begin_layout Enumerate
+
+Differences between LyX and Other Word Processors
+\end_layout
+
+\begin_layout Enumerate
+
+What is LaTeX?
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Navigating the Documentation
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+The Format of the Manuals
+\end_layout
+
+\begin_layout Enumerate
+
+Units used in the Manuals
+\end_layout
+
+\begin_layout Enumerate
+
+The Manuals
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+
+Contributing to the LyX Project
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Contributing to LyX
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Reporting a bug
+\end_layout
+
+\begin_layout Enumerate
+
+Contributing fixes and new features
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Contributing to the Documentation
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Reporting Errors in the Manuals
+\end_layout
+
+\begin_layout Enumerate
+
+Joining the Documentation Team.
+\end_layout
+\end_deeper
+\end_deeper
+
+\begin_layout Section*
+
+LyX's detailed Math manual
+\end_layout
+
+\begin_layout Enumerate
+
+Introduction
+\end_layout
+
+\begin_layout Enumerate
+
+General Instructions
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Command Scheme
+\end_layout
+
+\begin_layout Enumerate
+
+\newpage
+Syntax Explanation
+\end_layout
+
+\begin_layout Enumerate
+
+Used units
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Basic Functions
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Exponents
+
+ and Indices
+\end_layout
+
+\begin_layout Enumerate
+
+Fractions
+\end_layout
+
+\begin_layout Enumerate
+
+Roots
+\end_layout
+
+\begin_layout Enumerate
+
+Binomial coefficients 
+\end_layout
+
+\begin_layout Enumerate
+
+Case differentiations 
+\end_layout
+
+\begin_layout Enumerate
+
+Negations
+\end_layout
+
+\begin_layout Enumerate
+
+Placeholders
+\end_layout
+
+\begin_layout Enumerate
+
+Lines
+\end_layout
+
+\begin_layout Enumerate
+
+Ellipses
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Matrices
+\end_layout
+
+\begin_layout Enumerate
+
+Brackets and Delimiters
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Vertical Brackets and Delimiters
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Manual Bracket Size
+\end_layout
+
+\begin_layout Enumerate
+
+Automatic Bracket Size
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Horizontal Brackets
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Arrows
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Horizontal Arrows
+\end_layout
+
+\begin_layout Enumerate
+
+Vertical and diagonal Arrows
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Accents
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Accents for one Character
+\end_layout
+
+\begin_layout Enumerate
+
+Accents for Operators
+\end_layout
+
+\begin_layout Enumerate
+
+Accents for several Characters
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Space
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Predefined Space
+\end_layout
+
+\begin_layout Enumerate
+
+Variable Space
+\end_layout
+
+\begin_layout Enumerate
+
+Space besides inline Formulas
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Boxes and Frames
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Boxes with Frame
+\end_layout
+
+\begin_layout Enumerate
+
+Boxes without Frame
+\end_layout
+
+\begin_layout Enumerate
+
+Colored Boxes
+\end_layout
+
+\begin_layout Enumerate
+
+Paragraph Boxes
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Operators
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Big Operators
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Advices for Integrals
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Operator Limits
+\end_layout
+
+\begin_layout Enumerate
+
+Binary Operators
+\end_layout
+
+\begin_layout Enumerate
+
+Self-defined Operators
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Fonts
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Font Styles
+\end_layout
+
+\begin_layout Enumerate
+
+Bold Formulas
+\end_layout
+
+\begin_layout Enumerate
+
+Font Sizes
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Greek Letters
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Small Letters
+\end_layout
+
+\begin_layout Enumerate
+
+Big Letters
+\end_layout
+
+\begin_layout Enumerate
+
+Bold Letters
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Symbols
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Mathematical Symbols
+\end_layout
+
+\begin_layout Enumerate
+
+Miscellaneous Symbols
+\end_layout
+
+\begin_layout Enumerate
+
+The Euro-Symbol €
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Relations
+\end_layout
+
+\begin_layout Enumerate
+
+Functions
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Predefined Functions
+\end_layout
+
+\begin_layout Enumerate
+
+Self-defined Functions
+\end_layout
+
+\begin_layout Enumerate
+
+Limits
+\end_layout
+
+\begin_layout Enumerate
+
+Modulo-Functions
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Special Characters
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Special Characters in Mathematical Text
+\end_layout
+
+\begin_layout Enumerate
+
+Accents in Text
+\end_layout
+
+\begin_layout Enumerate
+
+Minuscule Numbers
+\end_layout
+
+\begin_layout Enumerate
+
+Miscellaneous Special Characters
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Formula Styles
+\end_layout
+
+\begin_layout Enumerate
+
+Multiline Formulas
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+General
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Line Separation
+\end_layout
+
+\begin_layout Enumerate
+
+Column Separation
+\end_layout
+
+\begin_layout Enumerate
+
+Long Formulas
+\end_layout
+
+\begin_layout Enumerate
+
+Multiline Brackets
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Align Environments
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Standard align Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Alignat Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Flalign Environment
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Eqnarray Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Gather Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Multline Environment
+\end_layout
+
+\begin_layout Enumerate
+
+Multiline Formula Parts
+\end_layout
+
+\begin_layout Enumerate
+
+Text in multiline Formulas
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Formula Numbering
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+General
+\end_layout
+
+\begin_layout Enumerate
+
+Cross-References
+\end_layout
+
+\begin_layout Enumerate
+
+Subnumbering
+\end_layout
+
+\begin_layout Enumerate
+
+User-defined Numbering
+\end_layout
+
+\begin_layout Enumerate
+
+Numbering with Roman Numbers and Letters
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+User-defined commands
+\end_layout
+
+\begin_layout Enumerate
+
+Diagrams
+\end_layout
+
+\begin_layout Enumerate
+
+Tips
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Chemical Symbols and Equations
+\end_layout
+
+\begin_layout Enumerate
+
+Negative Numbers
+\end_layout
+
+\begin_layout Enumerate
+
+Comma as Decimal Separator
+\end_layout
+
+\begin_layout Enumerate
+
+Physical Vectors
+\end_layout
+
+\begin_layout Enumerate
+
+Self-defined Fractions
+\end_layout
+
+\begin_layout Enumerate
+
+Canceled Formulas
+\end_layout
+
+\begin_layout Enumerate
+
+Formulas in Section Headings
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Heading without formula in table of contents 
+\end_layout
+
+\begin_layout Enumerate
+
+Heading with formula in table of contents
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Formulas in multi-column Text
+\end_layout
+
+\begin_layout Enumerate
+
+Formulas with Description of Variables
+\end_layout
+
+\begin_layout Enumerate
+
+Upright small Greek Letters
+\end_layout
+
+\begin_layout Enumerate
+
+Text Characters in Formulas
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Typographic Advises
+\end_layout
+
+\begin_layout Enumerate
+
+Synonyms
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
 \end_layout
 \end_deeper
 
@@ -2480,2223 +5286,6 @@ Units available in LyX
 
 Credits
 \end_layout
-
-\begin_layout Section*
-
-LyX's detailed Figure, Table, Floats, Notes, Boxes and External Material
- manual
-\end_layout
-
-\begin_layout Enumerate
-
-Figures
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Graphics Dialog
-\end_layout
-
-\begin_layout Enumerate
-
-Figure Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Image Formats
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Tables
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Table Dialog
-\end_layout
-
-\begin_layout Enumerate
-
-Table Toolbar
-\end_layout
-
-\begin_layout Enumerate
-
-Edit Table Menu
-\end_layout
-
-\begin_layout Enumerate
-
-Table Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Longtables
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Footnotes in Longtables
-\end_layout
-
-\begin_layout Enumerate
-
-Longtable Alignment
-\end_layout
-
-\begin_layout Enumerate
-
-Longtable Captions
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-References to Longtables
-\end_layout
-
-\begin_layout Enumerate
-
-Caption Width
-\end_layout
-
-\begin_layout Enumerate
-
-Different Captions for Table Pages
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Special Longtable Issues
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Longtable Calculation
-\end_layout
-
-\begin_layout Enumerate
-
-Floats and Longtables
-\end_layout
-
-\begin_layout Enumerate
-
-Forced Page Breaks
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Multiple Lines Columns and Rows
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Multiple Lines in Table Cells
-\end_layout
-
-\begin_layout Enumerate
-
-Multicolumns
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Multicolumn Basics
-\end_layout
-
-\begin_layout Enumerate
-
-Multicolumn Calculations
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Multirows
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Formal Tables
-\end_layout
-
-\begin_layout Enumerate
-
-Vertical Table Alignment
-\end_layout
-
-\begin_layout Enumerate
-
-Colored Tables
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Colored Cells
-\end_layout
-
-\begin_layout Enumerate
-
-Colored Lines
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Table Customization
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Row Spacing
-\end_layout
-
-\begin_layout Enumerate
-
-Special Cell Alignment
-\end_layout
-
-\begin_layout Enumerate
-
-Customized Cell/Column Format
-\end_layout
-
-\begin_layout Enumerate
-
-Line Thickness
-\end_layout
-
-\begin_layout Enumerate
-
-Dashed Lines
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Floats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Float Types
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Algorithm Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Text Wrap Floats
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Float Numbering
-\end_layout
-
-\begin_layout Enumerate
-
-Referencing Floats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Cross-Reference Formats
-\end_layout
-
-\begin_layout Enumerate
-
-Referencing Subfigures
-\end_layout
-
-\begin_layout Enumerate
-
-Automatic Reference Naming
-\end_layout
-
-\begin_layout Enumerate
-
-Reference Position
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Float Placement
-\end_layout
-
-\begin_layout Enumerate
-
-Rotated Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Caption Formatting
-\end_layout
-
-\begin_layout Enumerate
-
-Caption Placement
-\end_layout
-
-\begin_layout Enumerate
-
-Listings of Floats
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Notes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-LyX Notes
-\end_layout
-
-\begin_layout Enumerate
-
-Footnotes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Footnote Numbering
-\end_layout
-
-\begin_layout Enumerate
-
-Footnote Placement
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Margin Notes
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Boxes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Box Dialog
-\end_layout
-
-\begin_layout Enumerate
-
-Framed Boxes
-\end_layout
-
-\begin_layout Enumerate
-
-Minipages
-\end_layout
-
-\begin_layout Enumerate
-
-Parboxes
-\end_layout
-
-\begin_layout Enumerate
-
-Boxes for Words and Characters
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Prevent Hyphenation
-\end_layout
-
-\begin_layout Enumerate
-
-Vertical Alignment
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Colored Boxes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Color for Text
-\end_layout
-
-\begin_layout Enumerate
-
-Color for Paragraphs
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Rotated and Scaled Boxes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Rotated Boxes
-\end_layout
-
-\begin_layout Enumerate
-
-Scaled Boxes
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-URLs (Uniform Resource Locators)
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-External Stuff
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-External Material
-\end_layout
-
-\begin_layout Enumerate
-
-Child Documents
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Program Code Listings
-\end_layout
-
-\begin_layout Enumerate
-
-Units available in LyX
-\end_layout
-
-\begin_layout Enumerate
-
-Output File Formats with Graphics
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-DVI
-\end_layout
-
-\begin_layout Enumerate
-
-PostScript
-\end_layout
-
-\begin_layout Enumerate
-
-PDF
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Explanation of Equation\InsetSpace ~
-\end_layout
-
-\begin_layout Section*
-
-Extended LyX Features
-\end_layout
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-LyX and LaTeX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-How LyX Uses LaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-\begin_inset Quotes eld
-\end_inset
-
-Help! LyX generated an unreadable 
-\family typewriter
-.tex
-\family default
- file!
-\begin_inset Quotes erd
-\end_inset
-\end_layout
-
-\begin_layout Enumerate
-
-Translating LaTeX files into LyX
-\end_layout
-
-\begin_layout Enumerate
-
-Inserting LaTeX Code into LyX Documents 
-\end_layout
-
-\begin_layout Enumerate
-
-LyX and the LaTeX Preamble
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-About the LaTeX Preamble
-\end_layout
-
-\begin_layout Enumerate
-
-Changing the Preamble
-\end_layout
-
-\begin_layout Enumerate
-
-Examples
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Example #1: Offsets
-\end_layout
-
-\begin_layout Enumerate
-
-Example #2: Labels
-\end_layout
-
-\begin_layout Enumerate
-
-Example #3: Paragraph Indentation
-\end_layout
-
-\begin_layout Enumerate
-
-Example #4: This Document
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-LyX and LaTeX Errors
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Supplemental Tools
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Preparing a Bibliography with BibTeX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Alternative Citation Styles
-\end_layout
-
-\begin_layout Enumerate
-
-Sectionated Bibliographies
-\end_layout
-
-\begin_layout Enumerate
-
-Multiple Bibliographies
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Multipart Documents
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-General Operation
-\end_layout
-
-\begin_layout Enumerate
-
-Cross-References Between Files
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Fancy Headers and Footers
-\end_layout
-
-\begin_layout Enumerate
-
-Itemize Bullet Selection
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-How it looks
-\end_layout
-
-\begin_layout Enumerate
-
-How to use it
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Special Document Classes
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-AMS LaTeX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-What these layouts provide
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Dinbrief
-\end_layout
-
-\begin_layout Enumerate
-
-Paper
-\end_layout
-
-\begin_layout Enumerate
-
-A&A Paper
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Getting started
-\end_layout
-
-\begin_layout Enumerate
-
-The header block
-\end_layout
-
-\begin_layout Enumerate
-
-The abstract
-\end_layout
-
-\begin_layout Enumerate
-
-Supported environments
-\end_layout
-
-\begin_layout Enumerate
-
-Commands not supported by LyX
-\end_layout
-
-\begin_layout Enumerate
-
-Figure and Table Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Referee layout
-\end_layout
-
-\begin_layout Enumerate
-
-The example paper
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-AASTeX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Starting a New Paper
-\end_layout
-
-\begin_layout Enumerate
-
-Finishing Your Paper
-\end_layout
-
-\begin_layout Enumerate
-
-Comments On Specific Commands
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Things that work as expected
-\end_layout
-
-\begin_layout Enumerate
-
-Things that work, but require more comment
-\end_layout
-
-\begin_layout Enumerate
-
-Things not implemented, use ERT
-\end_layout
-
-\begin_layout Enumerate
-
-Things that cannot be implemented
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-FAQs, Tips, Tricks, and Other Ruminations
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Getting LyX and AASTeX to cooperate
-\end_layout
-
-\begin_layout Enumerate
-
-LaTeX error processing a table 
-\end_layout
-
-\begin_layout Enumerate
-
-References
-\end_layout
-
-\begin_layout Enumerate
-
-Including EPS files
-\end_layout
-
-\begin_layout Enumerate
-
-Things I could have done, but didn't
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Final Caveat
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-ijmpc and ijmpd
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Overview
-\end_layout
-
-\begin_layout Enumerate
-
-Writing a paper
-\end_layout
-
-\begin_layout Enumerate
-
-Preparing a paper for submission
-\end_layout
-
-\begin_layout Enumerate
-
-Use of ERT
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-iopart
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Overview
-\end_layout
-
-\begin_layout Enumerate
-
-Writing a paper
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Kluwer
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Overview
-\end_layout
-
-\begin_layout Enumerate
-
-Writing a paper
-\end_layout
-
-\begin_layout Enumerate
-
-Preparing a paper for submission
-\end_layout
-
-\begin_layout Enumerate
-
-\begin_inset Quotes eld
-\end_inset
-
-Peculiarities
-\begin_inset Quotes erd
-\end_inset
-
- of the Kluwer package
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Koma-Script
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Overview
-\end_layout
-
-\begin_layout Enumerate
-
-article (koma-script), report (koma-script), and book (koma-script)
-\end_layout
-
-\begin_layout Enumerate
-
-letter (koma-script)
-\end_layout
-
-\begin_layout Enumerate
-
-The new letter class: letter (koma-script v.2)
-\end_layout
-
-\begin_layout Enumerate
-
-Problems
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Springer Journals (
-\family sans
-svjour
-\family default
-)
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Description
-\end_layout
-
-\begin_layout Enumerate
-
-New styles
-\end_layout
-
-\begin_layout Enumerate
-
-Supported journals
-\end_layout
-
-\begin_layout Enumerate
-
-Credits
-\end_layout
-
-\begin_layout Enumerate
-
-Bugs
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-AGU journals (
-\family sans
-aguplus
-\family default
-)
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Description
-\end_layout
-
-\begin_layout Enumerate
-
-New styles
-\end_layout
-
-\begin_layout Enumerate
-
-New floats
-\end_layout
-
-\begin_layout Enumerate
-
-Supported journals
-\end_layout
-
-\begin_layout Enumerate
-
-Bugs and things to remember
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-EGS journals (
-\family sans
-egs
-\family default
-)
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Description
-\end_layout
-
-\begin_layout Enumerate
-
-New styles
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Slides [aka 
-\noun on
-Sli
-\noun default
-TeX]
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Getting Started
-\end_layout
-
-\begin_layout Enumerate
-
-Paragraph Environments
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Supported Environments
-\end_layout
-
-\begin_layout Enumerate
-
-Quirks of the New Environments
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Making a Presentation with 
-\family sans
-Slide
-\family default
-, 
-\family sans
-Overlay
-\family default
- and 
-\family sans
-Note
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Using the 
-\family sans
-Slide
-\family default
- Environment
-\end_layout
-
-\begin_layout Enumerate
-
-Using 
-\family sans
-Overlay
-\family default
- with 
-\family sans
-Slide
-\end_layout
-
-\begin_layout Enumerate
-
-Using 
-\family sans
-Note
-\family default
- with 
-\family sans
-Slide
-\family default
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-The 
-\family sans
-slides
-\family default
- Class Template File
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Foils [aka 
-\family sans
-Foil
-\family default
-\noun on
-TeX
-\noun default
-]
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Getting Started
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Extra Options
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Supported Environments
-\end_layout
-
-\begin_layout Enumerate
-
-Building a Set of Foils
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Give It a Title Page
-\end_layout
-
-\begin_layout Enumerate
-
-Start a New Foil
-\end_layout
-
-\begin_layout Enumerate
-
-Theorems, Lemmas, Proofs and more
-\end_layout
-
-\begin_layout Enumerate
-
-Lists
-\end_layout
-
-\begin_layout Enumerate
-
-Figures and Tables
-\end_layout
-
-\begin_layout Enumerate
-
-Page Headers and Footers
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Unsupported 
-\family sans
-Foil
-\family default
-TeX Goodies
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Lengths
-\end_layout
-
-\begin_layout Enumerate
-
-Headers and Footers
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Latex8 (IEEE Conference Papers)
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Getting Started
-\end_layout
-
-\begin_layout Enumerate
-
-Supported Environments
-\end_layout
-
-\begin_layout Enumerate
-
-Differences Between Screen and Paper
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Hollywood (Hollywood spec scripts)
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Special problems
-\end_layout
-
-\begin_layout Enumerate
-
-Special features
-\end_layout
-
-\begin_layout Enumerate
-
-Paper size and Margins
-\end_layout
-
-\begin_layout Enumerate
-
-Environments
-\end_layout
-
-\begin_layout Enumerate
-
-Script jargon
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Broadway
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Special problems
-\end_layout
-
-\begin_layout Enumerate
-
-Special features
-\end_layout
-
-\begin_layout Enumerate
-
-Paper size and Margins
-\end_layout
-
-\begin_layout Enumerate
-
-Environments
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-RevTeX4
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Installation
-\end_layout
-
-\begin_layout Enumerate
-
-Preamble Matter
-\end_layout
-
-\begin_layout Enumerate
-
-Layouts
-\end_layout
-
-\begin_layout Enumerate
-
-Important Notes
-\end_layout
-
-\begin_layout Enumerate
-
-Drawbacks
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Article (mwart), book (mwbk) and report (mwrep)
-\end_layout
-
-\begin_layout Enumerate
-
-Elsevier Journals
-\end_layout
-
-\begin_layout Enumerate
-
-Memoir
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Overview
-\end_layout
-
-\begin_layout Enumerate
-
-Basic features and restrictions
-\end_layout
-
-\begin_layout Enumerate
-
-Extra features
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Importing and Exporting Alternate File Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Considerations
-\end_layout
-
-\begin_layout Enumerate
-
-Importing Other Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-LaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-ASCII Text
-\end_layout
-
-\begin_layout Enumerate
-
-Noweb
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Exporting Other Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-LaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-Device Independent Files
-\end_layout
-
-\begin_layout Enumerate
-
-PostScript
-\end_layout
-
-\begin_layout Enumerate
-
-ASCII text
-\end_layout
-
-\begin_layout Enumerate
-
-HTML
-\end_layout
-
-\begin_layout Enumerate
-
-PDF
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Use pdfLaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-Why does the text look so bad when viewed with Acrobat Reader?
-\end_layout
-
-\begin_layout Enumerate
-
-Why doesn't the 
-\backslash
-boldsymbol{} command work when I use pslatex?
-\end_layout
-
-\begin_layout Enumerate
-
-Is it possible to do write LaTeX-code which is processed only when running
- pdfLaTeX?
-\end_layout
-
-\begin_layout Enumerate
-
-How can I make URLs clickable?
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Custom
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-LyX Features needing Extra Software
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Checking TeX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-How to use it
-\end_layout
-
-\begin_layout Enumerate
-
-How to fine tune it
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Version Control in LyX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-RCS commands in LyX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-\family sans
-Register
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-Check In Changes
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-Check Out For Edit
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-Revert To Last Version
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-Undo Last Checkin
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-Show History
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Literate Programming
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Literate Programming
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-References
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-
-LyX and Literate Programming
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Generating documents and code (weaving and tangling)
-\end_layout
-
-\begin_layout Enumerate
-
-Configuring LyX
-\end_layout
-
-\begin_layout Enumerate
-
-Debug extensions
-\end_layout
-
-\begin_layout Enumerate
-
-Toolbar extensions
-\end_layout
-
-\begin_layout Enumerate
-
-Colors customization
-\end_layout
-\end_deeper
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Secrets of the LaTeX Masters
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Multiple Columns
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Purpose
-\end_layout
-
-\begin_layout Enumerate
-
-Limitations 
-\end_layout
-
-\begin_layout Enumerate
-
-Examples
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Two columns
-\end_layout
-
-\begin_layout Enumerate
-
-Multiple columns
-\end_layout
-
-\begin_layout Enumerate
-
-Columns inside columns
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Numbering in the 
-\family sans
-Enumerate
-\family default
- Paragraph Environment
-\end_layout
-
-\begin_layout Enumerate
-
-Dropped Capitals
-\end_layout
-
-\begin_layout Enumerate
-
-Non-standard Paragraph Shapes
-\end_layout
-
-\begin_layout Enumerate
-
-Summary
-\end_layout
-\end_deeper
-
-\begin_layout Section*
-
-Customizing LyX: Features for the Advanced User
-\end_layout
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-LyX configuration files
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-What's in 
-\family typewriter
-LyXDir
-\family default
-?
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Automatically generated files
-\end_layout
-
-\begin_layout Enumerate
-
-Directories
-\end_layout
-
-\begin_layout Enumerate
-
-Files you don't want to modify
-\end_layout
-
-\begin_layout Enumerate
-
-Other files needing a line or two...
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Your local configuration directory
-\end_layout
-
-\begin_layout Enumerate
-
-Running LyX with multiple configurations
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-The 
-\family sans
-Preferences
-\family default
- dialog
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Using the dialog for the first time
-\end_layout
-
-\begin_layout Enumerate
-
-On-screen fonts
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-DPI setting and Font Zoom
-\end_layout
-
-\begin_layout Enumerate
-
-Font definition commands
-\end_layout
-
-\begin_layout Enumerate
-
-Font encoding
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Bindings
-\end_layout
-
-\begin_layout Enumerate
-
-User Interface
-\end_layout
-
-\begin_layout Enumerate
-
-
-Converters, Formats, and Copiers
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Formats
-\end_layout
-
-\begin_layout Enumerate
-
-Copiers
-\end_layout
-
-\begin_layout Enumerate
-
-Converters
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-BibTeX and makeindex
-\end_layout
-
-\begin_layout Enumerate
-
-Plain text export options
-\end_layout
-
-\begin_layout Enumerate
-
-Printer
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Changing Colors
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-The autodetected settings
-\end_layout
-
-\begin_layout Enumerate
-
-The rest
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Internationalizing LyX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Selecting an alternative language for the user interface
-\end_layout
-
-\begin_layout Enumerate
-
-Translating LyX
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Translating the graphical user interface (text messages).
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Ambigous messages
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Translating the documentation.
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-International Keyboard Support
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Defining Own Keymaps: Keymap File Format
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-International Keymap Stuff
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-The .kmap File
-\end_layout
-
-\begin_layout Enumerate
-
-The .cdef File
-\end_layout
-
-\begin_layout Enumerate
-
-Dead Keys
-\end_layout
-
-\begin_layout Enumerate
-
-Saving your Language Configuration
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Installing New Document Classes, Layouts, and Templates 
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Installing a new LaTeX package
-\end_layout
-
-\begin_layout Enumerate
-
-Layouts
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Supporting new document classes
-\end_layout
-
-\begin_layout Enumerate
-
-A layout for a 
-\family sans
-sty
-\family default
- file
-\end_layout
-
-\begin_layout Enumerate
-
-Layout for a 
-\family sans
-cls
-\family default
- file
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Declaring a new text class
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-File format
-\end_layout
-
-\begin_layout Enumerate
-
-General text class parameters
-\end_layout
-
-\begin_layout Enumerate
-
-\family typewriter
-ClassOptions
-\family default
- section
-\end_layout
-
-\begin_layout Enumerate
-
-Specific Paragraph Layouts
-\end_layout
-
-\begin_layout Enumerate
-
-Floats
-\end_layout
-
-\begin_layout Enumerate
-
-Character styles
-\end_layout
-
-\begin_layout Enumerate
-
-Counters
-\end_layout
-
-\begin_layout Enumerate
-
-Font description
-\end_layout
-
-\begin_layout Enumerate
-
-Upgrading old layout files
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Creating Templates
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Including External Material
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Background
-\end_layout
-
-\begin_layout Enumerate
-
-How does it work?
-\end_layout
-
-\begin_layout Enumerate
-
-External material dialog
-\end_layout
-
-\begin_layout Enumerate
-
-Examples
-\end_layout
-
-\begin_layout Enumerate
-
-The external template configuration file
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-The template header
-\end_layout
-
-\begin_layout Enumerate
-
-The Format section
-\end_layout
-
-\begin_layout Enumerate
-
-Preamble definitions
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-The substitution mechanism
-\end_layout
-
-\begin_layout Enumerate
-
-Security discussion
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-The LyX Server
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Introduction
-\end_layout
-
-\begin_layout Enumerate
-
-Starting the LyX Server
-\end_layout
-
-\begin_layout Enumerate
-
-Normal communication
-\end_layout
-
-\begin_layout Enumerate
-
-Notification
-\end_layout
-
-\begin_layout Enumerate
-
-The simple LyX Server Protocol
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Bindings
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Toolbar
-\end_layout
-
-\begin_layout Enumerate
-
-Menu
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-File
-\end_layout
-
-\begin_layout Enumerate
-
-Edit
-\end_layout
-
-\begin_layout Enumerate
-
-Insert
-\end_layout
-
-\begin_layout Enumerate
-
-Layout
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-\family sans
-Layout\SpecialChar \menuseparator
-Character
-\family default
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-View
-\end_layout
-
-\begin_layout Enumerate
-
-Navigate
-\end_layout
-
-\begin_layout Enumerate
-
-Help
-\end_layout
-
-\begin_layout Enumerate
-
-Paragraph Style
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Keyboard
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Specific to 
-\family typewriter
-emacs.bind
-\end_layout
-
-\begin_layout Enumerate
-
-Specific to 
-\family typewriter
-cua.bind
-\end_layout
-
-\begin_layout Enumerate
-
-Specific to 
-\family typewriter
-sciword.bind
-\end_layout
-
-\begin_layout Enumerate
-
-Standard math bindings
-\end_layout
-
-\begin_layout Enumerate
-
-Other Accelerators
-\end_layout
-\end_deeper
-\end_deeper
 
 \end_body
 \end_document

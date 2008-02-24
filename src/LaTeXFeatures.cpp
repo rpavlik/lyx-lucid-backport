@@ -415,21 +415,24 @@ char const * simplefeatures[] = {
 	"latexsym",
 	"pifont",
 	"subfigure",
-	"floatflt",
 	"varioref",
 	"prettyref",
+	/*For a successful cooperation of the `wrapfig' package with the
+	  `float' package you should load the `wrapfig' package *after*
+	  the `float' package. See the caption package documentation
+	  for explanation.*/
 	"float",
+	"wrapfig",
 	"booktabs",
 	"dvipost",
 	"fancybox",
 	"calc",
 	"nicefrac",
 	"tipa",
+	"tipx",
 	"framed",
-	"pdfcolmk",
 	"soul",
 	"textcomp",
-	"xcolor",
 	"pmboxdraw",
 	"bbding",
 	"ifsym",
@@ -485,14 +488,21 @@ string const LaTeXFeatures::getPackages() const
 	    (params_.use_esint != BufferParams::package_off || !isRequired("esint")))
 		packages << "\\usepackage{wasysym}\n";
 
-	// color.sty
-	if (mustProvide("color")) {
+	// [x]color.sty
+	if (mustProvide("color") || mustProvide("xcolor")) {
+		string const package =
+			(mustProvide("xcolor") ? "xcolor" : "color");
 		if (params_.graphicsDriver == "default")
-			packages << "\\usepackage{color}\n";
+			packages << "\\usepackage{" << package << "}\n";
 		else
 			packages << "\\usepackage["
 				 << params_.graphicsDriver
-				 << "]{color}\n";
+				 << "]{" << package << "}\n";
+	}
+
+	// pdfcolmk must be loaded after color
+	if (mustProvide("pdfcolmk")) {
+		packages << "\\usepackage{pdfcolmk}\n";
 	}
 
 	// makeidx.sty
@@ -532,11 +542,13 @@ string const LaTeXFeatures::getPackages() const
 	}
 
 	// setspace.sty
-	if ((params_.spacing().getSpace() != Spacing::Single
-	     && !params_.spacing().isDefault())
-	    || isRequired("setspace")) {
+	if ((isRequired("setspace") 
+	     || ((params_.spacing().getSpace() != Spacing::Single
+		  && !params_.spacing().isDefault())))
+	    && !tclass.provides("SetSpace")) {
 		packages << "\\usepackage{setspace}\n";
 	}
+	bool const upcase = tclass.provides("SetSpace");
 	switch (params_.spacing().getSpace()) {
 	case Spacing::Default:
 	case Spacing::Single:
@@ -544,13 +556,13 @@ string const LaTeXFeatures::getPackages() const
 		//packages += "\\singlespacing\n";
 		break;
 	case Spacing::Onehalf:
-		packages << "\\onehalfspacing\n";
+		packages << (upcase ? "\\OnehalfSpacing\n" : "\\onehalfspacing\n");
 		break;
 	case Spacing::Double:
-		packages << "\\doublespacing\n";
+		packages << (upcase ? "\\DoubleSpacing\n" : "\\doublespacing\n");
 		break;
 	case Spacing::Other:
-		packages << "\\setstretch{"
+		packages << (upcase ? "\\setSpacing{" : "\\setstretch{")
 			 << params_.spacing().getValue() << "}\n";
 		break;
 	}

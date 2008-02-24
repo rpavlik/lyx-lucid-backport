@@ -68,6 +68,7 @@ namespace lyx {
 
 using support::contains;
 using support::prefixIs;
+using support::subst;
 using support::suffixIs;
 using support::rsplit;
 
@@ -2163,12 +2164,21 @@ bool Paragraph::simpleTeXOnePar(Buffer const & buf,
 			open_font = false;
 		}
 
+		// close babel's font environment before opening CJK.
+		if (!running_font.language()->babel().empty() &&
+		    font.language()->encoding()->package() == Encoding::CJK) {
+				string end_tag = subst(lyxrc.language_command_end,
+							"$$lang",
+							running_font.language()->babel());
+				os << from_ascii(end_tag);
+				column += end_tag.length();
+		}
+
 		// Switch file encoding if necessary
-		if (runparams.encoding->package() == Encoding::inputenc &&
-		    font.language()->encoding()->package() == Encoding::inputenc) {
+		if (runparams.encoding->package() != Encoding::none &&
+		    font.language()->encoding()->package() != Encoding::none) {
 			std::pair<bool, int> const enc_switch = switchEncoding(os, bparams,
-					runparams.moving_arg, *(runparams.encoding),
-					*(font.language()->encoding()));
+					runparams, *(font.language()->encoding()));
 			if (enc_switch.first) {
 				column += enc_switch.second;
 				runparams.encoding = font.language()->encoding();
@@ -2219,10 +2229,25 @@ bool Paragraph::simpleTeXOnePar(Buffer const & buf,
 		rp.free_spacing = style->free_spacing;
 		rp.local_font = &font;
 		rp.intitle = style->intitle;
-		pimpl_->simpleTeXSpecialChars(buf, bparams, os,
+		
+		try {
+			pimpl_->simpleTeXSpecialChars(buf, bparams, os,
 					texrow, rp, running_font,
 					basefont, outerfont, open_font,
 					runningChange, *style, i, column, c);
+		} catch (EncodingException & e) {
+			if (runparams.dryrun) {
+				os << "<" << _("LyX Warning: ")
+				   << _("uncodable character") << " '";
+				os.put(c);
+				os << "'>";
+			} else {
+				// add location information and throw again.
+				e.par_id = id();
+				e.pos = i;
+				throw(e);
+			}
+		}
 
 		// Set the encoding to that returned from simpleTeXSpecialChars (see
 		// comment for encoding member in OutputParams.h)

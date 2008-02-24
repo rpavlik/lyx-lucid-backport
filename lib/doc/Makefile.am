@@ -59,7 +59,9 @@ dist_dedoc_DATA = \
 	de/EmbeddedObjects.lyx \
 	de/Extended.lyx \
 	de/FAQ.lyx \
+	de/Formelnummerierung.lyx \
 	de/Intro.lyx \
+	de/Math.lyx \
 	de/Tutorial.lyx \
 	de/UserGuide.lyx
 
@@ -86,14 +88,10 @@ dist_esdoc_DATA = \
 	es/DocumentoTextoPostizo.txt \
 	es/EmbeddedObjects.lyx \
 	es/Extended.lyx \
+	es/FAQ.lyx \
 	es/Intro.lyx \
 	es/Tutorial.lyx \
 	es/UserGuide.lyx
-
-esbibliodocdir = $(pkgdatadir)/doc/es/biblio
-dist_esbibliodoc_DATA = \
-	es/biblio/alphadin.bst \
-	es/biblio/LyXDocs.bib
 
 esclipartdocdir = $(pkgdatadir)/doc/es/clipart
 dist_esclipartdoc_DATA = \
@@ -124,10 +122,14 @@ dist_eudoc_DATA = \
 frdocdir = $(pkgdatadir)/doc/fr
 dist_frdoc_DATA = \
 	fr/Customization.lyx \
+	fr/DocumentBidon1.lyx \
+	fr/DocumentBidon2.lyx \
+	fr/DocumentTexteBidon.txt \
 	fr/EmbeddedObjects.lyx \
 	fr/Extended.lyx \
 	fr/FAQ.lyx \
 	fr/Intro.lyx \
+	fr/Math.lyx \
 	fr/Tutorial.lyx \
 	fr/UserGuide.lyx
 
@@ -221,8 +223,10 @@ dist_doc_DATA = \
 	EmbeddedObjects.lyx \
 	Extended.lyx \
 	FAQ.lyx \
+	Formula-numbering.lyx \
 	Intro.lyx \
 	LaTeXConfig.lyx.in \
+	Math.lyx \
 	Reference.lyx \
 	Tutorial.lyx \
 	UserGuide.lyx

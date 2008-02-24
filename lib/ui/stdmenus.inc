@@ -181,8 +181,8 @@ Menuset
 	End
 
 	Menu "edit_math"
-		Item "Toggle Numbering|N" "math-number"
-		Item "Toggle Numbering of Line|u" "math-nonumber"
+		Item "Number whole Formula|N" "math-number"
+		Item "Number this Line|u" "math-nonumber"
 		Submenu "Change Limits Type|L" "edit_math_limits"
 		Separator
 		Submenu "Change Formula Type|F" "edit_math_mutate"
@@ -479,7 +479,8 @@ Menuset
 		Item "Tutorial|T" "help-open Tutorial"
 		Item "User's Guide|U" "help-open UserGuide"
 		Item "Extended Features|E" "help-open Extended"
-		Item "Embedded Objects|m" "help-open EmbeddedObjects" 
+		Item "Embedded Objects|m" "help-open EmbeddedObjects"
+		Item "Math|h" "help-open Math"
 		Item "Customization|C" "help-open Customization"
 		Item "FAQ|F" "help-open FAQ"
 		Item "Table of Contents|a" "help-open TOC"

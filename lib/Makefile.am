@@ -78,21 +78,24 @@ dist_daexamples_DATA = \
 
 deexamplesdir = $(pkgdatadir)/examples/de
 dist_deexamples_DATA = \
-	examples/de/ItemizeBullets.lyx \
-	examples/de/Lebenslauf.lyx \
-	examples/de/Minipage.lyx \
 	examples/de/beispiel_gelyxt.lyx \
 	examples/de/beispiel_roh.lyx \
 	examples/de/Dezimal.lyx \
-	examples/de/splash.lyx \
-	examples/de/mathed.lyx \
-	examples/de/multicol.lyx
+	examples/de/ItemizeBullets.lyx \
+	examples/de/Lebenslauf.lyx \
+	examples/de/Minipage.lyx \
+	examples/de/multicol.lyx \
+	examples/de/serienbrief1.lyx \
+	examples/de/serienbrief2.lyx \
+	examples/de/serienbrief3.lyx \
+	examples/de/splash.lyx
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
 	examples/es/ItemizeBullets.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
+	examples/es/mathed.lyx \
 	examples/es/splash.lyx
 
 euexamplesdir = $(pkgdatadir)/examples/eu
@@ -140,6 +143,10 @@ itexamplesdir = $(pkgdatadir)/examples/it
 dist_itexamples_DATA = \
 	examples/it/ItemizeBullets.lyx \
 	examples/it/splash.lyx
+	
+jaexamplesdir = $(pkgdatadir)/examples/ja
+dist_jaexamples_DATA = \
+	examples/ja/splash.lyx
 
 nlexamplesdir = $(pkgdatadir)/examples/nl
 dist_nlexamples_DATA = \
@@ -181,6 +188,7 @@ dist_examples_DATA = \
 	examples/Minipage.lyx \
 	examples/aa_sample.lyx \
 	examples/aas_sample.lyx \
+	examples/addressExample.adr \
 	examples/amsart-test.lyx \
 	examples/amsbook-test.lyx \
 	examples/armenian-article.lyx \
@@ -209,12 +217,14 @@ dist_examples_DATA = \
 	examples/landslide.lyx \
 	examples/listerrors.lyx \
 	examples/listings.lyx \
-	examples/mathed.lyx \
 	examples/modernCV.lyx \
 	examples/multicol.lyx \
 	examples/noweb2lyx.lyx \
 	examples/powerdot-example.lyx \
 	examples/script_form.lyx \
+	examples/serial_letter1.lyx \
+	examples/serial_letter2.lyx \
+	examples/serial_letter3.lyx \
 	examples/simplecv.lyx \
 	examples/splash.lyx
 
@@ -240,6 +250,7 @@ dist_images_DATA = \
 	images/banner.png \
 	images/bookmark-goto.xpm \
 	images/bookmark-save.xpm \
+	images/box-insert.xpm \
 	images/break-line.xpm \
 	images/buffer-close.xpm \
 	images/buffer-export_dvi.xpm \

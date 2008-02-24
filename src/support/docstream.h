@@ -57,11 +57,13 @@ public:
 class odocfstream : public std::basic_ofstream<char_type> {
 	typedef std::basic_ofstream<char_type> base;
 public:
-	odocfstream(std::string const & encoding = "UTF-8");
+	odocfstream();
 	explicit odocfstream(const char* s,
 		std::ios_base::openmode mode = std::ios_base::out|std::ios_base::trunc,
 		std::string const & encoding = "UTF-8");
 	~odocfstream() {}
+	///
+	void reset(std::string const & encoding);
 };
 
 /// UCS4 input stringstream

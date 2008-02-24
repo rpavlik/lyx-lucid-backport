@@ -1,12 +1,9 @@
-#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
 \textclass article
-\begin_preamble
-\usepackage{a4wide}
-\end_preamble
-\language ngerman
+\language spanish
 \inputencoding auto
 \font_roman default
 \font_sans default
@@ -20,53 +17,47 @@
 \float_placement H
 \paperfontsize default
 \spacing single
-\papersize a4paper
-\use_geometry false
+\papersize default
+\use_geometry true
 \use_amsmath 1
 \use_esint 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
+\leftmargin 3cm
+\topmargin 2cm
+\rightmargin 3cm
+\bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
-\quotes_language german
+\quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
+\author "" 
+\author "" 
 \end_header
 
 \begin_body
 
 \begin_layout Section
-Von und nach mathed konvertieren
+Conversión a y desde el modo matemático
 \end_layout
 
 \begin_layout Standard
-Mathematische Formeln können im Hauptteil des Dokuments eingegeben werden
- und in den Mathe-Modus konvertiert werden, indem Sie die Formel markieren,
-
-\family default
- 
+Una ecuación matemática se puede escribir en el cuerpo del documento y después
+ se convierte al modo matemático seleccionándola y tecleando 
 \family sans
-Strg+C
+M-c\InsetSpace ~
+m
 \family default
- für kopieren eingeben, auf 
-\begin_inset Formula $$\frac{a+b}{c}$$
-\end_inset
-
- klicken und
-\family default
- 
-\family sans
-Strg+V
-\family default
- zum einfügen eingeben.
- Der Text kann von Trennzeichen umgeben sein oder auch nicht.
- Das heißt, wenn Sie eine der folgenden Formeln markieren:
+.
+ El texto se puede circunscribir con delimitadores o no.
+ Así, seleccionando cualquiera de las fórmulas siguientes:
 \end_layout
 
 \begin_layout Standard
@@ -164,93 +155,67 @@ frac{abc}{xyz}
 \end_layout
 
 \begin_layout Standard
-wird sie konvertiert nach: 
+se convertirá en:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula $$\frac{abc}{xyz}$$
+\begin_inset Formula \begin{equation}
+\frac{abc}{xyz}\end{equation}
+
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-
-\end_layout
-
-\begin_layout Standard
-Zur Zeit können Sie eine mathematische Formel nicht in Text zurückverwandeln.
- Es gibt aber einen kleinen Trick: Markieren Sie den Inhalt der Mathe-Einfügung
- (nicht die Mathe-Einfügung selber, nur den Inhalt), und fügen Sie ihn mit
- dem mittleren Mausknopf ins Dokument ein.
-\end_layout
-
-\begin_layout Section
-LaTeX-Symbole anzeigen
-\end_layout
-
-\begin_layout Standard
-LyX kann die meisten LaTeX-Symbole und
-\emph default
- 
+De momento, no hay forma directa de reconvertir el contenido de una ecuación
+ insertada en texto normal.
+ No obstante, puede hacerse mediante una vía indirecta.
+ Selecciona el contenido de una ecuación matemática insertada (no toda la
+ ecuación, sólo su contenido), pero 
 \emph on
-alle
+no
 \emph default
- AMS-Symbole anzeigen.
- Der Vollständigkeit halber werden auch noch die Symboltabellen aus 
-\noun on
-Lamport
-\noun default
-s und  
-\noun on
-Goosen
-\noun default
-s Bücher angefügt.
+ lo copies en la memoria de LyX.
+ Ahora está almacenado en la memoria del sistema X y puede pegarse en el
+ documento con el botón central del ratón.
 \end_layout
 
 \begin_layout Section
-Einige Beispiele
+Visualización de símbolos LaTeX
 \end_layout
 
 \begin_layout Standard
-Die folgenden Tabellen aus 
-\noun on
-Goossen
-\noun default
- et al.
- 
-\begin_inset Quotes gld
+En tiempos pasados, LyX suministraba soporte visual para una colección relativam
+ente pequeña de los símbolos disponibles en LaTeX.
+ Esto ha cambiado a partir de la versión 1.2; ahora disponemos de soporte
+ gráfico para la mayoría de los símbolos definidos en un LaTeX básico y
+ para 
+\emph on
+todos
+\emph default
+ los símbolos adicionales definidos por la AMS.
+ Para completar, a continuación se muestran los cuadros de símbolos de los
+ libros de Lamport y de Goosen.
+\end_layout
+
+\begin_layout Section
+Algunos cuadros de símbolos matemáticos
+\end_layout
+
+\begin_layout Standard
+Los cuadros siguientes, tomados del libro 
+\begin_inset Quotes eld
 \end_inset
 
 The LaTeX companion
-\begin_inset Quotes grd
+\begin_inset Quotes erd
 \end_inset
 
- sollten auf dem Bildschirm zu sehen sein.
+ de Goossen et al., deberían verse en pantalla en todo su esplendor.
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status inlined
-
-\begin_layout Standard
-
-\backslash
-setcounter{table}{1}
-\end_layout
-
-\begin_layout Standard
-
-\backslash
-renewcommand{
-\backslash
-thetable}{8.
-\backslash
-arabic{table}}
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
@@ -556,11 +521,11 @@ tilde{a}
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Mathe-Modus-Akzente
+\begin_layout Standard
+Acentos en modo matemático
 \end_layout
 
 \end_inset
@@ -1696,11 +1661,11 @@ Omega
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Griechische Buchstaben
+\begin_layout Standard
+Letras griegas
 \end_layout
 
 \end_inset
@@ -2657,11 +2622,11 @@ amalg
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Symbole für binäre Operationen
+\begin_layout Standard
+Símbolos de operaciones binarias
 \end_layout
 
 \end_inset
@@ -3714,11 +3679,11 @@ dashv
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Symbole für Relationen
+\begin_layout Standard
+Símbolos de relaciones
 \end_layout
 
 \end_inset
@@ -4525,11 +4490,11 @@ nwarrow
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Pfeilsymbole
+\begin_layout Standard
+Símbolos de flechas
 \end_layout
 
 \end_inset
@@ -5459,11 +5424,11 @@ partial
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Verschiedene Symbole
+\begin_layout Standard
+Símbolos diversos
 \end_layout
 
 \end_inset
@@ -5878,11 +5843,11 @@ biguplus
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Symbole mit variabler Größe
+\begin_layout Standard
+Símbolos de tamaño variable
 \end_layout
 
 \end_inset
@@ -6003,7 +5968,7 @@ status open
 \begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula $\sinh$
+\begin_inset Formula $\senh$
 \end_inset
 
 
@@ -6017,7 +5982,7 @@ status open
 \begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula $\arcsin$
+\begin_inset Formula $\arcsen$
 \end_inset
 
 
@@ -6285,7 +6250,7 @@ status open
 \begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula $\sin$
+\begin_inset Formula $\sen$
 \end_inset
 
 
@@ -6311,13 +6276,57 @@ status open
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Standard
+Para poner en español las funciones 
+\emph on
+sin
+\emph default
+, 
+\emph on
+sin\InsetSpace \thinspace{}
+h
+\emph default
+ o 
+\emph on
+arc\InsetSpace \thinspace{}
+sin
+\emph default
+, dentro de una ecuación escribe 
+\emph on
+
+\backslash
+sen
+\emph default
+, 
+\emph on
+
+\backslash
+senh
+\emph default
+ o 
+\emph on
+
+\backslash
+arcsen
+\emph default
+.
+ (N.
+ del t.)
 \end_layout
 
-\begin_layout 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Funktions-Symbole
+\begin_layout Standard
+Símbolos de funciones
 \end_layout
 
 \end_inset
@@ -6848,11 +6857,11 @@ backslash
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Trennsymbole
+\begin_layout Standard
+Delimitadores
 \end_layout
 
 \end_inset
@@ -7199,11 +7208,11 @@ frac{abc}{xyz}
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Symbole für mathematische Konstrukte
+\begin_layout Standard
+Estructuras matemáticas LaTeX
 \end_layout
 
 \end_inset
@@ -7371,11 +7380,11 @@ gimel
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Griechisch und -Hebräisch
+\begin_layout Standard
+Griego y hebreo AMS
 \end_layout
 
 \end_inset
@@ -7516,11 +7525,11 @@ lrcorner
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Trennsymbole
+\begin_layout Standard
+Delimitadores AMS
 \end_layout
 
 \end_inset
@@ -8397,11 +8406,11 @@ rightsquigarrow
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Pfeile
+\begin_layout Standard
+Flechas AMS
 \end_layout
 
 \end_inset
@@ -8592,11 +8601,11 @@ nLeftrightarrow
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Durchgestrichene AMS-Pfeile
+\begin_layout Standard
+Flechas de negación AMS
 \end_layout
 
 \end_inset
@@ -10327,11 +10336,11 @@ because
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Symbole für  binäre Relationen
+\begin_layout Standard
+Relaciones binarias AMS
 \end_layout
 
 \end_inset
@@ -11677,11 +11686,11 @@ varsupsetneqq
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Symbole für negierte binäre Relationen
+\begin_layout Standard
+Relaciones binarias de negación AMS
 \end_layout
 
 \end_inset
@@ -12327,11 +12336,11 @@ intercal
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-AMS-Symbole für binäre Operationen
+\begin_layout Standard
+Operadores binarios AMS
 \end_layout
 
 \end_inset
@@ -13054,11 +13063,11 @@ diagdown
 
 \end_layout
 
-\begin_layout 
+\begin_layout Standard
 \begin_inset Caption
 
-\begin_layout 
-Verschiedene AMS-Symbole
+\begin_layout Standard
+Diversos AMS
 \end_layout
 
 \end_inset

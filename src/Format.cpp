@@ -30,7 +30,7 @@
 
 using std::string;
 using std::distance;
-
+using std::find_if;
 
 namespace lyx {
 
@@ -38,6 +38,7 @@ using support::absolutePath;
 using support::bformat;
 using support::compare_ascii_no_case;
 using support::contains;
+using support::doesFileExist;
 using support::FileName;
 using support::libScriptSearch;
 using support::makeDisplayPath;
@@ -265,7 +266,7 @@ void Formats::setViewer(string const & name, string const & command)
 bool Formats::view(Buffer const & buffer, FileName const & filename,
 		   string const & format_name) const
 {
-	if (filename.empty() || !fs::exists(filename.toFilesystemEncoding())) {
+	if (filename.empty() || !doesFileExist(filename)) {
 		Alert::error(_("Cannot view file"),
 			bformat(_("File does not exist: %1$s"),
 				from_utf8(filename.absFilename())));
@@ -300,13 +301,14 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 
 	if (format_name == "dvi" &&
 	    !lyxrc.view_dvi_paper_option.empty()) {
-		command += ' ' + lyxrc.view_dvi_paper_option;
-		string paper_size = buffer.params().paperSizeName();
-		if (paper_size == "letter")
-			paper_size = "us";
-		command += ' ' + paper_size;
-		if (buffer.params().orientation == ORIENTATION_LANDSCAPE)
-			command += 'r';
+		string paper_size = buffer.params().paperSizeName(BufferParams::XDVI);
+		if (!paper_size.empty()) {
+			command += ' ' + lyxrc.view_dvi_paper_option;
+			command += ' ' + paper_size;
+			if (buffer.params().orientation == ORIENTATION_LANDSCAPE &&
+			    buffer.params().papersize != PAPER_CUSTOM)
+				command += 'r';
+		}
 	}
 
 	if (!contains(command, token_from_format))
@@ -335,7 +337,7 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 bool Formats::edit(Buffer const & buffer, FileName const & filename,
 			 string const & format_name) const
 {
-	if (filename.empty() || !fs::exists(filename.toFilesystemEncoding())) {
+	if (filename.empty() || !doesFileExist(filename)) {
 		Alert::error(_("Cannot edit file"),
 			bformat(_("File does not exist: %1$s"),
 				from_utf8(filename.absFilename())));

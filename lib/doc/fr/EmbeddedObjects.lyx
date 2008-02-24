@@ -1,4 +1,4 @@
-#LyX 1.5.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -10,12 +10,7 @@
 
 % set fonts for nicer pdf view
 \IfFileExists{lmodern.sty}
- {\usepackage{lmodern}} % if it exists
- {% if it exists not
-  \usepackage[scaled=0.92]{helvet}
-  \usepackage{mathptmx}
-  \usepackage{courier}
- } % end if it exists not
+ {\usepackage{lmodern}}{}
 
 % link all cross references and URLs
 % in pdf output
@@ -290,7 +285,7 @@ version 1.5.2 - novembre 2007
 \newline
 
 \family sans
-Version 1.5.3-0
+Version 1.5.4
 \end_layout
 
 \begin_layout Standard
@@ -18353,7 +18348,7 @@ reference "sec:Placement-légende"
  Une boîte de flottant fermée ressemble à ceci : 
 \begin_inset Graphics
 	filename clipart/floatQt4.png
-	scale 80
+	scale 60
 
 \end_inset
 
@@ -18808,11 +18803,11 @@ Ceci est une figure habillée et vous lisez la superbe légende qui la décrit.
 
 à la condition que le paquetage LaTeX 
 \series bold
-floatflt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "Paquetages LaTeX! floatflt"
+name "Paquetages LaTeX ! wrapfig\\vspace{4mm}"
 
 \end_inset
 
@@ -18840,16 +18835,14 @@ reference "fig:Figure-enrobée"
 
 \end_inset
 
- est un exemple de flottant d'enrobage avec une largeur de 40
-\begin_inset Formula $\,$
-\end_inset
-
+ est un exemple de flottant d'enrobage avec une largeur de 40\InsetSpace \thinspace{}
 col%.
 \begin_inset Foot
 status collapsed
 
 \begin_layout Standard
-Les unités disponibles sont expliquées dans
+Les unités disponibles sont expliquées dans l'appendice\InsetSpace ~
+
 \begin_inset LatexCommand ref
 reference "cha:Unités-de-longueur"
 
@@ -18867,21 +18860,17 @@ reference "cha:Unités-de-longueur"
 \begin_layout Standard
 Le paquetage LaTeX 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  accepte aussi des flottants de tableau d'enrobage, mais ils ne sont pas
  encore gérés par LyX.
  Si vous en avez besoin, voyez la documentation de 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  
 \begin_inset LatexCommand cite
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -18900,34 +18889,7 @@ Note:
  Les flottants d'enrobage peuvent être fragiles! Par exemple, avoir une
  figure trop près du bas de page peut tout chambouler et faire que le flottant
  n'apparaît pas à l'impression ou qu'il se retrouve par dessus une portion
- de texte
-\begin_inset Foot
-status open
-
-\begin_layout Standard
-Le mieux serait d'utiliser la paquetage LaTeX
-\series bold
- wrapf\SpecialChar \textcompwordmark{}
-ig
-\series default
-
-\begin_inset LatexCommand index
-name "Paquetages LaTeX ! wrapfig\\vspace{4mm}"
-
-\end_inset
-
- à la place de 
-\series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
-\series default
-, mais il n'est pas encore accepté par LyX.
-\end_layout
-
-\end_inset
-
-.
+ de texte.
 \end_layout
 
 \end_inset
@@ -19651,8 +19613,7 @@ hypcap
 \series bold
 
 \backslash
-usepackage[f\SpecialChar \textcompwordmark{}
-igure]{hypcap}
+usepackage[figure]{hypcap}
 \end_layout
 
 \begin_layout Standard
@@ -19974,11 +19935,7 @@ On peut parfois se trouver dans la situation où un flottant est placé en
 suppressfloats
 \series default
  pour éviter ce cas.
-
-\lang english
- 
-\lang french
-Elle empêche le placement d'un flottant donné dans la page dans laquelle
+ Elle empêche le placement d'un flottant donné dans la page dans laquelle
  il est inséré et donc elle peut être utilisée pour éviter qu'un flottant
  soit placé avant que la section commence.
  Pour obtenir ce comportement, ajoutez ces commandes dans le préambule de
@@ -20343,6 +20300,178 @@ e
 \end_layout
 
 \begin_layout Section
+Flottants côte-à-côte
+\begin_inset LatexCommand index
+name "Flottants ! côte-à-côte"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pour placer des flottants côte-à-côte, comme pour la figure\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "fig:Flottant-gauche"
+
+\end_inset
+
+ et 
+\begin_inset LatexCommand ref
+reference "fig:Flottant-droit"
+
+\end_inset
+
+, on n'utilise 
+\emph on
+qu'un seul 
+\emph default
+flottant.
+ On y insère deux boîtes de minipages
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+Les minipages sont décrites dans la section\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "sec:Minipages"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+.
+ La largeur est mise à 45\InsetSpace \thinspace{}
+-50\InsetSpace \thinspace{}
+column% et l'alignement de la boîte à 
+\family sans
+Bas
+\family default
+ pour chaque minipage.
+ Les boîtes minipages contiennent l'image et la légende exactement comme
+ avec un flottant.
+ La seule différence est que l'unité de longueur 
+\family sans
+Largeur\InsetSpace ~
+colonne\InsetSpace ~
+%
+\family default
+ utilisée pour l'image est maintenant définie par rapport à la largeur des
+ boîtes minipages.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../clipart/mobius.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Flottant-gauche"
+
+\end_inset
+
+Flottant du côté gauche.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\hfill
+
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../clipart/platypus.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Flottant-droit"
+
+\end_inset
+
+Flottant du côté droit.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 Mise en Forme de la Légende
 \begin_inset LatexCommand index
 name "Légende ! Mise en forme"
@@ -20498,8 +20627,7 @@ usepackage[tableposition=top]{caption}
 \series bold
 
 \backslash
-captionsetup[f\SpecialChar \textcompwordmark{}
-igure]{labelfont={tt}, textfont=it, indention=1cm,%
+captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm,%
 \newline
 
 \begin_inset ERT
@@ -20570,7 +20698,7 @@ caption
 \series default
  nous vous renvoyons à sa documentation 
 \begin_inset LatexCommand cite
-key "caption,caption-de"
+key "caption"
 
 \end_inset
 
@@ -20704,7 +20832,7 @@ koma-script
 \series default
  
 \begin_inset LatexCommand cite
-key "koma-script,koma-script-de"
+key "koma-script"
 
 \end_inset
 
@@ -21236,8 +21364,7 @@ let
 \backslash
 MyFigure
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \newline
 
 \begin_inset ERT
@@ -21256,11 +21383,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure
+MyEndfigure
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \newline
 
 \begin_inset ERT
@@ -21277,14 +21402,11 @@ hphantom{ }
 
 
 \backslash
-renewenvironment{f\SpecialChar \textcompwordmark{}
-igure}{
+renewenvironment{figure}{
 \backslash
-begin{SCf\SpecialChar \textcompwordmark{}
-igure}}{
+begin{SCfigure}}{
 \backslash
-end{SCf\SpecialChar \textcompwordmark{}
-igure}}}
+end{SCfigure}}}
 \end_layout
 
 \begin_layout Standard
@@ -21313,8 +21435,7 @@ hphantom{ }
 \backslash
 let
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \backslash
 MyFigure
 \newline
@@ -21335,11 +21456,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure}
+MyEndfigure}
 \end_layout
 
 \begin_layout Standard
@@ -21485,8 +21604,7 @@ b
 \series bold
 
 \backslash
-sidecaptionvpos{f\SpecialChar \textcompwordmark{}
-igure}{c}
+sidecaptionvpos{figure}{c}
 \end_layout
 
 \begin_layout Standard
@@ -22028,8 +22146,7 @@ LyX Ce type de note est à usage interne et n'apparaîtra pas sur la sortie
 
 \begin_inset Graphics
 	filename clipart/LyXNoteImageQt4.png
-	display none
-	scale 85
+	scale 65
 	scaleBeforeRotation
 
 \end_inset
@@ -22064,8 +22181,7 @@ LaTeX (pdflatex) / (plain)
 
 \begin_inset Graphics
 	filename clipart/CommentNoteImageQt4.png
-	display none
-	scale 85
+	scale 55
 	scaleBeforeRotation
 
 \end_inset
@@ -22101,8 +22217,7 @@ Grisée Ce type de note apparaît à l'impression sous forme de texte grisé.
 
 \begin_inset Graphics
 	filename clipart/GreyedOutNoteImageQt4.png
-	display none
-	scale 85
+	scale 55
 	scaleBeforeRotation
 
 \end_inset
@@ -22210,8 +22325,7 @@ Encadrée Ce type de note apparaîtra sur la sortie finale sous la forme d'un
 
 \begin_inset Graphics
 	filename clipart/FramedNoteImageQt4.png
-	display none
-	scale 85
+	scale 65
 	scaleBeforeRotation
 
 \end_inset
@@ -22261,8 +22375,7 @@ Colorée Ce type de note apparaîtra sur la sortie finale avec un arrière-plan
 
 \begin_inset Graphics
 	filename clipart/ShadedNoteImageQt4.png
-	display none
-	scale 85
+	scale 65
 	scaleBeforeRotation
 
 \end_inset
@@ -22631,17 +22744,7 @@ status open
 \begin_layout Standard
 
 \color yellow
-This is yellow text in a
-\color inherit
- 
-\family sans
-\color yellow
-Shaded
-\family default
-\color inherit
- 
-\color yellow
-note with darkgreen background.
+Ceci est un texte jaune dans une boîte grisée avec un fond vert foncé.
 \end_layout
 
 \end_inset
@@ -23532,7 +23635,7 @@ notes de fin
 \begin_inset Quotes erd
 \end_inset
 
-
+.
 \begin_inset Note Note
 status collapsed
 
@@ -23542,7 +23645,12 @@ J'ai pas trouvé mieux pour endnotes (NdT)
 
 \end_inset
 
-.
+
+\begin_inset LatexCommand index
+name "Notes de fin"
+
+\end_inset
+
  Pour utiliser des notes de fin à la place des notes de bas de page dans
  votre document, chargez le paquetage LaTeX 
 \series bold
@@ -24686,7 +24794,15 @@ On peut insérer une boîte en utilisant le menu
 Insérer\SpecialChar \menuseparator
 Boîte
 \family default
-.
+ ou avec le bouton 
+\begin_inset Graphics
+	filename ../../images/box-insert.xpm
+	scale 85
+	scaleBeforeRotation
+
+\end_inset
+
+ de la barre d'outils.
  Une boîte grise avec une étiquette 
 \family sans
 Boîte\InsetSpace ~
@@ -24695,7 +24811,7 @@ Boîte\InsetSpace ~
 : 
 \begin_inset Graphics
 	filename clipart/BoxInsetDefaultQt4.png
-	scale 85
+	scale 65
 	scaleBeforeRotation
 
 \end_inset
@@ -24755,24 +24871,6 @@ reference "sec:Parboxes"
 \begin_layout Standard
 Les boîtes ne sont pas numérotées et donc ne peuvent pas être référencées
  comme les flottants ou les notes de bas de page.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Standard
-
-\series bold
-Note:
-\series default
- À cause d'un bug de LyX vous devez insérer une espace insécable après une
- boîte si vous voulez la séparer du texte qui la suit par une espace.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -25045,7 +25143,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25054,8 +25152,7 @@ Cette boîte est alignée sur le haut.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Description
@@ -25071,7 +25168,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25080,8 +25177,7 @@ Cette boîte est alignée au centre.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Description
@@ -25097,7 +25193,7 @@ width "12col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25106,8 +25202,7 @@ Cette boîte est alignée sur le bas.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Standard
@@ -25145,7 +25240,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25154,8 +25249,7 @@ Le texte de cette boîte est aligné sur le haut.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Description
@@ -25171,7 +25265,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25180,8 +25274,7 @@ Le texte de cette boîte est aligné au centre
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Description
@@ -25197,7 +25290,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25206,8 +25299,7 @@ Le texte de cette boîte est aligné en bas.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Description
@@ -25223,7 +25315,7 @@ width "12col%"
 special "none"
 height "1.5in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -25247,8 +25339,7 @@ allongé.
 
 \end_inset
 
-\InsetSpace ~
-Ceci est un exemple de texte.
+ Ceci est un exemple de texte.
 \end_layout
 
 \begin_layout Standard
@@ -29659,7 +29750,7 @@ Les documents inclus sont visualisés dans LyX sous la forme d'une boîte
  comme celle-ci : 
 \begin_inset Graphics
 	filename clipart/ChildDocumentQt4.png
-	scale 85
+	scale 60
 	scaleBeforeRotation
 
 \end_inset
@@ -29699,7 +29790,7 @@ Voici un sous-document inséré avec la méthode
 Inclus
 \family default
  : 
-\begin_inset Include \include{DummyDocument1.lyx}
+\begin_inset Include \include{DocumentBidon1.lyx}
 preview false
 
 \end_inset
@@ -29716,7 +29807,7 @@ La numérotation des sections va prendre en compte les sections des fichiers
  : la sous-section\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sub:External-Subsection-1"
+reference "sub:Sous-section-externe-1"
 
 \end_inset
 
@@ -29854,7 +29945,7 @@ Voici un sous document inséré en utilisant la méthode
 Incorporé
 \family default
  : 
-\begin_inset Include \input{DummyDocument2.lyx}
+\begin_inset Include \input{DocumentBidon2.lyx}
 preview true
 
 \end_inset
@@ -29912,7 +30003,7 @@ Voici un sous-document inclus en utilisant la méthode
 verbatim
 \family default
  : 
-\begin_inset Include \verbatiminput{DummyTextDocument.txt}
+\begin_inset Include \verbatiminput{DocumentTexteBidon.txt}
 preview false
 
 \end_inset
@@ -29929,7 +30020,7 @@ les\InsetSpace ~
 espaces :
 \family default
  
-\begin_inset Include \verbatiminput*{DummyTextDocument.txt}
+\begin_inset Include \verbatiminput*{DocumentTexteBidon.txt}
 preview false
 
 \end_inset
@@ -31730,7 +31821,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 booktabs
 \series default
@@ -31773,7 +31864,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 caption
 \series default
@@ -31784,42 +31875,6 @@ name "Paquetages LaTeX ! caption"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset LatexCommand bibitem
-key "caption-de"
-
-\end_inset
-
-German 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/anleitung.pdf}
-{
-\end_layout
-
-\end_inset
-
-documentation
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
- of the LaTeX-package 
-\series bold
-caption
 \end_layout
 
 \begin_layout Bibliography
@@ -31853,10 +31908,9 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
-endf\SpecialChar \textcompwordmark{}
-loat
+endfloat
 \series default
 
 \begin_inset LatexCommand index
@@ -31869,7 +31923,7 @@ name "Paquetages LaTeX ! endfloat"
 
 \begin_layout Bibliography
 \begin_inset LatexCommand bibitem
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -31881,8 +31935,7 @@ status collapsed
 
 
 \backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/floatflt/floatflt.pdf}
-{
+href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty}{
 \end_layout
 
 \end_inset
@@ -31898,15 +31951,13 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "Paquetages LaTeX ! floatflt"
+name "Paquetages LaTeX ! wrapfig\\vspace{4mm}"
 
 \end_inset
 
@@ -31944,7 +31995,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 footmisc
 \series default
@@ -31987,7 +32038,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 hypcap
 \series default
@@ -32031,7 +32082,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 hyperref
 \series default
@@ -32075,51 +32126,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
-\series bold
-koma-script
-\series default
-
-\begin_inset LatexCommand index
-name "Paquetages LaTeX ! koma-script"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset LatexCommand bibitem
-key "koma-script-de"
-
-\end_inset
-
-German 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrguide.p
-df}{
-\end_layout
-
-\end_inset
-
-documentation
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 koma-script
 \series default
@@ -32163,7 +32170,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 listings
 \series default
@@ -32207,7 +32214,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 marginnote
 \series default
@@ -32250,7 +32257,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 PSTricks
 \series default
@@ -32293,7 +32300,7 @@ status collapsed
 
 \end_inset
 
- of the LaTeX-package 
+ du paquetage LaTeX 
 \series bold
 sidecap
 \series default
@@ -32325,7 +32332,7 @@ href{http://wiki.lyx.org/LyX/NewInLyX15}{
 
 \end_inset
 
-Wiki page
+Page Wiki
 \begin_inset ERT
 status collapsed
 
@@ -32336,7 +32343,7 @@ status collapsed
 
 \end_inset
 
- about new features in 
+ au sujet des nouveautés de 
 \family sans
 LyX 1.5.0
 \family default
@@ -32369,13 +32376,13 @@ LyX 1.5.0
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
-
+%
 \backslash
-listof{Xalgorithm}{List of Algorithms}
+listof{Xalgorithm}{Liste des Algorithmes}
 \end_layout
 
 \end_inset
