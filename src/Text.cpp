@@ -1088,9 +1088,11 @@ void Text::changeCase(Cursor & cur, Text::TextCase action)
 	CursorSlice from;
 	CursorSlice to;
 
+	bool gotsel = false;
 	if (cur.selection()) {
 		from = cur.selBegin();
 		to = cur.selEnd();
+		gotsel = true;
 	} else {
 		from = cur.top();
 		getWord(from, to, PARTIAL_WORD);
@@ -1174,10 +1176,13 @@ void Text::changeCase(Cursor & cur, Text::TextCase action)
 	}
 
 	// the selection may have changed due to logically-only deleted chars
-	setCursor(cur, begPit, begPos);
-	cur.resetAnchor();
-	setCursor(cur, endPit, right);
-	cur.setSelection();
+	if (gotsel) {
+		setCursor(cur, begPit, begPos);
+		cur.resetAnchor();
+		setCursor(cur, endPit, right);
+		cur.setSelection();
+	} else
+		setCursor(cur, endPit, right);
 
 	checkBufferStructure(cur.buffer(), cur);
 }
@@ -1225,11 +1230,14 @@ bool Text::erase(Cursor & cur)
 		// this is the code for a normal delete, not pasting
 		// any paragraphs
 		recordUndo(cur, Undo::DELETE);
-		if(!par.eraseChar(cur.pos(), cur.buffer().params().trackChanges)) {
+		bool const was_inset = cur.paragraph().isInset(cur.pos());
+		if(!par.eraseChar(cur.pos(), cur.buffer().params().trackChanges))
 			// the character has been logically deleted only => skip it
 			cur.forwardPosNoDescend();
-		}
-		checkBufferStructure(cur.buffer(), cur);
+		if (was_inset)
+			updateLabels(cur.buffer());
+		else
+			checkBufferStructure(cur.buffer(), cur);
 		needsUpdate = true;
 	} else {
 		if (cur.pit() == cur.lastpit())
@@ -1338,8 +1346,12 @@ bool Text::backspace(Cursor & cur)
 		// without the dreaded mechanism. (JMarc)
 		setCursorIntern(cur, cur.pit(), cur.pos() - 1,
 				false, cur.boundary());
+		bool const was_inset = cur.paragraph().isInset(cur.pos());
 		cur.paragraph().eraseChar(cur.pos(), cur.buffer().params().trackChanges);
-		checkBufferStructure(cur.buffer(), cur);
+		if (was_inset)
+			updateLabels(cur.buffer());
+		else
+			checkBufferStructure(cur.buffer(), cur);
 	}
 
 	if (cur.pos() == cur.lastpos())
@@ -1362,6 +1374,7 @@ bool Text::dissolveInset(Cursor & cur) {
 		return false;
 
 	recordUndoInset(cur);
+	cur.mark() = false;
 	cur.selHandle(false);
 	// save position
 	pos_type spos = cur.pos();

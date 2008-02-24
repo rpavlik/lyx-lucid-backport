@@ -1,5 +1,5 @@
 /**
- * \file text3.cpp
+ * \file Text3.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
@@ -204,8 +204,7 @@ void Text::cursorPrevious(Cursor & cur)
 	pos_type cpos = cur.pos();
 	pit_type cpar = cur.pit();
 
-	int x = cur.x_target();
-	setCursorFromCoordinates(cur, x, 0);
+	setCursorFromCoordinates(cur, cur.x_target(), 0);
 	cur.dispatch(FuncRequest(cur.selection()? LFUN_UP_SELECT: LFUN_UP));
 
 	if (cpar == cur.pit() && cpos == cur.pos())
@@ -215,6 +214,12 @@ void Text::cursorPrevious(Cursor & cur)
 
 	finishUndo();
 	cur.updateFlags(Update::Force | Update::FitCursor);
+	/* one of the dispatch calls above may have set the dispatched
+	 * status of the cursor to false. Did I ever say that calling
+	 * cur.dispatch directly is a bad idea? See bug 4570 for a
+	 * possible consequence (JMarc)
+	 */
+	cur.dispatched();
 }
 
 
@@ -223,8 +228,7 @@ void Text::cursorNext(Cursor & cur)
 	pos_type cpos = cur.pos();
 	pit_type cpar = cur.pit();
 
-	int x = cur.x_target();
-	setCursorFromCoordinates(cur, x, cur.bv().workHeight() - 1);
+	setCursorFromCoordinates(cur, cur.x_target(), cur.bv().workHeight() - 1);
 	cur.dispatch(FuncRequest(cur.selection()? LFUN_DOWN_SELECT: LFUN_DOWN));
 
 	if (cpar == cur.pit() && cpos == cur.pos())
@@ -235,6 +239,12 @@ void Text::cursorNext(Cursor & cur)
 
 	finishUndo();
 	cur.updateFlags(Update::Force | Update::FitCursor);
+	/* one of the dispatch calls above may have set the dispatched
+	 * status of the cursor to false. Did I ever say that calling
+	 * cur.dispatch directly is a bad idea? See bug 4570 for a
+	 * possible consequence (JMarc)
+	 */
+	cur.dispatched();
 }
 
 
@@ -268,6 +278,8 @@ bool doInsertInset(Cursor & cur, Text * text,
 		inset->edit(cur, true);
 
 	if (gotsel && pastesel) {
+		// metrics might be invalid at this point (bug 4502)
+		cur.bv().updateMetrics();
 		lyx::dispatch(FuncRequest(LFUN_PASTE, "0"));
 		// reset first par to default
 		if (cur.lastpit() != 0 || cur.lastpos() != 0) {
@@ -1028,8 +1040,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (cmd.button() == mouse_button::button3)
 			cur.clearSelection();
 
+		bool do_selection = cmd.button() == mouse_button::button1
+			&& cmd.argument() == "region-select";
 		// Set the cursor
-		bool update = bv->mouseSetCursor(cur);
+		bool update = bv->mouseSetCursor(cur, do_selection);
 
 		// Insert primary selection with middle mouse
 		// if there is a local selection in the current buffer,
@@ -1370,12 +1384,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MATH_MATRIX:
 	case LFUN_MATH_DELIM:
 	case LFUN_MATH_BIGDELIM: {
-		if (cur.selection())
-			cur.clearSelection();
-		// FIXME: instead of the above, this one
-		// should be used (but it asserts with Bidi enabled)
-		// cf. http://bugzilla.lyx.org/show_bug.cgi?id=4055
-		// cap::replaceSelection(cur);
+		cap::replaceSelection(cur);
 		InsetMathHull * inset = new InsetMathHull(hullSimple);
 		cur.insert(inset);
 		checkAndActivateInset(cur, true);

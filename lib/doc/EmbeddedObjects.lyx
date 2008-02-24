@@ -1,4 +1,4 @@
-#LyX 1.5.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -10,12 +10,7 @@
 
 % set fonts for nicer pdf view
 \IfFileExists{lmodern.sty}
- {\usepackage{lmodern}} % if it exists
- {% if it exists not
-  \usepackage[scaled=0.92]{helvet}
-  \usepackage{mathptmx}
-  \usepackage{courier}
- } % end if it exists not
+ {\usepackage{lmodern}}{}
 
 % link all cross references and URLs
 % in pdf output
@@ -271,7 +266,7 @@ status collapsed
 status collapsed
 
 \begin_layout Standard
-original author: Uwe Stöhr
+author: Uwe Stöhr
 \end_layout
 
 \end_inset
@@ -282,7 +277,7 @@ original author: Uwe Stöhr
 \newline
 
 \family sans
-Version 1.5.2-0
+Version 1.5.4
 \end_layout
 
 \begin_layout Standard
@@ -13986,8 +13981,8 @@ ifcolortbl
 status open
 
 \begin_layout Standard
-The following section part will only be displayed when you have the LaTeX-packag
-e 
+The following section part will only be displayed when the LaTeX-package
+ 
 \series bold
 colortbl
 \series default
@@ -17457,8 +17452,7 @@ ifarydshln
 status open
 
 \begin_layout Standard
-The following section will only be displayed when you have the LaTeX-package
- 
+The following section will only be displayed when the LaTeX-package 
 \series bold
 arydshln
 \series default
@@ -18538,13 +18532,11 @@ Float
 \family default
  if the LaTeX-package 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "LaTeX-packages ! floatflt"
+name "LaTeX-packages ! wrapfig\\vspace{4mm}"
 
 \end_inset
 
@@ -18572,16 +18564,14 @@ reference "fig:This-is-a"
 
 \end_inset
 
- is an example text wrap float with a width of 40
-\begin_inset Formula $\,$
-\end_inset
-
+ is an example text wrap float with a width of 40\InsetSpace \thinspace{}
 col%.
 \begin_inset Foot
 status collapsed
 
 \begin_layout Standard
-Available units are explained in 
+Available units are explained in appendix\InsetSpace ~
+
 \begin_inset LatexCommand ref
 reference "cha:Units-available-in"
 
@@ -18599,20 +18589,16 @@ ng text.
 \begin_layout Standard
 The LaTeX-package 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  also supports table wrap floats, but they are not yet supported by LyX.
  If you need this, read the documentation of 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
  
 \begin_inset LatexCommand cite
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -18634,33 +18620,6 @@ g.\InsetSpace ~
 having a figure too close to the bottom
  of the page can mess things up in the way that the float doesn't appear
  in the output or that it is placed over some other text.
-\begin_inset Foot
-status open
-
-\begin_layout Standard
-The better solution is to use the LaTeX-package 
-\series bold
-wrapf\SpecialChar \textcompwordmark{}
-ig
-\series default
-
-\begin_inset LatexCommand index
-name "LaTeX-packages ! wrapfig\\vspace{4mm}"
-
-\end_inset
-
- instead of 
-\series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
-\series default
-, but it is currently not supported by LyX.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -19339,8 +19298,7 @@ hypcap
 \series bold
 
 \backslash
-usepackage[f\SpecialChar \textcompwordmark{}
-igure]{hypcap}
+usepackage[figure]{hypcap}
 \end_layout
 
 \begin_layout Standard
@@ -19991,6 +19949,180 @@ e
 \end_layout
 
 \begin_layout Section
+Floats Side by Side
+\begin_inset LatexCommand index
+name "Floats ! Side by side"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To place floats side by side, like for Figure\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "fig:Float-left"
+
+\end_inset
+
+ and 
+\begin_inset LatexCommand ref
+reference "fig:Float-right"
+
+\end_inset
+
+, only 
+\emph on
+one
+\emph default
+ float is used.
+ In it two minipage boxes are inserted.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+Minipages are explained in section\InsetSpace ~
+
+\begin_inset LatexCommand ref
+reference "sec:Minipages"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ The width is set to 45\InsetSpace \thinspace{}
+-50\InsetSpace \thinspace{}
+column% and the box alignment to 
+\family sans
+Bottom
+\family default
+ for each minipage.
+ The minipage boxes contain the image and the caption in the same way as
+ they are in a float.
+ The only difference is that the image unit 
+\family sans
+Column\InsetSpace ~
+Width\InsetSpace ~
+%
+\family default
+ is now calculated according to the width of the minipage boxes.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename clipart/mobius.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Float-left"
+
+\end_inset
+
+Float on the left side.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\hfill
+
+\begin_inset Box Frameless
+position "b"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename clipart/platypus.eps
+	lyxscale 50
+	width 100col%
+	scaleBeforeRotation
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Float-right"
+
+\end_inset
+
+Float on the right side.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 Caption Formatting
 \begin_inset LatexCommand index
 name "Caption ! Formatting"
@@ -20144,8 +20276,7 @@ usepackage[tableposition=top]{caption}
 \series bold
 
 \backslash
-captionsetup[f\SpecialChar \textcompwordmark{}
-igure]{labelfont={tt}, textfont=it, indention=1cm,%
+captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm,%
 \newline
 
 \begin_inset ERT
@@ -20351,7 +20482,7 @@ koma-script
 \series default
  documentation 
 \begin_inset LatexCommand cite
-key "koma-script,koma-script-de"
+key "koma-script"
 
 \end_inset
 
@@ -20878,8 +21009,7 @@ let
 \backslash
 MyFigure
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \newline
 
 \begin_inset ERT
@@ -20898,11 +21028,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure
+MyEndfigure
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \newline
 
 \begin_inset ERT
@@ -20919,14 +21047,11 @@ hphantom{ }
 
 
 \backslash
-renewenvironment{f\SpecialChar \textcompwordmark{}
-igure}{
+renewenvironment{figure}{
 \backslash
-begin{SCf\SpecialChar \textcompwordmark{}
-igure}}{
+begin{SCfigure}}{
 \backslash
-end{SCf\SpecialChar \textcompwordmark{}
-igure}}}
+end{SCfigure}}}
 \end_layout
 
 \begin_layout Standard
@@ -20955,8 +21080,7 @@ hphantom{ }
 \backslash
 let
 \backslash
-f\SpecialChar \textcompwordmark{}
-igure
+figure
 \backslash
 MyFigure
 \newline
@@ -20977,11 +21101,9 @@ hphantom{ }
 \backslash
 let
 \backslash
-endf\SpecialChar \textcompwordmark{}
-igure
+endfigure
 \backslash
-MyEndf\SpecialChar \textcompwordmark{}
-igure}
+MyEndfigure}
 \end_layout
 
 \begin_layout Standard
@@ -21127,8 +21249,7 @@ b
 \series bold
 
 \backslash
-sidecaptionvpos{f\SpecialChar \textcompwordmark{}
-igure}{c}
+sidecaptionvpos{figure}{c}
 \end_layout
 
 \begin_layout Standard
@@ -23187,6 +23308,11 @@ endnotes
 \end_inset
 
 .
+\begin_inset LatexCommand index
+name "Endnotes"
+
+\end_inset
+
  To use endnotes instead of footnotes in your document, load the LaTeX-package
  
 \series bold
@@ -23745,8 +23871,7 @@ ifmarginnote
 status open
 
 \begin_layout Standard
-The following section will only be displayed when you have the LaTeX-package
- 
+The following section will only be displayed when the LaTeX-package 
 \series bold
 marginnote
 \series default
@@ -24340,6 +24465,14 @@ Boxes can be inserted with the menu
 Insert\SpecialChar \menuseparator
 Box
 \family default
+ or the toolbar button 
+\begin_inset Graphics
+	filename ../images/box-insert.xpm
+	scale 85
+	scaleBeforeRotation
+
+\end_inset
+
 .
  A grey box with the label 
 \family sans
@@ -24397,24 +24530,6 @@ reference "sec:Parboxes"
 \begin_layout Standard
 Boxes aren't numbered and can therefore not be referenced like floats or
  footnotes.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Standard
-
-\series bold
-Note:
-\series default
- Due to a bug in LyX you have to insert a protected space behind a box when
- you want to separate in a line the box from the following text with a space.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -24689,8 +24804,7 @@ This box is top-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Description
@@ -24715,8 +24829,7 @@ This box is middle-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Description
@@ -24741,8 +24854,7 @@ This box is bottom-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Standard
@@ -24784,8 +24896,7 @@ This box text is top-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Description
@@ -24810,8 +24921,7 @@ This box text is middle-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Description
@@ -24836,8 +24946,7 @@ This box text is bottom-aligned.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Description
@@ -24872,8 +24981,7 @@ stretched.
 
 \end_inset
 
-\InsetSpace ~
-This is an example text line.
+ This is an example text line.
 \end_layout
 
 \begin_layout Standard
@@ -31341,8 +31449,7 @@ status collapsed
 
  of the LaTeX-package 
 \series bold
-endf\SpecialChar \textcompwordmark{}
-loat
+endfloat
 \series default
 
 \begin_inset LatexCommand index
@@ -31355,7 +31462,7 @@ name "LaTeX-packages ! endfloat"
 
 \begin_layout Bibliography
 \begin_inset LatexCommand bibitem
-key "floatflt"
+key "wrapfig"
 
 \end_inset
 
@@ -31367,8 +31474,7 @@ status collapsed
 
 
 \backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/floatflt/floatflt.pdf}
-{
+href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty}{
 \end_layout
 
 \end_inset
@@ -31386,13 +31492,11 @@ status collapsed
 
  of the LaTeX-package 
 \series bold
-f\SpecialChar \textcompwordmark{}
-loatf\SpecialChar \textcompwordmark{}
-lt
+wrapfig
 \series default
 
 \begin_inset LatexCommand index
-name "LaTeX-packages ! floatflt"
+name "LaTeX-packages ! wrapfig\\vspace{4mm}"
 
 \end_inset
 
@@ -31551,50 +31655,6 @@ df}{
 \end_inset
 
 Documentation
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
- of the LaTeX-package 
-\series bold
-koma-script
-\series default
-
-\begin_inset LatexCommand index
-name "LaTeX-packages ! koma-script"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset LatexCommand bibitem
-key "koma-script-de"
-
-\end_inset
-
-German 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrguide.p
-df}{
-\end_layout
-
-\end_inset
-
-documentation
 \begin_inset ERT
 status collapsed
 

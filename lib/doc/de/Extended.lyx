@@ -1,4 +1,4 @@
-#LyX 1.5.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -18,12 +18,7 @@
 
 % set fonts for nicer pdf view
 \IfFileExists{lmodern.sty}
- {\usepackage{lmodern}} % if it exists
- {% if it exists not
-  \usepackage[scaled=0.92]{helvet}
-  \usepackage{mathptmx}
-  \usepackage{courier}
- } % end if it exists not
+ {\usepackage{lmodern}}{}
 
 % link all cross references and URLs
 % in pdf output
@@ -147,8 +142,8 @@ Haase
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 30.
- Oktober 2007
+letzte Änderung: 19.
+ Februar 2008
 \end_layout
 
 \begin_layout Standard
@@ -1702,7 +1697,8 @@ hoffset
 \family typewriter
 
 \backslash
-voffset
+voff\SpecialChar \-
+set
 \family default
 .
  Ihre Namen sollten selbsterklärend sein.
@@ -3076,6 +3072,18 @@ bibunits
 \end_layout
 
 \begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+begin{sloppypar}
+\end_layout
+
+\end_inset
+
 Zunächst kreuzen Sie in
 \family sans
  Dokument\SpecialChar \menuseparator
@@ -3139,7 +3147,19 @@ Strg+L
 btUnit
 \family default
  zitiert werden, enthalten.
- 
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+end{sloppypar}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -4856,11 +4876,11 @@ Wenn die Abbildung oder Tabelle zu groß ist, um auf den Rest der Seite zu
 \end_layout
 
 \begin_layout Standard
-Zur Zeit können Sie diese Gleitobjekte aber nur rechts oder links, aber
- nicht in der Mitte einer Zeile positionieren, weil LyX hierfür das LaTeX-Paket
- 
+Diese Gleitobjekte können Sie aber nur rechts, links, innen oder außen,
+ aber nicht in der Mitte einer Zeile positionieren, weil LyX hierfür das
+ LaTeX-Paket 
 \family typewriter
-floatflt
+wrapfig
 \family default
  benutzt.
  Für zentrierte Bilder gibt es das LaTeX-Paket 
@@ -6390,9 +6410,17 @@ Name.html
 -Datei (Cascading Style Sheet).
  LyX benutzt 
 \family typewriter
+latex2html
+\family default
+ oder 
+\family typewriter
 htlatex
 \family default
-, aber in 
+ (Paket 
+\family typewriter
+tex4ht
+\family default
+), aber in 
 \family sans
 Werkzeuge
 \family default
@@ -15953,7 +15981,31 @@ make\SpecialChar \-
 at\SpecialChar \-
 other
 \family default
-, mit Ausnahme derjenigen Einträge, die Sie selber in den LaTeX-Vorspann
+, mit Ausnahme derjenigen Einträge, die Sie selber in den LaTeX
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+"=
+\end_layout
+
+\end_inset
+
+Vorspann
+\begin_inset Note Note
+status open
+
+\begin_layout Standard
+siehe 
+\emph on
+Benutzerhandbuch
+\emph default
+, Zusammengesetzte Worte
+\end_layout
+
+\end_inset
+
  eingefügt haben.
 \end_layout
 
@@ -17731,6 +17783,36 @@ scrguide
  (zum Beispiel /usr/share/texmf/doc/latex/koma-script/scrguide.pdf).
 \end_layout
 
+\begin_layout Subsubsection
+Serienbriefe
+\end_layout
+
+\begin_layout Standard
+Wenn Sie 
+\family sans
+Datei\SpecialChar \menuseparator
+Öffnen
+\family default
+ (
+\family sans
+Strg+O
+\family default
+) drücken und auf 
+\family sans
+Beispiele
+\family default
+ klicken, finden Sie im Ordner 
+\family sans
+de
+\family default
+ drei Beispiele für Serienbriefe (
+\family typewriter
+serienbrief1/2/3.lyx
+\family default
+).
+ In diesen Dateien wird erklärt, wie man Serienbriefe erstellt.
+\end_layout
+
 \begin_layout Subsection
 Probleme
 \end_layout
@@ -17789,7 +17871,7 @@ svjour
 \family default
 )
 \begin_inset LatexCommand index
-name "en"
+name "Springer-Zeitschriften"
 
 \end_inset
 

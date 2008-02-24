@@ -1,4 +1,4 @@
-#LyX 1.5.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -17,10 +17,7 @@
 \ifpdf % if pdflatex is used
 
  % set fonts for nicer pdf view
- \IfFileExists{lmodern.sty}{\usepackage{lmodern}}
-  {\usepackage[scaled=0.92]{helvet}
-    \usepackage{mathptmx}
-    \usepackage{courier} }
+ \IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
 
  % link all cross references and URLs in pdf output
  \usepackage[colorlinks=true, bookmarks, bookmarksnumbered,
@@ -115,6 +112,23 @@ lyx-docs@lists.lyx.org
 
 \begin_layout Standard
 \begin_inset LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Standard
+The latest PDF-version of this document can be found here:
+\newline
+
+\series bold
+http://wiki.lyx.org/LyX/DocumentationDevelopment#Tutorial
+\end_layout
 
 \end_inset
 
@@ -3786,7 +3800,7 @@ Rows\InsetSpace \thinspace{}
 &\InsetSpace \thinspace{}
 Columns
 \family default
- or the table toolbar buttons 
+ or the math toolbar buttons 
 \begin_inset Graphics
 	filename ../images/tabular-feature_append-row.xpm
 	scale 75

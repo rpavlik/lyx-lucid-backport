@@ -71,9 +71,13 @@ QBibtexDialog::QBibtexDialog(QBibtex * form)
 		this, SLOT( browsePressed()));
 	connect(deletePB, SIGNAL(clicked()),
 		this, SLOT( deletePressed()));
+	connect(upPB, SIGNAL(clicked()),
+		this, SLOT( upPressed()));
+	connect(downPB, SIGNAL(clicked()),
+		this, SLOT( downPressed()));
 	connect(styleCB, SIGNAL(editTextChanged (const QString &)),
 		this, SLOT( change_adaptor()));
-	connect(databaseLW, SIGNAL(itemSelectionChanged()),
+	connect(databaseLW, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
 		this, SLOT( databaseChanged()));
 	connect(bibtocCB, SIGNAL(clicked()),
 		this, SLOT( change_adaptor()));
@@ -103,13 +107,15 @@ QBibtexDialog::QBibtexDialog(QBibtex * form)
 		this, SLOT(addDatabase()));
 	connect(add_->bibLW, SIGNAL(itemActivated(QListWidgetItem *)),
 		add_, SLOT(accept()));
-	connect(add_->bibLW, SIGNAL(itemSelectionChanged()),
+	connect(add_->bibLW, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
 		this, SLOT(availableChanged()));
 	connect(add_->browsePB, SIGNAL(clicked()),
 		this, SLOT(browseBibPressed()));
 	connect(add_->closePB, SIGNAL(clicked()),
 		add_, SLOT(reject()));
 
+	// Make sure the delete/up/down buttons are disabled if necessary.
+	databaseChanged();
 }
 
 
@@ -215,21 +221,50 @@ void QBibtexDialog::addDatabase()
 			databaseLW->addItem(f);
 	}
 
+	databaseChanged();
 	form_->changed();
 }
 
 
 void QBibtexDialog::deletePressed()
 {
-	databaseLW->takeItem(databaseLW->currentRow());
+	QListWidgetItem *cur = databaseLW->takeItem(databaseLW->currentRow());
+	if (cur) {
+		delete cur;
+		databaseChanged();
+		form_->changed();
+	}
+}
+
+
+void QBibtexDialog::upPressed()
+{
+	int row = databaseLW->currentRow();
+	QListWidgetItem *cur = databaseLW->takeItem(row);
+	databaseLW->insertItem(row - 1, cur);
+	databaseLW->setCurrentItem(cur);
 	form_->changed();
 }
 
 
+void QBibtexDialog::downPressed()
+{
+	int row = databaseLW->currentRow();
+	QListWidgetItem *cur = databaseLW->takeItem(row);
+	databaseLW->insertItem(row + 1, cur);
+	databaseLW->setCurrentItem(cur);
+	form_->changed();
+}
+
 
 void QBibtexDialog::databaseChanged()
 {
-	deletePB->setEnabled(!form_->readOnly() && databaseLW->currentRow() != -1);
+	bool readOnly = form_->readOnly();
+	int count = databaseLW->count();
+	int row = databaseLW->currentRow();
+	deletePB->setEnabled(!readOnly && row != -1);
+	upPB->setEnabled(!readOnly && count > 1 && row > 0);
+	downPB->setEnabled(!readOnly && count > 1 && row < count - 1);
 }
 
 
@@ -272,7 +307,9 @@ void QBibtex::build_dialog()
 	bcview().addReadOnly(dialog_->styleCB);
 	bcview().addReadOnly(dialog_->bibtocCB);
 	bcview().addReadOnly(dialog_->addBibPB);
-	bcview().addReadOnly(dialog_->deletePB);
+
+	// Delete/Up/Down are handled with more conditions in
+	// QBibtexDialog::databaseChanged().
 }
 
 

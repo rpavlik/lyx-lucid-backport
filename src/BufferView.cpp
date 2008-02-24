@@ -963,24 +963,33 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 			from = doc_iterator_begin(buffer_->inset());
 			to = doc_iterator_end(buffer_->inset());
 		}
-		int const count = countWords(from, to);
+		int const words = countWords(from, to);
+		int const chars = countChars(from, to, false);
+		int const chars_blanks = countChars(from, to, true);
 		docstring message;
-		if (count != 1) {
-			if (cur.selection())
-				message = bformat(_("%1$d words in selection."),
-					  count);
-				else
-					message = bformat(_("%1$d words in document."),
-							  count);
-		}
-		else {
-			if (cur.selection())
-				message = _("One word in selection.");
-			else
-				message = _("One word in document.");
-		}
+		if (cur.selection())
+			message = _("Statistics for the selection:");
+		else
+			message = _("Statistics for the document:");
+		message += "\n\n";
+		if (words != 1)
+			message += bformat(_("%1$d words"), words);
+		else
+			message += _("One word");
+		message += "\n";
+		if (chars_blanks != 1)
+			message += bformat(_("%1$d characters (including blanks)"),
+					  chars_blanks);
+		else
+			message += _("One character (including blanks)");
+		message += "\n";
+		if (chars != 1)
+			message += bformat(_("%1$d characters (excluding blanks)"),
+					  chars);
+		else
+			message += _("One character (excluding blanks)");
 
-		Alert::information(_("Count words"), message);
+		Alert::information(_("Statistics"), message);
 	}
 		break;
 
@@ -1344,13 +1353,14 @@ bool BufferView::checkDepm(Cursor & cur, Cursor & old)
 }
 
 
-bool BufferView::mouseSetCursor(Cursor & cur)
+bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 {
 	BOOST_ASSERT(&cur.bv() == this);
 
-        // this event will clear selection so we save selection for
-	// persistent selection
-	cap::saveSelection(cursor());
+	if (!select)
+		// this event will clear selection so we save selection for
+		// persistent selection
+		cap::saveSelection(cursor());
 
 	// Has the cursor just left the inset?
 	bool badcursor = false;
@@ -1358,12 +1368,15 @@ bool BufferView::mouseSetCursor(Cursor & cur)
 	if (leftinset)
 		badcursor = notifyCursorLeaves(cursor_, cur);
 
+	// FIXME: shift-mouse selection doesn't work well across insets.
+	bool do_selection = select && &cursor_.anchor().inset() == &cur.inset();
+
 	// do the dEPM magic if needed
 	// FIXME: (1) move this to InsetText::notifyCursorLeaves?
 	// FIXME: (2) if we had a working InsetText::notifyCursorLeaves,
 	// the leftinset bool would not be necessary (badcursor instead).
 	bool update = leftinset;
-	if (!badcursor && cursor_.inTexted())
+	if (!do_selection && !badcursor && cursor_.inTexted())
 		update |= checkDepm(cur, cursor_);
 
 	// if the cursor was in an empty script inset and the new
@@ -1385,7 +1398,10 @@ bool BufferView::mouseSetCursor(Cursor & cur)
 
 	cursor_.setCursor(dit);
 	cursor_.boundary(cur.boundary());
-	cursor_.clearSelection();
+	if (do_selection)
+		cursor_.setSelection();
+	else
+		cursor_.clearSelection();
 	finishUndo();
 	return update;
 }

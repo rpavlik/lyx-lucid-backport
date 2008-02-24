@@ -114,6 +114,7 @@ using support::changeExtension;
 using support::cmd_ret;
 using support::createBufferTmpDir;
 using support::destroyDir;
+using support::doesFileExist;
 using support::FileName;
 using support::getFormatFromContents;
 using support::libFileSearch;
@@ -372,8 +373,8 @@ pair<Buffer::LogType, string> const Buffer::getLogName() const
 
 	// If no Latex log or Build log is newer, show Build log
 
-	if (fs::exists(bname.toFilesystemEncoding()) &&
-	    (!fs::exists(fname.toFilesystemEncoding()) ||
+	if (doesFileExist(bname) &&
+	    (!doesFileExist(fname) ||
 	     fs::last_write_time(fname.toFilesystemEncoding()) < fs::last_write_time(bname.toFilesystemEncoding()))) {
 		LYXERR(Debug::FILES) << "Log name calculated as: " << bname << endl;
 		return make_pair(Buffer::buildlog, bname.absFilename());
@@ -792,7 +793,7 @@ bool Buffer::save() const
 	bool madeBackup = false;
 
 	// make a backup if the file already exists
-	if (lyxrc.make_backup && fs::exists(encodedFilename)) {
+	if (lyxrc.make_backup && doesFileExist(pimpl_->filename)) {
 		backupName = FileName(fileName() + '~');
 		if (!lyxrc.backupdir_path.empty()) {
 			string const mangledName =
@@ -814,7 +815,7 @@ bool Buffer::save() const
 	}
 
 	// ask if the disk file has been externally modified (use checksum method)
-	if (fs::exists(encodedFilename) && isExternallyModified(checksum_method)) {
+	if (doesFileExist(pimpl_->filename) && isExternallyModified(checksum_method)) {
 		docstring const file = makeDisplayPath(fileName(), 20);
 		docstring text = bformat(_("Document %1$s has been externally modified. Are you sure "
 							     "you want to overwrite this file?"), file);
@@ -934,21 +935,47 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 	LYXERR(Debug::LATEX) << "makeLaTeXFile encoding: "
 		<< encoding << "..." << endl;
 
-	odocfstream ofs(encoding);
+	odocfstream ofs;
+	try { ofs.reset(encoding); }
+	catch (iconv_codecvt_facet_exception & e) {
+		lyxerr << "Caught iconv exception: " << e.what() << endl;
+		Alert::error(_("Iconv software exception Detected"), bformat(_("Please "
+			"verify that the support software for your encoding (%1$s) is "
+			"properly installed"), from_ascii(encoding)));
+		return false;
+	}
 	if (!openFileWrite(ofs, fname))
 		return false;
 
+	ErrorList & errorList = pimpl_->errorLists["Export"];
+	errorList.clear();
 	bool failed_export = false;
 	try {
 		writeLaTeXSource(ofs, original_path,
 		      runparams, output_preamble, output_body);
 	}
+	catch (EncodingException & e) {
+		odocstringstream ods;
+		ods.put(e.failed_char);
+		ostringstream oss;
+		oss << "0x" << std::hex << e.failed_char << std::dec;
+		docstring msg = bformat(_("Could not find LaTeX command for character '%1$s'"
+					  " (code point %2$s)"),
+					  ods.str(), from_utf8(oss.str()));
+		errorList.push_back(ErrorItem(msg, _("Some characters of your document are probably not "
+				"representable in the chosen encoding.\n"
+				"Changing the document encoding to utf8 could help."),
+				e.par_id, e.pos, e.pos + 1));
+		failed_export = true;			
+	}
 	catch (iconv_codecvt_facet_exception & e) {
-		lyxerr << "Caught iconv exception: " << e.what() << endl;
+		errorList.push_back(ErrorItem(_("iconv conversion failed"),
+			_(e.what()), -1, 0, 0));
 		failed_export = true;
 	}
 	catch (std::exception const & e) {
-		lyxerr << "Caught \"normal\" exception: " << e.what() << endl;
+		errorList.push_back(ErrorItem(_("conversion failed"),
+			_(e.what()), -1, 0, 0));
 		failed_export = true;
 	}
 	catch (...) {
@@ -962,15 +989,8 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 		failed_export = true;
 		lyxerr << "File '" << fname << "' was not closed properly." << endl;
 	}
-
-	if (failed_export) {
-		Alert::error(_("Encoding error"),
-			_("Some characters of your document are probably not "
-			"representable in the chosen encoding.\n"
-			"Changing the document encoding to utf8 could help."));
-		return false;
-	}
-	return true;
+	errors("Export");
+	return !failed_export;
 }
 
 
@@ -1044,26 +1064,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	} // output_preamble
 	LYXERR(Debug::INFO) << "preamble finished, now the body." << endl;
 
-	if (!lyxrc.language_auto_begin &&
-	    !params().language->babel().empty()) {
-		// FIXME UNICODE
-		os << from_utf8(subst(lyxrc.language_command_begin,
-					   "$$lang",
-					   params().language->babel()))
-		   << '\n';
-		texrow().newline();
-	}
-
-	Encoding const & encoding = params().encoding();
-	if (encoding.package() == Encoding::CJK) {
-		// Open a CJK environment, since in contrast to the encodings
-		// handled by inputenc the document encoding is not set in
-		// the preamble if it is handled by CJK.sty.
-		os << "\\begin{CJK}{" << from_ascii(encoding.latexName())
-		   << "}{}\n";
-		texrow().newline();
-	}
-
 	// if we are doing a real file with body, even if this is the
 	// child of some other buffer, let's cut the link here.
 	// This happens for example if only a child document is printed.
@@ -1074,7 +1074,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	}
 
 	// the real stuff
-	latexParagraphs(*this, paragraphs(), os, texrow(), runparams);
+	latexParagraphs(*this, text(), os, texrow(), runparams);
 
 	// Restore the parenthood if needed
 	if (output_preamble)
@@ -1083,23 +1083,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	// add this just in case after all the paragraphs
 	os << endl;
 	texrow().newline();
-
-	if (encoding.package() == Encoding::CJK) {
-		// Close the open CJK environment.
-		// latexParagraphs will have opened one even if the last text
-		// was not CJK.
-		os << "\\end{CJK}\n";
-		texrow().newline();
-	}
-
-	if (!lyxrc.language_auto_end &&
-	    !params().language->babel().empty()) {
-		os << from_utf8(subst(lyxrc.language_command_end,
-					   "$$lang",
-					   params().language->babel()))
-		   << '\n';
-		texrow().newline();
-	}
 
 	if (output_preamble) {
 		os << "\\end{document}\n";
@@ -1145,7 +1128,6 @@ void Buffer::makeDocBookFile(FileName const & fname,
 {
 	LYXERR(Debug::LATEX) << "makeDocBookFile..." << endl;
 
-	//ofstream ofs;
 	odocfstream ofs;
 	if (!openFileWrite(ofs, fname))
 		return;
@@ -1598,7 +1580,7 @@ bool Buffer::isBakClean() const
 
 bool Buffer::isExternallyModified(CheckMethod method) const
 {
-	BOOST_ASSERT(fs::exists(pimpl_->filename.toFilesystemEncoding()));
+	BOOST_ASSERT(doesFileExist(pimpl_->filename));
 	// if method == timestamp, check timestamp before checksum
 	return (method == checksum_method 
 		|| pimpl_->timestamp_ != fs::last_write_time(pimpl_->filename.toFilesystemEncoding()))
@@ -1608,7 +1590,7 @@ bool Buffer::isExternallyModified(CheckMethod method) const
 
 void Buffer::saveCheckSum(FileName const & file) const
 {
-	if (fs::exists(file.toFilesystemEncoding())) {
+	if (doesFileExist(file)) {
 		pimpl_->timestamp_ =
 			fs::last_write_time(file.toFilesystemEncoding());
 		pimpl_->checksum_ = sum(file);
@@ -1845,7 +1827,7 @@ void Buffer::getSourceCode(odocstream & os, pit_type par_begin,
 		// output paragraphs
 		if (isLatex()) {
 			texrow().reset();
-			latexParagraphs(*this, paragraphs(), os, texrow(), runparams);
+			latexParagraphs(*this, text(), os, texrow(), runparams);
 		} else {
 			// DocBook
 			docbookParagraphs(paragraphs(), *this, os, runparams);

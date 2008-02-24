@@ -1547,6 +1547,7 @@ lib_images_files = Split('''
     banner.png
     bookmark-goto.xpm
     bookmark-save.xpm
+    box-insert.xpm
     break-line.xpm
     buffer-close.xpm
     buffer-export_dvi.xpm
@@ -2213,7 +2214,9 @@ lib_doc_files = Split('''
     EmbeddedObjects.lyx
     Extended.lyx
     FAQ.lyx
+    Formula-numbering.lyx
     Intro.lyx
+    Math.lyx
     LaTeXConfig.lyx.in
     Reference.lyx
     Tutorial.lyx
@@ -2284,7 +2287,9 @@ lib_doc_de_files = Split('''
     EmbeddedObjects.lyx
     Extended.lyx
     FAQ.lyx
+    Formelnummerierung.lyx
     Intro.lyx
+    Math.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2318,15 +2323,10 @@ lib_doc_es_files = Split('''
     DocumentoTextoPostizo.txt
     EmbeddedObjects.lyx
     Extended.lyx
+    FAQ.lyx
     Intro.lyx
     Tutorial.lyx
     UserGuide.lyx
-''')
-
-
-lib_doc_es_biblio_files = Split('''
-    alphadin.bst
-    LyXDocs.bib
 ''')
 
 
@@ -2360,10 +2360,14 @@ lib_doc_eu_files = Split('''
 
 lib_doc_fr_files = Split('''
     Customization.lyx
+    DocumentBidon1.lyx
+    DocumentBidon2.lyx
+    DocumentTexteBidon.txt
     EmbeddedObjects.lyx
     Extended.lyx
     FAQ.lyx
     Intro.lyx
+    Math.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2472,6 +2476,7 @@ lib_examples_files = Split('''
     Minipage.lyx
     aa_sample.lyx
     aas_sample.lyx
+    addressExample.adr
     amsart-test.lyx
     amsbook-test.lyx
     armenian-article.lyx
@@ -2500,12 +2505,14 @@ lib_examples_files = Split('''
     landslide.lyx
     listerrors.lyx
     listings.lyx
-    mathed.lyx
     modernCV.lyx
     multicol.lyx
     noweb2lyx.lyx
     powerdot-example.lyx
     script_form.lyx
+    serial_letter1.lyx
+    serial_letter2.lyx
+    serial_letter3.lyx
     simplecv.lyx
     splash.lyx
 ''')
@@ -2533,8 +2540,10 @@ lib_examples_de_files = Split('''
     Minipage.lyx
     beispiel_gelyxt.lyx
     beispiel_roh.lyx
-    mathed.lyx
     multicol.lyx
+    serienbrief1.lyx
+    serienbrief2.lyx
+    serienbrief3.lyx
     splash.lyx
 ''')
 
@@ -2562,6 +2571,7 @@ lib_examples_es_files = Split('''
     ItemizeBullets.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
+    mathed.lyx
     splash.lyx
 ''')
 
@@ -2596,6 +2606,11 @@ lib_examples_hu_files = Split('''
 
 lib_examples_it_files = Split('''
     ItemizeBullets.lyx
+    splash.lyx
+''')
+
+
+lib_examples_ja_files = Split('''
     splash.lyx
 ''')
 

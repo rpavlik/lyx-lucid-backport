@@ -58,21 +58,21 @@ bool InsetSpace::metrics(MetricsInfo & mi, Dimension & dim) const
 	switch (kind_) {
 		case THIN:
 		case NEGTHIN:
-		    dim.wid = fm.width(char_type('x')) / 3;
+			dim.wid = fm.width(char_type('M')) / 6;
 			break;
 		case PROTECTED:
 		case NORMAL:
-		    dim.wid = fm.width(char_type('x'));
+			dim.wid = fm.width(char_type(' '));
 			break;
 		case QUAD:
-			dim.wid = 20;
+			dim.wid = fm.width(char_type('M'));
 			break;
 		case QQUAD:
-			dim.wid = 40;
+			dim.wid = 2 * fm.width(char_type('M'));
 			break;
 		case ENSPACE:
 		case ENSKIP:
-			dim.wid = 10;
+			dim.wid = 0.5 * fm.width(char_type('M'));
 			break;
 	}
 	bool const changed = dim_ != dim;
@@ -90,7 +90,7 @@ void InsetSpace::draw(PainterInfo & pi, int x, int y) const
 
 	xp[0] = x;
 	yp[0] = y - max(h / 4, 1);
-	if (kind_ == NORMAL) {
+	if (kind_ == NORMAL || kind_ == PROTECTED) {
 		xp[1] = x;     yp[1] = y;
 		xp[2] = x + w; yp[2] = y;
 	} else {
@@ -228,10 +228,9 @@ int InsetSpace::docbook(Buffer const &, odocstream & os,
 }
 
 
-int InsetSpace::textString(Buffer const & buf, odocstream & os,
-		       OutputParams const & op) const
+void InsetSpace::textString(Buffer const & buf, odocstream & os) const
 {
-	return plaintext(buf, os, op);
+	plaintext(buf, os, OutputParams(0));
 }
 
 
