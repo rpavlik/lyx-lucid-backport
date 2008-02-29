@@ -1,8 +1,15 @@
 lyx (1.5.4-1) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * New upstream release.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 24 Feb 2008 14:48:11 +0100
+  [ Sven Hoexter ]
+  * Add patches/prefer-xdg-open. Sadly there are still issue with xdg-open
+    in other Linux distributions forcing upstream to rewoke the patch added
+    with LyX 1.5.3 again in LyX 1.5.4.
+    http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg133878.html
+ 
+ -- Sven Hoexter <sven@timegate.de>  Fri, 29 Feb 2008 18:31:43 +0100
 
 lyx (1.5.3-1) unstable; urgency=low
 
