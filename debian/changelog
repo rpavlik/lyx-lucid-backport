@@ -1,4 +1,4 @@
-lyx (1.5.4-1) UNRELEASED; urgency=low
+lyx (1.5.4-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * New upstream release.
@@ -10,8 +10,8 @@ lyx (1.5.4-1) UNRELEASED; urgency=low
     http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg133878.html
   * Remove the -1 from the libboost-dev and quilt dependency to make lintian
     and backporters happy.
- 
- -- Sven Hoexter <sven@timegate.de>  Fri, 29 Feb 2008 18:31:43 +0100
+
+ -- Per Olofsson <pelle@debian.org>  Thu, 13 Mar 2008 15:17:19 +0100
 
 lyx (1.5.3-1) unstable; urgency=low
 
