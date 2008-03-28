@@ -1,3 +1,9 @@
+lyx (1.5.4-2) UNRELEASED; urgency=low
+
+  * Add writer2latex and latex2rtf to Suggests (found in configure.py).
+
+ -- Per Olofsson <pelle@debian.org>  Fri, 28 Mar 2008 12:49:56 +0100
+
 lyx (1.5.4-1) unstable; urgency=low
 
   [ Per Olofsson ]

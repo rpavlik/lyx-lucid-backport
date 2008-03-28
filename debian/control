@@ -18,7 +18,7 @@ Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, lyx-common (= ${source:Version}), xdg-utils, mime-support
 Recommends: texlive-latex-recommended, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, latex-xft-fonts, evince | postscript-viewer, evince | pdf-viewer
-Suggests: cupsys-client | lpr, iceweasel | www-browser, rcs, dvipost, tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, texlive-latex-extra
+Suggests: cupsys-client | lpr, iceweasel | www-browser, rcs, dvipost, tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, texlive-latex-extra, writer2latex, latex2rtf
 Replaces: lyx-common (<< 1.5.0~beta1-3)
 Conflicts: lyx-qt, lyx-xforms
 Description: Document Processor
