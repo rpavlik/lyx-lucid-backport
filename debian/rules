@@ -92,6 +92,9 @@ install: build
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
+	mkdir -p debian/lyx-common/etc/bash_completion.d
+	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx
+
 	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py*
 	rm -r debian/lyx-common/usr/share/lyx/fonts
 

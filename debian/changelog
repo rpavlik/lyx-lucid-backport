@@ -1,8 +1,13 @@
 lyx (1.5.4-2) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * Add writer2latex and latex2rtf to Suggests (found in configure.py).
 
- -- Per Olofsson <pelle@debian.org>  Fri, 28 Mar 2008 12:49:56 +0100
+  [ Sven Hoexter ]
+  * Add bash_completion and install it as /etc/bash_completion.d/lyx.
+    Thanks to Cengiz Gunay <cgunay@emory.edu>.
+
+ -- Sven Hoexter <sven@timegate.de>  Tue, 01 Apr 2008 11:10:42 +0200
 
 lyx (1.5.4-1) unstable; urgency=low
 
