@@ -6,8 +6,10 @@ lyx (1.5.4-2) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * Add bash_completion and install it as /etc/bash_completion.d/lyx.
     Thanks to Cengiz Gunay <cgunay@emory.edu>.
+  * Add pkg-config as a build-dependency. With the depedency resorting
+    in the libqt4 package this one got lost along the way somehow.
 
- -- Sven Hoexter <sven@timegate.de>  Tue, 01 Apr 2008 11:10:42 +0200
+ -- Sven Hoexter <sven@timegate.de>  Mon, 14 Apr 2008 09:42:12 +0200
 
 lyx (1.5.4-1) unstable; urgency=low
 
