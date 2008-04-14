@@ -6,9 +6,10 @@ lyx (1.5.4-2) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * Add bash_completion and install it as /etc/bash_completion.d/lyx.
     Thanks to Cengiz Gunay <cgunay@emory.edu>.
-  * Add pkg-config and libaudio-dev as a build-dependency. With the
-    depedency resorting in the libqt4-* packages those are no longer
-    pulled in.
+  * Add pkg-config, libaudio-dev, libxt-dev, libxi-dev, libxrandr-dev,
+    libxft-dev,  libglib2.0-dev and libpng12-dev as a build-dependency.
+    With the dependency resorting in the libqt4-dev package those are no
+    longer pulled in automatically.
 
  -- Sven Hoexter <sven@timegate.de>  Mon, 14 Apr 2008 09:42:12 +0200
 
