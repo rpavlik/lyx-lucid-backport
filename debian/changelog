@@ -2,6 +2,9 @@ lyx (1.5.4-2) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Add writer2latex and latex2rtf to Suggests (found in configure.py).
+  * Only assign CXXFLAGS if it's empty, as dpkg-buildpackage now defines
+    the variable for us. Don't bother with checking for noopt in
+    DEB_BUILD_OPTIONS, as it's deprecated.
 
   [ Sven Hoexter ]
   * Add bash_completion and install it as /etc/bash_completion.d/lyx.

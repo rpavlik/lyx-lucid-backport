@@ -29,13 +29,7 @@ CONFIGURE_OPTIONS += \
 	--without-included-gettext \
 	--without-included-boost \
 
-CXXFLAGS += -g
-
-ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CXXFLAGS += -O2
-else
-	CXXFLAGS += -O0
-endif
+CXXFLAGS ?= -g -O2
 
 ifeq ($(DEB_HOST_ARCH),hppa)
 	CXXFLAGS += -ffunction-sections
