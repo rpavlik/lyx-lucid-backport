@@ -11,8 +11,10 @@ lyx (1.5.4-2) UNRELEASED; urgency=low
     Thanks to Cengiz Gunay <cgunay@emory.edu>.
   * Add pkg-config as a build-dependency. Needed after the libqt4-dev
     build-dep resorting.
+  * Add patches/qt_44_crash_fix from Abdelrazak Younes <younes@lyx.org>
+    to get LyX working with Qt 4.4. Closes: #475523
 
- -- Sven Hoexter <sven@timegate.de>  Mon, 14 Apr 2008 09:42:12 +0200
+ -- Sven Hoexter <sven@timegate.de>  Fri, 18 Apr 2008 14:39:47 +0200
 
 lyx (1.5.4-1) unstable; urgency=low
 
