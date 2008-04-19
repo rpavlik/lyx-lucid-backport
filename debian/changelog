@@ -1,4 +1,4 @@
-lyx (1.5.4-2) UNRELEASED; urgency=low
+lyx (1.5.4-2) unstable; urgency=low
 
   [ Per Olofsson ]
   * Add writer2latex and latex2rtf to Suggests (found in configure.py).
@@ -14,7 +14,7 @@ lyx (1.5.4-2) UNRELEASED; urgency=low
   * Add patches/qt_44_crash_fix from Abdelrazak Younes <younes@lyx.org>
     to get LyX working with Qt 4.4. Closes: #475523
 
- -- Sven Hoexter <sven@timegate.de>  Fri, 18 Apr 2008 14:39:47 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 19 Apr 2008 14:13:15 +0200
 
 lyx (1.5.4-1) unstable; urgency=low
 
