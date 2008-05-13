@@ -79,9 +79,6 @@ bool has_math_fonts;
 
 namespace {
 
-// file scope
-typedef std::map<docstring, latexkeys> WordList;
-
 WordList theWordList;
 
 
@@ -233,6 +230,12 @@ void initSymbols()
 
 } // namespace anon
 
+ 
+WordList const & mathedWordList()
+{
+	return theWordList;
+}
+
 
 void initMath()
 {
@@ -362,8 +365,14 @@ MathAtom createInsetMath(docstring const & s)
 		return MathAtom(new InsetMathTabular(s, 1, 1));
 	if (s == "stackrel")
 		return MathAtom(new InsetMathStackrel);
-	if (s == "binom" || s == "choose")
-		return MathAtom(new InsetMathBinom(s == "choose"));
+	if (s == "binom")
+		return MathAtom(new InsetMathBinom(InsetMathBinom::BINOM));
+	if (s == "choose")
+		return MathAtom(new InsetMathBinom(InsetMathBinom::CHOOSE));
+	if (s == "brace")
+		return MathAtom(new InsetMathBinom(InsetMathBinom::BRACE));
+	if (s == "brack")
+		return MathAtom(new InsetMathBinom(InsetMathBinom::BRACK));
 	if (s == "frac")
 		return MathAtom(new InsetMathFrac);
 	if (s == "over")
@@ -377,7 +386,11 @@ MathAtom createInsetMath(docstring const & s)
 	if (s == "lefteqn")
 		return MathAtom(new InsetMathLefteqn);
 	if (s == "boldsymbol")
-		return MathAtom(new InsetMathBoldSymbol);
+		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::AMS_BOLD));
+	if (s == "bm")
+		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::BM_BOLD));
+	if (s == "heavysymbol"  || s == "hm")
+		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::BM_HEAVY));
 	if (s == "color" || s == "normalcolor")
 		return MathAtom(new InsetMathColor(true));
 	if (s == "textcolor")

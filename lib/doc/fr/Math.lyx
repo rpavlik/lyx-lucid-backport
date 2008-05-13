@@ -1,4 +1,4 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -202,7 +202,7 @@ Manuel mathématique détaillé de LyX
 \begin_layout Author
 par l'équipe LyX 
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Standard
 \noindent
@@ -247,7 +247,7 @@ auteur: Uwe Stöhr
 \end_layout
 
 \begin_layout Standard
-traducteur: Siegfried MEUNIER-GUTTIN-CLUZEL
+traducteur: Siegfried Meunier-Guttin-Cluzel
 \end_layout
 
 \end_inset
@@ -258,9 +258,7 @@ traducteur: Siegfried MEUNIER-GUTTIN-CLUZEL
 \newline
 
 \family sans
-Version 1.5.4-
-\family default
-1
+Version 1.5.5
 \end_layout
 
 \begin_layout Standard
@@ -1278,31 +1276,6 @@ mu =
 
 \InsetSpace \thinspace{}
 em)
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Standard
-La commande 
-\series bold
-
-\backslash
-textfrac
-\series default
- est expliquée sec.\InsetSpace \thinspace{}
-
-\begin_inset LatexCommand ref
-reference "sub:Fractions-personnalisées"
-
-\end_inset
-
-
-\lang english
-.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -2370,7 +2343,7 @@ de la barre d'outils mathématique.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="2">
+<lyxtabular version="3" rows="5" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0pt">
 <column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
@@ -2473,6 +2446,106 @@ dbinom{A
 
 \begin_layout Standard
 \begin_inset Formula $\raisebox{5mm}{}\dbinom{A}{B}\raisebox{-2.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\backslash
+brack
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+spce 
+\end_layout
+
+\end_inset
+
+A
+\begin_inset Formula $\downarrow$
+\end_inset
+
+B
+\series bold
+
+\begin_inset LatexCommand index
+name "Commandes ! B ! \\textbackslash brack"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\raisebox{5mm}{}{A \brack B}\raisebox{-2.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\backslash
+brace
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+spce 
+\end_layout
+
+\end_inset
+
+A
+\begin_inset Formula $\downarrow$
+\end_inset
+
+B
+\series bold
+
+\begin_inset LatexCommand index
+name "Commandes ! B ! \\textbackslash brace"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\raisebox{5mm}{}{A \brace B}\raisebox{-2.5mm}{}$
 \end_inset
 
 
@@ -6556,6 +6629,19 @@ name "Commandes ! U ! \\textbackslash underbrace"
 
 \backslash
 overbrace
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+spce 
+\end_layout
+
+\end_inset
+
+
 \backslash
 underbrace
 \begin_inset ERT
@@ -11175,7 +11261,7 @@ Boîtes
 \emph default
 du manuel 
 \emph on
-Objets Insérés.
+Objets insérés.
  
 \end_layout
 
@@ -11384,40 +11470,6 @@ Quand on insère la commande
 framebox
 \series default
 , une boîte apparaît contenant trois boîtes bleues.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-À cause d'un bug de LyX, le curseur doit être placé à gauche, à côté des
- boîtes bleues pour pouvoir les remplir, voir 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=2461}{
-\end_layout
-
-\end_inset
-
-LyX-bug #2461
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
  Les deux premières sont entourées de crochets pour signales des arguments
  optionnels.
  La troisième boîte est là pour contenir les portions de formules, comme
@@ -11502,7 +11554,7 @@ status collapsed
 
 \end_inset
 
-
+.
 \end_layout
 
 \end_inset
@@ -16569,7 +16621,7 @@ ABC
 \begin_inset Text
 
 \begin_layout Standard
-Alt-z k
+Alt-c c
 \end_layout
 
 \end_inset
@@ -16616,7 +16668,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Standard
-Alt-z f
+Alt-c b
 \end_layout
 
 \end_inset
@@ -16710,7 +16762,7 @@ ABC
 \begin_inset Text
 
 \begin_layout Standard
-Alt-z h
+Alt-c e
 \end_layout
 
 \end_inset
@@ -16895,7 +16947,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Standard
-Alt-z r
+Alt-c r
 \end_layout
 
 \end_inset
@@ -16942,7 +16994,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Standard
-Alt-z s
+Alt-c s
 \end_layout
 
 \end_inset
@@ -16989,7 +17041,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Standard
--
+Alt-c p
 \end_layout
 
 \end_inset
@@ -19980,6 +20032,8 @@ name "Symboles ! divers"
 \end_layout
 
 \begin_layout Standard
+\noindent
+\align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
 <features>
@@ -20775,7 +20829,7 @@ name "Symboles ! symbole de l'Euro"
 
 
 \begin_inset LatexCommand index
-name "\\textcent@\\officialeuro"
+name "\\officialeuro"
 
 \end_inset
 
@@ -27160,42 +27214,6 @@ reference "sec:Styles-de-formules"
 \end_inset
 
 .
- C'est aussi le cas dans LyX quand il y a un numéro de formule affiché après
- chaque ligne
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-C'est 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=518}{
-\end_layout
-
-\end_inset
-
-LyX-bug #518
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -27713,33 +27731,6 @@ Insérer\SpecialChar \menuseparator
 Le nom de l'étiquette est affiché dans LyX entre deux parenthèses, après
  la formule.
  Une formule avec une étiquette est toujours numérotée.
- L'étiquette est détruite si la numérotation est désactivée.
- C'est d'ailleurs, pour le moment la seule façon de supprimer une étiquette,
- voir 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=2556}{
-\end_layout
-
-\end_inset
-
-LyX-bug #2556
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -28229,7 +28220,7 @@ Si vous voulez avoir une expression de votre choix entre parenthèses après
 \series bold
 
 \backslash
-tag{expression}
+tag
 \series default
 
 \begin_inset LatexCommand index
@@ -28248,8 +28239,23 @@ Dans cet exemple, on a mis la commande
 
 \backslash
 tag
+\series default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
-{quelquechose
+spce 
+\end_layout
+
+\end_inset
+
+
+\series bold
+quelquechose
 \series default
  dans la formule.
 \end_layout
@@ -28260,8 +28266,23 @@ Quand on insère la commande
 
 \backslash
 tag*
+\series default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
-{quelquechose
+spce 
+\end_layout
+
+\end_inset
+
+
+\series bold
+quelquechose
 \series default
  à la place, l'astérisque supprime les parenthèses autour du texte:
 \begin_inset Formula \[
@@ -29024,12 +29045,12 @@ status collapsed
 
 
 \backslash
-href{Formula-numbering.pdf}{
+href{Formula-numbering.lyx}{
 \end_layout
 
 \end_inset
 
-Formula-numbering.pdf
+Formula-numbering.lyx
 \begin_inset ERT
 status collapsed
 
@@ -32124,21 +32145,7 @@ Les symboles pourcent et les pour mille sont présentés comme les symboles
  d'unités:
 \newline
 1,2\InsetSpace \thinspace{}
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-textperthousand 
-\end_layout
-
-\end_inset
-
-\InsetSpace ~
-d'alcool dans le sang
+‰ d'alcool dans le sang
 \begin_inset Foot
 status collapsed
 
@@ -32946,7 +32953,7 @@ key "Voss"
 
 \end_inset
 
-Page de trucs et astuces LaTeX 
+
 \begin_inset ERT
 status collapsed
 
@@ -32959,7 +32966,7 @@ href{http://tug.org/TeXnik/}{
 
 \end_inset
 
- 
+Page
 \begin_inset ERT
 status collapsed
 
@@ -32970,7 +32977,7 @@ status collapsed
 
 \end_inset
 
-
+ de trucs et astuces LaTeX
 \end_layout
 
 \begin_layout Bibliography

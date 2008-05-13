@@ -145,10 +145,6 @@ static string const floatingfootnote_def =
 	"  \\expandafter\\noexpand\\csname SF@gobble@opt \\endcsname}\n"
 	"\\def\\SF@gobble@twobracket[#1]#2{}\n";
 
-static string const boldsymbol_def =
-	"%% Bold symbol macro for standard LaTeX users\n"
-	"\\providecommand{\\boldsymbol}[1]{\\mbox{\\boldmath $#1$}}\n";
-
 static string const binom_def =
 	"%% Binom macro for standard LaTeX users\n"
 	"\\newcommand{\\binom}[2]{{#1 \\choose #2}}\n";
@@ -441,6 +437,7 @@ char const * simplefeatures[] = {
 	"mathrsfs",
 	"ascii",
 	"url",
+	"bm"
 };
 
 int const nb_simplefeatures = sizeof(simplefeatures) / sizeof(char const *);
@@ -474,6 +471,9 @@ string const LaTeXFeatures::getPackages() const
 	    (mustProvide("esintoramsmath") &&
 	     params_.use_esint == BufferParams::package_off)) {
 		packages << "\\usepackage{amsmath}\n";
+	} else if (mustProvide("amsbsy")) {
+		// amsbsy is already provided by amsmath
+		packages << "\\usepackage{amsbsy}\n";
 	}
 
 	// wasysym is a simple feature, but it must be after amsmath if both
@@ -666,8 +666,6 @@ string const LaTeXFeatures::getMacros() const
 		macros << guillemotright_def << '\n';
 
 	// Math mode
-	if (mustProvide("boldsymbol") && !isRequired("amsmath"))
-		macros << boldsymbol_def << '\n';
 	if (mustProvide("binom") && !isRequired("amsmath"))
 		macros << binom_def << '\n';
 	if (mustProvide("mathcircumflex"))

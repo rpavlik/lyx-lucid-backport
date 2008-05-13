@@ -73,8 +73,8 @@ void parse_text_snippet(Parser & p, ostream & os, unsigned flags, bool outer,
 		Context & context)
 {
 	Context newcontext(context);
-	// Don't inherit the extra stuff
-	newcontext.extra_stuff.clear();
+	// Don't inherit the paragraph-level extra stuff
+	newcontext.par_extra_stuff.clear();
 	parse_text(p, os, flags, outer, newcontext);
 	// Make sure that we don't create invalid .lyx files
 	context.need_layout = newcontext.need_layout;
@@ -99,7 +99,7 @@ string parse_text_snippet(Parser & p, unsigned flags, const bool outer,
 	newcontext.need_end_layout = false;
 	newcontext.new_layout_allowed = false;
 	// Avoid warning by Context::~Context()
-	newcontext.extra_stuff.clear();
+	newcontext.par_extra_stuff.clear();
 	ostringstream os;
 	parse_text_snippet(p, os, flags, outer, newcontext);
 	return os.str();
@@ -152,7 +152,7 @@ char const * const known_sizes[] = { "tiny", "scriptsize", "footnotesize",
 
 /// the same as known_sizes with .lyx names
 char const * const known_coded_sizes[] = { "default", "tiny", "scriptsize", "footnotesize",
-"small", "normal", "large", "larger", "largest",  "huge", "giant", 0};
+"small", "normal", "large", "larger", "largest", "huge", "giant", 0};
 
 /// LaTeX 2.09 names for font families
 char const * const known_old_font_families[] = { "rm", "sf", "tt", 0};
@@ -855,8 +855,8 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		parent_context.check_end_layout(os);
 		switch (context.layout->latextype) {
 		case  LATEX_LIST_ENVIRONMENT:
-			context.extra_stuff = "\\labelwidthstring "
-				+ p.verbatim_item() + '\n';
+			context.add_par_extra_stuff("\\labelwidthstring "
+						    + p.verbatim_item() + '\n');
 			p.skip_spaces();
 			break;
 		case  LATEX_BIB_ENVIRONMENT:
@@ -1513,11 +1513,11 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "noindent") {
 			p.skip_spaces();
-			context.add_extra_stuff("\\noindent\n");
+			context.add_par_extra_stuff("\\noindent\n");
 		}
 
 		else if (t.cs() == "appendix") {
-			context.add_extra_stuff("\\start_of_appendix\n");
+			context.add_par_extra_stuff("\\start_of_appendix\n");
 			// We need to start a new paragraph. Otherwise the
 			// appendix in 'bla\appendix\chapter{' would start
 			// too late.
@@ -1539,23 +1539,45 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			eat_whitespace(p, os, context, true);
 		}
 
+		// Starred section headings
 		// Must attempt to parse "Section*" before "Section".
 		else if ((p.next_token().asInput() == "*") &&
 			 context.new_layout_allowed &&
-			 // The single '=' is meant here.
 			 (newlayout = findLayout(context.textclass,
 						 t.cs() + '*')).get() &&
 			 newlayout->isCommand()) {
+			TeXFont const oldFont = context.font;
+			// save the current font size
+			string const size = oldFont.size;
+			// reset the font size to default, because the font size switches don't
+			// affect section headings and the like
+			context.font.size = known_coded_sizes[0];
+			output_font_change(os, oldFont, context.font);
+			// write the layout
 			p.get_token();
 			output_command_layout(os, p, outer, context, newlayout);
+			// set the font size to the original value
+			context.font.size = size;
+			output_font_change(os, oldFont, context.font);
 			p.skip_spaces();
 		}
 
-		// The single '=' is meant here.
+		// Section headings and the like
 		else if (context.new_layout_allowed &&
 			 (newlayout = findLayout(context.textclass, t.cs())).get() &&
 			 newlayout->isCommand()) {
+			TeXFont const oldFont = context.font;
+			// save the current font size
+			string const size = oldFont.size;
+			// reset the font size to default, because the font size switches don't
+			// affect section headings and the like
+			context.font.size = known_coded_sizes[0];
+			output_font_change(os, oldFont, context.font);
+			// write the layout
 			output_command_layout(os, p, outer, context, newlayout);
+			// set the font size to the original value
+			context.font.size = size;
+			output_font_change(os, oldFont, context.font);
 			p.skip_spaces();
 		}
 
@@ -1857,6 +1879,23 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				eat_whitespace(p, os, context, false);
 		}
 
+		else if (t.cs() == "textcolor") {
+			// scheme is \textcolor{color name}{text}
+			string const color = p.verbatim_item();
+			// we only support the predefined colors of the color package
+			if (color == "black" || color == "blue" || color == "cyan"
+				|| color == "green" || color == "magenta" || color == "red"
+				|| color == "white" || color == "yellow") {
+					context.check_layout(os);
+					os << "\n\\color " << color << "\n";
+					parse_text_snippet(p, os, FLAG_ITEM, outer, context);
+					context.check_layout(os);
+					os << "\n\\color inherit\n";
+			} else
+				// for custom defined colors
+				handle_ert(os, t.asInput() + "{" + color + "}", context);
+		}
+
 		else if (t.cs() == "underbar") {
 			// Do NOT handle \underline.
 			// \underbar cuts through y, g, q, p etc.,
@@ -1874,6 +1913,11 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			parse_text_snippet(p, os, FLAG_ITEM, outer, context);
 			context.check_layout(os);
 			os << "\n\\" << t.cs() << " default\n";
+		}
+
+		else if (t.cs() == "lyxline") {
+			context.check_layout(os);
+			os << "\\lyxline";
 		}
 
 		else if (use_natbib &&
@@ -1995,7 +2039,9 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			char const * const * where = is_known(t.cs(), known_sizes);
 			context.check_layout(os);
 			TeXFont const oldFont = context.font;
-			context.font.size = known_coded_sizes[where - known_sizes];
+			// the font size index differs by 1, because the known_coded_sizes
+			// has additionally a "default" entry
+			context.font.size = known_coded_sizes[where - known_sizes + 1];
 			output_font_change(os, oldFont, context.font);
 			eat_whitespace(p, os, context, false);
 		}
@@ -2329,6 +2375,19 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "parbox")
 			parse_box(p, os, FLAG_ITEM, outer, context, true);
+
+		//\makebox() is part of the picture environment and different from \makebox{}
+		//\makebox{} will be parsed by parse_box when bug 2956 is fixed
+		else if (t.cs() == "makebox") {
+			string arg = "\\makebox";
+			if (p.next_token().character() == '(')
+				//the syntax is: \makebox(x,y)[position]{content}
+				arg += p.getFullParentheseOpt();
+			else
+				//the syntax is: \makebox[width][position]{content}
+				arg += p.getFullOpt();
+			handle_ert(os, arg + p.getFullOpt(), context);
+		}
 
 		else if (t.cs() == "smallskip" ||
 			 t.cs() == "medskip" ||

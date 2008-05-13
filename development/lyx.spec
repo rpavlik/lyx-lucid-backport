@@ -3,7 +3,7 @@
 
 Summary: A WYSIWYM (What You See Is What You Mean) frontend to LaTeX
 Name: lyx
-Version: 1.5.4
+Version: 1.5.5
 Release: 1_%{frontend}
 License: see COPYING file
 Group: Applications/Publishing

@@ -172,12 +172,12 @@ Menuset
 		Item "Add Row|A" "tabular-feature append-row"
 		Item "Delete Row|D" "tabular-feature delete-row"
 		Item "Copy Row|o" "tabular-feature copy-row"
-		Item "Swap Rows|S" "tabular-feature swap-row"
+		# Item "Swap Rows|S" "tabular-feature swap-row" # currently broken
 		Separator
 		Item "Add Column|u" "tabular-feature append-column"
 		Item "Delete Column|e" "tabular-feature delete-column"
 		Item "Copy Column|p" "tabular-feature copy-column"
-		Item "Swap Columns|w" "tabular-feature swap-column"
+		# Item "Swap Columns|w" "tabular-feature swap-column" # currently broken
 	End
 
 	Menu "edit_math"
@@ -365,8 +365,6 @@ Menuset
 		Separator
 		Item "Delimiters|r" "dialog-show mathdelimiter"
 		Item "Matrix|x" "dialog-show mathmatrix"
-		Separator
-		Item "Toggle Math Panels" "toolbar-toggle math_panels"
 	End
 
 	Menu "insert_float"

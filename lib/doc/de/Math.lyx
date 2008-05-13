@@ -1,4 +1,4 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -273,9 +273,7 @@ Verfasser: Uwe Stöhr
 \newline
 
 \family sans
-Version 1.5.4-
-\family default
-1
+Version 1.5.5
 \end_layout
 
 \begin_layout Standard
@@ -1308,29 +1306,6 @@ mu =
 
 \InsetSpace \thinspace{}
 em)
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Standard
-Der Befehl 
-\series bold
-
-\backslash
-textfrac
-\series default
- ist in Kap.
- 
-\begin_inset LatexCommand ref
-reference "sub:Selbstdefinierte-Brüche"
-
-\end_inset
-
- erklärt.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -2417,7 +2392,7 @@ eingefügt werden.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="2">
+<lyxtabular version="3" rows="5" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0pt">
 <column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
@@ -2522,6 +2497,106 @@ dbinom{A
 
 \begin_layout Standard
 \begin_inset Formula $\raisebox{5mm}{}\dbinom{A}{B}\raisebox{-2.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\backslash
+brack
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+A
+\begin_inset Formula $\downarrow$
+\end_inset
+
+B
+\series bold
+
+\begin_inset LatexCommand index
+name "Befehle ! B ! \\textbackslash brack"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\raisebox{5mm}{}{A \brack B}\raisebox{-2.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\backslash
+brace
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+A
+\begin_inset Formula $\downarrow$
+\end_inset
+
+B
+\series bold
+
+\begin_inset LatexCommand index
+name "Befehle ! B ! \\textbackslash brace"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\raisebox{5mm}{}{A \brace B}\raisebox{-2.5mm}{}$
 \end_inset
 
 
@@ -6651,6 +6726,19 @@ name "Befehle ! U ! \\textbackslash underbrace"
 
 \backslash
 overbrace
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+
 \backslash
 underbrace
 \begin_inset ERT
@@ -11457,40 +11545,6 @@ Wenn man den Befehl
 framebox
 \series default
  eingibt, erscheint eine Box mit drei Eingabefeldern.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-Aufgrund eines Fehlers in LyX muss der Cursor links neben die Eingabefelder
- gesetzt werden um sie zu füllen, siehe 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=2461}{
-\end_layout
-
-\end_inset
-
-LyX-Fehler #2461
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
  Die ersten beiden sind von eckigen Klammern umgeben und stehen für die
  beiden optionalen Argumente.
  In das dritte Feld wird wie bei 
@@ -11573,7 +11627,7 @@ status collapsed
 
 \end_inset
 
-
+.
 \end_layout
 
 \end_inset
@@ -17124,7 +17178,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Standard
--
+Alt-z c
 \end_layout
 
 \end_inset
@@ -20106,6 +20160,8 @@ name "Symbole ! sonstige"
 \end_layout
 
 \begin_layout Standard
+\noindent
+\align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
 <features>
@@ -20902,7 +20958,7 @@ name "Symbole ! Euro-Symbol"
 
 
 \begin_inset LatexCommand index
-name "\\textcent@\\officialeuro"
+name "\\officialeuro"
 
 \end_inset
 
@@ -27343,41 +27399,6 @@ reference "sec:Formelstile"
 
 \end_inset
 
- Dies gilt auch wenn in LyX hinter jeder Zeile eine Formelnummer angezeigt
- wird.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-Dies ist 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=518}{
-\end_layout
-
-\end_inset
-
-LyX-Fehler #518
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
@@ -27885,33 +27906,6 @@ Marke
 \begin_layout Standard
 Der Name der Marke erscheint in LyX in zwei runden Klammern hinter der Formel.
  Eine Formel mit Marke wird immer nummeriert.
- Wird die Nummerierung abgeschaltet, wird die Marke gelöscht.
- Dies ist momentan die einzige Möglichkeit eine Marke zu löschen, siehe
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-href{http://bugzilla.lyx.org/show_bug.cgi?id=2556}{
-\end_layout
-
-\end_inset
-
-LyX-Fehler #2556
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -27928,7 +27922,7 @@ Querverweis
 \end_inset
 
  eingefügt.
- Ein Querverweis uaf Formeln erscheint im Ausdruck als Formelnummer.
+ Ein Querverweis auf Formeln erscheint im Ausdruck als Formelnummer.
  Wenn man im Querverweis Dialogfenster das Format 
 \series bold
 (<Querverweis>)
@@ -28387,7 +28381,7 @@ Soll statt einer fortlaufenden Nummer ein beliebiger Ausdruck in den Klammern
 \series bold
 
 \backslash
-tag{Ausdruck}
+tag
 \series default
 
 \begin_inset LatexCommand index
@@ -28406,8 +28400,23 @@ A+B=C\tag{etwas}\label{eq:tag}\end{equation}
 
 \backslash
 tag
+\series default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
-{etwas
+leer 
+\end_layout
+
+\end_inset
+
+
+\series bold
+etwas
 \series default
  eingegeben.
 \end_layout
@@ -28418,8 +28427,23 @@ Gibt man stattdessen
 
 \backslash
 tag*
+\series default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
-{etwas
+leer 
+\end_layout
+
+\end_inset
+
+
+\series bold
+etwas
 \series default
  ein, verhindert der Stern die Klammern um den Ausdruck:
 \begin_inset Formula \[
@@ -29247,12 +29271,12 @@ status collapsed
 
 
 \backslash
-href{Formelnummerierung.pdf}{
+href{Formelnummerierung.lyx}{
 \end_layout
 
 \end_inset
 
-Formelnummerierung.pdf
+Formelnummerierung.lyx
 \begin_inset ERT
 status collapsed
 
@@ -29264,28 +29288,6 @@ status collapsed
 \end_inset
 
 .
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Standard
-Mehr zum Befehl 
-\series bold
-
-\backslash
-href
-\series default
-, siehe Kapitel 
-\begin_inset LatexCommand ref
-reference "sub:Links-in-DVI-"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
@@ -32573,21 +32575,8 @@ reference "sub:Vordefinierter-Leerraum"
 Prozent- und Promillezeichen werden wie physikalische Einheiten gesetzt:
 \newline
 1,2\InsetSpace \thinspace{}
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-textperthousand 
-\end_layout
-
-\end_inset
-
-\InsetSpace ~
-Alkohol im Blut
+‰
+ Alkohol im Blut
 \newline
 Sie folgen jedoch direkt auf die Zahl, wenn sie in einer
  Zusammensetzung oder Ableitung stehen: 3%-ige Rendite, 20%-Grenze

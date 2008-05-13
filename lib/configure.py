@@ -306,6 +306,7 @@ def checkFormatEntries(dtl_tools):
     #
     # entried that do not need checkProg
     addToRC(r'''\Format date       ""     "date command"          "" ""	""	""
+\Format csv        csv    "Comma-separated values"  "" ""	""	"document"
 \Format fax        ""      Fax                    "" ""	""	"document"
 \Format lyx        lyx     LyX                    "" ""	""	""
 \Format lyx13x     lyx13  "LyX 1.3.x"             "" ""	""	"document"
@@ -350,7 +351,8 @@ def checkConverterEntries():
     checkProg('a Noweb -> LaTeX converter', ['noweave -delay -index $$i > $$o'],
         rc_entry = [ r'\converter literate   latex      "%%"	""' ])
     #
-    checkProg('an HTML -> LaTeX converter', ['html2latex $$i'],
+    checkProg('an HTML -> LaTeX converter', ['html2latex $$i', 'gnuhtml2latex $$i', \
+        'htmltolatex -input $$i -output $$o', 'java -jar htmltolatex.jar -input $$i -output $$o'],
         rc_entry = [ r'\converter html       latex      "%%"	""' ])
     #
     checkProg('an MS Word -> LaTeX converter', ['wvCleanLatex $$i $$o'],
@@ -380,9 +382,10 @@ def checkConverterEntries():
         rc_entry = [ r'\converter odt        latex      "%%"	""' ])
     # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
     # Both SuSE and debian have oolatex
-    checkProg('a LaTeX -> Open Document converter', ['oolatex $$i', 'oolatex.sh $$i', \
-        '/usr/share/tex4ht/oolatex $$i', \
-        'htlatex $$i \'xhtml,ooffice\' \'ooffice/! -cmozhtf\' \'-coo\' \'-cvalidate\''],
+    checkProg('a LaTeX -> Open Document converter', [
+        'htlatex $$i \'xhtml,ooffice\' \'ooffice/! -cmozhtf\' \'-coo\' \'-cvalidate\'', \
+	'oolatex $$i', 'oolatex.sh $$i', \
+        '/usr/share/tex4ht/oolatex $$i'],
         rc_entry = [ r'\converter latex      odt        "%%"	"needaux"' ])
     # On windows it is called latex2rt.exe
     checkProg('a LaTeX -> RTF converter', ['latex2rtf -p -S -o $$o $$i', 'latex2rt -p -S -o $$o $$i'],
@@ -396,6 +399,15 @@ def checkConverterEntries():
     #
     checkProg('a PS to TXT converter', ['ps2ascii $$i $$o'],
         rc_entry = [ r'\converter ps         text3      "%%"	""' ])
+    #
+    checkProg('a PS to EPS converter', ['ps2eps $$i'],
+        rc_entry = [ r'\converter ps         eps      "%%"	""' ])
+    #
+    checkProg('a PDF to PS converter', ['pdf2ps $$i $$o', 'pdftops $$i $$o'],
+        rc_entry = [ r'\converter pdf         ps        "%%"	""' ])
+    #
+    checkProg('a PDF to EPS converter', ['pdftops -eps $$i $$o'],
+        rc_entry = [ r'\converter pdf         eps        "%%"	""' ])
     #
     checkProg('a DVI to TXT converter', ['catdvi $$i > $$o'],
         rc_entry = [ r'\converter dvi        text4      "%%"	""' ])
@@ -481,6 +493,7 @@ def checkConverterEntries():
     #
     # Entries that do not need checkProg
     addToRC(r'''\converter lyxpreview ppm        "python -tt $$s/scripts/lyxpreview2bitmap.py"	""
+\converter csv        lyx        "python -tt $$s/scripts/csv2lyx.py $$i $$o"	""
 \converter date       dateout    "python -tt $$s/scripts/date.py %d-%m-%Y > $$o"	""
 \converter docbook    docbook-xml "cp $$i $$o"	"xml"
 \converter fen        asciichess "python -tt $$s/scripts/fen2ascii.py $$i $$o"	""

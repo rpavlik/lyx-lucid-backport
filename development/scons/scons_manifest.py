@@ -1683,7 +1683,6 @@ lib_images_math_files = Split('''
     Re.xpm
     Rrightarrow.xpm
     Rsh.xpm
-    Vert.xpm
     Vvdash.xpm
     acute.xpm
     aleph.xpm
@@ -2156,6 +2155,8 @@ lib_images_math_files = Split('''
     vec.xpm
     vee.xpm
     veebar.xpm
+    vert.xpm
+    vert2.xpm
     vphantom.xpm
     wedge.xpm
     widehat.xpm
@@ -2324,7 +2325,9 @@ lib_doc_es_files = Split('''
     EmbeddedObjects.lyx
     Extended.lyx
     FAQ.lyx
+    Formula-numbering.lyx
     Intro.lyx
+    Math.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2366,6 +2369,7 @@ lib_doc_fr_files = Split('''
     EmbeddedObjects.lyx
     Extended.lyx
     FAQ.lyx
+    Formula-numbering.lyx
     Intro.lyx
     Math.lyx
     Tutorial.lyx
@@ -2410,6 +2414,12 @@ lib_doc_it_files = Split('''
     Intro.lyx
     Tutorial.lyx
     UserGuide.lyx
+''')
+
+
+lib_doc_it_clipart_files = Split('''
+    it_footnoteQt4.png
+    it_referenceQt4.png
 ''')
 
 
@@ -2560,7 +2570,6 @@ lib_examples_fr_files = Split('''
     Minipage.lyx
     exemple_brut.lyx
     exemple_lyxifie.lyx
-    mathed.lyx
     multicol.lyx
     simplecv.lyx
     splash.lyx
@@ -2697,6 +2706,7 @@ lib_layouts_files = Split('''
     arab-article.layout
     armenian-article.layout
     article.layout
+    article-beamer.layout
     beamer.layout
     book.layout
     broadway.layout
@@ -2748,6 +2758,7 @@ lib_layouts_files = Split('''
     revtex.layout
     revtex4.layout
     scrartcl.layout
+    scrarticle-beamer.layout
     scrbook.layout
     scrlettr.layout
     scrlttr2.layout
@@ -2809,6 +2820,7 @@ lib_scripts_files = Split('''
     TeXFiles.py
     clean_dvi.py
     convertDefault.py
+    csv2lyx.py
     date.py
     ext_copy.py
     fen2ascii.py

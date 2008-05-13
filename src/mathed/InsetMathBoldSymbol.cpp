@@ -22,8 +22,8 @@ namespace lyx {
 using std::auto_ptr;
 
 
-InsetMathBoldSymbol::InsetMathBoldSymbol()
-	: InsetMathNest(1)
+InsetMathBoldSymbol::InsetMathBoldSymbol(Kind kind)
+	: InsetMathNest(1), kind_(kind)
 {}
 
 
@@ -70,19 +70,42 @@ void InsetMathBoldSymbol::drawT(TextPainter & pain, int x, int y) const
 void InsetMathBoldSymbol::validate(LaTeXFeatures & features) const
 {
 	InsetMathNest::validate(features);
-	features.require("amssymb");
+	if (kind_ == AMS_BOLD)
+		features.require("amsbsy");
+	else
+		features.require("bm");
 }
 
 
 void InsetMathBoldSymbol::write(WriteStream & os) const
 {
-	os << "\\boldsymbol{" << cell(0) << "}";
+	switch (kind_) {
+	case AMS_BOLD:
+		os << "\\boldsymbol{" << cell(0) << "}";
+		break;
+	case BM_BOLD:
+		os << "\\bm{" << cell(0) << "}";
+		break;
+	case BM_HEAVY:
+		os << "\\hm{" << cell(0) << "}";
+		break;
+	}
 }
 
 
 void InsetMathBoldSymbol::infoize(odocstream & os) const
 {
-	os << "Boldsymbol ";
+	switch (kind_) {
+	case AMS_BOLD:
+		os << "Boldsymbol ";
+		break;
+	case BM_BOLD:
+		os << "Boldsymbol (bm)";
+		break;
+	case BM_HEAVY:
+		os << "Heavysymbol (bm)";
+		break;
+	}
 }
 
 
