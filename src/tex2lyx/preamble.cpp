@@ -246,6 +246,7 @@ void handle_package(string const & name, string const & opts)
 	// roman fonts
 	if (is_known(name, known_roman_fonts))
 		h_font_roman = name;
+
 	if (name == "fourier") {
 		h_font_roman = "utopia";
 		// when font uses real small capitals
@@ -254,8 +255,10 @@ void handle_package(string const & name, string const & opts)
 	}
 	if (name == "mathpazo")
 		h_font_roman = "palatino";
+
 	if (name == "mathptmx")
 		h_font_roman = "times";
+
 	// sansserif fonts
 	if (is_known(name, known_sans_fonts)) {
 		h_font_sans = name;
@@ -278,6 +281,7 @@ void handle_package(string const & name, string const & opts)
 
 	else if (name == "amsmath" || name == "amssymb")
 		h_use_amsmath = "1";
+
 	else if (name == "babel" && !opts.empty()) {
 		// check if more than one option was used - used later for inputenc
 		// in case inputenc is parsed before babel, set the encoding to auto
@@ -308,19 +312,38 @@ void handle_package(string const & name, string const & opts)
 	}
 	else if (name == "fontenc")
 		; // ignore this
+
 	else if (name == "inputenc") {
 		// only set when there is not more than one inputenc option
 		// therefore check for the "," character
 		// also only set when there is not more then one babel language option
 		if (opts.find(",") == string::npos && one_language == true)
-			h_inputencoding = opts;
+			if (opts == "ascii")
+				//change ascii to auto to be in the unicode range, see
+				//http://bugzilla.lyx.org/show_bug.cgi?id=4719
+				h_inputencoding = "auto";
+			else
+				h_inputencoding = opts;
 		options.clear();
-	} else if (name == "makeidx")
+	}
+	else if (name == "makeidx")
 		; // ignore this
+
 	else if (name == "verbatim")
 		; // ignore this
+
+	else if (name == "color")
+		// with the following command this package is only loaded when needed for
+		// undefined colors, since we only support the predefined colors
+		h_preamble << "\\@ifundefined{definecolor}\n {\\usepackage{color}}{}\n";
+
 	else if (name == "graphicx")
 		; // ignore this
+
+	// activate this first when bug 20 is fixed, otherwise we have a regression
+	//else if (name == "setspace")
+	//	; // ignore this
+
 	else if (is_known(name, known_languages)) {
 		if (is_known(name, known_french_languages))
 			h_language = "french";
@@ -335,8 +358,8 @@ void handle_package(string const & name, string const & opts)
 		else
 			h_language = name;
 		h_quotes_language = h_language;
-
-	} else if (name == "natbib") {
+	}
+	else if (name == "natbib") {
 		h_cite_engine = "natbib_authoryear";
 		vector<string>::iterator it =
 			find(options.begin(), options.end(), "authoryear");
@@ -349,15 +372,16 @@ void handle_package(string const & name, string const & opts)
 				options.erase(it);
 			}
 		}
-	} else if (name == "jurabib") {
+	}
+	else if (name == "jurabib")
 		h_cite_engine = "jurabib";
-	} else if (options.empty())
+
+	else if (options.empty())
 		h_preamble << "\\usepackage{" << name << "}\n";
 	else {
 		h_preamble << "\\usepackage[" << opts << "]{" << name << "}\n";
 		options.clear();
 	}
-
 	// We need to do something with the options...
 	if (!options.empty())
 		cerr << "Ignoring options '" << join(options, ",")
@@ -627,14 +651,31 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 		else if (t.cs() == "setlength") {
 			string const name = p.verbatim_item();
 			string const content = p.verbatim_item();
-			// Is this correct?
-			if (name == "parskip")
-				h_paragraph_separation = "skip";
-			else if (name == "parindent")
-				h_paragraph_separation = "skip";
-			else
+			// the paragraphs are only not indented when \parindent is set to zero
+			if (name == "\\parindent" && content != "") {
+				if (content[0] == '0')
+					h_paragraph_separation = "skip";
+			} else if (name == "\\parskip") {
+				if (content == "\\smallskipamount")
+					h_defskip = "smallskip";
+				else if (content == "\\medskipamount")
+					h_defskip = "medskip";
+				else if (content == "\\bigskipamount")
+					h_defskip = "bigskip";
+				else
+					h_defskip = content;
+			} else
 				h_preamble << "\\setlength{" << name << "}{" << content << "}";
 		}
+
+		else if (t.cs() =="onehalfspacing")
+			h_spacing = "onehalf";
+
+		else if (t.cs() =="doublespacing")
+			h_spacing = "double";
+
+		else if (t.cs() =="setstretch")
+			h_spacing = "other " + p.verbatim_item();
 
 		else if (t.cs() == "begin") {
 			string const name = p.getArg('{', '}');

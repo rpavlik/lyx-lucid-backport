@@ -89,7 +89,9 @@ dist_esdoc_DATA = \
 	es/EmbeddedObjects.lyx \
 	es/Extended.lyx \
 	es/FAQ.lyx \
+	es/Formula-numbering.lyx \
 	es/Intro.lyx \
+	es/Math.lyx \
 	es/Tutorial.lyx \
 	es/UserGuide.lyx
 
@@ -128,6 +130,7 @@ dist_frdoc_DATA = \
 	fr/EmbeddedObjects.lyx \
 	fr/Extended.lyx \
 	fr/FAQ.lyx \
+	fr/Formula-numbering.lyx \
 	fr/Intro.lyx \
 	fr/Math.lyx \
 	fr/Tutorial.lyx \
@@ -167,6 +170,11 @@ dist_itdoc_DATA = \
 	it/Intro.lyx \
 	it/Tutorial.lyx \
 	it/UserGuide.lyx
+
+itclipartdocdir = $(pkgdatadir)/doc/it/clipart
+dist_itclipartdoc_DATA = \
+	it/clipart/it_footnoteQt4.png \
+	it/clipart/it_referenceQt4.png
 
 nldocdir = $(pkgdatadir)/doc/nl
 dist_nldoc_DATA = \

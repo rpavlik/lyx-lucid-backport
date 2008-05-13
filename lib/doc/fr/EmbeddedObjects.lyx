@@ -1,4 +1,4 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.5.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -172,6 +172,15 @@
   \setboolean{marginnote}{true}}
  {\setboolean{marginnote}{false}}
 
+% check for package sidecap
+% used for captions on the side
+\newboolean{sidecap}
+\IfFileExists{sidecap.sty}
+ {\usepackage{sidecap}
+  \let\marginpar\marginnote
+  \setboolean{sidecap}{true}}
+ {\setboolean{sidecap}{false}}
+
 % redefine the \LyX macro for PDF bookmarks
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
@@ -285,7 +294,7 @@ version 1.5.2 - novembre 2007
 \newline
 
 \family sans
-Version 1.5.4
+Version 1.5.5
 \end_layout
 
 \begin_layout Standard
@@ -310,9 +319,13 @@ arydshln
 \series bold
 colortbl
 \series default
-, et 
+, 
 \series bold
 marginnote
+\series default
+, et 
+\series bold
+sidecap
 \series default
  doivent être installés.
  Si ce n'est pas le cas, vous pouvez quand même exporter le document mais
@@ -5168,7 +5181,7 @@ Créez
 \family sans
  
 \family default
-un Tableau Long.
+un Tableau long.
 \end_layout
 
 \begin_layout Enumerate
@@ -5223,7 +5236,7 @@ Le
 \end_layout
 
 \begin_layout Standard
-Voici un petit Tableau Long pour voir comment ça marche :
+Voici un petit Tableau long pour voir comment ça marche :
 \end_layout
 
 \begin_layout Standard
@@ -5243,7 +5256,7 @@ Voici un petit Tableau Long pour voir comment ça marche :
 \begin_inset Caption
 
 \begin_layout Standard
-Tableau Long avec une légende
+Tableau long avec une légende
 \begin_inset OptArg
 status collapsed
 
@@ -19683,7 +19696,7 @@ hypcap
 \end_layout
 
 \begin_layout Section
-Placement des Flottants
+Placement des flottants
 \begin_inset LatexCommand label
 name "sec:Placement-flottants"
 
@@ -21201,6 +21214,36 @@ leftcaption
 \end_layout
 
 \begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+ifsidecap
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Standard
+La section suivante ne sera affichée que si le paquetage LaTeX 
+\series bold
+sidecap
+\series default
+ a été installé.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Pour pouvoir placer la légende d'un flottant à côté de celui-ci, vous devez
  ajouter ces commandes dans le préambule de votre document :
 \end_layout
@@ -22049,6 +22092,60 @@ status collapsed
 
 \backslash
 FigBesEnd
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+else
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Standard
+Ce qui suit sera affiché si le paquetage LaTeX 
+\series bold
+sidecap
+\series default
+ n'est pas installé :
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vous devez installer le paquetage LaTeX 
+\series bold
+sidecap
+\series default
+ pour voir la suite de cette section dans la sortie imprimée.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+fi
 \end_layout
 
 \end_inset
@@ -23128,7 +23225,7 @@ roman
 \series bold
 
 \backslash
-Roman
+Romain
 \series default
 .
  Pour numéroter les notes avec des lettres latines minuscules ou majuscules,
@@ -29205,7 +29302,7 @@ Externe Fichiers de formats variés.
 \end_layout
 
 \begin_layout Description
-Sous-Document Documents LyX ou LaTeX.
+Sous-document Documents LyX ou LaTeX.
 \end_layout
 
 \begin_layout Section
@@ -29714,15 +29811,15 @@ Personnalisation
 \end_layout
 
 \begin_layout Section
-Sous-Documents
+Sous-documents
 \begin_inset LatexCommand label
-name "sec:Sous-Documents"
+name "sec:Sous-documents"
 
 \end_inset
 
 
 \begin_inset LatexCommand index
-name "Trucs externes ! Sous-Documents"
+name "Trucs externes ! Sous-documents"
 
 \end_inset
 
@@ -29760,7 +29857,7 @@ Les documents inclus sont visualisés dans LyX sous la forme d'une boîte
 \family sans
 Insérer\SpecialChar \menuseparator
 Fichier\SpecialChar \menuseparator
-Sous-Document
+Sous-document
 \family default
 .
  Une fenêtre de dialogue s'ouvre pour que vous puissiez choisir entre l'une
@@ -29776,7 +29873,7 @@ Charger
 \family default
  dans la fenêtre de dialogue 
 \family sans
-Sous-Document
+Sous-document
 \family default
 , le document inclus est ouvert dans LyX dans un nouvel onglet pour que
  vous puissiez le modifier.
@@ -30538,7 +30635,7 @@ Il est aussi possible d'imprimer les lignes d'un fichier sous la forme d'un
 \family sans
 Insérer\SpecialChar \menuseparator
 Fichier\SpecialChar \menuseparator
-Sous-Document
+Sous-document
 \family default
  et de choisir le type 
 \family sans
@@ -30559,7 +30656,7 @@ status collapsed
 Les autres types de sous-documents sont décrits dans la section\InsetSpace ~
 
 \begin_inset LatexCommand ref
-reference "sec:Sous-Documents"
+reference "sec:Sous-documents"
 
 \end_inset
 

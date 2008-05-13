@@ -272,6 +272,8 @@ bool doInsertInset(Cursor & cur, Text * text,
 		lyx::dispatch(FuncRequest(LFUN_CUT));
 		gotsel = true;
 	}
+	bool const emptypar = cur.lastpos() == 0;
+	pos_type ins_pos = cur.pos();
 	text->insertInset(cur, inset);
 
 	if (edit)
@@ -281,11 +283,18 @@ bool doInsertInset(Cursor & cur, Text * text,
 		// metrics might be invalid at this point (bug 4502)
 		cur.bv().updateMetrics();
 		lyx::dispatch(FuncRequest(LFUN_PASTE, "0"));
-		// reset first par to default
-		if (cur.lastpit() != 0 || cur.lastpos() != 0) {
+
+		if ((cur.lastpit() == 0 || ins_pos != 0) && !emptypar) {
+			// reset first par to default
 			Layout_ptr const layout =
 				cur.buffer().params().getTextClass().defaultLayout();
 			cur.text()->paragraphs().begin()->layout(layout);
+		} else {
+			// reset surrounding par to default
+			docstring const layoutname =
+				cur.buffer().params().getTextClass().defaultLayoutName();
+			cur.leaveInset(*inset);
+			text->setLayout(cur, layoutname);
 		}
 	}
 	return true;
@@ -1779,7 +1788,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		code = Inset::ERT_CODE;
 		break;
 	case LFUN_LISTING_INSERT:
-	    code = Inset::LISTINGS_CODE;
+		code = Inset::LISTINGS_CODE;
 		break;
 	case LFUN_FOOTNOTE_INSERT:
 		code = Inset::FOOT_CODE;
@@ -1813,6 +1822,9 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_NOTE_INSERT:
 		code = Inset::NOTE_CODE;
+		// in commands (sections etc., only Notes are allowed)
+		enable = (cmd.argument().empty() || cmd.getArg(0) == "Note" ||
+			  !cur.paragraph().layout()->isCommand());
 		break;
 	case LFUN_CHARSTYLE_INSERT:
 		code = Inset::CHARSTYLE_CODE;

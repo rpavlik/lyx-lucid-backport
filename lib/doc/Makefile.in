@@ -44,10 +44,11 @@ DIST_COMMON = $(dist_bibliodoc_DATA) $(dist_clipartdoc_DATA) \
 	$(dist_esclipartdoc_DATA) $(dist_esdoc_DATA) \
 	$(dist_eudoc_DATA) $(dist_frclipartdoc_DATA) \
 	$(dist_frdoc_DATA) $(dist_gldoc_DATA) $(dist_hedoc_DATA) \
-	$(dist_hudoc_DATA) $(dist_itdoc_DATA) $(dist_nbdoc_DATA) \
-	$(dist_nldoc_DATA) $(dist_pldoc_DATA) $(dist_ptdoc_DATA) \
-	$(dist_rodoc_DATA) $(dist_rudoc_DATA) $(dist_skdoc_DATA) \
-	$(dist_sldoc_DATA) $(dist_svdoc_DATA) $(srcdir)/Makefile.am \
+	$(dist_hudoc_DATA) $(dist_itclipartdoc_DATA) \
+	$(dist_itdoc_DATA) $(dist_nbdoc_DATA) $(dist_nldoc_DATA) \
+	$(dist_pldoc_DATA) $(dist_ptdoc_DATA) $(dist_rodoc_DATA) \
+	$(dist_rudoc_DATA) $(dist_skdoc_DATA) $(dist_sldoc_DATA) \
+	$(dist_svdoc_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.depend $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/common.am ChangeLog
 subdir = lib/doc
@@ -91,12 +92,12 @@ am__installdirs = "$(DESTDIR)$(bibliodocdir)" \
 	"$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" \
 	"$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" \
 	"$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" \
-	"$(DESTDIR)$(itdocdir)" "$(DESTDIR)$(nbdocdir)" \
-	"$(DESTDIR)$(nldocdir)" "$(DESTDIR)$(pldocdir)" \
-	"$(DESTDIR)$(ptdocdir)" "$(DESTDIR)$(rodocdir)" \
-	"$(DESTDIR)$(rudocdir)" "$(DESTDIR)$(skdocdir)" \
-	"$(DESTDIR)$(sldocdir)" "$(DESTDIR)$(svdocdir)" \
-	"$(DESTDIR)$(docdir)"
+	"$(DESTDIR)$(itclipartdocdir)" "$(DESTDIR)$(itdocdir)" \
+	"$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" \
+	"$(DESTDIR)$(pldocdir)" "$(DESTDIR)$(ptdocdir)" \
+	"$(DESTDIR)$(rodocdir)" "$(DESTDIR)$(rudocdir)" \
+	"$(DESTDIR)$(skdocdir)" "$(DESTDIR)$(sldocdir)" \
+	"$(DESTDIR)$(svdocdir)" "$(DESTDIR)$(docdir)"
 dist_bibliodocDATA_INSTALL = $(INSTALL_DATA)
 dist_clipartdocDATA_INSTALL = $(INSTALL_DATA)
 dist_csdocDATA_INSTALL = $(INSTALL_DATA)
@@ -112,6 +113,7 @@ dist_frdocDATA_INSTALL = $(INSTALL_DATA)
 dist_gldocDATA_INSTALL = $(INSTALL_DATA)
 dist_hedocDATA_INSTALL = $(INSTALL_DATA)
 dist_hudocDATA_INSTALL = $(INSTALL_DATA)
+dist_itclipartdocDATA_INSTALL = $(INSTALL_DATA)
 dist_itdocDATA_INSTALL = $(INSTALL_DATA)
 dist_nbdocDATA_INSTALL = $(INSTALL_DATA)
 dist_nldocDATA_INSTALL = $(INSTALL_DATA)
@@ -129,10 +131,11 @@ DATA = $(dist_bibliodoc_DATA) $(dist_clipartdoc_DATA) \
 	$(dist_esclipartdoc_DATA) $(dist_esdoc_DATA) \
 	$(dist_eudoc_DATA) $(dist_frclipartdoc_DATA) \
 	$(dist_frdoc_DATA) $(dist_gldoc_DATA) $(dist_hedoc_DATA) \
-	$(dist_hudoc_DATA) $(dist_itdoc_DATA) $(dist_nbdoc_DATA) \
-	$(dist_nldoc_DATA) $(dist_pldoc_DATA) $(dist_ptdoc_DATA) \
-	$(dist_rodoc_DATA) $(dist_rudoc_DATA) $(dist_skdoc_DATA) \
-	$(dist_sldoc_DATA) $(dist_svdoc_DATA) $(doc_DATA)
+	$(dist_hudoc_DATA) $(dist_itclipartdoc_DATA) \
+	$(dist_itdoc_DATA) $(dist_nbdoc_DATA) $(dist_nldoc_DATA) \
+	$(dist_pldoc_DATA) $(dist_ptdoc_DATA) $(dist_rodoc_DATA) \
+	$(dist_rudoc_DATA) $(dist_skdoc_DATA) $(dist_sldoc_DATA) \
+	$(dist_svdoc_DATA) $(doc_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 pkgdatadir = @pkgdatadir@
 ACLOCAL = @ACLOCAL@
@@ -435,7 +438,9 @@ dist_esdoc_DATA = \
 	es/EmbeddedObjects.lyx \
 	es/Extended.lyx \
 	es/FAQ.lyx \
+	es/Formula-numbering.lyx \
 	es/Intro.lyx \
+	es/Math.lyx \
 	es/Tutorial.lyx \
 	es/UserGuide.lyx
 
@@ -474,6 +479,7 @@ dist_frdoc_DATA = \
 	fr/EmbeddedObjects.lyx \
 	fr/Extended.lyx \
 	fr/FAQ.lyx \
+	fr/Formula-numbering.lyx \
 	fr/Intro.lyx \
 	fr/Math.lyx \
 	fr/Tutorial.lyx \
@@ -513,6 +519,11 @@ dist_itdoc_DATA = \
 	it/Intro.lyx \
 	it/Tutorial.lyx \
 	it/UserGuide.lyx
+
+itclipartdocdir = $(pkgdatadir)/doc/it/clipart
+dist_itclipartdoc_DATA = \
+	it/clipart/it_footnoteQt4.png \
+	it/clipart/it_referenceQt4.png
 
 nldocdir = $(pkgdatadir)/doc/nl
 dist_nldoc_DATA = \
@@ -873,6 +884,23 @@ uninstall-dist_hudocDATA:
 	  echo " rm -f '$(DESTDIR)$(hudocdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(hudocdir)/$$f"; \
 	done
+install-dist_itclipartdocDATA: $(dist_itclipartdoc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(itclipartdocdir)" || $(MKDIR_P) "$(DESTDIR)$(itclipartdocdir)"
+	@list='$(dist_itclipartdoc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(dist_itclipartdocDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(itclipartdocdir)/$$f'"; \
+	  $(dist_itclipartdocDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(itclipartdocdir)/$$f"; \
+	done
+
+uninstall-dist_itclipartdocDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_itclipartdoc_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(itclipartdocdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(itclipartdocdir)/$$f"; \
+	done
 install-dist_itdocDATA: $(dist_itdoc_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(itdocdir)" || $(MKDIR_P) "$(DESTDIR)$(itdocdir)"
@@ -1100,7 +1128,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(bibliodocdir)" "$(DESTDIR)$(clipartdocdir)" "$(DESTDIR)$(csdocdir)" "$(DESTDIR)$(dadocdir)" "$(DESTDIR)$(declipartdocdir)" "$(DESTDIR)$(dedocdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(esclipartdocdir)" "$(DESTDIR)$(esdocdir)" "$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" "$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" "$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" "$(DESTDIR)$(itdocdir)" "$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" "$(DESTDIR)$(pldocdir)" "$(DESTDIR)$(ptdocdir)" "$(DESTDIR)$(rodocdir)" "$(DESTDIR)$(rudocdir)" "$(DESTDIR)$(skdocdir)" "$(DESTDIR)$(sldocdir)" "$(DESTDIR)$(svdocdir)" "$(DESTDIR)$(docdir)"; do \
+	for dir in "$(DESTDIR)$(bibliodocdir)" "$(DESTDIR)$(clipartdocdir)" "$(DESTDIR)$(csdocdir)" "$(DESTDIR)$(dadocdir)" "$(DESTDIR)$(declipartdocdir)" "$(DESTDIR)$(dedocdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(esclipartdocdir)" "$(DESTDIR)$(esdocdir)" "$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" "$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" "$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" "$(DESTDIR)$(itclipartdocdir)" "$(DESTDIR)$(itdocdir)" "$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" "$(DESTDIR)$(pldocdir)" "$(DESTDIR)$(ptdocdir)" "$(DESTDIR)$(rodocdir)" "$(DESTDIR)$(rudocdir)" "$(DESTDIR)$(skdocdir)" "$(DESTDIR)$(sldocdir)" "$(DESTDIR)$(svdocdir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -1156,11 +1184,12 @@ install-data-am: install-dist_bibliodocDATA \
 	install-dist_eudocDATA install-dist_frclipartdocDATA \
 	install-dist_frdocDATA install-dist_gldocDATA \
 	install-dist_hedocDATA install-dist_hudocDATA \
-	install-dist_itdocDATA install-dist_nbdocDATA \
-	install-dist_nldocDATA install-dist_pldocDATA \
-	install-dist_ptdocDATA install-dist_rodocDATA \
-	install-dist_rudocDATA install-dist_skdocDATA \
-	install-dist_sldocDATA install-dist_svdocDATA install-docDATA
+	install-dist_itclipartdocDATA install-dist_itdocDATA \
+	install-dist_nbdocDATA install-dist_nldocDATA \
+	install-dist_pldocDATA install-dist_ptdocDATA \
+	install-dist_rodocDATA install-dist_rudocDATA \
+	install-dist_skdocDATA install-dist_sldocDATA \
+	install-dist_svdocDATA install-docDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
@@ -1204,12 +1233,12 @@ uninstall-am: uninstall-dist_bibliodocDATA \
 	uninstall-dist_eudocDATA uninstall-dist_frclipartdocDATA \
 	uninstall-dist_frdocDATA uninstall-dist_gldocDATA \
 	uninstall-dist_hedocDATA uninstall-dist_hudocDATA \
-	uninstall-dist_itdocDATA uninstall-dist_nbdocDATA \
-	uninstall-dist_nldocDATA uninstall-dist_pldocDATA \
-	uninstall-dist_ptdocDATA uninstall-dist_rodocDATA \
-	uninstall-dist_rudocDATA uninstall-dist_skdocDATA \
-	uninstall-dist_sldocDATA uninstall-dist_svdocDATA \
-	uninstall-docDATA uninstall-local
+	uninstall-dist_itclipartdocDATA uninstall-dist_itdocDATA \
+	uninstall-dist_nbdocDATA uninstall-dist_nldocDATA \
+	uninstall-dist_pldocDATA uninstall-dist_ptdocDATA \
+	uninstall-dist_rodocDATA uninstall-dist_rudocDATA \
+	uninstall-dist_skdocDATA uninstall-dist_sldocDATA \
+	uninstall-dist_svdocDATA uninstall-docDATA uninstall-local
 
 .MAKE: install-am install-data-am install-strip
 
@@ -1224,19 +1253,19 @@ uninstall-am: uninstall-dist_bibliodocDATA \
 	install-dist_esdocDATA install-dist_eudocDATA \
 	install-dist_frclipartdocDATA install-dist_frdocDATA \
 	install-dist_gldocDATA install-dist_hedocDATA \
-	install-dist_hudocDATA install-dist_itdocDATA \
-	install-dist_nbdocDATA install-dist_nldocDATA \
-	install-dist_pldocDATA install-dist_ptdocDATA \
-	install-dist_rodocDATA install-dist_rudocDATA \
-	install-dist_skdocDATA install-dist_sldocDATA \
-	install-dist_svdocDATA install-docDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-dist_bibliodocDATA \
+	install-dist_hudocDATA install-dist_itclipartdocDATA \
+	install-dist_itdocDATA install-dist_nbdocDATA \
+	install-dist_nldocDATA install-dist_pldocDATA \
+	install-dist_ptdocDATA install-dist_rodocDATA \
+	install-dist_rudocDATA install-dist_skdocDATA \
+	install-dist_sldocDATA install-dist_svdocDATA install-docDATA \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-dist_bibliodocDATA \
 	uninstall-dist_clipartdocDATA uninstall-dist_csdocDATA \
 	uninstall-dist_dadocDATA uninstall-dist_declipartdocDATA \
 	uninstall-dist_dedocDATA uninstall-dist_docDATA \
@@ -1244,12 +1273,12 @@ uninstall-am: uninstall-dist_bibliodocDATA \
 	uninstall-dist_eudocDATA uninstall-dist_frclipartdocDATA \
 	uninstall-dist_frdocDATA uninstall-dist_gldocDATA \
 	uninstall-dist_hedocDATA uninstall-dist_hudocDATA \
-	uninstall-dist_itdocDATA uninstall-dist_nbdocDATA \
-	uninstall-dist_nldocDATA uninstall-dist_pldocDATA \
-	uninstall-dist_ptdocDATA uninstall-dist_rodocDATA \
-	uninstall-dist_rudocDATA uninstall-dist_skdocDATA \
-	uninstall-dist_sldocDATA uninstall-dist_svdocDATA \
-	uninstall-docDATA uninstall-local
+	uninstall-dist_itclipartdocDATA uninstall-dist_itdocDATA \
+	uninstall-dist_nbdocDATA uninstall-dist_nldocDATA \
+	uninstall-dist_pldocDATA uninstall-dist_ptdocDATA \
+	uninstall-dist_rodocDATA uninstall-dist_rudocDATA \
+	uninstall-dist_skdocDATA uninstall-dist_sldocDATA \
+	uninstall-dist_svdocDATA uninstall-docDATA uninstall-local
 
 @LYX_BUILD_PCH_TRUE@sinclude ./pch.h.gch.dep
 
@@ -1276,10 +1305,10 @@ de/TOC.lyx: $(srcdir)/de/Customization.lyx $(srcdir)/de/EmbeddedObjects.lyx $(sr
 TOC.lyx: $(srcdir)/Customization.lyx $(srcdir)/EmbeddedObjects.lyx $(srcdir)/Extended.lyx $(srcdir)/FAQ.lyx $(srcdir)/Intro.lyx $(srcdir)/Math.lyx $(srcdir)/Tutorial.lyx $(srcdir)/UserGuide.lyx
 	PYTHONPATH=$(top_builddir)/lib/lyx2lyx python -tt $(srcdir)/doc_toc.py en .
 
-es/TOC.lyx: $(srcdir)/Customization.lyx $(srcdir)/es/EmbeddedObjects.lyx $(srcdir)/es/Extended.lyx $(srcdir)/es/FAQ.lyx $(srcdir)/es/Intro.lyx $(srcdir)/Math.lyx $(srcdir)/es/Tutorial.lyx $(srcdir)/es/UserGuide.lyx
+es/TOC.lyx: $(srcdir)/Customization.lyx $(srcdir)/es/EmbeddedObjects.lyx $(srcdir)/es/Extended.lyx $(srcdir)/es/FAQ.lyx $(srcdir)/es/Intro.lyx $(srcdir)/es/Math.lyx $(srcdir)/es/Tutorial.lyx $(srcdir)/es/UserGuide.lyx
 	PYTHONPATH=$(top_builddir)/lib/lyx2lyx python -tt $(srcdir)/doc_toc.py es .
 
-eu/TOC.lyx: $(srcdir)/eu/Customization.lyx $(srcdir)/EmbeddedObjects.lyx $(srcdir)/eu/Extended.lyx $(srcdir)/eu/FAQ.lyx $(srcdir)/eu/Intro.lyx $(srcdir)/Math.lyx $(srcdir)/eu/Tutorial.lyx $(srcdir)/eu/UserGuide.lyx
+eu/TOC.lyx: $(srcdir)/EmbeddedObjects.lyx $(srcdir)/Math.lyx $(srcdir)/eu/Customization.lyx $(srcdir)/eu/Extended.lyx $(srcdir)/eu/FAQ.lyx $(srcdir)/eu/Intro.lyx $(srcdir)/eu/Tutorial.lyx $(srcdir)/eu/UserGuide.lyx
 	PYTHONPATH=$(top_builddir)/lib/lyx2lyx python -tt $(srcdir)/doc_toc.py eu .
 
 fr/TOC.lyx: $(srcdir)/fr/Customization.lyx $(srcdir)/fr/EmbeddedObjects.lyx $(srcdir)/fr/Extended.lyx $(srcdir)/fr/FAQ.lyx $(srcdir)/fr/Intro.lyx $(srcdir)/fr/Math.lyx $(srcdir)/fr/Tutorial.lyx $(srcdir)/fr/UserGuide.lyx

@@ -1,4 +1,31 @@
-﻿Version 3.21
+﻿Version 3.24
+- LyX 1.5.5
+
+- updated to ImageMagick 6.4.?
+- updated to Ghostscript 8.62 (fixes a bug of viewing PDF images within
+  LyX)
+- new Japanese translation of the installer (thanks to Koji Yokata)
+- new method to view PDF files that should also work under Windows Vista
+  (thanks to Joost Verburg)
+
+
+Version 3.23
+- new Romanian translation of the installer (thanks to Marius Ionescu)
+- fix to set Catalan and Portuguese as LyX's menu language
+- added a DLL that is needed on some Windows systems to be able to start LyX
+
+
+Version 3.22
+- LyX 1.5.4
+
+- updated to MiKTeX 2.7 (build 2960)
+- updated to ImageMagick 6.3.8-11 (fixes a long standing
+    display bug of cropped PDF images)
+- fix installation of Polish Aspell dictionary
+- fix uninstallation of Armenian, Frisian, and Maltese Aspell dictionaries
+
+
+Version 3.21
 - LyX 1.5.3
 
 - updated to MiKTeX 2.7 (build 2904)

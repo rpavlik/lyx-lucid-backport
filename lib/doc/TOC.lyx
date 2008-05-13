@@ -1,4 +1,4 @@
-#LyX 1.5.4 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.5 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -1941,112 +1941,6 @@ Basic features and restrictions
 \begin_layout Enumerate
 
 Extra features
-\end_layout
-\end_deeper
-\end_deeper
-
-\begin_layout Enumerate
-
-Importing and Exporting Alternate File Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Considerations
-\end_layout
-
-\begin_layout Enumerate
-
-Importing Other Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-LaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-ASCII Text
-\end_layout
-
-\begin_layout Enumerate
-
-Noweb
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Exporting Other Formats
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-LaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-Device Independent Files
-\end_layout
-
-\begin_layout Enumerate
-
-PostScript
-\end_layout
-
-\begin_layout Enumerate
-
-ASCII text
-\end_layout
-
-\begin_layout Enumerate
-
-HTML
-\end_layout
-
-\begin_layout Enumerate
-
-PDF
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Use pdfLaTeX
-\end_layout
-
-\begin_layout Enumerate
-
-Why does the text look so bad when viewed with Acrobat Reader?
-\end_layout
-
-\begin_layout Enumerate
-
-Why doesn't the 
-\backslash
-boldsymbol{} command work when I use pslatex?
-\end_layout
-
-\begin_layout Enumerate
-
-Is it possible to do write LaTeX-code which is processed only when running
- pdfLaTeX?
-\end_layout
-
-\begin_layout Enumerate
-
-How can I make URLs clickable?
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-Custom
 \end_layout
 \end_deeper
 \end_deeper

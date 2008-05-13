@@ -29,6 +29,7 @@
 #include "Text.h"
 
 #include "Buffer.h"
+#include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "CutAndPaste.h"
@@ -442,7 +443,10 @@ docstring InsetMathHull::label(row_type row) const
 void InsetMathHull::label(row_type row, docstring const & label)
 {
 	//lyxerr << "setting label '" << label << "' for row " << row << endl;
-	label_[row] = label;
+	if (label.empty()) {
+		label_[row].clear();
+	} else
+		label_[row] = label;
 }
 
 
@@ -513,7 +517,6 @@ void InsetMathHull::validate(LaTeXFeatures & features) const
 	//if (features.amsstyle)
 	//  return;
 
-	features.require("boldsymbol");
 	//features.binom      = true;
 
 	InsetMathGrid::validate(features);
@@ -630,8 +633,19 @@ void InsetMathHull::addRow(row_type row)
 {
 	if (!rowChangeOK())
 		return;
-	nonum_.insert(nonum_.begin() + row + 1, !numberedType());
-	label_.insert(label_.begin() + row + 1, docstring());
+
+	bool numbered = numberedType();
+	docstring label;
+	if (type_ == hullMultline) {
+		if (row + 1 == nrows()) {
+			nonum_[row] = true;
+			label = label_[row];
+		} else
+			numbered = false;
+	}
+
+	nonum_.insert(nonum_.begin() + row + 1, !numbered);
+	label_.insert(label_.begin() + row + 1, label);
 	InsetMathGrid::addRow(row);
 }
 
@@ -652,6 +666,12 @@ void InsetMathHull::delRow(row_type row)
 {
 	if (nrows() <= 1 || !rowChangeOK())
 		return;
+	if (row + 1 == nrows() && type_ == hullMultline) {
+		swap(nonum_[row - 1], nonum_[row]);
+		swap(label_[row - 1], label_[row]);
+		InsetMathGrid::delRow(row);
+		return;
+	}
 	InsetMathGrid::delRow(row);
 	// The last dummy row has no number info nor a label.
 	// Test nrows() + 1 because we have already erased the row.
@@ -684,7 +704,7 @@ docstring InsetMathHull::nicelabel(row_type row) const
 		return docstring();
 	if (label_[row].empty())
 		return from_ascii("(#)");
-	return '(' + label_[row] + ')';
+	return '(' + label_[row] + from_ascii(", #)");
 }
 
 
@@ -1119,6 +1139,26 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
+	case LFUN_WORD_DELETE_FORWARD:
+	case LFUN_CHAR_DELETE_FORWARD:
+		if (col(cur.idx()) + 1 == ncols()
+		    && cur.pos() == cur.lastpos()) {
+			if (!label(row(cur.idx())).empty()) {
+				recordUndoInset(cur);
+				label(row(cur.idx()), docstring());
+			} else if (numbered(row(cur.idx()))) {
+				recordUndoInset(cur);
+				numbered(row(cur.idx()), false);
+			} else {
+				InsetMathGrid::doDispatch(cur, cmd);
+				return;
+			}
+		} else {
+			InsetMathGrid::doDispatch(cur, cmd);
+			return;
+		}
+		break;
+
 	case LFUN_INSET_INSERT: {
 		//lyxerr << "arg: " << to_utf8(cmd.argument()) << endl;
 		std::string const name = cmd.getArg(0);
@@ -1208,8 +1248,10 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MATH_NONUMBER: {
 		// FIXME: what is the right test, this or the one of
 		// LABEL_INSERT?
-		status.enabled(display());
+		bool const enable = (type_ == hullMultline) ?
+			(nrows() - 1 == cur.row()) : display();
 		row_type const r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
+		status.enabled(enable);
 		status.setOnOff(numbered(r));
 		return true;
 	}

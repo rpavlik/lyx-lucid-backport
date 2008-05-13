@@ -22,7 +22,13 @@ namespace lyx {
 class InsetMathBoldSymbol : public InsetMathNest {
 public:
 	///
-	InsetMathBoldSymbol();
+	enum Kind {
+		AMS_BOLD,
+		BM_BOLD,
+		BM_HEAVY
+	};
+	///
+	InsetMathBoldSymbol(Kind kind = AMS_BOLD);
 	///
 	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
@@ -37,6 +43,8 @@ public:
 	void write(WriteStream & os) const;
 	///
 	void infoize(odocstream & os) const;
+	///
+	Kind kind_;
 private:
 	virtual std::auto_ptr<Inset> doClone() const;
 };
