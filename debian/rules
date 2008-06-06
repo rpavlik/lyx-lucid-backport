@@ -111,7 +111,7 @@ install: build
 binary-indep: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs -i ChangeLog
+	dh_installchangelogs -i
 	dh_installdocs -i
 	dh_pysupport -i /usr/share/lyx
 	dh_link -i
