@@ -26,7 +26,6 @@
 #define VALIDATOR_H
 
 #include "Length.h"
-#include "Dialog.h" // KernelDocType
 
 #include <QValidator>
 
@@ -35,10 +34,6 @@ class QLineEdit;
 
 
 namespace lyx {
-
-class LyXRC;
-
-namespace frontend {
 
 /** A class to ascertain whether the data passed to the @c validate()
  *  member function can be interpretted as a GlueLength.
@@ -65,6 +60,11 @@ public:
 	//@}
 
 private:
+#if defined(Q_DISABLE_COPY)
+	LengthValidator( const LengthValidator & );
+	LengthValidator& operator=( const LengthValidator & );
+#endif
+
 	Length b_;
 	GlueLength g_;
 	bool no_bottom_;
@@ -85,19 +85,18 @@ LengthValidator * unsignedLengthValidator(QLineEdit *);
 class LengthAutoValidator : public LengthValidator
 {
 	Q_OBJECT
-public:
+	public:
 	/// Define a validator for widget @c parent.
-	LengthAutoValidator(QWidget * parent);
+		LengthAutoValidator(QWidget * parent);
 
 	/** @returns QValidator::Acceptable if @c data is a GlueLength
 		* or is "auto". If not, returns QValidator::Intermediate.
 	 */
-	QValidator::State validate(QString & data, int &) const;
+		QValidator::State validate(QString & data, int &) const;
 };
 
 /// @returns a new @c LengthAutoValidator that does not accept negative lengths.
 LengthAutoValidator * unsignedLengthAutoValidator(QLineEdit *);
-
 
 //FIXME As above, this should really take a text argument.
 /**
@@ -105,15 +104,19 @@ LengthAutoValidator * unsignedLengthAutoValidator(QLineEdit *);
  * or is "auto".
  *
  */
-class DoubleAutoValidator : public QDoubleValidator
-{
+class DoubleAutoValidator : public QDoubleValidator {
 	Q_OBJECT
-public:
-	DoubleAutoValidator(QWidget * parent);
-	DoubleAutoValidator(double bottom, double top, int decimals,
-		QObject * parent);
-	QValidator::State validate(QString & input, int & pos) const;
+	public:
+		DoubleAutoValidator(QWidget * parent);
+		DoubleAutoValidator(double bottom, double top, int decimals,
+			QObject * parent);
+		QValidator::State validate(QString & input, int & pos) const;
 };
+
+// Forward declarations
+class LyXRC;
+
+namespace frontend { class KernelDocType; }
 
 
 /** A class to ascertain whether the data passed to the @c validate()
@@ -141,9 +144,15 @@ public:
 	 *  @param lyxrc contains a @c tex_allows_spaces member that
 	 *  is used to define what is legal.
 	 */
-	void setChecker(KernelDocType const & doc_type, LyXRC const & lyxrc);
+	void setChecker(frontend::KernelDocType const & doc_type,
+			LyXRC const & lyxrc);
 
 private:
+#if defined(Q_DISABLE_COPY)
+	PathValidator(const PathValidator &);
+	PathValidator & operator=(const PathValidator &);
+#endif
+
 	bool acceptable_if_empty_;
 	bool latex_doc_;
 	bool tex_allows_spaces_;
@@ -153,7 +162,6 @@ private:
 /// @returns the PathValidator attached to the widget, or 0.
 PathValidator * getPathValidator(QLineEdit *);
 
-} // namespace frontend
 } // namespace lyx
 
 # endif // NOT VALIDATOR_H

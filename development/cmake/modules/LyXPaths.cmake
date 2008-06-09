@@ -35,10 +35,10 @@ if(WINDEPS)
 		message("------ qmake not found. Add YOUR_PATH\\lyx-windows-deps-msvc-qt4\\qt-4\\bin")
 		message("------ to PATH: set PATH=%PATH%;YOUR_PATH\\lyx-windows-deps-msvc-qt4\\qt-4\\bin")
 		message(FATAL_ERROR "Exit.")
-	else()
+	else(NOT LYX_QMAKE)
 		GET_FILENAME_COMPONENT(LYX_QMAKE_PATH ${LYX_QMAKE} PATH)
 		set(WINDEPSDIR "${LYX_QMAKE_PATH}/../..")
-	endif()
+	endif(NOT LYX_QMAKE)
 	
 	set(GNUWIN32_DIR ${WINDEPSDIR})
 	
@@ -53,7 +53,7 @@ if(WINDEPS)
 	set(QT_UIC_EXECUTABLE "${WINDEPSDIR}/qt-4/bin/uic.exe" CACHE TYPE STRING FORCE)
 	set(QT_RCC_EXECUTABLE "${WINDEPSDIR}/qt-4/bin/rcc.exe" CACHE TYPE STRING FORCE)
 
-endif()
+endif(WINDEPS)
 
 find_package(GNUWIN32 REQUIRED)
 
@@ -67,32 +67,34 @@ set(_gnuwin32_dir ${GNUWIN32_DIR})
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} 
 	${_gnuwin32_dir}/include
 	${_zlib_path}/include
-	${_iconv_path}/include)
+	${_iconv_path}/include
+	)
 	
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} 
 	${_gnuwin32_dir}/lib
 	${_zlib_path}/lib
-	${_iconv_path}/lib)
+	${_iconv_path}/lib
+	)
 
 #chek_include_files path
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${_gnuwin32_dir}/include)
 
 
-else()
+else(WIN32)
 
 	set(_prog_path ~/bin)
 	
-endif()
+endif(WIN32)
 
 
-get_filename_component(lyx_dir_readme ${CMAKE_SOURCE_DIR}/../../README ABSOLUTE)
-get_filename_component(TOP_SRC_DIR ${lyx_dir_readme} PATH)
+GET_FILENAME_COMPONENT(lyx_dir_readme ${CMAKE_SOURCE_DIR}/../../README ABSOLUTE)
+GET_FILENAME_COMPONENT(TOP_SRC_DIR ${lyx_dir_readme} PATH)
 
 if(WIN32)
 	set(locale_dir Resources/locale)
-else()	
+else(WIN32)	
 	set(locale_dir share/locale)
-endif()
+endif(WIN32)
 
 set(PREFIX ${_prog_path}/LyX)
 set(LOCAL_DIR ${PREFIX}/${locale_dir})
@@ -100,3 +102,6 @@ set(LOCAL_DIR ${PREFIX}/${locale_dir})
 #message(" PREFIX : ${PREFIX}")
 #message(" LOCAL_DIR : ${LOCAL_DIR}")
 #message(" TOP_SRC_DIR : ${TOP_SRC_DIR}")
+
+
+

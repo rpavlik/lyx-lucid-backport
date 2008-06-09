@@ -11,25 +11,24 @@
 
 #include <config.h>
 
-#include "InsertTableWidget.h"
-
-#include "GuiView.h"
-#include "qt_helpers.h"
-
+#include "LyXFunc.h"
 #include "FuncStatus.h"
 #include "FuncRequest.h"
-#include "LyXFunc.h"
+#include "LyXView.h"
 
+#include "qt_helpers.h"
+
+#include "InsertTableWidget.h"
 #include <QMouseEvent>
-#include <QPainter>
 #include <QString>
 #include <QToolTip>
+#include <QPainter>
 
 
 namespace lyx {
 namespace frontend {
 
-InsertTableWidget::InsertTableWidget(GuiView & lyxView, QWidget * parent)
+InsertTableWidget::InsertTableWidget(LyXView & lyxView, QWidget * parent)
 	: QWidget(parent, Qt::Popup), colwidth_(20), rowheight_(12), lyxView_(lyxView)
 {
 	init();
@@ -108,8 +107,7 @@ void InsertTableWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
 {
 	if (underMouse_) {
 		QString const data = QString("%1 %2").arg(bottom_).arg(right_);
-		theLyXFunc().setLyXView(&lyxView_);
-		lyx::dispatch(FuncRequest(LFUN_TABULAR_INSERT, fromqstr(data)));
+		lyxView_.dispatch(FuncRequest(LFUN_TABULAR_INSERT, fromqstr(data)));
 	}
 	// emit signal
 	visible(false);

@@ -27,7 +27,6 @@
 \screen_font_roman "Times"
 \screen_font_sans "Helvetica"
 \screen_font_typewriter "Courier"
-\open_buffers_in_tabs false
 
 #
 # COLOR SECTION ###################################

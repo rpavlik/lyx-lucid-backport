@@ -13,35 +13,54 @@
 
 #include "TocWidget.h"
 
-#include "GuiView.h"
+#include "QToc.h"
 #include "qt_helpers.h"
-#include "TocModel.h"
+#include "support/filetools.h"
+#include "support/lstrings.h"
 
-#include "FuncRequest.h"
-#include "LyXFunc.h"
-
-#include "support/debug.h"
+#include "debug.h"
 
 #include <QHeaderView>
+#include <QPushButton>
+#include <QTreeWidgetItem>
 #include <QTimer>
 
 #include <vector>
+#include <string>
+#include <stack>
 
-using namespace std;
+using std::endl;
+using std::pair;
+using std::stack;
+using std::vector;
+using std::string;
+
 
 namespace lyx {
+
+using support::FileName;
+using support::libFileSearch;
+
 namespace frontend {
 
-TocWidget::TocWidget(GuiView & gui_view, QWidget * parent)
-	: QWidget(parent), depth_(0), gui_view_(gui_view)
+TocWidget::TocWidget(QToc * form, QWidget * parent)
+	: QWidget(parent), form_(form), depth_(0)
 {
 	setupUi(this);
 
-	moveOutTB->setIcon(QIcon(":/images/promote.png"));
-	moveInTB->setIcon(QIcon(":/images/demote.png"));
-	moveUpTB->setIcon(QIcon(":/images/up.png"));
-	moveDownTB->setIcon(QIcon(":/images/down.png"));
-	updateTB->setIcon(QIcon(":/images/reload.png"));
+	connect(form, SIGNAL(modelReset()),
+		SLOT(updateGui()));
+
+	FileName icon_path = libFileSearch("images", "promote.xpm");
+	moveOutTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
+	icon_path = libFileSearch("images", "demote.xpm");
+	moveInTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
+	icon_path = libFileSearch("images", "up.xpm");
+	moveUpTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
+	icon_path = libFileSearch("images", "down.xpm");
+	moveDownTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
+	icon_path = libFileSearch("images", "reload.xpm");
+	updateTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
 
 	// avoid flickering
 	tocTV->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -59,25 +78,15 @@ TocWidget::TocWidget(GuiView & gui_view, QWidget * parent)
 }
 
 
-void TocWidget::on_tocTV_activated(QModelIndex const & index)
+void TocWidget::selectionChanged(const QModelIndex & current,
+				  const QModelIndex & /*previous*/)
 {
-	goTo(index);
-}
+	LYXERR(Debug::GUI)
+		<< "selectionChanged index " << current.row()
+		<< ", " << current.column()
+		<< endl;
 
-
-void TocWidget::on_tocTV_clicked(QModelIndex const & index)
-{
-	goTo(index);
-	gui_view_.setFocus();
-}
-
-
-void TocWidget::goTo(QModelIndex const & index)
-{
-	LYXERR(Debug::GUI, "goto " << index.row()
-		<< ", " << index.column());
-
-	gui_view_.tocModels().goTo(typeCO->currentIndex(), index);
+	form_->goTo(typeCO->currentIndex(), current);
 }
 
 
@@ -86,7 +95,7 @@ void TocWidget::on_updateTB_clicked()
 	// The backend update can take some time so we disable
 	// the controls while waiting.
 	enableControls(false);
-	gui_view_.tocModels().updateBackend();
+	form_->updateBackend();
 }
 
 /* FIXME (Ugras 17/11/06):
@@ -98,8 +107,8 @@ depth calculation.
 int TocWidget::getIndexDepth(QModelIndex const & index, int depth)
 {
 	++depth;
-	return (index.parent() == QModelIndex())
-		? depth : getIndexDepth(index.parent(),depth);
+	return (index.parent() ==
+		QModelIndex())? depth : getIndexDepth(index.parent(),depth);
 }
 
 
@@ -108,7 +117,6 @@ void TocWidget::on_depthSL_valueChanged(int depth)
 	if (depth == depth_)
 		return;
 	setTreeDepth(depth);
-	gui_view_.setFocus();
 }
 
 
@@ -122,71 +130,87 @@ void TocWidget::setTreeDepth(int depth)
 	QModelIndexList indices = tocTV->model()->match(
 		tocTV->model()->index(0,0),
 		Qt::DisplayRole, "*", -1,
-		Qt::MatchFlags(Qt::MatchWildcard|Qt::MatchRecursive));
+		Qt::MatchWildcard|Qt::MatchRecursive);
 
 	int size = indices.size();
 	for (int i = 0; i < size; i++) {
 		QModelIndex index = indices[i];
-		tocTV->setExpanded(index, getIndexDepth(index) < depth_);
+		if (getIndexDepth(index) < depth_)
+			tocTV->expand(index);
+		else
+			tocTV->collapse(index);
 	}
 }
-
 
 void TocWidget::on_typeCO_currentIndexChanged(int value)
 {
 	setTocModel(value);
-	gui_view_.setFocus();
-}
-
-
-void TocWidget::outline(int func_code)
-{
-	enableControls(false);
-	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
-	if (list.isEmpty())
-		return;
-	enableControls(false);
-	goTo(list[0]);
-	dispatch(FuncRequest(static_cast<FuncCode>(func_code)));
-	enableControls(true);
-	gui_view_.setFocus();
 }
 
 
 void TocWidget::on_moveUpTB_clicked()
 {
-	outline(LFUN_OUTLINE_UP);
+	enableControls(false);
+	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		enableControls(false);
+		form_->goTo(typeCO->currentIndex(), list[0]);
+		form_->outlineUp();
+		enableControls(true);
+	}
 }
 
 
 void TocWidget::on_moveDownTB_clicked()
 {
-	outline(LFUN_OUTLINE_DOWN);
+	enableControls(false);
+	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		enableControls(false);
+		form_->goTo(typeCO->currentIndex(), list[0]);
+		form_->outlineDown();
+		enableControls(true);
+	}
 }
 
 
 void TocWidget::on_moveInTB_clicked()
 {
-	outline(LFUN_OUTLINE_IN);
+	enableControls(false);
+	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		enableControls(false);
+		form_->goTo(typeCO->currentIndex(), list[0]);
+		form_->outlineIn();
+		enableControls(true);
+	}
 }
 
 
 void TocWidget::on_moveOutTB_clicked()
 {
-	outline(LFUN_OUTLINE_OUT);
+	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		enableControls(false);
+		form_->goTo(typeCO->currentIndex(), list[0]);
+		form_->outlineOut();
+		enableControls(true);
+	}
 }
 
 
 void TocWidget::select(QModelIndex const & index)
 {
 	if (!index.isValid()) {
-		LYXERR(Debug::GUI, "TocWidget::select(): QModelIndex is invalid!");
+		LYXERR(Debug::GUI)
+			<< "TocWidget::select(): QModelIndex is invalid!" << endl;
 		return;
 	}
 
-	tocTV->scrollTo(index);
-	tocTV->clearSelection();
+	disconnectSelectionModel();
 	tocTV->setCurrentIndex(index);
+	tocTV->scrollTo(index);
+	reconnectSelectionModel();
 }
 
 
@@ -194,7 +218,7 @@ void TocWidget::enableControls(bool enable)
 {
 	updateTB->setEnabled(enable);
 
-	if (!gui_view_.tocModels().canOutline(typeCO->currentIndex()))
+	if (!form_->canOutline(typeCO->currentIndex()))
 		enable = false;
 
 	moveUpTB->setEnabled(enable);
@@ -206,18 +230,18 @@ void TocWidget::enableControls(bool enable)
 }
 
 
-void TocWidget::updateView()
+void TocWidget::update()
 {
-	LYXERR(Debug::GUI, "In TocWidget::updateView()");
-	setTreeDepth(depth_);
-	select(gui_view_.tocModels().currentIndex(typeCO->currentIndex()));
+	LYXERR(Debug::GUI) << "In TocWidget::update()" << endl;
+	select(form_->getCurrentIndex(typeCO->currentIndex()));
+	QWidget::update();
 }
 
 
-void TocWidget::init(QString const & str)
+void TocWidget::updateGui()
 {
-	QStringList const & type_names = gui_view_.tocModels().typeNames();
-	if (type_names.isEmpty()) {
+	vector<docstring> const & type_names = form_->typeNames();
+	if (type_names.empty()) {
 		enableControls(false);
 		typeCO->clear();
 		tocTV->setModel(new QStandardItemModel);
@@ -225,53 +249,76 @@ void TocWidget::init(QString const & str)
 		return;
 	}
 
-	int selected_type = gui_view_.tocModels().decodeType(str);
-
-	QString const current_text = typeCO->currentText();
 	typeCO->blockSignals(true);
 	typeCO->clear();
-	for (int i = 0; i != type_names.size(); ++i)
-		typeCO->addItem(type_names[i]);
-	if (!str.isEmpty())
-		typeCO->setCurrentIndex(selected_type);
-	else {
-		int const new_index = typeCO->findText(current_text);
-		if (new_index != -1)
-			typeCO->setCurrentIndex(new_index);
-		else
-			typeCO->setCurrentIndex(selected_type);
+	for (size_t i = 0; i != type_names.size(); ++i) {
+		QString item = toqstr(type_names[i]);
+		typeCO->addItem(item);
 	}
-
+	if (form_->selectedType() != -1)
+		typeCO->setCurrentIndex(form_->selectedType());
 	typeCO->blockSignals(false);
 
 	setTocModel(typeCO->currentIndex());
+
+	// setTocModel produce QTreeView reset and setting depth again
+	// is needed. That must be done after all Qt updates are processed.
+	QTimer::singleShot(0, this, SLOT(setTreeDepth()));
 }
 
 
 void TocWidget::setTocModel(size_t type)
 {
 	bool controls_enabled = false;
-	QStandardItemModel * toc_model = gui_view_.tocModels().model(type);
+	QStandardItemModel * toc_model = form_->tocModel(type);
 	if (toc_model) {
 		controls_enabled = toc_model->rowCount() > 0;
 		tocTV->setModel(toc_model);
 		tocTV->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		LYXERR(Debug::GUI, "tocModel()->rowCount "
-			<< toc_model->rowCount()
-			<< "\nform_->tocModel()->columnCount "
-			<< toc_model->columnCount());
 	}
 
 	enableControls(controls_enabled);
 
+	reconnectSelectionModel();
+
 	if (controls_enabled) {
-		depthSL->setMaximum(gui_view_.tocModels().depth(type));
+		depthSL->setMaximum(form_->getTocDepth(type));
 		depthSL->setValue(depth_);
 	}
 
-	// setTocModel produce QTreeView reset and setting depth again
-	// is needed. That must be done after all Qt updates are processed.
-	QTimer::singleShot(0, this, SLOT(updateView()));
+	LYXERR(Debug::GUI) << "In TocWidget::updateGui()" << endl;
+
+	select(form_->getCurrentIndex(typeCO->currentIndex()));
+
+	if (toc_model) {
+		LYXERR(Debug::GUI)
+		<< "form_->tocModel()->rowCount "
+			<< toc_model->rowCount()
+			<< "\nform_->tocModel()->columnCount "
+			<< toc_model->columnCount()
+			<< endl;
+	}
+}
+
+
+void TocWidget::reconnectSelectionModel()
+{
+	connect(tocTV->selectionModel(),
+		SIGNAL(currentChanged(const QModelIndex &,
+		       const QModelIndex &)),
+		this,
+		SLOT(selectionChanged(const QModelIndex &,
+		     const QModelIndex &)));
+}
+
+void TocWidget::disconnectSelectionModel()
+{
+	disconnect(tocTV->selectionModel(),
+		   SIGNAL(currentChanged(const QModelIndex &,
+			  const QModelIndex &)),
+		   this,
+		   SLOT(selectionChanged(const QModelIndex &,
+			const QModelIndex &)));
 }
 
 } // namespace frontend

@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 314
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass scrlttr2
@@ -73,7 +73,6 @@ fromalign=center%        alignment of the address
 \graphics default
 \paperfontsize 11
 \spacing other 1.15
-\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -187,8 +186,12 @@ Preamble
 status collapsed
 
 \begin_layout Standard
-http://www.ctan.org/tex-archive/macros/latex/contrib/supported/koma-script/scrguie
-n.pdf
+\begin_inset LatexCommand url
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/supported/koma-script/scrguien.pdf"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset

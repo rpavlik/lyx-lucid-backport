@@ -18,43 +18,49 @@
  */
 
 #include <config.h>
+#include <vector>
 
 #include "LyXFunc.h"
 
-#include "LayoutFile.h"
 #include "BranchList.h"
-#include "buffer_funcs.h"
 #include "Buffer.h"
+#include "buffer_funcs.h"
 #include "BufferList.h"
 #include "BufferParams.h"
 #include "BufferView.h"
-#include "CmdDef.h"
-#include "Color.h"
-#include "Converter.h"
+#include "bufferview_funcs.h"
 #include "Cursor.h"
 #include "CutAndPaste.h"
+#include "debug.h"
 #include "DispatchResult.h"
 #include "Encoding.h"
 #include "ErrorList.h"
+#include "Exporter.h"
 #include "Format.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "gettext.h"
+#include "Importer.h"
 #include "InsetIterator.h"
 #include "Intl.h"
 #include "KeyMap.h"
 #include "Language.h"
-#include "Lexer.h"
+#include "Color.h"
+#include "Session.h"
+#include "LyX.h"
+#include "callback.h"
 #include "LyXAction.h"
 #include "lyxfind.h"
-#include "LyX.h"
+#include "Lexer.h"
 #include "LyXRC.h"
-#include "LyXVC.h"
-#include "Paragraph.h"
-#include "ParagraphParameters.h"
-#include "ParIterator.h"
 #include "Row.h"
 #include "Server.h"
-#include "Session.h"
+#include "TextClassList.h"
+#include "LyXVC.h"
+#include "Paragraph.h"
+#include "ParIterator.h"
+#include "ParagraphParameters.h"
+#include "Undo.h"
 
 #include "insets/InsetBox.h"
 #include "insets/InsetBranch.h"
@@ -66,22 +72,27 @@
 #include "insets/InsetGraphics.h"
 #include "insets/InsetInclude.h"
 #include "insets/InsetNote.h"
-#include "insets/InsetSpace.h"
 #include "insets/InsetTabular.h"
 #include "insets/InsetVSpace.h"
 #include "insets/InsetWrap.h"
 
-#include "frontends/alert.h"
 #include "frontends/Application.h"
+#include "frontends/alert.h"
+#include "frontends/Dialogs.h"
+#include "frontends/FileDialog.h"
+#include "frontends/FontLoader.h"
+#include "frontends/Gui.h"
 #include "frontends/KeySymbol.h"
 #include "frontends/LyXView.h"
+#include "frontends/Menubar.h"
+#include "frontends/Toolbars.h"
 #include "frontends/Selection.h"
 
-#include "support/debug.h"
 #include "support/environment.h"
-#include "support/FileName.h"
+#include "support/FileFilterList.h"
 #include "support/filetools.h"
-#include "support/gettext.h"
+#include "support/ForkedcallsController.h"
+#include "support/fs_extras.h"
 #include "support/lstrings.h"
 #include "support/Path.h"
 #include "support/Package.h"
@@ -89,59 +100,58 @@
 #include "support/convert.h"
 #include "support/os.h"
 
-#include <sstream>
-#include <vector>
+#include <boost/current_function.hpp>
+#include <boost/filesystem/operations.hpp>
 
-using namespace std;
-using namespace lyx::support;
+#include <sstream>
+
 
 namespace lyx {
 
-using frontend::LyXView;
+using bv_funcs::freefont2string;
+
+using support::absolutePath;
+using support::addName;
+using support::addPath;
+using support::bformat;
+using support::changeExtension;
+using support::contains;
+using support::doesFileExist;
+using support::FileFilterList;
+using support::FileName;
+using support::fileSearch;
+using support::ForkedcallsController;
+using support::i18nLibFileSearch;
+using support::isDirWriteable;
+using support::isFileReadable;
+using support::isStrInt;
+using support::makeAbsPath;
+using support::makeDisplayPath;
+using support::package;
+using support::quoteName;
+using support::rtrim;
+using support::split;
+using support::subst;
+using support::Systemcall;
+using support::token;
+using support::trim;
+using support::prefixIs;
+
+using std::endl;
+using std::make_pair;
+using std::pair;
+using std::string;
+using std::istringstream;
+using std::ostringstream;
 
 namespace Alert = frontend::Alert;
+namespace fs = boost::filesystem;
+
 
 namespace {
 
-
-// This function runs "configure" and then rereads lyx.defaults to
-// reconfigure the automatic settings.
-void reconfigure(LyXView * lv, string const & option)
-{
-	// emit message signal.
-	if (lv)
-		lv->message(_("Running configure..."));
-
-	// Run configure in user lyx directory
-	PathChanger p(package().user_support());
-	string configure_command = package().configure_command();
-	configure_command += option;
-	Systemcall one;
-	int ret = one.startscript(Systemcall::Wait, configure_command);
-	p.pop();
-	// emit message signal.
-	if (lv)
-		lv->message(_("Reloading configuration..."));
-	lyxrc.read(libFileSearch(string(), "lyxrc.defaults"));
-	// Re-read packages.lst
-	LaTeXFeatures::getAvailable();
-
-	if (ret)
-		Alert::information(_("System reconfiguration failed"),
-			   _("The system reconfiguration has failed.\n"
-				  "Default textclass is used but LyX may "
-				  "not be able to work properly.\n"
-				  "Please reconfigure again if needed."));
-	else
-
-		Alert::information(_("System reconfigured"),
-			   _("The system has been reconfigured.\n"
-			     "You need to restart LyX to make use of any\n"
-			     "updated document class specifications."));
-}
-
-
-bool getLocalStatus(Cursor cursor, FuncRequest const & cmd, FuncStatus & status)
+bool getLocalStatus(Cursor cursor,
+	       FuncRequest const & cmd, FuncStatus & status)
 {
 	// Try to fix cursor in case it is broken.
 	cursor.fixIfBroken();
@@ -153,9 +163,9 @@ bool getLocalStatus(Cursor cursor, FuncRequest const & cmd, FuncStatus & status)
 	bool res = false;
 	for ( ; cursor.depth(); cursor.pop()) {
 		//lyxerr << "\nCursor::getStatus: cmd: " << cmd << endl << *this << endl;
-		LASSERT(cursor.idx() <= cursor.lastidx(), /**/);
-		LASSERT(cursor.pit() <= cursor.lastpit(), /**/);
-		LASSERT(cursor.pos() <= cursor.lastpos(), /**/);
+		BOOST_ASSERT(cursor.idx() <= cursor.lastidx());
+		BOOST_ASSERT(cursor.pit() <= cursor.lastpit());
+		BOOST_ASSERT(cursor.pos() <= cursor.lastpos());
 
 		// The inset's getStatus() will return 'true' if it made
 		// a definitive decision on whether it want to handle the
@@ -193,23 +203,24 @@ Change::Type lookupChangeType(DocIterator const & dit, bool outer = false)
 
 }
 
-
 LyXFunc::LyXFunc()
-	: lyx_view_(0), encoded_last_key(0), meta_fake_bit(NoModifier)
+	: lyx_view_(0),
+	encoded_last_key(0),
+	meta_fake_bit(key_modifier::none)
 {
 }
 
 
 void LyXFunc::initKeySequences(KeyMap * kb)
 {
-	keyseq = KeySequence(kb, kb);
-	cancel_meta_seq = KeySequence(kb, kb);
+	keyseq.reset(new KeySequence(kb, kb));
+	cancel_meta_seq.reset(new KeySequence(kb, kb));
 }
 
 
 void LyXFunc::setLyXView(LyXView * lv)
 {
-	if (lyx_view_ && lyx_view_->view() && lyx_view_ != lv)
+	if (!quitting && lyx_view_ && lyx_view_ != lv)
 		// save current selection to the selection buffer to allow
 		// middle-button paste in another window
 		cap::saveSelection(lyx_view_->view()->cursor());
@@ -217,33 +228,31 @@ void LyXFunc::setLyXView(LyXView * lv)
 }
 
 
-void LyXFunc::handleKeyFunc(FuncCode action)
+void LyXFunc::handleKeyFunc(kb_action action)
 {
 	char_type c = encoded_last_key;
 
-	if (keyseq.length())
+	if (keyseq->length())
 		c = 0;
 
-	LASSERT(lyx_view_ && lyx_view_->view(), /**/);
 	lyx_view_->view()->getIntl().getTransManager().deadkey(
 		c, get_accent(action).accent, view()->cursor().innerText(), view()->cursor());
 	// Need to clear, in case the minibuffer calls these
 	// actions
-	keyseq.clear();
+	keyseq->clear();
 	// copied verbatim from do_accent_char
 	view()->cursor().resetAnchor();
-	view()->processUpdateFlags(Update::FitCursor);
+	view()->update();
 }
 
-//FIXME: bookmark handling is a frontend issue. This code should be transferred
-// to GuiView and be GuiView and be window dependent.
+
 void LyXFunc::gotoBookmark(unsigned int idx, bool openFile, bool switchToBuffer)
 {
-	LASSERT(lyx_view_, /**/);
+	BOOST_ASSERT(lyx_view_);
 	if (!LyX::ref().session().bookmarks().isValid(idx))
 		return;
 	BookmarksSection::Bookmark const & bm = LyX::ref().session().bookmarks().bookmark(idx);
-	LASSERT(!bm.filename.empty(), /**/);
+	BOOST_ASSERT(!bm.filename.empty());
 	string const file = bm.filename.absFilename();
 	// if the file is not opened, open it.
 	if (!theBufferList().exists(file)) {
@@ -253,114 +262,112 @@ void LyXFunc::gotoBookmark(unsigned int idx, bool openFile, bool switchToBuffer)
 			return;
 	}
 	// open may fail, so we need to test it again
-	if (!theBufferList().exists(file))
-		return;
-
-	// if the current buffer is not that one, switch to it.
-	if (lyx_view_->buffer()->absFileName() != file) {
-		if (!switchToBuffer)
-			return;
-		dispatch(FuncRequest(LFUN_BUFFER_SWITCH, file));
-	}
-	// moveToPosition try paragraph id first and then paragraph (pit, pos).
-	if (!view()->moveToPosition(bm.bottom_pit, bm.bottom_pos,
-		bm.top_id, bm.top_pos))
-		return;
-
-	// Cursor jump succeeded!
-	Cursor const & cur = view()->cursor();
-	pit_type new_pit = cur.pit();
-	pos_type new_pos = cur.pos();
-	int new_id = cur.paragraph().id();
-
-	// if bottom_pit, bottom_pos or top_id has been changed, update bookmark
-	// see http://bugzilla.lyx.org/show_bug.cgi?id=3092
-	if (bm.bottom_pit != new_pit || bm.bottom_pos != new_pos 
-		|| bm.top_id != new_id) {
-		const_cast<BookmarksSection::Bookmark &>(bm).updatePos(
-			new_pit, new_pos, new_id);
+	if (theBufferList().exists(file)) {
+		// if the current buffer is not that one, switch to it.
+		if (lyx_view_->buffer()->fileName() != file) {
+			if (switchToBuffer)
+				dispatch(FuncRequest(LFUN_BUFFER_SWITCH, file));
+			else
+				return;
+		}
+		// moveToPosition use par_id, and par_pit and return new par_id.
+		pit_type new_pit;
+		pos_type new_pos;
+		int new_id;
+		boost::tie(new_pit, new_pos, new_id) = view()->moveToPosition(bm.bottom_pit, bm.bottom_pos, bm.top_id, bm.top_pos);
+		// if bottom_pit, bottom_pos or top_id has been changed, update bookmark
+		// see http://bugzilla.lyx.org/show_bug.cgi?id=3092
+		if (bm.bottom_pit != new_pit || bm.bottom_pos != new_pos || bm.top_id != new_id )
+			const_cast<BookmarksSection::Bookmark &>(bm).updatePos(new_pit, new_pos, new_id);
 	}
 }
 
 
-void LyXFunc::processKeySym(KeySymbol const & keysym, KeyModifier state)
+void LyXFunc::processKeySym(KeySymbolPtr keysym, key_modifier::state state)
 {
-	LYXERR(Debug::KEY, "KeySym is " << keysym.getSymbolName());
+	LYXERR(Debug::KEY) << "KeySym is " << keysym->getSymbolName() << endl;
 
 	// Do nothing if we have nothing (JMarc)
-	if (!keysym.isOK()) {
-		LYXERR(Debug::KEY, "Empty kbd action (probably composing)");
-		lyx_view_->restartCursor();
+	if (!keysym->isOK()) {
+		LYXERR(Debug::KEY) << "Empty kbd action (probably composing)"
+				   << endl;
 		return;
 	}
 
-	if (keysym.isModifier()) {
-		LYXERR(Debug::KEY, "isModifier true");
-		if (lyx_view_)
-			lyx_view_->restartCursor();
+	if (keysym->isModifier()) {
+		LYXERR(Debug::KEY) << "isModifier true" << endl;
 		return;
 	}
 
 	//Encoding const * encoding = view()->cursor().getEncoding();
-	//encoded_last_key = keysym.getISOEncoded(encoding ? encoding->name() : "");
+	//encoded_last_key = keysym->getISOEncoded(encoding ? encoding->name() : "");
 	// FIXME: encoded_last_key shadows the member variable of the same
 	// name. Is that intended?
-	char_type encoded_last_key = keysym.getUCSEncoded();
+	char_type encoded_last_key = keysym->getUCSEncoded();
 
 	// Do a one-deep top-level lookup for
 	// cancel and meta-fake keys. RVDK_PATCH_5
-	cancel_meta_seq.reset();
+	cancel_meta_seq->reset();
 
-	FuncRequest func = cancel_meta_seq.addkey(keysym, state);
-	LYXERR(Debug::KEY, "action first set to [" << func.action << ']');
+	FuncRequest func = cancel_meta_seq->addkey(keysym, state);
+	LYXERR(Debug::KEY) << BOOST_CURRENT_FUNCTION
+			   << " action first set to [" << func.action << ']'
+			   << endl;
 
 	// When not cancel or meta-fake, do the normal lookup.
 	// Note how the meta_fake Mod1 bit is OR-ed in and reset afterwards.
-	// Mostly, meta_fake_bit = NoModifier. RVDK_PATCH_5.
+	// Mostly, meta_fake_bit = key_modifier::none. RVDK_PATCH_5.
 	if ((func.action != LFUN_CANCEL) && (func.action != LFUN_META_PREFIX)) {
 		// remove Caps Lock and Mod2 as a modifiers
-		func = keyseq.addkey(keysym, (state | meta_fake_bit));
-		LYXERR(Debug::KEY, "action now set to [" << func.action << ']');
+		func = keyseq->addkey(keysym, (state | meta_fake_bit));
+		LYXERR(Debug::KEY) << BOOST_CURRENT_FUNCTION
+				   << "action now set to ["
+				   << func.action << ']' << endl;
 	}
 
 	// Dont remove this unless you know what you are doing.
-	meta_fake_bit = NoModifier;
+	meta_fake_bit = key_modifier::none;
 
 	// Can this happen now ?
-	if (func.action == LFUN_NOACTION)
+	if (func.action == LFUN_NOACTION) {
 		func = FuncRequest(LFUN_COMMAND_PREFIX);
+	}
 
-	LYXERR(Debug::KEY, " Key [action=" << func.action << "]["
-		<< keyseq.print(KeySequence::Portable) << ']');
+	LYXERR(Debug::KEY) << BOOST_CURRENT_FUNCTION
+	       << " Key [action="
+	       << func.action << "]["
+	       << to_utf8(keyseq->print(false)) << ']'
+	       << endl;
 
 	// already here we know if it any point in going further
 	// why not return already here if action == -1 and
 	// num_bytes == 0? (Lgb)
 
-	if (keyseq.length() > 1)
-		lyx_view_->message(keyseq.print(KeySequence::ForGui));
+	if (keyseq->length() > 1) {
+		lyx_view_->message(keyseq->print(true));
+	}
 
 
 	// Maybe user can only reach the key via holding down shift.
 	// Let's see. But only if shift is the only modifier
-	if (func.action == LFUN_UNKNOWN_ACTION && state == ShiftModifier) {
-		LYXERR(Debug::KEY, "Trying without shift");
-		func = keyseq.addkey(keysym, NoModifier);
-		LYXERR(Debug::KEY, "Action now " << func.action);
+	if (func.action == LFUN_UNKNOWN_ACTION &&
+	    state == key_modifier::shift) {
+		LYXERR(Debug::KEY) << "Trying without shift" << endl;
+		func = keyseq->addkey(keysym, key_modifier::none);
+		LYXERR(Debug::KEY) << "Action now " << func.action << endl;
 	}
 
 	if (func.action == LFUN_UNKNOWN_ACTION) {
 		// Hmm, we didn't match any of the keysequences. See
 		// if it's normal insertable text not already covered
 		// by a binding
-		if (keysym.isText() && keyseq.length() == 1) {
-			LYXERR(Debug::KEY, "isText() is true, inserting.");
+		if (keysym->isText() && keyseq->length() == 1) {
+			LYXERR(Debug::KEY) << "isText() is true, inserting." << endl;
 			func = FuncRequest(LFUN_SELF_INSERT,
 					   FuncRequest::KEYBOARD);
 		} else {
-			LYXERR(Debug::KEY, "Unknown, !isText() - giving up");
+			LYXERR(Debug::KEY) << "Unknown, !isText() - giving up" << endl;
 			lyx_view_->message(_("Unknown function."));
-			lyx_view_->restartCursor();
 			return;
 		}
 	}
@@ -370,12 +377,11 @@ void LyXFunc::processKeySym(KeySymbol const & keysym, KeyModifier state)
 			docstring const arg(1, encoded_last_key);
 			dispatch(FuncRequest(LFUN_SELF_INSERT, arg,
 					     FuncRequest::KEYBOARD));
-			LYXERR(Debug::KEY, "SelfInsert arg[`" << to_utf8(arg) << "']");
+			LYXERR(Debug::KEY)
+				<< "SelfInsert arg[`" << to_utf8(arg) << "']" << endl;
 		}
 	} else {
 		dispatch(func);
-		if (!lyx_view_)
-			return;
 	}
 }
 
@@ -385,11 +391,23 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	//lyxerr << "LyXFunc::getStatus: cmd: " << cmd << endl;
 	FuncStatus flag;
 
-	Buffer * buf = lyx_view_ ? lyx_view_->buffer() : 0;
+	Cursor & cur = view()->cursor();
+
+	/* In LyX/Mac, when a dialog is open, the menus of the
+	   application can still be accessed without giving focus to
+	   the main window. In this case, we want to disable the menu
+	   entries that are buffer-related.
+
+	   Note that this code is not perfect, as bug 1941 attests:
+	   http://bugzilla.lyx.org/show_bug.cgi?id=1941#c4
+	*/
+	Buffer * buf = lyx_view_? lyx_view_->buffer() : 0;
+	if (lyx_view_ && cmd.origin == FuncRequest::MENU && !lyx_view_->hasFocus())
+		buf = 0;
 
 	if (cmd.action == LFUN_NOACTION) {
 		flag.message(from_utf8(N_("Nothing to do")));
-		flag.setEnabled(false);
+		flag.enabled(false);
 		return flag;
 	}
 
@@ -399,7 +417,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_THESAURUS_ENTRY:
 #endif
 		flag.unknown(true);
-		flag.setEnabled(false);
+		flag.enabled(false);
 		break;
 
 	default:
@@ -422,7 +440,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		// no, exit directly
 		flag.message(from_utf8(N_("Command not allowed with"
 				    "out any document open")));
-		flag.setEnabled(false);
+		flag.enabled(false);
 		return flag;
 	}
 
@@ -432,7 +450,6 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	// to handle (Andre')
 	bool enable = true;
 	switch (cmd.action) {
-
 	case LFUN_BUFFER_TOGGLE_READ_ONLY:
 		flag.setOnOff(buf->isReadonly());
 		break;
@@ -440,13 +457,13 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_BUFFER_SWITCH:
 		// toggle on the current buffer, but do not toggle off
 		// the other ones (is that a good idea?)
-		if (buf && to_utf8(cmd.argument()) == buf->absFileName())
+		if (to_utf8(cmd.argument()) == buf->fileName())
 			flag.setOnOff(true);
 		break;
 
 	case LFUN_BUFFER_EXPORT:
 		enable = cmd.argument() == "custom"
-			|| buf->isExportable(to_utf8(cmd.argument()));
+			|| Exporter::isExportable(*buf, to_utf8(cmd.argument()));
 		break;
 
 	case LFUN_BUFFER_CHKTEX:
@@ -454,7 +471,16 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		break;
 
 	case LFUN_BUILD_PROGRAM:
-		enable = buf->isExportable("program");
+		enable = Exporter::isExportable(*buf, "program");
+		break;
+
+	case LFUN_LAYOUT_TABULAR:
+		enable = cur.innerInsetOfType(Inset::TABULAR_CODE);
+		break;
+
+	case LFUN_LAYOUT:
+	case LFUN_LAYOUT_PARAGRAPH:
+		enable = !cur.inset().forceDefaultParagraphs(cur.idx());
 		break;
 
 	case LFUN_VC_REGISTER:
@@ -471,42 +497,143 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		enable = buf->lyxvc().inUse();
 		break;
 	case LFUN_BUFFER_RELOAD:
-		enable = !buf->isUnnamed() && buf->fileName().exists()
+		enable = !buf->isUnnamed() && doesFileExist(FileName(buf->fileName()))
 			&& (!buf->isClean() || buf->isExternallyModified(Buffer::timestamp_method));
 		break;
+
+	case LFUN_INSET_SETTINGS: {
+		enable = false;
+		if (!cur)
+			break;
+		Inset::Code code = cur.inset().lyxCode();
+		switch (code) {
+			case Inset::TABULAR_CODE:
+				enable = cmd.argument() == "tabular";
+				break;
+			case Inset::ERT_CODE:
+				enable = cmd.argument() == "ert";
+				break;
+			case Inset::FLOAT_CODE:
+				enable = cmd.argument() == "float";
+				break;
+			case Inset::WRAP_CODE:
+				enable = cmd.argument() == "wrap";
+				break;
+			case Inset::NOTE_CODE:
+				enable = cmd.argument() == "note";
+				break;
+			case Inset::BRANCH_CODE:
+				enable = cmd.argument() == "branch";
+				break;
+			case Inset::BOX_CODE:
+				enable = cmd.argument() == "box";
+				break;
+			case Inset::LISTINGS_CODE:
+				enable = cmd.argument() == "listings";
+				break;
+			default:
+				break;
+		}
+		break;
+	}
+
+	case LFUN_INSET_APPLY: {
+		string const name = cmd.getArg(0);
+		Inset * inset = lyx_view_->getDialogs().getOpenInset(name);
+		if (inset) {
+			FuncRequest fr(LFUN_INSET_MODIFY, cmd.argument());
+			FuncStatus fs;
+			if (!inset->getStatus(cur, fr, fs)) {
+				// Every inset is supposed to handle this
+				BOOST_ASSERT(false);
+			}
+			flag |= fs;
+		} else {
+			FuncRequest fr(LFUN_INSET_INSERT, cmd.argument());
+			flag |= getStatus(fr);
+		}
+		enable = flag.enabled();
+		break;
+	}
+
+	case LFUN_DIALOG_TOGGLE:
+		flag.setOnOff(lyx_view_->getDialogs().visible(cmd.getArg(0)));
+		// fall through to set "enable"
+	case LFUN_DIALOG_SHOW: {
+		string const name = cmd.getArg(0);
+		if (!buf)
+			enable = name == "aboutlyx"
+				|| name == "file" //FIXME: should be removed.
+				|| name == "prefs"
+				|| name == "texinfo";
+		else if (name == "print")
+			enable = Exporter::isExportable(*buf, "dvi")
+				&& lyxrc.print_command != "none";
+		else if (name == "character")
+			enable = cur.inset().lyxCode() != Inset::ERT_CODE &&
+				cur.inset().lyxCode() != Inset::LISTINGS_CODE;
+		else if (name == "latexlog")
+			enable = isFileReadable(FileName(buf->getLogName().second));
+		else if (name == "spellchecker")
+#if defined (USE_ASPELL) || defined (USE_ISPELL) || defined (USE_PSPELL)
+			enable = !buf->isReadonly();
+#else
+			enable = false;
+#endif
+		else if (name == "vclog")
+			enable = buf->lyxvc().inUse();
+		break;
+	}
+
+	case LFUN_DIALOG_SHOW_NEW_INSET:
+		enable = cur.inset().lyxCode() != Inset::ERT_CODE &&
+			cur.inset().lyxCode() != Inset::LISTINGS_CODE;
+		if (cur.inset().lyxCode() == Inset::CAPTION_CODE) {
+			FuncStatus flag;
+			if (cur.inset().getStatus(cur, cmd, flag))
+				return flag;
+		}
+		break;
+
+	case LFUN_DIALOG_UPDATE: {
+		string const name = cmd.getArg(0);
+		if (!buf)
+			enable = name == "prefs";
+		break;
+	}
 
 	case LFUN_CITATION_INSERT: {
 		FuncRequest fr(LFUN_INSET_INSERT, "citation");
 		enable = getStatus(fr).enabled();
 		break;
 	}
-	
-	// This could be used for the no-GUI version. The GUI version is handled in
-	// LyXView::getStatus(). See above.
-	/*
-	case LFUN_BUFFER_WRITE:
-	case LFUN_BUFFER_WRITE_AS: {
-		Buffer * b = theBufferList().getBuffer(cmd.getArg(0));
-		enable = b && (b->isUnnamed() || !b->isClean());
+
+	case LFUN_BUFFER_WRITE: {
+		enable = view()->buffer()->isUnnamed()
+			|| !view()->buffer()->isClean();
 		break;
 	}
-	*/
+
 
 	case LFUN_BUFFER_WRITE_ALL: {
-		// We enable the command only if there are some modified buffers
+	// We enable the command only if there are some modified buffers
 		Buffer * first = theBufferList().first();
-		enable = false;
-		if (!first)
-			break;
-		Buffer * b = first;
+		bool modified = false;
+		if (first) {
+			Buffer * b = first;
+		
 		// We cannot use a for loop as the buffer list is a cycle.
-		do {
-			if (!b->isClean()) {
-				enable = true;
-				break;
-			}
-			b = theBufferList().next(b);
-		} while (b != first); 
+			do {
+				if (!b->isClean()) {
+					modified = true;
+					break;
+				}
+				b = theBufferList().next(b);
+			} while (b != first); 
+		}
+	
+		enable = modified;
+
 		break;
 	}
 
@@ -520,6 +647,16 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		enable = LyX::ref().session().bookmarks().size() > 0;
 		break;
 
+	case LFUN_TOOLBAR_TOGGLE: {
+		bool const current = lyx_view_->getToolbars().visible(cmd.getArg(0));
+		flag.setOnOff(current);
+		break;
+	}
+	case LFUN_WINDOW_CLOSE: {
+		enable = (theApp()->gui().viewIds().size() > 1);
+		break;
+	}
+
 	// this one is difficult to get right. As a half-baked
 	// solution, we consider only the first action of the sequence
 	case LFUN_COMMAND_SEQUENCE: {
@@ -528,25 +665,10 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		FuncRequest func(lyxaction.lookupFunc(firstcmd));
 		func.origin = cmd.origin;
 		flag = getStatus(func);
-		break;
 	}
 
-	case LFUN_CALL: {
-		FuncRequest func;
-		string name = to_utf8(cmd.argument());
-		if (LyX::ref().topLevelCmdDef().lock(name, func)) {
-			func.origin = cmd.origin;
-			flag = getStatus(func);
-			LyX::ref().topLevelCmdDef().release(name);
-		} else {
-			// catch recursion or unknown command definiton
-			// all operations until the recursion or unknown command 
-			// definiton occures are performed, so set the state to enabled
-			enable = true;
-		}
-		break;
-	}
-
+	case LFUN_BUFFER_NEW:
+	case LFUN_BUFFER_NEW_TEMPLATE:
 	case LFUN_WORD_FIND_FORWARD:
 	case LFUN_WORD_FIND_BACKWARD:
 	case LFUN_COMMAND_PREFIX:
@@ -554,6 +676,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_CANCEL:
 	case LFUN_META_PREFIX:
 	case LFUN_BUFFER_CLOSE:
+	case LFUN_BUFFER_WRITE_AS:
 	case LFUN_BUFFER_UPDATE:
 	case LFUN_BUFFER_VIEW:
 	case LFUN_MASTER_BUFFER_UPDATE:
@@ -562,6 +685,8 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_BUFFER_AUTO_SAVE:
 	case LFUN_RECONFIGURE:
 	case LFUN_HELP_OPEN:
+	case LFUN_FILE_NEW:
+	case LFUN_FILE_OPEN:
 	case LFUN_DROP_LAYOUTS_CHOICE:
 	case LFUN_MENU_OPEN:
 	case LFUN_SERVER_GET_NAME:
@@ -570,7 +695,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_DIALOG_HIDE:
 	case LFUN_DIALOG_DISCONNECT_INSET:
 	case LFUN_BUFFER_CHILD_OPEN:
-	case LFUN_CURSOR_FOLLOWS_SCROLLBAR_TOGGLE:
+	case LFUN_TOGGLE_CURSOR_FOLLOWS_SCROLLBAR:
 	case LFUN_KEYMAP_OFF:
 	case LFUN_KEYMAP_PRIMARY:
 	case LFUN_KEYMAP_SECONDARY:
@@ -579,68 +704,47 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	case LFUN_BUFFER_EXPORT_CUSTOM:
 	case LFUN_BUFFER_PRINT:
 	case LFUN_PREFERENCES_SAVE:
+	case LFUN_SCREEN_FONT_UPDATE:
+	case LFUN_SET_COLOR:
 	case LFUN_MESSAGE:
-	case LFUN_INSET_EDIT:
+	case LFUN_EXTERNAL_EDIT:
+	case LFUN_GRAPHICS_EDIT:
 	case LFUN_ALL_INSETS_TOGGLE:
-	case LFUN_GRAPHICS_GROUPS_UNIFY:
 	case LFUN_BUFFER_LANGUAGE:
 	case LFUN_TEXTCLASS_APPLY:
 	case LFUN_TEXTCLASS_LOAD:
 	case LFUN_BUFFER_SAVE_AS_DEFAULT:
 	case LFUN_BUFFER_PARAMS_APPLY:
-	case LFUN_LAYOUT_MODULES_CLEAR:
-	case LFUN_LAYOUT_MODULE_ADD:
-	case LFUN_LAYOUT_RELOAD:
 	case LFUN_LYXRC_APPLY:
 	case LFUN_BUFFER_NEXT:
 	case LFUN_BUFFER_PREVIOUS:
+	case LFUN_WINDOW_NEW:
+	case LFUN_LYX_QUIT:
 		// these are handled in our dispatch()
 		break;
 
 	default:
-		if (!theApp()) {
-			enable = false;
-			break;
-		}
-		if (theApp()->getStatus(cmd, flag))
-			break;
-
-		// Does the view know something?
-		if (!lyx_view_) {
-			enable = false;
-			break;
-		}
-		if (lyx_view_->getStatus(cmd, flag))
-			break;
-
-		// If we have a BufferView, try cursor position and
-		// then the BufferView.
-		if (!view()) {
-			enable = false;
-			break;
-		}
-		if (!getLocalStatus(view()->cursor(), cmd, flag))
+		if (!getLocalStatus(cur, cmd, flag))
 			flag = view()->getStatus(cmd);
 	}
 
 	if (!enable)
-		flag.setEnabled(false);
+		flag.enabled(false);
 
 	// Can we use a readonly buffer?
 	if (buf && buf->isReadonly()
 	    && !lyxaction.funcHasFlag(cmd.action, LyXAction::ReadOnly)
 	    && !lyxaction.funcHasFlag(cmd.action, LyXAction::NoBuffer)) {
 		flag.message(from_utf8(N_("Document is read-only")));
-		flag.setEnabled(false);
+		flag.enabled(false);
 	}
 
 	// Are we in a DELETED change-tracking region?
-	if (buf && view() 
-		&& lookupChangeType(view()->cursor(), true) == Change::DELETED
+	if (buf && lookupChangeType(cur, true) == Change::DELETED
 	    && !lyxaction.funcHasFlag(cmd.action, LyXAction::ReadOnly)
 	    && !lyxaction.funcHasFlag(cmd.action, LyXAction::NoBuffer)) {
 		flag.message(from_utf8(N_("This portion of the document is deleted.")));
-		flag.setEnabled(false);
+		flag.enabled(false);
 	}
 
 	// the default error message if we disable the command
@@ -653,11 +757,11 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 
 bool LyXFunc::ensureBufferClean(BufferView * bv)
 {
-	Buffer & buf = bv->buffer();
+	Buffer & buf = *bv->buffer();
 	if (buf.isClean())
 		return true;
 
-	docstring const file = buf.fileName().displayName(30);
+	docstring const file = makeDisplayPath(buf.fileName(), 30);
 	docstring text = bformat(_("The document %1$s has unsaved "
 					     "changes.\n\nDo you want to save "
 					     "the document?"), file);
@@ -683,23 +787,26 @@ void showPrintError(string const & name)
 }
 
 
-bool loadLayoutFile(string const & name, string const & buf_path)
+void loadTextclass(string const & name, string const & buf_path)
 {
-	if (!LayoutFileList::get().haveClass(name)) {
+	std::pair<bool, textclass_type> const tc_pair =
+		textclasslist.numberOfClass(name);
+
+	if (!tc_pair.first) {
 		lyxerr << "Document class \"" << name
 		       << "\" does not exist."
-		       << endl;
-		return false;
+		       << std::endl;
+		return;
 	}
 
-	LayoutFile & tc = LayoutFileList::get()[name];
-	if (!tc.load(buf_path)) {
-		docstring s = bformat(_("The document class %1$s "
-				   "could not be loaded."), from_utf8(name));
-		Alert::error(_("Could not load class"), s);
-		return false;
+	textclass_type const tc = tc_pair.second;
+
+	if (!textclasslist[tc].load(buf_path)) {
+		docstring s = bformat(_("The document could not be converted\n"
+						  "into the document class %1$s."),
+				   from_utf8(textclasslist[tc].name()));
+		Alert::error(_("Could not change class"), s);
 	}
-	return true;
 }
 
 
@@ -711,9 +818,9 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new);
 void LyXFunc::dispatch(FuncRequest const & cmd)
 {
 	string const argument = to_utf8(cmd.argument());
-	FuncCode const action = cmd.action;
+	kb_action const action = cmd.action;
 
-	LYXERR(Debug::ACTION, "\nLyXFunc::dispatch: cmd: " << cmd);
+	LYXERR(Debug::ACTION) << endl << "LyXFunc::dispatch: cmd: " << cmd << endl;
 	//lyxerr << "LyXFunc::dispatch: cmd: " << cmd << endl;
 
 	// we have not done anything wrong yet.
@@ -727,16 +834,17 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 	FuncStatus const flag = getStatus(cmd);
 	if (!flag.enabled()) {
 		// We cannot use this function here
-		LYXERR(Debug::ACTION, "LyXFunc::dispatch: "
+		LYXERR(Debug::ACTION) << "LyXFunc::dispatch: "
 		       << lyxaction.getActionName(action)
-		       << " [" << action << "] is disabled at this location");
+		       << " [" << action << "] is disabled at this location"
+		       << endl;
 		setErrorMessage(flag.message());
 	} else {
 		switch (action) {
 
 		case LFUN_WORD_FIND_FORWARD:
 		case LFUN_WORD_FIND_BACKWARD: {
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->view());
 			static docstring last_search;
 			docstring searched_string;
 
@@ -758,44 +866,101 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		}
 
 		case LFUN_COMMAND_PREFIX:
-			LASSERT(lyx_view_, /**/);
-			lyx_view_->message(keyseq.printOptions(true));
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->message(keyseq->printOptions(true));
+			break;
+
+		case LFUN_COMMAND_EXECUTE:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->getToolbars().display("minibuffer", true);
+			lyx_view_->focus_command_buffer();
 			break;
 
 		case LFUN_CANCEL:
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
-			keyseq.reset();
-			meta_fake_bit = NoModifier;
-			if (lyx_view_->buffer())
+			BOOST_ASSERT(lyx_view_ && lyx_view_->view());
+			keyseq->reset();
+			meta_fake_bit = key_modifier::none;
+			if (view()->buffer())
 				// cancel any selection
 				dispatch(FuncRequest(LFUN_MARK_OFF));
 			setMessage(from_ascii(N_("Cancel")));
 			break;
 
 		case LFUN_META_PREFIX:
-			meta_fake_bit = AltModifier;
-			setMessage(keyseq.print(KeySequence::ForGui));
+			meta_fake_bit = key_modifier::alt;
+			setMessage(keyseq->print(true));
 			break;
 
-		case LFUN_BUFFER_TOGGLE_READ_ONLY: {
-			LASSERT(lyx_view_ && lyx_view_->view() && lyx_view_->buffer(), /**/);
-			Buffer * buf = lyx_view_->buffer();
-			if (buf->lyxvc().inUse())
-				buf->lyxvc().toggleReadOnly();
+		case LFUN_BUFFER_TOGGLE_READ_ONLY:
+			BOOST_ASSERT(lyx_view_ && lyx_view_->view() && lyx_view_->buffer());
+			if (lyx_view_->buffer()->lyxvc().inUse())
+				lyx_view_->buffer()->lyxvc().toggleReadOnly();
 			else
-				buf->setReadonly(!lyx_view_->buffer()->isReadonly());
+				lyx_view_->buffer()->setReadonly(
+					!lyx_view_->buffer()->isReadonly());
 			break;
-		}
 
 		// --- Menus -----------------------------------------------
+		case LFUN_BUFFER_NEW:
+			menuNew(argument, false);
+			break;
+
+		case LFUN_BUFFER_NEW_TEMPLATE:
+			menuNew(argument, true);
+			break;
+
 		case LFUN_BUFFER_CLOSE:
-			lyx_view_->closeBuffer();
+			closeBuffer();
+			view()->update();
+			break;
+
+		case LFUN_BUFFER_WRITE:
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			if (!lyx_view_->buffer()->isUnnamed()) {
+				docstring const str = bformat(_("Saving document %1$s..."),
+					 makeDisplayPath(lyx_view_->buffer()->fileName()));
+				lyx_view_->message(str);
+				menuWrite(lyx_view_->buffer());
+				lyx_view_->message(str + _(" done."));
+			} else {
+				writeAs(lyx_view_->buffer());
+			}
 			updateFlags = Update::None;
 			break;
 
+		case LFUN_BUFFER_WRITE_AS:
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			writeAs(lyx_view_->buffer(), argument);
+			updateFlags = Update::None;
+			break;
+
+		case LFUN_BUFFER_WRITE_ALL: {
+			Buffer * first = theBufferList().first();
+			if (first) {
+				Buffer * b = first;
+				lyx_view_->message(_("Saving all documents..."));
+		
+				// We cannot use a for loop as the buffer list cycles.
+				do {
+					if (!b->isClean()) {
+						if (!b->isUnnamed()) {
+							menuWrite(b);
+							lyxerr[Debug::ACTION] << "Saved " << b->fileName() << endl;
+						} else
+							writeAs(b);
+					}
+					b = theBufferList().next(b);
+				} while (b != first); 
+				lyx_view_->message(_("All documents saved."));
+			} 
+	
+			updateFlags = Update::None;
+			break;
+		}
+
 		case LFUN_BUFFER_RELOAD: {
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			docstring const file = makeDisplayPath(lyx_view_->buffer()->absFileName(), 20);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			docstring const file = makeDisplayPath(view()->buffer()->fileName(), 20);
 			docstring text = bformat(_("Any changes will be lost. Are you sure "
 							     "you want to revert to the saved version of the document %1$s?"), file);
 			int const ret = Alert::prompt(_("Revert to saved document?"),
@@ -807,52 +972,53 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		}
 
 		case LFUN_BUFFER_UPDATE:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			lyx_view_->buffer()->doExport(argument, true);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			Exporter::Export(lyx_view_->buffer(), argument, true);
 			break;
 
 		case LFUN_BUFFER_VIEW:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			lyx_view_->buffer()->preview(argument);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			Exporter::preview(lyx_view_->buffer(), argument);
 			break;
 
 		case LFUN_MASTER_BUFFER_UPDATE:
-			LASSERT(lyx_view_ && lyx_view_->buffer() && lyx_view_->buffer()->masterBuffer(), /**/);
-			lyx_view_->buffer()->masterBuffer()->doExport(argument, true);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer() && lyx_view_->buffer()->getMasterBuffer());
+			Exporter::Export(lyx_view_->buffer()->getMasterBuffer(), argument, true);
 			break;
 
 		case LFUN_MASTER_BUFFER_VIEW:
-			LASSERT(lyx_view_ && lyx_view_->buffer() && lyx_view_->buffer()->masterBuffer(), /**/);
-			lyx_view_->buffer()->masterBuffer()->preview(argument);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer() && lyx_view_->buffer()->getMasterBuffer());
+			Exporter::preview(lyx_view_->buffer()->getMasterBuffer(), argument);
 			break;
 
 		case LFUN_BUILD_PROGRAM:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			lyx_view_->buffer()->doExport("program", true);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			Exporter::Export(lyx_view_->buffer(), "program", true);
 			break;
 
 		case LFUN_BUFFER_CHKTEX:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			lyx_view_->buffer()->runChktex();
 			break;
 
 		case LFUN_BUFFER_EXPORT:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			if (argument == "custom")
-				dispatch(FuncRequest(LFUN_DIALOG_SHOW, "sendto"));
-			else
-				lyx_view_->buffer()->doExport(argument, false);
+				lyx_view_->getDialogs().show("sendto");
+			else {
+				Exporter::Export(lyx_view_->buffer(), argument, false);
+			}
 			break;
 
 		case LFUN_BUFFER_EXPORT_CUSTOM: {
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			string format_name;
 			string command = split(argument, format_name, ' ');
 			Format const * format = formats.getFormat(format_name);
 			if (!format) {
 				lyxerr << "Format \"" << format_name
 				       << "\" not recognized!"
-				       << endl;
+				       << std::endl;
 				break;
 			}
 
@@ -863,7 +1029,8 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 
 			// Output to filename
 			if (format->name() == "lyx") {
-				string const latexname = buffer->latexName(false);
+				string const latexname =
+					buffer->getLatexName(false);
 				filename = changeExtension(latexname,
 							   format->extension());
 				filename = addName(buffer->temppath(), filename);
@@ -872,7 +1039,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 					break;
 
 			} else {
-				buffer->doExport(format_name, true, filename);
+				Exporter::Export(buffer, format_name, true, filename);
 			}
 
 			// Substitute $$FName for filename
@@ -887,7 +1054,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		}
 
 		case LFUN_BUFFER_PRINT: {
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			// FIXME: cmd.getArg() might fail if one of the arguments
 			// contains double quotes
 			string target = cmd.getArg(0);
@@ -909,16 +1076,16 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 
 			Buffer * buffer = lyx_view_->buffer();
 
-			if (!buffer->doExport("dvi", true)) {
-				showPrintError(buffer->absFileName());
+			if (!Exporter::Export(buffer, "dvi", true)) {
+				showPrintError(buffer->fileName());
 				break;
 			}
 
 			// Push directory path.
-			string const path = buffer->temppath();
+			string const path(buffer->temppath());
 			// Prevent the compiler from optimizing away p
 			FileName pp(path);
-			PathChanger p(pp);
+			support::Path p(pp);
 
 			// there are three cases here:
 			// 1. we print to a file
@@ -927,7 +1094,8 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			Systemcall one;
 			int res = 0;
 			string const dviname =
-				changeExtension(buffer->latexName(true), "dvi");
+				changeExtension(buffer->getLatexName(true),
+						"dvi");
 
 			if (target == "printer") {
 				if (!lyxrc.print_spool_command.empty()) {
@@ -971,7 +1139,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 				FileName const filename(makeAbsPath(target_name,
 							lyx_view_->buffer()->filePath()));
 				FileName const dvifile(makeAbsPath(dviname, path));
-				if (filename.exists()) {
+				if (doesFileExist(filename)) {
 					docstring text = bformat(
 						_("The file %1$s already exists.\n\n"
 						  "Do you want to overwrite that file?"),
@@ -989,28 +1157,34 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			}
 
 			if (res != 0)
-				showPrintError(buffer->absFileName());
+				showPrintError(buffer->fileName());
 			break;
 		}
 
-		// FIXME: There is need for a command-line import.
-		/*
 		case LFUN_BUFFER_IMPORT:
 			doImport(argument);
 			break;
-		*/
+
+		case LFUN_LYX_QUIT:
+			// quitting is triggered by the gui code
+			// (leaving the event loop).
+			lyx_view_->message(from_utf8(N_("Exiting.")));
+			if (theBufferList().quitWriteAll())
+				theApp()->gui().closeAllViews();
+			break;
 
 		case LFUN_BUFFER_AUTO_SAVE:
-			lyx_view_->buffer()->autoSave();
+			autoSave(view());
 			break;
 
 		case LFUN_RECONFIGURE:
+			BOOST_ASSERT(lyx_view_);
 			// argument is any additional parameter to the configure.py command
-			reconfigure(lyx_view_, argument);
+			reconfigure(*lyx_view_, argument);
 			break;
 
 		case LFUN_HELP_OPEN: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			string const arg = argument;
 			if (arg.empty()) {
 				setErrorMessage(from_ascii(N_("Missing argument")));
@@ -1024,19 +1198,13 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			}
 			lyx_view_->message(bformat(_("Opening help file %1$s..."),
 				makeDisplayPath(fname.absFilename())));
-			Buffer * buf = lyx_view_->loadDocument(fname, false);
-			if (buf) {
-				updateLabels(*buf);
-				lyx_view_->setBuffer(buf);
-				buf->errors("Parse");
-			}
-			updateFlags = Update::None;
+			lyx_view_->loadLyXFile(fname, false);
 			break;
 		}
 
 		// --- version control -------------------------------
 		case LFUN_VC_REGISTER:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			if (!ensureBufferClean(view()))
 				break;
 			if (!lyx_view_->buffer()->lyxvc().inUse()) {
@@ -1047,7 +1215,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 
 		case LFUN_VC_CHECK_IN:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			if (!ensureBufferClean(view()))
 				break;
 			if (lyx_view_->buffer()->lyxvc().inUse()
@@ -1058,7 +1226,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 
 		case LFUN_VC_CHECK_OUT:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			if (!ensureBufferClean(view()))
 				break;
 			if (lyx_view_->buffer()->lyxvc().inUse()
@@ -1069,174 +1237,228 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 
 		case LFUN_VC_REVERT:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			lyx_view_->buffer()->lyxvc().revert();
 			reloadBuffer();
 			break;
 
 		case LFUN_VC_UNDO_LAST:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
 			lyx_view_->buffer()->lyxvc().undoLast();
 			reloadBuffer();
 			break;
 
+		// --- buffers ----------------------------------------
+		case LFUN_BUFFER_SWITCH:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->setBuffer(theBufferList().getBuffer(argument));
+			updateFlags = Update::Force;
+			break;
+
+		case LFUN_BUFFER_NEXT:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->setBuffer(theBufferList().next(view()->buffer()));
+			updateFlags = Update::Force;
+			break;
+
+		case LFUN_BUFFER_PREVIOUS:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->setBuffer(theBufferList().previous(view()->buffer()));
+			updateFlags = Update::Force;
+			break;
+
+		case LFUN_FILE_NEW:
+			BOOST_ASSERT(lyx_view_);
+			newFile(view(), argument);
+			break;
+
+		case LFUN_FILE_OPEN:
+			BOOST_ASSERT(lyx_view_);
+			open(argument);
+			break;
+
+		case LFUN_DROP_LAYOUTS_CHOICE:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->getToolbars().openLayoutList();
+			break;
+
+		case LFUN_MENU_OPEN:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->getMenubar().openByName(from_utf8(argument));
+			break;
+
 		// --- lyxserver commands ----------------------------
 		case LFUN_SERVER_GET_NAME:
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			setMessage(from_utf8(lyx_view_->buffer()->absFileName()));
-			LYXERR(Debug::INFO, "FNAME["
-				<< lyx_view_->buffer()->absFileName() << ']');
+			BOOST_ASSERT(lyx_view_ && lyx_view_->buffer());
+			setMessage(from_utf8(lyx_view_->buffer()->fileName()));
+			LYXERR(Debug::INFO) << "FNAME["
+							 << lyx_view_->buffer()->fileName()
+							 << "] " << endl;
 			break;
 
 		case LFUN_SERVER_NOTIFY:
-			dispatch_buffer = keyseq.print(KeySequence::Portable);
+			dispatch_buffer = keyseq->print(false);
 			theServer().notifyClient(to_utf8(dispatch_buffer));
 			break;
 
 		case LFUN_SERVER_GOTO_FILE_ROW: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			string file_name;
 			int row;
 			istringstream is(argument);
 			is >> file_name >> row;
-			Buffer * buf = 0;
-			bool loaded = false;
-			if (prefixIs(file_name, package().temp_dir().absFilename()))
+			if (prefixIs(file_name, package().temp_dir().absFilename())) {
 				// Needed by inverse dvi search. If it is a file
 				// in tmpdir, call the apropriated function
-				buf = theBufferList().getBufferFromTmp(file_name);
-			else {
+				lyx_view_->setBuffer(theBufferList().getBufferFromTmp(file_name));
+			} else {
 				// Must replace extension of the file to be .lyx
 				// and get full path
 				FileName const s = fileSearch(string(), changeExtension(file_name, ".lyx"), "lyx");
 				// Either change buffer or load the file
-				if (theBufferList().exists(s.absFilename()))
-					buf = theBufferList().getBuffer(s.absFilename());
-				else {
-					buf = lyx_view_->loadDocument(s);
-					loaded = true;
+				if (theBufferList().exists(s.absFilename())) {
+					lyx_view_->setBuffer(theBufferList().getBuffer(s.absFilename()));
+				} else {
+					lyx_view_->loadLyXFile(s);
 				}
 			}
 
-			if (!buf) {
-				updateFlags = Update::None;
-				break;
-			}
-
-			updateLabels(*buf);
-			lyx_view_->setBuffer(buf);
 			view()->setCursorFromRow(row);
-			if (loaded)
-				buf->errors("Parse");
+
 			updateFlags = Update::FitCursor;
 			break;
 		}
 
+		case LFUN_DIALOG_SHOW: {
+			BOOST_ASSERT(lyx_view_);
+			string const name = cmd.getArg(0);
+			string data = trim(to_utf8(cmd.argument()).substr(name.size()));
+
+			if (name == "character") {
+				data = freefont2string();
+				if (!data.empty())
+					lyx_view_->getDialogs().show("character", data);
+			} else if (name == "latexlog") {
+				pair<Buffer::LogType, string> const logfile =
+					lyx_view_->buffer()->getLogName();
+				switch (logfile.first) {
+				case Buffer::latexlog:
+					data = "latex ";
+					break;
+				case Buffer::buildlog:
+					data = "literate ";
+					break;
+				}
+				data += Lexer::quoteString(logfile.second);
+				lyx_view_->getDialogs().show("log", data);
+			} else if (name == "vclog") {
+				string const data = "vc " +
+					Lexer::quoteString(lyx_view_->buffer()->lyxvc().getLogFile());
+				lyx_view_->getDialogs().show("log", data);
+			} else
+				lyx_view_->getDialogs().show(name, data);
+			break;
+		}
 
 		case LFUN_DIALOG_SHOW_NEW_INSET: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			string const name = cmd.getArg(0);
-			InsetCode code = insetCode(name);
 			string data = trim(to_utf8(cmd.argument()).substr(name.size()));
-			bool insetCodeOK = true;
-			switch (code) {
-			case BIBITEM_CODE:
-			case BIBTEX_CODE:
-			case INDEX_CODE:
-			case LABEL_CODE:
-			case NOMENCL_CODE:
-			case REF_CODE:
-			case TOC_CODE:
-			case HYPERLINK_CODE: {
-				InsetCommandParams p(code);
-				data = InsetCommand::params2string(name, p);
-				break;
-			} 
-			case INCLUDE_CODE: {
+			if (name == "bibitem" ||
+			    name == "bibtex" ||
+			    name == "index" ||
+			    name == "label" ||
+			    name == "nomenclature" ||
+			    name == "ref" ||
+			    name == "toc" ||
+			    name == "url") {
+				InsetCommandParams p(name);
+				data = InsetCommandMailer::params2string(name, p);
+			} else if (name == "include") {
 				// data is the include type: one of "include",
 				// "input", "verbatiminput" or "verbatiminput*"
 				if (data.empty())
 					// default type is requested
 					data = "include";
-				InsetCommandParams p(INCLUDE_CODE, data);
-				data = InsetCommand::params2string("include", p);
-				break;
-			} 
-			case BOX_CODE: {
+				InsetCommandParams p(data);
+				data = InsetIncludeMailer::params2string(p);
+			} else if (name == "box") {
 				// \c data == "Boxed" || "Frameless" etc
 				InsetBoxParams p(data);
-				data = InsetBox::params2string(p);
-				break;
-			} 
-			case BRANCH_CODE: {
+				data = InsetBoxMailer::params2string(p);
+			} else if (name == "branch") {
 				InsetBranchParams p;
-				data = InsetBranch::params2string(p);
-				break;
-			} 
-			case CITE_CODE: {
-				InsetCommandParams p(CITE_CODE);
-				data = InsetCommand::params2string(name, p);
-				break;
-			} 
-			case ERT_CODE: {
-				data = InsetERT::params2string(InsetCollapsable::Open);
-				break;
-			} 
-			case EXTERNAL_CODE: {
+				data = InsetBranchMailer::params2string(p);
+			} else if (name == "citation") {
+				InsetCommandParams p("cite");
+				data = InsetCommandMailer::params2string(name, p);
+			} else if (name == "ert") {
+				data = InsetERTMailer::params2string(InsetCollapsable::Open);
+			} else if (name == "external") {
 				InsetExternalParams p;
 				Buffer const & buffer = *lyx_view_->buffer();
-				data = InsetExternal::params2string(p, buffer);
-				break;
-			} 
-			case FLOAT_CODE:  {
+				data = InsetExternalMailer::params2string(p, buffer);
+			} else if (name == "float") {
 				InsetFloatParams p;
-				data = InsetFloat::params2string(p);
-				break;
-			} 
-			case LISTINGS_CODE: {
+				data = InsetFloatMailer::params2string(p);
+			} else if (name == "listings") {
 				InsetListingsParams p;
-				data = InsetListings::params2string(p);
-				break;
-			} 
-			case GRAPHICS_CODE: {
+				data = InsetListingsMailer::params2string(p);
+			} else if (name == "graphics") {
 				InsetGraphicsParams p;
 				Buffer const & buffer = *lyx_view_->buffer();
-				data = InsetGraphics::params2string(p, buffer);
-				break;
-			} 
-			case NOTE_CODE: {
+				data = InsetGraphicsMailer::params2string(p, buffer);
+			} else if (name == "note") {
 				InsetNoteParams p;
-				data = InsetNote::params2string(p);
-				break;
-			} 
-			case SPACE_CODE: {
-				InsetSpaceParams p;
-				data = InsetSpace::params2string(p);
-				break;
-			} 
-			case VSPACE_CODE: {
+				data = InsetNoteMailer::params2string(p);
+			} else if (name == "vspace") {
 				VSpace space;
-				data = InsetVSpace::params2string(space);
-				break;
-			} 
-			case WRAP_CODE: {
+				data = InsetVSpaceMailer::params2string(space);
+			} else if (name == "wrap") {
 				InsetWrapParams p;
-				data = InsetWrap::params2string(p);
-				break;
+				data = InsetWrapMailer::params2string(p);
 			}
-			default:
-				lyxerr << "Inset type '" << name << 
-					"' not recognized in LFUN_DIALOG_SHOW_NEW_INSET" <<  endl;
-				insetCodeOK = false;
-				break;
-			} // end switch(code)
-			if (insetCodeOK)
-				dispatch(FuncRequest(LFUN_DIALOG_SHOW, name + " " + data));
+			lyx_view_->getDialogs().show(name, data, 0);
 			break;
 		}
 
+		case LFUN_DIALOG_UPDATE: {
+			BOOST_ASSERT(lyx_view_);
+			string const & name = argument;
+			// Can only update a dialog connected to an existing inset
+			Inset * inset = lyx_view_->getDialogs().getOpenInset(name);
+			if (inset) {
+				FuncRequest fr(LFUN_INSET_DIALOG_UPDATE, cmd.argument());
+				inset->dispatch(view()->cursor(), fr);
+			} else if (name == "paragraph") {
+				dispatch(FuncRequest(LFUN_PARAGRAPH_UPDATE));
+			} else if (name == "prefs") {
+				lyx_view_->getDialogs().update(name, string());
+			}
+			break;
+		}
+
+		case LFUN_DIALOG_HIDE:
+			LyX::cref().hideDialogs(argument, 0);
+			break;
+
+		case LFUN_DIALOG_TOGGLE: {
+			BOOST_ASSERT(lyx_view_);
+			if (lyx_view_->getDialogs().visible(cmd.getArg(0)))
+				dispatch(FuncRequest(LFUN_DIALOG_HIDE, argument));
+			else
+				dispatch(FuncRequest(LFUN_DIALOG_SHOW, argument));
+			break;
+		}
+
+		case LFUN_DIALOG_DISCONNECT_INSET:
+			BOOST_ASSERT(lyx_view_);
+			lyx_view_->getDialogs().disconnect(argument);
+			break;
+
+
 		case LFUN_CITATION_INSERT: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			if (!argument.empty()) {
 				// we can have one optional argument, delimited by '|'
 				// citation-insert <key>|<text_before>
@@ -1248,11 +1470,11 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 					arg = token(argument, '|', 0);
 					opt1 = token(argument, '|', 1);
 				}
-				InsetCommandParams icp(CITE_CODE);
+				InsetCommandParams icp("cite");
 				icp["key"] = from_utf8(arg);
 				if (!opt1.empty())
 					icp["before"] = from_utf8(opt1);
-				string icstr = InsetCommand::params2string("citation", icp);
+				string icstr = InsetCommandMailer::params2string("citation", icp);
 				FuncRequest fr(LFUN_INSET_INSERT, icstr);
 				dispatch(fr);
 			} else
@@ -1261,61 +1483,64 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		}
 
 		case LFUN_BUFFER_CHILD_OPEN: {
-			LASSERT(lyx_view_ && lyx_view_->buffer(), /**/);
-			Buffer * parent = lyx_view_->buffer();
-			FileName filename = makeAbsPath(argument, parent->filePath());
+			// takes an optional argument, "|bool", at the end
+			// indicating whether this file is being opened automatically
+			// by LyX itself, in which case we will not want to switch
+			// buffers after opening. The default is false, so in practice
+			// it is used only when true.
+			BOOST_ASSERT(lyx_view_);
+			int const arglength = argument.length();
+			FileName filename;
+			bool autoOpen = false;
+			if (argument.substr(arglength - 5, 5) == "|true") {
+				autoOpen = true;
+				filename = makeAbsPath(argument.substr(0, arglength - 5), 
+					lyx_view_->buffer()->filePath());
+			} else if (argument.substr(arglength - 6, 6) == "|false") {
+				filename = makeAbsPath(argument.substr(0, arglength - 6), 
+					lyx_view_->buffer()->filePath());
+			} else filename = 
+				makeAbsPath(argument, lyx_view_->buffer()->filePath());
 			view()->saveBookmark(false);
-			Buffer * child = 0;
-			bool parsed = false;
 			if (theBufferList().exists(filename.absFilename())) {
-				child = theBufferList().getBuffer(filename.absFilename());
-			} else {
-				setMessage(bformat(_("Opening child document %1$s..."),
-					makeDisplayPath(filename.absFilename())));
-				child = lyx_view_->loadDocument(filename, false);
-				parsed = true;
-			}
-			if (child) {
-				// Set the parent name of the child document.
-				// This makes insertion of citations and references in the child work,
-				// when the target is in the parent or another child document.
-				child->setParent(parent);
-				updateLabels(*child->masterBuffer());
-				lyx_view_->setBuffer(child);
-				if (parsed)
-					child->errors("Parse");
-			}
+				Buffer * buf = theBufferList().getBuffer(filename.absFilename());
+				if (!autoOpen)
+					lyx_view_->setBuffer(buf, true);
+				else
+					buf->setParentName(lyx_view_->buffer()->fileName());
+			} else
+				lyx_view_->loadLyXFile(filename, true, true, autoOpen);
 
 			// If a screen update is required (in case where auto_open is false), 
-			// setBuffer() would have taken care of it already. Otherwise we shall 
+			// loadLyXFile() would have taken care of it already. Otherwise we shall 
 			// reset the update flag because it can cause a circular problem.
 			// See bug 3970.
 			updateFlags = Update::None;
 			break;
 		}
 
-		case LFUN_CURSOR_FOLLOWS_SCROLLBAR_TOGGLE:
-			LASSERT(lyx_view_, /**/);
+		case LFUN_TOGGLE_CURSOR_FOLLOWS_SCROLLBAR:
+			BOOST_ASSERT(lyx_view_);
 			lyxrc.cursor_follows_scrollbar = !lyxrc.cursor_follows_scrollbar;
 			break;
 
 		case LFUN_KEYMAP_OFF:
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
+			BOOST_ASSERT(lyx_view_);
 			lyx_view_->view()->getIntl().keyMapOn(false);
 			break;
 
 		case LFUN_KEYMAP_PRIMARY:
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
+			BOOST_ASSERT(lyx_view_);
 			lyx_view_->view()->getIntl().keyMapPrim();
 			break;
 
 		case LFUN_KEYMAP_SECONDARY:
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
+			BOOST_ASSERT(lyx_view_);
 			lyx_view_->view()->getIntl().keyMapSec();
 			break;
 
 		case LFUN_KEYMAP_TOGGLE:
-			LASSERT(lyx_view_ && lyx_view_->view(), /**/);
+			BOOST_ASSERT(lyx_view_);
 			lyx_view_->view()->getIntl().toggleKeyMap();
 			break;
 
@@ -1345,28 +1570,6 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 		}
 
-		case LFUN_CALL: {
-			FuncRequest func;
-			if (LyX::ref().topLevelCmdDef().lock(argument, func)) {
-				func.origin = cmd.origin;
-				dispatch(func);
-				LyX::ref().topLevelCmdDef().release(argument);
-			} else {
-				if (func.action == LFUN_UNKNOWN_ACTION) {
-					// unknown command definition
-					lyxerr << "Warning: unknown command definition `"
-						   << argument << "'"
-						   << endl;
-				} else {
-					// recursion detected
-					lyxerr << "Warning: Recursion in the command definition `"
-						   << argument << "' detected"
-						   << endl;
-				}
-			}
-			break;
-		}
-
 		case LFUN_PREFERENCES_SAVE: {
 			lyxrc.write(makeAbsPath("preferences",
 						package().user_support().absFilename()),
@@ -1374,17 +1577,92 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 		}
 
+		case LFUN_SCREEN_FONT_UPDATE:
+			BOOST_ASSERT(lyx_view_);
+			// handle the screen font changes.
+			theFontLoader().update();
+			/// FIXME: only the current view will be updated. the Gui
+			/// class is able to furnish the list of views.
+			updateFlags = Update::Force;
+			break;
+
+		case LFUN_SET_COLOR: {
+			string lyx_name;
+			string const x11_name = split(argument, lyx_name, ' ');
+			if (lyx_name.empty() || x11_name.empty()) {
+				setErrorMessage(from_ascii(N_(
+						"Syntax: set-color <lyx_name>"
+						" <x11_name>")));
+				break;
+			}
+
+			bool const graphicsbg_changed =
+				(lyx_name == lcolor.getLyXName(Color::graphicsbg) &&
+				 x11_name != lcolor.getX11Name(Color::graphicsbg));
+
+			if (!lcolor.setColor(lyx_name, x11_name)) {
+				setErrorMessage(
+						bformat(_("Set-color \"%1$s\" failed "
+								       "- color is undefined or "
+								       "may not be redefined"),
+									   from_utf8(lyx_name)));
+				break;
+			}
+
+			theApp()->updateColor(lcolor.getFromLyXName(lyx_name));
+
+			if (graphicsbg_changed) {
+#ifdef WITH_WARNINGS
+#warning FIXME!! The graphics cache no longer has a changeDisplay method.
+#endif
+#if 0
+				graphics::GCache::get().changeDisplay(true);
+#endif
+			}
+			break;
+		}
+
 		case LFUN_MESSAGE:
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			lyx_view_->message(from_utf8(argument));
 			break;
 
+		case LFUN_EXTERNAL_EDIT: {
+			BOOST_ASSERT(lyx_view_);
+			FuncRequest fr(action, argument);
+			InsetExternal().dispatch(view()->cursor(), fr);
+			break;
+		}
+
+		case LFUN_GRAPHICS_EDIT: {
+			FuncRequest fr(action, argument);
+			InsetGraphics().dispatch(view()->cursor(), fr);
+			break;
+		}
+
+		case LFUN_INSET_APPLY: {
+			BOOST_ASSERT(lyx_view_);
+			string const name = cmd.getArg(0);
+			Inset * inset = lyx_view_->getDialogs().getOpenInset(name);
+			if (inset) {
+				FuncRequest fr(LFUN_INSET_MODIFY, argument);
+				inset->dispatch(view()->cursor(), fr);
+			} else {
+				FuncRequest fr(LFUN_INSET_INSERT, argument);
+				dispatch(fr);
+			}
+			// ideally, the update flag should be set by the insets,
+			// but this is not possible currently
+			updateFlags = Update::Force | Update::FitCursor;
+			break;
+		}
 
 		case LFUN_ALL_INSETS_TOGGLE: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			string action;
 			string const name = split(argument, action, ' ');
-			InsetCode const inset_code = insetCode(name);
+			Inset::Code const inset_code =
+				Inset::translate(name);
 
 			Cursor & cur = view()->cursor();
 			FuncRequest fr(LFUN_INSET_TOGGLE, action);
@@ -1394,10 +1672,10 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			InsetIterator const end = inset_iterator_end(inset);
 			for (; it != end; ++it) {
 				if (!it->asInsetMath()
-				    && (inset_code == NO_CODE
+				    && (inset_code == Inset::NO_CODE
 				    || inset_code == it->lyxCode())) {
 					Cursor tmpcur = cur;
-					tmpcur.pushBackward(*it);
+					tmpcur.pushLeft(*it);
 					it->dispatch(tmpcur, fr);
 				}
 			}
@@ -1405,19 +1683,8 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 		}
 
-		case LFUN_GRAPHICS_GROUPS_UNIFY: {
-			LASSERT(lyx_view_, /**/);
-			if (argument.empty() || !lyx_view_->buffer())
-				break;
-			//view()->cursor().recordUndoFullDocument(); let inset-apply do that job
-			graphics::unifyGraphicsGroups(*lyx_view_->buffer(), argument);
-			lyx_view_->buffer()->markDirty();
-			updateFlags = Update::Force | Update::FitCursor;
-			break;
-		}
-
 		case LFUN_BUFFER_LANGUAGE: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			Buffer & buffer = *lyx_view_->buffer();
 			Language const * oldL = buffer.params().language;
 			Language const * newL = languages.getLanguage(argument);
@@ -1437,7 +1704,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			Buffer defaults(fname);
 
 			istringstream ss(argument);
-			Lexer lex;
+			Lexer lex(0,0);
 			lex.setStream(ss);
 			int const unknown_tokens = defaults.readHeader(lex);
 
@@ -1448,7 +1715,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 				       << endl;
 			}
 
-			if (defaults.writeFile(FileName(defaults.absFileName())))
+			if (defaults.writeFile(FileName(defaults.fileName())))
 				setMessage(bformat(_("Document defaults saved in %1$s"),
 						   makeDisplayPath(fname)));
 			else
@@ -1457,100 +1724,76 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		}
 
 		case LFUN_BUFFER_PARAMS_APPLY: {
-			LASSERT(lyx_view_, /**/);
-			
-			Buffer * buffer = lyx_view_->buffer();
-			DocumentClass const * const oldClass = buffer->params().documentClassPtr();
-			Cursor & cur = view()->cursor();
-			cur.recordUndoFullDocument();
-			
+			BOOST_ASSERT(lyx_view_);
+			biblio::CiteEngine const engine =
+				lyx_view_->buffer()->params().getEngine();
+
 			istringstream ss(argument);
-			Lexer lex;
+			Lexer lex(0,0);
 			lex.setStream(ss);
-			int const unknown_tokens = buffer->readHeader(lex);
+			int const unknown_tokens =
+				lyx_view_->buffer()->readHeader(lex);
 
 			if (unknown_tokens != 0) {
 				lyxerr << "Warning in LFUN_BUFFER_PARAMS_APPLY!\n"
-						<< unknown_tokens << " unknown token"
-						<< (unknown_tokens == 1 ? "" : "s")
-						<< endl;
+				       << unknown_tokens << " unknown token"
+				       << (unknown_tokens == 1 ? "" : "s")
+				       << endl;
 			}
-			
-			updateLayout(oldClass, buffer);
-			
-			updateFlags = Update::Force | Update::FitCursor;
-			// We are most certainly here because of a change in the document
-			// It is then better to make sure that all dialogs are in sync with
-			// current document settings. LyXView::restartCursor() achieve this.
-			lyx_view_->restartCursor();
-			break;
-		}
-		
-		case LFUN_LAYOUT_MODULES_CLEAR: {
-			LASSERT(lyx_view_, /**/);
-			Buffer * buffer = lyx_view_->buffer();
-			DocumentClass const * const oldClass = buffer->params().documentClassPtr();
-			view()->cursor().recordUndoFullDocument();
-			buffer->params().clearLayoutModules();
-			buffer->params().makeDocumentClass();
-			updateLayout(oldClass, buffer);
-			updateFlags = Update::Force | Update::FitCursor;
-			break;
-		}
-		
-		case LFUN_LAYOUT_MODULE_ADD: {
-			LASSERT(lyx_view_, /**/);
-			Buffer * buffer = lyx_view_->buffer();
-			DocumentClass const * const oldClass = buffer->params().documentClassPtr();
-			view()->cursor().recordUndoFullDocument();
-			buffer->params().addLayoutModule(argument);
-			buffer->params().makeDocumentClass();
-			updateLayout(oldClass, buffer);
-			updateFlags = Update::Force | Update::FitCursor;
+			if (engine == lyx_view_->buffer()->params().getEngine())
+				break;
+
+			Cursor & cur = view()->cursor();
+			FuncRequest fr(LFUN_INSET_REFRESH);
+
+			Inset & inset = lyx_view_->buffer()->inset();
+			InsetIterator it  = inset_iterator_begin(inset);
+			InsetIterator const end = inset_iterator_end(inset);
+			for (; it != end; ++it)
+				if (it->lyxCode() == Inset::CITE_CODE)
+					it->dispatch(cur, fr);
 			break;
 		}
 
 		case LFUN_TEXTCLASS_APPLY: {
-			LASSERT(lyx_view_, /**/);
+			BOOST_ASSERT(lyx_view_);
 			Buffer * buffer = lyx_view_->buffer();
 
-			if (!loadLayoutFile(argument, buffer->temppath()) &&
-				!loadLayoutFile(argument, buffer->filePath()))
+			textclass_type const old_class =
+				buffer->params().textclass;
+
+			loadTextclass(argument, buffer->filePath());
+
+			std::pair<bool, textclass_type> const tc_pair =
+				textclasslist.numberOfClass(argument);
+
+			if (!tc_pair.first)
 				break;
 
-			LayoutFile const * old_layout = buffer->params().baseClass();
-			LayoutFile const * new_layout = &(LayoutFileList::get()[argument]);
-
-			if (old_layout == new_layout)
+			textclass_type const new_class = tc_pair.second;
+			if (old_class == new_class)
 				// nothing to do
 				break;
 
-			//Save the old, possibly modular, layout for use in conversion.
-			DocumentClass const * const oldDocClass = buffer->params().documentClassPtr();
-			view()->cursor().recordUndoFullDocument();
-			buffer->params().setBaseClass(argument);
-			buffer->params().makeDocumentClass();
-			updateLayout(oldDocClass, buffer);
-			updateFlags = Update::Force | Update::FitCursor;
-			break;
-		}
-		
-		case LFUN_LAYOUT_RELOAD: {
-			LASSERT(lyx_view_, /**/);
-			Buffer * buffer = lyx_view_->buffer();
-			DocumentClass const * const oldClass = buffer->params().documentClassPtr();
-			LayoutFileIndex bc = buffer->params().baseClassID();
-			LayoutFileList::get().reset(bc);
-			buffer->params().setBaseClass(bc);
-			buffer->params().makeDocumentClass();
-			updateLayout(oldClass, buffer);
+			lyx_view_->message(_("Converting document to new document class..."));
+			recordUndoFullDocument(view());
+			buffer->params().textclass = new_class;
+			StableDocIterator backcur(view()->cursor());
+			ErrorList & el = buffer->errorList("Class Switch");
+			cap::switchBetweenClasses(
+				old_class, new_class,
+				static_cast<InsetText &>(buffer->inset()), el);
+
+			view()->setCursor(backcur.asDocIterator(&(buffer->inset())));
+
+			buffer->errors("Class Switch");
+			updateLabels(*buffer);
 			updateFlags = Update::Force | Update::FitCursor;
 			break;
 		}
 
 		case LFUN_TEXTCLASS_LOAD:
-			loadLayoutFile(argument, lyx_view_->buffer()->temppath()) ||
-			loadLayoutFile(argument, lyx_view_->buffer()->filePath());
+			loadTextclass(argument, lyx_view_->buffer()->filePath());
 			break;
 
 		case LFUN_LYXRC_APPLY: {
@@ -1568,8 +1811,6 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 
 			actOnUpdatedPrefs(lyxrc_orig, lyxrc);
 
-			theApp()->resetGui();
-
 			/// We force the redraw in any case because there might be
 			/// some screen font changes.
 			/// FIXME: only the current view will be updated. the Gui
@@ -1578,92 +1819,97 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 		}
 
+		case LFUN_WINDOW_NEW:
+			LyX::ref().newLyXView();
+			break;
+
+		case LFUN_WINDOW_CLOSE:
+			BOOST_ASSERT(lyx_view_);
+			BOOST_ASSERT(theApp());
+			// update bookmark pit of the current buffer before window close
+			for (size_t i = 0; i < LyX::ref().session().bookmarks().size(); ++i)
+				gotoBookmark(i+1, false, false);
+			// ask the user for saving changes or cancel quit
+			if (!theBufferList().quitWriteAll())
+				break;
+			lyx_view_->close();
+			return;
+
 		case LFUN_BOOKMARK_GOTO:
 			// go to bookmark, open unopened file and switch to buffer if necessary
 			gotoBookmark(convert<unsigned int>(to_utf8(cmd.argument())), true, true);
-			updateFlags = Update::FitCursor;
 			break;
 
 		case LFUN_BOOKMARK_CLEAR:
 			LyX::ref().session().bookmarks().clear();
 			break;
 
-		default:
-			LASSERT(theApp(), /**/);
-			// Let the frontend dispatch its own actions.
-			if (theApp()->dispatch(cmd))
-				// Nothing more to do.
-				return;
-
-			// Everything below is only for active lyx_view_
-			if (lyx_view_ == 0)
-				break;
-
-			// Let the current LyXView dispatch its own actions.
-			if (lyx_view_->dispatch(cmd)) {
-				if (lyx_view_->view())
-					updateFlags = lyx_view_->view()->cursor().result().update();
+		case LFUN_TOOLBAR_TOGGLE: {
+			BOOST_ASSERT(lyx_view_);
+			string const name = cmd.getArg(0);
+			bool const allowauto = cmd.getArg(1) == "allowauto";
+			lyx_view_->toggleToolbarState(name, allowauto);
+			ToolbarInfo * tbi = lyx_view_->getToolbarInfo(name);
+			if (!tbi) {
+				setMessage(bformat(_("Unknown toolbar \"%1$s\""),
+				                   from_utf8(name)));
 				break;
 			}
+			docstring state;
+			if (tbi->flags & ToolbarInfo::ON)
+				state = _("on");
+			else if (tbi->flags & ToolbarInfo::OFF)
+				state = _("off");
+			else if (tbi->flags & ToolbarInfo::AUTO)
+				state = _("auto");
 
-			LASSERT(lyx_view_->view(), /**/);
-			// Let the current BufferView dispatch its own actions.
-			if (view()->dispatch(cmd)) {
-				// The BufferView took care of its own updates if needed.
-				updateFlags = Update::None;
-				break;
-			}
-
-			// Let the current Cursor dispatch its own actions.
-			Cursor old = view()->cursor();
-			view()->cursor().getPos(cursorPosBeforeDispatchX_,
-						cursorPosBeforeDispatchY_);
-			view()->cursor().dispatch(cmd);
-
-			// notify insets we just left
-			if (view()->cursor() != old) {
-				old.fixIfBroken();
-				bool badcursor = notifyCursorLeaves(old, view()->cursor());
-				if (badcursor)
-					view()->cursor().fixIfBroken();
-			}
-
-			// update completion. We do it here and not in
-			// processKeySym to avoid another redraw just for a
-			// changed inline completion
-			if (cmd.origin == FuncRequest::KEYBOARD) {
-				if (cmd.action == LFUN_SELF_INSERT)
-					lyx_view_->updateCompletion(view()->cursor(), true, true);
-				else if (cmd.action == LFUN_CHAR_DELETE_BACKWARD)
-					lyx_view_->updateCompletion(view()->cursor(), false, true);
-				else
-					lyx_view_->updateCompletion(view()->cursor(), false, false);
-			}
-
-			updateFlags = view()->cursor().result().update();
+			setMessage(bformat(_("Toolbar \"%1$s\" state set to %2$s"), 
+			                   _(tbi->gui_name), state));
+			break;
 		}
 
-		if (lyx_view_ && lyx_view_->buffer()) {
+		default: {
+			BOOST_ASSERT(lyx_view_);
+			view()->cursor().getPos(cursorPosBeforeDispatchX_, cursorPosBeforeDispatchY_);
+			view()->cursor().dispatch(cmd);
+			updateFlags = view()->cursor().result().update();
+			if (!view()->cursor().result().dispatched())
+				updateFlags = view()->dispatch(cmd);
+			break;
+		}
+		}
+
+		if (lyx_view_ && view()->buffer()) {
 			// BufferView::update() updates the ViewMetricsInfo and
 			// also initializes the position cache for all insets in
 			// (at least partially) visible top-level paragraphs.
 			// We will redraw the screen only if needed.
-			view()->processUpdateFlags(updateFlags);
+			if (view()->update(updateFlags)) {
+				// Buffer::changed() signals that a repaint is needed.
+				// The frontend (WorkArea) knows which area to repaint
+				// thanks to the ViewMetricsInfo updated above.
+				view()->buffer()->changed();
+			}
+
+			lyx_view_->updateStatusBar();
 
 			// if we executed a mutating lfun, mark the buffer as dirty
 			if (flag.enabled()
 			    && !lyxaction.funcHasFlag(action, LyXAction::NoBuffer)
 			    && !lyxaction.funcHasFlag(action, LyXAction::ReadOnly))
-				lyx_view_->buffer()->markDirty();			
+				view()->buffer()->markDirty();
 
-			// Do we have a selection?
+			//Do we have a selection?
 			theSelection().haveSelection(view()->cursor().selection());
-			
-			// update gui
-			lyx_view_->restartCursor();
+
+			if (view()->cursor().inTexted()) {
+				lyx_view_->updateLayoutChoice();
+			}
 		}
 	}
-	if (lyx_view_) {
+	if (!quitting && lyx_view_) {
+		lyx_view_->updateMenubar();
+		lyx_view_->updateToolbars();
 		// Some messages may already be translated, so we cannot use _()
 		sendDispatchMessage(translateIfPossible(getMessage()), cmd);
 	}
@@ -1677,7 +1923,7 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 			      || cmd.origin == FuncRequest::COMMANDBUFFER);
 
 	if (cmd.action == LFUN_SELF_INSERT || !verbose) {
-		LYXERR(Debug::ACTION, "dispatch msg is " << to_utf8(msg));
+		LYXERR(Debug::ACTION) << "dispatch msg is " << to_utf8(msg) << endl;
 		if (!msg.empty())
 			lyx_view_->message(msg);
 		return;
@@ -1698,7 +1944,7 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 		}
 	}
 
-	docstring const shortcuts = theTopLevelKeymap().printBindings(cmd);
+	docstring const shortcuts = theTopLevelKeymap().printbindings(cmd);
 
 	if (!shortcuts.empty())
 		comname += ": " + shortcuts;
@@ -1710,30 +1956,241 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 		dispatch_msg += '(' + rtrim(comname) + ')';
 	}
 
-	LYXERR(Debug::ACTION, "verbose dispatch msg " << to_utf8(dispatch_msg));
+	LYXERR(Debug::ACTION) << "verbose dispatch msg "
+		<< to_utf8(dispatch_msg) << endl;
 	if (!dispatch_msg.empty())
 		lyx_view_->message(dispatch_msg);
 }
 
 
+void LyXFunc::menuNew(string const & name, bool fromTemplate)
+{
+	// FIXME: initpath is not used. What to do?
+	string initpath = lyxrc.document_path;
+	string filename(name);
+
+	if (view()->buffer()) {
+		string const trypath = lyx_view_->buffer()->filePath();
+		// If directory is writeable, use this as default.
+		if (isDirWriteable(FileName(trypath)))
+			initpath = trypath;
+	}
+
+	static int newfile_number;
+
+	if (filename.empty()) {
+		filename = addName(lyxrc.document_path,
+			    "newfile" + convert<string>(++newfile_number) + ".lyx");
+		while (theBufferList().exists(filename) ||
+		       fs::is_readable(FileName(filename).toFilesystemEncoding())) {
+			++newfile_number;
+			filename = addName(lyxrc.document_path,
+					   "newfile" +	convert<string>(newfile_number) +
+				    ".lyx");
+		}
+	}
+
+	// The template stuff
+	string templname;
+	if (fromTemplate) {
+		FileDialog fileDlg(_("Select template file"),
+			LFUN_SELECT_FILE_SYNC,
+			make_pair(_("Documents|#o#O"), from_utf8(lyxrc.document_path)),
+			make_pair(_("Templates|#T#t"), from_utf8(lyxrc.template_path)));
+
+		FileDialog::Result result =
+			fileDlg.open(from_utf8(lyxrc.template_path),
+				     FileFilterList(_("LyX Documents (*.lyx)")),
+				     docstring());
+
+		if (result.first == FileDialog::Later)
+			return;
+		if (result.second.empty())
+			return;
+		templname = to_utf8(result.second);
+	}
+
+	Buffer * const b = newFile(filename, templname, !name.empty());
+	if (b) {
+		updateLabels(*b);
+		lyx_view_->setBuffer(b);
+	}
+}
+
+
+void LyXFunc::open(string const & fname)
+{
+	string initpath = lyxrc.document_path;
+
+	if (view()->buffer()) {
+		string const trypath = lyx_view_->buffer()->filePath();
+		// If directory is writeable, use this as default.
+		if (isDirWriteable(FileName(trypath)))
+			initpath = trypath;
+	}
+
+	string filename;
+
+	if (fname.empty()) {
+		FileDialog fileDlg(_("Select document to open"),
+			LFUN_FILE_OPEN,
+			make_pair(_("Documents|#o#O"), from_utf8(lyxrc.document_path)),
+			make_pair(_("Examples|#E#e"), from_utf8(addPath(package().system_support().absFilename(), "examples"))));
+
+		FileDialog::Result result =
+			fileDlg.open(from_utf8(initpath),
+				     FileFilterList(_("LyX Documents (*.lyx)")),
+				     docstring());
+
+		if (result.first == FileDialog::Later)
+			return;
+
+		filename = to_utf8(result.second);
+
+		// check selected filename
+		if (filename.empty()) {
+			lyx_view_->message(_("Canceled."));
+			return;
+		}
+	} else
+		filename = fname;
+
+	// get absolute path of file and add ".lyx" to the filename if
+	// necessary. we allow_unreadable because the file may not exist.
+	// note that this is really misnamed: it should really be 
+	// support::may_not_exist (see filetools.h). this is fixed in
+	// trunk.
+	FileName const fullname = 
+			fileSearch(string(), filename, "lyx", support::allow_unreadable);
+	if (!fullname.empty())
+		filename = fullname.absFilename();
+
+	// if the file doesn't exist, let the user create one
+	if (!doesFileExist(fullname)) {
+		// the user specifically chose this name. Believe him.
+		Buffer * const b = newFile(filename, string(), true);
+		if (b) {
+			updateLabels(*b);
+			lyx_view_->setBuffer(b);
+		}
+		return;
+	}
+
+	docstring const disp_fn = makeDisplayPath(filename);
+	lyx_view_->message(bformat(_("Opening document %1$s..."), disp_fn));
+
+	docstring str2;
+	if (lyx_view_->loadLyXFile(fullname)) {
+		str2 = bformat(_("Document %1$s opened."), disp_fn);
+	} else {
+		str2 = bformat(_("Could not open document %1$s"), disp_fn);
+	}
+	lyx_view_->message(str2);
+}
+
+
+void LyXFunc::doImport(string const & argument)
+{
+	string format;
+	string filename = split(argument, format, ' ');
+
+	LYXERR(Debug::INFO) << "LyXFunc::doImport: " << format
+			    << " file: " << filename << endl;
+
+	// need user interaction
+	if (filename.empty()) {
+		string initpath = lyxrc.document_path;
+
+		if (view()->buffer()) {
+			string const trypath = lyx_view_->buffer()->filePath();
+			// If directory is writeable, use this as default.
+			if (isDirWriteable(FileName(trypath)))
+				initpath = trypath;
+		}
+
+		docstring const text = bformat(_("Select %1$s file to import"),
+			formats.prettyName(format));
+
+		FileDialog fileDlg(text,
+			LFUN_BUFFER_IMPORT,
+			make_pair(_("Documents|#o#O"), from_utf8(lyxrc.document_path)),
+			make_pair(_("Examples|#E#e"),
+				  from_utf8(addPath(package().system_support().absFilename(), "examples"))));
+
+		docstring filter = formats.prettyName(format);
+		filter += " (*.";
+		// FIXME UNICODE
+		filter += from_utf8(formats.extension(format));
+		filter += ')';
+
+		FileDialog::Result result =
+			fileDlg.open(from_utf8(initpath),
+				     FileFilterList(filter),
+				     docstring());
+
+		if (result.first == FileDialog::Later)
+			return;
+
+		filename = to_utf8(result.second);
+
+		// check selected filename
+		if (filename.empty())
+			lyx_view_->message(_("Canceled."));
+	}
+
+	if (filename.empty())
+		return;
+
+	// get absolute path of file
+	FileName const fullname(makeAbsPath(filename));
+
+	FileName const lyxfile(changeExtension(fullname.absFilename(), ".lyx"));
+
+	// Check if the document already is open
+	if (use_gui && theBufferList().exists(lyxfile.absFilename())) {
+		if (!theBufferList().close(theBufferList().getBuffer(lyxfile.absFilename()), true)) {
+			lyx_view_->message(_("Canceled."));
+			return;
+		}
+	}
+
+	// if the file exists already, and we didn't do
+	// -i lyx thefile.lyx, warn
+	if (doesFileExist(lyxfile) && fullname != lyxfile) {
+		docstring const file = makeDisplayPath(lyxfile.absFilename(), 30);
+
+		docstring text = bformat(_("The document %1$s already exists.\n\n"
+						     "Do you want to overwrite that document?"), file);
+		int const ret = Alert::prompt(_("Overwrite document?"),
+			text, 0, 1, _("&Overwrite"), _("&Cancel"));
+
+		if (ret == 1) {
+			lyx_view_->message(_("Canceled."));
+			return;
+		}
+	}
+
+	ErrorList errorList;
+	Importer::Import(lyx_view_, fullname, format, errorList);
+	// FIXME (Abdel 12/08/06): Is there a need to display the error list here?
+}
+
+
+void LyXFunc::closeBuffer()
+{
+	// goto bookmark to update bookmark pit.
+	for (size_t i = 0; i < LyX::ref().session().bookmarks().size(); ++i)
+		gotoBookmark(i+1, false, false);
+	
+	theBufferList().close(lyx_view_->buffer(), true);
+}
+
+
 void LyXFunc::reloadBuffer()
 {
-	FileName filename = lyx_view_->buffer()->fileName();
-	// The user has already confirmed that the changes, if any, should
-	// be discarded. So we just release the Buffer and don't call closeBuffer();
-	theBufferList().release(lyx_view_->buffer());
-	Buffer * buf = lyx_view_->loadDocument(filename);
-	docstring const disp_fn = makeDisplayPath(filename.absFilename());
-	docstring str;
-	if (buf) {
-		updateLabels(*buf);
-		lyx_view_->setBuffer(buf);
-		buf->errors("Parse");
-		str = bformat(_("Document %1$s reloaded."), disp_fn);
-	} else {
-		str = bformat(_("Could not reload document %1$s"), disp_fn);
-	}
-	lyx_view_->message(str);
+	FileName filename(lyx_view_->buffer()->fileName());
+	closeBuffer();
+	lyx_view_->loadLyXFile(filename);
 }
 
 // Each "lyx_view_" should have it's own message method. lyxview and
@@ -1755,19 +2212,18 @@ void LyXFunc::setMessage(docstring const & m) const
 }
 
 
-docstring LyXFunc::viewStatusMessage()
+docstring const LyXFunc::viewStatusMessage()
 {
 	// When meta-fake key is pressed, show the key sequence so far + "M-".
 	if (wasMetaKey())
-		return keyseq.print(KeySequence::ForGui) + "M-";
+		return keyseq->print(true) + "M-";
 
 	// Else, when a non-complete key sequence is pressed,
 	// show the available options.
-	if (keyseq.length() > 0 && !keyseq.deleted())
-		return keyseq.printOptions(true);
+	if (keyseq->length() > 0 && !keyseq->deleted())
+		return keyseq->printOptions(true);
 
-	LASSERT(lyx_view_, /**/);
-	if (!lyx_view_->buffer())
+	if (!view()->buffer())
 		return _("Welcome to LyX!");
 
 	return view()->cursor().currentState();
@@ -1776,31 +2232,14 @@ docstring LyXFunc::viewStatusMessage()
 
 BufferView * LyXFunc::view() const
 {
-	LASSERT(lyx_view_, /**/);
+	BOOST_ASSERT(lyx_view_);
 	return lyx_view_->view();
 }
 
 
 bool LyXFunc::wasMetaKey() const
 {
-	return (meta_fake_bit != NoModifier);
-}
-
-
-void LyXFunc::updateLayout(DocumentClass const * const oldlayout, Buffer * buffer)
-{
-	lyx_view_->message(_("Converting document to new document class..."));
-	
-	StableDocIterator backcur(view()->cursor());
-	ErrorList & el = buffer->errorList("Class Switch");
-	cap::switchBetweenClasses(
-			oldlayout, buffer->params().documentClassPtr(),
-			static_cast<InsetText &>(buffer->inset()), el);
-
-	view()->setCursor(backcur.asDocIterator(&(buffer->inset())));
-
-	buffer->errors("Class Switch");
-	updateLabels(*buffer);
+	return (meta_fake_bit != key_modifier::none);
 }
 
 
@@ -1827,15 +2266,6 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_BIBTEX_COMMAND:
 	case LyXRC::RC_BINDFILE:
 	case LyXRC::RC_CHECKLASTFILES:
-	case LyXRC::RC_COMPLETION_CURSOR_TEXT:
-	case LyXRC::RC_COMPLETION_INLINE_DELAY:
-	case LyXRC::RC_COMPLETION_INLINE_DOTS:
-	case LyXRC::RC_COMPLETION_INLINE_MATH:
-	case LyXRC::RC_COMPLETION_INLINE_TEXT:
-	case LyXRC::RC_COMPLETION_POPUP_AFTER_COMPLETE:
-	case LyXRC::RC_COMPLETION_POPUP_DELAY:
-	case LyXRC::RC_COMPLETION_POPUP_MATH:
-	case LyXRC::RC_COMPLETION_POPUP_TEXT:
 	case LyXRC::RC_USELASTFILEPOS:
 	case LyXRC::RC_LOADSESSION:
 	case LyXRC::RC_CHKTEX_COMMAND:
@@ -1848,20 +2278,18 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_DATE_INSERT_FORMAT:
 	case LyXRC::RC_DEFAULT_LANGUAGE:
 	case LyXRC::RC_DEFAULT_PAPERSIZE:
-	case LyXRC::RC_DEFFILE:
 	case LyXRC::RC_DIALOGS_ICONIFY_WITH_MAIN:
 	case LyXRC::RC_DISPLAY_GRAPHICS:
 	case LyXRC::RC_DOCUMENTPATH:
 		if (lyxrc_orig.document_path != lyxrc_new.document_path) {
-			FileName path(lyxrc_new.document_path);
-			if (path.exists() && path.isDirectory())
-				package().document_dir() = FileName(lyxrc.document_path);
+			FileName encoded = FileName(lyxrc_new.document_path);
+			if (doesFileExist(encoded) &&
+			    fs::is_directory(encoded.toFilesystemEncoding()))
+				support::package().document_dir() = FileName(lyxrc.document_path);
 		}
 	case LyXRC::RC_ESC_CHARS:
-	case LyXRC::RC_EXAMPLEPATH:
 	case LyXRC::RC_FONT_ENCODING:
 	case LyXRC::RC_FORMAT:
-	case LyXRC::RC_GROUP_LAYOUTS:
 	case LyXRC::RC_INDEX_COMMAND:
 	case LyXRC::RC_INPUT:
 	case LyXRC::RC_KBMAP:
@@ -1876,14 +2304,12 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_LANGUAGE_GLOBAL_OPTIONS:
 	case LyXRC::RC_LANGUAGE_PACKAGE:
 	case LyXRC::RC_LANGUAGE_USE_BABEL:
-	case LyXRC::RC_MACRO_EDIT_STYLE:
 	case LyXRC::RC_MAKE_BACKUP:
 	case LyXRC::RC_MARK_FOREIGN_LANGUAGE:
-	case LyXRC::RC_MOUSE_WHEEL_SPEED:
 	case LyXRC::RC_NUMLASTFILES:
 	case LyXRC::RC_PATH_PREFIX:
 		if (lyxrc_orig.path_prefix != lyxrc_new.path_prefix) {
-			prependEnvPath("PATH", lyxrc.path_prefix);
+			support::prependEnvPath("PATH", lyxrc.path_prefix);
 		}
 	case LyXRC::RC_PERS_DICT:
 	case LyXRC::RC_PREVIEW:
@@ -1917,19 +2343,20 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_SCREEN_FONT_SIZES:
 	case LyXRC::RC_SCREEN_FONT_TYPEWRITER:
 	case LyXRC::RC_SCREEN_FONT_TYPEWRITER_FOUNDRY:
-	case LyXRC::RC_GEOMETRY_SESSION:
+	case LyXRC::RC_SCREEN_GEOMETRY_HEIGHT:
+	case LyXRC::RC_SCREEN_GEOMETRY_WIDTH:
+	case LyXRC::RC_SCREEN_GEOMETRY_XYSAVED:
 	case LyXRC::RC_SCREEN_ZOOM:
 	case LyXRC::RC_SERVERPIPE:
 	case LyXRC::RC_SET_COLOR:
 	case LyXRC::RC_SHOW_BANNER:
-	case LyXRC::RC_OPEN_BUFFERS_IN_TABS:
 	case LyXRC::RC_SPELL_COMMAND:
 	case LyXRC::RC_TEMPDIRPATH:
 	case LyXRC::RC_TEMPLATEPATH:
 	case LyXRC::RC_TEX_ALLOWS_SPACES:
 	case LyXRC::RC_TEX_EXPECTS_WINDOWS_PATHS:
 		if (lyxrc_orig.windows_style_tex_paths != lyxrc_new.windows_style_tex_paths) {
-			os::windows_style_tex_paths(lyxrc_new.windows_style_tex_paths);
+			support::os::windows_style_tex_paths(lyxrc_new.windows_style_tex_paths);
 		}
 	case LyXRC::RC_UIFILE:
 	case LyXRC::RC_USER_EMAIL:
@@ -1940,17 +2367,9 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_USE_ESC_CHARS:
 	case LyXRC::RC_USE_INP_ENC:
 	case LyXRC::RC_USE_PERS_DICT:
-	case LyXRC::RC_USE_TOOLTIP:
 	case LyXRC::RC_USE_PIXMAP_CACHE:
 	case LyXRC::RC_USE_SPELL_LIB:
 	case LyXRC::RC_VIEWDVI_PAPEROPTION:
-	case LyXRC::RC_SORT_LAYOUTS:
-	case LyXRC::RC_FULL_SCREEN_LIMIT:
-	case LyXRC::RC_FULL_SCREEN_SCROLLBAR:
-	case LyXRC::RC_FULL_SCREEN_TABBAR:
-	case LyXRC::RC_FULL_SCREEN_TOOLBARS:
-	case LyXRC::RC_FULL_SCREEN_WIDTH:
-	case LyXRC::RC_VISUAL_CURSOR:
 	case LyXRC::RC_VIEWER:
 	case LyXRC::RC_LAST:
 		break;

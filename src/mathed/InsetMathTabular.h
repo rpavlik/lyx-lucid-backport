@@ -27,9 +27,9 @@ public:
 	InsetMathTabular(docstring const &, int m, int n,
 		char valign, docstring const & halign);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	InsetMathTabular(docstring const &, char valign, docstring const & halign);
 	///
-	Dimension const dimension(BufferView const &) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -47,7 +47,7 @@ public:
 	void maple(MapleStream &) const;
 
 private:
-	Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	docstring name_;
 };

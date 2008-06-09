@@ -28,16 +28,12 @@ namespace support { class FileName; }
 
 class Context;
 
-/// A trivial subclass, just to give us a public default constructor
-class TeX2LyXDocClass : public DocumentClass
-{};
-
 /// in preamble.cpp
-void parse_preamble(Parser & p, std::ostream & os, 
-	std::string const & forceclass, TeX2LyXDocClass & tc);
+TextClass const parse_preamble(Parser & p, std::ostream & os, std::string const & forceclass);
 
 /// used packages with options
 extern std::map<std::string, std::vector<std::string> > used_packages;
+extern Layout_ptr captionlayout;
 
 /// in text.cpp
 std::string translate_len(std::string const &);

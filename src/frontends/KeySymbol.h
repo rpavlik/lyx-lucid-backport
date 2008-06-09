@@ -12,66 +12,69 @@
 #ifndef KEYSYMBOL_H
 #define KEYSYMBOL_H
 
-#include "KeyModifier.h"
+#include <string>
+
+#include "key_state.h"
 
 #include "support/docstring.h"
+
+#include <boost/shared_ptr.hpp>
 
 
 namespace lyx {
 
 /**
- * This is a class representing a keypress.
+ * This is a base class for representing a keypress.
+ * Each frontend has to implement this to provide
+ * the functionality that LyX needs in regards to
+ * key presses.
  */
-class KeySymbol
-{
+class KeySymbol {
 public:
-	KeySymbol() : key_(0) {}
+	KeySymbol() {}
+
+	virtual ~KeySymbol() {}
 
 	///
-	bool operator==(KeySymbol const & ks) const;
+	virtual bool operator==(KeySymbol const& ks) const = 0;
 
 	/// Initialize with the name of a key. F. ex. "space" or "a"
-	void init(std::string const & symbolname);
+	virtual void init(std::string const & symbolname) = 0;
 
 	/// Is this a valid key?
-	bool isOK() const;
+	virtual bool isOK() const = 0;
 
 	/// Is this a modifier key only?
-	bool isModifier() const;
+	virtual bool isModifier() const = 0;
 
 	/// Is this normal insertable text ? (last ditch attempt only)
-	bool isText() const;
+	virtual bool isText() const = 0;
 
 	/// What is the symbolic name of this key? F.ex. "Return" or "c"
-	std::string getSymbolName() const;
+	virtual std::string getSymbolName() const = 0;
 
 	/**
 	 * Return the value of the keysym into the UCS-4 encoding.
 	 * This converts the KeySymbol to a 32-bit encoded character.
 	 */
-	char_type getUCSEncoded() const;
+	virtual char_type getUCSEncoded() const = 0;
 
 	/**
 	 * Return a string describing the KeySym with modifier mod.
 	 * Use the native UI format when \c forgui is true.
-	 * i.e. (translated and with special characters for Mac OS X)
 	 */
-	docstring const print(KeyModifier mod, bool forgui) const;
-
-	///
-	int key() const { return key_; }
-	///
-	void setKey(int key) { key_ = key; }
-	///
-	docstring text() const { return text_; }
-	///
-	void setText(docstring const & text) { text_ = text; }
-private:
-	/// some platform specific sym value
-	int key_;
-	/// the event string value
-	docstring text_;
+	virtual docstring const print(key_modifier::state mod, bool forgui) const = 0;
 };
+
+
+typedef boost::shared_ptr<KeySymbol> KeySymbolPtr;
+
+
+/**
+ * Make a KeySymbol. Used because we want to
+ * generate a toolkit-specific instance.
+ */
+KeySymbol * createKeySymbol();
 
 
 } // namespace lyx

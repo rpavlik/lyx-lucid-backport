@@ -10,17 +10,19 @@
 
 #include <config.h>
 
-#include "Context.h"
-#include "Layout.h"
-
-#include "support/lstrings.h"
-
 #include <iostream>
 
-using namespace std;
-using namespace lyx::support;
+#include "support/lstrings.h"
+#include "Context.h"
+
 
 namespace lyx {
+
+using std::ostream;
+using std::endl;
+using std::string;
+
+using support::contains;
 
 namespace {
 
@@ -73,8 +75,8 @@ bool Context::empty = true;
 
 
 Context::Context(bool need_layout_,
-		 TeX2LyXDocClass const & textclass_,
-		 Layout const * layout_, Layout const * parent_layout_,
+		 TextClass const & textclass_,
+		 Layout_ptr layout_, Layout_ptr parent_layout_,
 		 TeXFont font_)
 	: need_layout(need_layout_),
 	  need_end_layout(false), need_end_deeper(false),
@@ -83,22 +85,22 @@ Context::Context(bool need_layout_,
 	  layout(layout_), parent_layout(parent_layout_),
 	  font(font_)
 {
-	if (!layout)
-		layout = &textclass.defaultLayout();
-	if (!parent_layout)
-		parent_layout = &textclass.defaultLayout();
+	if (!layout.get())
+		layout = textclass.defaultLayout();
+	if (!parent_layout.get())
+		parent_layout = textclass.defaultLayout();
 }
 
 
 Context::~Context()
 {
 	if (!par_extra_stuff.empty())
-		cerr << "Bug: Ignoring par-level extra stuff '" 
-		     << par_extra_stuff << '\'' << endl;
+		std::cerr << "Bug: Ignoring par-level extra stuff '"
+			  << par_extra_stuff << '\'' << endl;
 }
 
 
-void Context::begin_layout(ostream & os, Layout const * const & l)
+void Context::begin_layout(ostream & os, Layout_ptr l)
 {
 	os << "\n\\begin_layout " << to_utf8(l->name()) << "\n";
 	if (!extra_stuff.empty()) {
@@ -138,7 +140,7 @@ void Context::check_layout(ostream & os)
 				// that this may require a begin_deeper.
 				if (!deeper_paragraph)
 					begin_deeper(os);
-				begin_layout(os, &textclass.defaultLayout());
+				begin_layout(os, textclass.defaultLayout());
 				deeper_paragraph = true;
 			}
 		} else {
@@ -206,9 +208,9 @@ void Context::new_paragraph(ostream & os)
 }
 
 
-void Context::add_extra_stuff(string const & stuff)
+void Context::add_extra_stuff(std::string const & stuff)
 {
-	if (!contains(extra_stuff, stuff))
+	if (!lyx::support::contains(extra_stuff, stuff))
 		extra_stuff += stuff;
 }
 

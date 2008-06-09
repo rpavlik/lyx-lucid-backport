@@ -1,6 +1,9 @@
 <ui version="4.0" >
- <class>SearchUi</class>
- <widget class="QDialog" name="SearchUi" >
+ <author></author>
+ <comment></comment>
+ <exportmacro></exportmacro>
+ <class>QSearchUi</class>
+ <widget class="QDialog" name="QSearchUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -212,7 +215,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <tabstops>
   <tabstop>findCO</tabstop>

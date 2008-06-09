@@ -16,9 +16,22 @@
 #ifndef LYX_TYPES_H
 #define LYX_TYPES_H
 
+#include <boost/cstdint.hpp>
+
 #include <cstddef>
 
 namespace lyx {
+
+	/// The type used to hold characters in paragraphs
+#ifdef USE_WCHAR_T
+	// Prefer this if possible because GNU libstdc++ has usable
+	// std::ctype<wchar_t> locale facets but not
+	// std::ctype<boost::uint32_t>. gcc older than 3.4 is also missing
+	// usable std::char_traits<boost::uint32_t>.
+	typedef wchar_t char_type;
+#else
+	typedef boost::uint32_t char_type;
+#endif
 
 	/// a type for positions used in paragraphs
 	// needs to be signed for a while to hold the special value -1 that is
@@ -39,6 +52,9 @@ namespace lyx {
 	/// a type for sizes
 	typedef size_t     size_type;
 
+	/// a type used for numbering text classes
+	typedef size_t     textclass_type;
+
 #else
 
 	// These structs wrap simple things to make them distinguishible
@@ -57,6 +73,19 @@ namespace lyx {
 		base_type data_;
 	};
 
+	struct textclass_type {
+		///
+		typedef size_t   base_type;
+		///
+		textclass_type(base_type t) { data_ = t; }
+		///
+		operator base_type() const { return data_; }
+		///
+		private:
+		base_type data_;
+	};
+
+
 #endif
 
 	///
@@ -72,14 +101,6 @@ namespace lyx {
 		PREVIOUS_WORD,
 		/// the next word (not yet used)
 		NEXT_WORD
-	};
-
-	///
-	enum PageSides {
-		///
-		OneSide,
-		///
-		TwoSides
 	};
 
 } // namespace lyx

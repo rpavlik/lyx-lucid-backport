@@ -21,34 +21,29 @@ namespace lyx {
 /** The footnote inset
 
 */
-class InsetFoot : public InsetFootlike
-{
+class InsetFoot : public InsetFootlike {
 public:
 	///
-	InsetFoot(Buffer const &);
-private:
+	InsetFoot(BufferParams const &);
 	///
-	InsetCode lyxCode() const { return FOOT_CODE; }
+	Inset::Code lyxCode() const { return Inset::FOOT_CODE; }
 	///
 	docstring name() const { return from_ascii("Foot"); }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
-	docstring editMessage() const;
-	/// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
-	///
-	void addToToc(DocIterator const &);
-	///
-	docstring toolTip(BufferView const & bv, int x, int y) const;
-	///
-	Inset * clone() const { return new InsetFoot(*this); }
-	///
-	docstring custom_label_;
+	virtual docstring const editMessage() const;
+protected:
+	InsetFoot(InsetFoot const &);
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

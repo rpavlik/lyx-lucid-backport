@@ -14,21 +14,28 @@
 
 #include "Buffer.h"
 #include "BufferParams.h"
-#include "Layout.h"
+#include "debug.h"
+#include "gettext.h"
 #include "output.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
 #include "ParagraphList.h"
 #include "ParagraphParameters.h"
 
-#include "support/debug.h"
-#include "support/gettext.h"
 #include "support/lstrings.h"
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::ascii_lowercase;
+using support::compare_ascii_no_case;
+using support::contains;
+using support::FileName;
+
+using std::endl;
+using std::ostream;
+using std::pair;
+using std::string;
 
 
 void writePlaintextFile(Buffer const & buf, FileName const & fname,
@@ -58,13 +65,18 @@ void writePlaintextFile(Buffer const & buf, odocstream & os,
 }
 
 
-static pair<int, docstring> addDepth(int depth, int ldepth)
+namespace {
+
+pair<int, docstring> const addDepth(int depth, int ldepth)
 {
 	int d = depth * 2;
 	if (ldepth > depth)
 		d += (ldepth - depth) * 2;
 	return make_pair(d, docstring(d, ' '));
 }
+
+}
+
 
 void writePlaintextParagraph(Buffer const & buf,
 		    Paragraph const & par,
@@ -77,7 +89,7 @@ void writePlaintextParagraph(Buffer const & buf,
 	depth_type depth = par.params().depth();
 
 	// First write the layout
-	string const tmp = to_utf8(par.layout().name());
+	string const tmp = to_utf8(par.layout()->name());
 	if (compare_ascii_no_case(tmp, "itemize") == 0) {
 		ltype = 1;
 		ltype_depth = depth + 1;
@@ -119,7 +131,7 @@ void writePlaintextParagraph(Buffer const & buf,
 
 	//--
 	// we should probably change to the paragraph language in the
-	// support/gettext.here (if possible) so that strings are output in
+	// gettext here (if possible) so that strings are output in
 	// the correct language! (20012712 Jug)
 	//--
 	switch (ltype) {
@@ -179,7 +191,7 @@ void writePlaintextParagraph(Buffer const & buf,
 
 		char_type c = par.getUChar(buf.params(), i);
 
-		if (par.isInset(i) || c == ' ') {
+		if (c == Paragraph::META_INSET || c == ' ') {
 			if (runparams.linelen > 0 &&
 			    currlinelen + word.length() > runparams.linelen) {
 				os << '\n';
@@ -192,25 +204,26 @@ void writePlaintextParagraph(Buffer const & buf,
 			word.erase();
 		}
 
-		if (par.isInset(i)) {
+		switch (c) {
+		case Paragraph::META_INSET: {
 			OutputParams rp = runparams;
 			rp.depth = par.params().depth();
-			int len = par.getInset(i)->plaintext(os, rp);
+			int len = par.getInset(i)->plaintext(buf, os, rp);
 			if (len >= Inset::PLAINTEXT_NEWLINE)
 				currlinelen = len - Inset::PLAINTEXT_NEWLINE;
 			else
 				currlinelen += len;
-			continue;
+			break;
 		}
 
-		switch (c) {
 		case ' ':
 			os << ' ';
 			currlinelen++;
 			break;
 
 		case '\0':
-			LYXERR(Debug::INFO, "writePlaintextFile: NUL char in structure.");
+			LYXERR(Debug::INFO) <<
+				"writePlaintextFile: NULL char in structure." << endl;
 			break;
 
 		default:

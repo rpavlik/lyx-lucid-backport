@@ -8,11 +8,10 @@
 # a document, like title, author and such.
 
 
-Format 7
+Format 4
 Style Title
 	Margin                Static
 	LatexType             Command
-	Category              FrontMatter
 	InTitle               1
 	LatexName             title
 	ParSkip               0.4
@@ -21,6 +20,7 @@ Style Title
 	BottomSep             1
 	ParSep                1
 	Align                 Center
+	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Size                Largest
@@ -31,7 +31,6 @@ End
 Style Author
 	Margin                Static
 	LatexType             Command
-	Category              FrontMatter
 	InTitle               1
 	LatexName             author
 	LabelSep              xxx
@@ -40,6 +39,7 @@ Style Author
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Center
+	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Size                Large
@@ -50,7 +50,6 @@ End
 Style Date
 	Margin                Dynamic
 	LatexType             Command
-	Category              FrontMatter
 	InTitle               1
 	LatexName             date
 	LabelSep              xxx
@@ -59,6 +58,7 @@ Style Date
 	BottomSep             0.5
 	ParSep                1
 	Align                 Center
+	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Size                Large

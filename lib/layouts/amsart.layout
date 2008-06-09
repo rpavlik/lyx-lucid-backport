@@ -7,9 +7,8 @@
 # Probably broken by Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 # modified and modularized by Emmanuel GUREGHIAN <gureghia@boston.bertin.fr>
 # Tinkered with Sep. '07 by Paul Rubin <rubin@msu.edu>
-# Modularized Jan '08 by Richard Heck <rgheck@brown.edu>
 
-Format 7
+Format 4
 Columns                 1
 Sides                   2
 PageStyle               Headers
@@ -21,7 +20,6 @@ End
 
 
 Style Standard
-	Category              MainText
 	Margin                Static
 	LatexType             Paragraph
 	LatexName             dummy
@@ -39,14 +37,13 @@ Preamble
 EndPreamble
 
 
-Input stdfloats.inc
-Input stdcounters.inc
-Input stdinsets.inc
 Input stdsections.inc
 Input stdstarsections.inc
 Input lyxmacros.inc
 Input stdlayouts.inc
 Input stdlists.inc
+Input stdfloats.inc
+Input stdcounters.inc
 Input amsdefs.inc
 
 NoStyle                 Chapter
@@ -57,7 +54,7 @@ NoStyle                 Chapter*
 #NoStyle                Subparagraph*
 
 NoStyle Verse    # Although mathematicians tend to be poets at times,
-                 # we don't need this.
+	             # we don't need this.
 
 
 Style Section

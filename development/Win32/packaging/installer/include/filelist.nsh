@@ -434,6 +434,7 @@ Lists of files to include in the installer
   ${FILE}log.xml"
   ${FILE}magic.xml"
   ${FILE}sRGB.icm"
+  ${FILE}stream.exe"
   ${FILE}thresholds.xml"
   ${FILE}type-ghostscript.xml"
   ${FILE}type.xml"

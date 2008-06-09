@@ -17,41 +17,36 @@
 #include <config.h>
 
 #include "Row.h"
-
-#include "support/debug.h"
+#include "debug.h"
 
 
 namespace lyx {
 
 
+RowMetrics::RowMetrics()
+	: separator(0), hfill(0), label_hfill(0), x(0)
+{}
+
+
 Row::Row()
-	: separator(0), label_hfill(0), x(0),
-	sel_beg(-1), sel_end(-1), changed_(false), crc_(0), pos_(0), end_(0)
+	: pos_(0), end_(0), ascent_(0), descent_(0), width_(0)
 {}
 
 
 Row::Row(pos_type pos)
-	: separator(0), label_hfill(0), x(0),
-	sel_beg(-1), sel_end(-1), changed_(false), crc_(0), pos_(pos), end_(0)
+	: pos_(pos), end_(0), ascent_(0), descent_(0), width_(0)
 {}
-
-
-void Row::setCrc(size_type crc) const
-{
-	changed_ = crc != crc_;
-	crc_ = crc;
-}
-
-
-void Row::setDimension(Dimension const & dim)
-{
-	dim_ = dim;
-}
 
 
 void Row::pos(pos_type p)
 {
 	pos_ = p;
+}
+
+
+pos_type Row::pos() const
+{
+	return pos_;
 }
 
 
@@ -61,30 +56,43 @@ void Row::endpos(pos_type p)
 }
 
 
-void Row::setSelection(pos_type beg, pos_type end) const
+pos_type Row::endpos() const
 {
-	if (pos_ >= beg && pos_ <= end)
-		sel_beg = pos_;
-	else if (beg > pos_ && beg <= end_)
-		sel_beg = beg;
-	else
-		sel_beg = -1;
-
-	if (end_ >= beg && end_ <= end)
-		sel_end = end_;
-	else if (end < end_ && end >= pos_)
-		sel_end = end;
-	else
-		sel_end = -1;
+	return end_;
 }
 
 
-void Row::dump(char const * s) const
+void Row::width(int w)
 {
-	LYXERR0(s << " pos: " << pos_ << " end: " << end_
-		<< " width: " << dim_.wid
-		<< " ascent: " << dim_.asc
-		<< " descent: " << dim_.des);
+	width_ = w;
+}
+
+
+int Row::width() const
+{
+	return width_;
+}
+
+
+void Row::ascent(int b)
+{
+	ascent_ = b;
+}
+
+
+int Row::ascent() const
+{
+	return ascent_;
+}
+
+
+void Row::dump(const char * s) const
+{
+	lyxerr << s << " pos: " << pos_ << " end: " << end_
+		<< " width: " << width_
+		<< " ascent: " << ascent_
+		<< " descent: " << descent_
+		<< std::endl;
 }
 
 

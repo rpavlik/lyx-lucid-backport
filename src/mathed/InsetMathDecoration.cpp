@@ -12,18 +12,15 @@
 #include <config.h>
 
 #include "InsetMathDecoration.h"
-
 #include "MathData.h"
 #include "MathParser.h"
 #include "MathSupport.h"
 #include "MathStream.h"
-#include "MetricsInfo.h"
 
 #include "LaTeXFeatures.h"
+#include "debug.h"
 
-#include "support/debug.h"
-
-#include <ostream>
+#include "support/std_ostream.h"
 
 
 namespace lyx {
@@ -32,13 +29,13 @@ namespace lyx {
 InsetMathDecoration::InsetMathDecoration(latexkeys const * key)
 	: InsetMathNest(1), key_(key)
 {
-//	lyxerr << " creating deco " << key->name << endl;
+//	lyxerr << " creating deco " << key->name << std::endl;
 }
 
 
-Inset * InsetMathDecoration::clone() const
+std::auto_ptr<Inset> InsetMathDecoration::doClone() const
 {
-	return new InsetMathDecoration(*this);
+	return std::auto_ptr<Inset>(new InsetMathDecoration(*this));
 }
 
 
@@ -104,7 +101,7 @@ bool InsetMathDecoration::ams() const
 }
 
 
-void InsetMathDecoration::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathDecoration::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 
@@ -120,17 +117,20 @@ void InsetMathDecoration::metrics(MetricsInfo & mi, Dimension & dim) const
 	}
 
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathDecoration::draw(PainterInfo & pi, int x, int y) const
 {
 	cell(0).draw(pi, x + 1, y);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
 	if (wide())
-		mathed_draw_deco(pi, x + 1, y + dy_, dim0.wid, dh_, key_->name);
+		mathed_draw_deco(pi, x + 1, y + dy_, cell(0).width(), dh_, key_->name);
 	else
-		mathed_draw_deco(pi, x + 1 + (dim0.wid - dw_) / 2,
+		mathed_draw_deco(pi, x + 1 + (cell(0).width() - dw_) / 2,
 			y + dy_, dw_, dh_, key_->name);
 	drawMarkers(pi, x, y);
 	setPosCache(pi, x, y);

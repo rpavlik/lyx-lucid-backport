@@ -17,30 +17,16 @@
 
 #include <algorithm>
 
-using namespace std;
+using std::string;
 
 namespace lyx {
-
-namespace {
-class BranchNamesEqual : public std::unary_function<Branch, bool> {
-public:
-	BranchNamesEqual(docstring const & name)
-		: name_(name) {}
-	bool operator()(Branch const & branch) const
-	{
-		return branch.getBranch() == name_;
-	}
-private:
-	docstring name_;
-};
-}
 
 
 Branch::Branch() : selected_(false)
 {
 	// no theApp() with command line export
 	if (theApp())
-		theApp()->getRgbColor(Color_background, color_);
+		theApp()->getRgbColor(Color::background, color_);
 }
 
 
@@ -83,20 +69,20 @@ void Branch::setColor(RGBColor const & c)
 }
 
 
-void Branch::setColor(string const & str)
+void Branch::setColor(string const & c)
 {
-	if (str.size() == 7 && str[0] == '#')
-		color_ = rgbFromHexName(str);
+	if (c.size() == 7 && c[0] == '#')
+		color_ = RGBColor(c);
 	else
 		// no color set or invalid color - use normal background
-		theApp()->getRgbColor(Color_background, color_);
+		theApp()->getRgbColor(Color::background, color_);
 }
 
 
 Branch * BranchList::find(docstring const & name)
 {
 	List::iterator it =
-		find_if(list.begin(), list.end(), BranchNamesEqual(name));
+		std::find_if(list.begin(), list.end(), BranchNamesEqual(name));
 	return it == list.end() ? 0 : &*it;
 }
 
@@ -104,7 +90,7 @@ Branch * BranchList::find(docstring const & name)
 Branch const * BranchList::find(docstring const & name) const
 {
 	List::const_iterator it =
-		find_if(list.begin(), list.end(), BranchNamesEqual(name));
+		std::find_if(list.begin(), list.end(), BranchNamesEqual(name));
 	return it == list.end() ? 0 : &*it;
 }
 
@@ -122,7 +108,7 @@ bool BranchList::add(docstring const & s)
 			name = s.substr(i, j - i);
 		// Is this name already in the list?
 		bool const already =
-			find_if(list.begin(), list.end(),
+			std::find_if(list.begin(), list.end(),
 				     BranchNamesEqual(name)) != list.end();
 		if (!already) {
 			added = true;

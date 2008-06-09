@@ -13,7 +13,6 @@
 #include "Bidi.h"
 #include "Buffer.h"
 #include "BufferView.h"
-#include "Cursor.h"
 #include "Font.h"
 #include "Row.h"
 #include "LyXRC.h"
@@ -61,7 +60,7 @@ void Bidi::computeTables(Paragraph const & par,
 		return;
 	}
 
-	if (par.ownerCode() == ERT_CODE || par.ownerCode() == LISTINGS_CODE) {
+	if (par.ownerCode() == Inset::ERT_CODE || par.ownerCode() == Inset::LISTINGS_CODE) {
 		start_ = -1;
 		return;
 	}
@@ -89,7 +88,7 @@ void Bidi::computeTables(Paragraph const & par,
 
 	BufferParams const & bufparams = buf.params();
 	pos_type stack[2];
-	bool const rtl_par = par.isRTL(bufparams);
+	bool const rtl_par = par.isRightToLeftPar(bufparams);
 	int lev = 0;
 	bool rtl = false;
 	bool rtl0 = false;
@@ -111,9 +110,9 @@ void Bidi::computeTables(Paragraph const & par,
 			? lpos + 1 : lpos;
 		Font font = par.getFontSettings(bufparams, pos);
 		if (pos != lpos && 0 < lpos && rtl0 && font.isRightToLeft() &&
-		    font.fontInfo().number() == FONT_ON &&
-		    par.getFontSettings(bufparams, lpos - 1).fontInfo().number()
-		    == FONT_ON) {
+		    font.number() == Font::ON &&
+		    par.getFontSettings(bufparams, lpos - 1).number()
+		    == Font::ON) {
 			font = par.getFontSettings(bufparams, lpos);
 			is_space = false;
 		}
@@ -128,11 +127,10 @@ void Bidi::computeTables(Paragraph const & par,
 			new_level = rtl_par ? 1 : 0;
 			new_rtl0 = rtl_par;
 			new_rtl = rtl_par;
-		} else if (new_rtl0) {
+		} else if (new_rtl0)
 			new_level = new_rtl ? 1 : 2;
-		} else {
+		else
 			new_level = rtl_par ? 2 : 0;
-		}
 
 		if (is_space && new_level >= lev) {
 			new_level = lev;
@@ -149,9 +147,8 @@ void Bidi::computeTables(Paragraph const & par,
 			log2vis_list_[lpos - start_] = rtl ? -1 : 1;
 			if (new_level > 0 && !rtl_par)
 				same_direction_ = false;
-		} else {
+		} else
 			log2vis_list_[lpos - start_] = new_rtl ? -1 : 1;
-		}
 		rtl = new_rtl;
 		rtl0 = new_rtl0;
 		levels_[lpos - start_] = new_level;
@@ -201,7 +198,7 @@ bool Bidi::isBoundary(Buffer const & buf, Paragraph const & par,
 	bool const rtl = level(pos - 1) % 2;
 	bool const rtl2 = inRange(pos)
 		? level(pos) % 2
-		: par.isRTL(buf.params());
+		: par.isRightToLeftPar(buf.params());
 	return rtl != rtl2;
 }
 
@@ -215,7 +212,7 @@ bool Bidi::isBoundary(Buffer const & buf, Paragraph const & par,
 	bool const rtl = font.isVisibleRightToLeft();
 	bool const rtl2 = inRange(pos)
 		? level(pos) % 2
-		: par.isRTL(buf.params());
+		: par.isRightToLeftPar(buf.params());
 	return rtl != rtl2;
 }
 
@@ -229,13 +226,15 @@ bool reverseDirectionNeeded(Cursor const & cur)
 	 * within a paragraph, and thus avoid situations in which the
 	 * cursor gets stuck.
 	 */
-	return cur.bottom().paragraph().isRTL(cur.bv().buffer().params());
+	return cur.bottom().paragraph().isRightToLeftPar(
+			cur.bv().buffer()->params());
 }
 
 
 bool isWithinRtlParagraph(Cursor const & cur)
 {
-	return cur.innerParagraph().isRTL(cur.bv().buffer().params());
+	return cur.innerParagraph().isRightToLeftPar(
+		cur.bv().buffer()->params());
 }
 
 } // namespace lyx

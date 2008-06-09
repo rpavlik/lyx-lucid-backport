@@ -23,21 +23,24 @@ public:
 
 	InsetLine() {}
 
-	InsetCode lyxCode() const { return LINE_CODE; }
+	Inset::Code lyxCode() const { return Inset::LINE_CODE; }
 
-	void metrics(MetricsInfo &, Dimension &) const;
+	bool metrics(MetricsInfo &, Dimension &) const;
 
 	void draw(PainterInfo & pi, int x, int y) const;
 
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 
-	void read(Lexer & lex);
+	void read(Buffer const &, Lexer & lex);
 
-	void write(std::ostream & os) const;
+	void write(Buffer const & buf, std::ostream & os) const;
 	/// We don't need \begin_inset and \end_inset
 	bool directWrite() const { return true; }
 
@@ -45,7 +48,10 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 private:
-	Inset * clone() const { return new InsetLine(*this); }
+	virtual std::auto_ptr<Inset> doClone() const
+	{
+		return std::auto_ptr<Inset>(new InsetLine);
+	}
 };
 
 

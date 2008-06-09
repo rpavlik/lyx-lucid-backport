@@ -24,6 +24,7 @@ following hack as starting point to write some macros:
   \else
     \def\b{}\def\e{}
   \fi
+
   ...
 
   \[\begin{array}{ccc}
@@ -47,7 +48,6 @@ following hack as starting point to write some macros:
 #include "InsetMathComment.h"
 #include "InsetMathDelim.h"
 #include "InsetMathEnv.h"
-#include "InsetMathFrac.h"
 #include "InsetMathKern.h"
 #include "MathMacro.h"
 #include "InsetMathPar.h"
@@ -63,18 +63,27 @@ following hack as starting point to write some macros:
 #include "MathSupport.h"
 
 #include "Lexer.h"
+#include "debug.h"
 
-#include "support/debug.h"
 #include "support/convert.h"
-#include "support/docstream.h"
 
 #include <sstream>
 
-//#define FILEDEBUG
-
-using namespace std;
 
 namespace lyx {
+
+using std::endl;
+using std::fill;
+
+using std::string;
+using std::ios;
+using std::istream;
+using std::ostream;
+using std::vector;
+
+
+//#define FILEDEBUG
+
 
 namespace {
 
@@ -102,7 +111,7 @@ bool stared(docstring const & s)
  * environments like "equation" that have a fixed number of rows.
  */
 bool addRow(InsetMathGrid & grid, InsetMathGrid::row_type & cellrow,
-	    docstring const & vskip, bool allow_newpage_ = true)
+	    docstring const & vskip, bool allow_pagebreak = true)
 {
 	++cellrow;
 	if (cellrow == grid.nrows()) {
@@ -119,14 +128,14 @@ bool addRow(InsetMathGrid & grid, InsetMathGrid::row_type & cellrow,
 			lyxerr << "ignoring extra row";
 			if (!vskip.empty())
 				lyxerr << " with extra space " << to_utf8(vskip);
-			if (!allow_newpage_)
+			if (!allow_pagebreak)
 				lyxerr << " with no page break allowed";
 			lyxerr << '.' << endl;
 			return false;
 		}
 	}
 	grid.vcrskip(Length(to_utf8(vskip)), cellrow - 1);
-	grid.rowinfo(cellrow - 1).allow_newpage_ = allow_newpage_;
+	grid.rowinfo(cellrow - 1).allow_pagebreak_ = allow_pagebreak;
 	return true;
 }
 
@@ -233,7 +242,7 @@ enum {
 	FLAG_END        = 1 << 3,  //  next \\end ends the parsing process
 	FLAG_BRACK_LAST = 1 << 4,  //  next closing bracket ends the parsing
 	FLAG_TEXTMODE   = 1 << 5,  //  we are in a box
-	FLAG_ITEM       = 1 << 6,  //  read a (possibly braced) token
+	FLAG_ITEM       = 1 << 6,  //  read a (possibly braced token)
 	FLAG_LEAVE      = 1 << 7,  //  leave the loop at the end
 	FLAG_SIMPLE     = 1 << 8,  //  next $ leaves the loop
 	FLAG_EQUATION   = 1 << 9,  //  next \] leaves the loop
@@ -307,7 +316,7 @@ public:
 	///
 	Parser(Lexer & lex);
 	/// Only use this for reading from .lyx file format, for the reason
-	/// see Parser::tokenize(istream &).
+	/// see Parser::tokenize(std::istream &).
 	Parser(istream & is);
 	///
 	Parser(docstring const & str);
@@ -378,7 +387,7 @@ private:
 
 
 Parser::Parser(Lexer & lexer)
-	: lineno_(lexer.lineNumber()), pos_(0)
+	: lineno_(lexer.getLineNo()), pos_(0)
 {
 	tokenize(lexer.getStream());
 	lexer.eatLine();
@@ -817,7 +826,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (flags & FLAG_BRACE_LAST)
 				return;
 			error("found '}' unexpectedly");
-			//LASSERT(false, /**/);
+			//BOOST_ASSERT(false);
 			//add(cell, '}', LM_TC_TEX);
 		}
 
@@ -892,198 +901,65 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				cell->back().nucleus()->lock(true);
 		}
 
-		else if ((t.cs() == "global" && nextToken().cs() == "def") ||
-			 t.cs() == "def") {
-			if (t.cs() == "global")
-				getToken();
-			
-			// get name
-			docstring name = getToken().cs();
-			
-			// read parameters
-			int nargs = 0;
-			docstring pars;
-			while (good() && nextToken().cat() != catBegin) {
-				pars += getToken().cs();
-				++nargs;
-			}
-			nargs /= 2;
-			
-			// read definition
-			MathData def;
-			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
-			
-			// is a version for display attached?
-			skipSpaces();
-			MathData display;
-			if (nextToken().cat() == catBegin)
-				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
-			
-			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
-			       0, MacroTypeDef, vector<MathData>(), def, display)));
-		}
-		
-		else if (t.cs() == "newcommand" ||
-			 t.cs() == "renewcommand" ||
-			 t.cs() == "newlyxcommand") {
-			// get name
-			if (getToken().cat() != catBegin) {
-				error("'{' in \\newcommand expected (1) ");
-				return;
-			}
-			docstring name = getToken().cs();
-			if (getToken().cat() != catEnd) {
-				error("'}' in \\newcommand expected");
-				return;
-			}
-				
-			// get arity
-			docstring const arg = getArg('[', ']');
-			int nargs = 0;
-			if (!arg.empty())
-				nargs = convert<int>(arg);
-				
-			// optional argument given?
-			skipSpaces();
-			int optionals = 0;
-			vector<MathData> optionalValues;
-			while (nextToken().character() == '[') {
-				getToken();
-				optionalValues.push_back(MathData());
-				parse(optionalValues[optionals], FLAG_BRACK_LAST, mode);
-				++optionals;
-			}
-			
-			MathData def;
-			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
-			
-			// is a version for display attached?
-			skipSpaces();
-			MathData display;
-			if (nextToken().cat() == catBegin)
-				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
-			
-			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
-				optionals, MacroTypeNewcommand, optionalValues, def, display)));
-			
-		}
-		
-		else if (t.cs() == "newcommandx" ||
-			 t.cs() == "renewcommandx") {
-			// \newcommandx{\foo}[2][usedefault, addprefix=\global,1=default]{#1,#2}
-			// get name
+		else if (t.cs() == "def" ||
+			t.cs() == "newcommand" ||
+			t.cs() == "renewcommand")
+		{
+			docstring const type = t.cs();
 			docstring name;
-			if (nextToken().cat() == catBegin) {
-				getToken();
+			int nargs = 0;
+			if (t.cs() == "def") {
+				// get name
 				name = getToken().cs();
+
+				// read parameter
+				docstring pars;
+				while (good() && nextToken().cat() != catBegin) {
+					pars += getToken().cs();
+					++nargs;
+				}
+				nargs /= 2;
+				//lyxerr << "read \\def parameter list '" << pars << "'" << endl;
+
+			} else { // t.cs() == "newcommand" || t.cs() == "renewcommand"
+
+				if (getToken().cat() != catBegin) {
+					error("'{' in \\newcommand expected (1) ");
+					return;
+				}
+
+				name = getToken().cs();
+
 				if (getToken().cat() != catEnd) {
-					error("'}' in \\newcommandx expected");
+					error("'}' in \\newcommand expected");
 					return;
 				}
-			} else
-				name = getToken().cs();
-				
-			// get arity
-			docstring const arg = getArg('[', ']');
-			if (arg.empty()) {
-				error("[num] in \\newcommandx expected");
-				return;
-			}
-			int nargs = convert<int>(arg);
-			
-			// get options
-			int optionals = 0;
-			vector<MathData> optionalValues;
-			if (nextToken().character() == '[') {
-				// skip '['
-				getToken();
-					
-				// handle 'opt=value' options, separated by ','.
-				skipSpaces();
-				while (nextToken().character() != ']' && good()) {
-					if (nextToken().character() >= '1'
-					    && nextToken().character() <= '9') {
-						// optional value -> get parameter number
-						int n = getChar() - '0';
-						if (n > nargs) {
-							error("Arity of \\newcommandx too low "
-							      "for given optional parameter.");
-							return;
-						}
-						
-						// skip '='
-						if (getToken().character() != '=') {
-							error("'=' and optional parameter value "
-							      "expected for \\newcommandx");
-							return;
-						}
-						
-						// get value
-						int optNum = max(size_t(n), optionalValues.size());
-						optionalValues.resize(optNum);
-						optionalValues[n - 1].clear();
-						while (nextToken().character() != ']'
-						       && nextToken().character() != ',') {
-							MathData data;
-							parse(data, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
-							optionalValues[n - 1].append(data);
-						}
-						optionals = max(n, optionals);
-					} else if (nextToken().cat() == catLetter) {
-						// we in fact ignore every non-optional
-						// parameter
-						
-						// get option name
-						docstring opt;
-						while (nextToken().cat() == catLetter)
-							opt += getChar();
-					
-						// value?
-						skipSpaces();
-						MathData value;
-						if (nextToken().character() == '=') {
-							getToken();
-							while (nextToken().character() != ']'
-								&& nextToken().character() != ',')
-								parse(value, FLAG_ITEM, 
-								      InsetMath::UNDECIDED_MODE);
-						}
-					} else {
-						error("option for \\newcommandx expected");
-						return;
-					}
-					
-					// skip komma
-					skipSpaces();
-					if (nextToken().character() == ',') {
-						getChar();
-						skipSpaces();
-					} else if (nextToken().character() != ']') {
-						error("Expecting ',' or ']' in options "
-						      "of \\newcommandx");
-						return;
-					}
-				}
-				
-				// skip ']'
-				if (!good())
-					return;
-				getToken();
+
+				docstring const arg = getArg('[', ']');
+				if (!arg.empty())
+					nargs = convert<int>(arg);
+
 			}
 
-			// get definition
-			MathData def;
-			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
+			MathData ar1;
+			parse(ar1, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
+
+			// we cannot handle recursive stuff at all
+			//MathData test;
+			//test.push_back(createInsetMath(name));
+			//if (ar1.contains(test)) {
+			//	error("we cannot handle recursive macros at all.");
+			//	return;
+			//}
 
 			// is a version for display attached?
 			skipSpaces();
-			MathData display;
+			MathData ar2;
 			if (nextToken().cat() == catBegin)
-				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
+				parse(ar2, FLAG_ITEM, InsetMath::MATH_MODE);
 
-			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
-				optionals, MacroTypeNewcommandx, optionalValues, def, 
-				display)));
+			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs, type,
+				ar1, ar2)));
 		}
 
 		else if (t.cs() == "(") {
@@ -1227,41 +1103,14 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 		}
 
-		else if (t.cs() == "unit") {
-			// Allowed formats \unit[val]{unit}
-			MathData ar;
-			parse(ar, FLAG_OPTION, mode);
-			if (ar.size()) {
-				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNIT)));
-				cell->back().nucleus()->cell(0) = ar;
-				parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
-			} else {
-				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNIT, 1)));
-				parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
-			}
-		}
-		else if (t.cs() == "unitfrac") {
-			// Here allowed formats are \unitfrac[val]{num}{denom}
-			MathData ar;
-			parse(ar, FLAG_OPTION, mode);
-			if (ar.size()) {
-				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC, 3)));
-				cell->back().nucleus()->cell(2) = ar;
-			} else {
-				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC)));
-			}
-			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
-			parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
-		}
-
 		else if (t.cs() == "xrightarrow" || t.cs() == "xleftarrow") {
 			cell->push_back(createInsetMath(t.cs()));
 			parse(cell->back().nucleus()->cell(1), FLAG_OPTION, mode);
 			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
 		}
 
-		else if (t.cs() == "ref" || t.cs() == "eqref" || t.cs() == "prettyref"
-			  || t.cs() == "pageref" || t.cs() == "vpageref" || t.cs() == "vref") {
+		else if (t.cs() == "ref" || t.cs() == "prettyref" ||
+				t.cs() == "pageref" || t.cs() == "vpageref" || t.cs() == "vref") {
 			cell->push_back(MathAtom(new InsetMathRef(t.cs())));
 			parse(cell->back().nucleus()->cell(1), FLAG_OPTION, mode);
 			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
@@ -1299,16 +1148,14 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (name == "array" || name == "subarray") {
 				docstring const valign = parse_verbatim_option() + 'c';
 				docstring const halign = parse_verbatim_item();
-				cell->push_back(MathAtom(new InsetMathArray(name,
-					InsetMathGrid::guessColumns(halign), 1, (char)valign[0], halign)));
+				cell->push_back(MathAtom(new InsetMathArray(name, (char)valign[0], halign)));
 				parse2(cell->back(), FLAG_END, mode, false);
 			}
 
 			else if (name == "tabular") {
 				docstring const valign = parse_verbatim_option() + 'c';
 				docstring const halign = parse_verbatim_item();
-				cell->push_back(MathAtom(new InsetMathTabular(name,
-					InsetMathGrid::guessColumns(halign), 1, (char)valign[0], halign)));
+				cell->push_back(MathAtom(new InsetMathTabular(name, (char)valign[0], halign)));
 				parse2(cell->back(), FLAG_END, InsetMath::TEXT_MODE, false);
 			}
 
@@ -1397,7 +1244,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 					       << to_utf8(l->inset) << "'." << endl;
 					// create generic environment inset
 					cell->push_back(MathAtom(new InsetMathEnv(name)));
-					parse(cell->back().nucleus()->cell(0), FLAG_END, mode);
+					parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
 				}
 			}
 
@@ -1407,12 +1254,14 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 					<< "'" << endl;
 				// create generic environment inset
 				cell->push_back(MathAtom(new InsetMathEnv(name)));
-				parse(cell->back().nucleus()->cell(0), FLAG_END, mode);
+				parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
 			}
 		}
 
 		else if (t.cs() == "kern") {
-			// FIXME: A hack...
+#ifdef WITH_WARNINGS
+#warning A hack...
+#endif
 			docstring s;
 			while (true) {
 				Token const & t = getToken();

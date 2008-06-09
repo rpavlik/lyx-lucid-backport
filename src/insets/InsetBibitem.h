@@ -12,73 +12,53 @@
 #ifndef INSET_BIBITEM_H
 #define INSET_BIBITEM_H
 
+
 #include "InsetCommand.h"
-#include "BiblioInfo.h"
 
 
 namespace lyx {
 
-/////////////////////////////////////////////////////////////////////////
-//
-// InsetBibItem
-//
-/////////////////////////////////////////////////////////////////////////
+/** Used to insert bibitem's information (key and label)
 
-/// Used to insert bibitem's information (key and label)
-
-//  Must be automatically inserted as the first object in a
-//  bibliography paragraph.
-class InsetBibitem : public InsetCommand
-{
+  Must be automatically inserted as the first object in a
+  bibliography paragraph.
+  */
+class InsetBibitem : public InsetCommand {
 public:
 	///
 	InsetBibitem(InsetCommandParams const &);
 	///
-	static ParamInfo const & findInfo(std::string const &);
+	void read(Buffer const &, Lexer & lex);
 	///
-	static std::string defaultCommand() { return "bibitem"; }
-	///
-	static bool isCompatibleCommand(std::string const & s) 
-		{ return s == "bibitem"; }
-private:
-	/// verify label and update references.
-	/// Overloaded from Inset::initView.
-	void initView();
-	///
-	bool isLabeled() const { return true; }
-	///
-	void read(Lexer & lex);
-	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	InsetCode lyxCode() const { return BIBITEM_CODE; }
+	Inset::Code lyxCode() const { return Inset::BIBITEM_CODE; }
 	///
-	docstring bibLabel() const;
+	void setCounter(int);
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int getCounter() const { return counter; }
 	///
-	virtual void fillWithBibKeys(BiblioInfo &, InsetIterator const &) const;
-	/// Update the counter of this inset
-	virtual void updateLabels(ParIterator const &);
+	docstring const getBibLabel() const;
 	///
-	void updateCommand(docstring const & new_key, bool dummy = false);
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
+protected:
 	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
-	///
-	Inset * clone() const { return new InsetBibitem(*this); }
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 
-	friend docstring bibitemWidest(Buffer const & buffer);
-	/// The label that is set by updateLabels
-	docstring autolabel_;
+	///
+	int counter;
 	///
 	static int key_counter;
 };
 
 
 /// Return the widest label in the Bibliography.
-docstring bibitemWidest(Buffer const &);
+docstring const bibitemWidest(Buffer const &);
+
 
 } // namespace lyx
 

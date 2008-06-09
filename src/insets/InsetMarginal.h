@@ -25,24 +25,26 @@ namespace lyx {
 class InsetMarginal : public InsetFootlike {
 public:
 	///
-	InsetMarginal(Buffer const &);
+	InsetMarginal(BufferParams const &);
 	///
-	InsetCode lyxCode() const { return MARGIN_CODE; }
+	Inset::Code lyxCode() const { return Inset::MARGIN_CODE; }
 	///
 	docstring name() const { return from_ascii("Marginal"); }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const & runparams) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const & runparams) const;
 	///
-	int docbook(odocstream &, OutputParams const & runparams) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const & runparams) const;
 	///
-	docstring editMessage() const;
-	///
-	void addToToc(DocIterator const &);
+	virtual docstring const editMessage() const;
+protected:
+	InsetMarginal(InsetMarginal const &);
 private:
-	///
-	Inset * clone() const { return new InsetMarginal(*this); }
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

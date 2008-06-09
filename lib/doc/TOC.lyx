@@ -1,5 +1,5 @@
-#LyX 1.6.0beta3 created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.5.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass article
@@ -59,7 +59,9 @@ LyX configuration files
 \begin_layout Enumerate
 
 What's in 
-
+\family typewriter
+LyXDir
+\family default
 ?
 \end_layout
 \begin_deeper
@@ -98,7 +100,11 @@ Running LyX with multiple configurations
 
 \begin_layout Enumerate
 
-The Preferences dialog
+The 
+\family sans
+Preferences
+\family default
+ dialog
 \end_layout
 \begin_deeper
 
@@ -109,13 +115,7 @@ Using the dialog for the first time
 
 \begin_layout Enumerate
 
-Look and Feel
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Screen fonts
+On-screen fonts
 \end_layout
 \begin_deeper
 
@@ -137,32 +137,22 @@ Font encoding
 
 \begin_layout Enumerate
 
+Bindings
+\end_layout
+
+\begin_layout Enumerate
+
 User Interface
 \end_layout
-\end_deeper
 
 \begin_layout Enumerate
 
-Editing
+
+Converters, Formats, and Copiers
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
-
-
-Shortcuts
-\end_layout
-\end_deeper
-
-\begin_layout Enumerate
-
-
-File Handling
-\end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
 
 Formats
 \end_layout
@@ -174,22 +164,36 @@ Copiers
 
 \begin_layout Enumerate
 
-
 Converters
 \end_layout
 \end_deeper
 
 \begin_layout Enumerate
 
-Output 
+BibTeX and makeindex
 \end_layout
-\begin_deeper
 
 \begin_layout Enumerate
 
 Plain text export options
 \end_layout
+
+\begin_layout Enumerate
+
+Printer
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Changing Colors
+\end_layout
 \end_deeper
+
+\begin_layout Enumerate
+
+The autodetected settings
+\end_layout
 
 \begin_layout Enumerate
 
@@ -202,6 +206,11 @@ The rest
 Internationalizing LyX
 \end_layout
 \begin_deeper
+
+\begin_layout Enumerate
+
+Selecting an alternative language for the user interface
+\end_layout
 
 \begin_layout Enumerate
 
@@ -240,7 +249,6 @@ Defining Own Keymaps: Keymap File Format
 \end_deeper
 
 \begin_layout Enumerate
-
 
 International Keymap Stuff
 \end_layout
@@ -281,16 +289,9 @@ Installing a new LaTeX package
 
 \begin_layout Enumerate
 
-
 Layouts
 \end_layout
 \begin_deeper
-
-\begin_layout Enumerate
-
-
-Layout modules
-\end_layout
 
 \begin_layout Enumerate
 
@@ -300,14 +301,18 @@ Supporting new document classes
 \begin_layout Enumerate
 
 A layout for a 
-
+\family sans
+sty
+\family default
  file
 \end_layout
 
 \begin_layout Enumerate
 
 Layout for a 
-
+\family sans
+cls
+\family default
  file
 \end_layout
 \end_deeper
@@ -330,13 +335,15 @@ General text class parameters
 
 \begin_layout Enumerate
 
-
+\family typewriter
+ClassOptions
+\family default
  section
 \end_layout
 
 \begin_layout Enumerate
 
-Paragraph Styles
+Specific Paragraph Layouts
 \end_layout
 
 \begin_layout Enumerate
@@ -346,7 +353,7 @@ Floats
 
 \begin_layout Enumerate
 
-Inset layouts and Flex insets
+Character styles
 \end_layout
 
 \begin_layout Enumerate
@@ -379,7 +386,22 @@ Including External Material
 
 \begin_layout Enumerate
 
+Background
+\end_layout
+
+\begin_layout Enumerate
+
 How does it work?
+\end_layout
+
+\begin_layout Enumerate
+
+External material dialog
+\end_layout
+
+\begin_layout Enumerate
+
+Examples
 \end_layout
 
 \begin_layout Enumerate
@@ -410,7 +432,6 @@ The substitution mechanism
 \end_layout
 
 \begin_layout Enumerate
-
 
 Security discussion
 \end_layout
@@ -446,6 +467,113 @@ Notification
 
 The simple LyX Server Protocol
 \end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Bindings
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Toolbar
+\end_layout
+
+\begin_layout Enumerate
+
+Menu
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+File
+\end_layout
+
+\begin_layout Enumerate
+
+Edit
+\end_layout
+
+\begin_layout Enumerate
+
+Insert
+\end_layout
+
+\begin_layout Enumerate
+
+Layout
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+\family sans
+Layout\SpecialChar \menuseparator
+Character
+\family default
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+View
+\end_layout
+
+\begin_layout Enumerate
+
+Navigate
+\end_layout
+
+\begin_layout Enumerate
+
+Help
+\end_layout
+
+\begin_layout Enumerate
+
+Paragraph Style
+\end_layout
+\end_deeper
+
+\begin_layout Enumerate
+
+Keyboard
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+emacs.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+cua.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Specific to 
+\family typewriter
+sciword.bind
+\end_layout
+
+\begin_layout Enumerate
+
+Standard math bindings
+\end_layout
+
+\begin_layout Enumerate
+
+Other Accelerators
+\end_layout
+\end_deeper
 \end_deeper
 
 \begin_layout Section*
@@ -708,6 +836,11 @@ Cross-Reference Formats
 
 \begin_layout Enumerate
 
+Referencing Subfigures
+\end_layout
+
+\begin_layout Enumerate
+
 Automatic Reference Naming
 \end_layout
 
@@ -797,18 +930,6 @@ Introduction
 
 Box Dialog
 \end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-Size
-\end_layout
-
-\begin_layout Enumerate
-
-Alignment
-\end_layout
-\end_deeper
 
 \begin_layout Enumerate
 
@@ -875,6 +996,11 @@ Rotated Boxes
 Scaled Boxes
 \end_layout
 \end_deeper
+
+\begin_layout Enumerate
+
+URLs (Uniform Resource Locators)
+\end_layout
 \end_deeper
 
 \begin_layout Enumerate
@@ -928,7 +1054,7 @@ PDF
 
 \begin_layout Enumerate
 
-Explanation of Equation
+Explanation of Equation\InsetSpace ~
 \end_layout
 
 \begin_layout Section*
@@ -1106,7 +1232,6 @@ Special Document Classes
 \begin_deeper
 
 \begin_layout Enumerate
-
 
 AMS LaTeX
 \end_layout
@@ -2517,7 +2642,7 @@ Command Scheme
 
 \begin_layout Enumerate
 
-
+\newpage
 Syntax Explanation
 \end_layout
 
@@ -3466,12 +3591,6 @@ Selecting a Class
 
 \begin_layout Enumerate
 
-
-Modules
-\end_layout
-
-\begin_layout Enumerate
-
 Properties
 \end_layout
 \end_deeper
@@ -3665,8 +3784,7 @@ Address
 \family default
  and 
 \family sans
-Right
-
+Right\InsetSpace ~
 Address
 \family default
 : An Overview
@@ -3776,40 +3894,19 @@ Spacing, pagination and line breaks
 
 \begin_layout Enumerate
 
-Protected Space
-\end_layout
-
-\begin_layout Enumerate
-
 Horizontal Space
 \end_layout
 \begin_deeper
 
 \begin_layout Enumerate
 
-Inter-word Space
-\end_layout
-
-\begin_layout Enumerate
-
-Thin Space
-\end_layout
-
-\begin_layout Enumerate
-
-More Spaces
-\end_layout
-
-\begin_layout Enumerate
-
 \family sans
 Horizontal Fills
-\family default
 \end_layout
 
 \begin_layout Enumerate
 
-Phantom Space
+Other space variants
 \end_layout
 \end_deeper
 
@@ -3839,6 +3936,33 @@ Clear Pagebreaks
 
 Forced Linebreaks
 \end_layout
+
+\begin_layout Enumerate
+
+Blanks / Spaces
+\end_layout
+\begin_deeper
+
+\begin_layout Enumerate
+
+Inter-word Space
+\end_layout
+
+\begin_layout Enumerate
+
+Protected Space
+\end_layout
+
+\begin_layout Enumerate
+
+Thin Space
+\end_layout
+
+\begin_layout Enumerate
+
+More Spaces
+\end_layout
+\end_deeper
 
 \begin_layout Enumerate
 
@@ -4070,7 +4194,7 @@ Algorithm Floats
 
 \begin_layout Enumerate
 
-Wrap Floats
+Text Wrap Floats
 \end_layout
 \end_deeper
 
@@ -4203,11 +4327,6 @@ Font Sizes
 
 \begin_layout Enumerate
 
-Theorem Modules
-\end_layout
-
-\begin_layout Enumerate
-
 AMS-LaTeX
 \end_layout
 \begin_deeper
@@ -4254,20 +4373,8 @@ List of Figures, Tables and Algorithms
 
 \begin_layout Enumerate
 
-URLs and Hyperlinks
+URLs (Uniform Resource Locators)
 \end_layout
-\begin_deeper
-
-\begin_layout Enumerate
-
-URLs
-\end_layout
-
-\begin_layout Enumerate
-
-Hyperlinks
-\end_layout
-\end_deeper
 
 \begin_layout Enumerate
 
@@ -4864,7 +4971,9 @@ Count Words
 
 \begin_layout Enumerate
 
-TeX Information
+T
+
+eX Information
 \end_layout
 
 \begin_layout Enumerate

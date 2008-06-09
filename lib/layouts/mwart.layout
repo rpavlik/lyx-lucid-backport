@@ -5,7 +5,7 @@
 # Transposed by Tomasz Łuczak <tlu@technodat.com.pl>
 # Heavily modifed and enhanced by several developers.
 
-Format 7
+Format 4
 Input stdclass.inc
 
 NoStyle Chapter
@@ -22,6 +22,7 @@ End
 
 Style Part
 	Align                 Left
+	AlignPossible         Left
 	TopSep                2
 	BottomSep             1.5
 	Font
@@ -32,6 +33,7 @@ End
 
 Style Part*
 	Align                 Left
+	AlignPossible         Left
 	TopSep                2
 	BottomSep             1.5
 	Font

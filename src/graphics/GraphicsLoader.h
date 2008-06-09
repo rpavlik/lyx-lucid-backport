@@ -26,6 +26,7 @@
 
 #include "GraphicsTypes.h"
 
+#include <boost/scoped_ptr.hpp>
 #include <boost/signal.hpp>
 
 namespace lyx {
@@ -47,7 +48,8 @@ public:
 	Loader(support::FileName const & file_with_path, Params const &);
 	///
 	Loader(Loader const &);
-	/// Needed for the pimpl
+
+	/// Define an empty d-tor out-of-line to keep boost::scoped_ptr happy.
 	~Loader();
 
 	Loader & operator=(Loader const &);
@@ -76,7 +78,7 @@ public:
 	void startMonitoring() const;
 	///
 	bool monitoring() const;
-	/** Returns the check checksum of filename() so that, for example, you can
+	/** Returns the check sum of filename() so that, for example, you can
 	 *  ascertain whether to output a new PostScript version of the file
 	 *  for a LaTeX run.
 	 */
@@ -102,7 +104,7 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
+	boost::scoped_ptr<Impl> const pimpl_;
 };
 
 } // namespace graphics

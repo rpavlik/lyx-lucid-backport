@@ -18,8 +18,8 @@
 #include <csignal>
 
 #ifdef _WIN32
-#include "support/debug.h"
-#include "support/os.h"
+#include "debug.h"
+#include "os.h"
 
 #include <windows.h>
 #include <cerrno>
@@ -34,11 +34,11 @@ int support::kill(int pid, int sig)
 		return -raise(sig);
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, TRUE, pid);
 	if (!hProcess) {
-		LYXERR0("kill OpenProcess failed!");
+		lyxerr << "kill OpenProcess failed!" << std::endl;
 		return -1;
 	}
 	if (!TerminateProcess(hProcess, sig)) {
-		LYXERR0("kill process failed!");
+		lyxerr << "kill process failed!" << std::endl;
 		CloseHandle(hProcess);
 		return -1;
 	}

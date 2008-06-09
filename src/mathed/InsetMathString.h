@@ -14,8 +14,6 @@
 
 #include "InsetMath.h"
 
-#include "support/docstring.h"
-
 
 namespace lyx {
 
@@ -28,7 +26,7 @@ public:
 	///
 	explicit InsetMathString(docstring const & s);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -52,7 +50,7 @@ public:
 	void write(WriteStream & os) const;
 
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	/// the string
 	docstring str_;
 };

@@ -12,47 +12,52 @@
 #ifndef INSET_QUOTES_H
 #define INSET_QUOTES_H
 
+
 #include "Inset.h"
 
-#include "support/docstring.h"
+#include "support/types.h"
 
 
 namespace lyx {
 
+class BufferParams;
+class Language;
+class LaTeXFeatures;
+
+
 /** Quotes.
   Used for the various quotes. German, English, French, all either
   double or single **/
-class InsetQuotes : public Inset
-{
+class InsetQuotes : public Inset {
 public:
 	///
-	enum QuoteLanguage {
+	enum quote_language {
 		///
-		EnglishQuotes,
+		EnglishQ,
 		///
-		SwedishQuotes,
+		SwedishQ,
 		///
-		GermanQuotes,
+		GermanQ,
 		///
-		PolishQuotes,
+		PolishQ,
 		///
-		FrenchQuotes,
+		FrenchQ,
 		///
-		DanishQuotes
+		DanishQ
 	};
 	///
-	enum QuoteSide {
+	enum quote_side {
 		///
-		LeftQuote,
+		LeftQ,
 		///
-		RightQuote
+		RightQ
 	};
 	///
-	enum QuoteTimes {
+	enum quote_times {
 		///
-		SingleQuotes,
+		SingleQ,
 		///
-		DoubleQuotes
+		DoubleQ
 	};
 
 	/** The constructor works like this:
@@ -62,59 +67,63 @@ public:
 	    \item etc.
 	  \end{itemize}
 	  */
-	explicit InsetQuotes(std::string const & str = "eld");
+	explicit
+	InsetQuotes(std::string const & str = "eld");
 	/// Create the right quote inset after character c
-	InsetQuotes(Buffer const & buffer, char_type c);
+	InsetQuotes(char_type c, BufferParams const & params);
 	/// Direct access to inner/outer quotation marks
-	InsetQuotes(char_type c, QuoteLanguage l, QuoteTimes t);
+	InsetQuotes(char_type c, quote_language l, quote_times t);
 	///
-	docstring name() const;
+	docstring name() const { return from_ascii("Quotes"); }
 	///
-	void metrics(MetricsInfo &, Dimension &) const;
+	bool metrics(MetricsInfo &, Dimension &) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
+#if 0
 	///
-	void write(std::ostream &) const;
+	Font const convertFont(Font const & font) const;
+#endif
 	///
-	void read(Lexer & lex);
+	void write(Buffer const &, std::ostream &) const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	void read(Buffer const &, Lexer & lex);
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
+	///
+	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
 
 	/// the string that is passed to the TOC
-	void textString(odocstream &) const;
+	virtual void textString(Buffer const &, odocstream &) const;
 
 	///
 	void validate(LaTeXFeatures &) const;
 	///
-	InsetCode lyxCode() const { return QUOTE_CODE; }
-	/// should this inset be handled like a normal character
+	Inset::Code lyxCode() const;
+	// should this inset be handled like a normal character
 	bool isChar() const { return true; }
 
 private:
+	virtual std::auto_ptr<Inset> doClone() const;
+
 	///
-	Inset * clone() const { return new InsetQuotes(*this); }
+	quote_language language_;
+	///
+	quote_side side_;
+	///
+	quote_times times_;
 
 	/** The parameters of the constructor are the language, the
 	    side and the multiplicity of the quote.
 	 */
-	InsetQuotes(QuoteLanguage l, QuoteSide s, QuoteTimes t);
+	InsetQuotes(quote_language l, quote_side s, quote_times t);
 	/// Decide whether we need left or right quotation marks
-	void setSide(char_type c);
+	void getPosition(char_type c);
 	///
 	void parseString(std::string const &);
 	///
-	docstring displayString() const;
-
-	///
-	QuoteLanguage language_;
-	///
-	QuoteSide side_;
-	///
-	QuoteTimes times_;
+	lyx::docstring const dispString(Language const *) const;
 };
 
 } // namespace lyx

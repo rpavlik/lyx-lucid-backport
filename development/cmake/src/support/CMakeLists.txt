@@ -6,15 +6,11 @@
 
 project(support)
 
+configure_file(${TOP_SRC_DIR}/src/support/Package.cpp.in 
+               ${CMAKE_CURRENT_BINARY_DIR}/package.C)
+
 file(GLOB support_sources ${TOP_SRC_DIR}/src/support/${LYX_CPP_FILES})
 file(GLOB support_headers ${TOP_SRC_DIR}/src/support/${LYX_HPP_FILES})
-
-file(GLOB support_minizip_sources ${TOP_SRC_DIR}/src/support/minizip/*.c)
-file(GLOB support_minizip_cpp_sources ${TOP_SRC_DIR}/src/support/minizip/*.cpp)
-file(GLOB support_minizip_headers ${TOP_SRC_DIR}/src/support/minizip/*.h)
-
-file(GLOB support_linkback_sources ${TOP_SRC_DIR}/src/support/linkback/*.m*)
-file(GLOB support_linkback_headers ${TOP_SRC_DIR}/src/support/linkback/*.h)
 
 list(REMOVE_ITEM support_sources 	
 	${TOP_SRC_DIR}/src/support/os_win32.cpp
@@ -22,55 +18,34 @@ list(REMOVE_ITEM support_sources
 	${TOP_SRC_DIR}/src/support/os_cygwin.cpp
 	${TOP_SRC_DIR}/src/support/os_os2.C
 	${TOP_SRC_DIR}/src/support/atexit.c
-	${TOP_SRC_DIR}/src/support/strerror.c
-	${TOP_SRC_DIR}/src/support/minizip/iowin32.h
-	${TOP_SRC_DIR}/src/support/minizip/iowin32.c
-	${TOP_SRC_DIR}/src/support/gettext.cpp)
+	${TOP_SRC_DIR}/src/support/strerror.c)
 
-if(APPLE)
-	message(STATUS "Mac LinkBack support")
-else()
-	set(support_linkback_sources "")
-	set(support_linkback_headers "")
-endif()
-
-# needed to compile tex2lyx in merged mode
-set(dont_merge ${TOP_SRC_DIR}/src/support/gettext.cpp)
+set(support_sources ${support_sources} ${CMAKE_CURRENT_BINARY_DIR}/package.C)
 
 lyx_add_msvc_pch(support)
-
-lyx_automoc(${support_sources})
 	
-include_directories(${TOP_SRC_DIR}/src/support
-	${CMAKE_BINARY_DIR}/src/support
-	${TOP_SRC_DIR}/src/support/minizip
-	${QT_INCLUDES}
-	${ICONV_INCLUDE_DIR}
-	${ZLIB_INCLUDE_DIR})
-
+include_directories(${TOP_SRC_DIR}/src/support ${ICONV_INCLUDE_DIR})
 
 if(NOT MERGE_FILES)
-	set(support_sources ${support_sources} ${support_minizip_sources} ${support_minizip_cpp_sources} ${support_linkback_sources})
-	set(support_headers ${support_headers} ${support_minizip_headers} ${support_linkback_headers})
-	add_library(support ${library_type} ${support_sources} ${support_headers} ${dont_merge})
-else()
+	add_library(support ${library_type} ${support_sources} ${support_headers})
+else(NOT MERGE_FILES)
+	# move to front
+	list(REMOVE_ITEM support_sources ${TOP_SRC_DIR}/src/support/convert.cpp)
+	list(APPEND support_sources ${TOP_SRC_DIR}/src/support/convert.cpp)
+	list(REMOVE_ITEM support_sources ${TOP_SRC_DIR}/src/support/lstrings.cpp)
+	list(APPEND support_sources ${TOP_SRC_DIR}/src/support/lstrings.cpp)
+	list(REVERSE support_sources)
 	lyx_const_touched_files(_allinone  support_sources)
-		set(depends_moc ${support_headers})
-	set_source_files_properties(_allinone_const.C
-		PROPERTIES OBJECT_DEPENDS "${depends_moc}")
-	set_source_files_properties(_allinone_touched.C
-		PROPERTIES OBJECT_DEPENDS "${depends_moc}")	
-	add_library(support ${library_type} ${_allinone_files}
-		${support_minizip_sources} ${support_minizip_cpp_sources} ${support_linkback_sources} ${support_headers} ${dont_merge})
-endif()
+	add_library(support ${library_type} ${_allinone_files})
+					
+endif(NOT MERGE_FILES)
 
-target_link_libraries(support boost_signals ${QT_QTCORE_LIBRARY} ${ZLIB_LIBRARY})
 
-if(APPLE)
-	target_link_libraries(support "objc" "-framework Appkit" "-framework CoreFoundation")
-elseif(WIN32)
+target_link_libraries(support boost_signals)
+
+if(WIN32)
 	target_link_libraries(support shlwapi)
-endif()
+endif(WIN32)
 
 project_source_group("${GROUP_CODE}" support_sources support_headers)
 

@@ -13,18 +13,18 @@
 #ifndef INSERTTABLEWIDGET_H
 #define INSERTTABLEWIDGET_H
 
+#include "frontends/LyXView.h"
 #include <QWidget>
 
 namespace lyx {
 namespace frontend {
 
-class GuiView;
 
 class InsertTableWidget : public QWidget {
 	Q_OBJECT
 public:
 
-	InsertTableWidget(GuiView &, QWidget *);
+	InsertTableWidget(LyXView &, QWidget *);
 
 Q_SIGNALS:
 	//! widget is visible
@@ -63,7 +63,7 @@ private:
 	//! column of pointer
 	int right_;
 	//! the lyxview we need to dispatch the funcrequest
-	GuiView & lyxView_;
+	LyXView & lyxView_;
 	//! widget under mouse
 	bool underMouse_;
 };

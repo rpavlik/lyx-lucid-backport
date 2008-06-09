@@ -106,7 +106,6 @@ Function ConfigureLyX
 
   # register the extension .lyx
   ${if} $CreateFileAssociations == "true"
-   WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY}" "OnlyWithLyX" "Yes${PRODUCT_VERSION_SHORT}" # special entry to test if they were registered by this LyX version
    # write informations about file type
    WriteRegStr SHCTX "Software\Classes\${PRODUCT_REGNAME}" "" "${PRODUCT_NAME} Document"
    WriteRegStr SHCTX "Software\Classes\${PRODUCT_REGNAME}\DefaultIcon" "" "${PRODUCT_EXE}"
@@ -155,11 +154,11 @@ FunctionEnd
 # --------------------------------
 
 Function AcroPref
- # writes PDF settings to the preferences file
+ # writes PDF settings  to the preferences file
 
   FileWrite $R4 '\format "pdf3" "pdf" "PDF (dvipdfm)" "m" "pdfview" "" "document,vector"$\r$\n\
 		 \format "pdf2" "pdf" "PDF (pdflatex)" "F" "pdfview" "" "document,vector"$\r$\n\
-	 	 \format "pdf" "pdf" "PDF (ps2pdf)" "P" "pdfview" "" "document,vector"$\r$\n'
+		 \format "pdf" "pdf" "PDF (ps2pdf)" "P" "pdfview" "" "document,vector"$\r$\n'
   Push $0
   
 FunctionEnd

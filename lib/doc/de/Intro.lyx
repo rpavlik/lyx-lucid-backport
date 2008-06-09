@@ -1,8 +1,8 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 331
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
-\textclass article
+\textclass book
 \begin_preamble
 % DO NOT ALTER THIS PREAMBLE!!!
 %
@@ -19,7 +19,22 @@
  % set fonts for nicer pdf view
  \IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
 
- \fi % end if pdflatex is used
+ % link all cross references and URLs in pdf output
+ \usepackage[colorlinks=true, bookmarks, bookmarksnumbered,
+  bookmarksopen, bookmarksopenlevel=1,
+  linkcolor=black, citecolor=black, urlcolor=blue,  filecolor=blue,
+  pdfpagelayout=OneColumn, pdfnewwindow=true,
+  pdfstartview=XYZ, plainpages=false, pdfpagelabels,
+  pdfauthor={LyX Team}, pdftex,
+  pdftitle={Einführung in LyX},pdfsubject={LyX-Dokumentation Einführung},
+  pdfkeywords={LyX, Dokumentation}]{hyperref}
+ 
+\else % if dvi or ps is produced
+
+ % link all cross references and URLs in dvi output
+ \usepackage[ps2pdf]{hyperref}
+
+\fi % end if pdflatex is used
 
  % the pages of the TOC are numbered roman
  % and a pdf-bookmark for the TOC is added
@@ -49,22 +64,6 @@
 \graphics default
 \paperfontsize 12
 \spacing single
-\use_hyperref true
-\pdf_title "Einführung in LyX"
-\pdf_author "LyX Team"
-\pdf_subject "LyX-Dokumentation Einführung"
-\pdf_keywords "LyX, Dokumentatio"
-\pdf_bookmarks true
-\pdf_bookmarksnumbered true
-\pdf_bookmarksopen true
-\pdf_bookmarksopenlevel 2
-\pdf_breaklinks false
-\pdf_pdfborder false
-\pdf_colorlinks true
-\pdf_backref false
-\pdf_pagebackref false
-\pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
 \use_geometry true
 \use_amsmath 1
@@ -94,20 +93,14 @@
 
 \begin_layout Title
 Einführung in LyX
-\begin_inset Newline newline
-\end_inset
-
+\newline
 oder
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Das Einmaleins der LyX-Dokumentation
 \size large
 
-\begin_inset Newline newline
-\end_inset
-
-(Version 1.6.x)
+\newline
+(Version 1.5.x)
 \end_layout
 
 \begin_layout Author
@@ -115,7 +108,7 @@ vom LyX Team
 \begin_inset Foot
 status open
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Deutsche Übersetzung: 
 \noun on
 Hartmut
@@ -141,14 +134,13 @@ Peter Sütterlin
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 7.
- 5.
+letzte Änderung: 25.
+ 1.
  2008
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset toc
-LatexCommand tableofcontents
+\begin_inset LatexCommand tableofcontents
 
 \end_inset
 
@@ -160,7 +152,7 @@ LatexCommand tableofcontents
 \begin_inset Note Note
 status open
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \noindent
 
 \noun on
@@ -170,7 +162,9 @@ Hartmut
 \noun on
 Haase
 \noun default
-: Wenn Sie Anmerkungen oder Korrekturvorschläge machen wollen, schreiben
+: Weil das Aussehen von Version 1.5.x im Vergleich zu den Vorgängerversionen
+ stark verändert wurde, habe ich womöglich nicht alles richtig dokumentiert.
+ Wenn Sie Anmerkungen oder Korrekturvorschläge machen wollen, schreiben
  Sie bitte an: 
 \family typewriter
 lyx-docs@lists.lyx.org
@@ -178,8 +172,15 @@ lyx-docs@lists.lyx.org
  oder direkt an mich.
  Meine ePost-Adresse finden Sie unter 
 \family sans
-Hilfe\SpecialChar \menuseparator
-Über LyX\SpecialChar \menuseparator
+\bar under
+H
+\bar default
+ilfe\SpecialChar \menuseparator
+Über Ly
+\bar under
+X
+\bar default
+\SpecialChar \menuseparator
 Ruhm und Ehre
 \family default
 .
@@ -194,11 +195,11 @@ Ruhm und Ehre
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 Die LyX-Philosophie
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Was ist LyX
 \end_layout
 
@@ -327,7 +328,7 @@ Stil
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Fairerweise muss man sagen, daß die meisten aktuellen Textverarbeitungsprogramme
  mittlerweile auch so etwas wie Stilvorlagen unterstützen, die ein ähnliches
  Konzept darstellen.
@@ -352,14 +353,8 @@ Einleitung
 \begin_inset Quotes gld
 \end_inset
 
-1.
-\begin_inset Space ~
-\end_inset
-
-
-\begin_inset Space ~
-\end_inset
-
+1.\InsetSpace ~
+\InsetSpace ~
 Einleitung
 \begin_inset Quotes grd
 \end_inset
@@ -465,12 +460,12 @@ wollen
  (außer Ihr Schraubendreher hat vielleicht eine lebenslängliche Garantie).
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Unterschiede zwischen LyX und Textverarbeitungen
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Unterschiede zwischen LyX und Textverarbeitungen
 \end_layout
 
@@ -480,7 +475,7 @@ Unterschiede zwischen LyX und Textverarbeitungen
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Nein, dies ist nicht der Versuch, einen heiligen Krieg der Textverarbeitungen
  anzufangen (oder zu gewinnen).
  Es ist jedoch wichtig, die Vorteile von LyX zu beschreiben.
@@ -543,14 +538,8 @@ Seitenumbrüche
 \end_layout
 
 \begin_layout Itemize
-Zeilenabstände (d.
-\begin_inset Space \thinspace{}
-\end_inset
-
-h.
-\begin_inset Space \space{}
-\end_inset
-
+Zeilenabstände (d.\InsetSpace \thinspace{}
+h.\InsetSpace \space{}
 einzeilig, zweizeilig usw.)
 \end_layout
 
@@ -579,7 +568,7 @@ ten und -größen gesetzt.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Selbstverständlich gibt es die Möglichkeit, alle diese Abstände entweder
  lokal oder global für das gesamte Dokument zu verändern.
  Nur in wenigen Fällen ist dabei Wissen über LaTeX notwendig.
@@ -640,7 +629,7 @@ funktioniert
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Natürlich ist nichts perfekt, aber LaTeX ist so nahe an einem fehlerfreien
  Computerprogramm, wie dies nur möglich ist.
 \end_layout
@@ -650,7 +639,7 @@ Natürlich ist nichts perfekt, aber LaTeX ist so nahe an einem fehlerfreien
  
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Was 
 \emph on
 ist
@@ -667,7 +656,7 @@ entworfen wurde.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Die Information in diesem Abschnitt basiert auf den Angaben in dem Buch
  
 \emph on
@@ -766,7 +755,7 @@ Wäre das bereits alles, TeX wäre nichts anderes als ein primitiver Textsetzer.
  Und dadurch sind die Möglichkeiten von TeX schier unbegrenzt.
 \end_layout
 
-\begin_layout Paragraph*
+\begin_layout Subsubsection*
 Leslie Lamports Idee
 \end_layout
 
@@ -818,7 +807,7 @@ Sprache
  geschrieben.
 \end_layout
 
-\begin_layout Paragraph*
+\begin_layout Subsubsection*
 Klassen und Stile
 \end_layout
 
@@ -950,7 +939,7 @@ word
 :-)
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 Der Weg durch die Dokumentation
 \end_layout
 
@@ -983,13 +972,9 @@ n müssen usw.
  Wir sind ständig bemüht, die Texte so vollständig und korrekt wie möglich
  zu halten, doch das gelingt manchmal nicht, da die Entwickler immer dabei
  sind, neue Details einzubauen, während wir die alten noch dokumentieren.
- Wenn Sie an dieser Situation etwas ändern wollen, gibt Ihnen Abschnitt
-\begin_inset Space \space{}
-\end_inset
+ Wenn Sie an dieser Situation etwas ändern wollen, gibt Ihnen Abschnitt\InsetSpace \space{}
 
-
-\begin_inset CommandInset ref
-LatexCommand vref
+\begin_inset LatexCommand vref
 reference "sec:Helfen"
 
 \end_inset
@@ -1003,39 +988,22 @@ Und noch eine Bitte: Wenn Ihnen in dieser Dokumentation irgendetwas unklar
  das LyX-Dokumen\SpecialChar \-
 ta\SpecialChar \-
 tions-Team über die Mailing-Liste 
-\begin_inset CommandInset href
-LatexCommand href
-target "lyx-docs@lists.lyx.org"
-type "mailto:"
-
-\end_inset
-
+\family sans
+lyx-docs@lists.lyx.org
+\family default
 .
  Falls Sie dringende Fragen haben, die in der Dokumentation offensichtlich
  nicht beantwortet werden, gibt es eine sehr aktive Mailing-Liste, die Sie
- unter
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset CommandInset href
-LatexCommand href
-target "lyx-users@lists.lyx.org"
-type "mailto:"
-
-\end_inset
-
+ unter 
+\family sans
+lyx-users@lists.lyx.org
+\family default
  erreichen können.
  Außerdem könnten Sie bei 
 \family typewriter
 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://wiki.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "http://wiki.lyx.org"
 
 \end_inset
 
@@ -1044,7 +1012,7 @@ http://wiki.lyx.org
  vorbeischauen.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Das Format der Handbücher
 \end_layout
 
@@ -1064,7 +1032,7 @@ online
 \begin_inset Foot
 status open
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Hallo! Zum Schließen dieser Fußnote klicken Sie bitte auf das grau unterlegte
  Feld mit dem Wort 
 \emph on
@@ -1091,8 +1059,7 @@ In der gedruckten Version dieser Handbücher erscheinen die Querverweise
  mit ihren tatsächlichen Kapitel- und Seitennummern.
  Wenn Sie den Text jedoch in LyX lesen, sehen Sie lediglich grau unterlegte
  Felder wie das folgende: 
-\begin_inset CommandInset ref
-LatexCommand vref
+\begin_inset LatexCommand vref
 reference "sec:Helfen"
 
 \end_inset
@@ -1311,10 +1278,7 @@ Entf
 \family default
 , 
 \family sans
-Pos
-\begin_inset Space \thinspace{}
-\end_inset
-
+Pos\InsetSpace \thinspace{}
 1
 \family default
 , 
@@ -1398,7 +1362,7 @@ Emacs
  zu lesen und die entsprechenden Tastaturkürzel selbst herauszusuchen.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Die Handbücher
 \end_layout
 
@@ -1411,14 +1375,9 @@ Die folgende Liste beschreibt den Inhalt aller Dateien der LyX-Dokumentation:
 \emph on
 Einführung
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Diese Datei.
 \end_layout
 
@@ -1427,14 +1386,9 @@ Diese Datei.
 \emph on
 Tutorium
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Wenn Sie neu bei LyX sind und zuvor niemals LaTeX verwendet haben, sollten
  Sie hier mit dem Lesen beginnen.
  Wenn Sie der Meinung sind, LaTeX sei das Material, aus dem Kondome hergestellt
@@ -1478,14 +1432,9 @@ Tutorium
 \emph on
 Benutzerhandbuch
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Der Hauptteil der Dokumentation.
  Hier werden (möglichst) alle grundlegenden Funktionen und Fähigkeiten von
  LyX beschrieben.
@@ -1501,14 +1450,9 @@ Tutorium
 \emph on
 Handbuchergänzungen
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Erweiterung des 
 \emph on
 Benutzerhandbuches
@@ -1522,18 +1466,10 @@ TeX-Kommandos, zusätzliche Layouts und
 \begin_layout Description
 
 \emph on
-Eingebettete
-\begin_inset Space ~
-\end_inset
+Eingebettete\InsetSpace ~
+Objekte \InsetSpace ~
 
-Objekte 
-\begin_inset Space ~
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \emph default
 enthält eine ausführliche Beschreibung der Abbildungen, Tabellen, Gleitobjekte,
@@ -1545,14 +1481,9 @@ enthält eine ausführliche Beschreibung der Abbildungen, Tabellen, Gleitobjekte
 \emph on
 Anpassung
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Eine Beschreibung der Konfigurationsmöglichkeiten für Fortgeschrittene.
  Hier wird auch beschrieben, wie LyX konfiguriert wird.
  Das umfasst Tastaturbelegung, Internationalisierung und Konfigurationsdateien.
@@ -1568,14 +1499,9 @@ Tutorium
 \emph on
 FAQ
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Häufig gestellte Fragen mit Antworten
 \end_layout
 
@@ -1586,14 +1512,9 @@ Inhaltsverzeichnis
 \emph default
  
 \size large
+\InsetSpace ~
 
-\begin_inset Space ~
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \size default
 Inhaltsverzeichnis LyX Dokumentation
@@ -1606,7 +1527,7 @@ LaTe
 \begin_inset ERT
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 
 {}
 \end_layout
@@ -1615,14 +1536,9 @@ status collapsed
 
 X-Konfiguration
 \emph default
- 
-\begin_inset Space ~
-\end_inset
+ \InsetSpace ~
 
-
-\begin_inset Newline newline
-\end_inset
-
+\newline
 Bei der Installation untersucht LyX Ihr System.
  Diese Datei enthält die dabei gefundenen LaTeX-Informationen.
  Sehen Sie sich diese Datei ruhig einmal an und entscheiden, welche eventuell
@@ -1689,9 +1605,8 @@ Sie ersparen sich dadurch sicherlich einiges an Frustration und werden die
  wenn es auch einen anderen Ansatz verwendet.
 \end_layout
 
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
+\begin_layout Chapter
+\begin_inset LatexCommand label
 name "sec:Helfen"
 
 \end_inset
@@ -1699,7 +1614,7 @@ name "sec:Helfen"
 Wie helfe ich beim LyX-Projekt?
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Mithilfe bei LyX
 \end_layout
 
@@ -1710,7 +1625,7 @@ en).
  den Bedarf, den vorhandenen Code zu verbessern.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Fehler melden
 \end_layout
 
@@ -1726,17 +1641,10 @@ Es mag sein, dass Sie beim Benutzen von LyX auf Dinge stoßen, die Sie als
 
 \begin_layout Standard
 LyX hat ein Web-basiertes Fehlermeldesystem, den LyX Bug Tracker
-\begin_inset Newline newline
-\end_inset
+\newline
 
-
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://bugzilla.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "http://bugzilla.lyx.org"
 
 \end_inset
 
@@ -1746,22 +1654,14 @@ http://bugzilla.lyx.org
  Wenn Sie einen Kommentar zu einem bestehenden Fehler abgeben wollen oder
  einen neuen Fehler melden wollen, können Sie das über den Bug-Tracker tun,
  oder Sie senden einen eBrief an die Entwickler-Liste 
-\begin_inset CommandInset href
-LatexCommand href
-target "lyx-devel@lists.lyx.org"
-type "mailto:"
-
-\end_inset
-
+\family sans
+lyx-devel@lists.lyx.org
+\family default
 .
- Archive der Liste erreichen Sie über die LyX-Startseite 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.lyx.org
-\end_layout
+ Archive der Liste erreichen Sie über die 
+\begin_inset LatexCommand url
+name "LyX-Startseite"
+target "http://www.lyx.org"
 
 \end_inset
 
@@ -1848,7 +1748,7 @@ bt
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Wenn Sie besonders gründlich sein wollen, benutzen Sie die Befehle 
 \begin_inset Quotes gld
 \end_inset
@@ -1888,7 +1788,7 @@ up
  einzukreisen.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Fehlerbehebungen und neue Fähigkeiten beisteuern
 \end_layout
 
@@ -1904,7 +1804,7 @@ diff -u
  Patch macht.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Hilfe bei der Dokumentation
 \end_layout
 
@@ -1918,25 +1818,21 @@ Die Dokumentation von LyX ist sehr ausführlich und umfangreich.
  finden oder einfach nur Vorschläge haben, wie man sie verbessern kann.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Fehler in den Handbüchern
 \end_layout
 
 \begin_layout Standard
 Wenn Sie eine Unstimmigkeit in der Dokumentation entdecken, schicken Sie
  bitte einen eBrief an die Mailing-Liste 
-\begin_inset CommandInset href
-LatexCommand href
-target "lyxdoc@lists.lyx.org"
-type "mailto:"
-
-\end_inset
-
+\family sans
+lyxdoc@lists.lyx.org
+\family default
 .
  Das Dokumentationsteam wird sich darum kümmern, dass sie beseitigt wird.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Dem Dokumentationsteam beitreten
 \end_layout
 
@@ -1953,7 +1849,7 @@ Besorgen Sie sich die neueste Version der LyX-Quellen.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 Sie können sich die aktuellste Version auch aus dem LyX-SVN-Archiv besorgen
  -- sie befindet sich im Modul 
 \family typewriter
@@ -2021,14 +1917,9 @@ Setzen Sie sich mit dem Team in Verbindung:
 
 \begin_deeper
 \begin_layout Standard
-\begin_inset CommandInset href
-LatexCommand href
-target "lyxdoc@lists.lyx.org"
-type "mailto:"
 
-\end_inset
-
-
+\family sans
+lyx-docs@lists.lyx.org
 \end_layout
 
 \begin_layout Standard

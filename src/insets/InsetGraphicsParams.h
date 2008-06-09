@@ -16,17 +16,13 @@
 
 #include "graphics/GraphicsTypes.h"
 #include "Length.h"
-
 #include "support/FileName.h"
-
-#include <string>
 
 namespace lyx {
 
 namespace graphics { class Params; }
 
 class Lexer;
-class Buffer;
 
 
 /// This class holds all the parameters needed by insetGraphics.
@@ -63,6 +59,10 @@ public:
 	std::string rotateAngle;
 	/// Origin point of rotation
 	std::string rotateOrigin;
+	/// Do we have a subcaption?
+	bool subcaption;
+	/// The text of the subcaption.
+	std::string subcaptionText;
 	/// any userdefined special command
 	std::string special;
 
@@ -71,21 +71,17 @@ public:
 	///
 	InsetGraphicsParams(InsetGraphicsParams const &);
 	///
-	void operator=(InsetGraphicsParams const &);
+	InsetGraphicsParams & operator=(InsetGraphicsParams const &);
 	/// Save the parameters in the LyX format stream.
-	/// Buffer is needed to figure out if a figure is embedded.
-	void Write(std::ostream & os, Buffer const & buf) const;
+	void Write(std::ostream & os, std::string const & bufpath) const;
 	/// If the token belongs to our parameters, read it.
 	bool Read(Lexer & lex, std::string const & token, std::string const & bufpath);
 	/// convert
-	// Only a subset of InsetGraphicsParams is needed for display purposes.
-	// This function also interrogates lyxrc to ascertain whether
-	// to display or not.
+  // Only a subset of InsetGraphicsParams is needed for display purposes.
+  // This function also interrogates lyxrc to ascertain whether
+  // to display or not.
 	graphics::Params as_grfxParams() const;
 
-	// FIXME UNICODE. Write functions need to use odostream instead of ostream firstly.
-	/// Identification of the graphics template. No template equals empty string.
-	std::string groupId;
 private:
 	/// Initialize the object to a default status.
 	void init();

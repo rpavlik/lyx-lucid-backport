@@ -15,13 +15,17 @@
 #ifndef TEXTUTILS_H
 #define TEXTUTILS_H
 
-#include "support/strfwd.h"
+#include "support/types.h"
 
 
 namespace lyx {
 
 /// return true if the char is a line separator
-inline bool isLineSeparatorChar(char_type c) { return c == ' '; }
+inline
+bool isLineSeparatorChar(char_type c)
+{
+	return c == ' ';
+}
 
 /// return true if a char is alphabetical (including accented chars)
 bool isLetterChar(char_type c);

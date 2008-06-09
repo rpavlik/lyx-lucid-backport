@@ -19,7 +19,7 @@
 %%% 1- Add the command \TestPackage{<name>}. The syntax is:
 %%%    \TestPackage[<file>]{<name>}, which  tests whether <name>.sty
 %%%    (or <file>, if this optional parameter is provided) exists.
-%%% 2- Add a description for <name> in doc/LaTeXConfig.lyx,
+%%% 2- Add a description for <name> in doc/LaTeXConfig.lyx.in,
 %%%    containing in particular a line like
 %%%         Found   @chk_<name>@
 %%%    This line will be replaced at configure time by the proper text.
@@ -27,7 +27,7 @@
 %%% For document classes, things are even simpler, since you do not
 %%% need to edit this file. Just put your layout file in some place
 %%% where LyX can find it and add if you wish a description in
-%%% LaTeXConfig.lyx, as described above.
+%%% LaTeXConfig.lyx.in, as described above.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%% Initialization part (skip) %%%%%%%%%%%%%%%%%%%%%
@@ -58,6 +58,7 @@
   \immediate\write\layouts{"#2"   "#1"   "#3"   "#4"}}
 
 \newcommand{\AddVariable}[2]{
+  \immediate\write\sed{s!@chk_#1@!#2!g}
   \immediate\write\vars{chk_#1='#2'}}
 
 \newcommand{\AddPackage}[1]{
@@ -129,6 +130,7 @@
 % Initializes the files
 \typeout{\prefix Inspecting your LaTeX configuration.}
 \newwrite{\layouts} \immediate\openout \layouts = textclass.lst.tmp
+\newwrite{\sed} \immediate\openout \sed  = chkconfig.sed
 \newwrite{\vars} \immediate\openout \vars = chkconfig.vars
 \newwrite{\packages} \immediate\openout \packages = packages.lst.tmp
 
@@ -224,43 +226,32 @@
 \TestPackage{bibtopic}
 \TestPackage{bm}
 \TestPackage{booktabs}
-\TestPackage{braille}
 \TestPackage{color} % this one should be there if graphics.sty is there.
-\TestPackage{covington}
-\TestPackage{csquotes}
 \TestPackage{dvipost}
-\TestPackage{endnotes}
-\TestPackage{enumitem}
 \TestPackage{esint}
-\TestPackage{ifthen}
 \TestPackage{fancybox}
 \TestPackage{fancyhdr}
 \TestPackage{framed}
 \TestPackage{geometry}
-\TestPackage{hyperref}
 \TestPackage{jurabib}
 \TestPackage{latex8}
 \TestPackage{listings}
 \TestPackage{longtable}
 \TestPackage{natbib}
-\TestPackage{nicefrac}
+\TestPackage{nicefrac} 
 \TestPackage{nomencl}
 \TestPackage{pdfcolmk}
-\TestPackage{pdfpages}
 \TestPackage{prettyref}
 \TestPackage{preview}
-\TestPackage{relsize}
 \TestPackage{rotating}
-\TestPackage{rotfloat}
 \TestPackage{setspace}
 \TestPackage{soul}
-\TestPackage{subfig}
+\TestPackage{subfigure}
 \TestPackage{textcomp}
-\TestPackage{units}
+\TestPackage{units} 
 \TestPackage{url}
 \TestPackage{varioref}
 \TestPackage{wrapfig}
-\TestPackage{xargs}
 \TestPackage{xcolor}
 
 
@@ -313,6 +304,7 @@
 
 % End of the LaTeX job
 \immediate\closeout\layouts
+\immediate\closeout\sed
 \immediate\closeout\vars
 \immediate\closeout\packages
 \typeout{\prefix Inspection done.}

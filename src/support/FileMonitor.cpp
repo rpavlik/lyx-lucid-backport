@@ -11,14 +11,21 @@
 #include <config.h>
 
 #include "support/FileMonitor.h"
-
+#include "support/filetools.h"
 #include "support/FileName.h"
-#include "support/Timeout.h"
+#include "support/lyxlib.h"
+
+// FIXME Interface violation
+#include "frontends/Timeout.h"
 
 #include <boost/bind.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/signals/trackable.hpp>
 
-using namespace std;
+
+using std::string;
+
+namespace fs = boost::filesystem;
 
 namespace lyx {
 namespace support {
@@ -56,9 +63,7 @@ FileMonitor::FileMonitor(FileName const & file_with_path, int interval)
 
 
 FileMonitor::~FileMonitor()
-{
-	delete pimpl_;
-}
+{}
 
 
 void FileMonitor::reset(FileName const & file_with_path) const
@@ -88,11 +93,11 @@ void FileMonitor::start() const
 	if (monitoring())
 		return;
 
-	if (!pimpl_->filename_.exists())
+	if (!doesFileExist(pimpl_->filename_))
 		return;
 
-	pimpl_->timestamp_ = pimpl_->filename_.lastModified();
-	pimpl_->checksum_ = pimpl_->filename_.checksum();
+	pimpl_->timestamp_ = fs::last_write_time(pimpl_->filename_.toFilesystemEncoding());
+	pimpl_->checksum_ = sum(pimpl_->filename_);
 
 	if (pimpl_->timestamp_ && pimpl_->checksum_) {
 		pimpl_->timer_.start();
@@ -122,7 +127,7 @@ unsigned long FileMonitor::checksum() const
 	// If we aren't actively monitoring the file, then recompute the
 	// checksum explicitly.
 	if (!pimpl_->timer_.running() && !pimpl_->filename_.empty())
-		return pimpl_->filename_.checksum();
+		return sum(pimpl_->filename_);
 
 	return pimpl_->checksum_;
 }
@@ -153,18 +158,18 @@ void FileMonitor::Impl::monitorFile()
 {
 	bool changed = false;
 
-	if (!filename_.exists()) {
+	if (!doesFileExist(filename_)) {
 		changed = timestamp_ || checksum_;
 		timestamp_ = 0;
 		checksum_ = 0;
 
 	} else {
-		time_t const new_timestamp = filename_.lastModified();
+		time_t const new_timestamp = fs::last_write_time(filename_.toFilesystemEncoding());
 
 		if (new_timestamp != timestamp_) {
 			timestamp_ = new_timestamp;
 
-			unsigned long const new_checksum = filename_.checksum();
+			unsigned long const new_checksum = sum(filename_);
 			if (new_checksum != checksum_) {
 				checksum_ = new_checksum;
 				changed = true;

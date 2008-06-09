@@ -14,7 +14,8 @@
 
 #include <string>
 
-using namespace std;
+using std::string;
+
 
 namespace lyx {
 namespace graphics {

@@ -148,29 +148,20 @@ public:
 	std::string getArg(char left, char right);
 	/*!
 	 * \returns getFullArg('[', ']') including the brackets or the
-	 * empty string if there is no such argument.
+	 * empty string if no argument was found.
 	 */
 	std::string getFullOpt();
-	/*!
-	 * \returns getArg('[', ']') including the brackets or the
-	 * empty string if there is no such argument.
-	 */
+	/// \returns getArg('[', ']') including the brackets
 	std::string getOpt();
-	/*!
-	 * \returns getFullArg('(', ')') including the parentheses or the
-	 * empty string if there is no such argument.
-	 */
-	std::string getFullParentheseArg();
 	/*!
 	 * \returns the contents of the environment \p name.
 	 * <tt>\begin{name}</tt> must be parsed already, <tt>\end{name}</tt>
 	 * is parsed but not returned.
 	 */
+	std::string getFullParentheseOpt();
+	/// \returns getArg('(', ')') including the parentheses
 	std::string const verbatimEnvironment(std::string const & name);
-	/*!
-	 * Returns the character of the current token and increments
-	 * the token position.
-	 */
+	/// Returns the character of the current token and increments the token position.
 	char getChar();
 	///
 	void error(std::string const & msg);

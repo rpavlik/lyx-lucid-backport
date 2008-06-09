@@ -13,6 +13,7 @@
 #ifndef LATEXFEATURES_H
 #define LATEXFEATURES_H
 
+
 #include "OutputParams.h"
 #include "support/docstring.h"
 
@@ -66,10 +67,8 @@ public:
 	void showStruct() const;
 	///
 	void addPreambleSnippet(std::string const &);
-	/// Add a feature name requirements
+	/// Provide a string name-space to the requirements
 	void require(std::string const & name);
-	/// Add a set of feature names requirements
-	void require(std::set<std::string> const & names);
 	/// Which of the required packages are installed?
 	static void getAvailable();
 	/// Is the (required) package available?
@@ -82,7 +81,7 @@ public:
 	*/
 	bool mustProvide(std::string const & name) const;
 	///
-	void useFloat(std::string const & name, bool subfloat = false);
+	void useFloat(std::string const & name);
 	///
 	void useLanguage(Language const *);
 	///
@@ -107,28 +106,26 @@ public:
 private:
 	std::list<docstring> usedLayouts_;
 
-	/// The features that are needed by the document
-	typedef std::set<std::string> Features;
-	///
-	Features features_;
 	/// Static preamble bits from the external material insets
-	typedef std::list<std::string> SnippetList;
+	typedef std::list<std::string> FeaturesList;
 	///
-	SnippetList preamble_snippets_;
+	FeaturesList features_;
+	///
+	FeaturesList preamble_snippets_;
 	/// The available (required) packages
-	typedef std::set<std::string> Packages;
+	typedef std::list<std::string> PackagesList;
 	///
-	static Packages packages_;
+	static PackagesList packages_;
 	///
 	typedef std::set<Language const *> LanguageList;
 	/// used languages (only those that are supported by babel)
 	LanguageList UsedLanguages_;
 	///
-	typedef std::map<std::string, bool> UsedFloats;
+	typedef std::set<std::string> UsedFloats;
 	///
 	UsedFloats usedFloats_;
 	///
-	typedef std::map<docstring, std::string> FileMap;
+	typedef std::map<docstring , std::string> FileMap;
 	///
 	FileMap IncludedFiles_;
 	/** Buffer of the file being processed.

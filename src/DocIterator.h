@@ -15,15 +15,22 @@
 #include "CursorSlice.h"
 
 #include <vector>
+#include <iosfwd>
 
 
 namespace lyx {
 
-class LyXErr;
+class Text;
 class MathAtom;
 class Paragraph;
-class Text;
-class InsetIterator;
+
+
+// only needed for gcc 2.95, remove when support terminated
+template <typename A, typename B>
+bool ptr_cmp(A const * a, B const * b)
+{
+	return a == b;
+}
 
 
 // The public inheritance should go in favour of a suitable data member
@@ -41,6 +48,8 @@ public:
 public:
 	///
 	DocIterator();
+	///
+	explicit DocIterator(Inset & inset);
 
 	/// access slice at position \p i
 	CursorSlice const & operator[](size_t i) const { return slices_[i]; }
@@ -56,8 +65,6 @@ public:
 
 	/// does this iterator have any content?
 	bool empty() const { return slices_.empty(); }
-	/// is this the end position?
-	bool atEnd() const { return slices_.empty(); }
 
 	//
 	// access to slice at tip
@@ -108,9 +115,11 @@ public:
 	/// return the last column of the top grid
 	col_type lastcol() const { return ncols() - 1; }
 	/// the inset just behind the cursor
-	Inset * nextInset() const;
+	Inset * nextInset();
 	/// the inset just in front of the cursor
-	Inset * prevInset() const;
+	Inset * prevInset();
+	/// the inset just in front of the cursor
+	Inset const * prevInset() const;
 	///
 	bool boundary() const { return boundary_; }
 	///
@@ -129,49 +138,59 @@ public:
 	// math-specific part
 	//
 	/// return the mathed cell this cursor is in
-	MathData & cell() const;
+	MathData const & cell() const;
+	/// return the mathed cell this cursor is in
+	MathData & cell();
 	/// the mathatom left of the cursor
-	MathAtom & prevAtom() const;
+	MathAtom const & prevAtom() const;
+	/// the mathatom left of the cursor
+	MathAtom & prevAtom();
 	/// the mathatom right of the cursor
-	MathAtom & nextAtom() const;
+	MathAtom const & nextAtom() const;
+	/// the mathatom right of the cursor
+	MathAtom & nextAtom();
 
+	//
 	// text-specific part
 	//
+	/// the paragraph we're in
+	Paragraph & paragraph();
 	/// the paragraph we're in in text mode.
 	/// \warning only works within text!
-	Paragraph & paragraph() const;
+	Paragraph const & paragraph() const;
 	/// the paragraph we're in in any case.
-	/// This method will give the containing paragraph even
-	/// if not in text mode (ex: in mathed).
-	Paragraph & innerParagraph() const;
-	/// return the inner text slice.
-	CursorSlice const & innerTextSlice() const;
+	/// This method will give the containing paragraph if
+	/// in not in text mode (ex: in mathed).
+	Paragraph const & innerParagraph() const;
 	///
-	Text * text() const;
+	Text * text();
+	///
+	Text const * text() const;
 	/// the containing inset or the cell, respectively
 	Inset * realInset() const;
 	///
 	Inset * innerInsetOfType(int code) const;
 	///
-	Text * innerText() const;
+	Text * innerText();
+	///
+	Text const * innerText() const;
 
 	//
 	// elementary moving
 	//
+	/// move on one logical position, do not descend into nested insets
+	void forwardPosNoDescend();
 	/**
 	 * move on one logical position, descend into nested insets
-	 * including collapsed insets
+	 * skip collapsed insets if \p ignorecollapsed is true
 	 */
-	void forwardPos();
-	/**
-	 * move on one logical position, descend into nested insets
-	 * skip collapsed insets
-	 */
-	void forwardPosIgnoreCollapsed();
+	void forwardPos(bool ignorecollapsed = false);
 	/// move on one physical character or inset
 	void forwardChar();
 	/// move on one paragraph
 	void forwardPar();
+	/// move on one cell
+	void forwardIdx();
 	/// move on one inset
 	void forwardInset();
 	/// move backward one logical position
@@ -180,6 +199,8 @@ public:
 	void backwardChar();
 	/// move backward one paragraph
 	void backwardPar();
+	/// move backward one cell
+	void backwardIdx();
 	/// move backward one inset
 	/// FIXME: This is not implemented!
 	//void backwardInset();
@@ -190,7 +211,6 @@ public:
 	/// output
 	friend std::ostream &
 	operator<<(std::ostream & os, DocIterator const & cur);
-	friend LyXErr & operator<<(LyXErr & os, DocIterator const & it);
 	///
 	friend bool operator==(DocIterator const &, DocIterator const &);
 	friend bool operator<(DocIterator const &, DocIterator const &);
@@ -211,49 +231,21 @@ public:
 	/// \return true if the DocIterator was fixed.
 	bool fixIfBroken();
 
-	/// find index of CursorSlice with &cell() == &cell (or -1 if not found)
-	int find(MathData const & cell) const;
-	/// find index of CursorSlice with inset() == inset (or -1 of not found)
-	int find(Inset const * inset) const;
-	/// cut off CursorSlices with index > above and store cut off slices in cut.
-	void cutOff(int above, std::vector<CursorSlice> & cut);
-	/// cut off CursorSlices with index > above
-	void cutOff(int above);
-	/// push CursorSlices on top
-	void append(std::vector<CursorSlice> const & x);
-	/// push one CursorSlice on top and set its index and position
-	void append(idx_type idx, pos_type pos);
-
 private:
-	friend class InsetIterator;
-	friend DocIterator doc_iterator_begin(Inset & inset);
-	friend DocIterator doc_iterator_end(Inset & inset);
-	///
-	explicit DocIterator(Inset & inset);
 	/**
-	 * Normally, when the cursor is at position i, it is painted *before*
-	 * the character at position i. However, what if we want the cursor 
-	 * painted *after* position i? That's what boundary_ is for: if
-	 * boundary_==true, the cursor is painted *after* position i-1, instead
-	 * of before position i.
+	 * When the cursor position is i, is the cursor after the i-th char
+	 * or before the i+1-th char ? Normally, these two interpretations are
+	 * equivalent, except when the fonts of the i-th and i+1-th char
+	 * differ.
+	 * We use boundary_ to distinguish between the two options:
+	 * If boundary_=true, then the cursor is after the i-th char
+	 * and if boundary_=false, then the cursor is before the i+1-th char.
 	 *
-	 * Note 1: Usually, after i-1 or before i are actually the same place!
-	 * However, this is not the case when i-1 and i are not painted 
-	 * contiguously, and in these cases we sometimes do want to have control
-	 * over whether to paint before i or after i-1.
-	 * Some concrete examples of where this happens:
-	 * a. i-1 at the end of one row, i at the beginning of next row
-	 * b. in bidi text, at transitions between RTL and LTR or vice versa
-	 *
-	 * Note 2: Why i and i-1? Why, if boundary_==false means: *before* i, 
-	 * couldn't boundary_==true mean: *after* i? 
-	 * Well, the reason is this: cursor position is not used only for 
-	 * painting the cursor, but it also affects other things, for example:
-	 * where the next insertion will be placed (it is inserted at the current
-	 * position, pushing anything at the current position and beyond forward).
-	 * Now, when the current position is i and boundary_==true, insertion would
-	 * happen *before* i. If the cursor, however, were painted *after* i, that
-	 * would be very unnatural...
+	 * We currently use the boundary only when the language direction of
+	 * the i-th char is different than the one of the i+1-th char.
+	 * In this case it is important to distinguish between the two
+	 * cursor interpretations, in order to give a reasonable behavior to
+	 * the user.
 	 */
 	bool boundary_;
 	///
@@ -271,41 +263,17 @@ DocIterator doc_iterator_begin(Inset & inset);
 DocIterator doc_iterator_end(Inset & inset);
 
 
-inline bool operator==(DocIterator const & di1, DocIterator const & di2)
+inline
+bool operator==(DocIterator const & di1, DocIterator const & di2)
 {
 	return di1.slices_ == di2.slices_;
 }
 
 
-inline bool operator!=(DocIterator const & di1, DocIterator const & di2)
+inline
+bool operator!=(DocIterator const & di1, DocIterator const & di2)
 {
 	return !(di1 == di2);
-}
-
-
-inline
-bool operator<(DocIterator const & p, DocIterator const & q)
-{
-	size_t depth = std::min(p.depth(), q.depth());
-	for (size_t i = 0 ; i < depth ; ++i) {
-		if (p[i] != q[i])
-			return p[i] < q[i];
-	}
-	return p.depth() < q.depth();
-}
-
-
-inline	
-bool operator>(DocIterator const & p, DocIterator const & q)
-{
-	return q < p;
-}
-
-
-inline	
-bool operator<=(DocIterator const & p, DocIterator const & q)
-{
-	return !(q < p);
 }
 
 

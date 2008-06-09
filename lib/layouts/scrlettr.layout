@@ -3,7 +3,7 @@
 # KOMA scrlettr textclass definition file.
 # Bernd Rellermeyer <100.41728@germanynet.de>, 1999/2/17.
 
-Format 7
+Format 4
 Style Standard
 	LatexName             dummy
 	ParSep                0.4
@@ -12,7 +12,7 @@ End
 
 Input stdlists.inc
 Input stdcounters.inc
-Input stdinsets.inc
+
 
 Style Description
 	LabelFont
@@ -46,6 +46,7 @@ Style Letter
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "L"
 	LabelFont
@@ -75,6 +76,7 @@ Style Closing
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 End
 
 
@@ -85,6 +87,7 @@ Style PS
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Left
+	AlignPossible         Left
 End
 
 
@@ -97,6 +100,7 @@ Style CC
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "cc:"
 End
@@ -119,6 +123,7 @@ Style Name
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Name:"
 	LabelFont

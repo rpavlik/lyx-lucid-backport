@@ -12,7 +12,7 @@
 #ifndef MATH_STACKRELINSET_H
 #define MATH_STACKRELINSET_H
 
-#include "InsetMathFrac.h"
+#include "InsetMathFracBase.h"
 
 
 namespace lyx {
@@ -28,7 +28,7 @@ public:
 	///
 	InsetMathStackrel();
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 
@@ -37,7 +37,7 @@ public:
 	///
 	void normalize(NormalStream &) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

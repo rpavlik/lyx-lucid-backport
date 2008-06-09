@@ -14,14 +14,16 @@
 
 #include "support/lstrings.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
-#include <istream>
+#include "support/std_istream.h"
 
-using namespace std;
-using namespace lyx::support;
+using std::string;
 
 namespace lyx {
+
+using support::token;
+using support::trim;
 
 
 bool operator==(Author const & l, Author const & r)
@@ -30,14 +32,14 @@ bool operator==(Author const & l, Author const & r)
 }
 
 
-ostream & operator<<(ostream & os, Author const & a)
+std::ostream & operator<<(std::ostream & os, Author const & a)
 {
 	// FIXME UNICODE
 	os << "\"" << to_utf8(a.name()) << "\" " << to_utf8(a.email());
 	return os;
 }
 
-istream & operator>>(istream & is, Author & a)
+std::istream & operator>>(std::istream & is, Author & a)
 {
 	string s;
 	getline(is, s);
@@ -71,7 +73,7 @@ int AuthorList::record(Author const & a)
 
 void AuthorList::record(int id, Author const & a)
 {
-	LASSERT(unsigned(id) < authors_.size(), /**/);
+	BOOST_ASSERT(unsigned(id) < authors_.size());
 
 	authors_[id] = a;
 }
@@ -80,7 +82,7 @@ void AuthorList::record(int id, Author const & a)
 Author const & AuthorList::get(int id) const
 {
 	Authors::const_iterator it(authors_.find(id));
-	LASSERT(it != authors_.end(), /**/);
+	BOOST_ASSERT(it != authors_.end());
 	return it->second;
 }
 

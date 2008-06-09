@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>DelimiterUi</class>
- <widget class="QDialog" name="DelimiterUi" >
+ <class>QDelimiterUi</class>
+ <widget class="QDialog" name="QDelimiterUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -307,7 +307,7 @@
   <tabstop>closePB</tabstop>
  </tabstops>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <resources/>
  <connections/>

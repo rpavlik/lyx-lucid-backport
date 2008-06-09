@@ -9,11 +9,10 @@
  */
 
 #include <config.h>
-#include <algorithm>
 
 #include "InsetListingsParams.h"
 
-#include "support/gettext.h"
+#include "gettext.h"
 #include "Length.h"
 #include "Lexer.h"
 
@@ -21,14 +20,28 @@
 #include "support/textutils.h"
 #include "support/convert.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
+using std::map;
+using std::vector;
+using std::ostream;
+using std::string;
+using std::exception;
 
-namespace lyx {
+namespace lyx
+{
+
+using support::bformat;
+using support::trim;
+using support::rtrim;
+using support::subst;
+using support::isStrInt;
+using support::prefixIs;
+using support::suffixIs;
+using support::getVectorFromString;
+using lyx::support::contains;
 
 namespace {
 
@@ -181,7 +194,7 @@ docstring ListingsParam::validate(string const & par) const
 			lists.push_back(v);
 
 		// good, find the string
-		if (find(lists.begin(), lists.end(), par2) != lists.end()) {
+		if (std::find(lists.begin(), lists.end(), par2) != lists.end()) {
 			if (unclosed)
 				return _("Unbalanced braces!");
 			return docstring();
@@ -680,7 +693,7 @@ bool ParValidator::onoff(string const & name) const
 } // namespace anon.
 
 // define a global ParValidator
-ParValidator * par_validator = 0;
+ParValidator * par_validator = NULL;
 
 InsetListingsParams::InsetListingsParams()
 	: inline_(false), params_(), status_(InsetCollapsable::Open)
@@ -710,9 +723,10 @@ void InsetListingsParams::write(ostream & os) const
 void InsetListingsParams::read(Lexer & lex)
 {
 	lex >> inline_;
-	int s = Inset::Collapsed;
+	int s;
 	lex >> s;
-	status_ = static_cast<InsetCollapsable::CollapseStatus>(s);
+	if (lex)
+		status_ = static_cast<InsetCollapsable::CollapseStatus>(s);
 	string par;
 	lex >> par;
 	fromEncodedString(par);
@@ -746,7 +760,7 @@ void InsetListingsParams::addParam(string const & key, string const & value)
 	if (params_.find(key) != params_.end())
 		// key=value,key=value1 is allowed in listings
 		// use key_, key__, key___ etc to avoid name conflict
-		while (params_.find(keyname += '_') != params_.end()) { }
+		while (params_.find(keyname += '_') != params_.end());
 	// check onoff flag
 	// onoff parameter with value false
 	if (!par_validator)

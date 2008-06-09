@@ -5,14 +5,11 @@
 
 
 # General textclass parameters
-Format 7
+Format 4
 	Columns			1
 	Sides			1
 	SecNumDepth		-1
 	TocDepth		-1
-
-Provides hyperref  1
-Provides url       1
 
 
 # Standard style definition
@@ -28,7 +25,6 @@ Style Standard
 End
 
 Input stdcounters.inc
-Input stdinsets.inc
 
 Style Section
 	Margin			Dynamic
@@ -41,6 +37,7 @@ Style Section
 	BottomSep		0.7
 	ParSep			0.7
 	Align			Block
+	AlignPossible         	Block, Left
 	LabelSep		xxx
 	LabelType		No_Label
 	Font

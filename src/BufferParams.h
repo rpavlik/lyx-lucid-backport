@@ -15,65 +15,59 @@
 #ifndef BUFFERPARAMS_H
 #define BUFFERPARAMS_H
 
-#include "Font.h"
-#include "Citation.h"
+#include "TextClass.h"
 #include "paper.h"
 
 #include "insets/InsetQuotes.h"
 
 #include "support/copied_ptr.h"
+#include "support/types.h"
+
+#include "frontends/controllers/frontend_helpers.h"
 
 #include <vector>
 
-namespace lyx {
 
-namespace support { class FileName; }
+namespace lyx {
 
 class AuthorList;
 class BranchList;
 class Bullet;
-class DocumentClass;
 class Encoding;
-class Language;
-class LatexFeatures;
-class LayoutFile;
-class LayoutFileIndex;
 class Lexer;
-class PDFOptions;
+class LatexFeatures;
 class Spacing;
 class TexRow;
 class VSpace;
+class Language;
+
 
 /** Buffer parameters.
- *  This class contains all the parameters for this buffer's use. Some
+ *  This class contains all the parameters for this a buffer uses. Some
  *  work needs to be done on this class to make it nice. Now everything
  *  is in public.
  */
 class BufferParams {
 public:
 	///
-	enum ParagraphSeparation {
+	enum PARSEP {
 		///
-		ParagraphIndentSeparation,
+		PARSEP_INDENT,
 		///
-		ParagraphSkipSeparation
+		PARSEP_SKIP
 	};
 	///
 	BufferParams();
+	~BufferParams();
 
 	/// get l10n translated to the buffers language
-	docstring B_(std::string const & l10n) const;
+	docstring const B_(std::string const & l10n) const;
 
 	/// read a header token, if unrecognised, return it or an unknown class name
-	std::string readToken(Lexer & lex,
-		std::string const & token, ///< token to read.
-		support::FileName const & filepath);
+	std::string const readToken(Lexer & lex, std::string const & token);
 
 	///
 	void writeFile(std::ostream &) const;
-
-	/// check what features are implied by the buffer parameters.
-	void validate(LaTeXFeatures &) const;
 
 	/** \returns true if the babel package is used (interogates
 	 *  the BufferParams and a LyXRC variable).
@@ -83,57 +77,30 @@ public:
 
 	///
 	void useClassDefaults();
+
 	///
 	bool hasClassDefaults() const;
 
 	///
 	VSpace const & getDefSkip() const;
+
 	///
 	void setDefSkip(VSpace const & vs);
 
-	/** Whether paragraphs are separated by using a indent like in
+	/** Wether paragraphs are separated by using a indent like in
 	 *  articles or by using a little skip like in letters.
 	 */
-	ParagraphSeparation paragraph_separation;
+	PARSEP paragraph_separation;
 	///
-	InsetQuotes::QuoteLanguage quotes_language;
+	InsetQuotes::quote_language quotes_language;
 	///
-	InsetQuotes::QuoteTimes quotes_times;
+	InsetQuotes::quote_times quotes_times;
 	///
 	std::string fontsize;
-	///Get the LayoutFile this document is using.
-	LayoutFile const * baseClass() const;
 	///
-	LayoutFileIndex const & baseClassID() const;
-	/// Set the LyX layout file this document is using.
-	/// NOTE: This does not call makeDocumentClass() to update the local 
-	/// DocumentClass. That needs to be done manually.
-	/// \param filename the name of the layout file
-	bool setBaseClass(std::string const & classname);
-	/// Adds the module information to the baseClass information to
-	/// create our local DocumentClass.
-	void makeDocumentClass();
-	/// Returns the DocumentClass currently in use: the BaseClass as modified
-	/// by modules.
-	DocumentClass const & documentClass() const;
-	/// \return A pointer to the DocumentClass currently in use: the BaseClass 
-	/// as modified by modules. 
-	DocumentClass const * documentClassPtr() const;
-	/// This bypasses the baseClass and sets the textClass directly.
-	/// Should be called with care and would be better not being here,
-	/// but it seems to be needed by CutAndPaste::putClipboard().
-	void setDocumentClass(DocumentClass const * const);
-	/// List of modules in use
-	std::vector<std::string> const & getModules() const;
-	/// Add a module to the list of modules in use.
-	/// Returns true if module was successfully added.
-	/// The makeClass variable signals whether to call makeDocumentClass. This
-	/// need not be done if we know this isn't the final time through, or if
-	/// the BufferParams do not represent the parameters for an actual buffer
-	/// (as in GuiDocument).
-	bool addLayoutModule(std::string const & modName);
-	/// Clear the list
-	void clearLayoutModules();
+	textclass_type textclass;
+	///
+	TextClass const & getTextClass() const;
 
 	/// returns the main font for the buffer (document)
 	Font const getFont() const;
@@ -163,8 +130,6 @@ public:
 	std::string headsep;
 	///
 	std::string footskip;
-	///
-	std::string columnsep;
 
 	/* some LaTeX options */
 	/// The graphics driver
@@ -219,11 +184,7 @@ public:
 	///
 	std::string preamble;
 	///
-	std::string local_layout;
-	///
 	std::string options;
-	///
-	std::string master;
 	///
 	std::string float_placement;
 	///
@@ -231,7 +192,7 @@ public:
 	/// parameters for the listings package
 	std::string listings_params;
 	///
-	PageSides sides;
+	TextClass::PageSides sides;
 	///
 	std::string pagestyle;
 	/// \param index should lie in the range 0 <= \c index <= 3.
@@ -240,6 +201,16 @@ public:
 	/// \param index should lie in the range 0 <= \c index <= 3.
 	Bullet & user_defined_bullet(size_type index);
 	Bullet const & user_defined_bullet(size_type index) const;
+	///
+	void readPreamble(Lexer &);
+	///
+	void readLanguage(Lexer &);
+	///
+	void readGraphicsDriver(Lexer &);
+	///
+	void readBullets(Lexer &);
+	///
+	void readBulletsLaTeX(Lexer &);
 
 	/// Whether to load a package such as amsmath or esint.
 	/// The enum values must not be changed (file format!)
@@ -265,6 +236,8 @@ public:
 	 *  for instance, they may differ for DVI and PDF generation)
 	 */
 	bool outputChanges;
+	/// Time ago we agreed that this was a buffer property [ale990407]
+	std::string parentname;
 	///
 	bool compressed;
 
@@ -280,7 +253,7 @@ public:
 	 *  purpose for which the paper size is needed, since they
 	 *  support different subsets of paper sizes.
 	*/
-	enum PapersizePurpose {
+	enum Papersize_Purpose {
 		///
 		DVIPS,
 		///
@@ -289,9 +262,9 @@ public:
 		XDVI
 	};
 	///
-	std::string paperSizeName(PapersizePurpose purpose) const;
+	std::string const paperSizeName(Papersize_Purpose const & purpose) const;
 	/// set up if and how babel is called
-	std::string babelCall(std::string const & lang_opts) const;
+	std::string const babelCall(std::string const & lang_opts) const;
 	/// handle inputenc etc.
 	void writeEncodingPreamble(odocstream & os, LaTeXFeatures & features,
 					      TexRow & texrow) const;
@@ -300,41 +273,15 @@ public:
 				     std::string const & sf, std::string const & tt,
 				     bool const & sc, bool const & osf,
 				     int const & sfscale, int const & ttscale) const;
-
+	/// path of the current buffer
+	std::string filepath;
 	/// get the appropriate cite engine (natbib handling)
-	CiteEngine citeEngine() const;
-	///
-	void setCiteEngine(CiteEngine const);
+	biblio::CiteEngine getEngine() const;
 
-	/// options for pdf output
-	PDFOptions & pdfoptions();
-	PDFOptions const & pdfoptions() const;
+	///
+	void setCiteEngine(biblio::CiteEngine const);
 
 private:
-	///
-	void readPreamble(Lexer &);
-	///
-	void readLocalLayout(Lexer &);
-	///
-	void readLanguage(Lexer &);
-	///
-	void readGraphicsDriver(Lexer &);
-	///
-	void readBullets(Lexer &);
-	///
-	void readBulletsLaTeX(Lexer &);
-	///
-	void readModules(Lexer &);
-
-	/// for use with natbib
-	CiteEngine cite_engine_;
-	///
-	DocumentClass * doc_class_;
-	///
-	typedef std::vector<std::string> LayoutModuleList;
-	/// 
-	LayoutModuleList layoutModules_;
-
 	/** Use the Pimpl idiom to hide those member variables that would otherwise
 	 *  drag in other header files.
 	 */
@@ -346,6 +293,8 @@ private:
 	};
 	support::copied_ptr<Impl, MemoryTraits> pimpl_;
 
+	///
+	biblio::CiteEngine cite_engine_;
 };
 
 } // namespace lyx

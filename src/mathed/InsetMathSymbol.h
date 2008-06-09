@@ -14,6 +14,8 @@
 
 #include "InsetMath.h"
 
+#include "Font.h"
+
 namespace lyx {
 
 class latexkeys;
@@ -31,11 +33,11 @@ public:
 	///
 	explicit InsetMathSymbol(docstring const & name);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 	///
-	int kerning(BufferView const *) const { return kerning_; }
+	int kerning() const { return kerning_; }
 
 	///
 	bool isRelOp() const;
@@ -70,7 +72,7 @@ public:
 	void infoize2(odocstream & os) const;
 
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	latexkeys const * sym_;
 	///

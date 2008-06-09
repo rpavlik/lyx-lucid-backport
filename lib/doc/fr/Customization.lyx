@@ -11320,7 +11320,7 @@ C-d
 \family default
  
 \family typewriter
-char-delete-forward
+delete-forward
 \end_layout
 
 \begin_layout List

@@ -16,68 +16,81 @@
 
 #include "Buffer.h"
 #include "BufferParams.h"
-#include "BufferView.h"
 #include "Counters.h"
 #include "Cursor.h"
-#include "Dimension.h"
+#include "BufferView.h"
 #include "Floating.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "support/gettext.h"
-#include "InsetList.h"
+#include "gettext.h"
+#include "Color.h"
 #include "MetricsInfo.h"
 #include "output_latex.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
 #include "paragraph_funcs.h"
-#include "TextClass.h"
 #include "TocBackend.h"
 
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
 #include "support/lstrings.h"
+#include "support/convert.h"
 
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
+
+using std::auto_ptr;
+using std::endl;
+using std::string;
+using std::ostream;
+
 
 namespace lyx {
 
+using support::bformat;
 
-InsetCaption::InsetCaption(Buffer const & buf)
-	: InsetText(buf)
+InsetCaption::InsetCaption(InsetCaption const & ic)
+	: InsetText(ic), textclass_(ic.textclass_)
 {
 	setAutoBreakRows(true);
 	setDrawFrame(true);
-	setFrameColor(Color_captionframe);
-	// There will always be only one
-	paragraphs().back().setLayout(buf.params().documentClass().emptyLayout());
+	setFrameColor(Color::captionframe);
+}
+
+InsetCaption::InsetCaption(BufferParams const & bp)
+	: InsetText(bp), textclass_(bp.getTextClass())
+{
+	setAutoBreakRows(true);
+	setDrawFrame(true);
+	setFrameColor(Color::captionframe);
 }
 
 
-void InsetCaption::write(ostream & os) const
+void InsetCaption::write(Buffer const & buf, ostream & os) const
 {
 	os << "Caption\n";
-	text_.write(buffer(), os);
+	text_.write(buf, os);
 }
 
 
-void InsetCaption::read(Lexer & lex)
+void InsetCaption::read(Buffer const & buf, Lexer & lex)
 {
 #if 0
 	// We will enably this check again when the compability
 	// code is removed from Buffer::Read (Lgb)
-	lex.setContext("InsetCaption::Read: consistency check");
-	lex >> "Caption";
+	string const token = lex.GetString();
+	if (token != "Caption") {
+		lyxerr << "InsetCaption::Read: consistency check failed."
+		       << endl;
+	}
 #endif
-	InsetText::read(lex);
+	InsetText::read(buf, lex);
 }
 
 
-docstring InsetCaption::editMessage() const
+docstring const InsetCaption::editMessage() const
 {
 	return _("Opened Caption Inset");
 }
@@ -93,7 +106,7 @@ void InsetCaption::cursorPos(BufferView const & bv,
 
 void InsetCaption::setCustomLabel(docstring const & label)
 {
-	if (!isAscii(label) || label.empty())
+	if (!support::isAscii(label) || label.empty())
 		// This must be a user defined layout. We cannot translate
 		// this, since gettext accepts only ascii keys.
 		custom_label_ = label;
@@ -102,40 +115,49 @@ void InsetCaption::setCustomLabel(docstring const & label)
 }
 
 
-void InsetCaption::addToToc(DocIterator const & cpit)
+void InsetCaption::addToToc(TocList & toclist, Buffer const & buf, ParConstIterator const &) const
 {
 	if (type_.empty())
 		return;
 
-	DocIterator pit = cpit;
-	pit.push_back(CursorSlice(*this));
+	ParConstIterator pit = par_const_iterator_begin(*this);
 
-	Toc & toc = buffer().tocBackend().toc(type_);
-	docstring const str = full_label_ + ". " + text_.getPar(0).asString();
+	Toc & toc = toclist[type_];
+	docstring const str = convert<docstring>(counter_)
+		+ ". " + pit->asString(buf, false);
 	toc.push_back(TocItem(pit, 0, str));
-
-	// Proceed with the rest of the inset.
-	InsetText::addToToc(cpit);
 }
 
 
-void InsetCaption::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetCaption::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	FontInfo tmpfont = mi.base.font;
-	mi.base.font = mi.base.bv->buffer().params().getFont().fontInfo();
+	int const width_offset = TEXT_TO_INSET_OFFSET / 2;
+	mi.base.textwidth -= width_offset;
+
+	computeFullLabel(*mi.base.bv->buffer());
+
+	Font tmpfont = mi.base.font;
+	mi.base.font = mi.base.bv->buffer()->params().getFont();
 	labelwidth_ = theFontMetrics(mi.base.font).width(full_label_);
 	// add some space to separate the label from the inset text
 	labelwidth_ += 2 * TEXT_TO_INSET_OFFSET;
 	dim.wid = labelwidth_;
 	Dimension textdim;
-	// Correct for button and label width
+	InsetText::metrics(mi, textdim);
+	// Correct for button width, and re-fit
 	mi.base.textwidth -= dim.wid;
 	InsetText::metrics(mi, textdim);
 	mi.base.font = tmpfont;
-	mi.base.textwidth += dim.wid;
-	dim.des = max(dim.des - textdim.asc + dim.asc, textdim.des);
+	dim.des = std::max(dim.des - textdim.asc + dim.asc, textdim.des);
 	dim.asc = textdim.asc;
 	dim.wid += textdim.wid;
+	dim.asc += TEXT_TO_INSET_OFFSET;
+	dim.des += TEXT_TO_INSET_OFFSET;
+	dim.wid += width_offset;
+	mi.base.textwidth += width_offset;
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
 }
 
 
@@ -149,18 +171,27 @@ void InsetCaption::draw(PainterInfo & pi, int x, int y) const
 
 	// Answer: the text inset (in buffer_funcs.cpp: setCaption).
 
-	FontInfo tmpfont = pi.base.font;
-	pi.base.font = pi.base.bv->buffer().params().getFont().fontInfo();
-	pi.pain.text(x, y, full_label_, pi.base.font);
+	Font tmpfont = pi.base.font;
+	pi.base.font = pi.base.bv->buffer()->params().getFont();
+	labelwidth_ = pi.pain.text(x, y, full_label_, pi.base.font);
+	// add some space to separate the label from the inset text
+	labelwidth_ += 2 * TEXT_TO_INSET_OFFSET;
 	InsetText::draw(pi, x + labelwidth_, y);
+	setPosCache(pi, x, y);
 	pi.base.font = tmpfont;
 }
 
 
-void InsetCaption::edit(Cursor & cur, bool front, EntryDirection entry_from)
+void InsetCaption::drawSelection(PainterInfo & pi, int x, int y) const
+{
+	InsetText::drawSelection(pi, x + labelwidth_, y);
+}
+
+
+void InsetCaption::edit(Cursor & cur, bool left)
 {
 	cur.push(*this);
-	InsetText::edit(cur, front, entry_from);
+	InsetText::edit(cur, left);
 }
 
 
@@ -171,15 +202,14 @@ Inset * InsetCaption::editXY(Cursor & cur, int x, int y)
 }
 
 
-bool InsetCaption::insetAllowed(InsetCode code) const
+bool InsetCaption::insetAllowed(Inset::Code code) const
 {
 	switch (code) {
 	case FLOAT_CODE:
 	case TABULAR_CODE:
 	case WRAP_CODE:
 	case CAPTION_CODE:
-	case NEWPAGE_CODE:
-	case MATHMACRO_CODE:
+	case PAGEBREAK_CODE:
 		return false;
 	default:
 		return InsetText::insetAllowed(code);
@@ -193,18 +223,14 @@ bool InsetCaption::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 
 	case LFUN_BREAK_PARAGRAPH:
+	case LFUN_BREAK_PARAGRAPH_KEEP_LAYOUT:
 	case LFUN_BREAK_PARAGRAPH_SKIP:
-		status.setEnabled(false);
+		status.enabled(false);
 		return true;
 
 	case LFUN_OPTIONAL_INSERT:
-		status.setEnabled(cur.paragraph().insetList().find(OPTARG_CODE) == -1);
+		status.enabled(numberOfOptArgs(cur.paragraph()) == 0);
 		return true;
-
-	case LFUN_INSET_TOGGLE:
-		// pass back to owner
-		cur.undispatched();
-		return false;
 
 	default:
 		return InsetText::getStatus(cur, cmd, status);
@@ -212,12 +238,9 @@ bool InsetCaption::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-int InsetCaption::latex(odocstream & os,
+int InsetCaption::latex(Buffer const & buf, odocstream & os,
 			OutputParams const & runparams_in) const
 {
-	if (in_subfloat_)
-		// caption is output as an optional argument
-		return 0;
 	// This is a bit too simplistic to take advantage of
 	// caption options we must add more later. (Lgb)
 	// This code is currently only able to handle the simple
@@ -228,95 +251,68 @@ int InsetCaption::latex(odocstream & os,
 	// optional argument.
 	runparams.moving_arg = true;
 	os << "\\caption";
-	int l = latexOptArgInsets(paragraphs()[0], os, runparams, 1);
+	int l = latexOptArgInsets(buf, paragraphs()[0], os, runparams, 1);
 	os << '{';
-	l += InsetText::latex(os, runparams);
+	l += InsetText::latex(buf, os, runparams);
 	os << "}\n";
 	runparams_in.encoding = runparams.encoding;
 	return l + 1;
 }
 
 
-int InsetCaption::plaintext(odocstream & os,
+int InsetCaption::plaintext(Buffer const & buf, odocstream & os,
 			    OutputParams const & runparams) const
 {
+	computeFullLabel(buf);
+
 	os << '[' << full_label_ << "\n";
-	InsetText::plaintext(os, runparams);
+	InsetText::plaintext(buf, os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetCaption::docbook(odocstream & os,
+int InsetCaption::docbook(Buffer const & buf, odocstream & os,
 			  OutputParams const & runparams) const
 {
 	int ret;
 	os << "<title>";
-	ret = InsetText::docbook(os, runparams);
+	ret = InsetText::docbook(buf, os, runparams);
 	os << "</title>\n";
 	return ret;
 }
 
 
-int InsetCaption::getArgument(odocstream & os,
+int InsetCaption::getArgument(Buffer const & buf, odocstream & os,
 			OutputParams const & runparams) const
 {
-	return InsetText::latex(os, runparams);
+	return InsetText::latex(buf, os, runparams);
 }
 
 
-int InsetCaption::getOptArg(odocstream & os,
+int InsetCaption::getOptArg(Buffer const & buf, odocstream & os,
 			OutputParams const & runparams) const
 {
-	return latexOptArgInsets(paragraphs()[0], os, runparams, 1);
+	return latexOptArgInsets(buf, paragraphs()[0], os, runparams, 1);
 }
 
 
-int InsetCaption::getCaptionText(odocstream & os,
-			OutputParams const & runparams) const
+void InsetCaption::computeFullLabel(Buffer const & buf) const
 {
-	os << full_label_ << ' ';
-	return InsetText::plaintext(os, runparams);
-}
-
-
-void InsetCaption::updateLabels(ParIterator const & it)
-{
-	Buffer const & master = *buffer().masterBuffer();
-	DocumentClass const & tclass = master.params().documentClass();
-	Counters & cnts = tclass.counters();
-	string const & type = cnts.current_float();
-	// Memorize type for addToToc().
-	type_ = type;
-	in_subfloat_ = cnts.isSubfloat();
-	if (type.empty())
-		full_label_ = master.B_("Senseless!!! ");
+	if (type_.empty())
+		full_label_ = buf.B_("Senseless!!! ");
 	else {
-		// FIXME: life would be _much_ simpler if listings was
-		// listed in Floating.
-		docstring name;
-		if (type == "listing")
-			name = master.B_("Listing");
-		else
-			name = master.B_(tclass.floats().getType(type).name());
-		docstring counter = from_utf8(type);
-		if (in_subfloat_) {
-			counter = "sub-" + from_utf8(type);
-			name = bformat(_("Sub-%1$s"),
-				       master.B_(tclass.floats().getType(type).name()));
-		}
-		if (cnts.hasCounter(counter)) {
-			cnts.step(counter);
-			full_label_ = bformat(from_ascii("%1$s %2$s:"), 
-					      name,
-					      cnts.theCounter(counter));
-		} else
-			full_label_ = bformat(from_ascii("%1$s #:"), name);	
+		docstring const number = convert<docstring>(counter_);
+		docstring label = custom_label_.empty()? buf.B_(type_): custom_label_;
+		full_label_ = bformat(from_ascii("%1$s %2$s:"), label, number);
 	}
+}
 
-	// Do the real work now.
-	InsetText::updateLabels(it);
+
+auto_ptr<Inset> InsetCaption::doClone() const
+{
+	return auto_ptr<Inset>(new InsetCaption(*this));
 }
 
 

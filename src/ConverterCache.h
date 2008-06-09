@@ -10,18 +10,21 @@
  *
  * Full author contact details are available in file CREDITS.
  *
- * ConverterCache is the manager of the file cache.
- * It is responsible for creating the ConverterCacheItem's
+ * lyx::ConverterCache is the manager of the file cache.
+ * It is responsible for creating the lyx::ConverterCacheItem's
  * and maintaining them.
  *
- * ConverterCache is a singleton class. It is possible to have
+ * lyx::ConverterCache is a singleton class. It is possible to have
  * only one instance of it at any moment.
  */
 
 #ifndef CONVERTERCACHE_H
 #define CONVERTERCACHE_H
 
-#include "support/strfwd.h"
+#include <boost/utility.hpp>
+#include <boost/scoped_ptr.hpp>
+
+#include <string>
 
 
 namespace lyx {
@@ -46,7 +49,7 @@ namespace support { class FileName; }
  *
  * There is no cache maintenance yet (max size, max age etc.)
  */
-class ConverterCache {
+class ConverterCache : boost::noncopyable {
 public:
 
 	/// This is a singleton class. Get the instance.
@@ -86,10 +89,6 @@ public:
 		  support::FileName const & dest) const;
 
 private:
-	/// noncopyable
-	ConverterCache(ConverterCache const &);
-	void operator=(ConverterCache const &);
-
 	/** Make the c-tor, d-tor private so we can control how many objects
 	 *  are instantiated.
 	 */
@@ -100,7 +99,7 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
+	boost::scoped_ptr<Impl> const pimpl_;
 };
 
 } // namespace lyx

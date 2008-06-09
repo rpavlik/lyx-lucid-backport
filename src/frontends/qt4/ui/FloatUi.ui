@@ -2,8 +2,8 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>FloatUi</class>
- <widget class="QDialog" name="FloatUi" >
+ <class>QFloatUi</class>
+ <widget class="QDialog" name="QFloatUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -92,7 +92,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <customwidgets>
   <customwidget>

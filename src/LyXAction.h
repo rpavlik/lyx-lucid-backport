@@ -13,7 +13,9 @@
 #ifndef LYXACTION_H
 #define LYXACTION_H
 
-#include "FuncCode.h"
+#include "lfuns.h"
+
+#include <boost/utility.hpp>
 
 #include <map>
 #include <string>
@@ -26,42 +28,25 @@ class FuncRequest;
 /**
  * This class is a container for LyX actions. It also
  * stores and managers "pseudo-actions". Pseudo-actions
- * are not part of the FuncCode enum, but are created
+ * are not part of the kb_action enum, but are created
  * dynamically, for encapsulating a real action and an
  * argument. They are used for things like the menus.
  */
-class LyXAction {
-public:
-	/// category of an action, used in the Shortcuts dialog
-	enum func_type {
-		Hidden,  //< Not listed for configuration
-		Edit,    //< Cursor and mouse movement, copy/paste etc
-		Math,    //< Mathematics
-		Buffer,  //< Buffer and window related
-		Layout,  //< Font, Layout and textclass related
-		System,  //< Lyx preference, server etc
-	};
-
+class LyXAction : boost::noncopyable {
 private:
 	/// information for an action
-	struct FuncInfo {
+	struct func_info {
 		/// the action name
 		std::string name;
 		/// the func_attrib values set
 		unsigned int attrib;
-		/// the category of this func
-		func_type type;
 	};
 
 public:
-	/// noncopyable
-	LyXAction(LyXAction const &);
-	void operator=(LyXAction const &);
-
 	/// type for map between a function name and its action
-	typedef std::map<std::string, FuncCode> func_map;
+	typedef std::map<std::string, kb_action> func_map;
 	/// type for map between an action and its info
-	typedef std::map<FuncCode, FuncInfo> info_map;
+	typedef std::map<kb_action, func_info> info_map;
 
 	/// possible "permissions" for an action
 	enum func_attrib {
@@ -83,12 +68,10 @@ public:
 	FuncRequest lookupFunc(std::string const & func_name) const;
 
 	/// Return the name (and argument) associated with the given (pseudo) action
-	std::string const getActionName(FuncCode action) const;
-
-	func_type const getActionType(FuncCode action) const;
+	std::string const getActionName(kb_action action) const;
 
 	/// True if the command has `flag' set
-	bool funcHasFlag(FuncCode action, func_attrib flag) const;
+	bool funcHasFlag(kb_action action, func_attrib flag) const;
 
 	/// iterator across all real actions
 	typedef func_map::const_iterator const_func_iterator;
@@ -103,7 +86,7 @@ private:
 	/// populate the action container with our actions
 	void init();
 	/// add the given action
-	void newFunc(FuncCode, std::string const & name, unsigned int attrib, func_type type);
+	void newFunc(kb_action, std::string const & name, unsigned int attrib);
 
 	/**
 	 * This is a list of all the LyXFunc names with the

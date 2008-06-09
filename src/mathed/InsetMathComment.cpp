@@ -11,15 +11,17 @@
 #include <config.h>
 
 #include "InsetMathComment.h"
-
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathSupport.h"
-
-#include <ostream>
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathComment::InsetMathComment()
 	: InsetMathNest(1)
@@ -34,16 +36,20 @@ InsetMathComment::InsetMathComment(docstring const & str)
 }
 
 
-Inset * InsetMathComment::clone() const
+auto_ptr<Inset> InsetMathComment::doClone() const
 {
-	return new InsetMathComment(*this);
+	return auto_ptr<Inset>(new InsetMathComment(*this));
 }
 
 
-void InsetMathComment::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathComment::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 

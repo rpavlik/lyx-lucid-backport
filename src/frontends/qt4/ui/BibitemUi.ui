@@ -2,8 +2,8 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>BibitemUi</class>
- <widget class="QDialog" name="BibitemUi" >
+ <class>QBibitemUi</class>
+ <widget class="QDialog" name="QBibitemUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -128,7 +128,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <resources/>
  <connections/>

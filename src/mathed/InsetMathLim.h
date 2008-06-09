@@ -26,7 +26,7 @@ public:
 	///
 	InsetMathLim(MathData const & f, MathData const & x, MathData const & x0);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 
@@ -43,7 +43,7 @@ public:
 	///
 	void write(WriteStream & os) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

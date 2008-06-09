@@ -15,7 +15,7 @@
 
 #include "ExternalTransforms.h"
 
-#include <boost/noncopyable.hpp>
+#include <boost/utility.hpp>
 
 namespace lyx {
 

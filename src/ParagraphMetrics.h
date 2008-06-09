@@ -17,11 +17,7 @@
 #ifndef PARAGRAPH_METRICS_H
 #define PARAGRAPH_METRICS_H
 
-#include "Dimension.h"
-#include "Row.h"
-
-#include <map>
-#include <vector>
+#include "Paragraph.h"
 
 namespace lyx {
 
@@ -32,27 +28,22 @@ namespace lyx {
  */
 typedef std::vector<Row> RowList;
 
-class Buffer;
-class BufferView;
-class BufferParams;
-class Font;
-class Inset;
-class Paragraph;
 class MetricsInfo;
 class PainterInfo;
 
-/// Helper class for paragraph metrics.
-class ParagraphMetrics {
+/// Helper class for Paragraph Metrics.
+class ParagraphMetrics  {
 public:
 	/// Default constructor (only here for STL containers).
-	ParagraphMetrics() : par_(0) {}
+	ParagraphMetrics(): par_(0) {};
 	/// The only useful constructor.
-	explicit ParagraphMetrics(Paragraph const & par);
+	ParagraphMetrics(Paragraph const & par);
 
 	/// Copy operator.
+	/// Important note: We don't copy \c row_change_status_ and
+	/// \c row_signature_ because those are updated externally with
+	/// \c updateRowChangeStatus() in TextMetrics::redoParagraph().
 	ParagraphMetrics & operator=(ParagraphMetrics const &);
-
-	void reset(Paragraph const & par);
 
 	///
 	Row & getRow(pos_type pos, bool boundary);
@@ -65,53 +56,43 @@ public:
 	Dimension const & dim() const { return dim_; }
 	Dimension & dim() { return dim_; }
 	/// total height of paragraph
-	int height() const { return dim_.height(); }
+	unsigned int height() const { return dim_.height(); }
 	/// total width of paragraph, may differ from workwidth
-	int width() const { return dim_.width(); }
+	unsigned int width() const { return dim_.width(); }
 	/// ascend of paragraph above baseline
-	int ascent() const { return dim_.ascent(); }
+	unsigned int ascent() const { return dim_.ascent(); }
 	/// descend of paragraph below baseline
-	int descent() const { return dim_.descent(); }
+	unsigned int descent() const { return dim_.descent(); }
 	/// Text updates the rows using this access point
 	RowList & rows() { return rows_; }
 	/// The painter and others use this
 	RowList const & rows() const { return rows_; }
+	/// The painter and others use this
+	std::vector<bool> const & rowChangeStatus() const
+	{ return row_change_status_; }
 	///
-	int rightMargin(BufferView const & bv) const;
+	void updateRowChangeStatus(BufferParams const &) const;
 	///
-	int singleWidth(pos_type pos, Font const & Font) const;
+	int rightMargin(Buffer const & buffer) const;
 
 	/// dump some information to lyxerr
 	void dump() const;
 
-	///
-	bool hfillExpansion(Row const & row, pos_type pos) const;
-
-	/// 
-	size_t computeRowSignature(Row const &, BufferParams const & bparams) const;
-
-	///
-	int position() const { return position_; }
-	void setPosition(int position);
-
-	///
-	Dimension const & insetDimension(Inset const * inset) const;
-	///
-	void setInsetDimension(Inset const *, Dimension const & dim);
-
 private:
 	///
-	int position_;
+	typedef std::vector<size_type> RowSignature;
+	///
+	size_type calculateRowSignature(Row const &, BufferParams const &) const;
 	///
 	mutable RowList rows_;
+	///
+	mutable RowSignature row_signature_;
+	///
+	mutable std::vector<bool> row_change_status_;
 	/// cached dimensions of paragraph
 	Dimension dim_;
 	///
 	Paragraph const * par_;
-	
-	typedef std::map<Inset const *, Dimension> InsetDims;
-	///
-	InsetDims inset_dims_;
 };
 
 } // namespace lyx

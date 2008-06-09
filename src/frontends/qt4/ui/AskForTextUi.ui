@@ -2,8 +2,8 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>AskForTextUi</class>
- <widget class="QDialog" name="AskForTextUi" >
+ <class>QAskForTextUi</class>
+ <widget class="QDialog" name="QAskForTextUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -104,7 +104,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <resources/>
  <connections/>

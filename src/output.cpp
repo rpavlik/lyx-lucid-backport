@@ -12,18 +12,21 @@
 
 #include "output.h"
 
-#include "support/gettext.h"
+#include "gettext.h"
 
 #include "frontends/alert.h"
 
-#include "support/FileName.h"
 #include "support/filetools.h"
-#include "support/lstrings.h"
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::bformat;
+using support::FileName;
+using support::makeDisplayPath;
+
+using std::ofstream;
+using std::string;
 
 namespace {
 
@@ -31,13 +34,14 @@ template<typename OFStream>
 bool doOpenFileWrite(OFStream & ofs, FileName const & fname)
 {
 	ofs.open(fname.toFilesystemEncoding().c_str());
-	if (ofs)
-		return true;
-	docstring const file = fname.displayName(50);
-	docstring text = bformat(_("Could not open the specified "
-							 "document\n%1$s."), file);
-	frontend::Alert::error(_("Could not open file"), text);
-	return false;
+	if (!ofs) {
+		docstring const file = makeDisplayPath(fname.absFilename(), 50);
+		docstring text = bformat(_("Could not open the specified "
+						     "document\n%1$s."), file);
+		frontend::Alert::error(_("Could not open file"), text);
+		return false;
+	}
+	return true;
 }
 
 }

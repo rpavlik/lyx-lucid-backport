@@ -13,23 +13,22 @@
 #include <config.h>
 
 #include "GuiSelection.h"
-
 #include "qt_helpers.h"
 
-#include "support/debug.h"
-#include "support/lstrings.h"
+#include "debug.h"
 
 #include <QApplication>
 #include <QClipboard>
 #include <QString>
 
+#include "support/lstrings.h"
+using lyx::support::internalLineEnding;
+using lyx::support::externalLineEnding;
+
+using std::endl;
 
 namespace lyx {
 namespace frontend {
-
-using support::internalLineEnding;
-using support::externalLineEnding;
-
 
 GuiSelection::GuiSelection()
 	: selection_supported_(qApp->clipboard()->supportsSelection())
@@ -71,7 +70,8 @@ docstring const GuiSelection::get() const
 {
 	QString const str = qApp->clipboard()->text(QClipboard::Selection)
 				.normalized(QString::NormalizationForm_C);
-	LYXERR(Debug::ACTION, "GuiSelection::get: " << str);
+	LYXERR(Debug::ACTION) << "GuiSelection::get: " << fromqstr(str)
+			      << endl;
 	if (str.isNull())
 		return docstring();
 
@@ -81,7 +81,7 @@ docstring const GuiSelection::get() const
 
 void GuiSelection::put(docstring const & str)
 {
-	LYXERR(Debug::ACTION, "GuiSelection::put: " << to_utf8(str));
+	LYXERR(Debug::ACTION) << "GuiSelection::put: " << to_utf8(str) << endl;
 
 	qApp->clipboard()->setText(toqstr(externalLineEnding(str)),
 				   QClipboard::Selection);
@@ -100,8 +100,9 @@ bool GuiSelection::empty() const
 	if (!selection_supported_)
 		return true;
 
-	LYXERR(Debug::ACTION, "GuiSelection::empty: " << text_selection_empty_);
-
+	LYXERR(Debug::ACTION) << "GuiSelection::empty: " 
+				<< text_selection_empty_ << endl;
+	
 	return text_selection_empty_;
 }
 

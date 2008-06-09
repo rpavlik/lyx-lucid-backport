@@ -14,6 +14,8 @@
 
 #include "support/docstring.h"
 
+#include <boost/utility.hpp>
+
 #include <vector>
 
 
@@ -26,7 +28,7 @@ class OutputParams;
  * The class holds all all open buffers, and handles construction
  * and deletions of new ones.
  */
-class BufferList {
+class BufferList : boost::noncopyable {
 public:
 	typedef std::vector<Buffer *>::iterator iterator;
 	typedef std::vector<Buffer *>::const_iterator const_iterator;
@@ -40,8 +42,10 @@ public:
 	iterator end();
 	const_iterator end() const;
 
+	/// write all buffers, asking the user, returns false if cancelled
+	bool quitWriteAll();
+
 	/// create a new buffer
-	/// \return 0 if the Buffer creation is not possible for whatever reason.
 	Buffer * newBuffer(std::string const & s, bool ronly = false);
 
 	/// delete a buffer
@@ -59,11 +63,8 @@ public:
 	/// emergency save for all buffers
 	void emergencyWriteAll();
 
-	/// save emergency file for the given buffer
-	/**
-	  * \return a status message towards the user.
-	  */
-	docstring emergencyWrite(Buffer * buf);
+	/// close buffer. Returns false if cancelled by user
+	bool close(Buffer * buf, bool ask);
 
 	/// return true if no buffers loaded
 	bool empty() const;
@@ -80,8 +81,6 @@ public:
 	/// returns true if the buffer is loaded
 	bool isLoaded(Buffer const * b) const;
 
-	/// return index of named buffer in buffer list
-	int bufferNum(std::string const & name) const;
 	/// returns a pointer to the buffer with the given name.
 	Buffer * getBuffer(std::string const &);
 	/// returns a pointer to the buffer with the given number.
@@ -105,14 +104,16 @@ public:
 	void setCurrentAuthor(docstring const & name, docstring const & email);
 
 private:
-	/// noncopiable
-	BufferList(BufferList const &);
-	void operator=(BufferList const &);
+	/// ask to save a buffer on quit, returns false if should cancel
+	bool quitWriteBuffer(Buffer * buf);
 
 	typedef std::vector<Buffer *> BufferStorage;
 
 	/// storage of all buffers
 	BufferStorage bstore;
+
+	/// save emergency file for the given buffer
+	void emergencyWrite(Buffer * buf);
 };
 
 /// Implementation is in LyX.cpp

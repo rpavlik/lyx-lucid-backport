@@ -4,7 +4,6 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Dekel Tsur
- * \author Uwe Stöhr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,68 +11,54 @@
 #include <config.h>
 
 #include "InsetWrap.h"
-#include "InsetCaption.h"
 
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BufferView.h"
-#include "Counters.h"
 #include "Cursor.h"
+#include "debug.h"
 #include "DispatchResult.h"
 #include "Floating.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "InsetList.h"
+#include "gettext.h"
 #include "LaTeXFeatures.h"
+#include "Color.h"
 #include "Lexer.h"
-#include "TextClass.h"
+#include "OutputParams.h"
 #include "TocBackend.h"
 
 #include "support/convert.h"
-#include "support/docstream.h"
-#include "support/debug.h"
-#include "support/gettext.h"
-
-#include "frontends/Application.h"
-
-using namespace std;
 
 
 namespace lyx {
 
-InsetWrap::InsetWrap(Buffer const & buf, string const & type)
-	: InsetCollapsable(buf)
+using std::string;
+using std::endl;
+using std::auto_ptr;
+using std::istringstream;
+using std::ostream;
+using std::ostringstream;
+
+
+InsetWrap::InsetWrap(BufferParams const & bp, string const & type)
+	: InsetCollapsable(bp), name_(from_utf8(type))
 {
-	setLabel(_("wrap: ") + floatName(type, buf.params()));
+	setLabel(_("wrap: ") + floatName(type, bp));
+	Font font(Font::ALL_SANE);
+	font.decSize();
+	font.decSize();
+	font.setColor(Color::collapsable);
+	setLabelFont(font);
 	params_.type = type;
-	params_.lines = 0;
-	params_.placement = "o";
-	params_.overhang = Length(0, Length::PCW);
 	params_.width = Length(50, Length::PCW);
 }
 
 
 InsetWrap::~InsetWrap()
 {
-	hideDialogs("wrap", this);
-}
-
-
-docstring InsetWrap::name() const
-{
-	return from_utf8(params_.type);
-}
-
-
-docstring InsetWrap::toolTip(BufferView const & bv, int x, int y) const
-{
-	OutputParams rp(&buffer().params().encoding());
-	docstring default_tip = InsetCollapsable::toolTip(bv, x, y);
-	docstring caption_tip = getCaptionText(rp);
-	if (!isOpen() && !caption_tip.empty())
-		return caption_tip + '\n' + default_tip;
-	return default_tip;
+	InsetWrapMailer(*this).hideDialog();
 }
 
 
@@ -82,17 +67,24 @@ void InsetWrap::doDispatch(Cursor & cur, FuncRequest & cmd)
 	switch (cmd.action) {
 	case LFUN_INSET_MODIFY: {
 		InsetWrapParams params;
-		InsetWrap::string2params(to_utf8(cmd.argument()), params);
-		params_.lines = params.lines;
+		InsetWrapMailer::string2params(to_utf8(cmd.argument()), params);
 		params_.placement = params.placement;
-		params_.overhang = params.overhang;
-		params_.width = params.width;
+		params_.width     = params.width;
 		break;
 	}
 
 	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("wrap", params2string(params()));
+		InsetWrapMailer(*this).updateDialog(&cur.bv());
 		break;
+
+	case LFUN_MOUSE_RELEASE: {
+		if (cmd.button() == mouse_button::button3 && hitButton(cmd)) {
+			InsetWrapMailer(*this).showDialog(&cur.bv());
+			break;
+		}
+		InsetCollapsable::doDispatch(cur, cmd);
+		break;
+	}
 
 	default:
 		InsetCollapsable::doDispatch(cur, cmd);
@@ -107,7 +99,7 @@ bool InsetWrap::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
-		flag.setEnabled(true);
+		flag.enabled(true);
 		return true;
 
 	default:
@@ -116,53 +108,53 @@ bool InsetWrap::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetWrap::updateLabels(ParIterator const & it)
-{
-	setLabel(_("wrap: ") + floatName(params_.type, buffer().params()));
-	Counters & cnts = buffer().params().documentClass().counters();
-	string const saveflt = cnts.current_float();
-
-	// Tell to captions what the current float is
-	cnts.current_float(params().type);
-
-	InsetCollapsable::updateLabels(it);
-
-	// reset afterwards
-	cnts.current_float(saveflt);
-}
-
-
 void InsetWrapParams::write(ostream & os) const
 {
 	os << "Wrap " << type << '\n';
-	os << "lines " << lines << '\n';
-	os << "placement " << placement << '\n';
-	os << "overhang " << overhang.asString() << '\n';
+
+	if (!placement.empty())
+		os << "placement " << placement << "\n";
+
 	os << "width \"" << width.asString() << "\"\n";
 }
 
 
 void InsetWrapParams::read(Lexer & lex)
 {
-	lex.setContext("InsetWrapParams::read");
-	lex >> "lines" >> lines;
-	lex >> "placement" >> placement;
-	lex >> "overhang" >> overhang;
-	lex >> "width" >> width;
+	string token;
+	lex >> token;
+	if (token == "placement")
+		lex >> placement;
+	else {
+		// take countermeasures
+		lex.pushToken(token);
+	}
+	if (!lex)
+		return;
+	lex >> token;
+	if (token == "width") {
+		lex.next();
+		width = Length(lex.getString());
+	} else {
+		lyxerr << "InsetWrap::Read:: Missing 'width'-tag!"
+			<< endl;
+		// take countermeasures
+		lex.pushToken(token);
+	}
 }
 
 
-void InsetWrap::write(ostream & os) const
+void InsetWrap::write(Buffer const & buf, ostream & os) const
 {
 	params_.write(os);
-	InsetCollapsable::write(os);
+	InsetCollapsable::write(buf, os);
 }
 
 
-void InsetWrap::read(Lexer & lex)
+void InsetWrap::read(Buffer const & buf, Lexer & lex)
 {
 	params_.read(lex);
-	InsetCollapsable::read(lex);
+	InsetCollapsable::read(buf, lex);
 }
 
 
@@ -173,52 +165,55 @@ void InsetWrap::validate(LaTeXFeatures & features) const
 }
 
 
-docstring InsetWrap::editMessage() const
+auto_ptr<Inset> InsetWrap::doClone() const
+{
+	return auto_ptr<Inset>(new InsetWrap(*this));
+}
+
+
+docstring const InsetWrap::editMessage() const
 {
 	return _("Opened Wrap Inset");
 }
 
 
-int InsetWrap::latex(odocstream & os, OutputParams const & runparams) const
+int InsetWrap::latex(Buffer const & buf, odocstream & os,
+		     OutputParams const & runparams) const
 {
 	os << "\\begin{wrap" << from_ascii(params_.type) << '}';
-	// no optional argument when lines are zero
-	if (params_.lines != 0)
-		os << '[' << params_.lines << ']';
-	os << '{' << from_ascii(params_.placement) << '}';
-	Length over(params_.overhang);
-	// no optional argument when the value is zero
-	if (over.value() != 0)
-		os << '[' << from_ascii(params_.overhang.asLatexString()) << ']';
+	if (!params_.placement.empty())
+		os << '{' << from_ascii(params_.placement) << '}';
+		else os << "{o}"; //Outer is default in the current UI
 	os << '{' << from_ascii(params_.width.asLatexString()) << "}%\n";
-	int const i = InsetText::latex(os, runparams);
+	int const i = InsetText::latex(buf, os, runparams);
 	os << "\\end{wrap" << from_ascii(params_.type) << "}%\n";
 	return i + 2;
 }
 
 
-int InsetWrap::plaintext(odocstream & os, OutputParams const & runparams) const
+int InsetWrap::plaintext(Buffer const & buf, odocstream & os,
+			 OutputParams const & runparams) const
 {
-	os << '[' << buffer().B_("wrap") << ' '
-		<< floatName(params_.type, buffer().params()) << ":\n";
-	InsetText::plaintext(os, runparams);
+	os << '[' << buf.B_("wrap") << ' ' << floatName(params_.type, buf.params()) << ":\n";
+	InsetText::plaintext(buf, os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetWrap::docbook(odocstream & os, OutputParams const & runparams) const
+int InsetWrap::docbook(Buffer const & buf, odocstream & os,
+		       OutputParams const & runparams) const
 {
 	// FIXME UNICODE
 	os << '<' << from_ascii(params_.type) << '>';
-	int const i = InsetText::docbook(os, runparams);
+	int const i = InsetText::docbook(buf, os, runparams);
 	os << "</" << from_ascii(params_.type) << '>';
 	return i;
 }
 
 
-bool InsetWrap::insetAllowed(InsetCode code) const
+bool InsetWrap::insetAllowed(Inset::Code code) const
 {
 	switch(code) {
 	case FLOAT_CODE:
@@ -234,53 +229,56 @@ bool InsetWrap::insetAllowed(InsetCode code) const
 bool InsetWrap::showInsetDialog(BufferView * bv) const
 {
 	if (!InsetText::showInsetDialog(bv))
-		bv->showDialog("wrap", params2string(params()),
-			const_cast<InsetWrap *>(this));
+		InsetWrapMailer(const_cast<InsetWrap &>(*this)).showDialog(bv);
 	return true;
 }
 
 
-docstring InsetWrap::getCaptionText(OutputParams const & runparams) const
-{
-	if (paragraphs().empty())
-		return docstring();
+string const InsetWrapMailer::name_("wrap");
 
-	ParagraphList::const_iterator pit = paragraphs().begin();
-	for (; pit != paragraphs().end(); ++pit) {
-		InsetList::const_iterator it = pit->insetList().begin();
-		for (; it != pit->insetList().end(); ++it) {
-			Inset & inset = *it->inset;
-			if (inset.lyxCode() == CAPTION_CODE) {
-				odocstringstream ods;
-				InsetCaption * ins =
-					static_cast<InsetCaption *>(it->inset);
-				ins->getCaptionText(ods, runparams);
-				return ods.str();
-			}
-		}
-	}
-	return docstring();
+InsetWrapMailer::InsetWrapMailer(InsetWrap & inset)
+	: inset_(inset)
+{}
+
+
+string const InsetWrapMailer::inset2string(Buffer const &) const
+{
+	return params2string(inset_.params());
 }
 
 
-void InsetWrap::string2params(string const & in, InsetWrapParams & params)
+void InsetWrapMailer::string2params(string const & in, InsetWrapParams & params)
 {
 	params = InsetWrapParams();
+	if (in.empty())
+		return;
+
 	istringstream data(in);
-	Lexer lex;
+	Lexer lex(0,0);
 	lex.setStream(data);
-	lex.setContext("InsetWrap::string2params");
-	lex >> "wrap";
-	lex >> "Wrap";  // Part of the inset proper, swallowed by Text::readInset
-	lex >> params.type; // We have to read the type here!
+
+	string name;
+	lex >> name;
+	if (!lex || name != name_)
+		return print_mailer_error("InsetWrapMailer", in, 1, name_);
+
+	// This is part of the inset proper that is usually swallowed
+	// by Text::readInset
+	string id;
+	lex >> id;
+	if (!lex || id != "Wrap")
+		return print_mailer_error("InsetBoxMailer", in, 2, "Wrap");
+
+	// We have to read the type here!
+	lex >> params.type;
 	params.read(lex);
 }
 
 
-string InsetWrap::params2string(InsetWrapParams const & params)
+string const InsetWrapMailer::params2string(InsetWrapParams const & params)
 {
 	ostringstream data;
-	data << "wrap" << ' ';
+	data << name_ << ' ';
 	params.write(data);
 	return data.str();
 }

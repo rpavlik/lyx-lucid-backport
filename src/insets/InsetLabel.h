@@ -21,49 +21,24 @@ class InsetLabel : public InsetCommand {
 public:
 	///
 	InsetLabel(InsetCommandParams const &);
-
-	/// verify label and update references.
-	/**
-	  * Overloaded from Inset::initView.
-	  **/
-	void initView();
-
 	///
-	bool isLabeled() const { return true; }
-
-	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	InsetCode lyxCode() const { return LABEL_CODE; }
+	Inset::Code lyxCode() const { return Inset::LABEL_CODE; }
+	/// Appends \c list with this label
+	void getLabelList(Buffer const &, std::vector<docstring> & list) const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "label"; };
-	///
-	static bool isCompatibleCommand(std::string const & s) 
-		{ return s == "label"; }
-	///
-	void updateLabels(ParIterator const & it);
-	///
-	void addToToc(DocIterator const &);
-	///
-	void updateCommand(docstring const & new_label, bool updaterefs = true);
+	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
 protected:
-	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 private:
-	///
-	Inset * clone() const { return new InsetLabel(*this); }
-	///
-	docstring screen_label_;
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

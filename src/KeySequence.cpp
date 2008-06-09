@@ -13,18 +13,23 @@
 #include <config.h>
 
 #include "KeySequence.h"
-#include "KeyMap.h"
 
-#include "support/gettext.h"
+#include "gettext.h"
+#include "KeyMap.h"
+#include "lfuns.h"
 
 #include "frontends/KeySymbol.h"
 
-using namespace std;
+using std::make_pair;
+using std::string;
+
 
 namespace lyx {
 
-FuncRequest const & KeySequence::addkey(KeySymbol const & key,
-	KeyModifier mod, KeyModifier nmod)
+
+FuncRequest const &
+KeySequence::addkey(KeySymbolPtr key,
+		    key_modifier::state mod, key_modifier::state nmod)
 {
 	// adding a key to a deleted sequence
 	// starts a new sequence
@@ -37,8 +42,9 @@ FuncRequest const & KeySequence::addkey(KeySymbol const & key,
 	modifiers.push_back(make_pair(mod, nmod));
 	sequence.push_back(key);
 
-	if (curmap)
+	if (curmap) {
 		return curmap->lookup(key, mod, this);
+	}
 
 	static FuncRequest unknown(LFUN_UNKNOWN_ACTION);
 	return unknown;
@@ -51,8 +57,8 @@ size_t KeySequence::parse(string const & s)
 		return 1;
 
 	size_t i = 0;
-	KeyModifier mod = NoModifier;
-	KeyModifier nmod = NoModifier;
+	key_modifier::state mod = key_modifier::none;
+	key_modifier::state nmod = key_modifier::none;
 
 	while (i < s.length()) {
 		if (s[i] == ' ')
@@ -63,15 +69,15 @@ size_t KeySequence::parse(string const & s)
 		if (i + 1 < s.length() && s[i + 1] == '-') {
 			switch (s[i]) {
 			case 's': case 'S':
-				mod |= ShiftModifier;
+				mod |= key_modifier::shift;
 				i += 2;
 				continue;
 			case 'c': case 'C':
-				mod |= ControlModifier;
+				mod |= key_modifier::ctrl;
 				i += 2;
 				continue;
 			case 'm': case 'M':
-				mod |= AltModifier;
+				mod |= key_modifier::alt;
 				i += 2;
 				continue;
 			default:
@@ -81,15 +87,15 @@ size_t KeySequence::parse(string const & s)
 			   && s[i + 2] == '-') {
 			switch (s[i + 1]) {
 			case 's': case 'S':
-				nmod |= ShiftModifier;
+				nmod |= key_modifier::shift;
 				i += 3;
 				continue;
 			case 'c': case 'C':
-				nmod |= ControlModifier;
+				nmod |= key_modifier::ctrl;
 				i += 3;
 				continue;
 			case 'm': case 'M':
-				nmod |= AltModifier;
+				nmod |= key_modifier::alt;
 				i += 3;
 				continue;
 			default:
@@ -101,16 +107,16 @@ size_t KeySequence::parse(string const & s)
 			for (; j < s.length() && s[j] != ' '; ++j)
 				tbuf += s[j];    // (!!!check bounds :-)
 
-			KeySymbol key;
-			key.init(tbuf);
+			KeySymbolPtr key(createKeySymbol());
+			key->init(tbuf);
 
-			if (!key.isOK())
+			if (!key->isOK())
 				return j;
 
 			i = j;
 
 			addkey(key, mod, nmod);
-			mod = NoModifier;
+			mod = key_modifier::none;
 		}
 	}
 
@@ -123,34 +129,16 @@ size_t KeySequence::parse(string const & s)
 }
 
 
-docstring const KeySequence::print(outputFormat format) const
+docstring const KeySequence::print(bool forgui) const
 {
 	docstring buf;
 
 	size_t const length = sequence.size();
 
-	for (size_t i = 0; i != length; ++i) {
-		switch (format) {
-		case Portable:
-			buf += sequence[i].print(modifiers[i].first, false);
-			break;
-		case ForGui:
-			buf += sequence[i].print(modifiers[i].first, true);
-			break;
-		case BindFile:
-			KeyModifier mod = modifiers[i].first;
-			if (mod & ControlModifier)
-				buf += "C-";
-			if (mod & AltModifier)
-				buf += "M-";
-			if (mod & ShiftModifier)
-				buf += "S-";
-		
-			buf += from_utf8(sequence[i].getSymbolName());
-			break;
-		}
+	for (size_t i = 0; i < length; ++i) {
+		buf += sequence[i]->print(modifiers[i].first, forgui);
 		// append a blank
-		if (i + 1 != length)
+		if (i + 1 < length)
 			buf += ' ';
 	}
 	return buf;
@@ -159,13 +147,15 @@ docstring const KeySequence::print(outputFormat format) const
 
 docstring const KeySequence::printOptions(bool forgui) const
 {
-	docstring buf = print(forgui ? ForGui : Portable);
+	docstring buf;
+
+	buf += print(forgui);
 
 	if (!curmap)
 		return buf;
 
 	buf += _("   options: ");
-	buf += curmap->print(forgui ? ForGui : Portable);
+	buf += curmap->print(forgui);
 	return buf;
 }
 
@@ -181,7 +171,6 @@ void KeySequence::reset()
 	mark_deleted();
 	curmap = stdmap;
 }
-
 
 void KeySequence::clear()
 {

@@ -3,7 +3,7 @@
 # Heavily modifed and enhanced by several developers.
 
 
-Format 7
+Format 4
 Columns                 1
 Sides                   1
 PageStyle               Empty
@@ -29,6 +29,7 @@ Style My_Address
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 End
 
 

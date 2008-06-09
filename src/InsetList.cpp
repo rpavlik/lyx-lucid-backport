@@ -10,19 +10,19 @@
  */
 
 #include <config.h>
-#include <algorithm>
 
 #include "InsetList.h"
 
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BranchList.h"
+#include "debug.h"
 
 #include "insets/InsetBranch.h"
 
-#include "support/debug.h"
+using std::endl;
+using std::lower_bound;
 
-using namespace std;
 
 namespace lyx {
 
@@ -31,8 +31,8 @@ namespace {
 
 typedef InsetList::InsetTable Table;
 
-struct InsetTablePosLess
-{
+class InsetTablePosLess : public std::binary_function<Table, Table, bool> {
+public:
 	bool operator()(Table const & t1, Table const & t2) const
 	{
 		return t1.pos < t2.pos;
@@ -42,22 +42,16 @@ struct InsetTablePosLess
 } // namespace anon
 
 
-InsetList::InsetList(InsetList const & il)
-{
-	list_ = il.list_;
-	List::iterator it = list_.begin();
-	List::iterator end = list_.end();
-	for (; it != end; ++it)
-		it->inset = it->inset->clone();
-}
-
 
 InsetList::~InsetList()
 {
+	// If we begin storing a shared_ptr in the List
+	// this code can be removed. (Lgb)
 	List::iterator it = list_.begin();
 	List::iterator end = list_.end();
-	for (; it != end; ++it)
+	for (; it != end; ++it) {
 		delete it->inset;
+	}
 }
 
 
@@ -82,8 +76,8 @@ void InsetList::insert(Inset * inset, pos_type pos)
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
 	if (it != end && it->pos == pos) {
-		LYXERR0("ERROR (InsetList::insert): "
-		       << "There is an inset in position: " << pos);
+		lyxerr << "ERROR (InsetList::insert): "
+		       << "There is an inset in position: " << pos << endl;
 	} else {
 		list_.insert(it, InsetTable(pos, inset));
 	}
@@ -128,8 +122,9 @@ void InsetList::increasePosAfterPos(pos_type pos)
 {
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
-	for (; it != end; ++it)
+	for (; it != end; ++it) {
 		++it->pos;
+	}
 }
 
 
@@ -137,33 +132,10 @@ void InsetList::decreasePosAfterPos(pos_type pos)
 {
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
-	for (; it != end; ++it)
+	for (; it != end; ++it) {
 		--it->pos;
-}
-
-
-pos_type InsetList::find(InsetCode code, pos_type startpos) const
-{
-	List::const_iterator it = insetIterator(startpos);
-	List::const_iterator end = list_.end();
-	for (; it != end ; ++it) {
-		if (it->inset->lyxCode() == code)
-			return it->pos;
 	}
-	return -1;
 }
 
-
-int InsetList::count(InsetCode code, pos_type startpos) const
-{
-	int num = 0;
-	List::const_iterator it = insetIterator(startpos);
-	List::const_iterator end = list_.end();
-	for (; it != end ; ++it) {
-		if (it->inset->lyxCode() == code)
-			++num;
-	}
-	return num;
-}
 
 } // namespace lyx

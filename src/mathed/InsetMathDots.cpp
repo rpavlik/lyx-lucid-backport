@@ -12,29 +12,31 @@
 #include <config.h>
 
 #include "InsetMathDots.h"
-
 #include "MathStream.h"
 #include "MathSupport.h"
 #include "MathParser.h"
-#include "MetricsInfo.h"
 
 #include "frontends/FontMetrics.h"
 
-
 namespace lyx {
+
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathDots::InsetMathDots(latexkeys const * key)
 	: key_(key)
 {}
 
 
-Inset * InsetMathDots::clone() const
+auto_ptr<Inset> InsetMathDots::doClone() const
 {
-	return new InsetMathDots(*this);
+	return auto_ptr<Inset>(new InsetMathDots(*this));
 }
 
 
-void InsetMathDots::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathDots::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	dim = theFontMetrics(mi.base.font).dimension('M');
 	dh_ = 0;
@@ -49,19 +51,22 @@ void InsetMathDots::metrics(MetricsInfo & mi, Dimension & dim) const
 	}
 	else if (key_->name == "ddots")
 		dh_ = dim.asc;
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathDots::draw(PainterInfo & pain, int x, int y) const
 {
-	Dimension const dim = dimension(*pain.base.bv);
-	mathed_draw_deco(pain, x + 2, y - dh_, dim.width() - 2, dim.ascent(),
+	mathed_draw_deco(pain, x + 2, y - dh_, dim_.width() - 2, dim_.ascent(),
 		key_->name);
 	if (key_->name == "vdots" || key_->name == "ddots")
 		++x;
 	if (key_->name != "vdots")
 		--y;
-	mathed_draw_deco(pain, x + 2, y - dh_, dim.width() - 2, dim.ascent(),
+	mathed_draw_deco(pain, x + 2, y - dh_, dim_.width() - 2, dim_.ascent(),
 		key_->name);
 	setPosCache(pain, x, y);
 }

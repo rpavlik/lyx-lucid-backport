@@ -15,14 +15,14 @@
 #include "ISpell.h"
 
 #include "BufferParams.h"
+#include "debug.h"
 #include "Encoding.h"
+#include "gettext.h"
 #include "Language.h"
 #include "LyXRC.h"
 #include "WordLangTuple.h"
 
-#include "support/debug.h"
-#include "support/gettext.h"
-#include "support/ForkedCalls.h"
+#include "support/Forkedcall.h"
 #include "support/lstrings.h"
 #include "support/unicode.h"
 
@@ -36,15 +36,25 @@
 
 using boost::shared_ptr;
 
-using namespace std;
-using namespace lyx::support;
+#ifndef CXX_GLOBAL_CSTD
+using std::strcpy;
+using std::strlen;
+using std::strpbrk;
+#endif
+
+using std::endl;
+using std::max;
+using std::string;
+
 
 namespace lyx {
 
+using support::bformat;
+
 namespace {
 
-class LaunchIspell : public ForkedProcess
-{
+class LaunchIspell : public support::ForkedProcess {
+	typedef support::ForkedProcess ForkedProcess;
 public:
 	///
 	LaunchIspell(BufferParams const & p, string const & l,
@@ -184,7 +194,7 @@ int LaunchIspell::generateChild()
 string const to_iconv_encoding(docstring const & s, string const & encoding)
 {
 	if (lyxrc.isp_use_input_encoding) {
-		vector<char> const encoded =
+		std::vector<char> const encoded =
 			ucs4_to_eightbit(s.data(), s.length(), encoding);
 		return string(encoded.begin(), encoded.end());
 	}
@@ -196,7 +206,7 @@ string const to_iconv_encoding(docstring const & s, string const & encoding)
 docstring const from_iconv_encoding(string const & s, string const & encoding)
 {
 	if (lyxrc.isp_use_input_encoding) {
-		vector<char_type> const ucs4 =
+		std::vector<char_type> const ucs4 =
 			eightbit_to_ucs4(s.data(), s.length(), encoding);
 		return docstring(ucs4.begin(), ucs4.end());
 	}
@@ -210,7 +220,7 @@ docstring const from_iconv_encoding(string const & s, string const & encoding)
 ISpell::ISpell(BufferParams const & params, string const & lang)
 	: in(0), out(0), inerr(0), str(0)
 {
-	//LYXERR(Debug::GUI, "Created ispell");
+	LYXERR(Debug::GUI) << "Created ispell" << endl;
 
 	encoding = params.encoding().iconvName();
 
@@ -304,7 +314,7 @@ ISpell::ISpell(BufferParams const & params, string const & lang)
 
 ISpell::~ISpell()
 {
-	//LYXERR(Debug::GUI, "Killing ispell");
+	LYXERR(Debug::GUI) << "Killing ispell" << endl;
 
 	if (in)
 		fclose(in);

@@ -6,7 +6,7 @@
 # It is desirable, as far as possible, to have the same look and feel for
 # related layouts in latex and docbook.
 
-Format 7
+Format 4
 OutputType              docbook
 
 Columns                 1
@@ -26,14 +26,13 @@ Style Standard
 	ParIndent             MM
 	ParSkip               0.4
 	Align                 Block
+	AlignPossible         Block
 	LabelType             No_Label
 	LatexParam            "id=<para#>"
 End
 
 
-InsetLayout Element:Firstname
-	LyXType element
-	LabelString Firstname
+CharStyle Firstname
 	LatexType             Command
 	LatexName             firstname
 	Font
@@ -45,9 +44,7 @@ InsetLayout Element:Firstname
 	EndFont
 End
 
-InsetLayout Element:Fname
-	LyXType element
-	LabelString Fname
+CharStyle Fname
 	LatexType             Command
 	LatexName             fname
 	Font
@@ -60,9 +57,7 @@ InsetLayout Element:Fname
 End
 
 
-InsetLayout Element:Surname
-	LyXType element
-	LabelString Surname
+CharStyle Surname
 	LatexType             Command
 	LatexName             surname
 	Font
@@ -75,9 +70,7 @@ InsetLayout Element:Surname
 End
 
 
-InsetLayout Element:Filename
-	LyXType element
-	LabelString Filename
+CharStyle Filename
 	LatexType             Command
 	LatexName             filename
 	Font
@@ -90,9 +83,7 @@ InsetLayout Element:Filename
 End
 
 
-InsetLayout Element:Literal
-	LyXType element
-	LabelString Literal
+CharStyle Literal
 	LatexType             Command
 	LatexName             literal
 	Font
@@ -105,9 +96,7 @@ InsetLayout Element:Literal
 End
 
 
-InsetLayout Element:Emph
-	LyXType element
-	LabelString Emph
+CharStyle Emph
 	LatexType             Command
 	LatexName             emph
 	LatexParam            "type=<italic>"
@@ -121,9 +110,7 @@ InsetLayout Element:Emph
 End
 
 
-InsetLayout Element:Abbrev
-	LyXType element
-	LabelString Abbrev
+CharStyle Abbrev
 	LatexType             Command
 	LatexName             abbrev
 	LabelFont
@@ -132,9 +119,7 @@ InsetLayout Element:Abbrev
 End
 
 
-InsetLayout Element:Citation-number
-	LyXType element
-	LabelString Citation-number
+CharStyle Citation-number
 	LatexType             Command
 	LatexName             citation-number
 	LabelFont
@@ -143,9 +128,7 @@ InsetLayout Element:Citation-number
 End
 
 
-InsetLayout Element:Volume
-	LyXType element
-	LabelString Volume
+CharStyle Volume
 	LatexType             Command
 	LatexName             volume
 	LabelFont
@@ -154,9 +137,7 @@ InsetLayout Element:Volume
 End
 
 
-InsetLayout Element:Day
-	LyXType element
-	LabelString Day
+CharStyle Day
 	LatexType             Command
 	LatexName             day
 	LabelFont
@@ -165,9 +146,7 @@ InsetLayout Element:Day
 End
 
 
-InsetLayout Element:Month
-	LyXType element
-	LabelString Month
+CharStyle Month
 	LatexType             Command
 	LatexName             month
 	LabelFont
@@ -176,9 +155,7 @@ InsetLayout Element:Month
 End
 
 
-InsetLayout Element:Year
-	LyXType element
-	LabelString Year
+CharStyle Year
 	LatexType             Command
 	LatexName             year
 	LabelFont
@@ -187,9 +164,7 @@ InsetLayout Element:Year
 End
 
 
-InsetLayout Element:Issue-number
-	LyXType element
-	LabelString Issue-number
+CharStyle Issue-number
 	LatexType             Command
 	LatexName             issue-number
 	LabelFont
@@ -198,9 +173,7 @@ InsetLayout Element:Issue-number
 End
 
 
-InsetLayout Element:Issue-day
-	LyXType element
-	LabelString Issue-day
+CharStyle Issue-day
 	LatexType             Command
 	LatexName             issue-day
 	LabelFont
@@ -209,9 +182,7 @@ InsetLayout Element:Issue-day
 End
 
 
-InsetLayout Element:Issue-months
-	LyXType element
-	LabelString Issue-months
+CharStyle Issue-months
 	LatexType             Command
 	LatexName             issue-months
 	LabelFont
@@ -220,7 +191,6 @@ InsetLayout Element:Issue-months
 End
 
 
-Input stdinsets.inc
 Input agu_stdlists.inc
 Input agu_stdsections.inc
 Input db_stdstarsections.inc

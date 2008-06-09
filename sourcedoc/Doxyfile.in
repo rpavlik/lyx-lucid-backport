@@ -228,7 +228,7 @@ GENERATE_BUGLIST       = YES
 # will result in a user defined paragraph with heading "Side Effects:". 
 # You can put \n's in the value part of an alias to insert newlines.
 
-ALIASES                = endvar=<br><br>
+ALIASES                = 
 
 # The ENABLED_SECTIONS tag can be used to enable conditional 
 # documentation sections, marked by \if sectionname ... \endif.
@@ -312,8 +312,7 @@ INPUT                  = @top_srcdir@/src
 
 FILE_PATTERNS          = *.C \
                          *.h \
-                         *.c \
-			 *.cpp
+                         *.c
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -922,5 +921,3 @@ BIN_ABSPATH            = /usr/local/bin/
 # the documentation for these projects as well.
 
 EXT_DOC_PATHS          = 
-
-PREDEFINED = DOXYGEN_SHOULD_SKIP_THIS

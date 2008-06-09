@@ -19,9 +19,9 @@
 #define LYXRC_H
 
 #include "paper.h"
+#include "graphics/GraphicsTypes.h"
 
-#include "support/strfwd.h"
-
+#include <iosfwd>
 #include <string>
 
 
@@ -32,7 +32,9 @@ namespace support { class FileName; }
 class Lexer;
 
 /// This contains the runtime configuration of LyX
-class LyXRC
+class LyXRC //: public noncopyable
+// after 1.1.6 I will use a LyXRCStruct here and then this can be made
+// noncopyable again.  For now I want to minimise changes.  ARRae 20001010
 {
 public:
 	enum LyXRCTags {
@@ -49,15 +51,6 @@ public:
 		RC_BINDFILE,
 		RC_CHECKLASTFILES,
 		RC_CHKTEX_COMMAND,
-		RC_COMPLETION_CURSOR_TEXT,
-		RC_COMPLETION_INLINE_DELAY,
-		RC_COMPLETION_INLINE_MATH,
-		RC_COMPLETION_INLINE_TEXT,
-		RC_COMPLETION_INLINE_DOTS,
-		RC_COMPLETION_POPUP_DELAY,
-		RC_COMPLETION_POPUP_MATH,
-		RC_COMPLETION_POPUP_TEXT,
-		RC_COMPLETION_POPUP_AFTER_COMPLETE,
 		RC_CONVERTER,
 		RC_CONVERTER_CACHE_MAXAGE,
 		RC_COPIER,
@@ -65,23 +58,14 @@ public:
 		RC_CUSTOM_EXPORT_COMMAND,
 		RC_CUSTOM_EXPORT_FORMAT,
 		RC_DATE_INSERT_FORMAT,
-		RC_DEFFILE,
 		RC_DEFAULT_LANGUAGE,
 		RC_DEFAULT_PAPERSIZE,
 		RC_DIALOGS_ICONIFY_WITH_MAIN,
 		RC_DISPLAY_GRAPHICS,
 		RC_DOCUMENTPATH,
 		RC_ESC_CHARS,
-		RC_EXAMPLEPATH,
 		RC_FONT_ENCODING,
 		RC_FORMAT,
-		RC_FULL_SCREEN_LIMIT,
-		RC_FULL_SCREEN_SCROLLBAR,
-		RC_FULL_SCREEN_TABBAR,
-		RC_FULL_SCREEN_TOOLBARS,
-		RC_FULL_SCREEN_WIDTH,
-		RC_GEOMETRY_SESSION,
-		RC_GROUP_LAYOUTS,
 		RC_INDEX_COMMAND,
 		RC_INPUT,
 		RC_KBMAP,
@@ -96,11 +80,10 @@ public:
 		RC_LANGUAGE_GLOBAL_OPTIONS,
 		RC_LANGUAGE_PACKAGE,
 		RC_LANGUAGE_USE_BABEL,
+		RC_USELASTFILEPOS,
 		RC_LOADSESSION,
-		RC_MACRO_EDIT_STYLE,
 		RC_MAKE_BACKUP,
 		RC_MARK_FOREIGN_LANGUAGE,
-		RC_MOUSE_WHEEL_SPEED,
 		RC_NUMLASTFILES,
 		RC_PATH_PREFIX,
 		RC_PERS_DICT,
@@ -135,19 +118,19 @@ public:
 		RC_SCREEN_FONT_SIZES,
 		RC_SCREEN_FONT_TYPEWRITER,
 		RC_SCREEN_FONT_TYPEWRITER_FOUNDRY,
+		RC_SCREEN_GEOMETRY_HEIGHT,
+		RC_SCREEN_GEOMETRY_WIDTH,
+		RC_SCREEN_GEOMETRY_XYSAVED,
 		RC_SCREEN_ZOOM,
 		RC_SERVERPIPE,
 		RC_SET_COLOR,
 		RC_SHOW_BANNER,
-		RC_OPEN_BUFFERS_IN_TABS,
-		RC_SORT_LAYOUTS,
 		RC_SPELL_COMMAND,
 		RC_TEMPDIRPATH,
 		RC_TEMPLATEPATH,
 		RC_TEX_ALLOWS_SPACES,
 		RC_TEX_EXPECTS_WINDOWS_PATHS,
 		RC_UIFILE,
-		RC_USELASTFILEPOS,
 		RC_USER_EMAIL,
 		RC_USER_NAME,
 		RC_USETEMPDIR,
@@ -156,12 +139,10 @@ public:
 		RC_USE_ESC_CHARS,
 		RC_USE_INP_ENC,
 		RC_USE_PERS_DICT,
-		RC_USE_TOOLTIP,
 		RC_USE_PIXMAP_CACHE,
 		RC_USE_SPELL_LIB,
 		RC_VIEWDVI_PAPEROPTION,
 		RC_VIEWER,
-		RC_VISUAL_CURSOR,
 		RC_LAST
 	};
 
@@ -180,18 +161,15 @@ public:
 	///
 	void write(support::FileName const & filename,
 		   bool ignore_system_lyxrc) const;
-	/// write rc. If a specific tag is given, only output that one.
+	///
 	void write(std::ostream & os,
-		   bool ignore_system_lyxrc, 
-		   std::string const & tag = std::string()) const;
+		   bool ignore_system_lyxrc) const;
 	///
 	void print() const;
 	// FIXME unused (was used for xforms. Do we still need this?)
 	//static docstring const getDescription(LyXRCTags);
 	///
 	std::string bind_file;
-	///
-	std::string def_file;
 	///
 	std::string ui_file;
 	///
@@ -247,8 +225,6 @@ public:
 	///
 	std::string document_path;
 	///
-	std::string example_path;
-	///
 	std::string template_path;
 	///
 	std::string tempdir_path;
@@ -268,11 +244,12 @@ public:
 	bool make_backup;
 	/// A directory for storing backup files
 	std::string backupdir_path;
-	/// Whether or not save/restore session information
-	/// like windows position and geometry.
-	bool allow_geometry_session;
-	/// Scrolling speed of the mouse wheel
-	double mouse_wheel_speed;
+	/// Width of MainWindow. if 0, value from last session will be used
+	int geometry_width;
+	/// Height of MainWindow, if 0, value from last session will be used
+	int geometry_height;
+	/// Whether or not save/restore windows position as session info
+	bool geometry_xysaved;
 	/// Zoom factor for screen fonts
 	unsigned int zoom;
 	/// Screen font sizes in points for each font size
@@ -313,8 +290,6 @@ public:
 	bool isp_use_alt_lang;
 	/// Use personal dictionary?
 	bool isp_use_pers_dict;
-	/// Use tooltips?
-	bool use_tooltip;
 	/// Use pixmap cache?
 	bool use_pixmap_cache;
 	/// Use escape chars?
@@ -353,8 +328,6 @@ public:
 	bool language_use_babel;
 	///
 	bool rtl_support;
-	/// bidi cursor movement: true = visual, false = logical
-	bool visual_cursor;
 	///
 	bool auto_number;
 	///
@@ -364,20 +337,11 @@ public:
 	///
 	bool cursor_follows_scrollbar;
 	///
-	enum MacroEditStyle {
-		MACRO_EDIT_INLINE_BOX = 0,
-		MACRO_EDIT_INLINE,
-		MACRO_EDIT_LIST
-	};
-	///
-	MacroEditStyle macro_edit_style;
-	///
 	bool dialogs_iconify_with_main;
 	///
 	int label_init_length;
 	///
-	///graphics::DisplayType
-	int display_graphics;
+	graphics::DisplayType display_graphics;
 	///
 	bool show_banner;
 	///
@@ -408,40 +372,6 @@ public:
 	bool use_converter_cache;
 	/// The maximum age of cache files in seconds
 	unsigned int converter_cache_maxage;
-	/// Sort layouts alphabetically
-	bool sort_layouts;
-	/// Group layout by their category
-	bool group_layouts;
-	/// Toggle toolbars in fullscreen mode?
-	bool full_screen_toolbars;
-	/// Toggle scrollbar in fullscreen mode?
-	bool full_screen_scrollbar;
-	/// Toggle tabbar in fullscreen mode?
-	bool full_screen_tabbar;
-	/// Limit the text width?
-	bool full_screen_limit;
-	/// Width of limited screen (in pixels) in fullscreen mode
-	int full_screen_width;
-	///
-	bool completion_cursor_text;
-	///
-	double completion_inline_delay;
-	///
-	bool completion_inline_math;
-	///
-	bool completion_inline_text;
-	///
-	int completion_inline_dots;
-	///
-	double completion_popup_delay;
-	///
-	bool completion_popup_math;
-	///
-	bool completion_popup_text;
-	///
-	bool completion_popup_after_complete;
-	///
-	bool open_buffers_in_tabs;
 };
 
 
@@ -453,7 +383,7 @@ class LyXRC_PreviewStatus {
 	LyXRC::PreviewStatus val_;
 public:
 	LyXRC_PreviewStatus(LyXRC::PreviewStatus val) : val_(val) {}
-	operator LyXRC::PreviewStatus() const { return val_; }
+	operator LyXRC::PreviewStatus() const{ return val_; }
 };
 
 

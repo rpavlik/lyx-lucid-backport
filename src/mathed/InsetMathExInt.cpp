@@ -15,12 +15,18 @@
 #include "MathStream.h"
 #include "MathStream.h"
 #include "InsetMathSymbol.h"
+#include "debug.h"
 
-#include "support/debug.h"
-#include "support/docstring.h"
+#include <boost/scoped_ptr.hpp>
 
 
 namespace lyx {
+
+
+using std::string;
+using std::auto_ptr;
+using std::endl;
+
 
 InsetMathExInt::InsetMathExInt(docstring const & name)
 	: InsetMathNest(4), symbol_(name)
@@ -32,9 +38,9 @@ InsetMathExInt::InsetMathExInt(docstring const & name)
 // 3 - upper
 
 
-Inset * InsetMathExInt::clone() const
+auto_ptr<Inset> InsetMathExInt::doClone() const
 {
-	return new InsetMathExInt(*this);
+	return auto_ptr<Inset>(new InsetMathExInt(*this));
 }
 
 
@@ -59,15 +65,16 @@ void InsetMathExInt::normalize(NormalStream & os) const
 }
 
 
-void InsetMathExInt::metrics(MetricsInfo &, Dimension &) const
+bool InsetMathExInt::metrics(MetricsInfo &, Dimension &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
+	return true;
 }
 
 
 void InsetMathExInt::draw(PainterInfo &, int, int) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 
@@ -87,7 +94,7 @@ void InsetMathExInt::maple(MapleStream & os) const
 
 void InsetMathExInt::maxima(MaximaStream & os) const
 {
-	if (symbol_ == "int")
+	if ( symbol_ == "int" )
 		os << "integrate(";
 	else
 		os << symbol_ << '(';
@@ -104,7 +111,7 @@ void InsetMathExInt::maxima(MaximaStream & os) const
 
 void InsetMathExInt::mathematica(MathematicaStream & os) const
 {
-	if (symbol_ == "int")
+	if ( symbol_ == "int" )
 		os << "Integrate[";
 	else if (symbol_ == "sum")
 		os << "Sum[";
@@ -124,11 +131,11 @@ void InsetMathExInt::mathematica(MathematicaStream & os) const
 
 void InsetMathExInt::mathmlize(MathStream & os) const
 {
-	InsetMathSymbol sym(symbol_);
+	boost::scoped_ptr<InsetMathSymbol> sym(new InsetMathSymbol(symbol_));
 	//if (hasScripts())
 	//	mathmlize(sym, os);
 	//else
-		sym.mathmlize(os);
+		sym->mathmlize(os);
 	os << cell(0) << "<mo> &InvisibleTimes; </mo>"
 	   << MTag("mrow") << "<mo> &DifferentialD; </mo>"
 	   << cell(1) << ETag("mrow");
@@ -137,7 +144,7 @@ void InsetMathExInt::mathmlize(MathStream & os) const
 
 void InsetMathExInt::write(WriteStream &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 

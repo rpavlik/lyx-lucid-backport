@@ -15,7 +15,7 @@
 # Based on course given by Lars Davidson
 
 
-Format 7
+Format 4
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -47,6 +47,7 @@ Style Dialogue
 	TopSep                0.0
 	BottomSep             0.0
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -62,6 +63,7 @@ Style More
 	BottomSep             0.0
 	KeepEmpty             1
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "(MORE)"
 	Font
@@ -84,6 +86,7 @@ Style FADE_IN:
 	ParSkip               0.25
 	TopSep                0.25
 	Align                 Left
+	AlignPossible         Left
 	KeepEmpty             1
 	LabelType             Static
 	LabelSep              M
@@ -104,6 +107,7 @@ Style INT.
 	ParSkip               0.25
 	TopSep                0.25
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelSep              M
 	LabelString           "INT."
@@ -118,6 +122,7 @@ Style EXT.
 	ParSkip               0.25
 	TopSep                0.25
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelSep              M
 	LabelString           "EXT."
@@ -135,6 +140,7 @@ Style Description
 	TopSep                0.25
 	RightMargin           MMMMM
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -150,6 +156,7 @@ Style Speaker
 	TopSep                0.25
 	BottomSep             0.0
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -166,6 +173,7 @@ Style Parenthetical
 	BottomSep             0.0
 	ParSkip               0.0
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "("
 	EndLabelType          Static
@@ -192,6 +200,7 @@ Style Continuing
 	ParSkip               0.0
 	KeepEmpty             1
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "(continuing)"
 	Font
@@ -214,6 +223,7 @@ Style Narrative
 	TopSep                0.25
 	RightMargin           MMMMM
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -227,6 +237,7 @@ Style Transition
 	TopSep                0.5
 	ParSkip               0.4
 	Align                 Right
+	AlignPossible         Right
 	LabelType             No_Label
 End
 
@@ -239,6 +250,7 @@ Style TITLE_OVER:
 	ParSkip               0.5
 	TopSep                0.5
 	Align                 Left
+	AlignPossible         Left
 	KeepEmpty             1
 	LabelType             Static
 	LabelSep              M
@@ -254,6 +266,7 @@ Style INTERCUT
 	ParSkip               0.25
 	TopSep                0.5
 	Align                 Left
+	AlignPossible         Left
 	KeepEmpty             1
 	LabelType             Static
 	LabelSep              M
@@ -269,6 +282,7 @@ Style FADE_OUT
 	ParSkip               0.8
 	TopSep                1.0
 	Align                 Left
+	AlignPossible         Left
 	KeepEmpty             1
 	LabelType             Static
 	LabelSep              M
@@ -298,6 +312,7 @@ Style Scene
 	ParSkip               0.25
 	TopSep                0.25
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -362,7 +377,6 @@ End
 #  LatexName            endcontinued
 #End
 
-Input stdinsets.inc
 Input stdtitle.inc
 Input stdstruct.inc
 Input stdfloats.inc

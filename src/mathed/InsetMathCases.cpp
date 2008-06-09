@@ -11,25 +11,29 @@
 #include <config.h>
 
 #include "InsetMathCases.h"
-
-#include "Cursor.h"
-#include "FuncRequest.h"
-#include "FuncStatus.h"
-#include "support/gettext.h"
-#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathSupport.h"
-#include "MetricsInfo.h"
+#include "FuncStatus.h"
+#include "LaTeXFeatures.h"
+#include "support/std_ostream.h"
+#include "Cursor.h"
+#include "FuncRequest.h"
+#include "gettext.h"
+#include "Undo.h"
 
 #include "support/lstrings.h"
 
-#include <ostream>
-
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::bformat;
+
+using std::endl;
+using std::max;
+using std::min;
+using std::swap;
+using std::auto_ptr;
 
 
 InsetMathCases::InsetMathCases(row_type n)
@@ -37,31 +41,28 @@ InsetMathCases::InsetMathCases(row_type n)
 {}
 
 
-Inset * InsetMathCases::clone() const
+auto_ptr<Inset> InsetMathCases::doClone() const
 {
-	return new InsetMathCases(*this);
+	return auto_ptr<Inset>(new InsetMathCases(*this));
 }
 
 
-void InsetMathCases::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathCases::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	InsetMathGrid::metrics(mi, dim);
-	dim.wid += 8;
-}
+	dim = dim_;
+	InsetMathGrid::metrics(mi);
+	dim_.wid += 8;
 
-
-Dimension const InsetMathCases::dimension(BufferView const & bv) const
-{
-	Dimension dim = InsetMathGrid::dimension(bv);
-	dim.wid += 8;
-	return dim;
+	if (dim_ == dim)
+		return false;
+	dim = dim_;
+	return true;
 }
 
 
 void InsetMathCases::draw(PainterInfo & pi, int x, int y) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
-	mathed_draw_deco(pi, x + 1, y - dim.ascent(), 6, dim.height(), from_ascii("{"));
+	mathed_draw_deco(pi, x + 1, y - dim_.ascent(), 6, dim_.height(), from_ascii("{"));
 	InsetMathGrid::drawWithMargin(pi, x, y, 8, 0);
 	setPosCache(pi, x, y);
 }
@@ -72,7 +73,7 @@ void InsetMathCases::doDispatch(Cursor & cur, FuncRequest & cmd)
 	//lyxerr << "*** InsetMathCases: request: " << cmd << endl;
 	switch (cmd.action) {
 	case LFUN_TABULAR_FEATURE: {
-		cur.recordUndo();
+		recordUndo(cur);
 		docstring const & s = cmd.argument();
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			cur.undispatched();
@@ -92,7 +93,7 @@ bool InsetMathCases::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_TABULAR_FEATURE: {
 		docstring const & s = cmd.argument();
 		if (s == "add-vline-left" || s == "add-vline-right") {
-			flag.setEnabled(false);
+			flag.enabled(false);
 			flag.message(bformat(
 				from_utf8(N_("No vertical grid lines in 'cases': feature %1$s")),
 				s));

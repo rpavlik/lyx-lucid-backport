@@ -17,9 +17,11 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "Converter.h"
+#include "debug.h"
 #include "Encoding.h"
 #include "Format.h"
 #include "InsetIterator.h"
+#include "Color.h"
 #include "LaTeXFeatures.h"
 #include "LyXRC.h"
 #include "output.h"
@@ -30,12 +32,12 @@
 
 #include "insets/Inset.h"
 
-#include "support/convert.h"
-#include "support/debug.h"
-#include "support/FileName.h"
 #include "support/filetools.h"
-#include "support/ForkedCalls.h"
+#include "support/Forkedcall.h"
+#include "support/ForkedcallsController.h"
 #include "support/lstrings.h"
+#include "support/lyxlib.h"
+#include "support/convert.h"
 
 #include <boost/bind.hpp>
 
@@ -43,10 +45,24 @@
 #include <fstream>
 #include <iomanip>
 
-using namespace std;
-using namespace lyx::support;
+using lyx::support::FileName;
+
+using std::endl;
+using std::find;
+using std::fill;
+using std::find_if;
+using std::make_pair;
 
 using boost::bind;
+
+using std::ifstream;
+using std::list;
+using std::map;
+using std::ostringstream;
+using std::pair;
+using std::vector;
+using std::string;
+
 
 namespace {
 
@@ -63,7 +79,7 @@ string const unique_filename(string const & bufferpath)
 {
 	static int theCounter = 0;
 	string const filename = lyx::convert<string>(theCounter++) + "lyxpreview";
-	return addName(bufferpath, filename);
+	return lyx::support::addName(bufferpath, filename);
 }
 
 
@@ -90,8 +106,10 @@ lyx::Converter const * setConverter()
 	static bool first = true;
 	if (first) {
 		first = false;
-		LYXERR0("PreviewLoader::startLoading()\n"
-		  << "No converter from \"lyxpreview\" format has been defined.");
+		lyx::lyxerr << "PreviewLoader::startLoading()\n"
+		       << "No converter from \"lyxpreview\" format has been "
+			"defined."
+		       << endl;
 	}
 	return 0;
 }
@@ -108,8 +126,9 @@ void setAscentFractions(vector<double> & ascent_fractions,
 
 	ifstream in(metrics_file.toFilesystemEncoding().c_str());
 	if (!in.good()) {
-		LYXERR(lyx::Debug::GRAPHICS, "setAscentFractions(" << metrics_file << ")\n"
-			<< "Unable to open file!");
+		lyx::lyxerr[lyx::Debug::GRAPHICS]
+			<< "setAscentFractions(" << metrics_file << ")\n"
+			<< "Unable to open file!" << endl;
 		return;
 	}
 
@@ -142,17 +161,20 @@ void setAscentFractions(vector<double> & ascent_fractions,
 	}
 
 	if (error) {
-		LYXERR(lyx::Debug::GRAPHICS, "setAscentFractions(" << metrics_file << ")\n"
-			<< "Error reading file!\n");
+		lyx::lyxerr[lyx::Debug::GRAPHICS]
+			<< "setAscentFractions(" << metrics_file << ")\n"
+			<< "Error reading file!\n" << endl;
 	}
 }
 
 
-class FindFirst
-{
+class FindFirst : public std::unary_function<SnippetPair, bool> {
 public:
 	FindFirst(string const & comp) : comp_(comp) {}
-	bool operator()(SnippetPair const & sp) const { return sp.first == comp_; }
+	bool operator()(SnippetPair const & sp) const
+	{
+		return sp.first == comp_;
+	}
 private:
 	string const comp_;
 };
@@ -189,6 +211,7 @@ typedef InProgressProcesses::value_type InProgressProcess;
 
 
 namespace lyx {
+
 namespace graphics {
 
 class PreviewLoader::Impl : public boost::signals::trackable {
@@ -214,7 +237,7 @@ public:
 	Buffer const & buffer() const { return buffer_; }
 
 private:
-	/// Called by the ForkedCall process that generated the bitmap files.
+	/// Called by the Forkedcall process that generated the bitmap files.
 	void finishedGenerating(pid_t, int);
 	///
 	void dumpPreamble(odocstream &) const;
@@ -266,9 +289,7 @@ PreviewLoader::PreviewLoader(Buffer const & b)
 
 
 PreviewLoader::~PreviewLoader()
-{
-	delete pimpl_;
-}
+{}
 
 
 PreviewImage const * PreviewLoader::preview(string const & latex_snippet) const
@@ -361,7 +382,7 @@ InProgress::InProgress(string const & filename_base,
 	PendingSnippets::const_iterator pend = pending.end();
 	BitmapFile::iterator sit = snippets.begin();
 
-	transform(pit, pend, sit,
+	std::transform(pit, pend, sit,
 		       IncrementedFileName(to_format, filename_base));
 }
 
@@ -369,16 +390,16 @@ InProgress::InProgress(string const & filename_base,
 void InProgress::stop() const
 {
 	if (pid)
-		ForkedCallsController::kill(pid, 0);
+		lyx::support::ForkedcallsController::get().kill(pid, 0);
 
 	if (!metrics_file.empty())
-		metrics_file.removeFile();
+		lyx::support::unlink(metrics_file);
 
 	BitmapFile::const_iterator vit  = snippets.begin();
 	BitmapFile::const_iterator vend = snippets.end();
 	for (; vit != vend; ++vit) {
 		if (!vit->second.empty())
-			vit->second.removeFile();
+			lyx::support::unlink(vit->second);
 	}
 }
 
@@ -394,8 +415,8 @@ PreviewLoader::Impl::Impl(PreviewLoader & p, Buffer const & b)
 	font_scaling_factor_ = 0.01 * lyxrc.dpi * lyxrc.zoom *
 		convert<double>(lyxrc.preview_scale_factor);
 
-	LYXERR(Debug::GRAPHICS, "The font scaling factor is "
-				<< font_scaling_factor_);
+	LYXERR(Debug::GRAPHICS) << "The font scaling factor is "
+				<< font_scaling_factor_ << endl;
 
 	if (!pconverter_)
 		pconverter_ = setConverter();
@@ -407,8 +428,9 @@ PreviewLoader::Impl::~Impl()
 	InProgressProcesses::iterator ipit  = in_progress_.begin();
 	InProgressProcesses::iterator ipend = in_progress_.end();
 
-	for (; ipit != ipend; ++ipit)
+	for (; ipit != ipend; ++ipit) {
 		ipit->second.stop();
+	}
 }
 
 
@@ -422,7 +444,7 @@ PreviewLoader::Impl::preview(string const & latex_snippet) const
 
 namespace {
 
-class FindSnippet {
+class FindSnippet : public std::unary_function<InProgressProcess, bool> {
 public:
 	FindSnippet(string const & s) : snippet_(s) {}
 	bool operator()(InProgressProcess const & process) const
@@ -469,11 +491,11 @@ void PreviewLoader::Impl::add(string const & latex_snippet)
 	if (!pconverter_ || status(latex_snippet) != NotFound)
 		return;
 
-	string const snippet = trim(latex_snippet);
+	string const snippet = support::trim(latex_snippet);
 	if (snippet.empty())
 		return;
 
-	LYXERR(Debug::GRAPHICS, "adding snippet:\n" << snippet);
+	LYXERR(Debug::GRAPHICS) << "adding snippet:\n" << snippet << endl;
 
 	pending_.push_back(snippet);
 }
@@ -516,7 +538,7 @@ void PreviewLoader::Impl::remove(string const & latex_snippet)
 	InProgressProcesses::iterator ipit  = in_progress_.begin();
 	InProgressProcesses::iterator ipend = in_progress_.end();
 
-	for_each(ipit, ipend, EraseSnippet(latex_snippet));
+	std::for_each(ipit, ipend, EraseSnippet(latex_snippet));
 
 	while (ipit != ipend) {
 		InProgressProcesses::iterator curr = ipit++;
@@ -532,10 +554,10 @@ void PreviewLoader::Impl::startLoading()
 		return;
 
 	// Only start the process off after the buffer is loaded from file.
-	if (!buffer_.isFullyLoaded())
+	if (!buffer_.fully_loaded())
 		return;
 
-	LYXERR(Debug::GRAPHICS, "PreviewLoader::startLoading()");
+	LYXERR(Debug::GRAPHICS) << "PreviewLoader::startLoading()" << endl;
 
 	// As used by the LaTeX file and by the resulting image files
 	string const directory = buffer_.temppath();
@@ -557,8 +579,9 @@ void PreviewLoader::Impl::startLoading()
 	odocfstream of;
 	try { of.reset(enc.iconvName()); }
 	catch (iconv_codecvt_facet_exception & e) {
-		LYXERR0("Caught iconv exception: " << e.what()
-			<< "\nUnable to create LaTeX file: " << latexfile);
+		lyxerr << "Caught iconv exception: " << e.what()
+		       << "\nUnable to create LaTeX file: "
+		       << latexfile << endl;
 		return;
 	}
 
@@ -570,8 +593,9 @@ void PreviewLoader::Impl::startLoading()
 		return;
 
 	if (!of) {
-		LYXERR(Debug::GRAPHICS, "PreviewLoader::startLoading()\n"
-					<< "Unable to create LaTeX file\n" << latexfile);
+		LYXERR(Debug::GRAPHICS) << "PreviewLoader::startLoading()\n"
+					<< "Unable to create LaTeX file\n"
+					<< latexfile << endl;
 		return;
 	}
 	of << "\\batchmode\n";
@@ -583,32 +607,34 @@ void PreviewLoader::Impl::startLoading()
 	of << "\n\\end{document}\n";
 	of.close();
 	if (of.fail()) {
-		LYXERR(Debug::GRAPHICS, "PreviewLoader::startLoading()\n"
-					 << "File was not closed properly.");
+		LYXERR(Debug::GRAPHICS)  << "PreviewLoader::startLoading()\n"
+					 << "File was not closed properly."
+					 << endl;
 		return;
 	}
 
 	// The conversion command.
 	ostringstream cs;
 	cs << pconverter_->command << ' ' << pconverter_->to << ' '
-	   << quoteName(latexfile.toFilesystemEncoding()) << ' '
+	   << support::quoteName(latexfile.toFilesystemEncoding()) << ' '
 	   << int(font_scaling_factor_) << ' '
-	   << theApp()->hexName(Color_preview) << ' '
-	   << theApp()->hexName(Color_background);
+	   << theApp()->hexName(Color::preview) << ' '
+	   << theApp()->hexName(Color::background);
 
-	string const command = libScriptSearch(cs.str());
+	string const command = support::libScriptSearch(cs.str());
 
 	// Initiate the conversion from LaTeX to bitmap images files.
-	ForkedCall::SignalTypePtr
-		convert_ptr(new ForkedCall::SignalType);
+	support::Forkedcall::SignalTypePtr
+		convert_ptr(new support::Forkedcall::SignalType);
 	convert_ptr->connect(bind(&Impl::finishedGenerating, this, _1, _2));
 
-	ForkedCall call;
-	int ret = call.startScript(command, convert_ptr);
+	support::Forkedcall call;
+	int ret = call.startscript(command, convert_ptr);
 
 	if (ret != 0) {
-		LYXERR(Debug::GRAPHICS, "PreviewLoader::startLoading()\n"
-					<< "Unable to start process\n" << command);
+		LYXERR(Debug::GRAPHICS) << "PreviewLoader::startLoading()\n"
+					<< "Unable to start process\n"
+					<< command << endl;
 		return;
 	}
 
@@ -631,9 +657,9 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 
 	string const command = git->second.command;
 	string const status = retval > 0 ? "failed" : "succeeded";
-	LYXERR(Debug::GRAPHICS, "PreviewLoader::finishedInProgress("
+	LYXERR(Debug::GRAPHICS) << "PreviewLoader::finishedInProgress("
 				<< retval << "): processing " << status
-				<< " for " << command);
+				<< " for " << command << endl;
 	if (retval > 0)
 		return;
 
@@ -646,7 +672,7 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 	BitmapFile::const_iterator it  = git->second.snippets.begin();
 	BitmapFile::const_iterator end = git->second.snippets.end();
 
-	list<PreviewImagePtr> newimages;
+	std::list<PreviewImagePtr> newimages;
 
 	int metrics_counter = 0;
 	for (; it != end; ++it, ++metrics_counter) {
@@ -664,9 +690,9 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 	in_progress_.erase(git);
 
 	// Tell the outside world
-	list<PreviewImagePtr>::const_reverse_iterator
+	std::list<PreviewImagePtr>::const_reverse_iterator
 		nit  = newimages.rbegin();
-	list<PreviewImagePtr>::const_reverse_iterator
+	std::list<PreviewImagePtr>::const_reverse_iterator
 		nend = newimages.rend();
 	for (; nit != nend; ++nit) {
 		imageReady(*nit->get());
@@ -707,8 +733,8 @@ void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
 	InsetIterator const end = inset_iterator_end(inset);
 
 	for (; it != end; ++it)
-		if (it->lyxCode() == MATHMACRO_CODE)
-			it->latex(os, runparams);
+		if (it->lyxCode() == Inset::MATHMACRO_CODE)
+			it->latex(buffer_, os, runparams);
 
 	// All equation labels appear as "(#)" + preview.sty's rendering of
 	// the label name

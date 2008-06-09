@@ -17,19 +17,31 @@
 #include "GraphicsImage.h"
 
 #include "ConverterCache.h"
+#include "debug.h"
 #include "Format.h"
 
-#include "support/debug.h"
-#include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/FileMonitor.h"
+#include "support/lyxlib.h"
 
 #include <boost/bind.hpp>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::FileMonitor;
+using support::FileName;
+using support::isFileReadable;
+using support::makeDisplayPath;
+using support::onlyFilename;
+using support::tempName;
+using support::unlink;
+using support::unzipFile;
+using support::zippedFile;
+
+using std::endl;
+using std::string;
+
 
 namespace graphics {
 
@@ -131,9 +143,7 @@ CacheItem::CacheItem(FileName const & file)
 
 
 CacheItem::~CacheItem()
-{
-	delete pimpl_;
-}
+{}
 
 
 FileName const & CacheItem::filename() const
@@ -214,11 +224,11 @@ void CacheItem::Impl::reset()
 {
 	zipped_ = false;
 	if (!unzipped_filename_.empty())
-		unzipped_filename_.removeFile();
+		unlink(unzipped_filename_);
 	unzipped_filename_.erase();
 
 	if (remove_loaded_file_ && !file_to_load_.empty())
-		file_to_load_.removeFile();
+		unlink(file_to_load_);
 	remove_loaded_file_ = false;
 	file_to_load_.erase();
 	to_.erase();
@@ -252,21 +262,22 @@ void CacheItem::Impl::setStatus(ImageStatus new_status)
 void CacheItem::Impl::imageConverted(bool success)
 {
 	string const text = success ? "succeeded" : "failed";
-	LYXERR(Debug::GRAPHICS, "Image conversion " << text << '.');
+	LYXERR(Debug::GRAPHICS) << "Image conversion " << text << '.' << endl;
 
 	file_to_load_ = converter_.get() ?
 		FileName(converter_->convertedFile()) : FileName();
 	converter_.reset();
 	cc_.disconnect();
 
-	success = !file_to_load_.empty() && file_to_load_.isReadableFile();
+	success = !file_to_load_.empty() && isFileReadable(file_to_load_);
 
 	if (!success) {
-		LYXERR(Debug::GRAPHICS, "Unable to find converted file!");
+		LYXERR(Debug::GRAPHICS) << "Unable to find converted file!"
+					<< endl;
 		setStatus(ErrorConverting);
 
 		if (zipped_)
-			unzipped_filename_.removeFile();
+			unlink(unzipped_filename_);
 
 		return;
 	}
@@ -283,9 +294,9 @@ void CacheItem::Impl::imageConverted(bool success)
 void CacheItem::Impl::loadImage()
 {
 	setStatus(Loading);
-	LYXERR(Debug::GRAPHICS, "Loading image.");
+	LYXERR(Debug::GRAPHICS) << "Loading image." << endl;
 
-	image_.reset(Image::newImage());
+	image_ = Image::newImage();
 
 	cl_.disconnect();
 	cl_ = image_->finishedLoading.connect(
@@ -297,14 +308,14 @@ void CacheItem::Impl::loadImage()
 void CacheItem::Impl::imageLoaded(bool success)
 {
 	string const text = success ? "succeeded" : "failed";
-	LYXERR(Debug::GRAPHICS, "Image loading " << text << '.');
+	LYXERR(Debug::GRAPHICS) << "Image loading " << text << '.' << endl;
 
 	// Clean up after loading.
 	if (zipped_)
-		unzipped_filename_.removeFile();
+		unlink(unzipped_filename_);
 
 	if (remove_loaded_file_ && unzipped_filename_ != file_to_load_)
-		file_to_load_.removeFile();
+		unlink(file_to_load_);
 
 	cl_.disconnect();
 
@@ -324,7 +335,7 @@ static string const findTargetFormat(string const & from)
 	FormatList const formats = lyx::graphics::Image::loadableFormats();
 
 	 // There must be a format to load from.
-	LASSERT(!formats.empty(), /**/);
+	BOOST_ASSERT(!formats.empty());
 
 	// Use the standard converter if we don't know the format to load
 	// from.
@@ -345,8 +356,9 @@ static string const findTargetFormat(string const & from)
 		if (lyx::graphics::Converter::isReachable(from, *it))
 			return *it;
 		else
-			LYXERR(Debug::GRAPHICS, "Unable to convert from " << from
-				<< " to " << *it);
+			LYXERR(Debug::GRAPHICS)
+				<< "Unable to convert from " << from
+				<< " to " << *it << std::endl;
 	}
 
 	// Failed! so we have to try to convert it to PPM format
@@ -360,68 +372,72 @@ void CacheItem::Impl::convertToDisplayFormat()
 	setStatus(Converting);
 
 	// First, check that the file exists!
-	if (!filename_.isReadableFile()) {
+	if (!isFileReadable(filename_)) {
 		if (status_ != ErrorNoFile) {
 			setStatus(ErrorNoFile);
-			LYXERR(Debug::GRAPHICS, "\tThe file is not readable");
+			LYXERR(Debug::GRAPHICS)
+				<< "\tThe file is not readable" << endl;
 		}
 		return;
 	}
 
 	// Make a local copy in case we unzip it
 	FileName filename;
-	zipped_ = filename_.isZippedFile();
+	zipped_ = zippedFile(filename_);
 	if (zipped_) {
-		unzipped_filename_ = FileName::tempName(
-			filename_.toFilesystemEncoding());
+		unzipped_filename_ = tempName(FileName(), filename_.toFilesystemEncoding());
 		if (unzipped_filename_.empty()) {
 			setStatus(ErrorConverting);
-			LYXERR(Debug::GRAPHICS, "\tCould not create temporary file.");
+			LYXERR(Debug::GRAPHICS)
+				<< "\tCould not create temporary file." << endl;
 			return;
 		}
 		filename = unzipFile(filename_, unzipped_filename_.toFilesystemEncoding());
-	} else {
+	} else
 		filename = filename_;
-	}
 
 	docstring const displayed_filename = makeDisplayPath(filename_.absFilename());
-	LYXERR(Debug::GRAPHICS, "[CacheItem::Impl::convertToDisplayFormat]\n"
+	LYXERR(Debug::GRAPHICS) << "[graphics::CacheItem::Impl::convertToDisplayFormat]\n"
 		<< "\tAttempting to convert image file: " << filename
-		<< "\n\twith displayed filename: " << to_utf8(displayed_filename));
+		<< "\n\twith displayed filename: " << lyx::to_utf8(displayed_filename)
+		<< endl;
 
 	string const from = formats.getFormatFromFile(filename);
 	if (from.empty()) {
 		setStatus(ErrorConverting);
-		LYXERR(Debug::GRAPHICS, "\tCould not determine file format.");
+		LYXERR(Debug::GRAPHICS)
+			<< "\tCould not determine file format." << endl;
 	}
-	LYXERR(Debug::GRAPHICS, "\n\tThe file contains " << from << " format data.");
+	LYXERR(Debug::GRAPHICS)
+		<< "\n\tThe file contains " << from << " format data." << endl;
 	to_ = findTargetFormat(from);
 
 	if (from == to_) {
 		// No conversion needed!
-		LYXERR(Debug::GRAPHICS, "\tNo conversion needed (from == to)!");
+		LYXERR(Debug::GRAPHICS) << "\tNo conversion needed (from == to)!" << endl;
 		file_to_load_ = filename;
 		loadImage();
 		return;
 	}
 
 	if (ConverterCache::get().inCache(filename, to_)) {
-		LYXERR(Debug::GRAPHICS, "\tNo conversion needed (file in file cache)!");
+		LYXERR(Debug::GRAPHICS) << "\tNo conversion needed (file in file cache)!"
+					<< endl;
 		file_to_load_ = ConverterCache::get().cacheName(filename, to_);
 		loadImage();
 		return;
 	}
 
-	LYXERR(Debug::GRAPHICS, "\tConverting it to " << to_ << " format.");
+	LYXERR(Debug::GRAPHICS) << "\tConverting it to " << to_ << " format." << endl;
 
 	// Add some stuff to create a uniquely named temporary file.
 	// This file is deleted in loadImage after it is loaded into memory.
-	FileName const to_file_base = FileName::tempName("CacheItem");
+	FileName const to_file_base(tempName(FileName(), "CacheItem"));
 	remove_loaded_file_ = true;
 
 	// Remove the temp file, we only want the name...
 	// FIXME: This is unsafe!
-	to_file_base.removeFile();
+	unlink(to_file_base);
 
 	// Connect a signal to this->imageConverted and pass this signal to
 	// the graphics converter so that we can load the modified file

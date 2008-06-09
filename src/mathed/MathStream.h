@@ -12,10 +12,14 @@
 #ifndef MATH_MATHMLSTREAM_H
 #define MATH_MATHMLSTREAM_H
 
-#include "support/strfwd.h"
 
-// FIXME: Move to individual insets
+// Please keep all four streams in one file until the interface has
+// settled.
+
+
 #include "MetricsInfo.h"
+#include "support/docstream.h"
+#include "support/docstring.h"
 
 
 namespace lyx {
@@ -31,7 +35,7 @@ class MathAtom;
 class WriteStream {
 public:
 	///
-	WriteStream(odocstream & os, bool fragile, bool latex, bool dryrun);
+	WriteStream(odocstream & os, bool fragile, bool latex);
 	///
 	explicit WriteStream(odocstream & os);
 	///
@@ -42,8 +46,6 @@ public:
 	bool fragile() const { return fragile_; }
 	///
 	bool latex() const { return latex_; }
-	///
-	bool dryrun() const { return dryrun_; }
 	///
 	odocstream & os() { return os_; }
 	///
@@ -63,8 +65,6 @@ private:
 	bool firstitem_;
 	/// are we writing to .tex?
 	int latex_;
-	/// is it for preview?
-	bool dryrun_;
 	/// do we have a space pending?
 	bool pendingspace_;
 	///
@@ -95,17 +95,21 @@ WriteStream & operator<<(WriteStream &, unsigned int);
 class MTag {
 public:
 	///
-	MTag(char const * const tag) : tag_(tag) {}
+	MTag(docstring const tag) : tag_(tag) {}
 	///
-	char const * const tag_;
+	MTag(char const * const tag) : tag_(from_ascii(tag)) {}
+	///
+	docstring const tag_;
 };
 
 class ETag {
 public:
 	///
-	ETag(char const * const tag) : tag_(tag) {}
+	ETag(docstring const tag) : tag_(tag) {}
 	///
-	char const * const tag_;
+	ETag(char const * const tag) : tag_(from_ascii(tag)) {}
+	///
+	docstring const tag_;
 };
 
 class MathStream {

@@ -12,50 +12,62 @@
 #ifndef DOCK_VIEW_H
 #define DOCK_VIEW_H
 
-#include "Dialog.h"
-#include "GuiView.h"
+#include "controllers/Dialog.h"
+#include "qt_helpers.h"
+
+#include <boost/scoped_ptr.hpp>
 
 #include <QDockWidget>
+#include <QMainWindow>
 
 namespace lyx {
 namespace frontend {
 
 /// Dock Widget container for LyX dialogs.
-/**
- * This template class that encapsulates a given Widget inside a
- * QDockWidget and presents a Dialog interface
- * FIXME: create a DockView.cpp file
- **/
-class DockView : public QDockWidget, public Dialog
+/// This template class that encapsulates a given Widget inside a
+/// DockWidget and presents a Dialog::View interface
+template<class Controller, class Widget>
+class DockView : public QDockWidget, public Dialog::View
 {
 public:
 	DockView(
-		GuiView & parent, ///< the main window where to dock.
-		QString const & name, ///< dialog identifier.
-		QString const & title, ///< dialog title.
+		Dialog & dialog, ///< The (one) parent Dialog class.
+		Controller * form, ///< Associated model/controller
+		QMainWindow * parent, ///< the main window where to dock.
+		docstring const & title, ///< Window title (shown in the top title bar).
 		Qt::DockWidgetArea area = Qt::LeftDockWidgetArea, ///< Position of the dock (and also drawer)
 		Qt::WindowFlags flags = 0
-	)
-		: QDockWidget(&parent, flags), Dialog(parent, name, title)
+		)
+		: QDockWidget(toqstr(title), parent, flags), 
+			Dialog::View(dialog, title)
 	{
 		if (flags & Qt::Drawer)
 			setFeatures(QDockWidget::NoDockWidgetFeatures);
-		parent.addDockWidget(area, this);
+		widget_.reset(new Widget(form));
+		setWidget(widget_.get());
+		parent->addDockWidget(area, this);
 	}
 
-	virtual ~DockView() {}
-
-	virtual QWidget * asQWidget() { return this; }
-	virtual QWidget const * asQWidget() const { return this; }
-
-	/// Dialog inherited methods
+	/// Dialog::View inherited methods
 	//@{
-	void applyView() {}
-	bool isClosing() const { return false; }
+	void apply() {}
+	void hide()	{ QDockWidget::hide(); }
+	void show()	{ QDockWidget::show(); }
+	bool isVisible() const
+	{ return QDockWidget::isVisible(); }
+	void redraw() {}
+	void update()
+	{
+		widget_->update();
+		QDockWidget::update();
+	}
 	//@}
+private:
+	/// The encapsulated widget.
+	boost::scoped_ptr<Widget> widget_;
 };
 
 } // frontend
 } // lyx
 
-#endif // DOCK_VIEW_H
+#endif // TOC_WIDGET_H

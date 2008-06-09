@@ -8,12 +8,15 @@
  *
  * Full author contact details are available in file CREDITS.
  *
- * graphics::Previews is a singleton class that stores the
- * graphics::PreviewLoader for each buffer requiring one.
+ * lyx::graphics::Previews is a singleton class that stores the
+ * lyx::graphics::PreviewLoader for each buffer requiring one.
  */
 
 #ifndef PREVIEWS_H
 #define PREVIEWS_H
+
+#include <boost/utility.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace lyx {
 
@@ -24,7 +27,7 @@ namespace graphics {
 
 class PreviewLoader;
 
-class Previews {
+class Previews : boost::noncopyable {
 public:
 	/// a wrapper for lyxrc.preview
 	static LyXRC_PreviewStatus status();
@@ -47,10 +50,6 @@ public:
 	void generateBufferPreviews(Buffer const & buffer) const;
 
 private:
-	/// noncopyable
-	Previews(Previews const &);
-	void operator=(Previews const &);
-
 	/** Make the c-tor, d-tor private so we can control how many objects
 	 *  are instantiated.
 	 */
@@ -60,7 +59,7 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
+	boost::scoped_ptr<Impl> const pimpl_;
 };
 
 } // namespace graphics

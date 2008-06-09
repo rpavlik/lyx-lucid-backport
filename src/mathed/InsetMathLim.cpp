@@ -13,11 +13,14 @@
 #include "InsetMathLim.h"
 #include "MathData.h"
 #include "MathStream.h"
-
-#include "support/debug.h"
+#include "debug.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+using std::endl;
+
 
 InsetMathLim::InsetMathLim
 	(MathData const & f, MathData const & x, MathData const & x0)
@@ -29,9 +32,9 @@ InsetMathLim::InsetMathLim
 }
 
 
-Inset * InsetMathLim::clone() const
+auto_ptr<Inset> InsetMathLim::doClone() const
 {
-	return new InsetMathLim(*this);
+	return auto_ptr<Inset>(new InsetMathLim(*this));
 }
 
 
@@ -41,15 +44,16 @@ void InsetMathLim::normalize(NormalStream & os) const
 }
 
 
-void InsetMathLim::metrics(MetricsInfo &, Dimension &) const
+bool InsetMathLim::metrics(MetricsInfo &, Dimension &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
+	return true;
 }
 
 
 void InsetMathLim::draw(PainterInfo &, int, int) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 
@@ -79,7 +83,7 @@ void InsetMathLim::mathmlize(MathStream & os) const
 
 void InsetMathLim::write(WriteStream &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 

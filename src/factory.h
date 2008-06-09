@@ -15,13 +15,14 @@
 namespace lyx {
 
 class Buffer;
+class BufferView;
 class FuncRequest;
 class Inset;
 class Lexer;
 
 
 /// creates inset according to 'cmd'
-Inset * createInset(Buffer & buf, FuncRequest const & cmd);
+Inset * createInset(BufferView * bv, FuncRequest const & cmd);
 
 /// read inset from a file
 Inset * readInset(Lexer & lex, Buffer const & buf);

@@ -13,27 +13,28 @@
 
 #include "InsetGraphicsParams.h"
 
+#include "debug.h"
 #include "LyX.h" // for use_gui
 #include "Lexer.h"
 #include "LyXRC.h"
-#include "Buffer.h"
 
 #include "graphics/GraphicsParams.h"
-#include "graphics/GraphicsTypes.h"
 
 #include "support/convert.h"
-#include "support/debug.h"
 #include "support/filetools.h"
 #include "support/lyxlib.h"
 #include "support/lstrings.h"
 #include "support/Translator.h"
 
-#include <ostream>
-
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::float_equal;
+using support::readBB_from_PSFile;
+using support::token;
+
+using std::string;
+using std::ostream;
 
 
 InsetGraphicsParams::InsetGraphicsParams()
@@ -51,12 +52,14 @@ InsetGraphicsParams::InsetGraphicsParams(InsetGraphicsParams const & igp)
 }
 
 
-void InsetGraphicsParams::operator=(InsetGraphicsParams const & params)
+InsetGraphicsParams &
+InsetGraphicsParams::operator=(InsetGraphicsParams const & params)
 {
 	// Are we assigning the object into itself?
 	if (this == &params)
-		return;
+		return *this;
 	copy(params);
+	return *this;
 }
 
 
@@ -78,8 +81,9 @@ void InsetGraphicsParams::init()
 
 	rotateAngle = "0";		// angle of rotation in degrees
 	rotateOrigin.erase();		// Origin of rotation
+	subcaption = false;		// subfigure
+	subcaptionText.erase();		// subfigure caption
 	special.erase();		// additional userdefined stuff
-	groupId.clear();
 }
 
 
@@ -101,15 +105,16 @@ void InsetGraphicsParams::copy(InsetGraphicsParams const & igp)
 
 	rotateAngle = igp.rotateAngle;
 	rotateOrigin = igp.rotateOrigin;
+	subcaption = igp.subcaption;
+	subcaptionText = igp.subcaptionText;
 	special = igp.special;
-	groupId = igp.groupId;
 }
 
 
 bool operator==(InsetGraphicsParams const & left,
 		InsetGraphicsParams const & right)
 {
-	return left.filename == right.filename &&
+	if (left.filename == right.filename &&
 	    left.lyxscale == right.lyxscale &&
 	    left.display == right.display &&
 	    left.scale == right.scale &&
@@ -120,13 +125,19 @@ bool operator==(InsetGraphicsParams const & left,
 	    left.noUnzip == right.noUnzip &&
 	    left.scaleBeforeRotation == right.scaleBeforeRotation &&
 
+
 	    left.bb == right.bb &&
 	    left.clip == right.clip &&
 
 	    left.rotateAngle == right.rotateAngle &&
 	    left.rotateOrigin == right.rotateOrigin &&
-	    left.special == right.special &&
-	    left.groupId == right.groupId;
+	    left.subcaption == right.subcaption &&
+	    left.subcaptionText == right.subcaptionText &&
+	    left.special == right.special
+	   )
+		return true;
+
+	return false;
 }
 
 
@@ -137,11 +148,13 @@ bool operator!=(InsetGraphicsParams const & left,
 }
 
 
-void InsetGraphicsParams::Write(ostream & os, Buffer const & buffer) const
+void InsetGraphicsParams::Write(ostream & os, string const & bufpath) const
 {
 	// Do not write the default values
-	if (!filename.empty())
-		os << "\tfilename " << filename.outputFilename(buffer.filePath()) << '\n';
+
+	if (!filename.empty()) {
+		os << "\tfilename " << filename.outputFilename(bufpath) << '\n';
+	}
 	if (lyxscale != 100)
 		os << "\tlyxscale " << lyxscale << '\n';
 	if (display != graphics::DefaultDisplay)
@@ -175,10 +188,12 @@ void InsetGraphicsParams::Write(ostream & os, Buffer const & buffer) const
 		os << "\trotateAngle " << rotateAngle << '\n';
 	if (!rotateOrigin.empty())
 		os << "\trotateOrigin " << rotateOrigin << '\n';
+	if (subcaption)
+		os << "\tsubcaption\n";
+	if (!subcaptionText.empty())
+		os << "\tsubcaptionText \"" << subcaptionText << '\"' << '\n';
 	if (!special.empty())
 		os << "\tspecial " << special << '\n';
-	if (!groupId.empty())
-		os << "\tgroupId "<< groupId << '\n';
 }
 
 
@@ -229,12 +244,16 @@ bool InsetGraphicsParams::Read(Lexer & lex, string const & token, string const &
 	} else if (token == "rotateOrigin") {
 		lex.next();
 		rotateOrigin=lex.getString();
+	} else if (token == "subcaption") {
+		subcaption = true;
+	} else if (token == "subcaptionText") {
+		lex.eatLine();
+		string sub = lex.getString();
+		// strip surrounding " "
+		subcaptionText = sub.substr(1, sub.length() - 2);
 	} else if (token == "special") {
 		lex.eatLine();
 		special = lex.getString();
-	} else if (token == "groupId") {
-		lex.eatLine();
-		groupId = lex.getString();
 
 	// catch and ignore following two old-format tokens and their arguments.
 	// e.g. "size_kind scale" clashes with the setting of the
@@ -263,14 +282,16 @@ graphics::Params InsetGraphicsParams::as_grfxParams() const
 
 		// Get the original Bounding Box from the file
 		string const tmp = readBB_from_PSFile(filename);
-		LYXERR(Debug::GRAPHICS, "BB_from_File: " << tmp);
+		LYXERR(Debug::GRAPHICS) << "BB_from_File: " << tmp << std::endl;
 		if (!tmp.empty()) {
-			// FIXME: why not convert to unsigned int? (Lgb)
+#ifdef WITH_WARNINGS
+# warning why not convert to unsigned int? (Lgb)
+#endif
 			unsigned int const bb_orig_xl = convert<int>(token(tmp, ' ', 0));
 			unsigned int const bb_orig_yb = convert<int>(token(tmp, ' ', 1));
 
 			// new pars.bb values must be >= zero
-			if (pars.bb.xl > bb_orig_xl)
+			if  (pars.bb.xl > bb_orig_xl)
 				pars.bb.xl -= bb_orig_xl;
 			else
 				pars.bb.xl = 0;
@@ -304,14 +325,15 @@ graphics::Params InsetGraphicsParams::as_grfxParams() const
 	}
 
 	if (display == graphics::DefaultDisplay) {
-		pars.display = graphics::DisplayType(lyxrc.display_graphics);
+		pars.display = lyxrc.display_graphics;
 	} else {
 		pars.display = display;
 	}
 
 	// Override the above if we're not using a gui
-	if (!use_gui)
+	if (!use_gui) {
 		pars.display = graphics::NoDisplay;
+	}
 
 	return pars;
 }

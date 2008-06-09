@@ -27,7 +27,7 @@ public:
 	///
 	docstring name() const;
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -40,7 +40,7 @@ public:
 	static bool isBigInsetDelim(docstring const &);
 
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	size_type size() const;
 	///

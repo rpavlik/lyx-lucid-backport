@@ -14,8 +14,9 @@
 #include "insets/Inset.h"
 
 #include "BufferView.h"
+#include "Color.h"
 #include "Dimension.h"
-#include "support/gettext.h"
+#include "gettext.h"
 #include "LyX.h"
 #include "LyXRC.h"
 #include "MetricsInfo.h"
@@ -27,16 +28,18 @@
 #include "graphics/PreviewLoader.h"
 #include "graphics/Previews.h"
 
-#include "support/lassert.h"
 #include "support/FileName.h"
 #include "support/lstrings.h"
 
 #include <boost/bind.hpp>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::FileName;
+
+using std::string;
+using std::auto_ptr;
 
 
 LyXRC_PreviewStatus RenderPreview::status()
@@ -66,9 +69,9 @@ RenderPreview::~RenderPreview()
 }
 
 
-RenderBase * RenderPreview::clone(Inset const * inset) const
+auto_ptr<RenderBase> RenderPreview::clone(Inset const * inset) const
 {
-	return new RenderPreview(*this, inset);
+	return auto_ptr<RenderBase>(new RenderPreview(*this, inset));
 }
 
 
@@ -83,9 +86,9 @@ graphics::PreviewLoader & getPreviewLoader(Buffer const & buffer)
 
 docstring const statusMessage(BufferView const * bv, string const & snippet)
 {
-	LASSERT(bv, /**/);
+	BOOST_ASSERT(bv && bv->buffer());
 
-	Buffer const & buffer = bv->buffer();
+	Buffer const & buffer = *bv->buffer();
 	graphics::PreviewLoader const & loader = getPreviewLoader(buffer);
 	graphics::PreviewLoader::Status const status = loader.status(snippet);
 
@@ -117,36 +120,40 @@ RenderPreview::getPreviewImage(Buffer const & buffer) const
 }
 
 
-void RenderPreview::metrics(MetricsInfo & mi, Dimension & dim) const
+bool RenderPreview::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	LASSERT(mi.base.bv, /**/);
+	BOOST_ASSERT(mi.base.bv && mi.base.bv->buffer());
 
 	graphics::PreviewImage const * const pimage =
-		getPreviewImage(mi.base.bv->buffer());
+		getPreviewImage(*mi.base.bv->buffer());
 
 	if (pimage) {
-		dim = pimage->dim();
+		dim.asc = pimage->ascent();
+		dim.des = pimage->descent();
+		dim.wid = pimage->width();
 	} else {
 		dim.asc = 50;
 		dim.des = 0;
 
-		FontInfo font(mi.base.font);
-		font.setFamily(SANS_FAMILY);
-		font.setSize(FONT_SIZE_FOOTNOTE);
+		Font font(mi.base.font);
+		font.setFamily(Font::SANS_FAMILY);
+		font.setSize(Font::SIZE_FOOTNOTE);
 		docstring const stat = statusMessage(mi.base.bv, snippet_);
 		dim.wid = 15 + theFontMetrics(font).width(stat);
 	}
 
+	bool const changed = dim_ != dim;
 	dim_ = dim;
+	return changed;
 }
 
 
 void RenderPreview::draw(PainterInfo & pi, int x, int y) const
 {
-	LASSERT(pi.base.bv, /**/);
+	BOOST_ASSERT(pi.base.bv && pi.base.bv->buffer());
 
 	graphics::PreviewImage const * const pimage =
-		getPreviewImage(pi.base.bv->buffer());
+		getPreviewImage(*pi.base.bv->buffer());
 	graphics::Image const * const image = pimage ? pimage->image() : 0;
 
 	if (image) {
@@ -160,11 +167,11 @@ void RenderPreview::draw(PainterInfo & pi, int x, int y) const
 				  y - dim_.asc,
 				  dim_.wid - 2 * offset,
 				  dim_.asc + dim_.des,
-				  Color_foreground);
+				  Color::foreground);
 
-		FontInfo font(pi.base.font);
-		font.setFamily(SANS_FAMILY);
-		font.setSize(FONT_SIZE_FOOTNOTE);
+		Font font(pi.base.font);
+		font.setFamily(Font::SANS_FAMILY);
+		font.setSize(Font::SIZE_FOOTNOTE);
 
 		docstring const stat = statusMessage(pi.base.bv, snippet_);
 		pi.pain.text(x + offset + 6,
@@ -237,12 +244,13 @@ void RenderPreview::imageReady(graphics::PreviewImage const & pimage)
 {
 	// Check the current snippet is the same as that previewed.
 	if (snippet_ == pimage.snippet())
-		parent_->updateFrontend();
+		LyX::cref().updateInset(parent_);
 }
 
 
 RenderMonitoredPreview::RenderMonitoredPreview(Inset const * inset)
-	: RenderPreview(inset), monitor_(FileName(), 2000)
+	: RenderPreview(inset),
+	  monitor_(FileName(), 2000)
 {}
 
 

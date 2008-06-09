@@ -26,10 +26,10 @@ class RenderGraphic : public RenderBase
 public:
 	RenderGraphic(Inset const *);
 	RenderGraphic(RenderGraphic const &, Inset const *);
-	RenderBase * clone(Inset const *) const;
+	std::auto_ptr<RenderBase> clone(Inset const *) const;
 
 	/// compute the size of the object returned in dim
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	/// draw inset
 	void draw(PainterInfo & pi, int x, int y) const;
 

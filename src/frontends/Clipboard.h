@@ -14,12 +14,7 @@
 #ifndef BASE_CLIPBOARD_H
 #define BASE_CLIPBOARD_H
 
-#include "Cursor.h"
-
-#include "support/FileName.h"
-#include "support/strfwd.h"
-
-using lyx::support::FileName;
+#include "support/docstring.h"
 
 namespace lyx {
 namespace frontend {
@@ -32,16 +27,6 @@ class Clipboard
 public:
 	virtual ~Clipboard() {}
 
-	enum GraphicsType {
-		PdfGraphicsType,
-		PngGraphicsType,
-		JpegGraphicsType,
-		LinkBackGraphicsType,
-		EmfGraphicsType,
-		WmfGraphicsType,
-		AnyGraphicsType,
-	};
-
 	/**
 	 * Get the system clipboard contents. The format is as written in
 	 * .lyx files (may even be an older version than ours if it comes
@@ -53,9 +38,6 @@ public:
 	virtual std::string const getAsLyX() const = 0;
 	/// Get the contents of the window system clipboard in plain text format.
 	virtual docstring const getAsText() const = 0;
-	/// Get the contents of the window system clipboard as graphics file.
-	virtual FileName getAsGraphics(Cursor const & cur, GraphicsType type) const = 0;
-	
 	/**
 	 * Fill the system clipboard. The format of \p lyx is as written in
 	 * .lyx files, the format of \p text is plain text.
@@ -69,8 +51,6 @@ public:
 
 	/// Does the clipboard contain LyX contents?
 	virtual bool hasLyXContents() const = 0;
-	/// Does the clipboard contain graphics contents of a certain type?
-	virtual bool hasGraphicsContents(GraphicsType type = AnyGraphicsType) const = 0;
 	/// state of clipboard.
 	/// \returns true if the system clipboard has been set within LyX
 	/// (document contents, dialogs count as external here).
@@ -80,7 +60,7 @@ public:
 	virtual bool hasInternal() const = 0;
 	/// Is the clipboard empty?
 	/// \returns true if both the LyX and the plaintext versions of the
-	/// clipboard are empty, and no supported graphics format is available.
+	/// clipboard are empty.
 	virtual bool empty() const = 0;
 };
 

@@ -13,7 +13,7 @@
 #define MATH_UNDERSETINSET_H
 
 
-#include "InsetMathFrac.h"
+#include "InsetMathFracBase.h"
 
 
 namespace lyx {
@@ -22,7 +22,7 @@ namespace lyx {
 class InsetMathUnderset : public InsetMathFracBase {
 public:
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -38,7 +38,7 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

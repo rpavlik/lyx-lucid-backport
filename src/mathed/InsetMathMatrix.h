@@ -44,7 +44,7 @@ public:
 	///
 	void octave(OctaveStream &) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

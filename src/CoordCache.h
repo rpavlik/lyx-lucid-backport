@@ -14,8 +14,6 @@
 // It seems that MacOSX define the check macro.
 #undef check
 
-#include "Dimension.h"
-
 #include "support/types.h"
 
 #include <map>
@@ -29,38 +27,16 @@ class Paragraph;
 
 void lyxbreaker(void const * data, const char * hint, int size);
 
-struct Geometry {
-	Point pos;
-	Dimension dim;
+class Point {
+public:
+	Point()
+		: x_(0), y_(0)
+	{}
 
-	bool covers(int x, int y) const
-	{
-		return x >= pos.x_
-			&& x <= pos.x_ + dim.wid
-			&& y >= pos.y_ - dim.asc
-			&& y <= pos.y_ + dim.des;
-	}
+	Point(int x, int y);
 
-	int squareDistance(int x, int y) const
-	{
-		int xx = 0;
-		int yy = 0;
-
-		if (x < pos.x_)
-			xx = pos.x_ - x;
-		else if (x > pos.x_ + dim.wid)
-			xx = x - pos.x_ - dim.wid;
-
-		if (y < pos.y_ - dim.asc)
-			yy = pos.y_ - dim.asc - y;
-		else if (y > pos.y_ + dim.des)
-			yy = y - pos.y_ - dim.des;
-
-		// Optimisation: We avoid to compute the sqrt on purpose.
-		return xx*xx + yy*yy;
-	}
+	int x_, y_;
 };
-
 
 template <class T> class CoordCacheBase {
 public:
@@ -69,49 +45,32 @@ public:
 		data_.clear();
 	}
 
-	bool empty() const
+	bool const empty() const
 	{
 		return data_.empty();
 	}
 
 	void add(T const * thing, int x, int y)
 	{
-		data_[thing].pos = Point(x, y);
-	}
-
-	void add(T const * thing, Dimension const & dim)
-	{
-		data_[thing].dim = dim;
-	}
-
-	Geometry const & geometry(T const * thing) const
-	{
-		check(thing, "geometry");
-		return data_.find(thing)->second;
-	}
-
-	Dimension const & dim(T const * thing) const
-	{
-		check(thing, "dim");
-		return data_.find(thing)->second.dim;
+		data_[thing] = Point(x, y);
 	}
 
 	int x(T const * thing) const
 	{
 		check(thing, "x");
-		return data_.find(thing)->second.pos.x_;
+		return data_.find(thing)->second.x_;
 	}
 
 	int y(T const * thing) const
 	{
 		check(thing, "y");
-		return data_.find(thing)->second.pos.y_;
+		return data_.find(thing)->second.y_;
 	}
 
 	Point xy(T const * thing) const
 	{
 		check(thing, "xy");
-		return data_.find(thing)->second.pos;
+		return data_.find(thing)->second;
 	}
 
 	bool has(T const * thing) const
@@ -119,19 +78,11 @@ public:
 		return data_.find(thing) != data_.end();
 	}
 
-	bool covers(T const * thing, int x, int y) const
-	{
-		typename cache_type::const_iterator it = data_.find(thing);
-		return it != data_.end() && it->second.covers(x, y);
-	}
-
-	int squareDistance(T const * thing, int x, int y) const
-	{
-		typename cache_type::const_iterator it = data_.find(thing);
-		if (it == data_.end())
-			return 1000000;
-		return it->second.squareDistance(x, y);
-	}
+//	T * find(int x, int y) const
+//	{
+//		T *
+//		cache_type iter
+//	}
 
 private:
 	friend class CoordCache;
@@ -142,7 +93,7 @@ private:
 			lyxbreaker(thing, hint, data_.size());
 	}
 
-	typedef std::map<T const *, Geometry> cache_type;
+	typedef std::map<T const *, Point> cache_type;
 	cache_type data_;
 
 public:
@@ -150,24 +101,26 @@ public:
 };
 
 /**
- * A BufferView dependent cache that allows us to come from an inset in
- * a document to a position point and dimension on the screen.
+ * A global cache that allows us to come from a paragraph in a document
+ * to a position point on the screen.
  * All points cached in this cache are only valid between subsequent
  * updates. (x,y) == (0,0) is the upper left screen corner, x increases
  * to the right, y increases downwords.
- * The dimension part is built in BufferView::updateMetrics() and the 
- * diverse Inset::metrics() calls.
- * The individual points are added at drawing time in
- * BufferView::updateMetrics(). The math inset position are cached in
- * the diverse InsetMathXXX::draw() calls and the in-text inset position
- * are cached in RowPainter::paintInset().
- * FIXME: For mathed, it would be nice if the insets did not saves their
- * position themselves. That should be the duty of the containing math
- * array.
+ * The cache is built in BufferView::updateMetrics which is called
+ * from BufferView::update. The individual points are added
+ * while we paint them. See for instance paintPar in RowPainter.C.
  */
 class CoordCache {
 public:
 	void clear();
+	Point get(Text const *, pit_type) const;
+
+	/// A map from paragraph index number to screen point
+	typedef std::map<pit_type, Point> InnerParPosCache;
+	/// A map from a Text to the map of paragraphs to screen points
+	typedef std::map<Text const *, InnerParPosCache> ParPosCache;
+	/// A map from a CursorSlice to screen points
+	typedef std::map<Text const *, InnerParPosCache> SliceCache;
 
 	/// A map from MathData to position on the screen
 	CoordCacheBase<MathData> & arrays() { return arrays_; }
@@ -175,6 +128,18 @@ public:
 	/// A map from insets to positions on the screen
 	CoordCacheBase<Inset> & insets() { return insets_; }
 	CoordCacheBase<Inset> const & getInsets() const { return insets_; }
+	/// A map from (Text, paragraph) pair to screen positions
+	ParPosCache & parPos() { return pars_; }
+	ParPosCache const & getParPos() const { return pars_; }
+	///
+	SliceCache & slice(bool boundary)
+	{
+		return boundary ? slices1_ : slices0_;
+	}
+	SliceCache const & getSlice(bool boundary) const
+	{
+		return boundary ? slices1_ : slices0_;
+	}
 
 	/// Dump the contents of the cache to lyxerr in debugging form
 	void dump() const;
@@ -183,6 +148,12 @@ private:
 	CoordCacheBase<MathData> arrays_;
 	// All insets
 	CoordCacheBase<Inset> insets_;
+	/// Paragraph grouped by owning text
+	ParPosCache pars_;
+	/// Used with boundary == 0
+	SliceCache slices0_;
+	/// Used with boundary == 1
+	SliceCache slices1_;
 };
 
 } // namespace lyx

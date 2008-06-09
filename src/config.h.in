@@ -25,6 +25,10 @@
    */
 #undef CRAY_STACKSEG_END
 
+/* Define if your C++ compiler puts C library functions in the global
+   namespace */
+#undef CXX_GLOBAL_CSTD
+
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
@@ -154,8 +158,14 @@
    declares uintmax_t. */
 #undef HAVE_INTTYPES_H_WITH_UINTMAX
 
+/* Define to 1 if you have the <ios> header file. */
+#undef HAVE_IOS
+
 /* Define to 1 if you have the <io.h> header file. */
 #undef HAVE_IO_H
+
+/* Define to 1 if you have the <istream> header file. */
+#undef HAVE_ISTREAM
 
 /* Define this if you have the kpsewhich program working on your system. */
 #undef HAVE_KPSEWHICH
@@ -172,8 +182,17 @@
 /* Define to 1 if you have the `gdi32' library (-lgdi32). */
 #undef HAVE_LIBGDI32
 
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the <limits> header file. */
+#undef HAVE_LIMITS
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the <locale> header file. */
+#undef HAVE_LOCALE
 
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
@@ -229,6 +248,9 @@
 /* Define to 1 if you have the `open' function. */
 #undef HAVE_OPEN
 
+/* Define to 1 if you have the <ostream> header file. */
+#undef HAVE_OSTREAM
+
 /* Define to 1 if you have the `pclose' function. */
 #undef HAVE_PCLOSE
 
@@ -259,6 +281,9 @@
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
+/* Define to 1 if you have the <sstream> header file. */
+#undef HAVE_SSTREAM
+
 /* Define to 1 if you have the <stddef.h> header file. */
 #undef HAVE_STDDEF_H
 
@@ -271,6 +296,10 @@
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
+
+/* Define if you have a conforming std::count template, otherwise HP version
+   of count template is assumed. */
+#undef HAVE_STD_COUNT
 
 /* Define to 1 if you have the `stpcpy' function. */
 #undef HAVE_STPCPY
@@ -385,18 +414,6 @@
 /* Define if integer division by zero raises signal SIGFPE. */
 #undef INTDIV0_RAISES_SIGFPE
 
-/* Hard system support directory */
-#undef LYX_ABS_INSTALLED_DATADIR
-
-/* Hard coded locale directory */
-#undef LYX_ABS_INSTALLED_LOCALEDIR
-
-/* Top source directory */
-#undef LYX_ABS_TOP_SRCDIR
-
-/* Date of release */
-#undef LYX_DATE
-
 /* Major version number */
 #undef LYX_MAJOR_VERSION
 
@@ -420,6 +437,9 @@
 /* Define if mkdir takes only one argument. */
 #undef MKDIR_TAKES_ONE_ARG
 
+/* Define if you have modern standard-compliant STL streams */
+#undef MODERN_STL_STREAMS
+
 /* Name of package */
 #undef PACKAGE
 
@@ -440,9 +460,6 @@
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 #undef PRI_MACROS_BROKEN
-
-/* Program version suffix */
-#undef PROGRAM_SUFFIX
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
@@ -498,8 +515,9 @@
 /* Define to 1 if LyX should use a Windows-style file layout */
 #undef USE_WINDOWS_PACKAGING
 
-/* Full version info */
-#undef VERSION_INFO
+/* Define this if you want to see the warning directives put here and there by
+   the developpers to get attention */
+#undef WITH_WARNINGS
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -529,6 +547,10 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* Define to nothing if your compiler does not understand the 'explicit'
+   directive */
+#undef explicit
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
@@ -573,6 +595,15 @@ extern "C"
 char * strerror(int n);
 #endif
 
+#ifdef HAVE_MKSTEMP
+#ifndef HAVE_DECL_MKSTEMP
+#if defined(__cplusplus)
+extern "C"
+#endif
+int mkstemp(char*);
+#endif
+#endif
+
 #if defined(HAVE_OSTREAM) && defined(HAVE_LOCALE) && defined(HAVE_SSTREAM)
 #  define USE_BOOST_FORMAT 1
 #else
@@ -608,7 +639,7 @@ char * strerror(int n);
  * does: What we need is a 32bit wide wchar_t, and a libstdc++ that
  * has the needed wchar_t support and uses UCS4. Whether it
  * implements this with the help of libc, or whether it has own code
- * does not matter for us, because we do not use libc directly (Georg)
+ * does not matter for us, because we don't use libc directly (Georg)
 */
 #if defined(HAVE_WCHAR_T) && SIZEOF_WCHAR_T == 4 && !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__)
 #  define USE_WCHAR_T

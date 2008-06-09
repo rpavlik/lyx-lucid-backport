@@ -8,7 +8,9 @@ project(frontends)
 
 include_directories(${TOP_SRC_DIR}/src/frontends)
 
-add_subdirectory(qt4) 
+add_subdirectory(controllers) 
+add_subdirectory(${qt_postfix}) 
+
 
 file(GLOB frontends_sources ${TOP_SRC_DIR}/src/frontends/${LYX_CPP_FILES})
 file(GLOB frontends_headers ${TOP_SRC_DIR}/src/frontends/${LYX_HPP_FILES})
@@ -18,12 +20,10 @@ lyx_add_msvc_pch(frontends)
 
 if(NOT MERGE_FILES)
 	add_library(frontends ${library_type} ${frontends_sources} ${frontends_headers})
-else()
+else(NOT MERGE_FILES)
 	lyx_const_touched_files(_allinone  frontends_sources)
 	add_library(frontends ${library_type} ${_allinone_files})
-endif()
-
-target_link_libraries(frontends boost_regex)
+endif(NOT MERGE_FILES)
 
 project_source_group("${GROUP_CODE}" frontends_sources frontends_headers)
 

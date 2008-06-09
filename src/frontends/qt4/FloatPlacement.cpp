@@ -1,5 +1,5 @@
 /**
- * \file FloatPlacement.cpp
+ * \file floatplacement.C
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
@@ -17,9 +17,8 @@
 #include "insets/InsetFloat.h"
 #include "support/lstrings.h"
 
-using namespace std;
-using namespace lyx::support;
-
+using lyx::support::contains;
+using std::string;
 
 //namespace lyx {
 
@@ -112,9 +111,6 @@ void FloatPlacement::set(lyx::InsetFloatParams const & params)
 {
 	set(params.placement);
 
-	standardfloat_ = (params.type == "figure"
-		|| params.type == "table");
-
 	if (params.wide) {
 		herepossiblyCB->setChecked(false);
 		heredefinitelyCB->setChecked(false);
@@ -123,8 +119,8 @@ void FloatPlacement::set(lyx::InsetFloatParams const & params)
 
 	spanCB->setChecked(params.wide);
 	sidewaysCB->setChecked(params.sideways);
-	// the package rotfloat only has *-versions for figure and table
-	spanCB->setEnabled(!params.sideways || standardfloat_);
+	sidewaysCB->setEnabled(params.type == "figure"
+		|| params.type == "table");
 	checkAllowed();
 }
 
@@ -228,7 +224,7 @@ void FloatPlacement::checkAllowed()
 		ignoreCB->setEnabled(!sideways && !defaults && ignore);
 		herepossiblyCB->setEnabled(!sideways && !defaults && !span);
 		heredefinitelyCB->setEnabled(!sideways && !defaults && !span);
-		spanCB->setEnabled(!sideways || standardfloat_);
+		spanCB->setEnabled(!sideways);
 	} else {
 		topCB->setEnabled(!defaults);
 		bottomCB->setEnabled(!defaults);

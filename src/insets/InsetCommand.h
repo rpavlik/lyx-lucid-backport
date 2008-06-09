@@ -10,61 +10,87 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef INSETCOMMAND_H
-#define INSETCOMMAND_H
+#ifndef INSET_LATEXCOMMAND_H
+#define INSET_LATEXCOMMAND_H
 
 #include "Inset.h"
 #include "InsetCommandParams.h"
 #include "RenderButton.h"
+#include "MailInset.h"
 #include "Cursor.h"
 
 
 namespace lyx {
 
 
-/////////////////////////////////////////////////////////////////////////
-//
-// InsetCommand
-//
-/////////////////////////////////////////////////////////////////////////
-
 // Created by Alejandro 970222
-// Used to insert a LaTeX command automatically.
+/** Used to insert a LaTeX command automatically
+ *
+ * Similar to InsetLaTeX but having control of the basic structure of a
+ *   LaTeX command: \name[options]{contents}.
+ */
 
-class InsetCommand : public Inset
-{
+///
+class InsetCommand : public Inset {
 public:
 	///
 	InsetCommand(InsetCommandParams const &, std::string const & mailer_name);
 	///
 	~InsetCommand();
-
-	/// returns true if params are successfully read
-	static bool string2params(std::string const &, std::string const & name,
-				  InsetCommandParams &);
 	///
-	static std::string params2string(std::string const & name,
-					       InsetCommandParams const &);
+	bool metrics(MetricsInfo &, Dimension &) const;
+	///
+	void draw(PainterInfo & pi, int x, int y) const;
+	///
+	void write(Buffer const &, std::ostream & os) const
+		{ p_.write(os); }
+	///
+	virtual void read(Buffer const &, Lexer & lex)
+		{ p_.read(lex); }
+	///
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
+	///
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
+	///
+	int docbook(Buffer const &, odocstream &, OutputParams const & runparams) const;
+	///
+	Inset::Code lyxCode() const { return Inset::NO_CODE; }
+
 	///
 	InsetCommandParams const & params() const { return p_; }
+	/// FIXME remove
+	std::string const getContents() const { return p_.getContents(); }
+protected:
+	/// FIXME remove
+	void setContents(std::string const & c)
+	{
+		updateButtonLabel_ = true;
+		p_.setContents(c);
+	}
+public:
 	///
-	void setParams(InsetCommandParams const &);
+	void setParam(std::string const & name, docstring const & value)
+	{
+		updateButtonLabel_ = true;
+		p_[name] = value;
+	}
 	///
-	void setParam(std::string const & name, docstring const & value);
+	docstring const & getParam(std::string const & name) const
+	{
+		return p_[name];
+	}
 	///
-	docstring const & getParam(std::string const & name) const;
-	/// FIXME Remove
-	docstring const getFirstNonOptParam() const { return p_.getFirstNonOptParam(); }
-	/// update label and references.
-	virtual void updateCommand(docstring const &, bool) {}
+	void edit(Cursor & cur, bool left);
+	/// FIXME remove
+	virtual void replaceContents(std::string const & from, std::string const & to);
+	///
+	RenderButton & button() const { return button_; }
+	///
+	bool setMouseHover(bool mouse_hover);
 
 protected:
 	///
-	void write(std::ostream & os) const { p_.write(os); }
-	///
-	void read(Lexer & lex) { p_.read(lex); }
-	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 	///
@@ -72,43 +98,15 @@ protected:
 	///
 	std::string const & getCmdName() const { return p_.getCmdName(); }
 	///
-	void setCmdName(std::string const & n) { p_.setCmdName(n); }
-
-private:
+	void setCmdName(std::string const & n)
+	{
+		updateButtonLabel_ = true;
+		p_.setCmdName(n);
+	}
 	///
-	void metrics(MetricsInfo &, Dimension &) const;
-	///
-	Dimension const dimension(BufferView const &) const { return button_.dimension(); }
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
-	int latex(odocstream &, OutputParams const &) const;
-	///
-	int plaintext(odocstream &, OutputParams const &) const;
-	///
-	int docbook(odocstream &, OutputParams const & runparams) const;
-	///
-	InsetCode lyxCode() const { return NO_CODE; }
-	///
-	void edit(Cursor & cur, bool front, 
-		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
-	///
-	RenderButton & button() const { return button_; }
-	///
-	bool setMouseHover(bool mouse_hover);
-	/// Return parameter information for command cmdName.
-	/// Not implemented here. Must be implemented in derived class.
-	static ParamInfo const & findInfo(std::string const & cmdName);
-	/// Return default command for this inset.
-	/// Not implemented here. Must be implemented in derived class.
-	static std::string defaultCommand();
-	/// Whether this is a command this inset can represent.
-	/// Not implemented here. Must be implemented in derived class.
-	static bool isCompatibleCommand(std::string const & cmd);
-	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	void setParams(InsetCommandParams const &);
 	/// This should provide the text for the button
-	virtual docstring screenLabel() const = 0;
+	virtual docstring const getScreenLabel(Buffer const &) const = 0;
 
 private:
 	///
@@ -118,8 +116,35 @@ private:
 	/// changes color when mouse enters/leaves this inset
 	bool mouse_hover_;
 	///
+	mutable bool updateButtonLabel_;
+	///
 	mutable RenderButton button_;
 };
+
+
+class InsetCommandMailer : public MailInset {
+public:
+	///
+	InsetCommandMailer(std::string const & name, InsetCommand & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static void string2params(std::string const &, std::string const & name,
+				  InsetCommandParams &);
+	///
+	static std::string const params2string(std::string const & name,
+					       InsetCommandParams const &);
+private:
+	///
+	std::string const name_;
+	///
+	InsetCommand & inset_;
+};
+
 
 
 } // namespace lyx

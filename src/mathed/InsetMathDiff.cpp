@@ -13,20 +13,23 @@
 #include "InsetMathDiff.h"
 #include "MathData.h"
 #include "MathStream.h"
-
-#include "support/debug.h"
+#include "debug.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+using std::endl;
+
 
 InsetMathDiff::InsetMathDiff()
 	: InsetMathNest(1)
 {}
 
 
-Inset * InsetMathDiff::clone() const
+auto_ptr<Inset> InsetMathDiff::doClone() const
 {
-	return new InsetMathDiff(*this);
+	return auto_ptr<Inset>(new InsetMathDiff(*this));
 }
 
 
@@ -45,15 +48,16 @@ void InsetMathDiff::normalize(NormalStream & os) const
 }
 
 
-void InsetMathDiff::metrics(MetricsInfo &, Dimension &) const
+bool InsetMathDiff::metrics(MetricsInfo &, Dimension &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
+	return true;
 }
 
 
 void InsetMathDiff::draw(PainterInfo &, int, int) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 
@@ -109,7 +113,7 @@ void InsetMathDiff::mathmlize(MathStream & os) const
 
 void InsetMathDiff::write(WriteStream &) const
 {
-	LYXERR0("should not happen");
+	lyxerr << "should not happen" << endl;
 }
 
 

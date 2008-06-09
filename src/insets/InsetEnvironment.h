@@ -13,42 +13,45 @@
 #define INSETENVIRONMENT_H
 
 #include "InsetText.h"
+#include "lyxlayout_ptr_fwd.h"
+
 
 namespace lyx {
 
-class Layout;
-	
 class InsetEnvironment : public InsetText {
 public:
 	///
-	InsetEnvironment(Buffer const &, docstring const & name);
+	InsetEnvironment(BufferParams const &, docstring const & name);
 	///
 	docstring name() const { return name_; }
 	///
-	void write(std::ostream & os) const;
+	void write(Buffer const & buf, std::ostream & os) const;
 	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
-	InsetCode lyxCode() const { return ENVIRONMENT_CODE; }
+	Inset::Code lyxCode() const { return Inset::ENVIRONMENT_CODE; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	docstring editMessage() const;
+	virtual docstring const editMessage() const;
 	///
 	Inset::EDITABLE editable() const { return HIGHLY_EDITABLE; }
 	///
-	Layout const & layout() const;
+	Layout_ptr const & layout() const;
 	/** returns true if, when outputing LaTeX, font changes should
 	    be closed before generating this inset. This is needed for
 	    insets that may contain several paragraphs */
 	bool noFontChange() const { return true; }
+protected:
+	InsetEnvironment(InsetEnvironment const &);
 private:
-	///
-	Inset * clone() const { return new InsetEnvironment(*this); }
+	virtual std::auto_ptr<Inset> doClone() const;
 	/// the layout
-	Layout const & layout_;
+	Layout_ptr layout_;
 	///
 	docstring name_;
 };

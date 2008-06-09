@@ -18,7 +18,11 @@
 
 #include <cstdlib>
 
-using namespace std;
+using std::string;
+
+#ifndef CXX_GLOBAL_CSTD
+using std::system;
+#endif
 
 namespace lyx {
 namespace support {

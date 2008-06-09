@@ -15,10 +15,13 @@
 #include "MathStream.h"
 
 #include "LaTeXFeatures.h"
+#include "Color.h"
 
 #include "frontends/Painter.h"
 
-using namespace std;
+using std::string;
+using std::auto_ptr;
+
 
 namespace lyx {
 
@@ -72,15 +75,21 @@ InsetMathSpace::InsetMathSpace(docstring const & name)
 }
 
 
-Inset * InsetMathSpace::clone() const
+auto_ptr<Inset> InsetMathSpace::doClone() const
 {
-	return new InsetMathSpace(*this);
+	return auto_ptr<Inset>(new InsetMathSpace(*this));
 }
 
 
-void InsetMathSpace::metrics(MetricsInfo &, Dimension & dim) const
+bool InsetMathSpace::metrics(MetricsInfo &, Dimension & dim) const
 {
-	dim = dim_;
+	dim.wid = width();
+	dim.asc = ascent();
+	dim.des = descent();
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -93,14 +102,14 @@ void InsetMathSpace::draw(PainterInfo & pi, int x, int y) const
 
 	int xp[4];
 	int yp[4];
-	int w = dim_.wid;
+	int w = width();
 
 	xp[0] = ++x;        yp[0] = y - 3;
 	xp[1] = x;          yp[1] = y;
 	xp[2] = x + w - 2;  yp[2] = y;
 	xp[3] = x + w - 2;  yp[3] = y - 3;
 
-	pi.pain.lines(xp, yp, 4, (space_ < 3) ? Color_latex : Color_math);
+	pi.pain.lines(xp, yp, 4, (space_ < 3) ? Color::latex : Color::math);
 }
 
 

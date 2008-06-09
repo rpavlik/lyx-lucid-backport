@@ -11,17 +11,17 @@
 #include <config.h>
 
 #include "InsetMathExFunc.h"
-
 #include "MathData.h"
 #include "MathStream.h"
+#include "MathStream.h"
 #include "MathSupport.h"
-#include "MetricsInfo.h"
 
-#include "support/docstream.h"
-
-using namespace std;
 
 namespace lyx {
+
+using std::auto_ptr;
+using std::vector;
+using std::string;
 
 
 InsetMathExFunc::InsetMathExFunc(docstring const & name)
@@ -36,15 +36,19 @@ InsetMathExFunc::InsetMathExFunc(docstring const & name, MathData const & ar)
 }
 
 
-Inset * InsetMathExFunc::clone() const
+auto_ptr<Inset> InsetMathExFunc::doClone() const
 {
-	return new InsetMathExFunc(*this);
+	return auto_ptr<Inset>(new InsetMathExFunc(*this));
 }
 
 
-void InsetMathExFunc::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathExFunc::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	mathed_string_dim(mi.base.font, name_, dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -124,9 +128,7 @@ void InsetMathExFunc::mathematica(MathematicaStream & os) const
 
 void InsetMathExFunc::mathmlize(MathStream & os) const
 {
-	++os.tab(); os.cr(); os.os() << '<' << name_ << '>';
-	os << cell(0);
-	os.cr(); --os.tab(); os.os() << "</" << name_ << '>';
+	os << MTag(name_.c_str()) << cell(0) << ETag(name_.c_str());
 }
 
 

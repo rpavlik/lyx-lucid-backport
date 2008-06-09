@@ -10,18 +10,20 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef INSET_FLOAT_H
-#define INSET_FLOAT_H
+#ifndef INSETFLOAT_H
+#define INSETFLOAT_H
 
 #include "InsetCollapsable.h"
+#include "MailInset.h"
 
 
 namespace lyx {
 
+
 class InsetFloatParams {
 public:
 	///
-	InsetFloatParams() : wide(false), sideways(false), subfloat(false) {}
+	InsetFloatParams() : wide(false), sideways(false) {}
 	///
 	void write(std::ostream & os) const;
 	///
@@ -30,84 +32,66 @@ public:
 	std::string type;
 	///
 	std::string placement;
-	/// span columns
+	///
 	bool wide;
 	///
 	bool sideways;
-	///
-	bool subfloat;
 };
 
 
+/** The float inset
 
-/////////////////////////////////////////////////////////////////////////
-//
-// InsetFloat
-//
-/////////////////////////////////////////////////////////////////////////
-
-/// Used for "floating" objects like tables, figures etc.
-class InsetFloat : public InsetCollapsable
-{
+*/
+class InsetFloat : public InsetCollapsable {
 public:
 	///
-	InsetFloat(Buffer const &, std::string const &);
+	InsetFloat(BufferParams const &, std::string const &);
 	///
 	~InsetFloat();
-
 	///
-	static void string2params(std::string const &, InsetFloatParams &);
-	///
-	static std::string params2string(InsetFloatParams const &);
-	///
-	void setWide(bool w, BufferParams const &);
-	///
-	void setSideways(bool s, BufferParams const &);
-	///
-	void setSubfloat(bool s, BufferParams const &);
-	///
-	InsetFloatParams const & params() const { return params_; }
-private:
+	bool hasFixedWidth() const { return true; }
 	///
 	docstring name() const { return name_; }
 	///
-	docstring toolTip(BufferView const & bv, int x, int y) const;
+	void write(Buffer const & buf, std::ostream & os) const;
 	///
-	void write(std::ostream & os) const;
-	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
 	void validate(LaTeXFeatures & features) const;
 	///
-	InsetCode lyxCode() const { return FLOAT_CODE; }
+	Inset::Code lyxCode() const { return Inset::FLOAT_CODE; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
-	docstring editMessage() const;
+	virtual docstring const editMessage() const;
 	///
-	bool insetAllowed(InsetCode) const;
+	bool insetAllowed(Inset::Code) const;
 	/** returns true if, when outputing LaTeX, font changes should
 	    be closed before generating this inset. This is needed for
 	    insets that may contain several paragraphs */
 	bool noFontChange() const { return true; }
 	///
-	bool showInsetDialog(BufferView *) const;
+	void wide(bool w, BufferParams const &);
+	///
+	void sideways(bool s, BufferParams const &);
+	///
+	bool  showInsetDialog(BufferView *) const;
+	///
+	InsetFloatParams const & params() const { return params_; }
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+protected:
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+private:
 	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
-	///
-	Inset * clone() const { return new InsetFloat(*this); }
-	///
-	docstring getCaption(OutputParams const &) const;
-	///
-	docstring getCaptionText(OutputParams const &) const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	InsetFloatParams params_;
 	///
@@ -115,6 +99,28 @@ private:
 };
 
 
+class InsetFloatMailer : public MailInset {
+public:
+	///
+	InsetFloatMailer(InsetFloat & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static void string2params(std::string const &, InsetFloatParams &);
+	///
+	static std::string const params2string(InsetFloatParams const &);
+private:
+	///
+	static std::string const name_;
+	///
+	InsetFloat & inset_;
+};
+
+
 } // namespace lyx
 
-#endif // INSET_FLOAT_H
+#endif

@@ -16,9 +16,12 @@
 #include "MathSupport.h"
 #include "Dimension.h"
 
-#include "support/docstring.h"
 
 namespace lyx {
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathKern::InsetMathKern()
 {
@@ -37,17 +40,21 @@ InsetMathKern::InsetMathKern(docstring const & s)
 }
 
 
-Inset * InsetMathKern::clone() const
+auto_ptr<Inset> InsetMathKern::doClone() const
 {
-	return new InsetMathKern(*this);
+	return auto_ptr<Inset>(new InsetMathKern(*this));
 }
 
 
-void InsetMathKern::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathKern::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	dim.asc = 0;
 	dim.des = 0;
 	dim.wid = wid_.inPixels(0, mathed_char_width(mi.base.font, 'M'));
+	if (dim == dim_)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 

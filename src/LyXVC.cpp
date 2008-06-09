@@ -17,19 +17,28 @@
 
 #include "LyXVC.h"
 #include "VCBackend.h"
+#include "debug.h"
 #include "Buffer.h"
+#include "gettext.h"
 
 #include "frontends/alert.h"
 
-#include "support/debug.h"
 #include "support/filetools.h"
-#include "support/gettext.h"
-#include "support/lstrings.h"
+#include "support/lyxlib.h"
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using support::bformat;
+using support::FileName;
+using support::isFileReadable;
+using support::makeAbsPath;
+using support::makeDisplayPath;
+using support::tempName;
+
+using std::endl;
+using std::string;
+using std::pair;
 
 namespace Alert = frontend::Alert;
 
@@ -49,13 +58,13 @@ bool LyXVC::file_found_hook(FileName const & fn)
 {
 	FileName found_file;
 	// Check if file is under RCS
-	if (!(found_file = RCS::findFile(fn)).empty()) {
+	if (!(found_file = RCS::find_file(fn)).empty()) {
 		vcs.reset(new RCS(found_file));
 		vcs->owner(owner_);
 		return true;
 	}
 	// Check if file is under CVS
-	if (!(found_file = CVS::findFile(fn)).empty()) {
+	if (!(found_file = CVS::find_file(fn)).empty()) {
 		vcs.reset(new CVS(found_file, fn));
 		vcs->owner(owner_);
 		return true;
@@ -68,15 +77,15 @@ bool LyXVC::file_found_hook(FileName const & fn)
 bool LyXVC::file_not_found_hook(FileName const & fn)
 {
 	// Check if file is under RCS
-	if (!RCS::findFile(fn).empty())
+	if (!RCS::find_file(fn).empty())
 		return true;
-	if (!CVS::findFile(fn).empty())
+	if (!CVS::find_file(fn).empty())
 		return true;
 	return false;
 }
 
 
-void LyXVC::setBuffer(Buffer * buf)
+void LyXVC::buffer(Buffer * buf)
 {
 	owner_ = buf;
 }
@@ -84,10 +93,10 @@ void LyXVC::setBuffer(Buffer * buf)
 
 void LyXVC::registrer()
 {
-	FileName const filename = owner_->fileName();
+	FileName const filename(owner_->fileName());
 
 	// there must be a file to save
-	if (!filename.isReadableFile()) {
+	if (!isFileReadable(filename)) {
 		Alert::error(_("Document not saved"),
 			     _("You must save the document "
 					    "before it can be registered."));
@@ -98,61 +107,67 @@ void LyXVC::registrer()
 	if (!vcs) {
 		FileName const cvs_entries(makeAbsPath("CVS/Entries"));
 
-		if (cvs_entries.isReadableFile()) {
-			LYXERR(Debug::LYXVC, "LyXVC: registering "
-				<< to_utf8(filename.displayName()) << " with CVS");
+		if (isFileReadable(cvs_entries)) {
+			LYXERR(Debug::LYXVC)
+				<< "LyXVC: registering "
+				<< to_utf8(makeDisplayPath(filename.absFilename()))
+				<< " with CVS" << endl;
 			vcs.reset(new CVS(cvs_entries, filename));
 
 		} else {
-			LYXERR(Debug::LYXVC, "LyXVC: registering "
-				<< to_utf8(filename.displayName()) << " with RCS");
+			LYXERR(Debug::LYXVC)
+				<< "LyXVC: registering "
+				<< to_utf8(makeDisplayPath(filename.absFilename()))
+				<< " with RCS" << endl;
 			vcs.reset(new RCS(filename));
 		}
 
 		vcs->owner(owner_);
 	}
 
-	LYXERR(Debug::LYXVC, "LyXVC: registrer");
-	docstring response;
-	bool ok = Alert::askForText(response, _("LyX VC: Initial description"),
-			_("(no initial description)"));
-	if (!ok || response.empty()) {
-		// should we insist on checking response.empty()?
-		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
+	LYXERR(Debug::LYXVC) << "LyXVC: registrer" << endl;
+	pair<bool, docstring> tmp =
+		Alert::askForText(_("LyX VC: Initial description"),
+			   _("(no initial description)"));
+	if (!tmp.first || tmp.second.empty()) {
+		// should we insist on checking tmp.second.empty()?
+		LYXERR(Debug::LYXVC) << "LyXVC: user cancelled" << endl;
 		return;
 	}
 
-	vcs->registrer(to_utf8(response));
+	vcs->registrer(to_utf8(tmp.second));
 }
 
 
 void LyXVC::checkIn()
 {
-	LYXERR(Debug::LYXVC, "LyXVC: checkIn");
-	docstring response;
-	bool ok = Alert::askForText(response, _("LyX VC: Log Message"));
-	if (ok) {
-		if (response.empty())
-			response = _("(no log message)");
-		vcs->checkIn(to_utf8(response));
+
+	LYXERR(Debug::LYXVC) << "LyXVC: checkIn" << endl;
+	pair<bool, docstring> tmp = Alert::askForText(_("LyX VC: Log Message"));
+	if (tmp.first) {
+		if (tmp.second.empty()) {
+			tmp.second = _("(no log message)");
+		}
+		vcs->checkIn(to_utf8(tmp.second));
 	} else {
-		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
+		LYXERR(Debug::LYXVC) << "LyXVC: user cancelled" << endl;
 	}
 }
 
 
 void LyXVC::checkOut()
 {
-	LYXERR(Debug::LYXVC, "LyXVC: checkOut");
+	LYXERR(Debug::LYXVC) << "LyXVC: checkOut" << endl;
+
 	vcs->checkOut();
 }
 
 
 void LyXVC::revert()
 {
-	LYXERR(Debug::LYXVC, "LyXVC: revert");
+	LYXERR(Debug::LYXVC) << "LyXVC: revert" << endl;
 
-	docstring const file = owner_->fileName().displayName(20);
+	docstring const file = makeDisplayPath(owner_->fileName(), 20);
 	docstring text = bformat(_("Reverting to the stored version of the "
 		"document %1$s will lose all current changes.\n\n"
 					     "Do you want to revert to the saved version?"), file);
@@ -174,11 +189,11 @@ void LyXVC::toggleReadOnly()
 {
 	switch (vcs->status()) {
 	case VCS::UNLOCKED:
-		LYXERR(Debug::LYXVC, "LyXVC: toggle to locked");
+		LYXERR(Debug::LYXVC) << "LyXVC: toggle to locked" << endl;
 		checkOut();
 		break;
 	case VCS::LOCKED:
-		LYXERR(Debug::LYXVC, "LyXVC: toggle to unlocked");
+		LYXERR(Debug::LYXVC) << "LyXVC: toggle to unlocked" << endl;
 		checkIn();
 		break;
 	}
@@ -187,8 +202,7 @@ void LyXVC::toggleReadOnly()
 
 bool LyXVC::inUse()
 {
-	if (vcs)
-		return true;
+	if (vcs) return true;
 	return false;
 }
 
@@ -197,7 +211,6 @@ bool LyXVC::inUse()
 //{
 //	return vcs->version();
 //}
-
 
 string const LyXVC::versionString() const
 {
@@ -216,12 +229,13 @@ string const LyXVC::getLogFile() const
 	if (!vcs)
 		return string();
 
-	FileName const tmpf = FileName::tempName("lyxvclog");
+	FileName const tmpf(tempName(FileName(), "lyxvclog"));
 	if (tmpf.empty()) {
-		LYXERR(Debug::LYXVC, "Could not generate logfile " << tmpf);
+		LYXERR(Debug::LYXVC) << "Could not generate logfile "
+				     << tmpf << endl;
 		return string();
 	}
-	LYXERR(Debug::LYXVC, "Generating logfile " << tmpf);
+	LYXERR(Debug::LYXVC) << "Generating logfile " << tmpf << endl;
 	vcs->getLog(tmpf);
 	return tmpf.absFilename();
 }

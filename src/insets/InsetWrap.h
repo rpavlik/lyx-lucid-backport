@@ -14,6 +14,7 @@
 
 #include "InsetCollapsable.h"
 #include "Length.h"
+#include "MailInset.h"
 
 
 namespace lyx {
@@ -29,11 +30,7 @@ public:
 	///
 	std::string type;
 	///
-	int lines;
-	///
 	std::string placement;
-	///
-	Length overhang;
 	///
 	Length width;
 };
@@ -44,54 +41,72 @@ public:
 class InsetWrap : public InsetCollapsable {
 public:
 	///
-	InsetWrap(Buffer const &, std::string const &);
+	InsetWrap(BufferParams const &, std::string const &);
 	///
 	~InsetWrap();
 	///
-	InsetWrapParams const & params() const { return params_; }
+	void write(Buffer const & buf, std::ostream & os) const;
 	///
-	static void string2params(std::string const &, InsetWrapParams &);
-	///
-	static std::string params2string(InsetWrapParams const &);
-private:
-	///
-	void write(std::ostream & os) const;
-	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
 	void validate(LaTeXFeatures & features) const;
 	///
-	InsetCode lyxCode() const { return WRAP_CODE; }
+	Inset::Code lyxCode() const { return Inset::WRAP_CODE; }
 	///
-	docstring toolTip(BufferView const & bv, int x, int y) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	virtual docstring const editMessage() const;
 	///
-	docstring editMessage() const;
-	///
-	bool insetAllowed(InsetCode) const;
+	bool insetAllowed(Inset::Code) const;
 	///
 	bool showInsetDialog(BufferView *) const;
 	///
+	InsetWrapParams const & params() const { return params_; }
+	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+protected:
 	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
-	docstring getCaptionText(OutputParams const &) const;
-	///
-	docstring name() const;
-	///
-	Inset * clone() const { return new InsetWrap(*this); }
+	virtual docstring name() const { return name_; }
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 
 	///
 	InsetWrapParams params_;
+	///
+	docstring name_;
 };
+
+
+class InsetWrapMailer : public MailInset {
+public:
+	///
+	InsetWrapMailer(InsetWrap & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static void string2params(std::string const &, InsetWrapParams &);
+	///
+	static std::string const params2string(InsetWrapParams const &);
+private:
+	///
+	static std::string const name_;
+	///
+	InsetWrap & inset_;
+};
+
 
 } // namespace lyx
 

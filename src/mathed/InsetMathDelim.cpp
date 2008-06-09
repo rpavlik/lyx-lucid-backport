@@ -12,19 +12,20 @@
 #include <config.h>
 
 #include "InsetMathDelim.h"
-
 #include "MathData.h"
 #include "MathStream.h"
+#include "MathStream.h"
 #include "MathSupport.h"
-#include "MetricsInfo.h"
-
-#include "support/docstring.h"
 
 #include "frontends/FontMetrics.h"
 
-using namespace std;
-
 namespace lyx {
+
+
+using std::string;
+using std::max;
+using std::auto_ptr;
+
 
 static docstring convertDelimToLatexName(docstring const & name)
 {
@@ -51,9 +52,9 @@ InsetMathDelim::InsetMathDelim
 }
 
 
-Inset * InsetMathDelim::clone() const
+auto_ptr<Inset> InsetMathDelim::doClone() const
 {
-	return new InsetMathDelim(*this);
+	return auto_ptr<Inset>(new InsetMathDelim(*this));
 }
 
 
@@ -71,33 +72,35 @@ void InsetMathDelim::normalize(NormalStream & os) const
 }
 
 
-void InsetMathDelim::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathDelim::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	Dimension dim0;
-	cell(0).metrics(mi, dim0);
+	cell(0).metrics(mi);
 	Dimension t = theFontMetrics(mi.base.font).dimension('I');
 	int h0 = (t.asc + t.des) / 2;
-	int a0 = max(dim0.asc, t.asc)   - h0;
-	int d0 = max(dim0.des, t.des)  + h0;
-	dw_ = dim0.height() / 5;
+	int a0 = max(cell(0).ascent(), t.asc)   - h0;
+	int d0 = max(cell(0).descent(), t.des)  + h0;
+	dw_ = cell(0).height() / 5;
 	if (dw_ > 8)
 		dw_ = 8;
 	if (dw_ < 4)
 		dw_ = 4;
-	dim.wid = dim0.width() + 2 * dw_ + 8;
+	dim.wid = cell(0).width() + 2 * dw_ + 8;
 	dim.asc = max(a0, d0) + h0;
 	dim.des = max(a0, d0) - h0;
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathDelim::draw(PainterInfo & pi, int x, int y) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
-	int const b = y - dim.asc;
+	int const b = y - dim_.asc;
 	cell(0).draw(pi, x + dw_ + 4, y);
-	mathed_draw_deco(pi, x + 4, b, dw_, dim.height(), left_);
-	mathed_draw_deco(pi, x + dim.width() - dw_ - 4,
-		b, dw_, dim.height(), right_);
+	mathed_draw_deco(pi, x + 4, b, dw_, dim_.height(), left_);
+	mathed_draw_deco(pi, x + dim_.width() - dw_ - 4,
+		b, dw_, dim_.height(), right_);
 	setPosCache(pi, x, y);
 }
 

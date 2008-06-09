@@ -1,49 +1,22 @@
 # Author : André Pönitz
 # This include file contains label definitions for a report-like numbering.
 
-Format 7
+Format 4
+Input numarticle.inc
 
 Style Part
 	TocLevel              -1
 End
 
-Counter
-	Name                  chapter
-	Within                ""
-	LabelString	      "\arabic{chapter}"
-	LabelStringAppendix   "\Alph{chapter}"
-End
 
-Counter
-	Name                  section
-	Within                chapter
-	LabelString	      ""
-End
-
-Float
-	Type                  table
-	NumberWithin          chapter
+Style Chapter
+	LabelString           "Chapter \arabic{chapter}"
+	LabelStringAppendix   "Appendix \Alph{chapter}"
 End
 
 
-Float
-	Type                  figure
-	NumberWithin          chapter
+Style Section
+	LabelString           "\arabic{chapter}.\arabic{section}"
+	LabelStringAppendix   "\Alph{chapter}.\arabic{section}"
 End
 
-
-Float
-	Type                  algorithm
-	NumberWithin          chapter
-End
-
-Counter
-	Name                  listing
-	Within		      chapter
-End
-
-Counter
-	Name                  footnote
-	Within		      chapter
-	LabelString	      "\arabic{footnote}"
-End

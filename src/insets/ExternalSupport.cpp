@@ -18,6 +18,8 @@
 
 #include "Buffer.h"
 #include "Converter.h"
+#include "debug.h"
+#include "gettext.h"
 #include "ErrorList.h"
 #include "Exporter.h"
 #include "Format.h"
@@ -25,20 +27,28 @@
 
 #include "frontends/alert.h"
 
-#include "support/debug.h"
 #include "support/filetools.h"
-#include "support/gettext.h"
+#include "support/Forkedcall.h"
 #include "support/lstrings.h"
 #include "support/lyxalgo.h"
+#include "support/lyxlib.h"
 #include "support/os.h"
 #include "support/Package.h"
 
-#include <algorithm>
+#include <boost/filesystem/operations.hpp>
 
-using namespace std;
-using namespace lyx::support;
+using std::endl;
+using std::string;
+using std::vector;
+
+using boost::filesystem::is_directory;
+
 
 namespace lyx {
+
+using support::FileName;
+using support::isValidLaTeXFilename;
+
 namespace external {
 
 Template const * getTemplatePtr(InsetExternalParams const & params)
@@ -50,8 +60,8 @@ Template const * getTemplatePtr(InsetExternalParams const & params)
 
 void editExternal(InsetExternalParams const & params, Buffer const & buffer)
 {
-	formats.edit(buffer, params.filename, 
-		formats.getFormatFromFile(params.filename));
+	formats.edit(buffer, params.filename,
+		     formats.getFormatFromFile(params.filename));
 }
 
 
@@ -61,8 +71,8 @@ string const subst_path(string const & input,
 			string const & placeholder,
 			string const & path,
 			bool use_latex_path,
-			latex_path_extension ext = PROTECT_EXTENSION,
-			latex_path_dots dots = LEAVE_DOTS)
+			support::latex_path_extension ext = support::PROTECT_EXTENSION,
+			support::latex_path_dots dots = support::LEAVE_DOTS)
 {
 	if (input.find(placeholder) == string::npos)
 		return input;
@@ -70,8 +80,8 @@ string const subst_path(string const & input,
 	// path will be compared with another one in internal style later
 	// in Converters::move.
 	string const path2 = use_latex_path ?
-		latex_path(path, ext, dots) : path;
-	return subst(input, placeholder, path2);
+		support::latex_path(path, ext, dots) : path;
+	return support::subst(input, placeholder, path2);
 }
 
 } // namespace anon
@@ -83,71 +93,71 @@ string const doSubstitution(InsetExternalParams const & params,
 			    bool external_in_tmpdir,
 			    Substitute what)
 {
-	Buffer const * masterBuffer = buffer.masterBuffer();
+	Buffer const * m_buffer = buffer.getMasterBuffer();
 	string const parentpath = external_in_tmpdir ?
-		masterBuffer->temppath() :
+		m_buffer->temppath() :
 		buffer.filePath();
 	string const filename = external_in_tmpdir ?
 		params.filename.mangledFilename() :
 		params.filename.outputFilename(parentpath);
-	string const basename = changeExtension(
-			onlyFilename(filename), string());
-	string const absname = makeAbsPath(filename, parentpath).absFilename();
+	string const basename = support::changeExtension(
+			support::onlyFilename(filename), string());
+	string const absname = support::makeAbsPath(filename, parentpath).absFilename();
 
 	string result = s;
 	if (what != ALL_BUT_PATHS) {
-		string const filepath = onlyPath(filename);
-		string const abspath = onlyPath(absname);
+		string const filepath = support::onlyPath(filename);
+		string const abspath = support::onlyPath(absname);
 		string const masterpath = external_in_tmpdir ?
-			masterBuffer->temppath() :
-			masterBuffer->filePath();
+			m_buffer->temppath() :
+			m_buffer->filePath();
 		// FIXME UNICODE
-		string relToMasterPath = onlyPath(
-				to_utf8(makeRelPath(from_utf8(absname),
+		string relToMasterPath = support::onlyPath(
+				to_utf8(support::makeRelPath(from_utf8(absname),
 							     from_utf8(masterpath))));
 		if (relToMasterPath == "./")
 			relToMasterPath.clear();
 		// FIXME UNICODE
-		string relToParentPath = onlyPath(
-				to_utf8(makeRelPath(from_utf8(absname),
+		string relToParentPath = support::onlyPath(
+				to_utf8(support::makeRelPath(from_utf8(absname),
 							     from_utf8(parentpath))));
 		if (relToParentPath == "./")
 			relToParentPath.clear();
 
 		result = subst_path(result, "$$FPath", filepath,
 				    use_latex_path,
-				    PROTECT_EXTENSION,
-				    ESCAPE_DOTS);
+				    support::PROTECT_EXTENSION,
+				    support::ESCAPE_DOTS);
 		result = subst_path(result, "$$AbsPath", abspath,
 				    use_latex_path,
-				    PROTECT_EXTENSION,
-				    ESCAPE_DOTS);
+				    support::PROTECT_EXTENSION,
+				    support::ESCAPE_DOTS);
 		result = subst_path(result, "$$RelPathMaster",
 				    relToMasterPath, use_latex_path,
-				    PROTECT_EXTENSION,
-				    ESCAPE_DOTS);
+				    support::PROTECT_EXTENSION,
+				    support::ESCAPE_DOTS);
 		result = subst_path(result, "$$RelPathParent",
 				    relToParentPath, use_latex_path,
-				    PROTECT_EXTENSION,
-				    ESCAPE_DOTS);
-		if (FileName(filename).isAbsolute()) {
+				    support::PROTECT_EXTENSION,
+				    support::ESCAPE_DOTS);
+		if (support::absolutePath(filename)) {
 			result = subst_path(result, "$$AbsOrRelPathMaster",
 					    abspath, use_latex_path,
-					    PROTECT_EXTENSION,
-					    ESCAPE_DOTS);
+					    support::PROTECT_EXTENSION,
+					    support::ESCAPE_DOTS);
 			result = subst_path(result, "$$AbsOrRelPathParent",
 					    abspath, use_latex_path,
-					    PROTECT_EXTENSION,
-					    ESCAPE_DOTS);
+					    support::PROTECT_EXTENSION,
+					    support::ESCAPE_DOTS);
 		} else {
 			result = subst_path(result, "$$AbsOrRelPathMaster",
 					    relToMasterPath, use_latex_path,
-					    PROTECT_EXTENSION,
-					    ESCAPE_DOTS);
+					    support::PROTECT_EXTENSION,
+					    support::ESCAPE_DOTS);
 			result = subst_path(result, "$$AbsOrRelPathParent",
 					    relToParentPath, use_latex_path,
-					    PROTECT_EXTENSION,
-					    ESCAPE_DOTS);
+					    support::PROTECT_EXTENSION,
+					    support::ESCAPE_DOTS);
 		}
 	}
 
@@ -155,22 +165,22 @@ string const doSubstitution(InsetExternalParams const & params,
 		return result;
 
 	result = subst_path(result, "$$FName", filename, use_latex_path,
-			    EXCLUDE_EXTENSION);
+			    support::EXCLUDE_EXTENSION);
 	result = subst_path(result, "$$Basename", basename, use_latex_path,
-			    PROTECT_EXTENSION, ESCAPE_DOTS);
+			    support::PROTECT_EXTENSION, support::ESCAPE_DOTS);
 	result = subst_path(result, "$$Extension",
-			'.' + getExtension(filename), use_latex_path);
+			'.' + support::getExtension(filename), use_latex_path);
 	result = subst_path(result, "$$Tempname", params.tempname().absFilename(), use_latex_path);
 	result = subst_path(result, "$$Sysdir",
-				package().system_support().absFilename(), use_latex_path);
+				support::package().system_support().absFilename(), use_latex_path);
 
 	// Handle the $$Contents(filename) syntax
-	if (contains(result, "$$Contents(\"")) {
+	if (support::contains(result, "$$Contents(\"")) {
 		// Since use_latex_path may be true we must extract the file
 		// name from s instead of result and do the substitutions
 		// again, this time with use_latex_path false.
-		size_t const spos = s.find("$$Contents(\"");
-		size_t const send = s.find("\")", spos);
+		string::size_type const spos = s.find("$$Contents(\"");
+		string::size_type const send = s.find("\")", spos);
 		string const file_template = s.substr(spos + 12, send - (spos + 12));
 		string const file = doSubstitution(params, buffer,
 						   file_template, false,
@@ -178,13 +188,12 @@ string const doSubstitution(InsetExternalParams const & params,
 		string contents;
 
 		FileName const absfile(
-			makeAbsPath(file, masterBuffer->temppath()));
-		if (absfile.isReadableFile())
-			// FIXME UNICODE
-			contents = to_utf8(absfile.fileContents("UTF-8"));
+			support::makeAbsPath(file, m_buffer->temppath()));
+		if (support::isFileReadable(absfile))
+			contents = support::getFileContents(absfile);
 
-		size_t const pos = result.find("$$Contents(\"");
-		size_t const end = result.find("\")", pos);
+		string::size_type const pos = result.find("$$Contents(\"");
+		string::size_type const end = result.find("\")", pos);
 		result.replace(pos, end + 2, contents);
 	}
 
@@ -233,6 +242,7 @@ void updateExternal(InsetExternalParams const & params,
 		from_format = formats.getFormatFromFile(params.filename);
 		if (from_format.empty())
 			return; // FAILURE
+
 	}
 
 	string const to_format = outputFormat.updateFormat;
@@ -241,22 +251,24 @@ void updateExternal(InsetExternalParams const & params,
 
 	// The master buffer. This is useful when there are multiple levels
 	// of include files
-	Buffer const * masterBuffer = buffer.masterBuffer();
+	Buffer const * m_buffer = buffer.getMasterBuffer();
 
 	// We copy the source file to the temp dir and do the conversion
 	// there if necessary
 	FileName const temp_file(
-		makeAbsPath(params.filename.mangledFilename(),
-				     masterBuffer->temppath()));
-	if (!params.filename.empty() && !params.filename.isDirectory()) {
-		unsigned long const from_checksum = params.filename.checksum();
-		unsigned long const temp_checksum = temp_file.checksum();
+		support::makeAbsPath(params.filename.mangledFilename(),
+				     m_buffer->temppath()));
+	if (!params.filename.empty() && !is_directory(params.filename.toFilesystemEncoding())) {
+		unsigned long const from_checksum = support::sum(params.filename);
+		unsigned long const temp_checksum = support::sum(temp_file);
 
 		if (from_checksum != temp_checksum) {
 			Mover const & mover = getMover(from_format);
 			if (!mover.copy(params.filename, temp_file)) {
-				LYXERR(Debug::EXTERNAL, "external::updateExternal. "
-					<< "Unable to copy " << params.filename << " to " << temp_file);
+				LYXERR(Debug::EXTERNAL)
+					<< "external::updateExternal. "
+					<< "Unable to copy "
+					<< params.filename << " to " << temp_file << endl;
 				return; // FAILURE
 			}
 		}
@@ -267,7 +279,7 @@ void updateExternal(InsetExternalParams const & params,
 					      outputFormat.updateResult,
 					      false, true);
 	FileName const abs_to_file(
-		makeAbsPath(to_file, masterBuffer->temppath()));
+		support::makeAbsPath(to_file, m_buffer->temppath()));
 
 	if (!dryrun) {
 		// Record the referenced files for the exporter.
@@ -279,15 +291,15 @@ void updateExternal(InsetExternalParams const & params,
 			vector<string>::const_iterator fit  = rit->second.begin();
 			vector<string>::const_iterator fend = rit->second.end();
 			for (; fit != fend; ++fit) {
-				FileName const source(makeAbsPath(
+				FileName const source(support::makeAbsPath(
 						doSubstitution(params, buffer, *fit,
 							       false, true),
-						masterBuffer->temppath()));
+						m_buffer->temppath()));
 				// The path of the referenced file is never the
 				// temp path, but the filename may be the mangled
 				// or the real name. Therefore we substitute the
 				// paths and names separately.
-				string file = subst(*fit, "$$FName",
+				string file = support::subst(*fit, "$$FName",
 						"$$FPath$$Basename$$Extension");
 				file = doSubstitution(params, buffer, file, false, false,
 						      PATHS);
@@ -303,7 +315,7 @@ void updateExternal(InsetExternalParams const & params,
 
 	// Do we need to perform the conversion?
 	// Yes if to_file does not exist or if from_file is newer than to_file
-	if (compare_timestamps(temp_file, abs_to_file) < 0)
+	if (support::compare_timestamps(temp_file, abs_to_file) < 0)
 		return; // SUCCESS
 
 	// FIXME (Abdel 12/08/06): Is there a need to show these errors?
@@ -313,10 +325,11 @@ void updateExternal(InsetExternalParams const & params,
 				   params.filename, from_format, to_format, el,
 				   Converters::try_default | Converters::try_cache);
 
-	if (!success) {
-		LYXERR(Debug::EXTERNAL, "external::updateExternal. "
-			<< "Unable to convert from " << from_format << " to " << to_format);
-	}
+	if (!success)
+		LYXERR(Debug::EXTERNAL)
+			<< "external::updateExternal. "
+			<< "Unable to convert from "
+			<< from_format << " to " << to_format << endl;
 
 	// return success
 }
@@ -345,12 +358,14 @@ int writeExternal(InsetExternalParams const & params,
 
 	Template::Formats::const_iterator cit = et.formats.find(format);
 	if (cit == et.formats.end()) {
-		LYXERR(Debug::EXTERNAL, "External template format '" << format
-			<< "' not specified in template " << params.templatename());
+		LYXERR(Debug::EXTERNAL)
+			<< "External template format '" << format
+			<< "' not specified in template "
+			<< params.templatename() << endl;
 		return 0;
 	}
 
-	if (!dryrun || contains(cit->second.product, "$$Contents"))
+	if (!dryrun || support::contains(cit->second.product, "$$Contents"))
 		updateExternal(params, format, buffer, exportdata,
 			       external_in_tmpdir, dryrun);
 
@@ -358,7 +373,7 @@ int writeExternal(InsetExternalParams const & params,
 	string str = doSubstitution(params, buffer, cit->second.product,
 				    use_latex_path, external_in_tmpdir);
 
-	string const absname = makeAbsPath(
+	string const absname = support::makeAbsPath(
 		params.filename.outputFilename(buffer.filePath()), buffer.filePath()).absFilename();
 
 	if (!external_in_tmpdir && !isValidLaTeXFilename(absname)) {
@@ -372,7 +387,7 @@ int writeExternal(InsetExternalParams const & params,
 	str = substituteOptions(params, str, format);
 	// FIXME UNICODE
 	os << from_utf8(str);
-	return int(count(str.begin(), str.end(),'\n'));
+	return int(lyx::count(str.begin(), str.end(),'\n'));
 }
 
 namespace {
@@ -393,7 +408,7 @@ string const substituteIt<TransformCommand>(string const & input,
 					    Template::Format const & format,
 					    InsetExternalParams const & params)
 {
-	typedef map<TransformID, TransformStore> Transformers;
+	typedef std::map<TransformID, TransformStore> Transformers;
 	Transformers::const_iterator it = format.command_transformers.find(id);
 	if (it == format.command_transformers.end())
 		return input;
@@ -410,8 +425,8 @@ string const substituteIt<TransformCommand>(string const & input,
 		return input;
 
 	string result =
-		subst(input, ptr->front_placeholder(), ptr->front());
-	return subst(result, ptr->back_placeholder(),  ptr->back());
+		support::subst(input, ptr->front_placeholder(), ptr->front());
+	return support::subst(result, ptr->back_placeholder(),  ptr->back());
 }
 
 
@@ -422,7 +437,7 @@ string const substituteIt<TransformOption>(string const & input,
 					   Template::Format const & format,
 					   InsetExternalParams const & params)
 {
-	typedef map<TransformID, TransformStore> Transformers;
+	typedef std::map<TransformID, TransformStore> Transformers;
 	Transformers::const_iterator it = format.option_transformers.find(id);
 	if (it == format.option_transformers.end())
 		return input;
@@ -448,7 +463,7 @@ string const substituteIt<TransformOption>(string const & input,
 	if (!ptr.get())
 		return input;
 
-	return subst(input, ptr->placeholder(), ptr->option());
+	return support::subst(input, ptr->placeholder(), ptr->option());
 }
 
 
@@ -518,7 +533,7 @@ string const substituteOptions(InsetExternalParams const & params,
 	for (; it != end; ++it) {
 		string const opt = substituteOption(params, it->option, format);
 		string const placeholder = "$$" + it->name;
-		output = subst(output, placeholder, opt);
+		output = support::subst(output, placeholder, opt);
 	}
 
 	return output;

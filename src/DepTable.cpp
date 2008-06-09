@@ -14,7 +14,9 @@
 
 #include "DepTable.h"
 
-#include "support/debug.h"
+#include "debug.h"
+
+#include "support/lyxlib.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
 #include "support/lyxtime.h"
@@ -23,11 +25,21 @@
 
 #include <fstream>
 
-using namespace std;
-using namespace lyx::support;
+using std::endl;
+using std::flush;
+using std::getline;
+using std::string;
+using std::ofstream;
+using std::ifstream;
+
 
 namespace lyx {
 
+using support::FileName;
+using support::ltrim;
+using support::onlyFilename;
+using support::suffixIs;
+using support::sum;
 
 inline
 bool DepTable::dep_info::changed() const
@@ -42,27 +54,27 @@ void DepTable::insert(FileName const & f, bool upd)
 		dep_info di;
 		di.crc_prev = 0;
 		if (upd) {
-			LYXERR(Debug::DEPEND, " CRC...");
-			di.crc_cur = f.checksum();
-			LYXERR(Debug::DEPEND, "done.");
+			LYXERR(Debug::DEPEND) << " CRC..." << flush;
+			di.crc_cur = sum(f);
+			LYXERR(Debug::DEPEND) << "done." << endl;
 			struct stat f_info;
 			stat(f.toFilesystemEncoding().c_str(), &f_info);
-			di.mtime_cur = long(f_info.st_mtime);
+			di.mtime_cur = f_info.st_mtime;
 		} else {
 			di.crc_cur = 0;
 			di.mtime_cur = 0;
 		}
 		deplist[f] = di;
 	} else {
-		LYXERR(Debug::DEPEND, " Already in DepTable");
+		LYXERR(Debug::DEPEND) << " Already in DepTable" << endl;
 	}
 }
 
 
 void DepTable::update()
 {
-	LYXERR(Debug::DEPEND, "Updating DepTable...");
-	time_t const start_time = current_time();
+	LYXERR(Debug::DEPEND) << "Updating DepTable..." << endl;
+	time_type const start_time = current_time();
 
 	DepList::iterator itr = deplist.begin();
 	while (itr != deplist.end()) {
@@ -72,19 +84,19 @@ void DepTable::update()
 		if (stat(itr->first.toFilesystemEncoding().c_str(), &f_info) == 0) {
 			if (di.mtime_cur == f_info.st_mtime) {
 				di.crc_prev = di.crc_cur;
-				LYXERR(Debug::DEPEND, itr->first << " same mtime");
+				LYXERR(Debug::DEPEND) << itr->first << " same mtime" << endl;
 			} else {
 				di.crc_prev = di.crc_cur;
-				LYXERR(Debug::DEPEND, itr->first << " CRC... ");
-				di.crc_cur = itr->first.checksum();
-				LYXERR(Debug::DEPEND, "done");
+				LYXERR(Debug::DEPEND) << itr->first << " CRC... " << flush;
+				di.crc_cur = sum(itr->first);
+				LYXERR(Debug::DEPEND) << "done" << endl;
 			}
 		} else {
 			// file doesn't exist
 			// remove stale files - if it's re-created, it
 			// will be re-inserted by deplog.
-			LYXERR(Debug::DEPEND, itr->first
-				<< " doesn't exist. removing from DepTable.");
+			LYXERR(Debug::DEPEND) << itr->first
+				<< " doesn't exist. removing from DepTable." << endl;
 			DepList::iterator doomed = itr++;
 			deplist.erase(doomed);
 			continue;
@@ -97,9 +109,9 @@ void DepTable::update()
 		}
 		++itr;
 	}
-	time_t const time_sec = current_time() - start_time;
-	LYXERR(Debug::DEPEND, "Finished updating DepTable ("
-		<< long(time_sec) << " sec).");
+	time_type const time_sec = current_time() - start_time;
+	LYXERR(Debug::DEPEND) << "Finished updating DepTable ("
+		<< time_sec << " sec)." << endl;
 }
 
 
@@ -205,10 +217,10 @@ void DepTable::write(FileName const & f) const
 		// Store the second (most recently calculated)
 		// CRC value.
 		// The older one is effectively set to 0 upon re-load.
-		LYXERR(Debug::DEPEND, "Write dep: "
+		LYXERR(Debug::DEPEND) << "Write dep: "
 		       << cit->second.crc_cur << ' '
 		       << cit->second.mtime_cur << ' '
-		       << cit->first);
+		       << cit->first << endl;
 
 		ofs << cit->second.crc_cur << ' '
 		    << cit->second.mtime_cur << ' '
@@ -228,8 +240,8 @@ bool DepTable::read(FileName const & f)
 	while (ifs >> di.crc_cur >> di.mtime_cur && getline(ifs, nome)) {
 		nome = ltrim(nome);
 
-		LYXERR(Debug::DEPEND, "Read dep: "
-		       << di.crc_cur << ' ' << di.mtime_cur << ' ' << nome);
+		LYXERR(Debug::DEPEND) << "Read dep: "
+		       << di.crc_cur << ' ' << di.mtime_cur << ' ' << nome << endl;
 
 		deplist[FileName(nome)] = di;
 	}

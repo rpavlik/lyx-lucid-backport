@@ -18,10 +18,11 @@
 
 #include <sstream>
 
-using namespace std;
 
 namespace lyx {
 
+using std::auto_ptr;
+using std::string;
 
 CommandInset::CommandInset(docstring const & name)
 	: InsetMathNest(2), name_(name), set_label_(false)
@@ -30,21 +31,23 @@ CommandInset::CommandInset(docstring const & name)
 }
 
 
-Inset * CommandInset::clone() const
+auto_ptr<Inset> CommandInset::doClone() const
 {
-	return new CommandInset(*this);
+	return auto_ptr<Inset>(new CommandInset(*this));
 }
 
 
-void CommandInset::metrics(MetricsInfo & mi, Dimension & dim) const
+bool CommandInset::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	if (!set_label_) {
 		set_label_ = true;
 		button_.update(screenLabel(), true);
 	}
 	button_.metrics(mi, dim);
-	// Cache the inset dimension. 
-	setDimCache(mi, dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 

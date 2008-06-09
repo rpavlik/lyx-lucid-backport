@@ -13,8 +13,6 @@
 #include <config.h>
 
 #include "support/environment.h"
-
-#include "support/docstring.h"
 #include "support/os.h"
 
 #include <boost/tokenizer.hpp>
@@ -23,7 +21,9 @@
 #include <map>
 #include <sstream>
 
-using namespace std;
+using std::string;
+using std::vector;
+
 
 namespace lyx {
 namespace support {
@@ -47,7 +47,7 @@ vector<string> const getEnvPath(string const & name)
 	Tokenizer::const_iterator it = tokens.begin();
 	Tokenizer::const_iterator const end = tokens.end();
 
-	vector<string> vars;
+	std::vector<string> vars;
 	for (; it != end; ++it)
 		vars.push_back(os::internal_path(*it));
 
@@ -60,24 +60,35 @@ bool setEnv(string const & name, string const & value)
 	// CHECK Look at and fix this.
 	// f.ex. what about error checking?
 
-	string const encoded = to_local8bit(from_utf8(value));
+	string const encoded(to_local8bit(from_utf8(value)));
 #if defined (HAVE_SETENV)
-	return ::setenv(name.c_str(), encoded.c_str(), true);
+	int const retval = ::setenv(name.c_str(), encoded.c_str(), true);
+
 #elif defined (HAVE_PUTENV)
-	static map<string, string> varmap;
-	varmap[name] = name + '=' + encoded;
-	return ::putenv(const_cast<char*>(varmap[name].c_str())) == 0;
+	static std::map<string, char *> varmap;
+
+	string envstr = name + '=' + encoded;
+	char * newptr = new char[envstr.size() + 1];
+	envstr.copy(newptr, envstr.length());
+	newptr[envstr.length()] = '\0';
+	int const retval = ::putenv(newptr);
+
+	char * oldptr = varmap[name];
+	if (oldptr)
+		delete oldptr;
+	varmap[name] = newptr;
+
 #else
 #error No environment-setting function has been defined.
 #endif
-	return false;
+	return retval == 0;
 }
 
 
 void setEnvPath(string const & name, vector<string> const & env)
 {
 	char const separator(os::path_separator());
-	ostringstream ss;
+	std::ostringstream ss;
 	vector<string>::const_iterator const begin = env.begin();
 	vector<string>::const_iterator const end = env.end();
 	vector<string>::const_iterator it = begin;
@@ -109,7 +120,7 @@ void prependEnvPath(string const & name, string const & prefix)
 	token_iterator const end = reversed_tokens.rend();
 	for (; it != end; ++it) {
 		vector<string>::iterator remove_it =
-			remove(env_var.begin(), env_var.end(), *it);
+			std::remove(env_var.begin(), env_var.end(), *it);
 		env_var.erase(remove_it, env_var.end());
 		env_var.insert(env_var.begin(), *it);
 	}

@@ -11,25 +11,25 @@
 #include <config.h>
 
 #include "InsetMathSplit.h"
-
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathStream.h"
 
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "support/gettext.h"
+#include "gettext.h"
 #include "LaTeXFeatures.h"
 
 #include "support/lstrings.h"
+#include "support/std_ostream.h"
 
-#include <ostream>
-
-using namespace std;
 
 namespace lyx {
 
 using support::bformat;
+
+using std::string;
+using std::auto_ptr;
 
 
 InsetMathSplit::InsetMathSplit(docstring const & name, char valign)
@@ -38,9 +38,9 @@ InsetMathSplit::InsetMathSplit(docstring const & name, char valign)
 }
 
 
-Inset * InsetMathSplit::clone() const
+auto_ptr<Inset> InsetMathSplit::doClone() const
 {
-	return new InsetMathSplit(*this);
+	return auto_ptr<Inset>(new InsetMathSplit(*this));
 }
 
 
@@ -74,7 +74,7 @@ bool InsetMathSplit::getStatus(Cursor & cur, FuncRequest const & cmd,
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.message(bformat(
 				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),	name_));
-			flag.setEnabled(false);
+			flag.enabled(false);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, flag);
@@ -90,8 +90,8 @@ void InsetMathSplit::write(WriteStream & ws) const
 	if (ws.fragile())
 		ws << "\\protect";
 	ws << "\\begin{" << name_ << '}';
-	if (name_ != "split" && verticalAlignment() != 'c')
-		ws << '[' << verticalAlignment() << ']';
+	if (name_ != "split" && valign() != 'c')
+		ws << '[' << valign() << ']';
 	if (name_ == "alignedat")
 		ws << '{' << static_cast<unsigned int>((ncols() + 1)/2) << '}';
 	InsetMathGrid::write(ws);

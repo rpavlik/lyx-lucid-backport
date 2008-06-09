@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**
- * \file GuiFontMetrics.h
+ * \file FontMetrics.h
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
@@ -9,8 +9,8 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef GUI_FONT_METRICS_H
-#define GUI_FONT_METRICS_H
+#ifndef QT4_FONT_METRICS_H
+#define QT4_FONT_METRICS_H
 
 #include "frontends/FontMetrics.h"
 
@@ -19,12 +19,14 @@
 #include <QFontMetrics>
 #include <QHash>
 
+
 namespace lyx {
 namespace frontend {
 
-class GuiFontMetrics : public FontMetrics
+class GuiFontMetrics: public FontMetrics
 {
 public:
+
 	GuiFontMetrics(QFont const & font);
 	GuiFontMetrics(QFont const & font, QFont const & smallcaps_font);
 
@@ -72,7 +74,7 @@ private:
 	/// Cache of char ascends and descends
 	mutable QHash<char_type, AscendDescend> metrics_cache_;
 	/// fill in \c metrics_cache_ at specified value.
-	AscendDescend const fillMetricsCache(char_type) const;
+	void fillMetricsCache(char_type) const;
 
 	/// Cache of char right bearings
 	mutable QHash<char_type, int> rbearing_cache_;
@@ -81,4 +83,4 @@ private:
 } // namespace frontend
 } // namespace lyx
 
-#endif // GUI_FONT_METRICS_H
+#endif // QT4_FONT_METRICS_H

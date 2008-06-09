@@ -12,10 +12,10 @@
 
 #include "ErrorList.h"
 
-using namespace std;
+using std::string;
+
 
 namespace lyx {
-
 
 ErrorItem::ErrorItem(docstring const & error_, docstring const & description_,
 		     int par_id_, pos_type pos_start_, pos_type pos_end_)

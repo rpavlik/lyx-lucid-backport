@@ -18,28 +18,12 @@
 #include "Language.h"
 #include "Dimension.h"
 
-#include "insets/Inset.h"
+#include "support/unicode.h"
 
-#include "support/lassert.h"
-
-using namespace std;
+using std::string;
 
 namespace lyx {
 namespace frontend {
-
-/**
- * Convert a UCS4 character into a QChar.
- * This is a hack (it does only make sense for the common part of the UCS4
- * and UTF16 encodings) and should not be used.
- * This does only exist because of performance reasons (a real conversion
- * using iconv is too slow on windows).
- */
-static inline QChar const ucs4_to_qchar(char_type const ucs4)
-{
-	LASSERT(is_utf16(ucs4), /**/);
-	return QChar(static_cast<unsigned short>(ucs4));
-}
-
 
 // Caution: When using ucs4_to_qchar() in these methods, this is no
 // real conversion but a simple cast in reality. This is the reason
@@ -86,31 +70,23 @@ int GuiFontMetrics::lbearing(char_type c) const
 }
 
 
-namespace {
-int const outOfLimitMetric = -10000;
-}
-
-
 int GuiFontMetrics::rbearing(char_type c) const
 {
-	int value = rbearing_cache_.value(c, outOfLimitMetric);
-	if (value != outOfLimitMetric)
-		return value;
+	if (!rbearing_cache_.contains(c)) {
+		// Qt rbearing is from the right edge of the char's width().
+		int rb;
+		if (is_utf16(c)) {
+			QChar sc = ucs4_to_qchar(c);
+			rb = width(c) - metrics_.rightBearing(sc);
+		} else
+			// FIXME: QFontMetrics::leftBearingdoes not support the
+			//        full unicode range. Once it does, we could use:
+			// metrics_.rightBearing(toqstr(docstring(1,c)));
+			rb = width(c);
 
-	// Qt rbearing is from the right edge of the char's width().
-	if (is_utf16(c)) {
-		QChar sc = ucs4_to_qchar(c);
-		value = width(c) - metrics_.rightBearing(sc);
-	} else {
-		// FIXME: QFontMetrics::leftBearing does not support the
-		//        full unicode range. Once it does, we could use:
-		// metrics_.rightBearing(toqstr(docstring(1,c)));
-		value = width(c);
+		rbearing_cache_.insert(c, rb);
 	}
-
-	rbearing_cache_.insert(c, value);
-
-	return value;
+	return rbearing_cache_.value(c);
 }
 
 
@@ -139,21 +115,8 @@ int GuiFontMetrics::width(docstring const & s) const
 {
 	size_t ls = s.size();
 	int w = 0;
-	for (unsigned int i = 0; i < ls; ++i) {
-		//FIXME: we need to detect surrogate pairs and act accordingly
-		/**
-		if isSurrogateBase(s[i]) {
-			docstring c = s[i];
-			if (smallcaps_shape_)
-				w += metrics_.width(toqstr(c + s[i + 1]));
-			else
-				w += smallcaps_metrics_.width(toqstr(c + s[i + 1]));
-			++i;
-		}
-		else
-		*/
+	for (unsigned int i = 0; i < ls; ++i)
 		w += width(s[i]);
-	}
 
 	return w;
 }
@@ -180,9 +143,8 @@ int GuiFontMetrics::signedWidth(docstring const & s) const
 void GuiFontMetrics::rectText(docstring const & str,
 	int & w, int & ascent, int & descent) const
 {
-	static int const d = Inset::TEXT_TO_INSET_OFFSET / 2;
-
-	w = width(str) + Inset::TEXT_TO_INSET_OFFSET;
+	static int const d = 2;
+	w = width(str) + d * 2 + 2;
 	ascent = metrics_.ascent() + d;
 	descent = metrics_.descent() + d;
 }
@@ -192,8 +154,10 @@ void GuiFontMetrics::rectText(docstring const & str,
 void GuiFontMetrics::buttonText(docstring const & str,
 	int & w, int & ascent, int & descent) const
 {
-	rectText(str, w, ascent, descent);
-	w += Inset::TEXT_TO_INSET_OFFSET;
+	static int const d = 3;
+	w = width(str) + d * 2 + 2;
+	ascent = metrics_.ascent() + d;
+	descent = metrics_.descent() + d;
 }
 
 
@@ -209,8 +173,7 @@ Dimension const GuiFontMetrics::dimension(char_type c) const
 }
 
 
-GuiFontMetrics::AscendDescend const GuiFontMetrics::fillMetricsCache(
-		char_type c) const
+void GuiFontMetrics::fillMetricsCache(char_type c) const
 {
 	QRect r;
 	if (is_utf16(c))
@@ -222,8 +185,6 @@ GuiFontMetrics::AscendDescend const GuiFontMetrics::fillMetricsCache(
 	// We could as well compute the width but this is not really
 	// needed for now as it is done directly in width() below.
 	metrics_cache_.insert(c, ad);
-
-	return ad;
 }
 
 
@@ -232,45 +193,33 @@ int GuiFontMetrics::width(char_type c) const
 	if (smallcaps_shape_)
 		return smallcapsWidth(c);
 
-	int value = width_cache_.value(c, outOfLimitMetric);
-	if (value != outOfLimitMetric)
-		return value;
+	if (!width_cache_.contains(c)) {
+		if (is_utf16(c))
+			width_cache_.insert(c, metrics_.width(ucs4_to_qchar(c)));
+		else
+			width_cache_.insert(c, metrics_.width(toqstr(docstring(1,c))));
+	}
 
-	if (is_utf16(c))
-		value = metrics_.width(ucs4_to_qchar(c));
-	else
-		value = metrics_.width(toqstr(docstring(1, c)));
-
-	width_cache_.insert(c, value);
-
-	return value;
+	return width_cache_.value(c);
 }
 
 
 int GuiFontMetrics::ascent(char_type c) const
 {
-	static AscendDescend const outOfLimitAD = 
-		{outOfLimitMetric, outOfLimitMetric};
-	AscendDescend value = metrics_cache_.value(c, outOfLimitAD);
-	if (value.ascent != outOfLimitMetric)
-		return value.ascent;
+	if (!metrics_cache_.contains(c))
+		fillMetricsCache(c);
 
-	value = fillMetricsCache(c);
-	return value.ascent;
+	return metrics_cache_.value(c).ascent;
 }
 
 
 int GuiFontMetrics::descent(char_type c) const
 {
-	static AscendDescend const outOfLimitAD = 
-		{outOfLimitMetric, outOfLimitMetric};
-	AscendDescend value = metrics_cache_.value(c, outOfLimitAD);
-	if (value.descent != outOfLimitMetric)
-		return value.descent;
+	if (!metrics_cache_.contains(c))
+		fillMetricsCache(c);
 
-	value = fillMetricsCache(c);
-	return value.descent;
+	return metrics_cache_.value(c).descent;
 }
 
-} // namespace frontend
-} // namespace lyx
+} // frontend
+} // lyx

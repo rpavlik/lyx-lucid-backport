@@ -13,18 +13,19 @@
 
 #include "ExternalTemplate.h"
 
+#include "debug.h"
 #include "Lexer.h"
 
-#include "support/debug.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
 #include "support/Package.h"
 #include "support/Path.h"
 
-#include <ostream>
-
-using namespace std;
-using namespace lyx::support;
+using std::endl;
+using std::for_each;
+using std::string;
+using std::ostream;
+using std::vector;
 
 namespace lyx {
 namespace external {
@@ -60,7 +61,7 @@ Template::Format::Format()
 
 TemplateManager::TemplateManager()
 {
-	readTemplates(package().user_support());
+	readTemplates(support::package().user_support());
 	if (lyxerr.debugging(Debug::EXTERNAL)) {
 		dumpPreambleDefs(lyxerr);
 		lyxerr << '\n';
@@ -69,33 +70,33 @@ TemplateManager::TemplateManager()
 }
 
 
-class DumpPreambleDef {
+class dumpPreambleDef {
 public:
 	typedef TemplateManager::PreambleDefs::value_type value_type;
 
-	DumpPreambleDef(ostream & os) : os_(os) {}
+	dumpPreambleDef(ostream & o) : ost(o) {}
 
 	void operator()(value_type const & vt) {
-		os_ << "PreambleDef " << vt.first << '\n'
+		ost << "PreambleDef " << vt.first << '\n'
 		    << vt.second
 		    << "PreambleDefEnd" << endl;
 	}
 
 private:
-	ostream & os_;
+	ostream & ost;
 };
 
 
-class DumpTemplate {
+class dumpTemplate {
 public:
 	typedef TemplateManager::Templates::value_type value_type;
 
-	DumpTemplate(ostream & os) : os_(os) {}
+	dumpTemplate(ostream & o) : ost(o) {}
 
 	void operator()(value_type const & vt) {
 		Template const & et = vt.second;
 
-		os_ << "Template " << et.lyxName << '\n'
+		ost << "Template " << et.lyxName << '\n'
 		    << "\tGuiName " << et.guiName << '\n'
 		    << "\tHelpText\n"
 		    << et.helpText
@@ -108,28 +109,28 @@ public:
 		IDs::const_iterator it  = et.transformIds.begin();
 		IDs::const_iterator end = et.transformIds.end();
 		for (; it != end; ++it) {
-			os_ << "\tTransform "
+			ost << "\tTransform "
 			    << transformIDTranslator().find(*it) << '\n';
 		}
 
-		et.dumpFormats(os_);
-		os_ << "TemplateEnd" << endl;
+		et.dumpFormats(ost);
+		ost << "TemplateEnd" << endl;
 
 	}
 
 private:
-	ostream & os_;
+	ostream & ost;
 };
 
-class DumpFormat {
+class dumpFormat {
 public:
 	typedef Template::Formats::value_type value_type;
 
-	DumpFormat(ostream & o) : os_(o) {}
+	dumpFormat(ostream & o) : ost(o) {}
 
 	void operator()(value_type const & vt) const {
 		Template::Format const & ft = vt.second;
-		os_ << "\tFormat " << vt.first << '\n'
+		ost << "\tFormat " << vt.first << '\n'
 		    << "\t\tProduct " << ft.product << '\n'
 		    << "\t\tUpdateFormat " << ft.updateFormat << '\n'
 		    << "\t\tUpdateResult " << ft.updateResult << '\n';
@@ -137,15 +138,15 @@ public:
 		vector<string>::const_iterator qit = ft.requirements.begin();
 		vector<string>::const_iterator qend = ft.requirements.end();
 		for (; qit != qend; ++qit) {
-			lyxerr << "req:" << *qit << endl;
-			os_ << "\t\tRequirement " << *qit << '\n';
+			lyxerr << "req:" << *qit << std::endl;
+			ost << "\t\tRequirement " << *qit << '\n';
 		}
 
 		typedef vector<Template::Option> Options;
 		Options::const_iterator oit  = ft.options.begin();
 		Options::const_iterator oend = ft.options.end();
 		for (; oit != oend; ++oit) {
-			os_ << "\t\tOption "
+			ost << "\t\tOption "
 			    << oit->name
 			    << ": "
 			    << oit->option
@@ -155,7 +156,7 @@ public:
 		vector<string>::const_iterator pit  = ft.preambleNames.begin();
 		vector<string>::const_iterator pend = ft.preambleNames.end();
 		for (; pit != pend; ++pit) {
-			os_ << "\t\tPreamble " << *pit << '\n';
+			ost << "\t\tPreamble " << *pit << '\n';
 		}
 
 		typedef Template::Format::FileMap FileMap;
@@ -165,33 +166,33 @@ public:
 			vector<string>::const_iterator fit  = rit->second.begin();
 			vector<string>::const_iterator fend = rit->second.end();
 			for (; fit != fend; ++fit) {
-				os_ << "\t\tReferencedFile " << rit->first
+				ost << "\t\tReferencedFile " << rit->first
 				    << " \"" << *fit << "\"\n";
 			}
 		}
 
-		os_ << "\tFormatEnd\n";
+		ost << "\tFormatEnd\n";
 	}
 private:
-	ostream & os_;
+	ostream & ost;
 };
 
 
 void Template::dumpFormats(ostream & os) const
 {
-	for_each(formats.begin(), formats.end(), DumpFormat(os));
+	for_each(formats.begin(), formats.end(), dumpFormat(os));
 }
 
 
 void TemplateManager::dumpPreambleDefs(ostream & os) const
 {
-	for_each(preambledefs.begin(), preambledefs.end(), DumpPreambleDef(os));
+	for_each(preambledefs.begin(), preambledefs.end(), dumpPreambleDef(os));
 }
 
 
 void TemplateManager::dumpTemplates(ostream & os) const
 {
-	for_each(templates.begin(), templates.end(), DumpTemplate(os));
+	for_each(templates.begin(), templates.end(), dumpTemplate(os));
 }
 
 
@@ -202,7 +203,8 @@ TemplateManager & TemplateManager::get()
 }
 
 
-TemplateManager::Templates const & TemplateManager::getTemplates() const
+TemplateManager::Templates const &
+TemplateManager::getTemplates() const
 {
 	return templates;
 }
@@ -219,7 +221,7 @@ TemplateManager::getTemplateByName(string const & name) const
 string const
 TemplateManager::getPreambleDefByName(string const & name) const
 {
-	string const trimmed_name = trim(name);
+	string const trimmed_name = support::trim(name);
 	if (trimmed_name.empty())
 		return string();
 
@@ -231,27 +233,27 @@ TemplateManager::getPreambleDefByName(string const & name) const
 }
 
 
-void TemplateManager::readTemplates(FileName const & path)
+void TemplateManager::readTemplates(support::FileName const & path)
 {
-	PathChanger p(path);
+	support::Path p(path);
 
-	enum {
+	enum TemplateTags {
 		TM_PREAMBLEDEF = 1,
 		TM_PREAMBLEDEF_END,
 		TM_TEMPLATE,
 		TM_TEMPLATE_END
 	};
 
-	LexerKeyword templatetags[] = {
+	keyword_item templatetags[] = {
 		{ "preambledef", TM_PREAMBLEDEF },
 		{ "preambledefend", TM_PREAMBLEDEF_END },
 		{ "template", TM_TEMPLATE },
 		{ "templateend", TM_TEMPLATE_END }
 	};
 
-	Lexer lex(templatetags);
+	Lexer lex(templatetags, TM_TEMPLATE_END);
 
-	FileName const filename = libFileSearch("", "external_templates");
+	support::FileName const filename = support::libFileSearch("", "external_templates");
 	if (filename.empty() || !lex.setFile(filename)) {
 		lex.printError("external::TemplateManager::readTemplates: "
 			       "No template file");
@@ -291,9 +293,26 @@ void TemplateManager::readTemplates(FileName const & path)
 }
 
 
+namespace {
+
+void add(vector<TransformID> & ids, string const & name)
+{
+	TransformID id = transformIDTranslator().find(name);
+	if (int(id) == -1) {
+		lyxerr << "external::Template::readTemplate\n"
+		       << "Transform " << name << " is not recognized"
+		       << std::endl;
+	} else {
+		ids.push_back(id);
+	}
+}
+
+} // namespace anon
+
+
 void Template::readTemplate(Lexer & lex)
 {
-	enum {
+	enum TemplateOptionTags {
 		TO_GUINAME = 1,
 		TO_HELPTEXT,
 		TO_INPUTFORMAT,
@@ -304,7 +323,7 @@ void Template::readTemplate(Lexer & lex)
 		TO_END
 	};
 
-	LexerKeyword templateoptiontags[] = {
+	keyword_item templateoptiontags[] = {
 		{ "automaticproduction", TO_AUTOMATIC },
 		{ "filefilter", TO_FILTER },
 		{ "format", TO_FORMAT },
@@ -315,10 +334,8 @@ void Template::readTemplate(Lexer & lex)
 		{ "transform", TO_TRANSFORM }
 	};
 
-	PushPopHelper pph(lex, templateoptiontags);
-	lex.setContext("Template::readTemplate");
+	PushPopHelper pph(lex, templateoptiontags, TO_END);
 
-	string token;
 	while (lex.isOK()) {
 		switch (lex.lex()) {
 		case TO_GUINAME:
@@ -345,15 +362,10 @@ void Template::readTemplate(Lexer & lex)
 			automaticProduction = lex.getBool();
 			break;
 
-		case TO_TRANSFORM: {
-			lex >> token;
-			TransformID id = transformIDTranslator().find(token);
-			if (int(id) == -1)
-				LYXERR0("Transform " << token << " is not recognized");
-			else
-				transformIds.push_back(id);
+		case TO_TRANSFORM:
+			lex.next(true);
+			add(transformIds, lex.getString());
 			break;
-		}
 
 		case TO_FORMAT:
 			lex.next(true);
@@ -366,7 +378,7 @@ void Template::readTemplate(Lexer & lex)
 		default:
 			lex.printError("external::Template::readTemplate: "
 				       "Wrong tag: $$Token");
-			LASSERT(false, /**/);
+			BOOST_ASSERT(false);
 			break;
 		}
 	}
@@ -375,17 +387,17 @@ void Template::readTemplate(Lexer & lex)
 
 namespace {
 
-void transform_not_found(ostream & os, string const & transform)
+void transform_not_found(std::ostream & os, string const & transform)
 {
 	os << "external::Format::readFormat. Transformation \""
-	   << transform << "\" is unrecognized." << endl;
+	   << transform << "\" is unrecognized." << std::endl;
 }
 
 
-void transform_class_not_found(ostream & os, string const & tclass)
+void transform_class_not_found(std::ostream & os, string const & tclass)
 {
 	os << "external::Format::readFormat. Transformation class \""
-	   << tclass << "\" is unrecognized." << endl;
+	   << tclass << "\" is unrecognized." << std::endl;
 }
 
 
@@ -456,7 +468,7 @@ void setOptionFactory(Template::Format & format, string const & transform,
 
 void Template::Format::readFormat(Lexer & lex)
 {
-	enum {
+	enum FormatTags {
 		FO_PRODUCT = 1,
 		FO_UPDATEFORMAT,
 		FO_UPDATERESULT,
@@ -469,7 +481,7 @@ void Template::Format::readFormat(Lexer & lex)
 		FO_END
 	};
 
-	LexerKeyword formattags[] = {
+	keyword_item formattags[] = {
 		{ "formatend", FO_END },
 		{ "option", FO_OPTION },
 		{ "preamble", FO_PREAMBLE },
@@ -482,7 +494,7 @@ void Template::Format::readFormat(Lexer & lex)
 		{ "updateresult", FO_UPDATERESULT }
 	};
 
-	PushPopHelper pph(lex, formattags);
+	PushPopHelper pph(lex, formattags, FO_END);
 
 	while (lex.isOK()) {
 		switch (lex.lex()) {

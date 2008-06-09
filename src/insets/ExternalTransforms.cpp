@@ -12,7 +12,8 @@
 
 #include "ExternalTransforms.h"
 
-#include "support/debug.h"
+#include "debug.h"
+
 #include "support/lstrings.h"
 #include "support/lyxlib.h" // float_equal
 #include "support/convert.h"
@@ -20,19 +21,20 @@
 
 #include <boost/regex.hpp>
 
-#include <cmath> // abs
+#include <cmath> // std::abs
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
 namespace external {
 
+using support::float_equal;
+using std::string;
+
 
 string const ExtraData::get(string const & id) const
 {
-	map<string, string>::const_iterator it = data_.find(id);
+	std::map<string, string>::const_iterator it = data_.find(id);
 	return it == data_.end() ? string() : it->second;
 }
 
@@ -57,7 +59,7 @@ bool ResizeData::usingScale() const
 
 bool RotationData::no_rotation() const
 {
-	return (angle.empty() || abs(convert<double>(angle)) < 0.1);
+	return (angle.empty() || std::abs(convert<double>(angle)) < 0.1);
 }
 
 
@@ -65,7 +67,7 @@ string const RotationData::adjAngle() const
 {
 	// Ensure that angle lies in the range -360 < angle < 360
 	double rotAngle = convert<double>(angle);
-	if (abs(rotAngle) > 360.0) {
+	if (std::abs(rotAngle) > 360.0) {
 		rotAngle -= 360.0 * floor(rotAngle / 360.0);
 		return convert<string>(rotAngle);
 	}
@@ -98,7 +100,7 @@ string const ResizeLatexCommand::front_impl() const
 	if (data.no_resize())
 		return string();
 
-	ostringstream os;
+	std::ostringstream os;
 	if (data.usingScale()) {
 		double const scl = convert<double>(data.scale) / 100.0;
 		os << "\\scalebox{" << scl << "}[" << scl << "]{";
@@ -136,7 +138,7 @@ string const ResizeLatexCommand::back_impl() const
 
 namespace {
 
-ostream & operator<<(ostream & os, RotationData::OriginType type)
+std::ostream & operator<<(std::ostream & os, RotationData::OriginType type)
 {
 	switch (type) {
 	case RotationData::DEFAULT:
@@ -191,7 +193,7 @@ string const RotationLatexCommand::front_impl() const
 	if (data.no_rotation())
 		return string();
 
-	ostringstream os;
+	std::ostringstream os;
 	os << "\\rotatebox";
 
 	if (data.origin() != RotationData::DEFAULT)
@@ -216,7 +218,7 @@ string const  ClipLatexOption::option_impl() const
 	if (!data.clip || data.bbox.empty())
 		return string();
 
-	ostringstream os;
+	std::ostringstream os;
 	if (!data.bbox.empty())
 		os << "bb=" << data.bbox << ',';
 	if (data.clip)
@@ -230,7 +232,7 @@ string const ResizeLatexOption::option_impl() const
 	if (data.no_resize())
 		return string();
 
-	ostringstream os;
+	std::ostringstream os;
 	if (data.usingScale()) {
 		double const scl = convert<double>(data.scale);
 		if (!float_equal(scl, 100.0, 0.05))
@@ -254,7 +256,7 @@ string const RotationLatexOption ::option_impl() const
 	if (data.no_rotation())
 		return string();
 
-	ostringstream os;
+	std::ostringstream os;
 	os << "angle=" << data.angle << ',';
 
 	if (data.origin() != RotationData::DEFAULT)
@@ -316,7 +318,7 @@ string const sanitizeLatexOption(string const & input)
 	output = what.str(1);
 
 	// Remove any surrounding whitespace
-	output = trim(output);
+	output = support::trim(output);
 
 	// If the thing is empty, leave it so, else wrap it in square brackets.
 	return output.empty() ? output : "[" + output + "]";

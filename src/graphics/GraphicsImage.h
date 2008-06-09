@@ -24,12 +24,12 @@
 #ifndef GRAPHICSIMAGE_H
 #define GRAPHICSIMAGE_H
 
-#include "Dimension.h"
-
 #include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 
 #include <vector>
+#include <utility>
 
 namespace lyx {
 
@@ -44,7 +44,9 @@ public:
 	/** This is to be connected to a function that will return a new
 	 *  instance of a viable derived class.
 	 */
-	static boost::function<Image *()> newImage;
+	typedef boost::shared_ptr<Image> ImagePtr;
+	///
+	static boost::function<ImagePtr()> newImage;
 
 	///
 	typedef std::vector<std::string> FormatList;
@@ -55,16 +57,16 @@ public:
 	virtual ~Image() {}
 
 	/// Create a copy
-	virtual Image * clone() const = 0;
+	Image * clone() const;
 
 	/// Get the image width
-	virtual unsigned int width() const = 0;
+	unsigned int getWidth() const;
 
 	/// Get the image height
-	virtual unsigned int height() const = 0;
+	unsigned int getHeight() const;
 
 	/// Is the image drawable ?
-	virtual bool isDrawable() const = 0;
+	bool isDrawable() const;
 
 	/** At the end of the loading process inform the outside world
 	 *  by emitting a signal
@@ -77,22 +79,22 @@ public:
 	 *  The caller should expect this process to be asynchronous and
 	 *  so should connect to the "finished" signal above.
 	 */
-	virtual void load(support::FileName const & filename) = 0;
+	void load(support::FileName const & filename);
 
 	/** Generate the pixmap.
 	 *  Uses the params to decide on color, grayscale etc.
 	 *  Returns true if the pixmap is created.
 	 */
-	virtual bool setPixmap(Params const & params) = 0;
+	bool setPixmap(Params const & params);
 
 	/// Clip the image using params.
-	virtual void clip(Params const & params) = 0;
+	void clip(Params const & params);
 
 	/// Rotate the image using params.
-	virtual void rotate(Params const & params) = 0;
+	void rotate(Params const & params);
 
 	/// Scale the image using params.
-	virtual void scale(Params const & params) = 0;
+	void scale(Params const & params);
 
 protected:
 	/// Must define default c-tor explicitly as we define a copy c-tor.
@@ -101,12 +103,108 @@ protected:
 	Image(Image const &) {}
 
 	/** Uses the params to ascertain the dimensions of the scaled image.
-	 *  Returned as Dimension(width, height, 0 descend).
-	 *  If something goes wrong, returns make_pair(getWidth(), getHeight(), 0)
+	 *  Returned as make_pair(width, height).
+	 *  If something goes wrong, returns make_pair(getWidth(), getHeight())
 	 */
-	Dimension scaledDimension(Params const & params) const;
+	std::pair<unsigned int, unsigned int>
+	getScaledDimensions(Params const & params) const;
+
+private:
+	/// Create a copy
+	virtual Image * clone_impl() const = 0;
+	/// Get the image width
+	virtual unsigned int getWidth_impl() const = 0;
+
+	/// Get the image height
+	virtual unsigned int getHeight_impl() const = 0;
+
+	/// is the image drawable ?
+	virtual bool isDrawable_impl() const = 0;
+
+	/** Start loading the image file.
+	 *  The caller should expect this process to be asynchronous and
+	 *  so should connect to the "finished" signal above.
+	 */
+	virtual void load_impl(support::FileName const & filename) = 0;
+
+	/** Generate the pixmap.
+	 *  Uses the params to decide on color, grayscale etc.
+	 *  Returns true if the pixmap is created.
+	 */
+	virtual bool setPixmap_impl(Params const & params) = 0;
+
+	/// Clip the image using params.
+	virtual void clip_impl(Params const & params) = 0;
+
+	/// Rotate the image using params.
+	virtual void rotate_impl(Params const & params) = 0;
+
+	/// Scale the image using params.
+	virtual void scale_impl(Params const & params) = 0;
 };
 
+
+inline
+Image * Image::clone() const
+{
+	return clone_impl();
+}
+
+
+inline
+unsigned int Image::getWidth() const
+{
+	return getWidth_impl();
+}
+
+
+inline
+unsigned int Image::getHeight() const
+{
+	return getHeight_impl();
+}
+
+
+inline
+bool Image::isDrawable() const
+{
+	return isDrawable_impl();
+}
+
+
+inline
+void Image::load(support::FileName const & filename)
+{
+	return load_impl(filename);
+}
+
+
+inline
+bool Image::setPixmap(Params const & params)
+{
+	return setPixmap_impl(params);
+}
+
+
+inline
+void Image::clip(Params const & params)
+{
+	return clip_impl(params);
+}
+
+
+inline
+void Image::rotate(Params const & params)
+{
+	return rotate_impl(params);
+}
+
+
+inline
+void Image::scale(Params const & params)
+{
+	return scale_impl(params);
+}
 
 } // namespace graphics
 } // namespace lyx

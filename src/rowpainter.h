@@ -18,89 +18,27 @@
 
 namespace lyx {
 
-class Bidi;
-class BufferView;
-class Font;
-class FontInfo;
-class Inset;
-class Language;
-class PainterInfo;
-class Paragraph;
-class ParagraphList;
-class ParagraphMetrics;
-class Row;
 class Text;
-class TextMetrics;
+class BufferView;
+class PainterInfo;
+class ViewMetricsInfo;
 
 namespace frontend { class Painter; }
 
-/**
- * A class used for painting an individual row of text.
- * FIXME: get rid of that class.
- */
-class RowPainter {
-public:
-	/// initialise and run painter
-	RowPainter(PainterInfo & pi, Text const & text,
-		pit_type pit, Row const & row, Bidi & bidi, int x, int y);
+/// paint visible paragraph of main text
+void paintText(BufferView & bv, frontend::Painter & painter);
 
-	/// paint various parts
-	/// FIXME: transfer to TextMetrics
-	void paintAppendix();
-	void paintDepthBar();
-	void paintChangeBar();
-	void paintFirst();
-	void paintLast();
-	void paintText();
-	void paintOnlyInsets();
+/// paint the rows of a text inset
+void paintTextInset(Text const & text, PainterInfo & pi, int x, int y);
 
-private:
-	void paintForeignMark(double orig_x, Language const * lang, int desc = 0);
-	void paintHebrewComposeChar(pos_type & vpos, FontInfo const & font);
-	void paintArabicComposeChar(pos_type & vpos, FontInfo const & font);
-	void paintChars(pos_type & vpos, FontInfo const & font,
-			bool hebrew, bool arabic);
-	int paintAppendixStart(int y);
-	void paintFromPos(pos_type & vpos);
-	void paintInset(Inset const * inset, pos_type const pos);
-	void paintInlineCompletion(Font const & font);
-	
-	/// return left margin
-	int leftMargin() const;
+/// some space for drawing the 'nested' markers (in pixel)
+inline int nestMargin() { return 15; }
 
-	/// return the label font for this row
-	FontInfo labelFont() const;
+/// margin for changebar
+inline int changebarMargin() { return 12; }
 
-	/// contains painting related information.
-	PainterInfo & pi_;
-
-	/// Text for the row
-	Text const & text_;
-	TextMetrics & text_metrics_;
-	ParagraphList const & pars_;
-
-	/// The row to paint
-	Row const & row_;
-
-	/// Row's paragraph
-	pit_type const pit_;
-	Paragraph const & par_;
-	ParagraphMetrics const & pm_;
-
-	/// bidi cache, comes from outside the rowpainter because
-	/// rowpainters are normally created in a for loop and there only
-	/// one of them is active at a time.
-	Bidi & bidi_;
-
-	/// is row erased? (change tracking)
-	bool erased_;
-
-	// Looks ugly - is
-	double const xo_;
-	int const yo_;    // current baseline
-	double x_;
-	int width_;
-};
+/// right margin
+inline int rightMargin() { return 10; }
 
 } // namespace lyx
 

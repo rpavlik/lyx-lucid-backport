@@ -42,8 +42,8 @@
 #
 #
 # The icons are found in the lib/images/ direcory under the name
-# action.png or action_parameter.png, except for math-insert, which
-# is e.g. lib/image/math/sum.png. Note that some characters are
+# action.xpm or action_parameter.xpm, except for math-insert, which
+# is e.g. lib/image/math/sum.xpm. Note that some characters are
 # replaced (e.g. ')' -> rbracket).
 #
 #  All other lyx commands will get a "unknown" icon.
@@ -102,9 +102,8 @@ ToolbarSet
 		Item "Insert margin note" "marginalnote-insert"
 		Item "Insert note" "note-insert"
 		Item "Insert box" "box-insert Frameless"
-		Item "Insert Hyperlink" "href-insert"
+		Item "Insert URL" "url-insert"
 		Item "Insert TeX code" "ert-insert"
-		Item "Insert math macro" "math-macro newmacroname newcommand"
 		Item "Include file" "dialog-show-new-inset include"
 		Separator
 		Item "Text style" "dialog-show character"
@@ -122,7 +121,6 @@ ToolbarSet
 		Item "Set bottom line" "tabular-feature toggle-line-bottom"
 		Item "Set left line" "tabular-feature toggle-line-left"
 		Item "Set right line" "tabular-feature toggle-line-right"
-		Item "Set border lines" "tabular-feature set-border-lines"
 		Item "Set all lines" "tabular-feature set-all-lines"
 		Item "Unset all lines" "tabular-feature unset-all-lines"
 		Separator
@@ -164,21 +162,6 @@ ToolbarSet
 		Item "Delete column" "tabular-feature delete-column"
 		Separator
 		Item "Toggle Math Panels" "toolbar-toggle math_panels"
-	End
-
-	Toolbar "mathmacrotemplate" "Math Macros"
-		Item "Remove Last Parameter" "math-macro-remove-param"
-		Item "Append Parameter" "math-macro-add-param"
-                Separator
-		Item "Make First Non-Optional into Optional Parameter" "math-macro-make-optional"
-		Item "Make Last Optional into Non-Optional Parameter"
-		"math-macro-make-nonoptional"
-                Item "Remove Optional Parameter" "math-macro-remove-optional-param"
-                Item "Insert Optional Parameter" "math-macro-add-optional-param"
-		Separator
-		Item "Remove Last Parameter Spitting Out To The Right" "math-macro-remove-greedy-param"
-		Item "Append Parameter Eating From The Right" "math-macro-append-greedy-param"
-                Item "Append Optional Parameter Eating From The Right" "math-macro-add-greedy-optional-param"
 	End
 	
 	Toolbar "minibuffer" "Command Buffer"
@@ -295,15 +278,9 @@ ToolbarSet
 		Item "Standard	\\frac" "math-insert \frac"
 		Item "No horizontal line	\\atop" "math-insert \atop"
 		Item "Nice fraction (3/4)	\\nicefrac" "math-insert \nicefrac"
-		Item "Unit (km)	\\unit" "math-insert \unitone"
-		Item "Unit (864 m)	\\unit" "math-insert \unittwo"
-		Item "Unit fraction (km/h)	\\unitfrac" "math-insert \unitfrac"
-		Item "Unit fraction (20 km/h)	\\unitfrac" "math-insert \unitfracthree"
 		Item "Text fraction (amsmath)	\\tfrac" "math-insert \tfrac"
 		Item "Display fraction (amsmath)	\\dfrac" "math-insert \dfrac"
-		Item "Binomial	\\binom" "math-insert \binom"
-		Item "Text binomial	\\tbinom" "math-insert \tbinom"
-		Item "Display binomial	\\dbinom" "math-insert \dbinom"
+		Item "Binomial	\\choose" "math-insert \choose"
 	End
 	
 	Toolbar "font" "Fonts"

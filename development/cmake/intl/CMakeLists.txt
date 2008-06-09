@@ -20,21 +20,24 @@ add_definitions(
     -DNO_XMALLOC
     -Dset_relocation_prefix=libintl_set_relocation_prefix
     -Drelocate=libintl_relocate
-    -DDEPENDS_ON_LIBICONV=1)
+    -DDEPENDS_ON_LIBICONV=1
+    )
     
-if(NOT APPLE)    
-	add_definitions(
-			-DLOCALEDIR=\\"${LOACLE_DIR}\\" 
-			-DLOCALE_ALIAS_PATH=\\"${LOACLE_DIR}\\"
-			-DLIBDIR=\\"${TOP_SRC_DIR}\\"
-			-DINSTALLDIR=\\"${PREFIX}\\" )
-else()
-	add_definitions(
-			-DLOCALEDIR='\"${LOCALE_DIR}\"' 
-			-DLOCALE_ALIAS_PATH='\"${LOCALE_DIR}\"'
-			-DLIBDIR='\"${TOP_SRC_DIR}\"'
-			-DINSTALLDIR='\"${PREFIX}\"' )
-endif()
+if (NOT APPLE)    
+add_definitions(
+		-DLOCALEDIR=\\"${LOACLE_DIR}\\" 
+		-DLOCALE_ALIAS_PATH=\\"${LOACLE_DIR}\\"
+		-DLIBDIR=\\"${TOP_SRC_DIR}\\"
+		-DINSTALLDIR=\\"${PREFIX}\\" 
+		)
+else (NOT APPLE) 
+add_definitions(
+		-DLOCALEDIR='\"${LOCALE_DIR}\"' 
+		-DLOCALE_ALIAS_PATH='\"${LOCALE_DIR}\"'
+		-DLIBDIR='\"${TOP_SRC_DIR}\"'
+		-DINSTALLDIR='\"${PREFIX}\"' 
+		)
+endif (NOT APPLE)
 
 file(GLOB intl_headers ${TOP_SRC_DIR}/intl/*.h)
 
@@ -62,7 +65,6 @@ set(intl_sources
       printf.c
       osdep.c
       intl-compat.c
-      langprefs.c
 )
 
 lyx_add_path(intl_sources ${TOP_SRC_DIR}/intl)
@@ -71,14 +73,13 @@ include_directories(${TOP_SRC_DIR}/intl ${CMAKE_CURRENT_BINARY_DIR})
 
 if(ICONV_FOUND)
 	include_directories(${ICONV_INCLUDE_DIR})
-endif()
+endif(ICONV_FOUND)
 
 add_library(intl STATIC ${intl_sources} ${intl_headers})
-set(LIBINTL_LIBRARIES intl)
 
 if(ICONV_FOUND)
 	target_link_libraries(intl ${ICONV_LIBRARY})
-endif()
+endif(ICONV_FOUND)
 
 project_source_group("${GROUP_CODE}" intl_sources intl_headers)
 

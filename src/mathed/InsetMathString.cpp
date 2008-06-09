@@ -12,31 +12,34 @@
 
 #include "InsetMathString.h"
 #include "MathStream.h"
+#include "MathStream.h"
 #include "MathSupport.h"
-
-#include "Encoding.h"
-
-#include "support/gettext.h"
-#include "support/lstrings.h"
-#include "support/textutils.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+using std::vector;
+
 
 InsetMathString::InsetMathString(docstring const & s)
 	: str_(s)
 {}
 
 
-Inset * InsetMathString::clone() const
+auto_ptr<Inset> InsetMathString::doClone() const
 {
-	return new InsetMathString(*this);
+	return auto_ptr<Inset>(new InsetMathString(*this));
 }
 
 
-void InsetMathString::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathString::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	mathed_string_dim(mi.base.font, str_, dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -103,54 +106,7 @@ void InsetMathString::mathmlize(MathStream & os) const
 
 void InsetMathString::write(WriteStream & os) const
 {
-	if (!os.latex()) {
-		os << str_;
-		return;
-	}
-
-	docstring::const_iterator cit = str_.begin();
-	docstring::const_iterator end = str_.end();
-
-	bool in_lyxmathsym = false;
-	while (cit != end) {
-		char_type const c = *cit;
-		try {
-			docstring command(1, c);
-			if (c < 0x80 || Encodings::latexMathChar(c, command)) {
-				if (in_lyxmathsym) {
-					os << '}';
-					in_lyxmathsym = false;
-				}
-				os << command;
-			} else {
-				if (!in_lyxmathsym) {
-					os << "\\lyxmathsym{";
-					in_lyxmathsym = true;
-				}
-				os << command;
-			}
-			// We may need a space if the command contains a macro
-			// and the last char is ASCII.
-			if (lyx::support::contains(command, '\\')
-			    && isAlphaASCII(command[command.size() - 1]))
-				os.pendingSpace(true);
-		} catch (EncodingException & e) {
-			if (os.dryrun()) {
-				// FIXME: this is OK for View->Source
-				// but math preview will likely fail.
-				os << "<" << _("LyX Warning: ")
-				   << _("uncodable character") << " '";
-				os << docstring(1, e.failed_char);
-				os << "'>";
-			} else {
-				// throw again
-				throw(e);
-			}
-		}
-		++cit;
-	}
-	if (in_lyxmathsym)
-		os << '}';
+	os << str_;
 }
 
 

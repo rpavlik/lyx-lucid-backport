@@ -8,9 +8,8 @@
 # be removed later.
 
 
-Format 7
+Format 4
 Style LyX-Code
-	Category              MainText
 	Margin                Static
 	LatexType             Environment
 	LatexName             lyxcode
@@ -69,6 +68,7 @@ Style Right_Address
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 	Preamble
 		\newcommand{\lyxrightaddress}[1]{
 			\par {\raggedleft \begin{tabular}{l}\ignorespaces
