@@ -14,9 +14,11 @@
 #define ENCODING_H
 
 #include "support/docstring.h"
+#include "support/types.h"
 
 #include <map>
 #include <set>
+#include <vector>
 
 namespace lyx {
 
@@ -29,7 +31,7 @@ public:
 	EncodingException(char_type c);
 	virtual ~EncodingException() throw() {}
 	virtual const char * what() const throw();
-
+ 
 	char_type failed_char;
 	int par_id;
 	pos_type pos;
@@ -53,9 +55,9 @@ public:
 	///
 	void init() const;
 	///
-	std::string const & name() const { return Name_; }
+	std::string const & name() const { return name_; }
 	///
-	std::string const & latexName() const { return LatexName_; }
+	std::string const & latexName() const { return latexName_; }
 	///
 	std::string const & iconvName() const { return iconvName_; }
 	/**
@@ -66,14 +68,16 @@ public:
 	 * LaTeX macro is known, a warning is given of lyxerr, and the
 	 * character is returned.
 	 */
-	docstring const latexChar(char_type c) const;
+	docstring latexChar(char_type c) const;
 	/// Which LaTeX package handles this encoding?
 	Package package() const { return package_; }
+	/// A list of all characters usable in this encoding
+	std::vector<char_type> symbolsList() const;
 private:
 	///
-	std::string Name_;
+	std::string name_;
 	///
-	std::string LatexName_;
+	std::string latexName_;
 	///
 	std::string iconvName_;
 	/// Is this a fixed width encoding?
@@ -121,9 +125,9 @@ public:
 	void read(support::FileName const & encfile,
 		  support::FileName const & symbolsfile);
 	/// Get encoding from LyX name \p name
-	Encoding const * getFromLyXName(std::string const & name) const;
+	Encoding const * fromLyXName(std::string const & name) const;
 	/// Get encoding from LaTeX name \p name
-	Encoding const * getFromLaTeXName(std::string const & name) const;
+	Encoding const * fromLaTeXName(std::string const & name) const;
 
 	///
 	const_iterator begin() const { return encodinglist.begin(); }
@@ -131,7 +135,7 @@ public:
 	const_iterator end() const { return encodinglist.end(); }
 
 	///
-	enum Letter_Form {
+	enum LetterForm {
 		///
 		FORM_ISOLATED,
 		///
@@ -142,19 +146,19 @@ public:
 		FORM_MEDIAL
 	};
 	///
-	static bool isComposeChar_hebrew(char_type c);
+	static bool isHebrewComposeChar(char_type c);
 	///
-	static bool isComposeChar_arabic(char_type c);
+	static bool isArabicComposeChar(char_type c);
 	///
-	static bool is_arabic_special(char_type c);
+	static bool isArabicSpecialChar(char_type c);
 	///
-	static bool is_arabic(char_type c);
+	static bool isArabicChar(char_type c);
 	///
-	static char_type transformChar(char_type c, Letter_Form form);
+	static char_type transformChar(char_type c, LetterForm form);
 	/// Is this a combining char?
 	static bool isCombiningChar(char_type c);
 	/**
-	 * Is this a known char from some script?
+	 * Is this a known char from some language?
 	 * If \p preamble is empty and code point \p c is known to belong
 	 * to a supported script, true is returned and \p preamble is set
 	 * to the corresponding entry in the unicodesymbols file.
@@ -163,13 +167,18 @@ public:
 	 */
 	static bool isKnownScriptChar(char_type const c, std::string & preamble);
 	/**
+	 * Convert \p c to something that LaTeX can understand in math mode.
+	 * \return whether \p command is a math mode command
+	 */
+	static bool latexMathChar(char_type c, docstring & command);
+	/**
 	 * Add the preamble snippet needed for the output of \p c to
 	 * \p features.
 	 * This does not depend on the used encoding, since the inputenc
 	 * package only maps the code point \p c to a command, it does not
 	 * make this command available.
 	 */
-	static void validate(char_type c, LaTeXFeatures & features);
+	static void validate(char_type c, LaTeXFeatures & features, bool for_mathed = false);
 
 private:
 	///

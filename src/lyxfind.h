@@ -15,7 +15,7 @@
 #ifndef LYXFIND_H
 #define LYXFIND_H
 
-#include "support/docstring.h"
+#include "support/strfwd.h"
 
 namespace lyx {
 
@@ -45,8 +45,9 @@ docstring const replace2string(docstring const & search,
 /** Parse the string encoding of the find request that is found in
  *  \c ev.argument and act on it.
  * The string is encoded by \c find2string.
+ * \return true if the string was found.
  */
-void find(BufferView * bv, FuncRequest const & ev);
+bool find(BufferView * bv, FuncRequest const & ev);
 
 /** Parse the string encoding of the replace request that is found in
  *  \c ev.argument and act on it.

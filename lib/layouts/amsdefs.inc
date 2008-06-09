@@ -2,10 +2,10 @@
 # Probably broken by Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 # modified and modularized by Emmanuel GUREGHIAN <gureghia@boston.bertin.fr>
 # Tinkered with Sep. '07 by Paul Rubin <rubin@msu.edu>
+# Modularized Jan '08 by Richard Heck <rgheck@brown.edu>
 
 # Including the maths stuff
-Format 4
-Input amsmaths.inc
+Format 7
 
 # The AMS documentclasses use the package amsmath and provide the
 # functionality of makeidx.sty.
@@ -14,7 +14,6 @@ Provides makeidx         1
 
 
 # the environments copied from the old amsart.layout are:
-# - Proof
 # - Bibliography
 # - Title
 # - Author
@@ -26,40 +25,10 @@ Provides makeidx         1
 # - Subjectclass
 
 
-Style Proof
-	Margin                First_Dynamic
-	LatexType             Environment
-	LatexName             proof
-	NextNoIndent          1
-	OptionalArgs          1
-	LabelSep              xx
-	ParIndent             MMM
-	ParSkip               0.4
-	ItemSep               0.2
-	TopSep                0.7
-	BottomSep             0.7
-	ParSep                0.3
-	Align                 Block
-	AlignPossible         Block, Left
-	LabelType             Static
-	LabelString           "Proof."
-	EndLabelType          Box
-	Font
-	  Shape               Up
-	  Size                Normal
-	EndFont
-	LabelFont
-	  Shape               Italic
-	EndFont
-	# We don't want the preamble from Theorem
-	Preamble
-	EndPreamble
-End
-
-
 ### Now the title stuff. We copy do not use stdstruct.inc to keep
 ### things in the right order
 Style Title
+	Category              FrontMatter
 	Margin                Static
 	LatexType             Command
 	InTitle               1
@@ -81,6 +50,7 @@ End
 
 
 Style Author
+	Category              FrontMatter
 	Margin                Static
 	LatexType             Command
 	InTitle               1
@@ -100,6 +70,7 @@ End
 
 
 Style Date
+	Category              FrontMatter
 	Margin                Dynamic
 	LatexType             Command
 	InTitle               1
@@ -123,6 +94,7 @@ End
 
 
 Style Abstract
+	Category              FrontMatter
 	Margin                First_Dynamic
 	LatexType             Environment
 	InTitle               1
@@ -149,6 +121,7 @@ End
 NoStyle Address
 
 Style Address
+	Category              FrontMatter
 	Margin                Dynamic
 	LatexType             Command
 	InTitle               1

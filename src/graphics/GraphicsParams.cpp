@@ -14,12 +14,10 @@
 
 #include "Length.h"
 
+#include <cstdlib>
 #include <sstream>
 
-
-using std::string;
-using std::abs;
-
+using namespace std;
 
 namespace lyx {
 namespace graphics {
@@ -47,7 +45,7 @@ bool operator!=(Params const & a, Params const & b)
 }
 
 
-std::ostream & operator<<(std::ostream & os, BoundingBox const & bb)
+ostream & operator<<(ostream & os, BoundingBox const & bb)
 {
 	os << bb.xl << ' ' << bb.yb << ' ' << bb.xr << ' ' << bb.yt;
 	return os;
@@ -65,7 +63,7 @@ BoundingBox::BoundingBox(string const & bb)
 	if (bb.empty())
 		return;
 
-	std::istringstream is(bb.c_str());
+	istringstream is(bb.c_str());
 	string a, b, c, d;
 	is >> a >> b >> c >> d;
 

@@ -16,17 +16,24 @@
 #include "Buffer.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
-#include "gettext.h"
+#include "support/gettext.h"
 #include "InsetIterator.h"
 #include "LaTeXFeatures.h"
 #include "MetricsInfo.h"
 #include "sgml.h"
 
+#include "support/docstream.h"
+
+using namespace std;
 
 namespace lyx {
 
-using std::string;
 
+/////////////////////////////////////////////////////////////////////
+//
+// InsetPrintNomencl
+//
+/////////////////////////////////////////////////////////////////////
 
 InsetNomencl::InsetNomencl(InsetCommandParams const & p)
 	: InsetCommand(p, "nomenclature"),
@@ -34,14 +41,25 @@ InsetNomencl::InsetNomencl(InsetCommandParams const & p)
 {}
 
 
-docstring const InsetNomencl::getScreenLabel(Buffer const &) const
+ParamInfo const & InsetNomencl::findInfo(string const & /* cmdName */)
+{
+	static ParamInfo param_info_;
+	if (param_info_.empty()) {
+		param_info_.add("prefix", ParamInfo::LATEX_OPTIONAL);
+		param_info_.add("symbol", ParamInfo::LATEX_REQUIRED);
+		param_info_.add("description", ParamInfo::LATEX_REQUIRED);
+	}
+	return param_info_;
+}
+
+
+docstring InsetNomencl::screenLabel() const
 {
 	return _("Nom");
 }
 
 
-int InsetNomencl::docbook(Buffer const &, odocstream & os,
-		OutputParams const &) const
+int InsetNomencl::docbook(odocstream & os, OutputParams const &) const
 {
 	os << "<glossterm linkend=\"" << nomenclature_entry_id << "\">"
 	   << sgml::escapeString(getParam("symbol"))
@@ -70,35 +88,44 @@ void InsetNomencl::validate(LaTeXFeatures & features) const
 }
 
 
-Inset::Code InsetNomencl::lyxCode() const
-{
-	return Inset::NOMENCL_CODE;
-}
-
+/////////////////////////////////////////////////////////////////////
+//
+// InsetPrintNomencl
+//
+/////////////////////////////////////////////////////////////////////
 
 InsetPrintNomencl::InsetPrintNomencl(InsetCommandParams const & p)
 	: InsetCommand(p, string())
 {}
 
 
-docstring const InsetPrintNomencl::getScreenLabel(Buffer const &) const
+ParamInfo const & InsetPrintNomencl::findInfo(string const & /* cmdName */)
+{
+	static ParamInfo param_info_;
+	if (param_info_.empty()) {
+		param_info_.add("labelwidth", ParamInfo::LATEX_REQUIRED);
+	}
+	return param_info_;
+}
+
+
+docstring InsetPrintNomencl::screenLabel() const
 {
 	return _("Nomenclature");
 }
 
 
-int InsetPrintNomencl::docbook(Buffer const & buf, odocstream & os,
-		OutputParams const &) const
+int InsetPrintNomencl::docbook(odocstream & os, OutputParams const &) const
 {
 	os << "<glossary>\n";
 	int newlines = 2;
-	for (InsetIterator it = inset_iterator_begin(buf.inset()); it;) {
-		if (it->lyxCode() == Inset::NOMENCL_CODE) {
+	InsetIterator it = inset_iterator_begin(buffer().inset());
+	while (it) {
+		if (it->lyxCode() == NOMENCL_CODE) {
 			newlines += static_cast<InsetNomencl const &>(*it).docbookGlossary(os);
 			++it;
-		} else if(it->lyxCode() == Inset::NOTE_CODE &&
-			  static_cast<InsetNote const &>(*it).params().type == InsetNoteParams::Note) {
-			// Don't output anything nested in note insets
+		} else if (!it->producesOutput()) {
+			// Ignore contents of insets that are not in output
 			size_t const depth = it.depth();
 			++it;
 			while (it.depth() > depth)
@@ -118,9 +145,9 @@ void InsetPrintNomencl::validate(LaTeXFeatures & features) const
 }
 
 
-Inset::Code InsetPrintNomencl::lyxCode() const
+InsetCode InsetPrintNomencl::lyxCode() const
 {
-	return Inset::NOMENCL_PRINT_CODE;
+	return NOMENCL_PRINT_CODE;
 }
 
 

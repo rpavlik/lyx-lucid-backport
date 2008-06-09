@@ -62,6 +62,7 @@ dist_dedoc_DATA = \
 	de/Formelnummerierung.lyx \
 	de/Intro.lyx \
 	de/Math.lyx \
+	de/Shortcuts.lyx \
 	de/Tutorial.lyx \
 	de/UserGuide.lyx
 
@@ -176,6 +177,15 @@ dist_itclipartdoc_DATA = \
 	it/clipart/it_footnoteQt4.png \
 	it/clipart/it_referenceQt4.png
 
+jadocdir = $(pkgdatadir)/doc/ja
+dist_jadoc_DATA = \
+	ja/Intro.lyx
+
+jaclipartdocdir = $(pkgdatadir)/doc/ja/clipart
+dist_jaclipartdoc_DATA = \
+	ja/clipart/footnoteQt4.png \
+	ja/clipart/referenceQt4.png
+
 nldocdir = $(pkgdatadir)/doc/nl
 dist_nldoc_DATA = \
 	nl/Intro.lyx \
@@ -233,9 +243,10 @@ dist_doc_DATA = \
 	FAQ.lyx \
 	Formula-numbering.lyx \
 	Intro.lyx \
-	LaTeXConfig.lyx.in \
+	LaTeXConfig.lyx \
 	Math.lyx \
 	Reference.lyx \
+	Shortcuts.lyx \
 	Tutorial.lyx \
 	UserGuide.lyx
 

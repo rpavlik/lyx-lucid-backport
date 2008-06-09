@@ -13,7 +13,7 @@
 #ifndef QT_FLOATPLACEMENT_H
 #define QT_FLOATPLACEMENT_H
 
-#include "ui/FloatPlacementUi.h"
+#include "ui_FloatPlacementUi.h"
 #include <QWidget>
 
 #include <string>
@@ -45,6 +45,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void changed();
+
+private:
+	/// one of figure or table?
+	bool standardfloat_;
 
 };
 

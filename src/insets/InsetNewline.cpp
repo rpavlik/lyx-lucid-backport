@@ -4,6 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,62 +13,158 @@
 
 #include "InsetNewline.h"
 
-#include "debug.h"
+#include "Dimension.h"
+#include "FuncRequest.h"
+#include "FuncStatus.h"
+#include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
 
+#include "frontends/Application.h"
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/docstring.h"
+
+using namespace std;
 
 namespace lyx {
 
-using std::endl;
-using std::ostream;
+InsetNewline::InsetNewline()
+{}
 
 
-void InsetNewline::read(Buffer const &, Lexer &)
+void InsetNewlineParams::write(ostream & os) const
 {
-	/* Nothing to read */
+	string command;
+	switch (kind) {
+	case InsetNewlineParams::NEWLINE:
+		os << "newline";
+		break;
+	case InsetNewlineParams::LINEBREAK:
+		os <<  "linebreak";
+		break;
+	}
 }
 
 
-void InsetNewline::write(Buffer const &, ostream & os) const
+void InsetNewlineParams::read(Lexer & lex)
 {
-	os << "\n\\newline\n";
+	string token;
+	lex.setContext("InsetNewlineParams::read");
+	lex >> token;	
+	if (token == "newline")
+		kind = InsetNewlineParams::NEWLINE;
+	else if (token == "linebreak")
+		kind = InsetNewlineParams::LINEBREAK;
+	else
+		lex.printError("Unknown kind: `$$Token'");
+	lex >> "\\end_inset";
 }
 
 
-bool InsetNewline::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetNewline::write(ostream & os) const
+{
+	os << "Newline ";
+	params_.write(os);
+}
+
+
+void InsetNewline::read(Lexer & lex)
+{
+	params_.read(lex);
+}
+
+
+void InsetNewline::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	frontend::FontMetrics const & fm = theFontMetrics(mi.base.font);
 	dim.asc = fm.maxAscent();
 	dim.des = fm.maxDescent();
 	dim.wid = fm.width('n');
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
 }
 
 
-int InsetNewline::latex(Buffer const &, odocstream &,
-			OutputParams const &) const
+void InsetNewline::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	lyxerr << "Eek, calling InsetNewline::latex !" << endl;
+	switch (cmd.action) {
+
+	case LFUN_INSET_MODIFY: {
+		InsetNewlineParams params;
+		string2params(to_utf8(cmd.argument()), params);
+		params_.kind = params.kind;
+		break;
+	}
+
+	default:
+		Inset::doDispatch(cur, cmd);
+		break;
+	}
+}
+
+
+bool InsetNewline::getStatus(Cursor & cur, FuncRequest const & cmd,
+	FuncStatus & status) const
+{
+	switch (cmd.action) {
+	// we handle these
+	case LFUN_INSET_MODIFY:
+		if (cmd.getArg(0) == "newline") {
+			InsetNewlineParams params;
+			string2params(to_utf8(cmd.argument()), params);
+			status.setOnOff(params_.kind == params.kind);
+		}
+		status.setEnabled(true);
+		return true;
+	default:
+		return Inset::getStatus(cur, cmd, status);
+	}
+}
+
+
+ColorCode InsetNewline::ColorName() const
+{
+	switch (params_.kind) {
+		case InsetNewlineParams::NEWLINE:
+			return Color_eolmarker;
+			break;
+		case InsetNewlineParams::LINEBREAK:
+			return Color_pagebreak;
+			break;
+		default:
+			return Color_eolmarker;
+			break;
+	}
+}
+
+
+int InsetNewline::latex(odocstream & os, OutputParams const &) const
+{
+	switch (params_.kind) {
+		case InsetNewlineParams::NEWLINE:
+			os << "\\\\\n";
+			break;
+		case InsetNewlineParams::LINEBREAK:
+			os << "\\linebreak{}\n";
+			break;
+		default:
+			os << "\\\\\n";
+			break;
+	}
 	return 0;
 }
 
 
-int InsetNewline::plaintext(Buffer const &, odocstream & os,
-			    OutputParams const &) const
+int InsetNewline::plaintext(odocstream & os, OutputParams const &) const
 {
 	os << '\n';
 	return PLAINTEXT_NEWLINE;
 }
 
 
-int InsetNewline::docbook(Buffer const &, odocstream & os,
-			  OutputParams const &) const
+int InsetNewline::docbook(odocstream & os, OutputParams const &) const
 {
 	os << '\n';
 	return 0;
@@ -76,6 +173,9 @@ int InsetNewline::docbook(Buffer const &, odocstream & os,
 
 void InsetNewline::draw(PainterInfo & pi, int x, int y) const
 {
+	FontInfo font;
+	font.setColor(ColorName());
+
 	frontend::FontMetrics const & fm = theFontMetrics(pi.base.font);
 	int const wid = fm.width('n');
 	int const asc = fm.maxAscent();
@@ -97,7 +197,7 @@ void InsetNewline::draw(PainterInfo & pi, int x, int y) const
 		xp[2] = int(x + wid * 0.625);
 	}
 
-	pi.pain.lines(xp, yp, 3, Color::eolmarker);
+	pi.pain.lines(xp, yp, 3, ColorName());
 
 	yp[0] = int(y - 0.500 * asc * 0.75);
 	yp[1] = int(y - 0.500 * asc * 0.75);
@@ -113,13 +213,67 @@ void InsetNewline::draw(PainterInfo & pi, int x, int y) const
 		xp[2] = int(x);
 	}
 
-	pi.pain.lines(xp, yp, 3, Color::eolmarker);
+	pi.pain.lines(xp, yp, 3, ColorName());
+
+	if (params_.kind == InsetNewlineParams::LINEBREAK) {
+
+		yp[2] = int(y - 0.500 * asc * 0.75);
+
+		if (pi.ltr_pos) {
+			xp[0] = int(x + 1.3 * wid);
+			xp[1] = int(x + 2 * wid);
+			xp[2] = int(x + 2 * wid);
+		} else {
+			xp[0] = int(x - 0.3 * wid);
+			xp[1] = int(x - wid);
+			xp[2] = int(x - wid);
+		}
+		pi.pain.lines(xp, yp, 3, ColorName());
+
+		yp[0] = int(y - 0.875 * asc * 0.75);
+		yp[1] = int(y - 0.500 * asc * 0.75);
+		yp[2] = int(y - 0.125 * asc * 0.75);
+	
+		if (pi.ltr_pos) {
+			xp[0] = int(x + 2 * wid * 0.813);
+			xp[1] = int(x + 2 * wid);
+			xp[2] = int(x + 2 * wid * 0.813);
+		} else {
+			xp[0] = int(x - wid * 0.625);
+			xp[1] = int(x - wid);
+			xp[2] = int(x - wid * 0.625);
+		}
+		pi.pain.lines(xp, yp, 3, ColorName());
+	}
 }
 
 
-bool InsetNewline::isSpace() const
+docstring InsetNewline::contextMenu(BufferView const &, int, int) const
 {
-	return true;
+	return from_ascii("context-newline");
+}
+
+
+void InsetNewline::string2params(string const & in, InsetNewlineParams & params)
+{
+	params = InsetNewlineParams();
+	if (in.empty())
+		return;
+	istringstream data(in);
+	Lexer lex;
+	lex.setStream(data);
+	lex.setContext("InsetNewline::string2params");
+	lex >> "newline";
+	params.read(lex);
+}
+
+
+string InsetNewline::params2string(InsetNewlineParams const & params)
+{
+	ostringstream data;
+	data << "newline" << ' ';
+	params.write(data);
+	return data.str();
 }
 
 

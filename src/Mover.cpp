@@ -12,83 +12,72 @@
 
 #include "Mover.h"
 
+#include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
-#include "support/lyxlib.h"
 #include "support/Systemcall.h"
 
 #include <fstream>
 #include <sstream>
 
-using std::ios;
-using std::string;
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::quoteName;
 
-bool Mover::copy(support::FileName const & from, support::FileName const & to,
-		 unsigned long int mode) const
+bool Mover::copy(FileName const & from, FileName const & to) const
 {
-	return do_copy(from, to, to.absFilename(), mode);
+	return do_copy(from, to, to.absFilename());
 }
 
 
-bool Mover::do_copy(support::FileName const & from, support::FileName const & to,
-		    string const &, unsigned long int mode) const
+bool Mover::do_copy(FileName const & from, FileName const & to,
+		    string const &) const
 {
-	return support::copy(from, to, mode);
+	return from.copyTo(to);
 }
 
 
-bool Mover::rename(support::FileName const & from,
-		   support::FileName const & to) const
+bool Mover::rename(FileName const & from,
+		   FileName const & to) const
 {
 	return do_rename(from, to, to.absFilename());
 }
 
 
-bool Mover::do_rename(support::FileName const & from, support::FileName const & to,
+bool Mover::do_rename(FileName const & from, FileName const & to,
 		      string const &) const
 {
-	return support::rename(from, to);
+	return from.moveTo(to);
 }
 
 
-bool SpecialisedMover::do_copy(support::FileName const & from, support::FileName const & to,
-			       string const & latex, unsigned long int mode) const
+bool SpecialisedMover::do_copy(FileName const & from, FileName const & to,
+			       string const & latex) const
 {
 	if (command_.empty())
-		return Mover::do_copy(from, to, latex, mode);
+		return Mover::do_copy(from, to, latex);
 
-	if (mode != (unsigned long int)-1) {
-		std::ofstream ofs(to.toFilesystemEncoding().c_str(), ios::binary | ios::out | ios::trunc);
-		if (!ofs)
-			return false;
-		ofs.close();
-		if (!support::chmod(to, mode))
-			return false;
-	}
+	string command = libScriptSearch(command_);
+	command = subst(command, "$$i", quoteName(from.toFilesystemEncoding()));
+	command = subst(command, "$$o", quoteName(to.toFilesystemEncoding()));
+	command = subst(command, "$$l", quoteName(latex));
 
-	string command = support::libScriptSearch(command_);
-	command = support::subst(command, "$$i", quoteName(from.toFilesystemEncoding()));
-	command = support::subst(command, "$$o", quoteName(to.toFilesystemEncoding()));
-	command = support::subst(command, "$$l", quoteName(latex));
-
-	support::Systemcall one;
-	return one.startscript(support::Systemcall::Wait, command) == 0;
+	Systemcall one;
+	return one.startscript(Systemcall::Wait, command) == 0;
 }
 
 
-bool SpecialisedMover::do_rename(support::FileName const & from, support::FileName const & to,
+bool SpecialisedMover::do_rename(FileName const & from, FileName const & to,
 				 string const & latex) const
 {
 	if (command_.empty())
 		return Mover::do_rename(from, to, latex);
 
-	if (!do_copy(from, to, latex, (unsigned long int)-1))
+	if (!do_copy(from, to, latex))
 		return false;
-	return support::unlink(from) == 0;
+	return from.removeFile();
 }
 
 

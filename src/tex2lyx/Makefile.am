@@ -1,8 +1,9 @@
 include $(top_srcdir)/config/common.am
 
-EXTRA_DIST = tex2lyx.man pch.h test-structure.tex test-insets.tex
+EXTRA_DIST = tex2lyx.man test-structure.tex test-insets.tex
+EXTRA_DIST += pch.h
 
-DISTCLEANFILES += tex2lyx.1 $(LINKED_FILES)
+DISTCLEANFILES += tex2lyx.1
 
 #noinst_LTLIBRARIES = libtexparser.la
 #
@@ -16,21 +17,33 @@ man_MANS = tex2lyx.1
 
 bin_PROGRAMS = tex2lyx
 
-AM_CPPFLAGS += $(PCH_FLAGS) -I$(srcdir)/.. $(BOOST_INCLUDES)
+DEFAULT_INCLUDES = 
 
-BOOST_LIBS = $(BOOST_REGEX) $(BOOST_FILESYSTEM) $(BOOST_IOSTREAMS)
+AM_CPPFLAGS += \
+	-DTEX2LYX \
+	$(PCH_FLAGS) \
+	-I$(top_srcdir)/src/tex2lyx \
+	-I$(top_srcdir)/src  \
+	-I$(top_builddir)/src \
+	$(BOOST_INCLUDES)
+
 
 LINKED_FILES = \
-	FloatList.cpp \
-	Floating.cpp \
-	Counters.cpp \
-	Layout.h \
-	Layout.cpp \
-	TextClass.cpp \
-	TextClass.h \
-	Lexer.cpp 
+	../FloatList.cpp \
+	../Floating.cpp \
+	../Counters.cpp \
+	../insets/InsetLayout.cpp \
+	../LayoutFile.h \
+	../Layout.h \
+	../Layout.cpp \
+	../TextClass.cpp \
+	../TextClass.h \
+	../Lexer.cpp \
+	../lengthcommon.cpp \
+	../Color.cpp \
+	../Color.h
 
-BUILT_SOURCES = $(PCH_FILE) $(LINKED_FILES)
+BUILT_SOURCES = $(PCH_FILE)
 
 tex2lyx_SOURCES = \
 	$(LINKED_FILES) \
@@ -41,7 +54,6 @@ tex2lyx_SOURCES = \
 	Font.cpp \
 	Font.h \
 	gettext.cpp \
-	lengthcommon.cpp \
 	Parser.cpp \
 	Parser.h \
 	tex2lyx.cpp \
@@ -52,15 +64,8 @@ tex2lyx_SOURCES = \
 	text.cpp
 
 tex2lyx_LDADD = \
-	$(top_builddir)/src/support/libsupport.la \
-	$(BOOST_LIBS) $(LIBICONV) @LIBS@
-
-$(LINKED_FILES) :
-	@rm -f $@ ; \
-	$(LN_S) $(top_srcdir)/src/$@ .
-
-rm_link_files:
-	rm -f $(LINKED_FILES)
+	$(top_builddir)/src/support/liblyxsupport.la \
+	$(LIBICONV) $(BOOST_LIBS) @LIBS@
 
 tex2lyx.1:
 	cp -p $(srcdir)/tex2lyx.man tex2lyx.1

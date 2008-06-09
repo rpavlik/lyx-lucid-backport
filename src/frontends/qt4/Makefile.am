@@ -1,62 +1,328 @@
 include $(top_srcdir)/config/common.am
-include $(srcdir)/Makefile.dialogs
 
-SUBDIRS = ui
+BUILT_SOURCES = $(UIFILES:%.ui=ui_%.h)
+BUILT_SOURCES += $(MOCEDFILES)
+BUILT_SOURCES += Resources.cpp Resources.qrc
 
-EXTRA_DIST = pch.h Makefile.dialogs
+CLEANFILES += $(BUILT_SOURCES)
 
-CLEANFILES += *_moc.cpp
+#########################  Qt stuff  #############################
+# Use _() for localization instead of tr() or trUtf8()
+UIC4FLAGS=-tr lyx::qt_
 
-libqt4_la_DEPENDENCIES = $(MOCEDFILES)
+ui_%.h: ui/%.ui
+	$(UIC4) $(UIC4FLAGS) $< -o $@
 
-MOCEDFILES = $(MOCFILES:.cpp=_moc.cpp)
+MOCEDFILES = $(MOCHEADER:%.h=%_moc.cpp)
 
 %_moc.cpp: %.h
 	$(MOC4) -o $@ $<
 
-BUILT_SOURCES = $(PCH_FILE) $(MOCEDFILES)
+Resources.qrc: Makefile
+	echo "<!DOCTYPE RCC><RCC version='1.0'><qresource>" > $@
+	find $(top_srcdir)/lib/images -name '*.png' \
+		| sed -e 's:$(top_srcdir)/lib/\(.*\):<file alias="\1">&</file>:' \
+		>> $@
+	echo "</qresource></RCC>" >> $@
 
-noinst_LTLIBRARIES = libqt4.la
+Resources.cpp: Resources.qrc
+	$(RCC4) $< -name Resources -o $@
 
-libqt4_la_LDFLAGS = $(QT4_LDFLAGS)
-libqt4_la_LIBADD = $(QT4_LIB) 
+
+#########################  LIBRARIES  #############################
+
+noinst_LTLIBRARIES = liblyxqt4.la
+
+liblyxqt4_la_DEPENDENCIES = $(MOCEDFILES)
+liblyxqt4_la_LDFLAGS = $(QT4_LDFLAGS)
+liblyxqt4_la_LIBADD = $(QT4_LIB) 
+
 AM_CPPFLAGS += \
 	$(QT4_CPPFLAGS) \
-	$(PCH_FLAGS) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/frontends \
 	-I$(top_srcdir)/images \
-	$(QT4_INCLUDES) $(BOOST_INCLUDES) \
-	-I$(top_srcdir)/src/frontends/controllers
+	$(QT4_INCLUDES) $(BOOST_INCLUDES)
 
-libqt4_la_SOURCES = \
-	alert_pimpl.cpp \
-	ColorCache.h ColorCache.cpp \
-	DockView.h \
-	Dialogs.cpp \
+SOURCEFILES = \
+	ButtonPolicy.cpp \
+	ButtonPolicy.h \
+	Dialog.cpp \
+	Dialog.h \
+	Resources.cpp \
+	Action.cpp \
+	BulletsModule.cpp \
+	ButtonController.cpp \
+	ColorCache.cpp \
+	CustomizedWidgets.cpp \
+	EmptyTable.cpp \
 	FileDialog.cpp \
-	GuiFontLoader.h GuiFontLoader.cpp \
-	GuiFontMetrics.h GuiFontMetrics.cpp \
-	KeySymbol.cpp \
-	QLMenubar.cpp QLMenubar.h \
-	QBox.cpp QBox.h \
-	QBranches.cpp QBranches.h \
-	QCitation.cpp QCitation.h \
-	QDialogView.cpp QDialogView.h \
-	QFloat.cpp QFloat.h \
-	QGraphics.cpp QGraphics.h \
-	QListings.cpp QListings.h \
-	QLImage.cpp QLImage.h \
-	QViewSource.cpp QViewSource.h \
-	QLPainter.cpp QLPainter.h \
-	QKeySymbol.cpp QKeySymbol.h \
-	QPrint.cpp QPrint.h \
-	Qt2BC.cpp	Qt2BC.h	\
-	CheckedLineEdit.cpp CheckedLineEdit.h \
-	PanelStack.h PanelStack.cpp \
-	QFontExample.h QFontExample.cpp \
-	qlkey.h \
-	qt_helpers.h qt_helpers.cpp \
-	qtTimeout.cpp qtTimeout.h \
-	UrlView.cpp UrlView.h \
-	$(MOCFILES)
+	FloatPlacement.cpp \
+	GuiAbout.cpp \
+	GuiAlert.cpp \
+	GuiApplication.cpp \
+	GuiBibitem.cpp \
+	GuiBibtex.cpp \
+	GuiBox.cpp \
+	GuiBranch.cpp \
+	GuiBranches.cpp \
+	GuiChanges.cpp \
+	GuiCharacter.cpp \
+	GuiCitation.cpp \
+	GuiClipboard.cpp \
+	GuiCommandBuffer.cpp \
+	GuiCommandEdit.cpp \
+	GuiCompleter.cpp \
+	GuiDelimiter.cpp \
+	GuiDialog.cpp \
+	GuiDocument.cpp \
+	GuiErrorList.cpp \
+	GuiERT.cpp \
+	GuiExternal.cpp \
+	GuiFloat.cpp \
+	GuiFontExample.cpp \
+	GuiFontLoader.cpp \
+	GuiFontMetrics.cpp \
+	GuiGraphics.cpp \
+	GuiHSpace.cpp \
+	GuiHyperlink.cpp \
+	GuiIdListModel.cpp \
+	GuiImage.cpp \
+	GuiInclude.cpp \
+	GuiKeySymbol.cpp \
+	GuiLabel.cpp \
+	GuiListings.cpp \
+	GuiLog.cpp \
+	GuiMathMatrix.cpp \
+	GuiNomencl.cpp \
+	GuiNote.cpp \
+	GuiPainter.cpp \
+	GuiParagraph.cpp \
+	GuiPrefs.cpp \
+	GuiPrint.cpp \
+	GuiRef.cpp \
+	GuiSearch.cpp \
+	GuiSelection.cpp \
+	GuiSelectionManager.cpp \
+	GuiSendto.cpp \
+	GuiSetBorder.cpp \
+	GuiShowFile.cpp \
+	GuiSpellchecker.cpp \
+	GuiSymbols.cpp \
+	GuiTabular.cpp \
+	GuiTabularCreate.cpp \
+	GuiTexinfo.cpp \
+	GuiThesaurus.cpp \
+	GuiToc.cpp \
+	GuiToolbar.cpp \
+	GuiView.cpp \
+	GuiViewSource.cpp \
+	GuiVSpace.cpp \
+	GuiWorkArea.cpp \
+	GuiWrap.cpp \
+	IconPalette.cpp \
+	InsertTableWidget.cpp \
+	LengthCombo.cpp \
+	LyXFileDialog.cpp \
+	LaTeXHighlighter.cpp \
+	Menus.cpp \
+	PanelStack.cpp \
+	qt_helpers.cpp \
+	TocModel.cpp \
+	TocWidget.cpp \
+	Toolbars.cpp \
+	Validator.cpp 
+
+NOMOCHEADER = \
+	ButtonController.h \
+	ColorCache.h \
+	DialogView.h \
+	DockView.h \
+	FileDialog.h \
+	GuiFontExample.h \
+	GuiFontLoader.h \
+	GuiFontMetrics.h \
+	GuiIdListModel.h \
+	GuiImage.h \
+	GuiKeySymbol.h \
+	GuiPainter.h \
+	LaTeXHighlighter.h \
+	qt_i18n.h \
+	qt_helpers.h \
+	Toolbars.h
+
+MOCHEADER = \
+	Action.h \
+	BulletsModule.h \
+	CustomizedWidgets.h \
+	EmptyTable.h \
+	FloatPlacement.h \
+	GuiAbout.h \
+	GuiApplication.h \
+	GuiBibitem.h \
+	GuiBibtex.h \
+	GuiBox.h \
+	GuiBranches.h \
+	GuiBranch.h \
+	GuiChanges.h \
+	GuiCharacter.h \
+	GuiCitation.h \
+	GuiClipboard.h \
+	GuiCommandBuffer.h \
+	GuiCommandEdit.h \
+	GuiCompleter.h \
+	GuiDelimiter.h \
+	GuiDialog.h \
+	GuiDocument.h \
+	GuiErrorList.h \
+	GuiERT.h \
+	GuiExternal.h \
+	GuiFloat.h \
+	GuiGraphics.h \
+	GuiHSpace.h \
+	GuiHyperlink.h \
+	GuiInclude.h \
+	GuiLabel.h \
+	GuiListings.h \
+	GuiLog.h \
+	GuiMathMatrix.h \
+	GuiNomencl.h \
+	GuiNote.h \
+	GuiParagraph.h \
+	GuiPrefs.h \
+	GuiPrint.h \
+	GuiRef.h \
+	GuiSearch.h \
+	GuiSelection.h \
+	GuiSelectionManager.h \
+	GuiSendto.h \
+	GuiSetBorder.h \
+	GuiShowFile.h \
+	GuiSpellchecker.h \
+	GuiSymbols.h \
+	GuiTabularCreate.h \
+	GuiTabular.h \
+	GuiTexinfo.h \
+	GuiThesaurus.h \
+	GuiToc.h \
+	GuiToolbar.h \
+	GuiView.h \
+	GuiViewSource.h \
+	GuiVSpace.h \
+	GuiWorkArea.h \
+	GuiWrap.h \
+	IconPalette.h \
+	InsertTableWidget.h \
+	LengthCombo.h \
+	LyXFileDialog.h \
+	Menus.h \
+	PanelStack.h \
+	TocModel.h \
+	TocWidget.h \
+	Validator.h
+
+UIFILES = \
+	AboutUi.ui \
+	AskForTextUi.ui \
+	BibitemUi.ui \
+	BiblioUi.ui \
+	BibtexAddUi.ui \
+	BibtexUi.ui \
+	BoxUi.ui \
+	BranchesUi.ui \
+	BranchUi.ui \
+	BulletsUi.ui \
+	ChangesUi.ui \
+	CharacterUi.ui \
+	CitationUi.ui \
+	DelimiterUi.ui \
+	DocumentUi.ui \
+	ErrorListUi.ui \
+	ERTUi.ui \
+	ExternalUi.ui \
+	FloatPlacementUi.ui \
+	FloatUi.ui \
+	FontUi.ui \
+	GraphicsUi.ui \
+	HSpaceUi.ui \
+	HyperlinkUi.ui \
+	IncludeUi.ui \
+	LabelUi.ui \
+	LanguageUi.ui \
+	LaTeXUi.ui \
+	ListingsUi.ui \
+	LogUi.ui \
+	MarginsUi.ui \
+	MathMatrixUi.ui \
+	MathsUi.ui \
+	NomenclUi.ui \
+	NoteUi.ui \
+	NumberingUi.ui \
+	PageLayoutUi.ui \
+	ParagraphUi.ui \
+	PDFSupportUi.ui \
+	PreambleUi.ui \
+	PrefColorsUi.ui \
+	PrefCompletionUi.ui \
+	PrefConvertersUi.ui \
+	PrefDateUi.ui \
+	PrefDisplayUi.ui \
+	PrefEditUi.ui \
+	PrefFileformatsUi.ui \
+	PrefIdentityUi.ui \
+	PrefInputUi.ui \
+	PrefLanguageUi.ui \
+	PrefLatexUi.ui \
+	PrefPathsUi.ui \
+	PrefPlaintextUi.ui \
+	PrefPrinterUi.ui \
+	PrefScreenFontsUi.ui \
+	PrefShortcutsUi.ui \
+	PrefSpellcheckerUi.ui \
+	PrefsUi.ui \
+	PrefUi.ui \
+	PrintUi.ui \
+	RefUi.ui \
+	SearchUi.ui \
+	SendtoUi.ui \
+	ShortcutUi.ui \
+	ShowFileUi.ui \
+	SpellcheckerUi.ui \
+	SymbolsUi.ui \
+	TabularCreateUi.ui \
+	TabularUi.ui \
+	TexinfoUi.ui \
+	TextLayoutUi.ui \
+	ThesaurusUi.ui \
+	TocUi.ui \
+	ViewSourceUi.ui \
+	VSpaceUi.ui \
+	WrapUi.ui
+
+
+liblyxqt4.cpp:
+	@echo -e '$(SOURCEFILES:%=\n#include "%")\n' > $@
+
+if MONOLITHIC_FRONTEND_QT4
+
+liblyxqt4_la_SOURCES = \
+	liblyxqt4.cpp \
+	$(MOCHEADER) \
+	$(NOMOCHEADER)
+
+BUILT_SOURCES += liblyxqt4.cpp
+CLEANFILES += liblyxqt4.cpp
+
+else
+
+liblyxqt4_la_SOURCES = \
+	$(SOURCEFILES) \
+	$(MOCHEADER) \
+	$(NOMOCHEADER)
+
+EXTRA_DIST = pch.h ui/compile_uic.sh $(UIFILES:%=ui/%)
+BUILT_SOURCES += $(PCH_FILE)
+AM_CPPFLAGS += $(PCH_FLAGS)
+
+
+endif

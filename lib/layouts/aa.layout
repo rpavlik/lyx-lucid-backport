@@ -11,7 +11,7 @@
 #             abstract is command
 
 
-Format 4
+Format 7
 Columns                 2
 Sides                   2
 SecNumDepth             3
@@ -90,6 +90,7 @@ End
 # OK, now we have a more or less consistent Ordering. Now fill the
 # definitions.  First, the standard includes
 
+Input stdinsets.inc
 Input stdlists.inc
 Input stdsections.inc
 Input stdtitle.inc
@@ -147,7 +148,6 @@ Style Offprint
 	InTitle               1
 	LatexName             offprints
 	Align                 Left
-	AlignPossible         Left
 	LeftMargin            "Offprint Requests to:M"
 	LabelType             Static
 	LabelString           "Offprint Requests to:"
@@ -170,7 +170,6 @@ Style Mail
 	InTitle               1
 	LatexName             mail
 	Align                 Left
-	AlignPossible         Left
 	LeftMargin            "Correspondence to:M"
 	LabelType             Static
 	LabelString           "Correspondence to:"
@@ -197,7 +196,6 @@ Style Acknowledgement
 	BottomSep             0
 	ParSep                0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Static
 	LabelString           "Acknowledgements."
 	LabelSep              M
@@ -259,7 +257,6 @@ End
 
 Style Author
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	BottomSep             1.5
 	Font
@@ -274,7 +271,6 @@ Style Date
 	LabelSep              ""
 	TopSep                1.2
 	Align                 Left
-	AlignPossible         Left
 	Font
 	  Size                Small
 	EndFont
@@ -295,7 +291,6 @@ Style Abstract
 	BottomSep             0.7
 	ParSep                0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             static
 	LabelString           "Abstract"
 	LabelSep              M
@@ -313,7 +308,6 @@ End
 
 Style Bibliography
 	Align                 Left
-	AlignPossible         Left
 	LabelFont
 	  Series              Bold
 	EndFont

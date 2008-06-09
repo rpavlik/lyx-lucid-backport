@@ -13,10 +13,9 @@
 #include "MathAtom.h"
 #include "InsetMath.h"
 
+using namespace std;
 
 namespace lyx {
-
-using std::swap;
 
 
 MathAtom::MathAtom()
@@ -33,7 +32,7 @@ MathAtom::MathAtom(MathAtom const & at)
 	: nucleus_(0)
 {
 	if (at.nucleus_)
-		nucleus_ = static_cast<InsetMath*>(at.nucleus_->clone().release());
+		nucleus_ = static_cast<InsetMath*>(at.nucleus_->clone());
 }
 
 

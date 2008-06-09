@@ -14,9 +14,10 @@
 
 #include "InsetMath.h"
 
+// FIXME: remove
+#include "support/docstring.h"
 
 namespace lyx {
-
 
 /** Abstract base class for all math objects that contain nested items.
     This is basically everything that is not a single character or a
@@ -48,23 +49,24 @@ public:
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
 		bool boundary, int & x, int & y) const;
 	///
-	void edit(Cursor & cur, bool left);
+	void edit(Cursor & cur, bool front, 
+		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 
-	/// order of movement through the cells when pressing the left key
-	bool idxLeft(Cursor &) const;
-	/// order of movement through the cells when pressing the right key
-	bool idxRight(Cursor &) const;
+	/// order of movement through the cells when moving backwards
+	bool idxBackward(Cursor &) const;
+	/// order of movement through the cells when moving forward
+	bool idxForward(Cursor &) const;
 
-	/// move one physical cell up
+	/// move to next cell
 	bool idxNext(Cursor &) const;
-	/// move one physical cell down
+	/// move to previous cell
 	bool idxPrev(Cursor &) const;
 
-	/// target pos when we enter the inset from the left by pressing "Right"
+	/// target pos when we enter the inset while moving forward
 	bool idxFirst(Cursor &) const;
-	/// target pos when we enter the inset from the right by pressing "Left"
+	/// target pos when we enter the inset while moving backwards
 	bool idxLast(Cursor &) const;
 
 	/// number of cells currently governed by us
@@ -74,7 +76,7 @@ public:
 	/// access to the lock
 	void lock(bool);
 	/// get notification when the cursor leaves this inset
-	bool notifyCursorLeaves(Cursor & cur);
+	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
 
 	/// direct access to the cell.
 	/// inlined because shows in profile.
@@ -103,12 +105,28 @@ public:
 	/// writes [, name(), and args in []
 	void normalize(NormalStream & os) const;
 	///
-	int latex(Buffer const &, odocstream & os,
-			OutputParams const & runparams) const;
+	int latex(odocstream & os, OutputParams const & runparams) const;
 	///
 	bool setMouseHover(bool mouse_hover);
 	///
 	bool mouseHovered() const { return mouse_hover_; }
+
+	///
+	bool completionSupported(Cursor const &) const;
+	///
+	bool inlineCompletionSupported(Cursor const & cur) const;
+	///
+	bool automaticInlineCompletion() const;
+	///
+	bool automaticPopupCompletion() const;
+	///
+	CompletionList const * createCompletionList(Cursor const & cur) const;
+	///
+	docstring completionPrefix(Cursor const & cur) const;
+	///
+	bool insertCompletion(Cursor & cur, docstring const & s, bool finished);
+	///
+	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
 
 protected:
 	///
@@ -138,8 +156,8 @@ protected:
 	/// of \p cur. Return whether the cursor should stay in the formula.
 	bool interpretChar(Cursor & cur, char_type c);
 	///
-	bool script(Cursor & cur, bool,
-		docstring const & save_selection = docstring());
+	bool script(Cursor & cur, bool);
+	bool script(Cursor & cur, bool, docstring const & save_selection);
 
 public:
 	/// interpret \p str and insert the result at the current position of
@@ -154,6 +172,13 @@ private:
 	void lfunMouseRelease(Cursor &, FuncRequest &);
 	///
 	void lfunMouseMotion(Cursor &, FuncRequest &);
+	/// Find a macro to fold or unfold, starting at searchCur and searchCur.nextInset() pointing to a macro
+	/// afterwards if found
+	bool findMacroToFoldUnfold(Cursor & searchCur, bool fold) const;
+	/// move cursor forward
+	bool cursorMathForward(Cursor & cur);
+	/// move cursor backwards
+	bool cursorMathBackward(Cursor & cur);
 
 protected:
 	/// we store the cells in a vector

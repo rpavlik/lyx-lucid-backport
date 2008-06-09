@@ -50,10 +50,10 @@ public:
 	RenderPreview(Inset const *);
 	RenderPreview(RenderPreview const &, Inset const *);
 	~RenderPreview();
-	std::auto_ptr<RenderBase> clone(Inset const *) const;
+	RenderBase * clone(Inset const *) const;
 
 	/// Compute the size of the object, returned in dim
-	bool metrics(MetricsInfo &, Dimension & dim) const;
+	void metrics(MetricsInfo &, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 

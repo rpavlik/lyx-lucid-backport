@@ -11,11 +11,11 @@
 #include <config.h>
 
 #include "InsetMathXYMatrix.h"
-#include "MathStream.h"
 
 #include "LaTeXFeatures.h"
-#include "support/std_ostream.h"
+#include "MathStream.h"
 
+#include <ostream>
 
 namespace lyx {
 
@@ -25,9 +25,9 @@ InsetMathXYMatrix::InsetMathXYMatrix(Length const & s, char c)
 {}
 
 
-std::auto_ptr<Inset> InsetMathXYMatrix::doClone() const
+Inset * InsetMathXYMatrix::clone() const
 {
-	return std::auto_ptr<Inset>(new InsetMathXYMatrix(*this));
+	return new InsetMathXYMatrix(*this);
 }
 
 
@@ -43,15 +43,11 @@ int InsetMathXYMatrix::rowsep() const
 }
 
 
-bool InsetMathXYMatrix::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathXYMatrix::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	if (mi.base.style == LM_ST_DISPLAY)
 		mi.base.style = LM_ST_TEXT;
 	InsetMathGrid::metrics(mi, dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 

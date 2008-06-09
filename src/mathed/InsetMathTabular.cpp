@@ -11,22 +11,16 @@
 #include <config.h>
 
 #include "InsetMathTabular.h"
+
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathStream.h"
 
 #include "support/lstrings.h"
-#include "support/std_ostream.h"
 
-#include <iterator>
-
+#include <ostream>
 
 namespace lyx {
-
-
-using std::string;
-using std::auto_ptr;
-
 
 InsetMathTabular::InsetMathTabular(docstring const & name, int m, int n)
 	: InsetMathGrid(m, n), name_(name)
@@ -39,27 +33,26 @@ InsetMathTabular::InsetMathTabular(docstring const & name, int m, int n,
 {}
 
 
-InsetMathTabular::InsetMathTabular(docstring const & name, char valign,
-		docstring const & halign)
-	: InsetMathGrid(valign, halign), name_(name)
-{}
 
-
-auto_ptr<Inset> InsetMathTabular::doClone() const
+Inset * InsetMathTabular::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathTabular(*this));
+	return new InsetMathTabular(*this);
 }
 
 
-bool InsetMathTabular::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathTabular::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	FontSetChanger dummy(mi.base, "textnormal");
 	InsetMathGrid::metrics(mi, dim);
 	dim.wid += 6;
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
+}
+
+
+Dimension const InsetMathTabular::dimension(BufferView const & bv) const
+{
+	Dimension dim = InsetMathGrid::dimension(bv);
+	dim.wid += 6;
+	return dim;
 }
 
 
@@ -76,9 +69,10 @@ void InsetMathTabular::write(WriteStream & os) const
 		os << "\\protect";
 	os << "\\begin{" << name_ << '}';
 
-	if (v_align_ == 't' || v_align_ == 'b')
-		os << '[' << char(v_align_) << ']';
-	os << '{' << halign() << "}\n";
+	char const v = verticalAlignment();
+	if (v == 't' || v == 'b')
+		os << '[' << v << ']';
+	os << '{' << horizontalAlignments() << "}\n";
 
 	InsetMathGrid::write(os);
 

@@ -13,11 +13,8 @@
 #ifndef LYX_SUPPORT_UNICODE_H
 #define LYX_SUPPORT_UNICODE_H
 
-#include "support/types.h"
+#include "support/strfwd.h"
 
-#include <boost/scoped_ptr.hpp>
-
-#include <string>
 #include <vector>
 
 
@@ -26,34 +23,26 @@ namespace lyx {
 class IconvProcessor
 {
 public:
-	IconvProcessor(
-		char const * tocode = "",
-		char const * fromcode = "");
+	IconvProcessor(char const * tocode = "", char const * fromcode = "");
 	/// copy constructor needed because of pimpl_
 	IconvProcessor(IconvProcessor const &);
 	/// assignment operator needed because of pimpl_
-	IconvProcessor & operator=(IconvProcessor const &);
-	/// destructor (needs to be implemented in the .C file because the
-	/// boost::scoped_ptr destructor needs a fully defined type
+	void operator=(IconvProcessor const &);
+	/// destructor
 	~IconvProcessor();
 
 	/// convert any data from \c fromcode to \c tocode unicode format.
 	/// \return the number of bytes of the converted output buffer.
-	int convert(
-		char const * in_buffer,
-		size_t in_size,
-		char * out_buffer,
-		size_t max_out_size);
+	int convert(char const * in_buffer, size_t in_size,
+		char * out_buffer, size_t max_out_size);
+
 private:
 	/// open iconv.
 	/// \return true if the processor is ready to use.
 	bool init();
-
-	std::string tocode_;
-	std::string fromcode_;
-
-	struct Private;
-	boost::scoped_ptr<Private> pimpl_;
+	/// hide internals
+	struct Impl;
+	Impl * pimpl_;
 };
 
 // A single codepoint conversion for utf8_to_ucs4 does not make
@@ -86,8 +75,8 @@ eightbit_to_ucs4(char const * s, size_t ls, std::string const & encoding);
 
 /// convert \p s from ucs4 to encoding \p encoding.
 /// \p encoding must be a valid iconv 8bit encoding
-std::vector<char>
-ucs4_to_eightbit(char_type const * ucs4str, size_t ls, std::string const & encoding);
+std::vector<char> ucs4_to_eightbit(char_type const * ucs4str,
+	size_t ls, std::string const & encoding);
 
 /// convert ucs4 character \p c to encoding \p encoding.
 /// \p encoding must be a valid iconv 8bit encoding

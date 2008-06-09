@@ -13,11 +13,14 @@
 #define MATH_HULLINSET_H
 
 #include "InsetMathGrid.h"
+
 #include <boost/scoped_ptr.hpp>
 
 
 namespace lyx {
 
+class InsetLabel;
+class ParConstIterator;
 class RenderPreview;
 
 
@@ -31,11 +34,17 @@ public:
 	///
 	~InsetMathHull();
 	///
+	void setBuffer(Buffer &);
+	///
+	void updateLabels(ParIterator const &);
+	///
+	void addToToc(DocIterator const &);
+	///
 	InsetMathHull & operator=(InsetMathHull const &);
 	///
 	mode_type currentMode() const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 	///
@@ -54,9 +63,6 @@ public:
 	bool numberedType() const;
 	///
 	bool ams() const;
-	/// Appends \c list with all labels found within this inset.
-	void getLabelList(Buffer const &,
-			  std::vector<docstring> & list) const;
 	///
 	void validate(LaTeXFeatures & features) const;
 	/// identifies HullInset
@@ -99,27 +105,31 @@ public:
 	void infoize(odocstream & os) const;
 
 	///
-	void write(Buffer const &, std::ostream & os) const;
+	void write(std::ostream & os) const;
 	///
-	void read(Buffer const &, Lexer & lex);
+	void read(Lexer & lex);
 	///
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	/// the string that is passed to the TOC
-	virtual void textString(Buffer const &, odocstream &) const;
+	void textString(odocstream &) const;
 
 	/// get notification when the cursor leaves this inset
-	bool notifyCursorLeaves(Cursor & cur);
+	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
 	///
-	//bool insetAllowed(Code code) const;
+	//bool insetAllowed(InsetCode code) const;
 	///
 	void addPreview(graphics::PreviewLoader &) const;
 
 	///
 	static int displayMargin() { return 12; }
+	
+	/// Force inset into LTR environment if surroundings are RTL?
+	virtual bool forceLTR() const { return true; }
+
+	///
+	virtual docstring contextMenu(BufferView const &, int, int) const;
 
 protected:
 	InsetMathHull(InsetMathHull const &);
@@ -133,7 +143,7 @@ protected:
 	docstring eolString(row_type row, bool emptyline, bool fragile) const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	void setType(HullType type);
 	///
@@ -176,9 +186,9 @@ private:
 	/// "none", "simple", "display", "eqnarray",...
 	HullType type_;
 	///
-	std::vector<int> nonum_;
+	std::vector<bool> nonum_;
 	///
-	std::vector<docstring> label_;
+	std::vector<InsetLabel *> label_;
 	///
 	boost::scoped_ptr<RenderPreview> preview_;
 	///
@@ -188,7 +198,7 @@ private:
 //
 public:
 	/// what appears in the minibuffer when opening
-	virtual docstring const editMessage() const;
+	docstring editMessage() const;
 	///
 	virtual void mutateToText();
 	///
@@ -196,13 +206,14 @@ public:
 	///
 	EDITABLE editable() const { return HIGHLY_EDITABLE; }
 	///
-	void edit(Cursor & cur, bool left);
+	void edit(Cursor & cur, bool front, 
+		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 	///
 	DisplayType display() const;
 	///
-	Code lyxCode() const;
+	InsetCode lyxCode() const;
 
 protected:
 	///

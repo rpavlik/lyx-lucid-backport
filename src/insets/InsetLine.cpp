@@ -12,56 +12,58 @@
 
 #include "InsetLine.h"
 
-#include "debug.h"
-#include "Color.h"
-#include "Text.h"
+#include "Dimension.h"
+#include "Font.h"
 #include "MetricsInfo.h"
 #include "LaTeXFeatures.h"
 #include "OutputParams.h"
+#include "Text.h"
 
 #include "frontends/Painter.h"
 
+#include "support/debug.h"
+#include "support/docstream.h"
+
+
+
+using namespace std;
 
 namespace lyx {
 
 using frontend::Painter;
 
-using std::endl;
-using std::ostream;
 
-
-void InsetLine::read(Buffer const &, Lexer &)
+void InsetLine::read(Lexer &)
 {
 	/* Nothing to read */
 }
 
 
-void InsetLine::write(Buffer const &, ostream & os) const
+void InsetLine::write(ostream & os) const
 {
 	os << "\n\\lyxline\n";
 }
 
 
-bool InsetLine::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetLine::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	dim.asc = 3;
 	dim.des = 3;
 	dim.wid = mi.base.textwidth;
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
+	// Cache the inset dimension. 
+	setDimCache(mi, dim);
 }
 
 
 void InsetLine::draw(PainterInfo & pi, int x, int y) const
 {
-	pi.pain.line(x, y, x + dim_.wid, y, Color::topline, Painter::line_solid,
-			Painter::line_thick);
+	Dimension const dim = dimension(*pi.base.bv);
+	pi.pain.line(x, y, x + dim.wid, y, Color_topline,
+		Painter::line_solid, Painter::line_thick);
 }
 
 
-int InsetLine::latex(Buffer const &, odocstream & os,
-		     OutputParams const & runparams) const
+int InsetLine::latex(odocstream & os, OutputParams const & runparams) const
 {
 	os << "\\lyxline{\\"
 	   << from_ascii(runparams.local_font->latexSize()) << '}';
@@ -69,16 +71,14 @@ int InsetLine::latex(Buffer const &, odocstream & os,
 }
 
 
-int InsetLine::plaintext(Buffer const &, odocstream & os,
-			 OutputParams const &) const
+int InsetLine::plaintext(odocstream & os, OutputParams const &) const
 {
 	os << "\n-------------------------------------------\n";
 	return PLAINTEXT_NEWLINE;
 }
 
 
-int InsetLine::docbook(Buffer const &, odocstream & os,
-		       OutputParams const &) const
+int InsetLine::docbook(odocstream & os, OutputParams const &) const
 {
 	os << '\n';
 	return 0;

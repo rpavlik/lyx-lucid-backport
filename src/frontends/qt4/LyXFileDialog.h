@@ -12,7 +12,7 @@
 #ifndef LYXFILEDIALOG_H
 #define LYXFILEDIALOG_H
 
-#include "frontends/FileDialog.h"
+#include "FileDialog.h"
 
 #include <QFileDialog>
 
@@ -20,25 +20,24 @@ class QToolButton;
 
 namespace lyx {
 
-namespace support { class FileFilterList; }
-
 class LyXFileDialog : public QFileDialog
 {
 	Q_OBJECT
+
 public:
-	LyXFileDialog(docstring const & title,
-		      docstring const & path,
-		      support::FileFilterList const & filters,
+	LyXFileDialog(QString const & title,
+		      QString const & path,
+		      QStringList const & filters,
 		      FileDialog::Button const & b1,
 		      FileDialog::Button const & b2);
-public Q_SLOTS:
-	void buttonClicked();
-private:
-	QToolButton * b1_;
-	docstring b1_dir_;
 
-	QToolButton * b2_;
-	docstring b2_dir_;
+public Q_SLOTS:
+	void button1Clicked();
+	void button2Clicked();
+
+private:
+	QString b1_dir_;
+	QString b2_dir_;
 };
 
 } // namespace lyx

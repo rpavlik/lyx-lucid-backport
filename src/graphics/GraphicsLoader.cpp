@@ -15,19 +15,151 @@
 #include "GraphicsCacheItem.h"
 #include "GraphicsImage.h"
 #include "GraphicsParams.h"
-#include "LoaderQueue.h"
+#include "GraphicsCache.h"
+
+#include "support/debug.h"
+#include "support/Timeout.h"
 
 #include <boost/bind.hpp>
 
+#include <set>
+#include <queue>
 
-using std::string;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::FileName;
-
 namespace graphics {
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// LoaderQueue
+//
+/////////////////////////////////////////////////////////////////////
+
+class LoaderQueue {
+public:
+	/// Use this to request that the item is loaded.
+	void touch(Cache::ItemPtr const & item);
+	/// Query whether the clock is ticking.
+	bool running() const;
+	///get the and only instance of the class
+	static LoaderQueue & get();
+private:
+	/// This class is a singleton class... use LoaderQueue::get() instead
+	LoaderQueue();
+	/// The in-progress loading queue (elements are unique here).
+	list<Cache::ItemPtr> cache_queue_;
+	/// Used to make the insertion of new elements faster.
+	set<Cache::ItemPtr> cache_set_;
+	/// Newly touched elements go here. loadNext moves them to cache_queue_
+	queue<Cache::ItemPtr> bucket_;
+	///
+	Timeout timer;
+	///
+	bool running_;
+
+	/** This is the 'threaded' method, that does the loading in the
+	 *  background.
+	 */
+	void loadNext();
+	///
+	void startLoader();
+	///
+	void stopLoader();
+};
+
+
+//static int s_numimages_ = 5;
+//static int s_millisecs_ = 500;
+
+static int s_numimages_ = 10;
+static int s_millisecs_ = 500;
+
+LoaderQueue & LoaderQueue::get()
+{
+	static LoaderQueue singleton;
+	return singleton;
+}
+
+
+void LoaderQueue::loadNext()
+{
+	LYXERR(Debug::GRAPHICS, "LoaderQueue: "
+		<< cache_queue_.size() << " items in the queue");
+	int counter = s_numimages_;
+	while (cache_queue_.size() && counter--) {
+		Cache::ItemPtr ptr = cache_queue_.front();
+		cache_set_.erase(ptr);
+		cache_queue_.pop_front();
+		if (ptr->status() == WaitingToLoad)
+			ptr->startLoading();
+	}
+	if (cache_queue_.size()) {
+		startLoader();
+	} else {
+		stopLoader();
+	}
+}
+
+
+LoaderQueue::LoaderQueue() : timer(s_millisecs_, Timeout::ONETIME),
+			     running_(false)
+{
+	timer.timeout.connect(boost::bind(&LoaderQueue::loadNext, this));
+}
+
+
+void LoaderQueue::startLoader()
+{
+	LYXERR(Debug::GRAPHICS, "LoaderQueue: waking up");
+	running_ = true ;
+	timer.setTimeout(s_millisecs_);
+	timer.start();
+}
+
+
+void LoaderQueue::stopLoader()
+{
+	timer.stop();
+	running_ = false ;
+	LYXERR(Debug::GRAPHICS, "LoaderQueue: I'm going to sleep");
+}
+
+
+bool LoaderQueue::running() const
+{
+	return running_ ;
+}
+
+
+void LoaderQueue::touch(Cache::ItemPtr const & item)
+{
+	if (! cache_set_.insert(item).second) {
+		list<Cache::ItemPtr>::iterator
+			it = cache_queue_.begin();
+		list<Cache::ItemPtr>::iterator
+			end = cache_queue_.end();
+
+		it = find(it, end, item);
+		if (it != end)
+			cache_queue_.erase(it);
+	}
+	cache_queue_.push_front(item);
+	if (!running_)
+		startLoader();
+}
+
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// GraphicsLoader
+//
+/////////////////////////////////////////////////////////////////////
+
+typedef boost::shared_ptr<Image> ImagePtr;
 
 class Loader::Impl : public boost::signals::trackable {
 public:
@@ -53,7 +185,7 @@ public:
 	 */
 	Cache::ItemPtr cached_item_;
 	/// We modify a local copy of the image once it is loaded.
-	Image::ImagePtr image_;
+	ImagePtr image_;
 	/// This signal is emitted when the image loading status changes.
 	boost::signal<void()> signal_;
 	/// The connection of the signal StatusChanged 	
@@ -98,7 +230,9 @@ Loader::Loader(Loader const & other)
 
 
 Loader::~Loader()
-{}
+{
+	delete pimpl_;
+}
 
 
 Loader & Loader::operator=(Loader const & other)
@@ -225,7 +359,7 @@ void Loader::Impl::resetFile(FileName const & file)
 	if (!old_file.empty()) {
 		continue_monitoring = cached_item_->monitoring();
 		// cached_item_ is going to be reset, so the connected
-		// signal needs to be disconnected (Bug 4108). 
+		// signal needs to be disconnected.
 		sc_.disconnect();
 		cached_item_.reset();
 		Cache::get().remove(old_file);

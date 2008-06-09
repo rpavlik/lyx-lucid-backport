@@ -2,8 +2,8 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>QBibtexUi</class>
- <widget class="QDialog" name="QBibtexUi" >
+ <class>BibtexUi</class>
+ <widget class="QDialog" name="BibtexUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -280,7 +280,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <tabstops>
   <tabstop>addBibPB</tabstop>

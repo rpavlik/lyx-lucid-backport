@@ -14,49 +14,80 @@
 #include "InsetFoot.h"
 
 #include "Buffer.h"
-#include "gettext.h"
-// the following is needed just to get the layout of the enclosing
+#include "BufferParams.h"
+#include "Counters.h"
+#include "support/gettext.h"
+#include "Layout.h"
+// FIXME: the following is needed just to get the layout of the enclosing
 // paragraph. This seems a bit too much to me (JMarc)
 #include "OutputParams.h"
+#include "ParIterator.h"
+#include "TextClass.h"
+#include "TocBackend.h"
 
-#include "support/std_ostream.h"
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/lstrings.h"
 
+using namespace std;
 
 namespace lyx {
 
-using std::string;
-using std::auto_ptr;
-using std::ostream;
+
+InsetFoot::InsetFoot(Buffer const & buf)
+	: InsetFootlike(buf)
+{}
 
 
-InsetFoot::InsetFoot(BufferParams const & bp)
-	: InsetFootlike(bp)
-{
-	setLabel(_("foot"));
-}
-
-
-InsetFoot::InsetFoot(InsetFoot const & in)
-	: InsetFootlike(in)
-{
-	setLabel(_("foot"));
-}
-
-
-auto_ptr<Inset> InsetFoot::doClone() const
-{
-	return auto_ptr<Inset>(new InsetFoot(*this));
-}
-
-
-docstring const InsetFoot::editMessage() const
+docstring InsetFoot::editMessage() const
 {
 	return _("Opened Footnote Inset");
 }
 
 
-int InsetFoot::latex(Buffer const & buf, odocstream & os,
-		     OutputParams const & runparams_in) const
+void InsetFoot::updateLabels(ParIterator const & it)
+{
+	DocumentClass const & tclass = buffer().params().documentClass();
+	Counters & cnts = tclass.counters();
+	docstring const foot = from_ascii("footnote");
+	Paragraph const & outer =  it.paragraph();
+	if (!outer.layout().intitle && cnts.hasCounter(foot)) {
+		cnts.step(foot);
+		// FIXME: the counter should format itself.
+		custom_label_= support::bformat(from_utf8("%1$s %2$s"),
+					  translateIfPossible(getLayout(buffer().params()).labelstring()),
+					  cnts.theCounter(foot));
+		setLabel(custom_label_);
+	
+	}
+	InsetCollapsable::updateLabels(it);
+}
+
+
+void InsetFoot::addToToc(DocIterator const & cpit)
+{
+	DocIterator pit = cpit;
+	pit.push_back(CursorSlice(*this));
+
+	Toc & toc = buffer().tocBackend().toc("footnote");
+	docstring str;
+	str = custom_label_ + ": " + getNewLabel(str);
+	toc.push_back(TocItem(pit, 0, str));
+	// Proceed with the rest of the inset.
+	InsetFootlike::addToToc(cpit);
+}
+
+
+docstring InsetFoot::toolTip(BufferView const & bv, int x, int y) const
+{
+	docstring default_tip = InsetCollapsable::toolTip(bv, x, y);
+	if (!isOpen())
+		return custom_label_ + ": " + default_tip;
+	return default_tip;
+}
+
+
+int InsetFoot::latex(odocstream & os, OutputParams const & runparams_in) const
 {
 	OutputParams runparams = runparams_in;
 	// footnotes in titling commands like \title have moving arguments
@@ -69,7 +100,7 @@ int InsetFoot::latex(Buffer const & buf, odocstream & os,
 	else
 		os << "%\n\\footnote{";
 
-	int const i = InsetText::latex(buf, os, runparams);
+	int const i = InsetText::latex(os, runparams);
 	os << "%\n}";
 	runparams_in.encoding = runparams.encoding;
 
@@ -77,22 +108,20 @@ int InsetFoot::latex(Buffer const & buf, odocstream & os,
 }
 
 
-int InsetFoot::plaintext(Buffer const & buf, odocstream & os,
-			 OutputParams const & runparams) const
+int InsetFoot::plaintext(odocstream & os, OutputParams const & runparams) const
 {
-	os << '[' << buf.B_("footnote") << ":\n";
-	InsetText::plaintext(buf, os, runparams);
+	os << '[' << buffer().B_("footnote") << ":\n";
+	InsetText::plaintext(os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetFoot::docbook(Buffer const & buf, odocstream & os,
-		       OutputParams const & runparams) const
+int InsetFoot::docbook(odocstream & os, OutputParams const & runparams) const
 {
 	os << "<footnote>";
-	int const i = InsetText::docbook(buf, os, runparams);
+	int const i = InsetText::docbook(os, runparams);
 	os << "</footnote>";
 
 	return i;

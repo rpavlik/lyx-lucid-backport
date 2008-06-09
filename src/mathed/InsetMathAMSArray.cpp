@@ -10,21 +10,22 @@
 
 #include <config.h>
 
-#include "LaTeXFeatures.h"
 #include "InsetMathAMSArray.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
-#include "MathStream.h"
 #include "MathSupport.h"
+#include "MetricsInfo.h"
 
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
+#include "support/gettext.h"
 
 #include "support/lstrings.h"
-#include "support/std_ostream.h"
 
-using std::auto_ptr;
+#include <ostream>
+
 
 namespace lyx {
 
@@ -41,9 +42,9 @@ InsetMathAMSArray::InsetMathAMSArray(docstring const & name)
 {}
 
 
-auto_ptr<Inset> InsetMathAMSArray::doClone() const
+Inset * InsetMathAMSArray::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathAMSArray(*this));
+	return new InsetMathAMSArray(*this);
 }
 
 
@@ -79,23 +80,21 @@ char const * InsetMathAMSArray::name_right() const
 }
 
 
-bool InsetMathAMSArray::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathAMSArray::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	ArrayChanger dummy(mi.base);
 	InsetMathGrid::metrics(mi, dim);
 	dim.wid += 14;
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
 }
 
 
 void InsetMathAMSArray::draw(PainterInfo & pi, int x, int y) const
 {
-	int const yy = y - dim_.ascent();
+	Dimension const dim = dimension(*pi.base.bv);
+	int const yy = y - dim.ascent();
 	// Drawing the deco after an ArrayChanger does not work
-	mathed_draw_deco(pi, x + 1, yy, 5, dim_.height(), from_ascii(name_left()));
-	mathed_draw_deco(pi, x + dim_.width() - 8, yy, 5, dim_.height(), from_ascii(name_right()));
+	mathed_draw_deco(pi, x + 1, yy, 5, dim.height(), from_ascii(name_left()));
+	mathed_draw_deco(pi, x + dim.width() - 8, yy, 5, dim.height(), from_ascii(name_right()));
 	ArrayChanger dummy(pi.base);
 	InsetMathGrid::drawWithMargin(pi, x, y, 6, 8);
 }
@@ -110,7 +109,7 @@ bool InsetMathAMSArray::getStatus(Cursor & cur, FuncRequest const & cmd,
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.message(bformat(
 				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),	name_));
-			flag.enabled(false);
+			flag.setEnabled(false);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, flag);

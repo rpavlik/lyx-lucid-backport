@@ -15,48 +15,24 @@
 
 #include "Lexer.h"
 
-#include "debug.h"
-
 #include "support/convert.h"
+#include "support/debug.h"
+#include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/gzstream.h"
 #include "support/lstrings.h"
 #include "support/lyxalgo.h"
 #include "support/types.h"
-#include "support/unicode.h"
-
-#include <boost/utility.hpp>
 
 #include <functional>
 #include <istream>
 #include <stack>
-#include <sstream>
 #include <vector>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::compare_ascii_no_case;
-using support::FileName;
-using support::getFormatFromContents;
-using support::isStrDbl;
-using support::isStrInt;
-using support::ltrim;
-using support::makeDisplayPath;
-using support::prefixIs;
-using support::split;
-using support::subst;
-using support::trim;
-
-using std::endl;
-using std::getline;
-using std::lower_bound;
-using std::sort;
-using std::string;
-using std::ios;
-using std::istream;
-using std::ostream;
-
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -66,32 +42,32 @@ using std::ostream;
 
 
 ///
-class Lexer::Pimpl : boost::noncopyable {
+class Lexer::Pimpl {
 public:
 	///
-	Pimpl(keyword_item * tab, int num);
+	Pimpl(LexerKeyword * tab, int num);
 	///
-	std::string const getString() const;
+	string const getString() const;
 	///
 	docstring const getDocString() const;
 	///
-	void printError(std::string const & message) const;
+	void printError(string const & message) const;
 	///
-	void printTable(std::ostream & os);
+	void printTable(ostream & os);
 	///
-	void pushTable(keyword_item * tab, int num);
+	void pushTable(LexerKeyword * tab, int num);
 	///
 	void popTable();
 	///
-	bool setFile(support::FileName const & filename);
+	bool setFile(FileName const & filename);
 	///
-	void setStream(std::istream & i);
+	void setStream(istream & i);
 	///
 	void setCommentChar(char c);
 	///
 	bool next(bool esc = false);
 	///
-	int search_kw(char const * const tag) const;
+	int searchKeyword(char const * const tag) const;
 	///
 	int lex();
 	///
@@ -101,61 +77,67 @@ public:
 	/// test if there is a pushed token or the stream is ok
 	bool inputAvailable();
 	///
-	void pushToken(std::string const &);
+	void pushToken(string const &);
 	/// fb_ is only used to open files, the stream is accessed through is.
-	std::filebuf fb_;
+	filebuf fb_;
 
 	/// gz_ is only used to open files, the stream is accessed through is.
 	gz::gzstreambuf gz_;
 
 	/// the stream that we use.
-	std::istream is;
+	istream is;
 	///
-	std::string name;
+	string name;
 	///
-	keyword_item * table;
+	LexerKeyword * table;
 	///
 	int no_items;
 	///
-	std::string buff;
+	string buff;
 	///
 	int status;
 	///
 	int lineno;
 	///
-	std::string pushTok;
+	string pushTok;
 	///
 	char commentChar;
+	/// used for error messages
+	string context;
 private:
+	/// non-copyable
+	Pimpl(Pimpl const &);
+	void operator=(Pimpl const &);
+
 	///
 	void verifyTable();
 	///
-	class pushed_table {
+	class PushedTable {
 	public:
 		///
-		pushed_table()
+		PushedTable()
 			: table_elem(0), table_siz(0) {}
 		///
-		pushed_table(keyword_item * ki, int siz)
+		PushedTable(LexerKeyword * ki, int siz)
 			: table_elem(ki), table_siz(siz) {}
 		///
-		keyword_item * table_elem;
+		LexerKeyword * table_elem;
 		///
 		int table_siz;
 	};
 	///
-	std::stack<pushed_table> pushed;
+	stack<PushedTable> pushed;
 };
 
 
 
 namespace {
 
-class compare_tags
-	: public std::binary_function<keyword_item, keyword_item, bool> {
+class CompareTags
+	: public binary_function<LexerKeyword, LexerKeyword, bool> {
 public:
 	// used by lower_bound, sort and sorted
-	bool operator()(keyword_item const & a, keyword_item const & b) const
+	bool operator()(LexerKeyword const & a, LexerKeyword const & b) const
 	{
 		// we use the ascii version, because in turkish, 'i'
 		// is not the lowercase version of 'I', and thus
@@ -167,7 +149,7 @@ public:
 } // end of anon namespace
 
 
-Lexer::Pimpl::Pimpl(keyword_item * tab, int num)
+Lexer::Pimpl::Pimpl(LexerKeyword * tab, int num)
 	: is(&fb_), table(tab), no_items(num),
 	  status(0), lineno(0), commentChar('#')
 {
@@ -191,7 +173,9 @@ void Lexer::Pimpl::printError(string const & message) const
 {
 	string const tmpmsg = subst(message, "$$Token", getString());
 	lyxerr << "LyX: " << tmpmsg << " [around line " << lineno
-		<< " of file " << to_utf8(makeDisplayPath(name)) << ']' << endl;
+		<< " of file " << to_utf8(makeDisplayPath(name))
+		<< " current token: '" << getString() << "'"
+		<< " context: '" << context << "']" << endl;
 }
 
 
@@ -210,23 +194,23 @@ void Lexer::Pimpl::verifyTable()
 {
 	// Check if the table is sorted and if not, sort it.
 	if (table
-	    && !lyx::sorted(table, table + no_items, compare_tags())) {
+	    && !lyx::sorted(table, table + no_items, CompareTags())) {
 		lyxerr << "The table passed to Lexer is not sorted!\n"
 		       << "Tell the developers to fix it!" << endl;
 		// We sort it anyway to avoid problems.
 		lyxerr << "\nUnsorted:" << endl;
 		printTable(lyxerr);
 
-		sort(table, table + no_items, compare_tags());
+		sort(table, table + no_items, CompareTags());
 		lyxerr << "\nSorted:" << endl;
 		printTable(lyxerr);
 	}
 }
 
 
-void Lexer::Pimpl::pushTable(keyword_item * tab, int num)
+void Lexer::Pimpl::pushTable(LexerKeyword * tab, int num)
 {
-	pushed_table tmppu(table, no_items);
+	PushedTable tmppu(table, no_items);
 	pushed.push(tmppu);
 
 	table = tab;
@@ -243,7 +227,7 @@ void Lexer::Pimpl::popTable()
 		return;
 	}
 
-	pushed_table tmp = pushed.top();
+	PushedTable tmp = pushed.top();
 	pushed.pop();
 	table = tmp.table_elem;
 	no_items = tmp.table_siz;
@@ -253,30 +237,31 @@ void Lexer::Pimpl::popTable()
 bool Lexer::Pimpl::setFile(FileName const & filename)
 {
 	// Check the format of the file.
-	string const format = getFormatFromContents(filename);
+	string const format = filename.guessFormatFromContents();
 
 	if (format == "gzip" || format == "zip" || format == "compress") {
-		LYXERR(Debug::LYXLEX) << "lyxlex: compressed" << endl;
+		LYXERR(Debug::LYXLEX, "lyxlex: compressed");
 		// The check only outputs a debug message, because it triggers
 		// a bug in compaq cxx 6.2, where is_open() returns 'true' for
 		// a fresh new filebuf.  (JMarc)
 		if (gz_.is_open() || istream::off_type(is.tellg()) > -1)
-			lyxerr[Debug::LYXLEX] << "Error in LyXLex::setFile: "
-				"file or stream already set." << endl;
+			LYXERR(Debug::LYXLEX, "Error in LyXLex::setFile: "
+				"file or stream already set.");
 		gz_.open(filename.toFilesystemEncoding().c_str(), ios::in);
 		is.rdbuf(&gz_);
 		name = filename.absFilename();
 		lineno = 0;
 		return gz_.is_open() && is.good();
 	} else {
-		LYXERR(Debug::LYXLEX) << "lyxlex: UNcompressed" << endl;
+		LYXERR(Debug::LYXLEX, "lyxlex: UNcompressed");
 
 		// The check only outputs a debug message, because it triggers
 		// a bug in compaq cxx 6.2, where is_open() returns 'true' for
 		// a fresh new filebuf.  (JMarc)
-		if (fb_.is_open() || istream::off_type(is.tellg()) > 0)
-			LYXERR(Debug::LYXLEX) << "Error in Lexer::setFile: "
-				"file or stream already set." << endl;
+		if (fb_.is_open() || istream::off_type(is.tellg()) > 0) {
+			LYXERR(Debug::LYXLEX, "Error in Lexer::setFile: "
+				"file or stream already set.");
+		}
 		fb_.open(filename.toFilesystemEncoding().c_str(), ios::in);
 		is.rdbuf(&fb_);
 		name = filename.absFilename();
@@ -288,9 +273,10 @@ bool Lexer::Pimpl::setFile(FileName const & filename)
 
 void Lexer::Pimpl::setStream(istream & i)
 {
-	if (fb_.is_open() || istream::off_type(is.tellg()) > 0)
-		LYXERR(Debug::LYXLEX)  << "Error in Lexer::setStream: "
-			"file or stream already set." << endl;
+	if (fb_.is_open() || istream::off_type(is.tellg()) > 0) {
+		LYXERR(Debug::LYXLEX, "Error in Lexer::setStream: "
+			"file or stream already set.");
+	}
 	is.rdbuf(i.rdbuf());
 	lineno = 0;
 }
@@ -318,123 +304,35 @@ bool Lexer::Pimpl::next(bool esc /* = false */)
 		status = LEX_TOKEN;
 		return true;
 	}
-	if (!esc) {
-		unsigned char c = 0; // getc() returns an int
-		char cc = 0;
-		status = 0;
-		while (is && !status) {
-			is.get(cc);
-			c = cc;
-			if (c == commentChar) {
-				// Read rest of line (fast :-)
+
+
+	unsigned char c = 0; // getc() returns an int
+	char cc = 0;
+	status = 0;
+	while (is && !status) {
+		is.get(cc);
+		c = cc;
+
+		if (c == commentChar) {
+			// Read rest of line (fast :-)
 #if 1
-				// That is not fast... (Lgb)
-				string dummy;
-				getline(is, dummy);
+			// That is not fast... (Lgb)
+			string dummy;
+			getline(is, dummy);
 
-				LYXERR(Debug::LYXLEX) << "Comment read: `" << c
-						      << dummy << '\'' << endl;
+			LYXERR(Debug::LYXLEX, "Comment read: `" << c << dummy << '\'');
 #else
-				// unfortunately ignore is buggy (Lgb)
-				is.ignore(100, '\n');
+			// unfortunately ignore is buggy (Lgb)
+			is.ignore(100, '\n');
 #endif
-				++lineno;
-				continue;
-			}
-
-			if (c == '\"') {
-				buff.clear();
-
-				do {
-					is.get(cc);
-					c = cc;
-					if (c != '\r')
-						buff.push_back(c);
-				} while (c != '\"' && c != '\n' && is);
-
-				if (c != '\"') {
-					printError("Missing quote");
-					if (c == '\n')
-						++lineno;
-				}
-
-				buff.resize(buff.size()-1);
-				status = LEX_DATA;
-				break;
-			}
-
-			if (c == ',')
-				continue;              /* Skip ','s */
-
-				// using relational operators with chars other
-				// than == and != is not safe. And if it is done
-				// the type _have_ to be unsigned. It usually a
-				// lot better to use the functions from cctype
-			if (c > ' ' && is)  {
-				buff.clear();
-
-				do {
-					buff.push_back(c);
-					is.get(cc);
-					c = cc;
-				} while (c > ' ' && c != ',' && is);
-
-				status = LEX_TOKEN;
-			}
-
-			if (c == '\r' && is) {
-				// The Windows support has lead to the
-				// possibility of "\r\n" at the end of
-				// a line.  This will stop LyX choking
-				// when it expected to find a '\n'
-				is.get(cc);
-				c = cc;
-			}
-
-			if (c == '\n')
-				++lineno;
-
+			++lineno;
+			continue;
 		}
-		if (status)
-			return true;
 
-		status = is.eof() ? LEX_FEOF: LEX_UNDEF;
-		buff.clear();
-		return false;
-	} else {
-		unsigned char c = 0; // getc() returns an int
-		char cc = 0;
+		if (c == '\"') {
+			buff.clear();
 
-		status = 0;
-		while (is && !status) {
-			is.get(cc);
-			c = cc;
-
-			// skip ','s
-			if (c == ',')
-				continue;
-
-			if (c == commentChar) {
-				// Read rest of line (fast :-)
-#if 1
-				// That is still not fast... (Lgb)
-				string dummy;
-				getline(is, dummy);
-
-				LYXERR(Debug::LYXLEX) << "Comment read: `" << c
-						      << dummy << '\'' << endl;
-#else
-				// but ignore is also still buggy (Lgb)
-				// This is fast (Lgb)
-				is.ignore(100, '\n');
-#endif
-				++lineno;
-				continue;
-			}
-
-			// string
-			if (c == '\"') {
-				buff.clear();
+			if (esc) {
 
 				bool escaped = false;
 				do {
@@ -457,55 +355,80 @@ bool Lexer::Pimpl::next(bool esc /* = false */)
 						break;
 				} while (c != '\n' && is);
 
-				if (c != '\"') {
-					printError("Missing quote");
-					if (c == '\n')
-						++lineno;
-				}
-
-				buff.resize(buff.size() -1);
-				status = LEX_DATA;
-				break;
-			}
-
-			if (c > ' ' && is) {
-				buff.clear();
+			} else {
 
 				do {
-					if (c == '\\') {
-						// escape the next char
-						is.get(cc);
-						c = cc;
-						//escaped = true;
-					}
-					buff.push_back(c);
 					is.get(cc);
 					c = cc;
-				} while (c > ' ' && c != ',' && is);
+					if (c != '\r')
+						buff.push_back(c);
+				} while (c != '\"' && c != '\n' && is);
 
-				status = LEX_TOKEN;
 			}
-			// new line
-			if (c == '\n')
-				++lineno;
+
+			if (c != '\"') {
+				printError("Missing quote");
+				if (c == '\n')
+					++lineno;
+			}
+
+			buff.resize(buff.size() - 1);
+			status = LEX_DATA;
+			break;
 		}
 
-		if (status)
-			return true;
+		if (c == ',')
+			continue;              /* Skip ','s */
 
-		status = is.eof() ? LEX_FEOF : LEX_UNDEF;
-		buff.clear();
-		return false;
+		// using relational operators with chars other
+		// than == and != is not safe. And if it is done
+		// the type _have_ to be unsigned. It usually a
+		// lot better to use the functions from cctype
+		if (c > ' ' && is)  {
+			buff.clear();
+
+			do {
+				if (esc && c == '\\') {
+					// escape the next char
+					is.get(cc);
+					c = cc;
+					//escaped = true;
+				}
+				buff.push_back(c);
+				is.get(cc);
+				c = cc;
+			} while (c > ' ' && c != ',' && is);
+			status = LEX_TOKEN;
+		}
+
+		if (c == '\r' && is) {
+			// The Windows support has lead to the
+			// possibility of "\r\n" at the end of
+			// a line.  This will stop LyX choking
+			// when it expected to find a '\n'
+			is.get(cc);
+			c = cc;
+		}
+
+		if (c == '\n')
+			++lineno;
+
 	}
+	if (status)
+		return true;
+
+	status = is.eof() ? LEX_FEOF: LEX_UNDEF;
+	buff.clear();
+	return false;
 }
 
 
-int Lexer::Pimpl::search_kw(char const * const tag) const
+int Lexer::Pimpl::searchKeyword(char const * const tag) const
 {
-	keyword_item search_tag = { tag, 0 };
-	keyword_item * res =
+	LexerKeyword search_tag = { tag, 0 };
+	LexerKeyword * res =
 		lower_bound(table, table + no_items,
-			    search_tag, compare_tags());
+			    search_tag, CompareTags());
 	// use the compare_ascii_no_case instead of compare_no_case,
 	// because in turkish, 'i' is not the lowercase version of 'I',
 	// and thus turkish locale breaks parsing of tags.
@@ -520,7 +443,7 @@ int Lexer::Pimpl::lex()
 {
 	//NOTE: possible bug.
 	if (next() && status == LEX_TOKEN)
-		return search_kw(getString().c_str());
+		return searchKeyword(getString().c_str());
 	return status;
 }
 
@@ -534,8 +457,7 @@ bool Lexer::Pimpl::eatLine()
 	while (is && c != '\n') {
 		is.get(cc);
 		c = cc;
-		//LYXERR(Debug::LYXLEX) << "Lexer::EatLine read char: `"
-		//		      << c << '\'' << endl;
+		//LYXERR(Debug::LYXLEX, "Lexer::EatLine read char: `" << c << '\'');
 		if (c != '\r')
 			buff.push_back(c);
 	}
@@ -594,7 +516,8 @@ bool Lexer::Pimpl::nextToken()
 				} while (c >= ' ' && c != '\\' && is);
 			}
 
-			if (c == '\\') is.putback(c); // put it back
+			if (c == '\\')
+				is.putback(c); // put it back
 			status = LEX_TOKEN;
 		}
 
@@ -631,9 +554,15 @@ void Lexer::Pimpl::pushToken(string const & pt)
 //
 //////////////////////////////////////////////////////////////////////
 
-Lexer::Lexer(keyword_item * tab, int num)
-	: pimpl_(new Pimpl(tab, num))
+Lexer::Lexer()
+	: pimpl_(new Pimpl(0, 0))
 {}
+
+
+void Lexer::init(LexerKeyword * tab, int num)
+{
+	 pimpl_ = new Pimpl(tab, num);
+}
 
 
 Lexer::~Lexer()
@@ -648,13 +577,13 @@ bool Lexer::isOK() const
 }
 
 
-void Lexer::setLineNo(int l)
+void Lexer::setLineNumber(int l)
 {
 	pimpl_->lineno = l;
 }
 
 
-int Lexer::getLineNo() const
+int Lexer::lineNumber() const
 {
 	return pimpl_->lineno;
 }
@@ -666,7 +595,7 @@ istream & Lexer::getStream()
 }
 
 
-void Lexer::pushTable(keyword_item * tab, int num)
+void Lexer::pushTable(LexerKeyword * tab, int num)
 {
 	pimpl_->pushTable(tab, num);
 }
@@ -690,7 +619,7 @@ void Lexer::printError(string const & message) const
 }
 
 
-bool Lexer::setFile(support::FileName const & filename)
+bool Lexer::setFile(FileName const & filename)
 {
 	return pimpl_->setFile(filename);
 }
@@ -779,7 +708,8 @@ docstring const Lexer::getDocString() const
 // explicit tokens (JMarc)
 string const Lexer::getLongString(string const & endtoken)
 {
-	string str, prefix;
+	string str;
+	string prefix;
 	bool firstline = true;
 
 	while (pimpl_->is) { //< eatLine only reads from is, not from pushTok
@@ -789,35 +719,31 @@ string const Lexer::getLongString(string const & endtoken)
 
 		string const token = trim(getString(), " \t");
 
-		LYXERR(Debug::PARSER) << "LongString: `"
-				      << getString() << '\'' << endl;
+		LYXERR(Debug::PARSER, "LongString: `" << getString() << '\'');
 
-		// We do a case independent comparison, like search_kw does.
+		// We do a case independent comparison, like searchKeyword does.
 		if (compare_ascii_no_case(token, endtoken) == 0)
 			break;
 
 		string tmpstr = getString();
 		if (firstline) {
-			string::size_type i(tmpstr.find_first_not_of(' '));
+			size_t i = tmpstr.find_first_not_of(' ');
 			if (i != string::npos)
 				prefix = tmpstr.substr(0, i);
 			firstline = false;
-			LYXERR(Debug::PARSER)
-				<< "Prefix = `" << prefix << "\'" << endl;
+			LYXERR(Debug::PARSER, "Prefix = `" << prefix << "\'");
 		}
 
 		// further lines in long strings may have the same
 		// whitespace prefix as the first line. Remove it.
-		if (prefix.length() && prefixIs(tmpstr, prefix)) {
+		if (prefix.length() && prefixIs(tmpstr, prefix))
 			tmpstr.erase(0, prefix.length() - 1);
-		}
 
 		str += ltrim(tmpstr, "\t") + '\n';
 	}
 
-	if (!pimpl_->is) {
+	if (!pimpl_->is)
 		printError("Long string not ended by `" + endtoken + '\'');
-	}
 
 	return str;
 }
@@ -825,15 +751,18 @@ string const Lexer::getLongString(string const & endtoken)
 
 bool Lexer::getBool() const
 {
-	if (pimpl_->getString() == "true") {
+	string const s = pimpl_->getString();	
+	if (s == "false" || s == "0") {
+		lastReadOk_ = true;
+		return false;
+	}
+	if (s == "true" || s == "1") {
 		lastReadOk_ = true;
 		return true;
-	} else if (pimpl_->getString() != "false") {
-		pimpl_->printError("Bad boolean `$$Token'. "
-				   "Use \"false\" or \"true\"");
-		lastReadOk_ = false;
 	}
-	lastReadOk_ = true;
+	pimpl_->printError("Bad boolean `$$Token'. "
+				 "Use \"false\" or \"true\"");
+	lastReadOk_ = false;
 	return false;
 }
 
@@ -864,7 +793,7 @@ void Lexer::pushToken(string const & pt)
 
 Lexer::operator void const *() const
 {
-	// This behaviour is NOT the same as the std::streams which would
+	// This behaviour is NOT the same as the streams which would
 	// use fail() here. However, our implementation of getString() et al.
 	// can cause the eof() and fail() bits to be set, even though we
 	// haven't tried to read 'em.
@@ -878,7 +807,7 @@ bool Lexer::operator!() const
 }
 
 
-Lexer & Lexer::operator>>(std::string & s)
+Lexer & Lexer::operator>>(string & s)
 {
 	if (isOK()) {
 		next();
@@ -950,12 +879,55 @@ Lexer & Lexer::operator>>(bool & s)
 }
 
 
-/// quotes a string, e.g. for use in preferences files or as an argument of the "log" dialog
-string const Lexer::quoteString(string const & arg)
+Lexer & Lexer::operator>>(char & c)
 {
-	std::ostringstream os;
-	os << '"' << subst(subst(arg, "\\", "\\\\"), "\"", "\\\"") << '"';
-	return os.str();
+	string s;
+	operator>>(s);
+	if (!s.empty())
+		c = s[0];
+	return *this;
+}
+
+
+// quotes a string, e.g. for use in preferences files or as an argument
+// of the "log" dialog
+string Lexer::quoteString(string const & arg)
+{
+	string res;
+	res += '"';
+	res += subst(subst(arg, "\\", "\\\\"), "\"", "\\\"");
+	res += '"';
+	return res;
+}
+
+
+Lexer & Lexer::operator>>(char const * required)
+{
+	string token;
+	*this >> token;
+	if (token != required) {
+		LYXERR0("Missing '" << required << "'-tag in " << pimpl_->context 
+			<< ". Got " << token << " instead. Line: " << lineNumber());
+		pushToken(token);
+	}
+	return *this;
+}
+
+
+bool Lexer::checkFor(char const * required)
+{
+	string token;
+	*this >> token;
+	if (token == required)
+		return true;
+	pushToken(token);
+	return false;
+}
+
+
+void Lexer::setContext(std::string const & str)
+{
+	pimpl_->context = str;
 }
 
 

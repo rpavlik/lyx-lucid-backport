@@ -12,7 +12,7 @@
 # Version 3  2006-04-09  -  Updated for LyX 1.4.0; all environments defined by
 #                           ijmpd are now supported by LyX.
 
-Format 4
+Format 7
 
 Input stdclass.inc
 Input numarticle.inc
@@ -35,7 +35,6 @@ End
 
 Style Title
 	Align                 Center
-	AlignPossible         Center
 	TextFont
 	  Size                Large
 	EndFont
@@ -43,7 +42,6 @@ End
 
 Style Author
 	Align                 Center
-	AlignPossible         Center
 	TextFont
 	  Series              Medium
 	  Size                Normal
@@ -57,7 +55,6 @@ Style Address
 	ParSkip               0.4
 	BottomSep             0.4
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	TextFont
 	  Series              Medium
@@ -70,7 +67,6 @@ Style Abstract
 	LatexType             Environment
 	ParIndent             ""
 	Align                 Block
-	AlignPossible         Block
 	LabelType             No_Label
 	TextFont
 	  Size                Small
@@ -94,7 +90,6 @@ End
 
 Style Section
 	Align                 Block
-	AlignPossible         Block
 	Font
 	  Size                Normal
 	EndFont
@@ -102,7 +97,6 @@ End
 
 Style Section*
 	Align                 Block
-	AlignPossible         Block
 	Font
 	  Size                Normal
 	EndFont
@@ -110,7 +104,6 @@ End
 
 Style Subsection
 	Align                 Block
-	AlignPossible         Block
 	TextFont
 	  Shape               Italic
 	  Size                Normal
@@ -119,7 +112,6 @@ End
 
 Style Subsubsection
 	Align                 Block
-	AlignPossible         Block
 	LabelFont
 	  Series              Medium
 	EndFont
@@ -141,10 +133,9 @@ Style Definition
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Counter
 	LabelCounter          definition
-	LabelString           "Definition @Section@.\arabic{definition}."
+	LabelString           "Definition \thedefinition."
 	LabelSep              M
 	NextNoIndent          1
 	LabelFont
@@ -159,7 +150,7 @@ Style Step
         CopyStyle             Definition
 	LatexName             step
 	LabelCounter          step
-	LabelString           "Step \arabic{step}."
+	LabelString           "Step \thestep."
 	LabelFont
 	  Series              Bold
 	EndFont
@@ -173,7 +164,7 @@ Style Example
         CopyStyle             Definition
 	LatexName             example
 	LabelCounter          example
-	LabelString           "Example @Section@.\arabic{example}."
+	LabelString           "Example \theexample."
 End
 
 Counter
@@ -184,7 +175,7 @@ Style Remark
         CopyStyle             Definition
 	LatexName             remark
 	LabelCounter          remark
-	LabelString           "Remark @Section@.\arabic{remark}."
+	LabelString           "Remark \theremark."
 End
 
 Counter
@@ -195,7 +186,7 @@ Style Notation
         CopyStyle             Definition
 	LatexName             notation
 	LabelCounter          notation
-	LabelString           "Notation @Section@.\arabic{notation}."
+	LabelString           "Notation \thenotation."
 	LabelFont
 	  Series              Medium
 	EndFont
@@ -212,11 +203,10 @@ Style Theorem
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	NextNoIndent          1
 	LabelType             Counter
 	LabelCounter          theorem
-	LabelString           "Theorem @Section@.\arabic{theorem}."
+	LabelString           "Theorem \thetheorem."
 	LabelSep              M
 	LabelFont
 	  Series              Bold
@@ -231,7 +221,6 @@ Style Proof
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Static
 	LabelString           "Proof."
 	LabelSep              M
@@ -249,7 +238,7 @@ Style Corollary
         CopyStyle             Theorem
 	LatexName             corollary
 	LabelCounter          corollary
-	LabelString           "Corollary @Section@.\arabic{corollary}."
+	LabelString           "Corollary \thecorollary."
 	TextFont
 	  Shape               Italic
 	EndFont
@@ -263,7 +252,7 @@ Style Lemma
         CopyStyle             Corollary
 	LatexName             lemma
 	LabelCounter          lemma
-	LabelString           "Lemma @Section@.\arabic{lemma}."
+	LabelString           "Lemma \thelemma."
 End
 
 Counter
@@ -274,7 +263,7 @@ Style Proposition
         CopyStyle             Corollary
 	LatexName             proposition
 	LabelCounter          proposition
-	LabelString           "Proposition @Section@.\arabic{proposition}."
+	LabelString           "Proposition \theproposition."
 End
 
 Counter
@@ -285,7 +274,7 @@ Style Prop
         CopyStyle             Notation
 	LatexName             prop
 	LabelCounter          prop
-	LabelString           "Prop @Section@.\arabic{prop}."
+	LabelString           "Prop \theprop."
 End
 
 Counter
@@ -296,7 +285,7 @@ Style Question
         CopyStyle             Notation
 	LatexName             question
 	LabelCounter          question
-	LabelString           "Question @Section@.\arabic{question}."
+	LabelString           "Question \thequestion."
 End
 
 Counter
@@ -307,7 +296,7 @@ Style Claim
         CopyStyle             Notation
 	LatexName             claim
 	LabelCounter          claim
-	LabelString           "Claim @Section@.\arabic{claim}."
+	LabelString           "Claim \theclaim."
 End
 
 Counter
@@ -318,7 +307,7 @@ Style Conjecture
         CopyStyle             Notation
 	LatexName             conjecture
 	LabelCounter          conjecture
-	LabelString           "Conjecture @Section@.\arabic{conjecture}."
+	LabelString           "Conjecture \theconjecture."
 End
 
 Style Appendices_Section
@@ -329,7 +318,6 @@ Style Appendices_Section
 	TopSep                0.6
 	BottomSep             0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Centered_Top_Environment
 	LabelString           "--- Appendices ---"
 	Font
@@ -350,7 +338,6 @@ Style Appendix
 	BottomSep             0.6
 	Margin                First_Dynamic
 	Align                 Block
-	AlignPossible         Block
 	NextNoIndent          1
 	LabelType             Counter
 	LabelCounter          appendix
@@ -368,7 +355,6 @@ End
 
 Style Bibliography
 	Align                 Block
-	AlignPossible         Block
 	LabelFont
 	  Size                Normal
 	EndFont

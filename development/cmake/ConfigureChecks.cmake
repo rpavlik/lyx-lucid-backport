@@ -12,15 +12,16 @@ include(CheckFunctionExists)
 include(CheckLibraryExists)
 include(CheckTypeSize)
 include(CheckCXXSourceCompiles)
+include(MacroBoolTo01)
 
 
 check_include_file_cxx(aspell.h HAVE_ASPELL_H)
 check_include_file_cxx(aspell/aspell.h HAVE_ASPELL_ASPELL_H)
-check_include_file_cxx(istream HAVE_ISTREAM)
-check_include_file_cxx(ostream HAVE_OSTREAM)
-check_include_file_cxx(ios HAVE_IOS)
-check_include_file_cxx(sstream HAVE_SSTREAM)
-check_include_file_cxx(locale HAVE_LOCALE)
+#check_include_file_cxx(istream HAVE_ISTREAM)
+#check_include_file_cxx(ostream HAVE_OSTREAM)
+#check_include_file_cxx(ios HAVE_IOS)
+#check_include_file_cxx(sstream HAVE_SSTREAM)
+#check_include_file_cxx(locale HAVE_LOCALE)
 
 check_include_files(io.h HAVE_IO_H)
 check_include_files(limits.h HAVE_LIMITS_H)
@@ -74,6 +75,7 @@ check_function_exists(getegid HAVE_GETEGID)
 check_function_exists(getgid HAVE_GETGID)
 check_function_exists(getuid HAVE_GETUID)
 check_function_exists(wcslen HAVE_WCSLEN)
+check_function_exists(mkfifo HAVE_MKFIFO)
 
 check_symbol_exists(alloca "malloc.h" HAVE_SYMBOL_ALLOCA)
 check_symbol_exists(asprintf "stdio.h" HAVE_ASPRINTF)
@@ -87,23 +89,25 @@ check_symbol_exists(uintmax_t "stdint.h" HAVE_STDINT_H_WITH_UINTMAX)
 check_symbol_exists(LC_MESSAGES "locale.h" HAVE_LC_MESSAGES)
 
 check_type_size(intmax_t HAVE_INTMAX_T)
+macro_bool_to_01(HAVE_UINTMAX_T HAVE_STDINT_H_WITH_UINTMAX)
+
 check_type_size("long double"  HAVE_LONG_DOUBLE)
 check_type_size("long long"  HAVE_LONG_LONG)
 check_type_size(wchar_t HAVE_WCHAR_T)
 check_type_size(wint_t  HAVE_WINT_T)
 
 
-check_cxx_source_compiles(
-	"
-	#include <algorithm>
-	using std::count;
-	int countChar(char * b, char * e, char const c)
-	{
-		return count(b, e, c);
-	}
-	int main(){return 0;}
-	"
-HAVE_STD_COUNT)
+#check_cxx_source_compiles(
+#	"
+#	#include <algorithm>
+#	using std::count;
+#	int countChar(char * b, char * e, char const c)
+#	{
+#		return count(b, e, c);
+#	}
+#	int main(){return 0;}
+#	"
+#HAVE_STD_COUNT)
 
 check_cxx_source_compiles(
 	"
@@ -114,13 +118,13 @@ check_cxx_source_compiles(
 	"
 HAVE_DECL_ISTREAMBUF_ITERATOR)
 
-check_cxx_source_compiles(
-	"
-	#include <cctype>
-	using std::tolower;
-	int main(){return 0;}
-	"
-CXX_GLOBAL_CSTD)
+#check_cxx_source_compiles(
+#	"
+#	#include <cctype>
+#	using std::tolower;
+#	int main(){return 0;}
+#	"
+#CXX_GLOBAL_CSTD)
 
 check_cxx_source_compiles(
 	"
@@ -144,13 +148,4 @@ check_cxx_source_compiles(
 	int main(){return 0;}
 	"
 SIZEOF_WCHAR_T_IS_4)
-
-
-
-
-
-
-
-
-
 

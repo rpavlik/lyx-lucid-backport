@@ -10,43 +10,39 @@
 #include <config.h>
 
 #include "Messages.h"
-#include "debug.h"
+#include "support/debug.h"
 #include "support/filetools.h"
 #include "support/Package.h"
 #include "support/unicode.h"
 
-#include <boost/current_function.hpp>
-
 #include <cerrno>
+#include <ostream>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using lyx::support::package;
-using std::endl;
-using std::string;
 
 
 #ifdef ENABLE_NLS
 
-
 #if 0
 
--#include <locale>
+#include <locale>
 
 // This version of the Pimpl utilizes the message capability of
 // libstdc++ that is distributed with GNU G++.
 class Messages::Pimpl {
 public:
-	typedef std::messages<char>::catalog catalog;
+	typedef messages<char>::catalog catalog;
 
 	Pimpl(string const & l)
 		: lang_(l),
 		  loc_gl(lang_.c_str()),
-		  mssg_gl(std::use_facet<std::messages<char> >(loc_gl))
+		  mssg_gl(use_facet<messages<char> >(loc_gl))
 	{
 		//lyxerr << "Messages: language(" << l
-		//       << ") in dir(" << dir << ")" << std::endl;
+		//       << ") in dir(" << dir << ")" << endl;
 
 		string const locale_dir = package().locale_dir().toFilesystemEncoding();
 		cat_gl = mssg_gl.open(PACKAGE, loc_gl, locale_dir.c_str());
@@ -66,9 +62,9 @@ private:
 	///
 	string lang_;
 	///
-	std::locale loc_gl;
+	locale loc_gl;
 	///
-	std::messages<char> const & mssg_gl;
+	messages<char> const & mssg_gl;
 	///
 	catalog cat_gl;
 };
@@ -91,7 +87,7 @@ public:
 		: lang_(l)
 	{
 		//lyxerr << "Messages: language(" << l
-		//       << ") in dir(" << dir << ")" << std::endl;
+		//       << ") in dir(" << dir << ")" << endl;
 
 	}
 
@@ -116,20 +112,17 @@ public:
 		char const * c = bindtextdomain(PACKAGE, locale_dir.c_str());
 		int e = errno;
 		if (e) {
-			LYXERR(Debug::DEBUG)
-				<< BOOST_CURRENT_FUNCTION << '\n'
+			LYXERR(Debug::DEBUG, "Messages::get()" << '\n'
 				<< "Error code: " << errno << '\n'
 				<< "Lang, mess: " << lang_ << " " << m << '\n'
 				<< "Directory : " << package().locale_dir().absFilename() << '\n'
-				<< "Rtn value : " << c << endl;
+				<< "Rtn value : " << c);
 		}
 
 		if (!bind_textdomain_codeset(PACKAGE, ucs4_codeset)) {
-			LYXERR(Debug::DEBUG)
-				<< BOOST_CURRENT_FUNCTION << '\n'
+			LYXERR(Debug::DEBUG, "Messages::get()" << '\n'
 				<< "Error code: " << errno << '\n'
-				<< "Codeset   : " << ucs4_codeset << '\n'
-				<< endl;
+				<< "Codeset   : " << ucs4_codeset << '\n');
 		}
 
 		textdomain(PACKAGE);
@@ -144,7 +137,7 @@ public:
 			//lyxerr << "Same as entered returned" << endl;
 			translated = from_ascii(tmp);
 		} else {
-			LYXERR(Debug::DEBUG) << "We got a translation" << endl;
+			LYXERR(Debug::DEBUG, "We got a translation");
 			char_type const * ucs4 = reinterpret_cast<char_type const *>(msg);
 			translated = ucs4;
 		}

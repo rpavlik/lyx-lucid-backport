@@ -13,12 +13,13 @@
 #ifndef PAINTER_H
 #define PAINTER_H
 
-#include "support/docstring.h"
+#include "ColorCode.h"
+
+#include "support/strfwd.h"
 
 namespace lyx {
 
-class Color_color;
-class Font;
+class FontInfo;
 
 namespace graphics { class Image; }
 
@@ -53,7 +54,7 @@ namespace frontend {
  */
 class Painter {
 public:
-	Painter(): drawing_enabled_(true) {}
+	Painter() : drawing_enabled_(true) {}
 	/// possible line widths
 	enum line_width {
 		line_thin, //< thin line
@@ -77,12 +78,8 @@ public:
 	virtual ~Painter() {}
 
 	/// draw a line from point to point
-	virtual void line(
-		int x1, int y1,
-		int x2, int y2,
-		Color_color,
-		line_style = line_solid,
-		line_width = line_thin) = 0;
+	virtual void line(int x1, int y1, int x2, int y2, ColorCode,
+		line_style = line_solid, line_width = line_thin) = 0;
 
 	/**
 	 * lines -  draw a set of lines
@@ -90,64 +87,47 @@ public:
 	 * @param yp array of points' y co-ords
 	 * @param np size of the points array
 	 */
-	virtual void lines(
-		int const * xp,
-		int const * yp,
-		int np,
-		Color_color,
-		line_style = line_solid,
-		line_width = line_thin) = 0;
+	virtual void lines(int const * xp, int const * yp, int np, ColorCode,
+		line_style = line_solid, line_width = line_thin) = 0;
 
 	/// draw a rectangle
-	virtual void rectangle(
-		int x, int y,
-		int w, int h,
-		Color_color,
-		line_style = line_solid,
-		line_width = line_thin) = 0;
+	virtual void rectangle(int x, int y, int w, int h, ColorCode,
+		line_style = line_solid, line_width = line_thin) = 0;
 
 	/// draw a filled rectangle
-	virtual void fillRectangle(
-		int x, int y,
-		int w, int h,
-		Color_color) = 0;
+	virtual void fillRectangle(int x, int y, int w, int h, ColorCode) = 0;
 
 	/// draw an arc
-	virtual void arc(
-		int x, int y,
-		unsigned int w, unsigned int h,
-		int a1, int a2,
-		Color_color) = 0;
+	virtual void arc(int x, int y, unsigned int w, unsigned int h,
+		int a1, int a2, ColorCode) = 0;
 
 	/// draw a pixel
-	virtual void point(
-		int x, int y,
-		Color_color) = 0;
+	virtual void point(int x, int y, ColorCode) = 0;
 
 	/// draw a filled rectangle with the shape of a 3D button
-	virtual void button(int x, int y,
-		int w, int h, bool mouseHover);
+	virtual void button(int x, int y, int w, int h, bool mouseHover) = 0;
 
 	/// draw an image from the image cache
-	virtual void image(int x, int y,
-		int w, int h,
+	virtual void image(int x, int y, int w, int h,
 		graphics::Image const & image) = 0;
 
 	/// draw a string at position x, y (y is the baseline)
 	/**
 	* \return the width of the drawn text.
 	*/
-	virtual int text(int x, int y,
-		docstring const & str, Font const & f) = 0;
+	virtual int text(int x, int y, docstring const & str, FontInfo const & f) = 0;
 
-	void setDrawingEnabled(bool drawing_enabled = true)
+	void setDrawingEnabled(bool drawing_enabled)
 	{ drawing_enabled_ = drawing_enabled; }
+
+	/// Indicate wether real screen drawing shall be done or not.
+	bool isDrawingEnabled() const { return drawing_enabled_; }
 
 	/// draw a char at position x, y (y is the baseline)
 	/**
 	* \return the width of the drawn text.
 	*/
-	virtual int text(int x, int y, char_type c, Font const & f) = 0;
+	virtual int text(int x, int y, char_type c, FontInfo const & f) = 0;
 
 	/**
 	 * Draw a string and enclose it inside a rectangle. If
@@ -155,34 +135,22 @@ public:
 	 * the given color. If frame is specified, a thin frame is drawn
 	 * around the text with the given color.
 	 */
-	void rectText(int x, int baseline,
-		docstring const & str,
-		Font const & font,
-		Color_color back,
-		Color_color frame);
+	virtual void rectText(int x, int baseline, docstring const & str,
+		FontInfo const & font, ColorCode back, ColorCode frame) = 0;
 
 	/// draw a string and enclose it inside a button frame
-	void buttonText(int x, int baseline, docstring const & s,
-		Font const & font, bool mouseHover);
+	virtual void buttonText(int x, int baseline, docstring const & s,
+		FontInfo const & font, bool mouseHover) = 0;
 
 	/// draw a character of a preedit string for cjk support.
-	int preeditText(int x, int y,
-		char_type c, Font const & f, preedit_style style);
+	virtual int preeditText(int x, int y,
+		char_type c, FontInfo const & f, preedit_style style) = 0;
 
-protected:
-	/// check the font, and if set, draw an underline
-	void underline(Font const & f,
-		int x, int y, int width);
-
-	/// check the font, and if set, draw an dashed underline
-	void dashedUnderline(Font const & f,
-		int x, int y, int width);
-
-	/// draw a bevelled button border
-	void buttonFrame(int x, int y, int w, int h);
-
-	/// Indicate wether real screen drawing shall be done or not.
-	bool isDrawingEnabled() const { return drawing_enabled_; }
+	/// start monochrome painting mode, i.e. map every color into [min,max]
+	virtual void enterMonochromeMode(ColorCode const & min, 
+		ColorCode const & max) = 0;
+	/// leave monochrome painting mode
+	virtual void leaveMonochromeMode() = 0;
 
 private:
 	///

@@ -27,7 +27,7 @@ public:
 	///
 	void draw(PainterInfo &, int x, int y) const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void drawT(TextPainter &, int x, int y) const;
 	///
@@ -46,7 +46,7 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 };
 
 

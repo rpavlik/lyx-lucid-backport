@@ -1,9 +1,6 @@
 <ui version="4.0" >
- <author></author>
- <comment></comment>
- <exportmacro></exportmacro>
- <class>QSpellcheckerUi</class>
- <widget class="QDialog" name="QSpellcheckerUi" >
+ <class>SpellcheckerUi</class>
+ <widget class="QDialog" name="SpellcheckerUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -38,7 +35,7 @@
       <string>Suggestions:</string>
      </property>
      <property name="buddy" >
-      <cstring></cstring>
+      <cstring>suggestionsLW</cstring>
      </property>
     </widget>
    </item>
@@ -172,7 +169,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <tabstops>
   <tabstop>wordED</tabstop>

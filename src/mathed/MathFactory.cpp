@@ -14,24 +14,17 @@
 
 #include "InsetMathAMSArray.h"
 #include "InsetMathArray.h"
-#include "InsetMathBinom.h"
 #include "InsetMathBoldSymbol.h"
-#include "InsetMathBoxed.h"
 #include "InsetMathBox.h"
 #include "InsetMathCases.h"
 #include "InsetMathColor.h"
 #include "InsetMathDecoration.h"
-#include "InsetMathDFrac.h"
 #include "InsetMathDots.h"
-#include "InsetMathFBox.h"
 #include "InsetMathFont.h"
 #include "InsetMathFontOld.h"
 #include "InsetMathFrac.h"
-#include "InsetMathFrameBox.h"
 #include "InsetMathKern.h"
 #include "InsetMathLefteqn.h"
-#include "MathMacro.h"
-#include "InsetMathMakebox.h"
 #include "InsetMathOverset.h"
 #include "InsetMathPhantom.h"
 #include "InsetMathRef.h"
@@ -44,47 +37,44 @@
 #include "InsetMathSubstack.h"
 #include "InsetMathSymbol.h"
 #include "InsetMathTabular.h"
-#include "InsetMathTFrac.h"
 #include "InsetMathUnderset.h"
 #include "InsetMathUnknown.h"
 #include "InsetMathXArrow.h"
 #include "InsetMathXYMatrix.h"
-#include "MathMacroArgument.h"
 #include "MacroTable.h"
+#include "MathMacro.h"
+#include "MathMacroArgument.h"
 #include "MathParser.h"
 #include "MathSupport.h"
 
-#include "debug.h"
-
 #include "insets/InsetCommand.h"
 
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/FileName.h"
 #include "support/filetools.h" // LibFileSearch
 #include "support/lstrings.h"
 
 #include "frontends/FontLoader.h"
 
+#include "LyX.h" // use_gui
+
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::libFileSearch;
-using support::split;
-
-using std::string;
-using std::endl;
-using std::istringstream;
-using std::vector;
 
 bool has_math_fonts;
 
 
 namespace {
 
-WordList theWordList;
+MathWordList theWordList;
 
 
-bool math_font_available(docstring & name)
+bool isMathFontAvailable(docstring & name)
 {
-	Font f;
+	FontInfo f;
 	augmentFont(f, name);
 
 	// Do we have the font proper?
@@ -97,23 +87,25 @@ bool math_font_available(docstring & name)
 		return true;
 	}
 
-	LYXERR(Debug::MATHED)
-		<< "font " << to_utf8(name) << " not available and I can't fake it"
-		<< endl;
+	LYXERR(Debug::MATHED,
+		"font " << to_utf8(name) << " not available and I can't fake it");
 	return false;
 }
 
 
 void initSymbols()
 {
-	support::FileName const filename = libFileSearch(string(), "symbols");
-	LYXERR(Debug::MATHED) << "read symbols from " << filename << endl;
+	if (!use_gui)
+		return;
+
+	FileName const filename = libFileSearch(string(), "symbols");
+	LYXERR(Debug::MATHED, "read symbols from " << filename);
 	if (filename.empty()) {
 		lyxerr << "Could not find symbols file" << endl;
 		return;
 	}
 
-	std::ifstream fs(filename.toFilesystemEncoding().c_str());
+	ifstream fs(filename.toFilesystemEncoding().c_str());
 	string line;
 	bool skip = false;
 	while (getline(fs, line)) {
@@ -129,7 +121,7 @@ void initSymbols()
 			is >> tmp;
 			is >> tmp;
 			docstring t = from_utf8(tmp);
-			skip = !math_font_available(t);
+			skip = !isMathFontAvailable(t);
 			continue;
 		} else if (line.size() >= 4 && line.substr(0, 4) == "else") {
 			skip = !skip;
@@ -161,9 +153,9 @@ void initSymbols()
 		if (is)
 			is >> tmp.requires;
 		else {
-			LYXERR(Debug::MATHED) << "skipping line '" << line << '\'' << endl;
-			LYXERR(Debug::MATHED)
-				<< to_utf8(tmp.name) << ' ' << to_utf8(tmp.inset) << ' ' << to_utf8(tmp.extra) << endl;
+			LYXERR(Debug::MATHED, "skipping line '" << line << "'\n"
+				<< to_utf8(tmp.name) << ' ' << to_utf8(tmp.inset) << ' '
+				<< to_utf8(tmp.extra));
 			continue;
 		}
 
@@ -183,55 +175,50 @@ void initSymbols()
 			docstring symbol_font = from_ascii("lyxsymbol");
 
 			if (tmp.extra == "func" || tmp.extra == "funclim" || tmp.extra == "special") {
-				LYXERR(Debug::MATHED) << "symbol abuse for " << to_utf8(tmp.name) << endl;
+				LYXERR(Debug::MATHED, "symbol abuse for " << to_utf8(tmp.name));
 				tmp.draw = tmp.name;
-			} else if (math_font_available(tmp.inset)) {
-				LYXERR(Debug::MATHED) << "symbol available for " << to_utf8(tmp.name) << endl;
+			} else if (isMathFontAvailable(tmp.inset)) {
+				LYXERR(Debug::MATHED, "symbol available for " << to_utf8(tmp.name));
 				tmp.draw.push_back(char_type(charid));
-			} else if (fallbackid && math_font_available(symbol_font)) {
+			} else if (fallbackid && isMathFontAvailable(symbol_font)) {
 				if (tmp.inset == "cmex")
 					tmp.inset = from_ascii("lyxsymbol");
 				else
 					tmp.inset = from_ascii("lyxboldsymbol");
-				LYXERR(Debug::MATHED) << "symbol fallback for " << to_utf8(tmp.name) << endl;
+				LYXERR(Debug::MATHED, "symbol fallback for " << to_utf8(tmp.name));
 				tmp.draw.push_back(char_type(fallbackid));
 			} else {
-				LYXERR(Debug::MATHED) << "faking " << to_utf8(tmp.name) << endl;
+				LYXERR(Debug::MATHED, "faking " << to_utf8(tmp.name));
 				tmp.draw = tmp.name;
 				tmp.inset = from_ascii("lyxtex");
 			}
 		} else {
 			// it's a proper inset
-			LYXERR(Debug::MATHED) << "inset " << to_utf8(tmp.inset)
-					      << " used for " << to_utf8(tmp.name)
-					      << endl;
+			LYXERR(Debug::MATHED, "inset " << to_utf8(tmp.inset)
+					      << " used for " << to_utf8(tmp.name));
 		}
 
 		if (theWordList.find(tmp.name) != theWordList.end())
-			LYXERR(Debug::MATHED)
-				<< "readSymbols: inset " << to_utf8(tmp.name)
-				<< " already exists." << endl;
+			LYXERR(Debug::MATHED, "readSymbols: inset " << to_utf8(tmp.name)
+				<< " already exists.");
 		else
 			theWordList[tmp.name] = tmp;
 
-		LYXERR(Debug::MATHED)
-			<< "read symbol '" << to_utf8(tmp.name)
+		LYXERR(Debug::MATHED, "read symbol '" << to_utf8(tmp.name)
 			<< "  inset: " << to_utf8(tmp.inset)
 			<< "  draw: " << int(tmp.draw.empty() ? 0 : tmp.draw[0])
 			<< "  extra: " << to_utf8(tmp.extra)
-			<< "  requires: " << to_utf8(tmp.requires)
-			<< '\'' << endl;
+			<< "  requires: " << to_utf8(tmp.requires) << '\'');
 	}
 	docstring tmp = from_ascii("cmm");
 	docstring tmp2 = from_ascii("cmsy");
-	has_math_fonts = math_font_available(tmp) && math_font_available(tmp2);
+	has_math_fonts = isMathFontAvailable(tmp) && isMathFontAvailable(tmp2);
 }
 
 
 } // namespace anon
 
- 
-WordList const & mathedWordList()
+MathWordList const & mathedWordList()
 {
 	return theWordList;
 }
@@ -250,7 +237,7 @@ void initMath()
 
 latexkeys const * in_word_set(docstring const & str)
 {
-	WordList::iterator it = theWordList.find(str);
+	MathWordList::iterator it = theWordList.find(str);
 	return it != theWordList.end() ? &(it->second) : 0;
 }
 
@@ -263,7 +250,7 @@ MathAtom createInsetMath(char const * const s)
 
 MathAtom createInsetMath(docstring const & s)
 {
-	//lyxerr << "creating inset with name: '" << s << '\'' << endl;
+	//lyxerr << "creating inset with name: '" << to_utf8(s) << '\'' << endl;
 	latexkeys const * l = in_word_set(s);
 	if (l) {
 		docstring const & inset = l->inset;
@@ -315,9 +302,9 @@ MathAtom createInsetMath(docstring const & s)
 	if (s == "fbox")
 		return MathAtom(new InsetMathFBox());
 	if (s == "framebox")
-		return MathAtom(new InsetMathFrameBox);
+		return MathAtom(new InsetMathMakebox(true));
 	if (s == "makebox")
-		return MathAtom(new InsetMathMakebox);
+		return MathAtom(new InsetMathMakebox(false));
 	if (s == "kern")
 		return MathAtom(new InsetMathKern);
 	if (s.substr(0, 8) == "xymatrix") {
@@ -379,6 +366,15 @@ MathAtom createInsetMath(docstring const & s)
 		return MathAtom(new InsetMathFrac(InsetMathFrac::OVER));
 	if (s == "nicefrac")
 		return MathAtom(new InsetMathFrac(InsetMathFrac::NICEFRAC));
+	if (s == "unitfrac")
+		return MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC));
+	// This string value is only for math toolbar use. Not a LaTeX name
+	if (s == "unitfracthree")
+		return MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC, 3));
+	if (s == "unitone")
+		return MathAtom(new InsetMathFrac(InsetMathFrac::UNIT, 1));
+	if (s == "unittwo")
+		return MathAtom(new InsetMathFrac(InsetMathFrac::UNIT));
 	//if (s == "infer")
 	//	return MathAtom(new MathInferInset);
 	if (s == "atop")
@@ -389,7 +385,7 @@ MathAtom createInsetMath(docstring const & s)
 		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::AMS_BOLD));
 	if (s == "bm")
 		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::BM_BOLD));
-	if (s == "heavysymbol"  || s == "hm")
+	if (s == "heavysymbol" || s == "hm")
 		return MathAtom(new InsetMathBoldSymbol(InsetMathBoldSymbol::BM_HEAVY));
 	if (s == "color" || s == "normalcolor")
 		return MathAtom(new InsetMathColor(true));
@@ -399,6 +395,10 @@ MathAtom createInsetMath(docstring const & s)
 		return MathAtom(new InsetMathDFrac);
 	if (s == "tfrac")
 		return MathAtom(new InsetMathTFrac);
+	if (s == "dbinom")
+		return MathAtom(new InsetMathDBinom);
+	if (s == "tbinom")
+		return MathAtom(new InsetMathTBinom);
 	if (s == "hphantom")
 		return MathAtom(new InsetMathPhantom(InsetMathPhantom::hphantom));
 	if (s == "phantom")
@@ -406,15 +406,7 @@ MathAtom createInsetMath(docstring const & s)
 	if (s == "vphantom")
 		return MathAtom(new InsetMathPhantom(InsetMathPhantom::vphantom));
 
-	if (MacroTable::globalMacros().has(s))
-		return MathAtom(new MathMacro(s,
-			MacroTable::globalMacros().get(s).numargs()));
-	//if (MacroTable::localMacros().has(s))
-	//	return MathAtom(new MathMacro(s,
-	//		MacroTable::localMacros().get(s).numargs()));
-
-	//lyxerr << "creating unknown inset '" << s << "'" << endl;
-	return MathAtom(new InsetMathUnknown(s));
+	return MathAtom(new MathMacro(s));
 }
 
 
@@ -428,9 +420,9 @@ bool createInsetMath_fromDialogStr(docstring const & str, MathData & ar)
 	if (name != "ref" )
 		return false;
 
-	InsetCommandParams icp("ref");
+	InsetCommandParams icp(REF_CODE);
 	// FIXME UNICODE
-	InsetCommandMailer::string2params("ref", to_utf8(str), icp);
+	InsetCommand::string2params("ref", to_utf8(str), icp);
 	mathed_parse_cell(ar, icp.getCommand());
 	if (ar.size() != 1)
 		return false;

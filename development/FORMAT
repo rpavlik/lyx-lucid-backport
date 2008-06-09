@@ -1,6 +1,220 @@
 LyX file-format changes
 -----------------------
 
+2008-05-30 Richard Heck <rgheck@brown.edu>
+	* Format incremented to 335: fixes for InsetSpace problems.
+
+2008-05-16 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 334: fix for bug 4868.
+
+2008-05-09 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 333: fixes in the APA layout.
+
+2008-05-06 Pavel Sanda <sanda@lyx.org>
+	* Format incremented to 332: Added groupId for graphics insets.
+
+2008-25-04 Helge Hafting <helge.hafting@aitel.hist.no>
+	* Format incremented to 330: More horizontal fills
+	  - \leftarrowfill, \rightarrowfill
+	  - \upbracefill, \downbracefill
+
+2008-04-28 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 329: new param \master.
+
+2008-04-18 Bo Peng <ben.bob@gmail.com>
+	* Format incremented to 328: Revert the support for embedding
+
+2008-04-16 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 327: support for Mexican Spanish.
+
+2008-04-11 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 326: support for pdflatex via external inset.
+
+2008-03-29 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 325: merge the two Japanese languages to one that is
+	  encoding independent.
+
+2008-03-25 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 324: merge the two newline insets.
+
+2008-03-25 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 323: merge the diverse newpage insets.
+
+2008-03-24 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 322: local layout
+
+2008-03-18 Edwin Leuven <e.leuven@uva.nl>
+	* Format incremented to 321: drop row/col lines and ensure
+	  consistency between cell and row/col lines.
+	  Make the separation between \begin_inset and Tabular a
+	  single space (it used to be a double space for lyx < 1.4)
+
+2008-03-18 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 320: support for protected horizontal fill
+	  (\hspace*{\fill})
+
+2008-03-10 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 319: hspace and extended hfill support
+
+2008-03-09 Bo Peng <ben.bob@gmail.com>
+	* Format incremented to 318: add \extra_embedded_files to buffer params
+
+2008-03-02 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 317: support floating placements for wrap floats
+
+2008-03-02 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 316: support for subfloats (subfig package)
+
+2008-02-18 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 315: support for column separation in page margins
+
+2008-02-03 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 314: adapt scrlttr2 class for serial letters
+
+2008-01-12 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 313: change in how modules are represented
+
+2008-01-11 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 312: support for sidewaysalgorithm (rotfloat)
+	  and wide sideways{figure,table}.
+
+2008-01-10 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 311: dummy format to drive the AMS conversion
+
+2007-12-28 Bernhard Reiter <ockham@gmx.net>
+	* Format incremented to 310: support for \nocite{*}
+
+2007-12-11 Bernhard Reiter <ockham@gmx.net>
+	* Format incremented to 309: support for \nocite
+
+2007-12-15 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 308: support for Serbian (Latin)
+
+2007-12-05 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 307: support for \slash and \nobreakdash
+
+2007-12-05 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 306: support for Interlingua
+
+2007-12-05 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 305: support for Bahasa Malaysia
+
+2007-12-03 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 304: framed and shaded boxes are now real boxes
+	  (not notes).
+
+2007-11-25 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 303: remove Serbocroatian as this was not a real
+	  babel language (Croatian was used instead in the background)
+	* Implement Serbian
+
+2007-11-25 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 302: support for Latin and North Sami
+
+2007-11-24 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 301: support for \linebreak
+
+2007-11-23 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 300: support for \pagebreak
+
+2007-11-01 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 299: support for hyperlink types
+
+2007-11-01 Stefan Schimanski <sts@1stein.org>
+	* Format incremented to 298: math-macro code has been rewritten,
+	  now it supports definitions with optional parameters
+
+2007-10-29 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 297: support for Albanian, lower Sorbian,
+	  fixed upper Sorbian language
+
+2007-10-23 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 296: InsetInclude becomes an InsetCommand
+
+2007-10-12 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 295: get rid of the htmlurl command that was
+	  needed for docbook, add the option to create a hyperlink instead
+
+2007-10-12 Pavel Sanda <ps@twin.jikos.cz>
+	* Format incremented to 294: PDFOptions: add usetitle,
+	  fix leftovers
+
+2007-10-11 Bo Peng <ben.bob@gmail.com>
+	* Format incremented to 293: Add InsetInfo.
+
+2007-10-09 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 292: Support for Japanese without
+	  using CJK and inputenc. (japanese-plain)
+
+2007-10-04 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 291: Support for Vietnamese.
+
+2007-10-03 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 290: Add table wrap floats
+
+2007-10-03 Martin Vermeer <martin.vermeer@tkk.fi>
+	* Format incremented to 289: make Index a collapsable inset.
+
+2007-09-25 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 288: Change how command insets are
+	  represented in LyX files.
+
+2007-09-24 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 287: Add missing optional parameters
+	  for wrapped figures.
+
+2007-09-21 Pavel Sanda <ps@twin.jikos.cz>
+	* Format incremented to 286: LyX now supports hyperref and some
+	  of its options.
+
+2007-09-11 Bo Peng <ben.bob@gmail.com>
+	* Format incremented to 285: Tweaks to embedded file format
+	  Remove inzip parameter from graphics insets.
+
+2007-09-09 Helge Hafting <helge.hafting@aitel.hist.no>
+	* Format incremented to 284: LyX now implements wrapped figures
+	  using wrapfig.sty instead of floatflt.sty. The latter
+	  is rather buggy, the former also has more options.
+	  No conversion as the .lyx doesn't change.
+	  The .tex export is slightly different, necessitating the
+	  format increase.
+
+2007-09-08 Martin Vermeer <martin.vermeer@tkk.fi>
+
+	* format incremented to 283: CharStyle insets are now
+	  called Flex.
+
+2007-08-31 Bo Peng <ben.bob@gmail.com>
+
+	* format incremented to 282: lyx files can be zipfiles with
+          embedded documents.
+
+2007-08-29 Richard Heck <rgheck@comcast.net>
+
+	* format incremented to 281: allow modules for layout files
+
+2007-08-17 Martin Vermeer <martin.vermeer@tkk.fi>
+
+	* format incremented to 280: the show_label parameter
+	  is depreciated in favour of (Collapsable) status.
+
+2007-08-17 Martin Vermeer <martin.vermeer@tkk.fi>
+
+	* format incremented to 279: CharStyle names are now
+	  expected to be of form CharStyle:Name.
+
+2007-08-12 José Matos <jamatos@fc.up.pt>
+
+	* format incremented to 278: Close begin_deeper with a
+          corresponding end_deeper (the only case where it matters is
+          at the end of the body).
+
+2007-08-12 José Matos <jamatos@fc.up.pt>
+
+	* format incremented to 277: lyx is able to create invalid
+          table where a multicolumn does not have a first cell
+          (required by the table file format)
+
 2007-07-20 Dov Feldstern <dov@lyx.org>
 
 	* format *not* incremented; fixed format 249 conversion, so that it now
@@ -8,7 +222,7 @@ LyX file-format changes
 
 2007-06-26 Uwe Stöhr <uwestoehr@web.de> and Dov Feldstern <dov@lyx.org>
 
-	* format incremented to 276: switching exsting language 'arabic' to 
+	* format incremented to 276: switching exsting language 'arabic' to
 		'arabic_arabtex'; this is to differentiate from the new arabic support
 		using the arabi package.
 
@@ -24,12 +238,12 @@ LyX file-format changes
 		determined on a per-paragraph basis.
 
 2007-06-13 Bo Peng <ben.bob@gmail.com>
-	* format incremented to 273: add --Separator-- environment to 
+	* format incremented to 273: add --Separator-- environment to
 		separate consecutive environments
 
 2007-06-13 Bo Peng <bpeng@lyx.org>
 	* format incremented to 272: convert listings to ERT because
-		earlier versions of lyx can not handle unrecognizable 
+		earlier versions of lyx can not handle unrecognizable
 		listings parameters.
 
 2007-05-15 José Matos <jamatos@lyx.org>
@@ -57,10 +271,10 @@ LyX file-format changes
 	  - encoding package:
 	    "inputenc" for those languages that use the inputenc-package and
 	    "CJK" for the CJK encodings
-	  - "fixed"/"variable" to divide between multi- or single-byte encoding 
+	  - "fixed"/"variable" to divide between multi- or single-byte encoding
 	- lib/languages allows now to set an empty language for babel
 	  in this case babel isn't called.
-	
+
 2007-05-04  Jürgen Spitzmüller  <j.spitzmueller@gmx.de>
 
 	* format incremented to 267: add plain utf8 encoding (for XeTeX).
@@ -69,7 +283,7 @@ LyX file-format changes
 
 	* format incremented to 266:
 	Support for the Armenian language
-	
+
 2007-04-26  Uwe Stöhr  <uwestoehr@web.de>
 
 	* format incremented to 265: fix LyX's table border line handling
@@ -126,15 +340,15 @@ LyX file-format changes
 
 	* format incremented to 258: new \lyxline definition
 	Old:
-	        \\newcommand{\\lyxline}[1]{ 
- 	          {#1 \\vspace{1ex} \\hrule width \\columnwidth \\vspace{1ex}} 
- 	        } 
+	        \\newcommand{\\lyxline}[1]{
+ 	          {#1 \\vspace{1ex} \\hrule width \\columnwidth \\vspace{1ex}}
+ 	        }
 	New:
-		\\newcommand{\\lyxline}[1][1pt]{% 
- 	          \\par\\noindent% 
+		\\newcommand{\\lyxline}[1][1pt]{%
+ 	          \\par\\noindent%
  	          \\rule[.5ex]{\\linewidth}{#1}\\par}
         The new definition is more robust, see bug 1988 and now really takes care about
-	the fontsize: \lyxline{\Huge} produces now a thicker line then \lyxline{\normalfont}
+	the fontsize: \lyxline{\Huge} produces now a thicker line than \lyxline{\normalfont}
 
 2007-01-29  Georg Baum  <Georg.Baum@post.rwth-aachen.de>
 
@@ -210,8 +424,8 @@ LyX file-format changes
 	* Format incremented to 250: allow optional arg to environments
 
 	No material format change. Now optargs for environments are allowed
-	to be specified in layout files and will be handled properly. When 
-	converted back to older formats, they will be ignored in LaTeX 
+	to be specified in layout files and will be handled properly. When
+	converted back to older formats, they will be ignored in LaTeX
 	output.
 
 2006-08-14  Georg Baum  <Georg.Baum@post.rwth-aachen.de>
@@ -263,10 +477,10 @@ LyX file-format changes
 			bookman		bookman		default		default
 			pslatex		times		(or \usepackage{pslatex})
 		New 246->247:
-			\font_roman: cmr (-> \renewcommand{\rmdefault}{cmr}), 
+			\font_roman: cmr (-> \renewcommand{\rmdefault}{cmr}),
 				     lmodern, charter, utopia, ccfonts, chancery, beraserif
 					(-> \usepackage{<name>})
-			\font_sans: cmss, lmss, cmbr 
+			\font_sans: cmss, lmss, cmbr
 					(-> \renewcommand{\sfdefault}{<name>})
 				    berasans (-> \usepackage{<name>})
 			\font_typewriter: cmtt, lmtt, cmtl,
@@ -286,7 +500,7 @@ LyX file-format changes
 
 2006-06-03  Martin Vermeer  <martin.vermeer@hut.fi>
 
-	* format incremented to 246. The framed.sty package is 
+	* format incremented to 246. The framed.sty package is
 	now supported with note types framed and shaded.
 
 2005-10-12  Jürgen Spitzmüller  <j.spitzmueller@gmx.de>
@@ -793,5 +1007,6 @@ renamed as "size_kind" and "lyxsize_kind" respectively.
 	lyxwidth 4cm
 
  \end_inset
+
 
 

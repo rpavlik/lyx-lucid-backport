@@ -207,7 +207,7 @@ def generate(env):
 	env['QT4_UICDECLFLAGS'] = CLVar('')
 	env['QT4_MOCFROMHFLAGS'] = CLVar('')
 	env['QT4_MOCFROMCXXFLAGS'] = CLVar('-i')
-	env['QT4_QRCFLAGS'] = ''
+	env['QT4_QRCFLAGS'] = '-name Resources'
 
 	# suffixes/prefixes for the headers / sources to generate
 	env['QT4_MOCHPREFIX'] = ''
@@ -267,7 +267,7 @@ def generate(env):
 		action='$QT4_UIC4COM',
 		src_suffix='$QT4_UISUFFIX',
 		suffix='$QT4_UICDECLSUFFIX',
-		#prefix='$QT4_UICDECLPREFIX',
+		prefix='$QT4_UICDECLPREFIX',
 		single_source = True
 		)
 	env.Append( BUILDERS = { 'Uic4': uic4builder } )
@@ -352,9 +352,9 @@ def enable_modules(self, modules, debug=False) :
 				self.AppendUnique(LIBPATH=[os.path.join(self["QTDIR"],"lib",module)])
 				self.AppendUnique(CPPPATH=[os.path.join(self["QTDIR"],"include","qt4",module)])
 				modules.remove(module)
-		self.ParseConfig('PKG_CONFIG_PATH=%s/lib pkg-config %s --libs --cflags'%
+		self.ParseConfig('PKG_CONFIG_PATH=%s/lib:%s/lib/pkgconfig pkg-config %s --libs --cflags'%
 		(
-			self['QTDIR'],
+			self['QTDIR'], self['QTDIR'],
 			' '.join(modules)))
 		return
 	if sys.platform == "win32" :

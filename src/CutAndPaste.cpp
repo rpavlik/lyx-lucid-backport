@@ -1,4 +1,4 @@
-/*
+/**
  * \file CutAndPaste.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
@@ -19,59 +19,58 @@
 #include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "Changes.h"
 #include "Cursor.h"
-#include "debug.h"
 #include "ErrorList.h"
+#include "FuncCode.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "InsetIterator.h"
+#include "InsetList.h"
 #include "Language.h"
-#include "lfuns.h"
 #include "LyXFunc.h"
 #include "LyXRC.h"
 #include "Text.h"
-#include "TextClassList.h"
 #include "Paragraph.h"
 #include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
 #include "ParIterator.h"
 #include "Undo.h"
 
-#include "insets/InsetCharStyle.h"
+#include "insets/InsetFlex.h"
+#include "insets/InsetCommand.h"
+#include "insets/InsetGraphics.h"
+#include "insets/InsetGraphicsParams.h"
 #include "insets/InsetTabular.h"
 
 #include "mathed/MathData.h"
 #include "mathed/InsetMath.h"
 #include "mathed/MathSupport.h"
 
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/gettext.h"
+#include "support/limited_stack.h"
 #include "support/lstrings.h"
 
 #include "frontends/Clipboard.h"
 #include "frontends/Selection.h"
 
-#include <boost/current_function.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/next_prior.hpp>
 
 #include <string>
 
-using std::endl;
-using std::for_each;
-using std::make_pair;
-using std::pair;
-using std::vector;
-using std::string;
-
+using namespace std;
+using namespace lyx::support;
+using lyx::frontend::Clipboard;
 
 namespace lyx {
 
-using support::bformat;
-using frontend::Clipboard;
-
 namespace {
 
-typedef std::pair<pit_type, int> PitPosPair;
+typedef pair<pit_type, int> PitPosPair;
 
-typedef limited_stack<pair<ParagraphList, textclass_type> > CutStack;
+typedef limited_stack<pair<ParagraphList, DocumentClass const *> > CutStack;
 
 CutStack theCuts(10);
 // persistent selection, cleared until the next selection
@@ -91,7 +90,7 @@ bool checkPastePossible(int index)
 
 pair<PitPosPair, pit_type>
 pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
-		     textclass_type textclass, ErrorList & errorlist)
+		     DocumentClass const * const oldDocClass, ErrorList & errorlist)
 {
 	Buffer const & buffer = cur.buffer();
 	pit_type pit = cur.pit();
@@ -105,18 +104,19 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 
 	// Make a copy of the CaP paragraphs.
 	ParagraphList insertion = parlist;
-	textclass_type const tc = buffer.params().textclass;
+	DocumentClass const * const newDocClass = 
+		buffer.params().documentClassPtr();
 
 	// Now remove all out of the pars which is NOT allowed in the
 	// new environment and set also another font if that is required.
 
 	// Convert newline to paragraph break in ERT inset.
 	// This should not be here!
-	if (pars[pit].inInset() &&
-	    (pars[pit].inInset()->lyxCode() == Inset::ERT_CODE ||
-		pars[pit].inInset()->lyxCode() == Inset::LISTINGS_CODE)) {
-		for (ParagraphList::size_type i = 0; i < insertion.size(); ++i) {
-			for (pos_type j = 0; j < insertion[i].size(); ++j) {
+	Inset * inset = pars[pit].inInset();
+	if (inset && (inset->lyxCode() == ERT_CODE ||
+			inset->lyxCode() == LISTINGS_CODE)) {
+		for (size_t i = 0; i != insertion.size(); ++i) {
+			for (pos_type j = 0; j != insertion[i].size(); ++j) {
 				if (insertion[i].isNewline(j)) {
 					// do not track deletion of newline
 					insertion[i].eraseChar(j, false);
@@ -128,15 +128,28 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		}
 	}
 
-	// If we are in an inset which returns forceDefaultParagraphs,
-	// set the paragraphs to default
-	if (cur.inset().forceDefaultParagraphs(cur.idx())) {
-		Layout_ptr const layout =
-			buffer.params().getTextClass().defaultLayout();
+	// set the paragraphs to empty layout if necessary
+	if (cur.inset().useEmptyLayout()) {
+		bool forceEmptyLayout = cur.inset().forceEmptyLayout();
+		Layout const & emptyLayout = newDocClass->emptyLayout();
+		Layout const & defaultLayout = newDocClass->defaultLayout();
 		ParagraphList::iterator const end = insertion.end();
-		for (ParagraphList::iterator par = insertion.begin();
-				par != end; ++par)
-			par->layout(layout);
+		ParagraphList::iterator par = insertion.begin();
+		for (; par != end; ++par) {
+			Layout const & parLayout = par->layout();
+			if (forceEmptyLayout || parLayout == defaultLayout)
+				par->setLayout(emptyLayout);
+		}
+	} else { // check if we need to reset form empty layout
+		Layout const & defaultLayout = newDocClass->defaultLayout();
+		Layout const & emptyLayout = newDocClass->emptyLayout();
+		ParagraphList::iterator const end = insertion.end();
+		ParagraphList::iterator par = insertion.begin();
+		for (; par != end; ++par) {
+			Layout const & parLayout = par->layout();
+			if (parLayout == emptyLayout)
+				par->setLayout(defaultLayout);
+		}
 	}
 
 	// Make sure there is no class difference.
@@ -146,7 +159,7 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	// since we store pointers to insets at some places and we don't
 	// want to invalidate them.
 	insertion.swap(in.paragraphs());
-	cap::switchBetweenClasses(textclass, tc, in, errorlist);
+	cap::switchBetweenClasses(oldDocClass, newDocClass, in, errorlist);
 	insertion.swap(in.paragraphs());
 
 	ParagraphList::iterator tmpbuf = insertion.begin();
@@ -176,10 +189,10 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		// Set the inset owner of this paragraph.
 		tmpbuf->setInsetOwner(pars[pit].inInset());
 		for (pos_type i = 0; i < tmpbuf->size(); ++i) {
-			if (tmpbuf->getChar(i) == Paragraph::META_INSET &&
-			    !pars[pit].insetAllowed(tmpbuf->getInset(i)->lyxCode()))
-				// do not track deletion of invalid insets
-				tmpbuf->eraseChar(i--, false);
+			// do not track deletion of invalid insets
+			if (Inset * inset = tmpbuf->getInset(i))
+				if (!pars[pit].insetAllowed(inset->lyxCode()))
+					tmpbuf->eraseChar(i--, false);
 		}
 
 		tmpbuf->setChange(Change(buffer.params().trackChanges ?
@@ -197,24 +210,54 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	// A couple of insets store buffer references so need updating.
 	insertion.swap(in.paragraphs());
 
-	ParIterator fpit = par_iterator_begin(in);
-	ParIterator fend = par_iterator_end(in);
+	InsetIterator const i_end = inset_iterator_end(in);
 
-	for (; fpit != fend; ++fpit) {
-		InsetList::const_iterator lit = fpit->insetlist.begin();
-		InsetList::const_iterator eit = fpit->insetlist.end();
+	for (InsetIterator it = inset_iterator_begin(in); it != i_end; ++it) {
 
-		for (; lit != eit; ++lit) {
-			switch (lit->inset->lyxCode()) {
-			case Inset::TABULAR_CODE: {
-				InsetTabular * it = static_cast<InsetTabular*>(lit->inset);
-				it->buffer(&buffer);
-				break;
+		it->setBuffer(const_cast<Buffer &>(buffer));
+
+		switch (it->lyxCode()) {
+ 
+		case LABEL_CODE: {
+			// check for duplicates
+			InsetCommand & lab = static_cast<InsetCommand &>(*it);
+			docstring const oldname = lab.getParam("name");
+			lab.updateCommand(oldname, false);
+			docstring const newname = lab.getParam("name");
+			if (oldname != newname) {
+				// adapt the references
+				for (InsetIterator itt = inset_iterator_begin(in); itt != i_end; ++itt) {
+					if (itt->lyxCode() == REF_CODE) {
+						InsetCommand & ref = dynamic_cast<InsetCommand &>(*itt);
+						if (ref.getParam("reference") == oldname)
+							ref.setParam("reference", newname);
+					}
+				}
 			}
+			break;
+		}
 
-			default:
-				break; // nothing
+		case BIBITEM_CODE: {
+			// check for duplicates
+			InsetCommand & bib = static_cast<InsetCommand &>(*it);
+			docstring const oldkey = bib.getParam("key");
+			bib.updateCommand(oldkey, false);
+			docstring const newkey = bib.getParam("key");
+			if (oldkey != newkey) {
+				// adapt the references
+				for (InsetIterator itt = inset_iterator_begin(in); itt != i_end; ++itt) {
+					if (itt->lyxCode() == CITE_CODE) {
+						InsetCommand & ref = dynamic_cast<InsetCommand &>(*itt);
+						if (ref.getParam("key") == oldkey)
+							ref.setParam("key", newkey);
+					}
+				}
 			}
+			break;
+		}
+
+		default:
+			break; // nothing
 		}
 	}
 	insertion.swap(in.paragraphs());
@@ -312,16 +355,16 @@ PitPosPair eraseSelectionHelper(BufferParams const & params,
 }
 
 
-void putClipboard(ParagraphList const & paragraphs, textclass_type textclass,
-		  docstring const & plaintext)
+void putClipboard(ParagraphList const & paragraphs, 
+	DocumentClass const * const docclass, docstring const & plaintext)
 {
 	// For some strange reason gcc 3.2 and 3.3 do not accept
 	// Buffer buffer(string(), false);
 	Buffer buffer("", false);
 	buffer.setUnnamed(true);
 	buffer.paragraphs() = paragraphs;
-	buffer.params().textclass = textclass;
-	std::ostringstream lyx;
+	buffer.params().setDocumentClass(docclass);
+	ostringstream lyx;
 	if (buffer.write(lyx))
 		theClipboard().put(lyx.str(), plaintext);
 	else
@@ -331,11 +374,11 @@ void putClipboard(ParagraphList const & paragraphs, textclass_type textclass,
 
 void copySelectionHelper(Buffer const & buf, ParagraphList & pars,
 	pit_type startpit, pit_type endpit,
-	int start, int end, textclass_type tc, CutStack & cutstack)
+	int start, int end, DocumentClass const * const dc, CutStack & cutstack)
 {
-	BOOST_ASSERT(0 <= start && start <= pars[startpit].size());
-	BOOST_ASSERT(0 <= end && end <= pars[endpit].size());
-	BOOST_ASSERT(startpit != endpit || start <= end);
+	LASSERT(0 <= start && start <= pars[startpit].size(), /**/);
+	LASSERT(0 <= end && end <= pars[endpit].size(), /**/);
+	LASSERT(startpit != endpit || start <= end, /**/);
 
 	// Clone the paragraphs within the selection.
 	ParagraphList copy_pars(boost::next(pars.begin(), startpit),
@@ -358,9 +401,8 @@ void copySelectionHelper(Buffer const & buf, ParagraphList & pars,
 		// ERT paragraphs have the Language latex_language.
 		// This is invalid outside of ERT, so we need to change it
 		// to the buffer language.
-		if (it->ownerCode() == Inset::ERT_CODE || it->ownerCode() == Inset::LISTINGS_CODE) {
-			it->changeLanguage(buf.params(), latex_language,
-					   buf.getLanguage());
+		if (it->ownerCode() == ERT_CODE || it->ownerCode() == LISTINGS_CODE) {
+			it->changeLanguage(buf.params(), latex_language, buf.language());
 		}
 		it->setInsetOwner(0);
 	}
@@ -368,7 +410,8 @@ void copySelectionHelper(Buffer const & buf, ParagraphList & pars,
 	// do not copy text (also nested in insets) which is marked as deleted
 	acceptChanges(copy_pars, buf.params());
 
-	cutstack.push(make_pair(copy_pars, tc));
+	DocumentClass * d = const_cast<DocumentClass *>(dc);
+	cutstack.push(make_pair(copy_pars, d));
 }
 
 } // namespace anon
@@ -379,18 +422,18 @@ void copySelectionHelper(Buffer const & buf, ParagraphList & pars,
 namespace cap {
 
 void region(CursorSlice const & i1, CursorSlice const & i2,
-	Inset::row_type & r1, Inset::row_type & r2,
-	Inset::col_type & c1, Inset::col_type & c2)
+	    Inset::row_type & r1, Inset::row_type & r2,
+	    Inset::col_type & c1, Inset::col_type & c2)
 {
 	Inset & p = i1.inset();
 	c1 = p.col(i1.idx());
 	c2 = p.col(i2.idx());
 	if (c1 > c2)
-		std::swap(c1, c2);
+		swap(c1, c2);
 	r1 = p.row(i1.idx());
 	r2 = p.row(i2.idx());
 	if (r1 > r2)
-		std::swap(r1, r2);
+		swap(r1, r2);
 }
 
 
@@ -401,6 +444,28 @@ docstring grabAndEraseSelection(Cursor & cur)
 	docstring res = grabSelection(cur);
 	eraseSelection(cur);
 	return res;
+}
+
+
+bool reduceSelectionToOneCell(Cursor & cur)
+{
+	if (!cur.selection() || !cur.inMathed())
+		return false;
+
+	CursorSlice i1 = cur.selBegin();
+	CursorSlice i2 = cur.selEnd();
+	if (!i1.inset().asInsetMath())
+		return false;
+
+	// the easy case: do nothing if only one cell is selected
+	if (i1.idx() == i2.idx())
+		return true;
+	
+	cur.top().pos() = 0;
+	cur.resetAnchor();
+	cur.top().pos() = cur.top().lastpos();
+	
+	return true;
 }
 
 
@@ -421,35 +486,37 @@ bool multipleCellsSelected(Cursor const & cur)
 }
 
 
-void switchBetweenClasses(textclass_type c1, textclass_type c2,
-	InsetText & in, ErrorList & errorlist)
+void switchBetweenClasses(DocumentClass const * const oldone, 
+		DocumentClass const * const newone, InsetText & in, ErrorList & errorlist)
 {
 	errorlist.clear();
 
-	BOOST_ASSERT(!in.paragraphs().empty());
-	if (c1 == c2)
+	LASSERT(!in.paragraphs().empty(), /**/);
+	if (oldone == newone)
 		return;
-
-	TextClass const & tclass1 = textclasslist[c1];
-	TextClass const & tclass2 = textclasslist[c2];
+	
+	DocumentClass const & oldtc = *oldone;
+	DocumentClass const & newtc = *newone;
 
 	// layouts
 	ParIterator end = par_iterator_end(in);
 	for (ParIterator it = par_iterator_begin(in); it != end; ++it) {
-		docstring const name = it->layout()->name();
-		bool hasLayout = tclass2.hasLayout(name);
+		docstring const name = it->layout().name();
+		bool hasLayout = newtc.hasLayout(name);
 
-		if (hasLayout)
-			it->layout(tclass2[name]);
+		if (in.useEmptyLayout())
+			it->setLayout(newtc.emptyLayout());
+		else if (hasLayout)
+			it->setLayout(newtc[name]);
 		else
-			it->layout(tclass2.defaultLayout());
+			it->setLayout(newtc.defaultLayout());
 
-		if (!hasLayout && name != tclass1.defaultLayoutName()) {
+		if (!hasLayout && name != oldtc.defaultLayoutName()) {
 			docstring const s = bformat(
 						 _("Layout had to be changed from\n%1$s to %2$s\n"
 						"because of class conversion from\n%3$s to %4$s"),
-			 name, it->layout()->name(),
-			 from_utf8(tclass1.name()), from_utf8(tclass2.name()));
+			 name, it->layout().name(),
+			 from_utf8(oldtc.name()), from_utf8(newtc.name()));
 			// To warn the user that something had to be done.
 			errorlist.push_back(ErrorItem(_("Changed Layout"), s,
 						      it->id(), 0,
@@ -460,36 +527,31 @@ void switchBetweenClasses(textclass_type c1, textclass_type c2,
 	// character styles
 	InsetIterator const i_end = inset_iterator_end(in);
 	for (InsetIterator it = inset_iterator_begin(in); it != i_end; ++it) {
-		if (it->lyxCode() == Inset::CHARSTYLE_CODE) {
-			InsetCharStyle & inset =
-				static_cast<InsetCharStyle &>(*it);
-			string const name = inset.params().type;
-			CharStyles::iterator const found_cs =
-				tclass2.charstyle(name);
-			if (found_cs == tclass2.charstyles().end()) {
-				// The character style is undefined in tclass2
-				inset.setUndefined();
-				docstring const s = bformat(_(
-					"Character style %1$s is "
-					"undefined because of class "
-					"conversion from\n%2$s to %3$s"),
-					 from_utf8(name), from_utf8(tclass1.name()),
-					 from_utf8(tclass2.name()));
-				// To warn the user that something had to be done.
-				errorlist.push_back(ErrorItem(
-					_("Undefined character style"),
-					s, it.paragraph().id(),	it.pos(), it.pos() + 1));
-			} else if (inset.undefined()) {
-				// The character style is undefined in
-				// tclass1 and is defined in tclass2
-				inset.setDefined(found_cs);
-			}
-		}
+		InsetCollapsable * inset = it->asInsetCollapsable();
+		if (!inset)
+			continue;
+		if (inset->lyxCode() != FLEX_CODE)
+			// FIXME: Should we verify all InsetCollapsable?
+			continue;
+		inset->setLayout(newone);
+		if (!inset->undefined())
+			continue;
+		// The flex inset is undefined in newtc
+		docstring const s = bformat(_(
+			"Flex inset %1$s is "
+			"undefined because of class "
+			"conversion from\n%2$s to %3$s"),
+			inset->name(), from_utf8(oldtc.name()),
+			from_utf8(newtc.name()));
+		// To warn the user that something had to be done.
+		errorlist.push_back(ErrorItem(
+				_("Undefined flex inset"),
+				s, it.paragraph().id(),	it.pos(), it.pos() + 1));
 	}
 }
 
 
-std::vector<docstring> const availableSelections(Buffer const & buffer)
+vector<docstring> availableSelections()
 {
 	vector<docstring> selList;
 
@@ -503,7 +565,7 @@ std::vector<docstring> const availableSelections(Buffer const & buffer)
 		ParagraphList::const_iterator pit = pars.begin();
 		ParagraphList::const_iterator pend = pars.end();
 		for (; pit != pend; ++pit) {
-			asciiSel += pit->asString(buffer, false);
+			asciiSel += pit->asString(AS_STR_INSETS);
 			if (asciiSel.size() > 25) {
 				asciiSel.replace(22, docstring::npos,
 						 from_ascii("..."));
@@ -535,12 +597,12 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 
 	if (cur.inTexted()) {
 		Text * text = cur.text();
-		BOOST_ASSERT(text);
+		LASSERT(text, /**/);
 
 		saveSelection(cur);
 
 		// make sure that the depth behind the selection are restored, too
-		recordUndoSelection(cur);
+		cur.recordUndoSelection();
 		pit_type begpit = cur.selBegin().pit();
 		pit_type endpit = cur.selEnd().pit();
 
@@ -552,7 +614,7 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 				text->paragraphs(),
 				begpit, endpit,
 				cur.selBegin().pos(), endpos,
-				bp.textclass, theCuts);
+				bp.documentClassPtr(), theCuts);
 			// Stuff what we got on the clipboard.
 			// Even if there is no selection.
 			putClipboard(theCuts[0].first, theCuts[0].second,
@@ -588,11 +650,11 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 		if (cur.selBegin().idx() != cur.selEnd().idx()) {
 			// The current selection spans more than one cell.
 			// Record all cells
-			recordUndoInset(cur);
+			cur.recordUndoInset();
 		} else {
 			// Record only the current cell to avoid a jumping
 			// cursor after undo
-			recordUndo(cur);
+			cur.recordUndo();
 		}
 		if (realcut)
 			copySelection(cur);
@@ -621,7 +683,7 @@ void copySelectionToStack(Cursor & cur, CutStack & cutstack)
 
 	if (cur.inTexted()) {
 		Text * text = cur.text();
-		BOOST_ASSERT(text);
+		LASSERT(text, /**/);
 		// ok we have a selection. This is always between cur.selBegin()
 		// and sel_end cursor
 
@@ -635,7 +697,8 @@ void copySelectionToStack(Cursor & cur, CutStack & cutstack)
 			++pos;
 
 		copySelectionHelper(cur.buffer(), pars, par, cur.selEnd().pit(),
-			pos, cur.selEnd().pos(), cur.buffer().params().textclass, cutstack);
+			pos, cur.selEnd().pos(), 
+			cur.buffer().params().documentClassPtr(), cutstack);
 		dirtyTabularStack(false);
 	}
 
@@ -644,10 +707,11 @@ void copySelectionToStack(Cursor & cur, CutStack & cutstack)
 		ParagraphList pars;
 		Paragraph par;
 		BufferParams const & bp = cur.buffer().params();
-		par.layout(bp.getTextClass().defaultLayout());
+		// FIXME This should be the empty layout...right?
+		par.setLayout(bp.documentClass().emptyLayout());
 		par.insert(0, grabSelection(cur), Font(), Change(Change::UNCHANGED));
 		pars.push_back(par);
-		cutstack.push(make_pair(pars, bp.textclass));
+		cutstack.push(make_pair(pars, bp.documentClassPtr()));
 	}
 }
 
@@ -664,19 +728,20 @@ void copySelectionToStack()
 void copySelection(Cursor & cur, docstring const & plaintext)
 {
 	// In tablemode, because copy and paste actually use special table stack
-	// we do not attemp to get selected paragraphs under cursor. Instead, a
+	// we do not attempt to get selected paragraphs under cursor. Instead, a
 	// paragraph with the plain text version is generated so that table cells
 	// can be pasted as pure text somewhere else.
 	if (cur.selBegin().idx() != cur.selEnd().idx()) {
 		ParagraphList pars;
 		Paragraph par;
 		BufferParams const & bp = cur.buffer().params();
-		par.layout(bp.getTextClass().defaultLayout());
+		par.setLayout(bp.documentClass().emptyLayout());
 		par.insert(0, plaintext, Font(), Change(Change::UNCHANGED));
 		pars.push_back(par);
-		theCuts.push(make_pair(pars, bp.textclass));
-	} else
+		theCuts.push(make_pair(pars, bp.documentClassPtr()));
+	} else {
 		copySelectionToStack(cur, theCuts);
+	}
 
 	// stuff the selection onto the X clipboard, from an explicit copy request
 	putClipboard(theCuts[0].first, theCuts[0].second, plaintext);
@@ -691,9 +756,7 @@ void saveSelection(Cursor & cur)
 	if (cur.selection() 
 	    && cur.selBegin() == cur.bv().cursor().selBegin()
 	    && cur.selEnd() == cur.bv().cursor().selEnd()) {
-		LYXERR(Debug::ACTION) << BOOST_CURRENT_FUNCTION << ": `"
-			   << to_utf8(cur.selectionAsString(true)) << "'."
-			   << endl;
+		LYXERR(Debug::ACTION, "'" << cur.selectionAsString(true) << "'");
 		copySelectionToStack(cur, selectionBuffer);
 	}
 }
@@ -717,34 +780,33 @@ void clearCutStack()
 }
 
 
-docstring getSelection(Buffer const & buf, size_t sel_index)
+docstring selection(size_t sel_index)
 {
 	return sel_index < theCuts.size()
-		? theCuts[sel_index].first.back().asString(buf, false)
+		? theCuts[sel_index].first.back().asString(AS_STR_INSETS)
 		: docstring();
 }
 
 
 void pasteParagraphList(Cursor & cur, ParagraphList const & parlist,
-			textclass_type textclass, ErrorList & errorList)
+			DocumentClass const * const docclass, ErrorList & errorList)
 {
 	if (cur.inTexted()) {
 		Text * text = cur.text();
-		BOOST_ASSERT(text);
+		LASSERT(text, /**/);
 
 		pit_type endpit;
 		PitPosPair ppp;
 
 		boost::tie(ppp, endpit) =
-			pasteSelectionHelper(cur, parlist,
-					     textclass, errorList);
+			pasteSelectionHelper(cur, parlist, docclass, errorList);
 		updateLabels(cur.buffer());
 		cur.clearSelection();
 		text->setCursor(cur, ppp.first, ppp.second);
 	}
 
 	// mathed is handled in InsetMathNest/InsetMathGrid
-	BOOST_ASSERT(!cur.inMathed());
+	LASSERT(!cur.inMathed(), /**/);
 }
 
 
@@ -754,14 +816,14 @@ void pasteFromStack(Cursor & cur, ErrorList & errorList, size_t sel_index)
 	if (!checkPastePossible(sel_index))
 		return;
 
-	recordUndo(cur);
+	cur.recordUndo();
 	pasteParagraphList(cur, theCuts[sel_index].first,
 			   theCuts[sel_index].second, errorList);
 	cur.setSelection();
 }
 
 
-void pasteClipboard(Cursor & cur, ErrorList & errorList, bool asParagraphs)
+void pasteClipboardText(Cursor & cur, ErrorList & errorList, bool asParagraphs)
 {
 	// Use internal clipboard if it is the most recent one
 	if (theClipboard().isInternal()) {
@@ -778,9 +840,9 @@ void pasteClipboard(Cursor & cur, ErrorList & errorList, bool asParagraphs)
 			Buffer buffer("", false);
 			buffer.setUnnamed(true);
 			if (buffer.readString(lyx)) {
-				recordUndo(cur);
+				cur.recordUndo();
 				pasteParagraphList(cur, buffer.paragraphs(),
-					buffer.params().textclass, errorList);
+					buffer.params().documentClassPtr(), errorList);
 				cur.setSelection();
 				return;
 			}
@@ -791,7 +853,7 @@ void pasteClipboard(Cursor & cur, ErrorList & errorList, bool asParagraphs)
 	docstring const text = theClipboard().getAsText();
 	if (text.empty())
 		return;
-	recordUndo(cur);
+	cur.recordUndo();
 	if (asParagraphs)
 		cur.text()->insertStringAsParagraphs(cur, text);
 	else
@@ -799,11 +861,31 @@ void pasteClipboard(Cursor & cur, ErrorList & errorList, bool asParagraphs)
 }
 
 
+void pasteClipboardGraphics(Cursor & cur, ErrorList & /* errorList */,
+			    Clipboard::GraphicsType preferedType)
+{
+	LASSERT(theClipboard().hasGraphicsContents(preferedType), /**/);
+
+	// get picture from clipboard
+	FileName filename = theClipboard().getAsGraphics(cur, preferedType);
+	if (filename.empty())
+		return;
+
+	// create inset for graphic
+	InsetGraphics * inset = new InsetGraphics(cur.buffer());
+	InsetGraphicsParams params;
+	params.filename = support::DocFileName(filename.absFilename());
+	inset->setParams(params);
+	cur.recordUndo();
+	cur.insert(inset);
+}
+
+
 void pasteSelection(Cursor & cur, ErrorList & errorList)
 {
 	if (selectionBuffer.empty())
 		return;
-	recordUndo(cur);
+	cur.recordUndo();
 	pasteParagraphList(cur, selectionBuffer[0].first,
 			   selectionBuffer[0].second, errorList);
 }
@@ -811,7 +893,7 @@ void pasteSelection(Cursor & cur, ErrorList & errorList)
 
 void replaceSelectionWithString(Cursor & cur, docstring const & str, bool backwards)
 {
-	recordUndo(cur);
+	cur.recordUndo();
 	DocIterator selbeg = cur.selectionBegin();
 
 	// Get font setting before we cut
@@ -902,9 +984,11 @@ docstring grabSelection(Cursor const & cur)
 	if (!cur.selection())
 		return docstring();
 
-	// FIXME: What is wrong with the following?
 #if 0
-	std::ostringstream os;
+	// grab selection by glueing multiple cells together. This is not what
+	// we want because selections spanning multiple cells will get "&" and "\\"
+	// seperators.
+	ostringstream os;
 	for (DocIterator dit = cur.selectionBegin();
 	     dit != cur.selectionEnd(); dit.forwardPos())
 		os << asString(dit.cell());

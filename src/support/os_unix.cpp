@@ -13,13 +13,14 @@
 #include <config.h>
 
 #include "support/os.h"
+#include "support/docstring.h"
+#include "support/FileName.h"
 
 #ifdef __APPLE__
 #include <Carbon/Carbon.h>
 #endif
 
-using std::string;
-
+using namespace std;
 
 namespace lyx {
 namespace support {
@@ -82,12 +83,6 @@ string internal_path_list(string const & p)
 string latex_path(string const & p)
 {
 	return p;
-}
-
-
-bool is_absolute_path(string const & p)
-{
-	return !p.empty() && p[0] == '/';
 }
 
 

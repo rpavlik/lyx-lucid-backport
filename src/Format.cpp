@@ -14,42 +14,28 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "LyXRC.h"
-#include "debug.h"
-#include "gettext.h"
 #include "ServerSocket.h"
 
-#include "frontends/Application.h"
 #include "frontends/alert.h" //to be removed?
 
+#include "support/debug.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Systemcall.h"
 
-#include <boost/filesystem/operations.hpp>
+// FIXME: Q_WS_MACX is not available, it's in Qt
+#ifdef USE_MACOSX_PACKAGING
+#include "support/linkback/LinkBackProxy.h"
+#endif
 
-using std::string;
-using std::distance;
-using std::find_if;
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::absolutePath;
-using support::bformat;
-using support::compare_ascii_no_case;
-using support::contains;
-using support::doesFileExist;
-using support::FileName;
-using support::libScriptSearch;
-using support::makeDisplayPath;
-using support::onlyPath;
-using support::quoteName;
-using support::subst;
-using support::Systemcall;
-using support::token;
-
 namespace Alert = frontend::Alert;
-namespace fs = boost::filesystem;
 namespace os = support::os;
 
 namespace {
@@ -59,7 +45,7 @@ string const token_path_format("$$p");
 string const token_socket_format("$$a");
 
 
-class FormatNamesEqual : public std::unary_function<Format, bool> {
+class FormatNamesEqual : public unary_function<Format, bool> {
 public:
 	FormatNamesEqual(string const & name)
 		: name_(name) {}
@@ -72,7 +58,7 @@ private:
 };
 
 
-class FormatExtensionsEqual : public std::unary_function<Format, bool> {
+class FormatExtensionsEqual : public unary_function<Format, bool> {
 public:
 	FormatExtensionsEqual(string const & extension)
 		: extension_(extension) {}
@@ -143,12 +129,12 @@ string Formats::getFormatFromFile(FileName const & filename) const
 	if (filename.empty())
 		return string();
 
-	string const format = support::getFormatFromContents(filename);
+	string const format = filename.guessFormatFromContents();
 	if (!format.empty())
 		return format;
 
 	// try to find a format from the file extension.
-	string const ext(support::getExtension(filename.absFilename()));
+	string const ext = getExtension(filename.absFilename());
 	if (!ext.empty()) {
 		// this is ambigous if two formats have the same extension,
 		// but better than nothing
@@ -156,18 +142,16 @@ string Formats::getFormatFromFile(FileName const & filename) const
 			find_if(formatlist.begin(), formatlist.end(),
 				FormatExtensionsEqual(ext));
 		if (cit != formats.end()) {
-			LYXERR(Debug::GRAPHICS)
-				<< "\twill guess format from file extension: "
-				<< ext << " -> " << cit->name() << std::endl;
+			LYXERR(Debug::GRAPHICS, "\twill guess format from file extension: "
+				<< ext << " -> " << cit->name());
 			return cit->name();
 		}
 	}
 	return string();
 }
 
-namespace {
 
-string fixCommand(string const & cmd, string const & ext,
+static string fixCommand(string const & cmd, string const & ext,
 		  os::auto_open_mode mode)
 {
 	// configure.py says we do not want a viewer/editor
@@ -186,7 +170,6 @@ string fixCommand(string const & cmd, string const & ext,
 	return cmd;
 }
 
-}
 
 void Formats::setAutoOpen()
 {
@@ -266,7 +249,7 @@ void Formats::setViewer(string const & name, string const & command)
 bool Formats::view(Buffer const & buffer, FileName const & filename,
 		   string const & format_name) const
 {
-	if (filename.empty() || !doesFileExist(filename)) {
+	if (filename.empty() || !filename.exists()) {
 		Alert::error(_("Cannot view file"),
 			bformat(_("File does not exist: %1$s"),
 				from_utf8(filename.absFilename())));
@@ -317,7 +300,7 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 	command = subst(command, token_from_format, quoteName(filename.toFilesystemEncoding()));
 	command = subst(command, token_path_format, quoteName(onlyPath(filename.toFilesystemEncoding())));
 	command = subst(command, token_socket_format, quoteName(theServerSocket().address()));
-	LYXERR(Debug::FILES) << "Executing command: " << command << std::endl;
+	LYXERR(Debug::FILES, "Executing command: " << command);
 	// FIXME UNICODE utf8 can be wrong for files
 	buffer.message(_("Executing command: ") + from_utf8(command));
 
@@ -337,11 +320,23 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 bool Formats::edit(Buffer const & buffer, FileName const & filename,
 			 string const & format_name) const
 {
-	if (filename.empty() || !doesFileExist(filename)) {
+	if (filename.empty() || !filename.exists()) {
 		Alert::error(_("Cannot edit file"),
 			bformat(_("File does not exist: %1$s"),
 				from_utf8(filename.absFilename())));
 		return false;
+	}
+
+	// LinkBack files look like PDF, but have the .linkback extension
+	string const ext = getExtension(filename.absFilename());
+	if (format_name == "pdf" && ext == "linkback") {
+#ifdef USE_MACOSX_PACKAGING
+		return editLinkBackFile(filename.absFilename().c_str());
+#else
+		Alert::error(_("Cannot edit file"),
+			     _("LinkBack files can only be edited on Apple Mac OSX."));
+		return false;
+#endif // USE_MACOSX_PACKAGING
 	}
 
 	Format const * format = getFormat(format_name);
@@ -356,6 +351,7 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 				prettyName(format_name)));
 		return false;
 	}
+	
 	// editor is 'auto'
 	if (format->editor() == "auto") {
 		if (os::autoOpenFile(filename.absFilename(), os::EDIT))
@@ -376,7 +372,7 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 	command = subst(command, token_from_format, quoteName(filename.toFilesystemEncoding()));
 	command = subst(command, token_path_format, quoteName(onlyPath(filename.toFilesystemEncoding())));
 	command = subst(command, token_socket_format, quoteName(theServerSocket().address()));
-	LYXERR(Debug::FILES) << "Executing command: " << command << std::endl;
+	LYXERR(Debug::FILES, "Executing command: " << command);
 	// FIXME UNICODE utf8 can be wrong for files
 	buffer.message(_("Executing command: ") + from_utf8(command));
 

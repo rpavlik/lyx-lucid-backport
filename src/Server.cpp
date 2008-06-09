@@ -40,15 +40,15 @@
 #include <config.h>
 
 #include "Server.h"
-#include "debug.h"
 #include "FuncRequest.h"
 #include "LyXAction.h"
 #include "LyXFunc.h"
+
 #include "frontends/Application.h"
 
+#include "support/debug.h"
 #include "support/FileName.h"
 #include "support/lstrings.h"
-#include "support/lyxlib.h"
 
 #include <boost/bind.hpp>
 
@@ -58,21 +58,22 @@
 #endif
 #include <fcntl.h>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::compare;
-using support::FileName;
-using support::rtrim;
-using support::split;
-using support::unlink;
-
-using std::endl;
-using std::string;
-
+/////////////////////////////////////////////////////////////////////
+//
+// LyXComm
+//
+/////////////////////////////////////////////////////////////////////
 
 #if !defined (HAVE_MKFIFO)
 // We provide a stub class that disables the lyxserver.
+
+LyXComm::LyXComm(string const &, Server *, ClientCallbackfct)
+{}
 
 void LyXComm::openConnection()
 {}
@@ -106,66 +107,72 @@ void LyXComm::send(string const & msg)
 #else // defined (HAVE_MKFIFO)
 
 
+LyXComm::LyXComm(string const & pip, Server * cli, ClientCallbackfct ccb)
+	: pipename_(pip), client_(cli), clientcb_(ccb)
+{
+	ready_ = false;
+	openConnection();
+}
+
+
 void LyXComm::openConnection()
 {
-	LYXERR(Debug::LYXSERVER) << "LyXComm: Opening connection" << endl;
+	LYXERR(Debug::LYXSERVER, "LyXComm: Opening connection");
 
 	// If we are up, that's an error
-	if (ready) {
+	if (ready_) {
 		lyxerr << "LyXComm: Already connected" << endl;
 		return;
 	}
 	// We assume that we don't make it
-	ready = false;
+	ready_ = false;
 
-	if (pipename.empty()) {
-		LYXERR(Debug::LYXSERVER)
-			<< "LyXComm: server is disabled, nothing to do"
-			<< endl;
+	if (pipename_.empty()) {
+		LYXERR(Debug::LYXSERVER, "LyXComm: server is disabled, nothing to do");
 		return;
 	}
 
-	if ((infd = startPipe(inPipeName(), false)) == -1)
+	infd_ = startPipe(inPipeName(), false);
+	if (infd_ == -1)
 		return;
 
-	if ((outfd = startPipe(outPipeName(), true)) == -1) {
-		endPipe(infd, inPipeName(), false);
+	outfd_ = startPipe(outPipeName(), true);
+	if (outfd_ == -1) {
+		endPipe(infd_, inPipeName(), false);
 		return;
 	}
 
-	if (fcntl(outfd, F_SETFL, O_NONBLOCK) < 0) {
+	if (fcntl(outfd_, F_SETFL, O_NONBLOCK) < 0) {
 		lyxerr << "LyXComm: Could not set flags on pipe " << outPipeName()
 		       << '\n' << strerror(errno) << endl;
 		return;
 	}
 
 	// We made it!
-	ready = true;
-	LYXERR(Debug::LYXSERVER) << "LyXComm: Connection established" << endl;
+	ready_ = true;
+	LYXERR(Debug::LYXSERVER, "LyXComm: Connection established");
 }
 
 
 /// Close pipes
 void LyXComm::closeConnection()
 {
-	LYXERR(Debug::LYXSERVER) << "LyXComm: Closing connection" << endl;
+	LYXERR(Debug::LYXSERVER, "LyXComm: Closing connection");
 
-	if (pipename.empty()) {
-		LYXERR(Debug::LYXSERVER)
-			<< "LyXComm: server is disabled, nothing to do"
-			<< endl;
+	if (pipename_.empty()) {
+		LYXERR(Debug::LYXSERVER, "LyXComm: server is disabled, nothing to do");
 		return;
 	}
 
-	if (!ready) {
-		lyxerr << "LyXComm: Already disconnected" << endl;
+	if (!ready_) {
+		LYXERR0("LyXComm: Already disconnected");
 		return;
 	}
 
-	endPipe(infd, inPipeName(), false);
-	endPipe(outfd, outPipeName(), true);
+	endPipe(infd_, inPipeName(), false);
+	endPipe(outfd_, outPipeName(), true);
 
-	ready = false;
+	ready_ = false;
 }
 
 
@@ -176,7 +183,7 @@ int LyXComm::startPipe(string const & file, bool write)
 		lyxerr << "LyXComm: Pipe " << filename << " already exists.\n"
 		       << "If no other LyX program is active, please delete"
 			" the pipe by hand and try again." << endl;
-		pipename.erase();
+		pipename_.erase();
 		return -1;
 	}
 
@@ -184,14 +191,14 @@ int LyXComm::startPipe(string const & file, bool write)
 		lyxerr << "LyXComm: Could not create pipe " << filename << '\n'
 		       << strerror(errno) << endl;
 		return -1;
-	};
+	}
 	int const fd = ::open(filename.toFilesystemEncoding().c_str(),
 			      write ? (O_RDWR) : (O_RDONLY|O_NONBLOCK));
 
 	if (fd < 0) {
 		lyxerr << "LyXComm: Could not open pipe " << filename << '\n'
 		       << strerror(errno) << endl;
-		unlink(filename);
+		filename.removeFile();
 		return -1;
 	}
 
@@ -209,19 +216,18 @@ void LyXComm::endPipe(int & fd, string const & filename, bool write)
 	if (fd < 0)
 		return;
 
-	if (!write) {
+	if (!write)
 		theApp()->unregisterSocketCallback(fd);
-	}
 
 	if (::close(fd) < 0) {
 		lyxerr << "LyXComm: Could not close pipe " << filename
 		       << '\n' << strerror(errno) << endl;
 	}
 
-	if (unlink(FileName(filename)) < 0) {
+	if (FileName(filename).removeFile() < 0) {
 		lyxerr << "LyXComm: Could not remove pipe " << filename
 		       << '\n' << strerror(errno) << endl;
-	};
+	}
 
 	fd = -1;
 }
@@ -229,9 +235,9 @@ void LyXComm::endPipe(int & fd, string const & filename, bool write)
 
 void LyXComm::emergencyCleanup()
 {
-	if (!pipename.empty()) {
-		endPipe(infd, inPipeName(), false);
-		endPipe(outfd, outPipeName(), true);
+	if (!pipename_.empty()) {
+		endPipe(infd_, inPipeName(), false);
+		endPipe(outfd_, outPipeName(), true);
 	}
 }
 
@@ -239,7 +245,7 @@ void LyXComm::emergencyCleanup()
 // Receives messages and sends then to client
 void LyXComm::read_ready()
 {
-	// nb! make read_buffer_ a class-member for multiple sessions
+	// FIXME: make read_buffer_ a class-member for multiple sessions
 	static string read_buffer_;
 	read_buffer_.erase();
 
@@ -249,7 +255,7 @@ void LyXComm::read_ready()
 	errno = 0;
 	int status;
 	// the single = is intended here.
-	while ((status = ::read(infd, charbuf, charbuf_size - 1))) {
+	while ((status = ::read(infd_, charbuf, charbuf_size - 1))) {
 
 		if (status > 0) {
 			charbuf[status] = '\0'; // turn it into a c string
@@ -260,12 +266,11 @@ void LyXComm::read_ready()
 				// the delim /wasn't/ found. ?:-P
 				string cmd;
 				read_buffer_= split(read_buffer_, cmd,'\n');
-				LYXERR(Debug::LYXSERVER)
-					<< "LyXComm: status:" << status
+				LYXERR(Debug::LYXSERVER, "LyXComm: status:" << status
 					<< ", read_buffer_:" << read_buffer_
-					<< ", cmd:" << cmd << endl;
+					<< ", cmd:" << cmd);
 				if (!cmd.empty())
-					clientcb(client, cmd);
+					clientcb_(client_, cmd);
 					//\n or not \n?
 			}
 		}
@@ -274,10 +279,9 @@ void LyXComm::read_ready()
 			return;
 		}
 		if (errno != 0) {
-			lyxerr << "LyXComm: " << strerror(errno) << endl;
+			LYXERR0("LyXComm: " << strerror(errno));
 			if (!read_buffer_.empty()) {
-				lyxerr << "LyXComm: truncated command: "
-				       << read_buffer_ << endl;
+				LYXERR0("LyXComm: truncated command: " << read_buffer_);
 				read_buffer_.erase();
 			}
 			break; // reset connection
@@ -295,19 +299,17 @@ void LyXComm::read_ready()
 void LyXComm::send(string const & msg)
 {
 	if (msg.empty()) {
-		lyxerr << "LyXComm: Request to send empty string. Ignoring."
-		       << endl;
+		LYXERR0("LyXComm: Request to send empty string. Ignoring.");
 		return;
 	}
 
-	LYXERR(Debug::LYXSERVER) << "LyXComm: Sending '" << msg << '\'' << endl;
+	LYXERR(Debug::LYXSERVER, "LyXComm: Sending '" << msg << '\'');
 
-	if (pipename.empty()) return;
+	if (pipename_.empty()) return;
 
-	if (!ready) {
-		lyxerr << "LyXComm: Pipes are closed. Could not send "
-		       << msg << endl;
-	} else if (::write(outfd, msg.c_str(), msg.length()) < 0) {
+	if (!ready_) {
+		LYXERR0("LyXComm: Pipes are closed. Could not send " << msg);
+	} else if (::write(outfd_, msg.c_str(), msg.length()) < 0) {
 		lyxerr << "LyXComm: Error sending message: " << msg
 		       << '\n' << strerror(errno)
 		       << "\nLyXComm: Resetting connection" << endl;
@@ -321,41 +323,56 @@ void LyXComm::send(string const & msg)
 
 string const LyXComm::inPipeName() const
 {
-	return pipename + string(".in");
+	return pipename_ + ".in";
 }
 
 
 string const LyXComm::outPipeName() const
 {
-	return pipename + string(".out");
+	return pipename_ + ".out";
 }
 
 
-// Server class
+/////////////////////////////////////////////////////////////////////
+//
+// Server
+//
+/////////////////////////////////////////////////////////////////////
+
+void ServerCallback(Server * server, string const & msg)
+{
+	server->callback(msg);
+}
+
+Server::Server(LyXFunc * f, string const & pipes)
+	: numclients_(0), func_(f), pipes_(pipes, this, &ServerCallback)
+{}
+
 
 Server::~Server()
 {
 	// say goodbye to clients so they stop sending messages
-	// modified june 1999 by stefano@zool.su.se to send as many bye
-	// messages as there are clients, each with client's name.
+	// send as many bye messages as there are clients,
+	// each with client's name.
 	string message;
-	for (int i= 0; i<numclients; ++i) {
-		message = "LYXSRV:" + clients[i] + ":bye\n";
-		pipes.send(message);
+	for (int i = 0; i != numclients_; ++i) {
+		message = "LYXSRV:" + clients_[i] + ":bye\n";
+		pipes_.send(message);
 	}
 }
 
 
-/* ---F+------------------------------------------------------------------ *\
-   Function  : ServerCallback
-    Called by : LyXComm
-    Purpose   : handle data gotten from communication
-\* ---F------------------------------------------------------------------- */
-
-void Server::callback(Server * serv, string const & msg)
+int compare(char const * a, char const * b, unsigned int len)
 {
-	LYXERR(Debug::LYXSERVER) << "Server: Received: '"
-				 << msg << '\'' << endl;
+	using namespace std;
+	return strncmp(a, b, len);
+}
+
+
+// Handle data gotten from communication, called by LyXComm
+void Server::callback(string const & msg)
+{
+	LYXERR(Debug::LYXSERVER, "Server: Received: '" << msg << '\'');
 
 	char const * p = msg.c_str();
 
@@ -380,8 +397,10 @@ void Server::callback(Server * serv, string const & msg)
 		string client;
 		while (*p && *p != ':')
 			client += char(*p++);
-		if (*p == ':') ++p;
-		if (!*p) return;
+		if (*p == ':')
+			++p;
+		if (!*p)
+			return;
 
 		// --- 3. get function name ---
 		string cmd;
@@ -396,10 +415,8 @@ void Server::callback(Server * serv, string const & msg)
 			if (*p) ++p;
 		}
 
-		LYXERR(Debug::LYXSERVER)
-			<< "Server: Client: '" << client
-			<< "' Command: '" << cmd
-			<< "' Argument: '" << arg << '\'' << endl;
+		LYXERR(Debug::LYXSERVER, "Server: Client: '" << client
+			<< "' Command: '" << cmd << "' Argument: '" << arg << '\'');
 
 		// --- lookup and exec the command ------------------
 
@@ -409,45 +426,37 @@ void Server::callback(Server * serv, string const & msg)
 			// we are listening.
 			if (cmd == "hello") {
 				// One more client
-				if (serv->numclients == MAX_CLIENTS) { //paranoid check
-					LYXERR(Debug::LYXSERVER)
-						<< "Server: too many clients..."
-						<< endl;
+				if (numclients_ == MAX_CLIENTS) { //paranoid check
+					LYXERR(Debug::LYXSERVER, "Server: too many clients...");
 					return;
 				}
-				int i= 0; //find place in clients[]
-				while (!serv->clients[i].empty()
-				       && i<serv->numclients)
+				int i = 0;
+				while (!clients_[i].empty() && i < numclients_)
 					++i;
-				serv->clients[i] = client;
-				serv->numclients++;
+				clients_[i] = client;
+				++numclients_;
 				buf = "LYXSRV:" + client + ":hello\n";
-				LYXERR(Debug::LYXSERVER)
-					<< "Server: Greeting "
-					<< client << endl;
-				serv->pipes.send(buf);
+				LYXERR(Debug::LYXSERVER, "Server: Greeting " << client);
+				pipes_.send(buf);
 			} else if (cmd == "bye") {
-				// If clients == 0 maybe we should reset the pipes
+				// If clients_ == 0 maybe we should reset the pipes
 				// to prevent fake callbacks
 				int i = 0; //look if client is registered
-				for (; i < serv->numclients; ++i) {
-					if (serv->clients[i] == client) break;
+				for (; i < numclients_; ++i) {
+					if (clients_[i] == client)
+						break;
 				}
-				if (i < serv->numclients) {
-					serv->numclients--;
-					serv->clients[i].erase();
-					LYXERR(Debug::LYXSERVER)
-						<< "Server: Client "
-						<< client << " said goodbye"
-						<< endl;
+				if (i < numclients_) {
+					--numclients_;
+					clients_[i].erase();
+					LYXERR(Debug::LYXSERVER, "Server: Client "
+						<< client << " said goodbye");
 				} else {
-					LYXERR(Debug::LYXSERVER)
-						<< "Server: ignoring bye messge from unregistered client"
-						<< client << endl;
+					LYXERR(Debug::LYXSERVER,
+						"Server: ignoring bye messge from unregistered client" << client);
 				}
 			} else {
-				lyxerr <<"Server: Undefined server command "
-				       << cmd << '.' << endl;
+				LYXERR0("Server: Undefined server command " << cmd << '.');
 			}
 			return;
 		}
@@ -460,21 +469,19 @@ void Server::callback(Server * serv, string const & msg)
 			// connect to the lyxfunc in the single LyXView we
 			// support currently. (Lgb)
 
+			func_->dispatch(FuncRequest(lyxaction.lookupFunc(cmd), arg));
+			string const rval = to_utf8(func_->getMessage());
 
-			serv->func->dispatch(FuncRequest(lyxaction.lookupFunc(cmd), arg));
-			string const rval = to_utf8(serv->func->getMessage());
-
-			//modified june 1999 stefano@zool.su.se:
-			//all commands produce an INFO or ERROR message
-			//in the output pipe, even if they do not return
-			//anything. See chapter 4 of Customization doc.
+			// all commands produce an INFO or ERROR message
+			// in the output pipe, even if they do not return
+			// anything. See chapter 4 of Customization doc.
 			string buf;
-			if (serv->func->errorStat())
+			if (func_->errorStat())
 				buf = "ERROR:";
 			else
 				buf = "INFO:";
 			buf += client + ':' + cmd + ':' +  rval + '\n';
-			serv->pipes.send(buf);
+			pipes_.send(buf);
 
 			// !!! we don't do any error checking -
 			//  if the client won't listen, the
@@ -484,22 +491,14 @@ void Server::callback(Server * serv, string const & msg)
 
 			// not found
 		}
-	}  /* while *p */
+	}  // while *p
 }
 
 
-/* ---F+------------------------------------------------------------------ *\
-   Function  : LyXNotifyClient
-   Called by : WorkAreaKeyPress
-   Purpose   : send a notify messge to a client
-   Parameters: s - string to send
-   Returns   : nothing
-   \* ---F------------------------------------------------------------------- */
-
+// Send a notify messge to a client, called by WorkAreaKeyPress
 void Server::notifyClient(string const & s)
 {
-	string buf = string("NOTIFY:") + s + "\n";
-	pipes.send(buf);
+	pipes_.send("NOTIFY:" + s + "\n");
 }
 
 

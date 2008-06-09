@@ -10,25 +10,25 @@
 
 #include <config.h>
 
-#include "LaTeXFeatures.h"
 #include "InsetMathSubstack.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
-#include "support/std_ostream.h"
 
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
+#include "support/gettext.h"
 
 #include "support/lstrings.h"
 
+#include <ostream>
+
+using namespace std;
 
 namespace lyx {
 
 using support::bformat;
-
-using std::string;
-using std::auto_ptr;
 
 
 InsetMathSubstack::InsetMathSubstack()
@@ -36,13 +36,13 @@ InsetMathSubstack::InsetMathSubstack()
 {}
 
 
-auto_ptr<Inset> InsetMathSubstack::doClone() const
+Inset * InsetMathSubstack::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathSubstack(*this));
+	return new InsetMathSubstack(*this);
 }
 
 
-bool InsetMathSubstack::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathSubstack::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	if (mi.base.style == LM_ST_DISPLAY) {
 		StyleChanger dummy(mi.base, LM_ST_TEXT);
@@ -50,10 +50,6 @@ bool InsetMathSubstack::metrics(MetricsInfo & mi, Dimension & dim) const
 	} else {
 		InsetMathGrid::metrics(mi, dim);
 	}
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
@@ -68,12 +64,13 @@ bool InsetMathSubstack::getStatus(Cursor & cur, FuncRequest const & cmd,
 {
 	switch (cmd.action) {
 	case LFUN_TABULAR_FEATURE: {
-		string const name("substack");
+		string const name = "substack";
 		docstring const & s = cmd.argument();
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.message(bformat(
-				from_utf8(N_("Can't add vertical grid lines in '%1$s'")), lyx::from_utf8(name)));
-			flag.enabled(false);
+				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),
+				from_utf8(name)));
+			flag.setEnabled(false);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, flag);

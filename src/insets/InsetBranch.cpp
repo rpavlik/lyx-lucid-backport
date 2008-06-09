@@ -14,119 +14,100 @@
 
 #include "Buffer.h"
 #include "BufferParams.h"
+#include "BufferView.h"
 #include "BranchList.h"
+#include "Color.h"
+#include "Counters.h"
 #include "Cursor.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
-#include "Color.h"
 #include "Lexer.h"
 #include "OutputParams.h"
+#include "TextClass.h"
+#include "TocBackend.h"
+
+#include "support/debug.h"
+#include "support/gettext.h"
+
+#include "frontends/Application.h"
 
 #include <sstream>
+
+using namespace std;
 
 
 namespace lyx {
 
-using std::string;
-using std::auto_ptr;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-
-
-void InsetBranch::init()
-{
-	setButtonLabel();
-}
-
-
-InsetBranch::InsetBranch(BufferParams const & bp,
-			 InsetBranchParams const & params)
-	: InsetCollapsable(bp), params_(params)
-{
-	init();
-}
-
-
-InsetBranch::InsetBranch(InsetBranch const & in)
-	: InsetCollapsable(in), params_(in.params_)
-{
-	init();
-}
+InsetBranch::InsetBranch(Buffer const & buf, InsetBranchParams const & params)
+	: InsetCollapsable(buf), params_(params)
+{}
 
 
 InsetBranch::~InsetBranch()
 {
-	InsetBranchMailer(*this).hideDialog();
+	hideDialogs("branch", this);
 }
 
 
-auto_ptr<Inset> InsetBranch::doClone() const
-{
-	return auto_ptr<Inset>(new InsetBranch(*this));
-}
-
-
-docstring const InsetBranch::editMessage() const
+docstring InsetBranch::editMessage() const
 {
 	return _("Opened Branch Inset");
 }
 
 
-void InsetBranch::write(Buffer const & buf, ostream & os) const
+void InsetBranch::write(ostream & os) const
 {
 	params_.write(os);
-	InsetCollapsable::write(buf, os);
+	InsetCollapsable::write(os);
 }
 
 
-void InsetBranch::read(Buffer const & buf, Lexer & lex)
+void InsetBranch::read(Lexer & lex)
 {
 	params_.read(lex);
-	InsetCollapsable::read(buf, lex);
-	setButtonLabel();
+	InsetCollapsable::read(lex);
+}
+
+
+docstring InsetBranch::toolTip(BufferView const &, int, int) const
+{
+	return _("Branch: ") + params_.branch;
 }
 
 
 void InsetBranch::setButtonLabel()
 {
-	Font font(Font::ALL_SANE);
-	font.decSize();
-	font.decSize();
-
 	docstring s = _("Branch: ") + params_.branch;
 	if (!params_.branch.empty()) {
 		// FIXME UNICODE
-		Color_color c = lcolor.getFromLyXName(to_utf8(params_.branch));
-		if (c == Color::none) {
+		ColorCode c = lcolor.getFromLyXName(to_utf8(params_.branch));
+		if (c == Color_none)
 			s = _("Undef: ") + s;
-		}
 	}
-	font.setColor(Color::foreground);
-	setLabel(isOpen() ? s : getNewLabel(s) );
-	setLabelFont(font);
+	if (decoration() == InsetLayout::Classic)
+		setLabel(isOpen() ? s : getNewLabel(s) );
+	else
+		setLabel(params_.branch + ": " + getNewLabel(s));
 }
 
 
-Color_color InsetBranch::backgroundColor() const
+ColorCode InsetBranch::backgroundColor() const
 {
-	if (!params_.branch.empty()) {
-		// FIXME UNICODE
-		Color_color c = lcolor.getFromLyXName(to_utf8(params_.branch));
-		if (c == Color::none) {
-			c = Color::error;
-		}
-		return c;
-	} else
+	if (params_.branch.empty())
 		return Inset::backgroundColor();
+	// FIXME UNICODE
+	ColorCode c = lcolor.getFromLyXName(to_utf8(params_.branch));
+	if (c == Color_none)
+		c = Color_error;
+	return c;
 }
 
 
 bool InsetBranch::showInsetDialog(BufferView * bv) const
 {
-	InsetBranchMailer(const_cast<InsetBranch &>(*this)).showDialog(bv);
+	bv->showDialog("branch", params2string(params()),
+			const_cast<InsetBranch *>(this));
 	return true;
 }
 
@@ -136,9 +117,9 @@ void InsetBranch::doDispatch(Cursor & cur, FuncRequest & cmd)
 	switch (cmd.action) {
 	case LFUN_INSET_MODIFY: {
 		InsetBranchParams params;
-		InsetBranchMailer::string2params(to_utf8(cmd.argument()), params);
+		InsetBranch::string2params(to_utf8(cmd.argument()), params);
 		params_.branch = params.branch;
-		setButtonLabel();
+		setLayout(cur.buffer().params());
 		break;
 	}
 
@@ -150,21 +131,13 @@ void InsetBranch::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_INSET_DIALOG_UPDATE:
-		InsetBranchMailer(*this).updateDialog(&cur.bv());
+		cur.bv().updateDialog("branch", params2string(params()));
 		break;
-
-	case LFUN_MOUSE_RELEASE:
-		if (cmd.button() == mouse_button::button3 && hitButton(cmd))
-			InsetBranchMailer(*this).showDialog(&cur.bv());
-		else
-			InsetCollapsable::doDispatch(cur, cmd);
-		break;
-
 
 	case LFUN_INSET_TOGGLE:
 		if (cmd.argument() == "assign") {
 			// The branch inset uses "assign".
-			if (isBranchSelected(cur.buffer())) {
+			if (isBranchSelected()) {
 				if (status() != Open)
 					setStatus(cur, Open);
 				else
@@ -193,21 +166,20 @@ bool InsetBranch::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
-		flag.enabled(true);
+		flag.setEnabled(true);
 		break;
 
 	case LFUN_INSET_TOGGLE:
 		if (cmd.argument() == "open" || cmd.argument() == "close" ||
 		    cmd.argument() == "toggle")
-			flag.enabled(true);
-		else if (cmd.argument() == "assign"
-			   || cmd.argument().empty()) {
-			if (isBranchSelected(cur.buffer()))
-				flag.enabled(status() != Open);
+			flag.setEnabled(true);
+		else if (cmd.argument() == "assign" || cmd.argument().empty()) {
+			if (isBranchSelected())
+				flag.setEnabled(status() != Open);
 			else
-				flag.enabled(status() != Collapsed);
+				flag.setEnabled(status() != Collapsed);
 		} else
-			flag.enabled(true);
+			flag.setEnabled(true);
 		break;
 
 	default:
@@ -217,54 +189,48 @@ bool InsetBranch::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-bool InsetBranch::isBranchSelected(Buffer const & buffer) const
+bool InsetBranch::isBranchSelected() const
 {
-	Buffer const & realbuffer = *buffer.getMasterBuffer();
+	Buffer const & realbuffer = *buffer().masterBuffer();
 	BranchList const & branchlist = realbuffer.params().branchlist();
-	BranchList::const_iterator const end = branchlist.end();
-	BranchList::const_iterator it =
-		std::find_if(branchlist.begin(), end,
-			     BranchNamesEqual(params_.branch));
-	if (it == end)
+	Branch const * ourBranch = branchlist.find(params_.branch);
+	if (!ourBranch)
 		return false;
-	return it->getSelected();
+	return ourBranch->getSelected();
 }
 
 
-int InsetBranch::latex(Buffer const & buf, odocstream & os,
-		       OutputParams const & runparams) const
+int InsetBranch::latex(odocstream & os, OutputParams const & runparams) const
 {
-	return isBranchSelected(buf) ?
-		InsetText::latex(buf, os, runparams) : 0;
+	return isBranchSelected() ?  InsetText::latex(os, runparams) : 0;
 }
 
 
-int InsetBranch::plaintext(Buffer const & buf, odocstream & os,
+int InsetBranch::plaintext(odocstream & os,
 			   OutputParams const & runparams) const
 {
-	if (!isBranchSelected(buf))
+	if (!isBranchSelected())
 		return 0;
 
-	os << '[' << buf.B_("branch") << ' ' << params_.branch << ":\n";
-	InsetText::plaintext(buf, os, runparams);
+	os << '[' << buffer().B_("branch") << ' ' << params_.branch << ":\n";
+	InsetText::plaintext(os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetBranch::docbook(Buffer const & buf, odocstream & os,
+int InsetBranch::docbook(odocstream & os,
 			 OutputParams const & runparams) const
 {
-	return isBranchSelected(buf) ?
-		InsetText::docbook(buf, os, runparams) : 0;
+	return isBranchSelected() ?  InsetText::docbook(os, runparams) : 0;
 }
 
 
-void InsetBranch::textString(Buffer const & buf, odocstream & os) const
+void InsetBranch::textString(odocstream & os) const
 {
-	if (isBranchSelected(buf))
-		os << paragraphs().begin()->asString(buf, true);
+	if (isBranchSelected())
+		os << paragraphs().begin()->asString(AS_STR_LABEL | AS_STR_INSETS);
 }
 
 
@@ -274,53 +240,47 @@ void InsetBranch::validate(LaTeXFeatures & features) const
 }
 
 
-
-string const InsetBranchMailer::name_("branch");
-
-InsetBranchMailer::InsetBranchMailer(InsetBranch & inset)
-	: inset_(inset)
-{}
-
-
-string const InsetBranchMailer::inset2string(Buffer const &) const
+bool InsetBranch::isMacroScope() const 
 {
-	return params2string(inset_.params());
+	// Its own scope if not selected by buffer
+	return !isBranchSelected();
 }
 
 
-string const InsetBranchMailer::params2string(InsetBranchParams const & params)
+string InsetBranch::params2string(InsetBranchParams const & params)
 {
 	ostringstream data;
-	data << name_ << ' ';
+	data << "branch" << ' ';
 	params.write(data);
 	return data.str();
 }
 
 
-void InsetBranchMailer::string2params(string const & in,
-				      InsetBranchParams & params)
+void InsetBranch::string2params(string const & in, InsetBranchParams & params)
 {
 	params = InsetBranchParams();
 	if (in.empty())
 		return;
 
 	istringstream data(in);
-	Lexer lex(0,0);
+	Lexer lex;
 	lex.setStream(data);
-
-	string name;
-	lex >> name;
-	if (name != name_)
-		return print_mailer_error("InsetBranchMailer", in, 1, name_);
-
-	// This is part of the inset proper that is usually swallowed
-	// by Text::readInset
-	string id;
-	lex >> id;
-	if (!lex || id != "Branch")
-		return print_mailer_error("InsetBranchMailer", in, 2, "Branch");
-
+	lex.setContext("InsetBranch::string2params");
+	lex >> "branch" >> "Branch";
 	params.read(lex);
+}
+
+
+void InsetBranch::addToToc(DocIterator const & cpit)
+{
+	DocIterator pit = cpit;
+	pit.push_back(CursorSlice(*this));
+
+	Toc & toc = buffer().tocBackend().toc("branch");
+	docstring const str = params_.branch + ": " + text_.getPar(0).asString();
+	toc.push_back(TocItem(pit, 0, str));
+	// Proceed with the rest of the inset.
+	InsetCollapsable::addToToc(cpit);
 }
 
 

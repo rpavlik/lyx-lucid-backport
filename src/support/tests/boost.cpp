@@ -10,18 +10,21 @@
 
 #include <config.h>
 
-#include <boost/assert.hpp>
+#include "support/lassert.h"
 
 #include <cstdlib>
 #include <exception>
 
+using namespace std;
 
 namespace boost {
 
-void throw_exception(std::exception const & /*e*/)
+#ifndef BOOST_NO_EXCEPTIONS
+void throw_exception(exception const & /*e*/)
 {
-	BOOST_ASSERT(false);
+	LASSERT(false, /**/);
 }
+#endif
 
 
 void assertion_failed(char const * /*expr*/, char const * /*function*/,
@@ -30,5 +33,4 @@ void assertion_failed(char const * /*expr*/, char const * /*function*/,
 	::abort();
 }
 
-
-}
+} // namespace boost

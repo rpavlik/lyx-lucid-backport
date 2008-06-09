@@ -21,7 +21,6 @@ namespace lyx {
 /// Inset for AMSTeX's \boldsymbol
 class InsetMathBoldSymbol : public InsetMathNest {
 public:
-	///
 	enum Kind {
 		AMS_BOLD,
 		BM_BOLD,
@@ -30,7 +29,7 @@ public:
 	///
 	InsetMathBoldSymbol(Kind kind = AMS_BOLD);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -46,7 +45,7 @@ public:
 	///
 	Kind kind_;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 };
 
 

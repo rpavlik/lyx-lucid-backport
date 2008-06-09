@@ -3,7 +3,7 @@
 # IOP article textclass definition file.
 # Author: Uwe Stöhr (uwestoehr@web.de)
 
-Format 4
+Format 7
 
 Columns                 1
 Sides                   1
@@ -46,6 +46,8 @@ End
 Input stdlists.inc
 Input stdsections.inc
 Input stdstarsections.inc
+Input stdinsets.inc
+
 
 NoStyle Chapter
 NoStyle Chapter*
@@ -62,7 +64,6 @@ Style Title
 	BottomSep		1
 	ParSep			1
 	Align			Center
-	AlignPossible		Center
 	LabelType		No_Label
 	Font
 	  Size			Largest
@@ -130,7 +131,6 @@ Style Author
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Size                Large
@@ -177,7 +177,6 @@ Style Abstract
 	BottomSep		0.7
 	ParSep			0
 	Align			Block
-	AlignPossible		Block
 	LabelType		Centered_Top_Environment
 	LabelString		"Abstract"
 	LabelBottomSep		0.5
@@ -242,7 +241,6 @@ Style Acknowledgments
 	TopSep			0.7
 	BottomSep		0.4
 	Align			Block
-	AlignPossible		Block, Left
 	LabelType		Static
 	LabelString		"Acknowledgments"
 	Font

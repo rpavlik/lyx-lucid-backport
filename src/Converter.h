@@ -78,9 +78,7 @@ public:
 	///
 	typedef ConverterList::const_iterator const_iterator;
 	///
-	Converter const & get(int i) const {
-		return converterlist_[i];
-	}
+	Converter const & get(int i) const { return converterlist_[i]; }
 	///
 	Converter const * getConverter(std::string const & from,
 				       std::string const & to) const;
@@ -100,10 +98,15 @@ public:
 	std::vector<Format const *> const
 	getReachable(std::string const & from, bool only_viewable,
 		     bool clear_visited);
+
+	std::vector<Format const *> importableFormats();
+
+	std::vector<std::string> loaders() const;
+
 	/// Does a conversion path from format \p from to format \p to exist?
 	bool isReachable(std::string const & from, std::string const & to);
 	///
-	Graph::EdgePath const getPath(std::string const & from, std::string const & to);
+	Graph::EdgePath getPath(std::string const & from, std::string const & to);
 	///
 	OutputParams::FLAVOR getFlavor(Graph::EdgePath const & path);
 	/// Flags for converting files
@@ -128,12 +131,9 @@ public:
 	///
 	bool formatIsUsed(std::string const & format);
 	///
-	const_iterator begin() const {
-		return converterlist_.begin();
-	}
-	const_iterator end() const {
-		return converterlist_.end();
-	}
+	const_iterator begin() const { return converterlist_.begin(); }
+	///
+	const_iterator end() const { return converterlist_.end(); }
 	///
 	void buildGraph();
 private:

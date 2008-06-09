@@ -112,6 +112,7 @@ public:
 	virtual InsetMathAMSArray const * asAMSArrayInset() const { return 0; }
 	virtual InsetMathArray          * asArrayInset()          { return 0; }
 	virtual InsetMathArray const    * asArrayInset() const    { return 0; }
+	virtual InsetMathBrace          * asBraceInset()          { return 0; }
 	virtual InsetMathBrace const    * asBraceInset() const    { return 0; }
 	virtual InsetMathChar const     * asCharInset() const     { return 0; }
 	virtual InsetMathDelim          * asDelimInset()          { return 0; }
@@ -181,8 +182,7 @@ public:
 	virtual void octave(OctaveStream &) const;
 
 	/// plain text output in ucs4 encoding
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 
 	/// dump content to stderr for debugging
 	virtual void dump() const;
@@ -198,7 +198,7 @@ public:
 	virtual bool allowedIn(mode_type mode) const { return mode == MATH_MODE; }
 
 	/// superscript kerning
-	virtual int kerning() const { return 0; }
+	virtual int kerning(BufferView const *) const { return 0; }
 };
 
 ///

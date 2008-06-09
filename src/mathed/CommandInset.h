@@ -27,7 +27,7 @@ public:
 	///
 	explicit CommandInset(docstring const & name);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -44,7 +44,7 @@ public:
 	bool isActive() const { return false; }
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 
 	///
 	docstring name_;

@@ -8,11 +8,12 @@
 # a document, like abstract, bibliography and such.
 
 
-Format 4
+Format 7
 Style Abstract
 	Margin                Static
 	LatexType             Environment
 	LatexName             abstract
+	Category              FrontMatter
 	NextNoIndent          1
 	LeftMargin            MMM
 	RightMargin           MMM
@@ -22,7 +23,6 @@ Style Abstract
 	BottomSep             0.7
 	ParSep                0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Centered_Top_Environment
 	LabelString           "Abstract"
 	LabelBottomSep    0.5
@@ -40,6 +40,7 @@ Style Bibliography
 	Margin                First_Dynamic
 	LatexType             Bib_Environment
 	LatexName             thebibliography
+	Category              BackMatter
 	NextNoIndent          1
 	LeftMargin            MM
 	ParSkip               0.4

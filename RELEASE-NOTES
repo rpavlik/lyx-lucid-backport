@@ -1,60 +1,205 @@
-This file lists interface changes that might affect users in 1.5.5, some 
-known problems in LyX 1.5.5 and some things you have to take into account
-when upgrading from earlier versions to a version of the 1.5.x series.
+This file lists interface changes that might affect users in 1.6.0, some 
+known problems in LyX 1.6.0 and some things you have to take into account
+when upgrading from earlier versions to a version of the 1.6.x series.
 Note that fixes are available for some of these, but they have not yet
 been applied because of incomplete testing.
 
 
-Known issues in version 1.5.5
+Interface changes
+-----------------
+
+Some of the LyX functions have changed names:
+
+- A new LFUN_SPECIALCHAR_INSERT has been implemented that obsoletes the
+  different LFUNs for single special characters:
+
+  * LFUN_HYPHENATION_POINT_INSERT: removed. "hyphenation-point-insert" 
+    has been replaced by "specialchar-insert hyphenation-point"
+  * LFUN_LIGATURE_BREAK_INSERT: removed. "ligature-break-insert" 
+    has been replaced by "specialchar-insert ligature-break"
+  * LFUN_DOTS_INSERT: removed. "dots-insert" 
+    has been replaced by "specialchar-insert dots"
+  * LFUN_END_OF_SENTENCE_PERIOD_INSERT: removed. "end-of-sentence-period-insert" 
+    has been replaced by "specialchar-insert end-of-sentence"
+  * LFUN_MENU_SEPARATOR_INSERT: removed. "menu-separator-insert" 
+    has been replaced by "specialchar-insert menu-separator"
+
+- The function LFUN_BREAK_LINE, "break-line" has been renamed to LFUN_NEWLINE_INSERT,
+  "newline-insert", and it now allows two options: "newline-insert newline" inserts
+  a \newline, "newline-insert linebreak" inserts a \linebreak.
+
+- The function LFUN_PAGEBREAK_INSERT, "pagebreak-insert" has been renamed to
+  LFUN_NEWPAGE_INSERT, "newpage-insert". It obsololetes the following functions:
+
+  * LFUN_PAGEBREAK_INSERT: removed. "pagebreak-insert" has been replaced by
+    "newpage-insert pagebreak"
+
+  * LFUN_CLEARPAGE_INSERT: removed. "clearpage-insert" has been replaced by
+    "newpage-insert clearpage"
+
+  * LFUN_CLEARDOUBLEPAGE_INSERT: removed. "clearpage-insert" has been replaced
+    by "newpage-insert cleardoublepage"
+
+- The function LFUN_WORDS_COUNT, "words-count", has been replaced by
+  LFUN_STATISTICS, "statistics", which counts more than words.
+
+- The function LFUN_MATH_NUMBER, "math-number", has been renamed to
+  LFUN_MATH_NUMBER_TOGGLE.
+
+- The function LFUN_MATH_NONUMBER, "math-nonumber", has been renamed to
+  LFUN_MATH_NUMBER_LINE_TOGGLE.
+
+- The function LFUN_CHARSTYLE_INSERT, "charstyle-insert", has been renamed to
+  LFUN_FLEX_INSERT, "flex-insert". It now handles beside charstyles, also
+  custom insets and XML short element insets.
+
+- The function LFUN_TOGGLE_CURSOR_FOLLOWS_SCROLLBAR, "toggle-cursor-follows-scrollbar"
+  has been renamed to LFUN_CURSOR_FOLLOWS_SCROLLBAR_TOGGLE,
+  "cursor-follows-scrollbar-toggle".
+
+- The function LFUN_FONT_CODE, "font-code", has been renamed to
+  LFUN_FONT_TYPEWRITER, "font-typewriter".
+
+- The functions LFUN_HTML_INSERT, "html-insert", LFUN_URL_INSERT, "url-insert" was
+  superseded by LFUN_HYPERLINK_INSERT, "href-insert".
+
+- The function LFUN_FLOAT_LIST has been renamed to LFUN_FLOAT_LIST_INSERT.
+
+- The functions delete-back/forward has been renamed to char-delete-back/forward.
+
+The following new LyX functions have been introduced:
+
+- LFUN_SPECIALCHAR_INSERT, "specialchar-insert" (see above).
+
+- LFUN_COMPLETION_INLINE, "completion-inline".
+
+- LFUN_COMPLETION_POPUP, "completion-popup".
+
+- LFUN_COMPLETION_COMPLETE, "complete".
+
+- LFUN_CLOSE_TAB_GROUP, "close-tab-group".
+
+- LFUN_SPLIT_VIEW, "split-view".
+
+- LFUN_UI_TOGGLE, "ui-toggle".
+
+- LFUN_SCROLL, "scroll".
+
+- LFUN_MATH_MACRO, "math-macro".
+
+- LFUN_MATH_MACRO_UNFOLD, "math-macro-unfold".
+
+- LFUN_MATH_MACRO_FOLD, "math-macro-fold".
+
+- LFUN_MATH_MACRO_ADD_PARAM, "math-macro-add-param".
+
+- LFUN_MATH_MACRO_REMOVE_PARAM, "math-macro-remove-param".
+
+- LFUN_MATH_MACRO_APPEND_GREEDY_PARAM, "math-macro-append-greedy-param".
+
+- LFUN_MATH_MACRO_REMOVE_GREEDY_PARAM, "math-macro-remove-greedy-param".
+
+- LFUN_MATH_MACRO_MAKE_OPTIONAL, "math-macro-make-optional".
+
+- LFUN_MATH_MACRO_MAKE_NONOPTIONAL, "math-macro-make-nonoptional".
+
+- LFUN_MATH_MACRO_ADD_OPTIONAL_PARAM, "math-macro-add-optional-param".
+
+- LFUN_MATH_MACRO_REMOVE_OPTIONAL_PARAM, "math-macro-remove-optional-param".
+
+- LFUN_MATH_MACRO_ADD_GREEDY_OPTIONAL_PARAM, "math-macro-add-greedy-optional-param".
+
+- LFUN_WORD_LEFT, "word-left".
+
+- LFUN_WORD_LEFT_SELECT, "word-left-select".
+
+- LFUN_WORD_RIGHT, "word-right".
+
+- LFUN_WORD_RIGHT_SELECT, "word-right-select".
+
+- LFUN_CHAR_LEFT, "char-left".
+
+- LFUN_CHAR_LEFT_SELECT, "char-left-select".
+
+- LFUN_CHAR_RIGHT, "char-right".
+
+- LFUN_CHAR_RIGHT_SELECT, "char-right-select".
+
+- LFUN_FINISHED_FORWARD, "".
+
+- LFUN_FINISHED_BACKWARD, "".
+
+- LFUN_INFO_INSERT, "info-insert".
+
+- LFUN_LAYOUT_RELOAD, "layout-reload".
+
+- LFUN_LAYOUT_MODULES_CLEAR, "layout-modules-clear".
+
+- LFUN_LAYOUT_MODULE_ADD, "layout-module-add".
+
+- LFUN_NEXT_INSET_MODIFY, "next-inset-modify"
+
+- LFUN_INSET_EDIT, "inset-edit"
+
+- LFUN_SET_GRAPHICS_GROUP, "set-graphics-group"
+
+- LFUN_GRAPHICS_GROUPS_UNIFY, "graphics-groups-unify"
+
+- LFUN_BRANCH_ACTIVATE, "branch-activate"
+
+- LFUN_BRANCH_DEACTIVATE, "branch-deactivate" 
+  These can be used in export mode to turn branches on and off. 
+  Thus, something like:
+    lyx -e pdf2 -x "branch-activate answers" finalexam.lyx
+  could be used to export a pdf with the answers branch included, without 
+  one's having to open LyX and activate the branch manually.
+
+The following new LyX functions have been removed:
+
+- LFUN_FILE_NEW.
+
+- LFUN_BREAK_PARAGRAPH_KEEP_LAYOUT.
+
+- LFUN_FONT_CODE.
+
+- LFUN_HFILL_INSERT. HFills are now part of InsetSpace and have to be inserted
+  via "space-insert hfill".
+
+- LFUN_CLEARPAGE_INSERT. Now part of LFUN_NEWPAGE_INSERT (see above).
+
+- LFUN_CLEARDOUBLEPAGE_INSERT. Now part of LFUN_NEWPAGE_INSERT (see above).
+
+- LFUN_SERVER_GET_FONT.
+
+- LFUN_EXTERNAL_EDIT. Superseded by the more general LFUN_INSET_EDIT.
+
+- LFUN_GRAPHICS_EDIT. Superseded by the more general LFUN_INSET_EDIT.
+
+- LFUN_ACCENT_SPECIAL_CARON.
+
+- LFUN_INSET_REFRESH.
+
+For the detailed description of LyX functions look into doxygen documentation.
+
+
+Known issues in version 1.6.0
 ------------------------------------
 
-- If KDE 4.0 (the kdelibs4 package, for that matter) is installed, LyX might
-  crash when previewing an EPS graphic (or any other graphic that is converted
-  via EPS). This is a bug in the kdelibs package (the kimg_eps library, to be
-  precise) included in the KDE 4 pre-releases and in KDE 4.0. The problem has
-  been resolved for KDE 4.0.1. We encourage all affected KDE 4 users to upgrade 
-  to KDE 4.0.1 (or newer).
-
-  If you have to stick with KDE 4.0 for some reason, there are two workarounds:
-  * uninstall kdelibs4 (or KDE4, for that matter) or
-  * disable graphics preview in Tools->Preferences->Graphics
-  Cf. http://bugzilla.lyx.org/show_bug.cgi?id=4409
-  and
-  https://bugs.kde.org/show_bug.cgi?id=156957
-
-- Cursor restoration problems with Multiple-View:
-  When using multiple Windows to edit different parts of the
-  same document, the cursor position is sometimes not correctly restored
-  when you switch from one view to the other.
-
-- RTL and keymaps:
-  Currently there is a bug where you can't use two non-RTL language keymaps if
-  the RTL preference is set (which is now the default). If you need to use two
-  non-RTL keymaps, for now you should just turn off the RTL preference (Tools -> 
-  Preferences... -> Language settings -> Language, uncheck "Right-to-left
-  language support").
-  We hope to offer more comprehensive support for multiple keymaps in the future,
-  which will solve this bug, as well as allow more than just two keymaps. If you 
-  have any input on this issue, please chime in on the developers mailing list,
-  or add your comments to http://bugzilla.lyx.org/show_bug.cgi?id=4051.
+- ...
 
 
-Interface changes as of version 1.5.4
---------------------------------------
-
-- Due to a license conflict, the LaTeX-package "floatflt" that is used by LyX
-  for wrap figure floats has been removed from all major LaTeX-distributions.
-  Thus, we were forced to switch to the package "wrapfig". As consequence of this,
-  the look and positioning of wrap floats in your documents might slightly differ.
-  Please backup documents with wrap floats before upgrading and check the output.
-
-
-Caveats when upgrading from earlier versions to 1.5.x
+Caveats when upgrading from earlier versions to 1.6.x
 -------------------------------------------------------
 
-Due to the change to Unicode, there are some general things you'll have to take care
-about when upgrading from an older version to LyX 1.5.0 or newer. Please refer to the
-file UPGRADING for details.
+The support for Japanese has been improved in LyX 1.6.x. Due to encoding
+reasons, Japanese documents that were edited with LyX 1.6.x cannot correctly
+be converted to the format of LyX 1.5.x and thus not edited with LyX 1.5.x.
+To be able to use LyX 1.6 with Japanese, the latest version of the LaTeX
+distribution "platex" must be installed.
+platex provides a Japanese variant of BibTeX named "jbibtex". When LyX is
+configured, this variant is used. In case you have problems with BibTeX-files
+that include Japanese or you need to use another BibTeX program, set it in LyX
+preferences under Output->LaTeX->BibTeX command.
 
 
 Note: There may later be an updated list of known issues online at

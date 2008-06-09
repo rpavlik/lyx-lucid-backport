@@ -27,7 +27,7 @@ public:
 	///
 	explicit InsetMathComment(docstring const &);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -48,7 +48,7 @@ public:
 	///
 	void infoize(odocstream & os) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 };
 
 } // namespace lyx

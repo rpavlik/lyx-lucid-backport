@@ -15,98 +15,115 @@
 #include <config.h>
 
 #include "TextClass.h"
-#include "debug.h"
-#include "Lexer.h"
+
+#include "LayoutFile.h"
+#include "Color.h"
 #include "Counters.h"
-#include "gettext.h"
 #include "Floating.h"
 #include "FloatList.h"
+#include "Layout.h"
+#include "Lexer.h"
+#include "Font.h"
 
 #include "frontends/alert.h"
 
-#include "support/lstrings.h"
-#include "support/lyxlib.h"
+#include "support/lassert.h"
+#include "support/debug.h"
+#include "support/ExceptionMessage.h"
+#include "support/FileName.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
 #include "support/os.h"
 
-#include <boost/filesystem/operations.hpp>
-namespace fs = boost::filesystem;
-
+#include <algorithm>
+#include <fstream>
 #include <sstream>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::doesFileExist;
-using support::FileName;
-using support::libFileSearch;
-using support::makeDisplayPath;
-using support::quoteName;
-using support::rtrim;
-using support::subst;
-using support::addName;
-
-using std::endl;
-using std::find_if;
-using std::remove_if;
-using std::string;
-using std::ostream;
-
-
 namespace {
 
-class LayoutNamesEqual : public std::unary_function<Layout_ptr, bool> {
+class LayoutNamesEqual : public unary_function<Layout, bool> {
 public:
 	LayoutNamesEqual(docstring const & name)
 		: name_(name)
 	{}
-	bool operator()(Layout_ptr const & c) const
+	bool operator()(Layout const & c) const
 	{
-		return c->name() == name_;
+		return c.name() == name_;
 	}
 private:
 	docstring name_;
 };
 
 
-int const FORMAT = 4;
+int const FORMAT = 7;
 
 
 bool layout2layout(FileName const & filename, FileName const & tempfile)
 {
 	FileName const script = libFileSearch("scripts", "layout2layout.py");
 	if (script.empty()) {
-		lyxerr << "Could not find layout conversion "
-			  "script layout2layout.py." << endl;
+		LYXERR0("Could not find layout conversion "
+			  "script layout2layout.py.");
 		return false;
 	}
 
-	std::ostringstream command;
-	command << support::os::python() << ' ' << quoteName(script.toFilesystemEncoding())
+	ostringstream command;
+	command << os::python() << ' ' << quoteName(script.toFilesystemEncoding())
 		<< ' ' << quoteName(filename.toFilesystemEncoding())
 		<< ' ' << quoteName(tempfile.toFilesystemEncoding());
 	string const command_str = command.str();
 
-	LYXERR(Debug::TCLASS) << "Running `" << command_str << '\'' << endl;
+	LYXERR(Debug::TCLASS, "Running `" << command_str << '\'');
 
-	support::cmd_ret const ret =
-		support::runCommand(command_str);
+	cmd_ret const ret = runCommand(command_str);
 	if (ret.first != 0) {
-		lyxerr << "Could not run layout conversion "
-			  "script layout2layout.py." << endl;
+		LYXERR0("Could not run layout conversion script layout2layout.py.");
 		return false;
 	}
 	return true;
 }
 
+
+std::string translateRT(TextClass::ReadType rt) 
+{
+	switch (rt) {
+	case TextClass::BASECLASS:
+		return "textclass";
+	case TextClass::MERGE:
+		return "input file";
+	case TextClass::MODULE:
+		return "module file";
+	case TextClass::VALIDATION:
+		return "validation";
+	}
+	// shutup warning
+	return string();
+}
+
 } // namespace anon
 
 
-TextClass::TextClass(string const & fn, string const & cln,
-			   string const & desc, bool texClassAvail )
-	: name_(fn), latexname_(cln), description_(desc),
-	  floatlist_(new FloatList), ctrs_(new Counters),
-	  texClassAvail_(texClassAvail)
+// This string should not be translated here, 
+// because it is a layout identifier.
+docstring const TextClass::emptylayout_ = from_ascii("Plain Layout");
+
+
+InsetLayout DocumentClass::empty_insetlayout_;
+
+
+/////////////////////////////////////////////////////////////////////////
+//
+// TextClass
+//
+/////////////////////////////////////////////////////////////////////////
+
+TextClass::TextClass()
 {
 	outputType_ = LATEX;
 	columns_ = 1;
@@ -114,34 +131,29 @@ TextClass::TextClass(string const & fn, string const & cln,
 	secnumdepth_ = 3;
 	tocdepth_ = 3;
 	pagestyle_ = "default";
-	defaultfont_ = Font(Font::ALL_SANE);
+	defaultfont_ = sane_font;
 	opt_fontsize_ = "10|11|12";
 	opt_pagestyle_ = "empty|plain|headings|fancy";
 	titletype_ = TITLE_COMMAND_AFTER;
 	titlename_ = "maketitle";
 	loaded_ = false;
+	_("Plain Layout"); // a hack to make this translatable
 }
 
 
-bool TextClass::isTeXClassAvailable() const
+bool TextClass::readStyle(Lexer & lexrc, Layout & lay)
 {
-	return texClassAvail_;
-}
-
-
-bool TextClass::do_readStyle(Lexer & lexrc, Layout & lay)
-{
-	LYXERR(Debug::TCLASS) << "Reading style " << to_utf8(lay.name()) << endl;
+	LYXERR(Debug::TCLASS, "Reading style " << to_utf8(lay.name()));
 	if (!lay.read(lexrc, *this)) {
-		// Resolve fonts
-		lay.resfont = lay.font;
-		lay.resfont.realize(defaultfont());
-		lay.reslabelfont = lay.labelfont;
-		lay.reslabelfont.realize(defaultfont());
-		return false; // no errors
+		LYXERR0("Error parsing style `" << to_utf8(lay.name()) << '\'');
+		return false;
 	}
-	lyxerr << "Error parsing style `" << to_utf8(lay.name()) << '\'' << endl;
-	return true;
+	// Resolve fonts
+	lay.resfont = lay.font;
+	lay.resfont.realize(defaultfont_);
+	lay.reslabelfont = lay.labelfont;
+	lay.reslabelfont.realize(defaultfont_);
+	return true; // no errors
 }
 
 
@@ -150,7 +162,7 @@ enum TextClassTags {
 	TC_INPUT,
 	TC_STYLE,
 	TC_DEFAULTSTYLE,
-	TC_CHARSTYLE,
+	TC_INSETLAYOUT,
 	TC_ENVIRONMENT,
 	TC_NOSTYLE,
 	TC_COLUMNS,
@@ -162,6 +174,7 @@ enum TextClassTags {
 	TC_CLASSOPTIONS,
 	TC_PREAMBLE,
 	TC_PROVIDES,
+	TC_REQUIRES,
 	TC_LEFTMARGIN,
 	TC_RIGHTMARGIN,
 	TC_FLOAT,
@@ -169,21 +182,15 @@ enum TextClassTags {
 	TC_NOFLOAT,
 	TC_TITLELATEXNAME,
 	TC_TITLELATEXTYPE,
-	TC_FORMAT
+	TC_FORMAT,
+	TC_ADDTOPREAMBLE
 };
 
 
-// Reads a textclass structure from file.
-bool TextClass::read(FileName const & filename, bool merge)
-{
-	if (!support::isFileReadable(filename)) {
-		lyxerr << "Cannot read layout file `" << filename << "'."
-		       << endl;
-		return true;
-	}
+namespace {
 
-	keyword_item textClassTags[] = {
-		{ "charstyle",       TC_CHARSTYLE },
+	LexerKeyword textClassTags[] = {
+		{ "addtopreamble",   TC_ADDTOPREAMBLE },
 		{ "classoptions",    TC_CLASSOPTIONS },
 		{ "columns",         TC_COLUMNS },
 		{ "counter",         TC_COUNTER },
@@ -193,6 +200,7 @@ bool TextClass::read(FileName const & filename, bool merge)
 		{ "float",           TC_FLOAT },
 		{ "format",          TC_FORMAT },
 		{ "input",           TC_INPUT },
+		{ "insetlayout",     TC_INSETLAYOUT },
 		{ "leftmargin",      TC_LEFTMARGIN },
 		{ "nofloat",         TC_NOFLOAT },
 		{ "nostyle",         TC_NOSTYLE },
@@ -200,6 +208,7 @@ bool TextClass::read(FileName const & filename, bool merge)
 		{ "pagestyle",       TC_PAGESTYLE },
 		{ "preamble",        TC_PREAMBLE },
 		{ "provides",        TC_PROVIDES },
+		{ "requires",        TC_REQUIRES },
 		{ "rightmargin",     TC_RIGHTMARGIN },
 		{ "secnumdepth",     TC_SECNUMDEPTH },
 		{ "sides",           TC_SIDES },
@@ -208,20 +217,117 @@ bool TextClass::read(FileName const & filename, bool merge)
 		{ "titlelatextype",  TC_TITLELATEXTYPE },
 		{ "tocdepth",        TC_TOCDEPTH }
 	};
+	
+} //namespace anon
 
-	if (!merge)
-		LYXERR(Debug::TCLASS) << "Reading textclass "
-					<< to_utf8(makeDisplayPath(filename.absFilename()))
-					<< endl;
-	else
-		LYXERR(Debug::TCLASS) << "Reading input file "
-				     << to_utf8(makeDisplayPath(filename.absFilename()))
-				     << endl;
 
-	Lexer lexrc(textClassTags,
-		sizeof(textClassTags) / sizeof(textClassTags[0]));
+bool TextClass::convertLayoutFormat(support::FileName const & filename, ReadType rt)
+{
+	LYXERR(Debug::TCLASS, "Converting layout file to " << FORMAT);
+		FileName const tempfile = FileName::tempName();
+		bool success = layout2layout(filename, tempfile);
+		if (success)
+			success = read(tempfile, rt);
+		tempfile.removeFile();
+		return success;
+}
 
+bool TextClass::read(FileName const & filename, ReadType rt)
+{
+	if (!filename.isReadableFile()) {
+		lyxerr << "Cannot read layout file `" << filename << "'."
+		       << endl;
+		return false;
+	}
+
+	LYXERR(Debug::TCLASS, "Reading " + translateRT(rt) + ": " +
+		to_utf8(makeDisplayPath(filename.absFilename())));
+
+	// Define the `empty' layout used in table cells, ert, etc. Note that 
+	// we do this before loading any layout file, so that classes can 
+	// override features of this layout if they should choose to do so.
+	if (rt == BASECLASS && !hasLayout(emptylayout_)) {
+		static char const * s = "Margin Static\n"
+			"LatexType Paragraph\n"
+			"LatexName dummy\n"
+			"Align Block\n"
+			"AlignPossible Left, Right, Center\n"
+			"LabelType No_Label\n"
+			"End";
+		istringstream ss(s);
+		Lexer lex(textClassTags);
+		lex.setStream(ss);
+		Layout lay;
+		lay.setName(emptylayout_);
+		if (!readStyle(lex, lay)) {
+			// The only way this happens is because the hardcoded layout above
+			// is wrong.
+			LASSERT(false, /**/);
+		};
+		layoutlist_.push_back(lay);
+	}
+
+	Lexer lexrc(textClassTags);
 	lexrc.setFile(filename);
+	ReturnValues retval = read(lexrc, rt);
+	
+	LYXERR(Debug::TCLASS, "Finished reading " + translateRT(rt) + ": " +
+			to_utf8(makeDisplayPath(filename.absFilename())));
+	
+	if (retval != FORMAT_MISMATCH) 
+		return retval == OK;
+	
+	bool const worx = convertLayoutFormat(filename, rt);
+	if (!worx) {
+		lyxerr << "Unable to convert " << filename << 
+			" to format " << FORMAT << std::endl;
+		return false;
+	}
+	return true;
+}
+
+
+bool TextClass::validate(std::string const & str)
+{
+	TextClass tc;
+	return tc.read(str, VALIDATION);
+}
+
+
+bool TextClass::read(std::string const & str, ReadType rt) 
+{
+	Lexer lexrc(textClassTags);
+	istringstream is(str);
+	lexrc.setStream(is);
+	ReturnValues retval = read(lexrc, rt);
+
+	if (retval != FORMAT_MISMATCH) 
+		return retval == OK;
+
+	// write the layout string to a temporary file
+	FileName const tempfile = FileName::tempName();
+	ofstream os(tempfile.toFilesystemEncoding().c_str());
+	if (!os) {
+		LYXERR0("Unable to create tempoary file");
+		return false;
+	}
+	os << str;
+	os.close();
+
+	// now try to convert it
+	bool const worx = convertLayoutFormat(tempfile, rt);
+	if (!worx) {
+		LYXERR0("Unable to convert internal layout information to format " 
+			<< FORMAT);
+	}
+	tempfile.removeFile();
+	return worx;
+}
+
+
+// Reads a textclass structure from file.
+TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt) 
+{
 	bool error = !lexrc.isOK();
 
 	// Format of files before the 'Format' tag was introduced
@@ -262,10 +368,9 @@ bool TextClass::read(FileName const & filename, bool merge)
 							    "layout");
 
 				if (tmp.empty()) {
-					lexrc.printError("Could not find input"
-							 "file: " + inc);
+					lexrc.printError("Could not find input file: " + inc);
 					error = true;
-				} else if (read(tmp, true)) {
+				} else if (!read(tmp, MERGE)) {
 					lexrc.printError("Error reading input"
 							 "file: " + tmp.absFilename());
 					error = true;
@@ -291,31 +396,33 @@ bool TextClass::read(FileName const & filename, bool merge)
 						+ lexrc.getString() + " is probably not valid UTF-8!";
 					lexrc.printError(s.c_str());
 					Layout lay;
-					error = do_readStyle(lexrc, lay);
+					// Since we couldn't read the name, we just scan the rest
+					// of the style and discard it.
+					error = !readStyle(lexrc, lay);
 				} else if (hasLayout(name)) {
-					Layout * lay = operator[](name).get();
-					error = do_readStyle(lexrc, *lay);
+					Layout & lay = operator[](name);
+					error = !readStyle(lexrc, lay);
 				} else {
-					Layout lay;
-					lay.setName(name);
+					Layout layout;
+					layout.setName(name);
 					if (le == TC_ENVIRONMENT)
-						lay.is_environment = true;
-					error = do_readStyle(lexrc, lay);
+						layout.is_environment = true;
+					error = !readStyle(lexrc, layout);
 					if (!error)
-						layoutlist_.push_back(
-							boost::shared_ptr<Layout>(new Layout(lay))
-							);
+						layoutlist_.push_back(layout);
 
 					if (defaultlayout_.empty()) {
-						// We do not have a default
-						// layout yet, so we choose
-						// the first layout we
-						// encounter.
+						// We do not have a default layout yet, so we choose
+						// the first layout we encounter.
 						defaultlayout_ = name;
 					}
 				}
 			}
 			else {
+				//FIXME Should we also eat the style here? viz:
+				//Layout layout;
+				//readStyle(lexrc, layout);
+				//as above...
 				lexrc.printError("No name given for style: `$$Token'.");
 				error = true;
 			}
@@ -325,11 +432,9 @@ bool TextClass::read(FileName const & filename, bool merge)
 			if (lexrc.next()) {
 				docstring const style = from_utf8(subst(lexrc.getString(),
 						     '_', ' '));
-				if (!delete_layout(style))
+				if (!deleteLayout(style))
 					lyxerr << "Cannot delete style `"
 					       << to_utf8(style) << '\'' << endl;
-//					lexrc.printError("Cannot delete style"
-//							 " `$$Token'");
 			}
 			break;
 
@@ -359,11 +464,11 @@ bool TextClass::read(FileName const & filename, bool merge)
 			break;
 
 		case TC_DEFAULTFONT:
-			defaultfont_.lyxRead(lexrc);
+			defaultfont_ = lyxRead(lexrc);
 			if (!defaultfont_.resolved()) {
 				lexrc.printError("Warning: defaultfont should "
 						 "be fully instantiated!");
-				defaultfont_.realize(Font(Font::ALL_SANE));
+				defaultfont_.realize(sane_font);
 			}
 			break;
 
@@ -377,13 +482,17 @@ bool TextClass::read(FileName const & filename, bool merge)
 			tocdepth_ = lexrc.getInteger();
 			break;
 
-			// First step to support options
+		// First step to support options
 		case TC_CLASSOPTIONS:
 			readClassOptions(lexrc);
 			break;
 
 		case TC_PREAMBLE:
 			preamble_ = from_utf8(lexrc.getLongString("EndPreamble"));
+			break;
+
+		case TC_ADDTOPREAMBLE:
+			preamble_ += from_utf8(lexrc.getLongString("EndPreamble"));
 			break;
 
 		case TC_PROVIDES: {
@@ -397,117 +506,142 @@ bool TextClass::read(FileName const & filename, bool merge)
 			break;
 		}
 
+		case TC_REQUIRES: {
+			lexrc.eatLine();
+			vector<string> const req 
+				= getVectorFromString(lexrc.getString());
+			requires_.insert(req.begin(), req.end());
+			break;
+		}
+
 		case TC_LEFTMARGIN:	// left margin type
 			if (lexrc.next())
-				leftmargin_ = lexrc.getString();
+				leftmargin_ = lexrc.getDocString();
 			break;
 
 		case TC_RIGHTMARGIN:	// right margin type
 			if (lexrc.next())
-				rightmargin_ = lexrc.getString();
+				rightmargin_ = lexrc.getDocString();
 			break;
-		case TC_CHARSTYLE:
+
+		case TC_INSETLAYOUT:
 			if (lexrc.next()) {
-				string const name = subst(lexrc.getString(), '_', ' ');
-				readCharStyle(lexrc, name);
+				InsetLayout il;
+				if (il.read(lexrc))
+					insetlayoutlist_[il.name()] = il;
+				// else there was an error, so forget it
 			}
 			break;
+
 		case TC_FLOAT:
 			readFloat(lexrc);
 			break;
+
 		case TC_COUNTER:
 			readCounter(lexrc);
 			break;
+
 		case TC_TITLELATEXTYPE:
 			readTitleType(lexrc);
 			break;
+
 		case TC_TITLELATEXNAME:
 			if (lexrc.next())
 				titlename_ = lexrc.getString();
 			break;
+
 		case TC_NOFLOAT:
 			if (lexrc.next()) {
 				string const nofloat = lexrc.getString();
-				floatlist_->erase(nofloat);
+				floatlist_.erase(nofloat);
 			}
 			break;
 		}
+
+		//Note that this is triggered the first time through the loop unless
+		//we hit a format tag.
 		if (format != FORMAT)
 			break;
 	}
 
-	if (format != FORMAT) {
-		LYXERR(Debug::TCLASS) << "Converting layout file from format "
-				      << format << " to " << FORMAT << endl;
-		FileName const tempfile(support::tempName());
-		error = !layout2layout(filename, tempfile);
-		if (!error)
-			error = read(tempfile, merge);
-		support::unlink(tempfile);
-		return error;
-	}
+	if (format != FORMAT)
+		return FORMAT_MISMATCH;
 
-	if (!merge) { // we are at top level here.
-		LYXERR(Debug::TCLASS) << "Finished reading textclass "
-				      << to_utf8(makeDisplayPath(filename.absFilename()))
-				      << endl;
-		if (defaultlayout_.empty()) {
-			lyxerr << "Error: Textclass '" << name_
-			       << "' is missing a defaultstyle." << endl;
+	if (rt != BASECLASS) 
+		return (error ? ERROR : OK);
+
+	if (defaultlayout_.empty()) {
+		LYXERR0("Error: Textclass '" << name_
+						<< "' is missing a defaultstyle.");
+		error = true;
+	}
+		
+	// Try to erase "stdinsets" from the provides_ set. 
+	// The
+	//   Provides stdinsets 1
+	// declaration simply tells us that the standard insets have been
+	// defined. (It's found in stdinsets.inc but could also be used in
+	// user-defined files.) There isn't really any such package. So we
+	// might as well go ahead and erase it.
+	// If we do not succeed, then it was not there, which means that
+	// the textclass did not provide the definitions of the standard
+	// insets. So we need to try to load them.
+	int erased = provides_.erase("stdinsets");
+	if (!erased) {
+		FileName tmp = libFileSearch("layouts", "stdinsets.inc");
+
+		if (tmp.empty()) {
+			throw ExceptionMessage(WarningException, _("Missing File"),
+				_("Could not find stdinsets.inc! This may lead to data loss!"));
+			error = true;
+		} else if (!read(tmp, MERGE)) {
+			throw ExceptionMessage(WarningException, _("Corrupt File"),
+				_("Could not read stdinsets.inc! This may lead to data loss!"));
 			error = true;
 		}
+	}
 
-		min_toclevel_ = Layout::NOT_IN_TOC;
-		max_toclevel_ = Layout::NOT_IN_TOC;
-		const_iterator cit = begin();
-		const_iterator the_end = end();
-		for ( ; cit != the_end ; ++cit) {
-			int const toclevel = (*cit)->toclevel;
-			if (toclevel != Layout::NOT_IN_TOC) {
-				if (min_toclevel_ == Layout::NOT_IN_TOC)
-					min_toclevel_ = toclevel;
-				else
-					min_toclevel_ = std::min(min_toclevel_,
-							 toclevel);
-				max_toclevel_ = std::max(max_toclevel_,
-							 toclevel);
-			}
+	min_toclevel_ = Layout::NOT_IN_TOC;
+	max_toclevel_ = Layout::NOT_IN_TOC;
+	const_iterator lit = begin();
+	const_iterator len = end();
+	for (; lit != len; ++lit) {
+		int const toclevel = lit->toclevel;
+		if (toclevel != Layout::NOT_IN_TOC) {
+			if (min_toclevel_ == Layout::NOT_IN_TOC)
+				min_toclevel_ = toclevel;
+			else
+				min_toclevel_ = min(min_toclevel_, toclevel);
+			max_toclevel_ = max(max_toclevel_, toclevel);
 		}
-		LYXERR(Debug::TCLASS)
-			<< "Minimum TocLevel is " << min_toclevel_
-			<< ", maximum is " << max_toclevel_ <<endl;
+	}
+	LYXERR(Debug::TCLASS, "Minimum TocLevel is " << min_toclevel_
+		<< ", maximum is " << max_toclevel_);
 
-	} else
-		LYXERR(Debug::TCLASS) << "Finished reading input file "
-				      << to_utf8(makeDisplayPath(filename.absFilename()))
-				      << endl;
-
-	return error;
+	return (error ? ERROR : OK);
 }
 
 
 void TextClass::readTitleType(Lexer & lexrc)
 {
-	keyword_item titleTypeTags[] = {
+	LexerKeyword titleTypeTags[] = {
 		{ "commandafter", TITLE_COMMAND_AFTER },
-		{ "environment", TITLE_ENVIRONMENT }
+		{ "environment",  TITLE_ENVIRONMENT }
 	};
 
-	PushPopHelper pph(lexrc, titleTypeTags, TITLE_ENVIRONMENT);
+	PushPopHelper pph(lexrc, titleTypeTags);
 
 	int le = lexrc.lex();
 	switch (le) {
 	case Lexer::LEX_UNDEF:
 		lexrc.printError("Unknown output type `$$Token'");
-		return;
+		break;
 	case TITLE_COMMAND_AFTER:
 	case TITLE_ENVIRONMENT:
-		titletype_ = static_cast<LYX_TITLE_LATEX_TYPES>(le);
+		titletype_ = static_cast<TitleLatexType>(le);
 		break;
 	default:
-		lyxerr << "Unhandled value " << le
-		       << " in TextClass::readTitleType." << endl;
-
+		LYXERR0("Unhandled value " << le << " in TextClass::readTitleType.");
 		break;
 	}
 }
@@ -515,13 +649,13 @@ void TextClass::readTitleType(Lexer & lexrc)
 
 void TextClass::readOutputType(Lexer & lexrc)
 {
-	keyword_item outputTypeTags[] = {
-		{ "docbook", DOCBOOK },
-		{ "latex", LATEX },
+	LexerKeyword outputTypeTags[] = {
+		{ "docbook",  DOCBOOK },
+		{ "latex",    LATEX },
 		{ "literate", LITERATE }
 	};
 
-	PushPopHelper pph(lexrc, outputTypeTags, LITERATE);
+	PushPopHelper pph(lexrc, outputTypeTags);
 
 	int le = lexrc.lex();
 	switch (le) {
@@ -534,34 +668,31 @@ void TextClass::readOutputType(Lexer & lexrc)
 		outputType_ = static_cast<OutputType>(le);
 		break;
 	default:
-		lyxerr << "Unhandled value " << le
-		       << " in TextClass::readOutputType." << endl;
-
+		LYXERR0("Unhandled value " << le);
 		break;
 	}
 }
 
 
-enum ClassOptionsTags {
-	CO_FONTSIZE = 1,
-	CO_PAGESTYLE,
-	CO_OTHER,
-	CO_HEADER,
-	CO_END
-};
-
-
 void TextClass::readClassOptions(Lexer & lexrc)
 {
-	keyword_item classOptionsTags[] = {
-		{"end", CO_END },
-		{"fontsize", CO_FONTSIZE },
-		{"header", CO_HEADER },
-		{"other", CO_OTHER },
+	enum {
+		CO_FONTSIZE = 1,
+		CO_PAGESTYLE,
+		CO_OTHER,
+		CO_HEADER,
+		CO_END
+	};
+
+	LexerKeyword classOptionsTags[] = {
+		{"end",       CO_END },
+		{"fontsize",  CO_FONTSIZE },
+		{"header",    CO_HEADER },
+		{"other",     CO_OTHER },
 		{"pagestyle", CO_PAGESTYLE }
 	};
 
-	lexrc.pushTable(classOptionsTags, CO_END);
+	lexrc.pushTable(classOptionsTags);
 	bool getout = false;
 	while (!getout && lexrc.isOK()) {
 		int le = lexrc.lex();
@@ -571,7 +702,7 @@ void TextClass::readClassOptions(Lexer & lexrc)
 			continue;
 		default: break;
 		}
-		switch (static_cast<ClassOptionsTags>(le)) {
+		switch (le) {
 		case CO_FONTSIZE:
 			lexrc.next();
 			opt_fontsize_ = rtrim(lexrc.getString());
@@ -596,110 +727,22 @@ void TextClass::readClassOptions(Lexer & lexrc)
 	lexrc.popTable();
 }
 
-enum CharStyleTags {
-	CS_FONT = 1,
-	CS_LABELFONT,
-	CS_LATEXTYPE,
-	CS_LATEXNAME,
-	CS_LATEXPARAM,
-	CS_PREAMBLE,
-	CS_END
-};
-
-
-void TextClass::readCharStyle(Lexer & lexrc, string const & name)
-{
-	keyword_item elementTags[] = {
-		{ "end", CS_END },
-		{ "font", CS_FONT },
-		{ "labelfont", CS_LABELFONT },
-		{ "latexname", CS_LATEXNAME },
-		{ "latexparam", CS_LATEXPARAM },
-		{ "latextype", CS_LATEXTYPE },
-		{ "preamble", CS_PREAMBLE}
-	};
-
-	lexrc.pushTable(elementTags, CS_END);
-
-	string latextype;
-	string latexname;
-	string latexparam;
-	Font font(Font::ALL_INHERIT);
-	Font labelfont(Font::ALL_INHERIT);
-	string preamble;
-
-	bool getout = false;
-	while (!getout && lexrc.isOK()) {
-		int le = lexrc.lex();
-		switch (le) {
-		case Lexer::LEX_UNDEF:
-			lexrc.printError("Unknown ClassOption tag `$$Token'");
-			continue;
-		default: break;
-		}
-		switch (static_cast<CharStyleTags>(le)) {
-		case CS_LATEXTYPE:
-			lexrc.next();
-			latextype = lexrc.getString();
-			break;
-		case CS_LATEXNAME:
-			lexrc.next();
-			latexname = lexrc.getString();
-			break;
-		case CS_LATEXPARAM:
-			lexrc.next();
-			latexparam = subst(lexrc.getString(), "&quot;", "\"");
-			break;
-		case CS_LABELFONT:
-			labelfont.lyxRead(lexrc);
-			break;
-		case CS_FONT:
-			font.lyxRead(lexrc);
-			labelfont = font;
-			break;
-		case CS_PREAMBLE:
-			preamble = lexrc.getLongString("EndPreamble");
-			break;
-		case CS_END:
-			getout = true;
-			break;
-		}
-	}
-
-	//
-	// Here add element to list if getout == true
-	if (getout) {
-		CharStyle cs;
-		cs.name = name;
-		cs.latextype = latextype;
-		cs.latexname = latexname;
-		cs.latexparam = latexparam;
-		cs.font = font;
-		cs.labelfont = labelfont;
-		cs.preamble = from_utf8(preamble);
-		charstyles().push_back(cs);
-	}
-
-	lexrc.popTable();
-}
-
-
-enum FloatTags {
-	FT_TYPE = 1,
-	FT_NAME,
-	FT_PLACEMENT,
-	FT_EXT,
-	FT_WITHIN,
-	FT_STYLE,
-	FT_LISTNAME,
-	FT_BUILTIN,
-	FT_END
-};
-
 
 void TextClass::readFloat(Lexer & lexrc)
 {
-	keyword_item floatTags[] = {
+	enum {
+		FT_TYPE = 1,
+		FT_NAME,
+		FT_PLACEMENT,
+		FT_EXT,
+		FT_WITHIN,
+		FT_STYLE,
+		FT_LISTNAME,
+		FT_BUILTIN,
+		FT_END
+	};
+
+	LexerKeyword floatTags[] = {
 		{ "end", FT_END },
 		{ "extension", FT_EXT },
 		{ "guiname", FT_NAME },
@@ -711,7 +754,7 @@ void TextClass::readFloat(Lexer & lexrc)
 		{ "type", FT_TYPE }
 	};
 
-	lexrc.pushTable(floatTags, FT_END);
+	lexrc.pushTable(floatTags);
 
 	string type;
 	string placement;
@@ -719,7 +762,7 @@ void TextClass::readFloat(Lexer & lexrc)
 	string within;
 	string style;
 	string name;
-	string listname;
+	string listName;
 	bool builtin = false;
 
 	bool getout = false;
@@ -727,16 +770,24 @@ void TextClass::readFloat(Lexer & lexrc)
 		int le = lexrc.lex();
 		switch (le) {
 		case Lexer::LEX_UNDEF:
-			lexrc.printError("Unknown ClassOption tag `$$Token'");
+			lexrc.printError("Unknown float tag `$$Token'");
 			continue;
 		default: break;
 		}
-		switch (static_cast<FloatTags>(le)) {
+		switch (le) {
 		case FT_TYPE:
 			lexrc.next();
 			type = lexrc.getString();
-			// Here we could check if this type is already defined
-			// and modify it with the rest of the vars instead.
+			if (floatlist_.typeExist(type)) {
+				Floating const & fl = floatlist_.getType(type);
+				placement = fl.placement();
+				ext = fl.ext();
+				within = fl.within();
+				style = fl.style();
+				name = fl.name();
+				listName = fl.listName();
+				builtin = fl.builtin();
+			} 
 			break;
 		case FT_NAME:
 			lexrc.next();
@@ -762,7 +813,7 @@ void TextClass::readFloat(Lexer & lexrc)
 			break;
 		case FT_LISTNAME:
 			lexrc.next();
-			listname = lexrc.getString();
+			listName = lexrc.getString();
 			break;
 		case FT_BUILTIN:
 			lexrc.next();
@@ -776,53 +827,79 @@ void TextClass::readFloat(Lexer & lexrc)
 
 	// Here if have a full float if getout == true
 	if (getout) {
-		Floating newfloat(type, placement, ext, within,
-				  style, name, listname, builtin);
-		floatlist_->newFloat(newfloat);
+		Floating fl(type, placement, ext, within,
+			    style, name, listName, builtin);
+		floatlist_.newFloat(fl);
+		// each float has its own counter
+		counters_.newCounter(from_ascii(type), from_ascii(within),
+				      docstring(), docstring());
+		// also define sub-float counters
+		docstring const subtype = "sub-" + from_ascii(type);
+		counters_.newCounter(subtype, from_ascii(type),
+				      "\\alph{" + subtype + "}", docstring());
 	}
 
 	lexrc.popTable();
 }
 
 
-enum CounterTags {
-	CT_NAME = 1,
-	CT_WITHIN,
-	CT_END
-};
-
 void TextClass::readCounter(Lexer & lexrc)
 {
-	keyword_item counterTags[] = {
+	enum {
+		CT_NAME = 1,
+		CT_WITHIN,
+		CT_LABELSTRING,
+		CT_LABELSTRING_APPENDIX,
+		CT_END
+	};
+
+	LexerKeyword counterTags[] = {
 		{ "end", CT_END },
+		{ "labelstring", CT_LABELSTRING },
+		{ "labelstringappendix", CT_LABELSTRING_APPENDIX },
 		{ "name", CT_NAME },
 		{ "within", CT_WITHIN }
 	};
 
-	lexrc.pushTable(counterTags, CT_END);
+	lexrc.pushTable(counterTags);
 
 	docstring name;
 	docstring within;
+	docstring labelstring;
+	docstring labelstring_appendix;
 
 	bool getout = false;
 	while (!getout && lexrc.isOK()) {
 		int le = lexrc.lex();
 		switch (le) {
 		case Lexer::LEX_UNDEF:
-			lexrc.printError("Unknown ClassOption tag `$$Token'");
+			lexrc.printError("Unknown counter tag `$$Token'");
 			continue;
 		default: break;
 		}
-		switch (static_cast<CounterTags>(le)) {
+		switch (le) {
 		case CT_NAME:
 			lexrc.next();
-			name = from_ascii(lexrc.getString());
+			name = lexrc.getDocString();
+			if (counters_.hasCounter(name))
+				LYXERR(Debug::TCLASS, "Reading existing counter " << to_utf8(name));
+			else
+				LYXERR(Debug::TCLASS, "Reading new counter " << to_utf8(name));
 			break;
 		case CT_WITHIN:
 			lexrc.next();
-			within = from_ascii(lexrc.getString());
+			within = lexrc.getDocString();
 			if (within == "none")
 				within.erase();
+			break;
+		case CT_LABELSTRING:
+			lexrc.next();
+			labelstring = lexrc.getDocString();
+			labelstring_appendix = labelstring;
+			break;
+		case CT_LABELSTRING_APPENDIX:
+			lexrc.next();
+			labelstring_appendix = lexrc.getDocString();
 			break;
 		case CT_END:
 			getout = true;
@@ -831,32 +908,11 @@ void TextClass::readCounter(Lexer & lexrc)
 	}
 
 	// Here if have a full counter if getout == true
-	if (getout) {
-		if (within.empty())
-			ctrs_->newCounter(name);
-		else
-			ctrs_->newCounter(name, within);
-	}
+	if (getout)
+		counters_.newCounter(name, within, 
+				      labelstring, labelstring_appendix);
 
 	lexrc.popTable();
-}
-
-
-Font const & TextClass::defaultfont() const
-{
-	return defaultfont_;
-}
-
-
-string const & TextClass::leftmargin() const
-{
-	return leftmargin_;
-}
-
-
-string const & TextClass::rightmargin() const
-{
-	return rightmargin_;
 }
 
 
@@ -871,35 +927,51 @@ bool TextClass::hasLayout(docstring const & n) const
 
 
 
-Layout_ptr const & TextClass::operator[](docstring const & name) const
+Layout const & TextClass::operator[](docstring const & name) const
 {
-	BOOST_ASSERT(!name.empty());
+	LASSERT(!name.empty(), /**/);
 
-	LayoutList::const_iterator cit =
-		find_if(layoutlist_.begin(),
-			layoutlist_.end(),
-			LayoutNamesEqual(name));
+	const_iterator it = 
+		find_if(begin(), end(), LayoutNamesEqual(name));
 
-	if (cit == layoutlist_.end()) {
+	if (it == end()) {
 		lyxerr << "We failed to find the layout '" << to_utf8(name)
 		       << "' in the layout list. You MUST investigate!"
 		       << endl;
-		for (LayoutList::const_iterator it = layoutlist_.begin();
-			 it != layoutlist_.end(); ++it)
-			lyxerr  << " " << to_utf8(it->get()->name()) << endl;
+		for (const_iterator cit = begin(); cit != end(); ++cit)
+			lyxerr  << " " << to_utf8(cit->name()) << endl;
 
 		// we require the name to exist
-		BOOST_ASSERT(false);
+		LASSERT(false, /**/);
 	}
 
-	return (*cit);
+	return *it;
 }
 
 
-
-bool TextClass::delete_layout(docstring const & name)
+Layout & TextClass::operator[](docstring const & name)
 {
-	if (name == defaultLayoutName())
+	LASSERT(!name.empty(), /**/);
+
+	iterator it = find_if(begin(), end(), LayoutNamesEqual(name));
+
+	if (it == end()) {
+		LYXERR0("We failed to find the layout '" << to_utf8(name)
+		       << "' in the layout list. You MUST investigate!");
+		for (const_iterator cit = begin(); cit != end(); ++cit)
+			LYXERR0(" " << to_utf8(cit->name()));
+
+		// we require the name to exist
+		LASSERT(false, /**/);
+	}
+
+	return *it;
+}
+
+
+bool TextClass::deleteLayout(docstring const & name)
+{
+	if (name == defaultLayoutName() || name == emptyLayoutName())
 		return false;
 
 	LayoutList::iterator it =
@@ -923,9 +995,9 @@ bool TextClass::load(string const & path) const
 	FileName layout_file;
 	if (!path.empty())
 		layout_file = FileName(addName(path, name_ + ".layout"));
-	if (layout_file.empty() || !doesFileExist(layout_file))
+	if (layout_file.empty() || !layout_file.exists())
 		layout_file = libFileSearch("layouts", name_, "layout");
-	loaded_ = const_cast<TextClass*>(this)->read(layout_file) == 0;
+	loaded_ = const_cast<TextClass*>(this)->read(layout_file);
 
 	if (!loaded_) {
 		lyxerr << "Error reading `"
@@ -939,33 +1011,20 @@ bool TextClass::load(string const & path) const
 }
 
 
-FloatList & TextClass::floats()
+InsetLayout const & DocumentClass::insetLayout(docstring const & name) const 
 {
-	return *floatlist_.get();
-}
-
-
-FloatList const & TextClass::floats() const
-{
-	return *floatlist_.get();
-}
-
-
-Counters & TextClass::counters() const
-{
-	return *ctrs_.get();
-}
-
-
-CharStyles::iterator TextClass::charstyle(string const & s) const
-{
-	CharStyles::iterator cs = charstyles().begin();
-	CharStyles::iterator csend = charstyles().end();
-	for (; cs != csend; ++cs) {
-		if (cs->name == s)
-			return cs;
+	docstring n = name;
+	InsetLayouts::const_iterator cen = insetlayoutlist_.end();
+	while (!n.empty()) {
+		InsetLayouts::const_iterator cit = insetlayoutlist_.lower_bound(n);
+		if (cit != cen && cit->first == n)
+			return cit->second;
+		size_t i = n.find(':');
+		if (i == string::npos)
+			break;
+		n = n.substr(0,i);
 	}
-	return csend;
+	return empty_insetlayout_;
 }
 
 
@@ -976,148 +1035,99 @@ docstring const & TextClass::defaultLayoutName() const
 }
 
 
-Layout_ptr const & TextClass::defaultLayout() const
+Layout const & TextClass::defaultLayout() const
 {
 	return operator[](defaultLayoutName());
 }
 
 
-string const & TextClass::name() const
+bool TextClass::isDefaultLayout(Layout const & layout) const 
 {
-	return name_;
+	return layout.name() == defaultLayoutName();
 }
 
 
-string const & TextClass::latexname() const
+bool TextClass::isEmptyLayout(Layout const & layout) const 
 {
-	// No buffer path information is needed here because on-demand layout files
-	// have already been loaded, and no path is needed for system layouts.
-	const_cast<TextClass*>(this)->load();
-	return latexname_;
+	return layout.name() == emptyLayoutName();
 }
 
 
-string const & TextClass::description() const
+/////////////////////////////////////////////////////////////////////////
+//
+// DocumentClassBundle
+//
+/////////////////////////////////////////////////////////////////////////
+
+DocumentClassBundle::~DocumentClassBundle()
 {
-	return description_;
+	for (size_t i = 0; i != documentClasses_.size(); ++i)
+		delete documentClasses_[i];
+	documentClasses_.clear();
+}
+
+DocumentClass & DocumentClassBundle::newClass(LayoutFile const & baseClass)
+{
+	DocumentClass * dc = new DocumentClass(baseClass);
+	documentClasses_.push_back(dc);
+	return *documentClasses_.back();
 }
 
 
-string const & TextClass::opt_fontsize() const
+DocumentClassBundle & DocumentClassBundle::get()
 {
-	return opt_fontsize_;
+	static DocumentClassBundle singleton; 
+	return singleton; 
 }
 
 
-string const & TextClass::opt_pagestyle() const
+/////////////////////////////////////////////////////////////////////////
+//
+// DocumentClass
+//
+/////////////////////////////////////////////////////////////////////////
+
+DocumentClass::DocumentClass(LayoutFile const & tc)
+	: TextClass(tc)
+{}
+
+
+bool DocumentClass::hasLaTeXLayout(std::string const & lay) const
 {
-	return opt_pagestyle_;
+	LayoutList::const_iterator it  = layoutlist_.begin();
+	LayoutList::const_iterator end = layoutlist_.end();
+	for (; it != end; ++it)
+		if (it->latexname() == lay)
+			return true;
+	return false;
 }
 
 
-string const & TextClass::options() const
-{
-	return options_;
-}
-
-
-string const & TextClass::class_header() const
-{
-	return class_header_;
-}
-
-
-string const & TextClass::pagestyle() const
-{
-	return pagestyle_;
-}
-
-
-docstring const & TextClass::preamble() const
-{
-	return preamble_;
-}
-
-
-TextClass::PageSides TextClass::sides() const
-{
-	return sides_;
-}
-
-
-int TextClass::secnumdepth() const
-{
-	return secnumdepth_;
-}
-
-
-int TextClass::tocdepth() const
-{
-	return tocdepth_;
-}
-
-
-OutputType TextClass::outputType() const
-{
-	return outputType_;
-}
-
-
-bool TextClass::provides(string const & p) const
+bool DocumentClass::provides(string const & p) const
 {
 	return provides_.find(p) != provides_.end();
 }
 
 
-unsigned int TextClass::columns() const
-{
-	return columns_;
-}
-
-
-LYX_TITLE_LATEX_TYPES TextClass::titletype() const
-{
-	return titletype_;
-}
-
-
-string const & TextClass::titlename() const
-{
-	return titlename_;
-}
-
-
-int TextClass::size() const
-{
-	return layoutlist_.size();
-}
-
-
-int TextClass::min_toclevel() const
-{
-	return min_toclevel_;
-}
-
-
-int TextClass::max_toclevel() const
-{
-	return max_toclevel_;
-}
-
-
-bool TextClass::hasTocLevels() const
+bool DocumentClass::hasTocLevels() const
 {
 	return min_toclevel_ != Layout::NOT_IN_TOC;
 }
 
 
-ostream & operator<<(ostream & os, TextClass::PageSides p)
+/////////////////////////////////////////////////////////////////////////
+//
+// PageSides
+//
+/////////////////////////////////////////////////////////////////////////
+
+ostream & operator<<(ostream & os, PageSides p)
 {
 	switch (p) {
-	case TextClass::OneSide:
+	case OneSide:
 		os << '1';
 		break;
-	case TextClass::TwoSides:
+	case TwoSides:
 		os << '2';
 		break;
 	}

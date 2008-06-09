@@ -36,37 +36,48 @@ public:
 	static std::string const & getName(int type);
 
 
-	InsetRef(InsetCommandParams const &, Buffer const &);
+	InsetRef(Buffer const & buffer, InsetCommandParams const &);
 
 	///
-	docstring const getScreenLabel(Buffer const &) const;
+	bool isLabeled() const { return true; }
+	///
+	docstring screenLabel() const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	Code lyxCode() const { return REF_CODE; }
+	InsetCode lyxCode() const { return REF_CODE; }
 	///
 	DisplayType display() const { return Inline; }
 	///
-	int latex(Buffer const &, odocstream &, OutputParams const &) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	/// the string that is passed to the TOC
-	void textString(Buffer const &, odocstream &) const;
+	void textString(odocstream &) const;
 	///
 	void validate(LaTeXFeatures & features) const;
-protected:
-	InsetRef(InsetRef const &);
-
 	///
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "ref"; };
+	///
+	static bool isCompatibleCommand(std::string const & s);
+	///
+	void updateLabels(ParIterator const & it);
+	///
+	void addToToc(DocIterator const &);
+protected:
+	///
+	InsetRef(InsetRef const &);
 private:
-	virtual std::auto_ptr<Inset> doClone() const {
-		return std::auto_ptr<Inset>(new InsetRef(*this));
-	}
+	///
+	Inset * clone() const { return new InsetRef(*this); }
 	///
 	bool isLatex;
+	///
+	mutable docstring screen_label_;
 };
 
 } // namespace lyx
