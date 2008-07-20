@@ -13,14 +13,23 @@
 #define LYX_FILETOOL_H
 
 #include "support/docstring.h"
+#include "support/FileName.h"
 
+#include <vector>
 #include <utility>
 #include <string>
 
 namespace lyx {
 namespace support {
 
-class FileName;
+/// remove directory and all contents, returns true on success
+bool destroyDir(FileName const & tmpdir);
+
+/// Creates the per buffer temporary directory
+std::string const createBufferTmpDir();
+
+/// Creates directory. Returns true on success
+bool createDirectory(FileName const & name, int permissions);
 
 /** Creates the global LyX temp dir.
   \p deflt can be an existing directory name. In this case a new directory
@@ -46,11 +55,11 @@ FileName const fileOpenSearch(std::string const & path,
 
 /// How to search files
 enum search_mode {
-	/// The file must exist (return an empty file name otherwise)
-	must_exist,
+	// The file must exist (return an empty file name otherwise)
+	standard_mode,
 	/// Only do file name expansion, return the complete name even if
 	/// the file does not exist
-	may_not_exist
+	allow_unreadable
 };
 
 /** Returns the real name of file name in directory path, with optional
@@ -61,7 +70,28 @@ enum search_mode {
 FileName const fileSearch(std::string const & path,
 			     std::string const & name,
 			     std::string const & ext = std::string(),
-			     search_mode mode = must_exist);
+			     search_mode mode = standard_mode);
+
+/// Returns a vector of all files in directory dir having extension ext.
+std::vector<FileName> const dirList(FileName const & dir,
+				       std::string const & ext = std::string());
+
+/** Is directory read only?
+  returns
+    true: dir writeable
+    false: not writeable
+*/
+bool isDirWriteable(FileName const & path);
+
+/** Is a file readable ?
+  Returns true if the file `path' is readable.
+ */
+bool isFileReadable(FileName const & path);
+
+/** Does the file exist ?
+  Returns true if the file `path' exists.
+ */
+bool doesFileExist(FileName const & path);
 
 ///
 bool isLyXFilename(std::string const & filename);
@@ -149,7 +179,7 @@ std::string const latex_path(std::string const & path,
 		latex_path_dots dots = LEAVE_DOTS);
 
 /// Substitutes active latex characters with underscores in filename
-FileName const makeLatexName(FileName const & file);
+std::string const makeLatexName(std::string const & file);
 
 /** Put the name in quotes suitable for the current shell or python,
     depending on \p style. */
@@ -182,6 +212,15 @@ addExtension(std::string const & name, std::string const & extension);
 /// Return the extension of the file (not including the .)
 std::string const getExtension(std::string const & name);
 
+/** Guess the file format name (as in Format::name()) from contents.
+ Normally you don't want to use this directly, but rather
+ Formats::getFormatFromFile().
+ */
+std::string const getFormatFromContents(FileName const & name);
+
+/// check for zipped file
+bool zippedFile(FileName const & name);
+
 /** \return the name that LyX will give to the unzipped file \p zipped_file
   if the second argument of unzipFile() is empty.
  */
@@ -194,6 +233,9 @@ std::string const unzippedFileName(std::string const & zipped_file);
  */
 FileName const unzipFile(FileName const & zipped_file,
 			 std::string const & unzipped_file = std::string());
+
+/// Returns true is path is absolute
+bool absolutePath(std::string const & path);
 
 /// Create absolute path. If impossible, don't do anything
 std::string const expandPath(std::string const & path);
@@ -224,8 +266,16 @@ makeRelPath(docstring const & abspath, docstring const & basepath);
 /// Strip filename from path name
 std::string const onlyPath(std::string const & fname);
 
+/** Normalize a path. Constracts path/../path
+ *  Also converts paths like /foo//bar ==> /foo/bar
+ */
+std::string const normalizePath(std::string const & path);
+
 /// Strips path from filename
 std::string const onlyFilename(std::string const & fname);
+
+/// Get the contents of a file as a huge std::string
+std::string const getFileContents(FileName const & fname);
 
 /** Check and Replace Environmentvariables ${NAME} in Path.
     Replaces all occurences of these, if they are found in the
@@ -269,10 +319,7 @@ typedef std::pair<int, std::string> cmd_ret;
 
 cmd_ret const runCommand(std::string const & cmd);
 
-
 } // namespace support
 } // namespace lyx
-
-
 
 #endif

@@ -14,26 +14,32 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include "DocIterator.h"
+#include "Bidi.h"
+#include "DispatchResult.h"
+#include "Font.h"
+#include "Layout.h"
+#include "lyxlayout_ptr_fwd.h"
 #include "ParagraphList.h"
+
+#include <iosfwd>
+
 
 namespace lyx {
 
 class Buffer;
 class BufferParams;
 class BufferView;
-class CompletionList;
 class CursorSlice;
 class DocIterator;
 class ErrorList;
-class Font;
-class FontInfo;
 class FuncRequest;
 class FuncStatus;
 class Inset;
+class Color_color;
 class Cursor;
-class Lexer;
 class PainterInfo;
+class Row;
+class RowMetrics;
 class Spacing;
 
 
@@ -43,22 +49,22 @@ public:
 	/// constructor
 	explicit Text();
 
-	/// \return true if there's no content at all.
-	/// \warning a non standard layout on an empty paragraph doesn't
-	// count as empty.
-	bool empty() const;
-
 	///
-	FontInfo layoutFont(Buffer const & buffer, pit_type pit) const;
+	Font getFont(Buffer const & buffer, Paragraph const & par,
+		pos_type pos) const;
 	///
-	FontInfo labelFont(Buffer const & buffer,
+	void applyOuterFont(Buffer const & buffer, Font &) const;
+	///
+	Font getLayoutFont(Buffer const & buffer, pit_type pit) const;
+	///
+	Font getLabelFont(Buffer const & buffer,
 		Paragraph const & par) const;
 	/** Set font of character at position \p pos in paragraph \p pit.
 	 *  Must not be called if \p pos denotes an inset with text contents,
 	 *  and the inset is not allowed inside a font change (see below).
 	 */
 	void setCharFont(Buffer const & buffer, pit_type pit, pos_type pos,
-		Font const & font, Font const & display_font);
+		Font const & font);
 
 	/** Needed to propagate font changes to all text cells of insets
 	 *  that are not allowed inside a font change (bug 1973).
@@ -67,7 +73,7 @@ public:
 	 *  FIXME: This should be removed, see documentation of noFontChange
 	 *  in insetbase.h
 	 */
-	void setInsetFont(BufferView const & bv, pit_type pit, pos_type pos,
+	void setInsetFont(Buffer const & buffer, pit_type pit, pos_type pos,
 		Font const & font, bool toggleall = false);
 
 	/// what you expect when pressing \<enter\> at cursor position
@@ -97,8 +103,8 @@ public:
 	/// FIXME: replace Cursor with DocIterator.
 	void setFont(Cursor & cur, Font const &, bool toggleall = false);
 	/// Set font from \p begin to \p end and rebreak.
-	void setFont(BufferView const & bv, CursorSlice const & begin,
-		CursorSlice const & end, Font const &,
+	void setFont(Buffer const & buffer, DocIterator const & begin,
+		DocIterator const & end, Font const &,
 		bool toggleall = false);
 
 	///
@@ -115,6 +121,11 @@ public:
 	/// FIXME: replace Cursor with DocIterator.
 	void insertInset(Cursor & cur, Inset * inset);
 
+	/// draw text (only used for insets)
+	void draw(PainterInfo & pi, int x, int y) const;
+	/// draw textselection
+	void drawSelection(PainterInfo & pi, int x, int y) const;
+
 	/// try to handle that request
 	/// FIXME: replace Cursor with DocIterator.
 	void dispatch(Cursor & cur, FuncRequest & cmd);
@@ -130,17 +141,30 @@ public:
 	/// FIXME: replace Cursor with DocIterator.
 	docstring currentState(Cursor & cur);
 
+	/** returns row near the specified
+	  * y-coordinate in given paragraph (relative to the screen).
+	  */
+	/// FIXME: move to TextMetrics.
+	Row const & getRowNearY(BufferView const & bv, int y,
+		pit_type pit) const;
+
+	/// returns the paragraph number closest to screen y-coordinate.
+	/// This method uses the BufferView CoordCache to locate the
+	/// paragraph. The y-coodinate is allowed to be off-screen and
+	/// the CoordCache will be automatically updated if needed. This is
+	/// the reason why we need a non const BufferView.
+	/// FIXME: move to TextMetrics.
+	pit_type getPitNearY(BufferView & bv, int y) const;
+
 	/** Find the word under \c from in the relative location
 	 *  defined by \c word_location.
 	 *  @param from return here the start of the word
 	 *  @param to return here the end of the word
 	 */
-	void getWord(CursorSlice & from, CursorSlice & to, word_location const) const;
+	void getWord(CursorSlice & from, CursorSlice & to, word_location const);
 	/// just selects the word the cursor is in
 	void selectWord(Cursor & cur, word_location loc);
-	/// convenience function get the previous word or an empty string
-	docstring previousWord(CursorSlice const & sl) const;
-	
+
 	/// what type of change operation to make
 	enum ChangeOp {
 		ACCEPT,
@@ -161,50 +185,57 @@ public:
 	///
 	void setCursorIntern(Cursor & cur, pit_type par,
 		 pos_type pos, bool setfont = true, bool boundary = false);
+	///
+	void setCurrentFont(Cursor & cur);
 
 	///
 	void recUndo(Cursor & cur, pit_type first, pit_type last) const;
 	///
 	void recUndo(Cursor & cur, pit_type first) const;
 
-	/// Move cursor one position backwards
+	/// sets cursor only within this Text.
+	/// x,y are screen coordinates
+	void setCursorFromCoordinates(Cursor & cur, int x, int y);
+
+	/// sets cursor recursively descending into nested editable insets
+	/**
+	\return the inset pointer if x,y is covering that inset
+	\param x,y are absolute screen coordinates.
+	\retval inset is non-null if the cursor is positionned inside
+	*/
+	/// FIXME: move to TextMetrics.
+	/// FIXME: cleanup to use BufferView::getCoveringInset() and
+	/// setCursorFromCoordinates() instead of checkInsetHit().
+	Inset * editXY(Cursor & cur, int x, int y);
+
+	/// Move cursor one position left
 	/**
 	 * Returns true if an update is needed after the move.
 	 */
-	bool cursorBackward(Cursor & cur);
-	/// Move cursor visually one position to the left
-	/**
-	 * \param skip_inset if true, don't enter insets
-	 * Returns true if an update is needed after the move.
-	 */
-	bool cursorVisLeft(Cursor & cur, bool skip_inset = false);
-	/// Move cursor one position forward
+	bool cursorLeft(Cursor & cur);
+	/// Move cursor one position right
 	/**
 	 * Returns true if an update is needed after the move.
 	 */
-	bool cursorForward(Cursor & cur);
-	/// Move cursor visually one position to the right
-	/**
-	 * \param skip_inset if true, don't enter insets
-	 * Returns true if an update is needed after the move.
-	 */
-	bool cursorVisRight(Cursor & cur, bool skip_inset = false);
+	bool cursorRight(Cursor & cur);
 	///
-	bool cursorBackwardOneWord(Cursor & cur);
+	bool cursorLeftOneWord(Cursor & cur);
 	///
-	bool cursorForwardOneWord(Cursor & cur);
-	///
-	bool cursorVisLeftOneWord(Cursor & cur);
-	///
-	bool cursorVisRightOneWord(Cursor & cur);
-	/// Delete from cursor up to the end of the current or next word.
-	void deleteWordForward(Cursor & cur);
-	/// Delete from cursor to start of current or prior word.
-	void deleteWordBackward(Cursor & cur);
+	bool cursorRightOneWord(Cursor & cur);
 	///
 	bool cursorUpParagraph(Cursor & cur);
 	///
 	bool cursorDownParagraph(Cursor & cur);
+	///
+	/// FIXME: move to TextMetrics.
+	bool cursorHome(Cursor & cur);
+	///
+	/// FIXME: move to TextMetrics.
+	bool cursorEnd(Cursor & cur);
+	///
+	void cursorPrevious(Cursor & cur);
+	///
+	void cursorNext(Cursor & cur);
 	///
 	bool cursorTop(Cursor & cur);
 	///
@@ -220,6 +251,15 @@ public:
 	bool dissolveInset(Cursor & cur);
 	///
 	bool selectWordWhenUnderCursor(Cursor & cur, word_location);
+	///
+	enum TextCase {
+		///
+		text_lowercase = 0,
+		///
+		text_capitalization = 1,
+		///
+		text_uppercase = 2
+	};
 	/// Change the case of the word at cursor position.
 	void changeCase(Cursor & cur, TextCase action);
 	/// Transposes the character at the cursor with the one before it
@@ -244,11 +284,46 @@ public:
 	/// FIXME: replace Cursor with DocIterator.
 	void insertStringAsParagraphs(Cursor & cur, docstring const & str);
 
+	/// Returns an inset if inset was hit, or 0 if not.
+	/// \warning This method is not recursive! It will return the
+	/// outermost inset within this Text.
+	/// \sa BufferView::getCoveringInset() to get the innermost inset.
+	Inset * checkInsetHit(BufferView &, int x, int y);
+
+	///
+	/// FIXME: move to TextMetrics.
+	int singleWidth(Buffer const &, Paragraph const & par,
+		pos_type pos) const;
+	///
+	/// FIXME: move to TextMetrics.
+	int singleWidth(Paragraph const & par, pos_type pos, char_type c,
+		Font const & Font) const;
+
+	/// return the color of the canvas
+	Color_color backgroundColor() const;
+
+	/**
+	 * Returns the left beginning of the text.
+	 * This information cannot be taken from the layout object, because
+	 * in LaTeX the beginning of the text fits in some cases
+	 * (for example sections) exactly the label-width.
+	 */
+	/// FIXME: move to TextMetrics.
+	int leftMargin(Buffer const &, int max_width, pit_type pit, pos_type pos) const;
+	int leftMargin(Buffer const &, int max_width, pit_type pit) const;
+
 	/// access to our paragraphs
 	ParagraphList const & paragraphs() const { return pars_; }
 	ParagraphList & paragraphs() { return pars_; }
 	/// return true if this is the main text
 	bool isMainText(Buffer const &) const;
+
+	/// is this row the last in the text?
+	/// FIXME: move to TextMetrics.
+	bool isLastRow(pit_type pit, Row const & row) const;
+	/// is this row the first in the text?
+	/// FIXME: move to TextMetrics.
+	bool isFirstRow(pit_type pit, Row const & row) const;
 
 	///
 	double spacing(Buffer const & buffer, Paragraph const & par) const;
@@ -257,18 +332,31 @@ public:
 	docstring getPossibleLabel(Cursor & cur) const;
 	/// is this paragraph right-to-left?
 	bool isRTL(Buffer const &, Paragraph const & par) const;
+	/// is this position in the paragraph right-to-left?
+	bool isRTL(Buffer const & buffer, CursorSlice const & sl, bool boundary) const;
+	/// is between pos-1 and pos an RTL<->LTR boundary?
+	bool isRTLBoundary(Buffer const & buffer, Paragraph const & par,
+	  pos_type pos) const;
+	/// would be a RTL<->LTR boundary between pos and the given font?
+	bool isRTLBoundary(Buffer const & buffer, Paragraph const & par,
+	  pos_type pos, Font const & font) const;
 
 	///
 	bool checkAndActivateInset(Cursor & cur, bool front);
-	///
-	bool checkAndActivateInsetVisual(Cursor & cur, bool movingForward, bool movingLeft);
 
 	///
 	void write(Buffer const & buf, std::ostream & os) const;
 	/// returns whether we've seen our usual 'end' marker
-	/// insetPtr is the containing Inset
-	bool read(Buffer const & buf, Lexer & lex, ErrorList & errorList, 
-	          InsetText * insetPtr);
+	bool read(Buffer const & buf, Lexer & lex, ErrorList & errorList);
+
+	///
+	/// FIXME: move to TextMetrics.
+	int cursorX(BufferView const &, CursorSlice const & cursor,
+		bool boundary) const;
+	///
+	/// FIXME: move to TextMetrics.
+	int cursorY(BufferView const & bv, CursorSlice const & cursor,
+		bool boundary) const;
 
 	/// delete double spaces, leading spaces, and empty paragraphs around old cursor.
 	/// \retval true if a change has happened and we need a redraw.
@@ -281,26 +369,20 @@ public:
 	/// from \first to \last paragraph
 	void deleteEmptyParagraphMechanism(pit_type first, pit_type last, bool trackChanges);
 
-	/// To resolve macros properly the texts get their DocIterator.
-	/// Every macro definition is stored with its DocIterator
-	/// as well. Only those macros with a smaller iterator become 
-	/// visible in a paragraph.
-	DocIterator macrocontextPosition() const;
-	///
-	void setMacrocontextPosition(DocIterator const & pos);
-
-	///
-	bool completionSupported(Cursor const & cur) const;
-	///
-	CompletionList const * createCompletionList(Cursor const & cur) const;
-	///
-	bool insertCompletion(Cursor & cur, docstring const & s, bool /*finished*/);
-	///
-	docstring completionPrefix(Cursor const & cur) const;
-
 public:
+	/// the current font settings
+	Font current_font;
+	/// the current font
+	Font real_current_font;
+	///
+	int background_color_;
+
 	///
 	ParagraphList pars_;
+
+	/// our 'outermost' font. This is handed down from the surrounding
+	// inset through the pi/mi parameter (pi.base.font)
+	Font font_;
 
 	///
 	bool autoBreakRows_;
@@ -318,21 +400,29 @@ private:
 	bool backspacePos0(Cursor & cur);
 	/// handle the case where bibitems were deleted
 	bool handleBibitems(Cursor & cur);
+
 	///
-	void charInserted(Cursor & cur);
+	void deleteWordForward(Cursor & cur);
+	///
+	void deleteWordBackward(Cursor & cur);
+	///
+	void deleteLineForward(Cursor & cur);
+	///
+	void charInserted();
 	/// set 'number' font property
 	void number(Cursor & cur);
+	/// draw selection for a single row
+	void drawRowSelection(PainterInfo & pi, int x, Row const & row,
+		DocIterator const & beg, DocIterator const & end, 
+		bool drawOnBegMargin, bool drawOnEndMargin) const;
 
 	/// paste plain text at current cursor.
 	/// \param str string to paste
 	/// \param asParagraphs whether to paste as paragraphs or as lines
 	void pasteString(Cursor & cur, docstring const & str,
 			bool asParagraphs);
-
-	/// position of the text in the buffer.
-	DocIterator macrocontext_position_;
 };
 
 } // namespace lyx
 
-#endif // TEXT_H
+#endif // LYXTEXT_H

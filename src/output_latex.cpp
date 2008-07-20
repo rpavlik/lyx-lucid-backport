@@ -14,44 +14,44 @@
 
 #include "Buffer.h"
 #include "BufferParams.h"
+#include "debug.h"
 #include "Encoding.h"
-#include "InsetList.h"
 #include "Language.h"
-#include "Layout.h"
 #include "LyXRC.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
 #include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
-#include "TextClass.h"
 #include "TexRow.h"
 #include "VSpace.h"
 
 #include "insets/InsetBibitem.h"
 #include "insets/InsetOptArg.h"
 
-#include "support/lassert.h"
-#include "support/debug.h"
 #include "support/lstrings.h"
-
-#include <boost/next_prior.hpp>
-
-using namespace std;
-using namespace lyx::support;
 
 
 namespace lyx {
 
+using support::subst;
+
+using std::endl;
+using std::string;
+using std::pair;
+using std::make_pair;
+
+
 namespace {
+
 
 enum OpenEncoding {
 		none,
 		inputenc,
 		CJK
-};
+	};
 
 static int open_encoding_ = none;
-static int cjk_inherited_ = 0;
+static bool cjk_inherited_ = false;
 
 
 ParagraphList::const_iterator
@@ -77,14 +77,14 @@ TeXDeeper(Buffer const & buf,
 	  odocstream & os, TexRow & texrow,
 	  OutputParams const & runparams)
 {
-	LYXERR(Debug::LATEX, "TeXDeeper...     " << &*pit);
+	LYXERR(Debug::LATEX) << "TeXDeeper...     " << &*pit << endl;
 	ParagraphList::const_iterator par = pit;
 
 	ParagraphList const & paragraphs = text.paragraphs();
 
 	while (par != paragraphs.end() &&
 		     par->params().depth() == pit->params().depth()) {
-		if (par->layout().isEnvironment()) {
+		if (par->layout()->isEnvironment()) {
 			par = TeXEnvironment(buf, text, par,
 					     os, texrow, runparams);
 		} else {
@@ -92,7 +92,7 @@ TeXDeeper(Buffer const & buf,
 					     os, texrow, runparams);
 		}
 	}
-	LYXERR(Debug::LATEX, "TeXDeeper...done ");
+	LYXERR(Debug::LATEX) << "TeXDeeper...done " << endl;
 
 	return par;
 }
@@ -105,12 +105,11 @@ TeXEnvironment(Buffer const & buf,
 	       odocstream & os, TexRow & texrow,
 	       OutputParams const & runparams)
 {
-	LYXERR(Debug::LATEX, "TeXEnvironment...     " << &*pit);
+	LYXERR(Debug::LATEX) << "TeXEnvironment...     " << &*pit << endl;
 
 	BufferParams const & bparams = buf.params();
 
-	Layout const & style = pit->forcePlainLayout() ?
-		bparams.documentClass().emptyLayout() : pit->layout();
+	Layout_ptr const & style = pit->layout();
 
 	ParagraphList const & paragraphs = text.paragraphs();
 
@@ -156,25 +155,25 @@ TeXEnvironment(Buffer const & buf,
 		leftindent_open = true;
 	}
 
-	if (style.isEnvironment()) {
-		os << "\\begin{" << from_ascii(style.latexname()) << '}';
-		if (style.optionalargs > 0) {
-			int ret = latexOptArgInsets(*pit, os, runparams,
-						    style.optionalargs);
+	if (style->isEnvironment()) {
+		os << "\\begin{" << from_ascii(style->latexname()) << '}';
+		if (style->optionalargs > 0) {
+			int ret = latexOptArgInsets(buf, *pit, os, runparams,
+						    style->optionalargs);
 			while (ret > 0) {
 				texrow.newline();
 				--ret;
 			}
 		}
-		if (style.latextype == LATEX_LIST_ENVIRONMENT) {
+		if (style->latextype == LATEX_LIST_ENVIRONMENT) {
 			os << '{'
 			   << pit->params().labelWidthString()
 			   << "}\n";
-		} else if (style.labeltype == LABEL_BIBLIO) {
+		} else if (style->labeltype == LABEL_BIBLIO) {
 			// ale970405
 			os << '{' << bibitemWidest(buf) << "}\n";
 		} else
-			os << from_ascii(style.latexparam()) << '\n';
+			os << from_ascii(style->latexparam()) << '\n';
 		texrow.newline();
 	}
 
@@ -183,7 +182,7 @@ TeXEnvironment(Buffer const & buf,
 	if (par_language->encoding()->package() == Encoding::CJK &&
 	    open_encoding_ != CJK && pit->isMultiLingual(bparams)) {
 		os << "\\begin{CJK}{" << from_ascii(par_language->encoding()->latexName())
-		   << "}{" << from_ascii(bparams.fontsCJK) << "}%\n";
+		   << "}{}%\n";
 		open_encoding_ = CJK;
 		cjk_nested = true;
 		texrow.newline();
@@ -200,11 +199,12 @@ TeXEnvironment(Buffer const & buf,
 			os << '\n';
 			texrow.newline();
 		} else if (par->params().depth() > pit->params().depth()) {
-			if (par->layout().isParagraph()) {
-			  // Thinko!
-			  // How to handle this? (Lgb)
-			  //&& !suffixIs(os, "\n\n")
+			    if (par->layout()->isParagraph()) {
 
+			    // Thinko!
+			    // How to handle this? (Lgb)
+			    //&& !suffixIs(os, "\n\n")
+				    //) {
 				// There should be at least one '\n' already
 				// but we need there to be two for Standard
 				// paragraphs that are depth-increment'ed to be
@@ -234,8 +234,8 @@ TeXEnvironment(Buffer const & buf,
 		open_encoding_ = none;
 	}
 
-	if (style.isEnvironment()) {
-		os << "\\end{" << from_ascii(style.latexname()) << "}\n";
+	if (style->isEnvironment()) {
+		os << "\\end{" << from_ascii(style->latexname()) << "}\n";
 		texrow.newline();
 	}
 
@@ -245,26 +245,25 @@ TeXEnvironment(Buffer const & buf,
 	}
 
 	if (par != paragraphs.end())
-		LYXERR(Debug::LATEX, "TeXEnvironment...done " << &*par);
-
+		LYXERR(Debug::LATEX) << "TeXEnvironment...done " << &*par << endl;
 	return par;
 }
 
-} // namespace anon
+}
 
 
-int latexOptArgInsets(Paragraph const & par, odocstream & os,
-	OutputParams const & runparams, int number)
+int latexOptArgInsets(Buffer const & buf, Paragraph const & par,
+		      odocstream & os, OutputParams const & runparams, int number)
 {
 	int lines = 0;
 
-	InsetList::const_iterator it = par.insetList().begin();
-	InsetList::const_iterator end = par.insetList().end();
+	InsetList::const_iterator it = par.insetlist.begin();
+	InsetList::const_iterator end = par.insetlist.end();
 	for (; it != end && number > 0 ; ++it) {
-		if (it->inset->lyxCode() == OPTARG_CODE) {
+		if (it->inset->lyxCode() == Inset::OPTARG_CODE) {
 			InsetOptArg * ins =
 				static_cast<InsetOptArg *>(it->inset);
-			lines += ins->latexOptional(os, runparams);
+			lines += ins->latexOptional(buf, os, runparams);
 			--number;
 		}
 	}
@@ -277,50 +276,32 @@ namespace {
 ParagraphList::const_iterator
 TeXOnePar(Buffer const & buf,
 	  Text const & text,
-	  ParagraphList::const_iterator const pit,
+	  ParagraphList::const_iterator pit,
 	  odocstream & os, TexRow & texrow,
 	  OutputParams const & runparams_in,
 	  string const & everypar)
 {
-	LYXERR(Debug::LATEX, "TeXOnePar...     " << &*pit << " '"
-		<< everypar << "'");
+	LYXERR(Debug::LATEX) << "TeXOnePar...     " << &*pit << " '"
+		<< everypar << "'" << endl;
 	BufferParams const & bparams = buf.params();
+	Layout_ptr style;
 	ParagraphList const & paragraphs = text.paragraphs();
 
-	ParagraphList::const_iterator priorpit = pit;
-	if (priorpit != paragraphs.begin())
-		--priorpit;
-	ParagraphList::const_iterator nextpit = pit;
-	if (nextpit != paragraphs.end())
-		++nextpit;
+	bool const maintext = text.isMainText(buf);
 
-	if (runparams_in.verbatim) {
-		int const dist = distance(paragraphs.begin(), pit);
-		Font const outerfont = outerFont(dist, paragraphs);
-
-		// No newline if only one paragraph in this lyxtext
-		if (dist > 0) {
-			os << '\n';
-			texrow.newline();
-		}
-
-		/*bool need_par = */ pit->latex(bparams, outerfont,
-			os, texrow, runparams_in);
-		return nextpit;
-	}
-
-	Layout const style = pit->forcePlainLayout() ?
-		bparams.documentClass().emptyLayout() : pit->layout();
+	// In an inset with unlimited length (all in one row),
+	// force layout to default
+	if (!pit->forceDefaultParagraphs())
+		style = pit->layout();
+	else
+		style = bparams.getTextClass().defaultLayout();
 
 	OutputParams runparams = runparams_in;
-	runparams.moving_arg |= style.needprotect;
+	runparams.moving_arg |= style->needprotect;
 
-	bool const maintext = text.isMainText(buf);
-	// we are at the beginning of an inset and CJK is already open;
-	// we count inheritation levels to get the inset nesting right.
-	if (pit == paragraphs.begin() && !maintext
-	    && (cjk_inherited_ > 0 || open_encoding_ == CJK)) {
-		cjk_inherited_ += 1;
+	// we are at the beginning of an inset and CJK is already open.
+	if (pit == paragraphs.begin() && !maintext && open_encoding_ == CJK) {
+		cjk_inherited_ = true;
 		open_encoding_ = none;
 	}
 
@@ -338,15 +319,15 @@ TeXOnePar(Buffer const & buf,
 	// if there is no previous paragraph
 	Language const * const prev_language =
 		(pit != paragraphs.begin()) ?
-			priorpit->getParLanguage(bparams) : outer_language;
+			boost::prior(pit)->getParLanguage(bparams) : outer_language;
 
 	if (par_language->babel() != prev_language->babel()
 	    // check if we already put language command in TeXEnvironment()
-	    && !(style.isEnvironment()
+	    && !(style->isEnvironment()
 		 && (pit == paragraphs.begin() ||
-		     (priorpit->layout() != pit->layout() &&
-		      priorpit->getDepth() <= pit->getDepth())
-		     || priorpit->getDepth() < pit->getDepth())))
+		     (boost::prior(pit)->layout() != pit->layout() &&
+		      boost::prior(pit)->getDepth() <= pit->getDepth())
+		     || boost::prior(pit)->getDepth() < pit->getDepth())))
 	{
 		if (!lyxrc.language_command_end.empty() &&
 		    prev_language->babel() != outer_language->babel() &&
@@ -451,9 +432,9 @@ TeXOnePar(Buffer const & buf,
 				// the following is necessary after a CJK environment in a multilingual
 				// context (nesting issue).
 				if (par_language->encoding()->package() == Encoding::CJK &&
-				    open_encoding_ != CJK && cjk_inherited_ == 0) {
+				    open_encoding_ != CJK && !cjk_inherited_) {
 					os << "\\begin{CJK}{" << from_ascii(par_language->encoding()->latexName())
-					   << "}{" << from_ascii(bparams.fontsCJK) << "}%\n";
+					   << "}{}%\n";
 					open_encoding_ = CJK;
 					texrow.newline();
 				}
@@ -480,8 +461,10 @@ TeXOnePar(Buffer const & buf,
 		}
 	}
 
-	bool const useSetSpace = bparams.documentClass().provides("SetSpace");
-	if (pit->allowParagraphCustomization()) {
+	// In an inset with unlimited length (all in one row),
+	// don't allow any special options in the paragraph
+	bool const useSetSpace = bparams.getTextClass().provides("SetSpace");
+	if (!pit->forceDefaultParagraphs()) {
 		if (pit->params().startOfAppendix()) {
 			os << "\\appendix\n";
 			texrow.newline();
@@ -489,34 +472,34 @@ TeXOnePar(Buffer const & buf,
 
 		if (!pit->params().spacing().isDefault()
 			&& (pit == paragraphs.begin()
-			    || !priorpit->hasSameLayout(*pit)))
+			    || !boost::prior(pit)->hasSameLayout(*pit)))
 		{
 			os << from_ascii(pit->params().spacing().writeEnvirBegin(useSetSpace))
 			    << '\n';
 			texrow.newline();
 		}
 
-		if (style.isCommand()) {
+		if (style->isCommand()) {
 			os << '\n';
 			texrow.newline();
 		}
 	}
 
-	switch (style.latextype) {
+	switch (style->latextype) {
 	case LATEX_COMMAND:
-		os << '\\' << from_ascii(style.latexname());
+		os << '\\' << from_ascii(style->latexname());
 
 		// Separate handling of optional argument inset.
-		if (style.optionalargs > 0) {
-			int ret = latexOptArgInsets(*pit, os, runparams,
-						    style.optionalargs);
+		if (style->optionalargs > 0) {
+			int ret = latexOptArgInsets(buf, *pit, os, runparams,
+						    style->optionalargs);
 			while (ret > 0) {
 				texrow.newline();
 				--ret;
 			}
 		}
 		else
-			os << from_ascii(style.latexparam());
+			os << from_ascii(style->latexparam());
 		break;
 	case LATEX_ITEM_ENVIRONMENT:
 	case LATEX_LIST_ENVIRONMENT:
@@ -529,12 +512,13 @@ TeXOnePar(Buffer const & buf,
 		break;
 	}
 
-	Font const outerfont = outerFont(distance(paragraphs.begin(), pit),
+	Font const outerfont =
+		outerFont(std::distance(paragraphs.begin(), pit),
 			  paragraphs);
 
 	// FIXME UNICODE
 	os << from_utf8(everypar);
-	bool need_par = pit->latex(bparams, outerfont,
+	bool need_par = pit->simpleTeXOnePar(buf, bparams, outerfont,
 					     os, texrow, runparams);
 
 	// Make sure that \\par is done with the font of the last
@@ -547,14 +531,15 @@ TeXOnePar(Buffer const & buf,
 	// We do not need to use to change the font for the last paragraph
 	// or for a command.
 
-	Font const font = pit->empty()
+	Font const font =
+		(pit->empty()
 		 ? pit->getLayoutFont(bparams, outerfont)
-		 : pit->getFont(bparams, pit->size() - 1, outerfont);
+		 : pit->getFont(bparams, pit->size() - 1, outerfont));
 
-	bool is_command = style.isCommand();
+	bool is_command = style->isCommand();
 
-	if (style.resfont.size() != font.fontInfo().size()
-	    && nextpit != paragraphs.end()
+	if (style->resfont.size() != font.size()
+	    && boost::next(pit) != paragraphs.end()
 	    && !is_command) {
 		if (!need_par)
 			os << '{';
@@ -565,19 +550,20 @@ TeXOnePar(Buffer const & buf,
 		os << '}';
 
 	bool pending_newline = false;
-	switch (style.latextype) {
+	switch (style->latextype) {
 	case LATEX_ITEM_ENVIRONMENT:
 	case LATEX_LIST_ENVIRONMENT:
-		if (nextpit != paragraphs.end()
-		    && (pit->params().depth() < nextpit->params().depth()))
+		if (boost::next(pit) != paragraphs.end()
+		    && (pit->params().depth() < boost::next(pit)->params().depth()))
 			pending_newline = true;
 		break;
 	case LATEX_ENVIRONMENT: {
 		// if its the last paragraph of the current environment
 		// skip it otherwise fall through
-		ParagraphList::const_iterator next = nextpit;
+		ParagraphList::const_iterator next = boost::next(pit);
 
-		if (next != paragraphs.end() && (next->layout() != pit->layout()
+		if (next != paragraphs.end()
+		    && (next->layout() != pit->layout()
 			|| next->params().depth() != pit->params().depth()))
 			break;
 	}
@@ -585,13 +571,14 @@ TeXOnePar(Buffer const & buf,
 		// fall through possible
 	default:
 		// we don't need it for the last paragraph!!!
-		if (nextpit != paragraphs.end())
+		if (boost::next(pit) != paragraphs.end())
 			pending_newline = true;
 	}
 
-	if (pit->allowParagraphCustomization()) {
+	if (!pit->forceDefaultParagraphs()) {
 		if (!pit->params().spacing().isDefault()
-			&& (nextpit == paragraphs.end() || !nextpit->hasSameLayout(*pit)))
+			&& (boost::next(pit) == paragraphs.end()
+			    || !boost::next(pit)->hasSameLayout(*pit)))
 		{
 			if (pending_newline) {
 				os << '\n';
@@ -613,13 +600,13 @@ TeXOnePar(Buffer const & buf,
 		runparams.local_font != 0 &&
 		runparams.local_font->isRightToLeft() != par_language->rightToLeft() &&
 		// are we about to close the language?
-		((nextpit != paragraphs.end() &&
+		((boost::next(pit) != paragraphs.end() &&
 		  par_language->babel() != 
-		  	(nextpit->getParLanguage(bparams))->babel()) ||
-		 (nextpit == paragraphs.end() &&
+		  	(boost::next(pit)->getParLanguage(bparams))->babel()) ||
+		 (boost::next(pit) == paragraphs.end() &&
 		  par_language->babel() != outer_language->babel()));
 
-	if (closing_rtl_ltr_environment || (nextpit == paragraphs.end()
+	if (closing_rtl_ltr_environment || (boost::next(pit) == paragraphs.end()
 	    && par_language->babel() != outer_language->babel())) {
 		// Since \selectlanguage write the language to the aux file,
 		// we need to reset the language at the end of footnote or
@@ -658,18 +645,18 @@ TeXOnePar(Buffer const & buf,
 
 	// if this is a CJK-paragraph and the next isn't, close CJK
 	// also if the next paragraph is a multilingual environment (because of nesting)
-	if (nextpit != paragraphs.end() && open_encoding_ == CJK &&
-	    (nextpit->getParLanguage(bparams)->encoding()->package() != Encoding::CJK ||
-	     nextpit->layout().isEnvironment() && nextpit->isMultiLingual(bparams))
+	if (boost::next(pit) != paragraphs.end() && open_encoding_ == CJK &&
+	    (boost::next(pit)->getParLanguage(bparams)->encoding()->package() != Encoding::CJK ||
+	     boost::next(pit)->layout()->isEnvironment() && boost::next(pit)->isMultiLingual(bparams))
 	     // in environments, CJK has to be closed later (nesting!)
-	     && !style.isEnvironment()) {
+	     && !style->isEnvironment()) {
 		os << "\\end{CJK}\n";
 		open_encoding_ = none;
 	}
 
 	// If this is the last paragraph, close the CJK environment
 	// if necessary. If it's an environment, we'll have to \end that first.
-	if (nextpit == paragraphs.end() && !style.isEnvironment()) {
+	if (boost::next(pit) == paragraphs.end() && !style->isEnvironment()) {
 		switch (open_encoding_) {
 			case CJK: {
 				// end of main text
@@ -699,11 +686,11 @@ TeXOnePar(Buffer const & buf,
 	// If this is the last paragraph, and a local_font was set upon entering
 	// the inset, and we're using "auto" or "default" encoding, the encoding
 	// should be set back to that local_font's encoding.
-	if (nextpit == paragraphs.end() && runparams_in.local_font != 0
-	    && runparams_in.encoding != runparams_in.local_font->language()->encoding()
+	if (boost::next(pit) == paragraphs.end() && runparams_in.local_font != 0
 	    && (bparams.inputenc == "auto" || bparams.inputenc == "default")) {
 		runparams_in.encoding = runparams_in.local_font->language()->encoding();
 		os << setEncoding(runparams_in.encoding->iconvName());
+
 	}
 	// Otherwise, the current encoding should be set for the next paragraph.
 	else
@@ -713,19 +700,15 @@ TeXOnePar(Buffer const & buf,
 	// we don't need it for the last paragraph!!!
 	// Note from JMarc: we will re-add a \n explicitely in
 	// TeXEnvironment, because it is needed in this case
-	if (nextpit != paragraphs.end()) {
-		Layout const & next_layout = nextpit->layout();
-		// no blank lines before environments!
-		if (!next_layout.isEnvironment() || style == next_layout) {
-			os << '\n';
-			texrow.newline();
-		}
+	if (boost::next(pit) != paragraphs.end()) {
+		os << '\n';
+		texrow.newline();
 	}
 
-	if (nextpit != paragraphs.end())
-		LYXERR(Debug::LATEX, "TeXOnePar...done " << &*nextpit);
+	if (boost::next(pit) != paragraphs.end())
+		LYXERR(Debug::LATEX) << "TeXOnePar...done " << &*boost::next(pit) << endl;
 
-	return nextpit;
+	return ++pit;
 }
 
 } // anon namespace
@@ -742,12 +725,12 @@ void latexParagraphs(Buffer const & buf,
 	bool was_title = false;
 	bool already_title = false;
 	BufferParams const & bparams = buf.params();
-	DocumentClass const & tclass = bparams.documentClass();
+	TextClass const & tclass = bparams.getTextClass();
 	ParagraphList const & paragraphs = text.paragraphs();
 	ParagraphList::const_iterator par = paragraphs.begin();
 	ParagraphList::const_iterator endpar = paragraphs.end();
 
-	LASSERT(runparams.par_begin <= runparams.par_end, /**/);
+	BOOST_ASSERT(runparams.par_begin <= runparams.par_end);
 	// if only part of the paragraphs will be outputed
 	if (runparams.par_begin !=  runparams.par_end) {
 		par = boost::next(paragraphs.begin(), runparams.par_begin);
@@ -764,7 +747,7 @@ void latexParagraphs(Buffer const & buf,
 	// if the document's language is a CJK language
 	if (maintext && bparams.encoding().package() == Encoding::CJK) {
 		os << "\\begin{CJK}{" << from_ascii(bparams.encoding().latexName())
-		<< "}{" << from_ascii(bparams.fontsCJK) << "}%\n";
+		<< "}{}%\n";
 		texrow.newline();
 		open_encoding_ = CJK;
 	}
@@ -784,50 +767,60 @@ void latexParagraphs(Buffer const & buf,
 	// if only_body
 	while (par != endpar) {
 		lastpar = par;
-		Layout const & layout = par->forcePlainLayout() ?
-				tclass.emptyLayout() :
-				par->layout();
+		// well we have to check if we are in an inset with unlimited
+		// length (all in one row) if that is true then we don't allow
+		// any special options in the paragraph and also we don't allow
+		// any environment other than the default layout of the
+		// text class to be valid!
+		if (!par->forceDefaultParagraphs()) {
+			Layout_ptr const & layout = par->layout();
 
-		if (layout.intitle) {
-			if (already_title) {
-				lyxerr << "Error in latexParagraphs: You"
-					" should not mix title layouts"
-					" with normal ones." << endl;
-			} else if (!was_title) {
-				was_title = true;
-				if (tclass.titletype() == TITLE_ENVIRONMENT) {
-					os << "\\begin{"
-							<< from_ascii(tclass.titlename())
-							<< "}\n";
-					texrow.newline();
+			if (layout->intitle) {
+				if (already_title) {
+					lyxerr << "Error in latexParagraphs: You"
+						" should not mix title layouts"
+						" with normal ones." << endl;
+				} else if (!was_title) {
+					was_title = true;
+					if (tclass.titletype() == TITLE_ENVIRONMENT) {
+						os << "\\begin{"
+						    << from_ascii(tclass.titlename())
+						    << "}\n";
+						texrow.newline();
+					}
 				}
+			} else if (was_title && !already_title) {
+				if (tclass.titletype() == TITLE_ENVIRONMENT) {
+					os << "\\end{" << from_ascii(tclass.titlename())
+					    << "}\n";
+				}
+				else {
+					os << "\\" << from_ascii(tclass.titlename())
+					    << "\n";
+				}
+				texrow.newline();
+				already_title = true;
+				was_title = false;
 			}
-		} else if (was_title && !already_title) {
-			if (tclass.titletype() == TITLE_ENVIRONMENT) {
-				os << "\\end{" << from_ascii(tclass.titlename())
-						<< "}\n";
-			}
-			else {
-				os << "\\" << from_ascii(tclass.titlename())
-						<< "\n";
-			}
-			texrow.newline();
-			already_title = true;
-			was_title = false;
-		}
 
-		if (layout.isEnvironment() ||
-					!par->params().leftIndent().zero()) {
-			par = TeXEnvironment(buf, text, par, os,
-								texrow, runparams);
+			if (layout->is_environment) {
+				par = TeXOnePar(buf, text, par, os, texrow,
+						runparams, everypar);
+			} else if (layout->isEnvironment() ||
+				   !par->params().leftIndent().zero()) {
+				par = TeXEnvironment(buf, text, par, os,
+						     texrow, runparams);
+			} else {
+				par = TeXOnePar(buf, text, par, os, texrow,
+						runparams, everypar);
+			}
 		} else {
 			par = TeXOnePar(buf, text, par, os, texrow,
 					runparams, everypar);
 		}
-		if (distance(lastpar, par) >= distance(lastpar, endpar))
+		if (std::distance(lastpar, par) >= std::distance(lastpar, endpar))
 			break;
 	}
-
 	// It might be that we only have a title in this document
 	if (was_title && !already_title) {
 		if (tclass.titletype() == TITLE_ENVIRONMENT) {
@@ -840,7 +833,6 @@ void latexParagraphs(Buffer const & buf,
 				}
 		texrow.newline();
 	}
-
 	// if "auto end" is switched off, explicitely close the language at the end
 	// but only if the last par is in a babel language
 	if (maintext && !lyxrc.language_auto_end && !bparams.language->babel().empty() &&
@@ -851,7 +843,6 @@ void latexParagraphs(Buffer const & buf,
 			<< '\n';
 		texrow.newline();
 	}
-
 	// If the last paragraph is an environment, we'll have to close
 	// CJK at the very end to do proper nesting.
 	if (maintext && open_encoding_ == CJK) {
@@ -859,12 +850,10 @@ void latexParagraphs(Buffer const & buf,
 		texrow.newline();
 		open_encoding_ = none;
 	}
-
 	// reset inherited encoding
-	if (cjk_inherited_ > 0) {
-		cjk_inherited_ -= 1;
-		if (cjk_inherited_ == 0)
-			open_encoding_ = CJK;
+	if (cjk_inherited_) {
+		open_encoding_ = CJK;
+		cjk_inherited_ = false;
 	}
 }
 
@@ -891,8 +880,9 @@ pair<bool, int> switchEncoding(odocstream & os, BufferParams const & bparams,
 		|| newEnc.package() == Encoding::none)
 		return make_pair(false, 0);
 
-	LYXERR(Debug::LATEX, "Changing LaTeX encoding from "
-		<< oldEnc.name() << " to " << newEnc.name());
+	LYXERR(Debug::LATEX) << "Changing LaTeX encoding from "
+		<< oldEnc.name() << " to "
+		<< newEnc.name() << endl;
 	os << setEncoding(newEnc.iconvName());
 	if (bparams.inputenc == "default")
 		return make_pair(true, 0);
@@ -938,15 +928,13 @@ pair<bool, int> switchEncoding(odocstream & os, BufferParams const & bparams,
 				os << "\\egroup";
 				count += 7;
 			}
-			os << "\\begin{CJK}{" << inputenc_arg << "}{"
-			   << from_ascii(bparams.fontsCJK) << "}";
+			os << "\\begin{CJK}{" << inputenc_arg << "}{}";
 			open_encoding_ = CJK;
 			return make_pair(true, count + 15);
 		}
 	}
 	// Dead code to avoid a warning:
 	return make_pair(true, 0);
-
 }
 
 } // namespace lyx

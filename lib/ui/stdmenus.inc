@@ -133,11 +133,6 @@ Menuset
 		Separator
 		Item "Selection|S" "primary-selection-paste"
 		Item "Selection, Join Lines|i" "primary-selection-paste paragraph"
-		Separator
-		Item "Paste As LinkBack PDF" "paste linkback"
-		Item "Paste As PDF" "paste pdf"
-		Item "Paste As PNG" "paste png"
-		Item "Paste As JPEG" "paste jpeg"
 	End
 
 	Menu "edit_pasterecent"
@@ -145,9 +140,7 @@ Menuset
 	End
 
 	Menu "edit_textstyles"
-		Item "Dissolve CharStyle" "inset-dissolve charstyle"
 		CharStyles
-		Elements
 		Separator
 		Item "Customized...|C" "dialog-show character"
 		Separator
@@ -188,10 +181,9 @@ Menuset
 	End
 
 	Menu "edit_math"
-		Item "Number whole Formula|N" "math-number-toggle"
-		Item "Number this Line|u" "math-number-line-toggle"
+		Item "Number whole Formula|N" "math-number"
+		Item "Number this Line|u" "math-nonumber"
 		Submenu "Change Limits Type|L" "edit_math_limits"
-		Submenu "Macro Definition" "edit_math_macro_definition"
 		Separator
 		Submenu "Change Formula Type|F" "edit_math_mutate"
 		Separator
@@ -210,20 +202,6 @@ Menuset
 		Item "Add Line to Right" "tabular-feature add-vline-right"
 		Item "Delete Line to Left" "tabular-feature delete-vline-left"
 		Item "Delete Line to Right" "tabular-feature delete-vline-right"
-	End
-
-	Menu "edit_math_macro_definition"
-		Item "Append Parameter" "math-macro-add-param"
-		Item "Remove Last Parameter" "math-macro-remove-param"
-                Separator
-		Item "Make First Non-Optional into Optional Parameter" "math-macro-make-optional"
-		Item "Make Last Optional into Non-Optional Parameter" "math-macro-make-nonoptional"
-                Item "Insert Optional Parameter" "math-macro-add-optional-param"
-                Item "Remove Optional Parameter" "math-macro-remove-optional-param"
-		Separator
-		Item "Append Parameter Eating From The Right" "math-macro-append-greedy-param"
-                Item "Append Optional Parameter Eating From The Right" "math-macro-add-greedy-optional-param"
-		Item "Remove Last Parameter Spitting Out To The Right" "math-macro-remove-greedy-param"
 	End
 
 	Menu "edit_math_limits"
@@ -287,17 +265,10 @@ Menuset
 		Item "Open All Insets|O" "all-insets-toggle open"
 		Item "Close All Insets|C" "all-insets-toggle close"
 		Separator
-		Item "Unfold Math Macro" "math-macro-unfold"
-		Item "Fold Math Macro" "math-macro-fold"
-		Separator
 		Item "View Source|S" "dialog-toggle view-source"
 		Submenu "Update|U" "view_update"
 		ViewFormats
 		Separator
-		Item "Split View Horizontally|i" "split-view horizontal"
-		Item "Split View Vertically|V" "split-view vertical"
-		Item "Close Tab Group|G" "close-tab-group"
-		Item "Fullscreen|l" "ui-toggle fullscreen"
 		Submenu "Toolbars|b" "toolbars"
 		Separator
 	    Documents
@@ -324,7 +295,6 @@ Menuset
 		Submenu "Float|a" "insert_float"
 		Submenu "Note|N" "insert_note"
 		Submenu "Branch|B" "insert_branches"
-		Submenu "Custom insets" "insert_custom"
 		Submenu "File|e" "insert_file"
 		Item "Box[[Menu]]" "box-insert Frameless"
 		Separator
@@ -337,8 +307,7 @@ Menuset
 		Separator
 		Item "Table...|T" "tabular-insert"
 		Item "Graphics...|G" "dialog-show-new-inset graphics"
-		Item "URL" "flex-insert URL"
-		Item "Hyperlink|k" "href-insert"
+		Item "URL...|U" "url-insert"
 		Item "Footnote|F" "footnote-insert"
 		Item "Marginal Note|M" "marginalnote-insert"
 		Item "Short Title|S" "optional-insert"
@@ -348,15 +317,12 @@ Menuset
 	End
 
 	Menu "insert_special"
-		Item "Symbols...|b" "dialog-show symbols"
-		Item "Ellipsis|i" "specialchar-insert dots"
-		Item "End of Sentence|E" "specialchar-insert end-of-sentence"
+		Item "Ellipsis|i" "dots-insert"
+		Item "End of Sentence|E" "end-of-sentence-period-insert"
 		Item "Ordinary Quote|Q" "self-insert \""
 		Item "Single Quote|S" "quote-insert single"
-		Item "Protected Hyphen|y" "specialchar-insert nobreakdash"
-		Item "Breakable Slash|a" "specialchar-insert slash"
-		Item "Menu Separator|M" "specialchar-insert menu-separator"
-		Item "Phonetic Symbols|P" "command-sequence math-mode on; math-insert \text\textipa ; char-forward ;"
+		Item "Menu Separator|M" "menu-separator-insert"
+		Item "Phonetic Symbols|y" "command-sequence math-mode on; math-insert \text\textipa ; char-forward ;"
 	End
 
 	Menu "insert_formatting"
@@ -366,25 +332,23 @@ Menuset
 		Item "Protected Space|P" "space-insert protected"
 		Item "Inter-word Space|w" "space-insert normal"
 		Item "Thin Space|T" "space-insert thin"
-		Item "Horizontal Space...|o" "dialog-show-new-inset space"
+		Item "Horizontal Fill|F" "hfill-insert"
 		Item "Horizontal Line|L" "line-insert"
 		Item "Vertical Space...|V" "dialog-show-new-inset vspace"
 		Separator
-		Item "Hyphenation Point|H" "specialchar-insert hyphenation"
-		Item "Ligature Break|k" "specialchar-insert ligature-break"
-		Item "Ragged Line Break|R" "newline-insert newline"
-		Item "Justified Line Break|J" "newline-insert linebreak"
+		Item "Hyphenation Point|H" "hyphenation-point-insert"
+		Item "Ligature Break|k" "ligature-break-insert"
+		Item "Line Break|B" "break-line"
 		Separator
-		Item "New Page|N" "newpage-insert newpage"
-		Item "Page Break|a" "newpage-insert pagebreak"
-		Item "Clear Page|C" "newpage-insert clearpage"
-		Item "Clear Double Page|D" "newpage-insert cleardoublepage"
+		Item "Page Break|a" "pagebreak-insert"
+		Item "Clear Page|C" "clearpage-insert"
+		Item "Clear Double Page|D" "cleardoublepage-insert"
 	End
 
 	Menu "insert_math"
 		Item "Inline Formula|I" "math-mode on"
 		Item "Display Formula|D" "math-display"
-		Item "Numbered Formula|N" "command-sequence math-display; math-number-toggle;"
+		Item "Numbered Formula|N" "command-sequence math-display; math-number;"
 		Item "Eqnarray Environment|E" "command-sequence math-mode on; math-mutate eqnarray;"
 		Item "AMS align Environment|a" "command-sequence math-mode on; math-mutate align;"
 		Item "AMS alignat Environment|t" "command-sequence math-mode on; math-mutate alignat;"
@@ -399,16 +363,14 @@ Menuset
 		Item "Gathered Environment|h" "command-sequence math-mode on; math-insert \gathered"
 		Item "Split Environment|S" "command-sequence math-mode on; math-insert \split; tabular-feature append-column"
 		Separator
-		Item "Delimiters...|r" "dialog-show mathdelimiter"
-		Item "Matrix...|x" "dialog-show mathmatrix"
-		Item "Macro|o" "math-macro newmacroname newcommand"
+		Item "Delimiters|r" "dialog-show mathdelimiter"
+		Item "Matrix|x" "dialog-show mathmatrix"
 	End
 
 	Menu "insert_float"
 		FloatInsert
 # This has got to be better than "Wrap", anyway
-		Item "Figure Wrap Float|F" "wrap-insert figure"
-		Item "Table Wrap Float|T" "wrap-insert table"
+		Item "Text Wrap Float|W" "wrap-insert figure"
 	End
 
 	Menu "insert_toc"
@@ -431,15 +393,13 @@ Menuset
 	Menu "insert_note"
 		Item "LyX Note|N" "note-insert Note"
 		Item "Comment|C" "note-insert Comment"
+		Item "Framed|F" "note-insert Framed"
 		Item "Greyed Out|G" "note-insert Greyedout"
+		Item "Shaded|S" "note-insert Shaded"
 	End
 
 	Menu "insert_branches"
 		Branches
-	End
-
-	Menu "insert_custom"
-		Custom
 	End
 
 #
@@ -453,7 +413,6 @@ Menuset
 		Item "Outline|O" "dialog-toggle toc"
 		Item "Start Appendix Here|A" "appendix"
 		Separator
-		Item "Save in Bundled Format|F" "buffer-toggle-embedding"
 		Item "Compressed|m" "buffer-toggle-compression"
 		Item "Settings...|S" "dialog-show document"
 	End
@@ -499,7 +458,7 @@ Menuset
 	Menu "tools"
 		Item "Spellchecker...|S" "dialog-show spellchecker"
 		OptItem "Thesaurus...|T" "thesaurus-entry"
-		Item "Statistics...|a" "statistics"
+		Item "Count Words|W" "words-count"
 		OptItem "Check TeX|h" "buffer-chktex"
 		Item "TeX Information|I" "dialog-show texinfo"
 		Separator
@@ -521,7 +480,6 @@ Menuset
 		Item "Embedded Objects|m" "help-open EmbeddedObjects"
 		Item "Math|h" "help-open Math"
 		Item "Customization|C" "help-open Customization"
-		Item "Shortcuts|S" "help-open Shortcuts"
 		Item "FAQ|F" "help-open FAQ"
 		Item "Table of Contents|a" "help-open TOC"
 		Item "LaTeX Configuration|L" "help-open LaTeXConfig"
@@ -530,4 +488,3 @@ Menuset
 	End
 
 End
-

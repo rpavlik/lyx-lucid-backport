@@ -1,5 +1,5 @@
-#LyX 1.6.0beta3 created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.5.5svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass scrartcl
@@ -55,7 +55,6 @@
 \graphics default
 \paperfontsize 12
 \spacing single
-\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 2
@@ -100,7 +99,7 @@ A=C\label{eq:C}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 
 
 \backslash
@@ -125,7 +124,7 @@ A=E\label{eq:E}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 
 
 \backslash
@@ -150,7 +149,7 @@ A=G\label{eq:G}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 
 
 \backslash
@@ -176,57 +175,49 @@ A=I\label{eq:I}\end{equation}
 
 \begin_layout Standard
 Referencias cruzadas: 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:B"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:C"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:F"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:G"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:D"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:E"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:H"
 
 \end_inset
 
  , 
-\begin_inset CommandInset ref
-LatexCommand eqref
+\begin_inset LatexCommand eqref
 reference "eq:I"
 
 \end_inset
@@ -252,9 +243,7 @@ Para escribir este ejemplo, primero hay que definir un contador para las
 
 \backslash
 newcounter{rom}
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \backslash
 renewcommand{
@@ -265,9 +254,8 @@ roman{rom}}
 \end_layout
 
 \begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
 
+\newpage
 Para guardar el valor del contador arábigo 
 \series bold
 equation
@@ -283,9 +271,7 @@ equation
 newcommand{
 \backslash
 c@org@eq}{}
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \backslash
 let
@@ -293,17 +279,13 @@ let
 c@org@eq
 \backslash
 c@equation
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \backslash
 newcommand{
 \backslash
 org@theeq}{}
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \backslash
 let

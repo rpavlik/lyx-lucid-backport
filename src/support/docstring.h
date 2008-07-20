@@ -13,17 +13,15 @@
 #ifndef LYX_DOCSTRING_H
 #define LYX_DOCSTRING_H
 
-#include "support/strfwd.h"
+#include "support/types.h"
 
+#include <cstring>
 #include <string>
+#include <typeinfo>
 
 namespace lyx {
 
-/**
- * String type for storing the main text in UCS4 encoding.
- * Use std::string only in cases 7-bit ASCII is to be manipulated
- * within the variable.
- */
+/// String type for storing the main text in UCS4 encoding
 typedef std::basic_string<char_type> docstring;
 
 /// Creates a docstring from a C string of ASCII characters
@@ -44,6 +42,14 @@ std::string const to_utf8(docstring const &);
 /// convert \p s from the encoding of the locale to ucs4.
 docstring const from_local8bit(std::string const & s);
 
+/// Exception thrown by to_local8bit if the string could not be converted
+class to_local8bit_failure : public std::bad_cast {
+public:
+	to_local8bit_failure() throw() : std::bad_cast() {}
+	virtual ~to_local8bit_failure() throw() {}
+	virtual const char* what() const throw();
+};
+
 /**
  * Convert \p s from ucs4 to the encoding of the locale.
  * This may fail and throw an exception, the caller is expected to act
@@ -61,34 +67,34 @@ std::string const to_filesystem8bit(docstring const & s);
 docstring const normalize_c(docstring const & s);
 
 /// Compare a docstring with a C string of ASCII characters
-bool operator==(docstring const &, char const *);
+bool operator==(lyx::docstring const &, char const *);
 
 /// Compare a C string of ASCII characters with a docstring
-inline bool operator==(char const * l, docstring const & r) { return r == l; }
+inline bool operator==(char const * l, lyx::docstring const & r) { return r == l; }
 
 /// Compare a docstring with a C string of ASCII characters
-inline bool operator!=(docstring const & l, char const * r) { return !(l == r); }
+inline bool operator!=(lyx::docstring const & l, char const * r) { return !(l == r); }
 
 /// Compare a C string of ASCII characters with a docstring
-inline bool operator!=(char const * l, docstring const & r) { return !(r == l); }
+inline bool operator!=(char const * l, lyx::docstring const & r) { return !(r == l); }
 
 /// Concatenate a docstring and a C string of ASCII characters
-docstring operator+(docstring const &, char const *);
+lyx::docstring operator+(lyx::docstring const &, char const *);
 
 /// Concatenate a C string of ASCII characters and a docstring
-docstring operator+(char const *, docstring const &);
+lyx::docstring operator+(char const *, lyx::docstring const &);
 
 /// Concatenate a docstring and a single ASCII character
-docstring operator+(docstring const & l, char r);
+lyx::docstring operator+(lyx::docstring const & l, char r);
 
 /// Concatenate a single ASCII character and a docstring
-docstring operator+(char l, docstring const & r);
+lyx::docstring operator+(char l, lyx::docstring const & r);
 
 /// Append a C string of ASCII characters to a docstring
-docstring & operator+=(docstring &, char const *);
+lyx::docstring & operator+=(lyx::docstring &, char const *);
 
 /// Append a single ASCII character to a docstring
-docstring & operator+=(docstring & l, char r);
+lyx::docstring & operator+=(lyx::docstring & l, char r);
 
 } // namespace lyx
 

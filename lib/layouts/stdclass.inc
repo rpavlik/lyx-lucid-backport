@@ -7,7 +7,7 @@
 # ``standard'' layouts, like article and friends.
 
 
-Format 7
+Format 4
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -26,7 +26,6 @@ EndFont
 
 
 Style Standard
-	Category              MainText
 	Margin                Static
 	LatexType             Paragraph
 	LatexName             dummy
@@ -37,11 +36,7 @@ Style Standard
 	LabelType             No_Label
 End
 
-#Input stdcharstyles.inc
-#Input stdcustom.inc
-Input stdfloats.inc
-Input stdcounters.inc
-Input stdinsets.inc
+
 Input stdlists.inc
 Input stdsections.inc
 Input stdstarsections.inc
@@ -49,3 +44,5 @@ Input stdtitle.inc
 Input stdstruct.inc
 Input lyxmacros.inc
 Input stdlayouts.inc
+Input stdfloats.inc
+Input stdcounters.inc

@@ -27,12 +27,12 @@ Windows only
      * as described in INSTALL.scons
      * install win32libs with the 'KDE on Windows' installer
        http://download.cegit.de/kde-windows/installer/
-       - use the msvc packages
-       - a release version of Qt is also available by the installer
+       (there are also Qt packages for msvc and mingw)
     
     If cmake couldn't find these modules set GNUWIN32_DIR, eg. 
     -DGNUWIN32_DIR=c:\gnuwin32. By default cmake searches in your 
     program folder
+
 
 
 Building Visual C++ 2005 project files
@@ -56,24 +56,11 @@ Building Visual C++ 2005 project files
       cmake/CMakeLists.txt. To make the warning an error add it
       to MSVC_W_ERROR.
       
-    * Memory leak detection
-      For MSVC the usage of 'Visual Leak Detection' could be enabled
-      (http://dmoulding.googlepages.com/vld): -Dvld=1
-      
-      Building vld requires the 'Debugging Tools For Windows' (~16MB)
-      http://www.microsoft.com/whdc/devtools/debugging/default.mspx
-      Eventually you have to copy dbghelp.dll from your Visual Studio
-      Common7\IDE folder into the binary directory. 
-      'vld.ini' is part of lyx.proj where you can configure vld.
-      
-      The docu for vld could be found in development/Win32/vld, or
-      http://www.codeproject.com/tools/visualleakdetector.asp
-      
       
 Some tips:
 
     * rename Microsoft Visual Studio 8\VC\vcpackages\feacp.dll 
-      to disable Intellisense
+      t o disable Intellisense
     * the Release build links much faster 
     * for the 'Debug' and 'Release' build all precompiled headers are enabled
       to compile without pch (non file merge mode) This is usefull to check 
@@ -96,7 +83,7 @@ Building with GCC/Linux
 ------------------------
 
     * create a build directory, e.g. .../trunk/../build
-    * call in the build directory 'cmake ../trunk/development/cmake'
+    * call in the build directory 'cmake ..\trunk\development\cmake'
     * compiler and linker options could be suppressd by '-Dquiet=1' 
 
 
@@ -132,7 +119,7 @@ Some tips:
 
 
 
-To generate other build files call 'cmake' 
+To generate other build files call 'cmake'
 which shows a list of possibilities.
 
 

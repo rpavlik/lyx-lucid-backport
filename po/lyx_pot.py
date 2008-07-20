@@ -31,14 +31,6 @@ def relativePath(path, base):
     return path3
 
 
-def writeString(outfile, infile, basefile, lineno, string):
-    string = string.replace('\\', '\\\\').replace('"', '')
-    if string == "":
-        return
-    print >> outfile, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-        (relativePath(infile, basefile), lineno, string)
-
-
 def ui_l10n(input_files, output, base):
     '''Generate pot file from lib/ui/*'''
     output = open(output, 'w')
@@ -72,81 +64,33 @@ def ui_l10n(input_files, output, base):
 
 
 def layouts_l10n(input_files, output, base):
-    '''Generate pot file from lib/layouts/*.{layout,inc,module}'''
-    out = open(output, 'w')
+    '''Generate pot file from lib/layouts/*.layout and *.inc'''
+    output = open(output, 'w')
     Style = re.compile(r'^Style\s+(.*)')
     # include ???LabelString???, but exclude comment lines
     LabelString = re.compile(r'^[^#]*LabelString\S*\s+(.*)')
     GuiName = re.compile(r'\s*GuiName\s+(.*)')
     ListName = re.compile(r'\s*ListName\s+(.*)')
-    CategoryName = re.compile(r'\s*Category\s+(.*)')
-    NameRE = re.compile(r'DeclareLyXModule.*{(.*)}')
-    InsetLayout = re.compile(r'^InsetLayout\s+(.*)')
-    DescBegin = re.compile(r'#+\s*DescriptionBegin\s*$')
-    DescEnd = re.compile(r'#+\s*DescriptionEnd\s*$')
-
     for src in input_files:
-        readingDescription = False
-        descStartLine = -1
-        descLines = []
-        lineno = 0
-        for line in open(src).readlines():
-            lineno += 1
-            if readingDescription:
-                res = DescEnd.search(line)
-                if res != None:
-                    readingDescription = False
-                    desc = " ".join(descLines)
-                    writeString(out, src, base, lineno + 1, desc)
-                    continue
-                descLines.append(line[1:].strip())
-                continue
-            res = DescBegin.search(line)
-            if res != None:
-                readingDescription = True
-                descStartLine = lineno
-                continue
-            res = NameRE.search(line)
-            if res != None:
-                string = res.group(1)
-                string = string.replace('\\', '\\\\').replace('"', '')
-                if string != "":
-                    print >> out, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                        (relativePath(src, base), lineno + 1, string)
-                continue
-            res = Style.search(line)
-            if res != None:
-                string = res.group(1)
+        input = open(src)
+        for lineno, line in enumerate(input.readlines()):
+            if Style.match(line):
+                (string,) = Style.match(line).groups()
                 string = string.replace('_', ' ')
-                writeString(out, src, base, lineno, string)
+            elif LabelString.match(line):
+                (string,) = LabelString.match(line).groups()
+            elif GuiName.match(line):
+                (string,) = GuiName.match(line).groups()
+            elif ListName.match(line):
+                (string,) = ListName.match(line).groups()
+            else:
                 continue
-            res = LabelString.search(line)
-            if res != None:
-                string = res.group(1)
-                writeString(out, src, base, lineno, string)
-                continue
-            res = GuiName.search(line)
-            if res != None:
-                string = res.group(1)
-                writeString(out, src, base, lineno, string)
-                continue
-            res = CategoryName.search(line)
-            if res != None:
-                string = res.group(1)
-                writeString(out, src, base, lineno, string)
-                continue
-            res = ListName.search(line)
-            if res != None:
-                string = res.group(1)
-                writeString(out, src, base, lineno, string)
-                continue
-            res = InsetLayout.search(line)
-            if res != None:
-                string = res.group(1)
-                string = string.replace('_', ' ')
-                writeString(out, src, base, lineno, string)
-                continue
-    out.close()
+            string = string.replace('\\', '\\\\').replace('"', '')
+            if string != "":
+                print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
+                    (relativePath(src, base), lineno+1, string)
+        input.close()
+    output.close()
 
 
 def qt4_l10n(input_files, output, base):
@@ -168,8 +112,7 @@ def qt4_l10n(input_files, output, base):
             # get lines that match <string>...</string>
             if pat.match(line):
                 (string,) = pat.match(line).groups()
-                string = string.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
-                string = string.replace('\\', '\\\\').replace('"', r'\"')
+                string = string.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('"', r'\"')
                 print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
                     (relativePath(src, base), lineno+1, string) 
         input.close()
@@ -197,8 +140,7 @@ def languages_l10n(input_files, output, base):
         else:
             print "Error: Unable to handle line:"
             print line
-            # No need to abort if the parsing fails (e.g. "ignore" language has no encoding)
-            # sys.exit(1)
+            sys.exit(1)
     input.close()
     output.close()
 
@@ -252,59 +194,6 @@ def external_l10n(input_files, output, base):
     output.close()
 
 
-def formats_l10n(input_files, output, base):
-    '''Generate pot file from configure.py'''
-    output = open(output, 'w')
-    GuiName = re.compile(r'.*\Format\s+\S+\s+\S+\s+"([^"]*)"\s+(\S*)\s+.*')
-    GuiName2 = re.compile(r'.*\Format\s+\S+\s+\S+\s+([^"]\S+)\s+(\S*)\s+.*')
-    input = open(input_files[0])
-    for lineno, line in enumerate(input.readlines()):
-        label = ""
-        labelsc = ""
-        if GuiName.match(line):
-            label = GuiName.match(line).group(1)
-            shortcut = GuiName.match(line).group(2).replace('"', '')
-        elif GuiName2.match(line):
-            label = GuiName2.match(line).group(1)
-            shortcut = GuiName2.match(line).group(2).replace('"', '')
-        else:
-            continue
-        label = label.replace('\\', '\\\\').replace('"', '')
-        if shortcut != "":
-            labelsc = label + "|" + shortcut
-        if label != "":
-            print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                (relativePath(input_files[0], base), lineno+1, label)
-        if labelsc != "":
-            print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                (relativePath(input_files[0], base), lineno+1, labelsc)
-    input.close()
-    output.close()
-
-
-def encodings_l10n(input_files, output, base):
-    '''Generate pot file from lib/encodings'''
-    output = open(output, 'w')
-    # assuming only one encodings file
-    #                 Encoding utf8      utf8    "Unicode (utf8)" UTF-8    variable inputenc
-    reg = re.compile('Encoding [\w-]+\s+[\w-]+\s+"([\w \-\(\)]+)"\s+[\w-]+\s+(fixed|variable)\s+\w+.*')
-    input = open(input_files[0])
-    for lineno, line in enumerate(input.readlines()):
-        if not line.startswith('Encoding'):
-            continue
-        if reg.match(line):
-            print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                (relativePath(input_files[0], base), lineno+1, reg.match(line).groups()[0])
-        else:
-            print "Error: Unable to handle line:"
-            print line
-            # No need to abort if the parsing fails
-            # sys.exit(1)
-    input.close()
-    output.close()
-
-
-
 Usage = '''
 lyx_pot.py [-b|--base top_src_dir] [-o|--output output_file] [-h|--help] -t|--type input_type input_files
 
@@ -318,9 +207,7 @@ where
         layouts: lib/layouts/*
         qt4: qt4 ui files
         languages: file lib/languages
-        encodings: file lib/encodings
         external: external templates file
-        formats: formats predefined in lib/configure.py
 '''
 
 if __name__ == '__main__':
@@ -340,7 +227,7 @@ if __name__ == '__main__':
             base = value
         elif opt in ['-t', '--type']:
             input_type = value
-    if input_type not in ['ui', 'layouts', 'modules', 'qt4', 'languages', 'encodings', 'external', 'formats'] or output is None:
+    if input_type not in ['ui', 'layouts', 'qt4', 'languages', 'external'] or output is None:
         print 'Wrong input type or output filename.'
         sys.exit(1)
     if input_type == 'ui':
@@ -351,10 +238,6 @@ if __name__ == '__main__':
         qt4_l10n(args, output, base)
     elif input_type == 'external':
         external_l10n(args, output, base)
-    elif input_type == 'formats':
-        formats_l10n(args, output, base)
-    elif input_type == 'encodings':
-        encodings_l10n(args, output, base)
     else:
         languages_l10n(args, output, base)
 

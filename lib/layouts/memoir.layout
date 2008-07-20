@@ -6,15 +6,14 @@
 # feel free to contribute missing features!
 
 
-Format 7
+Format 4
 Columns            1
 Sides              2
 SecNumDepth        2
 TocDepth           2
 DefaultStyle       Standard
 PageStyle          Headings
-Provides makeidx   1
-Provides framed    1
+Provides makeidx    1
 # Memoir has support for line spacing, but uses different names from
 # what setspace.sty does.  
 Provides SetSpace  1
@@ -39,7 +38,6 @@ Style Standard
 End
 
 
-Input stdinsets.inc
 Input stdlists.inc
 Input stdcounters.inc
 Input stdfloats.inc
@@ -91,6 +89,7 @@ Style Chapterprecis
 	BottomSep            0
 	ParSep               0.4
 	Align                Block
+	AlignPossible        Block
 	Font
 	  Shape              Italic
 	  Size               Normal
@@ -106,6 +105,7 @@ Style Epigraph
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 End
 
 
@@ -119,6 +119,7 @@ Style Poemtitle
 	TopSep                0.4
 	ParSep                0.4
 	Align                 center
+	AlignPossible         center
 	OptionalArgs          1
 	Font
 	   Series             Bold
@@ -157,4 +158,5 @@ Style Legend
 	NextNoIndent        1
 	ParSkip              0.4
 	Align                   Center
+	AlignPossible      Center
 End

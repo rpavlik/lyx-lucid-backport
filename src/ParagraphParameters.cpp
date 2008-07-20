@@ -17,7 +17,7 @@
 #include "ParagraphParameters.h"
 
 #include "Buffer.h"
-#include "support/gettext.h"
+#include "gettext.h"
 #include "Layout.h"
 #include "Lexer.h"
 #include "Text.h"
@@ -27,11 +27,15 @@
 
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
+using lyx::support::rtrim;
+
+using std::istringstream;
+using std::ostream;
+using std::ostringstream;
+using std::string;
+
 
 namespace lyx {
-
 
 //NOTE The order of these MUST be the same as in Layout.h.
 static char const * const string_align[] = {
@@ -169,10 +173,10 @@ void ParagraphParameters::leftIndent(Length const & li)
 }
 
 
-void ParagraphParameters::read(string str, bool merge)
+void ParagraphParameters::read(std::string str, bool merge)
 {
-	istringstream is(str);
-	Lexer lex;
+	std::istringstream is(str);
+	Lexer lex(0, 0);
 	lex.setStream(is);
 	read(lex, merge);
 }
@@ -229,7 +233,7 @@ void ParagraphParameters::read(Lexer & lex, bool merge)
 			}
 		} else if (token == "\\align") {
 			lex.next();
-			int tmpret = findToken(string_align, lex.getString());
+			int tmpret = support::findToken(string_align, lex.getString());
 			if (tmpret == -1)
 				++tmpret;
 			align(LyXAlignment(1 << tmpret));
@@ -312,13 +316,13 @@ void params2string(Paragraph const & par, string & data)
 	ostringstream os;
 	params.write(os);
 
-	Layout const & layout = par.layout();
+	Layout_ptr const & layout = par.layout();
 
 	// Is alignment possible
-	os << "\\alignpossible " << layout.alignpossible << '\n';
+	os << "\\alignpossible " << layout->alignpossible << '\n';
 
 	/// set default alignment
-	os << "\\aligndefault " << layout.align << '\n';
+	os << "\\aligndefault " << layout->align << '\n';
 
 	/// paragraph is always in inset. This is redundant.
 	os << "\\ininset " << 1 << '\n';

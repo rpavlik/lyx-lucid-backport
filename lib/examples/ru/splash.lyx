@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass article
@@ -13,11 +13,9 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize default
 \spacing single
-\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -35,28 +33,34 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
 \end_header
 
 \begin_body
 
 \begin_layout Title
+
 Добро пожаловать в LyX!
 \end_layout
 
 \begin_layout Section*
+
 Главные N вещей, которые нужно знать при работе в LyX
 \end_layout
 
 \begin_layout Enumerate
+
 LyX поставляется с прекрасным набором документации --- пользуйтесь ей! Начните
- с выбора пункта меню 
+ с выбора пункта меню
+\family default
+ 
 \family sans
 Помощь\SpecialChar \menuseparator
 Введение
 \family default
 , где вы сможете найти очень краткое введение в систему документации.
- Затем изучите принципы работы в LyX, выбрав в меню пункт 
+ Затем изучите принципы работы в LyX, выбрав в меню пункт
+\family default
+ 
 \family sans
 Помощь\SpecialChar \menuseparator
 Самоучитель
@@ -65,6 +69,7 @@ LyX поставляется с прекрасным набором докуме
 \end_layout
 
 \begin_layout Enumerate
+
 Мы называем LyX 
 \begin_inset Quotes fld
 \end_inset
@@ -89,7 +94,8 @@ LyX поставляется с прекрасным набором докуме
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
+
 Мы, кажется, уже упоминали, что документацию читать очень полезно?
 \end_layout
 
@@ -99,8 +105,11 @@ status collapsed
 \end_layout
 
 \begin_layout Enumerate
+
 Вывод программы LyX выглядит потрясающе! Чтобы сейчас же в этом убедиться,
- выберите пункт меню 
+ выберите пункт меню
+\family default
+ 
 \family sans
 Просмотреть\SpecialChar \menuseparator
 
@@ -109,9 +118,12 @@ DVI.
 \end_layout
 
 \begin_layout Enumerate
+
 LyX может имитировать всю (или почти всю) функциональность системы LaTeX.
  И, кроме того, LyX может импортировать файлы, созданные для LaTeX.
  Опытные пользователи LaTeX могут лишь бегло просмотреть остальную часть
+
+\emph default
  
 \emph on
 Самоучителя
@@ -130,16 +142,21 @@ LyX для пользователей LaTeX
 \end_layout
 
 \begin_layout Enumerate
+
 LyX содержит множество возможностей для чтения или создания документов на
  языке, отличном от английского.
  В дополнение к этому, назначения клавиш, набор кнопок панели управления
  и многие другие свойства программы допускают очень гибкую настройку (в
- основном, с помощью правки вашего файла 
+ основном, с помощью правки вашего файла
+\family default
+ 
 \family typewriter
 lyxrc
 \family default
 ).
- Для более подробной информации найдите в меню пункт 
+ Для более подробной информации найдите в меню пункт
+\family default
+ 
 \family sans
 Помощь\SpecialChar \menuseparator
 Руководство по настройке
@@ -148,21 +165,21 @@ lyxrc
 \end_layout
 
 \begin_layout Enumerate
-Страница LyX в Internet находится по адресу 
+
+Страница LyX в Internet находится по адресу
+\family default
+ 
 \family typewriter
 
-\begin_inset Flex URL
-status collapsed
+\lang english
 
-\begin_layout Plain Layout
-
-http://www.lyx.org/
-\end_layout
-
+\begin_inset LatexCommand url
+target "http://www.lyx.org/"
 \end_inset
 
 
 \family default
+\lang russian
 .
  Вы можете найти информацию о программе LyX, подписаться на списки рассылки,
  ознакомиться с графическими образами экрана LyX, и многое другое.

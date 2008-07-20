@@ -24,26 +24,21 @@ public:
 	///
 	explicit InsetTOC(InsetCommandParams const &);
 	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	InsetCode lyxCode() const { return TOC_CODE; }
+	Inset::Code lyxCode() const;
 	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "tableofcontents"; };
-	///
-	static bool isCompatibleCommand(std::string const & cmd)
-		{ return cmd == defaultCommand(); }
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 private:
-	Inset * clone() const { return new InsetTOC(*this); }
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 

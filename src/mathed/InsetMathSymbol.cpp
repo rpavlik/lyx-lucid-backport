@@ -11,20 +11,23 @@
 #include <config.h>
 
 #include "InsetMathSymbol.h"
-
 #include "Dimension.h"
-#include "LaTeXFeatures.h"
-#include "MathAtom.h"
-#include "MathParser.h"
+#include "MathStream.h"
 #include "MathStream.h"
 #include "MathSupport.h"
+#include "MathParser.h"
+#include "MathAtom.h"
+#include "LaTeXFeatures.h"
 
-#include "support/debug.h"
-#include "support/docstream.h"
+#include "debug.h"
+
 #include "support/textutils.h"
 
-
 namespace lyx {
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathSymbol::InsetMathSymbol(latexkeys const * l)
 	: sym_(l), h_(0), scriptable_(false)
@@ -41,9 +44,9 @@ InsetMathSymbol::InsetMathSymbol(docstring const & name)
 {}
 
 
-Inset * InsetMathSymbol::clone() const
+auto_ptr<Inset> InsetMathSymbol::doClone() const
 {
-	return new InsetMathSymbol(*this);
+	return auto_ptr<Inset>(new InsetMathSymbol(*this));
 }
 
 
@@ -53,12 +56,12 @@ docstring InsetMathSymbol::name() const
 }
 
 
-void InsetMathSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	//lyxerr << "metrics: symbol: '" << sym_->name
 	//	<< "' in font: '" << sym_->inset
 	//	<< "' drawn as: '" << sym_->draw
-	//	<< "'" << endl;
+	//	<< "'" << std::endl;
 
 	int const em = mathed_char_width(mi.base.font, 'M');
 	FontSetChanger dummy(mi.base, sym_->inset);
@@ -82,6 +85,12 @@ void InsetMathSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
 		if (sym_->inset == "cmex" || sym_->inset == "esint" ||
 		    sym_->extra == "funclim")
 			scriptable_ = true;
+
+	if (dim_ == dim)
+		return false;
+
+	dim_ = dim;
+	return true;
 }
 
 
@@ -90,7 +99,7 @@ void InsetMathSymbol::draw(PainterInfo & pi, int x, int y) const
 	//lyxerr << "metrics: symbol: '" << sym_->name
 	//	<< "' in font: '" << sym_->inset
 	//	<< "' drawn as: '" << sym_->draw
-	//	<< "'" << endl;
+	//	<< "'" << std::endl;
 	int const em = mathed_char_width(pi.base.font, 'M');
 	if (isRelOp())
 		x += static_cast<int>(0.25*em+0.5);
@@ -206,7 +215,6 @@ void InsetMathSymbol::octave(OctaveStream & os) const
 
 void InsetMathSymbol::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	os << '\\' << name();
 
 	// $,#, etc. In theory the restriction based on catcodes, but then
@@ -221,7 +229,7 @@ void InsetMathSymbol::write(WriteStream & os) const
 
 void InsetMathSymbol::infoize2(odocstream & os) const
 {
-	os << from_ascii("Symbol: ") << name();
+	os << "Symbol: " << name();
 }
 
 

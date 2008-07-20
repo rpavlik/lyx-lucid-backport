@@ -25,23 +25,27 @@
 #include "MathSupport.h"
 #include "InsetMathRef.h"
 
+#include "bufferview_funcs.h"
+#include "Text.h"
+
 #include "Buffer.h"
 #include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "CutAndPaste.h"
 #include "FuncStatus.h"
+#include "Color.h"
 #include "LaTeXFeatures.h"
 #include "Cursor.h"
+#include "debug.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
+#include "gettext.h"
 #include "LyXRC.h"
 #include "OutputParams.h"
-#include "ParIterator.h"
 #include "sgml.h"
-#include "Text.h"
 #include "TextPainter.h"
-#include "TocBackend.h"
+#include "Undo.h"
 
 #include "insets/RenderPreview.h"
 #include "insets/InsetLabel.h"
@@ -51,19 +55,30 @@
 
 #include "frontends/Painter.h"
 
-#include "support/lassert.h"
-#include "support/debug.h"
-#include "support/gettext.h"
+#include "support/lyxlib.h"
 #include "support/lstrings.h"
+
+#include <boost/bind.hpp>
 
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
 
 using cap::grabAndEraseSelection;
+using support::bformat;
+using support::subst;
+
+using std::endl;
+using std::max;
+using std::ostream;
+using std::auto_ptr;
+using std::istringstream;
+using std::ostringstream;
+using std::pair;
+using std::swap;
+using std::vector;
+
 
 namespace {
 
@@ -142,46 +157,43 @@ docstring hullName(HullType type)
 	}
 }
 
-static InsetLabel * dummy_pointer = 0;
 
 InsetMathHull::InsetMathHull()
-	: InsetMathGrid(1, 1), type_(hullNone), nonum_(1, false),
-	  label_(1, dummy_pointer), preview_(new RenderPreview(this))
+	: InsetMathGrid(1, 1), type_(hullNone), nonum_(1), label_(1),
+	  preview_(new RenderPreview(this))
 {
 	//lyxerr << "sizeof InsetMath: " << sizeof(InsetMath) << endl;
 	//lyxerr << "sizeof MetricsInfo: " << sizeof(MetricsInfo) << endl;
 	//lyxerr << "sizeof InsetMathChar: " << sizeof(InsetMathChar) << endl;
-	//lyxerr << "sizeof FontInfo: " << sizeof(FontInfo) << endl;
+	//lyxerr << "sizeof Font: " << sizeof(Font) << endl;
 	initMath();
 	setDefaults();
 }
 
 
 InsetMathHull::InsetMathHull(HullType type)
-	: InsetMathGrid(getCols(type), 1), type_(type), nonum_(1, false),
-	  label_(1, dummy_pointer), preview_(new RenderPreview(this))
+	: InsetMathGrid(getCols(type), 1), type_(type), nonum_(1), label_(1),
+	  preview_(new RenderPreview(this))
 {
 	initMath();
 	setDefaults();
 }
 
 
-InsetMathHull::InsetMathHull(InsetMathHull const & other) : InsetMathGrid()
-{
-	operator=(other);
-}
+InsetMathHull::InsetMathHull(InsetMathHull const & other)
+	: InsetMathGrid(other),
+	  type_(other.type_), nonum_(other.nonum_), label_(other.label_),
+	  preview_(new RenderPreview(*other.preview_, this))
+{}
 
 
 InsetMathHull::~InsetMathHull()
-{
-	for (size_t i = 0; i < label_.size(); ++i)
-		delete label_[i];
-}
+{}
 
 
-Inset * InsetMathHull::clone() const
+auto_ptr<Inset> InsetMathHull::doClone() const
 {
-	return new InsetMathHull(*this);
+	return auto_ptr<Inset>(new InsetMathHull(*this));
 }
 
 
@@ -189,71 +201,13 @@ InsetMathHull & InsetMathHull::operator=(InsetMathHull const & other)
 {
 	if (this == &other)
 		return *this;
-	InsetMathGrid::operator=(other);
+	*static_cast<InsetMathGrid*>(this) = InsetMathGrid(other);
 	type_  = other.type_;
 	nonum_ = other.nonum_;
-	for (size_t i = 0; i < label_.size(); ++i)
-		delete label_[i];
 	label_ = other.label_;
-	for (size_t i = 0; i != label_.size(); ++i) {
-		if (label_[i])
-			label_[i] = new InsetLabel(*label_[i]);
-	}
 	preview_.reset(new RenderPreview(*other.preview_, this));
 
 	return *this;
-}
-
-
-void InsetMathHull::setBuffer(Buffer & buffer)
-{
-	buffer_ = &buffer;
-	for (idx_type i = 0, n = nargs(); i != n; ++i) {
-		MathData & data = cell(i);
-		for (size_t j = 0; j != data.size(); ++j)
-			data[j].nucleus()->setBuffer(buffer);
-	}
-
-	for (size_t i = 0; i != label_.size(); ++i) {
-		if (label_[i])
-			label_[i]->setBuffer(buffer);
-	}
-}
-
-
-void InsetMathHull::updateLabels(ParIterator const & it)
-{
-	if (!buffer_) {
-		//FIXME: buffer_ should be set at creation for this inset! Problem is
-		// This inset is created at too many places (see Parser::parse1() in
-		// MathParser.cpp).
-		return;
-	}
-	for (size_t i = 0; i != label_.size(); ++i) {
-		if (label_[i])
-			label_[i]->updateLabels(it);
-	}
-}
-
-
-void InsetMathHull::addToToc(DocIterator const & pit)
-{
-	if (!buffer_) {
-		//FIXME: buffer_ should be set at creation for this inset! Problem is
-		// This inset is created at too many places (see Parser::parse1() in
-		// MathParser.cpp).
-		return;
-	}
-
-	Toc & toc = buffer().tocBackend().toc("equation");
-
-	for (row_type row = 0; row != nrows(); ++row) {
-		if (nonum_[row])
-			continue;
-		if (label_[row])
-			label_[row]->addToToc(pit);
-		toc.push_back(TocItem(pit, 0, nicelabel(row)));
-	}
 }
 
 
@@ -326,14 +280,14 @@ bool InsetMathHull::previewState(BufferView * bv) const
 {
 	if (!editing(bv) && RenderPreview::status() == LyXRC::PREVIEW_ON) {
 		graphics::PreviewImage const * pimage =
-			preview_->getPreviewImage(bv->buffer());
+			preview_->getPreviewImage(*bv->buffer());
 		return pimage && pimage->image();
 	}
 	return false;
 }
 
 
-void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	if (previewState(mi.base.bv)) {
 		preview_->metrics(mi, dim);
@@ -341,9 +295,10 @@ void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 		dim.wid += 1;
 		if (display())
 			dim.des += displayMargin();
-		// Cache the inset dimension. 
-		setDimCache(mi, dim);
-		return;
+		if (dim_ == dim)
+			return false;
+		dim_ = dim;
+		return true;
 	}
 
 	FontSetChanger dummy1(mi.base, standardFont());
@@ -373,22 +328,23 @@ void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 	math_font_max_dim(mi.base.font, asc, des);
 	dim.asc = max(dim.asc, asc);
 	dim.des = max(dim.des, des);
-	// Cache the inset dimension.
-	// FIXME: This will overwrite InsetMathGrid dimension, is that OK?
-	setDimCache(mi, dim);
+
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathHull::draw(PainterInfo & pi, int x, int y) const
 {
 	use_preview_ = previewState(pi.base.bv);
-	Dimension const dim = dimension(*pi.base.bv);
 
 	// background of mathed under focus is not painted because
 	// selection at the top level of nested inset is difficult to handle.
 	if (!editing(pi.base.bv))
-		pi.pain.fillRectangle(x + 1, y - dim.asc + 1, dim.wid - 2,
-				dim.asc + dim.des - 1, Color_mathbg);
+		pi.pain.fillRectangle(x + 1, y - ascent() + 1, width() - 2,
+				ascent() + descent() - 1, Color::mathbg);
 
 	if (use_preview_) {
 		// one pixel gap in front
@@ -420,7 +376,7 @@ void InsetMathHull::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 		InsetMathGrid::metricsT(mi, dim);
 	} else {
 		odocstringstream os;
-		WriteStream wi(os, false, true, false);
+		WriteStream wi(os, false, true);
 		write(wi);
 		dim.wid = os.str().size();
 		dim.asc = 1;
@@ -435,36 +391,40 @@ void InsetMathHull::drawT(TextPainter & pain, int x, int y) const
 		InsetMathGrid::drawT(pain, x, y);
 	} else {
 		odocstringstream os;
-		WriteStream wi(os, false, true, false);
+		WriteStream wi(os, false, true);
 		write(wi);
 		pain.draw(x, y, os.str().c_str());
 	}
 }
 
 
-static docstring latexString(InsetMathHull const & inset)
+namespace {
+
+docstring const latex_string(InsetMathHull const & inset)
 {
 	odocstringstream ls;
-	WriteStream wi(ls, false, false, false);
+	WriteStream wi(ls, false, false);
 	inset.write(wi);
 	return ls.str();
 }
+
+} // namespace anon
 
 
 void InsetMathHull::addPreview(graphics::PreviewLoader & ploader) const
 {
 	if (RenderPreview::status() == LyXRC::PREVIEW_ON) {
-		docstring const snippet = latexString(*this);
+		docstring const snippet = latex_string(*this);
 		preview_->addPreview(snippet, ploader);
 	}
 }
 
 
-bool InsetMathHull::notifyCursorLeaves(Cursor const & /*old*/, Cursor & cur)
+bool InsetMathHull::notifyCursorLeaves(Cursor & cur)
 {
 	if (RenderPreview::status() == LyXRC::PREVIEW_ON) {
 		Buffer const & buffer = cur.buffer();
-		docstring const snippet = latexString(*this);
+		docstring const snippet = latex_string(*this);
 		preview_->addPreview(snippet, buffer);
 		preview_->startLoading(buffer);
 		cur.updateFlags(Update::Force);
@@ -475,39 +435,26 @@ bool InsetMathHull::notifyCursorLeaves(Cursor const & /*old*/, Cursor & cur)
 
 docstring InsetMathHull::label(row_type row) const
 {
-	LASSERT(row < nrows(), /**/);
-	if (InsetLabel * il = label_[row])
-		return il->screenLabel();
-	return docstring();
+	BOOST_ASSERT(row < nrows());
+	return label_[row];
 }
 
 
 void InsetMathHull::label(row_type row, docstring const & label)
 {
 	//lyxerr << "setting label '" << label << "' for row " << row << endl;
-	if (label_[row]) {
-		if (label.empty()) {
-			delete label_[row];
-			label_[row] = dummy_pointer;
-		} else
-			label_[row]->updateCommand(label);
-		return;
-	}
-	InsetCommandParams p(LABEL_CODE);
-	p["name"] = label;
-	label_[row] = new InsetLabel(p);
-	if (buffer_)
-		label_[row]->setBuffer(buffer());
+	if (label.empty()) {
+		label_[row].clear();
+	} else
+		label_[row] = label;
 }
 
 
 void InsetMathHull::numbered(row_type row, bool num)
 {
 	nonum_[row] = !num;
-	if (nonum_[row] && label_[row]) {
-		delete label_[row];
-		label_[row] = 0;
-	}
+	if (nonum_[row])
+		label_[row].clear();
 }
 
 
@@ -533,6 +480,14 @@ bool InsetMathHull::ams() const
 Inset::DisplayType InsetMathHull::display() const
 {
 	return (type_ != hullSimple && type_ != hullNone) ? AlignCenter : Inline;
+}
+
+
+void InsetMathHull::getLabelList(Buffer const &, vector<docstring> & labels) const
+{
+	for (row_type row = 0; row < nrows(); ++row)
+		if (!label_[row].empty() && nonum_[row] != 1)
+			labels.push_back(label_[row]);
 }
 
 
@@ -680,19 +635,17 @@ void InsetMathHull::addRow(row_type row)
 		return;
 
 	bool numbered = numberedType();
-	docstring lab;
+	docstring label;
 	if (type_ == hullMultline) {
-		if (row + 1 == nrows())  {
+		if (row + 1 == nrows()) {
 			nonum_[row] = true;
-			lab = label(row);
+			label = label_[row];
 		} else
 			numbered = false;
 	}
 
 	nonum_.insert(nonum_.begin() + row + 1, !numbered);
-	label_.insert(label_.begin() + row + 1, dummy_pointer);
-	if (!lab.empty())
-		label(row + 1, lab);
+	label_.insert(label_.begin() + row + 1, label);
 	InsetMathGrid::addRow(row);
 }
 
@@ -703,14 +656,7 @@ void InsetMathHull::swapRow(row_type row)
 		return;
 	if (row + 1 == nrows())
 		--row;
-	// gcc implements the standard std::vector<bool> which is *not* a container:
-	//   http://www.gotw.ca/publications/N1185.pdf
-	// As a results, it doesn't like this:
-	//	swap(nonum_[row], nonum_[row + 1]);
-	// so we do it manually:
-	bool const b = nonum_[row];
-	nonum_[row] = nonum_[row + 1];
-	nonum_[row + 1] = b;
+	swap(nonum_[row], nonum_[row + 1]);
 	swap(label_[row], label_[row + 1]);
 	InsetMathGrid::swapRow(row);
 }
@@ -721,9 +667,7 @@ void InsetMathHull::delRow(row_type row)
 	if (nrows() <= 1 || !rowChangeOK())
 		return;
 	if (row + 1 == nrows() && type_ == hullMultline) {
-		bool const b = nonum_[row - 1];
-		nonum_[row - 1] = nonum_[row];
-		nonum_[row] = b;
+		swap(nonum_[row - 1], nonum_[row]);
 		swap(label_[row - 1], label_[row]);
 		InsetMathGrid::delRow(row);
 		return;
@@ -734,7 +678,6 @@ void InsetMathHull::delRow(row_type row)
 	if (row == nrows() + 1)
 		row--;
 	nonum_.erase(nonum_.begin() + row);
-	delete label_[row];
 	label_.erase(label_.begin() + row);
 }
 
@@ -759,9 +702,9 @@ docstring InsetMathHull::nicelabel(row_type row) const
 {
 	if (nonum_[row])
 		return docstring();
-	if (!label_[row])
+	if (label_[row].empty())
 		return from_ascii("(#)");
-	return '(' + label_[row]->screenLabel() + from_ascii(", #)");
+	return '(' + label_[row] + from_ascii(", #)");
 }
 
 
@@ -778,7 +721,7 @@ void InsetMathHull::glueall()
 
 void InsetMathHull::splitTo2Cols()
 {
-	LASSERT(ncols() == 1, /**/);
+	BOOST_ASSERT(ncols() == 1);
 	InsetMathGrid::addCol(1);
 	for (row_type row = 0; row < nrows(); ++row) {
 		idx_type const i = 2 * row;
@@ -791,7 +734,7 @@ void InsetMathHull::splitTo2Cols()
 
 void InsetMathHull::splitTo3Cols()
 {
-	LASSERT(ncols() < 3, /**/);
+	BOOST_ASSERT(ncols() < 3);
 	if (ncols() < 2)
 		splitTo2Cols();
 	InsetMathGrid::addCol(2);
@@ -908,23 +851,23 @@ void InsetMathHull::mutate(HullType newtype)
 	else if (type_ == hullEqnArray) {
 		if (newtype < type_) {
 			// set correct (no)numbering
-			nonum_[0] = true;
-			for (row_type row = 0; row < nrows(); ++row) {
-				if (!nonum_[row]) {
-					nonum_[0] = false;
-					break;
-				}
-			}
+			bool allnonum = true;
+			for (row_type row = 0; row < nrows(); ++row)
+				if (!nonum_[row])
+					allnonum = false;
 
 			// set first non-empty label
+			docstring label;
 			for (row_type row = 0; row < nrows(); ++row) {
-				if (label_[row]) {
-					label_[0] = label_[row];
+				if (!label_[row].empty()) {
+					label = label_[row];
 					break;
 				}
 			}
 
 			glueall();
+			nonum_[0] = allnonum;
+			label_[0] = label;
 			mutate(newtype);
 		} else { // align & Co.
 			changeCols(2);
@@ -997,8 +940,8 @@ docstring InsetMathHull::eolString(row_type row, bool emptyline, bool fragile) c
 {
 	docstring res;
 	if (numberedType()) {
-		if (label_[row] && !nonum_[row])
-			res += "\\label{" + label_[row]->getParam("name") + '}';
+		if (!label_[row].empty() && !nonum_[row])
+			res += "\\label{" + label_[row] + '}';
 		if (nonum_[row] && (type_ != hullMultline))
 			res += "\\nonumber ";
 	}
@@ -1036,8 +979,8 @@ void InsetMathHull::infoize(odocstream & os) const
 
 void InsetMathHull::check() const
 {
-	LASSERT(nonum_.size() == nrows(), /**/);
-	LASSERT(label_.size() == nrows(), /**/);
+	BOOST_ASSERT(nonum_.size() == nrows());
+	BOOST_ASSERT(label_.size() == nrows());
 }
 
 
@@ -1049,9 +992,10 @@ void InsetMathHull::doExtern(Cursor & cur, FuncRequest & func)
 	iss >> dlang >> extra;
 	if (extra.empty())
 		extra = from_ascii("noextra");
-	string const lang = to_ascii(dlang);
+	std::string const lang = to_ascii(dlang);
 
-	// FIXME: temporarily disabled
+#ifdef WITH_WARNINGS
+#warning temporarily disabled
 	//if (cur.selection()) {
 	//	MathData ar;
 	//	selGet(cur.ar);
@@ -1059,6 +1003,7 @@ void InsetMathHull::doExtern(Cursor & cur, FuncRequest & func)
 	//	insert(pipeThroughExtern(lang, extra, ar));
 	//	return;
 	//}
+#endif
 
 	MathData eq;
 	eq.push_back(MathAtom(new InsetMathChar('=')));
@@ -1105,7 +1050,9 @@ void InsetMathHull::doExtern(Cursor & cur, FuncRequest & func)
 		cur.pos() = 0;
 		MathData ar = cur.cell();
 		lyxerr << "use cell: " << ar << endl;
-		// FIXME: temporarily disabled
+#ifdef WITH_WARNINGS
+#warning temporarily disabled
+#endif
 		addRow(cur.row());
 		++cur.idx();
 		++cur.idx();
@@ -1122,12 +1069,11 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 	//lyxerr << "action: " << cmd.action << endl;
 	switch (cmd.action) {
 
-	case LFUN_FINISHED_BACKWARD:
-	case LFUN_FINISHED_FORWARD:
-	case LFUN_FINISHED_RIGHT:
 	case LFUN_FINISHED_LEFT:
+	case LFUN_FINISHED_RIGHT:
 		//lyxerr << "action: " << cmd.action << endl;
 		InsetMathGrid::doDispatch(cur, cmd);
+		notifyCursorLeaves(cur);
 		cur.undispatched();
 		break;
 
@@ -1135,12 +1081,12 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// just swallow this
 		break;
 
-	case LFUN_NEWLINE_INSERT:
+	case LFUN_BREAK_LINE:
 		// some magic for the common case
 		if (type_ == hullSimple || type_ == hullEquation) {
-			cur.recordUndoInset();
+			recordUndoInset(cur);
 			bool const align =
-				cur.bv().buffer().params().use_amsmath == BufferParams::package_on;
+				cur.bv().buffer()->params().use_amsmath == BufferParams::package_on;
 			mutate(align ? hullAlign : hullEqnArray);
 			cur.idx() = nrows() * ncols() - 1;
 			cur.pos() = cur.lastpos();
@@ -1148,9 +1094,9 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		InsetMathGrid::doDispatch(cur, cmd);
 		break;
 
-	case LFUN_MATH_NUMBER_TOGGLE: {
+	case LFUN_MATH_NUMBER: {
 		//lyxerr << "toggling all numbers" << endl;
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		bool old = numberedType();
 		if (type_ == hullMultline)
 			numbered(nrows() - 1, !old);
@@ -1162,17 +1108,17 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
-	case LFUN_MATH_NUMBER_LINE_TOGGLE: {
-		cur.recordUndoInset();
-		row_type r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
-		bool old = numbered(r);
-		cur.message(old ? _("No number") : _("Number"));
-		numbered(r, !old);
+	case LFUN_MATH_NONUMBER: {
+			recordUndoInset(cur);
+			row_type r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
+			bool old = numbered(r);
+			cur.message(old ? _("No number") : _("Number"));
+			numbered(r, !old);
 		break;
 	}
 
 	case LFUN_LABEL_INSERT: {
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		row_type r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
 		docstring old_label = label(r);
 		docstring const default_label = from_ascii(
@@ -1180,12 +1126,12 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (old_label.empty())
 			old_label = default_label;
 
-		InsetCommandParams p(LABEL_CODE);
+		InsetCommandParams p("label");
 		p["name"] = cmd.argument().empty() ? old_label : cmd.argument();
-		string const data = InsetCommand::params2string("label", p);
+		std::string const data = InsetCommandMailer::params2string("label", p);
 
 		if (cmd.argument().empty())
-			cur.bv().showDialog("label", data);
+			cur.bv().showInsetDialog("label", data, 0);
 		else {
 			FuncRequest fr(LFUN_INSET_INSERT, data);
 			dispatch(cur, fr);
@@ -1198,10 +1144,10 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (col(cur.idx()) + 1 == ncols()
 		    && cur.pos() == cur.lastpos()) {
 			if (!label(row(cur.idx())).empty()) {
-				cur.recordUndoInset();
+				recordUndoInset(cur);
 				label(row(cur.idx()), docstring());
 			} else if (numbered(row(cur.idx()))) {
-				cur.recordUndoInset();
+				recordUndoInset(cur);
 				numbered(row(cur.idx()), false);
 			} else {
 				InsetMathGrid::doDispatch(cur, cmd);
@@ -1215,27 +1161,21 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_INSET_INSERT: {
 		//lyxerr << "arg: " << to_utf8(cmd.argument()) << endl;
-		// FIXME: this should be cleaned up to use InsetLabel methods directly.
-		string const name = cmd.getArg(0);
+		std::string const name = cmd.getArg(0);
 		if (name == "label") {
-			InsetCommandParams p(LABEL_CODE);
-			InsetCommand::string2params(name, to_utf8(cmd.argument()), p);
+			InsetCommandParams p("label");
+			InsetCommandMailer::string2params(name, to_utf8(cmd.argument()), p);
 			docstring str = p["name"];
-			cur.recordUndoInset();
+			recordUndoInset(cur);
 			row_type const r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
-			str = trim(str);
+			str = support::trim(str);
 			if (!str.empty())
 				numbered(r, true);
 			docstring old = label(r);
 			if (str != old) {
-				if (label_[r])
-					// The label will take care of the reference update.
-					label(r, str);
-				else {
-					label(r, str);
-					// Newly created inset so initialize it.
-					label_[r]->initView();
-				}
+				cur.bv().buffer()->changeRefsIfUnique(old, str,
+							Inset::REF_CODE);
+				label(r, str);
 			}
 			break;
 		}
@@ -1244,12 +1184,12 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_MATH_EXTERN:
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		doExtern(cur, cmd);
 		break;
 
 	case LFUN_MATH_MUTATE: {
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		row_type row = cur.row();
 		col_type col = cur.col();
 		mutate(hullType(cmd.argument()));
@@ -1260,7 +1200,7 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		if (cur.pos() > cur.lastpos())
 			cur.pos() = cur.lastpos();
-		
+
 		// FIXME: find some more clever handling of the selection,
 		// i.e. preserve it.
 		cur.clearSelection();
@@ -1269,7 +1209,7 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_MATH_DISPLAY: {
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		mutate(type_ == hullSimple ? hullEquation : hullSimple);
 		cur.idx() = 0;
 		cur.pos() = cur.lastpos();
@@ -1288,47 +1228,45 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & status) const
 {
 	switch (cmd.action) {
-	case LFUN_FINISHED_BACKWARD:
-	case LFUN_FINISHED_FORWARD:
-	case LFUN_FINISHED_RIGHT:
 	case LFUN_FINISHED_LEFT:
+	case LFUN_FINISHED_RIGHT:
 	case LFUN_UP:
 	case LFUN_DOWN:
-	case LFUN_NEWLINE_INSERT:
+	case LFUN_BREAK_LINE:
 	case LFUN_MATH_EXTERN:
 	case LFUN_MATH_MUTATE:
 	case LFUN_MATH_DISPLAY:
 		// we handle these
-		status.setEnabled(true);
+		status.enabled(true);
 		return true;
-	case LFUN_MATH_NUMBER_TOGGLE:
+	case LFUN_MATH_NUMBER:
 		// FIXME: what is the right test, this or the one of
 		// LABEL_INSERT?
-		status.setEnabled(display());
+		status.enabled(display());
 		status.setOnOff(numberedType());
 		return true;
-	case LFUN_MATH_NUMBER_LINE_TOGGLE: {
+	case LFUN_MATH_NONUMBER: {
 		// FIXME: what is the right test, this or the one of
 		// LABEL_INSERT?
 		bool const enable = (type_ == hullMultline) ?
 			(nrows() - 1 == cur.row()) : display();
 		row_type const r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
-		status.setEnabled(enable);
+		status.enabled(enable);
 		status.setOnOff(numbered(r));
 		return true;
 	}
 	case LFUN_LABEL_INSERT:
-		status.setEnabled(type_ != hullSimple);
+		status.enabled(type_ != hullSimple);
 		return true;
 	case LFUN_INSET_INSERT:
 		if (cmd.getArg(0) == "label") {
-			status.setEnabled(type_ != hullSimple);
+			status.enabled(type_ != hullSimple);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, status);
 	case LFUN_TABULAR_FEATURE: {
 		istringstream is(to_utf8(cmd.argument()));
-		string s;
+		std::string s;
 		is >> s;
 		if (!rowChangeOK()
 		    && (s == "append-row"
@@ -1337,7 +1275,7 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.message(bformat(
 				from_utf8(N_("Can't change number of rows in '%1$s'")),
 				hullName(type_)));
-			status.setEnabled(false);
+			status.enabled(false);
 			return true;
 		}
 		if (!colChangeOK()
@@ -1347,7 +1285,7 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.message(bformat(
 				from_utf8(N_("Can't change number of columns in '%1$s'")),
 				hullName(type_)));
-			status.setEnabled(false);
+			status.enabled(false);
 			return true;
 		}
 		if ((type_ == hullSimple
@@ -1357,20 +1295,20 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.message(bformat(
 				from_utf8(N_("Can't add horizontal grid lines in '%1$s'")),
 				hullName(type_)));
-			status.setEnabled(false);
+			status.enabled(false);
 			return true;
 		}
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			status.message(bformat(
 				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),
 				hullName(type_)));
-			status.setEnabled(false);
+			status.enabled(false);
 			return true;
 		}
 		if (s == "valign-top" || s == "valign-middle"
 		 || s == "valign-bottom" || s == "align-left"
 		 || s == "align-center" || s == "align-right") {
-			status.setEnabled(false);
+			status.enabled(false);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, status);
@@ -1394,7 +1332,7 @@ void InsetMathHull::mutateToText()
 #if 0
 	// translate to latex
 	ostringstream os;
-	latex(os, false, false);
+	latex(NULL, os, false, false);
 	string str = os.str();
 
 	// insert this text
@@ -1415,7 +1353,7 @@ void InsetMathHull::handleFont(Cursor & cur, docstring const & arg,
 {
 	// this whole function is a hack and won't work for incremental font
 	// changes...
-	cur.recordUndo();
+	recordUndo(cur);
 	if (cur.inset().asInsetMath()->name() == font)
 		cur.handleFont(to_utf8(font));
 	else {
@@ -1427,23 +1365,21 @@ void InsetMathHull::handleFont(Cursor & cur, docstring const & arg,
 
 void InsetMathHull::handleFont2(Cursor & cur, docstring const & arg)
 {
-	cur.recordUndo();
+	recordUndo(cur);
 	Font font;
 	bool b;
-	font.fromString(to_utf8(arg), b);
-	if (font.fontInfo().color() != Color_inherit) {
-		MathAtom at = MathAtom(new InsetMathColor(true, font.fontInfo().color()));
+	bv_funcs::string2font(to_utf8(arg), font, b);
+	if (font.color() != Color::inherit) {
+		MathAtom at = MathAtom(new InsetMathColor(true, font.color()));
 		cur.handleNest(at, 0);
 	}
 }
 
 
-void InsetMathHull::edit(Cursor & cur, bool front, EntryDirection entry_from)
+void InsetMathHull::edit(Cursor & cur, bool left)
 {
 	cur.push(*this);
-	bool enter_front = (entry_from == Inset::ENTRY_DIRECTION_LEFT || 
-		(entry_from == Inset::ENTRY_DIRECTION_IGNORE && front));
-	enter_front ? idxFirst(cur) : idxLast(cur);
+	left ? idxFirst(cur) : idxLast(cur);
 	// The inset formula dimension is not necessarily the same as the
 	// one of the instant preview image, so we have to indicate to the
 	// BufferView that a metrics update is needed.
@@ -1451,7 +1387,7 @@ void InsetMathHull::edit(Cursor & cur, bool front, EntryDirection entry_from)
 }
 
 
-docstring InsetMathHull::editMessage() const
+docstring const InsetMathHull::editMessage() const
 {
 	return _("Math editor mode");
 }
@@ -1469,7 +1405,7 @@ void InsetMathHull::revealCodes(Cursor & cur) const
 	// translate to latex
 	cur.markInsert(bv);
 	ostringstream os;
-	write(os);
+	write(NULL, os);
 	string str = os.str();
 	cur.markErase(bv);
 	string::size_type pos = 0;
@@ -1493,7 +1429,7 @@ void InsetMathHull::revealCodes(Cursor & cur) const
 }
 
 
-InsetCode InsetMathHull::lyxCode() const
+Inset::Code InsetMathHull::lyxCode() const
 {
 	return MATH_CODE;
 }
@@ -1506,7 +1442,9 @@ InsetCode InsetMathHull::lyxCode() const
 bool InsetMathHull::searchForward(BufferView * bv, string const & str,
 				     bool, bool)
 {
-	// FIXME: completely broken
+#ifdef WITH_WARNINGS
+#warning completely broken
+#endif
 	static InsetMathHull * lastformula = 0;
 	static CursorBase current = DocIterator(ibegin(nucleus()));
 	static MathData ar;
@@ -1543,17 +1481,17 @@ bool InsetMathHull::searchForward(BufferView * bv, string const & str,
 #endif
 
 
-void InsetMathHull::write(ostream & os) const
+void InsetMathHull::write(Buffer const &, std::ostream & os) const
 {
 	odocstringstream oss;
-	WriteStream wi(oss, false, false, false);
+	WriteStream wi(oss, false, false);
 	oss << "Formula ";
 	write(wi);
 	os << to_utf8(oss.str());
 }
 
 
-void InsetMathHull::read(Lexer & lex)
+void InsetMathHull::read(Buffer const &, Lexer & lex)
 {
 	MathAtom at;
 	mathed_parse_normal(at, lex);
@@ -1561,7 +1499,8 @@ void InsetMathHull::read(Lexer & lex)
 }
 
 
-int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
+int InsetMathHull::plaintext(Buffer const &, odocstream & os,
+			     OutputParams const &) const
 {
 	if (0 && display()) {
 		Dimension dim;
@@ -1575,7 +1514,7 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
 		return tpain.textheight();
 	} else {
 		odocstringstream oss;
-		WriteStream wi(oss, false, true, false);
+		WriteStream wi(oss, false, true);
 		wi << cell(0);
 
 		docstring const str = oss.str();
@@ -1585,7 +1524,8 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
 }
 
 
-int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) const
+int InsetMathHull::docbook(Buffer const & buf, odocstream & os,
+			   OutputParams const & runparams) const
 {
 	MathStream ms(os);
 	int res = 0;
@@ -1597,35 +1537,34 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 
 	docstring bname = name;
 	if (!label(0).empty())
-		bname += " id='" + sgml::cleanID(buffer(), runparams, label(0)) + "'";
-
-	++ms.tab(); ms.cr(); ms.os() << '<' << bname << '>';
+		bname += " id='" + sgml::cleanID(buf, runparams, label(0)) + "'";
+	ms << MTag(bname);
 
 	odocstringstream ls;
 	if (runparams.flavor == OutputParams::XML) {
-		ms << MTag("alt role='tex' ");
+		ms << MTag(from_ascii("alt role='tex' "));
 		// Workaround for db2latex: db2latex always includes equations with
 		// \ensuremath{} or \begin{display}\end{display}
 		// so we strip LyX' math environment
-		WriteStream wi(ls, false, false, false);
+		WriteStream wi(ls, false, false);
 		InsetMathGrid::write(wi);
 		ms << from_utf8(subst(subst(to_utf8(ls.str()), "&", "&amp;"), "<", "&lt;"));
-		ms << ETag("alt");
-		ms << MTag("math");
-		ms << ETag("alt");
-		ms << MTag("math");
+		ms << ETag(from_ascii("alt"));
+		ms << MTag(from_ascii("math"));
+		ms << ETag(from_ascii("alt"));
+		ms << MTag(from_ascii("math"));
 		InsetMathGrid::mathmlize(ms);
-		ms << ETag("math");
+		ms << ETag(from_ascii("math"));
 	} else {
-		ms << MTag("alt role='tex'");
-		res = latex(ls, runparams);
+		ms << MTag(from_ascii("alt role='tex'"));
+		res = latex(buf, ls, runparams);
 		ms << from_utf8(subst(subst(to_utf8(ls.str()), "&", "&amp;"), "<", "&lt;"));
-		ms << ETag("alt");
+		ms << ETag(from_ascii("alt"));
 	}
 
 	ms << from_ascii("<graphic fileref=\"eqn/");
 	if (!label(0).empty())
-		ms << sgml::cleanID(buffer(), runparams, label(0));
+		ms << sgml::cleanID(buf, runparams, label(0));
 	else
 		ms << sgml::uniqueID(from_ascii("anon"));
 
@@ -1634,21 +1573,14 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 	else
 		ms << from_ascii("\">");
 
-	ms.cr(); --ms.tab(); ms.os() << "</" << name << '>';
-
+	ms << ETag(name);
 	return ms.line() + res;
 }
 
 
-void InsetMathHull::textString(odocstream & os) const
+void InsetMathHull::textString(Buffer const & buf, odocstream & os) const
 {
-	plaintext(os, OutputParams(0));
-}
-
-
-docstring InsetMathHull::contextMenu(BufferView const &, int, int) const
-{
-	return from_ascii("context-math");
+	plaintext(buf, os, OutputParams(0));
 }
 
 

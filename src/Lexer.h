@@ -17,27 +17,24 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "support/strfwd.h"
+#include "support/docstring.h"
+
+#include <boost/utility.hpp>
+
+#include <iosfwd>
 
 
 namespace lyx {
 
 namespace support { class FileName; }
 
-class PushPopHelper;
-
-/** A helper structure to describe a keyword for the Lexer.
-	Usually used bundled in C style arrays and passed to the 
-	Lexer using a LexerKeywordTable object.
-*/
-struct LexerKeyword
-{
-	/// the string to be recognized
+///
+struct keyword_item {
+	///
 	char const * tag;
-	/// a corresponding numerical id
+	///
 	int code;
 };
-
 
 /** Generalized simple lexical analizer.
 	Use the method isOK() to check if there is still data available
@@ -46,29 +43,22 @@ struct LexerKeyword
 
 	Example:
 
-	int readParam(LyxLex & lex)
-	{
-		int param = 1;    // default value
+	int readParam(LyxLex &lex) {
+		int param = 1; // default value
 		if (lex.isOK()) { // the lexer has data to read
-			int p;          // temporary variable
+			int p;    // temporary variable
 			lex >> p;
-			if (lex)
-				param = p; // only use the input if reading was successful
+			if (lex) param = p; // only use the input if reading was successful
 		}
 		return param;
 	}
 
     @see LyXRC.cpp for an example of usage.
   */
-class Lexer
-{
+class Lexer : boost::noncopyable {
 public:
-	/// initialize Lexer with no special keywords.
-	Lexer(); 
-	/// initialize Lexer with a bunch of keywords
-	template<int N> Lexer(LexerKeyword (&table)[N])
-		: pimpl_(0) { init(table, N); }
-
+	///
+	Lexer(keyword_item *, int);
 	///
 	~Lexer();
 
@@ -85,7 +75,7 @@ public:
 	};
 
 	/// stream is open and end of stream is not reached
-	/// FIXME: test also if pushToken is not empty
+	/// FIXME: test also if pushTok is not empty
 	/// FIXME: the method should be renamed to something like
 	///        dataAvailable(), in order to reflect the real behavior
 	bool isOK() const;
@@ -103,7 +93,7 @@ public:
 	///
 	std::istream & getStream();
 	/// Danger! Don't use it unless you know what you are doing.
-	void setLineNumber(int l);
+	void setLineNo(int l);
 	/// Change the character that begins a comment. Default is '#'
 	void setCommentChar(char c);
 
@@ -123,8 +113,8 @@ public:
 	/// Push a token, that next token got from lyxlex.
 	void pushToken(std::string const &);
 
-	/// return the current line number
-	int lineNumber() const;
+	///
+	int getLineNo() const;
 
 	///
 	int getInteger() const;
@@ -151,8 +141,7 @@ public:
 	bool eatLine();
 
 	/// Pushes a token list on a stack and replaces it with a new one.
-	template<int N> void pushTable(LexerKeyword (&table)[N])
-		{ pushTable(table, N); }
+	void pushTable(keyword_item *, int);
 
 	/** Pops a token list into void and replaces it with the one now
 	    on top of the stack.
@@ -167,8 +156,6 @@ public:
 
 	/// Prints the current token table on the supplied ostream.
 	void printTable(std::ostream &);
-	/// Used to dispaly context information in case of errors.
-	void setContext(std::string const & functionName);
 
 	/// extract string
 	Lexer & operator>>(std::string &);
@@ -182,31 +169,12 @@ public:
 	Lexer & operator>>(unsigned int &);
 	/// extract bool
 	Lexer & operator>>(bool &);
-	/// extract first char of the string
-	Lexer & operator>>(char &);
-
-	/// read and check a required token
-	Lexer & operator>>(char const * required);
-	/// check for an optional token and swallow it if present.
-	bool checkFor(char const * required);
 
 	/// Quotes a string so that reading it again with Lexer::next(true)
 	/// gets the original string
-	static std::string quoteString(std::string const &);
+	static std::string const quoteString(std::string const &);
 
 private:
-	/// noncopyable
-	Lexer(Lexer const &);
-	void operator=(Lexer const &);
-
-	///
-	friend class PushPopHelper;
-
-	///
-	void init(LexerKeyword *, int);
-	void pushTable(LexerKeyword *, int);
-
-	///
 	class Pimpl;
 	///
 	Pimpl * pimpl_;
@@ -215,35 +183,20 @@ private:
 };
 
 
-/// extract something constructable from a string, i.e. a LaTeX length
-template <class T>
-Lexer & operator>>(Lexer & lex, T & t)
-{
-	if (lex.next())
-		t = T(lex.getString());
-	return lex;
-}
-
-
 /** Use to enable multiple exit points.
     This is needed to ensure that the pop is done upon exit from methods
     with more than one exit point or that can return as a response to
     exceptions.
     @author Lgb
 */
-class PushPopHelper
-{
+class PushPopHelper {
 public:
 	///
-	template<int N>
-	PushPopHelper(Lexer & l, LexerKeyword (&table)[N])
-		: lex(l)
-	{
-		lex.pushTable(table, N);
+	PushPopHelper(Lexer & lexrc, keyword_item * i, int s) : lex(lexrc) {
+		lex.pushTable(i, s);
 	}
 	///
-	~PushPopHelper()
-	{
+	~PushPopHelper() {
 		lex.popTable();
 	}
 	///

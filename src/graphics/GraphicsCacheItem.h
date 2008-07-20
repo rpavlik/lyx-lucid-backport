@@ -9,11 +9,11 @@
  *
  * Full author contact details are available in file CREDITS.
  *
- * The graphics cache is a container of graphics::CacheItems.
- * Each graphics::CacheItem, defined here represents a separate image file.
+ * The graphics cache is a container of lyx::graphics::CacheItems.
+ * Each lyx::graphics::CacheItem, defined here represents a separate image file.
  *
  * The routines here can be used to load the graphics file into memory at
- * which point (status() == graphics::Loaded).
+ * which point (status() == lyx::graphics::Loaded).
  * The user is then free to access image() in order to copy it and to then
  * transform the copy (rotate, scale, clip) and to generate the pixmap.
  *
@@ -21,8 +21,8 @@
  * file conversion to a loadable format;
  * file loading.
  *
- * Whether you get that, of course, depends on graphics::Converter and
- * on the graphics::Image-derived image class.
+ * Whether you get that, of course, depends on lyx::graphics::Converter and
+ * on the lyx::graphics::Image-derived image class.
  */
 
 #ifndef GRAPHICSCACHEITEM_H
@@ -30,6 +30,8 @@
 
 #include "GraphicsTypes.h"
 
+#include <boost/utility.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/signal.hpp>
 
 
@@ -42,19 +44,17 @@ namespace graphics {
 class Image;
 class Converter;
 
-/// A graphics::Cache item holder.
-class CacheItem {
+/// A lyx::graphics::Cache item holder.
+class CacheItem : boost::noncopyable {
 public:
 	///
 	CacheItem(support::FileName const & file);
-	/// Needed for the pimpl
+
+	/// Define an empty d-tor out-of-line to keep boost::scoped_ptr happy.
 	~CacheItem();
 
 	///
 	support::FileName const & filename() const;
-
-	/// Try to load a display format.
-	bool tryDisplayFormat() const;
 
 	/// It's in the cache. Now start the loading process.
 	void startLoading() const;
@@ -66,7 +66,7 @@ public:
 	void startMonitoring() const;
 	///
 	bool monitoring() const;
-	/** Returns the check checksum of filename() so that, for example, you can
+	/** Returns the check sum of filename() so that, for example, you can
 	 *  ascertain whether to output a new PostScript version of the file
 	 *  for a LaTeX run.
 	 */
@@ -91,14 +91,11 @@ public:
 	boost::signals::connection connect(slot_type const &) const;
 
 private:
-	/// noncopyable
-	CacheItem(CacheItem const &);
-	void operator=(CacheItem const &);
-
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
+
 	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
+	boost::scoped_ptr<Impl> const pimpl_;
 };
 
 } // namespace graphics

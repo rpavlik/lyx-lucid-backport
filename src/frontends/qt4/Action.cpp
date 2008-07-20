@@ -12,34 +12,58 @@
 
 #include "Action.h"
 
-#include "FuncRequest.h"
-#include "FuncStatus.h"
 #include "GuiView.h"
-#include "LyXFunc.h"
 #include "qt_helpers.h"
 
-#include "support/debug.h"
+#include "callback.h"
+#include "LyXFunc.h"
+#include "FuncStatus.h"
+#include "debug.h"
+
 #include "support/lstrings.h"
+
+#include <boost/bind.hpp>
+
+using std::string;
+using std::endl;
 
 namespace lyx {
 namespace frontend {
 
 
-Action::Action(GuiView * lyxView, QIcon const & icon,
-	  QString const & text, FuncRequest const & func,
-	  QString const & tooltip, QObject * parent)
-	: QAction(parent), func_(func), lyxView_(lyxView)
+Action::Action(GuiView & lyxView, docstring const & text,
+		FuncRequest const & func, docstring const & tooltip)
+	: QAction(&lyxView), func_(func), lyxView_(lyxView)
 {
+#if QT_VERSION >= 0x040200
 	// only Qt/Mac handles that
 	setMenuRole(NoRole);
-	setIcon(icon);
-	setText(text);
-	setToolTip(tooltip);
-	setStatusTip(tooltip);
+#endif
+	setText(toqstr(text));
+	setToolTip(toqstr(tooltip));
+	setStatusTip(toqstr(tooltip));
 	connect(this, SIGNAL(triggered()), this, SLOT(action()));
 	update();
 }
 
+Action::Action(GuiView & lyxView, string const & icon, docstring const & text,
+		FuncRequest const & func, docstring const & tooltip)
+		: QAction(&lyxView), func_(func), lyxView_(lyxView)
+{
+	setIcon(QPixmap(icon.c_str()));
+	setText(toqstr(text));
+	setToolTip(toqstr(tooltip));
+	setStatusTip(toqstr(tooltip));
+	connect(this, SIGNAL(triggered()), this, SLOT(action()));
+	update();
+}
+
+/*
+void Action::setAction(FuncRequest const & func)
+{
+	func_=func;
+}
+*/
 
 void Action::update()
 {
@@ -61,12 +85,9 @@ void Action::update()
 
 void Action::action()
 {
-	//LYXERR(Debug::ACTION, "calling LyXFunc::dispatch: func_: ");
+//	LYXERR(Debug::ACTION) << "calling LyXFunc::dispatch: func_: " << func_ << endl;
 
-	if (lyxView_)
-		theLyXFunc().setLyXView(lyxView_);
-
-	lyx::dispatch(func_);
+	lyxView_.dispatch(func_);
 	triggered(this);
 }
 

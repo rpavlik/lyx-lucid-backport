@@ -17,8 +17,6 @@
 
 #include "support/types.h"
 
-#include "Dimension.h"
-
 
 namespace lyx {
 
@@ -34,64 +32,57 @@ public:
 	///
 	Row(pos_type pos);
 	///
-	bool changed() const { return changed_; }
-	///
-	void setChanged(bool c) { changed_ = c; }
-	///
-	void setCrc(size_type crc) const;
-	/// Set the selection begin and end.
-	/**
-	  * This is const because we update the selection status only at draw()
-	  * time.
-	  */
-	void setSelection(pos_type sel_beg, pos_type sel_end) const;
-
-	///
 	void pos(pos_type p);
 	///
-	pos_type pos() const { return pos_; }
+	pos_type pos() const;
 	///
 	void endpos(pos_type p);
 	///
-	pos_type endpos() const { return end_; }
+	pos_type endpos() const;
 	///
-	void setDimension(Dimension const & dim);
+	int height() const { return ascent_ + descent_; }
 	///
-	Dimension const & dimension() const { return dim_; }
+	void width(int w);
 	///
-	int height() const { return dim_.height(); }
+	int width() const;
 	///
-	int width() const { return dim_.wid; }
+	void ascent(int b);
 	///
-	int ascent() const { return dim_.asc; }
+	int ascent() const;
 	///
-	int descent() const { return dim_.des; }
-
+	void descent(int b) { descent_ = b; }
+	///
+	int descent() const { return descent_; }
 	/// current debugging only
-	void dump(char const * = "") const;
+	void dump(const char * = "") const;
 
-	/// width of a separator (i.e. space)
-	double separator;
-	/// width of hfills in the label
-	double label_hfill;
-	/// the x position of the row
-	double x;
-	///
-	mutable pos_type sel_beg;
-	///
-	mutable pos_type sel_end;
 private:
-	/// has the Row appearance changed since last drawing?
-	mutable bool changed_;
-	/// CRC of row contents.
-	mutable size_type crc_;
 	/// first pos covered by this row
 	pos_type pos_;
 	/// one behind last pos covered by this row
 	pos_type end_;
-	/// Row dimension.
-	Dimension dim_;
+	///
+	int ascent_;
+	///
+	int descent_;
+	///
+	int width_;
 };
+
+
+class RowMetrics {
+public:
+	RowMetrics();
+	/// width of a separator (i.e. space)
+	double separator;
+	/// width of hfills in the body
+	double hfill;
+	/// width of hfills in the label
+	double label_hfill;
+	/// the x position of the row
+	double x;
+};
+
 
 
 } // namespace lyx

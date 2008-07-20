@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#include "support/debug.h"
+#include "debug.h"
 
 #define USE_ORIGINAL_MANAGER_FUNCS 1
 // new aspell pspell missing extern "C"
@@ -22,25 +22,26 @@ extern "C" {
 #include "PSpell.h"
 #include "WordLangTuple.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+
+using std::endl;
+using std::string;
 
 
 PSpell::PSpell(BufferParams const &, string const & lang)
 	: els(0), spell_error_object(0)
 {
 	addManager(lang);
-	LYXERR(Debug::GUI, "created pspell");
+	LYXERR(Debug::GUI) << "created pspell" << endl;
 }
 
 
 PSpell::~PSpell()
 {
-	LYXERR(Debug::GUI, "killed pspell");
+	LYXERR(Debug::GUI) << "killed pspell" << endl;
 
 	if (spell_error_object) {
 		delete_pspell_can_have_error(spell_error_object);
@@ -98,14 +99,14 @@ enum PSpell::Result PSpell::check(WordLangTuple const & word)
 	PspellManager * m = it->second.manager;
 
 	int word_ok = pspell_manager_check(m, to_utf8(word.word()).c_str());
-	LASSERT(word_ok != -1, /**/);
+	BOOST_ASSERT(word_ok != -1);
 
 	if (word_ok) {
 		res = OK;
 	} else {
 		PspellWordList const * sugs =
 			pspell_manager_suggest(m, to_utf8(word.word()).c_str());
-		LASSERT(sugs != 0, /**/);
+		BOOST_ASSERT(sugs != 0);
 		els = pspell_word_list_elements(sugs);
 		if (pspell_word_list_empty(sugs))
 			res = UNKNOWN_WORD;

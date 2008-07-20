@@ -27,36 +27,33 @@ public:
 	///
 	InsetFloatList(std::string const & type);
 	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	InsetCode lyxCode() const { return FLOAT_LIST_CODE; }
+	Inset::Code lyxCode() const;
 	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	void write(std::ostream &) const;
+	void write(Buffer const &, std::ostream &) const;
 	///
-	void read(Lexer &);
+	void read(Buffer const &, Lexer &);
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const { return 0; }
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const { return 0; }
 	///
-	int plaintext(odocstream &, OutputParams const & runparams) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const & runparams) const;
 	///
 	void validate(LaTeXFeatures & features) const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "listoftables"; };
-	///
-	static bool isCompatibleCommand(std::string const & s);
 private:
-	///
-	Inset * clone() const { return new InsetFloatList(*this); }
-	///
-	static ParamInfo param_info_;
+	virtual std::auto_ptr<Inset> doClone() const
+	{
+		return std::auto_ptr<Inset>(new InsetFloatList(to_ascii(getParam("type"))));
+	}
 };
 
 

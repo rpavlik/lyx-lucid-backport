@@ -14,7 +14,6 @@
 #include "Variables.h"
 #include "support/LRegex.h"
 
-using namespace std;
 
 void Variables::set(string const & var, string const & val)
 {
@@ -68,7 +67,10 @@ string const Variables::expand(string const & s) const
 
 #include <iostream>
 
+
 namespace lyx {
+using std::endl;
+using std::cout;
 
 int main() {
 	Variables vars;

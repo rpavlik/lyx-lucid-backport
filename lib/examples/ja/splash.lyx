@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass article
@@ -13,11 +13,9 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize default
 \spacing single
-\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -85,7 +83,7 @@ LyXは、われわれが「文書プロセッサ」と呼ぶところのもの�
 \begin_inset Foot
 status collapsed
 
-\begin_layout Plain Layout
+\begin_layout Standard
 取扱説明書を読んでくださいともう言いましたっけ。
 \end_layout
 
@@ -137,13 +135,8 @@ C
 LyXのホームページは、
 \family typewriter
 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.lyx.org/
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.lyx.org/"
 
 \end_inset
 

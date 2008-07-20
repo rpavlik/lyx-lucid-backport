@@ -11,31 +11,38 @@
 #include <config.h>
 
 #include "InsetMathEnv.h"
-
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathStream.h"
-
-#include <ostream>
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathEnv::InsetMathEnv(docstring const & name)
 	: InsetMathNest(1), name_(name)
 {}
 
 
-Inset * InsetMathEnv::clone() const
+auto_ptr<Inset> InsetMathEnv::doClone() const
 {
-	return new InsetMathEnv(*this);
+	return auto_ptr<Inset>(new InsetMathEnv(*this));
 }
 
 
-void InsetMathEnv::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathEnv::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -48,7 +55,6 @@ void InsetMathEnv::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathEnv::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	os << "\\begin{" << name_ << '}' << cell(0) << "\\end{" << name_ << '}';
 }
 

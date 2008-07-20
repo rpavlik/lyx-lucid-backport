@@ -19,7 +19,11 @@
 
 namespace lyx {
 
+
+class Font;
+
 /// Support for \\mbox
+
 class InsetMathBox : public InsetMathNest {
 public:
 	///
@@ -27,7 +31,7 @@ public:
 	///
 	mode_type currentMode() const { return TEXT_MODE; }
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -40,82 +44,13 @@ public:
 	void validate(LaTeXFeatures & features) const;
 
 private:
-	Inset * clone() const { return new InsetMathBox(*this); }
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	docstring name_;
 };
 
 
-/// Non-AMS-style frame
-class InsetMathFBox : public InsetMathNest {
-public:
-	///
-	InsetMathFBox();
-	///
-	mode_type currentMode() const { return TEXT_MODE; }
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
-	void write(WriteStream & os) const;
-	/// write normalized content
-	void normalize(NormalStream & ns) const;
-	///
-	void infoize(odocstream & os) const;
-private:
-	///
-	Inset * clone() const { return new InsetMathFBox(*this); }
-};
-
-
-/// Extra nesting: \\makebox or \\framebox.
-class InsetMathMakebox : public InsetMathNest {
-public:
-	///
-	InsetMathMakebox(bool framebox);
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
-	void write(WriteStream & os) const;
-	/// write normalized content
-	void normalize(NormalStream & ns) const;
-	///
-	mode_type currentMode() const { return TEXT_MODE; }
-	///
-	void infoize(odocstream & os) const;
-private:
-	Inset * clone() const { return new InsetMathMakebox(*this); }
-	///
-	bool framebox_;
-};
-
-
-
-/// AMS-style frame
-class InsetMathBoxed : public InsetMathNest {
-public:
-	///
-	InsetMathBoxed();
-	///
-	void validate(LaTeXFeatures & features) const;
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
-	void write(WriteStream & os) const;
-	/// write normalized content
-	void normalize(NormalStream & ns) const;
-	///
-	void infoize(odocstream & os) const;
-private:
-	Inset * clone() const { return new InsetMathBoxed(*this); }
-};
-
 
 } // namespace lyx
 
-#endif // MATH_MBOX
+#endif

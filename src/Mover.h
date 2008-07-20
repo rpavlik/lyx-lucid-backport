@@ -36,7 +36,8 @@ public:
 	 *  \returns true if successful.
 	 */
 	bool
-	copy(support::FileName const & from, support::FileName const & to) const;
+	copy(support::FileName const & from, support::FileName const & to,
+	     unsigned long int mode = (unsigned long int)-1) const;
 
 	/** Copy file @c from to @c to.
 	 *  \see SpecialisedMover::SpecialisedMover() for an explanation of
@@ -48,9 +49,10 @@ public:
 	 */
 	bool
 	copy(support::FileName const & from, support::FileName const & to,
-	     std::string const & latex) const
+	     std::string const & latex,
+	     unsigned long int mode = (unsigned long int)-1) const
 	{
-		return do_copy(from, to, latex);
+		return do_copy(from, to, latex, mode);
 	}
 
 	/** Rename file @c from as @c to.
@@ -80,7 +82,7 @@ public:
 protected:
 	virtual bool
 	do_copy(support::FileName const & from, support::FileName const & to,
-		std::string const &) const;
+		std::string const &, unsigned long int mode) const;
 
 	virtual bool
 	do_rename(support::FileName const & from, support::FileName const & to,
@@ -129,7 +131,7 @@ public:
 private:
 	virtual bool
 	do_copy(support::FileName const & from, support::FileName const & to,
-		std::string const & latex) const;
+		std::string const & latex, unsigned long int mode) const;
 
 	virtual bool
 	do_rename(support::FileName const & from, support::FileName const & to,

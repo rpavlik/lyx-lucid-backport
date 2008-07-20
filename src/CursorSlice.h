@@ -18,8 +18,10 @@
 #define CURSORSLICE_H
 
 #include "support/types.h"
-#include "support/strfwd.h"
 #include "insets/Inset.h"
+
+#include <cstddef>
+#include <iosfwd>
 
 
 namespace lyx {
@@ -56,15 +58,6 @@ public:
 	///
 	explicit CursorSlice(Inset &);
 
-	/// comparison operators.
-	//@{
-	friend bool operator==(CursorSlice const &, CursorSlice const &);
-	friend bool operator!=(CursorSlice const &, CursorSlice const &);
-	friend bool operator<(CursorSlice const &, CursorSlice const &);
-	friend bool operator>(CursorSlice const &, CursorSlice const &);
-	friend bool operator<=(CursorSlice const &, CursorSlice const &);
-	//@}
-
 	/// the current inset
 	Inset & inset() const { return *inset_; }
 	/// return the cell this cursor is in
@@ -77,7 +70,7 @@ public:
 	pit_type pit() const { return pit_; }
 	/// set the offset of the paragraph this cursor is in
 	pit_type & pit() { return pit_; }
-	/// return the last paragraph offset within the ParagraphList
+	/// return the last paragraph offset this cursor is in
 	pit_type lastpit() const;
 	/// increments the paragraph this cursor is in
 	void incrementPar();
@@ -110,9 +103,13 @@ public:
 	/// texted specific stuff
 	///
 	/// returns text corresponding to this position
-	Text * text() const { return inset_->getText(idx_); }
+	Text * text() { return inset_->getText(idx_); }
+	/// returns text corresponding to this position
+	Text const * text() const { return inset_->getText(idx_); }
 	/// paragraph in this cell
-	Paragraph & paragraph() const;
+	Paragraph & paragraph();
+	/// paragraph in this cell
+	Paragraph const & paragraph() const;
 
 	///
 	/// mathed specific stuff
@@ -124,19 +121,6 @@ public:
 
 	/// write some debug information to \p os
 	friend std::ostream & operator<<(std::ostream &, CursorSlice const &);
-	/// move to next position
-	void forwardPos();
-	/// move to previous position
-	void backwardPos();
-	/// move to next cell
-	void forwardIdx();
-	/// move to previous cell
-	void backwardIdx();
-	/// are we at the end of this slice
-	bool at_end() const;
-	/// are we at the start of this slice
-	bool at_begin() const;
-	
 private:
 
 	/// pointer to 'owning' inset. This is some kind of cache.
@@ -159,9 +143,22 @@ private:
 	idx_type idx_;
 	/// paragraph in this cell (used by texted)
 	pit_type pit_;
+	/// true if 'pit' was properly initialized
+	bool pit_valid_;
 	/// position in this cell
 	pos_type pos_;
 };
+
+/// test for equality
+bool operator==(CursorSlice const &, CursorSlice const &);
+/// test for inequality
+bool operator!=(CursorSlice const &, CursorSlice const &);
+/// test for order
+bool operator<(CursorSlice const &, CursorSlice const &);
+/// test for order
+bool operator>(CursorSlice const &, CursorSlice const &);
+/// test for order
+bool operator<=(CursorSlice const &, CursorSlice const &);
 
 
 } // namespace lyx

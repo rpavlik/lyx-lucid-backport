@@ -15,28 +15,45 @@
 #include <config.h>
 
 #include "tex2lyx.h"
-
 #include "Context.h"
 #include "FloatList.h"
-#include "Layout.h"
-#include "Length.h"
-
-#include "support/lassert.h"
-#include "support/convert.h"
-#include "support/FileName.h"
-#include "support/filetools.h"
+#include "lengthcommon.h"
 #include "support/lstrings.h"
+#include "support/convert.h"
+#include "support/filetools.h"
 
-#include <algorithm>
+#include <boost/filesystem/operations.hpp>
+#include <boost/tuple/tuple.hpp>
+
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <vector>
 
-using namespace std;
-using namespace lyx::support;
+using std::cerr;
+using std::endl;
+
+using std::map;
+using std::ostream;
+using std::ostringstream;
+using std::istringstream;
+using std::string;
+using std::vector;
 
 namespace lyx {
+
+using support::addExtension;
+using support::changeExtension;
+using support::doesFileExist;
+using support::FileName;
+using support::makeAbsPath;
+using support::makeRelPath;
+using support::rtrim;
+using support::suffixIs;
+using support::contains;
+using support::subst;
+
+namespace fs = boost::filesystem;
 
 
 void parse_text_in_inset(Parser & p, ostream & os, unsigned flags, bool outer,
@@ -133,7 +150,7 @@ char const * const known_coded_quotes[] = { "prd", "ard", "ard", "ard",
 char const * const known_sizes[] = { "tiny", "scriptsize", "footnotesize",
 "small", "normalsize", "large", "Large", "LARGE", "huge", "Huge", 0};
 
-/// the same as known_sizes with .lyx names plus a default entry
+/// the same as known_sizes with .lyx names
 char const * const known_coded_sizes[] = { "default", "tiny", "scriptsize", "footnotesize",
 "small", "normal", "large", "larger", "largest", "huge", "giant", 0};
 
@@ -251,7 +268,7 @@ bool splitLatexLength(string const & len, string & value, string & unit)
 	if (contains(len, '\\'))
 		unit = trim(string(len, i));
 	else
-		unit = ascii_lowercase(trim(string(len, i)));
+		unit = support::ascii_lowercase(trim(string(len, i)));
 	return true;
 }
 
@@ -348,7 +365,7 @@ string find_file(string const & name, string const & path,
 	// expects utf8)
 	for (char const * const * what = extensions; *what; ++what) {
 		string const trial = addExtension(name, *what);
-		if (makeAbsPath(trial, path).exists())
+		if (doesFileExist(makeAbsPath(trial, path)))
 			return trial;
 	}
 	return string();
@@ -423,37 +440,36 @@ void handle_comment(ostream & os, string const & s, Context & context)
 }
 
 
-Layout const * findLayout(TextClass const & textclass, string const & name)
+class isLayout : public std::unary_function<Layout_ptr, bool> {
+public:
+	isLayout(string const name) : name_(name) {}
+	bool operator()(Layout_ptr const & ptr) const {
+		return ptr->latexname() == name_;
+	}
+private:
+	string const name_;
+};
+
+
+Layout_ptr findLayout(TextClass const & textclass,
+			 string const & name)
 {
-	DocumentClass::const_iterator lit = textclass.begin();
-	DocumentClass::const_iterator len = textclass.end();
-	for (; lit != len; ++lit)
-		if (lit->latexname() == name)
-			return &*lit;
-	return 0;
+	TextClass::const_iterator beg = textclass.begin();
+	TextClass::const_iterator end = textclass.end();
+
+	TextClass::const_iterator
+		it = std::find_if(beg, end, isLayout(name));
+
+	return (it == end) ? Layout_ptr() : *it;
 }
 
 
 void eat_whitespace(Parser &, ostream &, Context &, bool);
 
 
-Layout * captionlayout()
-{
-	static Layout * lay = 0;
-	if (!lay) {
-		lay = new Layout;
-		lay->name_ = from_ascii("Caption");
-		lay->latexname_ = "caption";
-		lay->latextype = LATEX_COMMAND;
-		lay->optionalargs = 1;
-	}
-	return lay;
-}
-
-
 void output_command_layout(ostream & os, Parser & p, bool outer,
 			   Context & parent_context,
-			   Layout const * newlayout)
+			   Layout_ptr newlayout)
 {
 	parent_context.check_end_layout(os);
 	Context context(true, parent_context.textclass, newlayout,
@@ -709,7 +725,7 @@ void parse_unknown_environment(Parser & p, string const & name, ostream & os,
 void parse_environment(Parser & p, ostream & os, bool outer,
 		       Context & parent_context)
 {
-	Layout const * newlayout;
+	Layout_ptr newlayout;
 	string const name = p.getArg('{', '}');
 	const bool is_starred = suffixIs(name, '*');
 	string const unstarred_name = rtrim(name, "*");
@@ -765,7 +781,6 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		parse_text_in_inset(p, os, FLAG_END, outer, parent_context);
 		end_inset(os);
 		p.skip_spaces();
-		skip_braces(p); // eat {} that might by set by LyX behind comments
 	}
 
 	else if (name == "lyxgreyedout") {
@@ -802,39 +817,23 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		parse_unknown_environment(p, name, os, FLAG_END, outer,
 					  parent_context);
 
-	// Alignment and spacing settings
-	// FIXME (bug xxxx): These settings can span multiple paragraphs and
-	//					 therefore are totally broken!
-	// Note that \centering, raggedright, and raggedleft cannot be handled, as
-	// they are commands not environments. They are furthermore switches that
-	// can be ended by another switches, but also by commands like \footnote or
-	// \parbox. So the only safe way is to leave them untouched.
-	else if (name == "center" || name == "centering" ||
-		 name == "flushleft" || name == "flushright" ||
-		 name == "singlespace" || name == "onehalfspace" ||
-		 name == "doublespace" || name == "spacing") {
+	// Alignment settings
+	else if (name == "center" || name == "flushleft" || name == "flushright" ||
+		 name == "centering" || name == "raggedright" || name == "raggedleft") {
 		eat_whitespace(p, os, parent_context, false);
 		// We must begin a new paragraph if not already done
 		if (! parent_context.atParagraphStart()) {
 			parent_context.check_end_layout(os);
 			parent_context.new_paragraph(os);
 		}
-		if (name == "flushleft")
+		if (name == "flushleft" || name == "raggedright")
 			parent_context.add_extra_stuff("\\align left\n");
-		else if (name == "flushright")
+		else if (name == "flushright" || name == "raggedleft")
 			parent_context.add_extra_stuff("\\align right\n");
-		else if (name == "center" || name == "centering")
+		else
 			parent_context.add_extra_stuff("\\align center\n");
-		else if (name == "singlespace")
-			parent_context.add_extra_stuff("\\paragraph_spacing single\n");
-		else if (name == "onehalfspace")
-			parent_context.add_extra_stuff("\\paragraph_spacing onehalf\n");
-		else if (name == "doublespace")
-			parent_context.add_extra_stuff("\\paragraph_spacing double\n");
-		else if (name == "spacing")
-			parent_context.add_extra_stuff("\\paragraph_spacing other " + p.verbatim_item() + "\n");
 		parse_text(p, os, FLAG_END, outer, parent_context);
-		// Just in case the environment is empty
+		// Just in case the environment is empty ..
 		parent_context.extra_stuff.erase();
 		// We must begin a new paragraph to reset the alignment
 		parent_context.new_paragraph(os);
@@ -842,7 +841,7 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 	}
 
 	// The single '=' is meant here.
-	else if ((newlayout = findLayout(parent_context.textclass, name)) &&
+	else if ((newlayout = findLayout(parent_context.textclass, name)).get() &&
 		  newlayout->isEnvironment()) {
 		eat_whitespace(p, os, parent_context, false);
 		Context context(true, parent_context.textclass, newlayout,
@@ -935,7 +934,7 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 /// parses a comment and outputs it to \p os.
 void parse_comment(Parser & p, ostream & os, Token const & t, Context & context)
 {
-	LASSERT(t.cat() == catComment, return);
+	BOOST_ASSERT(t.cat() == catComment);
 	if (!t.cs().empty()) {
 		context.check_layout(os);
 		handle_comment(os, '%' + t.cs(), context);
@@ -1003,26 +1002,25 @@ void parse_text_attributes(Parser & p, ostream & os, unsigned flags, bool outer,
 
 
 /// get the arguments of a natbib or jurabib citation command
-void get_cite_arguments(Parser & p, bool natbibOrder,
-	string & before, string & after)
+std::pair<string, string> getCiteArguments(Parser & p, bool natbibOrder)
 {
 	// We need to distinguish "" and "[]", so we can't use p.getOpt().
 
 	// text before the citation
-	before.clear();
+	string before;
 	// text after the citation
-	after = p.getFullOpt();
+	string after = p.getFullOpt();
 
 	if (!after.empty()) {
 		before = p.getFullOpt();
 		if (natbibOrder && !before.empty())
-			swap(before, after);
+			std::swap(before, after);
 	}
+	return std::make_pair(before, after);
 }
 
 
-/// Convert filenames with TeX macros and/or quotes to something LyX
-/// can understand
+/// Convert filenames with TeX macros and/or quotes to something LyX can understand
 string const normalize_filename(string const & name)
 {
 	Parser p(trim(name, "\""));
@@ -1050,10 +1048,8 @@ string const normalize_filename(string const & name)
 /// convention (relative to .lyx file) if it is relative
 void fix_relative_filename(string & name)
 {
-	FileName fname(name);
-	if (fname.isAbsolute())
+	if (lyx::support::absolutePath(name))
 		return;
-
 	// FIXME UNICODE encoding of name may be wrong (makeAbsPath expects
 	// utf8)
 	name = to_utf8(makeRelPath(from_utf8(makeAbsPath(name, getMasterFilePath()).absFilename()),
@@ -1095,7 +1091,7 @@ void parse_noweb(Parser & p, ostream & os, Context & context)
 	// always must be in an own paragraph.
 	context.new_paragraph(os);
 	Context newcontext(true, context.textclass,
-		&context.textclass[from_ascii("Scrap")]);
+		context.textclass[from_ascii("Scrap")]);
 	newcontext.check_layout(os);
 	os << name;
 	while (p.good()) {
@@ -1135,7 +1131,7 @@ void parse_noweb(Parser & p, ostream & os, Context & context)
 void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		Context & context)
 {
-	Layout const * newlayout = 0;
+	Layout_ptr newlayout;
 	// store the current selectlanguage to be used after \foreignlanguage
 	string selectlang;
 	// Store the latest bibliographystyle (needed for bibtex inset)
@@ -1547,7 +1543,8 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		// Must attempt to parse "Section*" before "Section".
 		else if ((p.next_token().asInput() == "*") &&
 			 context.new_layout_allowed &&
-			 (newlayout = findLayout(context.textclass, t.cs() + '*')) &&
+			 (newlayout = findLayout(context.textclass,
+						 t.cs() + '*')).get() &&
 			 newlayout->isCommand()) {
 			TeXFont const oldFont = context.font;
 			// save the current font size
@@ -1567,7 +1564,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		// Section headings and the like
 		else if (context.new_layout_allowed &&
-			 (newlayout = findLayout(context.textclass, t.cs())) &&
+			 (newlayout = findLayout(context.textclass, t.cs())).get() &&
 			 newlayout->isCommand()) {
 			TeXFont const oldFont = context.font;
 			// save the current font size
@@ -1587,9 +1584,9 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		// Special handling for \caption
 		// FIXME: remove this when InsetCaption is supported.
 		else if (context.new_layout_allowed &&
-			 t.cs() == captionlayout()->latexname()) {
+			 t.cs() == captionlayout->latexname()) {
 			output_command_layout(os, p, outer, context, 
-					      captionlayout());
+					      captionlayout);
 			p.skip_spaces();
 		}
 
@@ -1607,7 +1604,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			// therefore path is only used for testing
 			// FIXME UNICODE encoding of name and path may be
 			// wrong (makeAbsPath expects utf8)
-			if (!makeAbsPath(name, path).exists()) {
+			if (!doesFileExist(makeAbsPath(name, path))) {
 				// The file extension is probably missing.
 				// Now try to find it out.
 				string const dvips_name =
@@ -1639,7 +1636,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 			// FIXME UNICODE encoding of name and path may be
 			// wrong (makeAbsPath expects utf8)
-			if (makeAbsPath(name, path).exists())
+			if (doesFileExist(makeAbsPath(name, path)))
 				fix_relative_filename(name);
 			else
 				cerr << "Warning: Could not find graphics file '"
@@ -1948,8 +1945,8 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			string before;
 			// text after the citation
 			string after;
-			get_cite_arguments(p, true, before, after);
 
+			boost::tie(before, after) = getCiteArguments(p, true);
 			if (command == "\\cite") {
 				// \cite without optional argument means
 				// \citet, \cite with at least one optional
@@ -1979,10 +1976,10 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			string const command = '\\' + t.cs();
 			char argumentOrder = '\0';
 			vector<string> const & options = used_packages["jurabib"];
-			if (find(options.begin(), options.end(),
+			if (std::find(options.begin(), options.end(),
 				      "natbiborder") != options.end())
 				argumentOrder = 'n';
-			else if (find(options.begin(), options.end(),
+			else if (std::find(options.begin(), options.end(),
 					   "jurabiborder") != options.end())
 				argumentOrder = 'j';
 
@@ -1990,8 +1987,9 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			string before;
 			// text after the citation
 			string after;
-			get_cite_arguments(p, argumentOrder != 'j', before, after);
 
+			boost::tie(before, after) =
+				getCiteArguments(p, argumentOrder != 'j');
 			string const citation = p.verbatim_item();
 			if (!before.empty() && argumentOrder == '\0') {
 				cerr << "Warning: Assuming argument order "
@@ -2300,8 +2298,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			}
 		}
 
-		else if (t.cs() == "newline" ||
-			t.cs() == "linebreak") {
+		else if (t.cs() == "newline") {
 			context.check_layout(os);
 			os << "\n\\" << t.cs() << "\n";
 			skip_braces(p); // eat {}
@@ -2322,7 +2319,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			// FIXME UNICODE encoding of filename and path may be
 			// wrong (makeAbsPath expects utf8)
 			if ((t.cs() == "include" || t.cs() == "input") &&
-			    !makeAbsPath(filename, path).exists()) {
+			    !doesFileExist(makeAbsPath(filename, path))) {
 				// The file extension is probably missing.
 				// Now try to find it out.
 				string const tex_name =
@@ -2333,7 +2330,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			}
 			// FIXME UNICODE encoding of filename and path may be
 			// wrong (makeAbsPath expects utf8)
-			if (makeAbsPath(filename, path).exists()) {
+			if (doesFileExist(makeAbsPath(filename, path))) {
 				string const abstexname =
 					makeAbsPath(filename, path).absFilename();
 				string const abslyxname =
@@ -2378,14 +2375,14 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "parbox")
 			parse_box(p, os, FLAG_ITEM, outer, context, true);
-		
+
 		//\makebox() is part of the picture environment and different from \makebox{}
 		//\makebox{} will be parsed by parse_box when bug 2956 is fixed
 		else if (t.cs() == "makebox") {
-			string arg = t.asInput();
+			string arg = "\\makebox";
 			if (p.next_token().character() == '(')
 				//the syntax is: \makebox(x,y)[position]{content}
-				arg += p.getFullParentheseArg();
+				arg += p.getFullParentheseOpt();
 			else
 				//the syntax is: \makebox[width][position]{content}
 				arg += p.getFullOpt();
@@ -2406,7 +2403,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		else if (is_known(t.cs(), known_spaces)) {
 			char const * const * where = is_known(t.cs(), known_spaces);
 			context.check_layout(os);
-			os << "\\InsetSpace ";
+			begin_inset(os, "InsetSpace ");
 			os << '\\' << known_coded_spaces[where - known_spaces]
 			   << '\n';
 			// LaTeX swallows whitespace after all spaces except
@@ -2423,10 +2420,10 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		}
 
 		else if (t.cs() == "newpage" ||
-			t.cs() == "pagebreak" ||
-			t.cs() == "clearpage" ||
-			t.cs() == "cleardoublepage") {
+			 t.cs() == "clearpage" ||
+			 t.cs() == "cleardoublepage") {
 			context.check_layout(os);
+			// FIXME: what about \\pagebreak?
 			os << "\n\\" << t.cs() << "\n";
 			skip_braces(p); // eat {}
 		}
@@ -2450,12 +2447,16 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					   opt1 + opt2 +
 					   '{' + p.verbatim_item() + '}';
 
-			context.check_layout(os);
-			begin_inset(os, "FormulaMacro");
-			os << "\n" << ert;
-			end_inset(os);
+			if (opt2.empty()) {
+				context.check_layout(os);
+				begin_inset(os, "FormulaMacro");
+				os << "\n" << ert;
+				end_inset(os);
+			} else
+				// we cannot handle optional argument, so only output ERT
+				handle_ert(os, ert, context);
 		}
-		
+
 		else if (t.cs() == "vspace") {
 			bool starred = false;
 			if (p.next_token().asInput() == "*") {

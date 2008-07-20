@@ -12,56 +12,102 @@
 
 #include "InsetOptArg.h"
 
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/gettext.h"
+#include "FuncRequest.h"
+#include "FuncStatus.h"
 
-using namespace std;
+#include "debug.h"
+#include "gettext.h"
+
 
 namespace lyx {
 
+using std::string;
+using std::auto_ptr;
+using std::ostream;
 
-InsetOptArg::InsetOptArg(Buffer const & buf)
-	: InsetCollapsable(buf)
-{}
+
+InsetOptArg::InsetOptArg(BufferParams const & ins)
+	: InsetCollapsable(ins)
+{
+	Font font(Font::ALL_SANE);
+	font.setColor(Color::collapsable);
+	setLabelFont(font);
+	setLabel(_("opt"));
+}
 
 
-docstring InsetOptArg::editMessage() const
+InsetOptArg::InsetOptArg(InsetOptArg const & in)
+	: InsetCollapsable(in)
+{
+	Font font(Font::ALL_SANE);
+	font.setColor(Color::collapsable);
+	setLabelFont(font);
+	setLabel(_("opt"));
+}
+
+
+auto_ptr<Inset> InsetOptArg::doClone() const
+{
+	return auto_ptr<Inset>(new InsetOptArg(*this));
+}
+
+
+docstring const InsetOptArg::editMessage() const
 {
 	return _("Opened Optional Argument Inset");
 }
 
 
-void InsetOptArg::write(ostream & os) const
+bool InsetOptArg::getStatus(Cursor & cur, FuncRequest const & cmd,
+	FuncStatus & status) const
 {
-	os << "OptArg" << "\n";
-	InsetCollapsable::write(os);
+	switch (cmd.action) {
+		// paragraph breaks not allowed
+		case LFUN_BREAK_PARAGRAPH:
+		case LFUN_BREAK_PARAGRAPH_KEEP_LAYOUT:
+		case LFUN_BREAK_PARAGRAPH_SKIP:
+			status.enabled(false);
+			return true;
+
+		default:
+			return InsetCollapsable::getStatus(cur, cmd, status);
+		}
 }
 
 
-int InsetOptArg::latex(odocstream &, OutputParams const &) const
+void InsetOptArg::write(Buffer const & buf, ostream & os) const
+{
+	os << "OptArg" << "\n";
+	InsetCollapsable::write(buf, os);
+}
+
+
+int InsetOptArg::latex(Buffer const &, odocstream &,
+		       OutputParams const &) const
 {
 	return 0;
 }
 
 
-int InsetOptArg::plaintext(odocstream &, OutputParams const &) const
+int InsetOptArg::plaintext(Buffer const &, odocstream &,
+			   OutputParams const &) const
 {
 	return 0; // do not output optional arguments
 }
 
 
-int InsetOptArg::docbook(odocstream &, OutputParams const &) const
+int InsetOptArg::docbook(Buffer const &, odocstream &,
+			 OutputParams const &) const
 {
 	return 0;
 }
 
 
-int InsetOptArg::latexOptional(odocstream & os,
+int InsetOptArg::latexOptional(Buffer const & buf, odocstream & os,
 			       OutputParams const & runparams) const
 {
 	odocstringstream ss;
-	int ret = InsetText::latex(ss, runparams);
+	int ret = InsetText::latex(buf, ss, runparams);
 	docstring str = ss.str();
 	if (str.find(']') != docstring::npos)
 		str = '{' + str + '}';

@@ -12,7 +12,7 @@
 #ifndef LYX_ALERT_H
 #define LYX_ALERT_H
 
-#include "support/docstring.h"
+#include "support/lstrings.h"
 
 
 namespace lyx {
@@ -55,8 +55,8 @@ void error(docstring const & title, docstring const & message);
 void information(docstring const & title, docstring const & message);
 
 /// Asks for a text. DO NOT USE !!
-bool askForText(docstring & response, docstring const & msg,
-	docstring const & dflt = docstring());
+std::pair<bool, docstring> const
+askForText(docstring const & msg, docstring const & dflt = docstring());
 
 } // namespace Alert
 } // namespace frontend

@@ -9,40 +9,49 @@
  */
 
 #include <config.h>
-#include <algorithm>
 
 #include "InsetMathGrid.h"
-
 #include "MathData.h"
 #include "MathParser.h"
 #include "MathStream.h"
-#include "MetricsInfo.h"
 
 #include "BufferView.h"
 #include "CutAndPaste.h"
 #include "FuncStatus.h"
+#include "Color.h"
 #include "Cursor.h"
+#include "debug.h"
 #include "FuncRequest.h"
+#include "gettext.h"
+#include "Undo.h"
 
 #include "frontends/Clipboard.h"
 #include "frontends/Painter.h"
 
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/gettext.h"
 #include "support/lstrings.h"
 
-#include "support/lassert.h"
-
 #include <sstream>
-
-using namespace std;
-using namespace lyx::support;
 
 
 namespace lyx {
 
-static docstring verboseHLine(int n)
+using support::bformat;
+
+using std::endl;
+using std::max;
+using std::min;
+using std::swap;
+
+using std::string;
+using std::auto_ptr;
+using std::istream;
+using std::istringstream;
+using std::vector;
+
+
+namespace {
+
+docstring verboseHLine(int n)
 {
 	docstring res;
 	for (int i = 0; i < n; ++i)
@@ -53,13 +62,14 @@ static docstring verboseHLine(int n)
 }
 
 
-static int extractInt(istream & is)
+int extractInt(istream & is)
 {
 	int num = 1;
 	is >> num;
 	return (num == 0) ? 1 : num;
 }
 
+}
 
 
 //////////////////////////////////////////////////////////////
@@ -71,11 +81,12 @@ InsetMathGrid::CellInfo::CellInfo()
 
 
 
+
 //////////////////////////////////////////////////////////////
 
 
 InsetMathGrid::RowInfo::RowInfo()
-	: lines_(0), skip_(0), allow_newpage_(true)
+	: lines_(0), skip_(0), allow_pagebreak_(true)
 {}
 
 
@@ -96,6 +107,19 @@ InsetMathGrid::ColInfo::ColInfo()
 
 
 //////////////////////////////////////////////////////////////
+
+
+InsetMathGrid::InsetMathGrid(char v, docstring const & h)
+	: InsetMathNest(guessColumns(h)),
+	  rowinfo_(2),
+	  colinfo_(guessColumns(h) + 1),
+	  cellinfo_(1 * guessColumns(h))
+{
+	setDefaults();
+	valign(v);
+	halign(h);
+	//lyxerr << "created grid with " << ncols() << " columns" << endl;
+}
 
 
 InsetMathGrid::InsetMathGrid()
@@ -128,14 +152,14 @@ InsetMathGrid::InsetMathGrid(col_type m, row_type n, char v, docstring const & h
 		v_align_(v)
 {
 	setDefaults();
-	setVerticalAlignment(v);
-	setHorizontalAlignments(h);
+	valign(v);
+	halign(h);
 }
 
 
-Inset * InsetMathGrid::clone() const
+auto_ptr<Inset> InsetMathGrid::doClone() const
 {
-	return new InsetMathGrid(*this);
+	return auto_ptr<Inset>(new InsetMathGrid(*this));
 }
 
 
@@ -159,7 +183,7 @@ void InsetMathGrid::setDefaults()
 }
 
 
-void InsetMathGrid::setHorizontalAlignments(docstring const & hh)
+void InsetMathGrid::halign(docstring const & hh)
 {
 	col_type col = 0;
 	for (docstring::const_iterator it = hh.begin(); it != hh.end(); ++it) {
@@ -200,11 +224,13 @@ void InsetMathGrid::setHorizontalAlignments(docstring const & hh)
 			}
 			--it;
 			if (newcolumn) {
-				colinfo_[col].lines_ = count(
+				colinfo_[col].lines_ = std::count(
 					colinfo_[col].special_.begin(),
 					colinfo_[col].special_.end(), '|');
-				LYXERR(Debug::MATHED, "special column separator: `"
-					<< to_utf8(colinfo_[col].special_) << '\'');
+				LYXERR(Debug::MATHED)
+					<< "special column separator: `"
+					<< to_utf8(colinfo_[col].special_)
+					<< '\'' << endl;
 				++col;
 				colinfo_[col].lines_ = 0;
 				colinfo_[col].special_.clear();
@@ -217,11 +243,13 @@ void InsetMathGrid::setHorizontalAlignments(docstring const & hh)
 			colinfo_[col].align_ = static_cast<char>(c);
 			if (!colinfo_[col].special_.empty()) {
 				colinfo_[col].special_ += c;
-				colinfo_[col].lines_ = count(
+				colinfo_[col].lines_ = std::count(
 						colinfo_[col].special_.begin(),
 						colinfo_[col].special_.end(), '|');
-				LYXERR(Debug::MATHED, "special column separator: `"
-					<< to_utf8(colinfo_[col].special_) << '\'');
+				LYXERR(Debug::MATHED)
+					<< "special column separator: `"
+					<< to_utf8(colinfo_[col].special_)
+					<< '\'' << endl;
 			}
 			++col;
 			colinfo_[col].lines_ = 0;
@@ -241,7 +269,7 @@ void InsetMathGrid::setHorizontalAlignments(docstring const & hh)
 }
 
 
-InsetMathGrid::col_type InsetMathGrid::guessColumns(docstring const & hh)
+InsetMathGrid::col_type InsetMathGrid::guessColumns(docstring const & hh) const
 {
 	col_type col = 0;
 	for (docstring::const_iterator it = hh.begin(); it != hh.end(); ++it)
@@ -256,7 +284,7 @@ InsetMathGrid::col_type InsetMathGrid::guessColumns(docstring const & hh)
 }
 
 
-void InsetMathGrid::setHorizontalAlignment(char h, col_type col)
+void InsetMathGrid::halign(char h, col_type col)
 {
 	colinfo_[col].align_ = h;
 	if (!colinfo_[col].special_.empty()) {
@@ -268,13 +296,13 @@ void InsetMathGrid::setHorizontalAlignment(char h, col_type col)
 }
 
 
-char InsetMathGrid::horizontalAlignment(col_type col) const
+char InsetMathGrid::halign(col_type col) const
 {
 	return colinfo_[col].align_;
 }
 
 
-docstring InsetMathGrid::horizontalAlignments() const
+docstring InsetMathGrid::halign() const
 {
 	docstring res;
 	for (col_type col = 0; col < ncols(); ++col) {
@@ -290,13 +318,13 @@ docstring InsetMathGrid::horizontalAlignments() const
 }
 
 
-void InsetMathGrid::setVerticalAlignment(char c)
+void InsetMathGrid::valign(char c)
 {
 	v_align_ = c;
 }
 
 
-char InsetMathGrid::verticalAlignment() const
+char InsetMathGrid::valign() const
 {
 	return v_align_;
 }
@@ -338,21 +366,19 @@ Length InsetMathGrid::vcrskip(row_type row) const
 }
 
 
-void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathGrid::metrics(MetricsInfo & mi) const
 {
 	// let the cells adjust themselves
 	InsetMathNest::metrics(mi);
-
-	BufferView & bv = *mi.base.bv;
 
 	// compute absolute sizes of vertical structure
 	for (row_type row = 0; row < nrows(); ++row) {
 		int asc  = 0;
 		int desc = 0;
 		for (col_type col = 0; col < ncols(); ++col) {
-			Dimension const & dimc = cell(index(row, col)).dimension(bv);
-			asc  = max(asc,  dimc.asc);
-			desc = max(desc, dimc.des);
+			MathData const & c = cell(index(row, col));
+			asc  = max(asc,  c.ascent());
+			desc = max(desc, c.descent());
 		}
 		rowinfo_[row].ascent_  = asc;
 		rowinfo_[row].descent_ = desc;
@@ -393,7 +419,7 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 	for (col_type col = 0; col < ncols(); ++col) {
 		int wid = 0;
 		for (row_type row = 0; row < nrows(); ++row)
-			wid = max(wid, cell(index(row, col)).dimension(bv).wid);
+			wid = max(wid, cell(index(row, col)).width());
 		colinfo_[col].width_ = wid;
 	}
 	colinfo_[ncols()].width_  = 0;
@@ -410,17 +436,17 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 	}
 
 
-	dim.wid   =   colinfo_[ncols() - 1].offset_
+	dim_.wid   =   colinfo_[ncols() - 1].offset_
 		       + colinfo_[ncols() - 1].width_
 		 + vlinesep() * colinfo_[ncols()].lines_
 		       + border();
 
-	dim.asc  = - rowinfo_[0].offset_
+	dim_.asc  = - rowinfo_[0].offset_
 		       + rowinfo_[0].ascent_
 		 + hlinesep() * rowinfo_[0].lines_
 		       + border();
 
-	dim.des =   rowinfo_[nrows() - 1].offset_
+	dim_.des =   rowinfo_[nrows() - 1].offset_
 		       + rowinfo_[nrows() - 1].descent_
 		 + hlinesep() * rowinfo_[nrows()].lines_
 		       + border();
@@ -476,26 +502,31 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 		cxrow->setBaseline(cxrow->getBaseline() - ascent);
 	}
 */
-	metricsMarkers2(dim);
-	// Cache the inset dimension. 
-	setDimCache(mi, dim);
+	metricsMarkers2(dim_);
+}
+
+
+bool InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
+{
+	dim = dim_;
+	metrics(mi);
+	if (dim_ == dim)
+		return false;
+	dim = dim_;
+	return true;
 }
 
 
 void InsetMathGrid::draw(PainterInfo & pi, int x, int y) const
 {
-	drawWithMargin(pi, x, y, 1, 1);
+	drawWithMargin(pi, x, y, 0, 0);
 }
-
 
 void InsetMathGrid::drawWithMargin(PainterInfo & pi, int x, int y,
 	int lmargin, int rmargin) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
-	BufferView const & bv = *pi.base.bv;
-
 	for (idx_type idx = 0; idx < nargs(); ++idx)
-		cell(idx).draw(pi, x + lmargin + cellXOffset(bv, idx),
+		cell(idx).draw(pi, x + lmargin + cellXOffset(idx),
 			y + cellYOffset(idx));
 
 	for (row_type row = 0; row <= nrows(); ++row)
@@ -503,17 +534,17 @@ void InsetMathGrid::drawWithMargin(PainterInfo & pi, int x, int y,
 			int yy = y + rowinfo_[row].offset_ - rowinfo_[row].ascent_
 				- i * hlinesep() - hlinesep()/2 - rowsep()/2;
 			pi.pain.line(x + lmargin + 1, yy,
-				     x + dim.width() - rmargin - 1, yy,
-				     Color_foreground);
+				     x + dim_.width() - rmargin - 1, yy,
+				     Color::foreground);
 		}
 
 	for (col_type col = 0; col <= ncols(); ++col)
 		for (unsigned int i = 0; i < colinfo_[col].lines_; ++i) {
 			int xx = x + lmargin + colinfo_[col].offset_
 				- i * vlinesep() - vlinesep()/2 - colsep()/2;
-			pi.pain.line(xx, y - dim.ascent() + 1,
-				     xx, y + dim.descent() - 1,
-				     Color_foreground);
+			pi.pain.line(xx, y - dim_.ascent() + 1,
+				     xx, y + dim_.descent() - 1,
+				     Color::foreground);
 		}
 	drawMarkers2(pi, x, y);
 }
@@ -531,11 +562,9 @@ void InsetMathGrid::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 		int asc  = 0;
 		int desc = 0;
 		for (col_type col = 0; col < ncols(); ++col) {
-			//MathData const & c = cell(index(row, col));
-			// FIXME: BROKEN!
-			Dimension dimc;
-			asc  = max(asc,  dimc.ascent());
-			desc = max(desc, dimc.descent());
+			MathData const & c = cell(index(row, col));
+			asc  = max(asc,  c.ascent());
+			desc = max(desc, c.descent());
 		}
 		rowinfo_[row].ascent_  = asc;
 		rowinfo_[row].descent_ = desc;
@@ -575,10 +604,8 @@ void InsetMathGrid::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 	// compute absolute sizes of horizontal structure
 	for (col_type col = 0; col < ncols(); ++col) {
 		int wid = 0;
-		for (row_type row = 0; row < nrows(); ++row) {
-			// FIXME: BROKEN!
-			//wid = max(wid, cell(index(row, col)).width());
-		}
+		for (row_type row = 0; row < nrows(); ++row)
+			wid = max(wid, cell(index(row, col)).width());
 		colinfo_[col].width_ = wid;
 	}
 	colinfo_[ncols()].width_  = 0;
@@ -612,10 +639,10 @@ void InsetMathGrid::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 }
 
 
-void InsetMathGrid::drawT(TextPainter & /*pain*/, int /*x*/, int /*y*/) const
+void InsetMathGrid::drawT(TextPainter & pain, int x, int y) const
 {
-//	for (idx_type idx = 0; idx < nargs(); ++idx)
-//		cell(idx).drawT(pain, x + cellXOffset(idx), y + cellYOffset(idx));
+	for (idx_type idx = 0; idx < nargs(); ++idx)
+		cell(idx).drawT(pain, x + cellXOffset(idx), y + cellYOffset(idx));
 }
 
 
@@ -625,7 +652,7 @@ docstring InsetMathGrid::eolString(row_type row, bool emptyline, bool fragile) c
 
 	if (!rowinfo_[row].crskip_.zero())
 		eol += '[' + from_utf8(rowinfo_[row].crskip_.asLatexString()) + ']';
-	else if(!rowinfo_[row].allow_newpage_)
+	else if(!rowinfo_[row].allow_pagebreak_)
 		eol += '*';
 
 	// make sure an upcoming '[' does not break anything
@@ -769,16 +796,15 @@ void InsetMathGrid::swapCol(col_type col)
 }
 
 
-int InsetMathGrid::cellXOffset(BufferView const & bv, idx_type idx) const
+int InsetMathGrid::cellXOffset(idx_type idx) const
 {
 	col_type c = col(idx);
 	int x = colinfo_[c].offset_;
 	char align = colinfo_[c].align_;
-	Dimension const & celldim = cell(idx).dimension(bv);
 	if (align == 'r' || align == 'R')
-		x += colinfo_[c].width_ - celldim.wid;
+		x += colinfo_[c].width_ - cell(idx).width();
 	if (align == 'c' || align == 'C')
-		x += (colinfo_[c].width_ - celldim.wid) / 2;
+		x += (colinfo_[c].width_ - cell(idx).width()) / 2;
 	return x;
 }
 
@@ -800,14 +826,14 @@ bool InsetMathGrid::idxUpDown(Cursor & cur, bool up) const
 			return false;
 		cur.idx() += ncols();
 	}
-	cur.pos() = cur.cell().x2pos(&cur.bv(), cur.x_target() - cur.cell().xo(cur.bv()));
+	cur.pos() = cur.cell().x2pos(cur.x_target() - cur.cell().xo(cur.bv()));
 	return true;
 }
 
 
-bool InsetMathGrid::idxBackward(Cursor & cur) const
+bool InsetMathGrid::idxLeft(Cursor & cur) const
 {
-	// leave matrix if at the front edge
+	// leave matrix if on the left hand edge
 	if (cur.col() == 0)
 		return false;
 	--cur.idx();
@@ -816,9 +842,9 @@ bool InsetMathGrid::idxBackward(Cursor & cur) const
 }
 
 
-bool InsetMathGrid::idxForward(Cursor & cur) const
+bool InsetMathGrid::idxRight(Cursor & cur) const
 {
-	// leave matrix if at the back edge
+	// leave matrix if on the right hand edge
 	if (cur.col() + 1 == ncols())
 		return false;
 	++cur.idx();
@@ -967,7 +993,6 @@ void InsetMathGrid::mathmlize(MathStream & os) const
 
 void InsetMathGrid::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os, false);
 	docstring eol;
 	for (row_type row = 0; row < nrows(); ++row) {
 		os << verboseHLine(rowinfo_[row].lines_);
@@ -979,12 +1004,8 @@ void InsetMathGrid::write(WriteStream & os) const
 				lastcol = col + 1;
 				emptyline = false;
 			}
-		for (col_type col = 0; col < lastcol; ++col) {
-			os << cell(index(row, col));
-			if (os.pendingBrace())
-				ModeSpecifier specifier(os, TEXT_MODE);
-			os << eocString(col, lastcol);
-		}
+		for (col_type col = 0; col < lastcol; ++col)
+			os << cell(index(row, col)) << eocString(col, lastcol);
 		eol = eolString(row, emptyline, os.fragile());
 		os << eol;
 		// append newline only if line wasn't completely empty
@@ -1059,7 +1080,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// multiple cells. Unfortunately this puts the cursor in front
 		// of the inset after undo. This is (especilally for large
 		// grids) annoying.
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		//autocorrect_ = false;
 		//macroModeClose();
 		//if (selection_) {
@@ -1075,7 +1096,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_CELL_SPLIT:
-		cur.recordUndo();
+		recordUndo(cur);
 		splitCell(cur);
 		break;
 
@@ -1083,7 +1104,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// See below.
 		cur.selection() = false;
 		if (!idxPrev(cur)) {
-			cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
+			cmd = FuncRequest(LFUN_FINISHED_LEFT);
 			cur.undispatched();
 		}
 		break;
@@ -1093,13 +1114,13 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// hard bound to LFUN_CELL_BACKWARD
 		cur.selection() = false;
 		if (!idxNext(cur)) {
-			cmd = FuncRequest(LFUN_FINISHED_FORWARD);
+			cmd = FuncRequest(LFUN_FINISHED_RIGHT);
 			cur.undispatched();
 		}
 		break;
 
-	case LFUN_NEWLINE_INSERT: {
-		cur.recordUndoInset();
+	case LFUN_BREAK_LINE: {
+		recordUndoInset(cur);
 		row_type const r = cur.row();
 		addRow(r);
 
@@ -1115,28 +1136,28 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		cur.pos() = cur.lastpos();
 
 		//mathcursor->normalize();
-		//cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
+		//cmd = FuncRequest(LFUN_FINISHED_LEFT);
 		break;
 	}
 
 	case LFUN_TABULAR_FEATURE: {
-		cur.recordUndoInset();
+		recordUndoInset(cur);
 		//lyxerr << "handling tabular-feature " << to_utf8(cmd.argument()) << endl;
 		istringstream is(to_utf8(cmd.argument()));
 		string s;
 		is >> s;
 		if (s == "valign-top")
-			setVerticalAlignment('t');
+			valign('t');
 		else if (s == "valign-middle")
-			setVerticalAlignment('c');
+			valign('c');
 		else if (s == "valign-bottom")
-			setVerticalAlignment('b');
+			valign('b');
 		else if (s == "align-left")
-			setHorizontalAlignment('l', cur.col());
+			halign('l', cur.col());
 		else if (s == "align-right")
-			setHorizontalAlignment('r', cur.col());
+			halign('r', cur.col());
 		else if (s == "align-center")
-			setHorizontalAlignment('c', cur.col());
+			halign('c', cur.col());
 		else if (s == "append-row")
 			for (int i = 0, n = extractInt(is); i < n; ++i)
 				addRow(cur.row());
@@ -1213,7 +1234,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			docstring & special = colinfo_[cur.col()].special_;
 			if (!special.empty()) {
 				docstring::size_type i = special.rfind('|');
-				LASSERT(i != docstring::npos, /**/);
+				BOOST_ASSERT(i != docstring::npos);
 				special.erase(i, 1);
 			}
 		}
@@ -1222,7 +1243,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			docstring & special = colinfo_[cur.col()+1].special_;
 			if (!special.empty()) {
 				docstring::size_type i = special.find('|');
-				LASSERT(i != docstring::npos, /**/);
+				BOOST_ASSERT(i != docstring::npos);
 				special.erase(i, 1);
 			}
 		}
@@ -1230,7 +1251,6 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.undispatched();
 			break;
 		}
-		// perhaps this should be FINISHED_BACKWARD -- just for clarity?
 		lyxerr << "returning FINISHED_LEFT" << endl;
 		break;
 	}
@@ -1245,7 +1265,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			idocstringstream is(cmd.argument());
 			int n = 0;
 			is >> n;
-			topaste = cap::selection(n);
+			topaste = cap::getSelection(cur.buffer(), n);
 		}
 		InsetMathGrid grid(1, 1);
 		if (!topaste.empty())
@@ -1253,12 +1273,12 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 		if (grid.nargs() == 1) {
 			// single cell/part of cell
-			cur.recordUndo();
+			recordUndo(cur);
 			cur.cell().insert(cur.pos(), grid.cell(0));
 			cur.pos() += grid.cell(0).size();
 		} else {
 			// multiple cells
-			cur.recordUndoInset();
+			recordUndoInset(cur);
 			col_type const numcols =
 				min(grid.ncols(), ncols() - col(cur.idx()));
 			row_type const numrows =
@@ -1280,7 +1300,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 					cell(i).append(grid.cell(grid.index(r, c)));
 		}
 		cur.clearSelection(); // bug 393
-		cur.finishUndo();
+		finishUndo();
 		break;
 	}
 
@@ -1288,10 +1308,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_LINE_BEGIN:
 	case LFUN_WORD_BACKWARD_SELECT:
 	case LFUN_WORD_BACKWARD:
-	case LFUN_WORD_LEFT_SELECT:
-	case LFUN_WORD_LEFT:
 		cur.selHandle(cmd.action == LFUN_WORD_BACKWARD_SELECT ||
-				cmd.action == LFUN_WORD_LEFT_SELECT ||
 				cmd.action == LFUN_LINE_BEGIN_SELECT);
 		cur.macroModeClose();
 		if (cur.pos() != 0) {
@@ -1303,19 +1320,16 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.idx() = 0;
 			cur.pos() = 0;
 		} else {
-			cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
+			cmd = FuncRequest(LFUN_FINISHED_LEFT);
 			cur.undispatched();
 		}
 		break;
 
 	case LFUN_WORD_FORWARD_SELECT:
 	case LFUN_WORD_FORWARD:
-	case LFUN_WORD_RIGHT_SELECT:
-	case LFUN_WORD_RIGHT:
 	case LFUN_LINE_END_SELECT:
 	case LFUN_LINE_END:
 		cur.selHandle(cmd.action == LFUN_WORD_FORWARD_SELECT ||
-				cmd.action == LFUN_WORD_RIGHT_SELECT ||
 				cmd.action == LFUN_LINE_END_SELECT);
 		cur.macroModeClose();
 		cur.clearTargetX();
@@ -1328,7 +1342,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.idx() = cur.lastidx();
 			cur.pos() = cur.lastpos();
 		} else {
-			cmd = FuncRequest(LFUN_FINISHED_FORWARD);
+			cmd = FuncRequest(LFUN_FINISHED_RIGHT);
 			cur.undispatched();
 		}
 		break;
@@ -1346,13 +1360,13 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_TABULAR_FEATURE: {
 		string const s = to_utf8(cmd.argument());
 		if (nrows() <= 1 && (s == "delete-row" || s == "swap-row")) {
-			status.setEnabled(false);
+			status.enabled(false);
 			status.message(from_utf8(N_("Only one row")));
 			return true;
 		}
 		if (ncols() <= 1 &&
 		    (s == "delete-column" || s == "swap-column")) {
-			status.setEnabled(false);
+			status.enabled(false);
 			status.message(from_utf8(N_("Only one column")));
 			return true;
 		}
@@ -1360,7 +1374,7 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		     s == "delete-hline-above") ||
 		    (rowinfo_[cur.row() + 1].lines_ == 0 &&
 		     s == "delete-hline-below")) {
-			status.setEnabled(false);
+			status.enabled(false);
 			status.message(from_utf8(N_("No hline to delete")));
 			return true;
 		}
@@ -1369,7 +1383,7 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		     s == "delete-vline-left") ||
 		    (colinfo_[cur.col() + 1].lines_ == 0 &&
 		     s == "delete-vline-right")) {
-			status.setEnabled(false);
+			status.enabled(false);
 			status.message(from_utf8(N_("No vline to delete")));
 			return true;
 		}
@@ -1384,21 +1398,19 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		    s == "copy-column" || s == "swap-column" ||
 		    s == "add-vline-left" || s == "add-vline-right" ||
 		    s == "delete-vline-left" || s == "delete-vline-right")
-			status.setEnabled(true);
+			status.enabled(true);
 		else {
-			status.setEnabled(false);
+			status.enabled(false);
 			status.message(bformat(
 				from_utf8(N_("Unknown tabular feature '%1$s'")), lyx::from_ascii(s)));
 		}
 
-		char const ha = horizontalAlignment(cur.col());
-		char const va = verticalAlignment();
-		status.setOnOff((s == "align-left" && ha == 'l')
-			   || (s == "align-right"   && ha == 'r')
-			   || (s == "align-center"  && ha == 'c')
-			   || (s == "valign-top"    && va == 't')
-			   || (s == "valign-bottom" && va == 'b')
-			   || (s == "valign-middle" && va == 'm'));
+		status.setOnOff(s == "align-left"    && halign(cur.col()) == 'l'
+			   || s == "align-right"   && halign(cur.col()) == 'r'
+			   || s == "align-center"  && halign(cur.col()) == 'c'
+			   || s == "valign-top"    && valign() == 't'
+			   || s == "valign-bottom" && valign() == 'b'
+			   || s == "valign-middle" && valign() == 'm');
 
 #if 0
 		// FIXME: What did this code do?
@@ -1412,23 +1424,23 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.enable(false);
 			break;
 		}
-		if (!contains("tcb", cmd.argument()[0])) {
+		if (!support::contains("tcb", cmd.argument()[0])) {
 			status.enable(false);
 			break;
 		}
 		status.setOnOff(cmd.argument()[0] == v_align_);
-		status.setEnabled(true);
+		status.enabled(true);
 #endif
 		return true;
 	}
 
 	case LFUN_CELL_SPLIT:
-		status.setEnabled(true);
+		status.enabled(true);
 		return true;
 
 	case LFUN_CELL_BACKWARD:
 	case LFUN_CELL_FORWARD:
-		status.setEnabled(true);
+		status.enabled(true);
 		return true;
 
 	default:

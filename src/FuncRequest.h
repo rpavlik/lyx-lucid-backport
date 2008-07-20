@@ -12,21 +12,22 @@
 #ifndef FUNCREQUEST_H
 #define FUNCREQUEST_H
 
-#include "FuncCode.h"
+#include "lfuns.h"
+#include "frontends/mouse_state.h"
 
 #include "support/docstring.h"
 
-#include "frontends/mouse_state.h"
+#include <iosfwd>
 
 
 namespace lyx {
+
 
 /**
  * This class encapsulates a LyX action and its argument
  * in order to pass it around easily.
  */
-class FuncRequest
-{
+class FuncRequest {
 public:
 	/// Where the request came from
 	enum Origin {
@@ -40,15 +41,15 @@ public:
 	/// just for putting these things in std::container
 	explicit FuncRequest(Origin o = INTERNAL);
 	/// actions without extra argument
-	explicit FuncRequest(FuncCode act, Origin o = INTERNAL);
+	explicit FuncRequest(kb_action act, Origin o = INTERNAL);
 	/// actions without extra argument
-	FuncRequest(FuncCode act, int x, int y, mouse_button::state button,
+	FuncRequest(kb_action act, int x, int y, mouse_button::state button,
 		    Origin o = INTERNAL);
 	/// actions with extra argument
-	FuncRequest(FuncCode act, docstring const & arg,
+	FuncRequest(kb_action act, docstring const & arg,
 		    Origin o = INTERNAL);
 	/// actions with extra argument. FIXME: remove this
-	FuncRequest(FuncCode act, std::string const & arg,
+	FuncRequest(kb_action act, std::string const & arg,
 		    Origin o = INTERNAL);
 	/// for changing requests a bit
 	FuncRequest(FuncRequest const & cmd, docstring const & arg,
@@ -66,13 +67,9 @@ public:
 	/// access the whole argument
 	docstring const & argument() const { return argument_; }
 
-	/// 
-	static FuncRequest const unknown;
-	/// 
-	static FuncRequest const noaction;
 public:  // should be private
 	/// the action
-	FuncCode action;
+	kb_action action;
 private:
 	/// the action's string argument
 	docstring argument_;

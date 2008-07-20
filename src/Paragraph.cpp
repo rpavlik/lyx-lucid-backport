@@ -19,105 +19,184 @@
 
 #include "Paragraph.h"
 
-#include "LayoutFile.h"
 #include "Buffer.h"
 #include "BufferParams.h"
-#include "Changes.h"
 #include "Counters.h"
 #include "Encoding.h"
-#include "InsetList.h"
+#include "debug.h"
+#include "gettext.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
-#include "Layout.h"
+#include "Color.h"
 #include "Length.h"
 #include "Font.h"
-#include "FontList.h"
 #include "LyXRC.h"
+#include "Row.h"
+#include "Messages.h"
 #include "OutputParams.h"
 #include "output_latex.h"
 #include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
+#include "rowpainter.h"
 #include "sgml.h"
-#include "TextClass.h"
 #include "TexRow.h"
-#include "Text.h"
 #include "VSpace.h"
-#include "WordList.h"
 
 #include "frontends/alert.h"
+#include "frontends/FontMetrics.h"
 
 #include "insets/InsetBibitem.h"
-#include "insets/InsetLabel.h"
+#include "insets/InsetOptArg.h"
 
-#include "support/lassert.h"
-#include "support/convert.h"
-#include "support/debug.h"
-#include "support/gettext.h"
 #include "support/lstrings.h"
-#include "support/Messages.h"
 #include "support/textutils.h"
+#include "support/convert.h"
+#include "support/unicode.h"
 
+#include <boost/bind.hpp>
+#include <boost/next_prior.hpp>
+
+#include <algorithm>
 #include <sstream>
-#include <vector>
 
-using namespace std;
-using namespace lyx::support;
+using std::distance;
+using std::endl;
+using std::string;
+using std::ostream;
 
 namespace lyx {
 
-namespace {
-/// Inset identifier (above 0x10ffff, for ucs-4)
-char_type const META_INSET = 0x200001;
-};
+using support::contains;
+using support::prefixIs;
+using support::subst;
+using support::suffixIs;
+using support::rsplit;
+
 
 /////////////////////////////////////////////////////////////////////
 //
-// Paragraph::Private
+// Paragraph::Pimpl
 //
 /////////////////////////////////////////////////////////////////////
 
-class Paragraph::Private
-{
+class Encoding;
+class Layout;
+
+
+class Paragraph::Pimpl {
 public:
 	///
-	Private(Paragraph * owner, Layout const & layout);
+	Pimpl(Paragraph * owner);
 	/// "Copy constructor"
-	Private(Private const &, Paragraph * owner);
+	Pimpl(Pimpl const &, Paragraph * owner);
+
+	//
+	// Change tracking
+	//
+	/// look up change at given pos
+	Change const & lookupChange(pos_type pos) const;
+	/// is there a change within the given range ?
+	bool isChanged(pos_type start, pos_type end) const;
+	/// will the paragraph be physically merged with the next
+	/// one if the imaginary end-of-par character is logically deleted?
+	bool isMergedOnEndOfParDeletion(bool trackChanges) const;
+	/// set change for the entire par
+	void setChange(Change const & change);
+	/// set change at given pos
+	void setChange(pos_type pos, Change const & change);
+	/// accept changes within the given range
+	void acceptChanges(BufferParams const & bparams, pos_type start, pos_type end);
+	/// reject changes within the given range
+	void rejectChanges(BufferParams const & bparams, pos_type start, pos_type end);
 
 	///
-	void insertChar(pos_type pos, char_type c, Change const & change);
+	value_type getChar(pos_type pos) const;
+	///
+	void insertChar(pos_type pos, value_type c, Change const & change);
+	///
+	void insertInset(pos_type pos, Inset * inset, Change const & change);
+	/// (logically) erase the char at pos; return true if it was actually erased
+	bool eraseChar(pos_type pos, bool trackChanges);
+	/// (logically) erase the given range; return the number of chars actually erased
+	int eraseChars(pos_type start, pos_type end, bool trackChanges);
+	///
+	Inset * inset_owner;
+
+	/** A font entry covers a range of positions. Notice that the
+	    entries in the list are inserted in random order.
+	    I don't think it's worth the effort to implement a more effective
+	    datastructure, because the number of different fonts in a paragraph
+	    is limited. (Asger)
+	    Nevertheless, I decided to store fontlist using a sorted vector:
+	    fontlist = { {pos_1,font_1} , {pos_2,font_2} , ... } where
+	    pos_1 < pos_2 < ..., font_{i-1} != font_i for all i,
+	    and font_i covers the chars in positions pos_{i-1}+1,...,pos_i
+	    (font_1 covers the chars 0,...,pos_1) (Dekel)
+	*/
+	class FontTable  {
+	public:
+		///
+		FontTable(pos_type p, Font const & f)
+			: pos_(p), font_(f)
+		{}
+		///
+		pos_type pos() const { return pos_; }
+		///
+		void pos(pos_type p) { pos_ = p; }
+		///
+		Font const & font() const { return font_; }
+		///
+		void font(Font const & f) { font_ = f;}
+	private:
+		/// End position of paragraph this font attribute covers
+		pos_type pos_;
+		/** Font. Interpretation of the font values:
+		    If a value is Font::INHERIT_*, it means that the font
+		    attribute is inherited from either the layout of this
+		    paragraph or, in the case of nested paragraphs, from the
+		    layout in the environment one level up until completely
+		    resolved.
+		    The values Font::IGNORE_* and Font::TOGGLE are NOT
+		    allowed in these font tables.
+		*/
+		Font font_;
+	};
+	///
+	friend class matchFT;
+	///
+	class matchFT {
+	public:
+		/// used by lower_bound and upper_bound
+		int operator()(FontTable const & a, FontTable const & b) const {
+			return a.pos() < b.pos();
+		}
+	};
+
+	///
+	typedef std::vector<FontTable> FontList;
+	///
+	FontList fontlist;
 
 	/// Output the surrogate pair formed by \p c and \p next to \p os.
 	/// \return the number of characters written.
-	int latexSurrogatePair(odocstream & os, char_type c, char_type next,
+	int latexSurrogatePair(odocstream & os, value_type c, value_type next,
 			       Encoding const &);
-
 	/// Output a space in appropriate formatting (or a surrogate pair
 	/// if the next character is a combining character).
 	/// \return whether a surrogate pair was output.
-	bool simpleTeXBlanks(OutputParams const &,
+	bool simpleTeXBlanks(Encoding const &,
 			     odocstream &, TexRow & texrow,
-			     pos_type i,
+			     pos_type & i,
 			     unsigned int & column,
 			     Font const & font,
 			     Layout const & style);
-
 	/// Output consecutive unicode chars, belonging to the same script as
-	/// specified by the latex macro \p ltx, to \p os starting from \p i.
+	/// specified by the latex macro \p ltx, to \p os starting from \p c.
 	/// \return the number of characters written.
-	int writeScriptChars(odocstream & os, docstring const & ltx,
-			   Change &, Encoding const &, pos_type & i);
-
-	/// This could go to ParagraphParameters if we want to.
-	int startTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			      bool) const;
-
-	/// This could go to ParagraphParameters if we want to.
-	int endTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			    bool) const;
-
+	int writeScriptChars(odocstream & os, value_type c, docstring const & ltx,
+			     Change &, Encoding const &, pos_type &);
 	///
-	void latexInset(BufferParams const &,
+	void simpleTeXSpecialChars(Buffer const &, BufferParams const &,
 				   odocstream &,
 				   TexRow & texrow, OutputParams &,
 				   Font & running_font,
@@ -127,87 +206,43 @@ public:
 				   Change & running_change,
 				   Layout const & style,
 				   pos_type & i,
-				   unsigned int & column);
-
-	///
-	void latexSpecialChar(
-				   odocstream & os,
-				   OutputParams & runparams,
-				   Font & running_font,
-				   Change & running_change,
-				   Layout const & style,
-				   pos_type & i,
-				   unsigned int & column);
-
-	///
-	bool latexSpecialT1(
-		char_type const c,
-		odocstream & os,
-		pos_type & i,
-		unsigned int & column);
-	///
-	bool latexSpecialTypewriter(
-		char_type const c,
-		odocstream & os,
-		pos_type & i,
-		unsigned int & column);
-	///
-	bool latexSpecialPhrase(
-		odocstream & os,
-		pos_type & i,
-		unsigned int & column,
-		OutputParams & runparams);
+				   unsigned int & column, value_type const c);
 
 	///
 	void validate(LaTeXFeatures & features,
 		      Layout const & layout) const;
-
-	/// Checks if the paragraph contains only text and no inset or font change.
-	bool onlyText(Buffer const & buf, Font const & outerfont,
-		      pos_type initial) const;
-
-	/// match a string against a particular point in the paragraph
-	bool isTextAt(string const & str, pos_type pos) const;
-	
-	/// Which Paragraph owns us?
-	Paragraph * owner_;
-
-	/// In which Inset?
-	Inset * inset_owner_;
-
-	///
-	FontList fontlist_;
 
 	///
 	unsigned int id_;
 	///
 	static unsigned int paragraph_id;
 	///
-	ParagraphParameters params_;
+	ParagraphParameters params;
+
+//private:
+	///
+	pos_type size() const { return owner_->size(); }
+	/// match a string against a particular point in the paragraph
+	bool isTextAt(std::string const & str, pos_type pos) const;
 
 	/// for recording and looking up changes
 	Changes changes_;
 
-	///
-	InsetList insetlist_;
-
-	/// end of label
-	pos_type begin_of_body_;
-
-	typedef docstring TextContainer;
-	///
-	TextContainer text_;
-	
-	typedef std::set<docstring> Words;
-	///
-	Words words_;
-	///
-	Layout const * layout_;
+	/// Who owns us?
+	Paragraph * owner_;
 };
 
 
+
+
+using std::endl;
+using std::upper_bound;
+using std::lower_bound;
+using std::string;
+
+
 // Initialization of the counter for the paragraph id's,
-unsigned int Paragraph::Private::paragraph_id = 0;
+unsigned int Paragraph::Pimpl::paragraph_id = 0;
 
 namespace {
 
@@ -229,48 +264,49 @@ size_t const phrases_nr = sizeof(special_phrases)/sizeof(special_phrase);
 } // namespace anon
 
 
-Paragraph::Private::Private(Paragraph * owner, Layout const & layout)
-	: owner_(owner), inset_owner_(0), begin_of_body_(0), layout_(&layout)
+Paragraph::Pimpl::Pimpl(Paragraph * owner)
+	: owner_(owner)
 {
-	id_ = paragraph_id++;
-	text_.reserve(100);
-}
-
-
-Paragraph::Private::Private(Private const & p, Paragraph * owner)
-	: owner_(owner), inset_owner_(p.inset_owner_), fontlist_(p.fontlist_), 
-	  params_(p.params_), changes_(p.changes_), insetlist_(p.insetlist_),
-	  begin_of_body_(p.begin_of_body_), text_(p.text_), words_(p.words_),
-	  layout_(p.layout_)
-{
+	inset_owner = 0;
 	id_ = paragraph_id++;
 }
 
 
-bool Paragraph::isChanged(pos_type start, pos_type end) const
+Paragraph::Pimpl::Pimpl(Pimpl const & p, Paragraph * owner)
+	: params(p.params), changes_(p.changes_), owner_(owner)
 {
-	LASSERT(start >= 0 && start <= size(), /**/);
-	LASSERT(end > start && end <= size() + 1, /**/);
-
-	return d->changes_.isChanged(start, end);
+	inset_owner = p.inset_owner;
+	fontlist = p.fontlist;
+	id_ = paragraph_id++;
 }
 
 
-bool Paragraph::isMergedOnEndOfParDeletion(bool trackChanges) const
+bool Paragraph::Pimpl::isChanged(pos_type start, pos_type end) const
 {
+	BOOST_ASSERT(start >= 0 && start <= size());
+	BOOST_ASSERT(end > start && end <= size() + 1);
+
+	return changes_.isChanged(start, end);
+}
+
+
+bool Paragraph::Pimpl::isMergedOnEndOfParDeletion(bool trackChanges) const {
 	// keep the logic here in sync with the logic of eraseChars()
-	if (!trackChanges)
-		return true;
 
-	Change const change = d->changes_.lookup(size());
+	if (!trackChanges) {
+		return true;
+	}
+
+	Change change = changes_.lookup(size());
+
 	return change.type == Change::INSERTED && change.author == 0;
 }
 
 
-void Paragraph::setChange(Change const & change)
+void Paragraph::Pimpl::setChange(Change const & change)
 {
 	// beware of the imaginary end-of-par character!
-	d->changes_.set(change, 0, size() + 1);
+	changes_.set(change, 0, size() + 1);
 
 	/*
 	 * Propagate the change recursively - but not in case of DELETED!
@@ -286,51 +322,58 @@ void Paragraph::setChange(Change const & change)
 
 	if (change.type != Change::DELETED) {
 		for (pos_type pos = 0; pos < size(); ++pos) {
-			if (Inset * inset = getInset(pos))
-				inset->setChange(change);
+			if (owner_->isInset(pos)) {
+				owner_->getInset(pos)->setChange(change);
+			}
 		}
 	}
 }
 
 
-void Paragraph::setChange(pos_type pos, Change const & change)
+void Paragraph::Pimpl::setChange(pos_type pos, Change const & change)
 {
-	LASSERT(pos >= 0 && pos <= size(), /**/);
-	d->changes_.set(change, pos);
+	BOOST_ASSERT(pos >= 0 && pos <= size());
+
+	changes_.set(change, pos);
 
 	// see comment in setChange(Change const &) above
-	if (change.type != Change::DELETED && pos < size())
-			if (Inset * inset = getInset(pos))
-				inset->setChange(change);
+
+	if (change.type != Change::DELETED &&
+	    pos < size() && owner_->isInset(pos)) {
+		owner_->getInset(pos)->setChange(change);
+	}
 }
 
 
-Change const & Paragraph::lookupChange(pos_type pos) const
+Change const & Paragraph::Pimpl::lookupChange(pos_type pos) const
 {
-	LASSERT(pos >= 0 && pos <= size(), /**/);
-	return d->changes_.lookup(pos);
+	BOOST_ASSERT(pos >= 0 && pos <= size());
+
+	return changes_.lookup(pos);
 }
 
 
-void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start,
-		pos_type end)
+void Paragraph::Pimpl::acceptChanges(BufferParams const & bparams, pos_type start, pos_type end)
 {
-	LASSERT(start >= 0 && start <= size(), /**/);
-	LASSERT(end > start && end <= size() + 1, /**/);
+	BOOST_ASSERT(start >= 0 && start <= size());
+	BOOST_ASSERT(end > start && end <= size() + 1);
 
 	for (pos_type pos = start; pos < end; ++pos) {
 		switch (lookupChange(pos).type) {
 			case Change::UNCHANGED:
 				// accept changes in nested inset
-				if (Inset * inset = getInset(pos))
-					inset->acceptChanges(bparams);
+				if (pos < size() && owner_->isInset(pos)) {
+					owner_->getInset(pos)->acceptChanges(bparams);
+				}
+
 				break;
 
 			case Change::INSERTED:
-				d->changes_.set(Change(Change::UNCHANGED), pos);
+				changes_.set(Change(Change::UNCHANGED), pos);
 				// also accept changes in nested inset
-				if (Inset * inset = getInset(pos))
-					inset->acceptChanges(bparams);
+				if (pos < size() && owner_->isInset(pos)) {
+					owner_->getInset(pos)->acceptChanges(bparams);
+				}
 				break;
 
 			case Change::DELETED:
@@ -348,18 +391,18 @@ void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start,
 }
 
 
-void Paragraph::rejectChanges(BufferParams const & bparams,
-		pos_type start, pos_type end)
+void Paragraph::Pimpl::rejectChanges(BufferParams const & bparams, pos_type start, pos_type end)
 {
-	LASSERT(start >= 0 && start <= size(), /**/);
-	LASSERT(end > start && end <= size() + 1, /**/);
+	BOOST_ASSERT(start >= 0 && start <= size());
+	BOOST_ASSERT(end > start && end <= size() + 1);
 
 	for (pos_type pos = start; pos < end; ++pos) {
 		switch (lookupChange(pos).type) {
 			case Change::UNCHANGED:
 				// reject changes in nested inset
-				if (Inset * inset = getInset(pos))
-						inset->rejectChanges(bparams);
+				if (pos < size() && owner_->isInset(pos)) {
+					owner_->getInset(pos)->rejectChanges(bparams);
+				}
 				break;
 
 			case Change::INSERTED:
@@ -373,7 +416,7 @@ void Paragraph::rejectChanges(BufferParams const & bparams,
 				break;
 
 			case Change::DELETED:
-				d->changes_.set(Change(Change::UNCHANGED), pos);
+				changes_.set(Change(Change::UNCHANGED), pos);
 
 				// Do NOT reject changes within a deleted inset!
 				// There may be insertions of a co-author inside of it!
@@ -384,54 +427,67 @@ void Paragraph::rejectChanges(BufferParams const & bparams,
 }
 
 
-void Paragraph::Private::insertChar(pos_type pos, char_type c,
-		Change const & change)
+Paragraph::value_type Paragraph::Pimpl::getChar(pos_type pos) const
 {
-	LASSERT(pos >= 0 && pos <= int(text_.size()), /**/);
+	BOOST_ASSERT(pos >= 0 && pos <= size());
+
+	return owner_->getChar(pos);
+}
+
+
+void Paragraph::Pimpl::insertChar(pos_type pos, value_type c, Change const & change)
+{
+	BOOST_ASSERT(pos >= 0 && pos <= size());
 
 	// track change
 	changes_.insert(change, pos);
 
 	// This is actually very common when parsing buffers (and
 	// maybe inserting ascii text)
-	if (pos == pos_type(text_.size())) {
+	if (pos == size()) {
 		// when appending characters, no need to update tables
-		text_.push_back(c);
+		owner_->text_.push_back(c);
 		return;
 	}
 
-	text_.insert(text_.begin() + pos, c);
+	owner_->text_.insert(owner_->text_.begin() + pos, c);
 
 	// Update the font table.
-	fontlist_.increasePosAfterPos(pos);
+	FontTable search_font(pos, Font());
+	for (FontList::iterator it
+	      = lower_bound(fontlist.begin(), fontlist.end(), search_font, matchFT());
+	     it != fontlist.end(); ++it)
+	{
+		it->pos(it->pos() + 1);
+	}
 
 	// Update the insets
-	insetlist_.increasePosAfterPos(pos);
+	owner_->insetlist.increasePosAfterPos(pos);
 }
 
 
-void Paragraph::insertInset(pos_type pos, Inset * inset,
+void Paragraph::Pimpl::insertInset(pos_type pos, Inset * inset,
 				   Change const & change)
 {
-	LASSERT(inset, /**/);
-	LASSERT(pos >= 0 && pos <= size(), /**/);
+	BOOST_ASSERT(inset);
+	BOOST_ASSERT(pos >= 0 && pos <= size());
 
-	d->insertChar(pos, META_INSET, change);
-	LASSERT(d->text_[pos] == META_INSET, /**/);
+	insertChar(pos, META_INSET, change);
+	BOOST_ASSERT(owner_->text_[pos] == META_INSET);
 
-	// Add a new entry in the insetlist_.
-	d->insetlist_.insert(inset, pos);
+	// Add a new entry in the insetlist.
+	owner_->insetlist.insert(inset, pos);
 }
 
 
-bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
+bool Paragraph::Pimpl::eraseChar(pos_type pos, bool trackChanges)
 {
-	LASSERT(pos >= 0 && pos <= size(), /**/);
+	BOOST_ASSERT(pos >= 0 && pos <= size());
 
 	// keep the logic here in sync with the logic of isMergedOnEndOfParDeletion()
 
 	if (trackChanges) {
-		Change change = d->changes_.lookup(pos);
+		Change change = changes_.lookup(pos);
 
 		// set the character to DELETED if
 		//  a) it was previously unchanged or
@@ -455,28 +511,56 @@ bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
 	}
 
 	// track change
-	d->changes_.erase(pos);
+	changes_.erase(pos);
 
 	// if it is an inset, delete the inset entry
-	if (d->text_[pos] == META_INSET)
-		d->insetlist_.erase(pos);
+	if (owner_->text_[pos] == Paragraph::META_INSET) {
+		owner_->insetlist.erase(pos);
+	}
 
-	d->text_.erase(d->text_.begin() + pos);
+	owner_->text_.erase(owner_->text_.begin() + pos);
 
-	// Update the fontlist_
-	d->fontlist_.erase(pos);
+	// Erase entries in the tables.
+	FontTable search_font(pos, Font());
 
-	// Update the insetlist_
-	d->insetlist_.decreasePosAfterPos(pos);
+	FontList::iterator it =
+		lower_bound(fontlist.begin(),
+			    fontlist.end(),
+			    search_font, matchFT());
+	if (it != fontlist.end() && it->pos() == pos &&
+	    (pos == 0 ||
+	     (it != fontlist.begin()
+	      && boost::prior(it)->pos() == pos - 1))) {
+		// If it is a multi-character font
+		// entry, we just make it smaller
+		// (see update below), otherwise we
+		// should delete it.
+		unsigned int const i = it - fontlist.begin();
+		fontlist.erase(fontlist.begin() + i);
+		it = fontlist.begin() + i;
+		if (i > 0 && i < fontlist.size() &&
+		    fontlist[i - 1].font() == fontlist[i].font()) {
+			fontlist.erase(fontlist.begin() + i - 1);
+			it = fontlist.begin() + i - 1;
+		}
+	}
+
+	// Update all other entries
+	FontList::iterator fend = fontlist.end();
+	for (; it != fend; ++it)
+		it->pos(it->pos() - 1);
+
+	// Update the insetlist
+	owner_->insetlist.decreasePosAfterPos(pos);
 
 	return true;
 }
 
 
-int Paragraph::eraseChars(pos_type start, pos_type end, bool trackChanges)
+int Paragraph::Pimpl::eraseChars(pos_type start, pos_type end, bool trackChanges)
 {
-	LASSERT(start >= 0 && start <= size(), /**/);
-	LASSERT(end >= start && end <= size() + 1, /**/);
+	BOOST_ASSERT(start >= 0 && start <= size());
+	BOOST_ASSERT(end >= start && end <= size() + 1);
 
 	pos_type i = start;
 	for (pos_type count = end - start; count; --count) {
@@ -487,8 +571,8 @@ int Paragraph::eraseChars(pos_type start, pos_type end, bool trackChanges)
 }
 
 
-int Paragraph::Private::latexSurrogatePair(odocstream & os, char_type c,
-		char_type next, Encoding const & encoding)
+int Paragraph::Pimpl::latexSurrogatePair(odocstream & os, value_type c,
+		value_type next, Encoding const & encoding)
 {
 	// Writing next here may circumvent a possible font change between
 	// c and next. Since next is only output if it forms a surrogate pair
@@ -499,32 +583,27 @@ int Paragraph::Private::latexSurrogatePair(odocstream & os, char_type c,
 	// Is this correct WRT change tracking?
 	docstring const latex1 = encoding.latexChar(next);
 	docstring const latex2 = encoding.latexChar(c);
-	if (docstring(1, next) == latex1) {
-		// the encoding supports the combination
-		os << latex2 << latex1;
-		return latex1.length() + latex2.length();
-	} else
-		os << latex1 << '{' << latex2 << '}';
+	os << latex1 << '{' << latex2 << '}';
 	return latex1.length() + latex2.length() + 2;
 }
 
 
-bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
+bool Paragraph::Pimpl::simpleTeXBlanks(Encoding const & encoding,
 				       odocstream & os, TexRow & texrow,
-				       pos_type i,
+				       pos_type & i,
 				       unsigned int & column,
 				       Font const & font,
 				       Layout const & style)
 {
-	if (style.pass_thru || runparams.verbatim)
+	if (style.pass_thru)
 		return false;
 
-	if (i + 1 < int(text_.size())) {
-		char_type next = text_[i + 1];
+	if (i + 1 < size()) {
+		char_type next = getChar(i + 1);
 		if (Encodings::isCombiningChar(next)) {
-			Encoding const & encoding = *(runparams.encoding);
 			// This space has an accent, so we must always output it.
 			column += latexSurrogatePair(os, ' ', next, encoding) - 1;
+			++i;
 			return true;
 		}
 	}
@@ -532,17 +611,17 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 	if (lyxrc.plaintext_linelen > 0
 	    && column > lyxrc.plaintext_linelen
 	    && i
-	    && text_[i - 1] != ' '
-	    && (i + 1 < int(text_.size()))
+	    && getChar(i - 1) != ' '
+	    && (i + 1 < size())
 	    // same in FreeSpacing mode
 	    && !owner_->isFreeSpacing()
 	    // In typewriter mode, we want to avoid
 	    // ! . ? : at the end of a line
-	    && !(font.fontInfo().family() == TYPEWRITER_FAMILY
-		 && (text_[i - 1] == '.'
-		     || text_[i - 1] == '?'
-		     || text_[i - 1] == ':'
-		     || text_[i - 1] == '!'))) {
+	    && !(font.family() == Font::TYPEWRITER_FAMILY
+		 && (getChar(i - 1) == '.'
+		     || getChar(i - 1) == '?'
+		     || getChar(i - 1) == ':'
+		     || getChar(i - 1) == '!'))) {
 		os << '\n';
 		texrow.newline();
 		texrow.start(owner_->id(), i + 1);
@@ -556,20 +635,19 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 }
 
 
-int Paragraph::Private::writeScriptChars(odocstream & os,
-					 docstring const & ltx,
-					 Change & runningChange,
-					 Encoding const & encoding,
-					 pos_type & i)
+int Paragraph::Pimpl::writeScriptChars(odocstream & os,
+				       value_type /*c*/,
+				       docstring const & ltx,
+				       Change & runningChange,
+				       Encoding const & encoding,
+				       pos_type & i)
 {
-	// FIXME: modifying i here is not very nice...
-
-	// We only arrive here when a proper language for character text_[i] has
-	// not been specified (i.e., it could not be translated in the current
+	// We only arrive here when a proper language for character c has not
+	// been specified (i.e., it could not be translated in the current
 	// latex encoding) and it belongs to a known script.
-	// Parameter ltx contains the latex translation of text_[i] as specified in
+	// Parameter ltx contains the latex translation of c as specified in
 	// the unicodesymbols file and is something like "\textXXX{<spec>}".
-	// The latex macro name "textXXX" specifies the script to which text_[i]
+	// The latex macro name "textXXX" specifies the script to which c
 	// belongs and we use it in order to check whether characters from the
 	// same script immediately follow, such that we can collect them in a
 	// single "\textXXX" macro. So, we have to retain "\textXXX{<spec>"
@@ -579,18 +657,17 @@ int Paragraph::Private::writeScriptChars(odocstream & os,
 	string script = to_ascii(ltx.substr(1, brace1 - 1));
 	int length = ltx.substr(0, brace2).length();
 	os << ltx.substr(0, brace2);
-	int size = text_.size();
-	while (i + 1 < size) {
-		char_type const next = text_[i + 1];
+	while (i + 1 < size()) {
+		char_type const next = getChar(i + 1);
 		// Stop here if next character belongs to another script
 		// or there is a change in change tracking status.
 		if (!Encodings::isKnownScriptChar(next, script) ||
-		    runningChange != owner_->lookupChange(i + 1))
+		    runningChange != lookupChange(i + 1))
 			break;
 		Font prev_font;
 		bool found = false;
-		FontList::const_iterator cit = fontlist_.begin();
-		FontList::const_iterator end = fontlist_.end();
+		FontList::const_iterator cit = fontlist.begin();
+		FontList::const_iterator end = fontlist.end();
 		for (; cit != end; ++cit) {
 			if (cit->pos() >= i && !found) {
 				prev_font = cit->font();
@@ -618,27 +695,37 @@ int Paragraph::Private::writeScriptChars(odocstream & os,
 }
 
 
-bool Paragraph::Private::isTextAt(string const & str, pos_type pos) const
+bool Paragraph::Pimpl::isTextAt(string const & str, pos_type pos) const
 {
 	pos_type const len = str.length();
 
 	// is the paragraph large enough?
-	if (pos + len > int(text_.size()))
+	if (pos + len > size())
 		return false;
 
 	// does the wanted text start at point?
 	for (string::size_type i = 0; i < str.length(); ++i) {
 		// Caution: direct comparison of characters works only
 		// because str is pure ASCII.
-		if (str[i] != text_[pos + i])
+		if (str[i] != owner_->text_[pos + i])
 			return false;
 	}
 
-	return fontlist_.hasChangeInRange(pos, len);
+	// is there a font change in middle of the word?
+	FontList::const_iterator cit = fontlist.begin();
+	FontList::const_iterator end = fontlist.end();
+	for (; cit != end; ++cit) {
+		if (cit->pos() >= pos)
+			break;
+	}
+	if (cit != end && pos + len - 1 > cit->pos())
+		return false;
+
+	return true;
 }
 
 
-void Paragraph::Private::latexInset(
+void Paragraph::Pimpl::simpleTeXSpecialChars(Buffer const & buf,
 					     BufferParams const & bparams,
 					     odocstream & os,
 					     TexRow & texrow,
@@ -650,368 +737,387 @@ void Paragraph::Private::latexInset(
 					     Change & running_change,
 					     Layout const & style,
 					     pos_type & i,
-					     unsigned int & column)
+					     unsigned int & column,
+					     value_type const c)
 {
-	Inset * inset = owner_->getInset(i);
-	LASSERT(inset, /**/);
-
 	if (style.pass_thru) {
-		inset->plaintext(os, runparams);
+		if (c != Paragraph::META_INSET) {
+			if (c != '\0')
+				// FIXME UNICODE: This can fail if c cannot
+				// be encoded in the current encoding.
+				os.put(c);
+		} else
+			owner_->getInset(i)->plaintext(buf, os, runparams);
 		return;
 	}
 
-	// FIXME: move this to InsetNewline::latex
-	if (inset->lyxCode() == NEWLINE_CODE) {
-		// newlines are handled differently here than
-		// the default in simpleTeXSpecialChars().
-		if (!style.newline_allowed) {
-			os << '\n';
-		} else {
-			if (open_font) {
-				column += running_font.latexWriteEndChanges(
-					os, bparams, runparams,
-					basefont, basefont);
-				open_font = false;
-			}
-
-			if (running_font.fontInfo().family() == TYPEWRITER_FAMILY)
-				os << '~';
-
-			basefont = owner_->getLayoutFont(bparams, outerfont);
-			running_font = basefont;
-
-			if (runparams.moving_arg)
-				os << "\\protect ";
-
-		}
-		texrow.newline();
-		texrow.start(owner_->id(), i + 1);
-		column = 0;
-	}
-
-	if (owner_->lookupChange(i).type == Change::DELETED) {
-		if( ++runparams.inDeletedInset == 1)
-			runparams.changeOfDeletedInset = owner_->lookupChange(i);
-	}
-
-	if (inset->canTrackChanges()) {
-		column += Changes::latexMarkChange(os, bparams, running_change,
-			Change(Change::UNCHANGED));
-		running_change = Change(Change::UNCHANGED);
-	}
-
-	bool close = false;
-	odocstream::pos_type const len = os.tellp();
-
-	if (inset->forceLTR() 
-	    && running_font.isRightToLeft()
-		// ERT is an exception, it should be output with no decorations at all
-		&& inset->lyxCode() != ERT_CODE) {
-	    	if (running_font.language()->lang() == "farsi")
-			os << "\\beginL{}";
-		else
-			os << "\\L{";
-		close = true;
-	}
-
-	// FIXME: Bug: we can have an empty font change here!
-	// if there has just been a font change, we are going to close it
-	// right now, which means stupid latex code like \textsf{}. AFAIK,
-	// this does not harm dvi output. A minor bug, thus (JMarc)
-
-	// Some insets cannot be inside a font change command.
-	// However, even such insets *can* be placed in \L or \R
-	// or their equivalents (for RTL language switches), so we don't
-	// close the language in those cases.
-	// ArabTeX, though, cannot handle this special behavior, it seems.
-	bool arabtex = basefont.language()->lang() == "arabic_arabtex"
-		|| running_font.language()->lang() == "arabic_arabtex";
-	if (open_font && inset->noFontChange()) {
-		bool closeLanguage = arabtex
-			|| basefont.isRightToLeft() == running_font.isRightToLeft();
-		unsigned int count = running_font.latexWriteEndChanges(os,
-			bparams, runparams, basefont, basefont, closeLanguage);
-		column += count;
-		// if any font properties were closed, update the running_font, 
-		// making sure, however, to leave the language as it was
-		if (count > 0) {
-			// FIXME: probably a better way to keep track of the old 
-			// language, than copying the entire font?
-			Font const copy_font(running_font);
-			basefont = owner_->getLayoutFont(bparams, outerfont);
-			running_font = basefont;
-			if (!closeLanguage)
-				running_font.setLanguage(copy_font.language());
-			// leave font open if language is still open
-			open_font = (running_font.language() == basefont.language());
-			if (closeLanguage)
-				runparams.local_font = &basefont;
-		}
-	}
-
-	int tmp;
-
-	try {
-		tmp = inset->latex(os, runparams);
-	} catch (EncodingException & e) {
-		// add location information and throw again.
-		e.par_id = id_;
-		e.pos = i;
-		throw(e);
-	}
-
-	if (close) {
-    	if (running_font.language()->lang() == "farsi")
-			os << "\\endL{}";
-		else
-			os << '}';
-	}
-
-	if (tmp) {
-		for (int j = 0; j < tmp; ++j)
-			texrow.newline();
-
-		texrow.start(owner_->id(), i + 1);
-		column = 0;
-	} else {
-		column += os.tellp() - len;
-	}
-
-	if (owner_->lookupChange(i).type == Change::DELETED)
-		--runparams.inDeletedInset;
-}
-
-
-void Paragraph::Private::latexSpecialChar(
-					     odocstream & os,
-					     OutputParams & runparams,
-					     Font & running_font,
-					     Change & running_change,
-					     Layout const & style,
-					     pos_type & i,
-					     unsigned int & column)
-{
-	char_type const c = text_[i];
-
-	if (style.pass_thru) {
-		if (c != '\0')
-			// FIXME UNICODE: This can fail if c cannot
-			// be encoded in the current encoding.
-			os.put(c);
-		return;
-	}
-
-	if (runparams.verbatim) {
-		// FIXME UNICODE: This can fail if c cannot
-		// be encoded in the current encoding.
-		os.put(c);
-		return;
-	}
-
-	if (lyxrc.fontenc == "T1" && latexSpecialT1(c, os, i, column))
-		return;
-
-	if (running_font.fontInfo().family() == TYPEWRITER_FAMILY
-		&& latexSpecialTypewriter(c, os, i, column))
-		return;
-
-	// Otherwise, we use what LaTeX provides us.
+	// Two major modes:  LaTeX or plain
+	// Handle here those cases common to both modes
+	// and then split to handle the two modes separately.
 	switch (c) {
-	case '\\':
-		os << "\\textbackslash{}";
-		column += 15;
-		break;
-	case '<':
-		os << "\\textless{}";
-		column += 10;
-		break;
-	case '>':
-		os << "\\textgreater{}";
-		column += 13;
-		break;
-	case '|':
-		os << "\\textbar{}";
-		column += 9;
-		break;
-	case '-':
-		os << '-';
-		break;
-	case '\"':
-		os << "\\char`\\\"{}";
-		column += 9;
-		break;
+	case Paragraph::META_INSET: {
+		Inset * inset = owner_->getInset(i);
 
-	case '$': case '&':
-	case '%': case '#': case '{':
-	case '}': case '_':
-		os << '\\';
-		os.put(c);
-		column += 1;
-		break;
+		// FIXME: remove this check
+		if (!inset)
+			break;
 
-	case '~':
-		os << "\\textasciitilde{}";
-		column += 16;
-		break;
+		// FIXME: move this to InsetNewline::latex
+		if (inset->lyxCode() == Inset::NEWLINE_CODE) {
+			// newlines are handled differently here than
+			// the default in simpleTeXSpecialChars().
+			if (!style.newline_allowed) {
+				os << '\n';
+			} else {
+				if (open_font) {
+					column += running_font.latexWriteEndChanges(
+						os, bparams, runparams,
+						basefont, basefont);
+					open_font = false;
+				}
 
-	case '^':
-		os << "\\textasciicircum{}";
-		column += 17;
-		break;
+				if (running_font.family() == Font::TYPEWRITER_FAMILY)
+					os << '~';
 
-	case '*': case '[':
-		// avoid being mistaken for optional arguments
-		os << '{';
-		os.put(c);
-		os << '}';
-		column += 2;
-		break;
+				basefont = owner_->getLayoutFont(bparams, outerfont);
+				running_font = basefont;
 
-	case ' ':
-		// Blanks are printed before font switching.
-		// Sure? I am not! (try nice-latex)
-		// I am sure it's correct. LyX might be smarter
-		// in the future, but for now, nothing wrong is
-		// written. (Asger)
-		break;
+				if (runparams.moving_arg)
+					os << "\\protect ";
+
+				os << "\\\\\n";
+			}
+			texrow.newline();
+			texrow.start(owner_->id(), i + 1);
+			column = 0;
+			break;
+		}
+
+		if (lookupChange(i).type == Change::DELETED) {
+			if( ++runparams.inDeletedInset == 1)
+				runparams.changeOfDeletedInset = lookupChange(i);
+		}
+
+		if (inset->canTrackChanges()) {
+			column += Changes::latexMarkChange(os, bparams, running_change,
+				Change(Change::UNCHANGED));
+			running_change = Change(Change::UNCHANGED);
+		}
+
+		bool close = false;
+		odocstream::pos_type const len = os.tellp();
+
+		if ((inset->lyxCode() == Inset::GRAPHICS_CODE
+		     || inset->lyxCode() == Inset::MATH_CODE
+		     || inset->lyxCode() == Inset::URL_CODE)
+		    && running_font.isRightToLeft()) {
+		    	if (running_font.language()->lang() == "farsi")
+				os << "\\beginL{}";
+			else
+				os << "\\L{";
+			close = true;
+		}
+
+#ifdef WITH_WARNINGS
+#warning Bug: we can have an empty font change here!
+// if there has just been a font change, we are going to close it
+// right now, which means stupid latex code like \textsf{}. AFAIK,
+// this does not harm dvi output. A minor bug, thus (JMarc)
+#endif
+		// Some insets cannot be inside a font change command.
+		// However, even such insets *can* be placed in \L or \R
+		// or their equivalents (for RTL language switches), so we don't
+		// close the language in those cases.
+		// ArabTeX, though, cannot handle this special behavior, it seems.
+		bool arabtex = basefont.language()->lang() == "arabic_arabtex" ||
+					   running_font.language()->lang() == "arabic_arabtex";
+		if (open_font && inset->noFontChange()) {
+			bool closeLanguage = arabtex ||
+				basefont.isRightToLeft() == running_font.isRightToLeft();
+			unsigned int count = running_font.latexWriteEndChanges(
+					os, bparams, runparams,
+						basefont, basefont, closeLanguage);
+			column += count;
+			// if any font properties were closed, update the running_font, 
+			// making sure, however, to leave the language as it was
+			if (count > 0) {
+				// FIXME: probably a better way to keep track of the old 
+				// language, than copying the entire font?
+				Font const copy_font(running_font);
+				basefont = owner_->getLayoutFont(bparams, outerfont);
+				running_font = basefont;
+				if (!closeLanguage)
+					running_font.setLanguage(copy_font.language());
+				// leave font open if language is still open
+				open_font = (running_font.language() == basefont.language());
+				if (closeLanguage)
+					runparams.local_font = &basefont;
+			}
+		}
+
+		int tmp = inset->latex(buf, os, runparams);
+
+		if (close) {
+		    	if (running_font.language()->lang() == "farsi")
+				os << "\\endL{}";
+			else
+				os << '}';
+		}
+
+		if (tmp) {
+			for (int j = 0; j < tmp; ++j) {
+				texrow.newline();
+			}
+			texrow.start(owner_->id(), i + 1);
+			column = 0;
+		} else {
+			column += os.tellp() - len;
+		}
+
+		if (lookupChange(i).type == Change::DELETED) {
+			--runparams.inDeletedInset;
+		}
+	}
+	break;
 
 	default:
-		// LyX, LaTeX etc.
-		if (latexSpecialPhrase(os, i, column, runparams))
-			return;
+		// And now for the special cases within each mode
 
-		if (c == '\0')
-			return;
+		switch (c) {
+		case '\\':
+			os << "\\textbackslash{}";
+			column += 15;
+			break;
 
-		Encoding const & encoding = *(runparams.encoding);
-		if (i + 1 < int(text_.size())) {
-			char_type next = text_[i + 1];
-			if (Encodings::isCombiningChar(next)) {
-				column += latexSurrogatePair(os, c, next, encoding) - 1;
-				++i;
+		case '|': case '<': case '>':
+			// In T1 encoding, these characters exist
+			if (lyxrc.fontenc == "T1") {
+				os.put(c);
+				//... but we should avoid ligatures
+				if ((c == '>' || c == '<')
+				    && i <= size() - 2
+				    && getChar(i + 1) == c) {
+					//os << "\\textcompwordmark{}";
+					//column += 19;
+					// Jean-Marc, have a look at
+					// this. I think this works
+					// equally well:
+					os << "\\,{}";
+					// Lgb
+					column += 3;
+				}
 				break;
 			}
-		}
-		string script;
-		docstring const latex = encoding.latexChar(c);
-		if (Encodings::isKnownScriptChar(c, script)
-		    && prefixIs(latex, from_ascii("\\" + script)))
-			column += writeScriptChars(os, latex,
-					running_change, encoding, i) - 1;
-		else if (latex.length() > 1 && latex[latex.length() - 1] != '}') {
-			// Prevent eating of a following
-			// space or command corruption by
-			// following characters
-			column += latex.length() + 1;
-			os << latex << "{}";
-		} else {
-			column += latex.length() - 1;
-			os << latex;
-		}
-		break;
-	}
-}
+			// Typewriter font also has them
+			if (running_font.family() == Font::TYPEWRITER_FAMILY) {
+				os.put(c);
+				break;
+			}
+			// Otherwise, we use what LaTeX
+			// provides us.
+			switch (c) {
+			case '<':
+				os << "\\textless{}";
+				column += 10;
+				break;
+			case '>':
+				os << "\\textgreater{}";
+				column += 13;
+				break;
+			case '|':
+				os << "\\textbar{}";
+				column += 9;
+				break;
+			}
+			break;
 
+		case '-': // "--" in Typewriter mode -> "-{}-"
+			if (i <= size() - 2 &&
+			    getChar(i + 1) == '-' &&
+			    running_font.family() == Font::TYPEWRITER_FAMILY) {
+				os << "-{}";
+				column += 2;
+			} else {
+				os << '-';
+			}
+			break;
 
-bool Paragraph::Private::latexSpecialT1(char_type const c, odocstream & os,
-	pos_type & i, unsigned int & column)
-{
-	switch (c) {
-	case '>':
-	case '<':
-		os.put(c);
-		// In T1 encoding, these characters exist
-		// but we should avoid ligatures
-		if (i + 1 >= int(text_.size()) || text_[i + 1] != c)
-			return true;
-		os << "\\textcompwordmark{}";
-		column += 19;
-		return true;
-	case '|':
-		os.put(c);
-		return true;
-	default:
-		return false;
-	}
-}
+		case '\"':
+			os << "\\char`\\\"{}";
+			column += 9;
+			break;
 
+		case '$': case '&':
+		case '%': case '#': case '{':
+		case '}': case '_':
+			os << '\\';
+			os.put(c);
+			column += 1;
+			break;
 
-bool Paragraph::Private::latexSpecialTypewriter(char_type const c, odocstream & os,
-	pos_type & i, unsigned int & column)
-{
-	switch (c) {
-	case '-':
-		// within \ttfamily, "--" is merged to "-" (no endash)
-		// so we avoid this rather irritating ligature
-		if (i + 1 < int(text_.size()) && text_[i + 1] == '-') {
-			os << "-{}";
+		case '~':
+			os << "\\textasciitilde{}";
+			column += 16;
+			break;
+
+		case '^':
+			os << "\\textasciicircum{}";
+			column += 17;
+			break;
+
+		case '*': case '[':
+			// avoid being mistaken for optional arguments
+			os << '{';
+			os.put(c);
+			os << '}';
 			column += 2;
-		} else
-			os << '-';
-		return true;
+			break;
 
-	// everything else has to be checked separately
-	// (depending on the encoding)
-	default:
-		return false;
+		case ' ':
+			// Blanks are printed before font switching.
+			// Sure? I am not! (try nice-latex)
+			// I am sure it's correct. LyX might be smarter
+			// in the future, but for now, nothing wrong is
+			// written. (Asger)
+			break;
+
+		default:
+
+			// I assume this is hack treating typewriter as verbatim
+			// FIXME UNICODE: This can fail if c cannot be encoded
+			// in the current encoding.
+			if (running_font.family() == Font::TYPEWRITER_FAMILY) {
+				if (c != '\0') {
+					os.put(c);
+				}
+				break;
+			}
+
+			// LyX, LaTeX etc.
+
+			// FIXME: if we have "LaTeX" with a font
+			// change in the middle (before the 'T', then
+			// the "TeX" part is still special cased.
+			// Really we should only operate this on
+			// "words" for some definition of word
+
+			size_t pnr = 0;
+
+			for (; pnr < phrases_nr; ++pnr) {
+				if (isTextAt(special_phrases[pnr].phrase, i)) {
+					os << special_phrases[pnr].macro;
+					i += special_phrases[pnr].phrase.length() - 1;
+					column += special_phrases[pnr].macro.length() - 1;
+					break;
+				}
+			}
+
+			if (pnr == phrases_nr && c != '\0') {
+				Encoding const & encoding = *(runparams.encoding);
+				if (i + 1 < size()) {
+					char_type next = getChar(i + 1);
+					if (Encodings::isCombiningChar(next)) {
+						column += latexSurrogatePair(os, c, next, encoding) - 1;
+						++i;
+						break;
+					}
+				}
+				string script;
+				docstring const latex = encoding.latexChar(c);
+				if (Encodings::isKnownScriptChar(c, script) &&
+				    prefixIs(latex, from_ascii("\\" + script)))
+					column += writeScriptChars(os, c, latex,
+							running_change,
+							encoding, i) - 1;
+				else if (latex.length() > 1 &&
+					   latex[latex.length() - 1] != '}') {
+					// Prevent eating of a following
+					// space or command corruption by
+					// following characters
+					column += latex.length() + 1;
+					os << latex << "{}";
+				} else {
+					column += latex.length() - 1;
+					os << latex;
+				}
+			}
+			break;
+		}
 	}
 }
 
 
-bool Paragraph::Private::latexSpecialPhrase(odocstream & os, pos_type & i,
-	unsigned int & column, OutputParams & runparams)
-{
-	// FIXME: if we have "LaTeX" with a font
-	// change in the middle (before the 'T', then
-	// the "TeX" part is still special cased.
-	// Really we should only operate this on
-	// "words" for some definition of word
-
-	for (size_t pnr = 0; pnr < phrases_nr; ++pnr) {
-		if (!isTextAt(special_phrases[pnr].phrase, i))
-			continue;
-		if (runparams.moving_arg)
-			os << "\\protect";
-		os << special_phrases[pnr].macro;
-		i += special_phrases[pnr].phrase.length() - 1;
-		column += special_phrases[pnr].macro.length() - 1;
-		return true;
-	}
-	return false;
-}
-
-
-void Paragraph::Private::validate(LaTeXFeatures & features,
+void Paragraph::Pimpl::validate(LaTeXFeatures & features,
 				Layout const & layout) const
 {
+	BufferParams const & bparams = features.bufferParams();
+
 	// check the params.
-	if (!params_.spacing().isDefault())
+	if (!params.spacing().isDefault())
 		features.require("setspace");
 
 	// then the layouts
 	features.useLayout(layout.name());
 
 	// then the fonts
-	fontlist_.validate(features);
+	Language const * doc_language = bparams.language;
 
-	// then the indentation
-	if (!params_.leftIndent().zero())
+	FontList::const_iterator fcit = fontlist.begin();
+	FontList::const_iterator fend = fontlist.end();
+	for (; fcit != fend; ++fcit) {
+		if (fcit->font().noun() == Font::ON) {
+			LYXERR(Debug::LATEX) << "font.noun: "
+					     << fcit->font().noun()
+					     << endl;
+			features.require("noun");
+			LYXERR(Debug::LATEX) << "Noun enabled. Font: "
+					     << to_utf8(fcit->font().stateText(0))
+					     << endl;
+		}
+		switch (fcit->font().color()) {
+		case Color::none:
+		case Color::inherit:
+		case Color::ignore:
+			// probably we should put here all interface colors used for
+			// font displaying! For now I just add this ones I know of (Jug)
+		case Color::latex:
+		case Color::note:
+			break;
+		default:
+			features.require("color");
+			LYXERR(Debug::LATEX) << "Color enabled. Font: "
+					     << to_utf8(fcit->font().stateText(0))
+					     << endl;
+		}
+
+		Language const * language = fcit->font().language();
+		if (language->babel() != doc_language->babel() &&
+		    language != ignore_language &&
+		    language != latex_language)
+		{
+			features.useLanguage(language);
+			LYXERR(Debug::LATEX) << "Found language "
+					     << language->lang() << endl;
+		}
+	}
+
+	if (!params.leftIndent().zero())
 		features.require("ParagraphLeftIndent");
 
 	// then the insets
-	InsetList::const_iterator icit = insetlist_.begin();
-	InsetList::const_iterator iend = insetlist_.end();
+	InsetList::const_iterator icit = owner_->insetlist.begin();
+	InsetList::const_iterator iend = owner_->insetlist.end();
 	for (; icit != iend; ++icit) {
 		if (icit->inset) {
 			icit->inset->validate(features);
 			if (layout.needprotect &&
-			    icit->inset->lyxCode() == FOOT_CODE)
+			    icit->inset->lyxCode() == Inset::FOOT_CODE)
 				features.require("NeedLyXFootnoteCode");
 		}
 	}
 
 	// then the contents
-	for (pos_type i = 0; i < int(text_.size()) ; ++i) {
+	for (pos_type i = 0; i < size() ; ++i) {
 		for (size_t pnr = 0; pnr < phrases_nr; ++pnr) {
 			if (!special_phrases[pnr].builtin
 			    && isTextAt(special_phrases[pnr].phrase, i)) {
@@ -1019,9 +1125,13 @@ void Paragraph::Private::validate(LaTeXFeatures & features,
 				break;
 			}
 		}
-		Encodings::validate(text_[i], features);
+		Encodings::validate(getChar(i), features);
 	}
 }
+
+
+} // namespace lyx
+
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -1029,36 +1139,48 @@ void Paragraph::Private::validate(LaTeXFeatures & features,
 //
 /////////////////////////////////////////////////////////////////////
 
-namespace {
-	Layout const emptyParagraphLayout;
-}
+namespace lyx {
 
-Paragraph::Paragraph() 
-	: d(new Paragraph::Private(this, emptyParagraphLayout))
+Paragraph::Paragraph()
+	: begin_of_body_(0), pimpl_(new Paragraph::Pimpl(this))
 {
 	itemdepth = 0;
-	d->params_.clear();
+	params().clear();
 }
 
 
 Paragraph::Paragraph(Paragraph const & par)
-	: itemdepth(par.itemdepth),
-	d(new Paragraph::Private(*par.d, this))
+	: itemdepth(par.itemdepth), insetlist(par.insetlist),
+	layout_(par.layout_),
+	text_(par.text_), begin_of_body_(par.begin_of_body_),
+	pimpl_(new Paragraph::Pimpl(*par.pimpl_, this))
 {
-	registerWords();
+	//lyxerr << "Paragraph::Paragraph(Paragraph const&)" << endl;
+	InsetList::iterator it = insetlist.begin();
+	InsetList::iterator end = insetlist.end();
+	for (; it != end; ++it)
+		it->inset = it->inset->clone().release();
 }
 
 
 Paragraph & Paragraph::operator=(Paragraph const & par)
 {
-	// needed as we will destroy the private part before copying it
+	// needed as we will destroy the pimpl_ before copying it
 	if (&par != this) {
 		itemdepth = par.itemdepth;
 
-		deregisterWords();
-		delete d;
-		d = new Private(*par.d, this);
-		registerWords();
+		insetlist = par.insetlist;
+		InsetList::iterator it = insetlist.begin();
+		InsetList::iterator end = insetlist.end();
+		for (; it != end; ++it)
+			it->inset = it->inset->clone().release();
+
+		layout_ = par.layout();
+		text_ = par.text_;
+		begin_of_body_ = par.begin_of_body_;
+
+		delete pimpl_;
+		pimpl_ = new Pimpl(*par.pimpl_, this);
 	}
 	return *this;
 }
@@ -1066,23 +1188,26 @@ Paragraph & Paragraph::operator=(Paragraph const & par)
 
 Paragraph::~Paragraph()
 {
-	deregisterWords();
-	delete d;
+	delete pimpl_;
+	//
+	//lyxerr << "Paragraph::paragraph_id = "
+	//       << Paragraph::paragraph_id << endl;
 }
 
 
-void Paragraph::write(ostream & os, BufferParams const & bparams,
-	depth_type & dth) const
+void Paragraph::write(Buffer const & buf, ostream & os,
+			  BufferParams const & bparams,
+			  depth_type & dth) const
 {
 	// The beginning or end of a deeper (i.e. nested) area?
-	if (dth != d->params_.depth()) {
-		if (d->params_.depth() > dth) {
-			while (d->params_.depth() > dth) {
+	if (dth != params().depth()) {
+		if (params().depth() > dth) {
+			while (params().depth() > dth) {
 				os << "\n\\begin_deeper";
 				++dth;
 			}
 		} else {
-			while (d->params_.depth() < dth) {
+			while (params().depth() < dth) {
 				os << "\n\\end_deeper";
 				--dth;
 			}
@@ -1090,18 +1215,18 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 	}
 
 	// First write the layout
-	os << "\n\\begin_layout " << to_utf8(d->layout_->name()) << '\n';
+	os << "\n\\begin_layout " << to_utf8(layout()->name()) << '\n';
 
-	d->params_.write(os);
+	params().write(os);
 
-	Font font1(inherit_font, bparams.language);
+	Font font1(Font::ALL_INHERIT, bparams.language);
 
 	Change running_change = Change(Change::UNCHANGED);
 
 	int column = 0;
 	for (pos_type i = 0; i <= size(); ++i) {
 
-		Change change = lookupChange(i);
+		Change change = pimpl_->lookupChange(i);
 		Changes::lyxMarkChange(os, column, running_change, change);
 		running_change = change;
 
@@ -1116,31 +1241,33 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 			font1 = font2;
 		}
 
-		char_type const c = d->text_[i];
+		value_type const c = getChar(i);
 		switch (c) {
 		case META_INSET:
-			if (Inset const * inset = getInset(i)) {
+		{
+			Inset const * inset = getInset(i);
+			if (inset)
 				if (inset->directWrite()) {
 					// international char, let it write
 					// code directly so it's shorter in
 					// the file
-					inset->write(os);
+					inset->write(buf, os);
 				} else {
 					if (i)
 						os << '\n';
 					os << "\\begin_inset ";
-					inset->write(os);
+					inset->write(buf, os);
 					os << "\n\\end_inset\n\n";
 					column = 0;
 				}
-			}
-			break;
+		}
+		break;
 		case '\\':
 			os << "\n\\backslash\n";
 			column = 0;
 			break;
 		case '.':
-			if (i + 1 < size() && d->text_[i + 1] == ' ') {
+			if (i + 1 < size() && getChar(i + 1) == ' ') {
 				os << ".\n";
 				column = 0;
 			} else
@@ -1154,10 +1281,13 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 			}
 			// this check is to amend a bug. LyX sometimes
 			// inserts '\0' this could cause problems.
-			if (c != '\0')
-				os << to_utf8(docstring(1, c));
-			else
-				LYXERR0("NUL char in structure.");
+			if (c != '\0') {
+				std::vector<char> tmp = ucs4_to_utf8(c);
+				tmp.push_back('\0');
+				os << &tmp[0];
+			} else
+				lyxerr << "ERROR (Paragraph::writeFile):"
+					" NULL char in structure." << endl;
 			++column;
 			break;
 		}
@@ -1169,7 +1299,19 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 
 void Paragraph::validate(LaTeXFeatures & features) const
 {
-	d->validate(features, *d->layout_);
+	pimpl_->validate(features, *layout());
+}
+
+
+bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
+{
+	return pimpl_->eraseChar(pos, trackChanges);
+}
+
+
+int Paragraph::eraseChars(pos_type start, pos_type end, bool trackChanges)
+{
+	return pimpl_->eraseChars(start, end, trackChanges);
 }
 
 
@@ -1181,129 +1323,112 @@ void Paragraph::insert(pos_type start, docstring const & str,
 }
 
 
-void Paragraph::appendChar(char_type c, Font const & font,
-		Change const & change)
-{
-	// track change
-	d->changes_.insert(change, d->text_.size());
-	// when appending characters, no need to update tables
-	d->text_.push_back(c);
-	setFont(d->text_.size() - 1, font);
-}
-
-
-void Paragraph::appendString(docstring const & s, Font const & font,
-		Change const & change)
-{
-	pos_type end = s.size();
-	size_t oldsize = d->text_.size();
-	size_t newsize = oldsize + end;
-	size_t capacity = d->text_.capacity();
-	if (newsize >= capacity)
-		d->text_.reserve(max(capacity + 100, newsize));
-
-	// when appending characters, no need to update tables
-	d->text_.append(s);
-
-	// FIXME: Optimize this!
-	for (pos_type i = oldsize; i != newsize; ++i) {
-		// track change
-		d->changes_.insert(change, i);
-	}
-	d->fontlist_.set(oldsize, font);
-	d->fontlist_.set(newsize - 1, font);
-}
-
-
-void Paragraph::insertChar(pos_type pos, char_type c,
+void Paragraph::insertChar(pos_type pos, Paragraph::value_type c,
 			   bool trackChanges)
 {
-	d->insertChar(pos, c, Change(trackChanges ?
+	pimpl_->insertChar(pos, c, Change(trackChanges ?
 			   Change::INSERTED : Change::UNCHANGED));
 }
 
 
-void Paragraph::insertChar(pos_type pos, char_type c,
+void Paragraph::insertChar(pos_type pos, Paragraph::value_type c,
 			   Font const & font, bool trackChanges)
 {
-	d->insertChar(pos, c, Change(trackChanges ?
+	pimpl_->insertChar(pos, c, Change(trackChanges ?
 			   Change::INSERTED : Change::UNCHANGED));
 	setFont(pos, font);
 }
 
 
-void Paragraph::insertChar(pos_type pos, char_type c,
+void Paragraph::insertChar(pos_type pos, Paragraph::value_type c,
 			   Font const & font, Change const & change)
 {
-	d->insertChar(pos, c, change);
+	pimpl_->insertChar(pos, c, change);
 	setFont(pos, font);
+}
+
+
+void Paragraph::insertInset(pos_type pos, Inset * inset,
+			    Change const & change)
+{
+	pimpl_->insertInset(pos, inset, change);
 }
 
 
 void Paragraph::insertInset(pos_type pos, Inset * inset,
 			    Font const & font, Change const & change)
 {
-	insertInset(pos, inset, change);
+	pimpl_->insertInset(pos, inset, change);
 	// Set the font/language of the inset...
 	setFont(pos, font);
+	// ... as well as the font/language of the text inside the inset
+	// FIXME: This is far from perfect. It basically overrides work being done
+	// in the InsetText constructor. Also, it doesn't work for Tables 
+	// (precisely because each cell's font/language is set in the Table's 
+	// constructor, so by now it's too late). The long-term solution should
+	// be moving current_font into Cursor, and getting rid of all this...
+	// (see http://thread.gmane.org/gmane.editors.lyx.devel/88869/focus=88944)
+	if (inset->asTextInset()) {
+		inset->asTextInset()->text_.current_font = font;
+		inset->asTextInset()->text_.real_current_font = font;
+	}
 }
 
 
-bool Paragraph::insetAllowed(InsetCode code)
+bool Paragraph::insetAllowed(Inset_code code)
 {
-	return !d->inset_owner_ || d->inset_owner_->insetAllowed(code);
+	return !pimpl_->inset_owner || pimpl_->inset_owner->insetAllowed(code);
 }
 
-
-void Paragraph::resetFonts(Font const & font)
-{
-	d->fontlist_.clear();
-	d->fontlist_.set(0, font);
-	d->fontlist_.set(d->text_.size() - 1, font);
-}
 
 // Gets uninstantiated font setting at position.
 Font const Paragraph::getFontSettings(BufferParams const & bparams,
 					 pos_type pos) const
 {
 	if (pos > size()) {
-		LYXERR0("pos: " << pos << " size: " << size());
-		LASSERT(pos <= size(), /**/);
+		lyxerr << " pos: " << pos << " size: " << size() << endl;
+		BOOST_ASSERT(pos <= size());
 	}
 
-	FontList::const_iterator cit = d->fontlist_.fontIterator(pos);
-	if (cit != d->fontlist_.end())
+	Pimpl::FontList::const_iterator cit = pimpl_->fontlist.begin();
+	Pimpl::FontList::const_iterator end = pimpl_->fontlist.end();
+	for (; cit != end; ++cit)
+		if (cit->pos() >= pos)
+			break;
+
+	if (cit != end)
 		return cit->font();
 
 	if (pos == size() && !empty())
 		return getFontSettings(bparams, pos - 1);
 
-	return Font(inherit_font, getParLanguage(bparams));
+	return Font(Font::ALL_INHERIT, getParLanguage(bparams));
 }
 
 
 FontSpan Paragraph::fontSpan(pos_type pos) const
 {
-	LASSERT(pos <= size(), /**/);
+	BOOST_ASSERT(pos <= size());
 	pos_type start = 0;
 
-	FontList::const_iterator cit = d->fontlist_.begin();
-	FontList::const_iterator end = d->fontlist_.end();
+	Pimpl::FontList::const_iterator cit = pimpl_->fontlist.begin();
+	Pimpl::FontList::const_iterator end = pimpl_->fontlist.end();
 	for (; cit != end; ++cit) {
 		if (cit->pos() >= pos) {
 			if (pos >= beginOfBody())
-				return FontSpan(max(start, beginOfBody()),
+				return FontSpan(std::max(start, beginOfBody()),
 						cit->pos());
 			else
 				return FontSpan(start,
-						min(beginOfBody() - 1,
+						std::min(beginOfBody() - 1,
 							 cit->pos()));
 		}
 		start = cit->pos() + 1;
 	}
 
 	// This should not happen, but if so, we take no chances.
-	// LYXERR0("Paragraph::getEndPosOfFontSpan: This should not happen!");
+	//lyxerr << "Paragraph::getEndPosOfFontSpan: This should not happen!"
+	//      << endl;
 	return FontSpan(pos, pos);
 }
 
@@ -1311,10 +1436,10 @@ FontSpan Paragraph::fontSpan(pos_type pos) const
 // Gets uninstantiated font setting at position 0
 Font const Paragraph::getFirstFontSettings(BufferParams const & bparams) const
 {
-	if (!empty() && !d->fontlist_.empty())
-		return d->fontlist_.begin()->font();
+	if (!empty() && !pimpl_->fontlist.empty())
+		return pimpl_->fontlist[0].font();
 
-	return Font(inherit_font, bparams.language);
+	return Font(Font::ALL_INHERIT, bparams.language);
 }
 
 
@@ -1326,18 +1451,22 @@ Font const Paragraph::getFirstFontSettings(BufferParams const & bparams) const
 Font const Paragraph::getFont(BufferParams const & bparams, pos_type pos,
 				 Font const & outerfont) const
 {
-	LASSERT(pos >= 0, /**/);
+	BOOST_ASSERT(pos >= 0);
 
-	Font font = getFontSettings(bparams, pos);
+	Layout_ptr const & lout = layout();
 
 	pos_type const body_pos = beginOfBody();
-	if (pos < body_pos)
-		font.fontInfo().realize(d->layout_->labelfont);
-	else
-		font.fontInfo().realize(d->layout_->font);
 
-	font.fontInfo().realize(outerfont.fontInfo());
-	font.fontInfo().realize(bparams.getFont().fontInfo());
+	Font layoutfont;
+	if (pos < body_pos)
+		layoutfont = lout->labelfont;
+	else
+		layoutfont = lout->font;
+
+	Font font = getFontSettings(bparams, pos);
+	font.realize(layoutfont);
+	font.realize(outerfont);
+	font.realize(bparams.getFont());
 
 	return font;
 }
@@ -1346,38 +1475,68 @@ Font const Paragraph::getFont(BufferParams const & bparams, pos_type pos,
 Font const Paragraph::getLabelFont
 	(BufferParams const & bparams, Font const & outerfont) const
 {
-	FontInfo tmpfont = d->layout_->labelfont;
-	tmpfont.realize(outerfont.fontInfo());
-	tmpfont.realize(bparams.getFont().fontInfo());
-	return Font(tmpfont, getParLanguage(bparams));
+	Font tmpfont = layout()->labelfont;
+	tmpfont.setLanguage(getParLanguage(bparams));
+	tmpfont.realize(outerfont);
+	tmpfont.realize(bparams.getFont());
+	return tmpfont;
 }
 
 
 Font const Paragraph::getLayoutFont
 	(BufferParams const & bparams, Font const & outerfont) const
 {
-	FontInfo tmpfont = d->layout_->font;
-	tmpfont.realize(outerfont.fontInfo());
-	tmpfont.realize(bparams.getFont().fontInfo());
-	return Font(tmpfont, getParLanguage(bparams));
+	Font tmpfont = layout()->font;
+	tmpfont.setLanguage(getParLanguage(bparams));
+	tmpfont.realize(outerfont);
+	tmpfont.realize(bparams.getFont());
+	return tmpfont;
 }
 
 
 /// Returns the height of the highest font in range
-FontSize Paragraph::highestFontInRange
-	(pos_type startpos, pos_type endpos, FontSize def_size) const
+Font_size Paragraph::highestFontInRange
+	(pos_type startpos, pos_type endpos, Font_size def_size) const
 {
-	return d->fontlist_.highestInRange(startpos, endpos, def_size);
+	if (pimpl_->fontlist.empty())
+		return def_size;
+
+	Pimpl::FontList::const_iterator end_it = pimpl_->fontlist.begin();
+	Pimpl::FontList::const_iterator const end = pimpl_->fontlist.end();
+	for (; end_it != end; ++end_it) {
+		if (end_it->pos() >= endpos)
+			break;
+	}
+
+	if (end_it != end)
+		++end_it;
+
+	Pimpl::FontList::const_iterator cit = pimpl_->fontlist.begin();
+	for (; cit != end; ++cit) {
+		if (cit->pos() >= startpos)
+			break;
+	}
+
+	Font::FONT_SIZE maxsize = Font::SIZE_TINY;
+	for (; cit != end_it; ++cit) {
+		Font::FONT_SIZE size = cit->font().size();
+		if (size == Font::INHERIT_SIZE)
+			size = def_size;
+		if (size > maxsize && size <= Font::SIZE_HUGER)
+			maxsize = size;
+	}
+	return maxsize;
 }
 
 
-char_type Paragraph::getUChar(BufferParams const & bparams, pos_type pos) const
+Paragraph::value_type
+Paragraph::getUChar(BufferParams const & bparams, pos_type pos) const
 {
-	char_type c = d->text_[pos];
+	value_type c = getChar(pos);
 	if (!lyxrc.rtl_support)
 		return c;
 
-	char_type uc = c;
+	value_type uc = c;
 	switch (c) {
 	case '(':
 		uc = ')';
@@ -1406,26 +1565,79 @@ char_type Paragraph::getUChar(BufferParams const & bparams, pos_type pos) const
 	}
 	if (uc != c && getFontSettings(bparams, pos).isRightToLeft())
 		return uc;
-	return c;
+	else
+		return c;
 }
 
 
 void Paragraph::setFont(pos_type pos, Font const & font)
 {
-	LASSERT(pos <= size(), /**/);
+	BOOST_ASSERT(pos <= size());
 
 	// First, reduce font against layout/label font
 	// Update: The setCharFont() routine in text2.cpp already
 	// reduces font, so we don't need to do that here. (Asger)
-	
-	d->fontlist_.set(pos, font);
+	// No need to simplify this because it will disappear
+	// in a new kernel. (Asger)
+	// Next search font table
+
+	Pimpl::FontList::iterator beg = pimpl_->fontlist.begin();
+	Pimpl::FontList::iterator it = beg;
+	Pimpl::FontList::iterator endit = pimpl_->fontlist.end();
+	for (; it != endit; ++it) {
+		if (it->pos() >= pos)
+			break;
+	}
+	size_t const i = distance(beg, it);
+	bool notfound = (it == endit);
+
+	if (!notfound && pimpl_->fontlist[i].font() == font)
+		return;
+
+	bool begin = pos == 0 || notfound ||
+		(i > 0 && pimpl_->fontlist[i - 1].pos() == pos - 1);
+	// Is position pos is a beginning of a font block?
+	bool end = !notfound && pimpl_->fontlist[i].pos() == pos;
+	// Is position pos is the end of a font block?
+	if (begin && end) { // A single char block
+		if (i + 1 < pimpl_->fontlist.size() &&
+		    pimpl_->fontlist[i + 1].font() == font) {
+			// Merge the singleton block with the next block
+			pimpl_->fontlist.erase(pimpl_->fontlist.begin() + i);
+			if (i > 0 && pimpl_->fontlist[i - 1].font() == font)
+				pimpl_->fontlist.erase(pimpl_->fontlist.begin() + i - 1);
+		} else if (i > 0 && pimpl_->fontlist[i - 1].font() == font) {
+			// Merge the singleton block with the previous block
+			pimpl_->fontlist[i - 1].pos(pos);
+			pimpl_->fontlist.erase(pimpl_->fontlist.begin() + i);
+		} else
+			pimpl_->fontlist[i].font(font);
+	} else if (begin) {
+		if (i > 0 && pimpl_->fontlist[i - 1].font() == font)
+			pimpl_->fontlist[i - 1].pos(pos);
+		else
+			pimpl_->fontlist.insert(pimpl_->fontlist.begin() + i,
+					Pimpl::FontTable(pos, font));
+	} else if (end) {
+		pimpl_->fontlist[i].pos(pos - 1);
+		if (!(i + 1 < pimpl_->fontlist.size() &&
+		      pimpl_->fontlist[i + 1].font() == font))
+			pimpl_->fontlist.insert(pimpl_->fontlist.begin() + i + 1,
+					Pimpl::FontTable(pos, font));
+	} else { // The general case. The block is splitted into 3 blocks
+		pimpl_->fontlist.insert(pimpl_->fontlist.begin() + i,
+				Pimpl::FontTable(pos - 1, pimpl_->fontlist[i].font()));
+		pimpl_->fontlist.insert(pimpl_->fontlist.begin() + i + 1,
+				Pimpl::FontTable(pos, font));
+	}
 }
 
 
 void Paragraph::makeSameLayout(Paragraph const & par)
 {
-	d->layout_ = par.d->layout_;
-	d->params_ = par.d->params_;
+	layout(par.layout());
+	// move to pimpl?
+	params() = par.params();
 }
 
 
@@ -1450,46 +1662,45 @@ bool Paragraph::stripLeadingSpaces(bool trackChanges)
 
 bool Paragraph::hasSameLayout(Paragraph const & par) const
 {
-	return par.d->layout_ == d->layout_
-		&& d->params_.sameLayout(par.d->params_);
+	return par.layout() == layout() && params().sameLayout(par.params());
 }
 
 
 depth_type Paragraph::getDepth() const
 {
-	return d->params_.depth();
+	return params().depth();
 }
 
 
 depth_type Paragraph::getMaxDepthAfter() const
 {
-	if (d->layout_->isEnvironment())
-		return d->params_.depth() + 1;
+	if (layout()->isEnvironment())
+		return params().depth() + 1;
 	else
-		return d->params_.depth();
+		return params().depth();
 }
 
 
 char Paragraph::getAlign() const
 {
-	if (d->params_.align() == LYX_ALIGN_LAYOUT)
-		return d->layout_->align;
+	if (params().align() == LYX_ALIGN_LAYOUT)
+		return layout()->align;
 	else
-		return d->params_.align();
+		return params().align();
 }
 
 
-docstring const & Paragraph::labelString() const
+docstring const & Paragraph::getLabelstring() const
 {
-	return d->params_.labelString();
+	return params().labelString();
 }
 
 
 // the next two functions are for the manual labels
 docstring const Paragraph::getLabelWidthString() const
 {
-	if (d->layout_->margintype == MARGIN_MANUAL)
-		return d->params_.labelWidthString();
+	if (layout()->margintype == MARGIN_MANUAL)
+		return params().labelWidthString();
 	else
 		return _("Senseless with this layout!");
 }
@@ -1497,14 +1708,14 @@ docstring const Paragraph::getLabelWidthString() const
 
 void Paragraph::setLabelWidthString(docstring const & s)
 {
-	d->params_.labelWidthString(s);
+	params().labelWidthString(s);
 }
 
 
 docstring const Paragraph::translateIfPossible(docstring const & s,
 		BufferParams const & bparams) const
 {
-	if (!isAscii(s) || s.empty()) {
+	if (!support::isAscii(s) || s.empty()) {
 		// This must be a user defined layout. We cannot translate
 		// this, since gettext accepts only ascii keys.
 		return s;
@@ -1515,21 +1726,17 @@ docstring const Paragraph::translateIfPossible(docstring const & s,
 }
 
 
-docstring Paragraph::expandLabel(Layout const & layout,
+docstring Paragraph::expandLabel(Layout_ptr const & layout,
 		BufferParams const & bparams, bool process_appendix) const
 {
-	DocumentClass const & tclass = bparams.documentClass();
+	TextClass const & tclass = bparams.getTextClass();
 
 	docstring fmt;
-	if (process_appendix && d->params_.appendix())
-		fmt = translateIfPossible(layout.labelstring_appendix(),
+	if (process_appendix && params().appendix())
+		fmt = translateIfPossible(layout->labelstring_appendix(),
 			bparams);
 	else
-		fmt = translateIfPossible(layout.labelstring(), bparams);
-
-	if (fmt.empty() && layout.labeltype == LABEL_COUNTER 
-	    && !layout.counter.empty())
-		fmt = "\\the" + layout.counter;
+		fmt = translateIfPossible(layout->labelstring(), bparams);
 
 	// handle 'inherited level parts' in 'fmt',
 	// i.e. the stuff between '@' in   '@Section@.\arabic{subsection}'
@@ -1540,10 +1747,8 @@ docstring Paragraph::expandLabel(Layout const & layout,
 			docstring parent(fmt, i + 1, j - i - 1);
 			docstring label = from_ascii("??");
 			if (tclass.hasLayout(parent))
-				docstring label = expandLabel(tclass[parent], bparams,
-						      process_appendix);
-			fmt = docstring(fmt, 0, i) + label 
-				+ docstring(fmt, j + 1, docstring::npos);
+				label = expandLabel(tclass[parent], bparams);
+			fmt = docstring(fmt, 0, i) + label + docstring(fmt, j + 1, docstring::npos);
 		}
 	}
 
@@ -1551,29 +1756,29 @@ docstring Paragraph::expandLabel(Layout const & layout,
 }
 
 
-void Paragraph::applyLayout(Layout const & new_layout)
+void Paragraph::applyLayout(Layout_ptr const & new_layout)
 {
-	d->layout_ = &new_layout;
-	LyXAlignment const oldAlign = d->params_.align();
+	layout(new_layout);
+	LyXAlignment const oldAlign = params().align();
 	
-	if (!(oldAlign & d->layout_->alignpossible)) {
+	if (!(oldAlign & layout()->alignpossible)) {
 		frontend::Alert::warning(_("Alignment not permitted"), 
 			_("The new layout does not permit the alignment previously used.\nSetting to default."));
-		d->params_.align(LYX_ALIGN_LAYOUT);
+		params().align(LYX_ALIGN_LAYOUT);
 	}
 }
 
 
 pos_type Paragraph::beginOfBody() const
 {
-	return d->begin_of_body_;
+	return begin_of_body_;
 }
 
 
 void Paragraph::setBeginOfBody()
 {
-	if (d->layout_->labeltype != LABEL_MANUAL) {
-		d->begin_of_body_ = 0;
+	if (layout()->labeltype != LABEL_MANUAL) {
+		begin_of_body_ = 0;
 		return;
 	}
 
@@ -1587,11 +1792,11 @@ void Paragraph::setBeginOfBody()
 		char_type previous_char = 0;
 		char_type temp = 0;
 		if (i < end) {
-			previous_char = d->text_[i];
+			previous_char = text_[i];
 			if (!isNewline(i)) {
 				++i;
 				while (i < end && previous_char != ' ') {
-					temp = d->text_[i];
+					temp = text_[i];
 					if (isNewline(i))
 						break;
 					++i;
@@ -1601,34 +1806,37 @@ void Paragraph::setBeginOfBody()
 		}
 	}
 
-	d->begin_of_body_ = i;
+	begin_of_body_ = i;
 }
 
 
-bool Paragraph::forcePlainLayout() const
+// returns -1 if inset not found
+int Paragraph::getPositionOfInset(Inset const * inset) const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return true;
-	return inset->forcePlainLayout();
+	// Find the entry.
+	InsetList::const_iterator it = insetlist.begin();
+	InsetList::const_iterator end = insetlist.end();
+	for (; it != end; ++it)
+		if (it->inset == inset)
+			return it->pos;
+	return -1;
 }
 
 
-bool Paragraph::allowParagraphCustomization() const
+InsetBibitem * Paragraph::bibitem() const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return true;
-	return inset->allowParagraphCustomization();
+	if (!insetlist.empty()) {
+		Inset * inset = insetlist.begin()->inset;
+		if (inset->lyxCode() == Inset::BIBITEM_CODE)
+			return static_cast<InsetBibitem *>(inset);
+	}
+	return 0;
 }
 
 
-bool Paragraph::usePlainLayout() const
+bool Paragraph::forceDefaultParagraphs() const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return false;
-	return inset->usePlainLayout();
+	return inInset() && inInset()->forceDefaultParagraphs(0);
 }
 
 
@@ -1637,9 +1845,9 @@ namespace {
 // paragraphs inside floats need different alignment tags to avoid
 // unwanted space
 
-bool noTrivlistCentering(InsetCode code)
+bool noTrivlistCentering(Inset::Code code)
 {
-	return code == FLOAT_CODE || code == WRAP_CODE;
+	return code == Inset::FLOAT_CODE || code == Inset::WRAP_CODE;
 }
 
 
@@ -1656,7 +1864,7 @@ string correction(string const & orig)
 
 
 string const corrected_env(string const & suffix, string const & env,
-	InsetCode code)
+	Inset::Code code)
 {
 	string output = suffix + "{";
 	if (noTrivlistCentering(code))
@@ -1684,20 +1892,21 @@ void adjust_row_column(string const & str, TexRow & texrow, int & column)
 } // namespace anon
 
 
-int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
+// This could go to ParagraphParameters if we want to
+int Paragraph::startTeXParParams(BufferParams const & bparams,
 				 odocstream & os, TexRow & texrow,
 				 bool moving_arg) const
 {
 	int column = 0;
 
-	if (params_.noindent()) {
+	if (params().noindent()) {
 		os << "\\noindent ";
 		column += 10;
 	}
 	
-	LyXAlignment const curAlign = params_.align();
+	LyXAlignment const curAlign = params().align();
 
-	if (curAlign == layout_->align)
+	if (curAlign == layout()->align)
 		return column;
 
 	switch (curAlign) {
@@ -1724,25 +1933,25 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 		break;
 	case LYX_ALIGN_LEFT: {
 		string output;
-		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\\begin", "flushleft", owner_->ownerCode());
+		if (getParLanguage(bparams)->babel() != "hebrew")
+			output = corrected_env("\\begin", "flushleft", ownerCode());
 		else
-			output = corrected_env("\\begin", "flushright", owner_->ownerCode());
+			output = corrected_env("\\begin", "flushright", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
-		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\\begin", "flushright", owner_->ownerCode());
+		if (getParLanguage(bparams)->babel() != "hebrew")
+			output = corrected_env("\\begin", "flushright", ownerCode());
 		else
-			output = corrected_env("\\begin", "flushleft", owner_->ownerCode());
+			output = corrected_env("\\begin", "flushleft", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
-		output = corrected_env("\\begin", "center", owner_->ownerCode());
+		output = corrected_env("\\begin", "center", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
@@ -1753,13 +1962,14 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 }
 
 
-int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
+// This could go to ParagraphParameters if we want to
+int Paragraph::endTeXParParams(BufferParams const & bparams,
 			       odocstream & os, TexRow & texrow,
 			       bool moving_arg) const
 {
 	int column = 0;
 
-	switch (params_.align()) {
+	switch (params().align()) {
 	case LYX_ALIGN_NONE:
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
@@ -1775,7 +1985,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 		break;
 	}
 
-	switch (params_.align()) {
+	switch (params().align()) {
 	case LYX_ALIGN_NONE:
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
@@ -1783,25 +1993,25 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 		break;
 	case LYX_ALIGN_LEFT: {
 		string output;
-		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\n\\par\\end", "flushleft", owner_->ownerCode());
+		if (getParLanguage(bparams)->babel() != "hebrew")
+			output = corrected_env("\n\\par\\end", "flushleft", ownerCode());
 		else
-			output = corrected_env("\n\\par\\end", "flushright", owner_->ownerCode());
+			output = corrected_env("\n\\par\\end", "flushright", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
-		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\n\\par\\end", "flushright", owner_->ownerCode());
+		if (getParLanguage(bparams)->babel() != "hebrew")
+			output = corrected_env("\n\\par\\end", "flushright", ownerCode());
 		else
-			output = corrected_env("\n\\par\\end", "flushleft", owner_->ownerCode());
+			output = corrected_env("\n\\par\\end", "flushleft", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
-		output = corrected_env("\n\\par\\end", "center", owner_->ownerCode());
+		output = corrected_env("\n\\par\\end", "center", ownerCode());
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
@@ -1813,20 +2023,30 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 
 
 // This one spits out the text of the paragraph
-bool Paragraph::latex(BufferParams const & bparams,
+bool Paragraph::simpleTeXOnePar(Buffer const & buf,
+				BufferParams const & bparams,
 				Font const & outerfont,
 				odocstream & os, TexRow & texrow,
 				OutputParams const & runparams) const
 {
-	LYXERR(Debug::LATEX, "SimpleTeXOnePar...     " << this);
+	LYXERR(Debug::LATEX) << "SimpleTeXOnePar...     " << this << endl;
 
 	bool return_value = false;
 
-	bool asdefault = forcePlainLayout();
+	Layout_ptr style;
 
-	Layout const & style = asdefault ?
-		bparams.documentClass().emptyLayout() :
-		*d->layout_;
+	// well we have to check if we are in an inset with unlimited
+	// length (all in one row) if that is true then we don't allow
+	// any special options in the paragraph and also we don't allow
+	// any environment other than the default layout of the text class
+	// to be valid!
+	bool asdefault = forceDefaultParagraphs();
+
+	if (asdefault) {
+		style = bparams.getTextClass().defaultLayout();
+	} else {
+		style = layout();
+	}
 
 	// Current base font for all inherited font changes, without any
 	// change caused by an individual character, except for the language:
@@ -1861,12 +2081,12 @@ bool Paragraph::latex(BufferParams const & bparams,
 
 	// if the paragraph is empty, the loop will not be entered at all
 	if (empty()) {
-		if (style.isCommand()) {
+		if (style->isCommand()) {
 			os << '{';
 			++column;
 		}
 		if (!asdefault)
-			column += d->startTeXParParams(bparams, os, texrow,
+			column += startTeXParParams(bparams, os, texrow,
 						    runparams.moving_arg);
 	}
 
@@ -1890,19 +2110,19 @@ bool Paragraph::latex(BufferParams const & bparams,
 				os << "}] ";
 				column +=3;
 			}
-			if (style.isCommand()) {
+			if (style->isCommand()) {
 				os << '{';
 				++column;
 			}
 
 			if (!asdefault)
-				column += d->startTeXParParams(bparams, os,
+				column += startTeXParParams(bparams, os,
 							    texrow,
 							    runparams.moving_arg);
 		}
 
 		Change const & change = runparams.inDeletedInset ? runparams.changeOfDeletedInset
-		                                                 : lookupChange(i);
+		                                                 : pimpl_->lookupChange(i);
 
 		if (bparams.outputChanges && runningChange != change) {
 			if (open_font) {
@@ -1924,6 +2144,8 @@ bool Paragraph::latex(BufferParams const & bparams,
 		}
 
 		++column;
+
+		value_type const c = getChar(i);
 
 		// Fully instantiated font
 		Font const font = getFont(bparams, i, outerfont);
@@ -1952,19 +2174,16 @@ bool Paragraph::latex(BufferParams const & bparams,
 				column += end_tag.length();
 		}
 
-		// Switch file encoding if necessary (and allowed)
-		if (!runparams.verbatim && 
-		    runparams.encoding->package() != Encoding::none &&
+		// Switch file encoding if necessary
+		if (runparams.encoding->package() != Encoding::none &&
 		    font.language()->encoding()->package() != Encoding::none) {
-			pair<bool, int> const enc_switch = switchEncoding(os, bparams,
+			std::pair<bool, int> const enc_switch = switchEncoding(os, bparams,
 					runparams, *(font.language()->encoding()));
 			if (enc_switch.first) {
 				column += enc_switch.second;
 				runparams.encoding = font.language()->encoding();
 			}
 		}
-
-		char_type const c = d->text_[i];
 
 		// Do we need to change font?
 		if ((font != running_font ||
@@ -1988,58 +2207,49 @@ bool Paragraph::latex(BufferParams const & bparams,
 		}
 
 		if (c == ' ') {
-			// FIXME: integrate this case in latexSpecialChar
 			// Do not print the separation of the optional argument
-			// if style.pass_thru is false. This works because
-			// latexSpecialChar ignores spaces if
-			// style.pass_thru is false.
+			// if style->pass_thru is false. This works because
+			// simpleTeXSpecialChars ignores spaces if
+			// style->pass_thru is false.
 			if (i != body_pos - 1) {
-				if (d->simpleTeXBlanks(
-						runparams, os, texrow,
-						i, column, font, style)) {
+				if (pimpl_->simpleTeXBlanks(
+						*(runparams.encoding), os, texrow,
+						i, column, font, *style))
 					// A surrogate pair was output. We
-					// must not call latexSpecialChar
-					// in this iteration, since it would output
+					// must not call simpleTeXSpecialChars
+					// in this iteration, since
+					// simpleTeXBlanks incremented i, and
+					// simpleTeXSpecialChars would output
 					// the combining character again.
-					++i;
 					continue;
-				}
 			}
 		}
 
 		OutputParams rp = runparams;
-		rp.free_spacing = style.free_spacing;
+		rp.free_spacing = style->free_spacing;
 		rp.local_font = &font;
-		rp.intitle = style.intitle;
-
-		// Two major modes:  LaTeX or plain
-		// Handle here those cases common to both modes
-		// and then split to handle the two modes separately.
-		if (c == META_INSET)
-			d->latexInset(bparams, os,
+		rp.intitle = style->intitle;
+		
+		try {
+			pimpl_->simpleTeXSpecialChars(buf, bparams, os,
 					texrow, rp, running_font,
 					basefont, outerfont, open_font,
-					runningChange, style, i, column);
-		else {
-			try {
-				d->latexSpecialChar(os, rp, running_font, runningChange,
-					style, i, column);
-			} catch (EncodingException & e) {
-				if (runparams.dryrun) {
-					os << "<" << _("LyX Warning: ")
-					   << _("uncodable character") << " '";
-					os.put(c);
-					os << "'>";
-				} else {
-					// add location information and throw again.
-					e.par_id = id();
-					e.pos = i;
-					throw(e);
-				}
+					runningChange, *style, i, column, c);
+		} catch (EncodingException & e) {
+			if (runparams.dryrun) {
+				os << "<" << _("LyX Warning: ")
+				   << _("uncodable character") << " '";
+				os.put(c);
+				os << "'>";
+			} else {
+				// add location information and throw again.
+				e.par_id = id();
+				e.pos = i;
+				throw(e);
 			}
 		}
 
-		// Set the encoding to that returned from latexSpecialChar (see
+		// Set the encoding to that returned from simpleTeXSpecialChars (see
 		// comment for encoding member in OutputParams.h)
 		runparams.encoding = rp.encoding;
 	}
@@ -2057,9 +2267,11 @@ bool Paragraph::latex(BufferParams const & bparams,
 					runparams, basefont, basefont);
 		}
 #else
-//FIXME: For now we ALWAYS have to close the foreign font settings if they are
-//FIXME: there as we start another \selectlanguage with the next paragraph if
-//FIXME: we are in need of this. This should be fixed sometime (Jug)
+#ifdef WITH_WARNINGS
+//#warning For now we ALWAYS have to close the foreign font settings if they are
+//#warning there as we start another \selectlanguage with the next paragraph if
+//#warning we are in need of this. This should be fixed sometime (Jug)
+#endif
 		running_font.latexWriteEndChanges(os, bparams, runparams,
 				basefont, basefont);
 #endif
@@ -2074,31 +2286,75 @@ bool Paragraph::latex(BufferParams const & bparams,
 	}
 
 	if (!asdefault) {
-		column += d->endTeXParParams(bparams, os, texrow,
+		column += endTeXParParams(bparams, os, texrow,
 					  runparams.moving_arg);
 	}
 
-	LYXERR(Debug::LATEX, "SimpleTeXOnePar...done " << this);
+	LYXERR(Debug::LATEX) << "SimpleTeXOnePar...done " << this << endl;
 	return return_value;
 }
+
+
+namespace {
+
+enum PAR_TAG {
+	PAR_NONE=0,
+	TT = 1,
+	SF = 2,
+	BF = 4,
+	IT = 8,
+	SL = 16,
+	EM = 32
+};
+
+
+string tag_name(PAR_TAG const & pt) {
+	switch (pt) {
+	case PAR_NONE: return "!-- --";
+	case TT: return "tt";
+	case SF: return "sf";
+	case BF: return "bf";
+	case IT: return "it";
+	case SL: return "sl";
+	case EM: return "em";
+	}
+	return "";
+}
+
+
+inline
+void operator|=(PAR_TAG & p1, PAR_TAG const & p2)
+{
+	p1 = static_cast<PAR_TAG>(p1 | p2);
+}
+
+
+inline
+void reset(PAR_TAG & p1, PAR_TAG const & p2)
+{
+	p1 = static_cast<PAR_TAG>(p1 & ~p2);
+}
+
+} // anon
 
 
 bool Paragraph::emptyTag() const
 {
 	for (pos_type i = 0; i < size(); ++i) {
-		if (Inset const * inset = getInset(i)) {
-			InsetCode lyx_code = inset->lyxCode();
-			if (lyx_code != TOC_CODE &&
-			    lyx_code != INCLUDE_CODE &&
-			    lyx_code != GRAPHICS_CODE &&
-			    lyx_code != ERT_CODE &&
-			    lyx_code != LISTINGS_CODE &&
-			    lyx_code != FLOAT_CODE &&
-			    lyx_code != TABULAR_CODE) {
+		if (isInset(i)) {
+			Inset const * inset = getInset(i);
+			Inset::Code lyx_code = inset->lyxCode();
+			if (lyx_code != Inset::TOC_CODE &&
+			    lyx_code != Inset::INCLUDE_CODE &&
+			    lyx_code != Inset::GRAPHICS_CODE &&
+			    lyx_code != Inset::ERT_CODE &&
+			    lyx_code != Inset::LISTINGS_CODE &&
+			    lyx_code != Inset::FLOAT_CODE &&
+			    lyx_code != Inset::TABULAR_CODE) {
 				return false;
 			}
 		} else {
-			char_type c = d->text_[i];
+			value_type c = getChar(i);
 			if (c != ' ' && c != '\t')
 				return false;
 		}
@@ -2107,32 +2363,32 @@ bool Paragraph::emptyTag() const
 }
 
 
-string Paragraph::getID(Buffer const & buf, OutputParams const & runparams)
-	const
+string Paragraph::getID(Buffer const & buf, OutputParams const & runparams) const
 {
 	for (pos_type i = 0; i < size(); ++i) {
-		if (Inset const * inset = getInset(i)) {
-			InsetCode lyx_code = inset->lyxCode();
-			if (lyx_code == LABEL_CODE) {
-				InsetLabel const * const il = static_cast<InsetLabel const *>(inset);
-				docstring const & id = il->getParam("name");
-				return "id='" + to_utf8(sgml::cleanID(buf, runparams, id)) + "'";
+		if (isInset(i)) {
+			Inset const * inset = getInset(i);
+			Inset::Code lyx_code = inset->lyxCode();
+			if (lyx_code == Inset::LABEL_CODE) {
+				string const id = static_cast<InsetCommand const *>(inset)->getContents();
+				return "id='" + to_utf8(sgml::cleanID(buf, runparams, from_utf8(id))) + "'";
 			}
 		}
+
 	}
 	return string();
 }
 
 
-pos_type Paragraph::firstWord(odocstream & os, OutputParams const & runparams)
-	const
+pos_type Paragraph::getFirstWord(Buffer const & buf, odocstream & os, OutputParams const & runparams) const
 {
 	pos_type i;
 	for (i = 0; i < size(); ++i) {
-		if (Inset const * inset = getInset(i)) {
-			inset->docbook(os, runparams);
+		if (isInset(i)) {
+			Inset const * inset = getInset(i);
+			inset->docbook(buf, os, runparams);
 		} else {
-			char_type c = d->text_[i];
+			value_type c = getChar(i);
 			if (c == ' ')
 				break;
 			os << sgml::escapeChar(c);
@@ -2142,13 +2398,13 @@ pos_type Paragraph::firstWord(odocstream & os, OutputParams const & runparams)
 }
 
 
-bool Paragraph::Private::onlyText(Buffer const & buf, Font const & outerfont, pos_type initial) const
+bool Paragraph::onlyText(Buffer const & buf, Font const & outerfont, pos_type initial) const
 {
 	Font font_old;
-	pos_type size = text_.size();
-	for (pos_type i = initial; i < size; ++i) {
-		Font font = owner_->getFont(buf.params(), i, outerfont);
-		if (text_[i] == META_INSET)
+
+	for (pos_type i = initial; i < size(); ++i) {
+		Font font = getFont(buf.params(), i, outerfont);
+		if (isInset(i))
 			return false;
 		if (i != initial && font != font_old)
 			return false;
@@ -2167,11 +2423,11 @@ void Paragraph::simpleDocBookOnePar(Buffer const & buf,
 {
 	bool emph_flag = false;
 
-	Layout const & style = *d->layout_;
-	FontInfo font_old =
-		style.labeltype == LABEL_MANUAL ? style.labelfont : style.font;
+	Layout_ptr const & style = layout();
+	Font font_old =
+		style->labeltype == LABEL_MANUAL ? style->labelfont : style->font;
 
-	if (style.pass_thru && !d->onlyText(buf, outerfont, initial))
+	if (style->pass_thru && !onlyText(buf, outerfont, initial))
 		os << "]]>";
 
 	// parsing main loop
@@ -2179,8 +2435,8 @@ void Paragraph::simpleDocBookOnePar(Buffer const & buf,
 		Font font = getFont(buf.params(), i, outerfont);
 
 		// handle <emphasis> tag
-		if (font_old.emph() != font.fontInfo().emph()) {
-			if (font.fontInfo().emph() == FONT_ON) {
+		if (font_old.emph() != font.emph()) {
+			if (font.emph() == Font::ON) {
 				os << "<emphasis>";
 				emph_flag = true;
 			} else if (i != initial) {
@@ -2189,80 +2445,56 @@ void Paragraph::simpleDocBookOnePar(Buffer const & buf,
 			}
 		}
 
-		if (Inset const * inset = getInset(i)) {
-			inset->docbook(os, runparams);
+		if (isInset(i)) {
+			Inset const * inset = getInset(i);
+			inset->docbook(buf, os, runparams);
 		} else {
-			char_type c = d->text_[i];
+			value_type c = getChar(i);
 
-			if (style.pass_thru)
+			if (style->pass_thru)
 				os.put(c);
 			else
 				os << sgml::escapeChar(c);
 		}
-		font_old = font.fontInfo();
+		font_old = font;
 	}
 
 	if (emph_flag) {
 		os << "</emphasis>";
 	}
 
-	if (style.free_spacing)
+	if (style->free_spacing)
 		os << '\n';
-	if (style.pass_thru && !d->onlyText(buf, outerfont, initial))
+	if (style->pass_thru && !onlyText(buf, outerfont, initial))
 		os << "<![CDATA[";
-}
-
-
-bool Paragraph::isHfill(pos_type pos) const
-{
-	Inset const * inset = getInset(pos);
-	return inset && (inset->lyxCode() == SPACE_CODE &&
-			 inset->isStretchableSpace());
 }
 
 
 bool Paragraph::isNewline(pos_type pos) const
 {
-	Inset const * inset = getInset(pos);
-	return inset && inset->lyxCode() == NEWLINE_CODE;
+	return isInset(pos)
+		&& getInset(pos)->lyxCode() == Inset::NEWLINE_CODE;
 }
 
 
 bool Paragraph::isLineSeparator(pos_type pos) const
 {
-	char_type const c = d->text_[pos];
-	if (isLineSeparatorChar(c))
-		return true;
-	Inset const * inset = getInset(pos);
-	return inset && inset->isLineSeparator();
+	value_type const c = getChar(pos);
+	return isLineSeparatorChar(c)
+		|| (c == Paragraph::META_INSET && getInset(pos) &&
+		getInset(pos)->isLineSeparator());
 }
 
 
 /// Used by the spellchecker
 bool Paragraph::isLetter(pos_type pos) const
 {
-	if (Inset const * inset = getInset(pos))
-		return inset->isLetter();
-	char_type const c = d->text_[pos];
-	return isLetterChar(c) || isDigit(c);
-}
-
-
-bool Paragraph::isChar(pos_type pos) const
-{
-	if (Inset const * inset = getInset(pos))
-		return inset->isChar();
-	char_type const c = d->text_[pos];
-	return !isLetterChar(c) && !isDigit(c) && !lyx::isSpace(c);
-}
-
-
-bool Paragraph::isSpace(pos_type pos) const
-{
-	if (Inset const * inset = getInset(pos))
-		return inset->isSpace();
-	char_type const c = d->text_[pos];
-	return lyx::isSpace(c);
+	if (isInset(pos))
+		return getInset(pos)->isLetter();
+	else {
+		value_type const c = getChar(pos);
+		return isLetterChar(c) || isDigit(c);
+	}
 }
 
 
@@ -2271,17 +2503,19 @@ Paragraph::getParLanguage(BufferParams const & bparams) const
 {
 	if (!empty())
 		return getFirstFontSettings(bparams).language();
-	// FIXME: we should check the prev par as well (Lgb)
+#ifdef WITH_WARNINGS
+#warning FIXME we should check the prev par as well (Lgb)
+#endif
 	return bparams.language;
 }
 
 
-bool Paragraph::isRTL(BufferParams const & bparams) const
+bool Paragraph::isRightToLeftPar(BufferParams const & bparams) const
 {
 	return lyxrc.rtl_support
 		&& getParLanguage(bparams)->rightToLeft()
-		&& ownerCode() != ERT_CODE
-		&& ownerCode() != LISTINGS_CODE;
+		&& ownerCode() != Inset::ERT_CODE
+		&& ownerCode() != Inset::LISTINGS_CODE;
 }
 
 
@@ -2302,8 +2536,8 @@ void Paragraph::changeLanguage(BufferParams const & bparams,
 bool Paragraph::isMultiLingual(BufferParams const & bparams) const
 {
 	Language const * doc_language =	bparams.language;
-	FontList::const_iterator cit = d->fontlist_.begin();
-	FontList::const_iterator end = d->fontlist_.end();
+	Pimpl::FontList::const_iterator cit = pimpl_->fontlist.begin();
+	Pimpl::FontList::const_iterator end = pimpl_->fontlist.end();
 
 	for (; cit != end; ++cit)
 		if (cit->font().language() != ignore_language &&
@@ -2314,27 +2548,29 @@ bool Paragraph::isMultiLingual(BufferParams const & bparams) const
 }
 
 
-docstring Paragraph::asString(int options) const
+// Convert the paragraph to a string.
+// Used for building the table of contents
+docstring const Paragraph::asString(Buffer const & buffer, bool label) const
 {
-	return asString(0, size(), options);
+	return asString(buffer, 0, size(), label);
 }
 
 
-docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
+docstring const Paragraph::asString(Buffer const & buffer,
+				 pos_type beg, pos_type end, bool label) const
 {
+
 	odocstringstream os;
 
-	if (beg == 0 
-		&& options & AS_STR_LABEL
-		&& !d->params_.labelString().empty())
-		os << d->params_.labelString() << ' ';
+	if (beg == 0 && label && !params().labelString().empty())
+		os << params().labelString() << ' ';
 
 	for (pos_type i = beg; i < end; ++i) {
-		char_type const c = d->text_[i];
+		value_type const c = getChar(i);
 		if (isPrintable(c))
 			os.put(c);
-		else if (c == META_INSET && options & AS_STR_INSETS)
-			getInset(i)->textString(os);
+		else if (c == META_INSET)
+			getInset(i)->textString(buffer, os);
 	}
 
 	return os.str();
@@ -2343,110 +2579,148 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 
 void Paragraph::setInsetOwner(Inset * inset)
 {
-	d->inset_owner_ = inset;
+	pimpl_->inset_owner = inset;
+}
+
+
+Change const & Paragraph::lookupChange(pos_type pos) const
+{
+	BOOST_ASSERT(pos <= size());
+	return pimpl_->lookupChange(pos);
+}
+
+
+bool Paragraph::isChanged(pos_type start, pos_type end) const
+{
+	return pimpl_->isChanged(start, end);
+}
+
+
+bool Paragraph::isMergedOnEndOfParDeletion(bool trackChanges) const
+{
+	return pimpl_->isMergedOnEndOfParDeletion(trackChanges);
+}
+
+
+void Paragraph::setChange(Change const & change)
+{
+	pimpl_->setChange(change);
+}
+
+
+void Paragraph::setChange(pos_type pos, Change const & change)
+{
+	pimpl_->setChange(pos, change);
+}
+
+
+void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start, pos_type end)
+{
+	return pimpl_->acceptChanges(bparams, start, end);
+}
+
+
+void Paragraph::rejectChanges(BufferParams const & bparams, pos_type start, pos_type end)
+{
+	return pimpl_->rejectChanges(bparams, start, end);
 }
 
 
 int Paragraph::id() const
 {
-	return d->id_;
+	return pimpl_->id_;
 }
 
 
-Layout const & Paragraph::layout() const
+Layout_ptr const & Paragraph::layout() const
 {
-	return *d->layout_;
+	return layout_;
 }
 
 
-void Paragraph::setLayout(Layout const & layout)
+void Paragraph::layout(Layout_ptr const & new_layout)
 {
-	d->layout_ = &layout;
-}
-
-
-void Paragraph::setPlainOrDefaultLayout(DocumentClass const & tclass)
-{
-	if (usePlainLayout())
-		setLayout(tclass.emptyLayout());
-	else
-		setLayout(tclass.defaultLayout());
+	layout_ = new_layout;
 }
 
 
 Inset * Paragraph::inInset() const
 {
-	return d->inset_owner_;
+	return pimpl_->inset_owner;
 }
 
 
-InsetCode Paragraph::ownerCode() const
+Inset::Code Paragraph::ownerCode() const
 {
-	return d->inset_owner_ ? d->inset_owner_->lyxCode() : NO_CODE;
+	return pimpl_->inset_owner
+		? pimpl_->inset_owner->lyxCode() : Inset::NO_CODE;
 }
 
 
 ParagraphParameters & Paragraph::params()
 {
-	return d->params_;
+	return pimpl_->params;
 }
 
 
 ParagraphParameters const & Paragraph::params() const
 {
-	return d->params_;
+	return pimpl_->params;
 }
 
 
 bool Paragraph::isFreeSpacing() const
 {
-	if (d->layout_->free_spacing)
+	if (layout()->free_spacing)
 		return true;
-	return d->inset_owner_ && d->inset_owner_->isFreeSpacing();
+
+	// for now we just need this, later should we need this in some
+	// other way we can always add a function to Inset too.
+	return ownerCode() == Inset::ERT_CODE || ownerCode() == Inset::LISTINGS_CODE;
 }
 
 
 bool Paragraph::allowEmpty() const
 {
-	if (d->layout_->keepempty)
+	if (layout()->keepempty)
 		return true;
-	return d->inset_owner_ && d->inset_owner_->allowEmpty();
+	return ownerCode() == Inset::ERT_CODE || ownerCode() == Inset::LISTINGS_CODE;
 }
 
 
 char_type Paragraph::transformChar(char_type c, pos_type pos) const
 {
-	if (!Encodings::isArabicChar(c))
+	if (!Encodings::is_arabic(c))
 		return c;
 
-	char_type prev_char = ' ';
-	char_type next_char = ' ';
+	value_type prev_char = ' ';
+	value_type next_char = ' ';
 
 	for (pos_type i = pos - 1; i >= 0; --i) {
-		char_type const par_char = d->text_[i];
-		if (!Encodings::isArabicComposeChar(par_char)) {
+		value_type const par_char = getChar(i);
+		if (!Encodings::isComposeChar_arabic(par_char)) {
 			prev_char = par_char;
 			break;
 		}
 	}
 
 	for (pos_type i = pos + 1, end = size(); i < end; ++i) {
-		char_type const par_char = d->text_[i];
-		if (!Encodings::isArabicComposeChar(par_char)) {
+		value_type const par_char = getChar(i);
+		if (!Encodings::isComposeChar_arabic(par_char)) {
 			next_char = par_char;
 			break;
 		}
 	}
 
-	if (Encodings::isArabicChar(next_char)) {
-		if (Encodings::isArabicChar(prev_char) &&
-			!Encodings::isArabicSpecialChar(prev_char))
+	if (Encodings::is_arabic(next_char)) {
+		if (Encodings::is_arabic(prev_char) &&
+			!Encodings::is_arabic_special(prev_char))
 			return Encodings::transformChar(c, Encodings::FORM_MEDIAL);
 		else
 			return Encodings::transformChar(c, Encodings::FORM_INITIAL);
 	} else {
-		if (Encodings::isArabicChar(prev_char) &&
-			!Encodings::isArabicSpecialChar(prev_char))
+		if (Encodings::is_arabic(prev_char) &&
+			!Encodings::is_arabic_special(prev_char))
 			return Encodings::transformChar(c, Encodings::FORM_FINAL);
 		else
 			return Encodings::transformChar(c, Encodings::FORM_ISOLATED);
@@ -2454,22 +2728,56 @@ char_type Paragraph::transformChar(char_type c, pos_type pos) const
 }
 
 
-int Paragraph::checkBiblio(Buffer const & buffer)
+bool Paragraph::hfillExpansion(Row const & row, pos_type pos) const
 {
-	// FIXME From JS:
-	// This is getting more and more a mess. ...We really should clean
-	// up this bibitem issue for 1.6. See also bug 2743.
+	if (!isHfill(pos))
+		return false;
+
+	BOOST_ASSERT(pos >= row.pos() && pos < row.endpos());
+
+	// expand at the end of a row only if there is another hfill on the same row
+	if (pos == row.endpos() - 1) {
+		for (pos_type i = row.pos(); i < pos; i++) {
+			if (isHfill(i))
+				return true;
+		}
+		return false;
+	}
+
+	// expand at the beginning of a row only if it is the first row of a paragraph
+	if (pos == row.pos()) {
+		return pos == 0;
+	}
+
+	// do not expand in some labels
+	if (layout()->margintype != MARGIN_MANUAL && pos < beginOfBody())
+		return false;
+
+	// if there is anything between the first char of the row and
+	// the specified position that is neither a newline nor an hfill,
+	// the hfill will be expanded, otherwise it won't
+	for (pos_type i = row.pos(); i < pos; i++) {
+		if (!isNewline(i) && !isHfill(i))
+			return true;
+	}
+	return false;
+}
+
+
+int Paragraph::checkBiblio(bool track_changes)
+{
+	//FIXME From JS:
+	//This is getting more and more a mess. ...We really should clean
+	//up this bibitem issue for 1.6. See also bug 2743.
 
 	// Add bibitem insets if necessary
-	if (d->layout_->labeltype != LABEL_BIBLIO)
+	if (layout()->labeltype != LABEL_BIBLIO)
 		return 0;
 
-	bool hasbibitem = !d->insetlist_.empty()
+	bool hasbibitem = !insetlist.empty()
 		// Insist on it being in pos 0
-		&& d->text_[0] == META_INSET
-		&& d->insetlist_.begin()->inset->lyxCode() == BIBITEM_CODE;
-
-	bool track_changes = buffer.params().trackChanges;
+		&& getChar(0) == Paragraph::META_INSET
+		&& insetlist.begin()->inset->lyxCode() == Inset::BIBITEM_CODE;
 
 	docstring oldkey;
 	docstring oldlabel;
@@ -2480,10 +2788,10 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 	// we're assuming there's only one of these, which there
 	// should be.
 	int erasedInsetPosition = -1;
-	InsetList::iterator it = d->insetlist_.begin();
-	InsetList::iterator end = d->insetlist_.end();
+	InsetList::iterator it = insetlist.begin();
+	InsetList::iterator end = insetlist.end();
 	for (; it != end; ++it)
-		if (it->inset->lyxCode() == BIBITEM_CODE
+		if (it->inset->lyxCode() == Inset::BIBITEM_CODE
 		    && it->pos > 0) {
 			InsetBibitem * olditem = static_cast<InsetBibitem *>(it->inset);
 			oldkey = olditem->getParam("key");
@@ -2493,26 +2801,25 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 			break;
 	}
 
-	// There was an InsetBibitem at the beginning, and we didn't
-	// have to erase one.
+	//There was an InsetBibitem at the beginning, and we didn't
+	//have to erase one.
 	if (hasbibitem && erasedInsetPosition < 0)
 			return 0;
 
-	// There was an InsetBibitem at the beginning and we did have to
-	// erase one. So we give its properties to the beginning inset.
+	//There was an InsetBibitem at the beginning and we did have to
+	//erase one. So we give its properties to the beginning inset.
 	if (hasbibitem) {
 		InsetBibitem * inset =
-			static_cast<InsetBibitem *>(d->insetlist_.begin()->inset);
+			static_cast<InsetBibitem *>(insetlist.begin()->inset);
 		if (!oldkey.empty())
 			inset->setParam("key", oldkey);
 		inset->setParam("label", oldlabel);
 		return -erasedInsetPosition;
 	}
 
-	// There was no inset at the beginning, so we need to create one with
-	// the key and label of the one we erased.
-	InsetBibitem * inset = 
-		new InsetBibitem(buffer, InsetCommandParams(BIBITEM_CODE));
+	//There was no inset at the beginning, so we need to create one with
+	//the key and label of the one we erased.
+	InsetBibitem * inset(new InsetBibitem(InsetCommandParams("bibitem")));
 	// restore values of previously deleted item in this par.
 	if (!oldkey.empty())
 		inset->setParam("key", oldkey);
@@ -2526,246 +2833,7 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 
 void Paragraph::checkAuthors(AuthorList const & authorList)
 {
-	d->changes_.checkAuthors(authorList);
-}
-
-
-bool Paragraph::isUnchanged(pos_type pos) const
-{
-	return lookupChange(pos).type == Change::UNCHANGED;
-}
-
-
-bool Paragraph::isInserted(pos_type pos) const
-{
-	return lookupChange(pos).type == Change::INSERTED;
-}
-
-
-bool Paragraph::isDeleted(pos_type pos) const
-{
-	return lookupChange(pos).type == Change::DELETED;
-}
-
-
-InsetList const & Paragraph::insetList() const
-{
-	return d->insetlist_;
-}
-
-
-Inset * Paragraph::releaseInset(pos_type pos)
-{
-	Inset * inset = d->insetlist_.release(pos);
-	/// does not honour change tracking!
-	eraseChar(pos, false);
-	return inset;
-}
-
-
-Inset * Paragraph::getInset(pos_type pos)
-{
-	return (pos < pos_type(d->text_.size()) && d->text_[pos] == META_INSET)
-		 ? d->insetlist_.get(pos) : 0;
-}
-
-
-Inset const * Paragraph::getInset(pos_type pos) const
-{
-	return (pos < pos_type(d->text_.size()) && d->text_[pos] == META_INSET)
-		 ? d->insetlist_.get(pos) : 0;
-}
-
-
-void Paragraph::changeCase(BufferParams const & bparams, pos_type pos,
-		pos_type & right, TextCase action)
-{
-	// process sequences of modified characters; in change
-	// tracking mode, this approach results in much better
-	// usability than changing case on a char-by-char basis
-	docstring changes;
-
-	bool const trackChanges = bparams.trackChanges;
-
-	bool capitalize = true;
-
-	for (; pos < right; ++pos) {
-		char_type oldChar = d->text_[pos];
-		char_type newChar = oldChar;
-
-		// ignore insets and don't play with deleted text!
-		if (oldChar != META_INSET && !isDeleted(pos)) {
-			switch (action) {
-				case text_lowercase:
-					newChar = lowercase(oldChar);
-					break;
-				case text_capitalization:
-					if (capitalize) {
-						newChar = uppercase(oldChar);
-						capitalize = false;
-					}
-					break;
-				case text_uppercase:
-					newChar = uppercase(oldChar);
-					break;
-			}
-		}
-
-		if (!isLetter(pos) || isDeleted(pos)) {
-			// permit capitalization again
-			capitalize = true;
-		}
-
-		if (oldChar != newChar)
-			changes += newChar;
-
-		if (oldChar == newChar || pos == right - 1) {
-			if (oldChar != newChar) {
-				// step behind the changing area
-				pos++;
-			}
-			int erasePos = pos - changes.size();
-			for (size_t i = 0; i < changes.size(); i++) {
-				insertChar(pos, changes[i],
-					getFontSettings(bparams,
-					erasePos),
-					trackChanges);
-				if (!eraseChar(erasePos, trackChanges)) {
-					++erasePos;
-					++pos; // advance
-					++right; // expand selection
-				}
-			}
-			changes.clear();
-		}
-	}
-}
-
-
-bool Paragraph::find(docstring const & str, bool cs, bool mw,
-		pos_type pos, bool del) const
-{
-	int const strsize = str.length();
-	int i = 0;
-	pos_type const parsize = d->text_.size();
-	for (i = 0; pos + i < parsize; ++i) {
-		if (i >= strsize)
-			break;
-		if (cs && str[i] != d->text_[pos + i])
-			break;
-		if (!cs && uppercase(str[i]) != uppercase(d->text_[pos + i]))
-			break;
-		if (!del && isDeleted(pos + i))
-			break;
-	}
-
-	if (i != strsize)
-		return false;
-
-	// if necessary, check whether string matches word
-	if (mw) {
-		if (pos > 0 && isLetter(pos - 1))
-			return false;
-		if (pos + strsize < parsize
-			&& isLetter(pos + strsize))
-			return false;
-	}
-
-	return true;
-}
-
-
-char_type Paragraph::getChar(pos_type pos) const
-{
-	return d->text_[pos];
-}
-
-
-pos_type Paragraph::size() const
-{
-	return d->text_.size();
-}
-
-
-bool Paragraph::empty() const
-{
-	return d->text_.empty();
-}
-
-
-bool Paragraph::isInset(pos_type pos) const
-{
-	return d->text_[pos] == META_INSET;
-}
-
-
-bool Paragraph::isSeparator(pos_type pos) const
-{
-	//FIXME: Are we sure this can be the only separator?
-	return d->text_[pos] == ' ';
-}
-
-
-void Paragraph::deregisterWords()
-{
-	Private::Words::const_iterator it;
-	WordList & wl = theWordList();
-	for (it = d->words_.begin(); it != d->words_.end(); ++it)
-		wl.remove(*it);
-	d->words_.clear();
-}
-
-
-void Paragraph::collectWords(CursorSlice const & sl)
-{
-	// find new words
-	bool inword = false;
-
-	//lyxerr << "Words: ";
-	pos_type n = size();
-	for (pos_type pos = 0; pos != n; ++pos) {
-		if (isDeleted(pos))
-			continue;
-
-		if (!isLetter(pos)) {
-			inword = false;
-			continue;
-		}
-
-		if (inword)
-			continue;
-
-		inword = true;
-		CursorSlice from = sl;
-		CursorSlice to = sl;
-		from.pos() = pos;
-		to.pos() = pos;
-		from.text()->getWord(from, to, WHOLE_WORD);
-		if (to.pos() - from.pos() < 6)
-			continue;
-		docstring word = asString(from.pos(), to.pos(), false);
-		d->words_.insert(word);
-		//lyxerr << word << " ";
-	}
-	//lyxerr << std::endl;
-}
-
-
-void Paragraph::registerWords()
-{
-	Private::Words::const_iterator it;
-	WordList & wl = theWordList();
-	for (it = d->words_.begin(); it != d->words_.end(); ++it)
-		wl.insert(*it);
-}
-
-
-void Paragraph::updateWords(CursorSlice const & sl)
-{
-	LASSERT(&sl.paragraph() == this, /**/);
-	deregisterWords();
-	collectWords(sl);
-	registerWords();
+	pimpl_->changes_.checkAuthors(authorList);
 }
 
 } // namespace lyx

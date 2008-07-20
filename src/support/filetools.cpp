@@ -21,22 +21,23 @@
 
 #include <config.h>
 
-#include "support/filetools.h"
-
 #include "support/convert.h"
-#include "support/debug.h"
 #include "support/environment.h"
-#include "support/gettext.h"
+#include "support/filetools.h"
+#include "support/fs_extras.h"
 #include "support/lstrings.h"
+#include "support/lyxlib.h"
 #include "support/os.h"
 #include "support/Package.h"
 #include "support/Path.h"
 #include "support/Systemcall.h"
-#include "support/qstring_helpers.h"
 
-#include <QDir>
+// FIXME Interface violation
+#include "gettext.h"
+#include "debug.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/regex.hpp>
 
 #include <fcntl.h>
@@ -49,7 +50,19 @@
 #include <fstream>
 #include <sstream>
 
-using namespace std;
+#ifndef CXX_GLOBAL_CSTD
+using std::fgetc;
+#endif
+
+using std::endl;
+using std::getline;
+using std::make_pair;
+using std::string;
+using std::ifstream;
+using std::ostringstream;
+using std::vector;
+
+namespace fs = boost::filesystem;
 
 namespace lyx {
 namespace support {
@@ -69,7 +82,10 @@ bool isSGMLFilename(string const & filename)
 bool isValidLaTeXFilename(string const & filename)
 {
 	string const invalid_chars("#$%{}()[]\"^");
-	return filename.find_first_of(invalid_chars) == string::npos;
+	if (filename.find_first_of(invalid_chars) != string::npos)
+		return false;
+	else
+		return true;
 }
 
 
@@ -103,14 +119,12 @@ string const latex_path(string const & original_path,
 
 
 // Substitutes spaces with underscores in filename (and path)
-FileName const makeLatexName(FileName const & file)
+string const makeLatexName(string const & file)
 {
-	string name = file.onlyFileName();
-	string const path = file.onlyPath().absFilename() + "/";
+	string name = onlyFilename(file);
+	string const path = onlyPath(file);
 
 	// ok so we scan through the string twice, but who cares.
-	// FIXME: in Unicode time this will break for sure! There is
-	// a non-latin world out there...
 	string const keep = "abcdefghijklmnopqrstuvwxyz"
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"@!'()*+,-./0123456789:;<=>?[]`|";
@@ -119,9 +133,7 @@ FileName const makeLatexName(FileName const & file)
 	while ((pos = name.find_first_not_of(keep, pos)) != string::npos)
 		name[pos++] = '_';
 
-	FileName latex_name(path + name);
-	latex_name.changeExtension(".tex");
-	return latex_name;
+	return addName(path, name);
 }
 
 
@@ -145,6 +157,56 @@ string const quoteName(string const & name, quote_style style)
 	}
 	// shut up stupid compiler
 	return string();
+}
+
+
+bool isFileReadable(FileName const & filename)
+{
+	std::string const path = filename.toFilesystemEncoding();
+	try {
+		// it seems that fs::exists can throw an exception
+		// when the file is not readable.
+		return fs::exists(path) 
+			&& !fs::is_directory(path) 
+			&& fs::is_readable(path);
+	} catch (fs::filesystem_error const & fe){
+		lyxerr << "isFileReadable() error with path: "
+			<< path << endl;
+		lyxerr << fe.what() << endl;
+		return false;
+	}
+}
+
+
+bool doesFileExist(FileName const & filename)
+{
+	std::string const path = filename.toFilesystemEncoding();
+	try {
+		// fs::exists can throw an exception
+		// f.ex. if the drive was unmounted.
+		return fs::exists(path);
+	} catch (fs::filesystem_error const & fe){
+		lyxerr << "doesFileExist() error with path: "
+			<< path << endl;
+		lyxerr << fe.what() << endl;
+		return false;
+	}
+}
+
+
+//returns true: dir writeable
+//	  false: not writeable
+bool isDirWriteable(FileName const & path)
+{
+	LYXERR(Debug::FILES) << "isDirWriteable: " << path << endl;
+
+	FileName const tmpfl(tempName(path, "lyxwritetest"));
+
+	if (tmpfl.empty())
+		return false;
+
+	unlink(tmpfl);
+	return true;
 }
 
 
@@ -186,6 +248,37 @@ FileName const fileOpenSearch(string const & path, string const & name,
 #endif
 
 
+/// Returns a vector of all files in directory dir having extension ext.
+vector<FileName> const dirList(FileName const & dir, string const & ext)
+{
+	// EXCEPTIONS FIXME. Rewrite needed when we turn on exceptions. (Lgb)
+	vector<FileName> dirlist;
+
+	string const encoded_dir = dir.toFilesystemEncoding();
+	if (!(doesFileExist(dir) && fs::is_directory(encoded_dir))) {
+		LYXERR(Debug::FILES)
+			<< "Directory \"" << dir
+			<< "\" does not exist to DirList." << endl;
+		return dirlist;
+	}
+
+	string extension;
+	if (!ext.empty() && ext[0] != '.')
+		extension += '.';
+	extension += ext;
+
+	fs::directory_iterator dit(encoded_dir);
+	fs::directory_iterator end;
+	for (; dit != end; ++dit) {
+		string const & fil = dit->leaf();
+		if (suffixIs(fil, extension))
+			dirlist.push_back(FileName::fromFilesystemEncoding(
+					encoded_dir + '/' + fil));
+	}
+	return dirlist;
+}
+
+
 // Returns the real name of file name in directory path, with optional
 // extension ext.
 FileName const fileSearch(string const & path, string const & name,
@@ -196,16 +289,16 @@ FileName const fileSearch(string const & path, string const & name,
 	string const tmpname = replaceEnvironmentPath(name);
 	FileName fullname(makeAbsPath(tmpname, path));
 	// search first without extension, then with it.
-	if (fullname.isReadableFile())
+	if (isFileReadable(fullname))
 		return fullname;
 	if (ext.empty())
 		// We are done.
-		return mode == may_not_exist ? fullname : FileName();
+		return mode == allow_unreadable ? fullname : FileName();
 	// Only add the extension if it is not already the extension of
 	// fullname.
 	if (getExtension(fullname.absFilename()) != ext)
 		fullname = FileName(addExtension(fullname.absFilename(), ext));
-	if (fullname.isReadableFile() || mode == may_not_exist)
+	if (isFileReadable(fullname) || mode == allow_unreadable)
 		return fullname;
 	return FileName();
 }
@@ -240,7 +333,7 @@ FileName const i18nLibFileSearch(string const & dir, string const & name,
 	   variable. But we don't use the value if the currently
 	   selected locale is the C locale. This is a GNU extension.
 
-	   Otherwise, w use a trick to guess what support/gettext.has done:
+	   Otherwise, we use a trick to guess what gettext has done:
 	   each po file is able to tell us its name. (JMarc)
 	*/
 
@@ -316,46 +409,88 @@ string const libScriptSearch(string const & command_in, quote_style style)
 }
 
 
-static FileName createTmpDir(FileName const & tempdir, string const & mask)
-{
-	LYXERR(Debug::FILES, "createTmpDir: tempdir=`" << tempdir << "'\n"
-		<< "createTmpDir:    mask=`" << mask << '\'');
+namespace {
 
-	string const tmp_dir = tempdir.absFilename() + "/" + mask;
-	FileName const tmpfl = FileName::tempName(tmp_dir);
-	// FileName::tempName actually creates a file to make sure that it
+FileName const createTmpDir(FileName const & tempdir, string const & mask)
+{
+	LYXERR(Debug::FILES)
+		<< "createTmpDir: tempdir=`" << tempdir << "'\n"
+		<< "createTmpDir:    mask=`" << mask << '\'' << endl;
+
+	FileName const tmpfl(tempName(tempdir, mask));
+	// lyx::tempName actually creates a file to make sure that it
 	// stays unique. So we have to delete it before we can create
 	// a dir with the same name. Note also that we are not thread
 	// safe because of the gap between unlink and mkdir. (Lgb)
-	tmpfl.removeFile();
+	unlink(tmpfl);
 
-	if (tmpfl.empty() || !tmpfl.createDirectory(0700)) {
-		LYXERR0("LyX could not create the temporary directory '" << tmp_dir
-			<< "'");
+	if (tmpfl.empty() || mkdir(tmpfl, 0700)) {
+		lyxerr << "LyX could not create the temporary directory '"
+		       << tmpfl << "'" << endl;
 		return FileName();
 	}
 
 	return tmpfl;
 }
 
+} // namespace anon
+
+
+bool destroyDir(FileName const & tmpdir)
+{
+	try {
+		return fs::remove_all(tmpdir.toFilesystemEncoding()) > 0;
+	} catch (fs::filesystem_error const & fe){
+		lyxerr << "Could not delete " << tmpdir << ". (" << fe.what() << ")" << std::endl;
+		return false;
+	}
+}
+
+
+string const createBufferTmpDir()
+{
+	static int count;
+	// We are in our own directory.  Why bother to mangle name?
+	// In fact I wrote this code to circumvent a problematic behaviour
+	// (bug?) of EMX mkstemp().
+	string const tmpfl =
+		package().temp_dir().absFilename() + "/lyx_tmpbuf" +
+		convert<string>(count++);
+
+	if (mkdir(FileName(tmpfl), 0777)) {
+		lyxerr << "LyX could not create the temporary directory '"
+		       << tmpfl << "'" << endl;
+		return string();
+	}
+	return tmpfl;
+}
+
 
 FileName const createLyXTmpDir(FileName const & deflt)
 {
-	if (deflt.empty() || deflt == package().system_temp_dir())
-		return createTmpDir(package().system_temp_dir(), "lyx_tmpdir");
-
-	if (deflt.createDirectory(0777)) 
-		return deflt;
-
-	if (deflt.isDirWritable()) {
-		// deflt could not be created because it
-		// did exist already, so let's create our own
-		// dir inside deflt.
-		return createTmpDir(deflt, "lyx_tmpdir");
+	if (!deflt.empty() && deflt.absFilename() != "/tmp") {
+		if (mkdir(deflt, 0777)) {
+			if (isDirWriteable(deflt)) {
+				// deflt could not be created because it
+				// did exist already, so let's create our own
+				// dir inside deflt.
+				return createTmpDir(deflt, "lyx_tmpdir");
+			} else {
+				// some other error occured.
+				return createTmpDir(FileName("/tmp"), "lyx_tmpdir");
+			}
+		} else
+			return deflt;
 	} else {
-		// some other error occured.
-		return createTmpDir(package().system_temp_dir(), "lyx_tmpdir");
+		return createTmpDir(FileName("/tmp"), "lyx_tmpdir");
 	}
+}
+
+
+bool createDirectory(FileName const & path, int permission)
+{
+	BOOST_ASSERT(!path.empty());
+	return mkdir(path, permission) == 0;
 }
 
 
@@ -367,7 +502,7 @@ string const onlyPath(string const & filename)
 		return filename;
 
 	// Find last / or start of filename
-	size_t j = filename.rfind('/');
+	string::size_type j = filename.rfind('/');
 	return j == string::npos ? "./" : filename.substr(0, j + 1);
 }
 
@@ -375,16 +510,11 @@ string const onlyPath(string const & filename)
 // Convert relative path into absolute path based on a basepath.
 // If relpath is absolute, just use that.
 // If basepath is empty, use CWD as base.
-// Note that basePath can be a relative path, in the sense that it may
-// not begin with "/" (e.g.), but it should NOT contain such constructs
-// as "/../".
-// FIXME It might be nice if the code didn't simply assume that.
 FileName const makeAbsPath(string const & relPath, string const & basePath)
 {
-	FileName relative_path(relPath);
 	// checks for already absolute path
-	if (relative_path.isAbsolute())
-		return relative_path;
+	if (os::is_absolute_path(relPath))
+		return FileName(relPath);
 
 	// Copies given paths
 	string tempRel = os::internal_path(relPath);
@@ -393,11 +523,10 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 
 	string tempBase;
 
-	FileName base_path(basePath);
-	if (base_path.isAbsolute())
+	if (os::is_absolute_path(basePath))
 		tempBase = basePath;
 	else
-		tempBase = addPath(FileName::getcwd().absFilename(), basePath);
+		tempBase = addPath(getcwd().absFilename(), basePath);
 
 	// Handle /./ at the end of the path
 	while (suffixIs(tempBase, "/./"))
@@ -407,15 +536,6 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 	string rTemp = tempRel;
 	string temp;
 
-	// Check for a leading "~"
-	// Split by first /
-	rTemp = split(rTemp, temp, '/');
-	if (temp == "~") {
-		tempBase = package().home_dir().absFilename();
-		tempRel = rTemp;
-	}
-
-	rTemp = tempRel;
 	while (!rTemp.empty()) {
 		// Split by next /
 		rTemp = split(rTemp, temp, '/');
@@ -423,22 +543,15 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 		if (temp == ".") continue;
 		if (temp == "..") {
 			// Remove one level of TempBase
-			if (tempBase.length() <= 1) {
-				//this is supposed to be an absolute path, so...
-				tempBase = "/";
-				continue;
-			}
-			//erase a trailing slash if there is one
-			if (suffixIs(tempBase, "/"))
-				tempBase.erase(tempBase.length() - 1, string::npos);
-
-			string::size_type i = tempBase.length() - 1;
+			string::difference_type i = tempBase.length() - 2;
+			if (i < 0)
+				i = 0;
 			while (i > 0 && tempBase[i] != '/')
 				--i;
 			if (i > 0)
 				tempBase.erase(i, string::npos);
 			else
-				tempBase = '/';
+				tempBase += '/';
 		} else if (temp.empty() && !rTemp.empty()) {
 				tempBase = os::current_root() + rTemp;
 				rTemp.erase();
@@ -451,7 +564,7 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 	}
 
 	// returns absolute path
-	return FileName(tempBase);
+	return FileName(os::internal_path(tempBase));
 }
 
 
@@ -488,14 +601,20 @@ string const onlyFilename(string const & fname)
 }
 
 
+/// Returns true is path is absolute
+bool absolutePath(string const & path)
+{
+	return os::is_absolute_path(path);
+}
+
+
 // Create absolute path. If impossible, don't do anything
 // Supports ./ and ~/. Later we can add support for ~logname/. (Asger)
 string const expandPath(string const & path)
 {
 	// checks for already absolute path
 	string rTemp = replaceEnvironmentPath(path);
-	FileName abs_path(rTemp);
-	if (abs_path.isAbsolute())
+	if (os::is_absolute_path(rTemp))
 		return rTemp;
 
 	string temp;
@@ -505,7 +624,7 @@ string const expandPath(string const & path)
 	rTemp = split(rTemp, temp, '/');
 
 	if (temp == ".")
-		return FileName::getcwd().absFilename() + '/' + rTemp;
+		return getcwd().absFilename() + '/' + rTemp;
 
 	if (temp == "~")
 		return package().home_dir().absFilename() + '/' + rTemp;
@@ -515,6 +634,41 @@ string const expandPath(string const & path)
 
 	// Don't know how to handle this
 	return copy;
+}
+
+
+// Normalize a path. Constracts path/../path
+// Can't handle "../../" or "/../" (Asger)
+// Also converts paths like /foo//bar ==> /foo/bar
+string const normalizePath(string const & path)
+{
+	// Normalize paths like /foo//bar ==> /foo/bar
+	static boost::regex regex("/{2,}");
+	string const tmppath = boost::regex_merge(path, regex, "/");
+
+	fs::path const npath = fs::path(tmppath, fs::no_check).normalize();
+
+	if (!npath.is_complete())
+		return "./" + npath.string() + '/';
+
+	return npath.string() + '/';
+}
+
+
+string const getFileContents(FileName const & fname)
+{
+	string const encodedname = fname.toFilesystemEncoding();
+	if (doesFileExist(fname)) {
+		ifstream ifs(encodedname.c_str());
+		ostringstream ofs;
+		if (ifs && ofs) {
+			ofs << ifs.rdbuf();
+			ifs.close();
+			return ofs.str();
+		}
+	}
+	lyxerr << "LyX was not able to read file '" << fname << '\'' << endl;
+	return string();
 }
 
 
@@ -657,6 +811,195 @@ string const getExtension(string const & name)
 				   name.length() - (last_dot + 1));
 	else
 		return string();
+}
+
+
+// the different filetypes and what they contain in one of the first lines
+// (dots are any characters).		(Herbert 20020131)
+// AGR	Grace...
+// BMP	BM...
+// EPS	%!PS-Adobe-3.0 EPSF...
+// FIG	#FIG...
+// FITS ...BITPIX...
+// GIF	GIF...
+// JPG	JFIF
+// PDF	%PDF-...
+// PNG	.PNG...
+// PBM	P1... or P4	(B/W)
+// PGM	P2... or P5	(Grayscale)
+// PPM	P3... or P6	(color)
+// PS	%!PS-Adobe-2.0 or 1.0,  no "EPSF"!
+// SGI	\001\332...	(decimal 474)
+// TGIF	%TGIF...
+// TIFF	II... or MM...
+// XBM	..._bits[]...
+// XPM	/* XPM */    sometimes missing (f.ex. tgif-export)
+//      ...static char *...
+// XWD	\000\000\000\151	(0x00006900) decimal 105
+//
+// GZIP	\037\213	http://www.ietf.org/rfc/rfc1952.txt
+// ZIP	PK...			http://www.halyava.ru/document/ind_arch.htm
+// Z	\037\235		UNIX compress
+
+string const getFormatFromContents(FileName const & filename)
+{
+	// paranoia check
+	if (filename.empty() || !isFileReadable(filename))
+		return string();
+
+	ifstream ifs(filename.toFilesystemEncoding().c_str());
+	if (!ifs)
+		// Couldn't open file...
+		return string();
+
+	// gnuzip
+	static string const gzipStamp = "\037\213";
+
+	// PKZIP
+	static string const zipStamp = "PK";
+
+	// compress
+	static string const compressStamp = "\037\235";
+
+	// Maximum strings to read
+	int const max_count = 50;
+	int count = 0;
+
+	string str;
+	string format;
+	bool firstLine = true;
+	while ((count++ < max_count) && format.empty()) {
+		if (ifs.eof()) {
+			LYXERR(Debug::GRAPHICS)
+				<< "filetools(getFormatFromContents)\n"
+				<< "\tFile type not recognised before EOF!"
+				<< endl;
+			break;
+		}
+
+		getline(ifs, str);
+		string const stamp = str.substr(0, 2);
+		if (firstLine && str.size() >= 2) {
+			// at first we check for a zipped file, because this
+			// information is saved in the first bytes of the file!
+			// also some graphic formats which save the information
+			// in the first line, too.
+			if (prefixIs(str, gzipStamp)) {
+				format =  "gzip";
+
+			} else if (stamp == zipStamp) {
+				format =  "zip";
+
+			} else if (stamp == compressStamp) {
+				format =  "compress";
+
+			// the graphics part
+			} else if (stamp == "BM") {
+				format =  "bmp";
+
+			} else if (stamp == "\001\332") {
+				format =  "sgi";
+
+			// PBM family
+			// Don't need to use str.at(0), str.at(1) because
+			// we already know that str.size() >= 2
+			} else if (str[0] == 'P') {
+				switch (str[1]) {
+				case '1':
+				case '4':
+					format =  "pbm";
+				    break;
+				case '2':
+				case '5':
+					format =  "pgm";
+				    break;
+				case '3':
+				case '6':
+					format =  "ppm";
+				}
+				break;
+
+			} else if ((stamp == "II") || (stamp == "MM")) {
+				format =  "tiff";
+
+			} else if (prefixIs(str,"%TGIF")) {
+				format =  "tgif";
+
+			} else if (prefixIs(str,"#FIG")) {
+				format =  "fig";
+
+			} else if (prefixIs(str,"GIF")) {
+				format =  "gif";
+
+			} else if (str.size() > 3) {
+				int const c = ((str[0] << 24) & (str[1] << 16) &
+					       (str[2] << 8)  & str[3]);
+				if (c == 105) {
+					format =  "xwd";
+				}
+			}
+
+			firstLine = false;
+		}
+
+		if (!format.empty())
+		    break;
+		else if (contains(str,"EPSF"))
+			// dummy, if we have wrong file description like
+			// %!PS-Adobe-2.0EPSF"
+			format =  "eps";
+
+		else if (contains(str,"Grace"))
+			format =  "agr";
+
+		else if (contains(str,"JFIF"))
+			format =  "jpg";
+
+		else if (contains(str,"%PDF"))
+			format =  "pdf";
+
+		else if (contains(str,"PNG"))
+			format =  "png";
+
+		else if (contains(str,"%!PS-Adobe")) {
+			// eps or ps
+			ifs >> str;
+			if (contains(str,"EPSF"))
+				format = "eps";
+			else
+			    format = "ps";
+		}
+
+		else if (contains(str,"_bits[]"))
+			format = "xbm";
+
+		else if (contains(str,"XPM") || contains(str, "static char *"))
+			format = "xpm";
+
+		else if (contains(str,"BITPIX"))
+			format = "fits";
+	}
+
+	if (!format.empty()) {
+		LYXERR(Debug::GRAPHICS)
+			<< "Recognised Fileformat: " << format << endl;
+		return format;
+	}
+
+	LYXERR(Debug::GRAPHICS)
+		<< "filetools(getFormatFromContents)\n"
+		<< "\tCouldn't find a known format!\n";
+	return string();
+}
+
+
+/// check for zipped file
+bool zippedFile(FileName const & name)
+{
+	string const type = getFormatFromContents(name);
+	if (contains("gzip zip compress", type) && !type.empty())
+		return true;
+	return false;
 }
 
 
@@ -807,10 +1150,10 @@ FileName const findtexfile(string const & fil, string const & /*format*/)
 	// If the file can be found directly, we just return a
 	// absolute path version of it.
 	FileName const absfile(makeAbsPath(fil));
-	if (absfile.exists())
+	if (doesFileExist(absfile))
 		return absfile;
 
-	// Now we try to find it using kpsewhich.
+	// No we try to find it using kpsewhich.
 	// It seems from the kpsewhich manual page that it is safe to use
 	// kpsewhich without --format: "When the --format option is not
 	// given, the search path used when looking for a file is inferred
@@ -834,10 +1177,12 @@ FileName const findtexfile(string const & fil, string const & /*format*/)
 
 	cmd_ret const c = runCommand(kpsecmd);
 
-	LYXERR(Debug::LATEX, "kpse status = " << c.first << '\n'
-		 << "kpse result = `" << rtrim(c.second, "\n\r") << '\'');
+	LYXERR(Debug::LATEX) << "kpse status = " << c.first << '\n'
+		 << "kpse result = `" << rtrim(c.second, "\n\r")
+		 << '\'' << endl;
 	if (c.first != -1)
-		return FileName(rtrim(to_utf8(from_filesystem8bit(c.second)), "\n\r"));
+		return FileName(os::internal_path(rtrim(to_utf8(from_filesystem8bit(c.second)),
+							"\n\r")));
 	else
 		return FileName();
 }
@@ -850,18 +1195,21 @@ void removeAutosaveFile(string const & filename)
 	a += onlyFilename(filename);
 	a += '#';
 	FileName const autosave(a);
-	if (autosave.exists())
-		autosave.removeFile();
+	if (doesFileExist(autosave))
+		unlink(autosave);
 }
 
 
 void readBB_lyxerrMessage(FileName const & file, bool & zipped,
 	string const & message)
 {
-	LYXERR(Debug::GRAPHICS, "[readBB_from_PSFile] " << message);
-	// FIXME: Why is this func deleting a file? (Lgb)
+	LYXERR(Debug::GRAPHICS) << "[readBB_from_PSFile] "
+		<< message << std::endl;
+#ifdef WITH_WARNINGS
+#warning Why is this func deleting a file? (Lgb)
+#endif
 	if (zipped)
-		file.removeFile();
+		unlink(file);
 }
 
 
@@ -874,9 +1222,9 @@ string const readBB_from_PSFile(FileName const & file)
 	// end of the file. Than we have in the header:
 	// %%BoundingBox: (atend)
 	// In this case we must check the end.
-	bool zipped = file.isZippedFile();
+	bool zipped = zippedFile(file);
 	FileName const file_ = zipped ? unzipFile(file) : file;
-	string const format = file_.guessFormatFromContents();
+	string const format = getFormatFromContents(file_);
 
 	if (format != "eps" && format != "ps") {
 		readBB_lyxerrMessage(file_, zipped,"no(e)ps-format");
@@ -885,7 +1233,7 @@ string const readBB_from_PSFile(FileName const & file)
 
 	static boost::regex bbox_re(
 		"^%%BoundingBox:\\s*([[:digit:]]+)\\s+([[:digit:]]+)\\s+([[:digit:]]+)\\s+([[:digit:]]+)");
-	ifstream is(file_.toFilesystemEncoding().c_str());
+	std::ifstream is(file_.toFilesystemEncoding().c_str());
 	while (is) {
 		string s;
 		getline(is,s);
@@ -908,26 +1256,28 @@ string const readBB_from_PSFile(FileName const & file)
 }
 
 
-int compare_timestamps(FileName const & file1, FileName const & file2)
+int compare_timestamps(FileName const & filename1, FileName const & filename2)
 {
 	// If the original is newer than the copy, then copy the original
 	// to the new directory.
 
+	string const file1 = filename1.toFilesystemEncoding();
+	string const file2 = filename2.toFilesystemEncoding();
 	int cmp = 0;
-	if (file1.exists() && file2.exists()) {
-		double const tmp = difftime(file1.lastModified(), file2.lastModified());
+	if (doesFileExist(filename1) && doesFileExist(filename2)) {
+		double const tmp = difftime(fs::last_write_time(file1),
+					    fs::last_write_time(file2));
 		if (tmp != 0)
 			cmp = tmp > 0 ? 1 : -1;
 
-	} else if (file1.exists()) {
+	} else if (doesFileExist(filename1)) {
 		cmp = 1;
-	} else if (file2.exists()) {
+	} else if (doesFileExist(filename2)) {
 		cmp = -1;
 	}
 
 	return cmp;
 }
-
 
 } //namespace support
 } // namespace lyx

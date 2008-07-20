@@ -11,18 +11,18 @@
 #include <config.h>
 
 #include "InsetMathBig.h"
-
 #include "MathSupport.h"
 #include "MathStream.h"
-#include "MetricsInfo.h"
+#include "MathStream.h"
 
 #include "frontends/FontMetrics.h"
 
-#include "support/docstream.h"
 #include "support/lstrings.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
 
 
 InsetMathBig::InsetMathBig(docstring const & name, docstring const & delim)
@@ -36,9 +36,9 @@ docstring InsetMathBig::name() const
 }
 
 
-Inset * InsetMathBig::clone() const
+auto_ptr<Inset> InsetMathBig::doClone() const
 {
-	return new InsetMathBig(*this);
+	return auto_ptr<Inset>(new InsetMathBig(*this));
 }
 
 
@@ -62,26 +62,29 @@ double InsetMathBig::increase() const
 }
 
 
-void InsetMathBig::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathBig::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	double const h = theFontMetrics(mi.base.font).ascent('I');
 	double const f = increase();
 	dim.wid = 6;
 	dim.asc = int(h + f * h);
 	dim.des = int(f * h);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathBig::draw(PainterInfo & pi, int x, int y) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
 	// mathed_draw_deco does not use the leading backslash, so remove it
 	// (but don't use ltrim if this is the backslash delimiter).
 	// Replace \| by \Vert (equivalent in LaTeX), since mathed_draw_deco
 	// would treat it as |.
 	docstring const delim = (delim_ == "\\|") ?  from_ascii("Vert") :
 		(delim_ == "\\\\") ? from_ascii("\\") : support::ltrim(delim_, "\\");
-	mathed_draw_deco(pi, x + 1, y - dim.ascent(), 4, dim.height(),
+	mathed_draw_deco(pi, x + 1, y - dim_.ascent(), 4, dim_.height(),
 			 delim);
 	setPosCache(pi, x, y);
 }
@@ -89,7 +92,6 @@ void InsetMathBig::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathBig::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	os << '\\' << name_ << delim_;
 	if (delim_[0] == '\\')
 		os.pendingSpace(true);

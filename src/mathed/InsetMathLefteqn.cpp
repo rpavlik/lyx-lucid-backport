@@ -11,30 +11,39 @@
 #include <config.h>
 
 #include "InsetMathLefteqn.h"
-
-#include "support/docstream.h"
+#include "MathData.h"
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+
+using std::string;
+using std::auto_ptr;
+
 
 InsetMathLefteqn::InsetMathLefteqn()
 	: InsetMathNest(1)
 {}
 
 
-Inset * InsetMathLefteqn::clone() const
+auto_ptr<Inset> InsetMathLefteqn::doClone() const
 {
-	return new InsetMathLefteqn(*this);
+	return auto_ptr<Inset>(new InsetMathLefteqn(*this));
 }
 
 
-void InsetMathLefteqn::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathLefteqn::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 	dim.asc += 2;
 	dim.des += 2;
 	dim.wid = 4;
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 

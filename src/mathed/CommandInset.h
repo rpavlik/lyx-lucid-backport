@@ -25,9 +25,9 @@ namespace lyx {
 class CommandInset : public InsetMathNest {
 public:
 	///
-	explicit CommandInset(docstring const & name, bool needs_math_mode = true);
+	explicit CommandInset(docstring const & name);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -44,12 +44,10 @@ public:
 	bool isActive() const { return false; }
 
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 
 	///
 	docstring name_;
-	///
-	bool needs_math_mode_;
 	///
 	mutable bool set_label_;
 	///

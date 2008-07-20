@@ -16,8 +16,10 @@
 #include "LaTeXFeatures.h"
 #include "Buffer.h"
 #include "Cursor.h"
+#include "debug.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "gettext.h"
 #include "MathData.h"
 #include "MathFactory.h"
 #include "MathSupport.h"
@@ -26,28 +28,27 @@
 
 #include "insets/InsetCommand.h"
 
-#include "support/debug.h"
-#include "support/gettext.h"
-
-#include <ostream>
-
-using namespace std;
 
 namespace lyx {
 
+using std::string;
+using std::auto_ptr;
+using std::endl;
+
+
 InsetMathRef::InsetMathRef()
-	: CommandInset(from_ascii("ref"), false)
+	: CommandInset(from_ascii("ref"))
 {}
 
 
 InsetMathRef::InsetMathRef(docstring const & data)
-	: CommandInset(data, false)
+	: CommandInset(data)
 {}
 
 
-Inset * InsetMathRef::clone() const
+auto_ptr<Inset> InsetMathRef::doClone() const
 {
-	return new InsetMathRef(*this);
+	return auto_ptr<Inset>(new InsetMathRef(*this));
 }
 
 
@@ -79,14 +80,14 @@ void InsetMathRef::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_MOUSE_RELEASE:
 		if (cmd.button() == mouse_button::button3) {
-			LYXERR0("trying to goto ref '" << to_utf8(asString(cell(0))) << "'");
+			lyxerr << "trying to goto ref '" << to_utf8(asString(cell(0))) << "'" << endl;
 			cur.bv().dispatch(FuncRequest(LFUN_LABEL_GOTO, asString(cell(0))));
 			break;
 		}
 		if (cmd.button() == mouse_button::button1) {
 			// Eventually trigger dialog with button 3, not 1
 			string const data = createDialogStr("ref");
-			cur.bv().showDialog("ref", data, this);
+			cur.bv().showInsetDialog("ref", data, this);
 			break;
 		}
 		cur.undispatched();
@@ -114,7 +115,7 @@ bool InsetMathRef::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MOUSE_RELEASE:
 	case LFUN_MOUSE_PRESS:
 	case LFUN_MOUSE_MOTION:
-		status.setEnabled(true);
+		status.enabled(true);
 		return true;
 	default:
 		return CommandInset::getStatus(cur, cmd, status);
@@ -147,23 +148,22 @@ void InsetMathRef::validate(LaTeXFeatures & features) const
 		features.require("varioref");
 	else if (commandname() == "prettyref")
 		features.require("prettyref");
-	else if (commandname() == "eqref")
-		features.require("amsmath");
 }
 
 
-int InsetMathRef::docbook(odocstream & os, OutputParams const & runparams) const
+int InsetMathRef::docbook(Buffer const & buf, odocstream & os,
+		      OutputParams const & runparams) const
 {
 	if (cell(1).empty()) {
 		os << "<xref linkend=\""
-		   << sgml::cleanID(buffer(), runparams, asString(cell(0)));
+		   << sgml::cleanID(buf, runparams, asString(cell(0)));
 		if (runparams.flavor == OutputParams::XML)
 			os << "\"/>";
 		else
 			os << "\">";
 	} else {
 		os << "<link linkend=\""
-		   << sgml::cleanID(buffer(), runparams, asString(cell(0)))
+		   << sgml::cleanID(buf, runparams, asString(cell(0)))
 		   << "\">"
 		   << asString(cell(1))
 		   << "</link>";
@@ -175,16 +175,16 @@ int InsetMathRef::docbook(odocstream & os, OutputParams const & runparams) const
 
 string const InsetMathRef::createDialogStr(string const & name) const
 {
-	InsetCommandParams icp(REF_CODE, to_ascii(commandname()));
+	InsetCommandParams icp(to_ascii(commandname()));
 	icp["reference"] = asString(cell(0));
 	if (!cell(1).empty())
 		icp["name"] = asString(cell(1));
-	return InsetCommand::params2string(name, icp);
+	return InsetCommandMailer::params2string(name, icp);
 }
 
 
 InsetMathRef::ref_type_info InsetMathRef::types[] = {
-	{ from_ascii("ref"),       from_ascii(N_("Standard[[mathref]]")),   from_ascii(N_("Ref: "))},
+	{ from_ascii("ref"),       from_ascii(N_("Standard[[mathref]]")),              from_ascii(N_("Ref: "))},
 	{ from_ascii("eqref"),     from_ascii(N_("Equation")),              from_ascii(N_("EqRef: "))},
 	{ from_ascii("pageref"),   from_ascii(N_("Page Number")),           from_ascii(N_("Page: "))},
 	{ from_ascii("vpageref"),  from_ascii(N_("Textual Page Number")),   from_ascii(N_("TextPage: "))},

@@ -1,0 +1,31 @@
+/* XPM */
+static char *tabular-feature_append-column[] = {
+/* columns rows colors chars-per-pixel */
+"20 20 5 1",
+"  c #000000",
+". c #606060",
+"X c #00c200",
+"o c #ffffff",
+"O c None",
+/* pixels */
+"OOOOOOOOOOOOOOOOOOOO",
+"OOOOOOOOOOOOOOOOOOOO",
+"OOO O O.OOO.O O O OO",
+"OO OOOO.OOO.OOOO  OO",
+"O                 OO",
+"OO OOOO.OOO. OOO  OO",
+"OOO OOO.OOO.O O OOOO",
+"OOO OOO.OOO.ooOOOOOO",
+"OOO             OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo O OO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOO ooo XXX ooo OOOO",
+"OOOOOOOOOOOOOOOOOOOO",
+"OOO OOOOOOOOOO  OOOO",
+"OOOOOOOOOOOOOOOOOOOO"
+};

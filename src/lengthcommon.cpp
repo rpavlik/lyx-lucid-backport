@@ -12,14 +12,14 @@
 
 #include <config.h>
 
-#include "support/gettext.h"
-#include "Length.h"
+#include "lengthcommon.h"
 
-#include <string>
+#include "gettext.h"
 
-using namespace std;
 
 namespace lyx {
+
+using std::string;
 
 // I am not sure if "mu" should be possible to select (Lgb)
 

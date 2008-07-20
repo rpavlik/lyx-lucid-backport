@@ -16,28 +16,36 @@
 
 #include "LaTeXFeatures.h"
 
-#include "Color.h"
 #include "BufferParams.h"
+#include "Color.h"
+#include "debug.h"
 #include "Encoding.h"
 #include "Floating.h"
 #include "FloatList.h"
 #include "Language.h"
-#include "Layout.h"
 #include "Lexer.h"
 #include "LyXRC.h"
-#include "TextClass.h"
 
-#include "support/debug.h"
 #include "support/docstream.h"
-#include "support/FileName.h"
 #include "support/filetools.h"
-#include "support/lstrings.h"
 
-using namespace std;
-using namespace lyx::support;
+#include "frontends/controllers/frontend_helpers.h"
+
+using std::endl;
+using std::find;
+using std::string;
+using std::list;
+using std::ostream;
+using std::ostringstream;
+using std::set;
 
 
 namespace lyx {
+
+using support::isSGMLFilename;
+using support::libFileSearch;
+using support::makeRelPath;
+using support::onlyPath;
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -148,7 +156,7 @@ static string const mathcircumflex_def =
 static string const tabularnewline_def =
 	"%% Because html converters don't know tabularnewline\n"
 	"\\providecommand{\\tabularnewline}{\\\\}\n";
-	
+
 static string const lyxgreyedout_def =
 	"%% The greyedout annotation environment\n"
 	"\\newenvironment{lyxgreyedout}{\\textcolor[gray]{0.8}\\bgroup}{\\egroup}\n";
@@ -171,16 +179,6 @@ static string const changetracking_dvipost_def =
 	"\\newcommand{\\lyxdeleted}[3]{%\n"
 	"\\changestart\\overstrikeon#3\\overstrikeoff\\changeend}\n";
 
-static string const changetracking_xcolor_soul_def =
-	"%% Change tracking with soul\n"
-	"\\newcommand{\\lyxadded}[3]{{\\color{lyxadded}#3}}\n"
-	"\\newcommand{\\lyxdeleted}[3]{{\\color{lyxdeleted}\\st{#3}}}\n";
-
-static string const changetracking_xcolor_soul_hyperref_def =
-	"%% Change tracking with soul\n"
-	"\\newcommand{\\lyxadded}[3]{{\\texorpdfstring{\\color{lyxadded}}{}#3}}\n"
-	"\\newcommand{\\lyxdeleted}[3]{{\\texorpdfstring{\\color{lyxdeleted}\\st{#3}}{}}}\n";
-
 static string const changetracking_none_def =
 	"\\newcommand{\\lyxadded}[3]{#3}\n"
 	"\\newcommand{\\lyxdeleted}[3]{}\n";
@@ -197,23 +195,8 @@ static string const textcyr_def =
 	" \\fontencoding{T2A}\\selectfont\n"
 	" \\def\\encodingdefault{T2A}}\n"
 	"\\DeclareRobustCommand{\\textcyr}[1]{\\leavevmode{\\cyrtext #1}}\n"
-	"\\DeclareFontEncoding{T2A}{}{}\n";
+	"\\AtBeginDocument{\\DeclareFontEncoding{T2A}{}{}}\n";
 
-static string const lyxmathsym_def =
-	"\\DeclareRobustCommand{\\lyxmathsym}[1]{%\n"
-	" \\ifmmode\\begingroup\n"
-	" \\edef\\b@ld{bold}%\n"
-	" \\def\\rmorbf##1{\\ifx\\math@version\\b@ld\\textbf{##1}\\else\\textrm{##1}\\fi}%\n"
-	" \\mathchoice{\\hbox{\\rmorbf{#1}}}{\\hbox{\\rmorbf{#1}}}%\n"
-	"  {\\hbox{\\smaller[2]\\rmorbf{#1}}}{\\hbox{\\smaller[3]\\rmorbf{#1}}}%\n"
-	" \\endgroup\\else#1\\fi}\n";
-
-static string const papersizedvi_def =
-	"\\special{papersize=\\the\\paperwidth,\\the\\paperheight}\n";
-
-static string const papersizepdf_def =
-	"\\pdfpageheight\\paperheight\n"
-	"\\pdfpagewidth\\paperwidth\n";
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -221,7 +204,7 @@ static string const papersizepdf_def =
 //
 /////////////////////////////////////////////////////////////////////
 
-LaTeXFeatures::Packages LaTeXFeatures::packages_;
+LaTeXFeatures::PackagesList LaTeXFeatures::packages_;
 
 
 LaTeXFeatures::LaTeXFeatures(Buffer const & b, BufferParams const & p,
@@ -241,19 +224,16 @@ bool LaTeXFeatures::useBabel() const
 
 void LaTeXFeatures::require(string const & name)
 {
-	features_.insert(name);
-}
+	if (isRequired(name))
+		return;
 
-
-void LaTeXFeatures::require(set<string> const & names)
-{
-	features_.insert(names.begin(), names.end());
+	features_.push_back(name);
 }
 
 
 void LaTeXFeatures::getAvailable()
 {
-	Lexer lex;
+	Lexer lex(0, 0);
 	support::FileName const real_file = libFileSearch("", "packages.lst");
 
 	if (real_file.empty())
@@ -275,7 +255,11 @@ void LaTeXFeatures::getAvailable()
 			finished = true;
 			break;
 		default:
-			packages_.insert(lex.getString());
+			string const name = lex.getString();
+			PackagesList::const_iterator begin = packages_.begin();
+			PackagesList::const_iterator end   = packages_.end();
+			if (find(begin, end, name) == end)
+				packages_.push_back(name);
 		}
 	}
 }
@@ -293,19 +277,20 @@ void LaTeXFeatures::useLayout(docstring const & layoutname)
 		return;
 	}
 
-	DocumentClass const & tclass = params_.documentClass();
+	TextClass const & tclass = params_.getTextClass();
 	if (tclass.hasLayout(layoutname)) {
 		// Is this layout already in usedLayouts?
-		if (find(usedLayouts_.begin(), usedLayouts_.end(), layoutname) 
-		    != usedLayouts_.end())
-			return;
+		list<docstring>::const_iterator cit = usedLayouts_.begin();
+		list<docstring>::const_iterator end = usedLayouts_.end();
+		for (; cit != end; ++cit) {
+			if (layoutname == *cit)
+				return;
+		}
 
-		Layout const & layout = tclass[layoutname];
-		require(layout.requires());
-
-		if (!layout.depends_on().empty()) {
+		Layout_ptr const & lyt = tclass[layoutname];
+		if (!lyt->depends_on().empty()) {
 			++level;
-			useLayout(layout.depends_on());
+			useLayout(lyt->depends_on());
 			--level;
 		}
 		usedLayouts_.push_back(layoutname);
@@ -321,13 +306,13 @@ void LaTeXFeatures::useLayout(docstring const & layoutname)
 
 bool LaTeXFeatures::isRequired(string const & name) const
 {
-	return features_.find(name) != features_.end();
+	return find(features_.begin(), features_.end(), name) != features_.end();
 }
 
 
 bool LaTeXFeatures::mustProvide(string const & name) const
 {
-	return isRequired(name) && !params_.documentClass().provides(name);
+	return isRequired(name) && !params_.getTextClass().provides(name);
 }
 
 
@@ -335,32 +320,26 @@ bool LaTeXFeatures::isAvailable(string const & name)
 {
 	if (packages_.empty())
 		getAvailable();
-	string n = name;
-	if (suffixIs(n, ".sty"))
-		n.erase(name.length() - 4);
-	return packages_.find(n) != packages_.end();
+	return find(packages_.begin(), packages_.end(), name) != packages_.end();
 }
 
 
 void LaTeXFeatures::addPreambleSnippet(string const & preamble)
 {
-	SnippetList::const_iterator begin = preamble_snippets_.begin();
-	SnippetList::const_iterator end   = preamble_snippets_.end();
+	FeaturesList::const_iterator begin = preamble_snippets_.begin();
+	FeaturesList::const_iterator end   = preamble_snippets_.end();
 	if (find(begin, end, preamble) == end)
 		preamble_snippets_.push_back(preamble);
 }
 
 
-void LaTeXFeatures::useFloat(string const & name, bool subfloat)
+void LaTeXFeatures::useFloat(string const & name)
 {
-	if (!usedFloats_[name])
-		usedFloats_[name] = subfloat;
-	if (subfloat)
-		require("subfig");
+	usedFloats_.insert(name);
 	// We only need float.sty if we use non builtin floats, or if we
 	// use the "H" modifier. This includes modified table and
 	// figure floats. (Lgb)
-	Floating const & fl = params_.documentClass().floats().getType(name);
+	Floating const & fl = params_.getTextClass().floats().getType(name);
 	if (!fl.type().empty() && !fl.builtin()) {
 		require("float");
 	}
@@ -431,7 +410,7 @@ char const * simplefeatures[] = {
 	"rotating",
 	"latexsym",
 	"pifont",
-	// subfig is handled in BufferParams.cpp
+	"subfigure",
 	"varioref",
 	"prettyref",
 	/*For a successful cooperation of the `wrapfig' package with the
@@ -439,13 +418,12 @@ char const * simplefeatures[] = {
 	  the `float' package. See the caption package documentation
 	  for explanation.*/
 	"float",
-	"rotfloat",
 	"wrapfig",
 	"booktabs",
 	"dvipost",
 	"fancybox",
 	"calc",
-	"units",
+	"nicefrac",
 	"tipa",
 	"tipx",
 	"framed",
@@ -459,16 +437,7 @@ char const * simplefeatures[] = {
 	"mathrsfs",
 	"ascii",
 	"url",
-	"covington",
-	"csquotes",
-	"enumitem",
-	"endnotes",
-	"ifthen",
-	"amsthm",
-	"listings",
-	"bm",
-	"pdfpages",
-	"relsize"
+	"bm"
 };
 
 int const nb_simplefeatures = sizeof(simplefeatures) / sizeof(char const *);
@@ -479,13 +448,7 @@ int const nb_simplefeatures = sizeof(simplefeatures) / sizeof(char const *);
 string const LaTeXFeatures::getPackages() const
 {
 	ostringstream packages;
-	DocumentClass const & tclass = params_.documentClass();
-
-	// FIXME: currently, we can only load packages and macros known
-	// to LyX.
-	// However, with the Require tag of layouts/custom insets,
-	// also inknown packages can be requested. They are silently
-	// swallowed now. We should change this eventually.
+	TextClass const & tclass = params_.getTextClass();
 
 	//
 	//  These are all the 'simple' includes.  i.e
@@ -512,7 +475,7 @@ string const LaTeXFeatures::getPackages() const
 		// amsbsy is already provided by amsmath
 		packages << "\\usepackage{amsbsy}\n";
 	}
-	
+
 	// wasysym is a simple feature, but it must be after amsmath if both
 	// are used
 	// wasysym redefines some integrals (e.g. iint) from amsmath. That
@@ -538,8 +501,9 @@ string const LaTeXFeatures::getPackages() const
 	}
 
 	// pdfcolmk must be loaded after color
-	if (mustProvide("pdfcolmk"))
+	if (mustProvide("pdfcolmk")) {
 		packages << "\\usepackage{pdfcolmk}\n";
+	}
 
 	// makeidx.sty
 	if (isRequired("makeidx")) {
@@ -558,8 +522,8 @@ string const LaTeXFeatures::getPackages() const
 				 << "]{graphicx}\n";
 	}
 	// shadecolor for shaded
-	if (isRequired("framed") && mustProvide("color")) {
-		RGBColor c = rgbFromHexName(lcolor.getX11Name(Color_shadedbg));
+	if (mustProvide("framed") && mustProvide("color")) {
+		RGBColor c = RGBColor(lcolor.getX11Name(Color::shadedbg));
 		//255.0 to force conversion to double
 		//NOTE As Jürgen Spitzmüller pointed out, an alternative would be
 		//to use the xcolor package instead, and then we can do
@@ -573,12 +537,35 @@ string const LaTeXFeatures::getPackages() const
 	}
 
 	// lyxskak.sty --- newer chess support based on skak.sty
-	if (mustProvide("chess"))
+	if (mustProvide("chess")) {
 		packages << "\\usepackage[ps,mover]{lyxskak}\n";
+	}
 
 	// setspace.sty
-	if (mustProvide("setspace") && !tclass.provides("SetSpace"))
-    packages << "\\usepackage{setspace}\n";
+	if ((isRequired("setspace") 
+	     || ((params_.spacing().getSpace() != Spacing::Single
+		  && !params_.spacing().isDefault())))
+	    && !tclass.provides("SetSpace")) {
+		packages << "\\usepackage{setspace}\n";
+	}
+	bool const upcase = tclass.provides("SetSpace");
+	switch (params_.spacing().getSpace()) {
+	case Spacing::Default:
+	case Spacing::Single:
+		// we dont use setspace.sty so dont print anything
+		//packages += "\\singlespacing\n";
+		break;
+	case Spacing::Onehalf:
+		packages << (upcase ? "\\OnehalfSpacing\n" : "\\onehalfspacing\n");
+		break;
+	case Spacing::Double:
+		packages << (upcase ? "\\DoubleSpacing\n" : "\\doublespacing\n");
+		break;
+	case Spacing::Other:
+		packages << (upcase ? "\\setSpacing{" : "\\setstretch{")
+			 << params_.spacing().getValue() << "}\n";
+		break;
+	}
 
 	// amssymb.sty
 	if (mustProvide("amssymb")
@@ -594,25 +581,24 @@ string const LaTeXFeatures::getPackages() const
 	// natbib.sty
 	if (mustProvide("natbib")) {
 		packages << "\\usepackage[";
-		if (params_.citeEngine() == ENGINE_NATBIB_NUMERICAL)
+		if (params_.getEngine() == biblio::ENGINE_NATBIB_NUMERICAL) {
 			packages << "numbers";
-		else
+		} else {
 			packages << "authoryear";
+		}
 		packages << "]{natbib}\n";
 	}
 
 	// jurabib -- we need version 0.6 at least.
-	if (mustProvide("jurabib"))
+	if (mustProvide("jurabib")) {
 		packages << "\\usepackage{jurabib}[2004/01/25]\n";
-	
-	// xargs -- we need version 1.09 at least
-	if (mustProvide("xargs"))
-		packages << "\\usepackage{xargs}[2008/03/08]\n";
+	}
 
 	// bibtopic -- the dot provides the aux file naming which
 	// LyX can detect.
-	if (mustProvide("bibtopic"))
+	if (mustProvide("bibtopic")) {
 		packages << "\\usepackage[dot]{bibtopic}\n";
+	}
 
 	if (mustProvide("xy"))
 		packages << "\\usepackage[all]{xy}\n";
@@ -628,6 +614,9 @@ string const LaTeXFeatures::getPackages() const
 			    "\\makenomenclature\n";
 	}
 
+	if (mustProvide("listings"))
+		packages << "\\usepackage{listings}\n";
+
 	return packages.str();
 }
 
@@ -638,16 +627,11 @@ string const LaTeXFeatures::getMacros() const
 
 	if (!preamble_snippets_.empty())
 		macros << '\n';
-	SnippetList::const_iterator pit  = preamble_snippets_.begin();
-	SnippetList::const_iterator pend = preamble_snippets_.end();
-	for (; pit != pend; ++pit)
+	FeaturesList::const_iterator pit  = preamble_snippets_.begin();
+	FeaturesList::const_iterator pend = preamble_snippets_.end();
+	for (; pit != pend; ++pit) {
 		macros << *pit << '\n';
-
-	if (mustProvide("papersize"))
-		if (runparams_.flavor == OutputParams::LATEX)
-			macros << papersizedvi_def << '\n';
-		else
-			macros << papersizepdf_def << '\n';
+	}
 
 	if (mustProvide("LyX"))
 		macros << lyx_def << '\n';
@@ -666,9 +650,6 @@ string const LaTeXFeatures::getMacros() const
 
 	if (mustProvide("textcyr"))
 		macros << textcyr_def << '\n';
-
-	if (mustProvide("lyxmathsym"))
-		macros << lyxmathsym_def << '\n';
 
 	// quotes.
 	if (mustProvide("quotesinglbase"))
@@ -711,30 +692,28 @@ string const LaTeXFeatures::getMacros() const
 	getFloatDefinitions(macros);
 
 	// change tracking
-	if (mustProvide("ct-dvipost"))
+	if (mustProvide("ct-dvipost")) {
 		macros << changetracking_dvipost_def;
-
+	}
 	if (mustProvide("ct-xcolor-soul")) {
 		int const prec = macros.precision(2);
 	
-		RGBColor cadd = rgbFromHexName(lcolor.getX11Name(Color_addedtext));
+		RGBColor cadd = RGBColor(lcolor.getX11Name(Color::addedtext));
 		macros << "\\providecolor{lyxadded}{rgb}{"
 		       << cadd.r / 255.0 << ',' << cadd.g / 255.0 << ',' << cadd.b / 255.0 << "}\n";
 
-		RGBColor cdel = rgbFromHexName(lcolor.getX11Name(Color_deletedtext));
+		RGBColor cdel = RGBColor(lcolor.getX11Name(Color::deletedtext));
 		macros << "\\providecolor{lyxdeleted}{rgb}{"
 		       << cdel.r / 255.0 << ',' << cdel.g / 255.0 << ',' << cdel.b / 255.0 << "}\n";
 
 		macros.precision(prec);
-		
-		if (isRequired("hyperref"))
-			macros << changetracking_xcolor_soul_hyperref_def;
-		else
-			macros << changetracking_xcolor_soul_def;
-	}
 
-	if (mustProvide("ct-none"))
+		macros << "\\newcommand{\\lyxadded}[3]{{\\color{lyxadded}#3}}\n"
+		       << "\\newcommand{\\lyxdeleted}[3]{{\\color{lyxdeleted}\\st{#3}}}\n";
+	}
+	if (mustProvide("ct-none")) {
 		macros << changetracking_none_def;
+	}
 
 	return macros.str();
 }
@@ -759,7 +738,7 @@ string const LaTeXFeatures::getBabelOptions() const
 docstring const LaTeXFeatures::getTClassPreamble() const
 {
 	// the text class specific preamble
-	DocumentClass const & tclass = params_.documentClass();
+	TextClass const & tclass = params_.getTextClass();
 	odocstringstream tcpreamble;
 
 	tcpreamble << tclass.preamble();
@@ -767,7 +746,14 @@ docstring const LaTeXFeatures::getTClassPreamble() const
 	list<docstring>::const_iterator cit = usedLayouts_.begin();
 	list<docstring>::const_iterator end = usedLayouts_.end();
 	for (; cit != end; ++cit) {
-		tcpreamble << tclass[*cit].preamble();
+		tcpreamble << tclass[*cit]->preamble();
+	}
+
+	CharStyles::iterator cs = tclass.charstyles().begin();
+	CharStyles::iterator csend = tclass.charstyles().end();
+	for (; cs != csend; ++cs) {
+		if (isRequired(cs->name))
+			tcpreamble << cs->preamble;
 	}
 
 	return tcpreamble.str();
@@ -805,8 +791,7 @@ docstring const LaTeXFeatures::getIncludedFiles(string const & fname) const
 }
 
 
-void LaTeXFeatures::showStruct() const
-{
+void LaTeXFeatures::showStruct() const {
 	lyxerr << "LyX needs the following commands when LaTeXing:"
 	       << "\n***** Packages:" << getPackages()
 	       << "\n***** Macros:" << getMacros()
@@ -835,7 +820,7 @@ BufferParams const & LaTeXFeatures::bufferParams() const
 
 void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 {
-	FloatList const & floats = params_.documentClass().floats();
+	FloatList const & floats = params_.getTextClass().floats();
 
 	// Here we will output the code to create the needed float styles.
 	// We will try to do this as minimal as possible.
@@ -846,7 +831,7 @@ void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 	UsedFloats::const_iterator end = usedFloats_.end();
 	// ostringstream floats;
 	for (; cit != end; ++cit) {
-		Floating const & fl = floats.getType((cit->first));
+		Floating const & fl = floats.getType((*cit));
 
 		// For builtin floats we do nothing.
 		if (fl.builtin()) continue;
@@ -891,8 +876,6 @@ void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 			// used several times, when the same style is still in
 			// effect. (Lgb)
 		}
-		if (cit->second)
-			os << "\n\\newsubfloat{" << fl.type() << "}\n";
 	}
 }
 

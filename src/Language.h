@@ -24,13 +24,19 @@ namespace lyx {
 namespace support { class FileName; }
 
 class Encoding;
-class Lexer;
 
 ///
 class Language {
 public:
 	///
 	Language() : rightToLeft_(false) {}
+	///
+	Language(std::string const & l, std::string const & b, std::string const & d,
+		 bool rtl, std::string const & es, Encoding const * e, std::string const & c,
+		 std::string const & o)
+		: lang_(l), babel_(b), display_(d), rightToLeft_(rtl),
+		  encodingStr_(es), encoding_(e), code_(c), latex_options_(o)
+		{}
 	///
 	std::string const & lang() const { return lang_; }
 	///
@@ -47,8 +53,6 @@ public:
 	std::string const & code() const { return code_; }
 	///
 	std::string const & latex_options() const { return latex_options_; }
-	///
-	bool read(Lexer & lex);
 private:
 	///
 	std::string lang_;
@@ -94,18 +98,11 @@ private:
 	LanguageList languagelist;
 };
 
-/// Global singleton instance.
 extern Languages languages;
-/// Default language defined in LyXRC
 extern Language const * default_language;
-/// Used to indicate that the language should be left unchanged when
-/// applying a font change.
+extern Language const * english_language;
 extern Language const * ignore_language;
-/// Default language defined in LyXRC
 extern Language const * latex_language;
-/// Used to indicate that the language should be reset to the Buffer
-// language when applying a font change.
-extern Language const * reset_language;
 
 
 } // namespace lyx

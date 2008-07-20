@@ -1,6 +1,9 @@
 <ui version="4.0" >
- <class>PrefIdentityUi</class>
- <widget class="QWidget" name="PrefIdentityUi" >
+ <author></author>
+ <comment></comment>
+ <exportmacro></exportmacro>
+ <class>QPrefIdentityUi</class>
+ <widget class="QWidget" name="QPrefIdentityUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -83,7 +86,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <tabstops>
   <tabstop>nameED</tabstop>

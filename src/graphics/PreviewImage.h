@@ -12,13 +12,12 @@
 #ifndef PREVIEWIMAGE_H
 #define PREVIEWIMAGE_H
 
-#include "support/strfwd.h"
+#include <boost/scoped_ptr.hpp>
+#include <string>
 
 namespace lyx {
 
 namespace support { class FileName; }
-
-class Dimension;
 
 namespace graphics {
 
@@ -40,7 +39,11 @@ public:
 	///
 	std::string const & snippet() const;
 	///
-	Dimension dim() const;
+	int ascent() const;
+	///
+	int descent() const;
+	///
+	int width() const;
 
 	/** If the image is not yet loaded (WaitingToLoad), then this method
 	 *  triggers that.
@@ -51,7 +54,7 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
+	boost::scoped_ptr<Impl> const pimpl_;
 };
 
 } // namespace graphics

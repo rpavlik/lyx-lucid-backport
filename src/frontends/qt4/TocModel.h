@@ -12,105 +12,58 @@
 #ifndef TOCMODEL_H
 #define TOCMODEL_H
 
+#include "TocBackend.h"
+
 #include "qt_helpers.h"
 
-#include <QHash>
-#include <QList>
 #include <QStandardItemModel>
-#include <QStringList>
 
-class QAbstractItemModel;
-class QSortFilterProxyModel;
+#include <map>
 
 namespace lyx {
-
-class Buffer;
-class BufferView;
-class DocIterator;
-class Toc;
-class TocItem;
-
 namespace frontend {
 
-class TocTypeModel : public QStandardItemModel
-{
-public:
-	///
-	TocTypeModel(QObject * parent = 0);
-	///
-	void reset();
-};
-
-
-class TocModel : public QStandardItemModel
-{
-public:
-	///
-	TocModel(QObject * parent = 0);
-	///
-	void reset(Toc const & toc);
-	///
-	void reset();
-	///
-	TocItem const & tocItem(QModelIndex const & index) const;
-	///
-	QModelIndex modelIndex(DocIterator const & dit) const;
-	///
-	int modelDepth() const;
-
-private:
-	///
-	void populate(unsigned int & index, QModelIndex const & parent);
-	///
-	QList<QModelIndex> toc_indexes_;
-	///
-	Toc const * toc_;
-	///
-	int maxdepth_;
-	int mindepth_;
-};
-
-
-class TocModels: public QObject
-{
+class TocModel: public QStandardItemModel {
 	Q_OBJECT
+
 public:
 	///
-	TocModels();
+	TocModel() {}
 	///
-	void reset(BufferView const * bv);
+	TocModel(Toc const & toc);
 	///
-	int depth(QString const & type);
+	~TocModel() {}
 	///
-	QStandardItemModel * model(QString const & type);
-	///
-	QAbstractItemModel * nameModel();
-	///
-	QModelIndex currentIndex(QString const & type) const;
-	///
-	void goTo(QString const & type, QModelIndex const & index) const;
-	///
-	void init(Buffer const & buffer);
-	///
-	void updateBackend() const;
-
-Q_SIGNALS:
-	/// Signal that the internal toc_models_ has been reset.
-	void modelReset();
-
-private:
-	typedef QHash<QString, TocModel *>::const_iterator const_iterator;
-	typedef QHash<QString, TocModel *>::iterator iterator;
+	TocModel const & operator=(Toc const & toc);
 	///
 	void clear();
 	///
-	BufferView const * bv_;
+	void populate(Toc const & toc);
 	///
-	QHash<QString, TocModel *> models_;
+	TocIterator const tocIterator(QModelIndex const & index) const;
 	///
-	TocTypeModel * names_;
+	QModelIndex const modelIndex(TocIterator const & it) const;
 	///
-	QSortFilterProxyModel * names_sorted_;
+	int modelDepth();
+
+private:
+	///
+	void populate(TocIterator & it,
+		TocIterator const & end,
+		QModelIndex const & parent);
+	///
+	typedef std::map<QModelIndex, TocIterator> TocMap;
+	///
+	typedef std::pair<QModelIndex, TocIterator> TocPair;
+	///
+	typedef std::map<TocIterator, QModelIndex> ModelMap;
+	///
+	TocMap toc_map_;
+	///
+	ModelMap model_map_;
+	///
+	int maxdepth_;
+	int mindepth_;
 };
 
 } // namespace frontend

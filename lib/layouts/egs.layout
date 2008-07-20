@@ -8,7 +8,7 @@
 # Converted article -> egs Martin Vermeer
 
 
-Format 7
+Format 4
 Columns                 2
 Sides                   1
 PageStyle               Plain
@@ -227,6 +227,7 @@ Style Right_Address
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
+	AlignPossible         Left
 End
 
 
@@ -276,6 +277,7 @@ Style LaTeX_Title
 	BottomSep             0
 	ParSep                0
 	Align                 Center
+	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Family              Sans
@@ -297,6 +299,7 @@ Style Author
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Author:"
 	LabelFont
@@ -319,6 +322,7 @@ Style Affil
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Affilation:"
 	LabelFont
@@ -341,6 +345,7 @@ Style Journal
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Journal:"
 	LabelFont
@@ -364,6 +369,7 @@ Style msnumber
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "MS_number:"
 	LabelFont
@@ -387,6 +393,7 @@ Style FirstAuthor
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "1st_author_surname:"
 	LabelFont
@@ -409,6 +416,7 @@ Style Received
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Received:"
 	LabelFont
@@ -431,6 +439,7 @@ Style Accepted
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Accepted:"
 	LabelFont
@@ -453,6 +462,7 @@ Style Offsets
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "reprint_reqs_to:"
 	LabelFont
@@ -474,6 +484,7 @@ Style Date
 	BottomSep             0.5
 	ParSep                0.5
 	Align                 Left
+	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -646,7 +657,6 @@ Style LyX-Code
 End
 
 
-Input stdinsets.inc
 Input stdfloats.inc
 Input numarticle.inc
 Input stdcounters.inc

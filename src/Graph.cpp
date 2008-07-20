@@ -15,7 +15,10 @@
 
 #include <algorithm>
 
-using namespace std;
+using std::vector;
+using std::reverse;
+using std::fill;
+
 
 namespace lyx {
 
@@ -25,7 +28,7 @@ int Graph::bfs_init(int s, bool clear_visited)
 	if (s < 0)
 		return s;
 
-	Q_ = queue<int>();
+	Q_ = std::queue<int>();
 
 	if (clear_visited)
 		fill(visited_.begin(), visited_.end(), false);

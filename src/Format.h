@@ -47,35 +47,45 @@ public:
 	/// Name fo the parent format
 	std::string const parentFormat() const;
 	///
-	std::string const & name() const { return name_; }
+	std::string const & name() const {
+		return name_;
+	}
 	///
-	void setName(std::string const & v) { name_ = v; }
+	std::string const & extension() const {
+		return extension_;
+	}
 	///
-	std::string const & extension() const { return extension_; }
+	std::string const & prettyname() const {
+		return prettyname_;
+	}
 	///
-	void setExtension(std::string const & v) { extension_ = v; }
+	std::string const & shortcut() const {
+		return shortcut_;
+	}
 	///
-	std::string const & prettyname() const { return prettyname_; }
+	std::string const & viewer() const {
+		return viewer_;
+	}
 	///
-	void setPrettyname(std::string const & v) { prettyname_ = v; }
+	void setViewer(std::string const & v) {
+		viewer_ = v;
+	}
 	///
-	std::string const & shortcut() const { return shortcut_; }
+	std::string const & editor() const {
+		return editor_;
+	}
 	///
-	void setShortcut(std::string const & v) { shortcut_ = v; }
+	void setEditor(std::string const & v) {
+		editor_ = v;
+	}
 	///
-	std::string const & viewer() const { return viewer_; }
+	bool documentFormat() const {
+		return flags_ & document;
+	}
 	///
-	void setViewer(std::string const & v) { viewer_ = v; }
-	///
-	std::string const & editor() const { return editor_; }
-	///
-	void setEditor(std::string const & v) { editor_ = v; }
-	///
-	bool documentFormat() const { return flags_ & document; }
-	///
-	bool vectorFormat() const { return flags_ & vector; }
-	///
-	void setFlags(int v) { flags_ = v; }
+	bool vectorFormat() const {
+		return flags_ & vector;
+	}
 private:
 	/// Internal name. Needs to be unique.
 	std::string name_;
@@ -111,9 +121,9 @@ public:
 	///
 	typedef FormatList::const_iterator const_iterator;
 	///
-	Format const & get(FormatList::size_type i) const { return formatlist[i]; }
-	///
-	Format & get(FormatList::size_type i) { return formatlist[i]; }
+	Format const & get(FormatList::size_type i) const {
+		return formatlist[i];
+	}
 	/// \returns format named \p name if it exists, otherwise 0
 	Format const * getFormat(std::string const & name) const;
 	/*!

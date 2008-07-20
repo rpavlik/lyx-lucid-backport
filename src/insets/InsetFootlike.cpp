@@ -17,46 +17,63 @@
 #include "BufferParams.h"
 #include "MetricsInfo.h"
 
-#include <iostream>
-
-using namespace std;
 
 namespace lyx {
 
-
-InsetFootlike::InsetFootlike(Buffer const & buf)
-	: InsetCollapsable(buf)
-{}
-
-
-void InsetFootlike::metrics(MetricsInfo & mi, Dimension & dim) const
+InsetFootlike::InsetFootlike(BufferParams const & bp)
+	: InsetCollapsable(bp)
 {
-	FontInfo tmpfont = mi.base.font;
-	mi.base.font = mi.base.bv->buffer().params().getFont().fontInfo();
+	Font font(Font::ALL_SANE);
+	font.decSize();
+	font.decSize();
+	font.setColor(Color::collapsable);
+	setLabelFont(font);
+}
+
+
+InsetFootlike::InsetFootlike(InsetFootlike const & in)
+	: InsetCollapsable(in)
+{
+	Font font(Font::ALL_SANE);
+	font.decSize();
+	font.decSize();
+	font.setColor(Color::collapsable);
+	setLabelFont(font);
+}
+
+
+bool InsetFootlike::metrics(MetricsInfo & mi, Dimension & dim) const
+{
+	Font tmpfont = mi.base.font;
+	mi.base.font = mi.base.bv->buffer()->params().getFont();
 	InsetCollapsable::metrics(mi, dim);
 	mi.base.font = tmpfont;
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
 }
 
 
 void InsetFootlike::draw(PainterInfo & pi, int x, int y) const
 {
-	FontInfo tmpfont = pi.base.font;
-	pi.base.font = pi.base.bv->buffer().params().getFont().fontInfo();
+	Font tmpfont = pi.base.font;
+	pi.base.font = pi.base.bv->buffer()->params().getFont();
 	InsetCollapsable::draw(pi, x, y);
 	pi.base.font = tmpfont;
 }
 
 
-void InsetFootlike::write(ostream & os) const
+void InsetFootlike::write(Buffer const & buf, std::ostream & os) const
 {
 	os << to_utf8(name()) << "\n";
-	InsetCollapsable::write(os);
+	InsetCollapsable::write(buf, os);
 }
 
 
-bool InsetFootlike::insetAllowed(InsetCode code) const
+bool InsetFootlike::insetAllowed(Inset::Code code) const
 {
-	if (code == FOOT_CODE || code == MARGIN_CODE || code == FLOAT_CODE)
+	if (code == Inset::FOOT_CODE || code == Inset::MARGIN_CODE
+	    || code == Inset::FLOAT_CODE)
 		return false;
 	return InsetCollapsable::insetAllowed(code);
 }

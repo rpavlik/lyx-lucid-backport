@@ -1,12 +1,12 @@
 <ui version="4.0" >
- <class>VSpaceUi</class>
- <widget class="QDialog" name="VSpaceUi" >
+ <class>QVSpaceUi</class>
+ <widget class="QDialog" name="QVSpaceUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>259</width>
-    <height>120</height>
+    <width>233</width>
+    <height>140</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -17,12 +17,121 @@
   </property>
   <layout class="QGridLayout" >
    <property name="margin" >
-    <number>9</number>
+    <number>11</number>
    </property>
    <property name="spacing" >
     <number>6</number>
    </property>
-   <item row="3" column="0" colspan="3" >
+   <item row="0" column="0" >
+    <widget class="QLabel" name="spacingL" >
+     <property name="text" >
+      <string>&amp;Spacing:</string>
+     </property>
+     <property name="buddy" >
+      <cstring>spacingCO</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" >
+    <widget class="QLabel" name="valueL" >
+     <property name="text" >
+      <string>&amp;Value:</string>
+     </property>
+     <property name="buddy" >
+      <cstring>valueLE</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" >
+    <widget class="QLabel" name="keepL" >
+     <property name="toolTip" >
+      <string/>
+     </property>
+     <property name="text" >
+      <string>&amp;Protect:</string>
+     </property>
+     <property name="buddy" >
+      <cstring>keepCB</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" >
+    <widget class="QCheckBox" name="keepCB" >
+     <property name="toolTip" >
+      <string>Insert the spacing even after a page break</string>
+     </property>
+     <property name="text" >
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" >
+    <widget class="QLineEdit" name="valueLE" >
+     <property name="enabled" >
+      <bool>false</bool>
+     </property>
+     <property name="toolTip" >
+      <string>Custom value. Needs spacing type "Custom".</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QComboBox" name="spacingCO" >
+     <property name="toolTip" >
+      <string>Supported spacing types</string>
+     </property>
+     <item>
+      <property name="text" >
+       <string>DefSkip</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
+       <string>SmallSkip</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
+       <string>MedSkip</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
+       <string>BigSkip</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
+       <string>VFill</string>
+      </property>
+     </item>
+     <item>
+      <property name="text" >
+       <string>Custom</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="2" >
+    <widget class="LengthCombo" native="1" name="unitCO" />
+   </item>
+   <item row="3" column="1" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType" >
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="0" colspan="3" >
     <layout class="QHBoxLayout" >
      <property name="margin" >
       <number>0</number>
@@ -65,118 +174,58 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="0" >
-    <widget class="QLabel" name="spacingL" >
-     <property name="text" >
-      <string>&amp;Spacing:</string>
+   <item row="0" column="2" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="buddy" >
-      <cstring>spacingCO</cstring>
+     <property name="sizeType" >
+      <enum>QSizePolicy::Expanding</enum>
      </property>
-    </widget>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
-   <item row="2" column="1" colspan="2" >
-    <widget class="QCheckBox" name="keepCB" >
-     <property name="toolTip" >
-      <string>Insert the spacing even after a page break</string>
+   <item row="2" column="2" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="text" >
-      <string/>
+     <property name="sizeType" >
+      <enum>QSizePolicy::Expanding</enum>
      </property>
-    </widget>
-   </item>
-   <item row="2" column="0" >
-    <widget class="QLabel" name="keepL" >
-     <property name="toolTip" >
-      <string/>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
      </property>
-     <property name="text" >
-      <string>&amp;Protect:</string>
-     </property>
-     <property name="buddy" >
-      <cstring>keepCB</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2" >
-    <widget class="LengthCombo" name="unitCO" />
-   </item>
-   <item row="1" column="1" >
-    <widget class="QLineEdit" name="valueLE" >
-     <property name="enabled" >
-      <bool>false</bool>
-     </property>
-     <property name="toolTip" >
-      <string>Custom value. Needs spacing type "Custom".</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" >
-    <widget class="QLabel" name="valueL" >
-     <property name="text" >
-      <string>&amp;Value:</string>
-     </property>
-     <property name="buddy" >
-      <cstring>valueLE</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1" colspan="2" >
-    <widget class="QComboBox" name="spacingCO" >
-     <property name="toolTip" >
-      <string>Supported spacing types</string>
-     </property>
-     <item>
-      <property name="text" >
-       <string>DefSkip</string>
-      </property>
-     </item>
-     <item>
-      <property name="text" >
-       <string>SmallSkip</string>
-      </property>
-     </item>
-     <item>
-      <property name="text" >
-       <string>MedSkip</string>
-      </property>
-     </item>
-     <item>
-      <property name="text" >
-       <string>BigSkip</string>
-      </property>
-     </item>
-     <item>
-      <property name="text" >
-       <string>VFill</string>
-      </property>
-     </item>
-     <item>
-      <property name="text" >
-       <string>Custom</string>
-      </property>
-     </item>
-    </widget>
+    </spacer>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
    <class>LengthCombo</class>
-   <extends>QComboBox</extends>
+   <extends>QWidget</extends>
    <header>LengthCombo.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>spacingCO</tabstop>
   <tabstop>valueLE</tabstop>
+  <tabstop>unitCO</tabstop>
   <tabstop>okPB</tabstop>
   <tabstop>applyPB</tabstop>
   <tabstop>closePB</tabstop>
   <tabstop>keepCB</tabstop>
  </tabstops>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <resources/>
  <connections/>

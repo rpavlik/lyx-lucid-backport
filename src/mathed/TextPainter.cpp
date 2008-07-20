@@ -11,6 +11,7 @@
 #include <config.h>
 
 #include "TextPainter.h"
+#include "support/std_ostream.h"
 
 
 namespace lyx {

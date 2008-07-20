@@ -6,12 +6,11 @@
 #          Thomas Hartkens <thomas@hartkens.de>
 
 # Input general definitions
-Input stdfloats.inc
-Input stdcounters.inc
-Input stdinsets.inc
+# Input stdletter.inc
+
 
 # General textclass parameters
-Format 7
+Format 4
 Columns			1
 Sides			1
 PageStyle		Empty
@@ -949,6 +948,12 @@ Style cc
     Color               Blue
   EndFont
 End
+
+
+
+Input stdfloats.inc
+Input stdcounters.inc
+
 
 
 # Input lyxmacros.inc

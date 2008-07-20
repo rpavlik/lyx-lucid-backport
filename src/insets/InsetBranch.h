@@ -13,13 +13,15 @@
 #define INSETBRANCH_H
 
 #include "InsetCollapsable.h"
+#include "MailInset.h"
 
 
 namespace lyx {
 
+class Buffer;
+
 class InsetBranchParams {
 public:
-	///
 	explicit InsetBranchParams(docstring const & b = docstring())
 		: branch(b) {}
 	///
@@ -31,91 +33,93 @@ public:
 };
 
 
-/////////////////////////////////////////////////////////////////////////
-//
-// InsetBranch
-//
-/////////////////////////////////////////////////////////////////////////
+/** The Branch inset for alternative, conditional output.
 
-/// The Branch inset for alternative, conditional output.
-
-class InsetBranch : public InsetCollapsable
-{
+*/
+class InsetBranch : public InsetCollapsable {
 public:
 	///
-	InsetBranch(Buffer const &, InsetBranchParams const &);
+	InsetBranch(BufferParams const &, InsetBranchParams const &);
 	///
 	~InsetBranch();
-
 	///
-	static std::string params2string(InsetBranchParams const &);
+	virtual docstring const editMessage() const;
+	///
+	Inset::Code lyxCode() const { return Inset::BRANCH_CODE; }
+	///
+	void write(Buffer const &, std::ostream &) const;
+	///
+	void read(Buffer const & buf, Lexer & lex);
+	///
+	void setButtonLabel();
+	///
+	virtual Color_color backgroundColor() const;
+	///
+	bool showInsetDialog(BufferView *) const;
+	///
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
+	///
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
+	///
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
+	///
+	void textString(Buffer const & buf, odocstream &) const;
+	///
+	void validate(LaTeXFeatures &) const;
+	///
+	InsetBranchParams const & params() const { return params_; }
+	///
+	void setParams(InsetBranchParams const & params) { params_ = params; }
+
+	/** \returns true if params_.branch is listed as 'selected' in
+	    \c buffer. This handles the case of child documents.
+	 */
+	bool isBranchSelected(Buffer const & buffer) const;
+	///
+	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
+
+protected:
+	///
+	InsetBranch(InsetBranch const &);
+	///
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	docstring name() const { return from_ascii("Branch"); }
+private:
+	friend class InsetBranchParams;
+
+	virtual std::auto_ptr<Inset> doClone() const;
+
+	/// used by the constructors
+	void init();
+	///
+	InsetBranchParams params_;
+};
+
+
+class InsetBranchMailer : public MailInset {
+public:
+	///
+	InsetBranchMailer(InsetBranch & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static std::string const params2string(InsetBranchParams const &);
 	///
 	static void string2params(std::string const &, InsetBranchParams &);
 
 private:
 	///
-	docstring editMessage() const;
+	static std::string const name_;
 	///
-	InsetCode lyxCode() const { return BRANCH_CODE; }
-	///
-	void write(std::ostream &) const;
-	///
-	void read(Lexer & lex);
-	///
-	void setButtonLabel();
-	///
-	ColorCode backgroundColor() const;
-	///
-	bool showInsetDialog(BufferView *) const;
-	///
-	int latex(odocstream &, OutputParams const &) const;
-	///
-	int plaintext(odocstream &, OutputParams const &) const;
-	///
-	int docbook(odocstream &, OutputParams const &) const;
-	///
-	void textString(odocstream &) const;
-	///
-	void validate(LaTeXFeatures &) const;
-	///
-	void addToToc(DocIterator const &);
-	///
-	InsetBranchParams const & params() const { return params_; }
-	///
-	void setParams(InsetBranchParams const & params) { params_ = params; }
-	///
-	virtual bool usePlainLayout() { return false; }
-
-	/** \returns true if params_.branch is listed as 'selected' in
-	    \c buffer. This handles the case of child documents.
-	 */
-	bool isBranchSelected() const;
-	/*!
-	 * Is the content of this inset part of the output document?
-	 *
-	 * Note that Branch insets are only considered part of the
-	 * document when they are selected.
-	 */
-	bool producesOutput() const { return isBranchSelected(); }
-	///
-	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-	///
-	bool isMacroScope() const;
-	///
-	docstring toolTip(BufferView const & bv, int x, int y) const;
-	///
-	bool usePlainLayout() const { return false; }
-	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
-	///
-	docstring name() const { return from_ascii("Branch"); }
-	///
-	Inset * clone() const { return new InsetBranch(*this); }
-
-	///
-	friend class InsetBranchParams;
-	///
-	InsetBranchParams params_;
+	InsetBranch & inset_;
 };
 
 } // namespace lyx

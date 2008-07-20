@@ -13,14 +13,13 @@
 #define BIDI_H
 
 #include "support/types.h"
-
+#include "Cursor.h"
 #include <vector>
 
 
 namespace lyx {
 
 class Buffer;
-class Cursor;
 class Paragraph;
 class Row;
 class Font;

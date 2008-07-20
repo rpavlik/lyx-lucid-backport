@@ -13,15 +13,14 @@
 #include "GraphicsConverter.h"
 
 #include "Converter.h"
+#include "debug.h"
 #include "Format.h"
 
-#include "support/lassert.h"
-#include "support/convert.h"
-#include "support/debug.h"
-#include "support/FileName.h"
 #include "support/filetools.h"
-#include "support/ForkedCalls.h"
+#include "support/ForkedCallQueue.h"
+#include "support/convert.h"
 #include "support/lstrings.h"
+#include "support/lyxlib.h"
 #include "support/os.h"
 
 #include <boost/bind.hpp>
@@ -29,11 +28,30 @@
 #include <sstream>
 #include <fstream>
 
-using namespace std;
-using namespace lyx::support;
+namespace support = lyx::support;
+
+using support::addExtension;
+using support::changeExtension;
+using support::FileName;
+using support::Forkedcall;
+using support::ForkedCallQueue;
+using support::getExtension;
+using support::libScriptSearch;
+using support::onlyPath;
+using support::onlyFilename;
+using support::quoteName;
+using support::quote_python;
+using support::subst;
+using support::tempName;
+using support::unlink;
+
+using std::endl;
+using std::ostream;
+using std::ostringstream;
+using std::string;
+
 
 namespace lyx {
-
 namespace graphics {
 
 class Converter::Impl : public boost::signals::trackable {
@@ -84,10 +102,9 @@ Converter::Converter(FileName const & from_file, string const & to_file_base,
 {}
 
 
+// Empty d-tor out-of-line to keep boost::scoped_ptr happy.
 Converter::~Converter()
-{
-	delete pimpl_;
-}
+{}
 
 
 void Converter::startConversion() const
@@ -120,11 +137,11 @@ Converter::Impl::Impl(FileName const & from_file, string const & to_file_base,
 		      string const & from_format, string const & to_format)
 	: valid_process_(false), finished_(false)
 {
-	LYXERR(Debug::GRAPHICS, "Converter c-tor:\n"
+	LYXERR(Debug::GRAPHICS) << "Converter c-tor:\n"
 		<< "\tfrom_file:      " << from_file
 		<< "\n\tto_file_base: " << to_file_base
 		<< "\n\tfrom_format:  " << from_format
-		<< "\n\tto_format:    " << to_format);
+		<< "\n\tto_format:    " << to_format << endl;
 
 	// The converted image is to be stored in this file (we do not
 	// use ChangeExtension because this is a basename which may
@@ -134,22 +151,22 @@ Converter::Impl::Impl(FileName const & from_file, string const & to_file_base,
 	// The conversion commands are stored in a stringstream
 	ostringstream script;
 	build_script(from_file, to_file_base, from_format, to_format, script);
-	LYXERR(Debug::GRAPHICS, "\tConversion script:"
-		   "\n--------------------------------------\n"
+	LYXERR(Debug::GRAPHICS) << "\tConversion script:"
+		<< "\n--------------------------------------\n"
 		<< script.str()
-		<< "\n--------------------------------------\n");
+		<< "\n--------------------------------------\n";
 
 	// Output the script to file.
 	static int counter = 0;
 	script_file_ = FileName(onlyPath(to_file_base) + "lyxconvert" +
 		convert<string>(counter++) + ".py");
 
-	ofstream fs(script_file_.toFilesystemEncoding().c_str());
+	std::ofstream fs(script_file_.toFilesystemEncoding().c_str());
 	if (!fs.good()) {
 		lyxerr << "Unable to write the conversion script to \""
 		       << script_file_ << '\n'
 		       << "Please check your directory permissions."
-		       << endl;
+		       << std::endl;
 		return;
 	}
 
@@ -160,7 +177,7 @@ Converter::Impl::Impl(FileName const & from_file, string const & to_file_base,
 	// We create a dummy command for ease of understanding of the
 	// list of forked processes.
 	// Note: 'python ' is absolutely essential, or execvp will fail.
-	script_command_ = os::python() + ' ' +
+	script_command_ = support::os::python() + ' ' +
 		quoteName(script_file_.toFilesystemEncoding()) + ' ' +
 		quoteName(onlyFilename(from_file.toFilesystemEncoding())) + ' ' +
 		quoteName(to_format);
@@ -176,11 +193,12 @@ void Converter::Impl::startConversion()
 		return;
 	}
 
-	ForkedCall::SignalTypePtr ptr =
-		ForkedCallQueue::add(script_command_);
-	ptr->connect(boost::bind(&Impl::converted, this, _1, _2));
-}
+	Forkedcall::SignalTypePtr
+		ptr = ForkedCallQueue::get().add(script_command_);
 
+	ptr->connect(boost::bind(&Impl::converted, this, _1, _2));
+
+}
 
 void Converter::Impl::converted(pid_t /* pid */, int retval)
 {
@@ -190,10 +208,10 @@ void Converter::Impl::converted(pid_t /* pid */, int retval)
 
 	finished_ = true;
 	// Clean-up behind ourselves
-	script_file_.removeFile();
+	unlink(script_file_);
 
 	if (retval > 0) {
-		to_file_.removeFile();
+		unlink(to_file_);
 		to_file_.erase();
 		finishedConversion(false);
 	} else {
@@ -258,8 +276,8 @@ static void build_script(FileName const & from_file,
 		  string const & to_format,
 		  ostream & script)
 {
-	LASSERT(from_format != to_format, /**/);
-	LYXERR(Debug::GRAPHICS, "build_script ... ");
+	BOOST_ASSERT(from_format != to_format);
+	LYXERR(Debug::GRAPHICS) << "build_script ... ";
 	typedef Converters::EdgePath EdgePath;
 
 	script << "#!/usr/bin/env python\n"
@@ -294,8 +312,8 @@ static void build_script(FileName const & from_file,
 	// Remember to remove the temp file because we only want the name...
 	static int counter = 0;
 	string const tmp = "gconvert" + convert<string>(counter++);
-	FileName const to_base = FileName::tempName(tmp);
-	to_base.removeFile();
+	FileName const to_base(tempName(FileName(), tmp));
+	unlink(to_base);
 
 	// Create a copy of the file in case the original name contains
 	// problematic characters like ' or ". We can work around that problem
@@ -326,7 +344,7 @@ static void build_script(FileName const & from_file,
 		       << quoteName(to_file, quote_python) << ")\n";
 
 		ostringstream os;
-		os << os::python() << ' '
+		os << support::os::python() << ' '
 		   << libScriptSearch("$$s/scripts/convertDefault.py",
 				      quote_python) << ' ';
 		if (!from_format.empty())
@@ -338,18 +356,18 @@ static void build_script(FileName const & from_file,
 		   << to_format << ":' + '\"' + outfile + '\"' + '";
 		string const command = os.str();
 
-		LYXERR(Debug::GRAPHICS,
-			"\tNo converter defined! I use convertDefault.py\n\t"
-			<< command);
+		LYXERR(Debug::GRAPHICS)
+			<< "\tNo converter defined! I use convertDefault.py\n\t"
+			<< command << endl;
 
 		build_conversion_command(command, script);
 	}
 
 	// The conversion commands may contain these tokens that need to be
 	// changed to infile, infile_base, outfile respectively.
-	string const token_from = "$$i";
-	string const token_base = "$$b";
-	string const token_to   = "$$o";
+	string const token_from("$$i");
+	string const token_base("$$b");
+	string const token_to("$$o");
 
 	EdgePath::const_iterator it  = edgepath.begin();
 	EdgePath::const_iterator end = edgepath.end();
@@ -383,8 +401,9 @@ static void build_script(FileName const & from_file,
 
 	// Move the final outfile to to_file
 	script << move_file("outfile", quoteName(to_file, quote_python));
-	LYXERR(Debug::GRAPHICS, "ready!");
+	LYXERR(Debug::GRAPHICS) << "ready!" << endl;
 }
 
 } // namespace graphics
+
 } // namespace lyx

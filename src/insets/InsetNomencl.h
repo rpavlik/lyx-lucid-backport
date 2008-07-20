@@ -28,26 +28,22 @@ public:
 	///
 	InsetNomencl(InsetCommandParams const &);
 	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	/// Updates needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
 	///
-	InsetCode lyxCode() const { return NOMENCL_CODE; }
+	Inset::Code lyxCode() const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
 	int docbookGlossary(odocstream &) const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "nomenclature"; };
-	///
-	static bool isCompatibleCommand(std::string const & s) 
-		{ return s == "nomenclature"; }
 private:
-	Inset * clone() const { return new InsetNomencl(*this); }
+	virtual std::auto_ptr<Inset> doClone() const {
+		return std::auto_ptr<Inset>(new InsetNomencl(params()));
+	}
 	/// unique id for this nomenclature entry for docbook export
 	docstring nomenclature_entry_id;
 };
@@ -66,22 +62,18 @@ public:
 	///
 	EDITABLE editable() const { return NOT_EDITABLE; }
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
-	InsetCode lyxCode() const;
+	Inset::Code lyxCode() const;
 	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	docstring screenLabel() const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "printnomenclature"; };
-	///
-	static bool isCompatibleCommand(std::string const & s) 
-		{ return s == "printnomenclature"; }
+	docstring const getScreenLabel(Buffer const &) const;
 private:
-	Inset * clone() const { return new InsetPrintNomencl(*this); }
+	virtual std::auto_ptr<Inset> doClone() const {
+		return std::auto_ptr<Inset>(new InsetPrintNomencl(params()));
+	}
 };
 
 

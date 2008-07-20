@@ -5,13 +5,13 @@
 # Licence details can be found in the file COPYING.
 
 # author Asger Alstrup
-# author Lars Gullik BjÃ¸nnes
+# author Lars Gullik Bjønnes
 # author Jean-Marc Lasgouttes
 # author Angus Leeming
 # author John Levon
-# author JÃ¼rgen SpitzmÃ¼ller
+# author Jürgen Spitzmüller
 # author Dekel Tsur
-# author JÃ¼rgen Vigna
+# author Jürgen Vigna
 # author Andrew Zabolotny
 
 # Full author contact details are available in file CREDITS.
@@ -55,19 +55,19 @@
 \bind "C-Prior"			"buffer-previous"
 \bind "C-S-Tab"			"buffer-previous"
 
-\bind "C-M-b"			"math-insert \mathbf"
 \bind "C-b"			"font-bold"
 \bind "C-e"			"font-emph"
 # used below for line-delete-forward
 #\bind "C-k"			"font-noun"		# 'k' for capitals
 \bind "C-u"			"font-underline"
-\bind "C-S-P"			"font-typewriter" # 'P' for Program
+\bind "C-S-P"			"font-code"		# 'P' for program
 
 \bind "C-m"			"math-mode"
 \bind "C-S-M"			"math-display"
-\bind "C-M-n"			"command-sequence math-display; math-number-toggle;"
+\bind "C-M-n"			"command-sequence math-display; math-number;"
 
 \bind "C-f"			"dialog-show findreplace"
+\bind "C-g"			"error-next"
 \bind "C-i"			"next-inset-toggle"		# 'i' for Inset
 
 \bind "C-c"			"copy"
@@ -85,26 +85,19 @@
 \bind "C-S-E"			"changes-track"  # it's what MS Word uses
 \bind "~S-M-quotedbl"		"quote-insert single"
 \bind "~S-C-quotedbl"		"self-insert \""
-\bind "C-minus"			"specialchar-insert hyphenation"
-\bind "C-M-minus"		"specialchar-insert nobreakdash"
+\bind "C-minus"			"hyphenation-point-insert"
 \bind "M-S-Right"		"depth-increment"
 \bind "M-S-Left"		"depth-decrement"
-\bind "C-S-L"			"specialchar-insert ligature-break"
-\bind "C-S-slash"		"specialchar-insert slash"
+\bind "C-S-L"			"ligature-break-insert"
 \bind "C-l"			"ert-insert"		# 'l' for LaTeX
-\bind "C-S-I"			"info-insert"
 
 #bind "F1"			"help"			# Not yet implemented!
 #bind "C-F1"			"help-context"		# Not yet implemented!
 \bind "F2"			"buffer-write"
-\bind "F3"			"word-find"
+\bind "F3"			"file-open"
 \bind "C-F4"			"buffer-close"
 \bind "M-F4"			"lyx-quit"
 \bind "F5"			"screen-recenter"
-\bind "C-M-Up"			"scroll line up"
-\bind "C-M-Down"		"scroll line down"
-\bind "C-M-Prior"		"scroll page up"
-\bind "C-M-Next"		"scroll page down"
 \bind "C-F6"			"buffer-next"
 \bind "C-S-F6"			"buffer-previous"
 \bind "F7"			"dialog-show spellchecker"
@@ -112,16 +105,14 @@
 
 \bind "M-x"			"command-execute"
 
-\bind "F11"			"ui-toggle fullscreen"
-
 #
 # Motion group
 #
 
 \bind "M-Up"			"paragraph-move-up"
 \bind "M-Down"			"paragraph-move-down"
-\bind "C-Right"			"word-right"
-\bind "C-Left"			"word-left"
+\bind "C-Right"			"word-forward"
+\bind "C-Left"			"word-backward"
 \bind "C-Up"			"paragraph-up"
 \bind "C-Down"			"paragraph-down"
 \bind "C-Home"			"buffer-begin"
@@ -135,12 +126,12 @@
 # Motion + select group
 #
 
-\bind "S-Right"			"char-right-select"
-\bind "S-Left"			"char-left-select"
+\bind "S-Right"			"forward-select"
+\bind "S-Left"			"backward-select"
 \bind "S-Up"			"up-select"
 \bind "S-Down"			"down-select"
-\bind "S-C-Right"		"word-right-select"
-\bind "S-C-Left"		"word-left-select"
+\bind "S-C-Right"		"word-forward-select"
+\bind "S-C-Left"		"word-backward-select"
 \bind "S-C-Up"			"paragraph-up-select"
 \bind "S-C-Down"		"paragraph-down-select"
 \bind "S-Home"			"line-begin-select"
@@ -154,12 +145,12 @@
 \bind "S-Delete"		"cut"
 
 # Numeric keypad (if Shift+KP_XXX does not switch the NumLock state)
-\bind "S-KP_Right"              "char-right-select"
-\bind "S-KP_Left"               "char-left-select"
+\bind "S-KP_Right"              "forward-select"
+\bind "S-KP_Left"               "backward-select"
 \bind "S-KP_Up"                 "up-select"
 \bind "S-KP_Down"               "down-select"
-\bind "S-C-KP_Right"            "word-right-select"
-\bind "S-C-KP_Left"             "word-left-select"
+\bind "S-C-KP_Right"            "word-forward-select"
+\bind "S-C-KP_Left"             "word-backward-select"
 \bind "S-C-KP_Up"               "paragraph-up-select"
 \bind "S-C-KP_Down"             "paragraph-down-select"
 \bind "S-KP_Home"               "line-begin-select"
@@ -205,14 +196,13 @@
 \bind "C-Delete"		"word-delete-forward"
 \bind "C-BackSpace"		"word-delete-backward"
 \bind "M-Return"		"break-paragraph inverse"
-\bind "C-Return"		"newline-insert newline"
-\bind "C-S-Return"		"newline-insert linebreak"
+\bind "C-Return"		"break-line"
 \bind "C-k"			"line-delete-forward"
 \bind "C-space"			"space-insert protected"
-\bind "C-M-space"		"space-insert normal"
-\bind "S-C-space"		"space-insert thin"
-\bind "C-period"		"specialchar-insert end-of-sentence"
-\bind "M-period"		"specialchar-insert dots"
+\bind "C-M-space"			"space-insert normal"
+\bind "S-C-space"			"space-insert thin"
+\bind "C-period"		"end-of-sentence-period-insert"
+\bind "M-period"		"dots-insert"
 \bind "Escape"			"cancel"
 \bind "F9"			"meta-prefix"
 

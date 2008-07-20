@@ -64,6 +64,9 @@ public:
 	/// access to the inset
 	InsetMath const * operator->() const { return nucleus_; }
 
+	/// width cache. Not nice...
+	//mutable int width_;
+
 private:
 	///
 	InsetMath * nucleus_;

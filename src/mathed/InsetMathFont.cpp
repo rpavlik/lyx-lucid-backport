@@ -11,26 +11,26 @@
 #include <config.h>
 
 #include "InsetMathFont.h"
-
-#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathParser.h"
-#include "MetricsInfo.h"
-
-#include <ostream>
+#include "LaTeXFeatures.h"
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+
 
 InsetMathFont::InsetMathFont(latexkeys const * key)
 	: InsetMathNest(1), key_(key)
 {}
 
 
-Inset * InsetMathFont::clone() const
+auto_ptr<Inset> InsetMathFont::doClone() const
 {
-	return new InsetMathFont(*this);
+	return auto_ptr<Inset>(new InsetMathFont(*this));
 }
 
 
@@ -44,11 +44,15 @@ InsetMath::mode_type InsetMathFont::currentMode() const
 }
 
 
-void InsetMathFont::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathFont::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	FontSetChanger dummy(mi.base, key_->name);
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -63,9 +67,7 @@ void InsetMathFont::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathFont::metricsT(TextMetricsInfo const & mi, Dimension &) const
 {
-	// FIXME: BROKEN!
-	Dimension dim;
-	cell(0).metricsT(mi, dim);
+	cell(0).metricsT(mi, dim_);
 }
 
 

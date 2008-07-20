@@ -15,12 +15,12 @@
 
 #include "InsetCollapsable.h"
 #include "Length.h"
+#include "MailInset.h"
 
 
 namespace lyx {
 
-class InsetBoxParams
-{
+class InsetBoxParams {
 public:
 	///
 	InsetBoxParams(std::string const &);
@@ -28,7 +28,6 @@ public:
 	void write(std::ostream & os) const;
 	///
 	void read(Lexer & lex);
-
 	///
 	std::string type;
 	/// Use a parbox (true) or minipage (false)
@@ -53,71 +52,43 @@ public:
 };
 
 
+/** The fbox/fancybox inset
 
-///////////////////////////////////////////////////////////////////////
-//
-// The fbox/fancybox inset
-//
-///////////////////////////////////////////////////////////////////////
-
-
-class InsetBox : public InsetCollapsable
-{
+*/
+class InsetBox : public InsetCollapsable {
 public:
 	///
-	enum BoxType {
-		Frameless,
-		Boxed,
-		Framed,
-		ovalbox,
-		Ovalbox,
-		Shadowbox,
-		Shaded,
-		Doublebox
-	};
-	///
-	InsetBox(Buffer const &, std::string const &);
+	InsetBox(BufferParams const &, std::string const &);
 	///
 	~InsetBox();
 	///
-	static std::string params2string(InsetBoxParams const &);
+	virtual docstring const editMessage() const;
 	///
-	static void string2params(std::string const &, InsetBoxParams &);
-private:
+	Inset::Code lyxCode() const { return Inset::BOX_CODE; }
 	///
-	friend class InsetBoxParams;
+	void write(Buffer const &, std::ostream &) const;
 	///
-	docstring editMessage() const;
-	///
-	InsetCode lyxCode() const { return BOX_CODE; }
-	///
-	docstring name() const;
-	///
-	void write(std::ostream &) const;
-	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
 	void setButtonLabel();
 	///
-	void metrics(MetricsInfo &, Dimension &) const;
+	bool metrics(MetricsInfo &, Dimension &) const;
 	/// show the Box dialog
 	bool showInsetDialog(BufferView * bv) const;
 	///
 	DisplayType display() const { return Inline; }
 	///
-	bool allowParagraphCustomization(idx_type = 0) { return forcePlainLayout(); }
+	bool forceDefaultParagraphs(idx_type) const;
 	///
-	bool forcePlainLayout(idx_type = 0) const;
-	///
-	bool neverIndent() const { return true; }
+	bool neverIndent(Buffer const &) const { return true; }
 	///
 	bool noFontChange() const { return true; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
@@ -125,20 +96,56 @@ private:
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	enum BoxType {
+		Frameless,
+		Boxed,
+		ovalbox,
+		Ovalbox,
+		Shadowbox,
+		Doublebox
+	};
+protected:
+	InsetBox(InsetBox const &);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	/// Is the width forced to some value?
-	bool hasFixedWidth() const;
+	virtual bool hasFixedWidth() const;
 	///
-	Inset * clone() const { return new InsetBox(*this); }
+	virtual docstring name() const { return from_ascii("Box"); }
+private:
+	friend class InsetBoxParams;
+
+	virtual std::auto_ptr<Inset> doClone() const;
+
 	/// used by the constructors
 	void init();
-	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
-
 	///
 	InsetBoxParams params_;
 };
 
+
+class InsetBoxMailer : public MailInset {
+public:
+	///
+	InsetBoxMailer(InsetBox & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static std::string const params2string(InsetBoxParams const &);
+	///
+	static void string2params(std::string const &, InsetBoxParams &);
+
+private:
+	///
+	static std::string const name_;
+	///
+	InsetBox & inset_;
+};
+
+
 } // namespace lyx
 
-#endif // INSETBOX_H
+#endif // INSET_BOX_H

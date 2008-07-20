@@ -11,33 +11,38 @@
 #include <config.h>
 
 #include "InsetMathBoldSymbol.h"
-
 #include "MathStream.h"
 #include "MathData.h"
 #include "LaTeXFeatures.h"
-
-#include <ostream>
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+
 
 InsetMathBoldSymbol::InsetMathBoldSymbol(Kind kind)
 	: InsetMathNest(1), kind_(kind)
 {}
 
 
-Inset * InsetMathBoldSymbol::clone() const
+auto_ptr<Inset> InsetMathBoldSymbol::doClone() const
 {
-	return new InsetMathBoldSymbol(*this);
+	return auto_ptr<Inset>(new InsetMathBoldSymbol(*this));
 }
 
 
-void InsetMathBoldSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathBoldSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	//FontSetChanger dummy(mi.base, "mathbf");
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
 	++dim.wid;  // for 'double stroke'
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -52,9 +57,7 @@ void InsetMathBoldSymbol::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathBoldSymbol::metricsT(TextMetricsInfo const & mi, Dimension & /*dim*/) const
 {
-	// FIXME: BROKEN!
-	Dimension dim;
-	cell(0).metricsT(mi, dim);
+	cell(0).metricsT(mi, dim_);
 }
 
 
@@ -76,7 +79,6 @@ void InsetMathBoldSymbol::validate(LaTeXFeatures & features) const
 
 void InsetMathBoldSymbol::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	switch (kind_) {
 	case AMS_BOLD:
 		os << "\\boldsymbol{" << cell(0) << "}";

@@ -55,7 +55,7 @@ class Params
 public:
 	Params();
 
-	bool display;
+	DisplayType display;
 	unsigned int scale;
 
 	/// The image filename.

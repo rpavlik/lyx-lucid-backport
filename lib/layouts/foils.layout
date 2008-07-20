@@ -6,7 +6,7 @@
 # To do: Define class specific options.
 
 
-Format 7
+Format 4
 Columns                 1
 Sides                   1
 
@@ -50,6 +50,7 @@ Style Foilhead
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Center
+	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Series              Bold
@@ -95,7 +96,9 @@ Style TickList
 	AlignPossible         Block, Left
 	LabelType             Static
 	LabelString           "_/"
-	Requires	      pifont
+	Preamble
+	   \usepackage{pifont}
+	EndPreamble
 End
 
 Style CrossList
@@ -114,7 +117,9 @@ Style CrossList
 	AlignPossible         Block, Left
 	LabelType             Static
 	LabelString           "><"
-	Requires	      pifont
+	Preamble
+	  \usepackage{pifont}
+	EndPreamble
 End
 
 
@@ -164,6 +169,7 @@ Style My_Logo
 	LeftMargin            My_Logo:xx
 	LabelSep              xxx
 	Align                 Left
+	AlignPossible         Left
 	LabelType             Static
 	LabelString           "My Logo:"
 	LabelFont
@@ -327,5 +333,4 @@ End
 Input stdlayouts.inc
 Input stdfloats.inc
 Input stdcounters.inc
-Input stdinsets.inc
 Input lyxmacros.inc

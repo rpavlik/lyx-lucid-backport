@@ -59,7 +59,7 @@ public:
 	bool unknown() const;
 
 	///
-	void setEnabled(bool b);
+	void enabled(bool b);
 	/// tells whether it can be invoked (otherwise it will be grayed-out).
 	bool enabled() const;
 

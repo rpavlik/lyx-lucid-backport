@@ -14,20 +14,21 @@
 
 #include "InsetSpecialChar.h"
 
-#include "Dimension.h"
+#include "debug.h"
 #include "LaTeXFeatures.h"
+#include "Color.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
 
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
-#include "support/debug.h"
-#include "support/docstream.h"
-
-using namespace std;
 
 namespace lyx {
+
+using std::string;
+using std::auto_ptr;
+using std::ostream;
 
 
 InsetSpecialChar::InsetSpecialChar(Kind k)
@@ -41,7 +42,7 @@ InsetSpecialChar::Kind InsetSpecialChar::kind() const
 }
 
 
-void InsetSpecialChar::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetSpecialChar::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	frontend::FontMetrics const & fm =
 		theFontMetrics(mi.base.font);
@@ -50,63 +51,48 @@ void InsetSpecialChar::metrics(MetricsInfo & mi, Dimension & dim) const
 
 	string s;
 	switch (kind_) {
-		case LIGATURE_BREAK:
-			s = "|";
-			break;
-		case END_OF_SENTENCE:
-			s = ".";
-			break;
-		case LDOTS:
-			s = ". . .";
-			break;
-		case MENU_SEPARATOR:
-			s = " x ";
-			break;
-		case HYPHENATION:
-			s = "-";
-			break;
-		case SLASH:
-			s = "/";
-			break;
-		case NOBREAKDASH:
-			s = "-";
-			break;
+		case LIGATURE_BREAK:      s = "|";     break;
+		case END_OF_SENTENCE:     s = ".";     break;
+		case LDOTS:               s = ". . ."; break;
+		case MENU_SEPARATOR:      s = " x ";   break;
+		case HYPHENATION:      s = "-";   break;
 	}
 	docstring ds(s.begin(), s.end());
 	dim.wid = fm.width(ds);
 	if (kind_ == HYPHENATION && dim.wid > 5)
 		dim.wid -= 2; // to make it look shorter
-	
-	setDimCache(mi, dim);
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
 }
 
 
 void InsetSpecialChar::draw(PainterInfo & pi, int x, int y) const
 {
-	FontInfo font = pi.base.font;
+	Font font = pi.base.font;
 
 	switch (kind_) {
 	case HYPHENATION:
 	{
-		font.setColor(Color_special);
+		font.setColor(Color::special);
 		pi.pain.text(x, y, char_type('-'), font);
 		break;
 	}
 	case LIGATURE_BREAK:
 	{
-		font.setColor(Color_special);
+		font.setColor(Color::special);
 		pi.pain.text(x, y, char_type('|'), font);
 		break;
 	}
 	case END_OF_SENTENCE:
 	{
-		font.setColor(Color_special);
+		font.setColor(Color::special);
 		pi.pain.text(x, y, char_type('.'), font);
 		break;
 	}
 	case LDOTS:
 	{
-		font.setColor(Color_special);
+		font.setColor(Color::special);
 		string ell = ". . . ";
 		docstring dell(ell.begin(), ell.end());
 		pi.pain.text(x, y, dell, font);
@@ -128,19 +114,7 @@ void InsetSpecialChar::draw(PainterInfo & pi, int x, int y) const
 		xp[2] = ox + w; yp[2] = y - h/2;
 		xp[3] = ox;     yp[3] = y;
 
-		pi.pain.lines(xp, yp, 4, Color_special);
-		break;
-	}
-	case SLASH:
-	{
-		font.setColor(Color_special);
-		pi.pain.text(x, y, char_type('/'), font);
-		break;
-	}
-	case NOBREAKDASH:
-	{
-		font.setColor(Color_latex);
-		pi.pain.text(x, y, char_type('-'), font);
+		pi.pain.lines(xp, yp, 4, Color::special);
 		break;
 	}
 	}
@@ -148,7 +122,7 @@ void InsetSpecialChar::draw(PainterInfo & pi, int x, int y) const
 
 
 // In lyxf3 this will be just LaTeX
-void InsetSpecialChar::write(ostream & os) const
+void InsetSpecialChar::write(Buffer const &, ostream & os) const
 {
 	string command;
 	switch (kind_) {
@@ -167,19 +141,13 @@ void InsetSpecialChar::write(ostream & os) const
 	case MENU_SEPARATOR:
 		command = "\\menuseparator";
 		break;
-	case SLASH:
-		command = "\\slash{}";
-		break;
-	case NOBREAKDASH:
-		command = "\\nobreakdash-";
-		break;
 	}
 	os << "\\SpecialChar " << command << "\n";
 }
 
 
 // This function will not be necessary when lyx3
-void InsetSpecialChar::read(Lexer & lex)
+void InsetSpecialChar::read(Buffer const &, Lexer & lex)
 {
 	lex.next();
 	string const command = lex.getString();
@@ -194,16 +162,12 @@ void InsetSpecialChar::read(Lexer & lex)
 		kind_ = LDOTS;
 	else if (command == "\\menuseparator")
 		kind_ = MENU_SEPARATOR;
-	else if (command == "\\slash{}")
-		kind_ = SLASH;
-	else if (command == "\\nobreakdash-")
-		kind_ = NOBREAKDASH;
 	else
 		lex.printError("InsetSpecialChar: Unknown kind: `$$Token'");
 }
 
 
-int InsetSpecialChar::latex(odocstream & os,
+int InsetSpecialChar::latex(Buffer const &, odocstream & os,
 			    OutputParams const &) const
 {
 	switch (kind_) {
@@ -222,18 +186,13 @@ int InsetSpecialChar::latex(odocstream & os,
 	case MENU_SEPARATOR:
 		os << "\\lyxarrow{}";
 		break;
-	case SLASH:
-		os << "\\slash{}";
-		break;
-	case NOBREAKDASH:
-		os << "\\nobreakdash-";
-		break;
 	}
 	return 0;
 }
 
 
-int InsetSpecialChar::plaintext(odocstream & os, OutputParams const &) const
+int InsetSpecialChar::plaintext(Buffer const &, odocstream & os,
+				OutputParams const &) const
 {
 	switch (kind_) {
 	case HYPHENATION:
@@ -248,18 +207,13 @@ int InsetSpecialChar::plaintext(odocstream & os, OutputParams const &) const
 	case MENU_SEPARATOR:
 		os << "->";
 		return 2;
-	case SLASH:
-		os << '/';
-		return 1;
-	case NOBREAKDASH:
-		os << '-';
-		return 1;
 	}
 	return 0;
 }
 
 
-int InsetSpecialChar::docbook(odocstream & os, OutputParams const &) const
+int InsetSpecialChar::docbook(Buffer const &, odocstream & os,
+			      OutputParams const &) const
 {
 	switch (kind_) {
 	case HYPHENATION:
@@ -274,29 +228,28 @@ int InsetSpecialChar::docbook(odocstream & os, OutputParams const &) const
 	case MENU_SEPARATOR:
 		os << "&lyxarrow;";
 		break;
-	case SLASH:
-		os << '/';
-		break;
-	case NOBREAKDASH:
-		os << '-';
-		break;
 	}
 	return 0;
 }
 
 
-void InsetSpecialChar::textString(odocstream & os) const
+void InsetSpecialChar::textString(Buffer const & buf, odocstream & os) const
 {
-	plaintext(os, OutputParams(0));
+	plaintext(buf, os, OutputParams(0));
+}
+
+
+auto_ptr<Inset> InsetSpecialChar::doClone() const
+{
+	return auto_ptr<Inset>(new InsetSpecialChar(kind_));
 }
 
 
 void InsetSpecialChar::validate(LaTeXFeatures & features) const
 {
-	if (kind_ == MENU_SEPARATOR)
+	if (kind_ == MENU_SEPARATOR) {
 		features.require("lyxarrow");
-	if (kind_ == NOBREAKDASH)
-		features.require("amsmath");
+	}
 }
 
 

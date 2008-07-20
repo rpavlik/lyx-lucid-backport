@@ -4,6 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
+ * \author Jürgen Vigna
  * \author Lars Gullik Bjønnes
  * \author Matthias Ettrich
  * \author André Pönitz
@@ -32,13 +33,14 @@
 
 // Lgb
 
-#ifndef INSET_TABULAR_H
-#define INSET_TABULAR_H
+#ifndef INSETTABULAR_H
+#define INSETTABULAR_H
 
 #include "Inset.h"
-#include "InsetText.h"
-#include "Layout.h"
+#include "MailInset.h"
 #include "Length.h"
+#include "InsetText.h"
+
 
 #include <boost/shared_ptr.hpp>
 
@@ -47,15 +49,13 @@
 
 namespace lyx {
 
-class Buffer;
-class BufferParams;
-class BufferView;
-class CompletionList;
-class CursorSlice;
-class InsetTableCell;
 class FuncStatus;
 class Lexer;
+class BufferView;
+class Buffer;
+class BufferParams;
 class Paragraph;
+class CursorSlice;
 
 namespace frontend { class Painter; }
 
@@ -67,7 +67,7 @@ class OutputParams;
 //
 // A helper struct for tables
 //
-class Tabular {
+class Tabular  {
 public:
 	///
 	enum Feature {
@@ -105,6 +105,14 @@ public:
 		VALIGN_BOTTOM,
 		///
 		VALIGN_MIDDLE,
+		///
+		M_TOGGLE_LINE_TOP,
+		///
+		M_TOGGLE_LINE_BOTTOM,
+		///
+		M_TOGGLE_LINE_LEFT,
+		///
+		M_TOGGLE_LINE_RIGHT,
 		///
 		M_ALIGN_LEFT,
 		///
@@ -160,8 +168,6 @@ public:
 		///
 		SET_LTNEWPAGE,
 		///
-		TOGGLE_LTCAPTION,
-		///
 		SET_SPECIAL_COLUMN,
 		///
 		SET_SPECIAL_MULTI,
@@ -175,8 +181,6 @@ public:
 		SET_BOTTOM_SPACE,
 		///
 		SET_INTERLINE_SPACE,
-		///
-		SET_BORDER_LINES,
 		///
 		LAST_ACTION
 	};
@@ -235,16 +239,17 @@ public:
 	static const idx_type npos = static_cast<idx_type>(-1);
 
 	/// constructor
-	Tabular(Buffer const &, col_type columns_arg, row_type rows_arg);
+	Tabular(BufferParams const &, col_type columns_arg,
+		   row_type rows_arg);
 
 	/// Returns true if there is a topline, returns false if not
-	bool topLine(idx_type cell) const;
+	bool topLine(idx_type cell, bool wholerow = false) const;
 	/// Returns true if there is a topline, returns false if not
-	bool bottomLine(idx_type cell) const;
+	bool bottomLine(idx_type cell, bool wholerow = false) const;
 	/// Returns true if there is a topline, returns false if not
-	bool leftLine(idx_type cell) const;
+	bool leftLine(idx_type cell, bool wholecolumn = false) const;
 	/// Returns true if there is a topline, returns false if not
-	bool rightLine(idx_type cell) const;
+	bool rightLine(idx_type cell, bool wholecolumn = false) const;
 
 	///
 	bool topAlreadyDrawn(idx_type cell) const;
@@ -261,40 +266,32 @@ public:
 
 	/* returns the maximum over all rows */
 	///
-	int columnWidth(idx_type cell) const;
+	int getWidthOfColumn(idx_type cell) const;
 	///
-	int width() const;
+	int getWidthOfTabular() const;
 	///
-	int height() const;
+	int getAscentOfRow(row_type row) const;
 	///
-	int rowAscent(row_type row) const;
+	int getDescentOfRow(row_type row) const;
 	///
-	int rowDescent(row_type row) const;
+	int getHeightOfTabular() const;
 	///
-	void setRowAscent(row_type row, int height);
+	void setAscentOfRow(row_type row, int height);
 	///
-	void setRowDescent(row_type row, int height);
+	void setDescentOfRow(row_type row, int height);
 	///
-	void setCellWidth(idx_type cell, int new_width);
+	void setWidthOfCell(idx_type cell, int new_width);
 	///
 	void setAllLines(idx_type cell, bool line);
 	///
-	void setTopLine(idx_type cell, bool line);
+	void setTopLine(idx_type cell, bool line, bool wholerow = false);
 	///
-	void setBottomLine(idx_type cell, bool line);
+	void setBottomLine(idx_type cell, bool line, bool wholerow = false);
 	///
-	void setLeftLine(idx_type cell, bool line);
+	void setLeftLine(idx_type cell, bool line, bool wholecolumn = false);
 	///
-	void setRightLine(idx_type cell, bool line);
+	void setRightLine(idx_type cell, bool line, bool wholecolumn = false);
 	///
-	bool rowTopLine(row_type row) const;
-	///
-	bool rowBottomLine(row_type row) const;
-	///
-	bool columnLeftLine(col_type column) const;
-	///
-	bool columnRightLine(col_type column) const;
-
 	void setAlignment(idx_type cell, LyXAlignment align,
 			  bool onlycolumn = false);
 	///
@@ -316,21 +313,27 @@ public:
 	///
 	Length const getPWidth(idx_type cell) const;
 	///
-	int cellWidth(idx_type cell) const;
+	Length const getColumnPWidth(idx_type cell) const;
+	///
+	Length const getMColumnPWidth(idx_type cell) const;
+	///
+	docstring const getAlignSpecial(idx_type cell, int what) const;
+	///
+	int getWidthOfCell(idx_type cell) const;
 	///
 	int getBeginningOfTextInCell(idx_type cell) const;
 	///
-	void appendRow(idx_type cell);
+	void appendRow(BufferParams const &, idx_type cell);
 	///
 	void deleteRow(row_type row);
 	///
-	void copyRow(row_type);
+	void copyRow(BufferParams const &, row_type);
 	///
-	void appendColumn(idx_type cell);
+	void appendColumn(BufferParams const &, idx_type cell);
 	///
 	void deleteColumn(col_type column);
 	///
-	void copyColumn(col_type);
+	void copyColumn(BufferParams const &, col_type);
 	///
 	bool isFirstCellInRow(idx_type cell) const;
 	///
@@ -340,17 +343,19 @@ public:
 	///
 	idx_type getLastCellInRow(row_type row) const;
 	///
+	idx_type getNumberOfCells() const;
+	///
 	idx_type numberOfCellsInRow(idx_type cell) const;
 	///
-	void write(std::ostream &) const;
+	void write(Buffer const &, std::ostream &) const;
 	///
-	void read(Lexer &);
+	void read(Buffer const &, Lexer &);
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	//
-	int docbook(odocstream & os, OutputParams const &) const;
+	int docbook(Buffer const & buf, odocstream & os, OutputParams const &) const;
 	///
-	void plaintext(odocstream &,
+	void plaintext(Buffer const &, odocstream &,
 		       OutputParams const & runparams, int const depth,
 		       bool onlydata, char_type delim) const;
 	///
@@ -358,17 +363,29 @@ public:
 	///
 	bool isMultiColumnReal(idx_type cell) const;
 	///
-	void setMultiColumn(idx_type cell, idx_type number);
+	void setMultiColumn(Buffer *, idx_type cell, idx_type number);
 	///
 	idx_type unsetMultiColumn(idx_type cell); // returns number of new cells
 	///
 	bool isPartOfMultiColumn(row_type row, col_type column) const;
 	///
-	row_type cellRow(idx_type cell) const;
+	row_type row_of_cell(idx_type cell) const;
 	///
-	col_type cellColumn(idx_type cell) const;
+	col_type column_of_cell(idx_type cell) const;
 	///
-	col_type cellRightColumn(idx_type cell) const;
+	col_type right_column_of_cell(idx_type cell) const;
+	///
+	void setBookTabs(bool);
+	///
+	bool useBookTabs() const;
+	///
+	void setLongTabular(bool);
+	///
+	bool isLongTabular() const;
+	///
+	void setRotateTabular(bool);
+	///
+	bool getRotateTabular() const;
 	///
 	void setRotateCell(idx_type cell, bool);
 	///
@@ -378,11 +395,15 @@ public:
 	///
 	bool isLastCell(idx_type cell) const;
 	///
-	idx_type cellAbove(idx_type cell) const;
+	idx_type getCellAbove(idx_type cell) const;
 	///
-	idx_type cellBelow(idx_type cell) const;
+	idx_type getCellBelow(idx_type cell) const;
 	///
-	idx_type cellIndex(row_type row, col_type column) const;
+	idx_type getLastCellAbove(idx_type cell) const;
+	///
+	idx_type getLastCellBelow(idx_type cell) const;
+	///
+	idx_type getCellNumber(row_type row, col_type column) const;
 	///
 	void setUsebox(idx_type cell, BoxType);
 	///
@@ -408,10 +429,6 @@ public:
 	///
 	bool getLTNewPage(row_type row) const;
 	///
-	idx_type setLTCaption(row_type row, bool what);
-	///
-	bool ltCaption(row_type row) const;
-	///
 	bool haveLTHead() const;
 	///
 	bool haveLTFirstHead() const;
@@ -422,35 +439,39 @@ public:
 	///
 	// end longtable support
 	///
-	boost::shared_ptr<InsetTableCell> cellInset(idx_type cell) const;
+	boost::shared_ptr<InsetText> getCellInset(idx_type cell) const;
 	///
-	boost::shared_ptr<InsetTableCell> cellInset(row_type row,
+	boost::shared_ptr<InsetText> getCellInset(row_type row,
 						  col_type column) const;
 	///
 	void setCellInset(row_type row, col_type column,
-			  boost::shared_ptr<InsetTableCell>) const;
+			  boost::shared_ptr<InsetText>) const;
 	/// Search for \param inset in the tabular, with the
 	///
-	idx_type cellFromInset(Inset const * inset) const;
+	idx_type getCellFromInset(Inset const * inset) const;
+	///
+	row_type rows() const { return rows_; }
+	///
+	col_type columns() const { return columns_;}
 	///
 	void validate(LaTeXFeatures &) const;
 	///
 //private:
 	///
-	class CellData {
+	class cellstruct {
 	public:
 		///
-		CellData(Buffer const &, Tabular const &);
+		cellstruct(BufferParams const &);
 		///
-		CellData(CellData const &);
+		cellstruct(cellstruct const &);
 		///
-		CellData & operator=(CellData);
+		cellstruct & operator=(cellstruct);
 		///
-		void swap(CellData & rhs);
+		void swap(cellstruct & rhs);
 		///
 		idx_type cellno;
 		///
-		int width;
+		int width_of_cell;
 		///
 		int multicolumn;
 		///
@@ -474,23 +495,27 @@ public:
 		///
 		Length p_width; // this is only set for multicolumn!!!
 		///
-		boost::shared_ptr<InsetTableCell> inset;
+		boost::shared_ptr<InsetText> inset;
 	};
-	CellData & cellInfo(idx_type cell) const;
+	cellstruct & cellinfo_of_cell(idx_type cell) const;
 	///
-	typedef std::vector<CellData> cell_vector;
+	typedef std::vector<cellstruct> cell_vector;
 	///
 	typedef std::vector<cell_vector> cell_vvector;
 
 	///
-	class RowData {
+	class rowstruct {
 	public:
 		///
-		RowData();
+		rowstruct();
 		///
-		int ascent;
+		int ascent_of_row;
 		///
-		int descent;
+		int descent_of_row;
+		///
+		bool top_line;
+		///
+		bool bottom_line;
 		/// Extra space between the top line and this row
 		Length top_space;
 		/// Ignore top_space if true and use the default top space
@@ -512,33 +537,39 @@ public:
 		bool endfoot;
 		/// row of endlastfoot
 		bool endlastfoot;
-		/// row for a newpage
+		/// row for a pagebreak
 		bool newpage;
-		/// caption
-		bool caption;
 	};
 	///
-	typedef std::vector<RowData> row_vector;
+	typedef std::vector<rowstruct> row_vector;
 
 	///
-	class ColumnData {
+	class columnstruct {
 		public:
 		///
-		ColumnData();
+		columnstruct();
 		///
 		LyXAlignment alignment;
 		///
 		VAlignment valignment;
 		///
-		int width;
+		bool left_line;
+		///
+		bool right_line;
+		///
+		int  width_of_column;
 		///
 		Length p_width;
 		///
 		docstring align_special;
 	};
 	///
-	typedef std::vector<ColumnData> column_vector;
+	typedef std::vector<columnstruct> column_vector;
 
+	///
+	row_type rows_;
+	///
+	col_type columns_;
 	///
 	idx_type numberofcells;
 	///
@@ -551,6 +582,8 @@ public:
 	column_vector column_info;
 	///
 	mutable cell_vvector cell_info;
+	///
+	int width_of_tabular;
 	///
 	bool use_booktabs;
 	///
@@ -569,14 +602,24 @@ public:
 	ltType endlastfoot;
 
 	///
-	void init(Buffer const &, row_type rows_arg,
+	void init(BufferParams const &, row_type rows_arg,
 		  col_type columns_arg);
 	///
-	void updateIndexes();
-	/// return true of update is needed
-	bool updateColumnWidths();
+	void set_row_column_number_info();
+	/// Returns true if a complete update is necessary, otherwise false
+	bool setWidthOfMulticolCell(idx_type cell, int new_width);
 	///
-	idx_type columnSpan(idx_type cell) const;
+	void recalculateMulticolumnsOfColumn(col_type column);
+	/// Returns true if change
+	void calculate_width_of_column(col_type column);
+	///
+	bool calculate_width_of_column_NMC(col_type column); // no multi cells
+	///
+	void calculate_width_of_tabular();
+	///
+	void delete_column(col_type column);
+	///
+	idx_type cells_in_multicolumn(idx_type cell) const;
 	///
 	BoxType useParbox(idx_type cell) const;
 	///
@@ -586,15 +629,16 @@ public:
 	///
 	int TeXBottomHLine(odocstream &, row_type row) const;
 	///
-	int TeXCellPreamble(odocstream &, idx_type cell, bool & ismulticol) const;
+	int TeXCellPreamble(odocstream &, idx_type cell) const;
 	///
-	int TeXCellPostamble(odocstream &, idx_type cell, bool ismulticol) const;
+	int TeXCellPostamble(odocstream &, idx_type cell) const;
 	///
-	int TeXLongtableHeaderFooter(odocstream &, OutputParams const &) const;
+	int TeXLongtableHeaderFooter(odocstream &, Buffer const & buf,
+				     OutputParams const &) const;
 	///
 	bool isValidRow(row_type const row) const;
 	///
-	int TeXRow(odocstream &, row_type const row,
+	int TeXRow(odocstream &, row_type const row, Buffer const & buf,
 		   OutputParams const &) const;
 	///
 	// helper functions for plain text
@@ -605,66 +649,23 @@ public:
 	bool plaintextBottomHLine(odocstream &, row_type row,
 				  std::vector<unsigned int> const &) const;
 	///
-	void plaintextPrintCell(odocstream &,
+	void plaintextPrintCell(Buffer const &, odocstream &,
 				OutputParams const &,
 				idx_type cell, row_type row, col_type column,
 				std::vector<unsigned int> const &,
 				bool onlydata) const;
 	/// auxiliary function for docbook
-	int docbookRow(odocstream & os, row_type, OutputParams const &) const;
-
-	/// change associated Buffer
-	void setBuffer(Buffer const & buffer) { buffer_ = &buffer; }
-	/// retrieve associated Buffer
-	Buffer const & buffer() const { return *buffer_; }
+	int docbookRow(Buffer const & buf, odocstream & os, row_type,
+		       OutputParams const &) const;
 
 private:
-	Buffer const * buffer_;
-
-}; // Tabular
-
-
-///
-class InsetTableCell : public InsetText
-{
-public:
-	///
-	InsetTableCell(Buffer const & buf,
-		Tabular::CellData const * cd, Tabular const * t);
-	///
-	InsetCode lyxCode() const { return CELL_CODE; }
-	///
-	Inset * clone() { return new InsetTableCell(*this); }
-	///
-	virtual bool usePlainLayout() const { return true; }
-	/// 
-	virtual bool forcePlainLayout(idx_type = 0) const;
-	/// 
-	virtual bool allowParagraphCustomization(idx_type = 0) const;
-	///
-	bool getStatus(Cursor & cur, FuncRequest const & cmd,
-		FuncStatus & status) const;
-	///
-	virtual bool neverIndent() { return true; }
-	///
-	void setCellData(Tabular::CellData const * cd) { cell_data_ = cd; }
-	///
-	void setTabular(Tabular const * t) { table_ = t; }
-private:
-	/// unimplemented
-	InsetTableCell();
-	/// unimplemented
-	void operator=(InsetTableCell const &);
-
-	/// 
-	Tabular::CellData const * cell_data_;
-	/// 
-	Tabular const * table_;
+	/// renumber cells after structural changes
+	void fixCellNums();
 };
 
 
-class InsetTabular : public Inset
-{
+
+class InsetTabular : public Inset {
 public:
 	///
 	InsetTabular(Buffer const &, row_type rows = 1,
@@ -672,25 +673,21 @@ public:
 	///
 	~InsetTabular();
 	///
-	static void string2params(std::string const &, InsetTabular &);
+	void read(Buffer const &, Lexer &);
 	///
-	static std::string params2string(InsetTabular const &);
+	void write(Buffer const &, std::ostream &) const;
 	///
-	void read(Lexer &);
-	///
-	void write(std::ostream &) const;
-	///
-	void metrics(MetricsInfo &, Dimension &) const;
+	bool metrics(MetricsInfo &, Dimension &) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
 	void drawSelection(PainterInfo & pi, int x, int y) const;
 	///
-	docstring editMessage() const;
+	virtual docstring const editMessage() const;
 	///
 	EDITABLE editable() const { return HIGHLY_EDITABLE; }
 	///
-	bool insetAllowed(InsetCode code) const;
+	bool insetAllowed(Inset::Code) const { return true; }
 	///
 	bool allowSpellCheck() const { return true; }
 	///
@@ -700,19 +697,20 @@ public:
 	    insets that may contain several paragraphs */
 	bool noFontChange() const { return true; }
 	///
-	DisplayType display() const { return tabular.is_long_tabular ? AlignCenter : Inline; }
+	DisplayType display() const { return tabular.isLongTabular() ? AlignCenter : Inline; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &,
+		  OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &,
+		      OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &,
+		    OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures & features) const;
 	///
-	InsetCode lyxCode() const { return TABULAR_CODE; }
-	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	Code lyxCode() const { return Inset::TABULAR_CODE; }
 	/// get offset of this cursor slice relative to our upper left corner
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
 		bool boundary, int & x, int & y) const;
@@ -726,11 +724,11 @@ public:
 	///
 	bool showInsetDialog(BufferView *) const;
 	/// number of cells
-	size_t nargs() const { return tabular.numberofcells; }
+	size_t nargs() const { return tabular.getNumberOfCells(); }
 	///
-	boost::shared_ptr<InsetTableCell const> cell(idx_type) const;
+	boost::shared_ptr<InsetText const> cell(idx_type) const;
 	///
-	boost::shared_ptr<InsetTableCell> cell(idx_type);
+	boost::shared_ptr<InsetText> cell(idx_type);
 	///
 	Text * getText(int) const;
 
@@ -744,69 +742,40 @@ public:
 	// this should return true if we have a "normal" cell, otherwise false.
 	// "normal" means without width set!
 	/// should all paragraphs be output with "Standard" layout?
-	virtual bool allowParagraphCustomization(idx_type cell = 0) const;
-	///
-	virtual bool forcePlainLayout(idx_type cell = 0) const;
-	///
-	virtual bool usePlainLayout() { return true; }
+	bool forceDefaultParagraphs(idx_type cell = 0) const;
+
 	///
 	void addPreview(graphics::PreviewLoader &) const;
 
+	///
+	Buffer const & buffer() const;
+
+	/// set the owning buffer
+	void buffer(Buffer const * buf);
 	/// lock cell with given index
-	void edit(Cursor & cur, bool front, EntryDirection entry_from);
-	/// get table row from x coordinate
-	int rowFromY(Cursor & cur, int y) const;
-	/// get table column from y coordinate
-	int columnFromX(Cursor & cur, int x) const;
+	void edit(Cursor & cur, bool left);
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 	/// can we go further down on mouse click?
 	bool descendable() const { return true; }
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
-
-	///
-	bool completionSupported(Cursor const &) const;
-	///
-	bool inlineCompletionSupported(Cursor const & cur) const;
-	///
-	bool automaticInlineCompletion() const;
-	///
-	bool automaticPopupCompletion() const;
-	///
-	bool showCompletionCursor() const;
-	///
-	CompletionList const * createCompletionList(Cursor const & cur) const;
-	///
-	docstring completionPrefix(Cursor const & cur) const;
-	///
-	bool insertCompletion(Cursor & cur, docstring const & s, bool finished);
-	///
-	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
-
-	///
-	virtual InsetTabular * asInsetTabular() { return this; }
-	///
-	virtual InsetTabular const * asInsetTabular() const { return this; }
-	///
-	bool isRightToLeft(Cursor & cur) const;
 
 	//
 	// Public structures and variables
 	///
 	mutable Tabular tabular;
 
-private:
+protected:
 	///
 	InsetTabular(InsetTabular const &);
 	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 	///
 	int scroll() const { return scx_; }
-	///
-	Inset * clone() const { return new InsetTabular(*this); }
+
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 
 	///
 	void drawCellLines(frontend::Painter &, int x, int y, row_type row,
@@ -815,13 +784,11 @@ private:
 	void setCursorFromCoordinates(Cursor & cur, int x, int y) const;
 
 	///
-	void moveNextCell(Cursor & cur, 
-				EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
+	void moveNextCell(Cursor & cur);
 	///
-	void movePrevCell(Cursor & cur,
-				EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
+	void movePrevCell(Cursor & cur);
 	///
-	int cellXPos(idx_type cell) const;
+	int getCellXPos(idx_type cell) const;
 	///
 	void resetPos(Cursor & cur) const;
 	///
@@ -832,6 +799,8 @@ private:
 	bool pasteClipboard(Cursor & cur);
 	///
 	void cutSelection(Cursor & cur);
+	///
+	bool isRightToLeft(Cursor & cur) const;
 	///
 	void getSelection(Cursor & cur, row_type & rs, row_type & re,
 			  col_type & cs, col_type & ce) const;
@@ -850,17 +819,37 @@ private:
 				row_type row_start, row_type row_end,
 				col_type col_start, col_type col_end) const;
 	///
+	Buffer const * buffer_;
+	///
 	mutable idx_type first_visible_cell;
 	///
 	mutable int scx_;
-	/// true when selecting rows with the mouse
-	bool rowselect_;
-	/// true when selecting columns with the mouse
-	bool colselect_;
+};
+
+
+class InsetTabularMailer : public MailInset {
+public:
+	///
+	InsetTabularMailer(InsetTabular const & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static void string2params(std::string const &, InsetTabular &);
+	///
+	static std::string const params2string(InsetTabular const &);
+private:
+	///
+	static std::string const name_;
+	///
+	InsetTabular & inset_;
 };
 
 std::string const featureAsString(Tabular::Feature feature);
 
 } // namespace lyx
 
-#endif // INSET_TABULAR_H
+#endif

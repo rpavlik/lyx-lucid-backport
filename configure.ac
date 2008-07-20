@@ -1,10 +1,10 @@
-vdnl Process with autoconf to generate configure script   -*- sh -*-
+dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.0beta4,[lyx-devel@lists.lyx.org],[lyx])
-AC_SUBST(LYX_DATE, ["Fri, Jul 11, 2008"])
+AC_INIT(LyX,1.5.5,[lyx-devel@lists.lyx.org],[lyx])
+AC_SUBST(LYX_DATE, ["Sun, May 11, 2008"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -37,6 +37,17 @@ done
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
+AC_PROG_AWK
+test "$AWK" = gawk && AWK="gawk --posix"
+
+#AC_PROG_RANLIB
+AC_CHECK_PROG(KPSEWHICH, kpsewhich, kpsewhich, :)
+if test "x$KPSEWHICH" = xkpsewhich ; then
+    AC_DEFINE(HAVE_KPSEWHICH, 1,
+    [Define this if you have the kpsewhich program working on your system.])
+fi
+AC_CHECK_PROGS(M4, gm4 gnum4 m4, m4)
+
 # Check for installed python
 AM_PATH_PYTHON(2.3,, :)
 
@@ -48,7 +59,6 @@ INSTALL_SCRIPT='${INSTALL}'
 
 ### we will also need a C compiler to compile GNU gettext
 AC_PROG_CC
-AC_GNU_SOURCE
 
 ### check for special systems
 AC_ISC_POSIX
@@ -67,17 +77,13 @@ AC_LANG(C++)
 dnl we do not need that currently (and probably all our supported
 dnl compiler allow that)
 dnl LYX_CXX_PARTIAL
-dnl LYX_CXX_EXPLICIT
-dnl LYX_CXX_GLOBAL_CSTD
-dnl LYX_STD_COUNT
+LYX_CXX_EXPLICIT
+LYX_CXX_GLOBAL_CSTD
+LYX_STD_COUNT
 dnl we disable rtti for now
 dnl LYX_CXX_RTTI
-dnl AC_CHECK_HEADERS(ostream istream sstream locale limits ios)
-dnl LYX_CXX_STL_MODERN_STREAMS
-
-### Objective-C compiler
-AC_PROG_OBJC
-_AM_DEPENDENCIES([OBJC])
+AC_CHECK_HEADERS(ostream istream sstream locale limits ios)
+LYX_CXX_STL_MODERN_STREAMS
 
 ### and now some special lyx flags.
 AC_ARG_ENABLE(assertions,
@@ -94,7 +100,7 @@ if test "x$enable_assertions" = xyes ; then
 fi
 
 ### Library Files
-dnl AC_CHECK_LIB(m, sin)
+AC_CHECK_LIB(m, sin)
 
 ### Add extra directories to check for libraries.
 LYX_WITH_DIR([extra-lib],[extra library directory],extra_lib, NONE)
@@ -147,9 +153,7 @@ dnl see http://permalink.gmane.org/gmane.comp.gnu.libtool.general/6699
 dnl Note that this will reportedly not be needed with libtool 2.0
 m4_undefine([AC_PROG_F77])
 m4_defun([AC_PROG_F77],[])
-
 AC_DISABLE_SHARED
-#AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 #AM_PROG_LIBTOOL
 LYX_PROG_LIBTOOL
@@ -225,13 +229,12 @@ fi
 dnl GNU gettext is written in C
 AC_LANG_PUSH(C)
 AM_GNU_GETTEXT
-AM_GNU_GETTEXT_VERSION([0.16.1])
 AC_LANG_POP(C)
 
 # some standard header files
 AC_HEADER_DIRENT
 AC_HEADER_MAJOR
-AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h strings.h locale.h io.h process.h NewAPIs.h utime.h sys/utime.h)
+AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h strings.h locale.h utime.h sys/utime.h io.h process.h NewAPIs.h)
 
 # some standard structures
 AC_HEADER_STAT
@@ -307,12 +310,19 @@ ${FRONTEND_INFO}\
   LyX binary dir:               ${real_bindir}\n\
   LyX files dir:                ${real_pkgdatadir}\n"
 
+MSYS_AC_CANONICAL_PATH(LYX_ABS_TOP_SRCDIR, ${srcdir})
+MSYS_AC_CANONICAL_PATH(LYX_ABS_INSTALLED_LOCALEDIR, ${real_localedir})
+MSYS_AC_CANONICAL_PATH(LYX_ABS_INSTALLED_DATADIR, ${real_pkgdatadir})
+
 AC_SUBST(VERSION_INFO)
 AC_SUBST(RPM_FRONTEND)
 AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_CXXFLAGS)
 AC_SUBST(AM_CFLAGS)
 AC_SUBST(AM_LDFLAGS)
+AC_SUBST(LYX_ABS_TOP_SRCDIR)
+AC_SUBST(LYX_ABS_INSTALLED_LOCALEDIR)
+AC_SUBST(LYX_ABS_INSTALLED_DATADIR)
 
 ## Some config.h stuff
 
@@ -342,6 +352,15 @@ AH_BOTTOM([
 extern "C"
 #endif
 char * strerror(int n);
+#endif
+
+#ifdef HAVE_MKSTEMP
+#ifndef HAVE_DECL_MKSTEMP
+#if defined(__cplusplus)
+extern "C"
+#endif
+int mkstemp(char*);
+#endif
 #endif
 
 #if defined(HAVE_OSTREAM) && defined(HAVE_LOCALE) && defined(HAVE_SSTREAM)
@@ -379,7 +398,7 @@ char * strerror(int n);
  * does: What we need is a 32bit wide wchar_t, and a libstdc++ that
  * has the needed wchar_t support and uses UCS4. Whether it
  * implements this with the help of libc, or whether it has own code
- * does not matter for us, because we do not use libc directly (Georg)
+ * does not matter for us, because we don't use libc directly (Georg)
 */
 #if defined(HAVE_WCHAR_T) && SIZEOF_WCHAR_T == 4 && !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__)
 #  define USE_WCHAR_T
@@ -388,127 +407,56 @@ char * strerror(int n);
 #endif
 ])
 
-
-AC_ARG_WITH(qmake,
-	AC_HELP_STRING([--with-qmake],
-		[Use qmake instead of automake to generate Makefiles]),,
-	[with_qmake=no])
-
-AC_ARG_ENABLE(monolithic-boost,
-  AC_HELP_STRING([--enable-monolithic-boost],
-		[Use monolithic boost compilations]),,
-  [enable_monolithic_boost=no])
-AM_CONDITIONAL(MONOLITHIC_BOOST, test "$enable_monolithic_boost" = "yes")
-
-AC_ARG_ENABLE(monolithic-client,
-  AC_HELP_STRING([--enable-monolithic-client],
-		[Use monolithic client compilations]),,
-  [enable_monolithic_client=no])
-AM_CONDITIONAL(MONOLITHIC_CLIENT, test "$enable_monolithic_client" = "yes")
-
-AC_ARG_ENABLE(monolithic-insets,
-  AC_HELP_STRING([--enable-monolithic-insets],
-		[Use monolithic insets compilations]),,
-  [enable_monolithic_insets=no])
-AM_CONDITIONAL(MONOLITHIC_INSETS, test "$enable_monolithic_insets" = "yes")
-
-AC_ARG_ENABLE(monolithic-mathed,
-  AC_HELP_STRING([--enable-monolithic-mathed],
-		[Use monolithic mathed compilations]),,
-  [enable_monolithic_mathed=no])
-AM_CONDITIONAL(MONOLITHIC_MATHED, test "$enable_monolithic_mathed" = "yes")
-
-AC_ARG_ENABLE(monolithic-core,
-  AC_HELP_STRING([--enable-monolithic-core],
-		[Use monolithic core files compilations]),,
-  [enable_monolithic_core=no])
-AM_CONDITIONAL(MONOLITHIC_CORE, test "$enable_monolithic_core" = "yes")
-
-AC_ARG_ENABLE(monolithic-tex2lyx,
-  AC_HELP_STRING([--enable-monolithic-tex2lyx],
-		[Use monolithic tex2lyx compilations]),,
-  [enable_monolithic_tex2lyx=no])
-AM_CONDITIONAL(MONOLITHIC_TEX2LYX, test "$enable_monolithic_tex2lyx" = "yes")
-
-AC_ARG_ENABLE(monolithic-frontend-qt4,
-  AC_HELP_STRING([--enable-monolithic-frontend-qt4],
-		[Use monolithic compilation of the Qt 4 frontend. Only recommended with > 512 MB of RAM]),,
-  [enable_monolithic_frontend_qt4=no])
-AM_CONDITIONAL(MONOLITHIC_FRONTEND_QT4, test "$enable_monolithic_frontend_qt4" = "yes")
-
-MSYS_AC_CANONICAL_PATH(lyx_abs_top_srcdir, ${srcdir})
-MSYS_AC_CANONICAL_PATH(lyx_abs_installed_localedir, ${real_localedir})
-MSYS_AC_CANONICAL_PATH(lyx_abs_installed_datadir, ${real_pkgdatadir})
-
-AC_DEFINE_UNQUOTED([LYX_ABS_TOP_SRCDIR],
-	"${lyx_abs_top_srcdir}", [Top source directory])
-AC_DEFINE_UNQUOTED([LYX_ABS_INSTALLED_LOCALEDIR],
-	"${lyx_abs_installed_localedir}",[Hard coded locale directory])
-AC_DEFINE_UNQUOTED([LYX_ABS_INSTALLED_DATADIR],
-	"${lyx_abs_installed_datadir}",[Hard system support directory])
-AC_DEFINE_UNQUOTED([PROGRAM_SUFFIX],
-	"${version_suffix}",[Program version suffix])
-
-AC_DEFINE_UNQUOTED([LYX_DATE],"$LYX_DATE",[Date of release])
-AC_DEFINE_UNQUOTED([VERSION_INFO],"$VERSION_INFO",[Full version info])
 AC_DEFINE_UNQUOTED([LYX_MAJOR_VERSION],$lyx_major,[Major version number])
 AC_DEFINE_UNQUOTED([LYX_MINOR_VERSION],$lyx_minor,[Minor version number])
 AC_DEFINE_UNQUOTED([LYX_RELEASE_LEVEL],$lyx_release,[Release version number])
 AC_DEFINE_UNQUOTED([LYX_RELEASE_PATCH],$lyx_patch,[Patch version number])
 
+### Finish the work.
 AC_CONFIG_FILES([Makefile
-      boost/Makefile \
-      config/Makefile \
-      development/Makefile \
-      development/MacOSX/Makefile \
-      development/MacOSX/Info.plist \
-      development/MacOSX/lyxrc.dist \
-      development/MacOSX/spotlight/Makefile \
-      development/lyx.spec \
-      intl/Makefile \
-      lib/Makefile \
-      lib/doc/Makefile \
-      lib/lyx2lyx/lyx2lyx_version.py \
-      lib/lyx2lyx/Makefile \
-      m4/Makefile \
-      po/Makefile.in \
-      sourcedoc/Doxyfile \
-      sourcedoc/Makefile \
-      src/client/Makefile \
-      src/Makefile \
-      src/tex2lyx/Makefile \
-      src/support/Makefile \
-      src/frontends/Makefile \
-      src/frontends/qt4/Makefile
+       boost/Makefile \
+       boost/libs/Makefile \
+       boost/libs/filesystem/Makefile \
+       boost/libs/filesystem/src/Makefile \
+       boost/libs/iostreams/Makefile \
+       boost/libs/iostreams/src/Makefile \
+       boost/libs/regex/Makefile \
+       boost/libs/regex/src/Makefile \
+       boost/libs/signals/Makefile \
+       boost/libs/signals/src/Makefile \
+       config/Makefile \
+       development/Makefile \
+       development/MacOSX/Makefile \
+       development/MacOSX/Info.plist \
+       development/MacOSX/lyxrc.dist \
+       development/MacOSX/spotlight/Makefile \
+       development/lyx.spec \
+       intl/Makefile \
+       lib/Makefile \
+       lib/doc/Makefile \
+       lib/lyx2lyx/lyx2lyx_version.py \
+       lib/lyx2lyx/Makefile \
+       m4/Makefile \
+       po/Makefile.in \
+       sourcedoc/Doxyfile \
+       sourcedoc/Makefile \
+       src/client/Makefile \
+       src/Makefile \
+       src/version.cpp-tmp:src/version.cpp.in \
+       src/tex2lyx/Makefile \
+       src/mathed/Makefile \
+       src/graphics/Makefile \
+       src/insets/Makefile \
+       src/support/Makefile \
+       src/support/tests/Makefile \
+       src/frontends/Makefile \
+       src/frontends/controllers/Makefile \
+       src/frontends/controllers/tests/Makefile \
+       src/frontends/qt4/Makefile \
+       src/frontends/qt4/ui/Makefile \
 ])
 
-
 AC_OUTPUT
-
-if test x$with_qmake = xyes ; then
-	echo "CONFIGURE WITH QMAKE ONLY"
-	if test x$srcdir = x ; then
-		echo "ONLY FOR OUT-OF-TREE-BUILDS POSSIBLE"
-	else
-		rm boost/Makefile
-		rm src/client/Makefile
-		rm src/Makefile
-		rm src/tex2lyx/Makefile
-		rm src/support/Makefile
-		rm src/frontends/Makefile
-		rm src/frontends/qt4/Makefile
-		rm -rf boost/.deps
-		rm -rf src/client/.deps
-		rm -rf src/.deps
-		rm -rf src/tex2lyx/.deps
-		rm -rf src/support/.deps
-		rm -rf src/frontends/.deps
-		rm -rf src/frontends/qt4/.deps
-		${srcdir}/development/qmake/doit
-	fi
-fi
-
-
 # show version information
 echo
 printf "$VERSION_INFO"

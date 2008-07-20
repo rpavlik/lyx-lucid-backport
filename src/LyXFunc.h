@@ -15,28 +15,23 @@
 #ifndef LYXFUNC_H
 #define LYXFUNC_H
 
-#include "FuncCode.h"
 #include "KeySequence.h"
+#include "lfuns.h"
 
 #include "support/docstring.h"
 
+#include <boost/scoped_ptr.hpp>
+#include <boost/signals/trackable.hpp>
+
 namespace lyx {
 
-class Buffer;
 class BufferView;
-class DocumentClass;
 class FuncRequest;
 class FuncStatus;
 class KeySymbol;
 class Text;
-
-namespace support {
-class FileName;
-}
-
-namespace frontend {
 class LyXView;
-}
+
 
 /** This class encapsulates all the LyX command operations.
     This is the class of the LyX's "high level event handler".
@@ -44,8 +39,7 @@ class LyXView;
     keyboard or from the GUI. All GUI objects, including buttons and
     menus should use this class and never call kernel functions directly.
 */
-class LyXFunc
-{
+class LyXFunc : public boost::signals::trackable {
 public:
 	///
 	explicit LyXFunc();
@@ -54,16 +48,16 @@ public:
 	void dispatch(FuncRequest const &);
 
 	///
-	void setLyXView(frontend::LyXView * lv);
-	
+	void setLyXView(LyXView * lv);
+
 	///
 	void initKeySequences(KeyMap * kb);
 
 	/// return the status bar state string
-	docstring viewStatusMessage();
+	docstring const viewStatusMessage();
 
 	///
-	void processKeySym(KeySymbol const & key, KeyModifier state);
+	void processKeySym(KeySymbolPtr key, key_modifier::state state);
 
 	///
 	FuncStatus getStatus(FuncRequest const & action) const;
@@ -80,7 +74,7 @@ public:
 	/// Buffer to store result messages
 	docstring const getMessage() const { return dispatch_buffer; }
 	/// Handle a accented char key sequence
-	void handleKeyFunc(FuncCode action);
+	void handleKeyFunc(kb_action action);
 	/// goto a bookmark
 	/// openFile: whether or not open a file if the file is not opened
 	/// switchToBuffer: whether or not switch to buffer if the buffer is
@@ -88,26 +82,30 @@ public:
 	void gotoBookmark(unsigned int idx, bool openFile, bool switchToBuffer);
 
 	/// cursor x position before dispatch started
-	int cursorBeforeDispatchX() const { return cursorPosBeforeDispatchX_; }
+	int cursorBeforeDispatchX() const {
+		return cursorPosBeforeDispatchX_;
+	}
 	/// cursor y position before dispatch started
-	int cursorBeforeDispatchY() const { return cursorPosBeforeDispatchY_; }
+	int cursorBeforeDispatchY() const {
+		return cursorPosBeforeDispatchY_;
+	}
 
 private:
 	///
 	BufferView * view() const;
 
 	///
-	frontend::LyXView * lyx_view_;
+	LyXView * lyx_view_;
 
 	/// the last character added to the key sequence, in UCS4 encoded form
 	char_type encoded_last_key;
 
 	///
-	KeySequence keyseq;
+	boost::scoped_ptr<KeySequence> keyseq;
 	///
-	KeySequence cancel_meta_seq;
+	boost::scoped_ptr<KeySequence> cancel_meta_seq;
 	///
-	KeyModifier meta_fake_bit;
+	key_modifier::state meta_fake_bit;
 
 	/// cursor position before dispatch started
 	int cursorPosBeforeDispatchX_;
@@ -125,12 +123,19 @@ private:
 	void sendDispatchMessage(docstring const & msg,
 		FuncRequest const & ev);
 
+	// I think the following should be moved to BufferView. (Asger)
+	///
+	void menuNew(std::string const & argument, bool fromTemplate);
+	///
+	void open(std::string const &);
+	///
+	void doImport(std::string const &);
+	///
+	void closeBuffer();
 	///
 	void reloadBuffer();
 	///
 	bool ensureBufferClean(BufferView * bv);
-	///
-	void updateLayout(DocumentClass const * const oldlayout, Buffer * buffer);
 };
 
 /// Implementation is in LyX.cpp

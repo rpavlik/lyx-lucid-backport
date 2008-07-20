@@ -15,21 +15,19 @@
 
 #include "CursorSlice.h"
 
+#include "debug.h"
 #include "Text.h"
 #include "Paragraph.h"
-
-#include "support/debug.h"
 
 #include "insets/Inset.h"
 
 #include "mathed/InsetMath.h"
 #include "mathed/MathData.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
-#include <ostream>
+using std::endl;
 
-using namespace std;
 
 namespace lyx {
 
@@ -42,7 +40,7 @@ CursorSlice::CursorSlice()
 CursorSlice::CursorSlice(Inset & p)
 	: inset_(&p), idx_(0), pit_(0), pos_(0)
 {
-	LASSERT(inset_, /**/);
+	BOOST_ASSERT(inset_);
 }
 
 
@@ -52,7 +50,13 @@ MathData & CursorSlice::cell() const
 }
 
 
-Paragraph & CursorSlice::paragraph() const
+Paragraph & CursorSlice::paragraph()
+{
+	return text()->getPar(pit_);
+}
+
+
+Paragraph const & CursorSlice::paragraph() const
 {
 	return text()->getPar(pit_);
 }
@@ -60,15 +64,14 @@ Paragraph & CursorSlice::paragraph() const
 
 pos_type CursorSlice::lastpos() const
 {
-	LASSERT(inset_, /**/);
-	return inset_->asInsetMath() ? cell().size() 
-		: (text()->empty() ? 0 : paragraph().size());
+	BOOST_ASSERT(inset_);
+	return inset_->asInsetMath() ? cell().size() : paragraph().size();
 }
 
 
 pit_type CursorSlice::lastpit() const
 {
-	if (inset_->inMathed())
+	if (inset().inMathed())
 		return 0;
 	return text()->paragraphs().size() - 1;
 }
@@ -76,122 +79,48 @@ pit_type CursorSlice::lastpit() const
 
 CursorSlice::row_type CursorSlice::row() const
 {
-	LASSERT(asInsetMath(), /**/);
+	BOOST_ASSERT(asInsetMath());
 	return asInsetMath()->row(idx_);
 }
 
 
 CursorSlice::col_type CursorSlice::col() const
 {
-	LASSERT(asInsetMath(), /**/);
+	BOOST_ASSERT(asInsetMath());
 	return asInsetMath()->col(idx_);
-}
-
-
-void CursorSlice::forwardPos()
-{
-	//  move on one position if possible
-	if (pos_ < lastpos()) {
-		//lyxerr << "... next pos" << endl;
-		++pos_;
-		return;
-	}
-
-	// otherwise move on one paragraph if possible
-	if (pit_ < lastpit()) {
-		//lyxerr << "... next par" << endl;
-		++pit_;
-		pos_ = 0;
-		return;
-	}
-
-	// otherwise move on one cell
-	//lyxerr << "... next idx" << endl;
-
-	LASSERT(idx_ < nargs(), /**/);
-
-	++idx_;
-	pit_ = 0;
-	pos_ = 0;
-}
-
-
-void CursorSlice::forwardIdx()
-{
-	LASSERT(idx_ < nargs(), /**/);
-
-	++idx_;
-	pit_ = 0;
-	pos_ = 0;
-}
-
-
-void CursorSlice::backwardPos()
-{
-	if (pos_ != 0) {
-		--pos_;
-		return;
-	}
-
-	if (pit_ != 0) {
-		--pit_;
-		pos_ = lastpos();
-		return;
-	}
-
-	if (idx_ != 0) {
-		--idx_;
-		pit_ = lastpit();
-		pos_ = lastpos();
-		return;
-	}
-
-	LASSERT(false, /**/);
-}
-
-
-bool CursorSlice::at_end() const 
-{
-	return idx_ == lastidx() && pit_ == lastpit() && pos_ == lastpos();
-}
-
-
-bool CursorSlice::at_begin() const
-{
-	return idx_ == 0 && pit_ == 0 && pos_ == 0;
 }
 
 
 bool operator==(CursorSlice const & p, CursorSlice const & q)
 {
-	return p.inset_ == q.inset_
-	       && p.idx_ == q.idx_
-	       && p.pit_ == q.pit_
-	       && p.pos_ == q.pos_;
+	return &p.inset() == &q.inset()
+	       && p.idx() == q.idx()
+	       && p.pit() == q.pit()
+	       && p.pos() == q.pos();
 }
 
 
 bool operator!=(CursorSlice const & p, CursorSlice const & q)
 {
-	return p.inset_ != q.inset_
-	       || p.idx_ != q.idx_
-	       || p.pit_ != q.pit_
-	       || p.pos_ != q.pos_;
+	return &p.inset() != &q.inset()
+	       || p.idx() != q.idx()
+	       || p.pit() != q.pit()
+	       || p.pos() != q.pos();
 }
 
 
 bool operator<(CursorSlice const & p, CursorSlice const & q)
 {
-	if (p.inset_ != q.inset_) {
-		LYXERR0("can't compare cursor and anchor in different insets\n"
-		       << "p: " << p << '\n' << "q: " << q);
-		LASSERT(false, /**/);
+	if (&p.inset() != &q.inset()) {
+		lyxerr << "can't compare cursor and anchor in different insets\n"
+		       << "p: " << p << '\n' << "q: " << q << endl;
+		BOOST_ASSERT(false);
 	}
-	if (p.idx_ != q.idx_)
-		return p.idx_ < q.idx_;
-	if (p.pit_ != q.pit_)
-		return p.pit_ < q.pit_;
-	return p.pos_ < q.pos_;
+	if (p.idx() != q.idx())
+		return p.idx() < q.idx();
+	if (p.pit() != q.pit())
+		return p.pit() < q.pit();
+	return p.pos() < q.pos();
 }
 
 
@@ -207,16 +136,16 @@ bool operator<=(CursorSlice const & p, CursorSlice const & q)
 }
 
 
-ostream & operator<<(ostream & os, CursorSlice const & item)
+std::ostream & operator<<(std::ostream & os, CursorSlice const & item)
 {
 	return os
-	   << "inset: " << (void *)item.inset_
+	   << "inset: " << &item.inset()
 //	   << " text: " << item.text()
-	   << " idx: " << item.idx_
-	   << " par: " << item.pit_
-	   << " pos: " << item.pos_
-//	   << " x: " << item.inset_->x()
-//	   << " y: " << item.inset_->y()
+	   << " idx: " << item.idx()
+	   << " par: " << item.pit()
+	   << " pos: " << item.pos()
+//	   << " x: " << item.inset().x()
+//	   << " y: " << item.inset().y()
 ;
 }
 

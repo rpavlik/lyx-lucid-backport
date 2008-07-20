@@ -11,40 +11,37 @@
 #include <config.h>
 
 #include "VSpace.h"
-
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BufferView.h"
-#include "support/gettext.h"
-#include "Length.h"
+#include "gettext.h"
+#include "lengthcommon.h"
 #include "Text.h"
-#include "TextMetrics.h" // for defaultRowHeight()
 
 #include "support/convert.h"
 #include "support/lstrings.h"
 
-#include "support/lassert.h"
-
-#include <cstring>
-
-using namespace std;
-using namespace lyx::support;
-
 
 namespace lyx {
+
+using support::compare;
+using support::isStrDbl;
+using support::ltrim;
+using support::prefixIs;
+using support::rtrim;
+
+using std::string;
+
 
 namespace {
 
 /// used to return numeric values in parsing vspace
 double number[4] = { 0, 0, 0, 0 };
-
 /// used to return unit types in parsing vspace
-Length::UNIT unit[4] = {
-	Length::UNIT_NONE,
-	Length::UNIT_NONE,
-	Length::UNIT_NONE,
-	Length::UNIT_NONE
-};
+Length::UNIT unit[4] = { Length::UNIT_NONE,
+			    Length::UNIT_NONE,
+			    Length::UNIT_NONE,
+			    Length::UNIT_NONE };
 
 /// the current position in the number array
 int number_index;
@@ -52,14 +49,16 @@ int number_index;
 int unit_index;
 
 /// skip n characters of input
-inline void lyx_advance(string & data, size_t n)
+inline
+void lyx_advance(string & data, string::size_type n)
 {
 	data.erase(0, n);
 }
 
 
 /// return true when the input is at the end
-inline bool isEndOfData(string const & data)
+inline
+bool isEndOfData(string const & data)
 {
 	return ltrim(data).empty();
 }
@@ -104,7 +103,7 @@ char nextToken(string & data)
 		return '-';
 	}
 
-	size_t i = data.find_first_not_of("0123456789.");
+	string::size_type i = data.find_first_not_of("0123456789.");
 
 	if (i != 0) {
 		if (number_index > 3)
@@ -116,9 +115,8 @@ char nextToken(string & data)
 		if (i == string::npos) {
 			buffer = data;
 			i = data.size() + 1;
-		} else {
+		} else
 			buffer = data.substr(0, i);
-		}
 
 		lyx_advance(data, i);
 
@@ -141,9 +139,8 @@ char nextToken(string & data)
 		if (i == string::npos) {
 			buffer = data;
 			i = data.size() + 1;
-		} else {
+		} else
 			buffer = data.substr(0, i);
-		}
 
 		// possibly we have "mmplus" string or similar
 		if (buffer.size() > 5 &&
@@ -252,19 +249,17 @@ bool isValidGlueLength(string const & data, GlueLength * result)
 	unit_index = 1;  // entries at index 0 are sentinels
 
 	// construct "pattern" from "data"
-	while (!isEndOfData(buffer)) {
-		if (pattern_index > 20)
-			return false;
-		pattern[pattern_index] = nextToken(buffer);
-		if (pattern[pattern_index] == 'E')
-			return false;
+	while (!isEndOfData (buffer)) {
+		if (pattern_index > 20) return false;
+		pattern[pattern_index] = nextToken (buffer);
+		if (pattern[pattern_index] == 'E') return false;
 		++pattern_index;
 	}
 	pattern[pattern_index] = '\0';
 
 	// search "pattern" in "table"
 	table_index = 0;
-	while (strcmp(pattern, table[table_index].pattern)) {
+	while (compare(pattern, table[table_index].pattern)) {
 		++table_index;
 		if (!*table[table_index].pattern)
 			return false;
@@ -329,8 +324,7 @@ bool isValidLength(string const & data, Length * result)
 	pattern[pattern_index] = '\0';
 
 	// only the most basic pattern is accepted here
-	if (strcmp(pattern, "nu") != 0)
-		return false;
+	if (compare(pattern, "nu") != 0) return false;
 
 	// It _was_ a correct length string.
 	// Store away the values we found.
@@ -351,7 +345,7 @@ VSpace::VSpace()
 {}
 
 
-VSpace::VSpace(VSpaceKind k)
+VSpace::VSpace(vspace_kind k)
 	: kind_(k), len_(), keep_(false)
 {}
 
@@ -374,7 +368,7 @@ VSpace::VSpace(string const & data)
 
 	string input = rtrim(data);
 
-	size_t const length = input.length();
+	string::size_type const length = input.length();
 
 	if (length > 1 && input[length - 1] == '*') {
 		keep_ = true;
@@ -400,6 +394,30 @@ VSpace::VSpace(string const & data)
 		kind_ = LENGTH;
 		len_  = GlueLength(Length(convert<double>(input), Length::CM));
 	}
+}
+
+
+VSpace::vspace_kind VSpace::kind() const
+{
+	return kind_;
+}
+
+
+GlueLength const & VSpace::length() const
+{
+	return len_;
+}
+
+
+bool VSpace::keep() const
+{
+	return keep_;
+}
+
+
+void VSpace::setKeep(bool val)
+{
+	keep_ = val;
 }
 
 
@@ -458,7 +476,7 @@ string const VSpace::asLatexCommand(BufferParams const & params) const
 			: "\\vspace{" + len_.asLatexString() + '}';
 
 	default:
-		LASSERT(false, /**/);
+		BOOST_ASSERT(false);
 		return string();
 	}
 }
@@ -501,7 +519,7 @@ int VSpace::inPixels(BufferView const & bv) const
 	switch (kind_) {
 
 	case DEFSKIP:
-		return bv.buffer().params().getDefSkip().inPixels(bv);
+		return bv.buffer()->params().getDefSkip().inPixels(bv);
 
 	// This is how the skips are normally defined by LateX.
 	// But there should be some way to change this per document.
@@ -522,7 +540,7 @@ int VSpace::inPixels(BufferView const & bv) const
 		return len_.len().inPixels(bv.workWidth());
 
 	default:
-		LASSERT(false, /**/);
+		BOOST_ASSERT(false);
 		return 0;
 	}
 }

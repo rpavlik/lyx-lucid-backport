@@ -4,7 +4,6 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Lars Gullik Bjønnes
- * \author Richard Heck (conversion to InsetCommand)
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,21 +18,18 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "Cursor.h"
+#include "debug.h"
 #include "DispatchResult.h"
-#include "ErrorList.h"
 #include "Exporter.h"
-#include "Format.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "gettext.h"
 #include "LaTeXFeatures.h"
-#include "LayoutFile.h"
 #include "LyX.h"
-#include "LyXFunc.h"
 #include "LyXRC.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
-#include "TextClass.h"
 #include "TocBackend.h"
 
 #include "frontends/alert.h"
@@ -42,28 +38,58 @@
 #include "graphics/PreviewImage.h"
 #include "graphics/PreviewLoader.h"
 
-#include "insets/InsetLabel.h"
-#include "insets/InsetListingsParams.h"
 #include "insets/RenderPreview.h"
+#include "insets/InsetListingsParams.h"
 
-#include "support/convert.h"
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/FileNameList.h"
 #include "support/filetools.h"
-#include "support/gettext.h"
-#include "support/lassert.h"
 #include "support/lstrings.h" // contains
 #include "support/lyxalgo.h"
+#include "support/lyxlib.h"
+#include "support/convert.h"
 
 #include <boost/bind.hpp>
+#include <boost/filesystem/operations.hpp>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
+  
+// Implementation is in LyX.cpp
+extern void dispatch(FuncRequest const & action);
+
+using support::addName;
+using support::absolutePath;
+using support::bformat;
+using support::changeExtension;
+using support::contains;
+using support::copy;
+using support::doesFileExist;
+using support::DocFileName;
+using support::FileName;
+using support::getFileContents;
+using support::getVectorFromString;
+using support::isFileReadable;
+using support::isLyXFilename;
+using support::isValidLaTeXFilename;
+using support::latex_path;
+using support::makeAbsPath;
+using support::makeDisplayPath;
+using support::makeRelPath;
+using support::onlyFilename;
+using support::onlyPath;
+using support::prefixIs;
+using support::subst;
+using support::sum;
+
+using std::endl;
+using std::string;
+using std::auto_ptr;
+using std::istringstream;
+using std::ostream;
+using std::ostringstream;
+using std::vector;
 
 namespace Alert = frontend::Alert;
+namespace fs = boost::filesystem;
 
 
 namespace {
@@ -75,225 +101,79 @@ docstring const uniqueID()
 }
 
 
-/// the type of inclusion
-enum Types {
-	INCLUDE, VERB, INPUT, VERBAST, LISTINGS, NONE
-};
-
-
-Types type(string const & s)
-{
-	if (s == "input")
-		return INPUT;
-	if (s == "verbatiminput")
-		return VERB;
-	if (s == "verbatiminput*")
-		return VERBAST;
-	if (s == "lstinputlisting")
-		return LISTINGS;
-	if (s == "include")
-		return INCLUDE;
-	return NONE;
-}
-
-
-Types type(InsetCommandParams const & params)
-{
-	return type(params.getCmdName());
-}
-
-
 bool isListings(InsetCommandParams const & params)
 {
-	return type(params) == LISTINGS;
-}
-
-
-bool isVerbatim(InsetCommandParams const & params)
-{
-	Types const t = type(params);
-	return t == VERB || t == VERBAST;
-}
-
-
-bool isInputOrInclude(InsetCommandParams const & params)
-{
-	Types const t = type(params);
- 	return t == INPUT || t == INCLUDE;
-}
-
-
-FileName const masterFileName(Buffer const & buffer)
-{
-	return buffer.masterBuffer()->fileName();
-}
-
-
-void add_preview(RenderMonitoredPreview &, InsetInclude const &, Buffer const &);
-
-
-string const parentFilename(Buffer const & buffer)
-{
-	return buffer.absFileName();
-}
-
-
-FileName const includedFilename(Buffer const & buffer,
-			      InsetCommandParams const & params)
-{
-	return makeAbsPath(to_utf8(params["filename"]),
-			onlyPath(parentFilename(buffer)));
-}
-
-
-InsetLabel * createLabel(docstring const & label_str)
-{
-	if (label_str.empty())
-		return 0;
-	InsetCommandParams icp(LABEL_CODE);
-	icp["name"] = label_str;
-	return new InsetLabel(icp);
+	return params.getCmdName() == "lstinputlisting";
 }
 
 } // namespace anon
 
 
 InsetInclude::InsetInclude(InsetCommandParams const & p)
-	: InsetCommand(p, "include"), include_label(uniqueID()),
-	  preview_(new RenderMonitoredPreview(this)), set_label_(false), label_(0)
+	: params_(p), include_label(uniqueID()),
+	  preview_(new RenderMonitoredPreview(this)),
+	  set_label_(false), counter_(0)
 {
 	preview_->fileChanged(boost::bind(&InsetInclude::fileChanged, this));
-
-	if (isListings(params())) {
-		InsetListingsParams listing_params(to_utf8(p["lstparams"]));
-		label_ = createLabel(from_utf8(listing_params.getParamValue("label")));
-	}
 }
 
 
 InsetInclude::InsetInclude(InsetInclude const & other)
-	: InsetCommand(other), include_label(other.include_label),
-	  preview_(new RenderMonitoredPreview(this)), set_label_(false), label_(0)
+	: Inset(other),
+	  params_(other.params_),
+	  include_label(other.include_label),
+	  preview_(new RenderMonitoredPreview(this)),
+	  set_label_(false), counter_(0)
 {
 	preview_->fileChanged(boost::bind(&InsetInclude::fileChanged, this));
-
-	if (other.label_)
-		label_ = new InsetLabel(*other.label_);
 }
 
 
 InsetInclude::~InsetInclude()
 {
-	delete label_;
-	if (isVerbatim(params()) || isListings(params()))
-		return;
-
-
-	string const parent_filename = buffer().absFileName();
-	FileName const included_file = makeAbsPath(to_utf8(params()["filename"]),
-			   onlyPath(parent_filename));
-
-	if (!isLyXFilename(included_file.absFilename()))
-		return;
-
-	Buffer * child = theBufferList().getBuffer(included_file.absFilename());
-	// File not opened, nothing to close.
-	if (!child)
-		return;
-
-	// Child document has a different parent, don't close it.
-	if (child->parent() != &buffer())
-		return;
-
-	//close the buffer.
-	theBufferList().release(child);
-}
-
-
-void InsetInclude::setBuffer(Buffer & buffer)
-{
-	InsetCommand::setBuffer(buffer);
-	if (label_)
-		label_->setBuffer(buffer);
-}
-
-
-ParamInfo const & InsetInclude::findInfo(string const & /* cmdName */)
-{
-	// FIXME
-	// This is only correct for the case of listings, but it'll do for now.
-	// In the other cases, this second parameter should just be empty.
-	static ParamInfo param_info_;
-	if (param_info_.empty()) {
-		param_info_.add("filename", ParamInfo::LATEX_REQUIRED);
-		param_info_.add("lstparams", ParamInfo::LATEX_OPTIONAL);
-	}
-	return param_info_;
-}
-
-
-bool InsetInclude::isCompatibleCommand(string const & s)
-{
-	return type(s) != NONE;
+	InsetIncludeMailer(*this).hideDialog();
 }
 
 
 void InsetInclude::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	LASSERT(&cur.buffer() == &buffer(), /**/);
 	switch (cmd.action) {
 
-	case LFUN_INSET_EDIT: {
-		editIncluded(to_utf8(params()["filename"]));
-		break;
-	}
-
 	case LFUN_INSET_MODIFY: {
-		InsetCommandParams p(INCLUDE_CODE);
-		if (cmd.getArg(0) == "changetype") {
-			InsetCommand::doDispatch(cur, cmd);
-			p = params();
-		} else
-			InsetCommand::string2params("include", to_utf8(cmd.argument()), p);
+		InsetCommandParams p("include");
+		InsetIncludeMailer::string2params(to_utf8(cmd.argument()), p);
 		if (!p.getCmdName().empty()) {
 			if (isListings(p)){
-				InsetListingsParams new_params(to_utf8(p["lstparams"]));
-				docstring const label_str = from_utf8(new_params.getParamValue("label"));
-				if (label_str.empty())
-					delete label_;
-				else if (label_)
-					label_->updateCommand(label_str);
-				else {
-					label_ = createLabel(label_str);
-					label_->setBuffer(buffer());
-					label_->initView();
-				}
+				InsetListingsParams par_old(params().getOptions());
+				InsetListingsParams par_new(p.getOptions());
+				if (par_old.getParamValue("label") !=
+				    par_new.getParamValue("label")
+				    && !par_new.getParamValue("label").empty())
+					cur.bv().buffer()->changeRefsIfUnique(
+						from_utf8(par_old.getParamValue("label")),
+						from_utf8(par_new.getParamValue("label")),
+						Inset::REF_CODE);
 			}
-			setParams(p);
+			set(p, cur.buffer());
+			cur.buffer().updateBibfilesCache();
 		} else
 			cur.noUpdate();
 		break;
 	}
 
-	//pass everything else up the chain
+	case LFUN_INSET_DIALOG_UPDATE:
+		InsetIncludeMailer(*this).updateDialog(&cur.bv());
+		break;
+
+	case LFUN_MOUSE_RELEASE:
+		if (!cur.selection())
+			InsetIncludeMailer(*this).showDialog(&cur.bv());
+		break;
+
 	default:
-		InsetCommand::doDispatch(cur, cmd);
+		Inset::doDispatch(cur, cmd);
 		break;
 	}
-}
-
-
-void InsetInclude::editIncluded(string const & file)
-{
-	string const ext = support::getExtension(file);
-	if (ext == "lyx") {
-		FuncRequest fr(LFUN_BUFFER_CHILD_OPEN, file);
-		lyx::dispatch(fr);
-	} else
-		// tex file or other text file in verbatim mode
-		formats.edit(buffer(),
-			support::makeAbsPath(file, support::onlyPath(buffer().absFileName())),
-			"text");
 }
 
 
@@ -302,66 +182,193 @@ bool InsetInclude::getStatus(Cursor & cur, FuncRequest const & cmd,
 {
 	switch (cmd.action) {
 
-	case LFUN_INSET_EDIT:
 	case LFUN_INSET_MODIFY:
-		flag.setEnabled(true);
+	case LFUN_INSET_DIALOG_UPDATE:
+		flag.enabled(true);
 		return true;
 
 	default:
-		return InsetCommand::getStatus(cur, cmd, flag);
+		return Inset::getStatus(cur, cmd, flag);
 	}
 }
 
 
-void InsetInclude::setParams(InsetCommandParams const & p)
+InsetCommandParams const & InsetInclude::params() const
 {
-	InsetCommand::setParams(p);
+	return params_;
+}
+
+
+namespace {
+
+/// the type of inclusion
+enum Types {
+	INCLUDE = 0,
+	VERB = 1,
+	INPUT = 2,
+	VERBAST = 3,
+	LISTINGS = 4,
+};
+
+
+Types type(InsetCommandParams const & params)
+{
+	string const command_name = params.getCmdName();
+
+	if (command_name == "input")
+		return INPUT;
+	if  (command_name == "verbatiminput")
+		return VERB;
+	if  (command_name == "verbatiminput*")
+		return VERBAST;
+	if  (command_name == "lstinputlisting")
+		return LISTINGS;
+	return INCLUDE;
+}
+
+
+bool isVerbatim(InsetCommandParams const & params)
+{
+	string const command_name = params.getCmdName();
+	return command_name == "verbatiminput" ||
+		command_name == "verbatiminput*";
+}
+
+
+bool isInputOrInclude(InsetCommandParams const & params)
+{
+	Types const t = type(params);
+	return (t == INPUT) || (t == INCLUDE);
+}
+
+
+string const masterFilename(Buffer const & buffer)
+{
+	return buffer.getMasterBuffer()->fileName();
+}
+
+
+string const parentFilename(Buffer const & buffer)
+{
+	return buffer.fileName();
+}
+
+
+FileName const includedFilename(Buffer const & buffer,
+			      InsetCommandParams const & params)
+{
+	return makeAbsPath(to_utf8(params["filename"]),
+			   onlyPath(parentFilename(buffer)));
+}
+
+
+void add_preview(RenderMonitoredPreview &, InsetInclude const &, Buffer const &);
+
+} // namespace anon
+
+
+void InsetInclude::set(InsetCommandParams const & p, Buffer const & buffer)
+{
+	params_ = p;
 	set_label_ = false;
 
 	if (preview_->monitoring())
 		preview_->stopMonitoring();
 
-	if (type(params()) == INPUT)
-		add_preview(*preview_, *this, buffer());
-
-	buffer().updateBibfilesCache();
+	if (type(params_) == INPUT)
+		add_preview(*preview_, *this, buffer);
 }
 
 
-docstring InsetInclude::screenLabel() const
+auto_ptr<Inset> InsetInclude::doClone() const
+{
+	return auto_ptr<Inset>(new InsetInclude(*this));
+}
+
+
+void InsetInclude::write(Buffer const &, ostream & os) const
+{
+	write(os);
+}
+
+
+void InsetInclude::write(ostream & os) const
+{
+	os << "Include " << to_utf8(params_.getCommand()) << '\n'
+	   << "preview " << convert<string>(params_.preview()) << '\n';
+}
+
+
+void InsetInclude::read(Buffer const &, Lexer & lex)
+{
+	read(lex);
+}
+
+
+void InsetInclude::read(Lexer & lex)
+{
+	if (lex.isOK()) {
+		lex.eatLine();
+		string const command = lex.getString();
+		params_.scanCommand(command);
+	}
+	string token;
+	while (lex.isOK()) {
+		lex.next();
+		token = lex.getString();
+		if (token == "\\end_inset")
+			break;
+		if (token == "preview") {
+			lex.next();
+			params_.preview(lex.getBool());
+		} else
+			lex.printError("Unknown parameter name `$$Token' for command " + params_.getCmdName());
+	}
+	if (token != "\\end_inset") {
+		lex.printError("Missing \\end_inset at this point. "
+			       "Read: `$$Token'");
+	}
+}
+
+
+docstring const InsetInclude::getScreenLabel(Buffer const & buf) const
 {
 	docstring temp;
 
-	switch (type(params())) {
+	switch (type(params_)) {
 		case INPUT:
-			temp = buffer().B_("Input");
+			temp += buf.B_("Input");
 			break;
 		case VERB:
-			temp = buffer().B_("Verbatim Input");
+			temp += buf.B_("Verbatim Input");
 			break;
 		case VERBAST:
-			temp = buffer().B_("Verbatim Input*");
+			temp += buf.B_("Verbatim Input*");
 			break;
 		case INCLUDE:
-			temp = buffer().B_("Include");
+			temp += buf.B_("Include");
 			break;
-		case LISTINGS:
-			temp = listings_label_;
+		case LISTINGS: {
+			if (counter_ > 0)
+				temp += buf.B_("Program Listing ") + convert<docstring>(counter_);
+			else
+				temp += buf.B_("Program Listing");
 			break;
-		case NONE:
-			LASSERT(false, /**/);
+		}
 	}
 
 	temp += ": ";
 
-	if (params()["filename"].empty())
+	if (params_["filename"].empty())
 		temp += "???";
 	else
-		temp += from_utf8(onlyFilename(to_utf8(params()["filename"])));
+		temp += from_utf8(onlyFilename(to_utf8(params_["filename"])));
 
 	return temp;
 }
 
+
+namespace {
 
 /// return the child buffer if the file is a LyX doc and is loaded
 Buffer * getChildBuffer(Buffer const & buffer, InsetCommandParams const & params)
@@ -373,68 +380,71 @@ Buffer * getChildBuffer(Buffer const & buffer, InsetCommandParams const & params
 	if (!isLyXFilename(included_file))
 		return 0;
 
-	Buffer * childBuffer = loadIfNeeded(buffer, params); 
+	Buffer * childBuffer = theBufferList().getBuffer(included_file);
 
-	// FIXME: recursive includes
-	return (childBuffer == &buffer) ? 0 : childBuffer;
+	//FIXME RECURSIVE INCLUDES
+	if (childBuffer == & buffer)
+		return 0;
+	else
+		return childBuffer;
 }
 
 
 /// return true if the file is or got loaded.
-Buffer * loadIfNeeded(Buffer const & parent, InsetCommandParams const & params)
+bool loadIfNeeded(Buffer const & buffer, InsetCommandParams const & params)
 {
 	if (isVerbatim(params) || isListings(params))
-		return 0;
+		return false;
 
-	string const parent_filename = parent.absFileName();
-	FileName const included_file = makeAbsPath(to_utf8(params["filename"]),
-			   onlyPath(parent_filename));
-
+	FileName const included_file = includedFilename(buffer, params);
 	if (!isLyXFilename(included_file.absFilename()))
-		return 0;
+		return false;
 
-	Buffer * child = theBufferList().getBuffer(included_file.absFilename());
-	if (!child) {
+	Buffer * buf = theBufferList().getBuffer(included_file.absFilename());
+	if (!buf) {
 		// the readonly flag can/will be wrong, not anymore I think.
-		if (!included_file.exists())
-			return 0;
-
-		child = theBufferList().newBuffer(included_file.absFilename());
-		if (!child)
-			// Buffer creation is not possible.
-			return 0;
-
-		if (!child->loadLyXFile(included_file)) {
-			//close the buffer we just opened
-			theBufferList().release(child);
-			return 0;
+		if (!doesFileExist(included_file))
+			return false;
+		if (use_gui) {
+			lyx::dispatch(FuncRequest(LFUN_BUFFER_CHILD_OPEN,
+				included_file.absFilename() + "|true"));
+			buf = theBufferList().getBuffer(included_file.absFilename());
 		}
-	
-		if (!child->errorList("Parse").empty()) {
-			// FIXME: Do something.
+		else {
+			buf = theBufferList().newBuffer(included_file.absFilename());
+			if (!loadLyXFile(buf, included_file)) {
+				//close the buffer we just opened
+				theBufferList().close(buf, false);
+				return false;
+			}
 		}
+		return buf;
 	}
-	child->setParent(&parent);
-	return child;
+	buf->setParentName(parentFilename(buffer));
+	return true;
 }
 
 
-int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
+} // namespace anon
+
+
+int InsetInclude::latex(Buffer const & buffer, odocstream & os,
+			OutputParams const & runparams) const
 {
-	string incfile = to_utf8(params()["filename"]);
+	string incfile(to_utf8(params_["filename"]));
 
 	// Do nothing if no file name has been specified
 	if (incfile.empty())
 		return 0;
 
-	FileName const included_file = includedFilename(buffer(), params());
+	FileName const included_file(includedFilename(buffer, params_));
 
-	// Check we're not trying to include ourselves.
-	// FIXME RECURSIVE INCLUDE
-	// This isn't sufficient, as the inclusion could be downstream.
-	// But it'll have to do for now.
-	if (isInputOrInclude(params()) &&
-		buffer().absFileName() == included_file.absFilename())
+	//Check we're not trying to include ourselves.
+	//FIXME RECURSIVE INCLUDE
+	//This isn't sufficient, as the inclusion could be downstream.
+	//But it'll have to do for now.
+	if (isInputOrInclude(params_) &&
+		buffer.fileName() == included_file.absFilename())
 	{
 		Alert::error(_("Recursive input"),
 			       bformat(_("Attempted to include file %1$s in itself! "
@@ -442,14 +452,14 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		return 0;
 	}
 
-	Buffer const * const masterBuffer = buffer().masterBuffer();
+	Buffer const * const m_buffer = buffer.getMasterBuffer();
 
 	// if incfile is relative, make it relative to the master
 	// buffer directory.
-	if (!FileName(incfile).isAbsolute()) {
+	if (!absolutePath(incfile)) {
 		// FIXME UNICODE
 		incfile = to_utf8(makeRelPath(from_utf8(included_file.absFilename()),
-					      from_utf8(masterBuffer->filePath())));
+					      from_utf8(m_buffer->filePath())));
 	}
 
 	// write it to a file (so far the complete file)
@@ -457,75 +467,58 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 	string const mangled =
 		DocFileName(changeExtension(included_file.absFilename(),".tex")).
 			mangledFilename();
-	FileName const writefile(makeAbsPath(mangled, masterBuffer->temppath()));
+	FileName const writefile(makeAbsPath(mangled, m_buffer->temppath()));
 
 	if (!runparams.nice)
 		incfile = mangled;
 	else if (!isValidLaTeXFilename(incfile)) {
 		frontend::Alert::warning(_("Invalid filename"),
-					 _("The following filename is likely to cause trouble "
+				         _("The following filename is likely to cause trouble "
 					   "when running the exported file through LaTeX: ") +
 					    from_utf8(incfile));
 	}
-	LYXERR(Debug::LATEX, "incfile:" << incfile);
-	LYXERR(Debug::LATEX, "exportfile:" << exportfile);
-	LYXERR(Debug::LATEX, "writefile:" << writefile);
+	LYXERR(Debug::LATEX) << "incfile:" << incfile << endl;
+	LYXERR(Debug::LATEX) << "exportfile:" << exportfile << endl;
+	LYXERR(Debug::LATEX) << "writefile:" << writefile << endl;
 
 	if (runparams.inComment || runparams.dryrun) {
 		//Don't try to load or copy the file if we're
 		//in a comment or doing a dryrun
-	} else if (isInputOrInclude(params()) &&
+	} else if (isInputOrInclude(params_) &&
 		 isLyXFilename(included_file.absFilename())) {
 		//if it's a LyX file and we're inputting or including,
 		//try to load it so we can write the associated latex
-		if (!loadIfNeeded(buffer(), params()))
+		if (!loadIfNeeded(buffer, params_))
 			return false;
 
 		Buffer * tmp = theBufferList().getBuffer(included_file.absFilename());
 
-		if (tmp->params().baseClass() != masterBuffer->params().baseClass()) {
+		if (tmp->params().textclass != m_buffer->params().textclass) {
 			// FIXME UNICODE
 			docstring text = bformat(_("Included file `%1$s'\n"
-				"has textclass `%2$s'\n"
-				"while parent file has textclass `%3$s'."),
-				included_file.displayName(),
-				from_utf8(tmp->params().documentClass().name()),
-				from_utf8(masterBuffer->params().documentClass().name()));
+						"has textclass `%2$s'\n"
+							     "while parent file has textclass `%3$s'."),
+					      makeDisplayPath(included_file.absFilename()),
+					      from_utf8(tmp->params().getTextClass().name()),
+					      from_utf8(m_buffer->params().getTextClass().name()));
 			Alert::warning(_("Different textclasses"), text);
+			//return 0;
 		}
 
-		// Make sure modules used in child are all included in master
-		//FIXME It might be worth loading the children's modules into the master
-		//over in BufferParams rather than doing this check.
-		vector<string> const masterModules = masterBuffer->params().getModules();
-		vector<string> const childModules = tmp->params().getModules();
-		vector<string>::const_iterator it = childModules.begin();
-		vector<string>::const_iterator end = childModules.end();
-		for (; it != end; ++it) {
-			string const module = *it;
-			vector<string>::const_iterator found =
-				find(masterModules.begin(), masterModules.end(), module);
-			if (found == masterModules.end()) {
-				docstring text = bformat(_("Included file `%1$s'\n"
-					"uses module `%2$s'\n"
-					"which is not used in parent file."),
-					included_file.displayName(), from_utf8(module));
-				Alert::warning(_("Module not found"), text);
-			}
-		}
+		tmp->markDepClean(m_buffer->temppath());
 
-		tmp->markDepClean(masterBuffer->temppath());
-
-// FIXME: handle non existing files
-// FIXME: Second argument is irrelevant!
+#ifdef WITH_WARNINGS
+#warning handle non existing files
+#warning Second argument is irrelevant!
 // since only_body is true, makeLaTeXFile will not look at second
 // argument. Should we set it to string(), or should makeLaTeXFile
 // make use of it somehow? (JMarc 20031002)
+#endif
 		// The included file might be written in a different encoding
 		Encoding const * const oldEnc = runparams.encoding;
 		runparams.encoding = &tmp->params().encoding();
 		tmp->makeLaTeXFile(writefile,
-				   masterFileName(buffer()).onlyPath().absFilename(),
+				   onlyPath(masterFilename(buffer)),
 				   runparams, false);
 		runparams.encoding = oldEnc;
 	} else {
@@ -533,16 +526,17 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		// to the temp dir, so that .aux files etc. are not created
 		// in the original dir. Files included by this file will be
 		// found via input@path, see ../Buffer.cpp.
-		unsigned long const checksum_in  = included_file.checksum();
-		unsigned long const checksum_out = writefile.checksum();
+		unsigned long const checksum_in  = sum(included_file);
+		unsigned long const checksum_out = sum(writefile);
 
 		if (checksum_in != checksum_out) {
-			if (!included_file.copyTo(writefile)) {
+			if (!copy(included_file, writefile)) {
 				// FIXME UNICODE
-				LYXERR(Debug::LATEX,
-					to_utf8(bformat(_("Could not copy the file\n%1$s\n"
+				LYXERR(Debug::LATEX)
+					<< to_utf8(bformat(_("Could not copy the file\n%1$s\n"
 								  "into the temporary directory."),
-						   from_utf8(included_file.absFilename()))));
+						   from_utf8(included_file.absFilename())))
+					<< endl;
 				return 0;
 			}
 		}
@@ -550,12 +544,12 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 
 	string const tex_format = (runparams.flavor == OutputParams::LATEX) ?
 			"latex" : "pdflatex";
-	if (isVerbatim(params())) {
+	if (isVerbatim(params_)) {
 		incfile = latex_path(incfile);
 		// FIXME UNICODE
-		os << '\\' << from_ascii(params().getCmdName()) << '{'
+		os << '\\' << from_ascii(params_.getCmdName()) << '{'
 		   << from_utf8(incfile) << '}';
-	} else if (type(params()) == INPUT) {
+	} else if (type(params_) == INPUT) {
 		runparams.exportdata->addExternalFile(tex_format, writefile,
 						      exportfile);
 
@@ -563,18 +557,18 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		if (!isLyXFilename(included_file.absFilename())) {
 			incfile = latex_path(incfile);
 			// FIXME UNICODE
-			os << '\\' << from_ascii(params().getCmdName())
+			os << '\\' << from_ascii(params_.getCmdName())
 			   << '{' << from_utf8(incfile) << '}';
 		} else {
 		incfile = changeExtension(incfile, ".tex");
 		incfile = latex_path(incfile);
 			// FIXME UNICODE
-			os << '\\' << from_ascii(params().getCmdName())
+			os << '\\' << from_ascii(params_.getCmdName())
 			   << '{' << from_utf8(incfile) <<  '}';
 		}
-	} else if (type(params()) == LISTINGS) {
-		os << '\\' << from_ascii(params().getCmdName());
-		string const opt = to_utf8(params()["lstparams"]);
+	} else if (type(params_) == LISTINGS) {
+		os << '\\' << from_ascii(params_.getCmdName());
+		string opt = params_.getOptions();
 		// opt is set in QInclude dialog and should have passed validation.
 		InsetListingsParams params(opt);
 		if (!params.params().empty())
@@ -589,7 +583,7 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		incfile = changeExtension(incfile, string());
 		incfile = latex_path(incfile);
 		// FIXME UNICODE
-		os << '\\' << from_ascii(params().getCmdName()) << '{'
+		os << '\\' << from_ascii(params_.getCmdName()) << '{'
 		   << from_utf8(incfile) << '}';
 	}
 
@@ -597,37 +591,41 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 }
 
 
-int InsetInclude::plaintext(odocstream & os, OutputParams const &) const
+int InsetInclude::plaintext(Buffer const & buffer, odocstream & os,
+			    OutputParams const &) const
 {
-	if (isVerbatim(params()) || isListings(params())) {
-		os << '[' << screenLabel() << '\n';
-		// FIXME: We don't know the encoding of the file, default to UTF-8.
-		os << includedFilename(buffer(), params()).fileContents("UTF-8");
+	if (isVerbatim(params_) || isListings(params_)) {
+		os << '[' << getScreenLabel(buffer) << '\n';
+		// FIXME: We don't know the encoding of the file
+		docstring const str =
+		     from_utf8(getFileContents(includedFilename(buffer, params_)));
+		os << str;
 		os << "\n]";
 		return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 	} else {
-		docstring const str = '[' + screenLabel() + ']';
+		docstring const str = '[' + getScreenLabel(buffer) + ']';
 		os << str;
 		return str.size();
 	}
 }
 
 
-int InsetInclude::docbook(odocstream & os, OutputParams const & runparams) const
+int InsetInclude::docbook(Buffer const & buffer, odocstream & os,
+			  OutputParams const & runparams) const
 {
-	string incfile = to_utf8(params()["filename"]);
+	string incfile = to_utf8(params_["filename"]);
 
 	// Do nothing if no file name has been specified
 	if (incfile.empty())
 		return 0;
 
-	string const included_file = includedFilename(buffer(), params()).absFilename();
+	string const included_file = includedFilename(buffer, params_).absFilename();
 
-	// Check we're not trying to include ourselves.
-	// FIXME RECURSIVE INCLUDE
-	// This isn't sufficient, as the inclusion could be downstream.
-	// But it'll have to do for now.
-	if (buffer().absFileName() == included_file) {
+	//Check we're not trying to include ourselves.
+	//FIXME RECURSIVE INCLUDE
+	//This isn't sufficient, as the inclusion could be downstream.
+	//But it'll have to do for now.
+	if (buffer.fileName() == included_file) {
 		Alert::error(_("Recursive input"),
 			       bformat(_("Attempted to include file %1$s in itself! "
 			       "Ignoring inclusion."), from_utf8(incfile)));
@@ -638,18 +636,18 @@ int InsetInclude::docbook(odocstream & os, OutputParams const & runparams) const
 	string const exportfile = changeExtension(incfile, ".sgml");
 	DocFileName writefile(changeExtension(included_file, ".sgml"));
 
-	if (loadIfNeeded(buffer(), params())) {
+	if (loadIfNeeded(buffer, params_)) {
 		Buffer * tmp = theBufferList().getBuffer(included_file);
 
 		string const mangled = writefile.mangledFilename();
 		writefile = makeAbsPath(mangled,
-					buffer().masterBuffer()->temppath());
+					buffer.getMasterBuffer()->temppath());
 		if (!runparams.nice)
 			incfile = mangled;
 
-		LYXERR(Debug::LATEX, "incfile:" << incfile);
-		LYXERR(Debug::LATEX, "exportfile:" << exportfile);
-		LYXERR(Debug::LATEX, "writefile:" << writefile);
+		LYXERR(Debug::LATEX) << "incfile:" << incfile << endl;
+		LYXERR(Debug::LATEX) << "exportfile:" << exportfile << endl;
+		LYXERR(Debug::LATEX) << "writefile:" << writefile << endl;
 
 		tmp->makeDocBookFile(writefile, runparams, true);
 	}
@@ -659,7 +657,7 @@ int InsetInclude::docbook(odocstream & os, OutputParams const & runparams) const
 	runparams.exportdata->addExternalFile("docbook-xml", writefile,
 					      exportfile);
 
-	if (isVerbatim(params()) || isListings(params())) {
+	if (isVerbatim(params_) || isListings(params_)) {
 		os << "<inlinegraphic fileref=\""
 		   << '&' << include_label << ';'
 		   << "\" format=\"linespecific\">";
@@ -672,100 +670,119 @@ int InsetInclude::docbook(odocstream & os, OutputParams const & runparams) const
 
 void InsetInclude::validate(LaTeXFeatures & features) const
 {
-	string incfile = to_utf8(params()["filename"]);
+	string incfile(to_utf8(params_["filename"]));
 	string writefile;
 
-	LASSERT(&buffer() == &features.buffer(), /**/);
+	Buffer const & buffer = features.buffer();
 
-	string const included_file =
-		includedFilename(buffer(), params()).absFilename();
+	string const included_file = includedFilename(buffer, params_).absFilename();
 
 	if (isLyXFilename(included_file))
 		writefile = changeExtension(included_file, ".sgml");
 	else
 		writefile = included_file;
 
-	if (!features.runparams().nice && !isVerbatim(params()) && !isListings(params())) {
+	if (!features.runparams().nice && !isVerbatim(params_) && !isListings(params_)) {
 		incfile = DocFileName(writefile).mangledFilename();
 		writefile = makeAbsPath(incfile,
-					buffer().masterBuffer()->temppath()).absFilename();
+					buffer.getMasterBuffer()->temppath()).absFilename();
 	}
 
 	features.includeFile(include_label, writefile);
 
-	if (isVerbatim(params()))
+	if (isVerbatim(params_))
 		features.require("verbatim");
-	else if (isListings(params()))
+	else if (isListings(params_))
 		features.require("listings");
 
 	// Here we must do the fun stuff...
 	// Load the file in the include if it needs
 	// to be loaded:
-	if (loadIfNeeded(buffer(), params())) {
+	if (loadIfNeeded(buffer, params_)) {
 		// a file got loaded
 		Buffer * const tmp = theBufferList().getBuffer(included_file);
 		// make sure the buffer isn't us
 		// FIXME RECURSIVE INCLUDES
 		// This is not sufficient, as recursive includes could be
 		// more than a file away. But it will do for now.
-		if (tmp && tmp != &buffer()) {
+		if (tmp && tmp != & buffer) {
 			// We must temporarily change features.buffer,
 			// otherwise it would always be the master buffer,
 			// and nested includes would not work.
 			features.setBuffer(*tmp);
 			tmp->validate(features);
-			features.setBuffer(buffer());
+			features.setBuffer(buffer);
 		}
 	}
 }
 
 
-void InsetInclude::fillWithBibKeys(BiblioInfo & keys,
-	InsetIterator const & /*di*/) const
+void InsetInclude::getLabelList(Buffer const & buffer,
+				std::vector<docstring> & list) const
 {
-	if (loadIfNeeded(buffer(), params())) {
-		string const included_file = includedFilename(buffer(), params()).absFilename();
+	if (isListings(params_)) {
+		InsetListingsParams params(params_.getOptions());
+		string label = params.getParamValue("label");
+		if (!label.empty())
+			list.push_back(from_utf8(label));
+	}
+	else if (loadIfNeeded(buffer, params_)) {
+		string const included_file = includedFilename(buffer, params_).absFilename();
 		Buffer * tmp = theBufferList().getBuffer(included_file);
-		BiblioInfo const & newkeys = tmp->localBibInfo();
-		keys.mergeBiblioInfo(newkeys);
+		tmp->setParentName("");
+		tmp->getLabelList(list);
+		tmp->setParentName(parentFilename(buffer));
 	}
 }
 
 
-void InsetInclude::updateBibfilesCache()
+void InsetInclude::fillWithBibKeys(Buffer const & buffer,
+		std::vector<std::pair<string, docstring> > & keys) const
 {
-	Buffer * const tmp = getChildBuffer(buffer(), params());
+	if (loadIfNeeded(buffer, params_)) {
+		string const included_file = includedFilename(buffer, params_).absFilename();
+		Buffer * tmp = theBufferList().getBuffer(included_file);
+		tmp->setParentName("");
+		tmp->fillWithBibKeys(keys);
+		tmp->setParentName(parentFilename(buffer));
+	}
+}
+
+
+void InsetInclude::updateBibfilesCache(Buffer const & buffer)
+{
+	Buffer * const tmp = getChildBuffer(buffer, params_);
 	if (tmp) {
-		tmp->setParent(0);
+		tmp->setParentName("");
 		tmp->updateBibfilesCache();
-		tmp->setParent(&buffer());
+		tmp->setParentName(parentFilename(buffer));
 	}
 }
 
 
-support::FileNameList const &
-	InsetInclude::getBibfilesCache(Buffer const & buffer) const
+std::vector<FileName> const &
+InsetInclude::getBibfilesCache(Buffer const & buffer) const
 {
-	Buffer * const tmp = getChildBuffer(buffer, params());
+	Buffer * const tmp = getChildBuffer(buffer, params_);
 	if (tmp) {
-		tmp->setParent(0);
-		support::FileNameList const & cache = tmp->getBibfilesCache();
-		tmp->setParent(&buffer);
+		tmp->setParentName("");
+		std::vector<FileName> const & cache = tmp->getBibfilesCache();
+		tmp->setParentName(parentFilename(buffer));
 		return cache;
 	}
-	static support::FileNameList const empty;
+	static std::vector<FileName> const empty;
 	return empty;
 }
 
 
-void InsetInclude::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetInclude::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	LASSERT(mi.base.bv, /**/);
+	BOOST_ASSERT(mi.base.bv && mi.base.bv->buffer());
 
 	bool use_preview = false;
 	if (RenderPreview::status() != LyXRC::PREVIEW_OFF) {
 		graphics::PreviewImage const * pimage =
-			preview_->getPreviewImage(mi.base.bv->buffer());
+			preview_->getPreviewImage(*mi.base.bv->buffer());
 		use_preview = pimage && pimage->image();
 	}
 
@@ -774,24 +791,31 @@ void InsetInclude::metrics(MetricsInfo & mi, Dimension & dim) const
 	} else {
 		if (!set_label_) {
 			set_label_ = true;
-			button_.update(screenLabel(), true);
+			button_.update(getScreenLabel(*mi.base.bv->buffer()),
+				       true);
 		}
 		button_.metrics(mi, dim);
 	}
 
 	Box b(0, dim.wid, -dim.asc, dim.des);
 	button_.setBox(b);
+
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
 }
 
 
 void InsetInclude::draw(PainterInfo & pi, int x, int y) const
 {
-	LASSERT(pi.base.bv, /**/);
+	setPosCache(pi, x, y);
+
+	BOOST_ASSERT(pi.base.bv && pi.base.bv->buffer());
 
 	bool use_preview = false;
 	if (RenderPreview::status() != LyXRC::PREVIEW_OFF) {
 		graphics::PreviewImage const * pimage =
-			preview_->getPreviewImage(pi.base.bv->buffer());
+			preview_->getPreviewImage(*pi.base.bv->buffer());
 		use_preview = pimage && pimage->image();
 	}
 
@@ -802,15 +826,9 @@ void InsetInclude::draw(PainterInfo & pi, int x, int y) const
 }
 
 
-docstring InsetInclude::contextMenu(BufferView const &, int, int) const
-{
-	return from_ascii("context-include");
-}
-
-
 Inset::DisplayType InsetInclude::display() const
 {
-	return type(params()) == INPUT ? Inline : AlignCenter;
+	return type(params_) == INPUT ? Inline : AlignCenter;
 }
 
 
@@ -821,13 +839,14 @@ Inset::DisplayType InsetInclude::display() const
 
 void InsetInclude::fileChanged() const
 {
-	Buffer const * const buffer = updateFrontend();
-	if (!buffer)
+	Buffer const * const buffer_ptr = LyX::cref().updateInset(this);
+	if (!buffer_ptr)
 		return;
 
-	preview_->removePreview(*buffer);
-	add_preview(*preview_.get(), *this, *buffer);
-	preview_->startLoading(*buffer);
+	Buffer const & buffer = *buffer_ptr;
+	preview_->removePreview(buffer);
+	add_preview(*preview_.get(), *this, buffer);
+	preview_->startLoading(buffer);
 }
 
 
@@ -838,18 +857,18 @@ bool preview_wanted(InsetCommandParams const & params, Buffer const & buffer)
 	FileName const included_file = includedFilename(buffer, params);
 
 	return type(params) == INPUT && params.preview() &&
-		included_file.isReadableFile();
+		isFileReadable(included_file);
 }
 
 
-docstring latexString(InsetInclude const & inset)
+docstring const latex_string(InsetInclude const & inset, Buffer const & buffer)
 {
 	odocstringstream os;
 	// We don't need to set runparams.encoding since this will be done
 	// by latex() anyway.
 	OutputParams runparams(0);
 	runparams.flavor = OutputParams::LATEX;
-	inset.latex(os, runparams);
+	inset.latex(buffer, os, runparams);
 
 	return os.str();
 }
@@ -862,7 +881,7 @@ void add_preview(RenderMonitoredPreview & renderer, InsetInclude const & inset,
 	if (RenderPreview::status() != LyXRC::PREVIEW_OFF &&
 	    preview_wanted(params, buffer)) {
 		renderer.setAbsFile(includedFilename(buffer, params));
-		docstring const snippet = latexString(inset);
+		docstring const snippet = latex_string(inset, buffer);
 		renderer.addPreview(snippet, buffer);
 	}
 }
@@ -873,78 +892,118 @@ void add_preview(RenderMonitoredPreview & renderer, InsetInclude const & inset,
 void InsetInclude::addPreview(graphics::PreviewLoader & ploader) const
 {
 	Buffer const & buffer = ploader.buffer();
-	if (!preview_wanted(params(), buffer))
-		return;
-	preview_->setAbsFile(includedFilename(buffer, params()));
-	docstring const snippet = latexString(*this);
-	preview_->addPreview(snippet, ploader);
+	if (preview_wanted(params(), buffer)) {
+		preview_->setAbsFile(includedFilename(buffer, params()));
+		docstring const snippet = latex_string(*this, buffer);
+		preview_->addPreview(snippet, ploader);
+	}
 }
 
 
-void InsetInclude::addToToc(DocIterator const & cpit)
+void InsetInclude::addToToc(TocList & toclist, Buffer const & buffer, ParConstIterator const & pit) const
 {
-	TocBackend & backend = buffer().tocBackend();
-
-	if (isListings(params())) {
-		if (label_)
-			label_->addToToc(cpit);
-
-		InsetListingsParams p(to_utf8(params()["lstparams"]));
-		string caption = p.getParamValue("caption");
-		if (caption.empty())
-			return;
-		Toc & toc = backend.toc("listing");
-		docstring str = convert<docstring>(toc.size() + 1)
-			+ ". " +  from_utf8(caption);
-		DocIterator pit = cpit;
-		toc.push_back(TocItem(pit, 0, str));
+	if (isListings(params_)) {
+		InsetListingsParams params(params_.getOptions());
+		string caption = params.getParamValue("caption");
+		if (!caption.empty()) {
+			Toc & toc = toclist["listing"];
+			docstring const str = convert<docstring>(toc.size() + 1)
+				+ ". " +  from_utf8(caption);
+			// This inset does not have a valid ParConstIterator 
+			// so it has to use the iterator of its parent paragraph
+			toc.push_back(TocItem(pit, 0, str));
+		}
 		return;
 	}
-	Buffer const * const childbuffer = getChildBuffer(buffer(), params());
+	Buffer const * const childbuffer = getChildBuffer(buffer, params_);
 	if (!childbuffer)
 		return;
 
-	Toc & toc = backend.toc("child");
-	docstring str = childbuffer->fileName().displayName();
-	toc.push_back(TocItem(cpit, 0, str));
-
-	TocList & toclist = backend.tocs();
-	childbuffer->tocBackend().update();
 	TocList const & childtoclist = childbuffer->tocBackend().tocs();
 	TocList::const_iterator it = childtoclist.begin();
 	TocList::const_iterator const end = childtoclist.end();
 	for(; it != end; ++it)
 		toclist[it->first].insert(toclist[it->first].end(),
-			it->second.begin(), it->second.end());
+				it->second.begin(), it->second.end());
 }
 
 
-void InsetInclude::updateLabels(ParIterator const & it)
+void InsetInclude::updateLabels(Buffer const & buffer) const
 {
-	Buffer const * const childbuffer = getChildBuffer(buffer(), params());
-	if (childbuffer) {
-		lyx::updateLabels(*childbuffer, true);
-		return;
-	}
-	if (!isListings(params()))
+	Buffer const * const childbuffer = getChildBuffer(buffer, params_);
+	if (!childbuffer)
 		return;
 
-	if (label_)
-		label_->updateLabels(it);
+	lyx::updateLabels(*childbuffer, true);
+}
 
-	InsetListingsParams const par(to_utf8(params()["lstparams"]));
-	if (par.getParamValue("caption").empty()) {
-		listings_label_ = buffer().B_("Program Listing");
+
+void InsetInclude::updateCounter(Counters & counters)
+{
+	if (!isListings(params_))
 		return;
+
+	InsetListingsParams const par = params_.getOptions();
+	if (par.getParamValue("caption").empty())
+		counter_ = 0;
+	else {
+		counters.step(from_ascii("listing"));
+		counter_ = counters.value(from_ascii("listing"));
 	}
-	Buffer const & master = *buffer().masterBuffer();
-	Counters & counters = master.params().documentClass().counters();
-	docstring const cnt = from_ascii("listing");
-	listings_label_ = master.B_("Program Listing");
-	if (counters.hasCounter(cnt)) {
-		counters.step(cnt);
-		listings_label_ += " " + convert<docstring>(counters.value(cnt));
-	}
+}
+
+
+string const InsetIncludeMailer::name_("include");
+
+InsetIncludeMailer::InsetIncludeMailer(InsetInclude & inset)
+	: inset_(inset)
+{}
+
+
+string const InsetIncludeMailer::inset2string(Buffer const &) const
+{
+	return params2string(inset_.params());
+}
+
+
+void InsetIncludeMailer::string2params(string const & in,
+				       InsetCommandParams & params)
+{
+	params.clear();
+	if (in.empty())
+		return;
+
+	istringstream data(in);
+	Lexer lex(0,0);
+	lex.setStream(data);
+
+	string name;
+	lex >> name;
+	if (!lex || name != name_)
+		return print_mailer_error("InsetIncludeMailer", in, 1, name_);
+
+	// This is part of the inset proper that is usually swallowed
+	// by Text::readInset
+	string id;
+	lex >> id;
+	if (!lex || id != "Include")
+		return print_mailer_error("InsetIncludeMailer", in, 2, "Include");
+
+	InsetInclude inset(params);
+	inset.read(lex);
+	params = inset.params();
+}
+
+
+string const
+InsetIncludeMailer::params2string(InsetCommandParams const & params)
+{
+	InsetInclude inset(params);
+	ostringstream data;
+	data << name_ << ' ';
+	inset.write(data);
+	data << "\\end_inset\n";
+	return data.str();
 }
 
 

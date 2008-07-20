@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#include "support/debug.h"
+#include "debug.h"
 
 #include <aspell.h>
 
@@ -19,9 +19,9 @@
 #include "LyXRC.h"
 #include "WordLangTuple.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
-using namespace std;
+using std::string;
 
 namespace lyx {
 
@@ -104,20 +104,20 @@ ASpell::Result ASpell::check(WordLangTuple const & word)
 	AspellSpeller * m = it->second.speller;
 
 	int const word_ok = aspell_speller_check(m, to_utf8(word.word()).c_str(), -1);
-	LASSERT(word_ok != -1, /**/);
+	BOOST_ASSERT(word_ok != -1);
 
-	if (word_ok)
-		return OK;
-
-	AspellWordList const * sugs =
-		aspell_speller_suggest(m, to_utf8(word.word()).c_str(), -1);
-	LASSERT(sugs != 0, /**/);
-	els = aspell_word_list_elements(sugs);
-	if (aspell_word_list_empty(sugs))
-		res = UNKNOWN_WORD;
-	else
-		res = SUGGESTED_WORDS;
-
+	if (word_ok) {
+		res = OK;
+	} else {
+		AspellWordList const * sugs =
+			aspell_speller_suggest(m, to_utf8(word.word()).c_str(), -1);
+		BOOST_ASSERT(sugs != 0);
+		els = aspell_word_list_elements(sugs);
+		if (aspell_word_list_empty(sugs))
+			res = UNKNOWN_WORD;
+		else
+			res = SUGGESTED_WORDS;
+	}
 	return res;
 }
 
@@ -153,8 +153,9 @@ docstring const ASpell::error()
 {
 	char const * err = 0;
 
-	if (spell_error_object && aspell_error_number(spell_error_object) != 0)
+	if (spell_error_object && aspell_error_number(spell_error_object) != 0) {
 		err = aspell_error_message(spell_error_object);
+	}
 
 	// FIXME UNICODE: err is not in UTF8, but probably the locale encoding
 	return (err ? from_utf8(err) : docstring());

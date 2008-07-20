@@ -32,12 +32,12 @@ public:
 	/// write normalized content
 	void normalize(NormalStream & ns) const;
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void infoize(odocstream & os) const;
 
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	/// name of that environment
 	docstring name_;
 };

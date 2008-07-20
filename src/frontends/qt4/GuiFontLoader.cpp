@@ -1,5 +1,5 @@
 /**
- * \file FontLoader.cpp
+ * \file GuiFontLoader.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
@@ -11,128 +11,134 @@
 
 #include <config.h>
 
-#include "FontLoader.h"
-
-#include "FontInfo.h"
-#include "GuiFontMetrics.h"
+#include "GuiFontLoader.h"
 #include "qt_helpers.h"
 
+#include "debug.h"
 #include "LyXRC.h"
 
 #include "support/convert.h"
-#include "support/debug.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
 #include "support/Systemcall.h"
 #include "support/Package.h"
 #include "support/os.h"
 
-#include <QFontInfo>
+#include <qfontinfo.h>
 #include <QFontDatabase>
 
-#include "support/lassert.h"
+#include <boost/tuple/tuple.hpp>
 
-using namespace std;
-using namespace lyx::support;
+#ifdef Q_WS_X11
+#include <qwidget.h>
+//#include <X11/Xlib.h>
+#include <algorithm>
+#endif
 
-QString const math_fonts[] = {"cmex10", "cmmi10", "cmr10", "cmsy10",
+using lyx::support::contains;
+using lyx::support::package;
+using lyx::support::addPath;
+using lyx::support::addName;
+
+using std::endl;
+using std::make_pair;
+
+using std::pair;
+using std::vector;
+using std::string;
+
+#if QT_VERSION >= 0x040200
+string const math_fonts[] = {"cmex10", "cmmi10", "cmr10", "cmsy10",
 	"eufm10", "msam10", "msbm10", "wasy10", "esint10"};
 int const num_math_fonts = sizeof(math_fonts) / sizeof(*math_fonts);
+#endif
+
 
 namespace lyx {
-
-extern docstring const stateText(FontInfo const & f);
-
 namespace frontend {
-
-/**
- * Matches Fonts against
- * actual QFont instances, and also caches metrics.
- */
-class GuiFontInfo
-{
-public:
-	GuiFontInfo(FontInfo const & f);
-
-	/// The font instance
-	QFont font;
-	/// Metrics on the font
-	GuiFontMetrics metrics;
-};
 
 namespace {
 
-struct SymbolFont {
-	FontFamily lyx_family;
-	QString family;
-	QString xlfd;
+struct symbol_font {
+	Font::FONT_FAMILY lyx_family;
+	string family;
+	string xlfd;
 };
 
-SymbolFont symbol_fonts[] = {
-	{ SYMBOL_FAMILY,"symbol", "-*-symbol-*-*-*-*-*-*-*-*-*-*-adobe-fontspecific"},
-	{ CMR_FAMILY,   "cmr10",  "-*-cmr10-medium-*-*-*-*-*-*-*-*-*-*-*" },
-	{ CMSY_FAMILY,  "cmsy10", "-*-cmsy10-*-*-*-*-*-*-*-*-*-*-*-*" },
-	{ CMM_FAMILY,   "cmmi10", "-*-cmmi10-medium-*-*-*-*-*-*-*-*-*-*-*" },
-	{ CMEX_FAMILY,  "cmex10", "-*-cmex10-*-*-*-*-*-*-*-*-*-*-*-*" },
-	{ MSA_FAMILY,   "msam10", "-*-msam10-*-*-*-*-*-*-*-*-*-*-*-*" },
-	{ MSB_FAMILY,   "msbm10", "-*-msbm10-*-*-*-*-*-*-*-*-*-*-*-*" },
-	{ EUFRAK_FAMILY,"eufm10", "-*-eufm10-medium-*-*-*-*-*-*-*-*-*-*-*" },
-	{ WASY_FAMILY,  "wasy10", "-*-wasy10-medium-*-*-*-*-*-*-*-*-*-*-*" },
-	{ ESINT_FAMILY, "esint10","-*-esint10-medium-*-*-*-*-*-*-*-*-*-*-*" }
+symbol_font symbol_fonts[] = {
+	{ Font::SYMBOL_FAMILY,
+		"symbol",
+		"-*-symbol-*-*-*-*-*-*-*-*-*-*-adobe-fontspecific" },
+
+	{ Font::CMR_FAMILY,
+		"cmr10",
+		"-*-cmr10-medium-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::CMSY_FAMILY,
+		"cmsy10",
+		"-*-cmsy10-*-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::CMM_FAMILY,
+		"cmmi10",
+		"-*-cmmi10-medium-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::CMEX_FAMILY,
+		"cmex10",
+		"-*-cmex10-*-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::MSA_FAMILY,
+		"msam10",
+		"-*-msam10-*-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::MSB_FAMILY,
+		"msbm10",
+		"-*-msbm10-*-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::EUFRAK_FAMILY,
+		"eufm10",
+		"-*-eufm10-medium-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::WASY_FAMILY,
+		"wasy10",
+		"-*-wasy10-medium-*-*-*-*-*-*-*-*-*-*-*" },
+
+	{ Font::ESINT_FAMILY,
+		"esint10",
+		"-*-esint10-medium-*-*-*-*-*-*-*-*-*-*-*" }
 };
 
-size_t const nr_symbol_fonts = sizeof(symbol_fonts) / sizeof(symbol_fonts[0]);
-
-/// BUTT ugly !
-static GuiFontInfo * fontinfo_[NUM_FAMILIES][2][4][10];
+size_t const nr_symbol_fonts = sizeof(symbol_fonts) / sizeof(symbol_font);
 
 
-/// Get font info (font + metrics) for the given LyX font.
-// if not cached, create it.
-GuiFontInfo & fontinfo(FontInfo const & f)
-{
-	LASSERT(f.family() < NUM_FAMILIES, /**/);
-	LASSERT(f.series() < 2, /**/);
-	LASSERT(f.realShape() < 4, /**/);
-	LASSERT(f.size() < 10, /**/);
-	// fi is a reference to the pointer type (GuiFontInfo *) in the
-	// fontinfo_ table.
-	GuiFontInfo * & fi =
-		fontinfo_[f.family()][f.series()][f.realShape()][f.size()];
-	if (!fi)
-		fi = new GuiFontInfo(f);
-	return *fi;
-}
-
-
-QString rawName(QString const & family)
+string getRawName(string const & family)
 {
 	for (size_t i = 0; i < nr_symbol_fonts; ++i)
 		if (family == symbol_fonts[i].family)
 			return symbol_fonts[i].xlfd;
 
-	LYXERR(Debug::FONT, "BUG: family not found !");
-	return QString();
+	LYXERR(Debug::FONT) << "BUG: family not found !" << endl;
+	return string();
 }
 
 
-QString symbolFamily(FontFamily family)
+string const symbolFamily(Font::FONT_FAMILY family)
 {
 	for (size_t i = 0; i < nr_symbol_fonts; ++i) {
 		if (family == symbol_fonts[i].lyx_family)
 			return symbol_fonts[i].family;
 	}
-	return QString();
+	return string();
 }
 
 
-bool isSymbolFamily(FontFamily family)
+bool isSymbolFamily(Font::FONT_FAMILY family)
 {
-	return family >= SYMBOL_FAMILY && family <= ESINT_FAMILY;
+	return family >= Font::SYMBOL_FAMILY &&
+	       family <= Font::ESINT_FAMILY;
 }
 
 
-static bool isChosenFont(QFont & font, QString const & family)
+bool isChosenFont(QFont & font, string const & family)
 {
 	// QFontInfo won't find a font that has only a few glyphs at unusual
 	// positions, e.g. the original esint10 font.
@@ -140,10 +146,10 @@ static bool isChosenFont(QFont & font, QString const & family)
 	// positions.
 	QFontInfo fi(font);
 
-	LYXERR(Debug::FONT, "got: " << fi.family());
+	LYXERR(Debug::FONT) << "got: " << fromqstr(fi.family()) << endl;
 
-	if (fi.family().contains(family)) {
-		LYXERR(Debug::FONT, " got it ");
+	if (contains(fromqstr(fi.family()), family)) {
+		LYXERR(Debug::FONT) << " got it ";
 		return true;
 	}
 
@@ -151,65 +157,67 @@ static bool isChosenFont(QFont & font, QString const & family)
 }
 
 
-QFont symbolFont(QString const & family, bool * ok)
+pair<QFont, bool> const getSymbolFont(string const & family)
 {
-	LYXERR(Debug::FONT, "Looking for font family " << family << " ... ");
-	QString upper = family;
-	upper[0] = family[0].toUpper();
+	LYXERR(Debug::FONT) << "Looking for font family "
+		<< family << " ... ";
+	string upper = family;
+	upper[0] = toupper(family[0]);
 
 	QFont font;
 	font.setKerning(false);
-	font.setFamily(family);
+	font.setFamily(toqstr(family));
 
 	if (isChosenFont(font, family)) {
-		LYXERR(Debug::FONT, "normal!");
-		*ok = true;
-		return font;
+		LYXERR(Debug::FONT) << "normal!" << endl;
+		return make_pair<QFont, bool>(font, true);
 	}
 
-	LYXERR(Debug::FONT, "Trying " << upper << " ... ");
-	font.setFamily(upper);
+	LYXERR(Debug::FONT) << "Trying " << upper << " ... ";
+	font.setFamily(toqstr(upper));
 
 	if (isChosenFont(font, upper)) {
-		LYXERR(Debug::FONT, "upper!");
-		*ok = true;
-		return font;
+		LYXERR(Debug::FONT) << "upper!" << endl;
+		return make_pair<QFont, bool>(font, true);
 	}
 
 	// A simple setFamily() fails on Qt 2
 
-	QString const raw = rawName(family);
-	LYXERR(Debug::FONT, "Trying " << raw << " ... ");
-	font.setRawName(raw);
+	string const rawName = getRawName(family);
+	LYXERR(Debug::FONT) << "Trying " << rawName << " ... ";
+	font.setRawName(toqstr(rawName));
 
 	if (isChosenFont(font, family)) {
-		LYXERR(Debug::FONT, "raw version!");
-		*ok = true;
-		return font;
+		LYXERR(Debug::FONT) << "raw version!" << endl;
+		return make_pair<QFont, bool>(font, true);
 	}
 
-	LYXERR(Debug::FONT, " FAILED :-(");
-	*ok = false;
-	return font;
+	LYXERR(Debug::FONT) << " FAILED :-(" << endl;
+	return make_pair<QFont, bool>(font, false);
 }
 
 } // namespace anon
 
 
-FontLoader::FontLoader()
+GuiFontLoader::GuiFontLoader()
 {
-	QString const fonts_dir =
-		toqstr(addPath(package().system_support().absFilename(), "fonts"));
+#if QT_VERSION >= 0x040200
+	string const fonts_dir =
+		addPath(package().system_support().absFilename(), "fonts");
 
 	for (int i = 0 ; i < num_math_fonts; ++i) {
-		QString const font_file = fonts_dir + '/' + math_fonts[i] + ".ttf";
-		int fontID = QFontDatabase::addApplicationFont(font_file);
+		string const font_file = lyx::support::os::external_path(
+				addName(fonts_dir, math_fonts[i] + ".ttf"));
+		int fontID = QFontDatabase::addApplicationFont(toqstr(font_file));
 
-		LYXERR(Debug::FONT, "Adding font " << font_file
-				    << (fontID < 0 ? " FAIL" : " OK"));
+		LYXERR(Debug::FONT) << "Adding font " << font_file
+				    << static_cast<const char *>
+					(fontID < 0 ? " FAIL" : " OK")
+				    << endl;
 	}
+#endif
 
-	for (int i1 = 0; i1 < NUM_FAMILIES; ++i1)
+	for (int i1 = 0; i1 < Font::NUM_FAMILIES; ++i1)
 		for (int i2 = 0; i2 < 2; ++i2)
 			for (int i3 = 0; i3 < 4; ++i3)
 				for (int i4 = 0; i4 < 10; ++i4)
@@ -217,9 +225,9 @@ FontLoader::FontLoader()
 }
 
 
-void FontLoader::update()
+void GuiFontLoader::update()
 {
-	for (int i1 = 0; i1 < NUM_FAMILIES; ++i1)
+	for (int i1 = 0; i1 < Font::NUM_FAMILIES; ++i1)
 		for (int i2 = 0; i2 < 2; ++i2)
 			for (int i3 = 0; i3 < 4; ++i3)
 				for (int i4 = 0; i4 < 10; ++i4) {
@@ -229,36 +237,21 @@ void FontLoader::update()
 }
 
 
-FontLoader::~FontLoader()
-{
-	update();
-}
-
 /////////////////////////////////////////////////
 
 
-static QString makeFontName(QString const & family, QString const & foundry)
-{
-	QString res = family;
-	if (!foundry.isEmpty())
-		res += " [" + foundry + ']';
-	return res;
-}
-
-
-GuiFontInfo::GuiFontInfo(FontInfo const & f)
-	: metrics(QFont())
+QLFontInfo::QLFontInfo(Font const & f)
 {
 	font.setKerning(false);
-	QString const pat = symbolFamily(f.family());
-	if (!pat.isEmpty()) {
-		bool ok;
-		font = symbolFont(pat, &ok);
+	string const pat = symbolFamily(f.family());
+	if (!pat.empty()) {
+		bool tmp;
+		boost::tie(font, tmp) = getSymbolFont(pat);
 	} else {
 		switch (f.family()) {
-		case ROMAN_FAMILY: {
-			QString family = makeFontName(toqstr(lyxrc.roman_font_name),
-																		toqstr(lyxrc.roman_font_foundry)); 
+		case Font::ROMAN_FAMILY: {
+			QString family = toqstr(makeFontName(lyxrc.roman_font_name,
+																					 lyxrc.roman_font_foundry)); 
 			font.setFamily(family);
 #ifdef Q_WS_MACX
 #if QT_VERSION >= 0x040300
@@ -266,18 +259,18 @@ GuiFontInfo::GuiFontInfo(FontInfo const & f)
 			// It is reported to Trolltech at 02/06/07 against 4.3 final.
 			// FIXME: Add an upper version limit as soon as the bug is fixed in Qt.
 			if (family == "Times" && !font.exactMatch())
-				font.setFamily("Times New Roman");
+				font.setFamily(QString::fromLatin1("Times New Roman"));
 #endif
 #endif
 			break;
 		}
-		case SANS_FAMILY:
-			font.setFamily(makeFontName(toqstr(lyxrc.sans_font_name),
-						    toqstr(lyxrc.sans_font_foundry)));
+		case Font::SANS_FAMILY:
+			font.setFamily(toqstr(makeFontName(lyxrc.sans_font_name,
+						    lyxrc.sans_font_foundry)));
 			break;
-		case TYPEWRITER_FAMILY:
-			font.setFamily(makeFontName(toqstr(lyxrc.typewriter_font_name),
-						    toqstr(lyxrc.typewriter_font_foundry)));
+		case Font::TYPEWRITER_FAMILY:
+			font.setFamily(toqstr(makeFontName(lyxrc.typewriter_font_name,
+						    lyxrc.typewriter_font_foundry)));
 			break;
 		default:
 			break;
@@ -285,10 +278,10 @@ GuiFontInfo::GuiFontInfo(FontInfo const & f)
 	}
 
 	switch (f.series()) {
-		case MEDIUM_SERIES:
+		case Font::MEDIUM_SERIES:
 			font.setWeight(QFont::Normal);
 			break;
-		case BOLD_SERIES:
+		case Font::BOLD_SERIES:
 			font.setWeight(QFont::Bold);
 			break;
 		default:
@@ -296,86 +289,71 @@ GuiFontInfo::GuiFontInfo(FontInfo const & f)
 	}
 
 	switch (f.realShape()) {
-		case ITALIC_SHAPE:
-		case SLANTED_SHAPE:
+		case Font::ITALIC_SHAPE:
+		case Font::SLANTED_SHAPE:
 			font.setItalic(true);
 			break;
 		default:
 			break;
 	}
 
-	LYXERR(Debug::FONT, "Font '" << stateText(f)
-		<< "' matched by\n" << font.family());
+	LYXERR(Debug::FONT) << "Font '" << to_utf8(f.stateText(0))
+		<< "' matched by\n" << fromqstr(font.family()) << endl;
 
 	// Is this an exact match?
 	if (font.exactMatch())
-		LYXERR(Debug::FONT, "This font is an exact match");
+		LYXERR(Debug::FONT) << "This font is an exact match" << endl;
 	else
-		LYXERR(Debug::FONT, "This font is NOT an exact match");
+		LYXERR(Debug::FONT) << "This font is NOT an exact match"
+				    << endl;
 
-	LYXERR(Debug::FONT, "XFLD: " << font.rawName());
+	LYXERR(Debug::FONT) << "XFLD: " << fromqstr(font.rawName()) << endl;
 
 	font.setPointSizeF(convert<double>(lyxrc.font_sizes[f.size()])
 			       * lyxrc.zoom / 100.0);
 
-	LYXERR(Debug::FONT, "The font has size: " << font.pointSizeF());
+	LYXERR(Debug::FONT) << "The font has size: "
+			    << font.pointSizeF() << endl;
 
-	if (f.realShape() != SMALLCAPS_SHAPE) {
-		metrics = GuiFontMetrics(font);
-	} else {
+	if (f.realShape() != Font::SMALLCAPS_SHAPE) {
+		metrics.reset(new GuiFontMetrics(font));
+	}
+	else {
 		// handle small caps ourselves ...
-		FontInfo smallfont = f;
-		smallfont.decSize().decSize().setShape(UP_SHAPE);
+		Font smallfont = f;
+		smallfont.decSize().decSize().setShape(Font::UP_SHAPE);
 		QFont font2(font);
 		font2.setKerning(false);
 		font2.setPointSizeF(convert<double>(lyxrc.font_sizes[smallfont.size()])
 			       * lyxrc.zoom / 100.0);
 
-		metrics = GuiFontMetrics(font, font2);
+		metrics.reset(new GuiFontMetrics(font, font2));
 	}
+
 }
 
 
-bool FontLoader::available(FontInfo const & f)
+bool GuiFontLoader::available(Font const & f)
 {
-	static vector<int> cache_set(NUM_FAMILIES, false);
-	static vector<int> cache(NUM_FAMILIES, false);
+	static vector<int> cache_set(Font::NUM_FAMILIES, false);
+	static vector<int> cache(Font::NUM_FAMILIES, false);
 
-	FontFamily family = f.family();
+	Font::FONT_FAMILY family = f.family();
 	if (cache_set[family])
 		return cache[family];
 	cache_set[family] = true;
 
-	QString const pat = symbolFamily(family);
-	if (pat.isEmpty())
+	string const pat = symbolFamily(family);
+	if (pat.empty())
 		// We don't care about non-symbol fonts
 		return false;
 
-	bool ok;
-	symbolFont(pat, &ok);
-	if (!ok)
+	pair<QFont, bool> tmp = getSymbolFont(pat);
+	if (!tmp.second)
 		return false;
 
 	cache[family] = true;
 	return true;
-}
-
-
-FontMetrics const & FontLoader::metrics(FontInfo const & f)
-{
-	return fontinfo(f).metrics;
-}
-
-
-GuiFontMetrics const & getFontMetrics(FontInfo const & f)
-{
-	return fontinfo(f).metrics;
-}
-
-
-QFont const & getFont(FontInfo const & f)
-{
-	return fontinfo(f).font;
 }
 
 } // namespace frontend

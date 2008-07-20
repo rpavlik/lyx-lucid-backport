@@ -9,12 +9,12 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef FONTLOADER_H
-#define FONTLOADER_H
+#ifndef LYX_FONTLOADER_H
+#define LYX_FONTLOADER_H
 
 namespace lyx {
 
-class FontInfo;
+class Font;
 
 namespace frontend {
 
@@ -25,19 +25,18 @@ class FontLoader
 {
 public:
 	///
-	FontLoader();
-	/// Clears cache
-	~FontLoader();
+	FontLoader() {}
+	///
+	virtual ~FontLoader() {}
 
 	/// Update fonts after zoom, dpi, font names, or norm change
-	// (basically by deleting all cached values)	
-	void update();
+	virtual void update() = 0;
 
 	/// Is the given font available ?
-	bool available(FontInfo const & f);
+	virtual bool available(Font const & f) = 0;
 
-	/// Get the Font metrics for this FontInfo
-	FontMetrics const & metrics(FontInfo const & f);
+	/// Get the Font metrics for this Font
+	virtual FontMetrics const & metrics(Font const & f) = 0;
 };
 
 
@@ -48,4 +47,4 @@ extern frontend::FontLoader & theFontLoader();
 
 } // namespace lyx
 
-#endif // FONTLOADER_H
+#endif // QFONT_LOADER_H

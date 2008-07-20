@@ -26,7 +26,7 @@ class BufferView;
 class VSpace {
 public:
 	/// The different kinds of spaces.
-	enum VSpaceKind {
+	enum vspace_kind {
 		DEFSKIP,
 		SMALLSKIP,
 		MEDSKIP,
@@ -35,27 +35,26 @@ public:
 		LENGTH ///< user-defined length
 	};
 
-	///
 	VSpace();
-	///
-	explicit VSpace(VSpaceKind k);
-	///
+
+	explicit VSpace(vspace_kind k);
+
 	explicit VSpace(Length const & l);
-	///
+
 	explicit VSpace(GlueLength const & l);
 
 	/// Constructor for reading from a .lyx file
 	explicit VSpace(std::string const & data);
 
 	/// return the type of vertical space
-	VSpaceKind kind() const { return kind_; }
+	vspace_kind kind() const;
 	/// return the length of this space
-	GlueLength const & length() const { return len_; }
+	GlueLength const & length() const;
 
 	// a flag that switches between \vspace and \vspace*
-	bool keep() const { return keep_; }
+	bool keep() const;
 	/// if set true, use \vspace* when type is not DEFSKIP
-	void setKeep(bool keep) { keep_ = keep; }
+	void setKeep(bool val);
 	///
 	bool operator==(VSpace const &) const;
 
@@ -72,7 +71,7 @@ public:
 
 private:
 	/// This VSpace kind
-	VSpaceKind kind_;
+	vspace_kind kind_;
 	/// the specified length
 	GlueLength len_;
 	/// if true, use \vspace* type

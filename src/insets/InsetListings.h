@@ -9,78 +9,97 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef INSET_LISTINGS_H
-#define INSET_LISTINGS_H
+#ifndef INSETLISTINGS_H
+#define INSETLISTINGS_H
 
 #include "LaTeXFeatures.h"
 #include "InsetERT.h"
 #include "InsetListingsParams.h"
+#include "MailInset.h"
 
 
 namespace lyx {
 
-/////////////////////////////////////////////////////////////////////////
-//
-// InsetListings
-//
-/////////////////////////////////////////////////////////////////////////
+/** A collapsable text inset for program listings.
+ */
 
-/// A collapsable text inset for program listings.
-class InsetListings : public InsetCollapsable
-{
+
+class InsetListings : public InsetERT {
 public:
 	///
-	InsetListings(Buffer const &, InsetListingsParams const & par = InsetListingsParams());
+	InsetListings(BufferParams const &, InsetListingsParams const & par = InsetListingsParams());
 	///
 	~InsetListings();
 	///
-	static void string2params(std::string const &, InsetListingsParams &);
-	///
-	static std::string params2string(InsetListingsParams const &);
-private:
-	///
-	bool isLabeled() const { return true; }
-	///
-	InsetCode lyxCode() const { return LISTINGS_CODE; }
+	Inset::Code lyxCode() const { return Inset::LISTINGS_CODE; }
 	/// lstinline is inlined, normal listing is displayed
-	DisplayType display() const;
+	virtual DisplayType display() const;
 	///
 	docstring name() const { return from_ascii("Listings"); }
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
 	///
-	void write(std::ostream & os) const;
+	void write(Buffer const & buf, std::ostream & os) const;
 	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
-	docstring editMessage() const;
+	virtual docstring const editMessage() const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
+	bool metrics(MetricsInfo &, Dimension &) const;
+	///
+	void draw(PainterInfo & pi, int x, int y) const;
+	///
 	bool showInsetDialog(BufferView *) const;
+	///
+	void getDrawFont(Font &) const;
 	///
 	InsetListingsParams const & params() const { return params_; }
 	///
 	InsetListingsParams & params() { return params_; }
+protected:
+	InsetListings(InsetListings const &);
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
-	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
-	Inset * clone() const { return new InsetListings(*this); }
+	void init();
 	///
 	void setButtonLabel();
 	///
-	docstring getCaption(OutputParams const &) const;
-
+	docstring getCaption(Buffer const &, OutputParams const &) const;
 	///
 	InsetListingsParams params_;
 };
 
+
+class InsetListingsMailer : public MailInset {
+public:
+	///
+	InsetListingsMailer(InsetListings & inset);
+	///
+	virtual Inset & inset() const { return inset_; }
+	///
+	virtual std::string const & name() const { return name_; }
+	///
+	virtual std::string const inset2string(Buffer const &) const;
+	///
+	static void string2params(std::string const &,
+		InsetListingsParams &);
+	///
+	static std::string const params2string(InsetListingsParams const &);
+private:
+	///
+	static std::string const name_;
+	///
+	InsetListings & inset_;
+};
+
+
 } // namespace lyx
 
-#endif // INSET_LISTINGS_H
+#endif

@@ -12,12 +12,11 @@
 
 #include "support/userinfo.h"
 #include "support/environment.h"
-#include "support/docstring.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
 #if defined (_WIN32)
-# include "support/gettext.h"
+# include "gettext.h"
 # include <windows.h>
 # include <lmcons.h>
 #else
@@ -30,7 +29,7 @@
 # include <sys/types.h>
 #endif
 
-using namespace std;
+using std::string;
 
 namespace lyx {
 namespace support {
@@ -45,8 +44,8 @@ docstring const user_name()
 		return _("Unknown user");
 	return from_local8bit(name);
 #else
-	struct passwd * pw = getpwuid(geteuid());
-	LASSERT(pw, /**/);
+	struct passwd * pw(getpwuid(geteuid()));
+	BOOST_ASSERT(pw);
 
 	string name = pw->pw_gecos;
 	if (name.empty())

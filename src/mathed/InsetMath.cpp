@@ -14,23 +14,24 @@
 #include "InsetMath.h"
 #include "MathData.h"
 #include "MathStream.h"
+#include "gettext.h"
+#include "debug.h"
 
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
-#include "support/lassert.h"
+#include <boost/current_function.hpp>
 
-using namespace std;
+using std::endl;
 
 namespace lyx {
+
+
 
 MathData & InsetMath::cell(idx_type)
 {
 	static MathData dummyCell;
-	LYXERR0("I don't have any cell");
+	lyxerr << BOOST_CURRENT_FUNCTION << ": I don't have any cell" << endl;
 	return dummyCell;
 }
 
@@ -38,7 +39,7 @@ MathData & InsetMath::cell(idx_type)
 MathData const & InsetMath::cell(idx_type) const
 {
 	static MathData dummyCell;
-	LYXERR0("I don't have any cell");
+	lyxerr << BOOST_CURRENT_FUNCTION << ": I don't have any cell" << endl;
 	return dummyCell;
 }
 
@@ -47,7 +48,7 @@ void InsetMath::dump() const
 {
 	lyxerr << "---------------------------------------------" << endl;
 	odocstringstream os;
-	WriteStream wi(os, false, true, false);
+	WriteStream wi(os, false, true);
 	write(wi);
 	lyxerr << to_utf8(os.str());
 	lyxerr << "\n---------------------------------------------" << endl;
@@ -56,19 +57,23 @@ void InsetMath::dump() const
 
 void InsetMath::metricsT(TextMetricsInfo const &, Dimension &) const
 {
-	LYXERR0("InsetMath::metricsT(Text) called directly!");
+#ifdef WITH_WARNINGS
+	lyxerr << "InsetMath::metricsT(Text) called directly!" << endl;
+#endif
 }
 
 
 void InsetMath::drawT(TextPainter &, int, int) const
 {
-	LYXERR0("InsetMath::drawT(Text) called directly!");
+#ifdef WITH_WARNINGS
+	lyxerr << "InsetMath::drawT(Text) called directly!" << endl;
+#endif
 }
+
 
 
 void InsetMath::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	docstring const s = name();
 	os << "\\" << s;
 	// We need an extra ' ' unless this is a single-char-non-ASCII name
@@ -78,10 +83,11 @@ void InsetMath::write(WriteStream & os) const
 }
 
 
-int InsetMath::plaintext(odocstream &, OutputParams const &) const
+int InsetMath::plaintext(Buffer const &, odocstream &,
+			 OutputParams const &) const
 {
 	// all math plain text output shall take place in InsetMathHull
-	LASSERT(false, /**/);
+	BOOST_ASSERT(false);
 	return 0;
 }
 
@@ -133,10 +139,10 @@ HullType InsetMath::getType() const
 }
 
 
-ostream & operator<<(ostream & os, MathAtom const & at)
+std::ostream & operator<<(std::ostream & os, MathAtom const & at)
 {
 	odocstringstream oss;
-	WriteStream wi(oss, false, false, false);
+	WriteStream wi(oss, false, false);
 	at->write(wi);
 	return os << to_utf8(oss.str());
 }
@@ -144,7 +150,7 @@ ostream & operator<<(ostream & os, MathAtom const & at)
 
 odocstream & operator<<(odocstream & os, MathAtom const & at)
 {
-	WriteStream wi(os, false, false, false);
+	WriteStream wi(os, false, false);
 	at->write(wi);
 	return os;
 }

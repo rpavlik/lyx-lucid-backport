@@ -14,9 +14,8 @@
 
 #include "DispatchResult.h"
 #include "DocIterator.h"
-#include "Font.h"
-#include "Undo.h"
 
+#include <iosfwd>
 #include <vector>
 
 
@@ -26,6 +25,7 @@ class Buffer;
 class BufferView;
 class FuncStatus;
 class FuncRequest;
+class Font;
 class Row;
 
 // these should go
@@ -48,21 +48,18 @@ public:
 	DispatchResult result() const;
 	/// add a new cursor slice
 	void push(Inset & inset);
-	/// add a new cursor slice, place cursor at front (move backwards)
-	void pushBackward(Inset & inset);
+	/// add a new cursor slice, place cursor on left end
+	void pushLeft(Inset & inset);
 	/// pop one level off the cursor
 	void pop();
-	/// pop one slice off the cursor stack and go backwards
-	bool popBackward();
-	/// pop one slice off the cursor stack and go forward
-	bool popForward();
+	/// pop one slice off the cursor stack and go left
+	bool popLeft();
+	/// pop one slice off the cursor stack and go right
+	bool popRight();
 	/// make sure we are outside of given inset
 	void leaveInset(Inset const & inset);
 	/// sets cursor part
 	void setCursor(DocIterator const & it);
-
-	///
-	void setCurrentFont();
 
 	//
 	// selection
@@ -106,54 +103,16 @@ public:
 	bool & macromode() { return macromode_; }
 	/// returns x,y position
 	void getPos(int & x, int & y) const;
-	/// return logical positions between which the cursor is situated
-	/**
-	 * If the cursor is at the edge of a row, the position which is "over the 
-	 * edge" will be returned as -1.
-	 */
-	void getSurroundingPos(pos_type & left_pos, pos_type & right_pos);
 	/// the row in the paragraph we're in
 	Row const & textRow() const;
 
 	//
 	// common part
 	//
-	/// move one step backwards
-	bool posBackward();
-	/// move one step forward
-	bool posForward();
-	/// move visually one step to the right
-	/**
-	 * @note: This method may move into an inset unless skip_inset == true.
-	 * @note: This method may move into a new paragraph.
-	 * @note: This method may move out of the current slice.
-	 * @return: true if moved, false if not moved
-	 */
-	bool posVisRight(bool skip_inset = false);
-	/// move visually one step to the left
-	/**
-	 * @note: This method may move into an inset unless skip_inset == true.
-	 * @note: This method may move into a new paragraph.
-	 * @note: This method may move out of the current slice.
-	 * @return: true if moved, false if not moved
-	 */
-	bool posVisLeft(bool skip_inset = false);
-	/// move visually to next/previous row
-	/**
-	 * Assuming we were to keep moving left (right) from the current cursor
-	 * position, place the cursor at the rightmost (leftmost) edge of the 
-	 * new row to which we would move according to visual-mode cursor movement.
-	 * This could be either the next or the previous row, depending on the
-	 * direction in which we're moving, and whether we're in an LTR or RTL 
-	 * paragraph. 
-	 * @note: The new position may even be in a new paragraph.
-	 * @note: This method will not move out of the current slice.
-	 * @return: false if not moved (no more rows to move to in given direction)
-	 * @return: true if moved
-	 */
-	bool posVisToNewRow(bool movingLeft);
-	/// move to right or left extremity of the current row
-	void posVisToRowExtremity(bool left);
+	/// move one step to the left
+	bool posLeft();
+	/// move one step to the right
+	bool posRight();
 
 	/// insert an inset
 	void insert(Inset *);
@@ -226,37 +185,6 @@ public:
 
 	/// output
 	friend std::ostream & operator<<(std::ostream & os, Cursor const & cur);
-	friend LyXErr & operator<<(LyXErr & os, Cursor const & cur);
-
-	///
-	bool textUndo();
-	///
-	bool textRedo();
-
-	/// makes sure the next operation will be stored
-	void finishUndo();
-
-	/// The general case: prepare undo for an arbitrary range.
-	void recordUndo(UndoKind kind, pit_type from, pit_type to);
-
-	/// Convenience: prepare undo for the range between 'from' and cursor.
-	void recordUndo(UndoKind kind, pit_type from);
-
-	/// Convenience: prepare undo for the single paragraph or cell
-	/// containing the cursor
-	void recordUndo(UndoKind kind = ATOMIC_UNDO);
-
-	/// Convenience: prepare undo for the inset containing the cursor
-	void recordUndoInset(UndoKind kind = ATOMIC_UNDO);
-
-	/// Convenience: prepare undo for the whole buffer
-	void recordUndoFullDocument();
-
-	/// Convenience: prepare undo for the selected paragraphs or cells
-	void recordUndoSelection();
-
-	///
-	void checkBufferStructure();
 
 public:
 	///
@@ -297,13 +225,6 @@ private:
 	bool logicalpos_;
 	/// position before dispatch started
 	DocIterator beforeDispatchCursor_;
-
-// FIXME: make them private.
-public:
-	/// the current font settings
-	Font current_font;
-	/// the current font
-	Font real_current_font;
 
 private:
 
@@ -366,14 +287,12 @@ public:
 	bool inMacroMode() const;
 	/// get access to the macro we are currently typing
 	InsetMathUnknown * activeMacro();
-	/// get access to the macro we are currently typing
-	InsetMathUnknown const * activeMacro() const;
 
 	/// replace selected stuff with at, placing the former
 	// selection in given cell of atom
 	void handleNest(MathAtom const & at, int cell = 0);
 	///
-	bool isInside(Inset const *) const;
+	bool isInside(Inset const *);
 
 	/// make sure cursor position is valid
 	/// FIXME: It does a subset of fixIfBroken. Maybe merge them?
@@ -411,10 +330,10 @@ public:
 
 /**
  * Notifies all insets which appear in old, but not in cur. Make
- * Sure that the cursor old is valid, i.e. all inset pointers
+ * Sure that the cursor old is valid, i.e. als inset pointer
  * point to valid insets! Use Cursor::fixIfBroken if necessary.
  */
-bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
+bool notifyCursorLeaves(DocIterator const & old, Cursor & cur);
 
 
 } // namespace lyx

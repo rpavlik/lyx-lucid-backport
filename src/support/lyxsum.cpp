@@ -10,14 +10,21 @@
 
 #include <config.h>
 
-#include "support/debug.h"
+#include "support/lyxlib.h"
+
+#include "debug.h"
+
+#include "support/FileName.h"
 
 #include <boost/crc.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <algorithm>
-#include <iomanip>
 
-using namespace std;
+using std::endl;
+using std::string;
+
+namespace fs = boost::filesystem;
 
 // OK, this is ugly, but it is the only workaround I found to compile
 // with gcc (any version) on a system which uses a non-GNU toolchain.
@@ -31,6 +38,10 @@ template struct boost::detail::crc_table_t<32, 0x04C11DB7, true>;
 // Various implementations of lyx::sum(), depending on what methods
 // are available. Order is faster to slowest.
 #if defined(HAVE_MMAP) && defined(HAVE_MUNMAP)
+
+// Make sure we get modern version of mmap and friends with void*,
+// not `compatibility' version with caddr_t.
+#define _POSIX_C_SOURCE 199506L
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -49,11 +60,12 @@ template struct boost::detail::crc_table_t<32, 0x04C11DB7, true>;
 namespace lyx {
 namespace support {
 
-unsigned long sum(char const * file)
+unsigned long sum(FileName const & file)
 {
-	//LYXERR(Debug::FILES, "lyx::sum() using mmap (lightning fast)");
+	LYXERR(Debug::FILES) << "lyx::sum() using mmap (lightning fast)"
+			     << endl;
 
-	int fd = open(file, O_RDONLY);
+	int fd = open(file.toFilesystemEncoding().c_str(), O_RDONLY);
 	if (!fd)
 		return 0;
 
@@ -89,6 +101,7 @@ unsigned long sum(char const * file)
 #include <fstream>
 #include <iterator>
 
+
 namespace {
 
 template<typename InputIterator>
@@ -96,7 +109,7 @@ inline
 unsigned long do_crc(InputIterator first, InputIterator last)
 {
 	boost::crc_32_type crc;
-	crc = for_each(first, last, crc);
+	crc = std::for_each(first, last, crc);
 	return crc.checksum();
 }
 
@@ -106,26 +119,54 @@ unsigned long do_crc(InputIterator first, InputIterator last)
 namespace lyx {
 namespace support {
 
+using std::ifstream;
+#if HAVE_DECL_ISTREAMBUF_ITERATOR
+using std::istreambuf_iterator;
 
-unsigned long sum(char const * file)
+unsigned long sum(FileName const & file)
 {
-	ifstream ifs(file, ios_base::in | ios_base::binary);
+	LYXERR(Debug::FILES) << "lyx::sum() using istreambuf_iterator (fast)"
+			     << endl;
+
+	string filename = file.toFilesystemEncoding();
+	// a directory may be passed here so we need to test it. (bug 3622)
+	if (fs::is_directory(filename))
+		return 0;
+	ifstream ifs(filename.c_str(), std::ios_base::in | std::ios_base::binary);
 	if (!ifs)
 		return 0;
 
-#if HAVE_DECL_ISTREAMBUF_ITERATOR
-	//LYXERR(Debug::FILES, "lyx::sum() using istreambuf_iterator (fast)");
 	istreambuf_iterator<char> beg(ifs);
 	istreambuf_iterator<char> end;
-#else
-	//LYXERR(Debug::FILES, "lyx::sum() using istream_iterator (slow as a snail)");
-	ifs.unsetf(ios::skipws);
-	istream_iterator<char> beg(ifs);
-	istream_iterator<char> end;
-#endif
 
 	return do_crc(beg,end);
 }
+#else
+
+using std::istream_iterator;
+using std::ios;
+
+unsigned long sum(FileName const & file)
+{
+	LYXERR(Debug::FILES)
+		<< "lyx::sum() using istream_iterator (slow as a snail)"
+		<< endl;
+
+	string filename = file.toFilesystemEncoding();
+	// a directory may be passed here so we need to test it. (bug 3622)
+	if (fs::is_directory(filename))
+		return 0;
+	ifstream ifs(filename.c_str(), std::ios_base::in | std::ios_base::binary);
+	if (!ifs)
+		return 0;
+
+	ifs.unsetf(ios::skipws);
+	istream_iterator<char> beg(ifs);
+	istream_iterator<char> end;
+
+	return do_crc(beg,end);
+}
+#endif
 
 } // namespace support
 } // namespace lyx

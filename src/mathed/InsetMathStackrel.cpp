@@ -14,51 +14,53 @@
 #include "MathData.h"
 #include "MathStream.h"
 
-using namespace std;
 
 namespace lyx {
+
+
+using std::max;
+using std::auto_ptr;
+
 
 InsetMathStackrel::InsetMathStackrel()
 {}
 
 
-Inset * InsetMathStackrel::clone() const
+auto_ptr<Inset> InsetMathStackrel::doClone() const
 {
-	return new InsetMathStackrel(*this);
+	return auto_ptr<Inset>(new InsetMathStackrel(*this));
 }
 
 
-void InsetMathStackrel::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathStackrel::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	Dimension dim1;
-	cell(1).metrics(mi, dim1);
+	cell(1).metrics(mi);
 	FracChanger dummy(mi.base);
-	Dimension dim0;
-	cell(0).metrics(mi, dim0);
-	dim.wid = max(dim0.width(), dim1.width()) + 4;
-	dim.asc = dim1.ascent() + dim0.height() + 4;
-	dim.des = dim1.descent();
+	cell(0).metrics(mi);
+	dim.wid = max(cell(0).width(), cell(1).width()) + 4;
+	dim.asc = cell(1).ascent() + cell(0).height() + 4;
+	dim.des = cell(1).descent();
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathStackrel::draw(PainterInfo & pi, int x, int y) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
-	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
-	int m  = x + dim.width() / 2;
-	int yo = y - dim1.ascent() - dim0.descent() - 1;
-	cell(1).draw(pi, m - dim1.width() / 2, y);
+	int m  = x + dim_.width() / 2;
+	int yo = y - cell(1).ascent() - cell(0).descent() - 1;
+	cell(1).draw(pi, m - cell(1).width() / 2, y);
 	FracChanger dummy(pi.base);
-	cell(0).draw(pi, m - dim0.width() / 2, yo);
+	cell(0).draw(pi, m - cell(0).width() / 2, yo);
 	drawMarkers(pi, x, y);
 }
 
 
 void InsetMathStackrel::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	os << "\\stackrel{" << cell(0) << "}{" << cell(1) << '}';
 }
 

@@ -6,10 +6,10 @@
 
 # author John Weiss
 # author Alejandro Aguilar Sierra
-# author Lars Gullik BjÃ¸nnes
+# author Lars Gullik Bjønnes
 # author Jean-Marc Lasgouttes
 # author John Levon
-# author AndrÃ© PÃ¶nitz
+# author André Pönitz
 # author Michael Gerz
 # author Martin Vermeer
 
@@ -34,8 +34,8 @@
 
 \bind "M-m f"			"math-insert \frac"
 \bind "M-m s"			"math-insert \sqrt"
-\bind "M-m x"			"math-subscript"
 \bind "M-m e"			"math-superscript"
+\bind "M-m x"			"math-subscript"
 
 \bind "M-m u"			"math-insert \sum"
 \bind "M-m i"			"math-insert \int"
@@ -51,8 +51,8 @@
 \bind "M-m S-L space"		"math-limits empty"
 
 
-\bind "M-m n"			"math-number-toggle"
-\bind "M-m S-N"			"math-number-line-toggle"
+\bind "M-m n"			"math-number"
+\bind "M-m S-N"			"math-nonumber"
 \bind "M-m 8"			"math-insert \infty"
 
 \bind "M-m o 1"   "self-insert \#1"
@@ -135,16 +135,8 @@
 \bind "M-m ~S-equal"   "math-insert \neq"
 
 \bind "Escape"         "escape"
+\bind "C-Tab"          "cell-split"
 \bind "M-m space"      "math-space"
-# FIXME: find another shortcut for cell-split as C-Tab is used for buffer-next
-# in 'cua.bind'.
-#\bind "C-Tab"          "cell-split"
-
-# math-macros
-\bind "C-plus"         "math-macro-unfold"
-# FIXME: this accelerator is already taken by
-# specialspecialchar-insert hyphenation in cua.bind
-#\bind "C-minus"        "math-macro-fold"
 
 # This should be handled properly by some "get the next key" method
 

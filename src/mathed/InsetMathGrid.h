@@ -63,7 +63,7 @@ public:
 		/// extra distance between lines
 		int skip_;
 		/// Is a page break allowed after this row?
-		bool allow_newpage_;
+		bool allow_pagebreak_;
 	};
 
 	// additional per-row information
@@ -91,14 +91,18 @@ public:
 	};
 
 public:
-	/// sets nrows and ncols to 1, vertical alingment to 'c'
+	/// sets nrows and ncols to 1
 	InsetMathGrid();
+	/// constructor from columns description, creates one row
+	InsetMathGrid(char valign, docstring const & halign);
 	/// Note: columns first!
 	InsetMathGrid(col_type m, row_type n);
 	///
 	InsetMathGrid(col_type m, row_type n, char valign, docstring const & halign);
 	///
-	void metrics(MetricsInfo & mi, Dimension &) const;
+	void metrics(MetricsInfo & mi) const;
+	///
+	bool metrics(MetricsInfo & mi, Dimension &) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -111,20 +115,18 @@ public:
 	void metricsT(TextMetricsInfo const & mi, Dimension & dim) const;
 	///
 	void drawT(TextPainter & pi, int x, int y) const;
-	/// extract number of columns from alignment string
-	static col_type guessColumns(docstring const & halign);
-	/// accepts some LaTeX column codes: p,m,!,@,M,<,>
-	void setHorizontalAlignments(docstring const & align);
 	///
-	void setHorizontalAlignment(char c, col_type col);
+	void halign(docstring const & align);
 	///
-	char horizontalAlignment(col_type col) const;
+	void halign(char c, col_type col);
 	///
-	docstring horizontalAlignments() const;
-	/// 't', 'b', or 'm'
-	void setVerticalAlignment(char c);
+	char halign(col_type col) const;
 	///
-	char verticalAlignment() const;
+	docstring halign() const;
+	///
+	void valign(char c);
+	///
+	char valign() const;
 	///
 	void vcrskip(Length const &, row_type row);
 	///
@@ -155,9 +157,9 @@ public:
 	///
 	bool idxUpDown(Cursor &, bool up) const;
 	///
-	bool idxBackward(Cursor &) const;
+	bool idxLeft(Cursor &) const;
 	///
-	bool idxForward(Cursor &) const;
+	bool idxRight(Cursor &) const;
 	///
 	bool idxFirst(Cursor &) const;
 	///
@@ -167,7 +169,7 @@ public:
 	/// pulls cell after pressing erase
 	void idxGlue(idx_type idx);
 
-	/// add a row, one row down
+	/// add a row
 	virtual void addRow(row_type r);
 	/// delete a row
 	virtual void delRow(row_type r);
@@ -175,7 +177,7 @@ public:
 	virtual void copyRow(row_type r);
 	/// swap two rows
 	virtual void swapRow(row_type r);
-	/// add a column, here
+	/// add a column
 	virtual void addCol(col_type c);
 	/// delete a column
 	virtual void delCol(col_type c);
@@ -219,13 +221,12 @@ public:
 	//void octave(OctaveStream &) const;
 
 protected:
-	///
-	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const;
 	/// returns x offset of cell compared to inset
-	int cellXOffset(BufferView const &, idx_type idx) const;
+	int cellXOffset(idx_type idx) const;
 	/// returns y offset of cell compared to inset
 	int cellYOffset(idx_type idx) const;
 	/// returns proper 'end of line' code for LaTeX
@@ -233,6 +234,8 @@ protected:
 				      bool fragile) const;
 	/// returns proper 'end of column' code for LaTeX
 	virtual docstring eocString(col_type col, col_type lastcol) const;
+	/// extract number of columns from alignment string
+	col_type guessColumns(docstring const & halign) const;
 	/// splits cells and shifts right part to the next cell
 	void splitCell(Cursor & cur);
 
@@ -244,14 +247,13 @@ protected:
 	std::vector<ColInfo> colinfo_;
 	/// cell info
 	std::vector<CellInfo> cellinfo_;
-private:
 	///
 	char v_align_; // add approp. type
-	///
-	Inset * clone() const;
+private:
+	virtual std::auto_ptr<Inset> doClone() const;
 };
 
 
-} // namespace lyx
 
+} // namespace lyx
 #endif

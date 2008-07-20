@@ -12,50 +12,73 @@
 #include <config.h>
 
 #include "InsetListings.h"
+#include "InsetCaption.h"
 
-#include "Buffer.h"
-#include "BufferView.h"
-#include "BufferParams.h"
-#include "Counters.h"
-#include "Cursor.h"
+#include "Language.h"
+#include "gettext.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "InsetCaption.h"
-#include "InsetList.h"
-#include "Language.h"
 #include "MetricsInfo.h"
-#include "TextClass.h"
-
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/gettext.h"
+#include "Cursor.h"
 #include "support/lstrings.h"
-
-#include "frontends/Application.h"
 
 #include <boost/regex.hpp>
 
 #include <sstream>
 
-using namespace std;
-using namespace lyx::support;
-
 namespace lyx {
+
+using support::token;
+using support::contains;
+using support::subst;
+
+using std::auto_ptr;
+using std::istringstream;
+using std::ostream;
+using std::ostringstream;
+using std::string;
 
 using boost::regex;
 
-char const lstinline_delimiters[] =
-	"!*()-=+|;:'\"`,<.>/?QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
+char const lstinline_delimiters[] = "!*()-=+|;:'\"`,<.>/?QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
 
-InsetListings::InsetListings(Buffer const & buf, InsetListingsParams const & par)
-	: InsetCollapsable(buf, par.status())
-{}
+void InsetListings::init()
+{
+	setButtonLabel();
+	Font font(Font::ALL_SANE);
+	font.decSize();
+	font.decSize();
+	font.setColor(Color::none);
+	setLabelFont(font);
+	text_.current_font.setLanguage(latex_language);
+	text_.real_current_font.setLanguage(latex_language);
+}
+
+
+InsetListings::InsetListings(BufferParams const & bp, InsetListingsParams const & par)
+	: InsetERT(bp, par.status())
+{
+	init();
+}
+
+
+InsetListings::InsetListings(InsetListings const & in)
+	: InsetERT(in), params_(in.params_)
+{
+	init();
+}
+
+
+auto_ptr<Inset> InsetListings::doClone() const
+{
+	return auto_ptr<Inset>(new InsetListings(*this));
+}
 
 
 InsetListings::~InsetListings()
 {
-	hideDialogs("listings", this);
+	InsetListingsMailer(*this).hideDialog();
 }
 
 
@@ -65,22 +88,7 @@ Inset::DisplayType InsetListings::display() const
 }
 
 
-void InsetListings::updateLabels(ParIterator const & it)
-{
-	Counters & cnts = buffer().params().documentClass().counters();
-	string const saveflt = cnts.current_float();
-
-	// Tell to captions what the current float is
-	cnts.current_float("listing");
-
-	InsetCollapsable::updateLabels(it);
-
-	//reset afterwards
-	cnts.current_float(saveflt);
-}
-
-
-void InsetListings::write(ostream & os) const
+void InsetListings::write(Buffer const & buf, ostream & os) const
 {
 	os << "listings" << "\n";
 	InsetListingsParams const & par = params();
@@ -92,15 +100,15 @@ void InsetListings::write(ostream & os) const
 		os << "inline true\n";
 	else
 		os << "inline false\n";
-	InsetCollapsable::write(os);
+	InsetCollapsable::write(buf, os);
 }
 
 
-void InsetListings::read(Lexer & lex)
+void InsetListings::read(Buffer const & buf, Lexer & lex)
 {
 	while (lex.isOK()) {
 		lex.next();
-		string token = lex.getString();
+		string const token = lex.getString();
 		if (token == "lstparams") {
 			lex.next();
 			string const value = lex.getString();
@@ -114,23 +122,24 @@ void InsetListings::read(Lexer & lex)
 			break;
 		}
 	}
-	InsetCollapsable::read(lex);
+	InsetERT::read(buf, lex);
 }
 
 
-docstring InsetListings::editMessage() const
+docstring const InsetListings::editMessage() const
 {
 	return _("Opened Listing Inset");
 }
 
 
-int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
+int InsetListings::latex(Buffer const & buf, odocstream & os,
+		    OutputParams const & runparams) const
 {
 	string param_string = params().params();
 	// NOTE: I use {} to quote text, which is an experimental feature
 	// of the listings package (see page 25 of the manual)
 	int lines = 0;
-	bool isInline = params().isInline();
+	bool lstinline = params().isInline();
 	// get the paragraphs. We can not output them directly to given odocstream
 	// because we can not yet determine the delimiter character of \lstinline
 	docstring code;
@@ -151,17 +160,18 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 		++par;
 		// for the inline case, if there are multiple paragraphs
 		// they are simply joined. Otherwise, expect latex errors.
-		if (par != end && !isInline && !captionline) {
+		if (par != end && !lstinline && !captionline) {
 			code += "\n";
 			++lines;
 		}
 	}
-	if (isInline) {
-		char const * delimiter = lstinline_delimiters;
-		for (; delimiter != '\0'; ++delimiter)
+	// FIXME: use C++ code instead of this thing.
+	char const * delimiter = 0;
+	if (lstinline) {
+		for (delimiter = lstinline_delimiters; delimiter != '\0'; ++delimiter)
 			if (!contains(code, *delimiter))
 				break;
-		// This code piece contains all possible special character? !!!
+		// this code piece contains all possible special character? !!!
 		// Replace ! with a warning message and use ! as delimiter.
 		if (*delimiter == '\0') {
 			code = subst(code, from_ascii("!"), from_ascii(" WARNING: no lstline delimiter can be used "));
@@ -171,15 +181,11 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 			os << "\\lstinline" << *delimiter;
 		else
 			os << "\\lstinline[" << from_ascii(param_string) << "]" << *delimiter;
-                os << code
-                   << *delimiter;
 	} else {
 		OutputParams rp = runparams;
-		// FIXME: the line below would fix bug 4182,
-		// but real_current_font moved to cursor.
-		//rp.local_font = &text_.real_current_font;
+		rp.local_font = &text_.real_current_font;
 		rp.moving_arg = true;
-		docstring const caption = getCaption(rp);
+		docstring const caption = getCaption(buf, rp);
 		runparams.encoding = rp.encoding;
 		if (param_string.empty() && caption.empty())
 			os << "\n\\begingroup\n\\inputencoding{latin1}\n\\begin{lstlisting}\n";
@@ -193,17 +199,16 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 			os << from_utf8(param_string) << "]\n";
 		}
 		lines += 4;
-		os << code << "\n\\end{lstlisting}\n\\endgroup\n";
+	}
+	os << code;
+	if (lstinline)
+		os << *delimiter;
+	else {
+		os << "\n\\end{lstlisting}\n\\endgroup\n";
 		lines += 3;
 	}
 
 	return lines;
-}
-
-
-docstring InsetListings::contextMenu(BufferView const &, int, int) const
-{
-	return from_ascii("context-listings");
 }
 
 
@@ -212,14 +217,22 @@ void InsetListings::doDispatch(Cursor & cur, FuncRequest & cmd)
 	switch (cmd.action) {
 
 	case LFUN_INSET_MODIFY: {
-		InsetListings::string2params(to_utf8(cmd.argument()), params());
+		InsetListingsMailer::string2params(to_utf8(cmd.argument()), params());
 		break;
 	}
 	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("listings", params2string(params()));
+		InsetListingsMailer(*this).updateDialog(&cur.bv());
 		break;
+	case LFUN_MOUSE_RELEASE: {
+		if (cmd.button() == mouse_button::button3 && hitButton(cmd)) {
+			InsetListingsMailer(*this).showDialog(&cur.bv());
+			break;
+		}
+		InsetERT::doDispatch(cur, cmd);
+		break;
+	}
 	default:
-		InsetCollapsable::doDispatch(cur, cmd);
+		InsetERT::doDispatch(cur, cmd);
 		break;
 	}
 }
@@ -229,15 +242,14 @@ bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
 	switch (cmd.action) {
-		case LFUN_INSET_MODIFY:
 		case LFUN_INSET_DIALOG_UPDATE:
-			status.setEnabled(true);
+			status.enabled(true);
 			return true;
 		case LFUN_CAPTION_INSERT:
-			status.setEnabled(!params().isInline());
+			status.enabled(!params().isInline());
 			return true;
 		default:
-			return InsetCollapsable::getStatus(cur, cmd, status);
+			return InsetERT::getStatus(cur, cmd, status);
 	}
 }
 
@@ -245,44 +257,73 @@ bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 void InsetListings::setButtonLabel()
 {
 	// FIXME UNICODE
-	if (decoration() == InsetLayout::Classic)
-		setLabel(isOpen() ?  _("Listing") : getNewLabel(_("Listing")));
-	else
-		setLabel(getNewLabel(_("Listing")));
+	setLabel(isOpen() ?  _("Listing") : getNewLabel(_("Listing")));
+}
+
+
+bool InsetListings::metrics(MetricsInfo & mi, Dimension & dim) const
+{
+	Font tmpfont = mi.base.font;
+	getDrawFont(mi.base.font);
+	mi.base.font.realize(tmpfont);
+	InsetCollapsable::metrics(mi, dim);
+	mi.base.font = tmpfont;
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
+}
+
+
+void InsetListings::draw(PainterInfo & pi, int x, int y) const
+{
+	Font tmpfont = pi.base.font;
+	getDrawFont(pi.base.font);
+	pi.base.font.realize(tmpfont);
+	InsetCollapsable::draw(pi, x, y);
+	pi.base.font = tmpfont;
 }
 
 
 void InsetListings::validate(LaTeXFeatures & features) const
 {
 	features.require("listings");
-	InsetCollapsable::validate(features);
+	InsetERT::validate(features);
 }
 
 
 bool InsetListings::showInsetDialog(BufferView * bv) const
 {
-	bv->showDialog("listings", params2string(params()),
-		const_cast<InsetListings *>(this));
+	InsetListingsMailer(const_cast<InsetListings &>(*this)).showDialog(bv);
 	return true;
 }
 
 
-docstring InsetListings::getCaption(OutputParams const & runparams) const
+void InsetListings::getDrawFont(Font & font) const
+{
+	font = Font(Font::ALL_INHERIT, latex_language);
+	font.setFamily(Font::TYPEWRITER_FAMILY);
+	// FIXME: define Color::listing?
+	font.setColor(Color::foreground);
+}
+
+
+docstring InsetListings::getCaption(Buffer const & buf,
+		    OutputParams const & runparams) const
 {
 	if (paragraphs().empty())
 		return docstring();
 
 	ParagraphList::const_iterator pit = paragraphs().begin();
 	for (; pit != paragraphs().end(); ++pit) {
-		InsetList::const_iterator it = pit->insetList().begin();
-		for (; it != pit->insetList().end(); ++it) {
+		InsetList::const_iterator it = pit->insetlist.begin();
+		for (; it != pit->insetlist.end(); ++it) {
 			Inset & inset = *it->inset;
-			if (inset.lyxCode() == CAPTION_CODE) {
+			if (inset.lyxCode() == Inset::CAPTION_CODE) {
 				odocstringstream ods;
 				InsetCaption * ins =
 					static_cast<InsetCaption *>(it->inset);
-				ins->getOptArg(ods, runparams);
-				ins->getArgument(ods, runparams);
+				ins->getOptArg(buf, ods, runparams);
+				ins->getArgument(buf, ods, runparams);
 				// the caption may contain \label{} but the listings
 				// package prefer caption={}, label={}
 				docstring cap = ods.str();
@@ -306,14 +347,27 @@ docstring InsetListings::getCaption(OutputParams const & runparams) const
 }
 
 
-void InsetListings::string2params(string const & in,
+string const InsetListingsMailer::name_("listings");
+
+InsetListingsMailer::InsetListingsMailer(InsetListings & inset)
+	: inset_(inset)
+{}
+
+
+string const InsetListingsMailer::inset2string(Buffer const &) const
+{
+	return params2string(inset_.params());
+}
+
+
+void InsetListingsMailer::string2params(string const & in,
 				   InsetListingsParams & params)
 {
 	params = InsetListingsParams();
 	if (in.empty())
 		return;
 	istringstream data(in);
-	Lexer lex;
+	Lexer lex(0, 0);
 	lex.setStream(data);
 	// discard "listings", which is only used to determine inset
 	lex.next();
@@ -321,10 +375,11 @@ void InsetListings::string2params(string const & in,
 }
 
 
-string InsetListings::params2string(InsetListingsParams const & params)
+string const
+InsetListingsMailer::params2string(InsetListingsParams const & params)
 {
 	ostringstream data;
-	data << "listings" << ' ';
+	data << name_ << " ";
 	params.write(data);
 	return data.str();
 }

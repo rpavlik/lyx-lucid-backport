@@ -14,19 +14,24 @@
 #include "MathMacroArgument.h"
 #include "MathStream.h"
 #include "MathSupport.h"
-
-#include "support/debug.h"
+#include "debug.h"
 
 
 namespace lyx {
 
-MathMacroArgument::MathMacroArgument(int n)
+using std::endl;
+using std::auto_ptr;
+using std::size_t;
+using std::vector;
+
+
+MathMacroArgument::MathMacroArgument(size_t n)
 	: number_(n)
 {
 	if (n < 1 || n > 9) {
-		LYXERR0("MathMacroArgument::MathMacroArgument: wrong Argument id: " << n);
+		lyxerr << "MathMacroArgument::MathMacroArgument: wrong Argument id: "
+			<< n << endl;
 	}
-
 	// The profiler tells us not to use
 	// str_ = '#' + convert<docstring>(n);
 	// so we do the conversion of n to ASCII manually.
@@ -37,20 +42,9 @@ MathMacroArgument::MathMacroArgument(int n)
 }
 
 
-Inset * MathMacroArgument::clone() const
+auto_ptr<Inset> MathMacroArgument::doClone() const
 {
-	return new MathMacroArgument(*this);
-}
-
-
-void MathMacroArgument::setNumber(int n)
-{
-	if (n < 1 || n > 9) {
-		LYXERR0("MathMacroArgument::setNumber: wrong Argument id: " << n);
-	}
-
-	number_ = n;
-	str_[1] = '0' + n;
+	return auto_ptr<Inset>(new MathMacroArgument(*this));
 }
 
 
@@ -60,9 +54,13 @@ void MathMacroArgument::write(WriteStream & os) const
 }
 
 
-void MathMacroArgument::metrics(MetricsInfo & mi, Dimension & dim) const
+bool MathMacroArgument::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	mathed_string_dim(mi.base.font, str_, dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 

@@ -12,20 +12,21 @@
 
 #include <config.h>
 
-#include "support/unicode.h"
-#include "support/debug.h"
+#include "unicode.h"
+
+#include "debug.h"
 
 #include <iconv.h>
-
-#include <boost/cstdint.hpp>
 
 #include <cerrno>
 #include <iomanip>
 #include <map>
-#include <ostream>
-#include <string>
 
-using namespace std;
+using std::endl;
+using std::map;
+using std::make_pair;
+using std::string;
+using std::vector;
 
 namespace {
 
@@ -49,47 +50,47 @@ namespace lyx {
 static const iconv_t invalid_cd = (iconv_t)(-1);
 
 
-struct IconvProcessor::Impl
-{
-	Impl(string const & to, string const & from)
-		: cd(invalid_cd), tocode_(to), fromcode_(from)
-	{}
-
-	~Impl()
+struct IconvProcessor::Private {
+	Private(): cd(invalid_cd) {}
+	~Private()
 	{
-		if (cd != invalid_cd && iconv_close(cd) == -1)
-				LYXERR0("Error returned from iconv_close(" << errno << ")");
+		if (cd != invalid_cd) {
+			if (iconv_close(cd) == -1) {
+				lyxerr << "Error returned from iconv_close("
+				       << errno << ")" << endl;
+			}
+		}
 	}
-
 	iconv_t cd;
-	string tocode_;
-	string fromcode_;
 };
 
 
-IconvProcessor::IconvProcessor(char const * tocode, char const * fromcode)
-	: pimpl_(new IconvProcessor::Impl(tocode, fromcode))
+IconvProcessor::IconvProcessor(char const * tocode,
+		char const * fromcode): tocode_(tocode), fromcode_(fromcode),
+		pimpl_(new IconvProcessor::Private)
 {
 }
 
 
 IconvProcessor::IconvProcessor(IconvProcessor const & other)
-	: pimpl_(new IconvProcessor::Impl(other.pimpl_->tocode_, other.pimpl_->fromcode_))
+	: tocode_(other.tocode_), fromcode_(other.fromcode_),
+	  pimpl_(new IconvProcessor::Private)
 {
 }
 
 
-IconvProcessor::~IconvProcessor()
+IconvProcessor & IconvProcessor::operator=(IconvProcessor const & other)
 {
-	delete pimpl_;
+	if (&other == this)
+		return *this;
+	tocode_ = other.tocode_;
+	fromcode_ = other.fromcode_;
+	pimpl_.reset(new Private);
+	return *this;
 }
 
 
-void IconvProcessor::operator=(IconvProcessor const & other)
-{
-	if (&other != this)
-		pimpl_ = new Impl(other.pimpl_->tocode_, other.pimpl_->fromcode_);
-}
+IconvProcessor::~IconvProcessor() {}
 
 
 bool IconvProcessor::init()
@@ -97,15 +98,15 @@ bool IconvProcessor::init()
 	if (pimpl_->cd != invalid_cd)
 		return true;
 
-	pimpl_->cd = iconv_open(pimpl_->tocode_.c_str(), pimpl_->fromcode_.c_str());
+	pimpl_->cd = iconv_open(tocode_.c_str(), fromcode_.c_str());
 	if (pimpl_->cd != invalid_cd)
 		return true;
 
 	lyxerr << "Error returned from iconv_open" << endl;
 	switch (errno) {
 		case EINVAL:
-			lyxerr << "EINVAL The conversion from " << pimpl_->fromcode_
-				<< " to " << pimpl_->tocode_
+			lyxerr << "EINVAL The conversion from " << fromcode_
+				<< " to " << tocode_
 				<< " is not supported by the implementation."
 				<< endl;
 			break;
@@ -139,7 +140,7 @@ int IconvProcessor::convert(char const * buf, size_t buflen,
 	// (see e.g. http://sources.redhat.com/bugzilla/show_bug.cgi?id=1124)
 	iconv(pimpl_->cd, NULL, NULL, &outbuf, &outbytesleft);
 
-	//lyxerr << dec;
+	//lyxerr << std::dec;
 	//lyxerr << "Inbytesleft: " << inbytesleft << endl;
 	//lyxerr << "Outbytesleft: " << outbytesleft << endl;
 
@@ -156,32 +157,32 @@ int IconvProcessor::convert(char const * buf, size_t buflen,
 		case EILSEQ:
 			lyxerr << "EILSEQ An invalid multibyte sequence"
 				<< " has been encountered in the input.\n"
-				<< "When converting from " << pimpl_->fromcode_
-				<< " to " << pimpl_->tocode_ << ".\n";
-			lyxerr << "Input:" << hex;
+				<< "When converting from " << fromcode_
+				<< " to " << tocode_ << ".\n";
+			lyxerr << "Input:" << std::hex;
 			for (size_t i = 0; i < buflen; ++i) {
 				// char may be signed, avoid output of
 				// something like 0xffffffc2
 				boost::uint32_t const b =
 					*reinterpret_cast<unsigned char const *>(buf + i);
-				lyxerr << " 0x" << (unsigned int)b;
+				lyxerr << " 0x" << b;
 			}
-			lyxerr << dec << endl;
+			lyxerr << std::dec << endl;
 			break;
 		case EINVAL:
 			lyxerr << "EINVAL An incomplete multibyte sequence"
 				<< " has been encountered in the input.\n"
-				<< "When converting from " << pimpl_->fromcode_
-				<< " to " << pimpl_->tocode_ << ".\n";
-			lyxerr << "Input:" << hex;
+				<< "When converting from " << fromcode_
+				<< " to " << tocode_ << ".\n";
+			lyxerr << "Input:" << std::hex;
 			for (size_t i = 0; i < buflen; ++i) {
 				// char may be signed, avoid output of
 				// something like 0xffffffc2
 				boost::uint32_t const b =
 					*reinterpret_cast<unsigned char const *>(buf + i);
-				lyxerr << " 0x" << (unsigned int)b;
+				lyxerr << " 0x" << b;
 			}
-			lyxerr << dec << endl;
+			lyxerr << std::dec << endl;
 			break;
 		default:
 			lyxerr << "\tSome other error: " << errno << endl;
@@ -202,7 +203,9 @@ namespace {
 
 template<typename RetType, typename InType>
 vector<RetType>
-iconv_convert(IconvProcessor & processor, InType const * buf, size_t buflen)
+iconv_convert(IconvProcessor & processor,
+	      InType const * buf,
+	      size_t buflen)
 {
 	if (buflen == 0)
 		return vector<RetType>();

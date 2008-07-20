@@ -11,15 +11,13 @@
 
 #include <config.h>
 
-#include "support/gettext.h"
-#include "../support/docstring.h"
+#include "gettext.h"
 
-using namespace std;
 
 namespace lyx {
 
 
-docstring const _(string const & str)
+docstring const _(std::string const & str)
 {
 	return from_ascii(str);
 }

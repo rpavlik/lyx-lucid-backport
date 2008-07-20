@@ -307,11 +307,13 @@ Function un.DelAppPathSub
    StrCpy $UserList $UserList "" $Pointer # cut off the first username in the list
    # generate the string for the current user
    # AppPre and AppSuff are generated in the macro "AppPreSuff"
-   RMDir /r "$AppPre\$0\$AppSuff\$AppSubfolder" # delete the folder
+   StrCpy $AppPath "$AppPre\$0\$AppSuff\${PRODUCT_SUBFOLDER}"
+   RMDir /r $AppPath # delete the folder
   Goto loop
   ready:
   StrCpy $0 $UserList
-  RMDir /r "$AppPre\$0\$AppSuff\$AppSubfolder" # delete the folder
+  StrCpy $AppPath "$AppPre\$0\$AppSuff\${PRODUCT_SUBFOLDER}"
+  RMDir /r $AppPath # delete the folder
   
 FunctionEnd
 
@@ -348,14 +350,17 @@ FunctionEnd
    StrCpy $UserList $UserList "" $Pointer # cut off the first username in the list
    # generate the string for the current user
    # AppPre and AppSuff are generated in the macro "AppPreSuff"
-   CreateDirectory "$AppPre\$0\$AppSuff\$AppSubfolder" # create the folder
-   CopyFiles "$AppFiles" "$AppPre\$0\$AppSuff\$AppSubfolder"
+   StrCpy $AppPath "$AppPre\$0\$AppSuff\${PRODUCT_SUBFOLDER}"
+   CreateDirectory $AppPath # create the folder
+   CopyFiles "$INSTDIR\Resources\session" "$AppPath"
   Goto loop
   ready:
   # now do the same for the last user name
   StrCpy $0 $UserList
-  CreateDirectory "$AppPre\$0\$AppSuff\$AppSubfolder" # create the folder
-  CopyFiles "$AppFiles" "$AppPre\$0\$AppSuff\$AppSubfolder"
+  StrCpy $AppPath "$AppPre\$0\$AppSuff\${PRODUCT_SUBFOLDER}"
+  CreateDirectory $AppPath # create the folder
+  CopyFiles "$INSTDIR\Resources\session" "$AppPath"
+  Delete "$INSTDIR\Resources\session" # delete the session file in the INSTDIR because it is unneeded there
   
  FunctionEnd
 

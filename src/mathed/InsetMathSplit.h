@@ -39,7 +39,7 @@ public:
 	char defaultColAlign(col_type);
 private:
 	///
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	docstring name_;
 };

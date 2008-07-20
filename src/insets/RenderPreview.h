@@ -18,8 +18,8 @@
 
 #include "RenderBase.h"
 
-#include "support/docstring.h"
 #include "support/FileMonitor.h"
+#include "support/docstring.h"
 
 #include <boost/signal.hpp>
 #include <boost/signals/trackable.hpp>
@@ -50,10 +50,10 @@ public:
 	RenderPreview(Inset const *);
 	RenderPreview(RenderPreview const &, Inset const *);
 	~RenderPreview();
-	RenderBase * clone(Inset const *) const;
+	std::auto_ptr<RenderBase> clone(Inset const *) const;
 
 	/// Compute the size of the object, returned in dim
-	void metrics(MetricsInfo &, Dimension & dim) const;
+	bool metrics(MetricsInfo &, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 

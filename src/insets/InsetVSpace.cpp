@@ -14,30 +14,30 @@
 #include "InsetVSpace.h"
 
 #include "Buffer.h"
-#include "BufferView.h"
 #include "Cursor.h"
-#include "Dimension.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
-#include "FuncStatus.h"
+#include "gettext.h"
+#include "Color.h"
 #include "Lexer.h"
+#include "Text.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
-#include "Text.h"
 
-#include "support/debug.h"
-#include "support/gettext.h"
-#include "support/lassert.h"
-
-#include "frontends/Application.h"
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
 #include <sstream>
 
-using namespace std;
 
 namespace lyx {
+
+using std::istringstream;
+using std::ostream;
+using std::ostringstream;
+using std::string;
+using std::max;
+
 
 namespace {
 
@@ -53,7 +53,13 @@ InsetVSpace::InsetVSpace(VSpace const & space)
 
 InsetVSpace::~InsetVSpace()
 {
-	hideDialogs("vspace", this);
+	InsetVSpaceMailer(*this).hideDialog();
+}
+
+
+std::auto_ptr<Inset> InsetVSpace::doClone() const
+{
+	return std::auto_ptr<Inset>(new InsetVSpace(*this));
 }
 
 
@@ -62,14 +68,13 @@ void InsetVSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 	switch (cmd.action) {
 
 	case LFUN_INSET_MODIFY: {
-		InsetVSpace::string2params(to_utf8(cmd.argument()), space_);
+		InsetVSpaceMailer::string2params(to_utf8(cmd.argument()), space_);
 		break;
 	}
 
 	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection() && cmd.button() == mouse_button::button1)
-			cur.bv().showDialog("vspace", params2string(space()), 
-				const_cast<InsetVSpace *>(this));
+		if (!cur.selection())
+			InsetVSpaceMailer(*this).showDialog(&cur.bv());
 		break;
 
 	default:
@@ -79,44 +84,23 @@ void InsetVSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 }
 
 
-bool InsetVSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
-	FuncStatus & status) const
+void InsetVSpace::read(Buffer const &, Lexer & lex)
 {
-	switch (cmd.action) {
-	// we handle these
-	case LFUN_INSET_MODIFY:
-		if (cmd.getArg(0) == "vspace") {
-			VSpace vspace;
-			InsetVSpace::string2params(to_utf8(cmd.argument()), vspace);
-			status.setOnOff(vspace == space_);
-		} 
-		status.setEnabled(true);
-		return true;
-	default:
-		return Inset::getStatus(cur, cmd, status);
-	}
-}
-
-
-void InsetVSpace::edit(Cursor & cur, bool, EntryDirection)
-{
-	cur.bv().showDialog("vspace", params2string(space()), 
-		const_cast<InsetVSpace *>(this));
-}
-
-
-void InsetVSpace::read(Lexer & lex)
-{
-	LASSERT(lex.isOK(), /**/);
+	BOOST_ASSERT(lex.isOK());
 	string vsp;
 	lex >> vsp;
 	if (lex)
 		space_ = VSpace(vsp);
-	lex >> "\\end_inset";
+
+	string end_token;
+	lex >> end_token;
+	if (end_token != "\\end_inset")
+		lex.printError("Missing \\end_inset at this point. "
+			       "Read: `$$Token'");
 }
 
 
-void InsetVSpace::write(ostream & os) const
+void InsetVSpace::write(Buffer const &, ostream & os) const
 {
 	os << "VSpace " << space_.asLyXCommand();
 }
@@ -134,13 +118,13 @@ int const arrow_size = 4;
 }
 
 
-void InsetVSpace::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetVSpace::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	int height = 3 * arrow_size;
 	if (space_.length().len().value() >= 0.0)
 		height = max(height, space_.inPixels(*mi.base.bv));
 
-	FontInfo font;
+	Font font;
 	font.decSize();
 	font.decSize();
 
@@ -154,17 +138,20 @@ void InsetVSpace::metrics(MetricsInfo & mi, Dimension & dim) const
 	dim.asc = height / 2 + (a - d) / 2; // align cursor with the
 	dim.des = height - dim.asc;         // label text
 	dim.wid = ADD_TO_VSPACE_WIDTH + 2 * arrow_size + 5 + w;
-	// Cache the inset dimension. 
-	setDimCache(mi, dim);
+	bool const changed = dim_ != dim;
+	dim_ = dim;
+	return changed;
 }
 
 
 void InsetVSpace::draw(PainterInfo & pi, int x, int y) const
 {
-	Dimension const dim = dimension(*pi.base.bv);
+	setPosCache(pi, x, y);
+
 	x += ADD_TO_VSPACE_WIDTH;
-	int const start = y - dim.asc;
-	int const end   = y + dim.des;
+
+	int const start = y - dim_.asc;
+	int const end   = y + dim_.des;
 
 	// y-values for top arrow
 	int ty1, ty2;
@@ -192,8 +179,8 @@ void InsetVSpace::draw(PainterInfo & pi, int x, int y) const
 	int a = 0;
 	int d = 0;
 
-	FontInfo font;
-	font.setColor(Color_added_space);
+	Font font;
+	font.setColor(Color::added_space);
 	font.decSize();
 	font.decSize();
 	docstring const lab = label();
@@ -201,66 +188,85 @@ void InsetVSpace::draw(PainterInfo & pi, int x, int y) const
 
 	pi.pain.rectText(x + 2 * arrow_size + 5,
 			 start + (end - start) / 2 + (a - d) / 2,
-			 lab, font, Color_none, Color_none);
+			 lab, font, Color::none, Color::none);
 
 	// top arrow
-	pi.pain.line(x, ty1, midx, ty2, Color_added_space);
-	pi.pain.line(midx, ty2, rightx, ty1, Color_added_space);
+	pi.pain.line(x, ty1, midx, ty2, Color::added_space);
+	pi.pain.line(midx, ty2, rightx, ty1, Color::added_space);
 
 	// bottom arrow
-	pi.pain.line(x, by1, midx, by2, Color_added_space);
-	pi.pain.line(midx, by2, rightx, by1, Color_added_space);
+	pi.pain.line(x, by1, midx, by2, Color::added_space);
+	pi.pain.line(midx, by2, rightx, by1, Color::added_space);
 
 	// joining line
-	pi.pain.line(midx, ty2, midx, by2, Color_added_space);
+	pi.pain.line(midx, ty2, midx, by2, Color::added_space);
 }
 
 
-int InsetVSpace::latex(odocstream & os, OutputParams const &) const
+int InsetVSpace::latex(Buffer const & buf, odocstream & os,
+		       OutputParams const &) const
 {
-	os << from_ascii(space_.asLatexCommand(buffer().params())) << '\n';
+	os << from_ascii(space_.asLatexCommand(buf.params())) << '\n';
 	return 1;
 }
 
 
-int InsetVSpace::plaintext(odocstream & os, OutputParams const &) const
+int InsetVSpace::plaintext(Buffer const &, odocstream & os,
+			   OutputParams const &) const
 {
 	os << "\n\n";
 	return PLAINTEXT_NEWLINE;
 }
 
 
-int InsetVSpace::docbook(odocstream & os, OutputParams const &) const
+int InsetVSpace::docbook(Buffer const &, odocstream & os,
+			 OutputParams const &) const
 {
 	os << '\n';
 	return 1;
 }
 
 
-docstring InsetVSpace::contextMenu(BufferView const &, int, int) const
+string const InsetVSpaceMailer::name_ = "vspace";
+
+
+InsetVSpaceMailer::InsetVSpaceMailer(InsetVSpace & inset)
+	: inset_(inset)
+{}
+
+
+string const InsetVSpaceMailer::inset2string(Buffer const &) const
 {
-	return from_ascii("context-vspace");
+	return params2string(inset_.space());
 }
 
 
-void InsetVSpace::string2params(string const & in, VSpace & vspace)
+void InsetVSpaceMailer::string2params(string const & in, VSpace & vspace)
 {
 	vspace = VSpace();
 	if (in.empty())
 		return;
 
 	istringstream data(in);
-	Lexer lex;
+	Lexer lex(0,0);
 	lex.setStream(data);
-	lex.setContext("InsetVSpace::string2params");
-	lex >> "vspace" >> vspace;
+
+	string name;
+	lex >> name;
+	if (!lex || name != name_)
+		return print_mailer_error("InsetVSpaceMailer", in, 1, name_);
+
+	string vsp;
+	lex >> vsp;
+	if (lex)
+		vspace = VSpace(vsp);
 }
 
 
-string InsetVSpace::params2string(VSpace const & vspace)
+string const InsetVSpaceMailer::params2string(VSpace const & vspace)
 {
 	ostringstream data;
-	data << "vspace" << ' ' << vspace.asLyXCommand();
+	data << name_ << ' ' << vspace.asLyXCommand();
 	return data.str();
 }
 

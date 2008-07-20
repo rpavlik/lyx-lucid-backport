@@ -1,5 +1,10 @@
 #include <config.h>
 
+#include <boost/assert.hpp>
+#include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/tuple/tuple.hpp>
+
 #include <algorithm>
 #include <cstdlib>
 #include <exception>

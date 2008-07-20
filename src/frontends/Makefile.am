@@ -1,48 +1,44 @@
 include $(top_srcdir)/config/common.am
 
-SUBDIRS = $(FRONTENDS_SUBDIRS) .
+SUBDIRS = controllers $(FRONTENDS_SUBDIRS)
 
-DIST_SUBDIRS = qt4 .
+DIST_SUBDIRS = controllers qt4
 
-noinst_LTLIBRARIES = liblyxfrontends.la
+EXTRA_DIST = pch.h
 
-AM_CPPFLAGS += -I$(srcdir)/..  $(BOOST_INCLUDES)
+BUILT_SOURCES = $(PCH_FILE)
 
-liblyxfrontends_la_SOURCES = \
+noinst_LTLIBRARIES = libfrontends.la
+
+AM_CPPFLAGS += $(PCH_FLAGS) -I$(srcdir)/..  $(BOOST_INCLUDES)
+
+libfrontends_la_SOURCES = \
+	alert.cpp \
 	alert.h \
+	Alert_pimpl.h \
+	Application.cpp \
 	Application.h \
+	NoGuiFontLoader.h \
+	NoGuiFontMetrics.h \
+	Dialogs.cpp \
+	Dialogs.h \
+	FileDialog.h \
 	FontLoader.h \
 	FontMetrics.h \
-	Delegates.h \
-	KeyModifier.h \
 	KeySymbol.h \
+	LyXView.cpp \
 	LyXView.h \
+	Menubar.h \
+	Painter.cpp \
 	Painter.h \
+	Timeout.cpp \
+	Timeout.h \
+	Toolbars.cpp \
+	Toolbars.h \
 	Clipboard.h \
+	Gui.h \
 	Selection.h \
+	WorkArea.cpp \
 	WorkArea.h \
-	WorkAreaManager.cpp \
-	WorkAreaManager.h \
+	key_state.h \
 	mouse_state.h
-
-################################# Tests ################################
-
-EXTRA_DIST = \
-	tests/test_biblio \
-	tests/regfiles/biblio
-
-TESTS = \
-	tests/test_biblio
-
-check_PROGRAMS = \
-	biblio
-
-biblio_LDADD = $(BOOST_LIBS) $(BOOST_REGEX)
-biblio_SOURCES = \
-	tests/biblio.cpp \
-	tests/boost.cpp
-
-makeregfiles: ${check_PROGRAMS}
-	for all in ${check_PROGRAMS} ; do \
-		./$$all > ${srcdir}/tests/regfiles/$$all ; \
-	done

@@ -26,12 +26,12 @@ public:
 	///
 	InsetMathArray(docstring const &, int m, int n,
 		char valign, docstring const & halign);
+	///
+	InsetMathArray(docstring const &, char valign, docstring const & halign);
 	/// convenience constructor from whitespace/newline separated data
 	InsetMathArray(docstring const &, docstring const & str);
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	Dimension const dimension(BufferView const &) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -50,7 +50,7 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	docstring name_;
 };

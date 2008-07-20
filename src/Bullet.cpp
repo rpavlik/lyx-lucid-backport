@@ -18,9 +18,9 @@
 
 #include "Bullet.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
-using namespace std;
+using std::string;
 
 namespace lyx {
 
@@ -41,12 +41,15 @@ Bullet const ITEMIZE_DEFAULTS[4] = { Bullet(0, 8),//"\\(\\bullet\\)"
 Bullet::Bullet(int f, int c, int s)
 	: font(f), character(c), size(s), user_text(0)
 {
-	if (f < MIN || f >= FONTMAX)
+	if (f < MIN || f >= FONTMAX) {
 		font = MIN;
-	if (c < MIN || c >= CHARMAX)
+	}
+	if (c < MIN || c >= CHARMAX) {
 		character = MIN;
-	if (s < MIN || s >= SIZEMAX)
+	}
+	if (s < MIN || s >= SIZEMAX) {
 		size = MIN;
+	}
 	generateText();
 	testInvariant();
 }
@@ -62,10 +65,11 @@ Bullet::Bullet(docstring const & t)
 
 void Bullet::setCharacter(int c)
 {
-	if (c < MIN || c >= CHARMAX)
+	if (c < MIN || c >= CHARMAX) {
 		character = MIN;
-	else
+	} else {
 		character = c;
+	}
 	user_text = 0;
 	testInvariant();
 }
@@ -73,10 +77,11 @@ void Bullet::setCharacter(int c)
 
 void Bullet::setFont(int f)
 {
-	if (f < MIN || f >= FONTMAX)
+	if (f < MIN || f >= FONTMAX) {
 		font = MIN;
-	else
+	} else {
 		font = f;
+	}
 	user_text = 0;
 	testInvariant();
 }
@@ -84,10 +89,11 @@ void Bullet::setFont(int f)
 
 void Bullet::setSize(int s)
 {
-	if (s < MIN || s >= SIZEMAX)
+	if (s < MIN || s >= SIZEMAX) {
 		size = MIN;
-	else
+	} else {
 		size = s;
+	}
 	user_text = 0;
 	testInvariant();
 }
@@ -135,8 +141,9 @@ Bullet & Bullet::operator=(Bullet const & b)
 
 docstring const & Bullet::getText() const
 {
-	if (user_text == 0)
+	if (user_text == 0) {
 		generateText();
+	}
 	return text;
 }
 
@@ -147,10 +154,12 @@ bool operator==(const Bullet & b1, const Bullet & b2)
 
 	if (b1.user_text && b2.user_text) {
 		/* both have valid text */
-		if (b1.text == b2.text)
+		if (b1.text == b2.text) {
 			result = true;
-	} else if (b1.character == b2.character && b1.font == b2.font &&
-			 b1.size == b2.size) {
+		}
+	} else if (((b1.character == b2.character) &&
+			  (b1.font == b2.font)) &&
+			 (b1.size == b2.size)) {
 		result = true;
 	}
 	return result;
@@ -176,8 +185,9 @@ void Bullet::generateText() const
 
 	if ((font >= 0) && (character >= 0)) {
 		text = bulletEntry(font, character);
-		if (size >= 0)
+		if (size >= 0) {
 			text = bulletSize(size) + text;
+		}
 		user_text = -1;
 		// text is now defined and doesn't need to be recalculated
 		// unless font/character or text is modified
@@ -348,25 +358,25 @@ docstring const Bullet::bulletEntry(int f, int c)
 void Bullet::testInvariant() const
 {
 #ifdef ENABLE_ASSERTIONS
-	LASSERT(font >= MIN, /**/);
-	LASSERT(font < FONTMAX, /**/);
-	LASSERT(character >= MIN, /**/);
-	LASSERT(character < CHARMAX, /**/);
-	LASSERT(size >= MIN, /**/);
-	LASSERT(size < SIZEMAX, /**/);
-	LASSERT(user_text >= -1, /**/);
-	LASSERT(user_text <= 1, /**/);
+	BOOST_ASSERT(font >= MIN);
+	BOOST_ASSERT(font < FONTMAX);
+	BOOST_ASSERT(character >= MIN);
+	BOOST_ASSERT(character < CHARMAX);
+	BOOST_ASSERT(size >= MIN);
+	BOOST_ASSERT(size < SIZEMAX);
+	BOOST_ASSERT(user_text >= -1);
+	BOOST_ASSERT(user_text <= 1);
 	// now some relational/operational tests
 	if (user_text == 1) {
-		LASSERT(font == -1 && (character == -1 && size == -1), /**/);
-		//        LASSERT(!text.empty(), /**/); // this isn't necessarily an error
+		BOOST_ASSERT(font == -1 && (character == -1 && size == -1));
+		//        BOOST_ASSERT(!text.empty()); // this isn't necessarily an error
 	}
 	//      else if (user_text == -1) {
-	//        LASSERT(!text.empty(), /**/); // this also isn't necessarily an error
+	//        BOOST_ASSERT(!text.empty()); // this also isn't necessarily an error
 	//      }
 	//      else {
 	//        // user_text == 0
-	//        LASSERT(text.empty(), /**/); // not usually true
+	//        BOOST_ASSERT(text.empty()); // not usually true
 	//      }
 #endif
 }

@@ -63,7 +63,7 @@ public:
 	static bool file_not_found_hook(support::FileName const & fn);
 
 	///
-	void setBuffer(Buffer *);
+	void buffer(Buffer *);
 
 	/// Register the document as an VC file.
 	void registrer();
@@ -82,7 +82,7 @@ public:
 
 	/**
 	 * Generate a log file and return the filename.
-	 * It is the caller's responsibility to remove the
+	 * It is the caller's responsibility to unlink the
 	 * file after use.
 	 */
 	const std::string getLogFile() const;

@@ -14,11 +14,9 @@
 #define ENCODING_H
 
 #include "support/docstring.h"
-#include "support/types.h"
 
 #include <map>
 #include <set>
-#include <vector>
 
 namespace lyx {
 
@@ -31,7 +29,7 @@ public:
 	EncodingException(char_type c);
 	virtual ~EncodingException() throw() {}
 	virtual const char * what() const throw();
- 
+
 	char_type failed_char;
 	int par_id;
 	pos_type pos;
@@ -51,16 +49,13 @@ public:
 	Encoding() {}
 	///
 	Encoding(std::string const & n, std::string const & l,
-		 std::string const & g, std::string const & i,
-		 bool f, Package p);
+		 std::string const & i, bool f, Package p);
 	///
 	void init() const;
 	///
-	std::string const & name() const { return name_; }
+	std::string const & name() const { return Name_; }
 	///
-	std::string const & latexName() const { return latexName_; }
-	///
-	std::string const & guiName() const { return guiName_; }
+	std::string const & latexName() const { return LatexName_; }
 	///
 	std::string const & iconvName() const { return iconvName_; }
 	/**
@@ -71,18 +66,14 @@ public:
 	 * LaTeX macro is known, a warning is given of lyxerr, and the
 	 * character is returned.
 	 */
-	docstring latexChar(char_type c) const;
+	docstring const latexChar(char_type c) const;
 	/// Which LaTeX package handles this encoding?
 	Package package() const { return package_; }
-	/// A list of all characters usable in this encoding
-	std::vector<char_type> symbolsList() const;
 private:
 	///
-	std::string name_;
+	std::string Name_;
 	///
-	std::string latexName_;
-	///
-	std::string guiName_;
+	std::string LatexName_;
 	///
 	std::string iconvName_;
 	/// Is this a fixed width encoding?
@@ -130,9 +121,9 @@ public:
 	void read(support::FileName const & encfile,
 		  support::FileName const & symbolsfile);
 	/// Get encoding from LyX name \p name
-	Encoding const * fromLyXName(std::string const & name) const;
+	Encoding const * getFromLyXName(std::string const & name) const;
 	/// Get encoding from LaTeX name \p name
-	Encoding const * fromLaTeXName(std::string const & name) const;
+	Encoding const * getFromLaTeXName(std::string const & name) const;
 
 	///
 	const_iterator begin() const { return encodinglist.begin(); }
@@ -140,7 +131,7 @@ public:
 	const_iterator end() const { return encodinglist.end(); }
 
 	///
-	enum LetterForm {
+	enum Letter_Form {
 		///
 		FORM_ISOLATED,
 		///
@@ -151,19 +142,19 @@ public:
 		FORM_MEDIAL
 	};
 	///
-	static bool isHebrewComposeChar(char_type c);
+	static bool isComposeChar_hebrew(char_type c);
 	///
-	static bool isArabicComposeChar(char_type c);
+	static bool isComposeChar_arabic(char_type c);
 	///
-	static bool isArabicSpecialChar(char_type c);
+	static bool is_arabic_special(char_type c);
 	///
-	static bool isArabicChar(char_type c);
+	static bool is_arabic(char_type c);
 	///
-	static char_type transformChar(char_type c, LetterForm form);
+	static char_type transformChar(char_type c, Letter_Form form);
 	/// Is this a combining char?
 	static bool isCombiningChar(char_type c);
 	/**
-	 * Is this a known char from some language?
+	 * Is this a known char from some script?
 	 * If \p preamble is empty and code point \p c is known to belong
 	 * to a supported script, true is returned and \p preamble is set
 	 * to the corresponding entry in the unicodesymbols file.
@@ -172,37 +163,13 @@ public:
 	 */
 	static bool isKnownScriptChar(char_type const c, std::string & preamble);
 	/**
-	 * Do we have to output this character as LaTeX command in any case?
-	 * This is true if the "forced" flag is set.
-	 * We need this if the inputencoding does not support a certain glyph.
-	 */
-	static bool isForced(char_type c);
-	/**
-	 * Convert \p c to something that LaTeX can understand in math mode.
-	 * \return whether \p command is a math mode command
-	 */
-	static bool latexMathChar(char_type c, docstring & command);
-
-	/**
-	 * Convert the LaTeX command in \p cmd to the corresponding unicode
-	 * point and set \p combining to true if it is a combining symbol
-	 */
-	static char_type fromLaTeXCommand(docstring const & cmd, bool & combining);
-	/**
-	 * Convert the LaTeX commands in \p cmd and \return a docstring
-	 * of corresponding unicode points. The conversion stops at the
-	 * first command which could not be converted, and the remaining
-	 * unconverted commands are returned in \p rem
-	 */
-	static docstring fromLaTeXCommand(docstring const & cmd, docstring & rem);
-	/**
 	 * Add the preamble snippet needed for the output of \p c to
 	 * \p features.
 	 * This does not depend on the used encoding, since the inputenc
 	 * package only maps the code point \p c to a command, it does not
 	 * make this command available.
 	 */
-	static void validate(char_type c, LaTeXFeatures & features, bool for_mathed = false);
+	static void validate(char_type c, LaTeXFeatures & features);
 
 private:
 	///

@@ -13,6 +13,8 @@
 #define INSETCAPTION_H
 
 #include "InsetText.h"
+#include "TextClass.h"
+
 
 namespace lyx {
 
@@ -21,64 +23,74 @@ namespace lyx {
 class InsetCaption : public InsetText {
 public:
 	///
-	InsetCaption(Buffer const &);
+	InsetCaption(InsetCaption const &);
+	InsetCaption(BufferParams const &);
 	///
-	std::string const & type() const { return type_; }
-	/// return the mandatory argument (LaTeX format) only
-	int getArgument(odocstream & os, OutputParams const &) const;
-	/// return the optional argument(s) only
-	int getOptArg(odocstream & os, OutputParams const &) const;
-	/// return the caption text
-	int getCaptionText(odocstream & os, OutputParams const &) const;
-private:
+	virtual ~InsetCaption() {}
 	///
-	void write(std::ostream & os) const;
+	void write(Buffer const & buf, std::ostream & os) const;
 	///
-	void read(Lexer & lex);
+	void read(Buffer const & buf, Lexer & lex);
 	///
-	DisplayType display() const { return AlignCenter; }
+	virtual DisplayType display() const;
 	///
-	bool neverIndent() const { return true; }
+	virtual bool neverIndent(Buffer const &) const { return true; }
 	///
-	InsetCode lyxCode() const { return CAPTION_CODE; }
+	virtual Inset::Code lyxCode() const;
 	///
-	docstring editMessage() const;
+	virtual docstring const editMessage() const;
 	///
-	void cursorPos(BufferView const & bv,
+	virtual void cursorPos(BufferView const & bv,
 		CursorSlice const & sl, bool boundary, int & x, int & y) const;
 	///
 	bool descendable() const { return true; }
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	virtual bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
-	void draw(PainterInfo & pi, int x, int y) const;
+	virtual void draw(PainterInfo & pi, int x, int y) const;
 	///
-	void edit(Cursor & cur, bool front, EntryDirection entry_from);
+	void drawSelection(PainterInfo & pi, int x, int y) const;
 	///
-	Inset * editXY(Cursor & cur, int x, int y);
+	virtual void edit(Cursor & cur, bool left);
 	///
-	bool insetAllowed(InsetCode code) const;
+	virtual Inset * editXY(Cursor & cur, int x, int y);
 	///
-	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	bool insetAllowed(Inset::Code code) const;
 	///
-	int latex(odocstream & os, OutputParams const &) const;
+	virtual bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 	///
-	int plaintext(odocstream & os, OutputParams const & runparams) const;
+	int latex(Buffer const & buf, odocstream & os,
+		  OutputParams const &) const;
 	///
-	int docbook(odocstream & os, OutputParams const & runparams) const;
+	int plaintext(Buffer const & buf, odocstream & os,
+		      OutputParams const & runparams) const;
+	///
+	int docbook(Buffer const & buf, odocstream & os,
+		    OutputParams const & runparams) const;
+	/// return the mandatory argument (LaTeX format) only
+	int getArgument(Buffer const & buf, odocstream & os,
+		  OutputParams const &) const;
+	/// return the optional argument(s) only
+	int getOptArg(Buffer const & buf, odocstream & os,
+		  OutputParams const &) const;
+	///
+	void setCount(int c) { counter_ = c; }
+	///
+	std::string const & type() const { return type_; }
+	///
+	void setType(std::string const & type) { type_ = type; }
 	///
 	void setCustomLabel(docstring const & label);
 	///
-	void addToToc(DocIterator const &);
-	/// 
-	virtual bool forcePlainLayout(idx_type = 0) const { return true; }
+	void addToToc(TocList &, Buffer const &, ParConstIterator const &) const;
 	/// Captions don't accept alignment, spacing, etc.
-	virtual bool allowParagraphCustomization(idx_type = 0) const { return false; }
-	///
-	Inset * clone() const { return new InsetCaption(*this); }
+	bool forceDefaultParagraphs(idx_type) const { return true; }
 
+private:
+	///
+	void computeFullLabel(Buffer const & buf) const;
+	///
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	mutable docstring full_label_;
 	///
@@ -86,10 +98,26 @@ private:
 	///
 	std::string type_;
 	///
-	bool in_subfloat_;
-	///
 	docstring custom_label_;
+	///
+	int counter_;
+	///
+	TextClass const & textclass_;
 };
+
+
+inline
+Inset::DisplayType InsetCaption::display() const
+{
+	return AlignCenter;
+}
+
+
+inline
+Inset::Code InsetCaption::lyxCode() const
+{
+	return CAPTION_CODE;
+}
 
 
 } // namespace lyx

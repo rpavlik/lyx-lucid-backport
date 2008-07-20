@@ -198,7 +198,7 @@ def checkDTLtools():
 
 def checkLatex(dtl_tools):
     ''' Check latex, return lyx_check_config '''
-    path, LATEX = checkProg('a Latex2e program', ['latex $$i', 'platex $$i', 'latex2e $$i'])
+    path, LATEX = checkProg('a Latex2e program', ['latex $$i', 'latex2e $$i'])
     path, PPLATEX = checkProg('a DVI postprocessing program', ['pplatex $$i'])
     # use LATEX to convert from latex to dvi if PPLATEX is not available    
     if PPLATEX == '':
@@ -235,7 +235,7 @@ def checkFormatEntries(dtl_tools):
     checkViewer('a Tgif viewer and editor', ['tgif'],
         rc_entry = [r'\Format tgif       obj     Tgif                   "" "%%"	"%%"	"vector"'])
     #
-    checkViewer('a FIG viewer and editor', ['xfig', 'jfig3-itext.jar', 'jfig3.jar'],
+    checkViewer('a FIG viewer and editor', ['xfig'],
         rc_entry = [r'\Format fig        fig     FIG                    "" "%%"	"%%"	"vector"'])
     #
     checkViewer('a Grace viewer and editor', ['xmgrace'],
@@ -266,7 +266,6 @@ def checkFormatEntries(dtl_tools):
 \Format dateout    tmp    "date (output)"         "" ""	"%%"	""
 \Format docbook    sgml    DocBook                B  ""	"%%"	"document"
 \Format docbook-xml xml   "Docbook (XML)"         "" ""	"%%"	"document"
-\Format dot        dot    "Graphviz Dot"          "" ""	"%%"	"vector"
 \Format literate   nw      NoWeb                  N  ""	"%%"	"document"
 \Format lilypond   ly     "LilyPond music"        "" ""	"%%"	"vector"
 \Format latex      tex    "LaTeX (plain)"         L  ""	"%%"	"document"
@@ -277,13 +276,6 @@ def checkFormatEntries(dtl_tools):
 \Format text3      txt    "Plain text (ps2ascii)" "" ""	"%%"	"document"
 \Format text4      txt    "Plain text (catdvi)"   "" ""	"%%"	"document"
 \Format textparagraph txt "Plain Text, Join Lines" "" ""	"%%"	"document"''' ])
- #
-    checkViewer('a BibTeX editor', ['sensible-editor', 'jabref', 'JabRef', \
-        'pybliographic', 'bibdesk', 'gbib', 'kbib', \
-        'kbibtex', 'sixpack', 'bibedit', 'tkbibtex' \
-        'xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
-        'nedit', 'gedit', 'notepad'],
-        rc_entry = [r'''\Format bibtex bib    "BibTeX"         "" ""	"%%"	""''' ])
     #
     #checkProg('a Postscript interpreter', ['gs'],
     #  rc_entry = [ r'\ps_command "%%"' ])
@@ -314,12 +306,11 @@ def checkFormatEntries(dtl_tools):
     #
     # entried that do not need checkProg
     addToRC(r'''\Format date       ""     "date command"          "" ""	""	""
-\Format csv        csv    "Table (CSV)"  "" ""	""	"document"
+\Format csv        csv    "Comma-separated values"  "" ""	""	"document"
 \Format fax        ""      Fax                    "" ""	""	"document"
 \Format lyx        lyx     LyX                    "" ""	""	""
 \Format lyx13x     lyx13  "LyX 1.3.x"             "" ""	""	"document"
 \Format lyx14x     lyx14  "LyX 1.4.x"             "" ""	""	"document"
-\Format lyx15x     lyx15  "LyX 1.5.x"             "" ""	""	"document"
 \Format clyx       cjklyx "CJK LyX 1.4.x (big5)"  "" ""	""	"document"
 \Format jlyx       cjklyx "CJK LyX 1.4.x (euc-jp)" "" ""	""	"document"
 \Format klyx       cjklyx "CJK LyX 1.4.x (euc-kr)" "" ""	""	"document"
@@ -400,9 +391,6 @@ def checkConverterEntries():
     checkProg('a LaTeX -> RTF converter', ['latex2rtf -p -S -o $$o $$i', 'latex2rt -p -S -o $$o $$i'],
         rc_entry = [ r'\converter latex      rtf        "%%"	"needaux"' ])
     #
-    checkProg('a RTF -> HTML converter', ['unrtf --html  $$i > $$o'],
-        rc_entry = [ r'\converter rtf      html        "%%"	""' ])
-    #
     checkProg('a PS to PDF converter', ['ps2pdf13 $$i $$o'],
         rc_entry = [ r'\converter ps         pdf        "%%"	""' ])
     #
@@ -418,7 +406,7 @@ def checkConverterEntries():
     checkProg('a PDF to PS converter', ['pdf2ps $$i $$o', 'pdftops $$i $$o'],
         rc_entry = [ r'\converter pdf         ps        "%%"	""' ])
     #
-    checkProg('a PDF to EPS converter', ['pdftops -eps -f 1 -l 1 $$i $$o'],
+    checkProg('a PDF to EPS converter', ['pdftops -eps $$i $$o'],
         rc_entry = [ r'\converter pdf         eps        "%%"	""' ])
     #
     checkProg('a DVI to TXT converter', ['catdvi $$i > $$o'],
@@ -478,9 +466,6 @@ def checkConverterEntries():
 \converter agr        ppm        "gracebat -hardcopy -printfile $$o -hdevice PNM $$i 2>/dev/null"	""''',
             ''])
     #
-    checkProg('a Dot -> PDF converter', ['dot -Tpdf $$i -o $$o'],
-        rc_entry = [ r'\converter dot        pdf        "%%"	""'])
-    #
     #
     path, lilypond = checkProg('a LilyPond -> EPS/PDF/PNG converter', ['lilypond'])
     if (lilypond != ''):
@@ -516,7 +501,6 @@ def checkConverterEntries():
 \converter fig        pstex      "python -tt $$s/scripts/fig2pstex.py $$i $$o"	""
 \converter lyx        lyx13x     "python -tt $$s/lyx2lyx/lyx2lyx -t 221 $$i > $$o"	""
 \converter lyx        lyx14x     "python -tt $$s/lyx2lyx/lyx2lyx -t 245 $$i > $$o"	""
-\converter lyx        lyx15x     "python -tt $$s/lyx2lyx/lyx2lyx -t 276 $$i > $$o"	""
 \converter lyx        clyx       "python -tt $$s/lyx2lyx/lyx2lyx -c big5 -t 245 $$i > $$o"	""
 \converter lyx        jlyx       "python -tt $$s/lyx2lyx/lyx2lyx -c euc_jp -t 245 $$i > $$o"	""
 \converter lyx        klyx       "python -tt $$s/lyx2lyx/lyx2lyx -c euc_kr -t 245 $$i > $$o"	""
@@ -571,10 +555,6 @@ def checkOtherEntries():
             r'\plaintext_roff_command ""' ])
     checkProg('ChkTeX', ['chktex -n1 -n3 -n6 -n9 -n22 -n25 -n30 -n38'],
         rc_entry = [ r'\chktex_command "%%"' ])
-    checkProg('BibTeX', ['jbibtex', 'bibtex'],
-        rc_entry = [ r'\bibtex_command "%%"' ])
-    checkProg('an index processor', ['texindy', 'makeindex -c -q'],
-        rc_entry = [ r'\index_command "%%"' ])
     checkProg('a spellchecker', ['ispell'],
         rc_entry = [ r'\spell_command "%%"' ])
     ## FIXME: OCTAVE is not used anywhere
@@ -635,7 +615,7 @@ def checkLatexConfig(check_config, bool_docbook, bool_linuxdoc):
     # version of textclass.lst, re-generate a default file.
     if not os.path.isfile('textclass.lst') or not check_config:
         # remove the files only if we want to regenerate
-        removeFiles(['textclass.lst', 'packages.lst'])
+        removeFiles(['textclass.lst', 'packages.lst', 'chkconfig.sed'])
         #
         # Then, generate a default textclass.lst. In case configure.py
         # fails, we still have something to start lyx.
@@ -739,93 +719,57 @@ def checkLatexConfig(check_config, bool_docbook, bool_linuxdoc):
         return ret
 
 
-def checkModulesConfig():
-  removeFiles(['lyxmodules.lst'])
-
-  print '+checking list of modules... '
-  tx = open('lyxmodules.lst', 'w')
-  tx.write('''## This file declares modules and their associated definition files.
-## It has been automatically generated by configure
-## Use "Options/Reconfigure" if you need to update it after a
-## configuration change. 
+def createLaTeXConfig():
+    ''' create LaTeXConfig.lyx '''
+    # if chkconfig.sed does not exist (because LaTeX did not run),
+    # then provide a standard version.
+    if not os.path.isfile('chkconfig.sed'):
+        writeToFile('chkconfig.sed', 's!@.*@!???!g\n')
+    print "creating packages.lst"
+    # if packages.lst does not exist (because LaTeX did not run),
+    # then provide a standard version.
+    if not os.path.isfile('packages.lst'):
+        writeToFile('packages.lst', '''
+### This file should contain the list of LaTeX packages that have been
+### recognized by LyX. Unfortunately, since configure could not find
+### your LaTeX2e program, the tests have not been run. Run ./configure.py
+### if you need to update it after a configuration change.
 ''')
-  # build the list of available modules
-  foundClasses = []
-  for file in glob.glob( os.path.join('layouts', '*.module') ) + \
-      glob.glob( os.path.join(srcdir, 'layouts', '*.module' ) ) :
-      # valid file?
-      print file
-      if not os.path.isfile(file): 
-          continue
-      tx.write(processModuleFile(file, bool_docbook, bool_linuxdoc))
-  tx.close()
-  print '\tdone'
-
-
-def processModuleFile(file, bool_docbook, bool_linuxdoc):
-    ''' process module file and get a line of result
-
-        The top of a module file should look like this:
-          #\DeclareLyXModule[LaTeX Packages]{ModuleName}
-          #BeginDescription
-          #...body of description...
-          #EndDescription
-          #Requires: [list of required modules]
-          #Excludes: [list of excluded modules]
-        The last two lines are optional
-        We expect output:
-          "ModuleName" "filename" "Description" "Packages" "Requires" "Excludes"
-    '''
-    p = re.compile(r'\DeclareLyXModule\s*(?:\[([^]]*?)\])?{(.*)}')
-    r = re.compile(r'#+\s*Requires: (.*)')
-    x = re.compile(r'#+\s*Excludes: (.*)')
-    b = re.compile(r'#+\s*DescriptionBegin\s*$')
-    e = re.compile(r'#+\s*DescriptionEnd\s*$')
-
-    modname = desc = pkgs = req = excl = ""
-    readingDescription = False
-    descLines = []
-    filename = file.split(os.sep)[-1]
-    filename = filename[:-7]
-
-    for line in open(file).readlines():
-      if readingDescription:
-        res = e.search(line)
-        if res != None:
-          readingDescription = False
-          desc = " ".join(descLines)
-          continue
-        descLines.append(line[1:].strip())
-        continue
-      res = b.search(line)
-      if res != None:
-        readingDescription = True
-        continue
-      res = p.search(line)
-      if res != None:
-          (pkgs, modname) = res.groups()
-          if pkgs == None:
-            pkgs = ""
-          else:
-            tmp = [s.strip() for s in pkgs.split(",")]
-            pkgs = ",".join(tmp)
-          continue
-      res = r.search(line)
-      if res != None:
-        req = res.group(1)
-        tmp = [s.strip() for s in req.split("|")]
-        req = "|".join(tmp)
-        continue
-      res = x.search(line)
-      if res != None:
-        excl = res.group(1)
-        tmp = [s.strip() for s in excl.split("|")]
-        excl = "|".join(tmp)
-        continue
-    if modname != "":
-        return '"%s" "%s" "%s" "%s" "%s" "%s"\n' % (modname, filename, desc, pkgs, req, excl)
-    print "Module file without \DeclareLyXModule line. "
-    sys.exit(2)
+    print 'creating doc/LaTeXConfig.lyx'
+    #
+    # This is originally done by sed, using a
+    # tex-generated file chkconfig.sed
+    ##sed -f chkconfig.sed ${srcdir}/doc/LaTeXConfig.lyx.in
+    ##  >doc/LaTeXConfig.lyx
+    # Now, we have to do it by hand (python).
+    #
+    # add to chekconfig.sed
+    writeToFile('chkconfig.sed', '''s!@chk_linuxdoc@!%s!g
+s!@chk_docbook@!%s!g
+    ''' % (chk_linuxdoc, chk_docbook) , append=True)
+    # process this sed file!!!!
+    lyxin = open( os.path.join(srcdir, 'doc', 'LaTeXConfig.lyx.in')).readlines()
+    # get the rules
+    p = re.compile(r's!(.*)!(.*)!g')
+    # process each sed replace.
+    for sed in open('chkconfig.sed').readlines():
+        if sed.strip() == '':
+            continue
+        try:
+            fr, to = p.match(sed).groups()
+            # if latex did not run, change all @name@ to '???'
+            if fr == '@.*@':
+                for line in range(len(lyxin)):
+                    lyxin[line] = re.sub('@.*@', to, lyxin[line])
+            else:
+                for line in range(len(lyxin)):
+                    lyxin[line] = lyxin[line].replace(fr, to)
+        except:  # wrong sed entry?
+            print "Wrong sed entry in chkconfig.sed: '" + sed + "'"
+            sys.exit(4)
+    # 
+    writeToFile( os.path.join('doc', 'LaTeXConfig.lyx'),
+        ''.join(lyxin))
 
 
 def checkTeXAllowSpaces():
@@ -851,7 +795,7 @@ def checkTeXAllowSpaces():
 def removeTempFiles():
     # Final clean-up
     if not lyx_keep_temps:
-        removeFiles(['chkconfig.vars',  \
+        removeFiles(['chkconfig.sed', 'chkconfig.vars',  \
             'wrap_chkconfig.ltx', 'wrap_chkconfig.log', \
             'chklayouts.tex', 'missfont.log', 
             'chklatex.ltx', 'chklatex.log'])
@@ -919,9 +863,9 @@ Options:
         addToRC(r'\tex_expects_windows_paths %s' % windows_style_tex_paths)
     checkOtherEntries()
     # --without-latex-config can disable lyx_check_config
-    ret = checkLatexConfig(lyx_check_config and LATEX != '',
+    ret = checkLatexConfig(lyx_check_config and LATEX != '', 
         bool_docbook, bool_linuxdoc)
-    checkModulesConfig() #lyx_check_config and LATEX != '')
+    createLaTeXConfig()
     removeTempFiles()
     # The return error code can be 256. Because most systems expect an error code
     # in the range 0-127, 256 can be interpretted as 'success'. Because we expect

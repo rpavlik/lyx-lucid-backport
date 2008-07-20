@@ -10,26 +10,28 @@
 
 #include <config.h>
 
-#include "BufferView.h"
-#include "Cursor.h"
-#include "DispatchResult.h"
-#include "FuncRequest.h"
-#include "InsetMathFont.h"
 #include "InsetMathScript.h"
-#include "InsetMathSymbol.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathSupport.h"
+#include "InsetMathSymbol.h"
+#include "InsetMathFont.h"
+#include "DispatchResult.h"
+#include "Cursor.h"
+#include "debug.h"
+#include "FuncRequest.h"
+#include "Undo.h"
 
-#include "support/debug.h"
+#include <boost/assert.hpp>
 
-#include "support/lassert.h"
-
-#include <ostream>
-
-using namespace std;
 
 namespace lyx {
+
+using std::string;
+using std::max;
+using std::auto_ptr;
+using std::endl;
+
 
 
 InsetMathScript::InsetMathScript()
@@ -45,14 +47,14 @@ InsetMathScript::InsetMathScript(bool up)
 InsetMathScript::InsetMathScript(MathAtom const & at, bool up)
 	: InsetMathNest(2), cell_1_is_up_(up), limits_(0)
 {
-	LASSERT(nargs() >= 1, /**/);
+	BOOST_ASSERT(nargs() >= 1);
 	cell(0).push_back(at);
 }
 
 
-Inset * InsetMathScript::clone() const
+auto_ptr<Inset> InsetMathScript::doClone() const
 {
-	return new InsetMathScript(*this);
+	return auto_ptr<Inset>(new InsetMathScript(*this));
 }
 
 
@@ -88,7 +90,7 @@ MathData const & InsetMathScript::down() const
 {
 	if (nargs() == 3)
 		return cell(2);
-	LASSERT(nargs() > 1, /**/);
+	BOOST_ASSERT(nargs() > 1);
 	return cell(1);
 }
 
@@ -97,21 +99,21 @@ MathData & InsetMathScript::down()
 {
 	if (nargs() == 3)
 		return cell(2);
-	LASSERT(nargs() > 1, /**/);
+	BOOST_ASSERT(nargs() > 1);
 	return cell(1);
 }
 
 
 MathData const & InsetMathScript::up() const
 {
-	LASSERT(nargs() > 1, /**/);
+	BOOST_ASSERT(nargs() > 1);
 	return cell(1);
 }
 
 
 MathData & InsetMathScript::up()
 {
-	LASSERT(nargs() > 1, /**/);
+	BOOST_ASSERT(nargs() > 1);
 	return cell(1);
 }
 
@@ -170,14 +172,13 @@ bool isAlphaSymbol(MathAtom const & at)
 } // namespace anon
 
 
-int InsetMathScript::dy01(BufferView const & bv, int asc, int des, int what) const
+int InsetMathScript::dy01(int asc, int des, int what) const
 {
 	int dasc = 0;
 	int slevel = 0;
 	bool isCharBox = nuc().size() ? isAlphaSymbol(nuc().back()) : false;
 	if (hasDown()) {
-		Dimension const & dimdown = down().dimension(bv);
-		dasc = dimdown.ascent();
+		dasc = down().ascent();
 		slevel = nuc().slevel();
 		int ascdrop = dasc - slevel;
 		int desdrop = isCharBox ? 0 : des + nuc().sshift();
@@ -186,10 +187,9 @@ int InsetMathScript::dy01(BufferView const & bv, int asc, int des, int what) con
 		des = max(mindes, des);
 	}
 	if (hasUp()) {
-		Dimension const & dimup = up().dimension(bv);
 		int minasc = nuc().minasc();
 		int ascdrop = isCharBox ? 0 : asc - up().mindes();
-		int udes = dimup.descent();
+		int udes = up().descent();
 		asc = udes + nuc().sshift();
 		asc = max(ascdrop, asc);
 		asc = max(minasc, asc);
@@ -210,156 +210,143 @@ int InsetMathScript::dy01(BufferView const & bv, int asc, int des, int what) con
 }
 
 
-int InsetMathScript::dy0(BufferView const & bv) const
+int InsetMathScript::dy0() const
 {
-	int nd = ndes(bv);
+	int nd = ndes();
 	if (!hasDown())
 		return nd;
-	int des = down().dimension(bv).ascent();
+	int des = down().ascent();
 	if (hasLimits())
 		des += nd + 2;
 	else {
-		int na = nasc(bv);
-		des = dy01(bv, na, nd, 0);
+		int na = nasc();
+		des = dy01(na, nd, 0);
 	}
 	return des;
 }
 
 
-int InsetMathScript::dy1(BufferView const & bv) const
+int InsetMathScript::dy1() const
 {
-	int na = nasc(bv);
+	int na = nasc();
 	if (!hasUp())
 		return na;
-	int asc = up().dimension(bv).descent();
+	int asc = up().descent();
 	if (hasLimits())
 		asc += na + 2;
 	else {
-		int nd = ndes(bv);
-		asc = dy01(bv, na, nd, 1);
+		int nd = ndes();
+		asc = dy01(na, nd, 1);
 	}
 	asc = max(asc, 5);
 	return asc;
 }
 
 
-int InsetMathScript::dx0(BufferView const & bv) const
+int InsetMathScript::dx0() const
 {
-	LASSERT(hasDown(), /**/);
-	Dimension const dim = dimension(bv);
-	return hasLimits() ? (dim.wid - down().dimension(bv).width()) / 2 : nwid(bv);
+	BOOST_ASSERT(hasDown());
+	return hasLimits() ? (dim_.wid - down().width()) / 2 : nwid();
 }
 
 
-int InsetMathScript::dx1(BufferView const & bv) const
+int InsetMathScript::dx1() const
 {
-	LASSERT(hasUp(), /**/);
-	Dimension const dim = dimension(bv);
-	return hasLimits() ? (dim.wid - up().dimension(bv).width()) / 2 : nwid(bv) + nker(&bv);
+	BOOST_ASSERT(hasUp());
+	return hasLimits() ? (dim_.wid - up().width()) / 2 : nwid() + nker();
 }
 
 
-int InsetMathScript::dxx(BufferView const & bv) const
+int InsetMathScript::dxx() const
 {
-	Dimension const dim = dimension(bv);
-	return hasLimits() ? (dim.wid - nwid(bv)) / 2  :  0;
+	return hasLimits() ? (dim_.wid - nwid()) / 2  :  0;
 }
 
 
-int InsetMathScript::nwid(BufferView const & bv) const
+int InsetMathScript::nwid() const
 {
-	return nuc().size() ? nuc().dimension(bv).width() : 2;
+	return nuc().size() ? nuc().width() : 2;
 }
 
 
-int InsetMathScript::nasc(BufferView const & bv) const
+int InsetMathScript::nasc() const
 {
-	return nuc().size() ? nuc().dimension(bv).ascent() : 5;
+	return nuc().size() ? nuc().ascent() : 5;
 }
 
 
-int InsetMathScript::ndes(BufferView const & bv) const
+int InsetMathScript::ndes() const
 {
-	return nuc().size() ? nuc().dimension(bv).descent() : 0;
+	return nuc().size() ? nuc().descent() : 0;
 }
 
 
-int InsetMathScript::nker(BufferView const * bv) const
+int InsetMathScript::nker() const
 {
 	if (nuc().size()) {
-		int kerning = nuc().kerning(bv);
+		int kerning = nuc().kerning();
 		return kerning > 0 ? kerning : 0;
 	}
 	return 0;
 }
 
 
-void InsetMathScript::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathScript::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	Dimension dim0;
-	Dimension dim1;
-	Dimension dim2;
-	cell(0).metrics(mi, dim0);
+	cell(0).metrics(mi);
 	ScriptChanger dummy(mi.base);
 	if (nargs() > 1)
-		cell(1).metrics(mi, dim1);
+		cell(1).metrics(mi);
 	if (nargs() > 2)
-		cell(2).metrics(mi, dim2);
-
+		cell(2).metrics(mi);
 	dim.wid = 0;
-	BufferView & bv = *mi.base.bv;
-	// FIXME: data copying... not very efficient.
-	Dimension dimup;
-	Dimension dimdown;
-	if (hasUp())
-		dimup = up().dimension(bv);
-	if (hasDown())
-		dimdown = down().dimension(bv);
-
 	if (hasLimits()) {
-		dim.wid = nwid(bv);
+		dim.wid = nwid();
 		if (hasUp())
-			dim.wid = max(dim.wid, dimup.width());
+			dim.wid = max(dim.wid, up().width());
 		if (hasDown())
-			dim.wid = max(dim.wid, dimdown.width());
+			dim.wid = max(dim.wid, down().width());
 	} else {
 		if (hasUp())
-			dim.wid = max(dim.wid, nker(mi.base.bv) + dimup.width());
+			dim.wid = max(dim.wid, nker() + up().width());
 		if (hasDown())
-			dim.wid = max(dim.wid, dimdown.width());
-		dim.wid += nwid(bv);
+			dim.wid = max(dim.wid, down().width());
+		dim.wid += nwid();
 	}
-	int na = nasc(bv);
+	int na = nasc();
 	if (hasUp()) {
-		int asc = dy1(bv) + dimup.ascent();
+		int asc = dy1() + up().ascent();
 		dim.asc = max(na, asc);
 	} else
 		dim.asc = na;
-	int nd = ndes(bv);
+	int nd = ndes();
 	if (hasDown()) {
-		int des = dy0(bv) + dimdown.descent();
+		int des = dy0() + down().descent();
 		dim.des = max(nd, des);
 	} else
 		dim.des = nd;
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
 void InsetMathScript::draw(PainterInfo & pi, int x, int y) const
 {
-	BufferView & bv = *pi.base.bv;
 	if (nuc().size())
-		nuc().draw(pi, x + dxx(bv), y);
+		nuc().draw(pi, x + dxx(), y);
 	else {
-		nuc().setXY(bv, x + dxx(bv), y);
-		if (editing(&bv))
-			pi.draw(x + dxx(bv), y, char_type('.'));
+		nuc().setXY(*pi.base.bv, x + dxx(), y);
+		if (editing(pi.base.bv))
+			pi.draw(x + dxx(), y, char_type('.'));
 	}
 	ScriptChanger dummy(pi.base);
 	if (hasUp())
-		up().draw(pi, x + dx1(bv), y - dy1(bv));
+		up().draw(pi, x + dx1(), y - dy1());
 	if (hasDown())
-		down().draw(pi, x + dx0(bv), y + dy0(bv));
+		down().draw(pi, x + dx0(), y + dy0());
 	drawMarkers(pi, x, y);
 }
 
@@ -376,13 +363,12 @@ void InsetMathScript::metricsT(TextMetricsInfo const & mi, Dimension & dim) cons
 
 void InsetMathScript::drawT(TextPainter & pain, int x, int y) const
 {
-	// FIXME: BROKEN
 	if (nuc().size())
-		nuc().drawT(pain, x + 1, y);
+		nuc().drawT(pain, x + dxx(), y);
 	if (hasUp())
-		up().drawT(pain, x + 1, y - 1 /*dy1()*/);
+		up().drawT(pain, x + dx1(), y - dy1());
 	if (hasDown())
-		down().drawT(pain, x + 1, y + 1 /*dy0()*/);
+		down().drawT(pain, x + dx0(), y + dy0());
 }
 
 
@@ -440,16 +426,16 @@ bool InsetMathScript::has(bool up) const
 
 bool InsetMathScript::hasUp() const
 {
-	//lyxerr << "1up: " << bool(cell_1_is_up_));
-	//lyxerr << "hasUp: " << bool(idxOfScript(true)));
+	//lyxerr << "1up: " << bool(cell_1_is_up_) << endl;
+	//lyxerr << "hasUp: " << bool(idxOfScript(true)) << endl;
 	return idxOfScript(true);
 }
 
 
 bool InsetMathScript::hasDown() const
 {
-	//LYXERR0("1up: " << bool(cell_1_is_up_));
-	//LYXERR0("hasDown: " << bool(idxOfScript(false)));
+	//lyxerr << "1up: " << bool(cell_1_is_up_) << endl;
+	//lyxerr << "hasDown: " << bool(idxOfScript(false)) << endl;
 	return idxOfScript(false);
 }
 
@@ -462,19 +448,19 @@ Inset::idx_type InsetMathScript::idxOfScript(bool up) const
 		return (cell_1_is_up_ == up) ? 1 : 0;
 	if (nargs() == 3)
 		return up ? 1 : 2;
-	LASSERT(false, /**/);
+	BOOST_ASSERT(false);
 	// Silence compiler
 	return 0;
 }
 
 
-bool InsetMathScript::idxForward(Cursor &) const
+bool InsetMathScript::idxRight(Cursor &) const
 {
 	return false;
 }
 
 
-bool InsetMathScript::idxBackward(Cursor &) const
+bool InsetMathScript::idxLeft(Cursor &) const
 {
 	return false;
 }
@@ -525,8 +511,6 @@ bool InsetMathScript::idxUpDown(Cursor & cur, bool up) const
 
 void InsetMathScript::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
-
 	if (nuc().size()) {
 		os << nuc();
 		//if (nuc().back()->takesLimits()) {
@@ -537,7 +521,8 @@ void InsetMathScript::write(WriteStream & os) const
 		//}
 	} else {
 		if (os.firstitem())
-			LYXERR(Debug::MATHED, "suppressing {} when writing");
+			LYXERR(Debug::MATHED) << "suppressing {} when writing"
+					      << endl;
 		else
 			os << "{}";
 	}
@@ -658,71 +643,55 @@ void InsetMathScript::infoize(odocstream & os) const
 void InsetMathScript::infoize2(odocstream & os) const
 {
 	if (limits_)
-		os << from_ascii(limits_ == 1 ? ", Displayed limits" : ", Inlined limits");
+		os << (limits_ == 1 ? ", Displayed limits" : ", Inlined limits");
 }
 
 
-bool InsetMathScript::notifyCursorLeaves(Cursor const & old, Cursor & cur)
+bool InsetMathScript::notifyCursorLeaves(Cursor & cur)
 {
-	InsetMathNest::notifyCursorLeaves(old, cur);
+	InsetMathNest::notifyCursorLeaves(cur);
 
-	//LYXERR0("InsetMathScript::notifyCursorLeaves: 1 " << cur);
+	//lyxerr << "InsetMathScript::notifyCursorLeaves: 1 " << cur << endl;
 
-	// Remove empty scripts if possible:
-
-	// The case of two scripts, but only one got empty (1 = super, 2 = sub).
-	// We keep the script inset, but remove the empty script.
-	if (nargs() > 2 && (!cell(1).empty() || !cell(2).empty())) {
-		if (cell(2).empty()) {
+	// remove empty scripts if possible
+	if (nargs() > 2) {
+		// Case of two scripts. In this case, 1 = super, 2 = sub
+		if (cur.idx() == 2 && cell(2).empty()) {
 			// must be a subscript...
+			recordUndoInset(cur);
 			removeScript(false);
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
 			return true;
-		} else if (cell(1).empty()) {
+		} else if (cur.idx() == 1 && cell(1).empty()) {
 			// must be a superscript...
+			recordUndoInset(cur);
 			removeScript(true);
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
 			return true;
 		}
-	}
-	// Now the two suicide cases:
-	// * we have only one script which is empty
-	// * we have two scripts which are both empty.
-	// The script inset is removed completely.
-	if ((nargs() == 2 && cell(1).empty())
-	    || (nargs() == 3 && cell(1).empty() && cell(2).empty())) {
-		// Make undo step. We cannot use cur for this because
-		// it does not necessarily point to us anymore. But we
-		// should be on top of the cursor old.
-		Cursor insetCur = old;
-		int scriptSlice	= insetCur.find(this);
-		LASSERT(scriptSlice != -1, /**/);
-		insetCur.cutOff(scriptSlice);
-		insetCur.recordUndoInset();
-
+	} else if (nargs() > 1 && cur.idx() == 1 && cell(1).empty()) {
+		// could be either subscript or super script
+		recordUndoInset(cur);
+		removeScript(cell_1_is_up_);
 		// Let the script inset commit suicide. This is
 		// modelled on Cursor.pullArg(), but tries not to
 		// invoke notifyCursorLeaves again and does not touch
 		// cur (since the top slice will be deleted
-		// afterwards)
+		// afterwards))
 		MathData ar = cell(0);
-		insetCur.pop();
-		insetCur.cell().erase(insetCur.pos());
-		insetCur.cell().insert(insetCur.pos(), ar);
-
-		// redraw
-		cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+		Cursor tmpcur = cur;
+		tmpcur.pop();
+		tmpcur.cell().erase(tmpcur.pos());
+		tmpcur.cell().insert(tmpcur.pos(), ar);
 		return true;
 	}
 
-	//LYXERR0("InsetMathScript::notifyCursorLeaves: 2 " << cur);
+	//lyxerr << "InsetMathScript::notifyCursorLeaves: 2 " << cur << endl;
 	return false;
 }
 
 
 void InsetMathScript::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	//LYXERR("InsetMathScript: request: " << cmd);
+	//lyxerr << "InsetMathScript: request: " << cmd << std::endl;
 
 	if (cmd.action == LFUN_MATH_LIMITS) {
 		if (!cmd.argument().empty()) {

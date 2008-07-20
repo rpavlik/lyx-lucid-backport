@@ -29,7 +29,7 @@ public:
 	/// we write extra braces in any case...
 	bool extraBraces() const { return true; }
 	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	bool metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 
@@ -40,7 +40,7 @@ public:
 	///
 	void infoize(odocstream & os) const;
 private:
-	virtual Inset * clone() const;
+	virtual std::auto_ptr<Inset> doClone() const;
 	///
 	latexkeys const * key_;
 	///

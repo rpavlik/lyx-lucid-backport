@@ -14,7 +14,7 @@
 #ifndef FONT_METRICS_H
 #define FONT_METRICS_H
 
-#include "support/strfwd.h"
+#include "support/docstring.h"
 
 /**
  * A class holding helper functions for determining
@@ -97,10 +97,15 @@ public:
 		int & descent) const = 0;
 
 	/// return the maximum descent of the font
-	inline int maxHeight() const { return maxAscent() + maxDescent(); }
+	inline int maxHeight() const {
+		return maxAscent() + maxDescent();
+	}
 
 	/// return the descent of the char in the font
-	inline int height(char_type c) const { return ascent(c) + descent(c); }
+	inline int height(char_type c) const
+	{
+		return ascent(c) + descent(c);
+	}
 
 	/// return the inner width of the char in the font
 	inline int center(char_type c) const {
@@ -112,11 +117,9 @@ public:
 } // namespace frontend
 
 class Font;
-class FontInfo;
 
 /// Implementation is in Application.cpp
 frontend::FontMetrics const & theFontMetrics(Font const & f);
-frontend::FontMetrics const & theFontMetrics(FontInfo const & fi);
 
 } // namespace lyx
 

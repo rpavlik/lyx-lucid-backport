@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alfredo Braunstein
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,7 +13,7 @@
 
 #include "InsetIterator.h"
 
-#include "support/lassert.h"
+#include <boost/assert.hpp>
 
 
 namespace lyx {

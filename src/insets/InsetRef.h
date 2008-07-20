@@ -36,48 +36,37 @@ public:
 	static std::string const & getName(int type);
 
 
-	InsetRef(Buffer const & buffer, InsetCommandParams const &);
+	InsetRef(InsetCommandParams const &, Buffer const &);
 
 	///
-	bool isLabeled() const { return true; }
-	///
-	docstring screenLabel() const;
+	docstring const getScreenLabel(Buffer const &) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	InsetCode lyxCode() const { return REF_CODE; }
+	Code lyxCode() const { return REF_CODE; }
 	///
 	DisplayType display() const { return Inline; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int plaintext(odocstream &, OutputParams const &) const;
+	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
 	///
-	int docbook(odocstream &, OutputParams const &) const;
+	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
 	/// the string that is passed to the TOC
-	void textString(odocstream &) const;
+	void textString(Buffer const &, odocstream &) const;
 	///
 	void validate(LaTeXFeatures & features) const;
-	///
-	static ParamInfo const & findInfo(std::string const &);
-	///
-	static std::string defaultCommand() { return "ref"; };
-	///
-	static bool isCompatibleCommand(std::string const & s);
-	///
-	void updateLabels(ParIterator const & it);
-	///
-	void addToToc(DocIterator const &);
 protected:
-	///
 	InsetRef(InsetRef const &);
-private:
+
 	///
-	Inset * clone() const { return new InsetRef(*this); }
+	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+private:
+	virtual std::auto_ptr<Inset> doClone() const {
+		return std::auto_ptr<Inset>(new InsetRef(*this));
+	}
 	///
 	bool isLatex;
-	///
-	mutable docstring screen_label_;
 };
 
 } // namespace lyx

@@ -15,57 +15,45 @@
 
 #include "frontends/WorkArea.h"
 
-#include "DocIterator.h"
 #include "FuncRequest.h"
-#include "qt_helpers.h"
-#include "support/docstring.h"
-#include "support/Timeout.h"
+#include "frontends/Timeout.h"
 
 #include <QAbstractScrollArea>
 #include <QMouseEvent>
-#include <QPixmap>
 #include <QResizeEvent>
-#include <QTabBar>
-#include <QTabWidget>
+#include <QKeyEvent>
 #include <QTimer>
+#include <QPixmap>
 
-class QContextMenuEvent;
+#include <queue>
+
+class QWidget;
 class QDragEnterEvent;
 class QDropEvent;
-class QKeyEvent;
 class QWheelEvent;
 class QPaintEvent;
-class QWidget;
-
-#ifdef CursorShape
-#undef CursorShape
-#endif
 
 namespace lyx {
-
-class Buffer;
-
 namespace frontend {
 
-class GuiCompleter;
 class GuiView;
-class GuiWorkArea;
+class QLPainter;
 
 /// for emulating triple click
-class DoubleClick {
+class double_click {
 public:
-	///
-	DoubleClick() : state(Qt::NoButton), active(false) {}
-	///
-	DoubleClick(QMouseEvent * e) : state(e->button()), active(true) {}
-	///
-	bool operator==(QMouseEvent const & e) { return state == e.button(); }
-	///
-public:
-	///
 	Qt::MouseButton state;
-	///
 	bool active;
+
+	bool operator==(QMouseEvent const & e) {
+		return state == e.button();
+	}
+
+	double_click()
+		: state(Qt::NoButton), active(false) {}
+
+	double_click(QMouseEvent * e)
+		: state(e->button()), active(true) {}
 };
 
 /** Qt only emits mouse events when the mouse is being moved, but
@@ -89,92 +77,49 @@ public:
 	double scrollbar_value_old;
 };
 
-
 /**
- * Implementation of the work area (buffer view GUI)
+ * Qt-specific implementation of the work area
+ * (buffer view GUI)
 */
-class CursorWidget;
-
+	class CursorWidget;
 class GuiWorkArea : public QAbstractScrollArea, public WorkArea
 {
 	Q_OBJECT
 
 public:
 	///
-	GuiWorkArea(Buffer & buffer, GuiView & lv);
-	///
-	~GuiWorkArea();
+	GuiWorkArea(int width, int height, int id, LyXView & lyx_view);
 
 	///
-	void setFullScreen(bool full_screen);
-	/// is LyXView in fullscreen mode?
-	bool isFullScreen();
-	///
-	void scheduleRedraw() { schedule_redraw_ = true; }
-	///
-	BufferView & bufferView();
-	///
-	BufferView const & bufferView() const;
-	///
-	void redraw();
-	///
-	void stopBlinkingCursor();
-	///
-	void startBlinkingCursor();
-	/// Process Key pressed event.
-	/// This needs to be public because it is accessed externally by GuiView.
-	void processKeySym(KeySymbol const & key, KeyModifier mod);
-	///
-	void resizeBufferView();
+	bool hasFocus() const { return QAbstractScrollArea::hasFocus(); }
 
+	/// return the width of the content pane
+	virtual int width() const { return viewport()->width(); }
+	/// return the height of the content pane
+	virtual int height() const { return viewport()->height(); }
 	///
-	GuiCompleter & completer() { return *completer_; }
-	
-Q_SIGNALS:
+	virtual void setScrollbarParams(int height, int pos, int line_height);
 	///
-	void titleChanged(GuiWorkArea *);
-
-private Q_SLOTS:
-	/// Scroll the BufferView.
-	/**
-	  * This is a slot for the valueChanged() signal of the vertical scrollbar.
-	  * \p value value of the scrollbar.
-	*/
-	void scrollTo(int value);
-	/// timer to limit triple clicks
-	void doubleClickTimeout();
-	/// toggle the cursor's visibility
-	void toggleCursor();
-	/// close this work area.
-	/// Slot for Buffer::closing signal.
-	void close();
-	/// Slot to restore proper scrollbar behaviour.
-	void fixVerticalScrollBar();
-
-private:
-	friend class GuiCompleter;
+	virtual void scheduleRedraw() { schedule_redraw_ = true; }
 
 	/// update the passed area.
 	void update(int x, int y, int w, int h);
-	///
-	void updateScreen();
+
+	/// copies specified area of pixmap to screen
+	virtual void expose(int x, int y, int exp_width, int exp_height);
 
 	/// paint the cursor and store the background
-	virtual void showCursor(int x, int y, int h,
-		bool l_shape, bool rtl, bool completable);
+	virtual void showCursor(int x, int y, int h, CursorShape shape);
 
 	/// hide the cursor
 	virtual void removeCursor();
 
-	/// This function is called when the buffer readonly status change.
-	void setReadOnly(bool);
-
-	/// Update window titles of all users.
-	void updateWindowTitle();
+private:
+	void doGreyOut(QLPainter & pain);
 	///
-	bool event(QEvent *);
+	void dragEnterEvent(QDragEnterEvent * ev);
 	///
-	void contextMenuEvent(QContextMenuEvent *);
+	void dropEvent(QDropEvent * ev);
 	///
 	void focusInEvent(QFocusEvent *);
 	///
@@ -200,33 +145,30 @@ private:
 	/// IM query
 	QVariant inputMethodQuery(Qt::InputMethodQuery query) const;
 
+public Q_SLOTS:
+	/// Adjust the LyX buffer view with the position of the scrollbar.
+	/**
+	* The action argument is not used in the the code, it is there
+	* only for the connection to the vertical srollbar signal which
+	* emits an 'int' action.
+	*/
+	void adjustViewWithScrollBar(int action = 0);
+	/// timer to limit triple clicks
+	void doubleClickTimeout();
+
+private:
 	/// The slot connected to SyntheticMouseEvent::timeout.
 	void generateSyntheticMouseEvent();
-	///
-	void dispatch(FuncRequest const & cmd0, KeyModifier = NoModifier);
-	/// hide the visible cursor, if it is visible
-	void hideCursor();
-	/// show the cursor if it is not visible
-	void showCursor();
-	///
-	void updateScrollbar();
 
-	///
-	BufferView * buffer_view_;
-	///
-	GuiView * lyx_view_;
-	/// is the cursor currently displayed
-	bool cursor_visible_;
-
-	///
-	QTimer cursor_timeout_;
 	///
 	SyntheticMouseEvent synthetic_mouse_event_;
 	///
-	DoubleClick dc_event_;
+	double_click dc_event_;
 
 	///
 	CursorWidget * cursor_;
+	///
+	void updateScreen();
 	///
 	QPixmap screen_;
 	///
@@ -235,87 +177,6 @@ private:
 	bool schedule_redraw_;
 	///
 	int preedit_lines_;
-
-	///
-	GuiCompleter * completer_;
-}; // GuiWorkArea
-
-
-/// A tabbed set of GuiWorkAreas.
-class TabWorkArea : public QTabWidget
-{
-	Q_OBJECT
-public:
-	TabWorkArea(QWidget * parent = 0);
-
-	///
-	void setFullScreen(bool full_screen);
-	void showBar(bool show);
-	void closeAll();
-	bool setCurrentWorkArea(GuiWorkArea *);
-	GuiWorkArea * addWorkArea(Buffer & buffer, GuiView & view);
-	bool removeWorkArea(GuiWorkArea *);
-	GuiWorkArea * currentWorkArea();
-	GuiWorkArea * workArea(Buffer & buffer);
-
-Q_SIGNALS:
-	///
-	void currentWorkAreaChanged(GuiWorkArea *);
-	///
-	void lastWorkAreaRemoved();
-
-public Q_SLOTS:
-	/// close current buffer, or the one given by \c clicked_tab_
-	void closeCurrentBuffer();
-	/// close current tab, or the one given by \c clicked_tab_
-	void closeCurrentTab();
-	///
-	void updateTabTexts();
-	
-private Q_SLOTS:
-	///
-	void on_currentTabChanged(int index);
-	///
-	void showContextMenu(const QPoint & pos);
-	///
-	void moveTab(int fromIndex, int toIndex);
-
-private:
-	int clicked_tab_;
-}; // TabWorkArea
-
-
-class DragTabBar : public QTabBar
-{
-	Q_OBJECT
-public:
-	///
-	DragTabBar(QWidget * parent = 0);
-
-#if QT_VERSION < 0x040300
-	///
-	int tabAt(QPoint const & position) const;
-#endif
-
-protected:
-	///
-	void mousePressEvent(QMouseEvent * event);
-	///
-	void mouseMoveEvent(QMouseEvent * event);
-	///
-	void dragEnterEvent(QDragEnterEvent * event);
-	///
-	void dropEvent(QDropEvent * event);
-
-private:
-	///
-	QPoint dragStartPos_;
-	///
-	int dragCurrentIndex_;
-
-Q_SIGNALS:
-	///
-	void tabMoveRequested(int fromIndex, int toIndex);
 };
 
 } // namespace frontend

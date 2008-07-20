@@ -10,19 +10,19 @@
 
 #include <config.h>
 
-#include "support/debug.h"
+#include "debug.h"
 
 #include <boost/assert.hpp>
 
 #include <cstdlib>
 #include <exception>
-#include <ostream>
 
-using namespace std;
+
+using std::endl;
 
 namespace boost {
 
-void throw_exception(exception const & e)
+void throw_exception(std::exception const & e)
 {
 	lyx::lyxerr << "Exception caught:\n"
 	       << e.what() << endl;

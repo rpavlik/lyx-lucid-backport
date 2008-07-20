@@ -11,30 +11,32 @@
 
 #include <config.h>
 
+#include "debug.h"
 #include "LyX.h"
+#include "gettext.h"
 
-#include "support/debug.h"
-#include "support/gettext.h"
 #include "support/os.h"
 
-#include <iostream>
+#include <boost/filesystem/path.hpp>
+
 #ifdef HAVE_IOS
 #include <ios>
 #endif
 
-using namespace std;
 
+namespace fs = boost::filesystem;
 
 int main(int argc, char * argv[])
 {
 #ifdef HAVE_IOS
-	ios_base::sync_with_stdio(false);
+	std::ios_base::sync_with_stdio(false);
 #endif
+	fs::path::default_name_check(fs::no_check);
 
 	// To avoid ordering of global object problems with some
 	// stdlibs we do the initialization here, but still as
 	// early as possible.
-	lyx::lyxerr.setStream(cerr);
+	lyx::lyxerr.rdbuf(std::cerr.rdbuf());
 
 	lyx::support::os::init(argc, argv);
 

@@ -1,6 +1,9 @@
 <ui version="4.0" >
- <class>PrintUi</class>
- <widget class="QDialog" name="PrintUi" >
+ <author></author>
+ <comment></comment>
+ <exportmacro></exportmacro>
+ <class>QPrintUi</class>
+ <widget class="QDialog" name="QPrintUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -321,7 +324,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_i18n.h</include>
+  <include location="local" >qt_helpers.h</include>
  </includes>
  <tabstops>
   <tabstop>printerRB</tabstop>

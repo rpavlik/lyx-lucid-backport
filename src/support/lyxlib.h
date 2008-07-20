@@ -15,11 +15,43 @@
 #ifndef LYX_LIB_H
 #define LYX_LIB_H
 
+#include "support/FileName.h"
+
+#include <string>
+
+
 namespace lyx {
 namespace support {
 
+/// get the current working directory
+FileName const getcwd();
+/// change to a directory, 0 is returned on success.
+int chdir(FileName const & name);
+/// Change file permissions
+bool chmod(FileName const & file, unsigned long int mode);
+/**
+ * rename a file, returns false if it fails.
+ * It can handle renames across partitions.
+ */
+bool rename(FileName const & from, FileName const & to);
+/// copy a file, returns false it it fails
+bool copy(FileName const & from, FileName const & to,
+	  unsigned long int mode = (unsigned long int)-1);
+/// generates a checksum of a file
+unsigned long sum(FileName const & file);
 /// FIXME: some point to this hmm ?
 int kill(int pid, int sig);
+/// FIXME: same here
+void abort();
+/// create the given directory with the given mode
+int mkdir(FileName const & pathname, unsigned long int mode);
+/// unlink the given file
+int unlink(FileName const & file);
+/// (securely) create a temporary file in the given dir with the given mask
+/// \p mask must be in filesystem encoding
+FileName const tempName(FileName const & dir = FileName(),
+		      std::string const & mask = std::string());
+
 
 /**
  * Returns true if var is approximately equal to number with allowed error

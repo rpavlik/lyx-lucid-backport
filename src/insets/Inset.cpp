@@ -16,104 +16,97 @@
 
 #include "Inset.h"
 
-#include "buffer_funcs.h"
 #include "Buffer.h"
-#include "BufferList.h"
-#include "BufferParams.h"
 #include "BufferView.h"
+#include "Color.h"
 #include "CoordCache.h"
 #include "Cursor.h"
+#include "debug.h"
+#include "debug.h"
 #include "Dimension.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "MetricsInfo.h"
+#include "gettext.h"
 #include "Text.h"
-#include "TextClass.h"
+#include "MetricsInfo.h"
+#include "MetricsInfo.h"
 
-#include "frontends/Application.h"
 #include "frontends/Painter.h"
 
-#include "support/convert.h"
-#include "support/debug.h"
-#include "support/docstream.h"
-#include "support/ExceptionMessage.h"
-#include "support/gettext.h"
-#include "support/lassert.h"
+#include <boost/current_function.hpp>
 
 #include <map>
+#include <typeinfo>
 
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
 
 class InsetName {
 public:
-	InsetName(string const & n, InsetCode c) : name(n), code(c) {}
-	string name;
-	InsetCode code;
+	InsetName(std::string const & n, Inset::Code c)
+		: name(n), code(c) {}
+	std::string name;
+	Inset::Code code;
 };
 
 
-typedef map<string, InsetCode> TranslatorMap;
+typedef std::map<std::string, Inset::Code> TranslatorMap;
 
 
 static TranslatorMap const build_translator()
 {
 	InsetName const insetnames[] = {
-		InsetName("toc", TOC_CODE),
-		InsetName("quote", QUOTE_CODE),
-		InsetName("ref", REF_CODE),
-		InsetName("href", HYPERLINK_CODE),
-		InsetName("separator", SEPARATOR_CODE),
-		InsetName("ending", ENDING_CODE),
-		InsetName("label", LABEL_CODE),
-		InsetName("note", NOTE_CODE),
-		InsetName("accent", ACCENT_CODE),
-		InsetName("math", MATH_CODE),
-		InsetName("index", INDEX_CODE),
-		InsetName("nomenclature", NOMENCL_CODE),
-		InsetName("include", INCLUDE_CODE),
-		InsetName("graphics", GRAPHICS_CODE),
-		InsetName("bibitem", BIBITEM_CODE),
-		InsetName("bibtex", BIBTEX_CODE),
-		InsetName("text", TEXT_CODE),
-		InsetName("ert", ERT_CODE),
-		InsetName("foot", FOOT_CODE),
-		InsetName("margin", MARGIN_CODE),
-		InsetName("float", FLOAT_CODE),
-		InsetName("wrap", WRAP_CODE),
-		InsetName("specialchar", SPECIALCHAR_CODE),
-		InsetName("tabular", TABULAR_CODE),
-		InsetName("external", EXTERNAL_CODE),
-		InsetName("caption", CAPTION_CODE),
-		InsetName("mathmacro", MATHMACRO_CODE),
-		InsetName("citation", CITE_CODE),
-		InsetName("floatlist", FLOAT_LIST_CODE),
-		InsetName("index_print", INDEX_PRINT_CODE),
-		InsetName("nomencl_print", NOMENCL_PRINT_CODE),
-		InsetName("optarg", OPTARG_CODE),
-		InsetName("newline", NEWLINE_CODE),
-		InsetName("line", LINE_CODE),
-		InsetName("branch", BRANCH_CODE),
-		InsetName("box", BOX_CODE),
-		InsetName("flex", FLEX_CODE),
-		InsetName("space", SPACE_CODE),
-		InsetName("vspace", VSPACE_CODE),
-		InsetName("mathmacroarg", MATHMACROARG_CODE),
-		InsetName("listings", LISTINGS_CODE),
-		InsetName("info", INFO_CODE),
-		InsetName("collapsable", COLLAPSABLE_CODE),
-		InsetName("newpage", NEWPAGE_CODE),
-		InsetName("tablecell", CELL_CODE)
+		InsetName("toc", Inset::TOC_CODE),
+		InsetName("quote", Inset::QUOTE_CODE),
+		InsetName("ref", Inset::REF_CODE),
+		InsetName("url", Inset::URL_CODE),
+		InsetName("htmlurl", Inset::HTMLURL_CODE),
+		InsetName("separator", Inset::SEPARATOR_CODE),
+		InsetName("ending", Inset::ENDING_CODE),
+		InsetName("label", Inset::LABEL_CODE),
+		InsetName("note", Inset::NOTE_CODE),
+		InsetName("accent", Inset::ACCENT_CODE),
+		InsetName("math", Inset::MATH_CODE),
+		InsetName("index", Inset::INDEX_CODE),
+		InsetName("nomenclature", Inset::NOMENCL_CODE),
+		InsetName("include", Inset::INCLUDE_CODE),
+		InsetName("graphics", Inset::GRAPHICS_CODE),
+		InsetName("bibitem", Inset::BIBITEM_CODE),
+		InsetName("bibtex", Inset::BIBTEX_CODE),
+		InsetName("text", Inset::TEXT_CODE),
+		InsetName("ert", Inset::ERT_CODE),
+		InsetName("foot", Inset::FOOT_CODE),
+		InsetName("margin", Inset::MARGIN_CODE),
+		InsetName("float", Inset::FLOAT_CODE),
+		InsetName("wrap", Inset::WRAP_CODE),
+		InsetName("specialchar", Inset::SPECIALCHAR_CODE),
+		InsetName("tabular", Inset::TABULAR_CODE),
+		InsetName("external", Inset::EXTERNAL_CODE),
+		InsetName("caption", Inset::CAPTION_CODE),
+		InsetName("mathmacro", Inset::MATHMACRO_CODE),
+		InsetName("cite", Inset::CITE_CODE),
+		InsetName("float_list", Inset::FLOAT_LIST_CODE),
+		InsetName("index_print", Inset::INDEX_PRINT_CODE),
+		InsetName("nomencl_print", Inset::NOMENCL_PRINT_CODE),
+		InsetName("optarg", Inset::OPTARG_CODE),
+		InsetName("environment", Inset::ENVIRONMENT_CODE),
+		InsetName("hfill", Inset::HFILL_CODE),
+		InsetName("newline", Inset::NEWLINE_CODE),
+		InsetName("line", Inset::LINE_CODE),
+		InsetName("branch", Inset::BRANCH_CODE),
+		InsetName("box", Inset::BOX_CODE),
+		InsetName("charstyle", Inset::CHARSTYLE_CODE),
+		InsetName("vspace", Inset::VSPACE_CODE),
+		InsetName("mathmacroarg", Inset::MATHMACROARG_CODE),
+		InsetName("listings", Inset::LISTINGS_CODE),
 	};
 
-	size_t const insetnames_size =
+	std::size_t const insetnames_size =
 		sizeof(insetnames) / sizeof(insetnames[0]);
 
-	map<string, InsetCode> data;
-	for (size_t i = 0; i != insetnames_size; ++i) {
+	std::map<std::string, Inset::Code> data;
+	for (std::size_t i = 0; i != insetnames_size; ++i) {
 		InsetName const & var = insetnames[i];
 		data[var.name] = var.code;
 	}
@@ -122,89 +115,26 @@ static TranslatorMap const build_translator()
 }
 
 
-void Inset::setBuffer(Buffer & buffer)
+/// pretty arbitrary dimensions
+Inset::Inset()
+	: dim_(10, 10, 10)
+{}
+
+
+std::auto_ptr<Inset> Inset::clone() const
 {
-	buffer_ = &buffer;
+	std::auto_ptr<Inset> b = doClone();
+	BOOST_ASSERT(typeid(*b) == typeid(*this));
+	return b;
 }
 
 
-Buffer & Inset::buffer()
-{
-	if (!buffer_) {
-		odocstringstream s;
-		lyxerr << "LyX Code: " << lyxCode() << " name: " << name() << std::endl;
-		s << "LyX Code: " << lyxCode() << " name: " << name();
-		LASSERT(false, /**/);
-		throw ExceptionMessage(BufferException, 
-			from_ascii("Inset::buffer_ member not initialized!"), s.str());
-	}
-	return *buffer_;
-}
-
-
-Buffer const & Inset::buffer() const
-{
-	return const_cast<Inset *>(this)->buffer();
-}
-
-
-bool Inset::isBufferValid() const
-{
-	return theBufferList().isLoaded(buffer_);
-}
-
-
-docstring Inset::name() const
-{
-	return from_ascii("unknown");
-}
-
-
-void Inset::initView()
-{
-	if (isLabeled())
-		lyx::updateLabels(buffer());
-}
-
-
-docstring Inset::toolTip(BufferView const &, int, int) const
-{
-	return docstring();
-}
-
-
-docstring Inset::contextMenu(BufferView const &, int, int) const
-{
-	return docstring();
-}
-
-
-Dimension const Inset::dimension(BufferView const & bv) const
-{
-	return bv.coordCache().getInsets().dim(this);
-}
-
-
-InsetCode insetCode(string const & name)
+Inset::Code Inset::translate(std::string const & name)
 {
 	static TranslatorMap const translator = build_translator();
 
 	TranslatorMap::const_iterator it = translator.find(name);
 	return it == translator.end() ? NO_CODE : it->second;
-}
-
-
-string insetName(InsetCode c) 
-{
-	static TranslatorMap const translator = build_translator();
-
-	TranslatorMap::const_iterator it =  translator.begin();
-	TranslatorMap::const_iterator end = translator.end();
-	for (; it != end; ++it) {
-		if (it->second == c)
-			return it->first;
-	}
-	return string();
 }
 
 
@@ -216,18 +146,10 @@ void Inset::dispatch(Cursor & cur, FuncRequest & cmd)
 }
 
 
-void Inset::doDispatch(Cursor & cur, FuncRequest &cmd)
+void Inset::doDispatch(Cursor & cur, FuncRequest &)
 {
-	switch (cmd.action) {
-	case LFUN_INSET_TOGGLE:
-		edit(cur, true);
-		cur.dispatched();
-		break;
-	default:
-		cur.noUpdate();
-		cur.undispatched();
-		break;
-	}
+	cur.noUpdate();
+	cur.undispatched();
 }
 
 
@@ -247,37 +169,34 @@ bool Inset::getStatus(Cursor &, FuncRequest const & cmd,
 		// Allow modification of our data.
 		// This needs to be handled in the doDispatch method of our
 		// instantiatable children.
-		flag.setEnabled(true);
+		flag.enabled(true);
 		return true;
 
 	case LFUN_INSET_INSERT:
 		// Don't allow insertion of new insets.
 		// Every inset that wants to allow new insets from open
 		// dialogs needs to override this.
-		flag.setEnabled(false);
-		return true;
-
-	case LFUN_INSET_TOGGLE:
-		// remove this if we dissociate toggle from edit.
-		flag.setEnabled(editable() == IS_EDITABLE);
+		flag.enabled(false);
 		return true;
 
 	default:
-		break;
+		return false;
 	}
-	return false;
 }
 
 
-void Inset::edit(Cursor &, bool, EntryDirection)
+void Inset::edit(Cursor &, bool)
 {
-	LYXERR(Debug::INSETS, "edit left/right");
+	LYXERR(Debug::INSETS) << BOOST_CURRENT_FUNCTION
+			      << ": edit left/right" << std::endl;
 }
 
 
 Inset * Inset::editXY(Cursor &, int x, int y)
 {
-	LYXERR(Debug::INSETS, "x: " << x << " y: " << y);
+	LYXERR(Debug::INSETS) << BOOST_CURRENT_FUNCTION
+			      << ": x=" << x << " y= " << y
+			      << std::endl;
 	return this;
 }
 
@@ -285,9 +204,11 @@ Inset * Inset::editXY(Cursor &, int x, int y)
 Inset::idx_type Inset::index(row_type row, col_type col) const
 {
 	if (row != 0)
-		LYXERR0("illegal row: " << row);
+		lyxerr << BOOST_CURRENT_FUNCTION
+		       << ": illegal row: " << row << std::endl;
 	if (col != 0)
-		LYXERR0("illegal col: " << col);
+		lyxerr << BOOST_CURRENT_FUNCTION
+		       << ": illegal col: " << col << std::endl;
 	return 0;
 }
 
@@ -304,7 +225,8 @@ bool Inset::idxUpDown(Cursor &, bool) const
 }
 
 
-int Inset::docbook(odocstream &, OutputParams const &) const
+int Inset::docbook(Buffer const &,
+	odocstream &, OutputParams const &) const
 {
 	return 0;
 }
@@ -328,7 +250,7 @@ bool Inset::autoDelete() const
 }
 
 
-docstring Inset::editMessage() const
+docstring const Inset::editMessage() const
 {
 	return _("Opened inset");
 }
@@ -337,7 +259,7 @@ docstring Inset::editMessage() const
 void Inset::cursorPos(BufferView const & /*bv*/, CursorSlice const &,
 		bool, int & x, int & y) const
 {
-	LYXERR0("Inset::cursorPos called directly");
+	lyxerr << "Inset::cursorPos called directly" << std::endl;
 	x = 100;
 	y = 100;
 }
@@ -360,13 +282,11 @@ void Inset::metricsMarkers2(Dimension & dim, int framesize) const
 
 void Inset::drawMarkers(PainterInfo & pi, int x, int y) const
 {
-	ColorCode pen_color = mouseHovered() || editing(pi.base.bv)?
-		Color_mathframe : Color_mathcorners;
+	Color::color pen_color = mouseHovered() || editing(pi.base.bv)?
+		Color::mathframe : Color::mathcorners;
 
-	Dimension const dim = dimension(*pi.base.bv);
-
-	int const t = x + dim.width() - 1;
-	int const d = y + dim.descent();
+	int const t = x + width() - 1;
+	int const d = y + descent();
 	pi.pain.line(x, d - 3, x, d, pen_color);
 	pi.pain.line(t, d - 3, t, d, pen_color);
 	pi.pain.line(x, d, x + 3, d, pen_color);
@@ -377,13 +297,12 @@ void Inset::drawMarkers(PainterInfo & pi, int x, int y) const
 
 void Inset::drawMarkers2(PainterInfo & pi, int x, int y) const
 {
-	ColorCode pen_color = mouseHovered() || editing(pi.base.bv)?
-		Color_mathframe : Color_mathcorners;
+	Color::color pen_color = mouseHovered() || editing(pi.base.bv)?
+		Color::mathframe : Color::mathcorners;
 
 	drawMarkers(pi, x, y);
-	Dimension const dim = dimension(*pi.base.bv);
-	int const t = x + dim.width() - 1;
-	int const a = y - dim.ascent();
+	int const t = x + width() - 1;
+	int const a = y - ascent();
 	pi.pain.line(x, a + 3, x, a, pen_color);
 	pi.pain.line(t, a + 3, t, a, pen_color);
 	pi.pain.line(x, a, x + 3, a, pen_color);
@@ -392,7 +311,7 @@ void Inset::drawMarkers2(PainterInfo & pi, int x, int y) const
 }
 
 
-bool Inset::editing(BufferView const * bv) const
+bool Inset::editing(BufferView * bv) const
 {
 	return bv->cursor().isInside(this);
 }
@@ -412,50 +331,51 @@ int Inset::yo(BufferView const & bv) const
 
 bool Inset::covers(BufferView const & bv, int x, int y) const
 {
-	return bv.coordCache().getInsets().covers(this, x, y);
-}
-
-
-InsetLayout const & Inset::getLayout(BufferParams const & bp) const
-{
-	return bp.documentClass().insetLayout(name());  
+	//lyxerr << "Inset::covers, x: " << x << " y: " << y
+	//	<< " xo: " << xo(bv) << " yo: " << yo()
+	//	<< " x1: " << xo(bv) << " x2: " << xo() + width()
+	//	<< " y1: " << yo(bv) - ascent() << " y2: " << yo() + descent()
+	//	<< std::endl;
+	return bv.coordCache().getInsets().has(this)
+			&& x >= xo(bv)
+			&& x <= xo(bv) + width()
+			&& y >= yo(bv) - ascent()
+			&& y <= yo(bv) + descent();
 }
 
 
 void Inset::dump() const
 {
-	write(lyxerr);
+	Buffer buf("foo", 1);
+	write(buf, lyxerr);
 }
 
 
-ColorCode Inset::backgroundColor() const
+Color_color Inset::backgroundColor() const
 {
-	return Color_background;
+	return Color::background;
 }
 
 
 void Inset::setPosCache(PainterInfo const & pi, int x, int y) const
 {
-	//LYXERR("Inset: set position cache to " << x << " " << y);
+	//lyxerr << "Inset:: position cache to " << x << " " << y << std::endl;
 	pi.base.bv->coordCache().insets().add(this, x, y);
 }
 
 
-void Inset::setDimCache(MetricsInfo const & mi, Dimension const & dim) const
+/////////////////////////////////////////
+
+bool isEditableInset(Inset const * inset)
 {
-	mi.base.bv->coordCache().insets().add(this, dim);
+	return inset && inset->editable();
 }
 
 
-Buffer const * Inset::updateFrontend() const
+bool isHighlyEditableInset(Inset const * inset)
 {
-	return theApp() ? theApp()->updateInset(this) : 0;
+	return inset && inset->editable() == Inset::HIGHLY_EDITABLE;
 }
 
-
-docstring Inset::completionPrefix(Cursor const &) const 
-{
-	return docstring();
-}
 
 } // namespace lyx

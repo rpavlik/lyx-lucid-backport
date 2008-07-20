@@ -15,11 +15,16 @@
 #include "support/lstrings.h"
 #include "support/convert.h"
 
-#include <ostream>
+#include <sstream>
+#include <string>
 
-using namespace std;
 
 namespace lyx {
+
+
+using std::ostream;
+using std::ostringstream;
+using std::string;
 
 
 string const Spacing::spacing_string[]
@@ -88,59 +93,50 @@ void Spacing::writeFile(ostream & os, bool para) const
 }
 
 
-namespace {
-
-string envName(Spacing::Space space, bool useSetSpace) 
-{
-	static char const * const env_names[]
-		= { "SingleSpace", "OnehalfSpace", "DoubleSpace", "Spacing", ""};
-	string const name = env_names[space];
-
-	return useSetSpace ? name : support::ascii_lowercase(name);
-}
-
-}
-
 string const Spacing::writeEnvirBegin(bool useSetSpace) const
 {
-	string const name = envName(space, useSetSpace);
-	if (space == Other) 
-		return "\\begin{" + name + "}{" + getValueAsString() + '}';
-	else 
-		return name.empty() ? string() : "\\begin{" + name + '}';
+	switch (space) {
+	case Default: break; // do nothing
+	case Single:
+		return (useSetSpace ? "\\begin{SingleSpace}"
+			: "\\begin{singlespace}");
+	case Onehalf:
+		return (useSetSpace ? "\\begin{OnehalfSpace}"
+			: "\\begin{onehalfspace}");
+	case Double:
+		return (useSetSpace ? "\\begin{DoubleSpace}" 
+			: "\\begin{doublespace}");
+	case Other:
+	{
+		ostringstream ost;
+		ost << (useSetSpace ? "\\begin{Spacing}{"
+			: "\\begin{spacing}{" )
+		    << getValueAsString() << '}';
+		return ost.str();
+	}
+	}
+	return string();
 }
 
 
 string const Spacing::writeEnvirEnd(bool useSetSpace) const
 {
-	string const name = envName(space, useSetSpace);
-	return name.empty() ? string() : "\\end{" + name + '}';
-}
-
-
-string const Spacing::writePreamble(bool useSetSpace) const
-{
-	string preamble;
 	switch (space) {
-	case Default:
+	case Default: break; // do nothing
 	case Single:
-		// we dont use setspace.sty so dont print anything
-		//return "\\singlespacing\n";
-		break;
+		return (useSetSpace ? "\\end{SingleSpace}"
+			: "\\end{singlespace}");
 	case Onehalf:
-		preamble = useSetSpace ? "\\OnehalfSpacing\n" 
-			: "\\onehalfspacing\n";
-		break;
+		return (useSetSpace ? "\\end{OnehalfSpace}"
+			: "\\end{onehalfspace}");
 	case Double:
-		preamble = useSetSpace ? "\\DoubleSpacing\n" 
-			: "\\doublespacing\n";
-		break;
+		return (useSetSpace ? "\\end{DoubleSpace}" 
+			: "\\end{doublespace}");
 	case Other:
-		preamble = (useSetSpace ? "\\setSpacing{" : "\\setstretch{")
-			+ getValueAsString() + "}\n";
-		break;
+		return (useSetSpace ? "\\end{Spacing}" : "\\end{spacing}") ;
 	}
-	return preamble;
+	return string();
 }
+
 
 } // namespace lyx

@@ -16,9 +16,14 @@
 
 #include <iostream>
 
-using namespace std;
 
 namespace lyx {
+
+using std::cerr;
+using std::endl;
+
+using std::ostream;
+using std::string;
 
 
 bool is_math_env(string const & name)

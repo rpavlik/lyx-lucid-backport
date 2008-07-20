@@ -11,34 +11,39 @@
 #include <config.h>
 
 #include "InsetMathSize.h"
-
 #include "MathData.h"
 #include "MathParser.h"
 #include "MathStream.h"
 
 #include "support/convert.h"
-
-#include <ostream>
+#include "support/std_ostream.h"
 
 
 namespace lyx {
+
+using std::auto_ptr;
+
 
 InsetMathSize::InsetMathSize(latexkeys const * l)
 	: InsetMathNest(1), key_(l), style_(Styles(convert<int>(l->extra)))
 {}
 
 
-Inset * InsetMathSize::clone() const
+auto_ptr<Inset> InsetMathSize::doClone() const
 {
-	return new InsetMathSize(*this);
+	return auto_ptr<Inset>(new InsetMathSize(*this));
 }
 
 
-void InsetMathSize::metrics(MetricsInfo & mi, Dimension & dim) const
+bool InsetMathSize::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	StyleChanger dummy(mi.base, style_);
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
+	if (dim_ == dim)
+		return false;
+	dim_ = dim;
+	return true;
 }
 
 
@@ -52,7 +57,6 @@ void InsetMathSize::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathSize::write(WriteStream & os) const
 {
-	MathEnsurer ensurer(os);
 	os << "{\\" << key_->name << ' ' << cell(0) << '}';
 }
 

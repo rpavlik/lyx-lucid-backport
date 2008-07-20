@@ -38,7 +38,37 @@ SetCompressor lzma
 Var INSTDIR_NEW
 Var INSTDIR_OLD
 # Variables used by all installer versions
-!include "Variables.nsh"
+Var AspellInstallYes
+Var AspellBaseReg
+Var AspellMessage
+Var ImageMagickPath
+Var JabRefInstalled
+Var LatexPath
+Var MiKTeXInstalled
+Var PythonPath
+Var Answer
+Var AppPre
+Var AppSuff
+Var AppPath
+Var CreateDesktopIcon
+Var CreateFileAssociations
+Var DictCode
+Var FileName
+Var LangCode
+Var LangCodeSys
+Var LangName
+Var LangNameSys
+Var NewString
+Var OldString
+Var PathPrefix
+Var Pointer
+Var ProductRootKey
+Var RunNumber
+Var StartmenuFolder
+Var String
+Var Search
+Var UserList
+Var UserName
 
 #--------------------------------
 # load some NSIS libraries

@@ -16,13 +16,17 @@
 #include "PreviewLoader.h"
 
 #include "support/FileName.h"
+#include "support/lyxlib.h"
 
 #include <boost/bind.hpp>
 
-using namespace std;
-using namespace lyx::support;
+using std::string;
+
 
 namespace lyx {
+
+using support::FileName;
+
 namespace graphics {
 
 class PreviewImage::Impl : public boost::signals::trackable {
@@ -59,9 +63,7 @@ PreviewImage::PreviewImage(PreviewLoader & l,
 
 
 PreviewImage::~PreviewImage()
-{
-	delete pimpl_;
-}
+{}
 
 
 string const & PreviewImage::snippet() const
@@ -70,17 +72,31 @@ string const & PreviewImage::snippet() const
 }
 
 
-Dimension PreviewImage::dim() const
+int PreviewImage::ascent() const
 {
-	Dimension dim;
 	Image const * const image = pimpl_->iloader_.image();
 	if (!image)
-		return dim;
+		return 0;
 
-	dim.asc = int(pimpl_->ascent_frac_ * double(image->height()));
-	dim.des = image->height() - dim.asc;
-	dim.wid = image->width();
-	return dim;
+	return int(pimpl_->ascent_frac_ * double(image->getHeight()));
+}
+
+
+int PreviewImage::descent() const
+{
+	Image const * const image = pimpl_->iloader_.image();
+	if (!image)
+		return 0;
+
+	// Avoids rounding errors.
+	return image->getHeight() - ascent();
+}
+
+
+int PreviewImage::width() const
+{
+	Image const * const image = pimpl_->iloader_.image();
+	return image ? image->getWidth() : 0;
 }
 
 
@@ -103,7 +119,7 @@ PreviewImage::Impl::Impl(PreviewImage & p, PreviewLoader & l,
 
 PreviewImage::Impl::~Impl()
 {
-	iloader_.filename().removeFile();
+	support::unlink(iloader_.filename());
 }
 
 
@@ -131,12 +147,12 @@ void PreviewImage::Impl::statusChanged()
 	case ErrorLoading:
 	case ErrorGeneratingPixmap:
 	case ErrorUnknown:
-		//iloader_.filename().removeFile();
+		//lyx::unlink(iloader_.filename());
 		ploader_.remove(snippet_);
 		break;
 
 	case Ready:
-		iloader_.filename().removeFile();
+		support::unlink(iloader_.filename());
 		break;
 	}
 	ploader_.emitSignal(parent_);

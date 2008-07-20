@@ -1,5 +1,5 @@
-#LyX 1.6.0beta3 created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass article
@@ -19,7 +19,6 @@
 \graphics default
 \paperfontsize default
 \spacing single
-\use_hyperref false
 \papersize default
 \use_geometry true
 \use_amsmath 0
@@ -56,7 +55,7 @@ por el Equipo LyX
 \begin_inset Foot
 status open
 
-\begin_layout Plain Layout
+\begin_layout Standard
 \noindent
 Si tienes comentarios o correcciones, por favor, escribe a la lista de correo
  de documentación de LyX, <lyx-docs@lists.lyx.org>.
@@ -101,8 +100,7 @@ lyx-users@lists.lyx.org
 \end_layout
 
 \begin_layout Abstract
-\begin_inset CommandInset toc
-LatexCommand tableofcontents
+\begin_inset LatexCommand tableofcontents
 
 \end_inset
 
@@ -243,13 +241,8 @@ Tesis (260 páginas en un documento, más largo con archivos incluidos)
 \begin_deeper
 \begin_layout Itemize
 por ejemplo, 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.fee.uva.nl/scholar/mdw/leuven/thesis.pdf
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.fee.uva.nl/scholar/mdw/leuven/thesis.pdf"
 
 \end_inset
 
@@ -293,13 +286,8 @@ Libros
 \begin_deeper
 \begin_layout Itemize
 véase 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.postgresql.org/docs/awbook.html
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.postgresql.org/docs/awbook.html"
 
 \end_inset
 
@@ -361,13 +349,8 @@ Proyectos de negocio para > $1 M (US)
 
 \begin_layout Standard
 La web 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.lyx.org"
 
 \end_inset
 
@@ -389,13 +372,8 @@ Tutorial
 
 \begin_layout Standard
 Otra guía básica de introducción a LyX es 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.bilkent.edu.tr/~robin/lyxguide.pdf
-\end_layout
+\begin_inset LatexCommand url
+target "www.bilkent.edu.tr/~robin/lyxguide.pdf"
 
 \end_inset
 
@@ -469,13 +447,8 @@ Sí.
 \begin_layout Standard
 La versión 1.0 de xforms está disponible bajo licencia LGPL y sus fuentes
  (y binarios) pueden encontrarse en 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://savannah.nongnu.org/download/xforms/xforms-1.0.tar.gz
-\end_layout
+\begin_inset LatexCommand url
+target "http://savannah.nongnu.org/download/xforms/xforms-1.0.tar.gz"
 
 \end_inset
 
@@ -492,13 +465,8 @@ Recursos en Internet
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.lyx.org"
 
 \end_inset
 
@@ -506,13 +474,8 @@ www.lyx.org
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-bugzilla.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "bugzilla.lyx.org"
 
 \end_inset
 
@@ -520,13 +483,8 @@ bugzilla.lyx.org
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.devel.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.devel.lyx.org"
 
 \end_inset
 
@@ -539,13 +497,8 @@ Sitios espejo conocidos incluyen:
 
 \begin_deeper
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.mx.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.mx.lyx.org"
 
 \end_inset
 
@@ -553,13 +506,8 @@ www.mx.lyx.org
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.no.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.no.lyx.org"
 
 \end_inset
 
@@ -567,13 +515,8 @@ www.no.lyx.org
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-www.it.lyx.org
-\end_layout
+\begin_inset LatexCommand url
+target "www.it.lyx.org"
 
 \end_inset
 
@@ -656,13 +599,8 @@ docs
 \end_inset
 
 ; en definitiva, para más detalles mira en 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.lyx.org/internet/mailing.php3
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.lyx.org/internet/mailing.php3"
 
 \end_inset
 
@@ -684,13 +622,8 @@ Sí.
 
 \begin_layout Itemize
 Announce: 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.mail-archive.com/lyx-announce@lists.lyx.org/
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.mail-archive.com/lyx-announce@lists.lyx.org/"
 
 \end_inset
 
@@ -699,13 +632,8 @@ http://www.mail-archive.com/lyx-announce@lists.lyx.org/
 
 \begin_layout Itemize
 Users: 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.mail-archive.com/lyx-users@lists.lyx.org/
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.mail-archive.com/lyx-users@lists.lyx.org/"
 
 \end_inset
 
@@ -714,13 +642,8 @@ http://www.mail-archive.com/lyx-users@lists.lyx.org/
 
 \begin_layout Itemize
 Devel: 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.mail-archive.com/lyx-devel@lists.lyx.org/
-\end_layout
+\begin_inset LatexCommand url
+target "http://www.mail-archive.com/lyx-devel@lists.lyx.org/"
 
 \end_inset
 
@@ -900,13 +823,8 @@ La mayoría de los paquetes mencionados están disponibles como paquetes precomp
 ados para diversos sistemas Linux, y quizás para otros sistemas.
  Los binarios de LyX están disponibles en formato RPM y en algunos otros,
  y se pueden obtener en 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-ftp://ftp.lyx.org/pub/lyx/bin/
-\end_layout
+\begin_inset LatexCommand url
+target "ftp://ftp.lyx.org/pub/lyx/bin/"
 
 \end_inset
 
@@ -963,10 +881,7 @@ Pulsa el botón TeX de la barra de herramientas o selecciona
 I
 \bar default
 nsertar\SpecialChar \menuseparator
-Código
-\begin_inset space ~
-\end_inset
-
+Código\InsetSpace ~
 Te
 \bar under
 X
@@ -1041,13 +956,8 @@ cómo
 
  sobre diversos temas, consulta la espectacular colección de Herbert Voss
  en 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://tug.org/TeXnik/
-\end_layout
+\begin_inset LatexCommand url
+target "http://tug.org/TeXnik/"
 
 \end_inset
 
@@ -1076,10 +986,7 @@ C
 o
 \bar default
 nfiguración\SpecialChar \menuseparator
-Preámbulo
-\begin_inset space ~
-\end_inset
-
+Preámbulo\InsetSpace ~
 LaTeX
 \family default
  y añadir la línea
@@ -1240,10 +1147,7 @@ raggedbottom
 
 \begin_layout Subsubsection
 ¿Cómo consigo una lista con un formato que empiece con 1.
- a), p.
-\begin_inset space \thinspace{}
-\end_inset
-
+ a), p.\InsetSpace \thinspace{}
 e.?
 \end_layout
 
@@ -1451,12 +1355,9 @@ usepackage{cite}
  en el preámbulo LaTeX.
  La mayoría de distribuciones de LaTeX deberían incluir este paquete.
  LyX lo soporta, si insertas múltiples citas separadas por comas en el diálogo
- de citas, p.
-\begin_inset space \thinspace{}
-\end_inset
-
-e., [Smalley_JCP,Jarrold_Sci], en vez de una tras otra por separado: [Smalley_JCP
-] [Jarrold_Sci].
+ de citas, p.\InsetSpace \thinspace{}
+e., [Smalley_JCP,Jarrold_Sci], en vez de una tras otra por separado:
+ [Smalley_JCP] [Jarrold_Sci].
 \end_layout
 
 \begin_layout Subsection
@@ -1675,9 +1576,7 @@ Preguntas relativas a la ejecución de LyX
 \begin_layout Standard
 La exportación de archivos se mejoró ampliamente en la versión 1.1.6.
  Simplemente teclea
-\begin_inset Newline newline
-\end_inset
-
+\newline
 
 \family typewriter
 lyx --export latex <archivo>.lyx
@@ -1773,13 +1672,8 @@ Algunos usuarios han informado que no podían conseguir que versiones recientes
 \end_layout
 
 \begin_layout Standard
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://sourceforge.net/bugs/?func=detailbug&bug_id=124957&group_id=1897
-\end_layout
+\begin_inset LatexCommand url
+target "http://sourceforge.net/bugs/?func=detailbug&bug_id=124957&group_id=1897"
 
 \end_inset
 

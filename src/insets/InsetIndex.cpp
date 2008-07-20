@@ -11,123 +11,73 @@
 
 #include "InsetIndex.h"
 
-#include "Buffer.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
-#include "FuncStatus.h"
+#include "gettext.h"
 #include "LaTeXFeatures.h"
 #include "MetricsInfo.h"
 #include "sgml.h"
-#include "TocBackend.h"
 
-#include "support/docstream.h"
-#include "support/gettext.h"
-#include "support/lstrings.h"
+#include "support/std_ostream.h"
 
-#include <ostream>
-
-using namespace std;
-using namespace lyx::support;
 
 namespace lyx {
 
-/////////////////////////////////////////////////////////////////////
-//
-// InsetIndex
-//
-///////////////////////////////////////////////////////////////////////
+using std::string;
+using std::ostream;
 
 
-InsetIndex::InsetIndex(Buffer const & buf)
-	: InsetCollapsable(buf)
+InsetIndex::InsetIndex(InsetCommandParams const & p)
+	: InsetCommand(p, "index")
 {}
 
 
-int InsetIndex::latex(odocstream & os,
-			  OutputParams const & runparams) const
+// InsetIndex::InsetIndex(InsetCommandParams const & p, bool)
+//	: InsetCommand(p, false)
+// {}
+
+
+docstring const InsetIndex::getScreenLabel(Buffer const &) const
 {
-	os << "\\index";
-	os << '{';
-	odocstringstream ods;
-	int i = InsetText::latex(ods, runparams);
-	bool sorted = false;
-	// correctly sort macros and formatted strings
-	// if we do find a command, prepend a plain text
-	// version of the content to get sorting right,
-	// e.g. \index{LyX@\LyX}, \index{text@\textbf{text}}
-	// Don't do that if the user entered '@' himself, though.
-	if (contains(ods.str(), '\\') && !contains(ods.str(), '@')) {
-		odocstringstream odss;
-		if (InsetText::plaintext(odss, runparams) > 0) {
-			// remove remaining \'s for the sorting part
-			os << subst(odss.str(), from_ascii("\\"), docstring());
-			os << '@';
-			sorted = true;
-		}
+	size_t const maxLabelChars = 25;
+
+	docstring label = _("Idx: ") + getParam("name");
+	if (label.size() > maxLabelChars) {
+		label.erase(maxLabelChars - 3);
+		label += "...";
 	}
-	// if a hierarchy tag '!' is used, ommit this in the post-@ part.
-	if (sorted && contains(ods.str(), '!')) {
-		string dummy;
-		// FIXME unicode
-		os << from_utf8(rsplit(to_utf8(ods.str()), dummy, '!'));
-	} else
-		i = InsetText::latex(os, runparams);
-	os << '}';
-	return i;
+	return label;
 }
 
 
-int InsetIndex::docbook(odocstream & os, OutputParams const & runparams) const
+int InsetIndex::docbook(Buffer const &, odocstream & os,
+			OutputParams const &) const
 {
-	os << "<indexterm><primary>";
-	int const i = InsetText::docbook(os, runparams);
-	os << "</primary></indexterm>";
-	return i;
+	os << "<indexterm><primary>"
+	   << sgml::escapeString(getParam("name"))
+	   << "</primary></indexterm>";
+	return 0;
 }
 
 
-void InsetIndex::write(ostream & os) const
+Inset::Code InsetIndex::lyxCode() const
 {
-	os << to_utf8(name()) << "\n";
-	InsetCollapsable::write(os);
+	return Inset::INDEX_CODE;
 }
 
 
-void InsetIndex::addToToc(DocIterator const & cpit)
-{
-	DocIterator pit = cpit;
-	pit.push_back(CursorSlice(*this));
-
-	Toc & toc = buffer().tocBackend().toc("index");
-	docstring str;
-	str = getNewLabel(str);
-	toc.push_back(TocItem(pit, 0, str));
-	// Proceed with the rest of the inset.
-	InsetCollapsable::addToToc(cpit);
-}
-
-
-/////////////////////////////////////////////////////////////////////
-//
-// InsetPrintIndex
-//
-///////////////////////////////////////////////////////////////////////
 
 InsetPrintIndex::InsetPrintIndex(InsetCommandParams const & p)
 	: InsetCommand(p, string())
 {}
 
 
-ParamInfo const & InsetPrintIndex::findInfo(string const & /* cmdName */)
-{
-	static ParamInfo param_info_;
-	if (param_info_.empty())
-		param_info_.add("name", ParamInfo::LATEX_REQUIRED);
-	return param_info_;
-}
+// InsetPrintIndex::InsetPrintIndex(InsetCommandParams const & p, bool)
+//	: InsetCommand(p, false)
+// {}
 
 
-docstring InsetPrintIndex::screenLabel() const
+docstring const InsetPrintIndex::getScreenLabel(Buffer const &) const
 {
 	return _("Index");
 }
@@ -139,9 +89,10 @@ void InsetPrintIndex::validate(LaTeXFeatures & features) const
 }
 
 
-InsetCode InsetPrintIndex::lyxCode() const
+Inset::Code InsetPrintIndex::lyxCode() const
 {
-	return INDEX_PRINT_CODE;
+	return Inset::INDEX_PRINT_CODE;
 }
+
 
 } // namespace lyx

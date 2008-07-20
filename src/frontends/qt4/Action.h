@@ -12,14 +12,14 @@
 #ifndef ACTION_H
 #define ACTION_H
 
+#include "frontends/LyXView.h"
+#include "FuncRequest.h"
+
+#include "support/docstring.h"
+
 #include <QAction>
 
-class QIcon;
-
 namespace lyx {
-
-class FuncRequest;
-
 namespace frontend {
 
 class GuiView;
@@ -29,15 +29,19 @@ class GuiView;
  *
  * Action can be used in LyX menubar and/or toolbars.
  */
-class Action : public QAction
-{
+class Action : public QAction {
 	Q_OBJECT
-
 public:
-	Action(GuiView * lyxView, QIcon const & icon, QString const & text,
-		FuncRequest const & func, QString const & tooltip, QObject * parent);
+
+	Action(GuiView & lyxView, docstring const & text,
+		FuncRequest const & func, docstring const & tooltip = docstring());
+
+	Action(GuiView & lyxView, std::string const & icon, docstring const & text,
+		FuncRequest const & func, docstring const & tooltip = docstring());
 
 	void update();
+
+//	void setAction(FuncRequest const & func);
 
 Q_SIGNALS:
 	/// the current action is triggered
@@ -48,7 +52,7 @@ private Q_SLOTS:
 
 private:
 	FuncRequest const & func_ ;
-	GuiView * lyxView_;
+	GuiView & lyxView_;
 };
 
 

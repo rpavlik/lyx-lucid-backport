@@ -17,14 +17,17 @@
 
 namespace lyx {
 
+using std::auto_ptr;
+
+
 InsetMathMatrix::InsetMathMatrix(InsetMathGrid const & p)
 	: InsetMathGrid(p)
 {}
 
 
-Inset * InsetMathMatrix::clone() const
+auto_ptr<Inset> InsetMathMatrix::doClone() const
 {
-	return new InsetMathMatrix(*this);
+	return auto_ptr<Inset>(new InsetMathMatrix(*this));
 }
 
 
