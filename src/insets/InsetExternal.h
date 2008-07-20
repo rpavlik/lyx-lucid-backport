@@ -13,6 +13,7 @@
 #define INSET_EXTERNAL_H
 
 #include "Inset.h"
+#include "ExternalTemplate.h"
 #include "ExternalTransforms.h"
 
 #include "support/FileName.h"
@@ -20,8 +21,6 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals/trackable.hpp>
-
-#include "MailInset.h"
 
 
 /** No two InsetExternalParams variables can have the same temporary file.
@@ -46,20 +45,6 @@ private:
 	support::FileName tempname_;
 };
 
-/// How is the image to be displayed on the LyX screen?
-enum DisplayType {
-	DefaultDisplay,
-	MonochromeDisplay,
-	GrayscaleDisplay,
-	ColorDisplay,
-	PreviewDisplay,
-	NoDisplay
-};
-
-
-/// The translator between the Display enum and corresponding lyx string.
-Translator<DisplayType, std::string> const & displayTranslator();
-
 } // namespace external
 
 
@@ -80,8 +65,10 @@ public:
 
 	/// The external file.
 	support::DocFileName filename;
-	/// How the inset is to be displayed by LyX.
-	external::DisplayType display;
+	/// If the inset is to be displayed by LyX.
+	bool display;
+	/// If the inset is to use the preview mechanism.
+	PreviewMode preview_mode;
 	/// The scale of the displayed graphic (if shown).
 	unsigned int lyxscale;
 
@@ -107,59 +94,59 @@ class RenderBase;
 class InsetExternal : public Inset, public boost::signals::trackable
 {
 public:
-	InsetExternal();
+	InsetExternal(Buffer &);
 	///
-	virtual ~InsetExternal();
+	~InsetExternal();
 	///
-	virtual Inset::Code lyxCode() const { return EXTERNAL_CODE; }
+	static void string2params(std::string const &, Buffer const &,
+				  InsetExternalParams &);
 	///
-	virtual EDITABLE editable() const { return IS_EDITABLE; }
-
-	///
-	bool metrics(MetricsInfo &, Dimension &) const;
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
-	virtual void write(Buffer const &, std::ostream &) const;
-	///
-	virtual void read(Buffer const &, Lexer & lex);
-
-	/// \returns the number of rows (\n's) of generated code.
-	int latex(Buffer const &, odocstream &,
-		  OutputParams const &) const;
-	///
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
-	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
-
-	/// Update needed features for this inset.
-	virtual void validate(LaTeXFeatures & features) const;
-
+	static std::string params2string(InsetExternalParams const &,
+					       Buffer const &);
 	///
 	InsetExternalParams const & params() const;
 	///
-	void setParams(InsetExternalParams const &, Buffer const &);
+	void setParams(InsetExternalParams const &);
+	/// \returns the number of rows (\n's) of generated code.
+	int latex(odocstream &, OutputParams const &) const;
+	///
+	docstring contextMenu(BufferView const & bv, int x, int y) const;
+
+private:
+	///
+	InsetExternal(InsetExternal const &);
+	///
+	InsetCode lyxCode() const { return EXTERNAL_CODE; }
+	///
+	EDITABLE editable() const { return IS_EDITABLE; }
+	///
+	void metrics(MetricsInfo &, Dimension &) const;
+	///
+	void draw(PainterInfo & pi, int x, int y) const;
+	///
+	void write(std::ostream &) const;
+	///
+	void read(Lexer & lex);
+	///
+	int plaintext(odocstream &, OutputParams const &) const;
+	///
+	int docbook(odocstream &, OutputParams const &) const;
+	/// Update needed features for this inset.
+	void validate(LaTeXFeatures & features) const;
 	///
 	void addPreview(graphics::PreviewLoader &) const;
 	///
-	void edit(Cursor & cur, bool left);
+	void edit(Cursor & cur, bool front, EntryDirection entry_from);
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-
-protected:
-	InsetExternal(InsetExternal const &);
 	///
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
-private:
-	virtual std::auto_ptr<Inset> doClone() const;
-
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	Inset * clone() const { return new InsetExternal(*this); }
 	/** This method is connected to the graphics loader, so we are
 	 *  informed when the image has been loaded.
 	 */
 	void statusChanged() const;
-
 	/** Slot receiving a signal that the external file has changed
 	 *  and the preview should be regenerated.
 	 */
@@ -171,30 +158,6 @@ private:
 	boost::scoped_ptr<RenderBase> renderer_;
 };
 
-
-class InsetExternalMailer : public MailInset {
-public:
-	///
-	InsetExternalMailer(InsetExternal & inset);
-	///
-	virtual Inset & inset() const { return inset_; }
-	///
-	virtual std::string const & name() const { return name_; }
-	///
-	virtual std::string const inset2string(Buffer const &) const;
-	///
-	static void string2params(std::string const &, Buffer const &,
-				  InsetExternalParams &);
-	///
-	static std::string const params2string(InsetExternalParams const &,
-					       Buffer const &);
-private:
-	///
-	static std::string const name_;
-	///
-	InsetExternal & inset_;
-};
-
 } // namespace lyx
 
-#endif
+#endif // INSET_EXTERNAL_H

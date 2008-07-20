@@ -16,28 +16,24 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "Counters.h"
-#include "Text.h"
+#include "Layout.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
+#include "Text.h"
+#include "TextClass.h"
 
-#include "support/docstring.h"
-#include "support/lstrings.h"
-#include "support/std_ostream.h"
 #include "support/convert.h"
+#include "support/docstream.h"
+#include "support/lstrings.h"
 #include "support/textutils.h"
 
 #include <map>
-#include <sstream>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::subst;
-
-using std::map;
-using std::ostream;
-using std::ostringstream;
-using std::string;
 
 docstring sgml::escapeChar(char_type c)
 {
@@ -97,12 +93,12 @@ docstring sgml::escapeChar(char_type c)
 
 docstring sgml::escapeString(docstring const & raw)
 {
-	odocstringstream bin;
+	docstring bin;
+	bin.reserve(raw.size() * 2); // crude approximation is sufficient
+	for (size_t i = 0; i != raw.size(); ++i)
+		bin += sgml::escapeChar(raw[i]);
 
-	for(docstring::size_type i = 0; i < raw.size(); ++i) {
-		bin  << sgml::escapeChar(raw[i]);
-	}
-	return bin.str();
+	return bin;
 }
 
 
@@ -124,9 +120,9 @@ docstring sgml::cleanID(Buffer const & buf, OutputParams const & runparams,
 	// and adds a number for uniqueness.
 	// If you know what you are doing, you can set allowed==""
 	// to disable this mangling.
-	TextClass const & tclass = buf.params().getTextClass();
+	DocumentClass const & tclass = buf.params().documentClass();
 	docstring const allowed = from_ascii(
-		runparams.flavor == OutputParams::XML? ".-_:":tclass.options());
+		runparams.flavor == OutputParams::XML ? ".-_:" : tclass.options());
 
 	if (allowed.empty())
 		return orig;
@@ -142,7 +138,7 @@ docstring sgml::cleanID(Buffer const & buf, OutputParams const & runparams,
 
 	MangledMap::const_iterator const known = mangledNames.find(orig);
 	if (known != mangledNames.end())
-		return (*known).second;
+		return known->second;
 
 	// make sure it starts with a letter
 	if (!isAlphaASCII(*it) && allowed.find(*it) >= allowed.size())
@@ -166,12 +162,11 @@ docstring sgml::cleanID(Buffer const & buf, OutputParams const & runparams,
 			mangle = true;
 		}
 	}
-	if (mangle) {
+
+	if (mangle)
 		content += "-" + convert<docstring>(mangleID++);
-	}
-	else if (isDigitASCII(content[content.size() - 1])) {
+	else if (isDigitASCII(content[content.size() - 1]))
 		content += ".";
-	}
 
 	mangledNames[orig] = content;
 
@@ -205,15 +200,15 @@ void sgml::closeTag(odocstream & os, string const & name)
 void sgml::openTag(Buffer const & buf, odocstream & os,
 	OutputParams const & runparams, Paragraph const & par)
 {
-	Layout_ptr const & style = par.layout();
-	string const & name = style->latexname();
-	string param = style->latexparam();
-	Counters & counters = buf.params().getTextClass().counters();
+	Layout const & style = par.layout();
+	string const & name = style.latexname();
+	string param = style.latexparam();
+	Counters & counters = buf.params().documentClass().counters();
 
 	string id = par.getID(buf, runparams);
 
 	string attribute;
-	if(!id.empty()) {
+	if (!id.empty()) {
 		if (param.find('#') != string::npos) {
 			string::size_type pos = param.find("id=<");
 			string::size_type end = param.find(">");
@@ -224,8 +219,8 @@ void sgml::openTag(Buffer const & buf, odocstream & os,
 	} else {
 		if (param.find('#') != string::npos) {
 			// FIXME UNICODE
-			if(!style->counter.empty())
-				counters.step(style->counter);
+			if (!style.counter.empty())
+				counters.step(style.counter);
 			else
 				counters.step(from_ascii(name));
 			int i = counters.value(from_ascii(name));
@@ -240,8 +235,8 @@ void sgml::openTag(Buffer const & buf, odocstream & os,
 
 void sgml::closeTag(odocstream & os, Paragraph const & par)
 {
-	Layout_ptr const & style = par.layout();
-	closeTag(os, style->latexname());
+	Layout const & style = par.layout();
+	closeTag(os, style.latexname());
 }
 
 

@@ -14,79 +14,79 @@
 
 #include "qt_helpers.h"
 
-#include "support/FileFilterList.h"
 #include "support/lstrings.h"
 
 #include <QApplication>
 #include <QToolButton>
 #include <QHBoxLayout>
 
-using lyx::support::split;
-using std::string;
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
 /// return the Qt form of the label
-static docstring const getLabel(docstring const & ucs4str) {
-	// FIXME UNICODE
-	string str = to_utf8(ucs4str);
+static QString getLabel(QString const & qstr)
+{
+	// FIXME UNICODE (or "qt-ify")
+	string str = fromqstr(qstr);
 	string label;
-	string sc(split(str, label, '|'));
+	string sc = split(str, label, '|');
 	if (sc.length() < 2)
-		return from_utf8(label);
-	string::size_type pos = label.find(sc[1]);
-	if (pos == string::npos)
-		return from_utf8(label);
-	label.insert(pos, 1, '&');
-	return from_utf8(label);
+		return toqstr(label);
+	size_t pos = label.find(sc[1]);
+	if (pos != string::npos)
+		label.insert(pos, 1, '&');
+	return toqstr(label);
 }
 
 
-LyXFileDialog::LyXFileDialog(docstring const & t,
-			     docstring const & p,
-			     support::FileFilterList const & filters,
+LyXFileDialog::LyXFileDialog(QString const & title,
+			     QString const & path,
+			     QStringList const & filters,
 			     FileDialog::Button const & b1,
 			     FileDialog::Button const & b2)
-				 // FIXME replace that with theApp->gui()->currentView()
-	: QFileDialog(qApp->focusWidget(),
-		      toqstr(t), toqstr(p), toqstr(filters.as_string())),
-		      b1_(0), b2_(0)
+				 // FIXME replace that with guiApp->currentView()
+	: QFileDialog(qApp->focusWidget(), title, path)
 {
-	QString const path = toqstr(p);
+	setFilters(filters);
 	QDir dir(path);
 	// FIXME: workaround for a bug in qt which makes LyX crash
 	// with hidden paths (bug 4513). Recheck with recent Qt versions.
 	if (path.contains("/."))
 		dir.setFilter(QDir::Hidden);
 	setDirectory(dir);
-	setWindowTitle(toqstr(t));
+	setWindowTitle(title);
 
 	QList<QHBoxLayout *> layout = findChildren<QHBoxLayout *>();
 
-	if (!b1.first.empty()) {
+	if (!b1.first.isEmpty()) {
 		b1_dir_ = b1.second;
-		b1_ = new QToolButton(this);
-		connect(b1_, SIGNAL(clicked()), this, SLOT(buttonClicked()));
-		b1_->setText(toqstr(getLabel(b1.first)));
-		layout.at(0)->addWidget(b1_);
+		QToolButton * tb = new QToolButton(this);
+		connect(tb, SIGNAL(clicked()), this, SLOT(button1Clicked()));
+		tb->setText(getLabel(b1.first));
+		layout.at(0)->addWidget(tb);
 	}
 
-	if (!b2.first.empty()) {
+	if (!b2.first.isEmpty()) {
 		b2_dir_ = b2.second;
-		b2_ = new QToolButton(this);
-		connect(b2_, SIGNAL(clicked()), this, SLOT(buttonClicked()));
-		b2_->setText(toqstr(getLabel(b2.first)));
-		layout.at(0)->addWidget(b2_);
+		QToolButton * tb = new QToolButton(this);
+		connect(tb, SIGNAL(clicked()), this, SLOT(button2Clicked()));
+		tb->setText(getLabel(b2.first));
+		layout.at(0)->addWidget(tb);
 	}
 }
 
 
-void LyXFileDialog::buttonClicked()
+void LyXFileDialog::button1Clicked()
 {
-	if (sender() == b1_)
-		setDirectory(toqstr(b1_dir_));
-	else if (sender() == b2_)
-		setDirectory(toqstr(b2_dir_));
+	setDirectory(b1_dir_);
+}
+
+
+void LyXFileDialog::button2Clicked()
+{
+	setDirectory(b2_dir_);
 }
 
 } // namespace lyx

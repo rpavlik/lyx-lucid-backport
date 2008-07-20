@@ -24,7 +24,7 @@ public:
 	///
 	InsetMathXYMatrix(Length const & = Length(), char c = '\0');
 	///
-	bool metrics(MetricsInfo &, Dimension &) const;
+	void metrics(MetricsInfo &, Dimension &) const;
 	///
 	InsetMathXYMatrix const * asXYMatrixInset() const { return this; }
 	///
@@ -46,7 +46,7 @@ public:
 	void validate(LaTeXFeatures & features) const;
 private:
 	///
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	/// extra spacing, may be empty
 	Length spacing_;
 	///

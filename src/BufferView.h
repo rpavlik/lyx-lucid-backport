@@ -15,54 +15,55 @@
 #ifndef BUFFER_VIEW_H
 #define BUFFER_VIEW_H
 
-#include "CoordCache.h"
-#include "Cursor.h"
-#include "MetricsInfo.h"
-#include "TextMetrics.h"
 #include "update_flags.h"
 
+#include "support/strfwd.h"
 #include "support/types.h"
-
-#include <boost/tuple/tuple.hpp>
-#include <boost/utility.hpp>
-#include <boost/signal.hpp>
-
-#include <utility>
-#include <string>
-
 
 namespace lyx {
 
 namespace support { class FileName; }
 
+namespace frontend { class Painter; }
+namespace frontend { class GuiBufferViewDelegate; }
+
 class Buffer;
 class Change;
+class CoordCache;
+class Cursor;
 class DocIterator;
 class FuncRequest;
 class FuncStatus;
 class Intl;
-class Cursor;
-class Text;
+class Inset;
 class ParIterator;
 class ParagraphMetrics;
-class ViewMetricsInfo;
+class Point;
+class Text;
+class TextMetrics;
+
+enum CursorStatus {
+	CUR_INSIDE,
+	CUR_ABOVE,
+	CUR_BELOW
+};
 
 /// Scrollbar Parameters.
 struct ScrollbarParameters
 {
-	void reset(int h = 0, int p = 0, int l = 0)
-	{
-		height = h;
-		position = p;
-		lineScrollHeight = l;
-	}
-
-	/// Total document height in pixels.
-	int height;
+	ScrollbarParameters()
+		: min(0), max(0), position(0), single_step(1), page_step(1)
+	{}
+	/// Minimum scrollbar position in pixels.
+	int min;
+	/// Maximum scrollbar position in pixels.
+	int max;
 	/// Current position in the document in pixels.
 	int position;
 	/// Line-scroll amount in pixels.
-	int lineScrollHeight;
+	int single_step;
+	/// Page-scroll amount in pixels.
+	int page_step;
 };
 
 /// Screen view of a Buffer.
@@ -77,22 +78,31 @@ struct ScrollbarParameters
  * \sa Buffer
  * \sa CoordCache
  */
-class BufferView : boost::noncopyable {
+class BufferView {
 public:
-	BufferView();
-
+	///
+	explicit BufferView(Buffer & buffer);
+	///
 	~BufferView();
 
-	/// set the buffer we are viewing.
-	/// \todo FIXME: eventually, we will create a new BufferView
-	/// when switching Buffers, so this method should go.
-	/// returns the buffer currently set
-	Buffer * setBuffer(Buffer * b);
 	/// return the buffer being viewed.
-	Buffer * buffer() const;
+	Buffer & buffer();
+	Buffer const & buffer() const;
 
-	/// resize the BufferView.
-	void resize();
+	///
+	void setFullScreen(bool full_screen) { full_screen_ = full_screen; }
+
+	/// right margin
+	int rightMargin() const;
+
+	/// left margin
+	int leftMargin() const;
+
+	/// \return true if the BufferView is at the top of the document.
+	bool isTopScreen() const;
+
+	/// \return true if the BufferView is at the bottom of the document.
+	bool isBottomScreen() const;
 
 	/// perform pending metrics updates.
 	/** \c Update::FitCursor means first to do a FitCursor, and to
@@ -100,7 +110,7 @@ public:
 	 * \c Update::Force means to force an update in any case.
 	 * \retval true if a screen redraw is needed
 	 */
-	bool update(Update::flags flags = Update::FitCursor | Update::Force);
+	void processUpdateFlags(Update::flags flags);
 
 	/// move the screen to fit the cursor.
 	/// Only to be called with good y coordinates (after a bv::metrics)
@@ -109,13 +119,17 @@ public:
 	void updateScrollbar();
 	/// return the Scrollbar Parameters.
 	ScrollbarParameters const & scrollbarParameters() const;
+	/// \return Tool tip for the given position.
+	docstring toolTip(int x, int y) const;
+	/// \return the context menu for the given position.
+	docstring contextMenu(int x, int y) const;
 
 	/// Save the current position as bookmark.
 	/// if idx == 0, save to temp_bookmark
 	void saveBookmark(unsigned int idx);
-	/// goto a specified position, try top_id first, and then bottom_pit
-	/// return the bottom_pit and top_id of the new paragraph
-	boost::tuple<pit_type, pos_type, int> moveToPosition(
+	/// goto a specified position, try top_id first, and then bottom_pit.
+	/// \return true if success
+	bool moveToPosition(
 		pit_type bottom_pit, ///< Paragraph pit, used when par_id is zero or invalid.
 		pos_type bottom_pos, ///< Paragraph pit, used when par_id is zero or invalid.
 		int top_id, ///< Paragraph ID, \sa Paragraph
@@ -130,10 +144,22 @@ public:
 	/// set the cursor based on the given TeX source row.
 	void setCursorFromRow(int row);
 
-	/// center the document view around the cursor.
-	void center();
-	/// scroll document by the given number of lines of default height.
-	void scroll(int lines);
+	/// Ensure that the BufferView cursor is visible.
+	/// This method will automatically scroll and update the BufferView
+	/// if needed.
+	void showCursor();
+	/// Ensure the passed cursor \p dit is visible.
+	/// This method will automatically scroll and update the BufferView
+	/// if needed.
+	void showCursor(DocIterator const & dit);
+	/// LFUN_SCROLL Helper.
+	void lfunScroll(FuncRequest const & cmd);
+	/// scroll down document by the given number of pixels.
+	int scrollDown(int pixels);
+	/// scroll up document by the given number of pixels.
+	int scrollUp(int pixels);
+	/// scroll document by the given number of pixels.
+	int scroll(int pixels);
 	/// Scroll the view by a number of pixels.
 	void scrollDocView(int pixels);
 	/// Set the cursor position based on the scrollbar one.
@@ -144,14 +170,25 @@ public:
 	/// return the pixel height of the document view.
 	int workHeight() const;
 
+	/// return the inline completion postfix.
+	docstring const & inlineCompletion() const;
+	/// return the number of unique characters in the inline completion.
+	size_t const & inlineCompletionUniqueChars() const;
+	/// return the position in the buffer of the inline completion postfix.
+	DocIterator const & inlineCompletionPos() const;
+	/// set the inline completion postfix and its position in the buffer.
+	/// Updates the updateFlags in \c cur.
+	void setInlineCompletion(Cursor & cur, DocIterator const & pos,
+		docstring const & completion, size_t uniqueChars = 0);
+
 	/// translate and insert a character, using the correct keymap.
 	void translateAndInsert(char_type c, Text * t, Cursor & cur);
 
 	/// return true for events that will handle.
 	FuncStatus getStatus(FuncRequest const & cmd);
 	/// execute the given function.
-	/// \return the Update::flags for further metrics update.
-	Update::flags dispatch(FuncRequest const & argument);
+	/// \return true if the function has been processed.
+	bool dispatch(FuncRequest const & argument);
 
 	/// request an X11 selection.
 	/// \return the selected string.
@@ -159,19 +196,19 @@ public:
 	/// clear the X11 selection.
 	void clearSelection();
 
-	/// resize method helper for \c WorkArea
+	/// resize the BufferView.
 	/// \sa WorkArea
-	/// \sa resise
-	void workAreaResize(int width, int height);
+	void resize(int width, int height);
 
 	/// dispatch method helper for \c WorkArea
 	/// \sa WorkArea
-	/// \retval true if a redraw is needed
-	bool workAreaDispatch(FuncRequest const & ev);
+	void mouseEventDispatch(FuncRequest const & ev);
 
 	/// access to anchor.
 	pit_type anchor_ref() const;
 
+	///
+	CursorStatus cursorStatus(DocIterator const & dit) const;
 	/// access to full cursor.
 	Cursor & cursor();
 	/// access to full cursor.
@@ -195,14 +232,8 @@ public:
 	void putSelectionAt(DocIterator const & cur,
 		int length, bool backwards);
 
-	/// return the internal \c ViewMetricsInfo.
-	/// This is used specifically by the \c Workrea.
-	/// \sa WorkArea
-	/// \sa ViewMetricsInfo
-	ViewMetricsInfo const & viewMetricsInfo();
 	/// update the internal \c ViewMetricsInfo.
-	/// \param singlepar indicates wether
-	void updateMetrics(bool singlepar = false);
+	void updateMetrics();
 
 	///
 	TextMetrics const & textMetrics(Text const * t) const;
@@ -211,43 +242,59 @@ public:
 	ParagraphMetrics const & parMetrics(Text const *, pit_type) const;
 
 	///
-	CoordCache & coordCache() {
-		return coord_cache_;
-	}
+	CoordCache & coordCache();
 	///
-	CoordCache const & coordCache() const {
-		return coord_cache_;
-	}
-	/// get this view's keyboard map handler.
-	Intl & getIntl() { return *intl_.get(); }
-	///
-	Intl const & getIntl() const { return *intl_.get(); }
+	CoordCache const & coordCache() const;
 
+	///
+	Point getPos(DocIterator const & dit, bool boundary) const;
+
+
+	///
+	void draw(frontend::Painter & pain);
+
+	/// get this view's keyboard map handler.
+	Intl & getIntl();
+	///
+	Intl const & getIntl() const;
+
+	//
+	// Messages to the GUI
+	//
 	/// This signal is emitted when some message shows up.
-	boost::signal<void(docstring)> message;
+	void message(docstring const & msg);
 
 	/// This signal is emitted when some dialog needs to be shown.
-	boost::signal<void(std::string name)> showDialog;
+	void showDialog(std::string const & name);
 
 	/// This signal is emitted when some dialog needs to be shown with
 	/// some data.
-	boost::signal<void(std::string name,
-		std::string data)> showDialogWithData;
-
-	/// This signal is emitted when some inset dialogs needs to be shown.
-	boost::signal<void(std::string name, std::string data,
-		Inset * inset)> showInsetDialog;
+	void showDialog(std::string const & name, std::string const & data,
+		Inset * inset = 0);
 
 	/// This signal is emitted when some dialogs needs to be updated.
-	boost::signal<void(std::string name,
-		std::string data)> updateDialog;
+	void updateDialog(std::string const & name, std::string const & data);
 
-	/// This signal is emitted when the layout at the cursor is changed.
-	boost::signal<void(docstring layout)> layoutChanged;
+	///
+	void setGuiDelegate(frontend::GuiBufferViewDelegate *);
+
+	///
+	docstring contentsOfPlaintextFile(support::FileName const & f);
+	// Insert plain text file (if filename is empty, prompt for one)
+	void insertPlaintextFile(support::FileName const & f, bool asParagraph);
+	///
+	void insertLyXFile(support::FileName const & f);
 
 private:
-	///
-	bool multiParSel();
+	/// noncopyable
+	BufferView(BufferView const &);
+	void operator=(BufferView const &);
+
+	// the position relative to (0, baseline) of outermost paragraph
+	Point coordOffset(DocIterator const & dit, bool boundary) const;
+	/// Update current paragraph metrics.
+	/// \return true if no further update is needed.
+	bool singleParUpdate();
 
 	/// Search recursively for the the innermost inset that covers (x, y) position.
 	/// \retval 0 if no inset is found.
@@ -255,57 +302,26 @@ private:
 		Text const & text, //< The Text where we start searching.
 		int x, //< x-coordinate on screen
 		int y  //< y-coordinate on screen
-		);
+		) const;
 
 	///
 	int width_;
 	///
 	int height_;
 	///
-	ScrollbarParameters scrollbarParameters_;
+	bool full_screen_;
+	///
+	Buffer & buffer_;
 
-	///
-	ViewMetricsInfo metrics_info_;
-	///
-	CoordCache coord_cache_;
-	///
-	Buffer * buffer_;
-
-	/// Estimated average par height for scrollbar.
-	int wh_;
-	///
-	void menuInsertLyXFile(std::string const & filen);
-
-	/// this is used to handle XSelection events in the right manner.
-	struct {
-		CursorSlice cursor;
-		CursorSlice anchor;
-		bool set;
-	} xsel_cache_;
-	///
-	Cursor cursor_;
-	///
-	bool multiparsel_cache_;
-	///
-	pit_type anchor_ref_;
-	///
-	int offset_ref_;
-	///
-	void updateOffsetRef();
-	///
-	bool need_centering_;
-
-	/// keyboard mapping object.
-	boost::scoped_ptr<Intl> const intl_;
-
-	/// last visited inset (kept to send setMouseHover(false) )
-	Inset * last_inset_;
-
-	/// A map from a Text to the associated text metrics
-	typedef std::map<Text const *, TextMetrics> TextMetricsCache;
-	mutable TextMetricsCache text_metrics_;
+	struct Private;
+	Private * const d;
 };
 
+/// some space for drawing the 'nested' markers (in pixel)
+inline int nestMargin() { return 15; }
+
+/// margin for changebar
+inline int changebarMargin() { return 12; }
 
 } // namespace lyx
 

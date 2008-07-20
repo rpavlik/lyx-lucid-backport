@@ -10,26 +10,22 @@
 
 #include <config.h>
 
-// Needed to prevent the definition of the unnamed_Path macro in the header file.
-#define PATH_C
-
 #include "support/Path.h"
-#include "support/lyxlib.h"
 
-
-using std::string;
+// undef PathChanger macro when building PathChanger
+#undef PathChanger
 
 
 namespace lyx {
 namespace support {
 
-Path::Path(FileName const & path)
+PathChanger::PathChanger(FileName const & path)
 	: popped_(false)
 {
 	if (!path.empty()) {
-		pushedDir_ = getcwd();
+		pushedDir_ = FileName::getcwd();
 
-		if (pushedDir_.empty() || chdir(path)) {
+		if (pushedDir_.empty() || !path.chdir()) {
 			/* FIXME: throw */
 		}
 	} else {
@@ -38,13 +34,14 @@ Path::Path(FileName const & path)
 }
 
 
-Path::~Path()
+PathChanger::~PathChanger()
 {
-	if (!popped_) pop();
+	if (!popped_)
+		pop();
 }
 
 
-int Path::pop()
+int PathChanger::pop()
 {
 	if (popped_) {
 		// should throw an exception
@@ -52,7 +49,7 @@ int Path::pop()
 		return 0;
 	}
 
-	if (chdir(pushedDir_)) {
+	if (!pushedDir_.chdir()) {
 		// should throw an exception
 		// throw DirChangeError();
 	}
@@ -63,3 +60,7 @@ int Path::pop()
 
 } // namespace support
 } // namespace lyx
+
+
+#define PathChanger(x) unnamed_PathChanger;
+// in merged builds this is not the last line.

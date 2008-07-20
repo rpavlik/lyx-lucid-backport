@@ -42,7 +42,7 @@ Section -InstallData
 
   # Registry information
   WriteRegStr SHELL_CONTEXT ${APP_REGKEY} "" $INSTDIR
-  WriteRegStr SHELL_CONTEXT ${APP_REGKEY} "Version" "${APP_VERSION}"
+  WriteRegStr SHELL_CONTEXT ${APP_REGKEY} "Version" "${APP_VERSION_NUMBER}"
 
   WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "LaTeX Path" $PathLaTeX
   WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "ImageMagick Path" $PathImageMagick
@@ -164,7 +164,7 @@ Section -PSPrinter
     ExecWait '$PrinterConf /q /dd /m "Metafile to EPS Converter"'
 
     # Install printer and driver
-    ExecWait '$PrinterConf /q /if /f "$INSTDIR\PSPrinter\metafile2eps.inf" /r "FILE:" /m "Metafile to EPS Converter"'
+    ExecWait '$PrinterConf /if /f "$INSTDIR\PSPrinter\metafile2eps.inf" /r "FILE:" /m "Metafile to EPS Converter"'
 
     # Restore DEVMODE with proper settings
     ExecWait '$PrinterConf /q /Sr /n "Metafile to EPS Converter" /a "$INSTDIR\PSPrinter\metafile2eps.dat" g'

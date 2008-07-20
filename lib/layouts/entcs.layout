@@ -3,7 +3,7 @@
 # Based on LyX article class; modified to support ENTCS class
 # Reuben Thomas (rrt@sc3d.org)   27/5-2/6/01
 
-Format 4
+Format 7
 Input article.layout
 
 # only font size 11pt is really available
@@ -11,8 +11,10 @@ ClassOptions
 	FontSize   11
 End
 
+Requires	ifthen
+
 Preamble
-	\usepackage{entcsmacro,ifthen}
+	\usepackage{entcsmacro}
 	\newcommand{\theTitle}[1]{}
 	\newcommand{\theAuthor}[1]{}
 	\newcommand{\theAddress}[1]{}
@@ -58,7 +60,6 @@ Style Address
 	LatexType             Command
 	LatexName             setaddress
 	Align                 Center
-	AlignPossible         Center
 	InTitle               1
 	Preamble
 		\newcommand{\setaddress}[1]{\def\theAddress{#1}}
@@ -97,7 +98,6 @@ End
 
 Style Keyword
 	Align                 Center
-	AlignPossible         Center
 	LatexType             Command
 	LatexName             setkeyword
 	InTitle               1

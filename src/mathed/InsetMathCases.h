@@ -25,7 +25,9 @@ public:
 	///
 	explicit InsetMathCases(row_type rows = 1u);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	///
+	Dimension const dimension(BufferView const &) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -45,7 +47,7 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 };
 
 

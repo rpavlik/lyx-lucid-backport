@@ -7,6 +7,7 @@
  * \author Alejandro Aguilar Sierra
  * \author André Pönitz
  * \author Lars Gullik Bjønnes
+ * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,19 +15,23 @@
 #ifndef MATH_DATA_H
 #define MATH_DATA_H
 
-#include <vector>
-
-#include "MathAtom.h"
 #include "Dimension.h"
+#include "MathAtom.h"
 
-#include "support/docstream.h"
+#include "support/strfwd.h"
+
+#include <vector>
 
 
 namespace lyx {
 
 class BufferView;
+class Cursor;
+class DocIterator;
 class LaTeXFeatures;
 class ReplaceData;
+class MacroContext;
+class MathMacro;
 class MetricsInfo;
 class PainterInfo;
 class TextMetricsInfo;
@@ -103,9 +108,10 @@ public:
 	/// checked read access
 	MathAtom const & operator[](pos_type) const;
 	/// rebuild cached metrics information
-	void metrics(MetricsInfo & mi) const;
-	/// rebuild cached metrics information
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	///
+	Dimension const & dimension(BufferView const &) const;
+
 	/// redraw cell using cache metrics information
 	void draw(PainterInfo & pi, int x, int y) const;
 	/// rebuild cached metrics information
@@ -120,35 +126,23 @@ public:
 	/// access to cached y coordinate of last drawing
 	int yo(BufferView const & bv) const;
 	/// access to cached x coordinate of mid point of last drawing
-	int xm(BufferView const & bv) const { return xo(bv) + dim_.wid / 2; }
+	int xm(BufferView const & bv) const;
 	/// access to cached y coordinate of mid point of last drawing
-	int ym(BufferView const & bv) const { return yo(bv) + (dim_.des - dim_.asc) / 2; }
+	int ym(BufferView const & bv) const;
 	/// write access to coordinate;
 	void setXY(BufferView & bv, int x, int y) const;
 	/// returns x coordinate of given position in the array
-	int pos2x(size_type pos) const;
+	int pos2x(BufferView const * bv, size_type pos) const;
 	/// returns position of given x coordinate
-	int pos2x(size_type pos, int glue) const;
+	int pos2x(BufferView const * bv, size_type pos, int glue) const;
 	/// returns position of given x coordinate
-	size_type x2pos(int pos) const;
+	size_type x2pos(BufferView const * bv, int pos) const;
 	/// returns position of given x coordinate fstarting from a certain pos
-	size_type x2pos(int targetx, int glue) const;
+	size_type x2pos(BufferView const * bv, int targetx, int glue) const;
 	/// returns distance of this cell to the point given by x and y
 	// assumes valid position and size cache
 	int dist(BufferView const & bv, int x, int y) const;
 
-	/// ascent of this cell above the baseline
-	int ascent() const { return dim_.asc; }
-	/// descent of this cell below the baseline
-	int descent() const { return dim_.des; }
-	/// height of the cell
-	int height() const { return dim_.asc + dim_.des; }
-	/// width of this cell
-	int width() const { return dim_.wid; }
-	/// dimensions of cell
-	Dimension const & dim() const { return dim_; }
-	/// dimensions of cell
-	void setDim(Dimension const & d) const { dim_ = d; }
 	/// minimum ascent offset for superscript
 	int minasc() const { return minasc_; }
 	/// minimum descent offset for subscript
@@ -158,23 +152,44 @@ public:
 	/// additional super/subscript shift
 	int sshift() const { return sshift_; }
 	/// superscript kerning
-	int kerning() const { return kerning_; }
+	int kerning(BufferView const *) const { return kerning_; }
 	///
 	void swap(MathData & ar) { base_type::swap(ar); }
 
+	/// attach/detach arguments to macros, updating the cur to 
+	/// stay visually at the same position (cur==0 is allowed)
+	void updateMacros(Cursor * cur, MacroContext const & mc);
+
 protected:
-	/// cached dimensions of cell
-	mutable Dimension dim_;
 	/// cached values for super/subscript placement
 	mutable int minasc_;
 	mutable int mindes_;
 	mutable int slevel_;
 	mutable int sshift_;
 	mutable int kerning_;
-
+	
 private:
 	/// is this an exact match at this position?
 	bool find1(MathData const & ar, size_type pos) const;
+
+	///
+	void detachMacroParameters(Cursor * cur, const size_type macroPos);
+	///
+	void attachMacroParameters(Cursor * cur, const size_type macroPos, 
+		const size_type macroNumArgs, const int macroOptionals,
+		const bool fromInitToNormalMode, const bool interactiveInit,
+		const size_t appetite);
+	///
+	void collectOptionalParameters(Cursor * cur, 
+		const size_type numOptionalParams, std::vector<MathData> & params, 
+		size_t & pos, MathAtom & scriptToPutAround,
+		const pos_type macroPos, const int thisPos, const int thisSlice);
+	///
+	void collectParameters(Cursor * cur, 
+		const size_type numParams, std::vector<MathData> & params, 
+		size_t & pos, MathAtom & scriptToPutAround,
+		const pos_type macroPos, const int thisPos, const int thisSlice,
+		const size_t appetite);
 };
 
 ///

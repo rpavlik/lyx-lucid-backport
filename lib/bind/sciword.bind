@@ -69,7 +69,7 @@
 
 
 # Do we need this?
-#\bind "C-h"	"hyphenation-point-insert"
+#\bind "C-h"	"specialchar-insert hyphenation"
 
 # Sciword mnemonic.
 \bind "C-i"	"math-insert \int"
@@ -78,13 +78,12 @@
 
 \bind "C-k"	"line-delete-forward"
 \bind "C-l"	"screen-recenter"
+\bind "C-S-I"			"info-insert"
 
 # Toggle: in text mode, switch to math, and vice versa. Also C-t.
 \bind "C-m"	"math-mode"
-# C-n is numbering equations now. Sciword had "C-Tab" mnemonic which conflicts with many things.
-# Numbering equations. Should perhaps simplify math-number and math-nonumber into one command since they are used in very different contexts. This and also math-macro stuff should be available in the Lyx menus!
-\bind "C-n"	"math-number"
-\bind "S-C-N" "math-nonumber"
+\bind "C-n"	"math-number-toggle"
+\bind "S-C-N"	"math-number-line-toggle"
 
 \bind "C-o"	"file-open"
 
@@ -171,7 +170,7 @@
 \bind "F4"                     "font-default"
 \bind "F5"                     "font-bold"
 \bind "F6"                     "font-emph"
-\bind "F7"                     "font-code"
+\bind "F7"                     "font-typewriter"
 \bind "F8"                     "font-noun"
 # F9 bound below as meta-prefix (useful e.g. if the keyboard doesn't have a working ALT).
 #\bind "F9"                     "------"
@@ -218,12 +217,12 @@
 
 \bind "M-Up"			"paragraph-move-up"
 \bind "M-Down"			"paragraph-move-down"
-\bind "S-KP_Right"  			"forward-select"
-\bind "S-KP_Left"				"backward-select"
+\bind "S-KP_Right"  			"char-right-select"
+\bind "S-KP_Left"				"char-left-select"
 \bind "S-KP_Up" 				"up-select"
 \bind "S-KP_Down"				"down-select"
-\bind "S-C-KP_Right"			"word-forward-select"
-\bind "S-C-KP_Left" 			"word-backward-select"
+\bind "S-C-KP_Right"			"word-right-select"
+\bind "S-C-KP_Left" 			"word-left-select"
 \bind "S-C-KP_Up"				"paragraph-up-select"
 \bind "S-C-KP_Down" 			"paragraph-down-select"
 \bind "S-KP_Home"				"line-begin-select"

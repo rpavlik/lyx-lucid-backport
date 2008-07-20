@@ -12,36 +12,35 @@
 #ifndef COLORCACHE_H
 #define COLORCACHE_H
 
-#include "Color.h"
+#include "ColorCode.h"
 
 #include <QColor>
-
-#include <map>
 
 namespace lyx {
 
 struct RGBColor;
 
-
-// FIXME: use a fixed-size array not a map ?
-
 /**
  * Cache from Color to QColor.
  */
-class ColorCache {
+class ColorCache
+{
 public:
-	ColorCache() {}
+	ColorCache() : initialized_(false) {}
 
 	/// get the given color
-	QColor const & get(Color_color color) const;
+	QColor get(ColorCode color) const;
 
 	/// clear all colors
-	void clear();
+	void clear() { initialized_ = false; }
 
 private:
-	typedef std::map<Color_color, QColor> lcolor_map;
-
-	mutable lcolor_map colormap;
+	///
+	void init();
+	///
+	QColor lcolors_[Color_ignore + 1];
+	///
+	bool initialized_;
 };
 
 ///

@@ -11,43 +11,31 @@
 #include <config.h>
 
 #include "ColorCache.h"
+
 #include "Color.h"
+
+#include <string>
 
 
 namespace lyx {
 
-const QColor grey40(0x66, 0x66, 0x66);
-const QColor grey60(0x99, 0x99, 0x99);
-const QColor grey80(0xcc, 0xcc, 0xcc);
-const QColor grey90(0xe5, 0xe5, 0xe5);
-const QColor none = Qt::black;
-
-QColor const & ColorCache::get(Color_color col) const
+void ColorCache::init()
 {
-	lcolor_map::const_iterator cit = colormap.find(col);
-	if (cit != colormap.end())
-		return cit->second;
-
-	if (lcolor.getX11Name(col) == "grey40")
-		colormap[col] = grey40;
-	else if (lcolor.getX11Name(col) == "grey60")
-		colormap[col] = grey60;
-	else if (lcolor.getX11Name(col) == "grey80")
-		colormap[col] = grey80;
-	else if (lcolor.getX11Name(col) == "grey90")
-		colormap[col] = grey90;
-	else if (lcolor.getX11Name(col) == "none")
-		colormap[col] = none;
-	else
-		colormap[col] = QColor(lcolor.getX11Name(col).c_str());
-
-	return colormap[col];
+	for (int col = 0; col <= Color_ignore; ++col)
+		lcolors_[col] = QColor(lcolor.getX11Name(ColorCode(col)).c_str());
+	initialized_ = true;
 }
 
 
-void ColorCache::clear()
+/// get the given color
+QColor ColorCache::get(ColorCode color) const
 {
-	colormap.clear();
+	if (!initialized_)
+		const_cast<ColorCache *>(this)->init();
+	if (color <= Color_ignore)
+		return lcolors_[color];
+	// used by branches
+	return QColor(lcolor.getX11Name(color).c_str()); 
 }
 
 

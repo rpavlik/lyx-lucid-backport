@@ -12,50 +12,46 @@
 
 #include "InsetExternal.h"
 #include "insets/ExternalSupport.h"
-#include "insets/ExternalTemplate.h"
 #include "insets/RenderButton.h"
 #include "insets/RenderGraphic.h"
 #include "insets/RenderPreview.h"
 
 #include "Buffer.h"
+#include "BufferView.h"
 #include "Cursor.h"
-#include "debug.h"
 #include "DispatchResult.h"
 #include "Exporter.h"
 #include "FuncStatus.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "LaTeXFeatures.h"
-#include "LyX.h"
 #include "Lexer.h"
+#include "LyX.h" // use_gui
 #include "LyXRC.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
 
+#include "frontends/alert.h"
+#include "frontends/Application.h"
+
 #include "graphics/PreviewLoader.h"
 
+#include "support/convert.h"
+#include "support/debug.h"
+#include "support/ExceptionMessage.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/lyxlib.h"
-#include "support/convert.h"
 #include "support/Translator.h"
 
 #include <boost/bind.hpp>
 
 #include <sstream>
 
-using std::endl;
-using std::string;
-using std::auto_ptr;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-using std::vector;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace {
-
-lyx::external::DisplayType const defaultDisplayType = lyx::external::NoDisplay;
 
 unsigned int const defaultLyxScale = 100;
 
@@ -66,15 +62,17 @@ string defaultTemplateName;
 
 namespace lyx {
 
+namespace Alert = frontend::Alert;
+
 namespace external {
 
 TempName::TempName()
 {
-	support::FileName const tempname(support::tempName(support::FileName(), "lyxext"));
+	FileName const tempname = FileName::tempName("lyxext");
 	// FIXME: This is unsafe
-	support::unlink(tempname);
+	tempname.removeFile();
 	// must have an extension for the converter code to work correctly.
-	tempname_ = support::FileName(tempname.absFilename() + ".tmp");
+	tempname_ = FileName(tempname.absFilename() + ".tmp");
 }
 
 
@@ -86,51 +84,22 @@ TempName::TempName(TempName const &)
 
 TempName::~TempName()
 {
-	support::unlink(tempname_);
+	tempname_.removeFile();
 }
 
 
-TempName &
-TempName::operator=(TempName const & other)
+TempName & TempName::operator=(TempName const & other)
 {
 	if (this != &other)
 		tempname_ = TempName()();
 	return *this;
 }
 
-
-namespace {
-
-/// The translator between the Display enum and corresponding lyx string.
-Translator<DisplayType, string> const initTranslator()
-{
-	Translator<DisplayType, string> translator(DefaultDisplay, "default");
-
-	// Fill the display translator
-	translator.addPair(MonochromeDisplay, "monochrome");
-	translator.addPair(GrayscaleDisplay, "grayscale");
-	translator.addPair(ColorDisplay, "color");
-	translator.addPair(PreviewDisplay, "preview");
-	translator.addPair(NoDisplay, "none");
-
-	return translator;
-}
-
-} // namespace anon
-
-
-Translator<DisplayType, string> const & displayTranslator()
-{
-	static Translator<DisplayType, string> const translator =
-		initTranslator();
-	return translator;
-}
-
 } // namespace external
 
 
 InsetExternalParams::InsetExternalParams()
-	: display(defaultDisplayType),
+	: display(true),
 	  lyxscale(defaultLyxScale),
 	  draft(false)
 {
@@ -154,7 +123,7 @@ void clearIfNotFound(T & data, external::TransformID value,
 
 	const_iterator it  = ids.begin();
 	const_iterator end = ids.end();
-	it = std::find(it, end, value);
+	it = find(it, end, value);
 	if (it == end)
 		data = T();
 }
@@ -180,23 +149,22 @@ void InsetExternalParams::settemplate(string const & name)
 	clearIfNotFound(extradata,    external::Extra,  ids);
 	clearIfNotFound(resizedata,   external::Resize, ids);
 	clearIfNotFound(rotationdata, external::Rotate, ids);
+
+	// 
+	preview_mode = et->preview_mode;
 }
 
 
-void InsetExternalParams::write(Buffer const & buffer, ostream & os) const
+void InsetExternalParams::write(Buffer const & buf, ostream & os) const
 {
 	os << "External\n"
 	   << "\ttemplate " << templatename() << '\n';
 
 	if (!filename.empty())
-		os << "\tfilename "
-		   << filename.outputFilename(buffer.filePath())
-		   << '\n';
+		os << "\tfilename " << filename.outputFilename(buf.filePath()) << '\n';
 
-	if (display != defaultDisplayType)
-		os << "\tdisplay "
-		   << external::displayTranslator().find(display)
-		   << '\n';
+	if (!display)
+		os << "\tdisplay false\n";
 
 	if (lyxscale != defaultLyxScale)
 		os << "\tlyxscale " << convert<string>(lyxscale) << '\n';
@@ -225,7 +193,6 @@ void InsetExternalParams::write(Buffer const & buffer, ostream & os) const
 	}
 
 	if (!resizedata.no_resize()) {
-		using support::float_equal;
 		double const scl = convert<double>(resizedata.scale);
 		if (!float_equal(scl, 0.0, 0.05)) {
 			if (!float_equal(scl, 100.0, 0.05))
@@ -247,7 +214,7 @@ void InsetExternalParams::write(Buffer const & buffer, ostream & os) const
 
 bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 {
-	enum ExternalTags {
+	enum {
 		EX_TEMPLATE = 1,
 		EX_FILENAME,
 		EX_DISPLAY,
@@ -265,7 +232,7 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 		EX_END
 	};
 
-	keyword_item external_tags[] = {
+	LexerKeyword external_tags[] = {
 		{ "\\end_inset",     EX_END },
 		{ "boundingBox",     EX_BOUNDINGBOX },
 		{ "clip",            EX_CLIP },
@@ -283,7 +250,7 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 		{ "width",           EX_WIDTH }
 	};
 
-	PushPopHelper pph(lex, external_tags, EX_END);
+	PushPopHelper pph(lex, external_tags);
 
 	bool found_end  = false;
 	bool read_error = false;
@@ -301,11 +268,10 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 			filename.set(name, buffer.filePath());
 			break;
 		}
-
+		
 		case EX_DISPLAY: {
 			lex.next();
-			string const name = lex.getString();
-			display = external::displayTranslator().find(name);
+			display = lex.getString() != "false";
 			break;
 		}
 
@@ -375,8 +341,7 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 			break;
 
 		default:
-			lex.printError("ExternalInset::read: "
-				       "Wrong tag: $$Token");
+			lex.printError("ExternalInset::read: Wrong tag: $$Token");
 			read_error = true;
 			break;
 		}
@@ -400,9 +365,11 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 }
 
 
-InsetExternal::InsetExternal()
+InsetExternal::InsetExternal(Buffer & buf)
 	: renderer_(new RenderButton)
-{}
+{
+	Inset::setBuffer(buf);
+}
 
 
 InsetExternal::InsetExternal(InsetExternal const & other)
@@ -413,21 +380,15 @@ InsetExternal::InsetExternal(InsetExternal const & other)
 {}
 
 
-auto_ptr<Inset> InsetExternal::doClone() const
-{
-	return auto_ptr<Inset>(new InsetExternal(*this));
-}
-
-
 InsetExternal::~InsetExternal()
 {
-	InsetExternalMailer(*this).hideDialog();
+	hideDialogs("external", this);
 }
 
 
 void InsetExternal::statusChanged() const
 {
-	LyX::cref().updateInset(this);
+	updateFrontend();
 }
 
 
@@ -435,29 +396,31 @@ void InsetExternal::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	switch (cmd.action) {
 
-	case LFUN_EXTERNAL_EDIT: {
-		Buffer const & buffer = cur.buffer();
-		InsetExternalParams p;
-		InsetExternalMailer::string2params(to_utf8(cmd.argument()), buffer, p);
-		external::editExternal(p, buffer);
+	case LFUN_INSET_EDIT: {
+		InsetExternalParams p =  params();
+		if (!cmd.argument().empty())
+			string2params(to_utf8(cmd.argument()), buffer(), p);
+		external::editExternal(p, buffer());
 		break;
 	}
 
 	case LFUN_INSET_MODIFY: {
-		Buffer const & buffer = cur.buffer();
 		InsetExternalParams p;
-		InsetExternalMailer::string2params(to_utf8(cmd.argument()), buffer, p);
-		setParams(p, buffer);
+		string2params(to_utf8(cmd.argument()), buffer(), p);
+		setParams(p);
 		break;
 	}
 
 	case LFUN_INSET_DIALOG_UPDATE:
-		InsetExternalMailer(*this).updateDialog(&cur.bv());
+		cur.bv().updateDialog("external",
+			params2string(params(), cur.bv().buffer()));
 		break;
 
 	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection())
-			InsetExternalMailer(*this).showDialog(&cur.bv());
+		if (!cur.selection() && cmd.button() == mouse_button::button1)
+			cur.bv().showDialog("external",
+				params2string(params(), cur.bv().buffer()),
+				this);
 		break;
 
 	default:
@@ -471,10 +434,10 @@ bool InsetExternal::getStatus(Cursor & cur, FuncRequest const & cmd,
 {
 	switch (cmd.action) {
 
-	case LFUN_EXTERNAL_EDIT:
+	case LFUN_INSET_EDIT:
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
-		flag.enabled(true);
+		flag.setEnabled(true);
 		return true;
 
 	default:
@@ -483,56 +446,27 @@ bool InsetExternal::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetExternal::edit(Cursor & cur, bool)
+void InsetExternal::edit(Cursor & cur, bool, EntryDirection)
 {
-	InsetExternalMailer(*this).showDialog(&cur.bv());
+	cur.bv().showDialog("external",
+		params2string(params(), cur.bv().buffer()),
+		this);
 }
 
 
-bool InsetExternal::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetExternal::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	renderer_->metrics(mi, dim);
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
 }
 
 
 void InsetExternal::draw(PainterInfo & pi, int x, int y) const
 {
-	setPosCache(pi, x, y);
 	renderer_->draw(pi, x, y);
 }
 
 
 namespace {
-
-enum RenderType {
-	RENDERBUTTON,
-	RENDERGRAPHIC,
-	RENDERPREVIEW
-};
-
-
-RenderType getRenderType(InsetExternalParams const & p)
-{
-	if (!external::getTemplatePtr(p) ||
-	    p.filename.empty() ||
-	    p.display == external::NoDisplay)
-		return RENDERBUTTON;
-
-	if (p.display == external::PreviewDisplay) {
-		if (RenderPreview::status() != LyXRC::PREVIEW_OFF)
-			return RENDERPREVIEW;
-		return RENDERBUTTON;
-	}
-
-	if (p.display == external::DefaultDisplay &&
-	    lyxrc.display_graphics == graphics::NoDisplay)
-		return RENDERBUTTON;
-	return RENDERGRAPHIC;
-}
-
 
 graphics::Params get_grfx_params(InsetExternalParams const & eparams)
 {
@@ -543,44 +477,20 @@ graphics::Params get_grfx_params(InsetExternalParams const & eparams)
 	if (eparams.clipdata.clip)
 		gparams.bb = eparams.clipdata.bbox;
 	gparams.angle = convert<double>(eparams.rotationdata.adjAngle());
-
-	switch (eparams.display) {
-	case external::DefaultDisplay:
-		gparams.display = graphics::DefaultDisplay;
-		break;
-	case external::MonochromeDisplay:
-		gparams.display = graphics::MonochromeDisplay;
-		break;
-	case external::GrayscaleDisplay:
-		gparams.display = graphics::GrayscaleDisplay;
-		break;
-	case external::ColorDisplay:
-		gparams.display = graphics::ColorDisplay;
-		break;
-	case external::NoDisplay:
-		gparams.display = graphics::NoDisplay;
-		break;
-	default:
-		BOOST_ASSERT(false);
-	}
-	if (gparams.display == graphics::DefaultDisplay)
-		gparams.display = lyxrc.display_graphics;
-	// Override the above if we're not using a gui
-	if (!use_gui)
-		gparams.display = graphics::NoDisplay;
+	gparams.display = eparams.display;
 
 	return gparams;
 }
 
 
-docstring const getScreenLabel(InsetExternalParams const & params,
+docstring screenLabel(InsetExternalParams const & params,
 			    Buffer const & buffer)
 {
 	external::Template const * const ptr =
 		external::getTemplatePtr(params);
 	if (!ptr)
 		// FIXME UNICODE
-		return support::bformat((_("External template %1$s is not installed")),
+		return bformat((_("External template %1$s is not installed")),
 					from_utf8(params.templatename()));
 	// FIXME UNICODE
 	docstring gui = _(ptr->guiName);
@@ -588,11 +498,41 @@ docstring const getScreenLabel(InsetExternalParams const & params,
 				to_utf8(gui), false));
 }
 
-void add_preview_and_start_loading(RenderMonitoredPreview &,
-				   InsetExternal const &,
-				   Buffer const &);
-
 } // namespace anon
+
+
+static bool isPreviewWanted(InsetExternalParams const & params)
+{
+	return params.display && params.filename.isReadableFile();
+}
+
+
+static docstring latexString(InsetExternal const & inset)
+{
+	odocstringstream os;
+	// We don't need to set runparams.encoding since it is not used by
+	// latex().
+	OutputParams runparams(0);
+	runparams.flavor = OutputParams::LATEX;
+	inset.latex(os, runparams);
+	return os.str();
+}
+
+
+static void add_preview_and_start_loading(RenderMonitoredPreview & renderer,
+				   InsetExternal const & inset,
+				   Buffer const & buffer)
+{
+	InsetExternalParams const & params = inset.params();
+
+	if (RenderPreview::status() != LyXRC::PREVIEW_OFF &&
+	    isPreviewWanted(params)) {
+		renderer.setAbsFile(params.filename);
+		docstring const snippet = latexString(inset);
+		renderer.addPreview(snippet, buffer);
+		renderer.startLoading(buffer);
+	}
+}
 
 
 InsetExternalParams const & InsetExternal::params() const
@@ -601,8 +541,7 @@ InsetExternalParams const & InsetExternal::params() const
 }
 
 
-void InsetExternal::setParams(InsetExternalParams const & p,
-			      Buffer const & buffer)
+void InsetExternal::setParams(InsetExternalParams const & p)
 {
 	params_ = p;
 
@@ -610,42 +549,43 @@ void InsetExternal::setParams(InsetExternalParams const & p,
 	// will use this.
 	defaultTemplateName = params_.templatename();
 
-	switch (getRenderType(params_)) {
-	case RENDERBUTTON: {
+	if (!external::getTemplatePtr(params_) || params_.filename.empty()
+		|| !params_.display
+		|| !lyxrc.display_graphics
+		|| params_.preview_mode == PREVIEW_OFF
+		|| (params_.preview_mode == PREVIEW_INSTANT
+		    && RenderPreview::status() == LyXRC::PREVIEW_OFF)) {
 		RenderButton * button_ptr = renderer_->asButton();
 		if (!button_ptr) {
 			renderer_.reset(new RenderButton);
 			button_ptr = renderer_->asButton();
 		}
+		button_ptr->update(screenLabel(params_, buffer()), true);
+		return;
+	}
 
-		button_ptr->update(getScreenLabel(params_, buffer), true);
+	switch (params_.preview_mode) {
+	case PREVIEW_OFF:
+		// Already taken care of above.
+		LASSERT(false, return);
 		break;
-
-	} case RENDERGRAPHIC: {
+	case PREVIEW_INSTANT: {
+		RenderMonitoredPreview * preview_ptr = renderer_->asMonitoredPreview();
+		renderer_.reset(new RenderMonitoredPreview(this));
+		preview_ptr = renderer_->asMonitoredPreview();
+		preview_ptr->fileChanged(boost::bind(&InsetExternal::fileChanged, this));
+		if (preview_ptr->monitoring())
+			preview_ptr->stopMonitoring();
+		add_preview_and_start_loading(*preview_ptr, *this, buffer());
+		break;
+	} 
+	case PREVIEW_GRAPHICS: {
 		RenderGraphic * graphic_ptr = renderer_->asGraphic();
 		if (!graphic_ptr) {
 			renderer_.reset(new RenderGraphic(this));
 			graphic_ptr = renderer_->asGraphic();
 		}
-
 		graphic_ptr->update(get_grfx_params(params_));
-
-		break;
-
-	} case RENDERPREVIEW: {
-		RenderMonitoredPreview * preview_ptr =
-			renderer_->asMonitoredPreview();
-		if (!preview_ptr) {
-			renderer_.reset(new RenderMonitoredPreview(this));
-			preview_ptr = renderer_->asMonitoredPreview();
-			preview_ptr->fileChanged(
-				boost::bind(&InsetExternal::fileChanged, this));
-		}
-
-		if (preview_ptr->monitoring())
-			preview_ptr->stopMonitoring();
-		add_preview_and_start_loading(*preview_ptr, *this, buffer);
-
 		break;
 	}
 	}
@@ -654,40 +594,38 @@ void InsetExternal::setParams(InsetExternalParams const & p,
 
 void InsetExternal::fileChanged() const
 {
-	Buffer const * const buffer_ptr = LyX::cref().updateInset(this);
-	if (!buffer_ptr)
+	Buffer const * const buffer = updateFrontend();
+	if (!buffer)
 		return;
 
 	RenderMonitoredPreview * const ptr = renderer_->asMonitoredPreview();
-	BOOST_ASSERT(ptr);
+	LASSERT(ptr, /**/);
 
-	Buffer const & buffer = *buffer_ptr;
-	ptr->removePreview(buffer);
-	add_preview_and_start_loading(*ptr, *this, buffer);
+	ptr->removePreview(*buffer);
+	add_preview_and_start_loading(*ptr, *this, *buffer);
 }
 
 
-void InsetExternal::write(Buffer const & buffer, ostream & os) const
+void InsetExternal::write(ostream & os) const
 {
-	params_.write(buffer, os);
+	params_.write(buffer(), os);
 }
 
 
-void InsetExternal::read(Buffer const & buffer, Lexer & lex)
+void InsetExternal::read(Lexer & lex)
 {
 	InsetExternalParams params;
-	if (params.read(buffer, lex))
-		setParams(params, buffer);
+	if (params.read(buffer(), lex))
+		setParams(params);
 }
 
 
-int InsetExternal::latex(Buffer const & buf, odocstream & os,
-			 OutputParams const & runparams) const
+int InsetExternal::latex(odocstream & os, OutputParams const & runparams) const
 {
 	if (params_.draft) {
 		// FIXME UNICODE
 		os << "\\fbox{\\ttfamily{}"
-		   << from_utf8(params_.filename.outputFilename(buf.filePath()))
+		   << from_utf8(params_.filename.outputFilename(buffer().filePath()))
 		   << "}\n";
 		return 1;
 	}
@@ -713,35 +651,35 @@ int InsetExternal::latex(Buffer const & buf, odocstream & os,
 
 		if (cit != et.formats.end()) {
 			return external::writeExternal(params_, "PDFLaTeX",
-						       buf, os,
+						       buffer(), os,
 						       *(runparams.exportdata),
 						       external_in_tmpdir,
 						       dryrun);
 		}
 	}
 
-	return external::writeExternal(params_, "LaTeX", buf, os,
+	return external::writeExternal(params_, "LaTeX", buffer(), os,
 				       *(runparams.exportdata),
 				       external_in_tmpdir,
 				       dryrun);
 }
 
 
-int InsetExternal::plaintext(Buffer const & buf, odocstream & os,
+int InsetExternal::plaintext(odocstream & os,
 			     OutputParams const & runparams) const
 {
 	os << '\n'; // output external material on a new line
-	external::writeExternal(params_, "Ascii", buf, os,
+	external::writeExternal(params_, "Ascii", buffer(), os,
 				*(runparams.exportdata), false,
 				runparams.dryrun || runparams.inComment);
 	return PLAINTEXT_NEWLINE;
 }
 
 
-int InsetExternal::docbook(Buffer const & buf, odocstream & os,
+int InsetExternal::docbook(odocstream & os,
 			   OutputParams const & runparams) const
 {
-	return external::writeExternal(params_, "DocBook", buf, os,
+	return external::writeExternal(params_, "DocBook", buffer(), os,
 				       *(runparams.exportdata), false,
 				       runparams.dryrun || runparams.inComment);
 }
@@ -772,8 +710,17 @@ void InsetExternal::validate(LaTeXFeatures & features) const
 	}
 	external::Template::Formats::const_iterator cit =
 		et.formats.find(format);
-	if (cit == et.formats.end())
-		return;
+
+	if (cit == et.formats.end()) {
+		// If the template has not specified a PDFLaTeX output,
+		// we try the LaTeX format.
+		if (format == "PDFLaTeX") {
+			cit = et.formats.find("LaTeX");
+			if (cit == et.formats.end())
+				return;
+		} else
+			return;
+	}
 
 	// FIXME: We don't need that always
 	features.require("lyxdot");
@@ -795,112 +742,64 @@ void InsetExternal::validate(LaTeXFeatures & features) const
 }
 
 
-//
-// preview stuff
-//
-
-namespace {
-
-bool preview_wanted(InsetExternalParams const & params)
-{
-	return params.display == external::PreviewDisplay &&
-		support::isFileReadable(params.filename);
-}
-
-
-docstring const latex_string(InsetExternal const & inset, Buffer const & buffer)
-{
-	odocstringstream os;
-	// We don't need to set runparams.encoding since it is not used by
-	// latex().
-	OutputParams runparams(0);
-	runparams.flavor = OutputParams::LATEX;
-	inset.latex(buffer, os, runparams);
-	return os.str();
-}
-
-
-void add_preview_and_start_loading(RenderMonitoredPreview & renderer,
-				   InsetExternal const & inset,
-				   Buffer const & buffer)
-{
-	InsetExternalParams const & params = inset.params();
-
-	if (RenderPreview::status() != LyXRC::PREVIEW_OFF &&
-	    preview_wanted(params)) {
-		renderer.setAbsFile(params.filename);
-		docstring const snippet = latex_string(inset, buffer);
-		renderer.addPreview(snippet, buffer);
-		renderer.startLoading(buffer);
-	}
-}
-
-} // namespace anon
-
-
 void InsetExternal::addPreview(graphics::PreviewLoader & ploader) const
 {
 	RenderMonitoredPreview * const ptr = renderer_->asMonitoredPreview();
 	if (!ptr)
 		return;
 
-	if (preview_wanted(params())) {
+	if (isPreviewWanted(params())) {
 		ptr->setAbsFile(params_.filename);
-		docstring const snippet = latex_string(*this, ploader.buffer());
+		docstring const snippet = latexString(*this);
 		ptr->addPreview(snippet, ploader);
 	}
 }
 
 
-/// Mailer stuff
-
-string const InsetExternalMailer::name_("external");
-
-InsetExternalMailer::InsetExternalMailer(InsetExternal & inset)
-	: inset_(inset)
-{}
-
-
-string const InsetExternalMailer::inset2string(Buffer const & buffer) const
+docstring InsetExternal::contextMenu(BufferView const &, int, int) const
 {
-	return params2string(inset_.params(), buffer);
+	return from_ascii("context-external");
 }
 
 
-void InsetExternalMailer::string2params(string const & in,
-					Buffer const & buffer,
-					InsetExternalParams & params)
+void InsetExternal::string2params(string const & in, Buffer const & buffer,
+	InsetExternalParams & params)
 {
 	params = InsetExternalParams();
 	if (in.empty())
 		return;
 
 	istringstream data(in);
-	Lexer lex(0,0);
+	Lexer lex;
 	lex.setStream(data);
 
 	string name;
 	lex >> name;
-	if (!lex || name != name_)
-		return print_mailer_error("InsetExternalMailer", in, 1, name_);
+	if (!lex || name != "external") {
+		LYXERR0("InsetExternal::string2params(" << in << ")\n"
+					  "Expected arg 1 to be \"external\"\n");
+		return;
+	}
 
 	// This is part of the inset proper that is usually swallowed
 	// by Text::readInset
 	string id;
 	lex >> id;
-	if (!lex || id != "External")
-		return print_mailer_error("InsetBoxMailer", in, 2, "External");
+	if (!lex || id != "External") {
+		LYXERR0("InsetExternal::string2params(" << in << ")\n"
+					  "Expected arg 2 to be \"External\"\n");
+		return;
+	}
 
 	params.read(buffer, lex);
 }
 
 
-string const
-InsetExternalMailer::params2string(InsetExternalParams const & params,
-				   Buffer const & buffer)
+string InsetExternal::params2string(InsetExternalParams const & params,
+	Buffer const & buffer)
 {
 	ostringstream data;
-	data << name_ << ' ';
+	data << "external" << ' ';
 	params.write(buffer, data);
 	data << "\\end_inset\n";
 	return data.str();

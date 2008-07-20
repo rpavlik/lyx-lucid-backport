@@ -42,8 +42,8 @@
 #
 #
 # The icons are found in the lib/images/ direcory under the name
-# action.xpm or action_parameter.xpm, except for math-insert, which
-# is e.g. lib/image/math/sum.xpm. Note that some characters are
+# action.png or action_parameter.png, except for math-insert, which
+# is e.g. lib/image/math/sum.png. Note that some characters are
 # replaced (e.g. ')' -> rbracket).
 #
 #  All other lyx commands will get a "unknown" icon.
@@ -70,7 +70,7 @@ ToolbarSet
 		Separator
 		Item "Toggle emphasis" "font-emph"
 		Item "Toggle noun" "font-noun"
-		Item "Apply last" "font-free-apply"
+		Item "Apply last" "textstyle-apply"
 		Separator
 		Item "Insert math" "math-mode"
 		Item "Insert graphics" "dialog-show-new-inset graphics"
@@ -102,8 +102,9 @@ ToolbarSet
 		Item "Insert margin note" "marginalnote-insert"
 		Item "Insert note" "note-insert"
 		Item "Insert box" "box-insert Frameless"
-		Item "Insert URL" "url-insert"
+		Item "Insert Hyperlink" "href-insert"
 		Item "Insert TeX code" "ert-insert"
+		Item "Insert math macro" "math-macro newmacroname newcommand"
 		Item "Include file" "dialog-show-new-inset include"
 		Separator
 		Item "Text style" "dialog-show character"
@@ -121,6 +122,7 @@ ToolbarSet
 		Item "Set bottom line" "tabular-feature toggle-line-bottom"
 		Item "Set left line" "tabular-feature toggle-line-left"
 		Item "Set right line" "tabular-feature toggle-line-right"
+		Item "Set border lines" "tabular-feature set-border-lines"
 		Item "Set all lines" "tabular-feature set-all-lines"
 		Item "Unset all lines" "tabular-feature unset-all-lines"
 		Separator
@@ -163,6 +165,21 @@ ToolbarSet
 		Separator
 		Item "Toggle Math Panels" "toolbar-toggle math_panels"
 	End
+
+	Toolbar "mathmacrotemplate" "Math Macros"
+		Item "Remove Last Parameter" "math-macro-remove-param"
+		Item "Append Parameter" "math-macro-add-param"
+                Separator
+		Item "Make First Non-Optional into Optional Parameter" "math-macro-make-optional"
+		Item "Make Last Optional into Non-Optional Parameter"
+		"math-macro-make-nonoptional"
+                Item "Remove Optional Parameter" "math-macro-remove-optional-param"
+                Item "Insert Optional Parameter" "math-macro-add-optional-param"
+		Separator
+		Item "Remove Last Parameter Spitting Out To The Right" "math-macro-remove-greedy-param"
+		Item "Append Parameter Eating From The Right" "math-macro-append-greedy-param"
+                Item "Append Optional Parameter Eating From The Right" "math-macro-add-greedy-optional-param"
+	End
 	
 	Toolbar "minibuffer" "Command Buffer"
 		Minibuffer
@@ -173,8 +190,8 @@ ToolbarSet
 		Item "Show changes in output" "changes-output"
 		Separator
 		Item "Next change" "change-next"
-		Item "Accept change" "change-accept"
-		Item "Reject change" "change-reject"
+		Item "Accept change inside selection" "change-accept"
+		Item "Reject change inside selection" "change-reject"
 		Separator
 		Item "Merge changes" "changes-merge"
 		Item "Accept all changes" "all-changes-accept"
@@ -268,19 +285,25 @@ ToolbarSet
 	End
 	
 	Toolbar "style" "Styles"
-		Item "Display style	\\displaystyle" "math-insert \displaystyle"
-		Item "Normal text style	\\textstyle" "math-insert \textstyle"
-		Item "Script (small) style	\\scriptstyle" "math-insert \scriptstyle"
-		Item "Scriptscript (smaller) style	\\scriptscriptstyle" "math-insert \scriptscriptstyle"
+		Item "Display style	\\displaystyle" "math-size \displaystyle"
+		Item "Normal text style	\\textstyle" "math-size \textstyle"
+		Item "Script (small) style	\\scriptstyle" "math-size \scriptstyle"
+		Item "Scriptscript (smaller) style	\\scriptscriptstyle" "math-size \scriptscriptstyle"
 	End
 	
 	Toolbar "frac-square" "Fractions"
 		Item "Standard	\\frac" "math-insert \frac"
 		Item "No horizontal line	\\atop" "math-insert \atop"
 		Item "Nice fraction (3/4)	\\nicefrac" "math-insert \nicefrac"
+		Item "Unit (km)	\\unit" "math-insert \unitone"
+		Item "Unit (864 m)	\\unit" "math-insert \unittwo"
+		Item "Unit fraction (km/h)	\\unitfrac" "math-insert \unitfrac"
+		Item "Unit fraction (20 km/h)	\\unitfrac" "math-insert \unitfracthree"
 		Item "Text fraction (amsmath)	\\tfrac" "math-insert \tfrac"
 		Item "Display fraction (amsmath)	\\dfrac" "math-insert \dfrac"
-		Item "Binomial	\\choose" "math-insert \choose"
+		Item "Binomial	\\binom" "math-insert \binom"
+		Item "Text binomial	\\tbinom" "math-insert \tbinom"
+		Item "Display binomial	\\dbinom" "math-insert \dbinom"
 	End
 	
 	Toolbar "font" "Fonts"

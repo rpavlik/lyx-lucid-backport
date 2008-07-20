@@ -15,31 +15,25 @@
 #include "MathStream.h"
 #include "MathSupport.h"
 
+using namespace std;
+
 
 namespace lyx {
-
-using std::string;
-using std::auto_ptr;
-using std::vector;
 
 InsetMathNumber::InsetMathNumber(docstring const & s)
 	: str_(s)
 {}
 
 
-auto_ptr<Inset> InsetMathNumber::doClone() const
+Inset * InsetMathNumber::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathNumber(*this));
+	return new InsetMathNumber(*this);
 }
 
 
-bool InsetMathNumber::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathNumber::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	mathed_string_dim(mi.base.font, str_, dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 

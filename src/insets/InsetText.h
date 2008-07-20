@@ -13,24 +13,20 @@
 #define INSETTEXT_H
 
 #include "Inset.h"
-#include "Font.h"
+
+#include "ColorCode.h"
 #include "Text.h"
-
-#include "support/types.h"
-
-#include "frontends/mouse_state.h"
-
 
 namespace lyx {
 
 class Buffer;
 class BufferParams;
 class BufferView;
+class CompletionList;
 class CursorSlice;
 class Dimension;
-class Color_color;
 class ParagraphList;
-
+class InsetTabular;
 
 /**
  A text inset is like a TeX box to write full text
@@ -39,40 +35,43 @@ class ParagraphList;
 class InsetText : public Inset {
 public:
 	///
-	explicit InsetText(BufferParams const &);
+	explicit InsetText(Buffer const & buffer);
 	///
 	InsetText();
 	///
-	bool hasFixedWidth() const { return fixed_width_; }
+	InsetText(InsetText const &);
+	///
+	void initParagraphs(Buffer const & buffer);
+
+	///
+	Dimension const dimension(BufferView const &) const;
 
 	/// empty inset to empty par
 	void clear();
 	///
-	void read(Buffer const & buf, Lexer & lex);
+	void read(Lexer & lex);
 	///
-	void write(Buffer const & buf, std::ostream & os) const;
+	void write(std::ostream & os) const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
-	/// draw inset selection
-	void drawSelection(PainterInfo & pi, int x, int y) const;
 	///
-	virtual docstring const editMessage() const;
+	docstring editMessage() const;
 	///
 	EDITABLE editable() const { return HIGHLY_EDITABLE; }
 	///
 	bool canTrackChanges() const { return true; }
 	///
-	InsetText * asTextInset() { return this; }
+	InsetText * asInsetText() { return this; }
 	///
-	InsetText const * asTextInset() const { return this; }
+	InsetText const * asInsetText() const { return this; }
 	///
-	int latex(Buffer const &, odocstream &, OutputParams const &) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures & features) const;
 
@@ -80,7 +79,7 @@ public:
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
 		bool boundary, int & x, int & y) const;
 	///
-	Code lyxCode() const { return TEXT_CODE; }
+	InsetCode lyxCode() const { return TEXT_CODE; }
 	///
 	void setText(docstring const &, Font const &, bool trackChanges);
 	///
@@ -90,9 +89,9 @@ public:
 	///
 	void setDrawFrame(bool);
 	///
-	Color_color frameColor() const;
+	ColorCode frameColor() const;
 	///
-	void setFrameColor(Color_color);
+	void setFrameColor(ColorCode);
 	///
 	bool showInsetDialog(BufferView *) const;
 	///
@@ -110,13 +109,13 @@ public:
 	void rejectChanges(BufferParams const & bparams);
 
 	/// append text onto the existing text
-	void appendParagraphs(Buffer * bp, ParagraphList &);
+	void appendParagraphs(ParagraphList &);
 
 	///
 	void addPreview(graphics::PreviewLoader &) const;
 
 	///
-	void edit(Cursor & cur, bool left);
+	void edit(Cursor & cur, bool front, EntryDirection entry_from);
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 
@@ -127,41 +126,59 @@ public:
 	///
 	ParagraphList const & paragraphs() const;
 	///
-	bool insetAllowed(Code) const { return true; }
+	bool insetAllowed(InsetCode) const { return true; }
 	///
 	bool allowSpellCheck() const { return true; }
-	/// should paragraph indendation be ommitted in any case?
-	bool neverIndent(Buffer const &) const;
 	///
-	InsetText(InsetText const &);
-
-protected:
+	virtual bool isMacroScope() const { return false; }
 	///
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	virtual bool allowMultiPar() const { return true; }
 
+	// Update the counters of this inset and of its contents
+	void updateLabels(ParIterator const &);
+	///
+	void addToToc(DocIterator const &);
+	///
+	Inset * clone() const { return new InsetText(*this); }
+	///
+	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
+
+	///
+	bool completionSupported(Cursor const &) const;
+	///
+	bool inlineCompletionSupported(Cursor const & cur) const;
+	///
+	bool automaticInlineCompletion() const;
+	///
+	bool automaticPopupCompletion() const;
+	///
+	bool showCompletionCursor() const;
+	///
+	CompletionList const * createCompletionList(Cursor const & cur) const;
+	///
+	docstring completionPrefix(Cursor const & cur) const;
+	///
+	bool insertCompletion(Cursor & cur, docstring const & s, bool finished);
+	///
+	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
+
+	///
+	virtual docstring contextMenu(BufferView const & bv, int x, int y) const;
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
 private:
 	///
-	virtual std::auto_ptr<Inset> doClone() const;
-	///
-	void init();
-
+	void setParagraphOwner();
 	///
 	bool drawFrame_;
-	/** We store the Color::color value as an int to get Color.h out
-	 *  of the header file.
-	 */
-	int frame_color_;
+	///
+	ColorCode frame_color_;
 	///
 	mutable pit_type old_pit;
-	/// Does the inset has fixed width?
-	/// Allow horizontal maximization of the inset.
-	mutable bool fixed_width_;
 
 public:
 	///
 	mutable Text text_;
-	///
-	mutable Font font_;
 };
 
 } // namespace lyx

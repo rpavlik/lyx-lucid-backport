@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>QViewSourceUi</class>
- <widget class="QWidget" name="QViewSourceUi" >
+ <class>ViewSourceUi</class>
+ <widget class="QWidget" name="ViewSourceUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -88,7 +88,7 @@
   <tabstop>updatePB</tabstop>
  </tabstops>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <resources/>
  <connections/>

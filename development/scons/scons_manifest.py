@@ -4,8 +4,6 @@ TOP_extra_files = Split('''
     ABOUT-NLS
     ANNOUNCE
     COPYING
-    ChangeLog
-    ChangeLog.1
     INSTALL
     INSTALL.MacOSX
     INSTALL.Win32
@@ -14,7 +12,6 @@ TOP_extra_files = Split('''
     INSTALL.scons
     Makefile.am
     NEWS
-    OLD-CHANGES
     README
     README.Cygwin
     README.Win32
@@ -33,6 +30,7 @@ TOP_extra_files = Split('''
 src_header_files = Split('''
     ASpell_local.h
     Author.h
+    BiblioInfo.h
     Bidi.h
     Box.h
     BranchList.h
@@ -43,7 +41,11 @@ src_header_files = Split('''
     Bullet.h
     Changes.h
     Chktex.h
+    Citation.h
+    CmdDef.h
     Color.h
+    ColorCode.h
+    CompletionList.h
     Converter.h
     ConverterCache.h
     CoordCache.h
@@ -61,13 +63,15 @@ src_header_files = Split('''
     FloatList.h
     Floating.h
     Font.h
-    FontIterator.h
+    FontEnums.h
+    FontInfo.h
+    FontList.h
     Format.h
+    FuncCode.h
     FuncRequest.h
     FuncStatus.h
     Graph.h
     ISpell.h
-    Importer.h
     InsetIterator.h
     InsetList.h
     Intl.h
@@ -77,6 +81,8 @@ src_header_files = Split('''
     LaTeXFeatures.h
     Language.h
     Layout.h
+    LayoutEnums.h
+    LayoutFile.h
     Length.h
     Lexer.h
     LyX.h
@@ -84,18 +90,18 @@ src_header_files = Split('''
     LyXFunc.h
     LyXRC.h
     LyXVC.h
-    MenuBackend.h
-    Messages.h
     MetricsInfo.h
+    ModuleList.h
     Mover.h
     OutputParams.h
-    PSpell.h
     ParIterator.h
     Paragraph.h
     ParagraphList.h
     ParagraphMetrics.h
     ParagraphParameters.h
+    PDFOptions.h
     PrinterParams.h
+    PSpell.h
     Row.h
     Section.h
     Server.h
@@ -106,11 +112,9 @@ src_header_files = Split('''
     TexRow.h
     Text.h
     TextClass.h
-    TextClassList.h
     TextMetrics.h
     Thesaurus.h
     TocBackend.h
-    ToolbarBackend.h
     Trans.h
     Undo.h
     VCBackend.h
@@ -118,15 +122,8 @@ src_header_files = Split('''
     Variables.h
     WordLangTuple.h
     buffer_funcs.h
-    bufferview_funcs.h
-    callback.h
-    debug.h
     factory.h
-    gettext.h
-    lengthcommon.h
-    lfuns.h
     lyxfind.h
-    lyxlayout_ptr_fwd.h
     output.h
     output_docbook.h
     output_latex.h
@@ -135,9 +132,9 @@ src_header_files = Split('''
     paragraph_funcs.h
     rowpainter.h
     sgml.h
-    toc.h
     update_flags.h
     version.h
+    WordList.h
 ''')
 
 
@@ -152,6 +149,7 @@ src_pre_files = Split('''
     Bullet.cpp
     Changes.cpp
     Chktex.cpp
+    CmdDef.cpp
     Color.cpp
     Converter.cpp
     ConverterCache.cpp
@@ -168,12 +166,12 @@ src_pre_files = Split('''
     FloatList.cpp
     Floating.cpp
     Font.cpp
-    FontIterator.cpp
+    FontInfo.cpp
+    FontList.cpp
     Format.cpp
     FuncRequest.cpp
     FuncStatus.cpp
     Graph.cpp
-    Importer.cpp
     InsetIterator.cpp
     InsetList.cpp
     Intl.cpp
@@ -183,6 +181,7 @@ src_pre_files = Split('''
     LaTeXFeatures.cpp
     Language.cpp
     Layout.cpp
+    LayoutFile.cpp
     Length.cpp
     Lexer.cpp
     LyX.cpp
@@ -190,11 +189,10 @@ src_pre_files = Split('''
     LyXFunc.cpp
     LyXRC.cpp
     LyXVC.cpp
-    MenuBackend.cpp
-    Messages.cpp
     MetricsInfo.cpp
     Mover.cpp
     OutputParams.cpp
+    PDFOptions.cpp
     ParIterator.cpp
     Paragraph.cpp
     ParagraphMetrics.cpp
@@ -209,21 +207,14 @@ src_pre_files = Split('''
     Text2.cpp
     Text3.cpp
     TextClass.cpp
-    TextClassList.cpp
     TextMetrics.cpp
     TocBackend.cpp
-    ToolbarBackend.cpp
     Trans.cpp
     Undo.cpp
     VCBackend.cpp
     VSpace.cpp
-    boost.cpp
     buffer_funcs.cpp
-    bufferview_funcs.cpp
-    callback.cpp
-    debug.cpp
     factory.cpp
-    gettext.cpp
     lengthcommon.cpp
     lyxfind.cpp
     output.cpp
@@ -233,16 +224,20 @@ src_pre_files = Split('''
     paragraph_funcs.cpp
     rowpainter.cpp
     sgml.cpp
-    toc.cpp
+    version.cpp
+    WordList.cpp
 ''')
 
 
 src_post_files = Split('''
+    BiblioInfo.cpp
     Box.cpp
     Dimension.cpp
+    ModuleList.cpp
     PrinterParams.cpp
     SpellBase.cpp
     Thesaurus.cpp
+    boost.cpp
 ''')
 
 
@@ -253,13 +248,10 @@ src_extra_src_files = Split('''
     Section.cpp
     Variables.cpp
     main.cpp
-    stamp-h.in
-    version.cpp.in
 ''')
 
 
 src_extra_files = Split('''
-    ChangeLog
     Makefile.am
     pch.h
 ''')
@@ -267,7 +259,6 @@ src_extra_files = Split('''
 
 src_client_header_files = Split('''
     Messages.h
-    debug.h
 ''')
 
 
@@ -275,13 +266,11 @@ src_client_files = Split('''
     Messages.cpp
     boost.cpp
     client.cpp
-    debug.cpp
     gettext.cpp
 ''')
 
 
 src_client_extra_files = Split('''
-    ChangeLog
     Makefile.am
     lyxclient.man
     pch.h
@@ -290,39 +279,39 @@ src_client_extra_files = Split('''
 
 src_support_header_files = Split('''
     ExceptionMessage.h
-    FileFilterList.h
     FileMonitor.h
     FileName.h
-    ForkedCallQueue.h
-    Forkedcall.h
-    ForkedcallsController.h
+    ForkedCalls.h
+    Messages.h
     Package.h
     Path.h
     RandomAccessList.h
+    SignalSlot.h
+    SignalSlotPrivate.h
     Systemcall.h
+    Timeout.h
     Translator.h
     convert.h
     copied_ptr.h
-    cow_ptr.h
-    debugstream.h
+    debug.h
     docstream.h
     docstring.h
+    docstring_list.h
     environment.h
     filetools.h
-    fs_extras.h
+    foreach.h
+    gettext.h
     gzstream.h
+    lassert.h
     limited_stack.h
     lstrings.h
     lyxalgo.h
     lyxlib.h
-    lyxmanip.h
     lyxtime.h
     os.h
     os_win32.h
     qstring_helpers.h
     socktools.h
-    std_istream.h
-    std_ostream.h
     textutils.h
     types.h
     unicode.h
@@ -331,38 +320,33 @@ src_support_header_files = Split('''
 
 
 src_support_files = Split('''
-    FileFilterList.cpp
     FileMonitor.cpp
     FileName.cpp
-    ForkedCallQueue.cpp
-    Forkedcall.cpp
-    ForkedcallsController.cpp
+    ForkedCalls.cpp
+    Messages.cpp
+    Package.cpp
     Path.cpp
+    SignalSlot.cpp
+    SignalSlotPrivate.cpp
     Systemcall.cpp
-    abort.cpp
-    chdir.cpp
+    Timeout.cpp
     convert.cpp
-    copy.cpp
+    debug.cpp
     docstream.cpp
     docstring.cpp
     environment.cpp
     filetools.cpp
-    fs_extras.cpp
+    gettext.cpp
     gzstream.cpp
-    getcwd.cpp
     kill.cpp
+    lassert.cpp
     lstrings.cpp
     lyxsum.cpp
     lyxtime.cpp
-    mkdir.cpp
     os.cpp
     qstring_helpers.cpp
-    rename.cpp
     socktools.cpp
-    tempname.cpp
-    textutils.cpp
     unicode.cpp
-    unlink.cpp
     userinfo.cpp
 ''')
 
@@ -373,7 +357,6 @@ src_support_extra_header_files = Split('''
 
 
 src_support_extra_src_files = Split('''
-    Package.cpp.in
     atexit.c
     os_cygwin.cpp
     os_unix.cpp
@@ -383,14 +366,12 @@ src_support_extra_src_files = Split('''
 
 
 src_support_extra_files = Split('''
-    ChangeLog
     Makefile.am
     pch.h
 ''')
 
 
 src_support_tests_extra_files = Split('''
-    ChangeLog
     Makefile.am
     boost.cpp
     convert.cpp
@@ -418,7 +399,6 @@ src_graphics_header_files = Split('''
     GraphicsLoader.h
     GraphicsParams.h
     GraphicsTypes.h
-    LoaderQueue.h
     PreviewImage.h
     PreviewLoader.h
     Previews.h
@@ -433,7 +413,6 @@ src_graphics_files = Split('''
     GraphicsLoader.cpp
     GraphicsParams.cpp
     GraphicsTypes.cpp
-    LoaderQueue.cpp
     PreviewImage.cpp
     PreviewLoader.cpp
     Previews.cpp
@@ -441,7 +420,6 @@ src_graphics_files = Split('''
 
 
 src_graphics_extra_files = Split('''
-    ChangeLog
     Makefile.am
     pch.h
 ''')
@@ -453,16 +431,13 @@ src_mathed_header_files = Split('''
     InsetMathAMSArray.h
     InsetMathArray.h
     InsetMathBig.h
-    InsetMathBinom.h
     InsetMathBoldSymbol.h
     InsetMathBox.h
-    InsetMathBoxed.h
     InsetMathBrace.h
     InsetMathCases.h
     InsetMathChar.h
     InsetMathColor.h
     InsetMathComment.h
-    InsetMathDFrac.h
     InsetMathDecoration.h
     InsetMathDelim.h
     InsetMathDiff.h
@@ -470,18 +445,14 @@ src_mathed_header_files = Split('''
     InsetMathEnv.h
     InsetMathExFunc.h
     InsetMathExInt.h
-    InsetMathFBox.h
     InsetMathFont.h
     InsetMathFontOld.h
     InsetMathFrac.h
-    InsetMathFracBase.h
-    InsetMathFrameBox.h
     InsetMathGrid.h
     InsetMathHull.h
     InsetMathKern.h
     InsetMathLefteqn.h
     InsetMathLim.h
-    InsetMathMakebox.h
     InsetMathMatrix.h
     InsetMathNest.h
     InsetMathNumber.h
@@ -499,7 +470,6 @@ src_mathed_header_files = Split('''
     InsetMathString.h
     InsetMathSubstack.h
     InsetMathSymbol.h
-    InsetMathTFrac.h
     InsetMathTabular.h
     InsetMathUnderset.h
     InsetMathUnknown.h
@@ -508,6 +478,7 @@ src_mathed_header_files = Split('''
     MacroTable.h
     MathAtom.h
     MathAutoCorrect.h
+    MathCompletionList.h
     MathData.h
     MathExtern.h
     MathFactory.h
@@ -529,16 +500,13 @@ src_mathed_files = Split('''
     InsetMathAMSArray.cpp
     InsetMathArray.cpp
     InsetMathBig.cpp
-    InsetMathBinom.cpp
     InsetMathBoldSymbol.cpp
     InsetMathBox.cpp
-    InsetMathBoxed.cpp
     InsetMathBrace.cpp
     InsetMathCases.cpp
     InsetMathChar.cpp
     InsetMathColor.cpp
     InsetMathComment.cpp
-    InsetMathDFrac.cpp
     InsetMathDecoration.cpp
     InsetMathDelim.cpp
     InsetMathDiff.cpp
@@ -546,18 +514,14 @@ src_mathed_files = Split('''
     InsetMathEnv.cpp
     InsetMathExFunc.cpp
     InsetMathExInt.cpp
-    InsetMathFBox.cpp
     InsetMathFont.cpp
     InsetMathFontOld.cpp
     InsetMathFrac.cpp
-    InsetMathFracBase.cpp
-    InsetMathFrameBox.cpp
     InsetMathGrid.cpp
     InsetMathHull.cpp
     InsetMathKern.cpp
     InsetMathLefteqn.cpp
     InsetMathLim.cpp
-    InsetMathMakebox.cpp
     InsetMathMatrix.cpp
     InsetMathNest.cpp
     InsetMathNumber.cpp
@@ -575,7 +539,6 @@ src_mathed_files = Split('''
     InsetMathString.cpp
     InsetMathSubstack.cpp
     InsetMathSymbol.cpp
-    InsetMathTFrac.cpp
     InsetMathTabular.cpp
     InsetMathUnderset.cpp
     InsetMathUnknown.cpp
@@ -599,7 +562,6 @@ src_mathed_files = Split('''
 
 src_mathed_extra_files = Split('''
     BUGS
-    ChangeLog
     InsetFormulaMacro.cpp
     InsetFormulaMacro.h
     InsetMathMBox.cpp
@@ -628,7 +590,6 @@ src_tex2lyx_files = Split('''
     Parser.cpp
     boost.cpp
     gettext.cpp
-    lengthcommon.cpp
     math.cpp
     preamble.cpp
     table.cpp
@@ -637,25 +598,25 @@ src_tex2lyx_files = Split('''
 ''')
 
 
+src_tex2lyx_copied_header_files = Split('''
+    insets/InsetLayout.h
+''')
+
+
 src_tex2lyx_copied_files = Split('''
+    Color.cpp
     Counters.cpp
     FloatList.cpp
     Floating.cpp
     Layout.cpp
     Lexer.cpp
     TextClass.cpp
-''')
-
-
-src_tex2lyx_copied_header_files = Split('''
-    Layout.h
-    Lexer.h
-    TextClass.h
+    insets/InsetLayout.cpp
+    lengthcommon.cpp
 ''')
 
 
 src_tex2lyx_extra_files = Split('''
-    ChangeLog
     Makefile.am
     pch.h
     test-insets.tex
@@ -666,144 +627,34 @@ src_tex2lyx_extra_files = Split('''
 
 
 src_frontends_header_files = Split('''
-    Alert_pimpl.h
     Application.h
     Clipboard.h
-    Dialogs.h
-    FileDialog.h
     FontLoader.h
     FontMetrics.h
-    Gui.h
+    KeyModifier.h
     KeySymbol.h
     LyXView.h
-    Menubar.h
-    NoGuiFontLoader.h
-    NoGuiFontMetrics.h
     Painter.h
     Selection.h
-    Timeout.h
-    Toolbars.h
     WorkArea.h
+    WorkAreaManager.h
     alert.h
-    key_state.h
     mouse_state.h
 ''')
 
 
 src_frontends_files = Split('''
-    Application.cpp
-    Dialogs.cpp
-    LyXView.cpp
-    Painter.cpp
-    Timeout.cpp
-    Toolbars.cpp
-    WorkArea.cpp
-    alert.cpp
+    WorkAreaManager.cpp
 ''')
 
 
 src_frontends_extra_files = Split('''
-    ChangeLog
     Makefile.am
     pch.h
 ''')
 
 
-src_frontends_controllers_header_files = Split('''
-    BCView.h
-    ButtonController.h
-    ButtonPolicy.h
-    ControlAboutlyx.h
-    ControlBibtex.h
-    ControlBox.h
-    ControlBranch.h
-    ControlChanges.h
-    ControlCharacter.h
-    ControlCitation.h
-    ControlCommand.h
-    ControlCommandBuffer.h
-    ControlDocument.h
-    ControlERT.h
-    ControlErrorList.h
-    ControlExternal.h
-    ControlFloat.h
-    ControlGraphics.h
-    ControlInclude.h
-    ControlListings.h
-    ControlLog.h
-    ControlMath.h
-    ControlNote.h
-    ControlParagraph.h
-    ControlPrefs.h
-    ControlPrint.h
-    ControlRef.h
-    ControlSearch.h
-    ControlSendto.h
-    ControlShowFile.h
-    ControlSpellchecker.h
-    ControlTabular.h
-    ControlTabularCreate.h
-    ControlTexinfo.h
-    ControlThesaurus.h
-    ControlToc.h
-    ControlVSpace.h
-    ControlViewSource.h
-    ControlWrap.h
-    Dialog.h
-    Kernel.h
-    frontend_helpers.h
-''')
-
-
-src_frontends_controllers_files = Split('''
-    BCView.cpp
-    ButtonController.cpp
-    ButtonPolicy.cpp
-    ControlAboutlyx.cpp
-    ControlBibtex.cpp
-    ControlBox.cpp
-    ControlBranch.cpp
-    ControlChanges.cpp
-    ControlCharacter.cpp
-    ControlCitation.cpp
-    ControlCommand.cpp
-    ControlCommandBuffer.cpp
-    ControlDocument.cpp
-    ControlERT.cpp
-    ControlErrorList.cpp
-    ControlExternal.cpp
-    ControlFloat.cpp
-    ControlGraphics.cpp
-    ControlInclude.cpp
-    ControlListings.cpp
-    ControlLog.cpp
-    ControlMath.cpp
-    ControlNote.cpp
-    ControlParagraph.cpp
-    ControlPrefs.cpp
-    ControlPrint.cpp
-    ControlRef.cpp
-    ControlSearch.cpp
-    ControlSendto.cpp
-    ControlShowFile.cpp
-    ControlSpellchecker.cpp
-    ControlTabular.cpp
-    ControlTabularCreate.cpp
-    ControlTexinfo.cpp
-    ControlThesaurus.cpp
-    ControlToc.cpp
-    ControlVSpace.cpp
-    ControlViewSource.cpp
-    ControlWrap.cpp
-    Dialog.cpp
-    Kernel.cpp
-    frontend_helpers.cpp
-''')
-
-
 src_frontends_controllers_extra_files = Split('''
-    BCView.tmpl
-    ChangeLog
     Makefile.am
     pch.h
 ''')
@@ -824,261 +675,189 @@ src_frontends_controllers_tests_regfiles_extra_files = Split('''
 
 
 src_frontends_qt4_header_files = Split('''
+    ButtonPolicy.h
+    Dialog.h
     Action.h
     BulletsModule.h
-    CheckedLineEdit.h
+    ButtonController.h
     ColorCache.h
+    CustomizedWidgets.h
+    DialogView.h
     DockView.h
     EmptyTable.h
+    FileDialog.h
     FloatPlacement.h
+    GuiAbout.h
     GuiApplication.h
+    GuiBibitem.h
+    GuiBibtex.h
+    GuiBox.h
+    GuiBranches.h
+    GuiBranch.h
+    GuiChanges.h
+    GuiCharacter.h
+    GuiCharacter.h
+    GuiCitation.h
     GuiClipboard.h
+    GuiCommandBuffer.h
+    GuiCommandEdit.h
+    GuiCompleter.h
+    GuiDelimiter.h
+    GuiDialog.h
+    GuiDocument.h
+    GuiErrorList.h
+    GuiERT.h
+    GuiExternal.h
+    GuiFloat.h
+    GuiFontExample.h
     GuiFontLoader.h
-    GuiImplementation.h
+    GuiGraphics.h
+    GuiGraphicsUi.h
+    GuiHSpace.h
+    GuiHyperlink.h
+    GuiIdListModel.h
+    GuiImage.h
+    GuiInclude.h
+    GuiInfo.h
+    GuiKeySymbol.h
+    GuiLabel.h
+    GuiListings.h
+    GuiLog.h
+    GuiMathMatrix.h
+    GuiNomencl.h
+    GuiNote.h
+    GuiPainter.h
+    GuiParagraph.h
+    GuiPrefs.h
+    GuiPrint.h
+    GuiRef.h
+    GuiSearch.h
     GuiSelection.h
+    GuiSelectionManager.h
+    GuiSendto.h
+    GuiSetBorder.h
+    GuiShowFile.h
+    GuiSpellchecker.h
+    GuiSymbols.h
+    GuiTabularCreate.h
+    GuiTabular.h
+    GuiTexinfo.h
+    GuiThesaurus.h
+    GuiToc.h
+    GuiToolbar.h
     GuiView.h
+    GuiViewSource.h
+    GuiVSpace.h
     GuiWorkArea.h
+    GuiWrap.h
     IconPalette.h
     InsertTableWidget.h
+    LaTeXHighlighter.h
     LengthCombo.h
     LyXFileDialog.h
+    Menus.h
     PanelStack.h
-    QAbout.h
-    QBibitem.h
-    QBibtex.h
-    QBox.h
-    QBranch.h
-    QBranches.h
-    QChanges.h
-    QCharacter.h
-    QCharacter.h
-    QCitation.h
-    QCitationDialog.h
-    QCommandBuffer.h
-    QCommandEdit.h
-    QDelimiterDialog.h
-    QDialogView.h
-    QDocument.h
-    QERT.h
-    QErrorList.h
-    QExternal.h
-    QFloat.h
-    QFloatDialog.h
-    QFontExample.h
-    QGraphics.h
-    QGraphicsDialog.h
-    QGraphicsUi.h
-    QInclude.h
-    QIndex.h
-    QKeySymbol.h
-    QListings.h
-    QLImage.h
-    QLMenubar.h
-    QLPainter.h
-    QLPopupMenu.h
-    QLPrintDialog.h
-    QLToolbar.h
-    QLog.h
-    QMathMatrixDialog.h
-    QNomencl.h
-    QNote.h
-    QParagraph.h
-    QPrefs.h
-    QPrint.h
-    QRef.h
-    QSearch.h
-    QSendto.h
-    QSetBorder.h
-    QShowFile.h
-    QSpellchecker.h
-    QTabular.h
-    QTabularCreate.h
-    QTexinfo.h
-    QThesaurus.h
-    QToc.h
-    QURLDialog.h
-    QVSpace.h
-    QViewSource.h
-    QWrap.h
-    Qt2BC.h
     TocModel.h
     TocWidget.h
-    UrlView.h
+    Toolbars.h
     Validator.h
-    qlkey.h
-    qtTimeout.h
     qt_helpers.h
-    socket_callback.h
+    qt_i18n.h
 ''')
 
 
 src_frontends_qt4_files = Split('''
+    ButtonPolicy.cpp
+    Dialog.cpp
     Action.cpp
     BulletsModule.cpp
-    CheckedLineEdit.cpp
+    ButtonController.cpp
     ColorCache.cpp
-    Dialogs.cpp
+    CustomizedWidgets.cpp
     EmptyTable.cpp
     FileDialog.cpp
     FloatPlacement.cpp
+    GuiAbout.cpp
+    GuiAlert.cpp
     GuiApplication.cpp
+    GuiBibitem.cpp
+    GuiBibtex.cpp
+    GuiBox.cpp
+    GuiBranch.cpp
+    GuiBranches.cpp
+    GuiChanges.cpp
+    GuiCharacter.cpp
+    GuiCitation.cpp
     GuiClipboard.cpp
+    GuiCommandBuffer.cpp
+    GuiCommandEdit.cpp
+    GuiCompleter.cpp
+    GuiDelimiter.cpp
+    GuiDialog.cpp
+    GuiDocument.cpp
+    GuiErrorList.cpp
+    GuiERT.cpp
+    GuiExternal.cpp
+    GuiFloat.cpp
+    GuiFontExample.cpp
     GuiFontLoader.cpp
     GuiFontMetrics.cpp
-    GuiImplementation.cpp
+    GuiGraphics.cpp
+    GuiHSpace.cpp
+    GuiHyperlink.cpp
+    GuiIdListModel.cpp 
+    GuiImage.cpp
+    GuiInclude.cpp
+    GuiInfo.cpp
+    GuiKeySymbol.cpp
+    GuiLabel.cpp
+    GuiListings.cpp
+    GuiLog.cpp
+    GuiMathMatrix.cpp
+    GuiNomencl.cpp
+    GuiNote.cpp
+    GuiPainter.cpp
+    GuiParagraph.cpp
+    GuiPrefs.cpp
+    GuiPrint.cpp
+    GuiRef.cpp
+    GuiSearch.cpp
     GuiSelection.cpp
+    GuiSelectionManager.cpp
+    GuiSendto.cpp
+    GuiSetBorder.cpp
+    GuiShowFile.cpp
+    GuiSpellchecker.cpp
+    GuiSymbols.cpp
+    GuiTabular.cpp
+    GuiTabularCreate.cpp
+    GuiTexinfo.cpp
+    GuiThesaurus.cpp
+    GuiToc.cpp
+    GuiToolbar.cpp
     GuiView.cpp
+    GuiViewSource.cpp
+    GuiVSpace.cpp
     GuiWorkArea.cpp
+    GuiWrap.cpp
     IconPalette.cpp
     InsertTableWidget.cpp
-    KeySymbol.cpp
     LengthCombo.cpp
+    LaTeXHighlighter.cpp
     LyXFileDialog.cpp
+    Menus.cpp
     PanelStack.cpp
-    QAbout.cpp
-    QBibitem.cpp
-    QBibtex.cpp
-    QBox.cpp
-    QBranch.cpp
-    QBranches.cpp
-    QChanges.cpp
-    QCharacter.cpp
-    QCitation.cpp
-    QCitationDialog.cpp
-    QCommandBuffer.cpp
-    QCommandEdit.cpp
-    QDelimiterDialog.cpp
-    QDialogView.cpp
-    QDocument.cpp
-    QERT.cpp
-    QErrorList.cpp
-    QExternal.cpp
-    QFloat.cpp
-    QFloatDialog.cpp
-    QFontExample.cpp
-    QGraphics.cpp
-    QGraphicsDialog.cpp
-    QInclude.cpp
-    QIndex.cpp
-    QKeySymbol.cpp
-    QListings.cpp
-    QLImage.cpp
-    QLMenubar.cpp
-    QLPainter.cpp
-    QLPopupMenu.cpp
-    QLPrintDialog.cpp
-    QLToolbar.cpp
-    QLog.cpp
-    QMathMatrixDialog.cpp
-    QNomencl.cpp
-    QNote.cpp
-    QParagraph.cpp
-    QPrefs.cpp
-    QPrint.cpp
-    QRef.cpp
-    QSearch.cpp
-    QSendto.cpp
-    QSetBorder.cpp
-    QShowFile.cpp
-    QSpellchecker.cpp
-    QTabular.cpp
-    QTabularCreate.cpp
-    QTexinfo.cpp
-    QThesaurus.cpp
-    QToc.cpp
-    QURLDialog.cpp
-    QVSpace.cpp
-    QViewSource.cpp
-    QWrap.cpp
-    Qt2BC.cpp
     TocModel.cpp
     TocWidget.cpp
-    UrlView.cpp
+    Toolbars.cpp
     Validator.cpp
-    alert_pimpl.cpp
-    qtTimeout.cpp
     qt_helpers.cpp
-    socket_callback.cpp
-''')
-
-
-src_frontends_qt4_moc_files = Split('''
-    Action.cpp
-    BulletsModule.cpp
-    EmptyTable.cpp
-    FloatPlacement.cpp
-    GuiApplication.cpp
-    GuiClipboard.cpp
-    GuiImplementation.cpp
-    GuiSelection.cpp
-    GuiView.cpp
-    GuiWorkArea.cpp
-    IconPalette.cpp
-    InsertTableWidget.cpp
-    LengthCombo.cpp
-    LyXFileDialog.cpp
-    PanelStack.cpp
-    QAbout.cpp
-    QBibitem.cpp
-    QBibtex.cpp
-    QBox.cpp
-    QBranch.cpp
-    QBranches.cpp
-    QChanges.cpp
-    QCharacter.cpp
-    QCitationDialog.cpp
-    QCommandBuffer.cpp
-    QCommandEdit.cpp
-    QDelimiterDialog.cpp
-    QDialogView.cpp
-    QDocument.cpp
-    QERT.cpp
-    QErrorList.cpp
-    QExternal.cpp
-    QFloatDialog.cpp
-    QGraphicsDialog.cpp
-    QInclude.cpp
-    QIndex.cpp
-    QListings.cpp
-    QLMenubar.cpp
-    QLPopupMenu.cpp
-    QLPrintDialog.cpp
-    QLToolbar.cpp
-    QLog.cpp
-    QLog.cpp
-    QMathMatrixDialog.cpp
-    QNomencl.cpp
-    QNomencl.cpp
-    QNote.cpp
-    QParagraph.cpp
-    QPrefs.cpp
-    QRef.cpp
-    QSearch.cpp
-    QSendto.cpp
-    QSetBorder.cpp
-    QShowFile.cpp
-    QSpellchecker.cpp
-    QTabular.cpp
-    QTabularCreate.cpp
-    QTexinfo.cpp
-    QThesaurus.cpp
-    QToc.cpp
-    QURLDialog.cpp
-    QVSpace.cpp
-    QViewSource.cpp
-    QWrap.cpp
-    TocModel.cpp
-    TocWidget.cpp
-    Validator.cpp
-    socket_callback.cpp
 ''')
 
 
 src_frontends_qt4_extra_files = Split('''
-    ChangeLog
     GuiFontMetrics.h
     Makefile.am
-    Makefile.dialogs
     README
     pch.h
 ''')
@@ -1107,8 +886,11 @@ src_frontends_qt4_ui_files = Split('''
     FloatUi.ui
     FontUi.ui
     GraphicsUi.ui
+    HSpaceUi.ui
+    HyperlinkUi.ui
     IncludeUi.ui
-    IndexUi.ui
+    InfoUi.ui
+    LabelUi.ui
     LaTeXUi.ui
     LanguageUi.ui
     ListingsUi.ui
@@ -1121,22 +903,24 @@ src_frontends_qt4_ui_files = Split('''
     NumberingUi.ui
     PageLayoutUi.ui
     ParagraphUi.ui
+    PDFSupportUi.ui
     PreambleUi.ui
     PrefColorsUi.ui
+    PrefCompletionUi.ui
     PrefConvertersUi.ui
-    PrefCopiersUi.ui
-    PrefCygwinPathUi.ui
     PrefDateUi.ui
     PrefDisplayUi.ui
+    PrefEditUi.ui
     PrefFileformatsUi.ui
     PrefIdentityUi.ui
-    PrefKeyboardUi.ui
+    PrefInputUi.ui
     PrefLanguageUi.ui
     PrefLatexUi.ui
     PrefPathsUi.ui
     PrefPlaintextUi.ui
     PrefPrinterUi.ui
     PrefScreenFontsUi.ui
+    PrefShortcutsUi.ui
     PrefSpellcheckerUi.ui
     PrefUi.ui
     PrefsUi.ui
@@ -1144,15 +928,16 @@ src_frontends_qt4_ui_files = Split('''
     RefUi.ui
     SearchUi.ui
     SendtoUi.ui
+    ShortcutUi.ui
     ShowFileUi.ui
     SpellcheckerUi.ui
+    SymbolsUi.ui
     TabularCreateUi.ui
     TabularUi.ui
     TexinfoUi.ui
     TextLayoutUi.ui
     ThesaurusUi.ui
     TocUi.ui
-    URLUi.ui
     VSpaceUi.ui
     ViewSourceUi.ui
     WrapUi.ui
@@ -1175,33 +960,35 @@ src_insets_header_files = Split('''
     InsetBox.h
     InsetBranch.h
     InsetCaption.h
-    InsetCharStyle.h
     InsetCitation.h
+    InsetCode.h
     InsetCollapsable.h
     InsetCommand.h
     InsetCommandParams.h
     InsetERT.h
-    InsetEnvironment.h
     InsetExternal.h
+    InsetFlex.h
     InsetFloat.h
     InsetFloatList.h
     InsetFoot.h
     InsetFootlike.h
     InsetGraphics.h
     InsetGraphicsParams.h
-    InsetHFill.h
+    InsetHyperlink.h
     InsetInclude.h
     InsetIndex.h
+    InsetInfo.h
     InsetLabel.h
+    InsetLayout.h
     InsetLine.h
     InsetListings.h
     InsetListingsParams.h
     InsetMarginal.h
     InsetNewline.h
+    InsetNewpage.h
     InsetNomencl.h
     InsetNote.h
     InsetOptArg.h
-    InsetPagebreak.h
     InsetQuotes.h
     InsetRef.h
     InsetSpace.h
@@ -1209,10 +996,8 @@ src_insets_header_files = Split('''
     InsetTOC.h
     InsetTabular.h
     InsetText.h
-    InsetUrl.h
     InsetVSpace.h
     InsetWrap.h
-    MailInset.h
     RenderBase.h
     RenderButton.h
     RenderGraphic.h
@@ -1230,33 +1015,34 @@ src_insets_files = Split('''
     InsetBox.cpp
     InsetBranch.cpp
     InsetCaption.cpp
-    InsetCharStyle.cpp
     InsetCitation.cpp
     InsetCollapsable.cpp
     InsetCommand.cpp
     InsetCommandParams.cpp
     InsetERT.cpp
-    InsetEnvironment.cpp
     InsetExternal.cpp
+    InsetFlex.cpp
     InsetFloat.cpp
     InsetFloatList.cpp
     InsetFoot.cpp
     InsetFootlike.cpp
     InsetGraphics.cpp
     InsetGraphicsParams.cpp
-    InsetHFill.cpp
+    InsetHyperlink.cpp
     InsetInclude.cpp
     InsetIndex.cpp
+    InsetInfo.cpp
     InsetLabel.cpp
+    InsetLayout.cpp
     InsetLine.cpp
     InsetListings.cpp
     InsetListingsParams.cpp
     InsetMarginal.cpp
     InsetNewline.cpp
+    InsetNewpage.cpp
     InsetNomencl.cpp
     InsetNote.cpp
     InsetOptArg.cpp
-    InsetPagebreak.cpp
     InsetQuotes.cpp
     InsetRef.cpp
     InsetSpace.cpp
@@ -1264,10 +1050,8 @@ src_insets_files = Split('''
     InsetTOC.cpp
     InsetTabular.cpp
     InsetText.cpp
-    InsetUrl.cpp
     InsetVSpace.cpp
     InsetWrap.cpp
-    MailInset.cpp
     RenderButton.cpp
     RenderGraphic.cpp
     RenderPreview.cpp
@@ -1275,9 +1059,6 @@ src_insets_files = Split('''
 
 
 src_insets_extra_files = Split('''
-    ChangeLog
-    InsetTheorem.cpp
-    InsetTheorem.h
     Makefile.am
     pch.h
 ''')
@@ -1331,7 +1112,6 @@ intl_files = Split('''
 
 
 intl_extra_files = Split('''
-    ChangeLog
     VERSION
     config.charset
     libgnuintl.h.in
@@ -1347,7 +1127,6 @@ intl_extra_files = Split('''
 
 
 config_extra_files = Split('''
-    ChangeLog
     Makefile.am
     common.am
     config.guess
@@ -1374,7 +1153,6 @@ sourcedoc_extra_files = Split('''
 
 
 po_extra_files = Split('''
-    ChangeLog
     LINGUAS
     Makefile.in.in
     Makevars
@@ -1436,7 +1214,6 @@ lib_files = Split('''
 
 
 lib_extra_files = Split('''
-    ChangeLog
     Makefile.am
     autocorrect
     build-listerrors
@@ -1507,6 +1284,7 @@ lib_templates_files = Split('''
     ijmpc.lyx
     ijmpd.lyx
     iop-article.lyx
+    JSS-article.lyx
     kluwer.lyx
     koma-letter2.lyx
     latex8.lyx
@@ -1520,6 +1298,7 @@ lib_templates_files = Split('''
 lib_ui_files = Split('''
     classic.ui
     default.ui
+    stdcontext.inc
     stdmenus.inc
     stdtoolbars.inc
 ''')
@@ -1541,659 +1320,675 @@ lib_fonts_files = Split('''
 
 
 lib_images_files = Split('''
-    all-changes-accept.xpm
-    all-changes-reject.xpm
-    amssymb.xpm
+    all-changes-accept.png
+    all-changes-reject.png
+    amssymb.png
     banner.png
-    bookmark-goto.xpm
-    bookmark-save.xpm
-    box-insert.xpm
-    break-line.xpm
-    buffer-close.xpm
-    buffer-export_dvi.xpm
-    buffer-export_latex.xpm
-    buffer-export_pdf2.xpm
-    buffer-export_ps.xpm
-    buffer-export_text.xpm
-    buffer-new.xpm
-    buffer-reload.xpm
-    buffer-update_dvi.xpm
-    buffer-update_pdf2.xpm
-    buffer-update_ps.xpm
-    buffer-view_dvi.xpm
-    buffer-view_pdf2.xpm
-    buffer-view_ps.xpm
-    buffer-write-as.xpm
-    buffer-write.xpm
-    build-program.xpm
-    change-accept.xpm
-    change-next.xpm
-    change-reject.xpm
-    changes-merge.xpm
-    changes-output.xpm
-    changes-track.xpm
-    closetab.xpm
-    copy.xpm
-    cut.xpm
-    demote.xpm
-    depth-decrement.xpm
-    depth-increment.xpm
-    dialog-preferences.xpm
-    dialog-show-new-inset_citation.xpm
-    dialog-show-new-inset_graphics.xpm
-    dialog-show-new-inset_include.xpm
-    dialog-show-new-inset_ref.xpm
-    dialog-show_character.xpm
-    dialog-show_findreplace.xpm
-    dialog-show_mathdelimiter.xpm
-    dialog-show_mathmatrix.xpm
-    dialog-show_print.xpm
-    dialog-show_spellchecker.xpm
-    dialog-toggle_toc.xpm
-    down.xpm
-    ert-insert.xpm
-    file-open.xpm
-    float-insert_figure.xpm
-    float-insert_table.xpm
-    font-bold.xpm
-    font-emph.xpm
-    font-free-apply.xpm
-    font-noun.xpm
-    font-sans.xpm
-    footnote-insert.xpm
-    index-insert.xpm
-    label-insert.xpm
-    layout-document.xpm
-    layout-paragraph.xpm
-    layout.xpm
-    layout_Description.xpm
-    layout_Enumerate.xpm
-    layout_Itemize.xpm
-    layout_List.xpm
-    layout_LyX-Code.xpm
-    layout_Scrap.xpm
-    layout_Section.xpm
-    lyx-quit.xpm
-    lyx.xpm
-    marginalnote-insert.xpm
-    math-display.xpm
-    math-matrix.xpm
-    math-mode.xpm
-    math-subscript.xpm
-    math-superscript.xpm
-    nomencl-insert.xpm
-    note-insert.xpm
-    note-next.xpm
-    paste.xpm
-    promote.xpm
-    psnfss1.xpm
-    psnfss2.xpm
-    psnfss3.xpm
-    psnfss4.xpm
-    redo.xpm
-    reload.xpm
-    standard.xpm
-    tabular-feature_align-center.xpm
-    tabular-feature_align-left.xpm
-    tabular-feature_align-right.xpm
-    tabular-feature_append-column.xpm
-    tabular-feature_append-row.xpm
-    tabular-feature_delete-column.xpm
-    tabular-feature_delete-row.xpm
-    tabular-feature_multicolumn.xpm
-    tabular-feature_set-all-lines.xpm
-    tabular-feature_set-longtabular.xpm
-    tabular-feature_set-rotate-cell.xpm
-    tabular-feature_toggle-rotate-cell.xpm
-    tabular-feature_set-rotate-tabular.xpm
-    tabular-feature_toggle-rotate-tabular.xpm
-    tabular-feature_toggle-line-bottom.xpm
-    tabular-feature_toggle-line-left.xpm
-    tabular-feature_toggle-line-right.xpm
-    tabular-feature_toggle-line-top.xpm
-    tabular-feature_unset-all-lines.xpm
-    tabular-feature_valign-bottom.xpm
-    tabular-feature_valign-middle.xpm
-    tabular-feature_valign-top.xpm
-    tabular-insert.xpm
-    thesaurus-entry.xpm
-    toolbar-toggle_math.xpm
-    toolbar-toggle_math_panels.xpm
-    toolbar-toggle_table.xpm
-    undo.xpm
-    unknown.xpm
-    up.xpm
-    url-insert.xpm
+    bookmark-goto.png
+    bookmark-save.png
+    box-insert.png
+    break-line.png
+    buffer-close.png
+    buffer-export_dvi.png
+    buffer-export_latex.png
+    buffer-export_pdf2.png
+    buffer-export_ps.png
+    buffer-export_text.png
+    buffer-new.png
+    buffer-reload.png
+    buffer-update_dvi.png
+    buffer-update_pdf2.png
+    buffer-update_ps.png
+    buffer-view_dvi.png
+    buffer-view_pdf2.png
+    buffer-view_ps.png
+    buffer-write-as.png
+    buffer-write.png
+    build-program.png
+    change-accept.png
+    change-next.png
+    change-reject.png
+    changes-merge.png
+    changes-output.png
+    changes-track.png
+    closetab.png
+    copy.png
+    cut.png
+    demote.png
+    depth-decrement.png
+    depth-increment.png
+    dialog-preferences.png
+    dialog-show-new-inset_citation.png
+    dialog-show-new-inset_graphics.png
+    dialog-show-new-inset_include.png
+    dialog-show-new-inset_ref.png
+    dialog-show_character.png
+    dialog-show_findreplace.png
+    dialog-show_mathdelimiter.png
+    dialog-show_mathmatrix.png
+    dialog-show_print.png
+    dialog-show_spellchecker.png
+    dialog-toggle_toc.png
+    down.png
+    ert-insert.png
+    file-open.png
+    float-insert_figure.png
+    float-insert_table.png
+    font-bold.png
+    font-emph.png
+    textstyle-apply.png
+    font-noun.png
+    font-sans.png
+    footnote-insert.png
+    href-insert.png
+    hidetab.png
+    index-insert.png
+    label-insert.png
+    layout-document.png
+    layout-paragraph.png
+    layout.png
+    layout_Description.png
+    layout_Enumerate.png
+    layout_Itemize.png
+    layout_List.png
+    layout_LyX-Code.png
+    layout_Scrap.png
+    layout_Section.png
+    lyx-quit.png
+    lyx.png
+    marginalnote-insert.png
+    math-display.png
+    math-macro-add-greedy-optional-param.png
+    math-macro-add-optional-param.png
+    math-macro-add-param.png
+    math-macro-append-greedy-param.png
+    math-macro-make-nonoptional.png
+    math-macro-make-optional.png
+    math-macro-remove-greedy-param.png
+    math-macro-remove-optional-param.png
+    math-macro-remove-param.png
+    math-macro_newmacroname_newcommand.png
+    math-matrix.png
+    math-mode.png
+    math-subscript.png
+    math-superscript.png
+    nomencl-insert.png
+    note-insert.png
+    note-next.png
+    paste.png
+    promote.png
+    psnfss1.png
+    psnfss2.png
+    psnfss3.png
+    psnfss4.png
+    redo.png
+    reload.png
+    standard.png
+    tabular-feature_align-center.png
+    tabular-feature_align-left.png
+    tabular-feature_align-right.png
+    tabular-feature_append-column.png
+    tabular-feature_append-row.png
+    tabular-feature_delete-column.png
+    tabular-feature_delete-row.png
+    tabular-feature_multicolumn.png
+    tabular-feature_set-all-lines.png
+    tabular-feature_set-longtabular.png
+    tabular-feature_set-rotate-cell.png
+    tabular-feature_toggle-rotate-cell.png
+    tabular-feature_set-rotate-tabular.png
+    tabular-feature_toggle-rotate-tabular.png
+    tabular-feature_toggle-line-bottom.png
+    tabular-feature_toggle-line-left.png
+    tabular-feature_toggle-line-right.png
+    tabular-feature_toggle-line-top.png
+    tabular-feature_unset-all-lines.png
+    tabular-feature_valign-bottom.png
+    tabular-feature_valign-middle.png
+    tabular-feature_valign-top.png
+    tabular-insert.png
+    thesaurus-entry.png
+    toolbar-toggle_math.png
+    toolbar-toggle_math_panels.png
+    toolbar-toggle_table.png
+    undo.png
+    unknown.png
+    up.png
+    url-insert.png
 ''')
 
 
 lib_images_extra_files = Split('''
     README
-    font-smallcaps.xpm
+    font-smallcaps.png
 ''')
 
 
 lib_images_math_files = Split('''
-    Bbbk.xpm
-    Finv.xpm
-    Game.xpm
-    Im.xpm
-    Lleftarrow.xpm
-    Lsh.xpm
-    Re.xpm
-    Rrightarrow.xpm
-    Rsh.xpm
-    Vvdash.xpm
-    acute.xpm
-    aleph.xpm
-    alpha.xpm
-    amalg.xpm
-    angle.xpm
-    approx.xpm
-    approxeq.xpm
-    asymp.xpm
-    backepsilon.xpm
-    backprime.xpm
-    backsim.xpm
-    backsimeq.xpm
-    backslash.xpm
-    bar.xpm
-    bars.xpm
-    barwedge.xpm
-    because.xpm
-    beta.xpm
-    beth.xpm
-    between.xpm
-    bigcap.xpm
-    bigcirc.xpm
-    bigcup.xpm
-    bigodot.xpm
-    bigoplus.xpm
-    bigotimes.xpm
-    bigsqcup.xpm
-    bigstar.xpm
-    bigtriangledown.xpm
-    bigtriangleup.xpm
-    biguplus.xpm
-    bigvee.xpm
-    bigwedge.xpm
-    blacklozenge.xpm
-    blacksquare.xpm
-    blacktriangle.xpm
-    blacktriangledown.xpm
-    blacktriangleleft.xpm
-    blacktriangleright.xpm
-    bot.xpm
-    bowtie.xpm
-    boxdot.xpm
-    boxminus.xpm
-    boxplus.xpm
-    boxtimes.xpm
-    breve.xpm
-    bullet.xpm
-    bumpeq.xpm
-    bumpeq2.xpm
-    cap.xpm
-    cap2.xpm
-    cases.xpm
-    cdot.xpm
-    cdots.xpm
-    centerdot.xpm
-    check.xpm
-    chi.xpm
-    circ.xpm
-    circeq.xpm
-    circlearrowleft.xpm
-    circlearrowright.xpm
-    circledS.xpm
-    circledast.xpm
-    circledcirc.xpm
-    circleddash.xpm
-    clubsuit.xpm
-    complement.xpm
-    cong.xpm
-    coprod.xpm
-    cup.xpm
-    cup2.xpm
-    curlyeqprec.xpm
-    curlyeqsucc.xpm
-    curlyvee.xpm
-    curlywedge.xpm
-    curvearrowleft.xpm
-    curvearrowright.xpm
-    dagger.xpm
-    daleth.xpm
-    dashleftarrow.xpm
-    dashrightarrow.xpm
-    dashv.xpm
-    ddagger.xpm
-    ddot.xpm
-    ddots.xpm
-    delim.xpm
-    delta.xpm
-    delta2.xpm
-    diagdown.xpm
-    diagup.xpm
-    diamond.xpm
-    diamondsuit.xpm
-    digamma.xpm
-    div.xpm
-    divideontimes.xpm
-    dot.xpm
-    doteq.xpm
-    doteqdot.xpm
-    dotplus.xpm
-    dotsint.xpm
-    dotsintop.xpm
-    doublebarwedge.xpm
-    downarrow.xpm
-    downarrow2.xpm
-    downdownarrows.xpm
-    downharpoonleft.xpm
-    downharpoonright.xpm
-    ell.xpm
-    empty.xpm
-    emptyset.xpm
-    epsilon.xpm
-    eqcirc.xpm
-    eqslantgtr.xpm
-    eqslantless.xpm
-    equation.xpm
-    equiv.xpm
-    eta.xpm
-    eth.xpm
-    exists.xpm
-    fallingdotseq.xpm
-    flat.xpm
-    font.xpm
-    forall.xpm
-    frac-square.xpm
-    frac.xpm
-    frown.xpm
-    functions.xpm
-    gamma.xpm
-    gamma2.xpm
-    geq.xpm
-    geqq.xpm
-    geqslant.xpm
-    gg.xpm
-    ggg.xpm
-    gimel.xpm
-    gnapprox.xpm
-    gneq.xpm
-    gneqq.xpm
-    gnsim.xpm
-    grave.xpm
-    gtrapprox.xpm
-    gtrdot.xpm
-    gtreqless.xpm
-    gtreqqless.xpm
-    gtrless.xpm
-    gtrsim.xpm
-    gvertneqq.xpm
-    hat.xpm
-    hbar.xpm
-    heartsuit.xpm
-    hookleftarrow.xpm
-    hookrightarrow.xpm
-    hphantom.xpm
-    hslash.xpm
-    iiiint.xpm
-    iiiintop.xpm
-    iiint.xpm
-    iiintop.xpm
-    iint.xpm
-    iintop.xpm
-    imath.xpm
-    in.xpm
-    infty.xpm
-    int.xpm
-    intercal.xpm
-    intop.xpm
-    iota.xpm
-    jmath.xpm
-    kappa.xpm
-    lambda.xpm
-    lambda2.xpm
-    langle.xpm
-    lbrace.xpm
-    lbrace_rbrace.xpm
-    lbracket.xpm
-    lbracket_rbracket.xpm
-    lceil.xpm
-    lceil_rceil.xpm
-    ldots.xpm
-    leftarrow.xpm
-    leftarrow2.xpm
-    leftarrowtail.xpm
-    leftharpoondown.xpm
-    leftharpoonup.xpm
-    leftleftarrows.xpm
-    leftrightarrow.xpm
-    leftrightarrow2.xpm
-    leftrightarrows.xpm
-    leftrightharpoons.xpm
-    leftrightsquigarrow.xpm
-    leftthreetimes.xpm
-    leq.xpm
-    leqq.xpm
-    leqslant.xpm
-    lessapprox.xpm
-    lessdot.xpm
-    lesseqgtr.xpm
-    lesseqqgtr.xpm
-    lessgtr.xpm
-    lesssim.xpm
-    lfloor.xpm
-    lfloor_rfloor.xpm
-    ll.xpm
-    llcorner.xpm
-    lll.xpm
-    lnapprox.xpm
-    lneq.xpm
-    lneqq.xpm
-    lnsim.xpm
-    longleftarrow.xpm
-    longleftarrow2.xpm
-    longleftrightarrow.xpm
-    longleftrightarrow2.xpm
-    longmapsto.xpm
-    longrightarrow.xpm
-    longrightarrow2.xpm
-    looparrowleft.xpm
-    looparrowright.xpm
-    lozenge.xpm
-    lparen.xpm
-    lparen_rparen.xpm
-    lrcorner.xpm
-    ltimes.xpm
-    lvertneqq.xpm
-    mapsto.xpm
-    mathbb_C.xpm
-    mathbb_H.xpm
-    mathbb_N.xpm
-    mathbb_Q.xpm
-    mathbb_R.xpm
-    mathbb_Z.xpm
-    mathcal_F.xpm
-    mathcal_H.xpm
-    mathcal_L.xpm
-    mathcal_O.xpm
-    mathcircumflex.xpm
-    mathrm_T.xpm
-    matrix.xpm
-    measuredangle.xpm
-    mho.xpm
-    mid.xpm
-    models.xpm
-    mp.xpm
-    mu.xpm
-    multimap.xpm
-    nabla.xpm
-    natural.xpm
-    ncong.xpm
-    nearrow.xpm
-    neg.xpm
-    neq.xpm
-    nexists.xpm
-    ngeq.xpm
-    ngeqq.xpm
-    ngeqslant.xpm
-    ngtr.xpm
-    ni.xpm
-    nleftarrow.xpm
-    nleftarrow2.xpm
-    nleftrightarrow.xpm
-    nleftrightarrow2.xpm
-    nleq.xpm
-    nleqq.xpm
-    nleqslant.xpm
-    nless.xpm
-    nmid.xpm
-    notin.xpm
-    nparallel.xpm
-    nprec.xpm
-    npreceq.xpm
-    nrightarrow.xpm
-    nrightarrow2.xpm
-    nshortmid.xpm
-    nshortparallel.xpm
-    nsim.xpm
-    nsubseteq.xpm
-    nsucc.xpm
-    nsucceq.xpm
-    nsupseteq.xpm
-    nsupseteqq.xpm
-    ntriangleleft.xpm
-    ntrianglelefteq.xpm
-    ntriangleright.xpm
-    ntrianglerighteq.xpm
-    nu.xpm
-    nvdash.xpm
-    nvdash2.xpm
-    nvdash3.xpm
-    nwarrow.xpm
-    odot.xpm
-    oiint.xpm
-    oiintop.xpm
-    oint.xpm
-    ointclockwise.xpm
-    ointclockwiseop.xpm
-    ointctrclockwise.xpm
-    ointctrclockwiseop.xpm
-    ointop.xpm
-    omega.xpm
-    omega2.xpm
-    ominus.xpm
-    oplus.xpm
-    oslash.xpm
-    otimes.xpm
-    overbrace.xpm
-    overleftarrow.xpm
-    overleftrightarrow.xpm
-    overline.xpm
-    overrightarrow.xpm
-    overset.xpm
-    parallel.xpm
-    partial.xpm
-    perp.xpm
-    phantom.xpm
-    phi.xpm
-    phi2.xpm
-    pi.xpm
-    pi2.xpm
-    pitchfork.xpm
-    pm.xpm
-    prec.xpm
-    precapprox.xpm
-    preccurlyeq.xpm
-    preceq.xpm
-    precnapprox.xpm
-    precnsim.xpm
-    precsim.xpm
-    prime.xpm
-    prod.xpm
-    propto.xpm
-    psi.xpm
-    psi2.xpm
-    rangle.xpm
-    rbrace.xpm
-    rbracket.xpm
-    rceil.xpm
-    rfloor.xpm
-    rho.xpm
-    rightarrow.xpm
-    rightarrow2.xpm
-    rightarrowtail.xpm
-    rightharpoondown.xpm
-    rightharpoonup.xpm
-    rightleftarrows.xpm
-    rightleftharpoons.xpm
-    rightrightarrows.xpm
-    rightsquigarrow.xpm
-    rightthreetimes.xpm
-    risingdotseq.xpm
-    root.xpm
-    rparen.xpm
-    rtimes.xpm
-    searrow.xpm
-    setminus.xpm
-    sharp.xpm
-    shortmid.xpm
-    shortparallel.xpm
-    sigma.xpm
-    sigma2.xpm
-    sim.xpm
-    simeq.xpm
-    slash.xpm
-    smallfrown.xpm
-    smallsetminus.xpm
-    smallsmile.xpm
-    smile.xpm
-    space.xpm
-    spadesuit.xpm
-    sphericalangle.xpm
-    sqcap.xpm
-    sqcup.xpm
-    sqiint.xpm
-    sqiintop.xpm
-    sqint.xpm
-    sqintop.xpm
-    sqrt-square.xpm
-    sqrt.xpm
-    sqsubset.xpm
-    sqsubseteq.xpm
-    sqsupset.xpm
-    sqsupseteq.xpm
-    square.xpm
-    star.xpm
-    style.xbm
-    style.xpm
-    sub.xpm
-    subset.xpm
-    subset2.xpm
-    subseteq.xpm
-    subseteqq.xpm
-    subsetneq.xpm
-    subsetneqq.xpm
-    succ.xpm
-    succapprox.xpm
-    succcurlyeq.xpm
-    succeq.xpm
-    succnapprox.xpm
-    succnsim.xpm
-    succsim.xpm
-    sum.xpm
-    super.xpm
-    supset.xpm
-    supset2.xpm
-    supseteq.xpm
-    supseteqq.xpm
-    supsetneq.xpm
-    supsetneqq.xpm
-    surd.xpm
-    swarrow.xpm
-    tau.xpm
-    textrm_AA.xpm
-    textrm_Oe.xpm
-    therefore.xpm
-    theta.xpm
-    theta2.xpm
-    thickapprox.xpm
-    thicksim.xpm
-    tilde.xpm
-    times.xpm
-    top.xpm
-    triangle.xpm
-    triangledown.xpm
-    triangleleft.xpm
-    trianglelefteq.xpm
-    triangleq.xpm
-    triangleright.xpm
-    trianglerighteq.xpm
-    twoheadleftarrow.xpm
-    twoheadrightarrow.xpm
-    ulcorner.xpm
-    underbrace.xpm
-    underleftarrow.xpm
-    underleftrightarrow.xpm
-    underline.xpm
-    underrightarrow.xpm
-    underscore.xpm
-    underset.xpm
-    uparrow.xpm
-    uparrow2.xpm
-    updownarrow.xpm
-    updownarrow2.xpm
-    upharpoonleft.xpm
-    upharpoonright.xpm
-    uplus.xpm
-    upsilon.xpm
-    upsilon2.xpm
-    upuparrows.xpm
-    urcorner.xpm
-    varepsilon.xpm
-    varkappa.xpm
-    varnothing.xpm
-    varphi.xpm
-    varpi.xpm
-    varpropto.xpm
-    varrho.xpm
-    varsigma.xpm
-    varsubsetneq.xpm
-    varsubsetneqq.xpm
-    varsupsetneq.xpm
-    varsupsetneqq.xpm
-    vartheta.xpm
-    vartriangle.xpm
-    vartriangleleft.xpm
-    vartriangleright.xpm
-    vdash.xpm
-    vdash2.xpm
-    vdash3.xpm
-    vdots.xpm
-    vec.xpm
-    vee.xpm
-    veebar.xpm
-    vert.xpm
-    vert2.xpm
-    vphantom.xpm
-    wedge.xpm
-    widehat.xpm
-    widetilde.xpm
-    wp.xpm
-    wr.xpm
-    xi.xpm
-    xi2.xpm
-    zeta.xpm
+    Bbbk.png
+    Finv.png
+    Game.png
+    Im.png
+    Lleftarrow.png
+    Lsh.png
+    Re.png
+    Rrightarrow.png
+    Rsh.png
+    Vvdash.png
+    acute.png
+    aleph.png
+    alpha.png
+    amalg.png
+    angle.png
+    approx.png
+    approxeq.png
+    asymp.png
+    backepsilon.png
+    backprime.png
+    backsim.png
+    backsimeq.png
+    backslash.png
+    bar.png
+    bars.png
+    barwedge.png
+    because.png
+    beta.png
+    beth.png
+    between.png
+    bigcap.png
+    bigcirc.png
+    bigcup.png
+    bigodot.png
+    bigoplus.png
+    bigotimes.png
+    bigsqcup.png
+    bigstar.png
+    bigtriangledown.png
+    bigtriangleup.png
+    biguplus.png
+    bigvee.png
+    bigwedge.png
+    blacklozenge.png
+    blacksquare.png
+    blacktriangle.png
+    blacktriangledown.png
+    blacktriangleleft.png
+    blacktriangleright.png
+    bot.png
+    bowtie.png
+    boxdot.png
+    boxminus.png
+    boxplus.png
+    boxtimes.png
+    breve.png
+    bullet.png
+    bumpeq.png
+    bumpeq2.png
+    cap.png
+    cap2.png
+    cases.png
+    cdot.png
+    cdots.png
+    centerdot.png
+    check.png
+    chi.png
+    circ.png
+    circeq.png
+    circlearrowleft.png
+    circlearrowright.png
+    circledS.png
+    circledast.png
+    circledcirc.png
+    circleddash.png
+    clubsuit.png
+    complement.png
+    cong.png
+    coprod.png
+    cup.png
+    cup2.png
+    curlyeqprec.png
+    curlyeqsucc.png
+    curlyvee.png
+    curlywedge.png
+    curvearrowleft.png
+    curvearrowright.png
+    dagger.png
+    daleth.png
+    dashleftarrow.png
+    dashrightarrow.png
+    dashv.png
+    ddagger.png
+    ddot.png
+    ddots.png
+    delim.png
+    delta.png
+    delta2.png
+    diagdown.png
+    diagup.png
+    diamond.png
+    diamondsuit.png
+    digamma.png
+    div.png
+    divideontimes.png
+    dot.png
+    doteq.png
+    doteqdot.png
+    dotplus.png
+    dotsint.png
+    dotsintop.png
+    doublebarwedge.png
+    downarrow.png
+    downarrow2.png
+    downdownarrows.png
+    downharpoonleft.png
+    downharpoonright.png
+    ell.png
+    empty.png
+    emptyset.png
+    epsilon.png
+    eqcirc.png
+    eqslantgtr.png
+    eqslantless.png
+    equation.png
+    equiv.png
+    eta.png
+    eth.png
+    exists.png
+    fallingdotseq.png
+    flat.png
+    font.png
+    forall.png
+    frac-square.png
+    frac.png
+    frown.png
+    functions.png
+    gamma.png
+    gamma2.png
+    geq.png
+    geqq.png
+    geqslant.png
+    gg.png
+    ggg.png
+    gimel.png
+    gnapprox.png
+    gneq.png
+    gneqq.png
+    gnsim.png
+    grave.png
+    gtrapprox.png
+    gtrdot.png
+    gtreqless.png
+    gtreqqless.png
+    gtrless.png
+    gtrsim.png
+    gvertneqq.png
+    hat.png
+    hbar.png
+    heartsuit.png
+    hookleftarrow.png
+    hookrightarrow.png
+    hphantom.png
+    hslash.png
+    iiiint.png
+    iiiintop.png
+    iiint.png
+    iiintop.png
+    iint.png
+    iintop.png
+    imath.png
+    in.png
+    infty.png
+    int.png
+    intercal.png
+    intop.png
+    iota.png
+    jmath.png
+    kappa.png
+    lambda.png
+    lambda2.png
+    langle.png
+    lbrace.png
+    lbrace_rbrace.png
+    lbracket.png
+    lbracket_rbracket.png
+    lceil.png
+    lceil_rceil.png
+    ldots.png
+    leftarrow.png
+    leftarrow2.png
+    leftarrowtail.png
+    leftharpoondown.png
+    leftharpoonup.png
+    leftleftarrows.png
+    leftrightarrow.png
+    leftrightarrow2.png
+    leftrightarrows.png
+    leftrightharpoons.png
+    leftrightsquigarrow.png
+    leftthreetimes.png
+    leq.png
+    leqq.png
+    leqslant.png
+    lessapprox.png
+    lessdot.png
+    lesseqgtr.png
+    lesseqqgtr.png
+    lessgtr.png
+    lesssim.png
+    lfloor.png
+    lfloor_rfloor.png
+    ll.png
+    llcorner.png
+    lll.png
+    lnapprox.png
+    lneq.png
+    lneqq.png
+    lnsim.png
+    longleftarrow.png
+    longleftarrow2.png
+    longleftrightarrow.png
+    longleftrightarrow2.png
+    longmapsto.png
+    longrightarrow.png
+    longrightarrow2.png
+    looparrowleft.png
+    looparrowright.png
+    lozenge.png
+    lparen.png
+    lparen_rparen.png
+    lrcorner.png
+    ltimes.png
+    lvertneqq.png
+    mapsto.png
+    mathbb_C.png
+    mathbb_H.png
+    mathbb_N.png
+    mathbb_Q.png
+    mathbb_R.png
+    mathbb_Z.png
+    mathcal_F.png
+    mathcal_H.png
+    mathcal_L.png
+    mathcal_O.png
+    mathcircumflex.png
+    mathrm_T.png
+    matrix.png
+    measuredangle.png
+    mho.png
+    mid.png
+    models.png
+    mp.png
+    mu.png
+    multimap.png
+    nabla.png
+    natural.png
+    ncong.png
+    nearrow.png
+    neg.png
+    neq.png
+    nexists.png
+    ngeq.png
+    ngeqq.png
+    ngeqslant.png
+    ngtr.png
+    ni.png
+    nleftarrow.png
+    nleftarrow2.png
+    nleftrightarrow.png
+    nleftrightarrow2.png
+    nleq.png
+    nleqq.png
+    nleqslant.png
+    nless.png
+    nmid.png
+    notin.png
+    nparallel.png
+    nprec.png
+    npreceq.png
+    nrightarrow.png
+    nrightarrow2.png
+    nshortmid.png
+    nshortparallel.png
+    nsim.png
+    nsubseteq.png
+    nsucc.png
+    nsucceq.png
+    nsupseteq.png
+    nsupseteqq.png
+    ntriangleleft.png
+    ntrianglelefteq.png
+    ntriangleright.png
+    ntrianglerighteq.png
+    nu.png
+    nvdash.png
+    nvdash2.png
+    nvdash3.png
+    nwarrow.png
+    odot.png
+    oiint.png
+    oiintop.png
+    oint.png
+    ointclockwise.png
+    ointclockwiseop.png
+    ointctrclockwise.png
+    ointctrclockwiseop.png
+    ointop.png
+    omega.png
+    omega2.png
+    ominus.png
+    oplus.png
+    oslash.png
+    otimes.png
+    overbrace.png
+    overleftarrow.png
+    overleftrightarrow.png
+    overline.png
+    overrightarrow.png
+    overset.png
+    parallel.png
+    partial.png
+    perp.png
+    phantom.png
+    phi.png
+    phi2.png
+    pi.png
+    pi2.png
+    pitchfork.png
+    pm.png
+    prec.png
+    precapprox.png
+    preccurlyeq.png
+    preceq.png
+    precnapprox.png
+    precnsim.png
+    precsim.png
+    prime.png
+    prod.png
+    propto.png
+    psi.png
+    psi2.png
+    rangle.png
+    rbrace.png
+    rbracket.png
+    rceil.png
+    rfloor.png
+    rho.png
+    rightarrow.png
+    rightarrow2.png
+    rightarrowtail.png
+    rightharpoondown.png
+    rightharpoonup.png
+    rightleftarrows.png
+    rightleftharpoons.png
+    rightrightarrows.png
+    rightsquigarrow.png
+    rightthreetimes.png
+    risingdotseq.png
+    root.png
+    rparen.png
+    rtimes.png
+    searrow.png
+    setminus.png
+    sharp.png
+    shortmid.png
+    shortparallel.png
+    sigma.png
+    sigma2.png
+    sim.png
+    simeq.png
+    slash.png
+    smallfrown.png
+    smallsetminus.png
+    smallsmile.png
+    smile.png
+    space.png
+    spadesuit.png
+    sphericalangle.png
+    sqcap.png
+    sqcup.png
+    sqiint.png
+    sqiintop.png
+    sqint.png
+    sqintop.png
+    sqrt-square.png
+    sqrt.png
+    sqsubset.png
+    sqsubseteq.png
+    sqsupset.png
+    sqsupseteq.png
+    square.png
+    star.png
+    style.png
+    style.png
+    sub.png
+    subset.png
+    subset2.png
+    subseteq.png
+    subseteqq.png
+    subsetneq.png
+    subsetneqq.png
+    succ.png
+    succapprox.png
+    succcurlyeq.png
+    succeq.png
+    succnapprox.png
+    succnsim.png
+    succsim.png
+    sum.png
+    super.png
+    supset.png
+    supset2.png
+    supseteq.png
+    supseteqq.png
+    supsetneq.png
+    supsetneqq.png
+    surd.png
+    swarrow.png
+    tau.png
+    textrm_AA.png
+    textrm_O.png
+    therefore.png
+    theta.png
+    theta2.png
+    thickapprox.png
+    thicksim.png
+    tilde.png
+    times.png
+    top.png
+    triangle.png
+    triangledown.png
+    triangleleft.png
+    trianglelefteq.png
+    triangleq.png
+    triangleright.png
+    trianglerighteq.png
+    twoheadleftarrow.png
+    twoheadrightarrow.png
+    ulcorner.png
+    underbrace.png
+    underleftarrow.png
+    underleftrightarrow.png
+    underline.png
+    underrightarrow.png
+    underscore.png
+    underset.png
+    uparrow.png
+    uparrow2.png
+    updownarrow.png
+    updownarrow2.png
+    upharpoonleft.png
+    upharpoonright.png
+    uplus.png
+    upsilon.png
+    upsilon2.png
+    upuparrows.png
+    urcorner.png
+    varepsilon.png
+    varkappa.png
+    varnothing.png
+    varphi.png
+    varpi.png
+    varpropto.png
+    varrho.png
+    varsigma.png
+    varsubsetneq.png
+    varsubsetneqq.png
+    varsupsetneq.png
+    varsupsetneqq.png
+    vartheta.png
+    vartriangle.png
+    vartriangleleft.png
+    vartriangleright.png
+    vdash.png
+    vdash2.png
+    vdash3.png
+    vdots.png
+    vec.png
+    vee.png
+    veebar.png
+    vert.png
+    vert2.png
+    vphantom.png
+    wedge.png
+    widehat.png
+    widetilde.png
+    wp.png
+    wr.png
+    xi.png
+    xi2.png
+    zeta.png
 ''')
 
 
 lib_images_math_extra_files = Split('''
-    ams_arrows.xbm
-    ams_misc.xbm
-    ams_nrel.xbm
-    ams_ops.xbm
-    ams_rel.xbm
-    arrows.xbm
-    bop.xbm
-    brel.xbm
-    deco.xbm
-    deco.xpm
-    delim.xbm
-    delim0.xpm
-    delim1.xpm
-    dots.xbm
-    font.xbm
-    functions.xpm
-    greek.xbm
-    misc.xbm
-    varsz.xbm
+    ams_arrows.png
+    ams_misc.png
+    ams_nrel.png
+    ams_ops.png
+    ams_rel.png
+    arrows.png
+    bop.png
+    brel.png
+    deco.png
+    deco.png
+    delim.png
+    delim0.png
+    delim1.png
+    dots.png
+    font.png
+    functions.png
+    greek.png
+    misc.png
+    varsz.png
+''')
+
+
+lib_images_commands_files = Split('''
 ''')
 
 
 lib_images_attic_extra_files = Split('''
-    dialog-show_mathpanel.xpm
+    dialog-show_mathpanel.png
 ''')
 
 
@@ -2217,9 +2012,10 @@ lib_doc_files = Split('''
     FAQ.lyx
     Formula-numbering.lyx
     Intro.lyx
+    LaTeXConfig.lyx
     Math.lyx
-    LaTeXConfig.lyx.in
     Reference.lyx
+    Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2266,7 +2062,6 @@ lib_doc_clipart_files = Split('''
 
 
 lib_doc_extra_files = Split('''
-    ChangeLog
     Makefile.am
     Makefile.depend
     README.Documentation
@@ -2291,6 +2086,7 @@ lib_doc_de_files = Split('''
     Formelnummerierung.lyx
     Intro.lyx
     Math.lyx
+    Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2423,6 +2219,21 @@ lib_doc_it_clipart_files = Split('''
 ''')
 
 
+lib_doc_ja_files = Split('''
+    FAQ.lyx
+    Intro.lyx
+    LaTeXConfig.lyx
+    Shortcuts.lyx
+    Tutorial.lyx
+''')
+
+
+lib_doc_ja_clipart_files = Split('''
+    footnoteQt4.png
+    referenceQt4.png
+''')
+
+
 lib_doc_nb_files = Split('''
     Intro.lyx
 ''')
@@ -2478,6 +2289,7 @@ lib_doc_sv_files = Split('''
 
 
 lib_examples_files = Split('''
+    Braille.lyx
     CV-image.eps
     CV-image.png
     Foils.lyx
@@ -2513,6 +2325,7 @@ lib_examples_files = Split('''
     iecc07.fen
     iecc12.fen
     landslide.lyx
+    linguistics.lyx
     listerrors.lyx
     listings.lyx
     modernCV.lyx
@@ -2580,7 +2393,6 @@ lib_examples_es_files = Split('''
     ItemizeBullets.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
-    mathed.lyx
     splash.lyx
 ''')
 
@@ -2678,6 +2490,7 @@ lib_lyx2lyx_files = Split('''
     lyx_1_3.py
     lyx_1_4.py
     lyx_1_5.py
+    lyx_1_6.py
     parser_tools.py
     profiling.py
     test_parser_tools.py
@@ -2685,7 +2498,6 @@ lib_lyx2lyx_files = Split('''
 
 
 lib_lyx2lyx_extra_files = Split('''
-    ChangeLog
     Makefile.am
     lyx2lyx_version.py.in
 ''')
@@ -2698,8 +2510,6 @@ lib_layouts_files = Split('''
     aastex.layout
     agu-dtd.layout
     agums.layout
-    amsart-plain.layout
-    amsart-seq.layout
     amsart.layout
     amsbook.layout
     apa.layout
@@ -2737,7 +2547,13 @@ lib_layouts_files = Split('''
     ijmpd.layout
     iopart.layout
     isprs.layout
+    jarticle.layout
+    jbook.layout
     jgrga.layout
+    jreport.layout
+    jsarticle.layout
+    jsbook.layout
+    jss.layout
     kluwer.layout
     latex8.layout
     letter.layout
@@ -2771,6 +2587,9 @@ lib_layouts_files = Split('''
     svglobal.layout
     svjog.layout
     svprobth.layout
+    tarticle.layout
+    tbook.layout
+    treport.layout
 ''')
 
 
@@ -2783,9 +2602,6 @@ lib_layouts_inc_files = Split('''
     agu_stdtitle.inc
     aguplus.inc
     amsdefs.inc
-    amsmaths-plain.inc
-    amsmaths-seq.inc
-    amsmaths.inc
     db_lyxmacros.inc
     db_stdcharstyles.inc
     db_stdclass.inc
@@ -2802,9 +2618,12 @@ lib_layouts_inc_files = Split('''
     numreport.inc
     numrevtex.inc
     scrclass.inc
+    stdcharstyles.inc
     stdclass.inc
     stdcounters.inc
+    stdcustom.inc
     stdfloats.inc
+    stdinsets.inc
     stdlayouts.inc
     stdletter.inc
     stdlists.inc
@@ -2813,8 +2632,30 @@ lib_layouts_inc_files = Split('''
     stdstruct.inc
     stdtitle.inc
     svjour.inc
+    theorems.inc
+    theorems-ams.inc
+    theorems-order.inc
+    theorems-proof.inc
+    theorems-starred.inc
+    theorems-starred-equivalents.inc
 ''')
 
+
+lib_layouts_module_files = Split('''
+    braille.module
+    endnotes.module
+    foottoend.module
+    hanging.module
+    linguistics.module
+    logicalmkup.module
+    minimalistic.module
+    theorems-ams-extended.module
+    theorems-ams.module
+    theorems-chap.module
+    theorems-sec.module
+    theorems-starred.module
+    theorems-std.module
+''')
 
 lib_scripts_files = Split('''
     TeXFiles.py
@@ -2849,6 +2690,7 @@ lib_bind_files = Split('''
     math.bind
     menus.bind
     sciword.bind
+    site.bind
     xemacs.bind
 ''')
 
@@ -2873,8 +2715,12 @@ lib_bind_de_files = Split('''
 ''')
 
 
+lib_commands_files = Split('''
+    default.def
+''')
+
+
 boost_extra_files = Split('''
-    ChangeLog
     LICENSE_1_0.txt
     Makefile.am
 ''')
@@ -2936,71 +2782,11 @@ boost_libs_regex_src_extra_files = Split('''
 ''')
 
 
-boost_libs_filesystem_extra_files = Split('''
-    Makefile.am
-    filesystem.vcproj
-''')
-
-
-boost_libs_filesystem_src_files = Split('''
-    exception.cpp
-    operations.cpp
-    path.cpp
-    portability.cpp
-''')
-
-
-boost_libs_filesystem_src_extra_files = Split('''
-    Makefile.am
-    pch.h
-''')
-
-
-boost_libs_iostreams_extra_files = Split('''
-    Makefile.am
-''')
-
-
-boost_libs_iostreams_src_files = Split('''
-    file_descriptor.cpp
-    mapped_file.cpp
-    zlib.cpp
-''')
-
-
-boost_libs_iostreams_src_extra_files = Split('''
-    Makefile.am
-    pch.h
-''')
-
 
 development_Win32_packaging_installer = Split('''
     license.rtf
     lyx.nsi
     settings.nsh
-    settings.user.nsh
-''')
-
-
-development_Win32_packaging_installer_components = Split('''
-    configure.nsh
-    core.nsh
-    dicts.nsh
-    external.nsh
-    langselect.nsh
-    reinstall.nsh
-    uninstall.nsh
-    user.nsh
-    viewer.nsh
-''')
-
-
-development_Win32_packaging_installer_dialogs = Split('''
-    external.ini
-    langselect.ini
-    reinstall.ini
-    user.ini
-    viewer.ini
 ''')
 
 
@@ -3010,14 +2796,23 @@ development_Win32_packaging_installer_graphics = Split('''
 ''')
 
 
+development_Win32_packaging_installer_gui = Split('''
+    external.nsh
+    langselect.nsh
+    reinstall.nsh
+''')
+
+
 development_Win32_packaging_installer_include = Split('''
     declarations.nsh
     detection.nsh
-    filelists.nsh
+    dictlist.nsh    
+    filelist.nsh
     gui.nsh
     init.nsh
-    lang.nsh
-    windows.nsh
+    langlist.nsh
+    nsis.nsh
+    variables.nsh
 ''')
 
 
@@ -3028,3 +2823,9 @@ development_Win32_packaging_installer_lang = Split('''
     italian.nsh
 ''')
 
+
+development_Win32_packaging_installer_setup = Split('''
+    configure.nsh
+    install.nsh
+    reinstall.nsh
+''')

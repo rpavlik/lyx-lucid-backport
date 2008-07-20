@@ -30,7 +30,7 @@ public:
 	///
 	void write(WriteStream & os) const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void normalize(NormalStream & os) const;
 	///
@@ -41,7 +41,7 @@ public:
 	void validate(LaTeXFeatures & features) const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	bool upper() const;
 	///

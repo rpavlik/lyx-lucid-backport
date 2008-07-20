@@ -1,15 +1,12 @@
 <ui version="4.0" >
- <author></author>
- <comment></comment>
- <exportmacro></exportmacro>
- <class>QPrefScreenFontsUi</class>
- <widget class="QWidget" name="QPrefScreenFontsUi" >
+ <class>PrefScreenFontsUi</class>
+ <widget class="QWidget" name="PrefScreenFontsUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>342</width>
-    <height>365</height>
+    <width>371</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -40,13 +37,16 @@
        </property>
        <item row="1" column="1" >
         <widget class="QComboBox" name="screenSansCO" >
+         <property name="maxVisibleItems" >
+          <number>20</number>
+         </property>
          <property name="duplicatesEnabled" >
           <bool>false</bool>
          </property>
         </widget>
        </item>
        <item row="1" column="2" >
-        <widget class="QFontExample" name="screenSansFE" >
+        <widget class="GuiFontExample" native="1" name="screenSansFE" >
          <property name="sizePolicy" >
           <sizepolicy>
            <hsizetype>3</hsizetype>
@@ -74,7 +74,7 @@
         </widget>
        </item>
        <item row="0" column="2" >
-        <widget class="QFontExample" name="screenRomanFE" >
+        <widget class="GuiFontExample" native="1" name="screenRomanFE" >
          <property name="sizePolicy" >
           <sizepolicy>
            <hsizetype>3</hsizetype>
@@ -93,6 +93,9 @@
        </item>
        <item row="0" column="1" >
         <widget class="QComboBox" name="screenRomanCO" >
+         <property name="maxVisibleItems" >
+          <number>20</number>
+         </property>
          <property name="duplicatesEnabled" >
           <bool>false</bool>
          </property>
@@ -119,7 +122,7 @@
         </widget>
        </item>
        <item row="2" column="2" >
-        <widget class="QFontExample" name="screenTypewriterFE" >
+        <widget class="GuiFontExample" native="1" name="screenTypewriterFE" >
          <property name="sizePolicy" >
           <sizepolicy>
            <hsizetype>3</hsizetype>
@@ -132,6 +135,9 @@
        </item>
        <item row="2" column="1" >
         <widget class="QComboBox" name="screenTypewriterCO" >
+         <property name="maxVisibleItems" >
+          <number>20</number>
+         </property>
          <property name="duplicatesEnabled" >
           <bool>false</bool>
          </property>
@@ -357,6 +363,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="pixmapCacheCB" >
+     <property name="toolTip" >
+      <string>Checking this improves performance, but might decrease the on-screen quality of fonts</string>
+     </property>
+     <property name="text" >
+      <string>Use Pixmap Cache to speed up font rendering</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer>
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
@@ -374,17 +390,11 @@
    </item>
   </layout>
  </widget>
- <pixmapfunction></pixmapfunction>
- <includes>
-  <include location="local" >qt_helpers.h</include>
- </includes>
  <customwidgets>
   <customwidget>
-   <class>QFontExample</class>
+   <class>GuiFontExample</class>
    <extends>QWidget</extends>
-   <header>QFontExample.h</header>
-   <container>0</container>
-   <pixmap></pixmap>
+   <header>GuiFontExample.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -404,6 +414,9 @@
   <tabstop>screenHugeED</tabstop>
   <tabstop>screenHugerED</tabstop>
  </tabstops>
+ <includes>
+  <include location="local" >qt_i18n.h</include>
+ </includes>
  <resources/>
  <connections/>
 </ui>

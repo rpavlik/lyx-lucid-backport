@@ -67,9 +67,7 @@ ParIterator ParIterator::operator++(int)
 // should not be compiled/used. (Lgb)
 ParIterator & ParIterator::operator--()
 {
-#ifdef WITH_WARNINGS
-#warning look here
-#endif
+	// FIXME: look here
 //	DocIterator::backwardPar();
 	return *this;
 }
@@ -106,27 +104,6 @@ ParagraphList & ParIterator::plist() const
 }
 
 
-bool operator==(ParIterator const & iter1, ParIterator const & iter2)
-{
-	return DocIterator(iter1) == DocIterator(iter2);
-}
-
-
-bool operator!=(ParIterator const & iter1, ParIterator const & iter2)
-{
-	return !(iter1 == iter2);
-}
-
-
-DocIterator makeDocIterator(ParIterator const & par, pos_type pos)
-{
-	DocIterator dit(par);
-	dit.pos() = pos;
-	return dit;
-}
-
-
-
 ///
 /// ParConstIterator
 ///
@@ -140,6 +117,12 @@ ParConstIterator::ParConstIterator(DocIterator const & dit)
 ParConstIterator::ParConstIterator(ParConstIterator const & pi)
 	: DocIterator(DocIterator(pi))
 {}
+
+
+void ParConstIterator::push_back(Inset const & inset)
+{
+	DocIterator::push_back(CursorSlice(const_cast<Inset &>(inset)));
+}
 
 
 ParConstIterator & ParConstIterator::operator++()
@@ -166,9 +149,10 @@ ParagraphList const & ParConstIterator::plist() const
 	return text()->paragraphs();
 }
 
-
+#if 0
 bool operator==(ParConstIterator const & iter1, ParConstIterator const & iter2)
 {
+	// FIXME: this makes two full copies!
 	return DocIterator(iter1) == DocIterator(iter2);
 }
 
@@ -177,11 +161,10 @@ bool operator!=(ParConstIterator const & iter1, ParConstIterator const & iter2)
 {
 	return !(iter1 == iter2);
 }
-
-
-#ifdef WITH_WARNINGS
-#warning const correctness!
 #endif
+
+
+// FIXME: const correctness!
 
 ParConstIterator par_const_iterator_begin(Inset const & inset)
 {

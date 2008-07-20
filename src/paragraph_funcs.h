@@ -27,11 +27,9 @@ class ParagraphList;
 /**
  * This breaks a paragraph at the specified position.
  * The new paragraph will:
- * - Decrease depth by one (or chenge layout to default layout when 
+ * - Decrease depth by one (or change layout to default layout) when
  *    keep_layout == false  
  * - keep current depth and layout when keep_layout == true
- * Be aware that the old or new paragraph does not contain any rows
- * after this.
  */
 void breakParagraph(BufferParams const & bparams,
 		    ParagraphList & paragraphs,
@@ -71,9 +69,6 @@ int getEndLabel(pit_type par, ParagraphList const & plist);
  * All font changes of the paragraph are relative to this font.
  */
 Font const outerFont(pit_type par_offset, ParagraphList const & pars);
-
-/// return the number of InsetOptArg in a paragraph
-int numberOfOptArgs(Paragraph const & par);
 
 /// accept the changes within the complete ParagraphList
 void acceptChanges(ParagraphList & pars, BufferParams const & bparams);

@@ -11,16 +11,13 @@
 #include <config.h>
 
 #include "InsetMathPar.h"
+
 #include "MathData.h"
 #include "MathStream.h"
-#include "support/std_ostream.h"
 
+#include <ostream>
 
 namespace lyx {
-
-
-using std::auto_ptr;
-
 
 InsetMathPar::InsetMathPar(MathData const & ar)
 {
@@ -28,15 +25,10 @@ InsetMathPar::InsetMathPar(MathData const & ar)
 }
 
 
-bool InsetMathPar::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathPar::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	dim = dim_;
 	FontSetChanger dummy1(mi.base, "textnormal");
-	InsetMathGrid::metrics(mi);
-	if (dim_ == dim)
-		return false;
-	dim = dim_;
-	return true;
+	InsetMathGrid::metrics(mi, dim);
 }
 
 
@@ -60,9 +52,9 @@ void InsetMathPar::infoize(odocstream & os) const
 }
 
 
-auto_ptr<Inset> InsetMathPar::doClone() const
+Inset * InsetMathPar::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathPar(*this));
+	return new InsetMathPar(*this);
 }
 
 

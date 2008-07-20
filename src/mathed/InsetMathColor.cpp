@@ -10,21 +10,21 @@
 
 #include <config.h>
 
+#include "Color.h"
+
 #include "InsetMathColor.h"
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathSupport.h"
-#include "LaTeXFeatures.h"
+#include "MetricsInfo.h"
 
-#include "support/std_ostream.h"
+#include <ostream>
 
 
 namespace lyx {
 
-using std::auto_ptr;
-using std::string;
-
-InsetMathColor::InsetMathColor(bool oldstyle, Color_color const & color)
+InsetMathColor::InsetMathColor(bool oldstyle, ColorCode color)
 	: InsetMathNest(1), oldstyle_(oldstyle),
 	  color_(from_utf8(lcolor.getLaTeXName(color)))
 {}
@@ -35,26 +35,22 @@ InsetMathColor::InsetMathColor(bool oldstyle, docstring const & color)
 {}
 
 
-auto_ptr<Inset> InsetMathColor::doClone() const
+Inset * InsetMathColor::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathColor(*this));
+	return new InsetMathColor(*this);
 }
 
 
-bool InsetMathColor::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathColor::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
 void InsetMathColor::draw(PainterInfo & pi, int x, int y) const
 {
-	Color_color origcol = pi.base.font.color();
+	ColorCode origcol = pi.base.font.color();
 	pi.base.font.setColor(lcolor.getFromLaTeXName(to_utf8(color_)));
 	cell(0).draw(pi, x + 1, y);
 	pi.base.font.setColor(origcol);

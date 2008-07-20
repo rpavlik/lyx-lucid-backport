@@ -4,6 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
+ * \author Richard Heck (BibTeX parser improvements)
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -15,72 +16,63 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "DispatchResult.h"
-#include "debug.h"
 #include "Encoding.h"
+#include "Format.h"
 #include "FuncRequest.h"
-#include "gettext.h"
+#include "FuncStatus.h"
 #include "LaTeXFeatures.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "TextClass.h"
 
 #include "frontends/alert.h"
 
+#include "support/convert.h"
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/ExceptionMessage.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
-#include "support/lyxlib.h"
 #include "support/os.h"
 #include "support/Path.h"
 #include "support/textutils.h"
 
-#include <boost/tokenizer.hpp>
 #include <limits>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::absolutePath;
-using support::ascii_lowercase;
-using support::changeExtension;
-using support::contains;
-using support::copy;
-using support::DocFileName;
-using support::FileName;
-using support::findtexfile;
-using support::isFileReadable;
-using support::isValidLaTeXFilename;
-using support::latex_path;
-using support::ltrim;
-using support::makeAbsPath;
-using support::makeRelPath;
-using support::prefixIs;
-using support::removeExtension;
-using support::rtrim;
-using support::split;
-using support::subst;
-using support::tokenPos;
-using support::trim;
-using support::lowercase;
 
 namespace Alert = frontend::Alert;
 namespace os = support::os;
 
-using std::endl;
-using std::getline;
-using std::string;
-using std::ostream;
-using std::pair;
-using std::vector;
-using std::map;
 
-
-InsetBibtex::InsetBibtex(InsetCommandParams const & p)
+InsetBibtex::InsetBibtex(Buffer const & buf, InsetCommandParams const & p)
 	: InsetCommand(p, "bibtex")
-{}
-
-
-std::auto_ptr<Inset> InsetBibtex::doClone() const
 {
-	return std::auto_ptr<Inset>(new InsetBibtex(*this));
+	Inset::setBuffer(const_cast<Buffer &>(buf));
+	buffer_->invalidateBibinfoCache();
+}
+
+
+InsetBibtex::~InsetBibtex()
+{
+	if (isBufferValid())
+		buffer_->invalidateBibinfoCache();
+}
+
+
+ParamInfo const & InsetBibtex::findInfo(string const & /* cmdName */)
+{
+	static ParamInfo param_info_;
+	if (param_info_.empty()) {
+		param_info_.add("btprint", ParamInfo::LATEX_OPTIONAL);
+		param_info_.add("bibfiles", ParamInfo::LATEX_REQUIRED);
+		param_info_.add("options", ParamInfo::LYX_INTERNAL);
+	}
+	return param_info_;
 }
 
 
@@ -88,14 +80,29 @@ void InsetBibtex::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	switch (cmd.action) {
 
+	case LFUN_INSET_EDIT:
+		editDatabases();
+		break;
+
 	case LFUN_INSET_MODIFY: {
-		InsetCommandParams p("bibtex");
-		InsetCommandMailer::string2params("bibtex", to_utf8(cmd.argument()), p);
-		if (!p.getCmdName().empty()) {
-			setParams(p);
-			cur.buffer().updateBibfilesCache();
-		} else
-			cur.noUpdate();
+		InsetCommandParams p(BIBTEX_CODE);
+		try {
+			if (!InsetCommand::string2params("bibtex", 
+					to_utf8(cmd.argument()), p)) {
+				cur.noUpdate();
+				break;
+			}
+		} catch (ExceptionMessage const & message) {
+			if (message.type_ == WarningException) {
+				Alert::warning(message.title_, message.details_);
+				cur.noUpdate();
+			} else 
+				throw message;
+			break;
+		}
+		//
+		setParams(p);
+		buffer().updateBibfilesCache();
 		break;
 	}
 
@@ -106,33 +113,124 @@ void InsetBibtex::doDispatch(Cursor & cur, FuncRequest & cmd)
 }
 
 
-docstring const InsetBibtex::getScreenLabel(Buffer const &) const
+bool InsetBibtex::getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus & flag) const
+{
+	switch (cmd.action) {
+	case LFUN_INSET_EDIT:
+		flag.setEnabled(true);
+		return true;
+
+	default:
+		return InsetCommand::getStatus(cur, cmd, flag);
+	}
+}
+
+
+void InsetBibtex::editDatabases() const
+{
+	vector<docstring> bibfilelist = getVectorFromString(getParam("bibfiles"));
+
+	if (bibfilelist.empty())
+		return;
+
+	int nr_databases = bibfilelist.size();
+	if (nr_databases > 1) {
+			docstring message = bformat(_("The BibTeX inset includes %1$s databases.\n"
+						       "If you proceed, all of them will be opened."),
+							convert<docstring>(nr_databases));
+			int const ret = Alert::prompt(_("Open Databases?"),
+				message, 0, 1, _("&Cancel"), _("&Proceed"));
+
+			if (ret == 0)
+				return;
+	}
+
+	vector<docstring>::const_iterator it = bibfilelist.begin();
+	vector<docstring>::const_iterator en = bibfilelist.end();
+	for (; it != en; ++it) {
+		FileName bibfile = getBibTeXPath(*it, buffer());
+		formats.edit(buffer(), bibfile,
+		     formats.getFormatFromFile(bibfile));
+	}
+}
+
+
+docstring InsetBibtex::screenLabel() const
 {
 	return _("BibTeX Generated Bibliography");
 }
 
 
-namespace {
+docstring InsetBibtex::toolTip(BufferView const & /*bv*/, int /*x*/, int /*y*/) const
+{
+	docstring item = from_ascii("* ");
+	docstring tip = _("Databases:") + "\n";
+	vector<docstring> bibfilelist = getVectorFromString(getParam("bibfiles"));
 
-string normalize_name(Buffer const & buffer, OutputParams const & runparams,
-		      string const & name, string const & ext)
+	if (bibfilelist.empty()) {
+		tip += item;
+		tip += _("none");
+	} else {
+		vector<docstring>::const_iterator it = bibfilelist.begin();
+		vector<docstring>::const_iterator en = bibfilelist.end();
+		for (; it != en; ++it) {
+			tip += item;
+			tip += *it + "\n";
+		}
+	}
+
+	// Style-Options
+	bool toc = false;
+	docstring style = getParam("options"); // maybe empty! and with bibtotoc
+	docstring bibtotoc = from_ascii("bibtotoc");
+	if (prefixIs(style, bibtotoc)) {
+		toc = true;
+		if (contains(style, char_type(',')))
+			style = split(style, bibtotoc, char_type(','));
+	}
+
+	tip += _("Style File:") +"\n";
+	tip += item;
+	if (!style.empty())
+		tip += style;
+	else
+		tip += _("none");
+
+	tip += "\n" + _("Lists:") + " ";
+	docstring btprint = getParam("btprint");
+		if (btprint == "btPrintAll")
+			tip += _("all references");
+		else if (btprint == "btPrintNotCited")
+			tip += _("all uncited references");
+		else
+			tip += _("all cited references");
+	
+	if (toc) {
+		tip += ", ";
+		tip += _("included in TOC");
+	}
+
+	return tip;
+}
+
+
+static string normalizeName(Buffer const & buffer,
+	OutputParams const & runparams, string const & name, string const & ext)
 {
 	string const fname = makeAbsPath(name, buffer.filePath()).absFilename();
-	if (absolutePath(name) || !isFileReadable(FileName(fname + ext)))
+	if (FileName(name).isAbsolute() || !FileName(fname + ext).isReadableFile())
 		return name;
-	else if (!runparams.nice)
+	if (!runparams.nice)
 		return fname;
-	else
-		// FIXME UNICODE
-		return to_utf8(makeRelPath(from_utf8(fname),
-					   from_utf8(buffer.getMasterBuffer()->filePath())));
+
+	// FIXME UNICODE
+	return to_utf8(makeRelPath(from_utf8(fname),
+					 from_utf8(buffer.masterBuffer()->filePath())));
 }
 
-}
 
-
-int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
-		       OutputParams const & runparams) const
+int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 {
 	// the sequence of the commands:
 	// 1. \bibliographystyle{style}
@@ -154,26 +252,19 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 	// use such filenames.)
 	// Otherwise, store the (maybe absolute) path to the original,
 	// unmangled database name.
-	typedef boost::char_separator<char_type> Separator;
-	typedef boost::tokenizer<Separator, docstring::const_iterator, docstring> Tokenizer;
-
-	Separator const separator(from_ascii(",").c_str());
-	// The tokenizer must not be called with temporary strings, since
-	// it does not make a copy and uses iterators of the string further
-	// down. getParam returns a reference, so this is OK.
-	Tokenizer const tokens(getParam("bibfiles"), separator);
-	Tokenizer::const_iterator const begin = tokens.begin();
-	Tokenizer::const_iterator const end = tokens.end();
-
+	vector<docstring> bibfilelist = getVectorFromString(getParam("bibfiles"));
+	vector<docstring>::const_iterator it = bibfilelist.begin();
+	vector<docstring>::const_iterator en = bibfilelist.end();
 	odocstringstream dbs;
-	for (Tokenizer::const_iterator it = begin; it != end; ++it) {
-		docstring const input = trim(*it);
-		// FIXME UNICODE
-		string utf8input(to_utf8(input));
+	bool didone = false;
+
+	for (; it != en; ++it) {
+		string utf8input = to_utf8(*it);
 		string database =
-			normalize_name(buffer, runparams, utf8input, ".bib");
-		FileName const try_in_file(makeAbsPath(database + ".bib", buffer.filePath()));
-		bool const not_from_texmf = isFileReadable(try_in_file);
+			normalizeName(buffer(), runparams, utf8input, ".bib");
+		FileName const try_in_file =
+			makeAbsPath(database + ".bib", buffer().filePath());
+		bool const not_from_texmf = try_in_file.isReadableFile();
 
 		if (!runparams.inComment && !runparams.dryrun && !runparams.nice &&
 		    not_from_texmf) {
@@ -181,10 +272,10 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 			// mangledFilename() needs the extension
 			DocFileName const in_file = DocFileName(try_in_file);
 			database = removeExtension(in_file.mangledFilename());
-			FileName const out_file(makeAbsPath(database + ".bib",
-					buffer.getMasterBuffer()->temppath()));
+			FileName const out_file = makeAbsPath(database + ".bib",
+					buffer().masterBuffer()->temppath());
 
-			bool const success = copy(in_file, out_file);
+			bool const success = in_file.copyTo(out_file);
 			if (!success) {
 				lyxerr << "Failed to copy '" << in_file
 				       << "' to '" << out_file << "'"
@@ -198,8 +289,10 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 							    from_utf8(database));
 		}
 
-		if (it != begin)
+		if (didone)
 			dbs << ',';
+		else 
+			didone = true;
 		// FIXME UNICODE
 		dbs << from_utf8(latex_path(database));
 	}
@@ -214,27 +307,25 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 		Alert::warning(_("Export Warning!"),
 			       _("There are spaces in the paths to your BibTeX databases.\n"
 					      "BibTeX will be unable to find them."));
-
 	}
-
 	// Style-Options
 	string style = to_utf8(getParam("options")); // maybe empty! and with bibtotoc
 	string bibtotoc;
 	if (prefixIs(style, "bibtotoc")) {
 		bibtotoc = "bibtotoc";
-		if (contains(style, ',')) {
+		if (contains(style, ','))
 			style = split(style, bibtotoc, ',');
-		}
 	}
+
 
 	// line count
 	int nlines = 0;
 
 	if (!style.empty()) {
-		string base =
-			normalize_name(buffer, runparams, style, ".bst");
-		FileName const try_in_file(makeAbsPath(base + ".bst", buffer.filePath()));
-		bool const not_from_texmf = isFileReadable(try_in_file);
+		string base = normalizeName(buffer(), runparams, style, ".bst");
+		FileName const try_in_file = 
+			makeAbsPath(base + ".bst", buffer().filePath());
+		bool const not_from_texmf = try_in_file.isReadableFile();
 		// If this style does not come from texmf and we are not
 		// exporting to .tex copy it to the tmp directory.
 		// This prevents problems with spaces and 8bit charcaters
@@ -244,9 +335,9 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 			// use new style name
 			DocFileName const in_file = DocFileName(try_in_file);
 			base = removeExtension(in_file.mangledFilename());
-			FileName const out_file(makeAbsPath(base + ".bst",
-					buffer.getMasterBuffer()->temppath()));
-			bool const success = copy(in_file, out_file);
+			FileName const out_file = makeAbsPath(base + ".bst",
+					buffer().masterBuffer()->temppath());
+			bool const success = in_file.copyTo(out_file);
 			if (!success) {
 				lyxerr << "Failed to copy '" << in_file
 				       << "' to '" << out_file << "'"
@@ -255,7 +346,7 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 		}
 		// FIXME UNICODE
 		os << "\\bibliographystyle{"
-		   << from_utf8(latex_path(normalize_name(buffer, runparams, base, ".bst")))
+		   << from_utf8(latex_path(normalizeName(buffer(), runparams, base, ".bst")))
 		   << "}\n";
 		nlines += 1;
 	}
@@ -269,7 +360,7 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 					      "BibTeX will be unable to find it."));
 	}
 
-	if (!db_out.empty() && buffer.params().use_bibtopic){
+	if (!db_out.empty() && buffer().params().use_bibtopic) {
 		os << "\\begin{btSect}{" << db_out << "}\n";
 		docstring btprint = getParam("btprint");
 		if (btprint.empty())
@@ -281,31 +372,26 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 	}
 
 	// bibtotoc-Option
-	if (!bibtotoc.empty() && !buffer.params().use_bibtopic) {
-		// maybe a problem when a textclass has no "art" as
-		// part of its name, because it's than book.
-		// For the "official" lyx-layouts it's no problem to support
-		// all well
-		if (!contains(buffer.params().getTextClass().name(),
-			      "art")) {
-			if (buffer.params().sides == TextClass::OneSide) {
+	if (!bibtotoc.empty() && !buffer().params().use_bibtopic) {
+		if (buffer().params().documentClass().hasLaTeXLayout("chapter")) {
+			if (buffer().params().sides == OneSide) {
 				// oneside
 				os << "\\clearpage";
 			} else {
 				// twoside
 				os << "\\cleardoublepage";
 			}
-
-			// bookclass
 			os << "\\addcontentsline{toc}{chapter}{\\bibname}";
-
-		} else {
-			// article class
+		} else if (buffer().params().documentClass().hasLaTeXLayout("section"))
 			os << "\\addcontentsline{toc}{section}{\\refname}";
-		}
 	}
 
-	if (!db_out.empty() && !buffer.params().use_bibtopic){
+	if (!db_out.empty() && !buffer().params().use_bibtopic) {
+		docstring btprint = getParam("btprint");
+		if (btprint == "btPrintAll") {
+			os << "\\nocite{*}\n";
+			nlines += 1;
+		}
 		os << "\\bibliography{" << db_out << "}\n";
 		nlines += 1;
 	}
@@ -314,30 +400,28 @@ int InsetBibtex::latex(Buffer const & buffer, odocstream & os,
 }
 
 
-vector<FileName> const InsetBibtex::getFiles(Buffer const & buffer) const
+support::FileNameList InsetBibtex::getBibFiles() const
 {
-	FileName path(buffer.filePath());
-	support::Path p(path);
+	FileName path(buffer().filePath());
+	support::PathChanger p(path);
+	
+	support::FileNameList vec;
+	
+	vector<docstring> bibfilelist = getVectorFromString(getParam("bibfiles"));
+	vector<docstring>::const_iterator it = bibfilelist.begin();
+	vector<docstring>::const_iterator en = bibfilelist.end();
+	for (; it != en; ++it) {
+		FileName const file = 
+			findtexfile(changeExtension(to_utf8(*it), "bib"), "bib");
 
-	vector<FileName> vec;
-
-	string tmp;
-	// FIXME UNICODE
-	string bibfiles = to_utf8(getParam("bibfiles"));
-	bibfiles = split(bibfiles, tmp, ',');
-	while (!tmp.empty()) {
-		FileName const file = findtexfile(changeExtension(tmp, "bib"), "bib");
-		LYXERR(Debug::LATEX) << "Bibfile: " << file << endl;
-
-		// If we didn't find a matching file name just fail silently
 		if (!file.empty())
 			vec.push_back(file);
-
-		// Get next file name
-		bibfiles = split(bibfiles, tmp, ',');
+		else
+			LYXERR0("Couldn't find " + to_utf8(*it) + " in InsetBibtex::getBibFiles()!");
 	}
-
+	
 	return vec;
+
 }
 
 namespace {
@@ -415,14 +499,14 @@ namespace {
 		// read value
 		bool legalChar = true;
 		while (ifs && !isSpace(ch) && 
-			   delimChars.find(ch) == docstring::npos &&
-			   (legalChar = illegalChars.find(ch) == docstring::npos)
-			   ) {
-			if (chCase == makeLowerCase) {
+						 delimChars.find(ch) == docstring::npos &&
+						 (legalChar = (illegalChars.find(ch) == docstring::npos))
+					) 
+		{
+			if (chCase == makeLowerCase)
 				val += lowercase(ch);
-			} else {
+			else
 				val += ch;
-			}
 			ifs.get(ch);
 		}
 		
@@ -479,17 +563,40 @@ namespace {
 					return false;
 
 			} else if (ch == '"' || ch == '{') {
+				// set end delimiter
+				char_type delim = ch == '"' ? '"': '}';
 
-				// read delimited text - set end delimiter
-				char_type delim = ch == '"'? '"': '}';
-
-				// inside this delimited text braces must match.
-				// Thus we can have a closing delimiter only
-				// when nestLevel == 0
+				// Skip whitespace
+				do {
+					ifs.get(ch);
+				} while (ifs && isSpace(ch));
+				
+				if (!ifs)
+					return false;
+				
+				// We now have the first non-whitespace character
+				// We'll collapse adjacent whitespace.
+				bool lastWasWhiteSpace = false;
+				
+ 				// inside this delimited text braces must match.
+ 				// Thus we can have a closing delimiter only
+ 				// when nestLevel == 0
 				int nestLevel = 0;
-
-				ifs.get(ch);
+ 
 				while (ifs && (nestLevel > 0 || ch != delim)) {
+					if (isSpace(ch)) {
+						lastWasWhiteSpace = true;
+						ifs.get(ch);
+						continue;
+					}
+					// We output the space only after we stop getting 
+					// whitespace so as not to output any whitespace
+					// at the end of the value.
+					if (lastWasWhiteSpace) {
+						lastWasWhiteSpace = false;
+						val += ' ';
+					}
+					
 					val += ch;
 
 					// update nesting level
@@ -556,42 +663,33 @@ namespace {
 
 
 // This method returns a comma separated list of Bibtex entries
-void InsetBibtex::fillWithBibKeys(Buffer const & buffer,
-		std::vector<std::pair<string, docstring> > & keys) const
+void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
+	InsetIterator const & /*di*/) const
 {
-	vector<FileName> const files = getFiles(buffer);
-	for (vector<FileName>::const_iterator it = files.begin();
-	     it != files.end(); ++ it) {
-		// This bibtex parser is a first step to parse bibtex files
-		// more precisely.
-		//
-		// - it reads the whole bibtex entry and does a syntax check
-		//   (matching delimiters, missing commas,...
-		// - it recovers from errors starting with the next @-character
-		// - it reads @string definitions and replaces them in the
-		//   field values.
-		// - it accepts more characters in keys or value names than
-		//   bibtex does.
-		//
-		// TODOS:
-		// - the entries are split into name = value pairs by the
-		//   parser. These have to be merged again because of the
-		//   way lyx treats the entries ( pair<...>(...) ). The citation
-		//   mechanism in lyx should be changed such that it can use
-		//   the split entries.
-		// - messages on parsing errors can be generated.
-		//
-
-		// Officially bibtex does only support ASCII, but in practice
-		// you can use the encoding of the main document as long as
-		// some elements like keys and names are pure ASCII. Therefore
-		// we convert the file from the buffer encoding.
-		// We don't restrict keys to ASCII in LyX, since our own
-		// InsetBibitem can generate non-ASCII keys, and nonstandard
-		// 8bit clean bibtex forks exist.
+	// This bibtex parser is a first step to parse bibtex files
+	// more precisely.
+	//
+	// - it reads the whole bibtex entry and does a syntax check
+	//   (matching delimiters, missing commas,...
+	// - it recovers from errors starting with the next @-character
+	// - it reads @string definitions and replaces them in the
+	//   field values.
+	// - it accepts more characters in keys or value names than
+	//   bibtex does.
+	//
+	// Officially bibtex does only support ASCII, but in practice
+	// you can use the encoding of the main document as long as
+	// some elements like keys and names are pure ASCII. Therefore
+	// we convert the file from the buffer encoding.
+	// We don't restrict keys to ASCII in LyX, since our own
+	// InsetBibitem can generate non-ASCII keys, and nonstandard
+	// 8bit clean bibtex forks exist.
+	support::FileNameList const files = getBibFiles();
+	support::FileNameList::const_iterator it = files.begin();
+	support::FileNameList::const_iterator en = files.end();
+	for (; it != en; ++ it) {
 		idocfstream ifs(it->toFilesystemEncoding().c_str(),
-				std::ios_base::in,
-				buffer.params().encoding().iconvName());
+			ios_base::in, buffer().params().encoding().iconvName());
 
 		char_type ch;
 		VarMap strings;
@@ -607,22 +705,29 @@ void InsetBibtex::fillWithBibKeys(Buffer const & buffer,
 
 			docstring entryType;
 
-			if (!readTypeOrKey(entryType, ifs, from_ascii("{("), 
-			                   docstring(), makeLowerCase) || !ifs)
+			if (!readTypeOrKey(entryType, ifs, from_ascii("{("), docstring(), makeLowerCase)) {
+				lyxerr << "InsetBibtex::fillWithBibKeys: Error reading entry type." << std::endl;
 				continue;
+			}
+
+			if (!ifs) {
+				lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+				continue;
+			}
 
 			if (entryType == from_ascii("comment")) {
-
-				ifs.ignore(std::numeric_limits<int>::max(), '\n');
+				ifs.ignore(numeric_limits<int>::max(), '\n');
 				continue;
 			}
 
 			ifs.get(ch);
-			if (!ifs)
+			if (!ifs) {
+				lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
 				break;
+			}
 
 			if ((ch != '(') && (ch != '{')) {
-				// invalid entry delimiter
+				lyxerr << "InsetBibtex::fillWithBibKeys: Invalid entry delimiter." << std::endl;
 				ifs.putback(ch);
 				continue;
 			}
@@ -635,17 +740,29 @@ void InsetBibtex::fillWithBibKeys(Buffer const & buffer,
 				docstring name;
 				docstring value;
 
-				if (!readTypeOrKey(name, ifs, from_ascii("="), 
-				                   from_ascii("#{}(),"), makeLowerCase) || !ifs)
+				if (!readTypeOrKey(name, ifs, from_ascii("="), from_ascii("#{}(),"), makeLowerCase)) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Error reading string name." << std::endl;
 					continue;
+				}
+
+				if (!ifs) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+					continue;
+				}
 
 				// next char must be an equal sign
 				ifs.get(ch);
-				if (!ifs || ch != '=')
+				if (!ifs || ch != '=') {
+					lyxerr << "InsetBibtex::fillWithBibKeys: No `=' after string name: " << 
+							name << "." << std::endl;
 					continue;
+				}
 
-				if (!readValue(value, ifs, strings))
+				if (!readValue(value, ifs, strings)) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read value for string: " << 
+							name << "." << std::endl;
 					continue;
+				}
 
 				strings[name] = value;
 
@@ -655,30 +772,44 @@ void InsetBibtex::fillWithBibKeys(Buffer const & buffer,
 				// can they be of any use in lyx?
 				docstring value;
 
-				if (!readValue(value, ifs, strings))
+				if (!readValue(value, ifs, strings)) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read preamble value." << std::endl;
 					continue;
+				}
 
 			} else {
 
-				// Citation entry. Read the key and all name = value pairs
+				// Citation entry. Try to read the key.
 				docstring key;
+
+				if (!readTypeOrKey(key, ifs, from_ascii(","), from_ascii("}"), keepCase)) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read key for entry type:" << 
+							entryType << "." << std::endl;
+					continue;
+				}
+
+				if (!ifs) {
+					lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+					continue;
+				}
+
+				/////////////////////////////////////////////
+				// now we have a key, so we will add an entry 
+ 				// (even if it's empty, as bibtex does)
+				//
+				// we now read the field = value pairs.
+ 				// all items must be separated by a comma. If
+ 				// it is missing the scanning of this entry is
+ 				// stopped and the next is searched.
 				docstring fields;
 				docstring name;
 				docstring value;
 				docstring commaNewline;
-
-				if (!readTypeOrKey(key, ifs, from_ascii(","), 
-				                   from_ascii("}"), keepCase) || !ifs)
-					continue;
-
-				// now we have a key, so we will add an entry
-				// (even if it's empty, as bibtex does)
-				//
-				// all items must be separated by a comma. If
-				// it is missing the scanning of this entry is
-				// stopped and the next is searched.
+				docstring data;
+				BibTeXInfo keyvalmap(key, entryType);
+				
 				bool readNext = removeWSAndComma(ifs);
-
+ 
 				while (ifs && readNext) {
 
 					// read field name
@@ -688,71 +819,77 @@ void InsetBibtex::fillWithBibKeys(Buffer const & buffer,
 
 					// next char must be an equal sign
 					ifs.get(ch);
-					if (!ifs)
+					if (!ifs) {
+						lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
 						break;
+					}
 					if (ch != '=') {
+						lyxerr << "InsetBibtex::fillWithBibKeys: Missing `=' after field name: " <<
+								name << ", for key: " << key << "." << std::endl;
 						ifs.putback(ch);
 						break;
 					}
 
 					// read field value
-					if (!readValue(value, ifs, strings))
+					if (!readValue(value, ifs, strings)) {
+						lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read value for field: " <<
+								name << ", for key: " << key << "." << std::endl;
 						break;
+					}
 
-					// append field to the total entry string.
-					//
-					// TODO: Here is where the fields can be put in
-					//       a more intelligent structure that preserves
-					//	     the already known parts.
-					fields += commaNewline;
-					fields += name + from_ascii(" = {") + value + '}';
-
-					if (!commaNewline.length())
-						commaNewline = from_ascii(",\n");
-
+					keyvalmap[name] = value;
+					data += "\n\n" + value;
+					keylist.addFieldName(name);
 					readNext = removeWSAndComma(ifs);
 				}
 
 				// add the new entry
-				keys.push_back(pair<string, docstring>(
-				to_utf8(key), fields));
-			}
-
+				keylist.addEntryType(entryType);
+				keyvalmap.setAllData(data);
+				keylist[key] = keyvalmap;
+			} //< else (citation entry)
 		} //< searching '@'
-
 	} //< for loop over files
 }
 
 
-
-bool InsetBibtex::addDatabase(string const & db)
+FileName InsetBibtex::getBibTeXPath(docstring const & filename, Buffer const & buf)
 {
-	// FIXME UNICODE
-	string bibfiles(to_utf8(getParam("bibfiles")));
-	if (tokenPos(bibfiles, ',', db) == -1) {
-		if (!bibfiles.empty())
-			bibfiles += ',';
-		setParam("bibfiles", from_utf8(bibfiles + db));
-		return true;
-	}
-	return false;
+	string texfile = changeExtension(to_utf8(filename), "bib");
+	// note that, if the filename can be found directly from the path, 
+	// findtexfile will just return a FileName object for that path.
+	FileName file(findtexfile(texfile, "bib"));
+	if (file.empty())
+		file = FileName(makeAbsPath(texfile, buf.filePath()));
+	return file;
+}
+ 
+
+bool InsetBibtex::addDatabase(docstring const & db)
+{
+	docstring bibfiles = getParam("bibfiles");
+	if (tokenPos(bibfiles, ',', db) != -1)
+		return false;
+	if (!bibfiles.empty())
+		bibfiles += ',';
+	setParam("bibfiles", bibfiles + db);
+	return true;
 }
 
 
-bool InsetBibtex::delDatabase(string const & db)
+bool InsetBibtex::delDatabase(docstring const & db)
 {
-	// FIXME UNICODE
-	string bibfiles(to_utf8(getParam("bibfiles")));
+	docstring bibfiles = getParam("bibfiles");
 	if (contains(bibfiles, db)) {
 		int const n = tokenPos(bibfiles, ',', db);
-		string bd = db;
+		docstring bd = db;
 		if (n > 0) {
 			// this is not the first database
-			string tmp = ',' + bd;
-			setParam("bibfiles", from_utf8(subst(bibfiles, tmp, string())));
+			docstring tmp = ',' + bd;
+			setParam("bibfiles", subst(bibfiles, tmp, docstring()));
 		} else if (n == 0)
 			// this is the first (or only) database
-			setParam("bibfiles", from_utf8(split(bibfiles, bd, ',')));
+			setParam("bibfiles", split(bibfiles, bd, ','));
 		else
 			return false;
 	}
@@ -764,6 +901,12 @@ void InsetBibtex::validate(LaTeXFeatures & features) const
 {
 	if (features.bufferParams().use_bibtopic)
 		features.require("bibtopic");
+}
+
+
+docstring InsetBibtex::contextMenu(BufferView const &, int, int) const
+{
+	return from_ascii("context-bibtex");
 }
 
 

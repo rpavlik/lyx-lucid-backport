@@ -2,8 +2,8 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>QBranchUi</class>
- <widget class="QDialog" name="QBranchUi" >
+ <class>BranchUi</class>
+ <widget class="QDialog" name="BranchUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -76,7 +76,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <tabstops>
   <tabstop>branchCO</tabstop>

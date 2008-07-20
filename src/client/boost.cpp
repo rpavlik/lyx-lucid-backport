@@ -11,39 +11,32 @@
 #include <config.h>
 
 #include "LyX.h"
-#include "debug.h"
-#include "support/lyxlib.h"
+#include "support/debug.h"
 
 #include <boost/assert.hpp>
 
 #include <exception>
+#include <ostream>
 
-
-namespace lyx {
-
-using std::endl;
+using namespace std;
 
 namespace boost {
 
-void throw_exception(std::exception const & e)
+void throw_exception(exception const & e)
 {
-	lyxerr << "Exception caught:\n"
-	    << e.what() << endl;
+	lyx::lyxerr << "Exception caught:\n" << e.what() << endl;
 	BOOST_ASSERT(false);
 }
 
-
+/*
 void assertion_failed(char const * expr, char const * function,
 		      char const * file, long line)
 {
-	lyxerr << "Assertion triggered in " << function
+	lyx::lyxerr << "Assertion triggered in " << function
 	       << " by failing check \"" << expr << "\""
 	       << " in file " << file << ":" << line << endl;
 	lyx::support::abort();
 }
+*/
 
-
-}
-
-
-} // namespace lyx
+} // namespace boost

@@ -16,25 +16,29 @@
 #ifndef PARAGRAPH_H
 #define PARAGRAPH_H
 
-#include "Changes.h"
-#include "Dimension.h"
-#include "InsetList.h"
-#include "lyxlayout_ptr_fwd.h"
-#include "Row.h"
+#include "FontEnums.h"
+#include "Layout.h"
 
-#include "insets/Inset.h" // only for Inset::Code
+#include "insets/InsetCode.h"
 
+#include "support/strfwd.h"
+#include "support/types.h"
 
 namespace lyx {
 
-
+class AuthorList;
 class Buffer;
 class BufferParams;
+class Change;
 class Counters;
+class Cursor;
+class CursorSlice;
+class DocumentClass;
 class Inset;
 class InsetBibitem;
 class LaTeXFeatures;
 class Inset_code;
+class InsetList;
 class Language;
 class Font;
 class Font_size;
@@ -57,27 +61,30 @@ public:
 	pos_type first, last;
 };
 
+///
+enum TextCase {
+	///
+	text_lowercase = 0,
+	///
+	text_capitalization = 1,
+	///
+	text_uppercase = 2
+};
+
+
+///
+enum AsStringParameter
+{
+	AS_STR_NONE = 0, ///< No option, only printable characters.
+	AS_STR_LABEL = 1, ///< Prefix with paragraph label.
+	AS_STR_INSETS = 2 ///< Go into insets.
+};
+
 
 /// A Paragraph holds all text, attributes and insets in a text paragraph
-/// \todo FIXME: any reference to ParagraphMetrics (including inheritance)
-/// should go in order to complete the Model/View separation of this class.
-class Paragraph  {
+class Paragraph
+{
 public:
-	///
-	enum {
-		/// Note that this is 1 right now to avoid
-		/// crashes where getChar() is called wrongly
-		/// (returning 0) - if this was 0, then we'd
-		/// try getInset() and crash. We should fix
-		/// all these places.
-		//META_INSET = 1 // as in trunk
-		META_INSET = 0x200001  // above 0x10ffff, for ucs-4
-	};
-	///
-	typedef char_type value_type;
-	///
-	typedef std::vector<value_type> TextContainer;
-
 	///
 	Paragraph();
 	///
@@ -89,60 +96,45 @@ public:
 	///
 	int id() const;
 
-
 	///
 	Language const * getParLanguage(BufferParams const &) const;
 	///
-	bool isRightToLeftPar(BufferParams const &) const;
+	bool isRTL(BufferParams const &) const;
 	///
 	void changeLanguage(BufferParams const & bparams,
 			    Language const * from, Language const * to);
 	///
 	bool isMultiLingual(BufferParams const &) const;
 
+	/// Convert the paragraph to a string.
+	/// \param AsStringParameter options. This can contain any combination of
+	/// asStringParameter values. Valid examples:
+	///		asString(AS_STR_LABEL)
+	///		asString(AS_STR_LABEL | AS_STR_INSETS)
+	///		asString(AS_STR_INSETS)
+	docstring asString(int options = AS_STR_NONE) const;
 	///
-	docstring const asString(Buffer const &, bool label) const;
-	///
-	docstring const asString(Buffer const & buffer,
-				   pos_type beg,
-				   pos_type end,
-				   bool label) const;
+	docstring asString(pos_type beg, pos_type end,
+		int options = AS_STR_NONE) const;
 
 	///
-	void write(Buffer const &, std::ostream &, BufferParams const &,
+	void write(std::ostream &, BufferParams const &,
 		   depth_type & depth) const;
 	///
 	void validate(LaTeXFeatures &) const;
 
 	///
-	int startTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			      bool) const;
-
-	///
-	int endTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			    bool) const;
-
-
-	///
-	bool simpleTeXOnePar(Buffer const &, BufferParams const &,
-			     Font const & outerfont, odocstream &,
-			     TexRow & texrow, OutputParams const &) const;
+	bool latex(BufferParams const &, Font const & outerfont, odocstream &,
+		TexRow & texrow, OutputParams const &) const;
 
 	/// Can we drop the standard paragraph wrapper?
 	bool emptyTag() const;
 
 	/// Get the id of the paragraph, usefull for docbook
-	std::string getID(Buffer const & buf,
-			  OutputParams const & runparams) const;
+	std::string getID(Buffer const & buf, OutputParams const & runparams) const;
 
 	/// Get the first word of a paragraph, return the position where it left
-	pos_type getFirstWord(Buffer const & buf,
-				   odocstream & os,
-				   OutputParams const & runparams) const;
-
-	/// Checks if the paragraph contains only text and no inset or font change.
-	bool onlyText(Buffer const & buf, Font const & outerfont,
-		      pos_type initial) const;
+	pos_type firstWord(odocstream & os, OutputParams const & runparams) const;
 
 	/// Writes to stream the docbook representation
 	void simpleDocBookOnePar(Buffer const & buf,
@@ -162,25 +154,27 @@ public:
 	///
 	Inset * inInset() const;
 	///
-	Inset::Code ownerCode() const;
+	InsetCode ownerCode() const;
 	///
-	bool forceDefaultParagraphs() const;
+	bool forcePlainLayout() const;
+	///
+	bool allowParagraphCustomization() const;
+	///
+	bool usePlainLayout() const;
+	///
+	pos_type size() const;
+	///
+	bool empty() const;
 
 	///
-	pos_type size() const { return text_.size(); }
+	Layout const & layout() const;
+	/// Do not pass a temporary to this!
+	void setLayout(Layout const & layout);
 	///
-	bool empty() const { return text_.empty(); }
-
-	///
-	Layout_ptr const & layout() const;
-	///
-	void layout(Layout_ptr const & new_layout);
+	void setPlainOrDefaultLayout(DocumentClass const & tc);
 
 	/// This is the item depth, only used by enumerate and itemize
 	signed char itemdepth;
-
-	///
-	InsetBibitem * bibitem() const;  // ale970302
 
 	/// look up change at given pos
 	Change const & lookupChange(pos_type pos) const;
@@ -188,17 +182,11 @@ public:
 	/// is there a change within the given range ?
 	bool isChanged(pos_type start, pos_type end) const;
 	/// is there an unchanged char at the given pos ?
-	bool isUnchanged(pos_type pos) const {
-		return lookupChange(pos).type == Change::UNCHANGED;
-	}
+	bool isUnchanged(pos_type pos) const;
 	/// is there an insertion at the given pos ?
-	bool isInserted(pos_type pos) const {
-		return lookupChange(pos).type == Change::INSERTED;
-	}
+	bool isInserted(pos_type pos) const;
 	/// is there a deletion at the given pos ?
-	bool isDeleted(pos_type pos) const {
-		return lookupChange(pos).type == Change::DELETED;
-	}
+	bool isDeleted(pos_type pos) const;
 
 	/// will the paragraph be physically merged with the next
 	/// one if the imaginary end-of-par character is logically deleted?
@@ -226,7 +214,7 @@ public:
 	void setBeginOfBody();
 
 	///
-	docstring const & getLabelstring() const;
+	docstring const & labelString() const;
 
 	/// the next two functions are for the manual labels
 	docstring const getLabelWidthString() const;
@@ -236,7 +224,7 @@ public:
 	docstring const translateIfPossible(docstring const & label,
 		BufferParams const & bparams) const;
 	/// Expand the counters for the labelstring of \c layout
-	docstring expandLabel(Layout_ptr const &, BufferParams const &,
+	docstring expandLabel(Layout const &, BufferParams const &,
 		bool process_appendix = true) const;
 	/// Actual paragraph alignment used
 	char getAlign() const;
@@ -245,12 +233,15 @@ public:
 	/// The maximal possible depth of a paragraph after this one
 	depth_type getMaxDepthAfter() const;
 	///
-	void applyLayout(Layout_ptr const & new_layout);
+	void applyLayout(Layout const & new_layout);
 
 	/// (logically) erase the char at pos; return true if it was actually erased
 	bool eraseChar(pos_type pos, bool trackChanges);
 	/// (logically) erase the given range; return the number of chars actually erased
 	int eraseChars(pos_type start, pos_type end, bool trackChanges);
+
+	///
+	void resetFonts(Font const & font);
 
 	/** Get uninstantiated font setting. Returns the difference
 	    between the characters font and the layoutfont.
@@ -265,8 +256,8 @@ public:
 	    font attached to this paragraph.
 	    If pos == -2, use the label font of the layout attached here.
 	    In all cases, the font is instantiated, i.e. does not have any
-	    attributes with values Font::INHERIT, Font::IGNORE or
-	    Font::TOGGLE.
+	    attributes with values FONT_INHERIT, FONT_IGNORE or
+	    FONT_TOGGLE.
 	*/
 	Font const getFont(BufferParams const &, pos_type pos,
 			      Font const & outerfont) const;
@@ -282,25 +273,30 @@ public:
 	 */
 	FontSpan fontSpan(pos_type pos) const;
 	///
-	/// this is a bottleneck.
-	value_type getChar(pos_type pos) const { return text_[pos]; }
+	char_type getChar(pos_type pos) const;
 	/// Get the char, but mirror all bracket characters if it is right-to-left
-	value_type getUChar(BufferParams const &, pos_type pos) const;
+	char_type getUChar(BufferParams const &, pos_type pos) const;
 	/// pos <= size() (there is a dummy font change at the end of each par)
 	void setFont(pos_type pos, Font const & font);
 	/// Returns the height of the highest font in range
-	Font_size highestFontInRange(pos_type startpos,
-					pos_type endpos, Font_size def_size) const;
+	FontSize highestFontInRange(pos_type startpos,
+					pos_type endpos, FontSize def_size) const;
 	///
 	void insert(pos_type pos, docstring const & str,
 		    Font const & font, Change const & change);
+
 	///
-	void insertChar(pos_type pos, value_type c, bool trackChanges);
+	void appendString(docstring const & s, Font const & font,
+		Change const & change);
 	///
-	void insertChar(pos_type pos, value_type c,
+	void appendChar(char_type c, Font const & font, Change const & change);
+	///
+	void insertChar(pos_type pos, char_type c, bool trackChanges);
+	///
+	void insertChar(pos_type pos, char_type c,
 			Font const &, bool trackChanges);
 	///
-	void insertChar(pos_type pos, value_type c,
+	void insertChar(pos_type pos, char_type c,
 			Font const &, Change const & change);
 	///
 	void insertInset(pos_type pos, Inset * inset,
@@ -309,37 +305,39 @@ public:
 	void insertInset(pos_type pos, Inset * inset,
 			 Font const &, Change const & change);
 	///
-	bool insetAllowed(Inset_code code);
+	bool insetAllowed(InsetCode code);
 	///
-	Inset * getInset(pos_type pos) {
-		return insetlist.get(pos);
-	}
+	Inset * getInset(pos_type pos);
 	///
-	Inset const * getInset(pos_type pos) const {
-		return insetlist.get(pos);
-	}
+	Inset const * getInset(pos_type pos) const;
+
+	/// Release inset at given position.
+	/// \warning does not honour change tracking!
+	/// Therefore, it should only be used for breaking and merging
+	/// paragraphs
+	Inset * releaseInset(pos_type pos);
 
 	///
-	bool isHfill(pos_type pos) const {
-		return isInset(pos)
-		       && getInset(pos)->lyxCode() == Inset::HFILL_CODE;
-	}
+	InsetList const & insetList() const;
+
+	///
+	bool isHfill(pos_type pos) const;
+
 	/// hinted by profiler
-	bool isInset(pos_type pos) const {
-		return getChar(pos) == static_cast<value_type>(META_INSET);
-	}
+	bool isInset(pos_type pos) const;
 	///
 	bool isNewline(pos_type pos) const;
 	/// return true if the char is a word separator
-	bool isSeparator(pos_type pos) const { return getChar(pos) == ' '; }
+	bool isSeparator(pos_type pos) const;
 	///
 	bool isLineSeparator(pos_type pos) const;
 	/// True if the character/inset at this point can be part of a word.
 	/// Note that digits in particular are considered as letters
 	bool isLetter(pos_type pos) const;
-
-	/// returns -1 if inset not found
-	int getPositionOfInset(Inset const * inset) const;
+	/// True if the element at this point is a character that is not a letter.
+	bool isChar(pos_type pos) const;
+	/// True if the element at this point is a space
+	bool isSpace(pos_type pos) const;
 
 	/// returns true if at least one line break or line separator has been deleted
 	/// at the beginning of the paragraph (either physically or logically)
@@ -356,8 +354,6 @@ public:
 	ParagraphParameters & params();
 	///
 	ParagraphParameters const & params() const;
-	///
-	bool hfillExpansion(Row const & row, pos_type pos) const;
 
 	/// Check if we are in a Biblio environment and insert or
 	/// delete InsetBibitems as necessary.
@@ -366,34 +362,43 @@ public:
 	/// an inset, in which case pos is the position from which the inset
 	/// was deleted, and the cursor will need to be moved back one if it
 	/// was previously past that position. Return 0 otherwise.
-	int checkBiblio(bool track_changes);
+	int checkBiblio(Buffer const & buffer);
 
 	/// For each author, set 'used' to true if there is a change
 	/// by this author in the paragraph.
 	void checkAuthors(AuthorList const & authorList);
 
-public:
 	///
-	InsetList insetlist;
+	void changeCase(BufferParams const & bparams, pos_type pos,
+		pos_type & right, TextCase action);
+
+	/// find \param str string inside Paragraph.
+	/// \return true if the specified string is at the specified position
+	/// \param del specifies whether deleted strings in ct mode will be considered
+	bool find(
+		docstring const & str, ///< string to search
+		bool cs, ///<
+		bool mw, ///<
+		pos_type pos, ///< start from here.
+		bool del = true) const;
+	
+	///
+	void updateWords(CursorSlice const & sl);
 
 private:
-
 	///
-	Layout_ptr layout_;
-	/**
-	 * Keeping this here instead of in the pimpl makes LyX >10% faster
-	 * for average tasks as buffer loading/switching etc.
-	 */
-	TextContainer text_;
-	/// end of label
-	pos_type begin_of_body_;
+	void deregisterWords();
+	///
+	void collectWords(CursorSlice const & sl);
+	///
+	void registerWords();
 
 	/// Pimpl away stuff
-	class Pimpl;
+	class Private;
 	///
-	friend class Paragraph::Pimpl;
+	friend class Paragraph::Private;
 	///
-	Pimpl * pimpl_;
+	Private * d;
 };
 
 } // namespace lyx

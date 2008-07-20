@@ -15,35 +15,62 @@
 #define KEYMAP_H
 
 #include "FuncRequest.h"
+#include "KeySequence.h"
 
-#include "frontends/key_state.h"
-#include "frontends/KeySymbol.h"
-
-#include "support/docstream.h"
+#include "support/strfwd.h"
 
 #include <boost/shared_ptr.hpp>
 
 #include <vector>
-#include <deque>
 
 
 namespace lyx {
-
-class KeySequence;
 
 /// Defines key maps and actions for key sequences
 class KeyMap {
 public:
 	/**
-	 * Bind a key sequence to an action.
+	 * Bind/Unbind a key sequence to an action.
 	 * @return 0 on success, or position in string seq where error
 	 * occurs.
 	 * See KeySequence::parse for the syntax of the seq string
 	 */
 	size_t bind(std::string const & seq, FuncRequest const & func);
+	size_t unbind(std::string const & seq, FuncRequest const & func);
 
-	// Parse a bind file
-	bool read(std::string const & bind_file);
+	/**
+	 * Define/Undefine an action for a key sequence.
+	 * @param r internal recursion level
+	 */
+	void bind(KeySequence * seq, FuncRequest const & func,
+		    unsigned int r = 0);
+	void unbind(KeySequence * seq, FuncRequest const & func,
+		    unsigned int r = 0);
+
+
+	// if a keybinding has been defined.
+	bool hasBinding(KeySequence const & seq, FuncRequest const & func,
+			unsigned int r = 0);
+
+	// clear all bindings
+	void clear();
+
+	/** Parse a bind file. If a valid unbind_map is given, put \unbind 
+	 * bindings to a separate KeyMap. This is used in the Shortcut preference
+	 * dialog where main and user bind files are loaded separately so \unbind
+	 * in user.bind can not nullify \bind in the master bind file.
+	 *
+	 * @param bind_file bind file
+	 * @param unbind_map pointer to a KeyMap that holds \unbind bindings
+	 */
+	bool read(std::string const & bind_file, KeyMap * unbind_map = 0);
+
+	/** write to a bind file.
+	 * @param append append to the bind_file instead of overwrite it
+	 * @param unbind use \unbind instead of \bind, indicating this KeyMap
+	 *        actually record unbind maps.
+	 */
+	void write(std::string const & bind_file, bool append, bool unbind=false) const;
 
 	/**
 	 * print all available keysyms
@@ -60,26 +87,39 @@ public:
 	 * @return the action / LFUN_COMMAND_PREFIX / LFUN_UNKNOWN_ACTION
 	 */
 	FuncRequest const &
-	lookup(KeySymbolPtr key,
-	       key_modifier::state mod, KeySequence * seq) const;
+	lookup(KeySymbol const & key, KeyModifier mod, KeySequence * seq) const;
 
 	///
-	typedef std::deque<KeySequence> Bindings;
+	typedef std::vector<KeySequence> Bindings;
 
 	/// Given an action, find all keybindings.
-	Bindings findbindings(FuncRequest const & func) const;
+	Bindings findBindings(FuncRequest const & func) const;
 
 	/// Given an action, print the keybindings.
-	docstring const printbindings(FuncRequest const & func) const;
+	docstring printBindings(FuncRequest const & func) const;
+
+	struct Binding {
+		Binding(FuncRequest const & r, KeySequence const & s, int t)
+			: request(r), sequence(s), tag(t) {}
+		FuncRequest request;
+		KeySequence sequence;
+		int tag;
+	}; 
+	typedef std::vector<Binding> BindingList;
+	/**
+	 * Return all lfun and their associated bindings.
+	 * @param unbound list unbound (func without any keybinding) as well
+	 * @param tag an optional tag to indicate the source of the bindinglist
+	 */
+	BindingList listBindings(bool unbound, int tag = 0) const;
 
 	/**
 	 *  Given an action, find the first 1-key binding (if it exists).
 	 *  The KeySymbol pointer is 0 is no key is found.
 	 *  [only used by the Qt/Mac frontend]
 	 */
-	std::pair<KeySymbol const *, key_modifier::state>
+	std::pair<KeySymbol, KeyModifier>
 	find1keybinding(FuncRequest const & func) const;
-
 
 	/**
 	 * Returns a string of the given keysym, with modifiers.
@@ -87,40 +127,34 @@ public:
 	 * @param mod the modifiers
 	 */
 	static std::string const printKeySym(KeySymbol const & key,
-					     key_modifier::state mod);
-
-	typedef std::pair<key_modifier::state, key_modifier::state> modifier_pair;
+					     KeyModifier mod);
 
 private:
 	///
+	typedef std::pair<KeyModifier, KeyModifier> ModifierPair;
+
+	///
 	struct Key {
 		/// Keysym
-		KeySymbolPtr code;
-
+		KeySymbol code;
 		/// Modifier masks
-		modifier_pair mod;
-
+		ModifierPair mod;
 		/// Keymap for prefix keys
 		boost::shared_ptr<KeyMap> table;
-
 		/// Action for !prefix keys
 		FuncRequest func;
 	};
-
-	/**
-	 * Define an action for a key sequence.
-	 * @param r internal recursion level
-	 */
-	void defkey(KeySequence * seq, FuncRequest const & func,
-		    unsigned int r = 0);
 
 	/**
 	 * Given an action, find all keybindings
 	 * @param func the action
 	 * @param prefix a sequence to prepend the results
 	 */
-	Bindings findbindings(FuncRequest const & func,
+	Bindings findBindings(FuncRequest const & func,
 			      KeySequence const & prefix) const;
+	
+	void listBindings(BindingList & list, KeySequence const & prefix,
+				  int tag) const;
 
 	/// is the table empty ?
 	bool empty() const { return table.empty(); }

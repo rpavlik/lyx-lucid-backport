@@ -16,15 +16,12 @@
 #include "support/FileName.h"
 #include "support/types.h"
 
-#include <boost/utility.hpp>
-#include <boost/tuple/tuple.hpp>
-
 #include <string>
 #include <deque>
 #include <vector>
 #include <map>
 
-// used by at least frontends/qt2/QPref.C
+// used by at least frontends/qt4/GuiPref.cpp
 const long maxlastfiles = 20;
 
 /** This session file maintains
@@ -36,11 +33,13 @@ const long maxlastfiles = 20;
  */
 namespace lyx {
 
-/** base class for all sections in the session file
+/* base class for all sections in the session file
 */
-class SessionSection : boost::noncopyable {
-
+class SessionSection
+{
 public:
+	///
+	SessionSection() {}
 	///
 	virtual ~SessionSection() {}
 
@@ -49,6 +48,11 @@ public:
 
 	/// write to std::ostream
 	virtual void write(std::ostream & os) const = 0;
+
+private:
+	/// uncopiable
+	SessionSection(SessionSection const &);
+	void operator=(SessionSection const &);
 };
 
 
@@ -135,7 +139,11 @@ class LastFilePosSection : SessionSection
 {
 public:
 	///
-	typedef boost::tuple<pit_type, pos_type> FilePos;
+	struct FilePos {
+		FilePos() : pit(0), pos(0) {}
+		pit_type pit;
+		pos_type pos;
+	};
 
 	///
 	typedef std::map<support::FileName, FilePos> FilePosMap;
@@ -154,7 +162,7 @@ public:
 	    @param fname file entry for which to save position information
 	    @param pos position of the cursor when the file is closed.
 	*/
-	void save(support::FileName const & fname, FilePos pos);
+	void save(support::FileName const & fname, FilePos const & pos);
 
 	/** load saved cursor position from the fname entry in the filepos map
 	    @param fname file entry for which to load position information
@@ -255,91 +263,6 @@ private:
 };
 
 
-class ToolbarSection : SessionSection
-{
-public:
-	/// information about a toolbar, not all information can be
-	/// saved/restored by all frontends, but this class provides
-	/// a superset of things that can be managed by session.
-	class ToolbarInfo
-	{
-	public:
-		///
-		ToolbarInfo() :
-			state(ON), location(NOTSET), posx(0), posy(0) { }
-		///
-		ToolbarInfo(int s, int loc, int x=0, int y=0) :
-			state(static_cast<State>(s)),
-			location(static_cast<Location>(loc)),
-			posx(x),
-			posy(y)
-			{ }
-
-	public:
-		enum State {
-			ON,
-			OFF,
-			AUTO
-		};
-
-		/// on/off/auto
-		State state;
-
-		/// location: this can be intepreted differently.
-		enum Location {
-			TOP,
-			BOTTOM,
-			LEFT,
-			RIGHT,
-			NOTSET
-		};
-
-		Location location;
-
-		/// x-position of the toolbar
-		int posx;
-
-		/// y-position of the toolbar
-		int posy;
-
-		/// potentially, icons
-	};
-
-	typedef boost::tuple<std::string, ToolbarInfo> ToolbarItem;
-
-	/// info for each toolbar
-	typedef std::vector<ToolbarItem> ToolbarList;
-
-
-public:
-	///
-	void read(std::istream & is);
-
-	///
-	void write(std::ostream & os) const;
-
-	/// return reference to toolbar info, create a new one if needed
-	ToolbarInfo & load(std::string const & name);
-
-	/// toolbar begin
-	ToolbarList::const_iterator begin() { return toolbars.begin(); }
-
-	/// toolbar end
-	ToolbarList::const_iterator end() { return toolbars.end(); }
-
-private:
-	/// toolbar information
-	ToolbarList toolbars;
-};
-
-/// comparison operator to sort toolbars, the rules are:
-///	    ON before OFF
-///     TOP < BOTTOM < LEFT < RIGHT
-///     Line at each side
-///     order in each line
-bool operator< (ToolbarSection::ToolbarItem const & a, ToolbarSection::ToolbarItem const & b);
-
-
 class SessionInfoSection : SessionSection
 {
 public:
@@ -372,55 +295,39 @@ private:
 };
 
 
-class Session : boost::noncopyable {
-
+class Session
+{
 public:
-	/** Read the session file.
-	    @param num length of lastfiles
-	*/
+	/// Read the session file.  @param num length of lastfiles
 	explicit Session(unsigned int num = 4);
-
-	/** Write the session file.
-	*/
+	/// Write the session file.
 	void writeFile() const;
-
 	///
 	LastFilesSection & lastFiles() { return last_files; }
-
 	///
 	LastFilesSection const & lastFiles() const { return last_files; }
-
 	///
 	LastOpenedSection & lastOpened() { return last_opened; }
-
 	///
 	LastOpenedSection const & lastOpened() const { return last_opened; }
-
 	///
 	LastFilePosSection & lastFilePos() { return last_file_pos; }
-
 	///
 	LastFilePosSection const & lastFilePos() const { return last_file_pos; }
-
 	///
 	BookmarksSection & bookmarks() { return bookmarks_; }
-
 	///
 	BookmarksSection const & bookmarks() const { return bookmarks_; }
-
-	///
-	ToolbarSection & toolbars() { return toolbars_; }
-
-	///
-	ToolbarSection const & toolbars() const { return toolbars_; }
-
 	///
 	SessionInfoSection & sessionInfo() { return session_info; }
-
 	///
 	SessionInfoSection const & sessionInfo() const { return session_info; }
 
 private:
+	/// uncopiable
+	Session(Session const &);
+	void operator=(Session const &);
+
 	/// file to save session, determined in the constructor.
 	support::FileName session_file;
 
@@ -433,19 +340,12 @@ private:
 
 	///
 	LastFilesSection last_files;
-
 	///
 	LastOpenedSection last_opened;
-
 	///
 	LastFilePosSection last_file_pos;
-
 	///
 	BookmarksSection bookmarks_;
-
-	///
-	ToolbarSection toolbars_;
-
 	///
 	SessionInfoSection session_info;
 };

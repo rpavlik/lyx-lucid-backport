@@ -11,17 +11,16 @@
 #include <config.h>
 
 #include "InsetMathFontOld.h"
+
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathParser.h"
-#include "MathStream.h"
-#include "support/std_ostream.h"
+#include "MetricsInfo.h"
+
+#include <ostream>
 
 
 namespace lyx {
-
-using std::auto_ptr;
-
 
 InsetMathFontOld::InsetMathFontOld(latexkeys const * key)
 	: InsetMathNest(1), key_(key)
@@ -30,21 +29,17 @@ InsetMathFontOld::InsetMathFontOld(latexkeys const * key)
 }
 
 
-auto_ptr<Inset> InsetMathFontOld::doClone() const
+Inset * InsetMathFontOld::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathFontOld(*this));
+	return new InsetMathFontOld(*this);
 }
 
 
-bool InsetMathFontOld::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathFontOld::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	FontSetChanger dummy(mi.base, key_->name.c_str());
 	cell(0).metrics(mi, dim);
 	metricsMarkers(dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 

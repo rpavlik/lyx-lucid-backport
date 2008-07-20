@@ -8,7 +8,7 @@
 # Heavily modifed and enhanced by serveral developers.
 
 # Input general definitions
-Format 4
+Format 7
 Input stdclass.inc
 Sides			2
 Columns			2
@@ -33,7 +33,6 @@ Style Abstract
   ParSep		0
   LabelSep              x
   Align                 Block
-  AlignPossible         Block
   LabelType             Top_Environment
   LabelString           "ABSTRACT:"
   InTitle               1
@@ -81,7 +80,6 @@ Style Author
   NextNoIndent          1
   ParSkip               0.4
   Align                 Center
-  AlignPossible         Center
   LabelType             No_Label
 
 # standard font definition

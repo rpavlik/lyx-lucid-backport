@@ -14,96 +14,89 @@
 
 #include "Language.h"
 
-#include "debug.h"
 #include "Encoding.h"
 #include "Lexer.h"
 #include "LyXRC.h"
 
+#include "support/debug.h"
 #include "support/FileName.h"
 
-using std::endl;
-using std::string;
+using namespace std;
+using namespace lyx::support;
 
 
 namespace lyx {
 
-
 Languages languages;
-Language const * english_language;
+Language ignore_lang;
+Language latex_lang;
 Language const * default_language;
-Language ignore_lang("ignore", "ignore", "Ignore", false, "", 0, "ignore", "");
 Language const * ignore_language = &ignore_lang;
-Language latex_lang("latex", "", "Latex", false, "", 0, "latex", "");
 Language const * latex_language = &latex_lang;
+Language const * reset_language = 0;
 
 
-void Languages::read(support::FileName const & filename)
+bool Language::read(Lexer & lex)
 {
-	// We need to set the encoding of latex_lang
-	latex_lang = Language("latex", "", "Latex", false, "iso8859-1",
-			      encodings.getFromLyXName("iso8859-1"),
-			      "latex", "");
+	encoding_ = 0;
+	lex >> lang_;
+	lex >> babel_;
+	lex >> display_;
+	lex >> rightToLeft_;
+	lex >> encodingStr_;
+	lex >> code_;
+	lex >> latex_options_;
+	if (!lex)
+		return false;
 
-	Lexer lex(0, 0);
+	encoding_ = encodings.fromLyXName(encodingStr_);
+	if (!encoding_ && !encodingStr_.empty()) {
+		encoding_ = encodings.fromLyXName("iso8859-1");
+		LYXERR0("Unknown encoding " << encodingStr_);
+	}
+	return true;
+}
+
+
+void Languages::read(FileName const & filename)
+{
+	Lexer lex;
 	lex.setFile(filename);
-	while (lex.isOK()) {
-		string lang;
-		string babel;
-		string display;
-		string encoding_str;
-		string code;
-		string latex_options;
-		bool rtl = false;
-
-		if (lex.next())
-			lang = lex.getString();
-		else
+	lex.setContext("Languages::read");
+	while (1) {
+		Language l;
+		l.read(lex);
+		if (!lex)
 			break;
-		LYXERR(Debug::INFO) << "Reading language " << lang << endl;
-
-		if (lex.next())
-			babel = lex.getString();
-		if (lex.next())
-			display = lex.getString();
-		if (lex.next())
-			rtl = lex.getBool();
-		if (lex.next())
-			encoding_str = lex.getString();
-		if (lex.next())
-			code = lex.getString();
-		if (lex.next())
-			latex_options = lex.getString();
-
-		Encoding const * encoding = encodings.getFromLyXName(encoding_str);
-		if (!encoding) {
-			encoding = encodings.getFromLyXName("iso8859-1");
-			lyxerr << "Unknown encoding " << encoding_str << endl;
-		}
-
-		languagelist[lang] = Language(lang, babel, display, rtl,
-					      encoding_str, encoding, code, latex_options);
+		LYXERR(Debug::INFO, "Reading language " << l.lang());
+		if (l.lang() == "latex")
+			latex_lang = l;
+		else if (l.lang() == "ignore")
+			ignore_lang = l;
+		else
+			languagelist[l.lang()] = l;
 	}
 
 	default_language = getLanguage(lyxrc.default_language);
 	if (!default_language) {
-		lyxerr << "Default language \"" << lyxrc.default_language
-		       << "\" not found!" << endl;
+		LYXERR0("Default language \"" << lyxrc.default_language
+		       << "\" not found!");
 		default_language = getLanguage("english");
 		if (!default_language)
 			default_language = &(*languagelist.begin()).second;
-		lyxerr << "Using \"" << default_language->lang()
-		       << "\" instead!" << endl;
+		LYXERR0("Using \"" << default_language->lang() << "\" instead!");
 	}
-	english_language = getLanguage("english");
-	if (!english_language)
-		english_language = default_language;
 }
 
 
 Language const * Languages::getLanguage(string const & language) const
 {
+	if (language == "reset")
+		return reset_language;
+	if (language == "ignore")
+		return ignore_language;
 	const_iterator it = languagelist.find(language);
-	return it == languagelist.end() ? 0 : &it->second;
+	return it == languagelist.end() ? reset_language : &it->second;
 }
 
 

@@ -4,7 +4,7 @@
 # Cut & paste from various LyX layouts plus some minor modifications
 # Author : Kornelia Pietsch <pietsch@mathematik.tu-chemnitz.de>
 
-Format 4
+Format 7
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -32,6 +32,7 @@ Style Standard
 End
 
 
+Input stdinsets.inc
 Input stdlists.inc
 Input stdlayouts.inc
 Input stdcounters.inc
@@ -47,7 +48,6 @@ Style Section
 	NextNoIndent          1
 	LabelSep              xxx
 	Align                 Block
-	AlignPossible         Block, Left
 	EndLabelType          Static
 	EndLabelString        "."
 	Font
@@ -113,7 +113,6 @@ Style Title
 	LatexName             title
 	BottomSep             1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Size                Larger
@@ -151,7 +150,6 @@ Style Abstract
 	BottomSep             0.7
 	ParSkip               0.7
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Static
 	LabelString           "Abstract."
 	LabelSep              M

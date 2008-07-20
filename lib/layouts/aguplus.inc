@@ -6,7 +6,7 @@
 # ftp://ftp.agu.org/journals/latex/journals
 
 
-Format 4
+Format 7
 Input stdclass.inc
 
 SecNumDepth             4
@@ -84,7 +84,6 @@ Style Left_Header
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Left Header:"
 	InTitle               1
@@ -207,7 +206,6 @@ Style Table_Caption
 	ParSkip               0.4
 	TopSep                0.5
 	Align                 Center
-	AlignPossible         Center
 	LabelType             Sensitive
 	LabelString           "TableCaption"
 	LabelFont

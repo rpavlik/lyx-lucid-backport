@@ -14,138 +14,131 @@
 
 #include "InsetBox.h"
 
+#include "Buffer.h"
+#include "BufferParams.h"
 #include "BufferView.h"
 #include "Cursor.h"
 #include "DispatchResult.h"
-#include "debug.h"
 #include "FuncStatus.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "LaTeXFeatures.h"
-#include "Color.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
-#include "TextMetrics.h"
+#include "TextClass.h"
 
+#include "support/debug.h"
+#include "support/gettext.h"
 #include "support/Translator.h"
+
+#include "frontends/Application.h"
 
 #include <sstream>
 
+using namespace std;
 
 namespace lyx {
 
-using std::auto_ptr;
-using std::string;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-using std::endl;
-
-
 namespace {
 
-typedef Translator<std::string, InsetBox::BoxType> BoxTranslator;
+typedef Translator<string, InsetBox::BoxType> BoxTranslator;
 typedef Translator<docstring, InsetBox::BoxType> BoxTranslatorLoc;
 
-BoxTranslator const init_boxtranslator()
+BoxTranslator initBoxtranslator()
 {
 	BoxTranslator translator("Boxed", InsetBox::Boxed);
 	translator.addPair("Frameless", InsetBox::Frameless);
+	translator.addPair("Framed", InsetBox::Framed);
 	translator.addPair("ovalbox", InsetBox::ovalbox);
 	translator.addPair("Ovalbox", InsetBox::Ovalbox);
 	translator.addPair("Shadowbox", InsetBox::Shadowbox);
+	translator.addPair("Shaded", InsetBox::Shaded);
 	translator.addPair("Doublebox",InsetBox::Doublebox);
 	return translator;
 }
 
 
-BoxTranslatorLoc const init_boxtranslator_loc()
+BoxTranslatorLoc initBoxtranslatorLoc()
 {
-	BoxTranslatorLoc translator(_("Boxed"), InsetBox::Boxed);
-	translator.addPair(_("Frameless"), InsetBox::Frameless);
-	translator.addPair(_("ovalbox"), InsetBox::ovalbox);
-	translator.addPair(_("Ovalbox"), InsetBox::Ovalbox);
-	translator.addPair(_("Shadowbox"), InsetBox::Shadowbox);
-	translator.addPair(_("Doublebox"), InsetBox::Doublebox);
+	BoxTranslatorLoc translator(_("simple frame"), InsetBox::Boxed);
+	translator.addPair(_("frameless"), InsetBox::Frameless);
+	translator.addPair(_("simple frame, page breaks"), InsetBox::Framed);
+	translator.addPair(_("oval, thin"), InsetBox::ovalbox);
+	translator.addPair(_("oval, thick"), InsetBox::Ovalbox);
+	translator.addPair(_("drop shadow"), InsetBox::Shadowbox);
+	translator.addPair(_("shaded background"), InsetBox::Shaded);
+	translator.addPair(_("double frame"), InsetBox::Doublebox);
 	return translator;
 }
 
 
 BoxTranslator const & boxtranslator()
 {
-	static BoxTranslator translator = init_boxtranslator();
+	static BoxTranslator translator = initBoxtranslator();
 	return translator;
 }
 
 
 BoxTranslatorLoc const & boxtranslator_loc()
 {
-	static BoxTranslatorLoc translator = init_boxtranslator_loc();
+	static BoxTranslatorLoc translator = initBoxtranslatorLoc();
 	return translator;
 }
 
-} // anon
+} // namespace anon
 
 
-void InsetBox::init()
+/////////////////////////////////////////////////////////////////////////
+//
+// InsetBox
+//
+/////////////////////////////////////////////////////////////////////////
+
+InsetBox::InsetBox(Buffer const & buffer, string const & label)
+	: InsetCollapsable(buffer), params_(label)
 {
-	setButtonLabel();
-}
-
-
-InsetBox::InsetBox(BufferParams const & bp, string const & label)
-	: InsetCollapsable(bp), params_(label)
-{
-	init();
-}
-
-
-InsetBox::InsetBox(InsetBox const & in)
-	: InsetCollapsable(in), params_(in.params_)
-{
-	init();
+	if (forcePlainLayout())
+		paragraphs().back().setLayout(buffer.params().documentClass().emptyLayout());
 }
 
 
 InsetBox::~InsetBox()
 {
-	InsetBoxMailer(*this).hideDialog();
+	hideDialogs("box", this);
 }
 
 
-auto_ptr<Inset> InsetBox::doClone() const
-{
-	return auto_ptr<Inset>(new InsetBox(*this));
-}
-
-
-docstring const InsetBox::editMessage() const
+docstring InsetBox::editMessage() const
 {
 	return _("Opened Box Inset");
 }
 
 
-void InsetBox::write(Buffer const & buf, ostream & os) const
+docstring InsetBox::name() const 
 {
-	params_.write(os);
-	InsetCollapsable::write(buf, os);
+	// FIXME: UNICODE
+	string name = "Box";
+	if (boxtranslator().find(params_.type) == Shaded)
+		name += ":Shaded";
+	return from_ascii(name);
 }
 
 
-void InsetBox::read(Buffer const & buf, Lexer & lex)
+void InsetBox::write(ostream & os) const
+{
+	params_.write(os);
+	InsetCollapsable::write(os);
+}
+
+
+void InsetBox::read(Lexer & lex)
 {
 	params_.read(lex);
-	InsetCollapsable::read(buf, lex);
-	setButtonLabel();
+	InsetCollapsable::read(lex);
 }
 
 
 void InsetBox::setButtonLabel()
 {
-	Font font(Font::ALL_SANE);
-	font.decSize();
-	font.decSize();
-
 	BoxType btype = boxtranslator().find(params_.type);
 
 	docstring label;
@@ -156,52 +149,43 @@ void InsetBox::setButtonLabel()
 			label += _("Parbox");
 		else
 			label += _("Minipage");
-	} else
+	} else {
 		label += boxtranslator_loc().find(btype);
+	}
 	label += ")";
 
 	setLabel(label);
-
-	font.setColor(Color::foreground);
-	setLabelFont(font);
 }
 
 
 bool InsetBox::hasFixedWidth() const
 {
-      return params_.inner_box || params_.special != "width";
+	return params_.inner_box || params_.special != "width";
 }
 
 
-bool InsetBox::metrics(MetricsInfo & m, Dimension & dim) const
+void InsetBox::metrics(MetricsInfo & m, Dimension & dim) const
 {
-	MetricsInfo mi = m;
-	// first round in order to know the minimum size.
-	InsetCollapsable::metrics(mi, dim);
+	// back up textwidth.
+	int textwidth_backup = m.base.textwidth;
 	if (hasFixedWidth())
-		mi.base.textwidth = params_.width.inPixels(m.base.textwidth);
-	InsetCollapsable::metrics(mi, dim);
-	if (hasFixedWidth()) {
-		if (dim.width() > mi.base.textwidth) {
-			mi.base.textwidth = dim.width();
-			InsetCollapsable::metrics(mi, dim);
-		}
-	}
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
+		m.base.textwidth = params_.width.inPixels(m.base.textwidth);
+	InsetCollapsable::metrics(m, dim);
+	// retore textwidth.
+	m.base.textwidth = textwidth_backup;
 }
 
 
-bool InsetBox::forceDefaultParagraphs(idx_type) const
+bool InsetBox::forcePlainLayout(idx_type) const
 {
-	return !params_.inner_box;
+	return !params_.inner_box && params_.type != "Framed";
 }
 
 
 bool InsetBox::showInsetDialog(BufferView * bv) const
 {
-	InsetBoxMailer(const_cast<InsetBox &>(*this)).showDialog(bv);
+	bv->showDialog("box", params2string(params_),
+		const_cast<InsetBox *>(this));
 	return true;
 }
 
@@ -212,21 +196,16 @@ void InsetBox::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_INSET_MODIFY: {
 		//lyxerr << "InsetBox::dispatch MODIFY" << endl;
-		InsetBoxMailer::string2params(to_utf8(cmd.argument()), params_);
-		setButtonLabel();
+		if (cmd.getArg(0) == "changetype")
+			params_.type = cmd.getArg(1);
+		else
+			string2params(to_utf8(cmd.argument()), params_);
+		setLayout(cur.buffer().params());
 		break;
 	}
 
 	case LFUN_INSET_DIALOG_UPDATE:
-		InsetBoxMailer(*this).updateDialog(&cur.bv());
-		break;
-
-	case LFUN_MOUSE_RELEASE:
-		if (cmd.button() == mouse_button::button3 && hitButton(cmd)) {
-			InsetBoxMailer(*this).showDialog(&cur.bv());
-			break;
-		}
-		InsetCollapsable::doDispatch(cur, cmd);
+		cur.bv().updateDialog("box", params2string(params_));
 		break;
 
 	default:
@@ -242,16 +221,20 @@ bool InsetBox::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 
 	case LFUN_INSET_MODIFY:
-	case LFUN_INSET_DIALOG_UPDATE:
-		flag.enabled(true);
+		if (cmd.getArg(0) == "changetype")
+			flag.setOnOff(cmd.getArg(1) == params_.type);
+		flag.setEnabled(true);
 		return true;
+
+	case LFUN_INSET_DIALOG_UPDATE:
+		flag.setEnabled(true);
+		return true;
+
 	case LFUN_BREAK_PARAGRAPH:
-		if (params_.inner_box) {
+		if (params_.inner_box || params_.type == "Framed")
 			return InsetCollapsable::getStatus(cur, cmd, flag);
-		} else {
-			flag.enabled(false);
-			return true;
-		}
+		flag.setEnabled(false);
+		return true;
 
 	default:
 		return InsetCollapsable::getStatus(cur, cmd, flag);
@@ -259,21 +242,22 @@ bool InsetBox::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-int InsetBox::latex(Buffer const & buf, odocstream & os,
-		    OutputParams const & runparams) const
+int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 {
 	BoxType btype = boxtranslator().find(params_.type);
 
 	string width_string = params_.width.asLatexString();
-	bool stdwidth(false);
+	bool stdwidth = false;
 	if (params_.inner_box &&
 			(width_string.find("1.0\\columnwidth") != string::npos
 			|| width_string.find("1.0\\textwidth") != string::npos)) {
 		stdwidth = true;
 		switch (btype) {
 		case Frameless:
+		case Framed:
 			break;
 		case Boxed:
+		case Shaded:
 			width_string += " - 2\\fboxsep - 2\\fboxrule";
 			break;
 		case ovalbox:
@@ -300,6 +284,10 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 
 	switch (btype) {
 	case Frameless:
+		break;
+	case Framed:
+		os << "\\begin{framed}%\n";
+		i += 1;
 		break;
 	case Boxed:
 		os << "\\framebox";
@@ -329,6 +317,9 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 	case Shadowbox:
 		os << "\\shadowbox{";
 		break;
+	case Shaded:
+		// later
+		break;
 	case Doublebox:
 		os << "\\doublebox{";
 		break;
@@ -343,14 +334,20 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 		os << "[" << params_.pos << "]";
 		if (params_.height_special == "none") {
 			// FIXME UNICODE
-			os << '[' << from_ascii(params_.height.asLatexString())
-			   << ']';
+			os << "[" << from_ascii(params_.height.asLatexString()) << "]";
 		} else {
 			// Special heights
-			// FIXME UNICODE
-			os << "[" << params_.height.value()
-			   << '\\' << from_utf8(params_.height_special)
-			   << ']';
+			// set no optional argument when the value is the default "1\height"
+			// (special units like \height are handled as "in")
+			// but when the user has chosen a non-default inner_pos, the height
+			// must be given: \minipage[pos][height][inner-pos]{width}
+			if ((params_.height != Length("1in") ||
+				 params_.height_special != "totalheight") ||
+				params_.inner_pos != params_.pos) {
+				// FIXME UNICODE
+				os << "[" << params_.height.value()
+					<< "\\" << from_utf8(params_.height_special) << "]";
+			}
 		}
 		if (params_.inner_pos != params_.pos)
 			os << "[" << params_.inner_pos << "]";
@@ -361,10 +358,17 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 		if (params_.use_parbox)
 			os << "{";
 		os << "%\n";
-		i += 1;
+		++i;
+	}
+	if (btype == Shaded) {
+		os << "\\begin{shaded}%\n";
+		++i;
 	}
 
-	i += InsetText::latex(buf, os, runparams);
+	i += InsetText::latex(os, runparams);
+
+	if (btype == Shaded)
+		os << "\\end{shaded}";
 
 	if (params_.inner_box) {
 		if (params_.use_parbox)
@@ -375,6 +379,9 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 
 	switch (btype) {
 	case Frameless:
+		break;
+	case Framed:
+		os << "\\end{framed}";
 		break;
 	case Boxed:
 		if (!params_.inner_box)
@@ -387,6 +394,9 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 	case Shadowbox:
 		os << "}";
 		break;
+	case Shaded:
+		// already done
+		break;
 	}
 
 	i += 2;
@@ -395,40 +405,70 @@ int InsetBox::latex(Buffer const & buf, odocstream & os,
 }
 
 
-int InsetBox::plaintext(Buffer const & buf, odocstream & os,
-			OutputParams const & runparams) const
+int InsetBox::plaintext(odocstream & os, OutputParams const & runparams) const
 {
 	BoxType const btype = boxtranslator().find(params_.type);
 
 	switch (btype) {
-		case Frameless: break;
-		case Boxed:     os << "[\n";  break;
-		case ovalbox:   os << "(\n";  break;
-		case Ovalbox:   os << "((\n"; break;
-		case Shadowbox: os << "[/\n"; break;
-		case Doublebox: os << "[[\n"; break;
+		case Frameless:
+			break;
+		case Framed:
+		case Boxed:
+			os << "[\n";
+			break;
+		case ovalbox:
+			os << "(\n";
+			break;
+		case Ovalbox:
+			os << "((\n";
+			break;
+		case Shadowbox:
+		case Shaded:
+			os << "[/\n";
+			break;
+		case Doublebox:
+			os << "[[\n";
+			break;
 	}
 
-	InsetText::plaintext(buf, os, runparams);
+	InsetText::plaintext(os, runparams);
 
 	int len = 0;
 	switch (btype) {
-		case Frameless: os << "\n";            break;
-		case Boxed:     os << "\n]";  len = 1; break;
-		case ovalbox:   os << "\n)";  len = 1; break;
-		case Ovalbox:   os << "\n))"; len = 2; break;
-		case Shadowbox: os << "\n/]"; len = 2; break;
-		case Doublebox: os << "\n]]"; len = 2; break;
+		case Frameless:
+			os << "\n";
+			break;
+		case Framed:
+		case Boxed:
+			os << "\n]";
+			len = 1;
+			break;
+		case ovalbox:
+			os << "\n)";
+			len = 1;
+			break;
+		case Ovalbox:
+			os << "\n))";
+			len = 2;
+			break;
+		case Shadowbox:
+		case Shaded:
+			os << "\n/]";
+			len = 2;
+			break;
+		case Doublebox:
+			os << "\n]]";
+			len = 2;
+			break;
 	}
 
 	return PLAINTEXT_NEWLINE + len; // len chars on a separate line
 }
 
 
-int InsetBox::docbook(Buffer const & buf, odocstream & os,
-		      OutputParams const & runparams) const
+int InsetBox::docbook(odocstream & os, OutputParams const & runparams) const
 {
-	return InsetText::docbook(buf, os, runparams);
+	return InsetText::docbook(os, runparams);
 }
 
 
@@ -437,6 +477,9 @@ void InsetBox::validate(LaTeXFeatures & features) const
 	BoxType btype = boxtranslator().find(params_.type);
 	switch (btype) {
 	case Frameless:
+		break;
+	case Framed:
+		features.require("framed");
 		break;
 	case Boxed:
 		features.require("calc");
@@ -448,26 +491,22 @@ void InsetBox::validate(LaTeXFeatures & features) const
 		features.require("calc");
 		features.require("fancybox");
 		break;
+	case Shaded:
+		features.require("color");
+		features.require("framed");
+		break;
 	}
 	InsetText::validate(features);
 }
 
 
-InsetBoxMailer::InsetBoxMailer(InsetBox & inset)
-	: inset_(inset)
-{}
-
-
-string const InsetBoxMailer::name_ = "box";
-
-
-string const InsetBoxMailer::inset2string(Buffer const &) const
+docstring InsetBox::contextMenu(BufferView const &, int, int) const
 {
-	return params2string(inset_.params());
+	return from_ascii("context-box");
 }
 
 
-string const InsetBoxMailer::params2string(InsetBoxParams const & params)
+string InsetBox::params2string(InsetBoxParams const & params)
 {
 	ostringstream data;
 	data << "box" << ' ';
@@ -476,32 +515,42 @@ string const InsetBoxMailer::params2string(InsetBoxParams const & params)
 }
 
 
-void InsetBoxMailer::string2params(string const & in,
-				   InsetBoxParams & params)
+void InsetBox::string2params(string const & in, InsetBoxParams & params)
 {
 	params = InsetBoxParams(string());
 	if (in.empty())
 		return;
 
 	istringstream data(in);
-	Lexer lex(0,0);
+	Lexer lex;
 	lex.setStream(data);
 
 	string name;
 	lex >> name;
-	if (!lex || name != name_)
-		return print_mailer_error("InsetBoxMailer", in, 1, name_);
+	if (!lex || name != "box") {
+		LYXERR0("InsetBox::string2params(" << in << ")\n"
+					  "Expected arg 1 to be \"box\"\n");
+		return;
+	}
 
 	// This is part of the inset proper that is usually swallowed
 	// by Text::readInset
 	string id;
 	lex >> id;
-	if (!lex || id != "Box")
-		return print_mailer_error("InsetBoxMailer", in, 2, "Box");
+	if (!lex || id != "Box") {
+		LYXERR0("InsetBox::string2params(" << in << ")\n"
+					  "Expected arg 2 to be \"Box\"\n");
+	}
 
 	params.read(lex);
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+//
+// InsetBoxParams
+//
+/////////////////////////////////////////////////////////////////////////
 
 InsetBoxParams::InsetBoxParams(string const & label)
 	: type(label),
@@ -534,126 +583,19 @@ void InsetBoxParams::write(ostream & os) const
 
 void InsetBoxParams::read(Lexer & lex)
 {
-	if (!lex.isOK())
-		return;
-
-	lex.next();
-	type = lex.getString();
-
-	if (!lex)
-		return;
-
-	lex.next();
-	string token;
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "position") {
-		lex.next();
-		// The [0] is needed. We need the first and only char in
-		// this string -- MV
-		pos = lex.getString()[0];
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'position'-tag!" << token << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "hor_pos") {
-		lex.next();
-		hor_pos = lex.getString()[0];
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'hor_pos'-tag!" << token << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "has_inner_box") {
-		lex.next();
-		inner_box = lex.getInteger();
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'has_inner_box'-tag!" << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "inner_pos") {
-		lex.next();
-		inner_pos = lex.getString()[0];
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'inner_pos'-tag!"
-			<< token << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "use_parbox") {
-		lex.next();
-		use_parbox = lex.getInteger();
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'use_parbox'-tag!" << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "width") {
-		lex.next();
-		width = Length(lex.getString());
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'width'-tag!" << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "special") {
-		lex.next();
-		special = lex.getString();
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'special'-tag!" << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "height") {
-		lex.next();
-		height = Length(lex.getString());
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'height'-tag!" << endl;
-		lex.pushToken(token);
-	}
-
-	lex.next();
-	token = lex.getString();
-	if (!lex)
-		return;
-	if (token == "height_special") {
-		lex.next();
-		height_special = lex.getString();
-	} else {
-		lyxerr << "InsetBox::Read: Missing 'height_special'-tag!" << endl;
-		lex.pushToken(token);
-	}
+	lex.setContext("InsetBoxParams::read");
+	lex >> type;
+	lex >> "position" >> pos;
+	lex >> "hor_pos" >> hor_pos;
+	lex >> "has_inner_box" >> inner_box;
+	if (type == "Framed")
+		inner_box = false;
+	lex >> "inner_pos" >> inner_pos;
+	lex >> "use_parbox" >> use_parbox;
+	lex >> "width" >> width;
+	lex >> "special" >> special;
+	lex >> "height" >> height;
+	lex >> "height_special" >> height_special;
 }
 
 

@@ -16,31 +16,29 @@
 #include "lyxfind.h"
 
 #include "Buffer.h"
+#include "BufferParams.h"
 #include "Cursor.h"
 #include "CutAndPaste.h"
 #include "buffer_funcs.h"
 #include "BufferView.h"
-#include "debug.h"
+#include "Changes.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "Text.h"
 #include "Paragraph.h"
 #include "ParIterator.h"
-#include "Undo.h"
 
 #include "frontends/alert.h"
 
 #include "support/convert.h"
+#include "support/debug.h"
 #include "support/docstream.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
+
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::compare_no_case;
-using support::uppercase;
-using support::split;
-
-using std::advance;
-
 
 namespace {
 
@@ -54,7 +52,7 @@ bool parse_bool(docstring & howto)
 }
 
 
-class MatchString : public std::binary_function<Paragraph, pos_type, bool>
+class MatchString : public binary_function<Paragraph, pos_type, bool>
 {
 public:
 	MatchString(docstring const & str, bool cs, bool mw)
@@ -65,33 +63,7 @@ public:
 	// del specifies whether deleted strings in ct mode will be considered
 	bool operator()(Paragraph const & par, pos_type pos, bool del = true) const
 	{
-		docstring::size_type const size = str.length();
-		pos_type i = 0;
-		pos_type const parsize = par.size();
-		for (i = 0; pos + i < parsize; ++i) {
-			if (docstring::size_type(i) >= size)
-				break;
-			if (cs && str[i] != par.getChar(pos + i))
-				break;
-			if (!cs && uppercase(str[i]) != uppercase(par.getChar(pos + i)))
-				break;
-			if (!del && par.isDeleted(pos + i))
-				break;
-		}
-
-		if (size != docstring::size_type(i))
-			return false;
-
-		// if necessary, check whether string matches word
-		if (mw) {
-			if (pos > 0 && par.isLetter(pos - 1))
-				return false;
-			if (pos + pos_type(size) < parsize
-			    && par.isLetter(pos + size))
-				return false;
-		}
-
-		return true;
+		return par.find(str, cs, mw, pos, del);
 	}
 
 private:
@@ -137,19 +109,18 @@ bool findChange(DocIterator & cur)
 }
 
 
-bool searchAllowed(BufferView * bv, docstring const & str)
+bool searchAllowed(BufferView * /*bv*/, docstring const & str)
 {
 	if (str.empty()) {
-		frontend::Alert::error(_("Search error"),
-					    _("Search string is empty"));
+		frontend::Alert::error(_("Search error"), _("Search string is empty"));
 		return false;
 	}
-	return bv->buffer();
+	return true;
 }
 
 
-bool find(BufferView * bv, docstring const & searchstr, bool cs, bool mw, bool fw,
-	  bool find_del = true)
+bool find(BufferView * bv, docstring const & searchstr,
+	bool cs, bool mw, bool fw, bool find_del = true)
 {
 	if (!searchAllowed(bv, searchstr))
 		return false;
@@ -172,12 +143,12 @@ int replaceAll(BufferView * bv,
 	       docstring const & searchstr, docstring const & replacestr,
 	       bool cs, bool mw)
 {
-	Buffer & buf = *bv->buffer();
+	Buffer & buf = bv->buffer();
 
 	if (!searchAllowed(bv, searchstr) || buf.isReadonly())
 		return 0;
 
-	recordUndoFullDocument(bv);
+	bv->cursor().recordUndoFullDocument();
 
 	MatchString const match(searchstr, cs, mw);
 	int num = 0;
@@ -227,7 +198,7 @@ bool stringSelected(BufferView * bv, docstring const & searchstr,
 int replace(BufferView * bv, docstring const & searchstr,
 	    docstring const & replacestr, bool cs, bool mw, bool fw)
 {
-	if (!searchAllowed(bv, searchstr) || bv->buffer()->isReadonly())
+	if (!searchAllowed(bv, searchstr) || bv->buffer().isReadonly())
 		return 0;
 
 	if (!stringSelected(bv, searchstr, cs, mw, fw))
@@ -235,9 +206,10 @@ int replace(BufferView * bv, docstring const & searchstr,
 
 	Cursor & cur = bv->cursor();
 	cap::replaceSelectionWithString(cur, replacestr, fw);
-	bv->buffer()->markDirty();
+	bv->buffer().markDirty();
 	find(bv, searchstr, cs, mw, fw, false);
-	bv->update();
+	bv->buffer().updateMacros();
+	bv->processUpdateFlags(Update::Force | Update::FitCursor);
 
 	return 1;
 }
@@ -272,12 +244,12 @@ docstring const replace2string(docstring const & search, docstring const & repla
 }
 
 
-void find(BufferView * bv, FuncRequest const & ev)
+bool find(BufferView * bv, FuncRequest const & ev)
 {
 	if (!bv || ev.action != LFUN_WORD_FIND)
-		return;
+		return false;
 
-	//lyxerr << "find called, cmd: " << ev << std::endl;
+	//lyxerr << "find called, cmd: " << ev << endl;
 
 	// data is of the form
 	// "<search>
@@ -289,12 +261,7 @@ void find(BufferView * bv, FuncRequest const & ev)
 	bool matchword     = parse_bool(howto);
 	bool forward       = parse_bool(howto);
 
-	bool const found = find(bv, search,
-				  casesensitive, matchword, forward);
-
-	if (!found)
-		// emit message signal.
-		bv->message(_("String not found!"));
+	return find(bv, search, casesensitive, matchword, forward);
 }
 
 
@@ -317,35 +284,32 @@ void replace(BufferView * bv, FuncRequest const & ev, bool has_deleted)
 	bool all           = parse_bool(howto);
 	bool forward       = parse_bool(howto);
 
-	Buffer * buf = bv->buffer();
-
 	if (!has_deleted) {
 		int const replace_count = all
 			? replaceAll(bv, search, rplc, casesensitive, matchword)
 			: replace(bv, search, rplc, casesensitive, matchword, forward);
 	
+		Buffer & buf = bv->buffer();
 		if (replace_count == 0) {
 			// emit message signal.
-			buf->message(_("String not found!"));
+			buf.message(_("String not found!"));
 		} else {
 			if (replace_count == 1) {
 				// emit message signal.
-				buf->message(_("String has been replaced."));
+				buf.message(_("String has been replaced."));
 			} else {
 				docstring str = convert<docstring>(replace_count);
 				str += _(" strings have been replaced.");
 				// emit message signal.
-				buf->message(str);
+				buf.message(str);
 			}
 		}
 	} else {
 		// if we have deleted characters, we do not replace at all, but
 		// rather search for the next occurence
-		bool const found = find(bv, search,
-					casesensitive, matchword, forward);
-
-		if (!found)
-			// emit message signal.
+		if (find(bv, search, casesensitive, matchword, forward))
+			bv->showCursor();
+		else
 			bv->message(_("String not found!"));
 	}
 }
@@ -353,9 +317,6 @@ void replace(BufferView * bv, FuncRequest const & ev, bool has_deleted)
 
 bool findNextChange(BufferView * bv)
 {
-	if (!bv->buffer())
-		return false;
-
 	DocIterator cur = bv->cursor();
 
 	if (!findChange(cur))
@@ -366,21 +327,16 @@ bool findNextChange(BufferView * bv)
 
 	Change orig_change = cur.paragraph().lookupChange(cur.pos());
 
-	DocIterator et = doc_iterator_end(cur.inset());
-	DocIterator ok = cur;   // see below
-	for (; cur != et; cur.forwardPosNoDescend()) {
-		ok = cur;
-		Change change = cur.paragraph().lookupChange(cur.pos());
-		if (change != orig_change) {
+	CursorSlice & tip = cur.top();
+	for (; !tip.at_end(); tip.forwardPos()) {
+		Change change = tip.paragraph().lookupChange(tip.pos());
+		if (change != orig_change)
 			break;
-		}
 	}
-
 	// avoid crash (assertion violation) if the imaginary end-of-par
 	// character of the last paragraph of the document is marked as changed
-	if (cur == et) {
-		cur = ok;
-	}
+	if (tip.at_end())
+		tip.backwardPos();
 
 	// Now put cursor to end of selection:
 	bv->cursor().setCursor(cur);
