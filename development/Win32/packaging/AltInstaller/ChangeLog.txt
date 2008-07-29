@@ -1,11 +1,24 @@
-﻿Version 3.24
+﻿Version 3.25
+- LyX 1.5.6
+
+- support to set Ukrainian as LyX's menu language
+- When Aspell is installed together with this installer (this will be the
+  case when Aspell is not already installed), now every user on the PC
+  gets his personal word list files.
+- The .lyx file extension is no longer removed when it was not created by
+  the LyX version that is uninstalled. (necessary to be able to install new LyX
+  versions without touching existing LyX installations)
+
+
+Version 3.24
 - LyX 1.5.5
 
-- updated to ImageMagick 6.4.?
+- updated to MiKTeX 2.7 (build 3053)
+- updated to ImageMagick 6.4.1-1
 - updated to Ghostscript 8.62 (fixes a bug of viewing PDF images within
   LyX)
 - new Japanese translation of the installer (thanks to Koji Yokata)
-- new method to view PDF files that should also work under Windows Vista
+- new method to view PDF files that also works under Windows Vista
   (thanks to Joost Verburg)
 
 
