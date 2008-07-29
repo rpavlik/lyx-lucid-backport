@@ -95,7 +95,6 @@ dist_esexamples_DATA = \
 	examples/es/ItemizeBullets.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
-	examples/es/mathed.lyx \
 	examples/es/splash.lyx
 
 euexamplesdir = $(pkgdatadir)/examples/eu
@@ -965,6 +964,7 @@ dist_layouts_DATA =\
 	layouts/iopart.layout \
 	layouts/isprs.layout \
 	layouts/jgrga.layout \
+	layouts/jss.layout \
 	layouts/kluwer.layout \
 	layouts/latex8.layout \
 	layouts/letter.layout \
@@ -1065,6 +1065,7 @@ dist_templates_DATA = \
 	templates/ijmpc.lyx \
 	templates/ijmpd.lyx \
 	templates/iop-article.lyx \
+	templates/JSS-article.lyx \
 	templates/kluwer.lyx \
 	templates/koma-letter2.lyx \
 	templates/latex8.lyx \

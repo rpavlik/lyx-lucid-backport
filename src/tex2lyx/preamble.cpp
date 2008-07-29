@@ -340,6 +340,9 @@ void handle_package(string const & name, string const & opts)
 	else if (name == "graphicx")
 		; // ignore this
 
+	else if (name == "setspace")
+		; // ignore this
+
 	// activate this first when bug 20 is fixed, otherwise we have a regression
 	//else if (name == "setspace")
 	//	; // ignore this
@@ -558,6 +561,7 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 		}
 
 		else if (t.cs() == "documentclass") {
+			vector<string>::iterator it;
 			vector<string> opts = split_options(p.getArg('[', ']'));
 			handle_opt(opts, known_fontsizes, h_paperfontsize);
 			delete_opt(opts, known_fontsizes);
@@ -580,6 +584,33 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 			else if (is_known(h_language, known_ukrainian_languages))
 				h_language = "ukrainian";
 			h_quotes_language = h_language;
+			// paper orientation
+			if ((it = find(opts.begin(), opts.end(), "landscape")) != opts.end()) {
+				h_paperorientation = "landscape";
+				opts.erase(it);
+			}
+			// paper sides
+			if ((it = find(opts.begin(), opts.end(), "oneside"))
+				 != opts.end()) {
+				h_papersides = "1";
+				opts.erase(it);
+			}
+			if ((it = find(opts.begin(), opts.end(), "twoside"))
+				 != opts.end()) {
+				h_papersides = "2";
+				opts.erase(it);
+			}
+			// paper columns
+			if ((it = find(opts.begin(), opts.end(), "onecolumn"))
+				 != opts.end()) {
+				h_papercolumns = "1";
+				opts.erase(it);
+			}
+			if ((it = find(opts.begin(), opts.end(), "twocolumn"))
+				 != opts.end()) {
+				h_papercolumns = "2";
+				opts.erase(it);
+			}
 			h_options = join(opts, ",");
 			h_textclass = p.getArg('{', '}');
 		}
@@ -668,13 +699,13 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 				h_preamble << "\\setlength{" << name << "}{" << content << "}";
 		}
 
-		else if (t.cs() =="onehalfspacing")
+		else if (t.cs() == "onehalfspacing")
 			h_spacing = "onehalf";
 
-		else if (t.cs() =="doublespacing")
+		else if (t.cs() == "doublespacing")
 			h_spacing = "double";
 
-		else if (t.cs() =="setstretch")
+		else if (t.cs() == "setstretch")
 			h_spacing = "other " + p.verbatim_item();
 
 		else if (t.cs() == "begin") {

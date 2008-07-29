@@ -269,7 +269,8 @@ bool doInsertInset(Cursor & cur, Text * text,
 	recordUndo(cur);
 	bool gotsel = false;
 	if (cur.selection()) {
-		lyx::dispatch(FuncRequest(LFUN_CUT));
+		cutSelection(cur, false, pastesel);
+		cur.clearSelection();
 		gotsel = true;
 	}
 	bool const emptypar = cur.lastpos() == 0;
@@ -282,7 +283,10 @@ bool doInsertInset(Cursor & cur, Text * text,
 	if (gotsel && pastesel) {
 		// metrics might be invalid at this point (bug 4502)
 		cur.bv().updateMetrics();
-		lyx::dispatch(FuncRequest(LFUN_PASTE, "0"));
+		pasteFromStack(cur, cur.buffer().errorList("Paste"), 0);
+		cur.buffer().errors("Paste");
+		cur.clearSelection(); // bug 393
+		finishUndo();
 
 		if ((cur.lastpit() == 0 || ins_pos != 0) && !emptypar) {
 			// reset first par to default
@@ -1734,7 +1738,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_APPENDIX:
 		flag.setOnOff(cur.paragraph().params().startOfAppendix());
-		return true;
+		break;
 
 	case LFUN_BIBITEM_INSERT:
 		enable = (cur.paragraph().layout()->labeltype == LABEL_BIBLIO
@@ -1897,27 +1901,27 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_FONT_EMPH:
 		flag.setOnOff(font.emph() == Font::ON);
-		return true;
+		break;
 
 	case LFUN_FONT_NOUN:
 		flag.setOnOff(font.noun() == Font::ON);
-		return true;
+		break;
 
 	case LFUN_FONT_BOLD:
 		flag.setOnOff(font.series() == Font::BOLD_SERIES);
-		return true;
+		break;
 
 	case LFUN_FONT_SANS:
 		flag.setOnOff(font.family() == Font::SANS_FAMILY);
-		return true;
+		break;
 
 	case LFUN_FONT_ROMAN:
 		flag.setOnOff(font.family() == Font::ROMAN_FAMILY);
-		return true;
+		break;
 
 	case LFUN_FONT_CODE:
 		flag.setOnOff(font.family() == Font::TYPEWRITER_FAMILY);
-		return true;
+		break;
 
 	case LFUN_CUT:
 	case LFUN_COPY:
@@ -1976,7 +1980,9 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_OUTLINE_DOWN:
 	case LFUN_OUTLINE_IN:
 	case LFUN_OUTLINE_OUT:
-		enable = (cur.paragraph().layout()->toclevel != Layout::NOT_IN_TOC);
+		// FIXME: LyX is not ready for outlining within inset.
+		enable = isMainText(*cur.bv().buffer())
+			&& cur.paragraph().layout()->toclevel != Layout::NOT_IN_TOC;
 		break;
 
 	case LFUN_WORD_DELETE_FORWARD:

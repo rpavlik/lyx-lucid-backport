@@ -817,9 +817,11 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		parse_unknown_environment(p, name, os, FLAG_END, outer,
 					  parent_context);
 
-	// Alignment settings
+	// Alignment settings and leading
 	else if (name == "center" || name == "flushleft" || name == "flushright" ||
-		 name == "centering" || name == "raggedright" || name == "raggedleft") {
+		 name == "centering" || name == "raggedright" || name == "raggedleft" ||
+		 name == "singlespace" || name == "onehalfspace" ||
+		 name == "doublespace" || name == "spacing") {
 		eat_whitespace(p, os, parent_context, false);
 		// We must begin a new paragraph if not already done
 		if (! parent_context.atParagraphStart()) {
@@ -830,8 +832,16 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 			parent_context.add_extra_stuff("\\align left\n");
 		else if (name == "flushright" || name == "raggedleft")
 			parent_context.add_extra_stuff("\\align right\n");
-		else
+		else if (name == "center" || name == "centering")
 			parent_context.add_extra_stuff("\\align center\n");
+		else if (name == "singlespace")
+			parent_context.add_extra_stuff("\\paragraph_spacing single\n");
+		else if (name == "onehalfspace")
+			parent_context.add_extra_stuff("\\paragraph_spacing onehalf\n");
+		else if (name == "doublespace")
+			parent_context.add_extra_stuff("\\paragraph_spacing double\n");
+		else if (name == "spacing")
+			parent_context.add_extra_stuff("\\paragraph_spacing other " + p.verbatim_item() + "\n");
 		parse_text(p, os, FLAG_END, outer, parent_context);
 		// Just in case the environment is empty ..
 		parent_context.extra_stuff.erase();

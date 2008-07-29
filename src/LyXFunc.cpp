@@ -2117,7 +2117,7 @@ void LyXFunc::doImport(string const & argument)
 			make_pair(_("Examples|#E#e"),
 				  from_utf8(addPath(package().system_support().absFilename(), "examples"))));
 
-		docstring filter = formats.prettyName(format);
+		docstring filter = translateIfPossible(formats.prettyName(format));
 		filter += " (*.";
 		// FIXME UNICODE
 		filter += from_utf8(formats.extension(format));
@@ -2304,6 +2304,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_LANGUAGE_GLOBAL_OPTIONS:
 	case LyXRC::RC_LANGUAGE_PACKAGE:
 	case LyXRC::RC_LANGUAGE_USE_BABEL:
+	case LyXRC::RC_MAC_LIKE_WORD_MOVEMENT:
 	case LyXRC::RC_MAKE_BACKUP:
 	case LyXRC::RC_MARK_FOREIGN_LANGUAGE:
 	case LyXRC::RC_NUMLASTFILES:

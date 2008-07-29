@@ -266,6 +266,7 @@ def checkFormatEntries(dtl_tools):
 \Format dateout    tmp    "date (output)"         "" ""	"%%"	""
 \Format docbook    sgml    DocBook                B  ""	"%%"	"document"
 \Format docbook-xml xml   "Docbook (XML)"         "" ""	"%%"	"document"
+\Format dot        dot    "Graphviz Dot"          "" ""	"%%"	"vector"
 \Format literate   nw      NoWeb                  N  ""	"%%"	"document"
 \Format lilypond   ly     "LilyPond music"        "" ""	"%%"	"vector"
 \Format latex      tex    "LaTeX (plain)"         L  ""	"%%"	"document"
@@ -306,7 +307,7 @@ def checkFormatEntries(dtl_tools):
     #
     # entried that do not need checkProg
     addToRC(r'''\Format date       ""     "date command"          "" ""	""	""
-\Format csv        csv    "Comma-separated values"  "" ""	""	"document"
+\Format csv        csv    "Table (CSV)"           "" ""	""	"document"
 \Format fax        ""      Fax                    "" ""	""	"document"
 \Format lyx        lyx     LyX                    "" ""	""	""
 \Format lyx13x     lyx13  "LyX 1.3.x"             "" ""	""	"document"
@@ -466,6 +467,9 @@ def checkConverterEntries():
 \converter agr        ppm        "gracebat -hardcopy -printfile $$o -hdevice PNM $$i 2>/dev/null"	""''',
             ''])
     #
+    checkProg('a Dot -> PDF converter', ['dot -Tpdf $$i -o $$o'],
+        rc_entry = [ r'\converter dot        pdf        "%%"	""'])
+    #
     #
     path, lilypond = checkProg('a LilyPond -> EPS/PDF/PNG converter', ['lilypond'])
     if (lilypond != ''):
@@ -553,6 +557,8 @@ def checkOtherEntries():
             r'\plaintext_roff_command "groff -t -Tlatin1 $$FName"',
             r'\plaintext_roff_command "tbl $$FName | nroff"',
             r'\plaintext_roff_command ""' ])
+    checkProg('an index processor', ['texindy', 'makeindex -c -q'],
+        rc_entry = [ r'\index_command "%%"' ])
     checkProg('ChkTeX', ['chktex -n1 -n3 -n6 -n9 -n22 -n25 -n30 -n38'],
         rc_entry = [ r'\chktex_command "%%"' ])
     checkProg('a spellchecker', ['ispell'],

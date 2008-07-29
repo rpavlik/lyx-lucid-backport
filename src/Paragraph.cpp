@@ -583,7 +583,11 @@ int Paragraph::Pimpl::latexSurrogatePair(odocstream & os, value_type c,
 	// Is this correct WRT change tracking?
 	docstring const latex1 = encoding.latexChar(next);
 	docstring const latex2 = encoding.latexChar(c);
-	os << latex1 << '{' << latex2 << '}';
+	if (docstring(1, next) == latex1) {
+		os << latex2 << latex1;
+		return latex1.length() + latex2.length();
+	} else
+		os << latex1 << '{' << latex2 << '}';
 	return latex1.length() + latex2.length() + 2;
 }
 
@@ -644,7 +648,8 @@ int Paragraph::Pimpl::writeScriptChars(odocstream & os,
 {
 	// We only arrive here when a proper language for character c has not
 	// been specified (i.e., it could not be translated in the current
-	// latex encoding) and it belongs to a known script.
+	// latex encoding) or its latex translation has been forced, and it
+	// belongs to a known script.
 	// Parameter ltx contains the latex translation of c as specified in
 	// the unicodesymbols file and is something like "\textXXX{<spec>}".
 	// The latex macro name "textXXX" specifies the script to which c
@@ -655,8 +660,16 @@ int Paragraph::Pimpl::writeScriptChars(odocstream & os,
 	docstring::size_type const brace1 = ltx.find_first_of(from_ascii("{"));
 	docstring::size_type const brace2 = ltx.find_last_of(from_ascii("}"));
 	string script = to_ascii(ltx.substr(1, brace1 - 1));
-	int length = ltx.substr(0, brace2).length();
-	os << ltx.substr(0, brace2);
+	int pos = 0;
+	int length = brace2;
+	bool closing_brace = true;
+	if (script == "textgreek" && encoding.latexName() == "iso-8859-7") {
+		// Correct encoding is being used, so we can avoid \textgreek.
+		pos = brace1 + 1;
+		length -= pos;
+		closing_brace = false;
+	}
+	os << ltx.substr(pos, length);
 	while (i + 1 < size()) {
 		char_type const next = getChar(i + 1);
 		// Stop here if next character belongs to another script
@@ -689,8 +702,10 @@ int Paragraph::Pimpl::writeScriptChars(odocstream & os,
 		length += len;
 		++i;
 	}
-	os << '}';
-	++length;
+	if (closing_brace) {
+		os << '}';
+		++length;
+	}
 	return length;
 }
 
@@ -897,14 +912,8 @@ void Paragraph::Pimpl::simpleTeXSpecialChars(Buffer const & buf,
 				if ((c == '>' || c == '<')
 				    && i <= size() - 2
 				    && getChar(i + 1) == c) {
-					//os << "\\textcompwordmark{}";
-					//column += 19;
-					// Jean-Marc, have a look at
-					// this. I think this works
-					// equally well:
-					os << "\\,{}";
-					// Lgb
-					column += 3;
+					os << "\\textcompwordmark{}";
+					column += 19;
 				}
 				break;
 			}
@@ -982,7 +991,14 @@ void Paragraph::Pimpl::simpleTeXSpecialChars(Buffer const & buf,
 			break;
 
 		default:
-
+#ifdef WITH_WARNINGS
+#warning Can someone explain this silly method?
+// JSpitzm 2008/07/03
+// This looks like complete nonsense to me. Cf. the comments
+// below. Since this triggers iconv exceptions (see bug 4727),
+// I have commented this out for the time being.
+#endif
+#if 0
 			// I assume this is hack treating typewriter as verbatim
 			// FIXME UNICODE: This can fail if c cannot be encoded
 			// in the current encoding.
@@ -992,6 +1008,7 @@ void Paragraph::Pimpl::simpleTeXSpecialChars(Buffer const & buf,
 				}
 				break;
 			}
+#endif
 
 			// LyX, LaTeX etc.
 
@@ -2498,6 +2515,28 @@ bool Paragraph::isLetter(pos_type pos) const
 }
 
 
+bool Paragraph::isChar(pos_type pos) const
+{
+	if (isInset(pos))
+		return getInset(pos)->isChar();
+	else {
+		value_type const c = getChar(pos);
+		return !isLetterChar(c) && !isDigit(c) && !lyx::isSpace(c);
+	}
+}
+
+
+bool Paragraph::isSpace(pos_type pos) const
+{
+	if (isInset(pos))
+		return getInset(pos)->isSpace();
+	else {
+		value_type const c = getChar(pos);
+		return lyx::isSpace(c);
+	}
+}
+
+
 Language const *
 Paragraph::getParLanguage(BufferParams const & bparams) const
 {
@@ -2545,6 +2584,21 @@ bool Paragraph::isMultiLingual(BufferParams const & bparams) const
 		    cit->font().language() != doc_language)
 			return true;
 	return false;
+}
+
+
+docstring const Paragraph::printableString(bool label) const
+{
+	odocstringstream os;
+	if (label && !params().labelString().empty())
+		os << params().labelString() << ' ';
+	pos_type end = size();
+	for (pos_type i = 0; i < end; ++i) {
+		value_type const c = getChar(i);
+		if (isPrintable(c))
+			os.put(c);
+	}
+	return os.str();
 }
 
 
