@@ -1,7 +1,10 @@
 lyx (1.5.6-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
-  * (NOT RELEASED YET) New upstream release
+  * (NOT RELEASED YET) New upstream release resolves the following bugs:
+    + lyx invokes xdvi without landscape options for landscape docs.
+    Closes: #269968
+    + Fix for 'word-delete' deletes following non-word items. Closes: #492841
   * Don't install the top-level ChangeLog as changelog.gz because it only
     contains changes about the files in the top-level source directory of LyX.
 
