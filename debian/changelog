@@ -8,6 +8,7 @@ lyx (1.5.6-1) UNRELEASED; urgency=low
   * Don't install the top-level ChangeLog as changelog.gz because it only
     contains changes about the files in the top-level source directory of LyX.
   * Change suggest for cupsys-client to cups-client.
+  * Change the name of the license file on Debian system from GPL to GPL-2.
 
  -- Sven Hoexter <sven@timegate.de>  Thu, 28 Aug 2008 17:00:11 +0200
 

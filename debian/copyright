@@ -27,7 +27,7 @@ Copyright and licence notice:
  MA 02110-1301, USA.
 
 On any Debian system, you can find the complete text of the GNU GPL
-(GNU General Public License) in the file /usr/share/common-licenses/GPL
+(GNU General Public License) in the file /usr/share/common-licenses/GPL-2
 
 Included with the LyX source code archive is the Boost
 library. Debian's binary packages of LyX does not use it however; it
