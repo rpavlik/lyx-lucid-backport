@@ -1,11 +1,10 @@
 lyx (1.6.0-1) UNRELEASED; urgency=low
 
-  * (NOT RELEASED YET) New upstream release
-
- -- Sven Hoexter <sven@marvin.home.hoaxter.de>  Sun, 09 Nov 2008 15:01:09 +0100
-
-lyx (1.6.0~beta4-2) UNRELEASED; urgency=low
-
+  [ Sven Hoexter ]
+  * New upstream release
+    +Fix for 'word-delete' deletes following non-word items. Closes: #492841
+  * Change the name of the license file on Debian system from GPL to GPL-2.
+  
   [ Per Olofsson ]
   * Remove texlive-latex-base dependency from lyx-common, as it already
     depends on tex-common via ${misc:Depends}, and that's all that's
@@ -14,11 +13,7 @@ lyx (1.6.0~beta4-2) UNRELEASED; urgency=low
     which is not necessary since the file is deleted in preinst.
   * Don't remove profiling.py, there's no reason.
 
-  [ Sven Hoexter ]
-  * Change the name of the license file on Debian system from GPL to GPL-2.
-  * //Fix for 'word-delete' deletes following non-word items. Closes: #492841
-
- -- Sven Hoexter <sven@timegate.de>  Mon, 08 Sep 2008 14:19:48 +0200
+ -- Sven Hoexter <sven@timegate.de>  Sun, 09 Nov 2008 15:28:59 +0100
 
 lyx (1.6.0~beta4-1) experimental; urgency=low
 
