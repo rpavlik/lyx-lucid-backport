@@ -82,6 +82,9 @@ install: build
 # remove font directory as fonts are in the package latex-xft-fonts
 	rm -r debian/lyx-common/usr/share/lyx/fonts
 
+# remove empty directory
+	rmdir debian/lyx-common/usr/share/lyx/images/commands
+
 	mv debian/lyx-common/usr/share/lyx/tex \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx
 	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx

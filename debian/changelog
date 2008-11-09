@@ -9,6 +9,7 @@ lyx (1.6.0-1) UNRELEASED; urgency=low
   * Refresh /patches/prefer-xdg-open.
   * Replace the old LyX logo with the new one. Converted from the
     lib/images/lyx.png file to 32x32 XPM file.
+  * Remove empty /usr/share/lyx/images/commands directory from lyx-common. 
   
   [ Per Olofsson ]
   * Remove texlive-latex-base dependency from lyx-common, as it already
