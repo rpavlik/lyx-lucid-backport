@@ -95,8 +95,6 @@ FileName const get_locale_dir(FileName const & system_support_dir);
 FileName const get_system_support_dir(FileName const & abs_binary,
 				    string const & command_line_system_support_dir);
 
-FileName const get_temp_dir();
-
 FileName const get_default_user_support_dir(FileName const & home_dir);
 
 bool userSupportDir(FileName const & default_user_support_dir,
@@ -115,7 +113,9 @@ Package::Package(string const & command_line_arg0,
 	: explicit_user_support_dir_(false)
 {
 	home_dir_ = get_home_dir();
-	system_temp_dir_ = get_temp_dir();
+	// Specification of temp_dir_ may be reset by LyXRC,
+	// but the default is fixed for a given OS.
+	system_temp_dir_ = FileName::tempPath();
 	temp_dir_ = system_temp_dir_;
 	document_dir_ = get_document_dir(home_dir_);
 
@@ -367,22 +367,6 @@ FileName const get_locale_dir(FileName const & system_support_dir)
 }
 
 
-// Specification of temp_dir_ may be reset by LyXRC,
-// but the default is fixed for a given OS.
-FileName const get_temp_dir()
-{
-#if defined (USE_WINDOWS_PACKAGING)
-	// Typical example: C:/TEMP/.
-	char path[MAX_PATH];
-	GetTempPath(MAX_PATH, path);
-	// Remove trailing backslash if any.
-	return FileName(rtrim(to_utf8(from_local8bit(path)), "\\"));
-#else // Posix-like.
-	return FileName("/tmp");
-#endif
-}
-
-
 // Extracts the absolute path from the foo of "-sysdir foo" or "-userdir foo"
 FileName const abs_path_from_command_line(string const & command_line)
 {
@@ -477,11 +461,11 @@ get_system_support_dir(FileName const & abs_binary,
 			return path;
 	}
 
-	// 2. Use the "LYX_DIR_15x" environment variable.
-	path = extract_env_var_dir("LYX_DIR_15x");
+	// 2. Use the "LYX_DIR_${major}${minor}x" environment variable.
+	path = extract_env_var_dir(LYX_DIR_VER);
 	if (!path.empty()) {
 		searched_dirs.push_back(path);
-		if (check_env_var_dir(path, chkconfig_ltx, "LYX_DIR_15x"))
+		if (check_env_var_dir(path, chkconfig_ltx, LYX_DIR_VER))
 			return path;
 	}
 
@@ -569,13 +553,13 @@ get_system_support_dir(FileName const & abs_binary,
 	// FIXME UNICODE
 	throw ExceptionMessage(ErrorException, _("No system directory"),
 		bformat(_("Unable to determine the system directory "
-					 "having searched\n"
-					 "\t%1$s\n"
-					 "Use the '-sysdir' command line parameter or "
-					 "set the environment variable LYX_DIR_15x to "
-					 "the LyX system directory containing the file "
-					 "`chkconfig.ltx'."),
-			  from_utf8(searched_dirs_str)));
+				"having searched\n"
+				"\t%1$s\n"
+				"Use the '-sysdir' command line parameter or "
+				"set the environment variable\n%2$s "
+				"to the LyX system directory containing the "
+				"file `chkconfig.ltx'."),
+			  from_utf8(searched_dirs_str), from_ascii(LYX_DIR_VER)));
 
 	// Keep the compiler happy.
 	return FileName();
@@ -593,8 +577,8 @@ bool userSupportDir(FileName const & default_user_support_dir,
 	if (!result.empty())
 		return true;
 
-	// 2. Use the LYX_USERDIR_15x environment variable.
-	result = extract_env_var_dir("LYX_USERDIR_15x");
+	// 2. Use the LYX_USERDIR_${major}${minor}x environment variable.
+	result = extract_env_var_dir(LYX_USERDIR_VER);
 	if (!result.empty())
 		return true;
 

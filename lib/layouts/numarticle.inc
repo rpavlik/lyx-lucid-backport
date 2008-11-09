@@ -1,13 +1,12 @@
 # Author : André Pönitz
 # This include file contains label definitions for an article-like numbering.
 
-Format 7
+Format 11
 
 # appendix applies to sections.
-Counter
-	Name                  section
+Counter section
 	Within                "none"
-	LabelString	      "\arabic{section}"
+	LabelString	          "\arabic{section}"
 	LabelStringAppendix   "\Alph{section}"
 End
 

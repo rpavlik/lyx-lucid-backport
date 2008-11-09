@@ -1,15 +1,15 @@
-#\DeclareLyXModule{Theorems (Order By Section)}
+#\DeclareLyXModule{Theorems (By Section)}
 #DescriptionBegin
 #Numbers theorems and the like by section.
 #DescriptionEnd
 #Requires: theorems-std | theorems-ams
+#Excludes: theorems-chap
 
 # Author: Richard Heck <rgheck@comcast.net>
 
-Format 7
+Format 11
 
-Counter
-	Name           theorem
+Counter theorem
 	Within         section
 End
 

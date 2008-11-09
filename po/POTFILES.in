@@ -24,6 +24,7 @@ src/Text2.cpp
 src/Text3.cpp
 src/TextClass.cpp
 src/Thesaurus.cpp
+src/VCBackend.cpp
 src/VSpace.cpp
 src/buffer_funcs.cpp
 src/frontends/qt4/BulletsModule.cpp
@@ -53,6 +54,7 @@ src/frontends/qt4/GuiHSpace.cpp
 src/frontends/qt4/GuiHyperlink.cpp
 src/frontends/qt4/GuiInclude.cpp
 src/frontends/qt4/GuiInfo.cpp
+src/frontends/qt4/GuiKeySymbol.cpp
 src/frontends/qt4/GuiLabel.cpp
 src/frontends/qt4/GuiListings.cpp
 src/frontends/qt4/GuiLog.cpp
@@ -82,6 +84,7 @@ src/frontends/qt4/GuiWrap.cpp
 src/frontends/qt4/IconPalette.cpp
 src/frontends/qt4/LaTeXHighlighter.cpp
 src/frontends/qt4/Menus.cpp
+src/frontends/qt4/Toolbars.cpp
 src/frontends/qt4/Validator.cpp
 src/frontends/qt4/qt_helpers.cpp
 src/insets/ExternalSupport.cpp

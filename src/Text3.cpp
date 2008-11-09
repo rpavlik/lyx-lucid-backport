@@ -56,7 +56,6 @@
 #include "insets/InsetQuotes.h"
 #include "insets/InsetSpecialChar.h"
 #include "insets/InsetText.h"
-#include "insets/InsetInfo.h"
 #include "insets/InsetGraphics.h"
 #include "insets/InsetGraphicsParams.h"
 
@@ -128,6 +127,9 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 	// It may happen that sel is empty but there is a selection
 	replaceSelection(cur);
 
+	// Is this a valid formula?
+	bool valid = true;
+
 	if (sel.empty()) {
 #ifdef ENABLE_ASSERTIONS
 		const int old_pos = cur.pos();
@@ -157,20 +159,31 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 				&& sel.find(from_ascii("\\def")) == string::npos)
 		{
 			InsetMathHull * formula = new InsetMathHull;
-			istringstream is(to_utf8(sel));
+			string const selstr = to_utf8(sel);
+			istringstream is(selstr);
 			Lexer lex;
 			lex.setStream(is);
-			formula->read(lex);
-			if (formula->getType() == hullNone)
-				// Don't create pseudo formulas if
-				// delimiters are left out
-				formula->mutate(hullSimple);
-			cur.insert(formula);
+			if (!formula->readQuiet(lex)) {
+				// No valid formula, let's try with delims
+				is.str("$" + selstr + "$");
+				lex.setStream(is);
+				if (!formula->readQuiet(lex)) {
+					// Still not valid, leave it as is
+					valid = false;
+					delete formula;
+					cur.insert(sel);
+				} else
+					cur.insert(formula);
+			} else
+				cur.insert(formula);
 		} else {
 			cur.insert(new MathMacroTemplate(sel));
 		}
 	}
-	cur.message(from_utf8(N_("Math editor mode")));
+	if (valid)
+		cur.message(from_utf8(N_("Math editor mode")));
+	else
+		cur.message(from_utf8(N_("No valid math formula")));
 }
 
 
@@ -202,13 +215,15 @@ static bool doInsertInset(Cursor & cur, Text * text,
 		if (edit)
 			inset->edit(cur, true);
 		// Now put this into inset
-		static_cast<InsetCollapsable *>(inset)->text_.insertStringAsParagraphs(cur, ds);
+		static_cast<InsetCollapsable *>(inset)->
+				text().insertStringAsParagraphs(cur, ds);
 		return true;
 	}
 
 	bool gotsel = false;
 	if (cur.selection()) {
-		lyx::dispatch(FuncRequest(LFUN_CUT));
+		cutSelection(cur, false, pastesel);
+		cur.clearSelection();
 		gotsel = true;
 	}
 	text->insertInset(cur, inset);
@@ -219,9 +234,12 @@ static bool doInsertInset(Cursor & cur, Text * text,
 	if (!gotsel || !pastesel)
 		return true;
 
-	lyx::dispatch(FuncRequest(LFUN_PASTE, "0"));
+	pasteFromStack(cur, cur.buffer().errorList("Paste"), 0);
+	cur.buffer().errors("Paste");
+	cur.clearSelection(); // bug 393
+	cur.finishUndo();
 	InsetText * insetText = dynamic_cast<InsetText *>(inset);
-	if (insetText && !insetText->allowMultiPar() || cur.lastpit() == 0) {
+	if (insetText && (!insetText->allowMultiPar() || cur.lastpit() == 0)) {
 		// reset first par to default
 		cur.text()->paragraphs().begin()
 			->setPlainOrDefaultLayout(bparams.documentClass());
@@ -230,12 +248,14 @@ static bool doInsertInset(Cursor & cur, Text * text,
 		// Merge multiple paragraphs -- hack
 		while (cur.lastpit() > 0)
 			mergeParagraph(bparams, cur.text()->paragraphs(), 0);
-	} else {
-		// reset surrounding par to default
-		docstring const layoutname = insetText->usePlainLayout()
-			? bparams.documentClass().emptyLayoutName()
-			: bparams.documentClass().defaultLayoutName();
 		cur.leaveInset(*inset);
+	} else {
+		cur.leaveInset(*inset);
+		// reset surrounding par to default
+		DocumentClass const & dc = bparams.documentClass();
+		docstring const layoutname = inset->usePlainLayout()
+			? dc.plainLayoutName()
+			: dc.defaultLayoutName();
 		text->setLayout(cur, layoutname);
 	}
 
@@ -553,10 +573,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ? 
+				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ?
 					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD;
 			} else {
-				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ? 
+				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ?
 					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD;
 			}
 			dispatch(cur, cmd);
@@ -576,17 +596,17 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ? 
+				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ?
 					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD;
 			} else {
-				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ? 
+				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ?
 					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD;
 			}
 			dispatch(cur, cmd);
 			return;
 		}
 		break;
-		
+
 
 	case LFUN_UP_SELECT:
 	case LFUN_DOWN_SELECT:
@@ -596,7 +616,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		bool select = cmd.action == LFUN_DOWN_SELECT ||
 			cmd.action == LFUN_UP_SELECT;
 		cur.selHandle(select);
-		
+
 		// move cursor up/down
 		bool up = cmd.action == LFUN_UP_SELECT || cmd.action == LFUN_UP;
 		bool const successful = cur.upDownInText(up, needsUpdate);
@@ -605,7 +625,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			needsUpdate |= cur.beforeDispatchCursor().inMathed();
 		} else
 			cur.undispatched();
-		
+
 		break;
 	}
 
@@ -714,7 +734,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		moveCursor(cur, false);
 		break;
 	}
-	
+
 	case LFUN_CHAR_DELETE_FORWARD:
 		if (!cur.selection()) {
 			if (cur.pos() == cur.paragraph().size())
@@ -858,7 +878,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (!ins)
 			break;
 
-		cur.recordUndoFullDocument();
+		cur.recordUndo();
 
 		string id = to_utf8(cmd.argument());
 		string grp = graphics::getGroupParams(bv->buffer(), id);
@@ -926,6 +946,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_PASTE: {
 		cur.message(_("Paste"));
+		LASSERT(cur.selBegin().idx() == cur.selEnd().idx(), /**/);
 		cap::replaceSelection(cur);
 
 		// without argument?
@@ -1007,16 +1028,16 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (layout.empty())
 			layout = tclass.defaultLayoutName();
 
-		if (para.forcePlainLayout()) 
+		if (para.forcePlainLayout())
 			// in this case only the empty layout is allowed
-			layout = tclass.emptyLayoutName();
+			layout = tclass.plainLayoutName();
 		else if (para.usePlainLayout()) {
-			// in this case, default layout maps to empty layout 
+			// in this case, default layout maps to empty layout
 			if (layout == tclass.defaultLayoutName())
-				layout = tclass.emptyLayoutName();
-		} else { 
+				layout = tclass.plainLayoutName();
+		} else {
 			// otherwise, the empty layout maps to the default
-			if (layout == tclass.emptyLayoutName())
+			if (layout == tclass.plainLayoutName())
 				layout = tclass.defaultLayoutName();
 		}
 
@@ -1105,9 +1126,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			else
 				c = par.getChar(pos - 1);
 			string arg = to_utf8(cmd.argument());
-			cur.insert(new InsetQuotes(c, bufparams.quotes_language,
-				(arg == "single") ? InsetQuotes::SingleQuotes
-					: InsetQuotes::DoubleQuotes));
+			cur.insert(new InsetQuotes(bv->buffer(), c, (arg == "single")
+				? InsetQuotes::SingleQuotes : InsetQuotes::DoubleQuotes));
 			cur.posForward();
 		}
 		else
@@ -1143,17 +1163,18 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	// Single-click on work area
 	case LFUN_MOUSE_PRESS:
 		// We are not marking a selection with the keyboard in any case.
-		cur.bv().cursor().mark() = false;
+		cur.bv().cursor().setMark(false);
 		switch (cmd.button()) {
 		case mouse_button::button1:
 			// Set the cursor
 			if (!bv->mouseSetCursor(cur, cmd.argument() == "region-select"))
 				cur.updateFlags(Update::SinglePar | Update::FitCursor);
-			break;			
+			break;
 
 		case mouse_button::button2:
 			// Middle mouse pasting.
-			if (!cap::selection()) {			
+			bv->mouseSetCursor(cur);
+			if (!cap::selection()) {
 				// There is no local selection in the current buffer, so try to
 				// paste primary selection instead.
 				lyx::dispatch(FuncRequest(LFUN_PRIMARY_SELECTION_PASTE,
@@ -1172,23 +1193,20 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			bv->cursor().finishUndo();
 			break;
 
-		case mouse_button::button3:
-			if (cur.selection()) {
-				DocIterator const selbeg = cur.selectionBegin();
-				DocIterator const selend = cur.selectionEnd();
-				Cursor tmpcur = cur;
-				tm.setCursorFromCoordinates(tmpcur, cmd.x, cmd.y);
-				// Don't do anything if we right-click a selection, a selection
-				// context menu should popup instead.
-				if (tmpcur < selbeg || tmpcur >= selend) {
-					cur.noUpdate();
-					return;
-				}
+		case mouse_button::button3: {
+			Cursor const & bvcur = cur.bv().cursor();
+			// Don't do anything if we right-click a
+			// selection, a context menu will popup.
+			if (bvcur.selection() && cur >= bvcur.selectionBegin()
+			    && cur < bvcur.selectionEnd()) {
+				cur.noUpdate();
+				return;
 			}
-			if (!bv->mouseSetCursor(cur, false)) {
+			if (!bv->mouseSetCursor(cur, false))
 				cur.updateFlags(Update::SinglePar | Update::FitCursor);
-				break;			
-			}
+			break;
+		}
+
 		default:
 			break;
 		} // switch (cmd.button())
@@ -1227,7 +1245,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// We continue with our existing selection or start a new one, so don't
 		// reset the anchor.
 		bvcur.setCursor(cur);
-		bvcur.selection() = true;
+		bvcur.setSelection(true);
 		if (cur.top() == old) {
 			// We didn't move one iota, so no need to update the screen.
 			cur.updateFlags(Update::SinglePar | Update::FitCursor);
@@ -1245,13 +1263,17 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			// otherwise, single click does not clear persistent selection
 			// buffer.
 			if (cur.selection()) {
-				// Finish selection.
-				// If double click, cur is moved to the end of word by selectWord
-				// but bvcur is current mouse position.
-				cur.bv().cursor().selection() = true;
-			}
+				// Finish selection. If double click,
+				// cur is moved to the end of word by
+				// selectWord but bvcur is current
+				// mouse position.
+				cur.bv().cursor().setSelection();
+				// We might have removed an empty but drawn selection
+				// (probably a margin)
+				cur.updateFlags(Update::SinglePar | Update::FitCursor);
+			} else
+				cur.noUpdate();
 			// FIXME: We could try to handle drag and drop of selection here.
-			cur.noUpdate();
 			return;
 
 		case mouse_button::button2:
@@ -1289,10 +1311,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			cutSelection(cur, false, false);
 
 		cur.clearSelection();
-		Font const old_font = cur.real_current_font;
 
 		docstring::const_iterator cit = cmd.argument().begin();
-		docstring::const_iterator end = cmd.argument().end();
+		docstring::const_iterator const end = cmd.argument().end();
 		for (; cit != end; ++cit)
 			bv->translateAndInsert(*cit, this, cur);
 
@@ -1360,7 +1381,6 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_FLEX_INSERT:
 	case LFUN_BOX_INSERT:
 	case LFUN_BRANCH_INSERT:
-	case LFUN_BIBITEM_INSERT:
 	case LFUN_ERT_INSERT:
 	case LFUN_LISTING_INSERT:
 	case LFUN_MARGINALNOTE_INSERT:
@@ -1387,17 +1407,25 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_FLOAT_INSERT:
 	case LFUN_FLOAT_WIDE_INSERT:
 	case LFUN_WRAP_INSERT: {
-		bool content = cur.selection();  // will some text be moved into the inset?
+		// will some text be moved into the inset?
+		bool content = cur.selection();
 
 		doInsertInset(cur, this, cmd, true, true);
 		cur.posForward();
+
+		// If some text is moved into the inset, doInsertInset 
+		// puts the cursor outside the inset. To insert the
+		// caption we put it back into the inset.
+		if (content)
+			cur.backwardPos();
+
 		ParagraphList & pars = cur.text()->paragraphs();
 
 		DocumentClass const & tclass = bv->buffer().params().documentClass();
 
 		// add a separate paragraph for the caption inset
 		pars.push_back(Paragraph());
-		pars.back().setInsetOwner(pars[0].inInset());
+		pars.back().setInsetOwner(&pars[0].inInset());
 		pars.back().setPlainOrDefaultLayout(tclass);
 		int cap_pit = pars.size() - 1;
 
@@ -1406,7 +1434,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// the graphics (or table).
 		if (!content) {
 			pars.push_back(Paragraph());
-			pars.back().setInsetOwner(pars[0].inInset());
+			pars.back().setInsetOwner(&pars[0].inInset());
 			pars.back().setPlainOrDefaultLayout(tclass);
 		}
 
@@ -1417,7 +1445,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// We cannot use Cursor::dispatch here it needs access to up to
 		// date metrics.
 		FuncRequest cmd_caption(LFUN_CAPTION_INSERT);
-		cur.text()->dispatch(cur, cmd_caption);
+		doInsertInset(cur, cur.text(), cmd_caption, true, false);
+		updateLabels(bv->buffer());
 		cur.updateFlags(Update::Force);
 		// FIXME: When leaving the Float (or Wrap) inset we should
 		// delete any empty paragraph left above or below the
@@ -1426,21 +1455,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_NOMENCL_INSERT: {
-		FuncRequest cmd1 = cmd;
+		InsetCommandParams p(NOMENCL_CODE);
 		if (cmd.argument().empty())
-			cmd1 = FuncRequest(cmd,
-				bv->cursor().innerText()->getStringToIndex(bv->cursor()));
-		Inset * inset = createInset(cur.bv().buffer(), cmd1);
-		if (!inset)
-			break;
-		cur.recordUndo();
-		cur.clearSelection();
-		insertInset(cur, inset);
-		// Show the dialog for the nomenclature entry, since the
-		// description entry still needs to be filled in.
-		if (cmd.action == LFUN_NOMENCL_INSERT)
-			inset->edit(cur, true);
-		cur.posForward();
+			p["symbol"] = bv->cursor().innerText()->getStringToIndex(bv->cursor());
+		else
+			p["symbol"] = cmd.argument();
+		string const data = InsetCommand::params2string("nomenclature", p);
+		bv->showDialog("nomenclature", data);
 		break;
 	}
 
@@ -1485,8 +1506,16 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			MacroType type = MacroTypeNewcommand;
 			if (s2 == "def")
 				type = MacroTypeDef;
-			cur.insert(new MathMacroTemplate(from_utf8(token(s, ' ', 0)), nargs, false, type));
-			//cur.nextInset()->edit(cur, true);
+			MathMacroTemplate * inset = new MathMacroTemplate(from_utf8(token(s, ' ', 0)), nargs, false, type);
+			inset->setBuffer(bv->buffer());
+			insertInset(cur, inset);
+
+			// enter macro inset and select the name
+			cur.push(*inset);
+			cur.top().pos() = cur.top().lastpos();
+			cur.resetAnchor();
+			cur.setSelection(true);
+			cur.top().pos() = 0;
 		}
 		break;
 
@@ -1502,6 +1531,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MATH_MATRIX:
 	case LFUN_MATH_DELIM:
 	case LFUN_MATH_BIGDELIM: {
+		cur.recordUndo();
 		cap::replaceSelection(cur);
 		cur.insert(new InsetMathHull(hullSimple));
 		checkAndActivateInset(cur, true);
@@ -1517,7 +1547,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
-	case LFUN_FONT_BOLD: {
+	case LFUN_FONT_BOLD:
+	case LFUN_FONT_BOLDSYMBOL: {
 		Font font(ignore_font, ignore_language);
 		font.fontInfo().setSeries(BOLD_SERIES);
 		toggleAndShow(cur, this, font);
@@ -1604,9 +1635,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_FINISHED_LEFT:
 		LYXERR(Debug::DEBUG, "handle LFUN_FINISHED_LEFT:\n" << cur);
-		// We're leaving an inset, going left. If the inset is LTR, we're 
+		// We're leaving an inset, going left. If the inset is LTR, we're
 		// leaving from the front, so we should not move (remain at --- but
-		// not in --- the inset). If the inset is RTL, move left, without 
+		// not in --- the inset). If the inset is RTL, move left, without
 		// entering the inset itself; i.e., move to after the inset.
 		if (cur.paragraph().getFontSettings(
 				cur.bv().buffer().params(), cur.pos()).isRightToLeft())
@@ -1615,9 +1646,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_FINISHED_RIGHT:
 		LYXERR(Debug::DEBUG, "handle LFUN_FINISHED_RIGHT:\n" << cur);
-		// We're leaving an inset, going right. If the inset is RTL, we're 
+		// We're leaving an inset, going right. If the inset is RTL, we're
 		// leaving from the front, so we should not move (remain at --- but
-		// not in --- the inset). If the inset is LTR, move right, without 
+		// not in --- the inset). If the inset is LTR, move right, without
 		// entering the inset itself; i.e., move to after the inset.
 		if (!cur.paragraph().getFontSettings(
 				cur.bv().buffer().params(), cur.pos()).isRightToLeft())
@@ -1647,7 +1678,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		params2string(cur.paragraph(), data);
 
 		// Will the paragraph accept changes from the dialog?
-		bool const accept = 
+		bool const accept =
 			cur.inset().allowParagraphCustomization(cur.idx());
 
 		data = "update " + convert<string>(accept) + '\n' + data;
@@ -1691,12 +1722,14 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 
 			docstring const laystr = cur.inset().usePlainLayout() ?
-				tclass.emptyLayoutName() :
+				tclass.plainLayoutName() :
 				tclass.defaultLayoutName();
 			setLayout(cur, laystr);
 			ParagraphParameters p;
+			// FIXME If this call were replaced with one to clearParagraphParams(),
+			// then we could get rid of this method altogether.
 			setParagraphs(cur, p);
-			// FIXME This should be simplified when InsetFloatList takes a 
+			// FIXME This should be simplified when InsetFloatList takes a
 			// Buffer in its constructor.
 			InsetFloatList * ifl = new InsetFloatList(to_utf8(cmd.argument()));
 			ifl->setBuffer(bv->buffer());
@@ -1738,17 +1771,17 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// Given data, an encoding of the ParagraphParameters
 		// generated in the Paragraph dialog, this function sets
 		// the current paragraph, or currently selected paragraphs,
-		// appropriately. 
+		// appropriately.
 		// NOTE: This function overrides all existing settings.
 		setParagraphs(cur, cmd.argument());
 		cur.message(_("Paragraph layout set"));
 		break;
 	}
-	
+
 	case LFUN_PARAGRAPH_PARAMS: {
 		// Given data, an encoding of the ParagraphParameters as we'd
-		// find them in a LyX file, this function modifies the current paragraph, 
-		// or currently selected paragraphs. 
+		// find them in a LyX file, this function modifies the current paragraph,
+		// or currently selected paragraphs.
 		// NOTE: This function only modifies, and does not override, existing
 		// settings.
 		setParagraphs(cur, cmd.argument(), true);
@@ -1758,7 +1791,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_ESCAPE:
 		if (cur.selection()) {
-			cur.selection() = false;
+			cur.setSelection(false);
 		} else {
 			cur.undispatched();
 			// This used to be LFUN_FINISHED_RIGHT, I think FORWARD is more
@@ -1846,8 +1879,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 {
 	LASSERT(cur.text() == this, /**/);
 
-	Font const & font = cur.real_current_font;
-	FontInfo const & fontinfo = font.fontInfo();
+	FontInfo const & fontinfo = cur.real_current_font.fontInfo();
 	bool enable = true;
 	InsetCode code = NO_CODE;
 
@@ -1863,11 +1895,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_APPENDIX:
 		flag.setOnOff(cur.paragraph().params().startOfAppendix());
-		break;
-
-	case LFUN_BIBITEM_INSERT:
-		enable = (cur.paragraph().layout().labeltype == LABEL_BIBLIO
-			  && cur.pos() == 0);
 		break;
 
 	case LFUN_DIALOG_SHOW_NEW_INSET:
@@ -1920,6 +1947,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_LISTING_INSERT:
 		code = LISTINGS_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_FOOTNOTE_INSERT:
 		code = FOOT_CODE;
@@ -1933,31 +1962,39 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_FLOAT_INSERT:
 	case LFUN_FLOAT_WIDE_INSERT:
 		code = FLOAT_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_WRAP_INSERT:
 		code = WRAP_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_FLOAT_LIST_INSERT:
 		code = FLOAT_LIST_CODE;
 		break;
 	case LFUN_CAPTION_INSERT:
 		code = CAPTION_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_NOTE_INSERT:
 		code = NOTE_CODE;
-		// in commands (sections etc., only Notes are allowed)
+		// in commands (sections etc.) and description items,
+		// only Notes are allowed
 		enable = (cmd.argument().empty() || cmd.getArg(0) == "Note" ||
-			  !cur.paragraph().layout().isCommand());
+			  (!cur.paragraph().layout().isCommand()
+			   && !inDescriptionItem(cur)));
 		break;
 	case LFUN_FLEX_INSERT: {
 		code = FLEX_CODE;
 		string s = cmd.getArg(0);
-		InsetLayout il = 
+		InsetLayout il =
 			cur.buffer().params().documentClass().insetLayout(from_utf8(s));
-		if (il.lyxtype() != "charstyle" &&
-		    il.lyxtype() != "custom" &&
-		    il.lyxtype() != "element" &&
-		    il.lyxtype ()!= "standard")
+		if (il.lyxtype() != InsetLayout::CHARSTYLE &&
+		    il.lyxtype() != InsetLayout::CUSTOM &&
+		    il.lyxtype() != InsetLayout::ELEMENT &&
+		    il.lyxtype ()!= InsetLayout::STANDARD)
 			enable = false;
 		break;
 		}
@@ -1987,6 +2024,10 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		code = INDEX_PRINT_CODE;
 		break;
 	case LFUN_NOMENCL_INSERT:
+		if (cur.selIsMultiCell() || cur.selIsMultiLine()) {
+			enable = false;
+			break;
+		}
 		code = NOMENCL_CODE;
 		break;
 	case LFUN_NOMENCL_PRINT:
@@ -1996,6 +2037,10 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		code = TOC_CODE;
 		break;
 	case LFUN_HYPERLINK_INSERT:
+		if (cur.selIsMultiCell() || cur.selIsMultiLine()) {
+			enable = false;
+			break;
+		}
 		code = HYPERLINK_CODE;
 		break;
 	case LFUN_QUOTE_INSERT:
@@ -2028,6 +2073,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 
 	case LFUN_FONT_BOLD:
+	case LFUN_FONT_BOLDSYMBOL:
 		flag.setOnOff(fontinfo.series() == BOLD_SERIES);
 		break;
 
@@ -2056,7 +2102,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 				enable = !theClipboard().empty();
 			break;
 		}
-		
+
 		// we have an argument
 		string const arg = to_utf8(cmd.argument());
 		if (isStrUnsignedInt(arg)) {
@@ -2065,7 +2111,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 			enable = cap::numberOfSelections() > n;
 			break;
 		}
-		
+
 		// explicit graphics type?
 		if ((arg == "pdf" && theClipboard().hasGraphicsContents(Clipboard::PdfGraphicsType))
 		    || (arg == "png" && theClipboard().hasGraphicsContents(Clipboard::PngGraphicsType))
@@ -2074,7 +2120,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 			enable = true;
 			break;
 		}
-		
+
 		// unknown argument
 		enable = false;
 		break;
@@ -2098,11 +2144,13 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_INSET_DISSOLVE:
 		if (!cmd.argument().empty()) {
-			InsetLayout il = cur.inset().getLayout(cur.buffer().params());
+			InsetLayout const & il = cur.inset().getLayout(cur.buffer().params());
+			InsetLayout::InsetLyXType const type = 
+					translateLyXType(to_utf8(cmd.argument()));
 			enable = cur.inset().lyxCode() == FLEX_CODE
-			         && il.lyxtype() == to_utf8(cmd.argument());
+			         && il.lyxtype() == type;
 		} else {
-			enable = !isMainText(cur.bv().buffer()) 
+			enable = !isMainText(cur.bv().buffer())
 			         && cur.inset().nargs() == 1;
 		}
 		break;
@@ -2122,7 +2170,9 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_OUTLINE_DOWN:
 	case LFUN_OUTLINE_IN:
 	case LFUN_OUTLINE_OUT:
-		enable = (cur.paragraph().layout().toclevel != Layout::NOT_IN_TOC);
+		// FIXME: LyX is not ready for outlining within inset.
+		enable = isMainText(cur.bv().buffer())
+			&& cur.paragraph().layout().toclevel != Layout::NOT_IN_TOC;
 		break;
 
 	case LFUN_NEWLINE_INSERT:
@@ -2132,12 +2182,17 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_SET_GRAPHICS_GROUP: {
 		InsetGraphics * ins = graphics::getCurrentGraphicsInset(cur);
-		if (!ins) 
+		if (!ins)
 			enable = false;
 		else
 			flag.setOnOff(to_utf8(cmd.argument()) == ins->getParams().groupId);
 		break;
 	}
+
+	case LFUN_NEWPAGE_INSERT:
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
+		break;
 
 	case LFUN_WORD_DELETE_FORWARD:
 	case LFUN_WORD_DELETE_BACKWARD:
@@ -2187,7 +2242,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_DATE_INSERT:
 	case LFUN_SELF_INSERT:
 	case LFUN_LINE_INSERT:
-	case LFUN_NEWPAGE_INSERT:
 	case LFUN_MATH_DISPLAY:
 	case LFUN_MATH_MODE:
 	case LFUN_MATH_MACRO:
@@ -2258,6 +2312,24 @@ void Text::pasteString(Cursor & cur, docstring const & clip,
 		else
 			insertStringAsLines(cur, clip);
 	}
+}
+
+
+// FIXME: an item inset would make things much easier.
+bool Text::inDescriptionItem(Cursor & cur) const
+{
+	Paragraph & par = cur.paragraph();
+	pos_type const pos = cur.pos();
+	pos_type const body_pos = par.beginOfBody();
+
+	if (par.layout().latextype != LATEX_LIST_ENVIRONMENT
+	    && (par.layout().latextype != LATEX_ITEM_ENVIRONMENT
+		|| par.layout().margintype != MARGIN_FIRST_DYNAMIC))
+		return false;
+
+	return (pos < body_pos
+		|| (pos == body_pos
+		    && (pos == 0 || par.getChar(pos - 1) != ' ')));
 }
 
 } // namespace lyx

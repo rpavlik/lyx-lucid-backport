@@ -17,7 +17,9 @@
 #include "Color.h"
 #include "Font.h"
 #include "Lexer.h"
+#include "TextClass.h"
 
+#include "support/debug.h"
 #include "support/lstrings.h"
 
 #include <vector>
@@ -29,13 +31,15 @@ using std::vector;
 namespace lyx {
 
 InsetLayout::InsetLayout() :
-	name_(from_ascii("undefined")), labelstring_(from_ascii("UNDEFINED")),
-	decoration_(InsetLayout::Default),
-	font_(sane_font), labelfont_(sane_font), bgcolor_(Color_error), 
-	multipar_(false), passthru_(false), needprotect_(false),
-	freespacing_(false), keepempty_(false), forceltr_(false)
+	name_(from_ascii("undefined")), lyxtype_(STANDARD),
+	labelstring_(from_ascii("UNDEFINED")), decoration_(DEFAULT),
+	latextype_(NOLATEXTYPE), font_(sane_font), 
+	labelfont_(sane_font), bgcolor_(Color_error), 
+	multipar_(false), custompars_(false), forceplain_(true), 
+	passthru_(false), needprotect_(false), freespacing_(false), 
+	keepempty_(false), forceltr_(false)
 { 
-	labelfont_.setColor(Color_error); 
+	labelfont_.setColor(Color_error);
 }
 
 
@@ -43,28 +47,46 @@ namespace {
 
 InsetLayout::InsetDecoration translateDecoration(std::string const & str) 
 {
-	if (str == "classic")
-		return InsetLayout::Classic;
-	if (str == "minimalistic")
-		return InsetLayout::Minimalistic;
-	if (str == "conglomerate")
-		return InsetLayout::Conglomerate;
-	return InsetLayout::Default;
+	if (support::compare_ascii_no_case(str, "classic") == 0)
+		return InsetLayout::CLASSIC;
+	if (support::compare_ascii_no_case(str, "minimalistic") == 0)
+		return InsetLayout::MINIMALISTIC;
+	if (support::compare_ascii_no_case(str, "conglomerate") == 0)
+		return InsetLayout::CONGLOMERATE;
+	return InsetLayout::DEFAULT;
+}
+
+InsetLayout::InsetLaTeXType translateLaTeXType(std::string const & str)
+{
+	if (support::compare_ascii_no_case(str, "command") == 0)
+		return InsetLayout::COMMAND;
+	if (support::compare_ascii_no_case(str, "environment") == 0)
+		return InsetLayout::ENVIRONMENT;
+	if (support::compare_ascii_no_case(str, "none") == 0)
+		return InsetLayout::NOLATEXTYPE;
+	return InsetLayout::ILT_ERROR;
 }
 
 }
 
 
-bool InsetLayout::read(Lexer & lex)
+bool InsetLayout::read(Lexer & lex, TextClass & tclass)
 {
 	name_ = support::subst(lex.getDocString(), '_', ' ');
+	// FIXME We need to check for name_.empty() here, and
+	// take the same sort of action as in TextClass::read()
+	// if it is empty. Or, better, we could read name_ there,
+	// take action there, etc.
 
 	enum {
-		IL_FONT,
 		IL_BGCOLOR,
+		IL_COPYSTYLE,
+		IL_CUSTOMPARS,
 		IL_DECORATION,
-		IL_FREESPACING,
+		IL_FONT,
 		IL_FORCELTR,
+		IL_FORCEPLAIN,
+		IL_FREESPACING,
 		IL_LABELFONT,
 		IL_LABELSTRING,
 		IL_LATEXNAME,
@@ -83,10 +105,13 @@ bool InsetLayout::read(Lexer & lex)
 
 	LexerKeyword elementTags[] = {
 		{ "bgcolor", IL_BGCOLOR },
+		{ "copystyle", IL_COPYSTYLE }, 
+		{ "custompars", IL_CUSTOMPARS },
 		{ "decoration", IL_DECORATION },
 		{ "end", IL_END },
 		{ "font", IL_FONT },
 		{ "forceltr", IL_FORCELTR },
+		{ "forceplain", IL_FORCEPLAIN },
 		{ "freespacing", IL_FREESPACING },
 		{ "keepempty", IL_KEEPEMPTY },
 		{ "labelfont", IL_LABELFONT },
@@ -106,8 +131,11 @@ bool InsetLayout::read(Lexer & lex)
 
 	FontInfo font = inherit_font;
 	labelfont_ = inherit_font;
-	bgcolor_ = Color_background;
+	bgcolor_ = Color_none;
 	bool getout = false;
+	// whether we've read the CustomPars or ForcePlain tag
+	// for issuing a warning in case MultiPars comes later
+	bool readCustomOrPlain = false;
 
 	string tmp;	
 	while (!getout && lex.isOK()) {
@@ -120,12 +148,26 @@ bool InsetLayout::read(Lexer & lex)
 			break;
 		}
 		switch (le) {
-		case IL_LYXTYPE:
-			lex >> lyxtype_;
+		// FIXME
+		// Perhaps a mroe elegant way to deal with the next two would be the
+		// way this sort of thing is handled in Layout::read(), namely, by
+		// using the Lexer.
+		case IL_LYXTYPE: {
+			string lt;
+			lex >> lt;
+			lyxtype_ = translateLyXType(lt);
+			if (lyxtype_  == NOLYXTYPE)
+				LYXERR0("Unknown LyXType `" << lt << "'.");
 			break;
-		case IL_LATEXTYPE:
-			lex >> latextype_;
+		}
+		case IL_LATEXTYPE:  {
+			string lt;
+			lex >> lt;
+			latextype_ = translateLaTeXType(lt);
+			if (latextype_  == ILT_ERROR)
+				LYXERR0("Unknown LaTeXType `" << lt << "'.");
 			break;
+		}
 		case IL_LABELSTRING:
 			lex >> labelstring_;
 			break;
@@ -148,9 +190,24 @@ bool InsetLayout::read(Lexer & lex)
 			break;
 		case IL_MULTIPAR:
 			lex >> multipar_;
+			// the defaults for these depend upon multipar_
+			if (readCustomOrPlain)
+				LYXERR0("Warning: Read MultiPar after CustomPars or ForcePlain. "
+				        "Previous value may be overwritten!");
+			readCustomOrPlain = false;
+			custompars_ = multipar_;
+			forceplain_ = !multipar_;
+			break;
+		case IL_CUSTOMPARS:
+			lex >> custompars_;
+			readCustomOrPlain = true;
+			break;
+		case IL_FORCEPLAIN:
+			lex >> forceplain_;
 			break;
 		case IL_PASSTHRU:
 			lex >> passthru_;
+			readCustomOrPlain = true;
 			break;
 		case IL_KEEPEMPTY:
 			lex >> keepempty_;
@@ -161,6 +218,33 @@ bool InsetLayout::read(Lexer & lex)
 		case IL_NEEDPROTECT:
 			lex >> needprotect_;
 			break;
+		case IL_COPYSTYLE: {     // initialize with a known style
+			docstring style;
+			lex >> style;
+			style = support::subst(style, '_', ' ');
+
+			// We don't want to apply the algorithm in DocumentClass::insetLayout()
+			// here. So we do it the long way.
+			TextClass::InsetLayouts::const_iterator it = 
+					tclass.insetLayouts().find(style);
+			if (it != tclass.insetLayouts().end()) {
+				docstring const tmpname = name_;
+				this->operator=(it->second);
+				name_ = tmpname;
+			} else {
+				LYXERR0("Cannot copy unknown InsetLayout `"
+					<< style << "'\n"
+					<< "All InsetLayouts so far:");
+				TextClass::InsetLayouts::const_iterator lit = 
+						tclass.insetLayouts().begin();
+				TextClass::InsetLayouts::const_iterator len = 
+						tclass.insetLayouts().end();
+				for (; lit != len; ++lit)
+					lyxerr << lit->second.name() << "\n";
+			}
+			break;
+		}
+
 		case IL_FONT: {
 			font_ = lyxRead(lex, inherit_font);
 			// If you want to define labelfont, you need to do so after
@@ -198,6 +282,23 @@ bool InsetLayout::read(Lexer & lex)
 
 	lex.popTable();
 	return true;
+}
+
+
+InsetLayout::InsetLyXType translateLyXType(std::string const & str) 
+{
+	
+	if (support::compare_ascii_no_case(str, "charstyle") == 0)
+		return InsetLayout::CHARSTYLE;
+	if (support::compare_ascii_no_case(str, "custom") == 0)
+		return InsetLayout::CUSTOM;
+	if (support::compare_ascii_no_case(str, "element") == 0)
+		return InsetLayout::ELEMENT;
+	if (support::compare_ascii_no_case(str, "end") == 0)
+		return InsetLayout::END;
+	if (support::compare_ascii_no_case(str, "standard") == 0)
+		return InsetLayout::STANDARD;
+	return InsetLayout::NOLYXTYPE;
 }
 
 } //namespace lyx

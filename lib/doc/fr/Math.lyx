@@ -1,7 +1,8 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrartcl
 \begin_preamble
 % DO NOT ALTER THIS PREAMBLE!!!
@@ -70,9 +71,6 @@
 % provides caption formatting
 \setkomafont{captionlabel}{\bfseries}
 
-% used in Kap. 22.4
-\usepackage{braket}
-
 % used in Kap. 22.6
 \usepackage[samesize]{cancel}
 
@@ -82,9 +80,6 @@
 % for multiple table row and column cells
 \usepackage{multirow}
 \usepackage{multicol}
-
-% needed for diagrams
-\usepackage{amscd}
 
 % needed in sec. 19.4
 \usepackage{remreset}
@@ -132,6 +127,14 @@
   \setboolean{eurosym}{true}}
  {\setboolean{eurosym}{false}}
 
+% needed in sec. 22.4
+% check for package braket
+\newboolean{braket}
+\IfFileExists{braket.sty}
+ {\usepackage{braket}
+  \setboolean{braket}{true}}
+ {\setboolean{braket}{false}}
+
 % needed in sec. 22.10
 % check for package upgreek
 \newboolean{upgreek}
@@ -139,6 +142,9 @@
  {\usepackage{upgreek}
   \setboolean{upgreek}{true}}
  {\setboolean{upgreek}{false}}
+
+% use normal list environments also in French documents
+\StandardLayout
 \end_preamble
 \options bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
 \language french
@@ -151,7 +157,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -168,7 +173,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize a4paper
@@ -191,8 +195,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -298,13 +302,6 @@ was
 
 \begin_layout Section
 Introduction
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Introduction"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -448,13 +445,6 @@ target "ftp://ctan.tug.org/tex-archive/macros/amstex/doc/amsguide.ps"
 
 \begin_layout Section
 Instructions générales
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Instructions-générales"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -661,15 +651,8 @@ nom propres
 \end_layout
 
 \begin_layout Plain Layout
-Pour éviter que ces noms soient reconnus comme des noms propres, 
-\lang english
-a
-\lang french
- accolade TeX 
-\lang english
-pair is inserted
-\lang french
-.
+Pour éviter que ces noms soient reconnus comme des noms propres, on insère
+ une paire d'accolades TeX .
 \end_layout
 
 \end_inset
@@ -980,7 +963,7 @@ Une flèche comme celle-ci
 \end_layout
 
 \begin_layout Subsection*
-Unités utilisées
+Unités disponibles
 \end_layout
 
 \begin_layout Standard
@@ -998,11 +981,11 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset label
 LatexCommand label
-name "tab:Unités-utilisées"
+name "tab:Unités-disponibles"
 
 \end_inset
 
-Unités utilisées
+Unités disponibles
 \end_layout
 
 \end_inset
@@ -2133,7 +2116,60 @@ nicefrac
 \begin_inset Formula $\nicefrac{5}{31}$
 \end_inset
 
+ ou 
+\series bold
 
+\backslash
+unitfrac
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Commandes ! U ! 
+\backslash
+unitfrac
+\end_layout
+
+\end_inset
+
+: 
+\begin_inset Formula $\unitfrac{5}{31}$
+\end_inset
+
+.
+ Il y a aussi la commande 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ qui permet d'écrire une fraction en combinaison avec un nombre:
+\begin_inset Newline newline
+\end_inset
+
+Notez que 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ n'est pas une commande LaTeX réelle, mais c'est la commande
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+unitfrac[nombre]{numérateur}{dénominateur}
+\series default
+,
+\series bold
+ 
+\series default
+vous ne pouvez donc pas l'utiliser en code TeX.
 \end_layout
 
 \begin_layout Standard
@@ -3087,7 +3123,7 @@ Négations
 status collapsed
 
 \begin_layout Plain Layout
-Négations
+Negations@Négations
 \end_layout
 
 \end_inset
@@ -4109,8 +4145,100 @@ underline deux fois.
 Il est possible de mettre jusqu'à 6 lignes au dessus ou en dessous de caractères.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+On peut créer des lignes personnalisées en utilisant la commande 
+\series bold
+
+\backslash
+rule
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Commandes ! R ! 
+\backslash
+rule
+\end_layout
+
+\end_inset
+
+ qui a la syntaxe suivante:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule[décalage vertical]{longueur}{épaisseur}
+\end_layout
+
+\begin_layout Standard
+Le décalage vertical optionnel déplace la ligne vers le haut (ou vers le
+ bas, si sa valeur est négative).
+ Les unités utilisables pour ces valeurs sont listées dans 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Unités-disponibles"
+
+\end_inset
+
+.
+ Voici deux exemples de lignes créées avec les commandes
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+rule[-2ex]{3cm}{2pt}
+\series default
+ et 
+\series bold
+
+\backslash
+rule{2cm}{1pt}
+\series default
+:
+\end_layout
+
+\begin_layout Standard
+Voici une phrase 
+\begin_inset Formula $\rule[-2ex]{3cm}{2pt}\rule{2cm}{1pt}$
+\end_inset
+
+ avec deux lignes.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule
+\series default
+ peut aussi être utilisé avec du texte si elle est insérée en code TeX.
+\end_layout
+
 \begin_layout Subsection
 Points de suspension
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Points-de-suspension"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -5515,7 +5643,7 @@ Crochets
 status collapsed
 
 \begin_layout Plain Layout
-Délimiteurs
+Delimiteurs@Délimiteurs
 \end_layout
 
 \end_inset
@@ -9776,7 +9904,13 @@ status collapsed
 \series bold
 
 \backslash
-raisebox est seulement utilisée pour faire de la place
+raisebox
+\series default
+ et le 0
+\begin_inset space \thinspace{}
+\end_inset
+
+pt espace sont seulement utilisés pour faire de la place
 \end_layout
 
 \end_inset
@@ -9804,8 +9938,13 @@ i
 \begin_inset Text
 
 \begin_layout Plain Layout
+\begin_inset space \hspace{}
+\length 0pt
+\end_inset
+
 
 \lang german
+
 \begin_inset Formula $"i$
 \end_inset
 
@@ -10120,13 +10259,6 @@ sideset
 
 \begin_layout Subsection
 Accents pour plusieurs caractères
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Accents-pour-plusieurs"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -11555,7 +11687,7 @@ hspace
  Pour la valeur de la longueur toutes les unités qui sont listées dans 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "tab:Unités-utilisées"
+reference "tab:Unités-disponibles"
 
 \end_inset
 
@@ -11756,24 +11888,43 @@ hfill
 \series bold
 Indenté
 \series default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Les styles de formules sont expliqués dans 
+ (Les styles de formules sont expliqués dans 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Styles-de-formules"
 
 \end_inset
 
-
+).
 \end_layout
+
+\begin_layout Standard
+En plus de 
+\series bold
+
+\backslash
+hfill, 
+\series default
+il y a les commandes 
+\series bold
+
+\backslash
+dotfill
+\series default
+ et 
+\series bold
+
+\backslash
+hrulefill
+\series default
+ qui remplissent l'espace avec un motif, voir 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Points-de-suspension"
 
 \end_inset
 
-.
+ pour un exemple.
 \end_layout
 
 \begin_layout Standard
@@ -12386,8 +12537,7 @@ A=B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula \raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}
-
+\begin_inset Formula $\raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}$
 \end_inset
 
 
@@ -13064,13 +13214,6 @@ framebox
 
 \begin_layout Subsection
 Boîtes colorées
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Boîtes-colorées"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -17688,7 +17831,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
--
+Ctrl-b
 \end_layout
 
 \end_inset
@@ -17735,7 +17878,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-c b
+Alt-c b ou Ctrl-Alt-b
 \end_layout
 
 \end_inset
@@ -18704,13 +18847,6 @@ On peut insérer toutes les lettres grecques avec le bouton
 
 \begin_layout Subsection
 Lettres minuscules
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Minuscules"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -21933,6 +22069,9 @@ Symboles ! symbole de l'Euro
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
@@ -22283,6 +22422,13 @@ fi
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Opérateurs de relation
 \begin_inset CommandInset label
@@ -22349,24 +22495,18 @@ Tous les opérateurs de relation peuvent aussi être insérés en passant par
 \end_layout
 
 \begin_layout Standard
-
-\lang english
-\begin_inset space \hfill{}
-\end_inset
-
-
-\lang french
-
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="2">
 <features>
 <column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
 <row>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Commande
 \end_layout
 
@@ -22376,6 +22516,8 @@ Commande
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Résultat
 \end_layout
 
@@ -22793,12 +22935,14 @@ nmid
 <lyxtabular version="3" rows="17" columns="2">
 <features>
 <column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
 <row>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Commande
 \end_layout
 
@@ -22808,6 +22952,8 @@ Commande
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Résultat
 \end_layout
 
@@ -23225,12 +23371,14 @@ widehat=
 <lyxtabular version="3" rows="17" columns="2">
 <features>
 <column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
 <row>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Commande
 \end_layout
 
@@ -23240,6 +23388,8 @@ Commande
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\size small
 Résultat
 \end_layout
 
@@ -23649,12 +23799,6 @@ nparallel
 \end_inset
 
 
-\lang english
-
-\begin_inset space \hfill{}
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -23992,10 +24136,6 @@ sin(x)+B
 </row>
 </lyxtabular>
 
-\end_inset
-
-
-\begin_inset Newpage pagebreak
 \end_inset
 
 
@@ -25223,14 +25363,15 @@ AA
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
 \begin_layout Plain Layout
 
 
-\backslash
-@
 \backslash
 textrm{
 \backslash
@@ -26859,7 +27000,9 @@ circ
 status collapsed
 
 \begin_layout Plain Layout
-°
+
+\backslash
+@°
 \end_layout
 
 \end_inset
@@ -27094,7 +27237,7 @@ falign,
 voir 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:environnement-Flalign"
+reference "sub:Environnement-Flalign"
 
 \end_inset
 
@@ -27103,13 +27246,6 @@ reference "sub:environnement-Flalign"
 
 \begin_layout Section
 Formules multi-lignes
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Formules-multilignes"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -27134,14 +27270,37 @@ Ctrl-Entrée
 \family default
 \series default
  à l'intérieur d'une formule.
- Cela crée un environnement 
+ Cela crée soit un environnement 
+\series bold
+equnarray 
+\series default
+qui est décrit dans
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Environnement-eqnarray"
+
+\end_inset
+
+ 
+\series bold
+,
+\series default
+ soit dans le cas où l'option 
+\family sans
+Utilise le paquetage math AMS
+\family default
+ est activé dans les préférences du document, un environnement 
 \series bold
 align 
 \series default
 qui est décrit dans 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:environnement-align-standard"
+reference "sub:Environnement-align-standard"
 
 \end_inset
 
@@ -28084,7 +28243,7 @@ Lignes & colonnes
 L'environnement align standard
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:environnement-align-standard"
+name "sub:Environnement-align-standard"
 
 \end_inset
 
@@ -28242,7 +28401,7 @@ Puisque l'espacement des colonnes peut être choisi séparément pour chaque
 Environnement falign
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:environnement-Flalign"
+name "sub:Environnement-Flalign"
 
 \end_inset
 
@@ -28308,6 +28467,13 @@ pt au début de la première colonne.
 
 \begin_layout Subsection
 Environnement eqnarray
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Environnement-eqnarray"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -29009,18 +29175,11 @@ reference "sec:Styles-de-formules"
 
 \begin_layout Subsection
 Références croisées
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Références-croisées"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Références croisées ! à des formules
+References@Références croisées ! à des formules
 \end_layout
 
 \end_inset
@@ -30191,13 +30350,6 @@ makeatother
 
 \begin_layout Subsection
 Numérotation avec des chiffres romains ou des lettres
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Numérotation-avec-des-chiffres-romains"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -31313,11 +31465,23 @@ A=B
 
 \begin_layout Section
 Diagrammes
+\end_layout
+
+\begin_layout Standard
+LyX gère deux types de diagrammes commutatifs; amscd
+\series bold
+ et xymatrix
+\series default
+ qui sont décrits dans ce qui suit.
+\end_layout
+
+\begin_layout Subsection
+Les diagrammes amscd
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Diagrammes
+Diagrammes ! amscd
 \end_layout
 
 \end_inset
@@ -31326,49 +31490,8 @@ Diagrammes
 \end_layout
 
 \begin_layout Standard
-Pour créer des diagrammes, on utilise le paquetage LaTeX 
-\series bold
-amscd
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-amscd
-\series default
- fait partie de toutes les installations LateX standard.
-\end_layout
-
-\end_inset
-
-
-\series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Paquetages ! amscd
-\end_layout
-
-\end_inset
-
-.
- On le charge dans le préambule LaTeX avec la ligne suivante:
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-usepackage{amscd}
-\end_layout
-
-\begin_layout Standard
-Les diagrammes permettent la visualisation de relations et ressemblent à
- ceci:
+Des diagrammes de ce type visualisent les relations par des lignes verticales
+ ou horizontales ou encore des flèches: 
 \begin_inset Formula \[
 \begin{CD}A@>>>B@>>>C\\
 @AAA@.@VVV\\
@@ -31611,6 +31734,59 @@ status collapsed
 D@<<j<E@>k>>F@=C
 \end_layout
 
+\begin_layout Subsection
+Les diagrammes xymatrix
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Diagrammes ! xymatrix
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pour pouvoir utiliser des xymatrices, on doit installer le paquetage LaTeX
+ 
+\series bold
+xypic
+\series default
+.
+ Une xymatrice est créée en insérant la commande 
+\series bold
+
+\backslash
+xymatrix
+\series default
+ dans une formule.
+ Ensuite vous pouvez ajouter de nouvelles lignes et de nouvelles colonnes
+ comme pour une matrice normale, voir 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Matrices"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Contrairement aux diagrammes amscd, les xymatrices acceptent les flèches
+ diagonales ou courbes et plus encore.
+ Toutes les possibilités pour créer des diagrammes commutatifs et leurs
+ décorations sont expliquées en détail dans ce manuel: 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://wiki.lyx.org/LyX/XY-pic#xy-manual"
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Standard
 \begin_inset Newpage newpage
 \end_inset
@@ -31744,7 +31920,7 @@ name "sub:Symboles-chimiques"
 status collapsed
 
 \begin_layout Plain Layout
-E@Équations chimiques
+Equations@Équations chimiques
 \end_layout
 
 \end_inset
@@ -32563,13 +32739,6 @@ Comme on peut le voir, la distance entre le numérateur et le dénominateur
 
 \begin_layout Subsection
 Formules barrées
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Formules-barrées"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -33565,7 +33734,7 @@ Quand on utilise le style de formules
 , on utilise la méthode décrite dans 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:environnement-Flalign"
+reference "sub:Environnement-Flalign"
 
 \end_inset
 
@@ -33967,6 +34136,41 @@ reference "sub:Espace-prédéfini"
 \end_inset
 
 .
+\begin_inset Newline newline
+\end_inset
+
+Cette convention est automatiquement respectée quand on utilise la commande
+ 
+\series bold
+
+\backslash
+unittwo.
+ 
+\series default
+Quand on l'insère dans une formule, deux boîtes apparaissent.
+ Dans la première on met la valeur et dans la seconde l'unité et on obtient
+ comme ci-dessus: 
+\begin_inset Formula $\unit[30]{km/h}$
+\end_inset
+
+
+\begin_inset space \thinspace{}
+\end_inset
+
+.
+ Notez que 
+\series bold
+
+\backslash
+unittwo
+\series default
+ n'est pas une vraie commande LaTeX, mais c'est la commande 
+\series bold
+
+\backslash
+unit[valeur]{unité}
+\series default
+, vous ne pouvez donc pas l'insérer en code TeX.
 \end_layout
 
 \begin_layout Itemize

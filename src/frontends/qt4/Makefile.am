@@ -39,6 +39,8 @@ liblyxqt4_la_LIBADD = $(QT4_LIB)
 
 AM_CPPFLAGS += \
 	$(QT4_CPPFLAGS) \
+	-DQT_NO_CAST_TO_ASCII \
+	-DQT_NO_STL \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/frontends \
 	-I$(top_srcdir)/images \
@@ -258,6 +260,7 @@ UIFILES = \
 	MarginsUi.ui \
 	MathMatrixUi.ui \
 	MathsUi.ui \
+	ModulesUi.ui \
 	NomenclUi.ui \
 	NoteUi.ui \
 	NumberingUi.ui \

@@ -43,6 +43,9 @@ public:
 	/// copy constructor.
 	FileName(FileName const &);
 
+	/// constructor with base name and suffix.
+	FileName(FileName const & fn, std::string const & suffix);
+
 	///
 	FileName & operator=(FileName const &);
 
@@ -52,6 +55,7 @@ public:
 	 * Encoding is always UTF-8.
 	 */
 	virtual void set(std::string const & filename);
+	virtual void set(FileName const & fn, std::string const & suffix);
 	virtual void erase();
 	/// Is this filename empty?
 	bool empty() const;
@@ -80,7 +84,7 @@ public:
 	bool isReadOnly() const;
 	/// return true when it names a directory
 	bool isDirectory() const;
-	/// return true when file/directory is readable
+	/// return true when directory is readable
 	bool isReadableDirectory() const;
 	/// return true when it is a file and readable
 	virtual bool isReadableFile() const;
@@ -156,14 +160,23 @@ public:
 	/// relative path, the template file will be created in the global
 	/// temporary directory as given by 'package().temp_dir()'.
 	static FileName tempName(std::string const & mask = empty_string());
+	static FileName tempName(FileName const & temp_dir,
+		std::string const & mask);
 
 	/// get the current working directory
 	static FileName getcwd();
 
+	static FileName tempPath();
+
 	/// filename without path
 	std::string onlyFileName() const;
-        /// filename without path and without extension
-        std::string onlyFileNameWithoutExt() const;
+	/// filename without path and without extension
+	std::string onlyFileNameWithoutExt() const;
+	/// only extension after the last dot.
+	std::string extension() const;
+	/** checks if the file has the given extension
+		on Windows and Mac it compares case insensitive */
+	bool hasExtension(const std::string & ext);
 	/// path without file name
 	FileName onlyPath() const;
 	/// used for display in the Gui
@@ -178,6 +191,7 @@ public:
 	docstring const absoluteFilePath() const;
 
 private:
+	friend bool operator==(FileName const &, FileName const &);
 	///
 	struct Private;
 	Private * const d;

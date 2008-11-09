@@ -45,6 +45,8 @@ public:
 	mode_type currentMode() const;
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	/// 
+	void drawBackground(PainterInfo & pi, int x, int y) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 	///
@@ -55,6 +57,8 @@ public:
 	docstring label(row_type row) const;
 	///
 	void label(row_type row, docstring const & label);
+	///
+	ColorCode backgroundColor() const { return Color_mathbg; }
 	///
 	void numbered(row_type row, bool num);
 	///
@@ -109,6 +113,8 @@ public:
 	///
 	void read(Lexer & lex);
 	///
+	bool readQuiet(Lexer & lex);
+	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
@@ -121,6 +127,8 @@ public:
 	//bool insetAllowed(InsetCode code) const;
 	///
 	void addPreview(graphics::PreviewLoader &) const;
+	///
+	void initUnicodeMath() const;
 
 	///
 	static int displayMargin() { return 12; }

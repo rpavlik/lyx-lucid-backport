@@ -1,10 +1,11 @@
 #\DeclareLyXModule[braille.sty]{Braille}
 #DescriptionBegin
 #Defines an environment to typeset Braille.
+#For more details see Braille.lyx in examples.
 #DescriptionEnd
 # Author: Uwe Stöhr <uwestoehr@web.de>
 
-Format 7
+Format 11
 
 AddToPreamble
 	\usepackage{braille}
@@ -15,6 +16,7 @@ AddToPreamble
 	\newcommand{\brailletext}[1]
 	 {\setlength{\brailleunit}{0.75ex}\braille{#1}}
 EndPreamble
+
 
 # default Braille
 Style Braille_(default)
@@ -38,6 +40,7 @@ Style Braille_(default)
 	EndFont
 End
 
+
 # Braille in text size
 Style Braille_(textsize)
 	LatexType		command
@@ -59,6 +62,7 @@ Style Braille_(textsize)
 		Color		Blue
 	EndFont
 End
+
 
 # turn on dots
 Style Braille_(dots_on)
@@ -83,6 +87,7 @@ Style Braille_(dots_on)
 	EndFont
 End
 
+
 # turn off dots
 Style Braille_(dots_off)
 	LatexType		command
@@ -106,7 +111,8 @@ Style Braille_(dots_off)
 	EndFont
 End
 
-# turn off dots
+
+# turn off mirroring
 Style Braille_(mirror_on)
 	LatexType		command
 	LatexName		braillemirrortrue
@@ -129,13 +135,14 @@ Style Braille_(mirror_on)
 	EndFont
 End
 
-# turn off dots
+
+# turn off mirroring
 Style Braille_(mirror_off)
 	LatexType		command
 	LatexName		braillemirrorfalse
 	NextNoIndent		1
 	KeepEmpty		1
-	LeftMargin		"XBraille mirror off"
+	LeftMargin		XBraille_mirror_off
 	LabelSep		xx
 	ParSkip			0.0
 	ItemSep			0.2
@@ -145,10 +152,32 @@ Style Braille_(mirror_off)
 	Align			Block
 	AlignPossible		Block, Left
 	LabelType		Static
-	LabelString		"Braille mirror off"
+	LabelString		"Braille_mirror_off"
 	LabelFont
 		Shape		Italic
 		Color		Green
+	EndFont
+End
+
+
+InsetLayout Braillebox
+	LyxType			custom
+	LatexType		command
+	LatexName		braillebox
+	LabelString		"Braille box"
+	Font
+	  Color			foreground
+	  Size			Small
+	  Family		Roman
+	  Shape			Up
+	  Series		Medium
+	  Misc			No_Emph
+	  Misc			No_Noun
+	  Misc			No_Bar
+	EndFont
+	LabelFont
+	  Color			green
+	  Size			Small
 	EndFont
 End
 

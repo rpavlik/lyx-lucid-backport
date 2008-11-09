@@ -425,8 +425,10 @@ bool TextMetrics::redoParagraph(pit_type const pit)
 		MetricsInfo mi(bv_, font.fontInfo(), w, mc);
 		ii->inset->metrics(mi, dim);
 		Dimension const old_dim = pm.insetDimension(ii->inset);
-		pm.setInsetDimension(ii->inset, dim);
-		changed |= (old_dim != dim);
+		if (old_dim != dim) {
+			pm.setInsetDimension(ii->inset, dim);
+			changed = true;
+		}
 	}
 
 	par.setBeginOfBody();
@@ -549,6 +551,21 @@ void TextMetrics::computeRowMetrics(pit_type const pit,
 			align = layout.align;
 		else
 			align = par.params().align();
+
+		// handle alignment inside tabular cells
+		Inset const & owner = par.inInset();
+		switch (owner.contentAlignment()) {
+			case LYX_ALIGN_CENTER:
+			case LYX_ALIGN_LEFT:
+			case LYX_ALIGN_RIGHT:
+				if (align == LYX_ALIGN_NONE 
+				    || align == LYX_ALIGN_BLOCK)
+					align = owner.contentAlignment();
+				break;
+			default:
+				// unchanged (use align)
+				break;
+		}
 
 		// Display-style insets should always be on a centred row
 		if (Inset const * inset = par.getInset(row.pos())) {
@@ -1300,7 +1317,8 @@ void TextMetrics::newParMetricsUp()
 // y is screen coordinate
 pit_type TextMetrics::getPitNearY(int y)
 {
-	LASSERT(!text_->paragraphs().empty(), /**/);
+	LASSERT(!text_->paragraphs().empty(), return -1);
+	LASSERT(!par_metrics_.empty(), return -1);
 	LYXERR(Debug::DEBUG, "y: " << y << " cache size: " << par_metrics_.size());
 
 	// look for highest numbered paragraph with y coordinate less than given y
@@ -1383,7 +1401,7 @@ Inset * TextMetrics::editXY(Cursor & cur, int x, int y)
 		cur.bv().coordCache().dump();
 	}
 	pit_type pit = getPitNearY(y);
-	LASSERT(pit != -1, /**/);
+	LASSERT(pit != -1, return 0);
 
 	Row const & row = getRowNearY(y, pit);
 	bool bound = false;
@@ -1437,6 +1455,7 @@ void TextMetrics::setCursorFromCoordinates(Cursor & cur, int const x, int const 
 {
 	LASSERT(text_ == cur.text(), /**/);
 	pit_type pit = getPitNearY(y);
+	LASSERT(pit != -1, return);
 
 	ParagraphMetrics const & pm = par_metrics_[pit];
 
@@ -1473,7 +1492,7 @@ void TextMetrics::setCursorFromCoordinates(Cursor & cur, int const x, int const 
 Inset * TextMetrics::checkInsetHit(int x, int y)
 {
 	pit_type pit = getPitNearY(y);
-	LASSERT(pit != -1, /**/);
+	LASSERT(pit != -1, return 0);
 
 	Paragraph const & par = text_->paragraphs()[pit];
 	ParagraphMetrics const & pm = par_metrics_[pit];
@@ -1716,7 +1735,7 @@ void TextMetrics::deleteLineForward(Cursor & cur)
 		text_->cursorForward(cur);
 	} else {
 		cur.resetAnchor();
-		cur.selection() = true; // to avoid deletion
+		cur.setSelection(true); // to avoid deletion
 		cursorEnd(cur);
 		cur.setSelection();
 		// What is this test for ??? (JMarc)
@@ -1900,7 +1919,7 @@ int TextMetrics::leftMargin(int max_width,
 	    && align == LYX_ALIGN_BLOCK
 	    && !par.params().noindent()
 	    // in some insets, paragraphs are never indented
-	    && !(par.inInset() && par.inInset()->neverIndent())
+	    && !par.inInset().neverIndent()
 	    // display style insets are always centered, omit indentation
 	    && !(!par.empty()
 		    && par.isInset(pos)
@@ -1971,15 +1990,19 @@ void TextMetrics::drawParagraph(PainterInfo & pi, pit_type pit, int x, int y) co
 		&& cur.anchor().text() == text_
 		&& pit >= sel_beg.pit() && pit <= sel_end.pit();
 
+	// We store the begin and end pos of the selection relative to this par
+	DocIterator sel_beg_par = cur.selectionBegin();
+	DocIterator sel_end_par = cur.selectionEnd();
+	
 	// We care only about visible selection.
 	if (selection) {
 		if (pit != sel_beg.pit()) {
-			sel_beg.pit() = pit;
-			sel_beg.pos() = 0;
+			sel_beg_par.pit() = pit;
+			sel_beg_par.pos() = 0;
 		}
 		if (pit != sel_end.pit()) {
-			sel_end.pit() = pit;
-			sel_end.pos() = sel_end.lastpos();
+			sel_end_par.pit() = pit;
+			sel_end_par.pos() = sel_end_par.lastpos();
 		}
 	}
 
@@ -1996,9 +2019,18 @@ void TextMetrics::drawParagraph(PainterInfo & pi, pit_type pit, int x, int y) co
 		RowPainter rp(pi, *text_, pit, row, bidi, x, y);
 
 		if (selection)
-			row.setSelection(sel_beg.pos(), sel_end.pos());
+			row.setSelectionAndMargins(sel_beg_par, sel_end_par);
 		else
 			row.setSelection(-1, -1);
+		
+		// The row knows nothing about the paragraph, so we have to check
+		// whether this row is the first or last and update the margins.
+		if (row.selection()) {
+			if (row.sel_beg == 0)
+				row.begin_margin_sel = sel_beg.pit() < pit;
+			if (row.sel_end == sel_end_par.lastpos())
+				row.end_margin_sel = sel_end.pit() > pit;
+		}
 
 		// Row signature; has row changed since last paint?
 		row.setCrc(pm.computeRowSignature(row, bparams));
@@ -2020,34 +2052,18 @@ void TextMetrics::drawParagraph(PainterInfo & pi, pit_type pit, int x, int y) co
 			pi.pain.fillRectangle(x, y - row.ascent(),
 				width(), row.height(), pi.background_color);
 		}
-
-		bool row_selection = row.sel_beg != -1 && row.sel_end != -1;
-		if (row_selection) {
-			DocIterator beg = bv_->cursor().selectionBegin();
-			DocIterator end = bv_->cursor().selectionEnd();
-			// FIXME (not here): pit is not updated when extending
-			// a selection to a new row with cursor right/left
-			bool const beg_margin = beg.pit() < pit;
-			bool const end_margin = end.pit() > pit;
-			beg.pit() = pit;
-			beg.pos() = row.sel_beg;
-			end.pit() = pit;
-			end.pos() = row.sel_end;
-			if (end.pos() == row.endpos()) {
-				// selection goes till the end of the row.
-				end.boundary(true);
-			}
-			drawRowSelection(pi, x, row, beg, end, beg_margin, end_margin);
-		}
+		
+		if (row.selection())
+			drawRowSelection(pi, x, row, cur, pit);
 
 		// Instrumentation for testing row cache (see also
 		// 12 lines lower):
 		if (lyxerr.debugging(Debug::PAINTING) && inside
-			&& (row_selection || pi.full_repaint || row_has_changed)) {
+			&& (row.selection() || pi.full_repaint || row_has_changed)) {
 				string const foreword = text_->isMainText(bv_->buffer()) ?
 					"main text redraw " : "inset text redraw: ";
 			LYXERR(Debug::PAINTING, foreword << "pit=" << pit << " row=" << i
-				<< " row_selection="	<< row_selection
+				<< " row_selection="	<< row.selection()
 				<< " full_repaint="	<< pi.full_repaint
 				<< " row_has_changed="	<< row_has_changed);
 		}
@@ -2076,34 +2092,48 @@ void TextMetrics::drawParagraph(PainterInfo & pi, pit_type pit, int x, int y) co
 
 
 void TextMetrics::drawRowSelection(PainterInfo & pi, int x, Row const & row,
-		DocIterator const & beg, DocIterator const & end,
-		bool drawOnBegMargin, bool drawOnEndMargin) const
+		Cursor const & curs, pit_type pit) const
 {
+	DocIterator beg = curs.selectionBegin();
+	beg.pit() = pit;
+	beg.pos() = row.sel_beg;
+
+	DocIterator end = curs.selectionEnd();
+	end.pit() = pit;
+	end.pos() = row.sel_end;
+
+	bool const begin_boundary = beg.pos() >= row.endpos();
+	bool const end_boundary = row.sel_end == row.endpos();
+
 	Buffer & buffer = bv_->buffer();
 	DocIterator cur = beg;
-	int x1 = cursorX(beg.top(), beg.boundary());
-	int x2 = cursorX(end.top(), end.boundary());
-	int y1 = bv_->getPos(cur, cur.boundary()).y_ - row.ascent();
-	int y2 = y1 + row.height();
+	cur.boundary(begin_boundary);
+	int x1 = cursorX(beg.top(), begin_boundary);
+	int x2 = cursorX(end.top(), end_boundary);
+	int const y1 = bv_->getPos(cur, cur.boundary()).y_ - row.ascent();
+	int const y2 = y1 + row.height();
+
+	int const rm = text_->isMainText(buffer) ? bv_->rightMargin() : 0;
+	int const lm = text_->isMainText(buffer) ? bv_->leftMargin() : 0;
 
 	// draw the margins
-	if (drawOnBegMargin) {
+	if (row.begin_margin_sel) {
 		if (text_->isRTL(buffer, beg.paragraph())) {
-			int lm = bv_->leftMargin();
-			pi.pain.fillRectangle(x + x1, y1, width() - lm - x1, y2 - y1, Color_selection);
+			pi.pain.fillRectangle(x + x1, y1,  width() - rm - x1, y2 - y1,
+				Color_selection);
 		} else {
-			int rm = bv_->rightMargin();
-			pi.pain.fillRectangle(rm, y1, x1 - rm, y2 - y1, Color_selection);
+			pi.pain.fillRectangle(x + lm, y1, x1 - lm, y2 - y1,
+				Color_selection);
 		}
 	}
 
-	if (drawOnEndMargin) {
+	if (row.end_margin_sel) {
 		if (text_->isRTL(buffer, beg.paragraph())) {
-			int rm = bv_->rightMargin();
-			pi.pain.fillRectangle(x + rm, y1, x2 - rm, y2 - y1, Color_selection);
+			pi.pain.fillRectangle(x + lm, y1, x2 - lm, y2 - y1,
+				Color_selection);
 		} else {
-			int lm = bv_->leftMargin();
-			pi.pain.fillRectangle(x + x2, y1, width() - lm - x2, y2 - y1, Color_selection);
+			pi.pain.fillRectangle(x + x2, y1, width() - rm - x2, y2 - y1,
+				Color_selection);
 		}
 	}
 
@@ -2121,13 +2151,13 @@ void TextMetrics::drawRowSelection(PainterInfo & pi, int x, Row const & row,
 		// descend into insets and which does not go into the
 		// next line. Compare the logic with the original cursorForward
 
-		// if left of boundary -> just jump to right side
-		// but for RTL boundaries don't, because: abc|DDEEFFghi -> abcDDEEF|Fghi
+		// if left of boundary -> just jump to right side, but
+		// for RTL boundaries don't, because: abc|DDEEFFghi -> abcDDEEF|Fghi
 		if (cur.boundary()) {
 			cur.boundary(false);
 		}	else if (isRTLBoundary(cur.pit(), cur.pos() + 1)) {
-			// in front of RTL boundary -> Stay on this side of the boundary because:
-			//   ab|cDDEEFFghi -> abc|DDEEFFghi
+			// in front of RTL boundary -> Stay on this side of the boundary
+			// because:  ab|cDDEEFFghi -> abc|DDEEFFghi
 			++cur.pos();
 			cur.boundary(true);
 			drawNow = true;

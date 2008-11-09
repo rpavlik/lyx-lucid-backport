@@ -63,9 +63,9 @@ Menuset
 		OptItem "Register...|R" "vc-register"
 		OptItem "Check In Changes...|I" "vc-check-in"
 		OptItem "Check Out for Edit|O" "vc-check-out"
-		OptItem "Revert to Last Version|L" "vc-revert"
+		OptItem "Revert to Repository Version|R" "vc-revert"
 		OptItem "Undo Last Check In|U" "vc-undo-last"
-		OptItem "Show History|H" "dialog-show vclog"
+		OptItem "Show History...|H" "dialog-show vclog"
 	End
 
 	Menu "file_import"
@@ -294,8 +294,8 @@ Menuset
 		Submenu "Update|U" "view_update"
 		ViewFormats
 		Separator
-		Item "Split View Horizontally|i" "split-view horizontal"
-		Item "Split View Vertically|V" "split-view vertical"
+		Item "Split View Into Left And Right Half|i" "split-view horizontal"
+		Item "Split View Into Upper And Lower Half|V" "split-view vertical"
 		Item "Close Tab Group|G" "close-tab-group"
 		Item "Fullscreen|l" "ui-toggle fullscreen"
 		Submenu "Toolbars|b" "toolbars"
@@ -517,17 +517,25 @@ Menuset
 		Item "Introduction|I" "help-open Intro"
 		Item "Tutorial|T" "help-open Tutorial"
 		Item "User's Guide|U" "help-open UserGuide"
-		Item "Extended Features|E" "help-open Extended"
-		Item "Embedded Objects|m" "help-open EmbeddedObjects"
-		Item "Math|h" "help-open Math"
+		Item "Additional Features|F" "help-open Extended"
+		Item "Embedded Objects|O" "help-open EmbeddedObjects"
+		Item "Math|M" "help-open Math"
 		Item "Customization|C" "help-open Customization"
 		Item "Shortcuts|S" "help-open Shortcuts"
-		Item "FAQ|F" "help-open FAQ"
-		Item "Table of Contents|a" "help-open TOC"
+		Item "LyX Functions|y" "help-open LFUNs"
 		Item "LaTeX Configuration|L" "help-open LaTeXConfig"
+		Submenu "Specific Manuals|p" "examples"
 		Separator
 		Item "About LyX|X" "dialog-show aboutlyx"
 	End
+
+	Menu "examples"
+		Item "Linguistics Manual|L" "help-open ../examples/linguistics.lyx"
+		Item "Braille Manual|B" "help-open ../examples/Braille.lyx"
+		Item "XY-pic Manual|X" "help-open ../examples/xypic.lyx"
+		Item "Multicolumn Manual|M" "help-open ../examples/multicol.lyx"
+	End
+
 
 End
 

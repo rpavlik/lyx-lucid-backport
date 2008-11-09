@@ -54,6 +54,7 @@
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/lyxalgo.h" // sorted
+#include "support/Messages.h"
 #include "support/os.h"
 #include "support/Package.h"
 
@@ -63,9 +64,11 @@
 
 #include <QByteArray>
 #include <QClipboard>
+#include <QDateTime>
 #include <QDir>
 #include <QEventLoop>
 #include <QFileOpenEvent>
+#include <QFileInfo>
 #include <QHash>
 #include <QIcon>
 #include <QImageReader>
@@ -80,6 +83,7 @@
 #include <QPixmapCache>
 #include <QRegExp>
 #include <QSessionManager>
+#include <QSettings>
 #include <QSocketNotifier>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
@@ -97,7 +101,7 @@
 
 #ifdef Q_WS_WIN
 #include <QWindowsMime>
-#if defined(Q_CYGWIN_WIN) || defined(Q_CC_MINGW)
+#ifdef Q_CC_GNU
 #include <wtypes.h>
 #endif
 #include <objidl.h>
@@ -127,6 +131,19 @@ namespace lyx {
 
 frontend::Application * createApplication(int & argc, char * argv[])
 {
+#ifndef Q_WS_X11
+	// prune -geometry argument(s) by shifting
+	// the following ones 2 places down.
+	for (int i = 0 ; i < argc ; ++i) {
+		if (argv[i] == "-geometry") {
+			int const remove = (i+1) < argc ? 2 : 1;
+			argc -= remove;
+			for (int j = i; j < argc; ++j)
+				argv[j] = argv[j + remove];
+			--i;
+		}
+	}
+#endif
 	return new frontend::GuiApplication(argc, argv);
 }
 
@@ -159,7 +176,18 @@ vector<string> loadableImageFormats()
 
 	return fmts;
 }
-	
+
+
+class FuncRequestEvent : public QEvent
+{
+public:
+       FuncRequestEvent(FuncRequest const & req) 
+       : QEvent(QEvent::User), request(req) {}
+
+       FuncRequest const request;
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 // Icon loading support code.
 ////////////////////////////////////////////////////////////////////////
@@ -576,15 +604,7 @@ public:
 
 struct GuiApplication::Private
 {
-	Private()
-		: language_model_(0), global_menubar_(0)
-	{
-#ifdef Q_WS_MACX
-		// Create the global default menubar which is shown for the dialogs
-		// and if no GuiView is visible.
-		global_menubar_ = new GlobalMenuBar();
-#endif
-	}
+	Private(): language_model_(0), global_menubar_(0) {}
 
 	///
 	QSortFilterProxyModel * language_model_;
@@ -661,6 +681,9 @@ GuiApplication::GuiApplication(int & argc, char ** argv)
 	QCoreApplication::setOrganizationDomain("lyx.org");
 	QCoreApplication::setApplicationName(app_name + "-" + lyx_version);
 
+	// Install translator for GUI elements.
+	installTranslator(&d->qt_trans_);
+
 	// FIXME: quitOnLastWindowClosed is true by default. We should have a
 	// lyxrc setting for this in order to let the application stay resident.
 	// But then we need some kind of dock icon, at least on Windows.
@@ -672,6 +695,11 @@ GuiApplication::GuiApplication(int & argc, char ** argv)
 	// FIXME: Do we need a lyxrc setting for this on Mac? This behaviour
 	// seems to be the default case for applications like LyX.
 	setQuitOnLastWindowClosed(false);
+
+	// This allows to translate the strings that appear in the LyX menu.
+	/// A translator suitable for the entries in the LyX menu.
+	/// Only needed with Qt/Mac.
+	installTranslator(new MenuTranslator(this));
 #endif
 	
 #ifdef Q_WS_X11
@@ -682,36 +710,7 @@ GuiApplication::GuiApplication(int & argc, char ** argv)
 	QApplication::setDoubleClickInterval(300);
 #endif
 
-	// install translation file for Qt built-in dialogs
-	QString language_name = QString("qt_") + QLocale::system().name();
-	
-	// language_name can be short (e.g. qt_zh) or long (e.g. qt_zh_CN). 
-	// Short-named translator can be loaded from a long name, but not the
-	// opposite. Therefore, long name should be used without truncation.
-	// c.f. http://doc.trolltech.com/4.1/qtranslator.html#load
-	if (d->qt_trans_.load(language_name,
-		QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
-	{
-		installTranslator(&d->qt_trans_);
-		// even if the language calls for RtL, don't do that
-		setLayoutDirection(Qt::LeftToRight);
-		LYXERR(Debug::GUI, "Successfully installed Qt translations for locale "
-			<< language_name);
-	} else
-		LYXERR(Debug::GUI, "Could not find  Qt translations for locale "
-			<< language_name);
-
-#ifdef Q_WS_MACX
-	// This allows to translate the strings that appear in the LyX menu.
-	/// A translator suitable for the entries in the LyX menu.
-	/// Only needed with Qt/Mac.
-	installTranslator(new MenuTranslator(this));
-#endif
 	connect(this, SIGNAL(lastWindowClosed()), this, SLOT(onLastWindowClosed()));
-
-	using namespace lyx::graphics;
-
-	Image::newImage = boost::bind(&GuiImage::newImage);
 
 	// needs to be done before reading lyxrc
 	QWidget w;
@@ -737,6 +736,13 @@ GuiApplication::GuiApplication(int & argc, char ** argv)
 	connect(&d->general_timer_, SIGNAL(timeout()),
 		this, SLOT(handleRegularEvents()));
 	d->general_timer_.start();
+}
+
+
+void GuiApplication::clearSession()
+{
+	QSettings settings;
+	settings.clear();
 }
 
 
@@ -788,7 +794,7 @@ bool GuiApplication::dispatch(FuncRequest const & cmd)
 
 	case LFUN_WINDOW_CLOSE:
 		// update bookmark pit of the current buffer before window close
-		for (size_t i = 0; i < LyX::ref().session().bookmarks().size(); ++i)
+		for (size_t i = 0; i < theSession().bookmarks().size(); ++i)
 			theLyXFunc().gotoBookmark(i+1, false, false);
 		current_view_->close();
 		break;
@@ -853,7 +859,7 @@ bool GuiApplication::dispatch(FuncRequest const & cmd)
 			crc = for_each(fname.begin(), fname.end(), crc);
 			createView(crc.checksum());
 			current_view_->openDocument(fname);
-			if (!current_view_->buffer())
+			if (current_view_ && !current_view_->buffer())
 				current_view_->close();
 		} else
 			current_view_->openDocument(to_utf8(cmd.argument()));
@@ -904,21 +910,22 @@ bool GuiApplication::dispatch(FuncRequest const & cmd)
 void GuiApplication::resetGui()
 {
 	// Set the language defined by the user.
-	LyX::ref().setRcGuiLanguage();
+	setGuiLanguage();
 
 	// Read menus
 	if (!readUIFile(toqstr(lyxrc.ui_file)))
 		// Gives some error box here.
 		return;
 
-	// init the global menubar on Mac. This must be done after the session
-	// was recovered to know the "last files".
 	if (d->global_menubar_)
-		d->menus_.fillMenuBar(d->global_menubar_, 0, true);
+		d->menus_.fillMenuBar(d->global_menubar_, 0, false);
 
 	QHash<int, GuiView *>::iterator it;
-	for (it = d->views_.begin(); it != d->views_.end(); ++it)
-		(*it)->resetDialogs();
+	for (it = d->views_.begin(); it != d->views_.end(); ++it) {
+		GuiView * gv = *it;
+		gv->setLayoutDirection(layoutDirection());
+		gv->resetDialogs();
+	}
 
 	dispatch(FuncRequest(LFUN_SCREEN_FONT_UPDATE));
 }
@@ -968,7 +975,6 @@ void GuiApplication::createView(QString const & geometry_arg, bool autoShow,
 #endif
 	}
 	view->setFocus();
-	setCurrentView(view);
 }
 
 
@@ -1028,7 +1034,11 @@ ColorCache & GuiApplication::colorCache()
 
 int GuiApplication::exec()
 {
-	QTimer::singleShot(1, this, SLOT(execBatchCommands()));
+	// asynchronously handle batch commands. This event will be in
+	// the event queue in front of other asynchronous events. Hence,
+	// we can assume in the latter that the gui is setup already.
+	QTimer::singleShot(0, this, SLOT(execBatchCommands()));
+
 	return QApplication::exec();
 }
 
@@ -1039,23 +1049,65 @@ void GuiApplication::exit(int status)
 }
 
 
-void GuiApplication::execBatchCommands()
+void GuiApplication::setGuiLanguage()
 {
 	// Set the language defined by the user.
-	LyX::ref().setRcGuiLanguage();
+	setRcGuiLanguage();
+
+	QString const default_language = toqstr(Messages::defaultLanguage());
+	LYXERR(Debug::LOCALE, "Tring to set default locale to: " << default_language);
+	QLocale const default_locale(default_language);
+	QLocale::setDefault(default_locale);
+
+	// install translation file for Qt built-in dialogs
+	QString const language_name = QString("qt_") + default_locale.name();
+
+	// language_name can be short (e.g. qt_zh) or long (e.g. qt_zh_CN). 
+	// Short-named translator can be loaded from a long name, but not the
+	// opposite. Therefore, long name should be used without truncation.
+	// c.f. http://doc.trolltech.com/4.1/qtranslator.html#load
+	if (!d->qt_trans_.load(language_name,
+			QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+		LYXERR(Debug::LOCALE, "Could not find  Qt translations for locale "
+			<< language_name);
+	} else {
+		LYXERR(Debug::LOCALE, "Successfully installed Qt translations for locale "
+			<< language_name);
+	}
+
+	switch (default_locale.language()) {
+	case QLocale::Arabic :
+	case QLocale::Hebrew :
+	case QLocale::Persian :
+	case QLocale::Urdu :
+        setLayoutDirection(Qt::RightToLeft);
+		break;
+	default:
+        setLayoutDirection(Qt::LeftToRight);
+	}
+}
+
+
+void GuiApplication::execBatchCommands()
+{
+	setGuiLanguage();
 
 	// Read menus
 	if (!readUIFile(toqstr(lyxrc.ui_file)))
 		// Gives some error box here.
 		return;
 
-	// init the global menubar on Mac. This must be done after the session
-	// was recovered to know the "last files".
-	if (d->global_menubar_)
-		d->menus_.fillMenuBar(d->global_menubar_, 0, true);
+#ifdef Q_WS_MACX
+	// Create the global default menubar which is shown for the dialogs
+	// and if no GuiView is visible.
+	// This must be done after the session was recovered to know the "last files".
+	d->global_menubar_ = new GlobalMenuBar();
+	d->menus_.fillMenuBar(d->global_menubar_, 0, true);
+#endif
 
-	LyX::ref().execBatchCommands();
+	lyx::execBatchCommands();
 }
+
 
 QAbstractItemModel * GuiApplication::languageModel()
 {
@@ -1088,7 +1140,7 @@ void GuiApplication::restoreGuiSession()
 	if (!lyxrc.load_session)
 		return;
 
-	Session & session = LyX::ref().session();
+	Session & session = theSession();
 	vector<FileName> const & lastopened = session.lastOpened().getfiles();
 	// do not add to the lastfile list since these files are restored from
 	// last session, and should be already there (regular files), or should
@@ -1140,14 +1192,25 @@ void GuiApplication::handleRegularEvents()
 }
 
 
+void GuiApplication::customEvent(QEvent * event)
+{
+       FuncRequestEvent * reqEv = static_cast<FuncRequestEvent *>(event);
+       lyx::dispatch(reqEv->request);
+}
+
+
 bool GuiApplication::event(QEvent * e)
 {
 	switch(e->type()) {
 	case QEvent::FileOpen: {
-		// Open a file; this happens only on Mac OS X for now
+		// Open a file; this happens only on Mac OS X for now.
+		//
+		// We do this asynchronously because on startup the batch
+		// commands are not executed here yet and the gui is not ready
+		// therefore.
 		QFileOpenEvent * foe = static_cast<QFileOpenEvent *>(e);
-		lyx::dispatch(FuncRequest(LFUN_FILE_OPEN,
-			qstring_to_ucs4(foe->file())));
+		postEvent(this, new FuncRequestEvent(FuncRequest(LFUN_FILE_OPEN,
+			qstring_to_ucs4(foe->file()))));
 		e->accept();
 		return true;
 	}
@@ -1165,7 +1228,7 @@ bool GuiApplication::notify(QObject * receiver, QEvent * event)
 	catch (ExceptionMessage const & e) {
 		switch(e.type_) { 
 		case ErrorException:
-			LyX::cref().emergencyCleanup();
+			emergencyCleanup();
 			setQuitOnLastWindowClosed(false);
 			closeAllViews();
 			Alert::error(e.title_, e.details_);
@@ -1196,13 +1259,13 @@ bool GuiApplication::notify(QObject * receiver, QEvent * event)
 			"\n\nException: ");
 		s += from_ascii(e.what());
 		Alert::error(_("Software exception Detected"), s);
-		LyX::cref().exit(1);
+		lyx_exit(1);
 	}
 	catch (...) {
 		docstring s = _("LyX has caught some really weird exception, it will "
 			"now attempt to save all unsaved documents and exit.");
 		Alert::error(_("Software exception Detected"), s);
-		LyX::cref().exit(1);
+		lyx_exit(1);
 	}
 
 	return false;
@@ -1343,21 +1406,6 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 		{ "toolbarset", ui_toolbarset }
 	};
 
-	// Ensure that a file is read only once (prevents include loops)
-	static QStringList uifiles;
-	if (uifiles.contains(name)) {
-		if (!include) {
-			// We are reading again the top uifile so reset the safeguard:
-			uifiles.clear();
-			d->menus_.reset();
-			d->toolbars_.reset();
-		} else {
-			LYXERR(Debug::INIT, "UI file '" << name << "' has been read already. "
-				<< "Is this an include loop?");
-			return false;
-		}
-	}
-
 	LYXERR(Debug::INIT, "About to read " << name << "...");
 
 	FileName ui_path;
@@ -1377,9 +1425,26 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 		return false;
 	}
 
-	uifiles.push_back(name);
+
+	// Ensure that a file is read only once (prevents include loops)
+	static QStringList uifiles;
+	QString const uifile = toqstr(ui_path.absFilename());
+	if (uifiles.contains(uifile)) {
+		if (!include) {
+			// We are reading again the top uifile so reset the safeguard:
+			uifiles.clear();
+			d->menus_.reset();
+			d->toolbars_.reset();
+		} else {
+			LYXERR(Debug::INIT, "UI file '" << name << "' has been read already. "
+				<< "Is this an include loop?");
+			return false;
+		}
+	}
+	uifiles.push_back(uifile);
 
 	LYXERR(Debug::INIT, "Found " << name << " in " << ui_path);
+
 	Lexer lex(uitags);
 	lex.setFile(ui_path);
 	if (!lex.isOK()) {
@@ -1418,6 +1483,29 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 			break;
 		}
 	}
+
+	if (include)
+		return true;
+
+	QSettings settings;
+	settings.beginGroup("ui_files");
+	bool touched = false;
+	for (int i = 0; i != uifiles.size(); ++i) {
+		QFileInfo fi(uifiles[i]);
+		QDateTime const date_value = fi.lastModified();
+		QString const name_key = QString::number(i);
+		if (!settings.contains(name_key)
+		 || settings.value(name_key).toString() != uifiles[i]
+		 || settings.value(name_key + "/date").toDateTime() != date_value) {
+			touched = true;
+			settings.setValue(name_key, uifiles[i]);
+			settings.setValue(name_key + "/date", date_value);
+		}
+	}
+	settings.endGroup();
+	if (touched)
+		settings.remove("views");
+
 	return true;
 }
 
@@ -1443,7 +1531,7 @@ bool GuiApplication::x11EventFilter(XEvent * xev)
 	case SelectionRequest: {
 		if (xev->xselectionrequest.selection != XA_PRIMARY)
 			break;
-		LYXERR(Debug::GUI, "X requested selection.");
+		LYXERR(Debug::SELECTION, "X requested selection.");
 		BufferView * bv = current_view_->view();
 		if (bv) {
 			docstring const sel = bv->requestSelection();
@@ -1455,7 +1543,7 @@ bool GuiApplication::x11EventFilter(XEvent * xev)
 	case SelectionClear: {
 		if (xev->xselectionclear.selection != XA_PRIMARY)
 			break;
-		LYXERR(Debug::GUI, "Lost selection.");
+		LYXERR(Debug::SELECTION, "Lost selection.");
 		BufferView * bv = current_view_->view();
 		if (bv)
 			bv->clearSelection();

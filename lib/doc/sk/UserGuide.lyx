@@ -1,82 +1,50 @@
-#LyX 1.5.2svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
-\textclass book
+\use_default_options false
+\textclass scrbook
 \begin_preamble
-% DO NOT ALTER THIS PREAMBLE!!!!
+% DO NOT ALTER THIS PREAMBLE!!!
 %
-% I've designed this preamble to ensure that the User's Guide prints
+% This preamble is designed to ensure that the User's Guide prints
 % out as advertised. If you mess with this preamble,
 % parts of the User's Guide may not print out as expected.  If you
 % have problems LaTeXing this file, please contact 
-% the documentation team intead of messing around in here.  --jpw 4/97
+% the documentation team
+% email: lyx-docs@lists.lyx.org
 
-%% Widens the vertical table spacing
-%%
-\renewcommand{\arraystretch}{1.25}
-\setlength{\tabcolsep}{0.45em}
+\usepackage{ifpdf} % part of the hyperref bundle
+\ifpdf % if pdflatex is used
 
+ % set fonts for nicer pdf view
+ \IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
 
-%% Provides certain commands which are missing.
-%%
-\DeclareRobustCommand{\textyen}{%
-{\fontencoding{U}\fontfamily{msa}\selectfont\char85}%
-}
-\DeclareRobustCommand{\textcurrency}{%
-{\fontencoding{U}\fontfamily{wasy}\selectfont\char27}%
-}
-\DeclareRobustCommand{\textcent}{%
-{\fontencoding{U}\fontfamily{wasy}\selectfont\char103}%
-}
-\DeclareRobustCommand{\textbrokenbar}{%
-{\fontencoding{U}\fontfamily{wasy}\selectfont\char124}%
-}
+\fi % end if pdflatex is used
 
+% for correct jump positions whe clicking on a link to a float
+\usepackage[figure]{hypcap}
 
-%% For some odd reason, this character isn't defined in T1-encoding. 
-%%
-\DeclareInputText{"0AD}{\textendash}
+% the pages of the TOC is numbered roman
+% and a pdf-bookmark for the TOC is added
+\let\myTOC\tableofcontents
+\renewcommand\tableofcontents{%
+  \frontmatter
+  \pdfbookmark[1]{\contentsname}{}
+  \myTOC
+  \mainmatter }
 
+% redefine the \LyX macro for PDF bookmarks
+\def\LyX{\texorpdfstring{%
+  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
+  {LyX }}
 
-%% Accented characters missing in non-T1 encodings.
-%%
-\ProvideTextCommandDefault{\quotedblbase}{%
-\raisebox{-1ex}{\textquotedblright}
-\hspace{-0.7em}
-}
-\ProvideTextCommandDefault{\quotesinglbase}{%
-\raisebox{-1ex}{\textquoteright}
-\hspace{-0.7em}
-}
-\ProvideTextCommandDefault{\guillemotleft}{%
-\raisebox{0.27ex}{\ensuremath{\scriptscriptstyle \ll\!\!\!}}
-}
-\ProvideTextCommandDefault{\guillemotright}{%
-\raisebox{0.27ex}{\ensuremath{\scriptscriptstyle \gg}}
-}
-\ProvideTextCommandDefault{\guilsinglleft}{%
-\raisebox{0.27ex}{\ensuremath{\scriptscriptstyle <\!\!\!}}
-}
-\ProvideTextCommandDefault{\guilsinglright}{%
-\raisebox{0.27ex}{\ensuremath{\scriptscriptstyle >}}
-}
-\ProvideTextCommandDefault{\DH}{%
-D\hspace{-0.7em}\rule[0.8ex]{0.30em}{0.08ex}\hspace{0.40em}
-}
-\ProvideTextCommandDefault{\dh}{%
-\ensuremath{\mathrm{\partial}}
-\hspace{-0.65em}\rule[1.35ex]{0.3em}{0.08ex}\hspace{0.35em}
-}
-\ProvideTextCommandDefault{\TH}{%
-\textsc{I\hspace{-0.325em}p}
-}
-\ProvideTextCommandDefault{\th}{%
-p\hspace{-0.55em}l
-}
+%remove this line when bug 5291 is fixed
+\@ifundefined{textcolor}{\usepackage{color}}{}
 \end_preamble
+\options intoc,bibtotoc,idxtotoc,BCOR7mm,tablecaptionabove
 \language slovak
-\inputencoding latin2
+\inputencoding auto
 \font_roman default
 \font_sans default
 \font_typewriter default
@@ -86,9 +54,23 @@ p\hspace{-0.55em}l
 \font_sf_scale 100
 \font_tt_scale 100
 \graphics default
-\float_placement htp
-\paperfontsize default
+\paperfontsize 12
 \spacing single
+\use_hyperref true
+\pdf_title "Užívateľská príručka LyXu"
+\pdf_author "LyX Team, translation: Stanislav Peťko"
+\pdf_subject "LyX"
+\pdf_keywords "LyX"
+\pdf_bookmarks true
+\pdf_bookmarksnumbered true
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle false
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels,pdftex"
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -102,12 +84,12 @@ p\hspace{-0.55em}l
 \defskip medskip
 \quotes_language german
 \papercolumns 1
-\papersides 1
-\paperpagestyle headings
+\papersides 2
+\paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -118,12 +100,15 @@ Užívateľská príručka LyXu
 
 \begin_layout Author
 napísal LyX Tím, 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 do slovenčiny preložil Stanislav Peťko (gabrielko@host.sk)
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand tableofcontents
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
 
 \end_inset
 
@@ -327,11 +312,7 @@ Podobne ako iné Linuxácke (a iné typy Unixu) programy, LyX spustíte jednoduc
 \family typewriter
 lyx
 \family default
- (
-\family typewriter
-klyx
-\family default
-) na príkazovom riadku.
+ na príkazovom riadku.
  Samozrejme, môžte pridať niekoľko parametrov, vrátane mien súborov.
  Nebudeme tu znovu vymenovávať všetky parametre, pretože to sme urobili
  v 
@@ -453,27 +434,6 @@ Enter
 Použiť na kombináciu 
 \family sans
 M-a
-\family default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-
-\emph on
-Pozn.
- prekl.:
-\emph default
- 
-\emph toggle
-Táto klávesová skratka by mala fungovať v anglickej verzii LyXu.
- V lokalizovanej (slovenský KLyX 0.10.0) mi nefungovala a ani som neprišiel
- na to, aká tam je (asi žiadna :-( ).
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Itemize
@@ -606,7 +566,7 @@ Uložiť ako
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -621,7 +581,10 @@ Tento príkaz je napísaný ako
 \emph toggle
 Uložiť
 \family default
-\InsetSpace ~
+
+\begin_inset space ~
+\end_inset
+
 
 \family sans
 \bar under
@@ -635,8 +598,14 @@ ko
  
 \family sans
 \emph toggle
-Nový\InsetSpace ~
-zo\InsetSpace ~
+Nový
+\begin_inset space ~
+\end_inset
+
+zo
+\begin_inset space ~
+\end_inset
+
 š
 \bar under
 a
@@ -649,7 +618,10 @@ blóny
  
 \family sans
 \emph toggle
-Uložiť\InsetSpace ~
+Uložiť
+\begin_inset space ~
+\end_inset
+
 ako
 \family default
 \emph default
@@ -706,7 +678,8 @@ Všetky robia rovnaké veci ako v ostatných textových procesoroch, s nejakými
  Vybraním šablóny automaticky nastaví určité vlastnosti prostredia dokumentu
  --- vlastnosti, ktoré by ste inak museli nastaviť manuálne.
  Tie sa používajú pre určité triedy, zvlášť na písanie listov (pozri 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: dok-triedy"
 
 \end_inset
@@ -750,7 +723,7 @@ Vrátiť sa k uloženému
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ak plánujete pracovať takto, prečítajte si o Správe verzíí v LyXe v manuále
  
 \emph on
@@ -774,7 +747,7 @@ Príkazy Zavrieť a Koniec zobrazia provokatívne okno, ktorým nás chránia
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Niektorí z vás možno vedia, že predchádzajúce verzie LyXu môžu spadnúť,
  ak sa pokúsite zavrieť okno z window manažéra (dvojklikom na ľavý horný
  roh).
@@ -834,14 +807,17 @@ Vložiť
 \begin_layout Itemize
 
 \family sans
-Find\InsetSpace ~
+Find
+\begin_inset space ~
+\end_inset
+
 &Replace
 \family default
 
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -893,8 +869,14 @@ Vrátiť späť
 \begin_layout Standard
 Príkaz 
 \family sans
-Find\InsetSpace ~
-&\InsetSpace ~
+Find
+\begin_inset space ~
+\end_inset
+
+&
+\begin_inset space ~
+\end_inset
+
 Replace
 \family default
  otvorí okno 
@@ -916,7 +898,10 @@ Vymeniť
 \family default
 , sa označený text nahradí obsahom poľa 
 \family sans
-Vymeniť\InsetSpace ~
+Vymeniť
+\begin_inset space ~
+\end_inset
+
 za
 \family default
 .
@@ -1010,13 +995,19 @@ ko\SpecialChar \-
 vať s nekonečnou kapacitou.
  Príkazom 
 \family sans
-Upraviť->Vrátiť\InsetSpace ~
+Upraviť->Vrátiť
+\begin_inset space ~
+\end_inset
+
 späť
 \family default
  opravíte nejakú chybu.
  Ak ho náhodou použijete príliš veľa krát, príkazom 
 \family sans
-Upraviť->Opakovať\InsetSpace ~
+Upraviť->Opakovať
+\begin_inset space ~
+\end_inset
+
 vrátené
 \family default
  
@@ -1212,19 +1203,22 @@ Tab
 \family default
  V LyXe neexistuje také niečo ako tabulátor.
  Ak tomu nerozumiete, hneď teraz si prečítajte sekcie 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: odsek-zarovnanie"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: odsek-prostredia"
 
 \end_inset
 
 , zvlášť sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: odsek-prostr-zoz"
 
 \end_inset
@@ -1268,8 +1262,14 @@ rušiaca klávesa
 \labelwidthstring 00.00.0000
 
 \family sans
-Home\InsetSpace ~
-a\InsetSpace ~
+Home
+\begin_inset space ~
+\end_inset
+
+a
+\begin_inset space ~
+\end_inset
+
 End
 \family default
  Presúvajú kurzor na začiatok a koniec riadku.
@@ -1279,8 +1279,14 @@ End
 \labelwidthstring 00.00.0000
 
 \family sans
-Backspace\InsetSpace ~
-a\InsetSpace ~
+Backspace
+\begin_inset space ~
+\end_inset
+
+a
+\begin_inset space ~
+\end_inset
+
 Delete
 \family default
  Ak máte správne nastavenú klávesnicu v X-Windows sys\SpecialChar \-
@@ -1300,7 +1306,8 @@ Delete
 \begin_layout Standard
 Ak ste si ešte nenastavili klávesnicu v X-kách, alebo ani neviete čo tým
  myslíme, okamžite si prečítajte sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: x-win-kbd"
 
 \end_inset
@@ -1409,7 +1416,10 @@ Súbor
 
 
 \family sans
-M-u\InsetSpace ~
+M-u
+\begin_inset space ~
+\end_inset
+
 l
 \family default
 
@@ -1492,19 +1502,31 @@ Importovanie ASCII súborov
 \begin_layout Standard
 ASCII textový súbor môžete importovať príkazom 
 \family sans
-Vložiť->Vložiť\InsetSpace ~
-ASCII\InsetSpace ~
+Vložiť->Vložiť
+\begin_inset space ~
+\end_inset
+
+ASCII
+\begin_inset space ~
+\end_inset
+
 súbor
 \family default
 .
  Obsahuje dve rôzne možnosti: 
 \family sans
-Ako\InsetSpace ~
+Ako
+\begin_inset space ~
+\end_inset
+
 riadky
 \family default
  a 
 \family sans
-Ako\InsetSpace ~
+Ako
+\begin_inset space ~
+\end_inset
+
 odstavce
 \family default
 .
@@ -1513,7 +1535,10 @@ odstavce
 \begin_layout Standard
 Možnosť 
 \family sans
-Ako\InsetSpace ~
+Ako
+\begin_inset space ~
+\end_inset
+
 riadky
 \family default
  urobí z každého riadku súboru vlastný odstavec LyXu.
@@ -1524,7 +1549,10 @@ riadky
 \begin_layout Standard
 Možnosť 
 \family sans
-Ako\InsetSpace ~
+Ako
+\begin_inset space ~
+\end_inset
+
 odstavce
 \family default
  uchová odstavce vytvorené v textovom súbore.
@@ -1579,20 +1607,44 @@ Opačným spôsobom to však funguje.
 \begin_layout Itemize
 
 \family sans
-Vložiť\InsetSpace ~
-primárnu\InsetSpace ~
-selekcie\InsetSpace ~
-ako\InsetSpace ~
+Vložiť
+\begin_inset space ~
+\end_inset
+
+primárnu
+\begin_inset space ~
+\end_inset
+
+selekcie
+\begin_inset space ~
+\end_inset
+
+ako
+\begin_inset space ~
+\end_inset
+
 riadky
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Vložiť\InsetSpace ~
-primárnu\InsetSpace ~
-selekciu\InsetSpace ~
-ako\InsetSpace ~
+Vložiť
+\begin_inset space ~
+\end_inset
+
+primárnu
+\begin_inset space ~
+\end_inset
+
+selekciu
+\begin_inset space ~
+\end_inset
+
+ako
+\begin_inset space ~
+\end_inset
+
 odstavce
 \end_layout
 
@@ -1640,7 +1692,7 @@ Help->Konfigurácia LaTeX-u
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Tu jednoducho zdokumetujeme niečo o používaní LyXu, vrátane toho, aké ďalšie
  programy potrebujete, aby bol LyX užitočný.
 \end_layout
@@ -1663,7 +1715,7 @@ Verzia LyXu distribuovaná ako binárne súbory potrebuje len X-Windows (X11R6).
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Môže chvíľu trvať, kým sa zobrazí text písaný novým písmom, pretože písmo
  musí byť natiahnuté do X-servera.
  LyX fonty nenatiahne, pokiaľ ich nebude potrebovať, takže nie všetky fonty
@@ -1676,7 +1728,7 @@ Môže chvíľu trvať, kým sa zobrazí text písaný novým písmom, pretože 
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Poznámka od 
 \noun on
 Matthiasa
@@ -1749,7 +1801,7 @@ Ku kompilovaniu LyXu\SpecialChar \ldots{}
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ak vám niekdo dal vytlačený tento manuál a zdrojové súbory LyXu, žiadajte
  pomoc od 
 \emph on
@@ -1769,7 +1821,8 @@ Základné nastavenia LyXu
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: nastavenie"
 
 \end_inset
@@ -1818,7 +1871,10 @@ Možnosti->Prekonfigurovať
  Pokiaľ ide o triedy a balíky LaTeXu, informácie o tom čo bolo nájdené,
  sú v súbore 
 \family sans
-Pomocník->Konfigurácia\InsetSpace ~
+Pomocník->Konfigurácia
+\begin_inset space ~
+\end_inset
+
 LaTeX-u.
 \end_layout
 
@@ -1838,7 +1894,10 @@ Papier
 \family default
  a 
 \family sans
-LaTeX\InsetSpace ~
+LaTeX
+\begin_inset space ~
+\end_inset
+
 preambula
 \family default
  z menu 
@@ -1849,7 +1908,7 @@ Rozloženie
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Používatelia LyXu 0.10.x si možno spomenú, že tieto nastavenia boli prístupné
  v súbore 
 \family typewriter
@@ -1866,9 +1925,18 @@ lyxrc
  si všetko podľa svojich preds\SpecialChar \-
 táv a nastavenia uložte príkazom 
 \family sans
-Rozloženie->Uložiť\InsetSpace ~
-rozloženie\InsetSpace ~
-ako\InsetSpace ~
+Rozloženie->Uložiť
+\begin_inset space ~
+\end_inset
+
+rozloženie
+\begin_inset space ~
+\end_inset
+
+ako
+\begin_inset space ~
+\end_inset
+
 preddefinované
 \family default
 .
@@ -1903,7 +1971,8 @@ Nastavenie X klávesnice
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: x-win-kbd"
 
 \end_inset
@@ -1969,7 +2038,7 @@ je ukážkový súbor .Xmodmap.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -1997,7 +2066,10 @@ Customizing LyX
  Na natiahnutie nového mapovania X klávesnice napíšte príkaz 
 \family typewriter
 \emph toggle
-xmodmap\InsetSpace ~
+xmodmap
+\begin_inset space ~
+\end_inset
+
 .Xmodmap
 \family default
 \emph default
@@ -2189,7 +2261,7 @@ Compose
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -2257,7 +2329,7 @@ xkeycaps
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Môžete si ušetriť prácu spustením xkeycaps 
 \family sans
 .Xmodmap
@@ -2350,7 +2422,7 @@ V prípade že sa čudujete, LaTeX je rozšírenie TeXu, systému prípravy doku
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Poznámka k výslovnosti: TeX pochádza z gréckeho slova 
 \begin_inset Formula $\tau\varepsilon\chi$
 \end_inset
@@ -2530,7 +2602,8 @@ dvips
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: dvipskonfig"
 
 \end_inset
@@ -2910,7 +2983,7 @@ raný súbor
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 To znamená 
 \family typewriter
 .dvi
@@ -3044,8 +3117,14 @@ Sprievodca tlačiarňou
 
  (
 \emph on
-A\InsetSpace ~
-Printer\InsetSpace ~
+A
+\begin_inset space ~
+\end_inset
+
+Printer
+\begin_inset space ~
+\end_inset
+
 Tutorial
 \emph toggle
 ) v manuále
@@ -3104,7 +3183,8 @@ O triedach dokumentov ktoré si v LyXe môžete vybrať a o doladeniach niektor�
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: dok-triedy"
 
 \end_inset
@@ -3273,25 +3353,25 @@ preddefinované hodnoty
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="5">
 <features>
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Štýl strany
@@ -3299,10 +3379,10 @@ preddefinované hodnoty
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Strany
@@ -3310,10 +3390,10 @@ Strany
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Stĺpce
@@ -3321,10 +3401,10 @@ Stĺpce
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Max.
  úroveň sekcie
 \end_layout
@@ -3332,20 +3412,20 @@ Max.
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 article
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3353,10 +3433,10 @@ Plain
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3364,10 +3444,10 @@ Jedna
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3375,10 +3455,10 @@ Jeden
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Section
@@ -3387,11 +3467,11 @@ Section
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 report
 \end_layout
 
@@ -3400,7 +3480,7 @@ report
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3411,7 +3491,7 @@ Plain
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3422,7 +3502,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3433,7 +3513,7 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Chapter
@@ -3442,11 +3522,11 @@ Chapter
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 book
 \end_layout
 
@@ -3455,7 +3535,7 @@ book
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Headings
@@ -3466,7 +3546,7 @@ Headings
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Dve
@@ -3477,7 +3557,7 @@ Dve
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3488,7 +3568,7 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Chapter
@@ -3497,11 +3577,11 @@ Chapter
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 letter
 \end_layout
 
@@ -3510,7 +3590,7 @@ letter
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3521,7 +3601,7 @@ Plain
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3532,7 +3612,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3543,18 +3623,18 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 none
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 aapaper
 \end_layout
 
@@ -3563,7 +3643,7 @@ aapaper
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3574,7 +3654,7 @@ Plain
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Dve
@@ -3585,7 +3665,7 @@ Dve
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Dva
@@ -3596,7 +3676,7 @@ Dva
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Section
@@ -3605,11 +3685,11 @@ Section
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 amsart
 \end_layout
 
@@ -3618,7 +3698,7 @@ amsart
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Headings
@@ -3629,7 +3709,7 @@ Headings
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3640,7 +3720,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3651,7 +3731,7 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Section
@@ -3660,11 +3740,11 @@ Section
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dinbrief
 \end_layout
 
@@ -3673,7 +3753,7 @@ dinbrief
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3684,7 +3764,7 @@ Plain
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3695,7 +3775,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3706,18 +3786,18 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 none
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 iletter
 \end_layout
 
@@ -3726,7 +3806,7 @@ iletter
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Plain
@@ -3737,7 +3817,7 @@ Plain
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3748,7 +3828,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3759,18 +3839,18 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 none
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 paper
 \end_layout
 
@@ -3779,7 +3859,7 @@ paper
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Headings
@@ -3790,7 +3870,7 @@ Headings
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jedna
@@ -3801,7 +3881,7 @@ Jedna
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Jeden
@@ -3812,7 +3892,7 @@ Jeden
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 Section
@@ -3885,7 +3965,8 @@ Subsubsection
 \family default
  (podpodsekcia) a tak ďalej.
  Tieto názvy plne popíšeme v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: odsek-prostr-titulky"
 
 \end_inset
@@ -3914,7 +3995,10 @@ preddefinovaných hodnôt
 \labelwidthstring 00.00.0000
 
 \family sans
-Štýl\InsetSpace ~
+Štýl
+\begin_inset space ~
+\end_inset
+
 strany
 \family default
  Je to zoznam, obsahujúci päť položiek.
@@ -3922,7 +4006,7 @@ strany
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 O toto sa stará LaTeX.
 \end_layout
 
@@ -4045,7 +4129,10 @@ dva stĺpce.
 \labelwidthstring 00.00.0000
 
 \family sans
-Extra\InsetSpace ~
+Extra
+\begin_inset space ~
+\end_inset
+
 parametre
 \family default
  LaTeXový príkaz 
@@ -4119,7 +4206,10 @@ Krajinka
 \labelwidthstring 00.00.0000
 
 \family sans
-Veľkosť\InsetSpace ~
+Veľkosť
+\begin_inset space ~
+\end_inset
+
 papiera
 \family default
  Na aký veľký papier sa bude tlačiť.
@@ -4229,7 +4319,8 @@ Predstavenie
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: odsek-zarovnanie"
 
 \end_inset
@@ -4266,7 +4357,7 @@ odsadený.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Existuje spôsob, ako prinútiť LaTeX aby odsadzoval všetky odseky.
  LyX vám to samozrejme nezobrazí, ale LaTeX to tak vytlačí.
  Musíte mať zvláštny balík, a do preambuly vložiť príslušný príkaz.
@@ -4297,7 +4388,7 @@ medzerovanie
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 V skutočnosti to robí LaTeX, keď LyX produkuje výstup.
 \end_layout
 
@@ -4321,7 +4412,10 @@ Globálna zmena odsadenia
 \begin_layout Standard
 Štandardnú metódu odsadzovania odsekov si môžete vybrať v dialógu 
 \family sans
-Rozloženie\InsetSpace ~
+Rozloženie
+\begin_inset space ~
+\end_inset
+
 dokumentu
 \family default
 .
@@ -4397,7 +4491,8 @@ setspace
 
 \begin_layout Section
 Prostredia odsekov
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: odsek-prostredia"
 
 \end_inset
@@ -4516,15 +4611,15 @@ typicky
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ak ste v niektorom z týchto prostredí:
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4550,13 +4645,13 @@ Quote
 Quotation
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }
 \backslash
@@ -4580,13 +4675,13 @@ Verse
 Itemize
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }
 \backslash
@@ -4610,13 +4705,13 @@ Enumerate
 Description
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }
 \backslash
@@ -4634,13 +4729,13 @@ parbox[t]{3cm}{
 List
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }
 \end_layout
@@ -4650,7 +4745,7 @@ status collapsed
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 LyX pri stlačení 
 \family sans
 Enteru
@@ -4663,7 +4758,8 @@ Enteru
 
  Obyčajne, pri začatí novéh odseku, LyX nastaví prostredie, aj hĺbku vnoreného
  odseku (viac o vnáraní je v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -4684,7 +4780,7 @@ M-Enter
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Vyvolá to funkciu 
 \family typewriter
 break-paragraph-keep-layout
@@ -4812,7 +4908,8 @@ Názvy sekcií
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: odsek-prostr-titulky"
 
 \end_inset
@@ -5063,53 +5160,53 @@ Hĺbka číslovania odsekov
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Hodnota posuvníka
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Sekcie, ktoré LyX čísluje
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 -1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 žiadne číslovanie
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 0
 \end_layout
 
@@ -5118,18 +5215,18 @@ Sekcie, ktoré LyX čísluje
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
@@ -5138,18 +5235,18 @@ Kapitoly
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly až sekcie
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
@@ -5158,18 +5255,18 @@ Kapitoly až sekcie
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly až podsekcie
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
@@ -5178,18 +5275,18 @@ Kapitoly až podsekcie
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly až podpodsekcie
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 4
 \end_layout
 
@@ -5198,18 +5295,18 @@ Kapitoly až podpodsekcie
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly až odseky
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 5
 \end_layout
 
@@ -5218,7 +5315,7 @@ Kapitoly až odseky
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Kapitoly až pododseky
 \end_layout
 
@@ -5400,7 +5497,8 @@ Quotation
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: quote"
 
 \end_inset
@@ -5496,7 +5594,8 @@ Verse
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: verse"
 
 \end_inset
@@ -5511,12 +5610,14 @@ Verse
 
 \begin_layout Verse
 This is in Verse
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Which I did not rehearse!
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -5542,9 +5643,13 @@ Mohlo to byť aj horšie.Tento riadok by mohol byť dlhý, veľmi dlhý, až tak
 
 \begin_layout Verse
 To break a line
-\newline
+\begin_inset Newline newline
+\end_inset
+
 And make things look fine
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Use 
 \family sans
 C-Return
@@ -5571,7 +5676,8 @@ Zoznamy
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: odsek-prostr-zoz"
 
 \end_inset
@@ -5663,7 +5769,8 @@ Zoznamy rôznych typov môžete do seba vnárať.
  LyX zmení popisky položiek zoznamu, podľa toho, ako hlboko je vnorený.
  Ak zamýšľate používať niektoré z týchto prostredí, doporučujeme vám prečítať
  si sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -5678,11 +5785,6 @@ Itemize
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: itemize"
-
-\end_inset
-
 Prvý typ zoznamu, ktorý popíšeme je prostredie 
 \family sans
 Itemize
@@ -5738,7 +5840,8 @@ Na obrazovke LyX vždy zobrazí rovnaký symbol, a to hviezdičku.
 
 \begin_layout Itemize
 Pre úplné vysvetlenie vnárania si pozrite sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -5763,7 +5866,7 @@ Povedali sme, že rôzne úrovne používajú iný symbol ako popisok.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -5828,7 +5931,8 @@ pô\SpecialChar \-
 so\SpecialChar \-
 biť pridaním príslušných príkazov do LaTeX
  preambuly (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: preambula"
 
 \end_inset
@@ -5844,7 +5948,8 @@ Všimnite si tiež, ako sa zmenšujú medzery medzi riadkami, so zväčšujúcou
  sa hĺbkou prostredia.
  Vnáranie a všetky triky, ktoré môžete robiť s rôznymi hĺbkami, vysvetlíme
  v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -5860,7 +5965,8 @@ Enumerate
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: enumerate"
 
 \end_inset
@@ -5982,7 +6088,8 @@ Späť na najvyššiu úroveň.
 \begin_layout Standard
 Typ číslovanie si zasa môžete zmeniť.
  Avšak vyžaduje to pridanie príkazov do LaTeX preambuly (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: preambula"
 
 \end_inset
@@ -5999,7 +6106,8 @@ Enumerate
 \family default
  sa dá povedať viac.
  Naozaj by ste si mali prečítať sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -6014,11 +6122,6 @@ Description
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: description"
-
-\end_inset
-
 Ako protiklad k dvoma predchádzajúcim prostrediam, 
 \family sans
 Description
@@ -6090,7 +6193,8 @@ Avšak čo, ak potrebujete ako popisok použiť viac ako jedno slovo? Je to
 C-Medzera
 \family default
 , pre ďalšie informácie si pozrite sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: hmedzera"
 
 \end_inset
@@ -6100,9 +6204,12 @@ reference "sec: hmedzera"
 \end_layout
 
 \begin_layout Description
-Druhý\InsetSpace ~
-príklad: Tento popisuje ako použiť chránenú medzeru v popisku položky
- zoznamu 
+Druhý
+\begin_inset space ~
+\end_inset
+
+príklad: Tento popisuje ako použiť chránenú medzeru v popisku položky zoznamu
+ 
 \family sans
 Description
 \family default
@@ -6137,7 +6244,8 @@ Standard
 Vnáranie: Samozrejme, že prostredia Description môžete do seba vnárať a
  môžete ich vnárať do iných typov zoznamov a tak ďalej.
  O vnáraní si prčítajte sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -6156,11 +6264,6 @@ List
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: lyxlist"
-
-\end_inset
-
 Prostredie 
 \family sans
 List
@@ -6177,7 +6280,8 @@ nevytvára
 \emph toggle
 číslovaný zoznam.
  Na to je prostredie Enumerate, popísané v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: enumerate"
 
 \end_inset
@@ -6204,7 +6308,10 @@ List
 
 \begin_layout List
 \labelwidthstring MMMMMMMMM
-popisky\InsetSpace ~
+popisky
+\begin_inset space ~
+\end_inset
+
 položiek Ako popisok LyX používa prvé 
 \begin_inset Quotes gld
 \end_inset
@@ -6239,7 +6346,10 @@ okraje Ako môžete vidieť, LyX používa rôzne okraje na popisok položky a
 
 \begin_layout List
 \labelwidthstring MMMMMMMMM
-šírka\InsetSpace ~
+šírka
+\begin_inset space ~
+\end_inset
+
 popisku LyX používa jednu z dvoch šíriek na popisky.
  Buď použije aktuálnu, alebo štandardnú, podľa toho, ktorá je väčšia.
  Ak je väčšia aktuálna šírka, potom sa popisok 
@@ -6257,7 +6367,10 @@ pretiahne
 
 \begin_layout List
 \labelwidthstring MMMMMMMMM
-štandardná\InsetSpace ~
+štandardná
+\begin_inset space ~
+\end_inset
+
 šírka Túto šírku môžete veľmi ľahko zmeniť.
  Je to úplne bez\SpecialChar \-
 bo\SpecialChar \-
@@ -6292,7 +6405,8 @@ vnáranie Prostredia List môžete do seba vnárať, takisto ich môžte vnára�
  do iných typov zoznamov, atď.
  Funguje to rovnako ako iné prostredia zoznamov.
  O vnáraní si prečítajte sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -6330,7 +6444,7 @@ M
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Samozrejme, mohli by ste použiť aj nejaké iné písmeno niekoľkokrát.
  Alebo by ste mohli použiť kombinácie písmen, napr.
  
@@ -6402,7 +6516,8 @@ HFill
 Hfill
 \family default
 y preberieme neskôr v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: hmedzera"
 
 \end_inset
@@ -6427,8 +6542,9 @@ List
 
 \begin_layout List
 \labelwidthstring MMMMMMMM
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 Dostredu Jeden 
 \family sans
 HFill
@@ -6438,18 +6554,41 @@ HFill
 
 \begin_layout List
 \labelwidthstring MMMMMMMM
-\InsetSpace ~
-\InsetSpace ~
-\InsetSpace ~
-\InsetSpace ~
-\InsetSpace ~
-\InsetSpace ~
-\InsetSpace ~
-Napravo\InsetSpace ~
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+Napravo
+\begin_inset space ~
+\end_inset
+
 1 Zarovnať popisok napravo môžete viacerýmy chránenými me\SpecialChar \-
 dze\SpecialChar \-
-rami
- na začiatku riadku.
+rami na začiatku
+ riadku.
  Avšak môže to posunúť okraj prvého riadku textu položky.
  Je dosť ťažké zistiť koľko chrá\SpecialChar \-
 ne\SpecialChar \-
@@ -6457,7 +6596,7 @@ ných medzier treba dať, aby to bolo dobré.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -6481,39 +6620,73 @@ Na obrazovke to nevyzerá zarovnané napravo, ale vo výstupe to bolo OK.
 
 \begin_layout List
 \labelwidthstring MMMMMMMM
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
 
-\hfill
-Napravo\InsetSpace ~
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+Napravo
+\begin_inset space ~
+\end_inset
+
 2 Toto je trochu lepšie, ale stále to nie je ono.
  Nikoľko 
 \family sans
@@ -6538,7 +6711,8 @@ List
 \begin_layout Standard
 To je všetko o štyroch prostrediach odekov na vytváranie zoznamov.
  Ešte raz --- mali by ste si prečítať sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -6557,7 +6731,10 @@ Address
 \family default
  a 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
 : Prehľad
@@ -6571,7 +6748,10 @@ Address
 \family default
  a 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
 .
@@ -6583,7 +6763,10 @@ Address
 \family default
  a 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
  môžete použiť v dokumente kdekoľvek bez problémov.
@@ -6595,7 +6778,10 @@ Address
 Samozrejme v používaní týchto prostredí nie ste obmedzení len na listy.
  
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
  je čiastočne užitočné na vytváranie názvov článkov, ako napríklad tie,
@@ -6607,7 +6793,8 @@ Použitie
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: adresa_pouzitie"
 
 \end_inset
@@ -6620,7 +6807,10 @@ Address
  pre oslovenie a podpis.
  Podobne prostredie 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
  formátuje text v štýle adresy zarovnanej napravo, ktorý sa v niektorých
@@ -6630,18 +6820,27 @@ Address
 
 \begin_layout Right Address
 Right Address
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Kto som
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Kde som
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Kde to je? Čo je dnes za deň?
 \end_layout
 
 \begin_layout Standard
 To bolo prostredie 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
 .
@@ -6656,9 +6855,13 @@ Address
 
 \begin_layout Address
 Kto si ty
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Kde toto posielam
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Tvoja pošta a krajina
 \end_layout
 
@@ -6669,7 +6872,10 @@ Address
 \family default
  a 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
  pridávajú medzeru medzi seba a nasledujúci odstavec.
@@ -6695,7 +6901,10 @@ Address
 \family default
  alebo 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \family default
  by ste mali začínať 
@@ -6714,7 +6923,7 @@ Väčšina akademických článkov začína s abstraktom
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -6878,11 +7087,6 @@ Bibliography
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: bibliography"
-
-\end_inset
-
 Prostredie 
 \family sans
 Bibliography
@@ -7008,13 +7212,15 @@ Vložiť->Referencia na citáciu
 \end_inset
 
 Pozri 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "latexguide"
 
 \end_inset
 
  alebo 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 after "Kapitola 3"
 key "latexcompanion"
 
@@ -7075,7 +7281,8 @@ Caption
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: captionlayout"
 
 \end_inset
@@ -7113,7 +7320,7 @@ Table:
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -7167,13 +7374,15 @@ Caption
 \family default
  nemôžete použiť mimo insetu s obrázkom alebo insetu s tabuľkou.
  O týchto insetoch sa dočítate v sekciách 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: obrazky"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: tabulky"
 
 \end_inset
@@ -7202,7 +7411,7 @@ Medzera
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 V prostredí 
 \family sans
 LyX-Code
@@ -7328,7 +7537,7 @@ C-
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -7444,7 +7653,8 @@ LaTeX
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: LaTeXlayout"
 
 \end_inset
@@ -7520,7 +7730,8 @@ vnárať do iných prostredí.
 
 \begin_layout Standard
 Pre viac informácií si prečítajte sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: latexcodes"
 
 \end_inset
@@ -7530,7 +7741,8 @@ reference "sec: latexcodes"
 
 \begin_layout Section
 Vnáranie prostredí
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: vnaranie"
 
 \end_inset
@@ -7548,7 +7760,8 @@ V predchádzajúcich sekciách sme vás stále otravovali so slovami
 \end_inset
 
 prečítajte si sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vnaranie"
 
 \end_inset
@@ -7690,7 +7903,7 @@ Tu je zoznam všetkých troch správaní sa vnárania, a ktoré prostredia ho
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Z nejakého divného dôvodu, LyX dovoľuje úplne vnárať prostredia 
 \family sans
 Bibliography
@@ -7816,7 +8029,10 @@ Date
 
 \end_deeper
 \begin_layout Description
-Plne\InsetSpace ~
+Plne
+\begin_inset space ~
+\end_inset
+
 vnárateľné Môžete ich vnárať a môžete vnárať do nich.
 \end_layout
 
@@ -7871,9 +8087,11 @@ LyX-Code
 
 \end_deeper
 \begin_layout Description
-Vnárateľné\InsetSpace ~
-do Môžete ich vnárať do iných prostredí, ale nemôžete vnárať do
- nich samých.
+Vnárateľné
+\begin_inset space ~
+\end_inset
+
+do Môžete ich vnárať do iných prostredí, ale nemôžete vnárať do nich samých.
 \end_layout
 
 \begin_deeper
@@ -7886,7 +8104,10 @@ Standard
 \begin_layout Itemize
 
 \family sans
-Right\InsetSpace ~
+Right
+\begin_inset space ~
+\end_inset
+
 Address
 \end_layout
 
@@ -7917,11 +8138,6 @@ Vnáranie iných vecí: tabuliek, vzorcov, insetov atď.
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: tab-a-obr-vnaranie"
-
-\end_inset
-
 Toto sú veci, ktoré nie sú prostredia odsekov, ale nejako sa ich vnáranie
  dotýka.
  Sú to:
@@ -7948,13 +8164,15 @@ Poznámka:
 \emph toggle
 ak obrázok alebo tabuľku vložíte do insetu, tak toto sa ho netýka.
  Pozrite sa nižšie, alebo na sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: obrazky"
 
 \end_inset
 
  alebo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: tabulky"
 
 \end_inset
@@ -8010,33 +8228,33 @@ Toto je (a) a je vnorené.
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 a
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 b
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 c
 \end_layout
 
@@ -8045,7 +8263,7 @@ c
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 d
 \end_layout
 
@@ -8103,33 +8321,33 @@ Toto je (a) a je vnorené.
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 a
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 b
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 c
 \end_layout
 
@@ -8138,7 +8356,7 @@ c
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 d
 \end_layout
 
@@ -8199,33 +8417,33 @@ Toto je (a) a je vnorené.
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 a
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 b
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 c
 \end_layout
 
@@ -8234,7 +8452,7 @@ c
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 d
 \end_layout
 
@@ -8311,7 +8529,7 @@ poznámky na okraji
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Rozdiel medzi širokým a ne-širokým insetom je relevantný len v dvojstĺpcovom
  dokumente, kde široké insety sú široké dva stĺpce namiesto jedného.
 \end_layout
@@ -8478,7 +8696,7 @@ Ešte raz: LyX má maximálne 6 úrovní a nezáleži na tom, ktoré prostredie
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Nanešťastie, LyX si toto obmedzenie nestráži.
  Ak sa pokusíte ho prekročiť, LyX vám to dovolí, ale LaTeX vám vráti chybu
  pri produkovaní výstupu.
@@ -8525,7 +8743,7 @@ A.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Znova: LyX toto neustráži, ale ak sa to rozhodnete porušiť, LaTeX vám vráti
  chybu.
 \end_layout
@@ -8552,7 +8770,10 @@ Príklad č.
 
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 1-a Toto je najvyššia úroveň.
  Používame prostredie 
 \family sans
@@ -8564,7 +8785,10 @@ List
 \begin_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 2-a Toto je druhá úroveň.
  Vytvorili sme ju 
 \family sans
@@ -8576,7 +8800,10 @@ M-Enter
 \begin_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 3-a Tretia úroveň.
  Teraz sme použili 
 \family sans
@@ -8600,7 +8827,10 @@ Standar
 \begin_inset Quotes gld
 \end_inset
 
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 3-a
 \begin_inset Quotes grd
 \end_inset
@@ -8647,7 +8877,10 @@ M-Enter
 
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 4-a Úroveň č.
  4.
  Stlačili sme 
@@ -8670,7 +8903,10 @@ Standard
 \begin_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 5-a Toto je úroveň č.
  5\SpecialChar \ldots{}
 
@@ -8679,7 +8915,10 @@ Standard
 \begin_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 6-a \SpecialChar \ldots{}
 a toto je úroveň č.
  6.
@@ -8689,7 +8928,10 @@ a toto je úroveň č.
 \end_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 5-b Späť na úrovni č.
  5.
  Stlačili sme Enter a nastavili potrebnú hĺbku.
@@ -8698,7 +8940,10 @@ a toto je úroveň č.
 \end_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 4-b Úroveň č.
  4.
 \end_layout
@@ -8706,7 +8951,10 @@ a toto je úroveň č.
 \end_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 3-b Úroveň č.
  3.
 \end_layout
@@ -8714,7 +8962,10 @@ a toto je úroveň č.
 \end_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 2-b Úroveň č.
  2.
 \end_layout
@@ -8722,7 +8973,10 @@ a toto je úroveň č.
 \end_deeper
 \begin_layout List
 \labelwidthstring MMM
-č.\InsetSpace ~
+č.
+\begin_inset space ~
+\end_inset
+
 1-b A nakoniec najvyššia úroveň.
  Na konci tejto vety stlačíme 
 \family sans
@@ -9057,9 +9311,13 @@ Enumerate
 \begin_deeper
 \begin_layout Verse
 Teraz pridáme verše
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Bude to trochu horšie
-\newline
+\begin_inset Newline newline
+\end_inset
+
 (
 \family sans
 Enter
@@ -9074,9 +9332,13 @@ Verse
 
 \begin_layout Verse
 Fiddle dee, Fiddle doo
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Bippitey boppitey boo!
-\newline
+\begin_inset Newline newline
+\end_inset
+
 (
 \family sans
 M-Enter
@@ -9102,12 +9364,12 @@ A máme tu tabuľku:
 <lyxtabular version="3" rows="2" columns="2">
 <features>
 <column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<row bottomline="true">
+<column alignment="center" valignment="top" width="0pt">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 jedna ryba
 \end_layout
 
@@ -9116,7 +9378,7 @@ jedna ryba
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dve ryby
 \end_layout
 
@@ -9124,19 +9386,19 @@ dve ryby
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+<cell alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 červená ryba
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 modrá ryba
 \end_layout
 
@@ -9255,9 +9517,13 @@ C-Enter
 \begin_deeper
 \begin_layout Right Address
 1234 Nowhere Rd.
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Moosegroin, MT 00100
-\newline
+\begin_inset Newline newline
+\end_inset
+
 9-6-96
 \end_layout
 
@@ -9286,7 +9552,9 @@ Ešte raz Vám ďakujeme za Vašu trpezlivosť.
 
 \begin_layout Address
 S pozdravom.
-\newline
+\begin_inset Newline newline
+\end_inset
+
 ---------------
 \end_layout
 
@@ -9397,7 +9665,10 @@ Písma
 \family default
  a 
 \family sans
-Veľkosť\InsetSpace ~
+Veľkosť
+\begin_inset space ~
+\end_inset
+
 pís\SpecialChar \-
 ma
 \family default
@@ -9563,7 +9834,10 @@ kliknite na tlačítko s obrázkom človeka
 \begin_layout Itemize
 použite klávesovú skratku 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 c
 \end_layout
 
@@ -9609,7 +9883,10 @@ kliknutím na tlačítko so znakom
 \begin_layout Itemize
 použitím skratky 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 e
 \end_layout
 
@@ -9645,7 +9922,10 @@ Hmm\SpecialChar \ldots{}
  Ešte jedna poznámka: nastaviť písmo na štandardný font môžete skratkou
  
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 Medzera
 \family default
 .
@@ -9756,7 +10036,10 @@ Rímske
 Je to tiež štandardná rodina písma.
  (skratka: 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 r
 \family default
 )
@@ -9767,7 +10050,10 @@ r
 \labelwidthstring 00.00.0000
 
 \family sans
-Bez\InsetSpace ~
+Bez
+\begin_inset space ~
+\end_inset
+
 pätiek
 \family default
  
@@ -9779,7 +10065,10 @@ Toto je rodina písma Bez pätiek.
 \begin_layout Standard
 (skratk: 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 s
 \family default
 )
@@ -9790,12 +10079,18 @@ s
 \labelwidthstring 00.00.0000
 
 \family sans
-Písací\InsetSpace ~
+Písací
+\begin_inset space ~
+\end_inset
+
 stroj
 \family default
  
 \family typewriter
-Toto je rodina písma Písací\InsetSpace ~
+Toto je rodina písma Písací
+\begin_inset space ~
+\end_inset
+
 stroj.
 \end_layout
 
@@ -9803,7 +10098,10 @@ stroj.
 \begin_layout Standard
 (skratka: 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 p
 \family default
 )
@@ -9868,7 +10166,10 @@ Rozloženie
 \family default
 , alebo skratkou 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 b
 \family default
 .
@@ -9933,7 +10234,10 @@ Toto je tvar písma Kurzíva
 \labelwidthstring 00.00.0000
 
 \family sans
-Malé\InsetSpace ~
+Malé
+\begin_inset space ~
+\end_inset
+
 veľké
 \family default
  
@@ -9984,12 +10288,18 @@ drobná
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 t
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 1
 \family default
 )
@@ -10019,7 +10329,10 @@ najmenšia
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 2
 \family default
 )
@@ -10049,12 +10362,18 @@ menšia
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 S
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 3
 \family default
 )
@@ -10084,12 +10403,18 @@ malá
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 s
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 4
 \family default
 )
@@ -10118,12 +10443,18 @@ normálna
 Je to tiež štandardná veľkosť.
  (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 n
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 5
 \family default
 )
@@ -10153,12 +10484,18 @@ veľká
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 S-l
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 6
 \family default
 )
@@ -10188,12 +10525,18 @@ väčšia
 \begin_layout Standard
 (skratka
 \family sans
-: M-s\InsetSpace ~
+: M-s
+\begin_inset space ~
+\end_inset
+
 S-L
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 7
 \family default
 )
@@ -10223,7 +10566,10 @@ najväčšia
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 8
 \family default
 )
@@ -10254,12 +10600,18 @@ ma.
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 h
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 9
 \family default
 )
@@ -10290,19 +10642,25 @@ kosť písma.
 \begin_layout Standard
 (skratka: 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 H
 \family default
  alebo 
 \family sans
-M-s\InsetSpace ~
+M-s
+\begin_inset space ~
+\end_inset
+
 0
 \family default
 )
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -10411,7 +10769,7 @@ Tento text je podtrhnutý.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -10433,7 +10791,10 @@ Na obrazovke (aspoň u mňa) sú podtrhnuté len slová (nie medzery medzi nimi)
 \begin_layout Standard
 (skratka: 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 u
 \family default
 )
@@ -10460,7 +10821,10 @@ Zvýraznenie
 , aj toto je logický atribút.
  Nateraz je ekvivalentný štýlu 
 \family sans
-Malé\InsetSpace ~
+Malé
+\begin_inset space ~
+\end_inset
+
 veľké
 \family default
 , ale to by sa niekedy malo zmeniť.
@@ -10477,7 +10841,7 @@ LaTeX
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Tento text je v režime 
 \backslash
@@ -10608,7 +10972,10 @@ Použiť
 Ako sme uviedli skôr, úplne zrušiť štýl znakov na štandardný môžete kombináciou
  
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 Medezra.
 \end_layout
 
@@ -10639,7 +11006,8 @@ za scénou
 
 .
  Niektoré z týchto informácií popíšeme aj v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: lyxalatex"
 
 \end_inset
@@ -10861,7 +11229,10 @@ xdvi
 \end_layout
 
 \begin_layout Description
-Užitočný\InsetSpace ~
+Užitočný
+\begin_inset space ~
+\end_inset
+
 tip: Okno xdvi si nechajte otvorené (môžete ho presunúť na inú pracovnú
  plochu).
  Potom, keď v dokumente urobíte nejaké zmeny a budete si ich chcieť pozrieť,
@@ -10948,7 +11319,7 @@ Súbor
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -10972,7 +11343,7 @@ Tu je zoznam možností:
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -10998,7 +11369,10 @@ User`s Guide
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
 Destination
 \family default
  Cieľ vášho tlačového výstupu.
@@ -11006,7 +11380,7 @@ Destination
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -11027,15 +11401,21 @@ Toto jediné bolo popísané v anglickej dokumentácii.
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-to\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+to
+\begin_inset space ~
+\end_inset
+
 Printer:
 \family default
  Vyberiete si meno tlačiarne, na ktorej chcete tlačiť.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Toto meno talčiarne nie je pre príkaz 
 \family typewriter
 lpr
@@ -11051,7 +11431,8 @@ dvips
 \family default
  musíte mať nakonfigurované pre danú tlačiareň.
  Pozrite si sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: dvipskonfig"
 
 \end_inset
@@ -11077,8 +11458,14 @@ lyxrc
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-to\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+to
+\begin_inset space ~
+\end_inset
+
 File:
 \family default
  Do okienka zadajte názov súboru, do ktorého sa má tlačiť.
@@ -11112,7 +11499,10 @@ Options
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
 all
 \family default
  Vytlačí celý dokument.
@@ -11122,18 +11512,27 @@ all
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
 Range:
 \family default
  Vytlačí len zadaný rozsah strán, zadaný ich číslami.
  Počiatočná strana je v poli 
 \family sans
-From\InsetSpace ~
+From
+\begin_inset space ~
+\end_inset
+
 page
 \family default
 , koncová strana v poli 
 \family sans
-To\InsetSpace ~
+To
+\begin_inset space ~
+\end_inset
+
 page
 \family default
 .
@@ -11143,9 +11542,18 @@ page
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-first\InsetSpace ~
-page\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+first
+\begin_inset space ~
+\end_inset
+
+page
+\begin_inset space ~
+\end_inset
+
 first
 \family default
  Začne tlačiť od prvej stránky.
@@ -11155,9 +11563,18 @@ first
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-last\InsetSpace ~
-page\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+last
+\begin_inset space ~
+\end_inset
+
+page
+\begin_inset space ~
+\end_inset
+
 first
 \family default
  Najprv vytlačí poslednú stránku, až potom ostatné.
@@ -11167,10 +11584,22 @@ first
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-in\InsetSpace ~
-color\InsetSpace ~
-if\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+in
+\begin_inset space ~
+\end_inset
+
+color
+\begin_inset space ~
+\end_inset
+
+if
+\begin_inset space ~
+\end_inset
+
 available
 \family default
  Farebná tlač (ak je farebná tlačiareň samozrejme).
@@ -11180,8 +11609,14 @@ available
 \labelwidthstring 00.00.0000
 
 \family sans
-Print\InsetSpace ~
-in\InsetSpace ~
+Print
+\begin_inset space ~
+\end_inset
+
+in
+\begin_inset space ~
+\end_inset
+
 grayscale
 \family default
  Čiernobiela tlač.
@@ -11191,8 +11626,14 @@ grayscale
 \labelwidthstring 00.00.0000
 
 \family sans
-Number\InsetSpace ~
-of\InsetSpace ~
+Number
+\begin_inset space ~
+\end_inset
+
+of
+\begin_inset space ~
+\end_inset
+
 copies
 \family default
  Počet kópií.
@@ -11203,7 +11644,10 @@ copies
 \labelwidthstring 00.00.0000
 
 \family sans
-Paper\InsetSpace ~
+Paper
+\begin_inset space ~
+\end_inset
+
 format
 \family default
  Nastavenie papiera.
@@ -11275,11 +11719,6 @@ Spojovník a rozdeľovanie
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: hyphens"
-
-\end_inset
-
 V LyXe má znak 
 \begin_inset Quotes gld
 \end_inset
@@ -11311,9 +11750,13 @@ em pomlčka
 
 \begin_layout Enumerate
 spojovník
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 -
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 vytvorený s 
 \begin_inset Quotes gld
 \end_inset
@@ -11331,9 +11774,13 @@ vytvorený s
 
 \begin_layout Enumerate
 en pomlčka
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 --
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 vytvorená s 
 \begin_inset Quotes gld
 \end_inset
@@ -11344,7 +11791,7 @@ vytvorená s
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -11364,9 +11811,13 @@ status collapsed
 
 \begin_layout Enumerate
 em pomlčka
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 ---
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 vytvorená s 
 \begin_inset Quotes gld
 \end_inset
@@ -11377,7 +11828,7 @@ vytvorená s
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -11390,7 +11841,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -11410,13 +11861,17 @@ status collapsed
 
 \begin_layout Enumerate
 znamienko mínus
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \begin_inset Formula $-$
 \end_inset
 
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \begin_inset Quotes gld
 \end_inset
@@ -11461,7 +11916,9 @@ Tieto tri typy pomlčiek sa odlišujú od znamienka mínus, ktoré je v matemati
 
 \begin_layout Enumerate
 roz-de-le-né slo-vo
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 (
 \emph on
 spojovník
@@ -11471,7 +11928,9 @@ spojovník
 
 \begin_layout Enumerate
 Od A--Z
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 (
 \emph on
 en pomlčka
@@ -11481,7 +11940,9 @@ en pomlčka
 
 \begin_layout Enumerate
 Oh --- to je ale pomlčka.
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 (
 \emph on
 em pomlčka
@@ -11494,7 +11955,9 @@ em pomlčka
 \end_inset
 
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 (
 \emph on
 znamienko mínus
@@ -11539,7 +12002,8 @@ Skratky a konce viet
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: skratky"
 
 \end_inset
@@ -11621,7 +12085,8 @@ Za skratkou s malým písmenom použite
 Chránenú medzeru
 \family default
  (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: chmedzera-zlomriadku-hciara"
 
 \end_inset
@@ -11656,7 +12121,10 @@ S opravami naše príklady vyzerajú takto:
 \end_layout
 
 \begin_layout Itemize
-napr.\InsetSpace ~
+napr.
+\begin_inset space ~
+\end_inset
+
 sem je príliš veľká medzera!
 \end_layout
 
@@ -11670,11 +12138,6 @@ Toto je pán M\SpecialChar \@.
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: uvodzovky"
-
-\end_inset
-
 LyX obyčajne robí úvodzovky správne.
  Zvlášť použije otváraciu úvodzovku a zvlášť ukončovaciu.
  napríklad 
@@ -11896,7 +12359,8 @@ Ligatúry
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: ligatury"
 
 \end_inset
@@ -11933,7 +12397,10 @@ ffl
 \end_layout
 
 \begin_layout Standard
-Zatiaľčo v jednom slove môže ligatúra vyzerať v poriadku, napr.\InsetSpace ~
+Zatiaľčo v jednom slove môže ligatúra vyzerať v poriadku, napr.
+\begin_inset space ~
+\end_inset
+
 
 \begin_inset Quotes gld
 \end_inset
@@ -11942,7 +12409,10 @@ graffiti
 \begin_inset Quotes grd
 \end_inset
 
-, v zložených slovách, napr.\InsetSpace ~
+, v zložených slovách, napr.
+\begin_inset space ~
+\end_inset
+
 
 \begin_inset Quotes gld
 \end_inset
@@ -11985,12 +12455,16 @@ rozbili
  medzi príslušnými písmenami.
  (Použite 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 t
 \family default
 , alebo tlačítko označené TeX, aby ste text označili ako LaTeXový príkaz.
  Pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: latexcodes"
 
 \end_inset
@@ -12011,7 +12485,7 @@ cuf
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -12040,7 +12514,7 @@ Dorf
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -12061,7 +12535,8 @@ Vdovy a siroty
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: vdovy"
 
 \end_inset
@@ -12100,13 +12575,15 @@ LyX sa môže vyvarovať zalomeniu strany za nadpisom.
 Nebudeme sa zaoberať ako sa TeX a LaTeX rozhodujú o zalamovaní strán, alebo
  ako by sme mohli zmeniť toto správanie.
  Niektoré knihy o LaTeXu, spomenuté v literatúre (ako napríklad 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "latexcompanion"
 
 \end_inset
 
  alebo 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "latexguide"
 
 \end_inset
@@ -12174,7 +12651,7 @@ foot
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Aby ste zavreli túto poznámku pod čiarou, klknite na štítku vľavo.
 \end_layout
 
@@ -12234,9 +12711,10 @@ Poznámka: Inset v LaTeXu a LyXe nie je jednoduchý odsek ako v obyčajných
  textových procesoroch.
  Je to komplexná textová štruktúra, ktorá môže obsahovať všetko okrem insetov.
  To znamená, že v insete môžte používať aj obrázky a tabuľky.
-\newline
-Ak používate
- kontrolu pravopisu, zapamätajte si, že insety 
+\begin_inset Newline newline
+\end_inset
+
+Ak používate kontrolu pravopisu, zapamätajte si, že insety 
 \emph on
 musia byť
 \emph default
@@ -12301,7 +12779,7 @@ margin
 \begin_inset Marginal
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Toto je poz\SpecialChar \-
 nám\SpecialChar \-
 ka na o\SpecialChar \-
@@ -12338,7 +12816,8 @@ Obrázky a importovaná grafika
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: obrazky"
 
 \end_inset
@@ -12390,7 +12869,10 @@ Zobrazí sa vám okienko s dvoma možnosťami:
 \labelwidthstring 00.00.0000
 
 \family sans
-Encapsulated\InsetSpace ~
+Encapsulated
+\begin_inset space ~
+\end_inset
+
 PostScript:
 \family default
  Toto obrázok vloží normálne.
@@ -12408,7 +12890,6 @@ PostScript:
 \align center
 \begin_inset Graphics
 	filename ../clipart/mobius.eps
-	display color
 	rotateOrigin center
 
 \end_inset
@@ -12427,14 +12908,16 @@ PostScript:
 \labelwidthstring 00.00.0000
 
 \family sans
-Vložený\InsetSpace ~
+Vložený
+\begin_inset space ~
+\end_inset
+
 EPS:
 \family default
  Toto je tiež na PostScriptové obrázky, ale tieto sa správajú odlišne.
  Sú vložené priamo do textu, ako napríklad tento: 
 \begin_inset Graphics
 	filename ../clipart/mobius.eps
-	display color
 	width 1in
 	height 0.2in
 	rotateOrigin center
@@ -12458,7 +12941,10 @@ Jednotlivé parametre si preberieme jeden po druhom:
 \labelwidthstring 00.00.0000
 
 \family sans
-EPS\InsetSpace ~
+EPS
+\begin_inset space ~
+\end_inset
+
 obrázok:
 \family default
  Toto je názov súboru a je to samovysvetľujúce.
@@ -12518,7 +13004,10 @@ palce
 
 
 \family sans
-%\InsetSpace ~
+%
+\begin_inset space ~
+\end_inset
+
 stránky
 \family default
 
@@ -12531,7 +13020,10 @@ stránky
 
 
 \family sans
-%\InsetSpace ~
+%
+\begin_inset space ~
+\end_inset
+
 stĺpca
 \family default
 
@@ -12620,9 +13112,18 @@ Uhol
 \labelwidthstring 00.00.0000
 
 \family sans
-Na\InsetSpace ~
-celú\InsetSpace ~
-obrazovku\InsetSpace ~
+Na
+\begin_inset space ~
+\end_inset
+
+celú
+\begin_inset space ~
+\end_inset
+
+obrazovku
+\begin_inset space ~
+\end_inset
+
 preview:
 \family default
  Toto talčítko jednoducho zavolá ghostview a obrázok zobrazí v samostatnom
@@ -12630,7 +13131,7 @@ preview:
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -12673,7 +13174,8 @@ Používanie insetov s obrázkami
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: insetobrazok"
 
 \end_inset
@@ -12688,7 +13190,8 @@ Problém s vkladaním obrázkov priamo do textu je, že môžu spraviť stránko
 Caption
 \family default
 , ktoré je vysvetlené v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: captionlayout"
 
 \end_inset
@@ -12720,11 +13223,12 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "fig: escher"
 
 \end_inset
@@ -12737,11 +13241,10 @@ Prvý inset s obrázkom.
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \align center
 \begin_inset Graphics
 	filename ../clipart/escher-lsd.eps
-	display color
 	rotateOrigin center
 
 \end_inset
@@ -12758,11 +13261,10 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \align center
 \begin_inset Graphics
 	filename ../clipart/platypus.eps
-	display color
 	width 80text%
 	rotateOrigin center
 
@@ -12771,11 +13273,12 @@ status open
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "fig: kill-plat"
 
 \end_inset
@@ -12799,7 +13302,8 @@ Caption
 \family default
  potom, čo bol obrázok vložený).
  Toto sme použili pre obrázok 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "fig: kill-plat"
 
 \end_inset
@@ -12807,7 +13311,8 @@ reference "fig: kill-plat"
 .
  Ak pri vkladaní obrázku je kurzor na konci popisu, potom bude obrázok vložený
  za popisok, tak ako je to v prípade obrázku 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "fig: escher"
 
 \end_inset
@@ -12820,7 +13325,8 @@ reference "fig: escher"
 \begin_layout Standard
 Tieto obrázky tiež ukazujú použitie návestia a referencie naň (pozri sekciu
  
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: crossref"
 
 \end_inset
@@ -12846,15 +13352,30 @@ obrázok hore
 \begin_layout Standard
 
 \family sans
-Inset\InsetSpace ~
-s\InsetSpace ~
+Inset
+\begin_inset space ~
+\end_inset
+
+s
+\begin_inset space ~
+\end_inset
+
 obrázkom
 \family default
  a 
 \family sans
-Široký\InsetSpace ~
-inset\InsetSpace ~
-s\InsetSpace ~
+Široký
+\begin_inset space ~
+\end_inset
+
+inset
+\begin_inset space ~
+\end_inset
+
+s
+\begin_inset space ~
+\end_inset
+
 obrázkom
 \family default
  majú ešte dve črty.
@@ -12863,7 +13384,8 @@ obrázkom
 Zoznamu obrázkov
 \family default
  (ako je to popísané v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: zoznam"
 
 \end_inset
@@ -12878,7 +13400,8 @@ Umiestnenie insetov
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: umiestnenie-insetov"
 
 \end_inset
@@ -12899,9 +13422,12 @@ rozumný spôsob
 \end_layout
 
 \begin_layout Description
-Here\InsetSpace ~
-(sem): LyX sa inset pokúsi vložiť na rovnaké miesto v texte, ako ste
- ho umiestnili vy.
+Here
+\begin_inset space ~
+\end_inset
+
+(sem): LyX sa inset pokúsi vložiť na rovnaké miesto v texte, ako ste ho
+ umiestnili vy.
 \end_layout
 
 \begin_deeper
@@ -12911,20 +13437,32 @@ Ak na to nie je dostatok miesta, LyX skúsi jednu z ďalších troch možností.
 
 \end_deeper
 \begin_layout Description
-Top\InsetSpace ~
+Top
+\begin_inset space ~
+\end_inset
+
 (hore): LyX sa pokúsi umiestniť inset na vrchu aktuálnej stránky.
  Ak sa obrázok nezmestí na aktuálnu stránku, bude umiestnený na nasledujúcej.
 \end_layout
 
 \begin_layout Description
-Bottom\InsetSpace ~
+Bottom
+\begin_inset space ~
+\end_inset
+
 (dolu): LyX sa pokúsi umiestniť inset naspodu danej stránky.
  Ak je tam málo miesta, bude na nasledujúcej stránke.
 \end_layout
 
 \begin_layout Description
-Page\InsetSpace ~
-(na\InsetSpace ~
+Page
+\begin_inset space ~
+\end_inset
+
+(na
+\begin_inset space ~
+\end_inset
+
 stránke): LyX sa pokúsi vložiť inset na samostatnú stránku.
 \end_layout
 
@@ -13093,9 +13631,11 @@ ajúcej časti.
  Ak ste do svojho obrázku vložili text, bude vytlačený PostScriptovými písmami.
  S obrázkom môžete manipulovať ako s ľubovoľným iným EPS obrázkom, ako je
  to popísané vyššie.
-\newline
-Jedinou nevýhodou je, že nemôžete priamo vytvárať vzorce,
- ako to očakáva PostScript.
+\begin_inset Newline newline
+\end_inset
+
+Jedinou nevýhodou je, že nemôžete priamo vytvárať vzorce, ako to očakáva
+ PostScript.
  Ak potrebujete vzorce alebo jednoduché exponenty, dopo\SpecialChar \-
 ru\SpecialChar \-
 ču\SpecialChar \-
@@ -13132,7 +13672,10 @@ spustíte ako
  
 \family typewriter
 \emph toggle
-xfig\InsetSpace ~
+xfig
+\begin_inset space ~
+\end_inset
+
 -specialtext
 \family default
 .
@@ -13177,7 +13720,9 @@ input
 \end_inset
 
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Nevýhodou je, že grafická sila LaTeXu nie je taká veľká ako sila PostScriptu.
  Preto na zložitejšie obrázky doporučujeme tretí spôsob.
 \end_layout
@@ -13218,7 +13763,10 @@ Potom musíte LaTeXovú časť vložiť príkazom
 \family typewriter
 
 \backslash
-input\InsetSpace ~
+input
+\begin_inset space ~
+\end_inset
+
 xxx.ps_tex_t
 \family default
 .
@@ -13226,7 +13774,7 @@ xxx.ps_tex_t
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ak dostanete chybu ako 
 \begin_inset Quotes gld
 \end_inset
@@ -13240,13 +13788,13 @@ unknown graphics extension ps_tex
  Jednoducho pridajte riadok
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \backslash
 @namedef{Gin@rule@ps_tex}#1{{eps}{ps_tex}{#1}}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 do súboru 
 \family typewriter
 /usr/lib/texmf/tex/latex/graphics/dvips.def
@@ -13259,7 +13807,7 @@ ps_tex
  k príponám:
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \backslash
 def
@@ -13267,7 +13815,7 @@ def
 Gin@extension{eps, ps, ps_tex, eps.gz, ps.gz, eps=2EZ}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Toto by malo celú vec vyriešiť.
  Alternatívou je, že PostScriptovú časť exportujete ako 
 \family typewriter
@@ -13296,7 +13844,8 @@ Tabuľky
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: tabulky"
 
 \end_inset
@@ -13339,91 +13888,91 @@ Vložiť
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 12
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 45
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 98
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 A
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 B
 \end_layout
 
@@ -13432,7 +13981,7 @@ B
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -13441,7 +13990,7 @@ B
 <cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 multi 
 \end_layout
 
@@ -13450,18 +13999,18 @@ multi
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 C
 \end_layout
 
@@ -13470,7 +14019,7 @@ C
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -13479,7 +14028,7 @@ C
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -13488,7 +14037,7 @@ C
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -13643,7 +14192,10 @@ viac stĺpcov
  Najprv vyberiete bunky, ktoré chcete spojiť a potom z menu vykonáte príkaz
  
 \family sans
-Viac\InsetSpace ~
+Viac
+\begin_inset space ~
+\end_inset
+
 stĺpcov
 \family default
 .
@@ -13666,14 +14218,14 @@ Viac stĺpcov môžete použiť ak potrebujete samostatnú bunku zvlášť nafor
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
 <features>
-<column alignment="left" valignment="top" leftline="true" rightline="true" width="0pt">
-<column alignment="right" valignment="top" leftline="true" width="0pt">
-<column alignment="right" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
+<column alignment="left" valignment="top" width="0pt">
+<column alignment="right" valignment="top" width="0pt">
+<column alignment="right" valignment="top" width="0pt">
+<row>
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 *
@@ -13684,7 +14236,7 @@ Viac stĺpcov môžete použiť ak potrebujete samostatnú bunku zvlášť nafor
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 x
@@ -13695,7 +14247,7 @@ x
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 y
@@ -13704,11 +14256,11 @@ y
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
+<row>
 <cell multicolumn="1" alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 point a & b
@@ -13716,10 +14268,10 @@ point a & b
 
 \end_inset
 </cell>
-<cell alignment="right" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 103
 \end_layout
 
@@ -13728,7 +14280,7 @@ point a & b
 <cell alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
@@ -13739,7 +14291,7 @@ point a & b
 <cell multicolumn="1" alignment="left" valignment="top" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 point b & a
@@ -13747,30 +14299,30 @@ point b & a
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 599
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="right" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="right" valignment="top" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 340
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 point abc
@@ -13778,30 +14330,30 @@ point abc
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1009
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="right" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 52
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 point abcd
@@ -13812,7 +14364,7 @@ point abcd
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 96
 \end_layout
 
@@ -13821,7 +14373,7 @@ point abcd
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 11
 \end_layout
 
@@ -13934,245 +14486,251 @@ to nebute fungovať.
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="12">
 <features>
-<column alignment="left" valignment="top" leftline="true" rightline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<column alignment="right" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<column alignment="left" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="right" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Popis
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 3
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 4
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 5
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 6
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 7
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 8
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 9
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" rotate="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" rotate="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príznak 10
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Suma
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
-Popis\InsetSpace ~
+\begin_layout Plain Layout
+Popis
+\begin_inset space ~
+\end_inset
+
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="right" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
-Popis\InsetSpace ~
+\begin_layout Plain Layout
+Popis
+\begin_inset space ~
+\end_inset
+
 2
 \end_layout
 
@@ -14181,7 +14739,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14190,7 +14748,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14199,7 +14757,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14208,7 +14766,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14217,7 +14775,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14226,7 +14784,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14235,7 +14793,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14244,7 +14802,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14253,7 +14811,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14262,7 +14820,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14271,19 +14829,22 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="left" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
-Popis\InsetSpace ~
+\begin_layout Plain Layout
+Popis
+\begin_inset space ~
+\end_inset
+
 3
 \end_layout
 
@@ -14292,7 +14853,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14301,7 +14862,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14310,7 +14871,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14319,7 +14880,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14328,7 +14889,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14337,7 +14898,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14346,7 +14907,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14355,7 +14916,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14364,7 +14925,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14373,7 +14934,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14382,19 +14943,22 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 8
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
-Popis\InsetSpace ~
+\begin_layout Plain Layout
+Popis
+\begin_inset space ~
+\end_inset
+
 4
 \end_layout
 
@@ -14403,7 +14967,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14412,7 +14976,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14421,7 +14985,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14430,7 +14994,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14439,7 +15003,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14448,7 +15012,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14457,7 +15021,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14466,7 +15030,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14475,7 +15039,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 *
 \end_layout
 
@@ -14484,7 +15048,7 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14493,27 +15057,27 @@ Popis\InsetSpace ~
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Suma
 \end_layout
 
 \end_inset
 </cell>
-<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
  
 \end_layout
 
@@ -14522,7 +15086,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14531,7 +15095,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14540,7 +15104,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14549,7 +15113,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14558,7 +15122,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14567,7 +15131,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14576,7 +15140,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14585,7 +15149,7 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14594,16 +15158,16 @@ Suma
 <cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 30
 \end_layout
 
@@ -14675,43 +15239,43 @@ Shift
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 4
 \end_layout
 
@@ -14720,7 +15284,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 5
 \end_layout
 
@@ -14729,18 +15293,18 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
@@ -14749,7 +15313,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 8
 \end_layout
 
@@ -14758,7 +15322,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
@@ -14791,43 +15355,43 @@ Shift
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 4
 \end_layout
 
@@ -14836,7 +15400,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 5
 \end_layout
 
@@ -14845,18 +15409,18 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
@@ -14865,7 +15429,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14874,18 +15438,18 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14894,7 +15458,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14903,7 +15467,7 @@ Shift
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -14999,14 +15563,14 @@ Tu je príklad:
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="block" valignment="top" leftline="true" width="6.5cm">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="block" valignment="top" width="6.5cm">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
@@ -15015,17 +15579,46 @@ Tu je príklad:
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Toto je viacriadkový text v tabuľke.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
 \end_layout
 
 \end_inset
@@ -15035,36 +15628,7 @@ Tu je príklad:
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
-4
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="left" valignment="top" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Toto je viacriadkový text v tabuľke.
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-5
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
@@ -15073,7 +15637,7 @@ Toto je viacriadkový text v tabuľke.
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Toto je dlhé.
 \end_layout
 
@@ -15082,18 +15646,18 @@ Toto je dlhé.
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 8 
 \end_layout
 
@@ -15102,7 +15666,7 @@ Toto je dlhé.
 <cell alignment="left" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Toto je viacriadkový text v tabuľke.
  Toto je dlhé.A ešte dlhšie.
 \end_layout
@@ -15112,7 +15676,7 @@ Toto je viacriadkový text v tabuľke.
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
@@ -15193,7 +15757,10 @@ Normálne:
 \begin_layout Enumerate
 
 \family sans
-Prvá\InsetSpace ~
+Prvá
+\begin_inset space ~
+\end_inset
+
 hlavička:
 \family default
  Aktuálny riadok a všetky riadky nad ním ktoré nemajú definovanú žiadnu
@@ -15210,7 +15777,10 @@ Hlavička:
  špeciálnu voľbu sú nastavené ako hlavičkové riadky všetkých stránok dlhej
  tabuľky, okrem prvej stránky, ak je definovaná 
 \family sans
-Prvá\InsetSpace ~
+Prvá
+\begin_inset space ~
+\end_inset
+
 hlavička
 \family default
 .
@@ -15225,7 +15795,10 @@ Pätka:
  špeciálnu voľbu sú nastavené ako pätkové riadky všetkých stránok dlhej
  tabuľky, okrem poslednej stránky, ak je definovaná 
 \family sans
-Posledná\InsetSpace ~
+Posledná
+\begin_inset space ~
+\end_inset
+
 pätka
 \family default
 .
@@ -15234,7 +15807,10 @@ pätka
 \begin_layout Enumerate
 
 \family sans
-Posledná\InsetSpace ~
+Posledná
+\begin_inset space ~
+\end_inset
+
 pätka:
 \family default
  Aktuálny riadok a všetky riadky nad ním ktoré nemajú definovanú žiadnu
@@ -15245,7 +15821,10 @@ pätka:
 \begin_layout Enumerate
 
 \family sans
-Nova\InsetSpace ~
+Nova
+\begin_inset space ~
+\end_inset
+
 stránka:
 \family default
  Toto spraví zlom tabuľky na riadku, kde je táto voľba nastavená.
@@ -15288,7 +15867,10 @@ Pomocník
 \labelwidthstring 00.00.0000
 
 \emph on
-Pozn.\InsetSpace ~
+Pozn.
+\begin_inset space ~
+\end_inset
+
 prekl.:
 \emph default
  
@@ -15323,7 +15905,8 @@ Insety s tabuľkou
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: tabulkainset"
 
 \end_inset
@@ -15355,20 +15938,23 @@ Vložiť->Insety
  toho, kde presne ste ju vložili vy.
  Umiestňovanie insetov s tabuľkou je podobné ako umietňovanie insetov s
  obrázkom (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: insetobrazok"
 
 \end_inset
 
 ), ktoré je popísané v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: umiestnenie-insetov"
 
 \end_inset
 
 .
  Tabuľka 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "tab: inset_s_tabulkou"
 
 \end_inset
@@ -15387,11 +15973,12 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "tab: inset_s_tabulkou"
 
 \end_inset
@@ -15404,77 +15991,77 @@ Inset s tabuľkou.
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Janko
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Marienka
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ferko
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\int x^{2}dx$
 \end_inset
 
@@ -15486,7 +16073,7 @@ Ferko
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\left[\begin{array}{cc}
 a & b\\
 c & d\end{array}\right]$
@@ -15500,7 +16087,7 @@ c & d\end{array}\right]$
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $1+1=2$
 \end_inset
 
@@ -15546,7 +16133,8 @@ Table:
 
  v insete a tabuľku vložite až za týmto popisom, bude popis nad tabuľkou,
  ako v prípade tabuľky 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "tab: inset_s_tabulkou"
 
 \end_inset
@@ -15554,7 +16142,8 @@ reference "tab: inset_s_tabulkou"
 .
  Ak ste popis ešte nenapísali a vložili ste rovno tabuľku, potom bude popis
  pod tabuľkou, ako v prípade tabuľky 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "tab: tabinset-popis_pod"
 
 \end_inset
@@ -15566,77 +16155,77 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 4
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 5
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
@@ -15645,7 +16234,7 @@ status open
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 8
 \end_layout
 
@@ -15654,7 +16243,7 @@ status open
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
@@ -15668,11 +16257,12 @@ status open
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "tab: tabinset-popis_pod"
 
 \end_inset
@@ -15696,7 +16286,7 @@ Vložiť->Insety->Inset s tabuľkou
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -15737,7 +16327,8 @@ Caption
 \end_inset
 
  Príkladom je tabuľka 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "tab: tabinset-bez_popisu"
 
 \end_inset
@@ -15749,77 +16340,77 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 4
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 5
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 6
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 7
 \end_layout
 
@@ -15828,7 +16419,7 @@ status open
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 8
 \end_layout
 
@@ -15837,7 +16428,7 @@ status open
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 9
 \end_layout
 
@@ -15851,8 +16442,9 @@ status open
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "tab: tabinset-bez_popisu"
 
 \end_inset
@@ -15867,7 +16459,7 @@ name "tab: tabinset-bez_popisu"
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -15885,7 +16477,8 @@ Pozn.
  Nie je možné popísať tabuľku, ak táto nie je vložená v insete.
  Všimnite si, že popisovanie tabuliek ich automaticky čísluje, a odkazy
  (sekcia 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: crossref"
 
 \end_inset
@@ -15902,7 +16495,8 @@ Technika umiestňovania insetov s tabuľkou je rovnaká ako pri insetoch s
  obrázk\SpecialChar \-
 om.
  Prečítajte si sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: umiestnenie-insetov"
 
 \end_inset
@@ -15915,11 +16509,6 @@ Obsah a ďalšie zoznamy
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: obsah"
-
-\end_inset
-
 Jednou z naozaj pekných vlastností LaTeXu je ľahkosť, s ktorou vám umožní
  vytvárať rôzne 
 \begin_inset Quotes gld
@@ -16044,7 +16633,8 @@ Zoznam obrázkov, tabuliek a algoritmov
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: zoznam"
 
 \end_inset
@@ -16126,7 +16716,10 @@ Nakoniec som sa presvedčil, že matematický editor je správna cesta, keď
 
  som vytvoril tak, že som stlačil 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 m
 \family default
 , aby som zapol matematický režim, potom napísal 
@@ -16154,7 +16747,10 @@ Esc
 \begin_layout Standard
 Klávesová skratka 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 m
 \family default
  zapína matematický režim, 
@@ -16230,7 +16826,10 @@ ko, na ktorom je
  režim.
  Tiež môžete použiť klávesovú skratku 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 m
 \family default
 , alebo 
@@ -16264,8 +16863,14 @@ Ak používate matematický režim na napísanie jednoduchých gréckych písmen
 ), je na to špeciálna skratka.
  Jednoducho stlačte 
 \family sans
-M-m\InsetSpace ~
-g\InsetSpace ~
+M-m
+\begin_inset space ~
+\end_inset
+
+g
+\begin_inset space ~
+\end_inset
+
 a
 \family default
  pre 
@@ -16274,8 +16879,14 @@ a
 
 , 
 \family sans
-M-m\InsetSpace ~
-g\InsetSpace ~
+M-m
+\begin_inset space ~
+\end_inset
+
+g
+\begin_inset space ~
+\end_inset
+
 b
 \family default
  pre 
@@ -16286,7 +16897,7 @@ b
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -16594,7 +17205,10 @@ y
 \begin_inset Formula $a_{1}$
 \end_inset
 
-, napíšte (v\InsetSpace ~
+, napíšte (v
+\begin_inset space ~
+\end_inset
+
 matematickom výraze) 
 \family typewriter
 a_1
@@ -16607,7 +17221,7 @@ Medzeru
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -16775,7 +17389,8 @@ tickom
 \end_inset
 
  a väčšina trigonometrických funkcií, popísaných nižšie v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: mat-fcie"
 
 \end_inset
@@ -16788,7 +17403,8 @@ Panel matematických nástrojov
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: mat-panel"
 
 \end_inset
@@ -16951,7 +17567,8 @@ Medzeru
  Niektoré symboly prístupné cez tlačítka na paneli sa zobrazia týmto spôsobom.
  Toto vám tiež umožňuje definovať si svoje vlastné makrá (daný textový reťazec
  vložte do preambuly (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: preambula"
 
 \end_inset
@@ -16991,7 +17608,8 @@ alpha
  Avšak dajte si pozor na to, že LyX sa neuistí, či je takéto makro prípustné
  a ak nebude, pri vytváraní výstupu dostanete chybu LaTeXu.
  Pre detaily si prečítajte sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: latexcodes"
 
 \end_inset
@@ -17004,7 +17622,8 @@ Matematické funkcie
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: mat-fcie"
 
 \end_inset
@@ -17018,7 +17637,10 @@ Predposledné tlačítko na paneli matematických nástrojov vám umožňuje vkl
 \begin_inset Formula $\cos$
 \end_inset
 
-, atď.\InsetSpace ~
+, atď.
+\begin_inset space ~
+\end_inset
+
 (vo výraze ich môžete vložiť napísaním 
 \family typewriter
 
@@ -17157,61 +17779,61 @@ kom režime:
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 text
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 matematika
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 príklad
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 circumflex
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 hat
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\hat{a}$
 \end_inset
 
@@ -17221,11 +17843,11 @@ hat
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 grave
 \end_layout
 
@@ -17234,7 +17856,7 @@ grave
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 grave
 \end_layout
 
@@ -17243,7 +17865,7 @@ grave
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\grave{a}$
 \end_inset
 
@@ -17253,11 +17875,11 @@ grave
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 acute
 \end_layout
 
@@ -17266,7 +17888,7 @@ acute
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 acute
 \end_layout
 
@@ -17275,7 +17897,7 @@ acute
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\acute{a}$
 \end_inset
 
@@ -17285,11 +17907,11 @@ acute
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 umlaut
 \end_layout
 
@@ -17298,7 +17920,7 @@ umlaut
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 ddot
 \end_layout
 
@@ -17307,7 +17929,7 @@ ddot
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\ddot{a}$
 \end_inset
 
@@ -17317,11 +17939,11 @@ ddot
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 tilde
 \end_layout
 
@@ -17330,7 +17952,7 @@ tilde
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 tilde
 \end_layout
 
@@ -17339,7 +17961,7 @@ tilde
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\tilde{a}$
 \end_inset
 
@@ -17349,11 +17971,11 @@ tilde
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dot
 \end_layout
 
@@ -17362,7 +17984,7 @@ dot
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dot
 \end_layout
 
@@ -17371,7 +17993,7 @@ dot
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\dot{a}$
 \end_inset
 
@@ -17381,11 +18003,11 @@ dot
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 breve
 \end_layout
 
@@ -17394,7 +18016,7 @@ breve
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 breve
 \end_layout
 
@@ -17403,7 +18025,7 @@ breve
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\breve{a}$
 \end_inset
 
@@ -17413,11 +18035,11 @@ breve
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 caron
 \end_layout
 
@@ -17426,7 +18048,7 @@ caron
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 check
 \end_layout
 
@@ -17435,7 +18057,7 @@ check
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\check{a}$
 \end_inset
 
@@ -17445,11 +18067,11 @@ check
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 macron
 \end_layout
 
@@ -17458,7 +18080,7 @@ macron
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 bar
 \end_layout
 
@@ -17467,7 +18089,7 @@ bar
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\bar{a}$
 \end_inset
 
@@ -17477,11 +18099,11 @@ bar
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 ---
 \end_layout
 
@@ -17490,7 +18112,7 @@ bar
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 vec
 \end_layout
 
@@ -17499,7 +18121,7 @@ vec
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\vec{a}$
 \end_inset
 
@@ -17542,7 +18164,8 @@ V LyXe je dostupných niekoľko druhov zátvoriek.
 Oddeľovač
 \family default
  na paneli matematických nástrojov (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: mat-panel"
 
 \end_inset
@@ -17663,7 +18286,7 @@ A-e k
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -17810,7 +18433,8 @@ C-Enter
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: mat-label"
 
 \end_inset
@@ -17850,7 +18474,7 @@ nie rovnice môžete zapnúť bez toho, aby ste vložili nejaké návestie.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -17882,7 +18506,7 @@ Tento príkaz je prepínač.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -17916,7 +18540,8 @@ Vložiť
 \family default
 ).
  Toto je odkaz na rovnicu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "mathed:prva_rovnica"
 
 \end_inset
@@ -17957,14 +18582,16 @@ používať medzery, pretože vám to môže spôsobiť problémy.
 \end_inset
 
 Všimnite si, že prvá rovnica má návestie (
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "mathed:druha_rovnica"
 
 \end_inset
 
 ), druhá a tretia sú číslované ale bez návestia a posledá má zase návestie
  (
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "mathed:tertia_rovnica"
 
 \end_inset
@@ -17973,7 +18600,7 @@ reference "mathed:tertia_rovnica"
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -18202,10 +18829,15 @@ Ako sa pohybovať
 \end_layout
 
 \begin_layout Description
-Pomocou\InsetSpace ~
-kurzorových\InsetSpace ~
-kláves: Ak vsúpite do makra, kurzor sa umiestni do prvého
- argumentu.
+Pomocou
+\begin_inset space ~
+\end_inset
+
+kurzorových
+\begin_inset space ~
+\end_inset
+
+kláves: Ak vsúpite do makra, kurzor sa umiestni do prvého argumentu.
  Na ďalší argument sa presuniete klávesou 
 \family sans
 TAB
@@ -18219,7 +18851,10 @@ Medzeru
 \end_layout
 
 \begin_layout Description
-Pomocou\InsetSpace ~
+Pomocou
+\begin_inset space ~
+\end_inset
+
 myši: Ako obyčajne, kliknutím na dané políčko argumentu.
 \end_layout
 
@@ -18285,7 +18920,10 @@ V matematickom režime môžete používať niekoľko druhov písma, ale (zatia�
 ma\SpecialChar \-
 tike napísať text rímskym písmom, stlačte 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 r
 \family default
 : 
@@ -18299,14 +18937,20 @@ r
 
 , stlačte 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 b
 \family default
 .
  Ak chcete kaligrafické písmo pre veľké písmená (na obrazovke to vyzerá
  ako šikmá Helvetica, ale vo výstupe je to krajšie), stlačte 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 
 \family default
 e: 
@@ -18318,7 +18962,7 @@ e:
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -18326,7 +18970,10 @@ Pozn.
 \emph default
  
 \emph toggle
-Skratka M-c\InsetSpace ~
+Skratka M-c
+\begin_inset space ~
+\end_inset
+
 i nefunguje.
  Druhý stĺpec je písaný anglickými ekvivalentami, pretože v matematike nefunguje
  diakritika (už som sa o tom myslím zmieňoval).
@@ -18353,43 +19000,43 @@ i nefunguje.
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="3">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Textový režim
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Matematika
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Klávesová skratka v matematike
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 Tučné
@@ -18397,10 +19044,10 @@ Tučné
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Formula $\mathbf{Bold}$
 \end_inset
 
@@ -18409,24 +19056,27 @@ Tučné
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
-M-C\InsetSpace ~
+M-C
+\begin_inset space ~
+\end_inset
+
 b
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Zvýraznené
@@ -18437,7 +19087,7 @@ Zvýraznené
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 \begin_inset Formula $\mathcal{CALLIGRAPHIC}$
@@ -18451,11 +19101,14 @@ Zvýraznené
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \emph toggle
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 e
 \family default
 \emph default
@@ -18466,18 +19119,21 @@ alebo
  
 \family sans
 \emph toggle
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 i
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 ---------
@@ -18488,7 +19144,7 @@ i
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 \begin_inset Formula $\mathrm{Roman}$
@@ -18502,11 +19158,14 @@ i
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \emph toggle
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 r
 \family default
 \emph default
@@ -18516,11 +19175,11 @@ r
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family typewriter
 \emph toggle
@@ -18532,7 +19191,7 @@ Písací stroj
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 \begin_inset Formula $\mathtt{Typewriter}$
@@ -18546,22 +19205,25 @@ Písací stroj
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \emph toggle
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 p
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row bottomline="true">
+<row>
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 Štandardné
@@ -18572,7 +19234,7 @@ p
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph toggle
 \begin_inset Formula $Default$
@@ -18586,11 +19248,14 @@ p
 <cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \emph toggle
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 Medzera
 \end_layout
 
@@ -18786,7 +19451,7 @@ neúmyselnú vlastnosť
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 V podstate chybu.
 \end_layout
 
@@ -18852,7 +19517,8 @@ Krosreferencie
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: crossref"
 
 \end_inset
@@ -18870,7 +19536,8 @@ návestie
 referencia
 \family default
 , a vyzerá takto: 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: crossref"
 
 \end_inset
@@ -18880,7 +19547,8 @@ reference "sec: crossref"
  Tí, ktorí čítajú vytlačený manuál vidia číslo --- v tomto prípade číslo
  tejto sekcie.
  Tiež je ďalšia možnosť krosreferencie: 
-\begin_inset LatexCommand pageref
+\begin_inset CommandInset ref
+LatexCommand pageref
 reference "sec: crossref"
 
 \end_inset
@@ -18990,9 +19658,10 @@ Ak z nejakého iného dokumentu vložíte text, ktorý obsahuje návestia a refe
 
 \family typewriter
 LaTeX Warning: Reference X on page Y undefined on input line Z.
-\newline
-LaTeX Warning:
- There were undefined references.
+\begin_inset Newline newline
+\end_inset
+
+LaTeX Warning: There were undefined references.
 \end_layout
 
 \begin_layout Standard
@@ -19039,19 +19708,22 @@ Taktiež normálne referencie --- referencie, ktoré sa odkazujú na číslo sek
  číslovanej sekcie).
  Ak chcete vedieť detaily o číslovaní a popisovaní obrázkov, tabuliek a
  rovníc, pozrite si sekcie 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: insetobrazok"
 
 \end_inset
 
 , 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: tabulkainset"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: mat-label"
 
 \end_inset
@@ -19068,7 +19740,8 @@ Extra horizontálna medzera
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: hmedzera"
 
 \end_inset
@@ -19122,25 +19795,37 @@ om robiť:
 
 \begin_layout Quote
 Toto je na ľavej strane.
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 Toto je na pravej.
 \end_layout
 
 \begin_layout Quote
 Naľavo
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 V prostriedku
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 Napravo
 \end_layout
 
 \begin_layout Quote
 Naľavo
-\hfill
-1/3 vľavo
-\hfill
+\begin_inset space \hfill{}
+\end_inset
 
-\hfill
+1/3 vľavo
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
 Napravo
 \end_layout
 
@@ -19151,7 +19836,9 @@ Quote
 \family default
 .
  Tu:
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 :je jeden v štandardnom odseku.
  Vo vytlačenej forme to nemusí byť očividné, ale 
 \family sans
@@ -19181,13 +19868,21 @@ List
 \begin_layout List
 \labelwidthstring MMMMMMMM
 jeden
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 dva :tri
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 štyri
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 päť
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 šesť
 \end_layout
 
@@ -19227,11 +19922,6 @@ Extra vertikálna medzera
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: vertmedzera"
-
-\end_inset
-
 Na pridanie vertikálnej medzery nad, alebo pod odsek, použite okno 
 \family sans
 Prostredie odstavca
@@ -19332,7 +20022,8 @@ Pevné zlomy strán
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: zlomstrany"
 
 \end_inset
@@ -19347,7 +20038,8 @@ nebude
 \emph toggle
 potrebné, pretože LaTeX je v zalamovaní strán dobrý, ako sme sa zmienili
  v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: vdovy"
 
 \end_inset
@@ -19423,13 +20115,15 @@ Mohli by ste použiť zlom strany na to, aby ste mali obrázok, alebo tabuľku
  (alebo na spodu, alebo na vlastnej stránke), pričom vás nemusí trápiť to,
  čo je pred alebo za vaším obrázkom alebo tabuľkou.
  Viac sa dozviete v sekciách 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: obrazky"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: tabulky"
 
 \end_inset
@@ -19446,7 +20140,8 @@ insetoch
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: chmedzera-zlomriadku-hciara"
 
 \end_inset
@@ -19465,7 +20160,9 @@ Chránená medzera: Používa sa na oznámenie LyXu (a LaTeXu), aby na danom
 \begin_deeper
 \begin_layout Quote
 Dobrá dokumentácia by nemala vážiť viac ako 1
-\newline
+\begin_inset Newline newline
+\end_inset
+
 kg.
 \end_layout
 
@@ -19512,7 +20209,8 @@ C-Enter
  Avšak nemali by ste to používať na opravu LaTeXových zlomov riadkov, pretože
  ten je v zalamovaní riadkov veľmi dobrý\SpecialChar \ldots{}
  (pozri sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: zlomstrany"
 
 \end_inset
@@ -19520,19 +20218,22 @@ reference "sec: zlomstrany"
 ).
  Je však niekoľko situácií, keď je potrebné aktívne vkladať zlomy riadkov,
  napríkald pri písaní básne, alebo adresy (pozri sekcie 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: quote"
 
 \end_inset
 
 , 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: verse"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: adresa_pouzitie"
 
 \end_inset
@@ -19565,11 +20266,6 @@ Kontrola pravopisu
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: kontrola-pravopisu"
-
-\end_inset
-
 Samotný LyX nemá zabudovanú kontrolu pravopisu.
  Na kontrolu pravopisu používa externý program 
 \family typewriter
@@ -19680,8 +20376,14 @@ Kontrola pravopisu
 \begin_layout Description
 
 \family sans
-Začať\InsetSpace ~
-kontrolu\InsetSpace ~
+Začať
+\begin_inset space ~
+\end_inset
+
+kontrolu
+\begin_inset space ~
+\end_inset
+
 pravopisu
 \family default
  začne kontrolovať dokument od miesta, kde sa aktuálne nachádza kurzor.
@@ -19690,9 +20392,18 @@ pravopisu
 \begin_layout Description
 
 \family sans
-Vložiť\InsetSpace ~
-do\InsetSpace ~
-osobného\InsetSpace ~
+Vložiť
+\begin_inset space ~
+\end_inset
+
+do
+\begin_inset space ~
+\end_inset
+
+osobného
+\begin_inset space ~
+\end_inset
+
 slovníka
 \family default
  vloží slovo do slovníka programu ispell, takže toto slovo bude v budúcnosti
@@ -19702,8 +20413,14 @@ slovníka
 \begin_layout Description
 
 \family sans
-Akceptovať\InsetSpace ~
-slovo\InsetSpace ~
+Akceptovať
+\begin_inset space ~
+\end_inset
+
+slovo
+\begin_inset space ~
+\end_inset
+
 (dočasne)
 \family default
  dané slovo, ktoré ispell našiel ako neznáme bude akceptované pre zvyšok
@@ -19713,7 +20430,10 @@ slovo\InsetSpace ~
 \begin_layout Description
 
 \family sans
-Ignorovať\InsetSpace ~
+Ignorovať
+\begin_inset space ~
+\end_inset
+
 slovo
 \family default
  nezmení slovo zachytené 
@@ -19727,7 +20447,10 @@ tené, ak sa v dokumente vyskytne neskôr.
 \begin_layout Description
 
 \family sans
-Zameniť\InsetSpace ~
+Zameniť
+\begin_inset space ~
+\end_inset
+
 slovo
 \family default
  zamení nájdené slovo tým, čo ste napísali do textového poľa 
@@ -19740,8 +20463,14 @@ Zameniť:
 \begin_layout Description
 
 \family sans
-Ukončiť\InsetSpace ~
-kontrolu\InsetSpace ~
+Ukončiť
+\begin_inset space ~
+\end_inset
+
+kontrolu
+\begin_inset space ~
+\end_inset
+
 pravopisu
 \family default
  zastaví vykonávanie programu 
@@ -19756,8 +20485,14 @@ ispell
 \begin_layout Description
 
 \family sans
-Parametre\InsetSpace ~
-kontroly\InsetSpace ~
+Parametre
+\begin_inset space ~
+\end_inset
+
+kontroly
+\begin_inset space ~
+\end_inset
+
 pravopisu
 \family default
  otvorí ďalšie okno, kde si môžete nastaviť niektoré možnosti 
@@ -19770,8 +20505,14 @@ u.
 \begin_layout Description
 
 \family sans
-Zavrieť\InsetSpace ~
-kontrolu\InsetSpace ~
+Zavrieť
+\begin_inset space ~
+\end_inset
+
+kontrolu
+\begin_inset space ~
+\end_inset
+
 pravopisu
 \family default
  urobí presne to, čo očakávate.
@@ -19804,11 +20545,6 @@ Parametre kontroly pravopisu
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: pravopis_param"
-
-\end_inset
-
 V okne parametre kontroly pravopisu sa dajú nastaviť nasledujúce možnosti
  (toto okno je tiež dostupné z menu 
 \family sans
@@ -20042,7 +20778,9 @@ V okne nastavenia kontroly pravopisu si môžete nastaviť ešte niekoľko možn
 Akceptovať spojené slová ako správne
 \family default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Spojené slová sa nebudú považovať za chyby.
 \end_layout
 
@@ -20052,7 +20790,9 @@ Spojené slová sa nebudú považovať za chyby.
 Použiť alternatívny osobný slovník
 \family default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Tu zadáte názov svojho osobného slovníka.
 \end_layout
 
@@ -20062,7 +20802,9 @@ Tu zadáte názov svojho osobného slovníka.
 Extra špeciálne znaky povolené v slovách
 \family default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Normálne by to nemalo byť potrebné.
 \end_layout
 
@@ -20098,7 +20840,8 @@ Ak máte klávesnicu prispôsobenú jazyku ktorý používate (napríklad nemeck
  X Window, všetko čo potrebujete urobiť pre LyX je povedať mu svoj jazyk,
  kódovanie znakov a požadovanú veľkosť papiera.
  Pre viac informácií si pozrite sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: jazyk"
 
 \end_inset
@@ -20135,7 +20878,8 @@ Rozloženie Dokumentu
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: jazyk"
 
 \end_inset
@@ -20153,7 +20897,7 @@ Svoj jazyk si vyberiete kliknutím na rozbaľovacie menu Jazyk.
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ak vyberiete iný jazyk ako 
 \family sans
 default
@@ -20193,13 +20937,6 @@ Latin2
 \family default
 , je s podporou jazykov východnej Európy.
  Vyberte si teda to, ktoré vám vyhovuje.
- (Pre kódovanie znkov si pozrite sekciu 
-\begin_inset LatexCommand ref
-reference "sec: klavtab"
-
-\end_inset
-
-.)
 \end_layout
 
 \begin_layout Subsection
@@ -20209,11 +20946,6 @@ Parametre klávesnice
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec: optkey"
-
-\end_inset
-
 Dialóg 
 \family sans
 Možnosti->Klávesnica
@@ -20302,7 +21034,8 @@ Ako LyX používa LaTeX
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: lyxalatex"
 
 \end_inset
@@ -20348,7 +21081,7 @@ LaTeX a tiež označuje chyby v súbore, dokáže toho ešte oveľa, oveľa viac
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 What You See Is What You Mean (To čo vidíš, je to čo myslíš)
 \end_layout
 
@@ -20359,7 +21092,7 @@ What You See Is What You Mean (To čo vidíš, je to čo myslíš)
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Vývojový tím to urobil kôli kódu.
  Nové makrá umožňujú LyXu jednoduchšie vyprodukovať LaTeXový kód a uistiť
  sa, že výstupný kód je správny.
@@ -20370,7 +21103,10 @@ Vývojový tím to urobil kôli kódu.
 
  Niekedy vyskúšajte príkaz 
 \family sans
-ako\InsetSpace ~
+ako
+\begin_inset space ~
+\end_inset
+
 LaTeX
 \family default
  z menu 
@@ -20386,7 +21122,7 @@ Súbor->Export
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Trochu histórie: kedysi všetky tieto makrá boli súbore 
 \family typewriter
 lyx.sty
@@ -20413,28 +21149,40 @@ Je päť príkazov, ktoré automaticky spustia LaTeX.
 \begin_layout Itemize
 
 \family sans
-Zobraziť\InsetSpace ~
+Zobraziť
+\begin_inset space ~
+\end_inset
+
 DVI
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Zobraziť\InsetSpace ~
+Zobraziť
+\begin_inset space ~
+\end_inset
+
 PostScript
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Aktualizovať\InsetSpace ~
+Aktualizovať
+\begin_inset space ~
+\end_inset
+
 DVI
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Aktualizovať\InsetSpace ~
+Aktualizovať
+\begin_inset space ~
+\end_inset
+
 PostScript
 \end_layout
 
@@ -20475,7 +21223,10 @@ Ak sa vyskytnú nejaké chyby, v dokumente ich označí.
 \begin_layout Standard
 Ak bol LaTeX spustený príkazom 
 \family sans
-Zobraziť\InsetSpace ~
+Zobraziť
+\begin_inset space ~
+\end_inset
+
 DVI
 \family default
 , potom spustí 
@@ -20489,7 +21240,10 @@ dvi
  súboru.
  Ak ste použili 
 \family sans
-Zobraziť\InsetSpace ~
+Zobraziť
+\begin_inset space ~
+\end_inset
+
 PostScript
 \family default
  alebo 
@@ -20511,7 +21265,10 @@ dvips
 \begin_layout Itemize
 Pre 
 \family sans
-Zobraziť\InsetSpace ~
+Zobraziť
+\begin_inset space ~
+\end_inset
+
 PostScript
 \family default
  bude prípona výstupného súboru 
@@ -20559,7 +21316,7 @@ Zarytí používatelia LaTeXu budú kričať a do noci zavýjať a potom LyX vyh
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \emph on
 Pozn.
@@ -20599,7 +21356,10 @@ Uvedieme to na správnu mieru.
  Ak chcete .tex súbor, ktorý chcete poslať kolegovi, dokument exportujte
  
 \family sans
-ako\InsetSpace ~
+ako
+\begin_inset space ~
+\end_inset
+
 LaTeX
 \family default
  z menu súbor.
@@ -20616,7 +21376,10 @@ Ak chcete
 \family default
  súbor, ktorý môžte poslať kolegovi, vyberte príkaz 
 \family sans
-Súbor->Export->ako\InsetSpace ~
+Súbor->Export->ako
+\begin_inset space ~
+\end_inset
+
 LaTeX
 \family default
 .
@@ -20683,7 +21446,8 @@ tex2lyx
 If you just want to put a piece of LaTeX code into a LyX file, see
 \lang slovak
  sekciu 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: latexcodes"
 
 \end_inset
@@ -20696,7 +21460,8 @@ Vkladanie LaTeXového kódu do dokumentov LyXu
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: latexcodes"
 
 \end_inset
@@ -20721,7 +21486,10 @@ Sú tri spôsoby pre tento príkaz:
 \begin_layout Itemize
 Menu: 
 \family sans
-Rozloženie->Štýl\InsetSpace ~
+Rozloženie->Štýl
+\begin_inset space ~
+\end_inset
+
 TeX
 \end_layout
 
@@ -20740,7 +21508,10 @@ TeX
 \begin_layout Itemize
 Klávesová skratka: 
 \family sans
-M-c\InsetSpace ~
+M-c
+\begin_inset space ~
+\end_inset
+
 t
 \end_layout
 
@@ -20758,13 +21529,15 @@ Je to najlepšie pre krátke kúsky LaTeXového kódu.
 \begin_deeper
 \begin_layout Standard
 S použitím štýlu TeX sme sa už stretli v sekciách 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: skratky"
 
 \end_inset
 
  a 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: ligatury"
 
 \end_inset
@@ -20775,13 +21548,17 @@ reference "sec: ligatury"
 \end_deeper
 \end_deeper
 \begin_layout Description
-Prostredie\InsetSpace ~
+Prostredie
+\begin_inset space ~
+\end_inset
+
 
 \family sans
 LaTeX
 \family default
 : S týmto sme sa už tiež stretli v sekcii 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: LaTeXlayout"
 
 \end_inset
@@ -20848,27 +21625,47 @@ vnárať do iných prostredí.
 
 \backslash
 begin{itemize}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 item .....
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 %Váš LaTeXový kód, aby niečo urobil
-\newline
+\begin_inset Newline newline
+\end_inset
+
 %
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{itemize}
@@ -20898,52 +21695,79 @@ Tu je príklad kódu v prostredí LaTeX.
 
 \backslash
 begin{tabular}{ll}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 begin{minipage}{5cm}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Toto je príkald prostredia minipage.
  
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Do neho môžete vložiť takmer všetko, 
-\newline
-dokonca aj (neplávajúce) obrázky a
- tabuľky.
-\newline
+\begin_inset Newline newline
+\end_inset
+
+dokonca aj (neplávajúce) obrázky a tabuľky.
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{minipage}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 %
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 begin{minipage}{5cm}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 begin{verbatim}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 begin{minipage}{5cm}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Toto ...
  
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{minipage}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{verbatim}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{minipage}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 end{tabular}
@@ -20959,88 +21783,88 @@ Teraz nasleduje to isté v prostredí LaTeX.
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 begin{tabular}{ll}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 begin{minipage}{5cm}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Toto je príkald prostredia minipage.
  Do neho môžete vložiť takmer všetko, dokonca aj (neplávajúce) obrázky a
  tabuľky.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 end{minipage}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 %
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 begin{minipage}{5cm}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 begin{verbatim}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 begin{minipage}{5cm}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Toto ...
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 end{minipage}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 end{verbatim}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
 end{minipage}
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -21157,7 +21981,8 @@ O LaTeX preambule
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec: preambula"
 
 \end_inset
@@ -21283,7 +22108,10 @@ Rozloženie
 \family default
  vyberte príkaz 
 \family sans
-LaTeX\InsetSpace ~
+LaTeX
+\begin_inset space ~
+\end_inset
+
 preambula
 \family default
 .
@@ -21299,7 +22127,8 @@ Editovacie správanie sa tohto okna je závislé na toolkite, takže neočakáva
 \end_deeper
 \begin_layout Enumerate
 Nastavte toto vo svojej štandardnej šablóne (pozri 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec: nastavenie"
 
 \end_inset
@@ -21310,7 +22139,10 @@ reference "sec: nastavenie"
 \begin_layout Standard
 Všetko, čo je v 
 \family sans
-LaTeX\InsetSpace ~
+LaTeX
+\begin_inset space ~
+\end_inset
+
 preambule
 \family default
  LyX pridá do svojej vlastnej vstavanej preambuly.
@@ -21838,7 +22670,7 @@ Chyba
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Príležitostne sa LyX netrafí presne na miesto, kde sa chyba vyskytla.
  Typicky sa to stáva pri tabuľkách, obrázkoch, matematike a preambule.
 \end_layout
@@ -21852,8 +22684,14 @@ Príležitostne sa LyX netrafí presne na miesto, kde sa chyba vyskytla.
 \begin_layout Standard
 Medzi chybami sa môžete pohybovať príkazom 
 \family sans
-Ísť\InsetSpace ~
-na\InsetSpace ~
+Ísť
+\begin_inset space ~
+\end_inset
+
+na
+\begin_inset space ~
+\end_inset
+
 chybu
 \family default
  z menu 
@@ -22075,7 +22913,10 @@ usepackage{}
 , potom chýba jeden z balíkov, ktoré sa pokúsil natiahnúť LaTeX.
  Zoznam balíkov, ktoré pozná LyX si prečítate príkazom 
 \family sans
-Konfigurácia\InsetSpace ~
+Konfigurácia
+\begin_inset space ~
+\end_inset
+
 LaTeX-u
 \family default
  z menu 
@@ -22343,7 +23184,8 @@ Reference.lyx
 
 \begin_layout Itemize
 Zvláštne poďakovanie LyX Tímu 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "lyxcredit"
 
 \end_inset
@@ -22616,7 +23458,8 @@ Po jeseni 1997 prevzal správu nad dokumentáciou LyX Tím ako celok.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "lyxcredit"
 
 \end_inset
@@ -22626,7 +23469,8 @@ The LyX source tree.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "latexbook"
 
 \end_inset
@@ -22640,7 +23484,8 @@ LaTeX: A Document Preparation System
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "latexcompanion"
 
 \end_inset
@@ -22654,7 +23499,8 @@ The LaTeX Companion
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "latexguide"
 
 \end_inset
@@ -22663,7 +23509,8 @@ A Guide to LaTeX2e, Kopka and Daly.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "texbook"
 
 \end_inset

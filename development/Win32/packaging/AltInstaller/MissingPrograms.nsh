@@ -85,9 +85,12 @@ Function MissingPrograms
   ${endif}
 
   # test if Python is installed
-  # only use an existing python when it is version 2.5 because many Compaq and Dell PC are delivered
-  # with outdated Python interpreters
+  # only use an existing python when it is version 2.5 or newer because some
+  # Compaq and Dell PCs were delivered with outdated Python interpreters
   ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\2.5\InstallPath" ""
+  ${if} $PythonPath == ""
+   ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\2.6\InstallPath" ""
+  ${endif}
   ${if} $PythonPath != ""
    StrCpy $PythonPath $PythonPath -1 # remove the "\" at the end
    StrCpy $DelPythonFiles "True"
@@ -127,15 +130,15 @@ Function MissingPrograms
 
   # test if the BibTeX-editor JabRef is installed
   StrCpy $BibTeXEditorPath ""
-  ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.1" "UninstallString"
-  ${if} $BibTeXEditorPath == ""
-   ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.2" "UninstallString"
-  ${endif}
+  ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.2" "UninstallString"
   ${if} $BibTeXEditorPath == ""
    ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.3" "UninstallString"
   ${endif}
   ${if} $BibTeXEditorPath == ""
    ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.3.1" "UninstallString"
+  ${endif}
+  ${if} $BibTeXEditorPath == ""
+   ReadRegStr $BibTeXEditorPath HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\JabRef 2.4" "UninstallString"
   ${endif}
   
   # test if Inkscape is installed

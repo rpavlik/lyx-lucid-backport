@@ -19,7 +19,6 @@
 #include "BulletsModule.h"
 #include "GuiDialog.h"
 #include "GuiIdListModel.h"
-#include "GuiSelectionManager.h"
 
 #include "ui_DocumentUi.h"
 #include "ui_FontUi.h"
@@ -33,24 +32,22 @@
 #include "ui_MarginsUi.h"
 #include "ui_PreambleUi.h"
 #include "ui_PDFSupportUi.h"
+#include "ui_ModulesUi.h"
 
+#include <list>
 #include <map>
-#include <vector>
-
-class FloatPlacement;
 
 namespace lyx {
 
 class BufferParams;
+class FloatPlacement;
 class TextClass;
 
 namespace frontend {
 
 class GuiBranches;
+class ModuleSelectionManager;
 class PreambleModule;
-
-///
-QModelIndex getSelectedIndex(QListView * lv);
 
 ///
 typedef void const * BufferId;
@@ -63,61 +60,24 @@ public:
 };
 
 
-/// SelectionManager for use with modules
-class ModuleSelMan : public GuiSelectionManager 
-{
-public:
-	ModuleSelMan(
-		QListView * availableLV, 
-		QListView * selectedLV,
-		QPushButton * addPB, 
-		QPushButton * delPB, 
-		QPushButton * upPB, 
-		QPushButton * downPB,
-		GuiIdListModel * availableModel,
-		GuiIdListModel * selectedModel);
-private:
-	///
-	virtual void updateAddPB();
-	///
-	virtual void updateUpPB();
-	///
-	virtual void updateDownPB();
-	///
-	virtual void updateDelPB();
-	/// returns availableModel as a GuiIdListModel
-	GuiIdListModel * getAvailableModel() 
-	{
-		return dynamic_cast<GuiIdListModel *>(availableModel);
-	};
-	/// returns selectedModel as a GuiIdListModel
-	GuiIdListModel * getSelectedModel() 
-	{
-		return dynamic_cast<GuiIdListModel *>(selectedModel);
-	};
-};
-
-
 class GuiDocument : public GuiDialog, public Ui::DocumentUi
 {
 	Q_OBJECT
 public:
 	GuiDocument(GuiView & lv);
 
-	void paramsToDialog(BufferParams const & params);
-	void apply(BufferParams & params);
-
+	void paramsToDialog();
 	void updateFontsize(std::string const &, std::string const &);
 	void updatePagestyle(std::string const &, std::string const &);
 
 	void showPreamble();
-	/// validate listings parameters and return an error message, if any
-	docstring validate_listings_params();
+	///
+	BufferParams const & params() const { return bp_; }
 
 private Q_SLOTS:
 	void updateNumbering();
 	void change_adaptor();
-	void set_listings_msg();
+	void setListingsMessage();
 	void saveDefaultClicked();
 	void useDefaultsClicked();
 	void setLSpacing(int);
@@ -135,8 +95,12 @@ private Q_SLOTS:
 	void browseMaster();
 	void classChanged();
 	void updateModuleInfo();
+	void modulesChanged();
 
 private:
+	/// validate listings parameters and return an error message, if any
+	QString validateListingsParameters();
+
 	UiWidget<Ui::TextLayoutUi> *textLayoutModule;
 	UiWidget<Ui::FontUi> *fontModule;
 	UiWidget<Ui::PageLayoutUi> *pageLayoutModule;
@@ -147,6 +111,7 @@ private:
 	UiWidget<Ui::MathsUi> *mathsModule;
 	UiWidget<Ui::LaTeXUi> *latexModule;
 	UiWidget<Ui::PDFSupportUi> *pdfSupportModule;
+	UiWidget<Ui::ModulesUi> *modulesModule;
 	PreambleModule *preambleModule;
 	
 	GuiBranches *branchesModule;
@@ -154,7 +119,7 @@ private:
 	BulletsModule * bulletsModule;
 	FloatPlacement * floatModule;
 
-	GuiSelectionManager * selectionManager;
+	ModuleSelectionManager * selectionManager;
 
 	/// Available modules
 	GuiIdListModel * availableModel() { return &modules_av_model_; }
@@ -184,7 +149,6 @@ private:
 	/// current buffer
 	BufferId current_id_;
 
-protected:
 	/// return false if validate_listings_params returns error
 	bool isValid();
 
@@ -199,6 +163,8 @@ protected:
 	///
 	void dispatchParams();
 	///
+	void modulesToParams(BufferParams &);
+	///
 	bool isBufferDependent() const { return true; }
 	/// always true since we don't manipulate document contents
 	bool canApply() const { return true; }
@@ -206,8 +172,6 @@ protected:
 	DocumentClass const & documentClass() const;
 	///
 	BufferParams & params() { return bp_; }
-	///
-	BufferParams const & params() const { return bp_; }
 	///
 	BufferId id() const;
 	///
@@ -217,9 +181,14 @@ protected:
 		QString description;
 	};
 	/// List of available modules
-	std::vector<modInfoStruct> const & getModuleInfo();
+	std::list<modInfoStruct> const & getModuleInfo();
 	/// Modules in use in current buffer
-	std::vector<modInfoStruct> const getSelectedModules();
+	std::list<modInfoStruct> const getSelectedModules();
+ 	///
+	std::list<modInfoStruct> const getProvidedModules();
+	///
+	std::list<modInfoStruct> const 
+			makeModuleInfo(std::list<std::string> const & mods);
 	///
 	void setLanguage() const;
 	///
@@ -238,7 +207,7 @@ private:
 	///
 	BufferParams bp_;
 	/// List of names of available modules
-	std::vector<modInfoStruct> moduleNames_;
+	std::list<modInfoStruct> moduleNames_;
 };
 
 

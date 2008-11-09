@@ -15,11 +15,8 @@
 #include "qt_helpers.h"
 
 #include <QHash>
-#include <QList>
 #include <QStandardItemModel>
-#include <QStringList>
 
-class QAbstractItemModel;
 class QSortFilterProxyModel;
 
 namespace lyx {
@@ -32,25 +29,41 @@ class TocItem;
 
 namespace frontend {
 
+/// A QStandardItemModel that gives access to the reset method.
+/// This is needed in order to fix http://bugzilla.lyx.org/show_bug.cgi?id=3740
 class TocTypeModel : public QStandardItemModel
 {
 public:
 	///
-	TocTypeModel(QObject * parent = 0);
+	TocTypeModel(QObject * parent);
 	///
 	void reset();
 };
 
-
-class TocModel : public QStandardItemModel
+/// A class that adapt the TocBackend of a Buffer into standard Qt models for
+/// GUI visualisation.
+/// There is one TocModel per list in the TocBackend.
+class TocModel
 {
 public:
 	///
-	TocModel(QObject * parent = 0);
+	TocModel(QObject * parent);
 	///
 	void reset(Toc const & toc);
 	///
 	void reset();
+	///
+	void updateItem(DocIterator const & dit);
+	///
+	void clear();
+	///
+	QAbstractItemModel * model();
+	///
+	QAbstractItemModel const * model() const;
+	///
+	void sort(bool sort_it);
+	///
+	bool isSorted() const { return is_sorted_; }
 	///
 	TocItem const & tocItem(QModelIndex const & index) const;
 	///
@@ -62,16 +75,22 @@ private:
 	///
 	void populate(unsigned int & index, QModelIndex const & parent);
 	///
-	QList<QModelIndex> toc_indexes_;
+	TocTypeModel * model_;
+	///
+	QSortFilterProxyModel * sorted_model_;
+	///
+	bool is_sorted_;
 	///
 	Toc const * toc_;
 	///
 	int maxdepth_;
+	///
 	int mindepth_;
 };
 
 
-class TocModels: public QObject
+/// A container for the different TocModels.
+class TocModels : public QObject
 {
 	Q_OBJECT
 public:
@@ -82,7 +101,7 @@ public:
 	///
 	int depth(QString const & type);
 	///
-	QStandardItemModel * model(QString const & type);
+	QAbstractItemModel * model(QString const & type);
 	///
 	QAbstractItemModel * nameModel();
 	///
@@ -93,6 +112,12 @@ public:
 	void init(Buffer const & buffer);
 	///
 	void updateBackend() const;
+	///
+	void updateItem(QString const & type, DocIterator const & dit);
+	///
+	void sort(QString const & type, bool sort_it);
+	///
+	bool isSorted(QString const & type) const;
 
 Q_SIGNALS:
 	/// Signal that the internal toc_models_ has been reset.

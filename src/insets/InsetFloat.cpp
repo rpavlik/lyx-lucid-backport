@@ -127,21 +127,19 @@ InsetFloat::~InsetFloat()
 }
 
 
+docstring InsetFloat::name() const 
+{ 
+	return "Float:" + name_; 
+}
+
+
 docstring InsetFloat::toolTip(BufferView const & bv, int x, int y) const
 {
-	if (InsetCollapsable::toolTip(bv, x, y).empty())
+	if (InsetCollapsable::toolTip(bv, x, y).empty() || isOpen())
 		return docstring();
 
-	docstring default_tip;
-	if (isOpen())
-		default_tip = _("Left-click to collapse the inset");
-	else
-		default_tip = _("Left-click to open the inset");
 	OutputParams rp(&buffer().params().encoding());
-	docstring caption_tip = getCaptionText(rp);
-	if (!isOpen() && !caption_tip.empty())
-		return caption_tip + '\n' + default_tip;
-	return default_tip;
+	return getCaptionText(rp);
 }
 
 
@@ -152,12 +150,17 @@ void InsetFloat::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_MODIFY: {
 		InsetFloatParams params;
 		string2params(to_utf8(cmd.argument()), params);
-		params_.placement = params.placement;
-		params_.wide      = params.wide;
-		params_.sideways  = params.sideways;
-		params_.subfloat  = params.subfloat;
-		setWide(params_.wide, cur.buffer().params());
-		setSideways(params_.sideways, cur.buffer().params());
+
+		// placement, wide and sideways are not used for subfloats
+		if (!params_.subfloat) {
+			params_.placement = params.placement;
+			params_.wide      = params.wide;
+			params_.sideways  = params.sideways;
+			setWide(params_.wide, cur.buffer().params(), false);
+			setSideways(params_.sideways, cur.buffer().params(), false);
+		}
+
+		setNewLabel(cur.buffer().params());
 		break;
 	}
 
@@ -387,32 +390,45 @@ bool InsetFloat::showInsetDialog(BufferView * bv) const
 }
 
 
-void InsetFloat::setWide(bool w, BufferParams const & bp)
+void InsetFloat::setWide(bool w, BufferParams const & bp, bool update_label)
 {
 	params_.wide = w;
-	docstring lab = _("float: ") + floatName(params_.type, bp);
-	if (params_.wide)
-		lab += '*';
-	setLabel(lab);
+	if (update_label)
+		setNewLabel(bp);
 }
 
 
-void InsetFloat::setSideways(bool s, BufferParams const & bp)
+void InsetFloat::setSideways(bool s, BufferParams const & bp, bool update_label)
 {
 	params_.sideways = s;
-	docstring lab = _("float: ") + floatName(params_.type, bp);
-	if (params_.sideways)
-		lab += _(" (sideways)");
-	setLabel(lab);
+	if (update_label)
+		setNewLabel(bp);
 }
 
 
-void InsetFloat::setSubfloat(bool s, BufferParams const & bp)
+void InsetFloat::setSubfloat(bool s, BufferParams const & bp, bool update_label)
 {
 	params_.subfloat = s;
-	docstring lab = _("float: ") + floatName(params_.type, bp);
-	if (s)
-		lab = _("subfloat: ") + floatName(params_.type, bp);
+	if (update_label)
+		setNewLabel(bp);
+}
+
+
+void InsetFloat::setNewLabel(BufferParams const & bp)
+{
+	docstring lab = _("float: ");
+
+	if( params_.subfloat )
+		lab = _("subfloat: ");
+
+	lab += floatName(params_.type, bp);
+
+	if (params_.wide)
+		lab += '*';
+
+	if (params_.sideways)
+		lab += _(" (sideways)");
+
 	setLabel(lab);
 }
 

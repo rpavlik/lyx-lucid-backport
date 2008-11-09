@@ -24,6 +24,7 @@
 namespace lyx {
 
 class Lexer;
+class TextClass;
 
 ///
 class InsetLayout {
@@ -32,23 +33,37 @@ public:
 	InsetLayout();
 	///
 	enum InsetDecoration {
-		Classic,
-		Minimalistic,
-		Conglomerate,
-		Default
+		CLASSIC,
+		MINIMALISTIC,
+		CONGLOMERATE,
+		DEFAULT
+	};
+	enum InsetLyXType {
+		NOLYXTYPE,
+		CHARSTYLE,
+		CUSTOM,
+		ELEMENT,
+		END,
+		STANDARD
+	};
+	enum InsetLaTeXType {
+		NOLATEXTYPE,
+		COMMAND,
+		ENVIRONMENT,
+		ILT_ERROR
 	};
 	///
-	bool read(Lexer & lexrc);
+	bool read(Lexer & lexrc, TextClass & tclass);
 	///
 	docstring name() const { return name_; };
 	///
-	std::string lyxtype() const { return lyxtype_; };
+	InsetLyXType lyxtype() const { return lyxtype_; };
 	///
 	docstring labelstring() const { return labelstring_; };
 	///
 	InsetDecoration decoration() const { return decoration_; };
 	///
-	std::string latextype() const { return latextype_; };
+	InsetLaTeXType latextype() const { return latextype_; };
 	///
 	std::string latexname() const { return latexname_; };
 	///
@@ -65,6 +80,10 @@ public:
 	std::set<std::string> requires() const { return requires_; };
 	///
 	bool isMultiPar() const { return multipar_; };
+	///
+	bool forcePlainLayout() const { return forceplain_; }
+	///
+	bool allowParagraphCustomization() const { return custompars_; }
 	///
 	bool isPassThru() const { return passthru_; };
 	///
@@ -83,13 +102,13 @@ private:
 		* Values are 'charstyle', 'custom' (things that by default look like a
 		* footnote), 'element' (docbook), 'standard'.
 		*/
-	std::string lyxtype_;
+	InsetLyXType lyxtype_;
 	///
 	docstring labelstring_;
 	///
 	InsetDecoration decoration_;
 	///
-	std::string latextype_;
+	InsetLaTeXType latextype_;
 	///
 	std::string latexname_;
 	///
@@ -106,6 +125,10 @@ private:
 	std::set<std::string> requires_;
 	///
 	bool multipar_;
+	/// 
+	bool custompars_;
+	///
+	bool forceplain_;
 	///
 	bool passthru_;
 	///
@@ -117,6 +140,9 @@ private:
 	///
 	bool forceltr_;
 };
+
+///
+InsetLayout::InsetLyXType translateLyXType(std::string const & str);
 
 } // namespace lyx
 

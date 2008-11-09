@@ -27,17 +27,13 @@
 namespace lyx {
 namespace frontend {
 
-using support::internalLineEnding;
-using support::externalLineEnding;
-
 
 GuiSelection::GuiSelection()
-	: selection_supported_(qApp->clipboard()->supportsSelection())
+	: schedule_check_(true),
+	selection_supported_(qApp->clipboard()->supportsSelection())
 {
 	connect(qApp->clipboard(), SIGNAL(selectionChanged()),
 		this, SLOT(on_dataChanged()));
-	// initialize clipboard status.
-	on_dataChanged();
 }
 
 
@@ -55,6 +51,7 @@ void GuiSelection::haveSelection(bool own)
 	// an application actually requests it.
 	// This way calling Selection::have() is cheap and we can do it as
 	// often as we want.
+	//LYXERR(Debug::SELECTION, "GuiSelection: setting dummy selection");
 	if (own)
 		qApp->clipboard()->setText(QString(), QClipboard::Selection);
 	// We don't need to do anything if own = false, as this case is
@@ -71,27 +68,27 @@ docstring const GuiSelection::get() const
 {
 	QString const str = qApp->clipboard()->text(QClipboard::Selection)
 				.normalized(QString::NormalizationForm_C);
-	LYXERR(Debug::ACTION, "GuiSelection::get: " << str);
+	LYXERR(Debug::SELECTION, "GuiSelection::get: " << str);
 	if (str.isNull())
 		return docstring();
 
-	return internalLineEnding(qstring_to_ucs4(str));
+	return internalLineEnding(str);
 }
 
 
 void GuiSelection::put(docstring const & str)
 {
-	LYXERR(Debug::ACTION, "GuiSelection::put: " << to_utf8(str));
+	LYXERR(Debug::SELECTION, "GuiSelection::put: " << to_utf8(str));
 
-	qApp->clipboard()->setText(toqstr(externalLineEnding(str)),
+	qApp->clipboard()->setText(externalLineEnding(str),
 				   QClipboard::Selection);
 }
 
 
 void GuiSelection::on_dataChanged()
 {
-	text_selection_empty_ = qApp->clipboard()->
-		text(QClipboard::Selection).isEmpty();
+	schedule_check_ = true;
+	LYXERR(Debug::SELECTION, "GuiSelection::on_dataChanged");
 }
 
 
@@ -100,9 +97,17 @@ bool GuiSelection::empty() const
 	if (!selection_supported_)
 		return true;
 
-	LYXERR(Debug::ACTION, "GuiSelection::empty: " << text_selection_empty_);
+	// Cache which is to speed up selection-status read
+	// (4 calls when open Edit menu).
+	static bool text_selection_empty;
+	if (schedule_check_) {
+		text_selection_empty = qApp->clipboard()->
+			text(QClipboard::Selection).isEmpty();
+		schedule_check_ = false;
+	}
 
-	return text_selection_empty_;
+	LYXERR(Debug::SELECTION, "GuiSelection::filled: " << !text_selection_empty);
+	return text_selection_empty;
 }
 
 } // namespace frontend

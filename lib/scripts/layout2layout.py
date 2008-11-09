@@ -25,7 +25,21 @@ import os, re, string, sys
 
 # Incremented to format 7, 24 March 2008 by rgh
 # AddToPreamble tag added to layout files
-currentFormat = 7
+
+# Incremented to format 8, 25 July 2008 by rgh
+# UseModule tag added to layout files
+# CopyStyle added to InsetLayout
+
+# Incremented to format 9, 5 October 2008 by rgh
+# ForcePlain and CustomPars tags added to InsetLayout
+
+# Incremented to format 10, 6 October 2008 by rgh
+# Change format of counters
+
+# Incremented to format 11, 14 October 2008 by rgh
+# Add ProvidesModule, ExcludesModule tags
+
+currentFormat = 11
 
 
 def usage(prog_name):
@@ -75,10 +89,19 @@ def concatenate_label(old, new):
     else:
         return '"' + old + new + '"'
 
+# appends a string to a list unless it's already there
+def addstring(s, l):
+    if l.count(s) > 0:
+        return
+    l.append(s)
+
 
 def convert(lines):
     " Convert to new format."
     re_Comment = re.compile(r'^(\s*)#')
+    re_Counter = re.compile(r'\s*Counter\s*', re.IGNORECASE)
+    re_Name = re.compile(r'\s*Name\s+(\S+)\s*', re.IGNORECASE)
+    re_UseMod = re.compile(r'^\s*UseModule\s+(.*)', re.IGNORECASE)
     re_Empty = re.compile(r'^(\s*)$')
     re_Format = re.compile(r'^(\s*)(Format)(\s+)(\S+)', re.IGNORECASE)
     re_Preamble = re.compile(r'^(\s*)Preamble', re.IGNORECASE)
@@ -94,6 +117,9 @@ def convert(lines):
     re_End = re.compile(r'^(\s*)(End)(\s*)$', re.IGNORECASE)
     re_Provides = re.compile(r'^(\s*)Provides(\S+)(\s+)(\S+)', re.IGNORECASE)
     re_CharStyle = re.compile(r'^(\s*)CharStyle(\s+)(\S+)$', re.IGNORECASE)
+    re_AMSMaths = re.compile(r'^\s*Input amsmaths.inc\s*')
+    re_AMSMathsPlain = re.compile(r'^\s*Input amsmaths-plain.inc\s*')
+    re_AMSMathsSeq = re.compile(r'^\s*Input amsmaths-seq.inc\s*')
 
     # counters for sectioning styles (hardcoded in 1.3)
     counters = {"part"          : "\\Roman{part}",
@@ -136,8 +162,10 @@ def convert(lines):
     style = ""
     maxcounter = 0
     format = 1
-    while i < len(lines):
+    formatline = 0
+    usemodules = []
 
+    while i < len(lines):
         # Skip comments and empty lines
         if re_Comment.match(lines[i]) or re_Empty.match(lines[i]):
             i += 1
@@ -145,21 +173,22 @@ def convert(lines):
 
         # insert file format if not already there
         if (only_comment):
-                match = re_Format.match(lines[i])
-                if match:
-                        format = int(match.group(4))
-                        if format > 1 and format < currentFormat:
-                            lines[i] = "Format %d" % (format + 1)
-                            only_comment = 0
-                        elif format == currentFormat:
-                                # nothing to do
-                                return format
-                        else:
-                            error('Cannot convert file format %s' % format)
+            match = re_Format.match(lines[i])
+            if match:
+                formatline = i
+                format = int(match.group(4))
+                if format > 1 and format < currentFormat:
+                    lines[i] = "Format %d" % (format + 1)
+                    only_comment = 0
+                elif format == currentFormat:
+                    # nothing to do
+                    return format
                 else:
-                        lines.insert(i, "Format 2")
-                        only_comment = 0
-                        continue
+                    error('Cannot convert file format %s' % format)
+            else:
+                lines.insert(i, "Format 2")
+                only_comment = 0
+                continue
 
         # Don't get confused by LaTeX code
         if re_Preamble.match(lines[i]):
@@ -168,11 +197,61 @@ def convert(lines):
                 i += 1
             continue
 
-        if format == 6:
-          i += 1
-          continue
+        if format == 10:
+            match = re_UseMod.match(lines[i])
+            if match:
+                module = match.group(1)
+                lines[i] = "DefaultModule " + module
+            i += 1
+            continue
 
-        if format == 5:
+        if format == 9:
+            match = re_Counter.match(lines[i])
+            if match:
+                counterline = i
+                i += 1
+                while i < len(lines):
+                    namem = re_Name.match(lines[i])
+                    if namem:
+                        name = namem.group(1)
+                        lines.pop(i)
+                        lines[counterline] = "Counter %s" % name
+                        # we don't need to increment i
+                        continue
+                    endem = re_End.match(lines[i])
+                    if endem:
+                        i += 1
+                        break
+                    i += 1
+            i += 1
+            continue
+
+        if format == 8:
+            # We want to scan for ams-type includes and, if we find them,
+            # add corresponding UseModule tags to the layout.
+            match = re_AMSMaths.match(lines[i])
+            if match:
+                addstring("theorems-ams", usemodules)
+                addstring("theorems-ams-extended", usemodules)
+                addstring("theorems-sec", usemodules)
+                lines.pop(i)
+                continue
+            match = re_AMSMathsPlain.match(lines[i])
+            if match:
+                addstring("theorems-starred", usemodules)
+                lines.pop(i)
+                continue
+            match = re_AMSMathsSeq.match(lines[i])
+            if match:
+                addstring("theorems-ams", usemodules)
+                addstring("theorems-ams-extended", usemodules)
+                lines.pop(i)
+                continue
+            i += 1
+            continue
+
+        # These just involved new features, not any changes to old ones
+        if format >= 5 and format <= 7:
           i += 1
           continue
 
@@ -398,6 +477,12 @@ def convert(lines):
                 i += 1
 
         i += 1
+
+    if usemodules:
+        i = formatline + 1
+        for mod in usemodules:
+            lines.insert(i, "UseModule " + mod)
+            i += 1
 
     return format + 1
 

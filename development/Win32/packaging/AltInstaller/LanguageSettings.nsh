@@ -10,6 +10,7 @@
  StrCpy ${LangCdeSys} ""
 
   ${if} ${LangISOCode} = 1025
+   StrCpy ${LangNme} "Arabic"
    StrCpy ${LangCdeSys} "ar"
    StrCpy ${LangNmeSys} "Arabic"
    StrCpy ${LangSysEnc} "1256"
@@ -22,6 +23,7 @@
   ${endif}
 
   ${if} ${LangISOCode} = 1027
+   StrCpy ${LangNme} "Català"
    StrCpy ${LangCdeSys} "ca"
    StrCpy ${LangNmeSys} "Català"
    StrCpy ${LangSysEnc} "1252"
@@ -154,7 +156,7 @@
    StrCpy ${LangSysEnc} "1250"
   ${endif}
 
-  ${if} ${LangISOCode} = 1046  # for portuguese (brasilian)
+  ${if} ${LangISOCode} = 1046  # for Portuguese (brasilian)
    StrCpy ${LangNme} "Português"
    StrCpy ${LangCdeSys} "pt"
    StrCpy ${LangNmeSys} "Português"
@@ -222,6 +224,7 @@
   ${endif}
 
   ${if} ${LangISOCode} = 1058
+   StrCpy ${LangNme} "Ukrainian"
    StrCpy ${LangCdeSys} "uk"
    StrCpy ${LangNmeSys} "Ukrainian"
    StrCpy ${LangSysEnc} "1251"
@@ -385,7 +388,7 @@
    StrCpy ${LangSysEnc} "1252"
   ${endif}
 
-  ${if} ${LangISOCode} = 2070  # for portuguese
+  ${if} ${LangISOCode} = 2070  # for Portuguese
    StrCpy ${LangNme} "Português"
    StrCpy ${LangCdeSys} "pt"
    StrCpy ${LangNmeSys} "Português"
@@ -517,6 +520,11 @@
 # therefore here are only declared the languages LyX is translated to
 
 !macro GetLangCode LangCde Name LangEnc
+
+  ${if} ${Name} = "Arabic"
+   StrCpy ${LangCde} "ar_SA"
+   StrCpy ${LangEnc} "cp-1256"
+  ${endif}
 
   ${if} ${Name} == "Català"
    StrCpy ${LangCde} "ca_ES"
@@ -653,6 +661,11 @@
    StrCpy ${LangEnc} "cp-1254"
   ${endif}
 
+  ${if} ${Name} == "Ukrainian"
+   StrCpy ${LangCde} "uk_UA"
+   StrCpy ${LangEnc} "cp-1251"
+  ${endif}
+
 !macroend
 
 #--------------------
@@ -684,7 +697,7 @@ Function SelectMenuLanguage_LeaveFunction
   !insertmacro MUI_INSTALLOPTIONS_READ $LangName "io_ui_language.ini" "Field 2" "State"
   # Get the language code
   StrCpy $LangCode ""
-  !insertmacro GetLangCode $LangCode $LangName $LangEncoding # macro from lyx_utils.nsh
+  !insertmacro GetLangCode $LangCode $LangName $LangEncoding
 
 FunctionEnd
 

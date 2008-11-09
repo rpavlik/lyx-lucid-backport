@@ -100,7 +100,7 @@ Lists of files to include in the installer
 !macro FileListPythonBin COMMAND DIRECTORY
 
   ${FILE}python.exe"
-  ${FILE}python25.dll"
+  ${FILE}python26.dll"
   ${FILE}unicodedata.pyd"
 
 !macroend
@@ -108,11 +108,15 @@ Lists of files to include in the installer
 !macro FileListPythonLib COMMAND DIRECTORY
 
   ${FILE}__future__.py"
+  ${FILE}_abcoll.py"  
   ${FILE}UserDict.py"
+  ${FILE}abc.py"  
   ${FILE}codecs.py"
   ${FILE}compileall.py"  
   ${FILE}copy_reg.py"
+  ${FILE}functools.py"  
   ${FILE}fnmatch.py"
+  ${FILE}genericpath.py"  
   ${FILE}getopt.py"
   ${FILE}gettext.py"
   ${FILE}glob.py"
@@ -287,14 +291,7 @@ Lists of files to include in the installer
 !macro FileListMetaFile2EPS COMMAND DIRECTORY
 
   ${FILE}metafile2eps.exe"
-
-!macroend
-
-!macro FileListPSPrinter COMMAND DIRECTORY
-
-  ${FILE}metafile2eps.inf"
-  ${FILE}metafile2eps.ppd"
-  ${FILE}metafile2eps.dat"
+  ${FILE}metafile2eps.dat"  
 
 !macroend
 

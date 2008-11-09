@@ -25,6 +25,7 @@
 #include "DispatchResult.h"
 #include "ErrorList.h"
 #include "FuncRequest.h"
+#include "FuncStatus.h"
 #include "InsetList.h"
 #include "Intl.h"
 #include "Lexer.h"
@@ -73,7 +74,8 @@ using graphics::PreviewLoader;
 InsetText::InsetText(Buffer const & buf)
 	: drawFrame_(false), frame_color_(Color_insetframe)
 {
-	initParagraphs(buf);
+	setBuffer(const_cast<Buffer &>(buf));
+	initParagraphs();
 }
 
 
@@ -88,19 +90,24 @@ InsetText::InsetText(InsetText const & in)
 }
 
 
-InsetText::InsetText()
-{}
+void InsetText::setBuffer(Buffer & buf)
+{
+	ParagraphList::iterator end = paragraphs().end();
+	for (ParagraphList::iterator it = paragraphs().begin(); it != end; ++it)
+		it->setBuffer(buf);
+	Inset::setBuffer(buf);
+}
 
 
-void InsetText::initParagraphs(Buffer const & buf)
+void InsetText::initParagraphs()
 {
 	LASSERT(paragraphs().empty(), /**/);
-	buffer_ = const_cast<Buffer *>(&buf);
 	paragraphs().push_back(Paragraph());
 	Paragraph & ourpar = paragraphs().back();
-	ourpar.setPlainOrDefaultLayout(buf.params().documentClass());
 	ourpar.setInsetOwner(this);
+	ourpar.setDefaultLayout(buffer_->params().documentClass());
 }
+
 
 void InsetText::setParagraphOwner()
 {
@@ -193,11 +200,18 @@ void InsetText::draw(PainterInfo & pi, int x, int y) const
 		int const h = tm.height() + 2 * TEXT_TO_INSET_OFFSET;
 		int const xframe = x + TEXT_TO_INSET_OFFSET / 2;
 		if (pi.full_repaint)
-			pi.pain.fillRectangle(xframe, yframe, w, h, backgroundColor());
+			pi.pain.fillRectangle(xframe, yframe, w, h,
+				pi.backgroundColor(this));
+
 		if (drawFrame_)
 			pi.pain.rectangle(xframe, yframe, w, h, frameColor());
 	}
+	ColorCode const old_color = pi.background_color;
+	pi.background_color = pi.backgroundColor(this, false);
+
 	tm.draw(pi, x + TEXT_TO_INSET_OFFSET, y);
+
+	pi.background_color = old_color;
 }
 
 
@@ -244,7 +258,21 @@ void InsetText::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetText::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	return text_.getStatus(cur, cmd, status);
+	switch (cmd.action) {
+	case LFUN_LAYOUT:
+		status.setEnabled(!forcePlainLayout());
+		return true;
+
+	case LFUN_LAYOUT_PARAGRAPH:
+	case LFUN_PARAGRAPH_PARAMS:
+	case LFUN_PARAGRAPH_PARAMS_APPLY:
+	case LFUN_PARAGRAPH_SPACING:
+	case LFUN_PARAGRAPH_UPDATE:
+		status.setEnabled(allowParagraphCustomization());
+		return true;
+	default:
+		return text_.getStatus(cur, cmd, status);
+	}
 }
 
 
@@ -476,7 +504,7 @@ void InsetText::addToToc(DocIterator const & cdit)
 					*static_cast<InsetOptArg&>(inset).paragraphs().begin();
 				if (!par.labelString().empty())
 					tocstring = par.labelString() + ' ';
-				tocstring += insetpar.asString();
+				tocstring += insetpar.asString(AS_STR_INSETS);
 				break;
 			}
 			default:
@@ -489,9 +517,12 @@ void InsetText::addToToc(DocIterator const & cdit)
 			dit.pos() = 0;
 			// insert this into the table of contents
 			if (tocstring.empty())
-				tocstring = par.asString(AS_STR_LABEL);
+				tocstring = par.asString(AS_STR_LABEL | AS_STR_INSETS);
 			toc.push_back(TocItem(dit, toclevel - min_toclevel, tocstring));
 		}
+		
+		// And now the list of changes.
+		par.addChangesToToc(dit, buffer());
 	}
 }
 

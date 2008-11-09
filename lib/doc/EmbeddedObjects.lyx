@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrbook
@@ -162,6 +162,7 @@
   {LyX }}
 \end_preamble
 \options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman default
@@ -172,7 +173,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -189,7 +189,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options " linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
@@ -212,8 +211,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -265,7 +264,7 @@ author: Uwe Stöhr
 
 
 \family sans
-Version 1.6svn
+Version 1.6.0
 \end_layout
 
 \begin_layout Standard
@@ -321,13 +320,6 @@ http://wiki.lyx.org/LyX/DocumentationDevelopment#EmbeddedObjects
 
 \begin_layout Chapter
 Figures
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:Figures"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -415,7 +407,7 @@ Graphics
 \end_layout
 
 \begin_layout Standard
-The graphics dialog can be called at any time by right-clicking on an image.
+The graphics dialog can be called at any time by clicking on an image.
  This dialog has three tabs:
 \end_layout
 
@@ -536,34 +528,26 @@ box
 \begin_layout Description
 
 \family sans
-Extra
+LaTeX
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+LyX
 \begin_inset space ~
 \end_inset
 
 options
 \family default
- In this tab you can modify the appearance of the image within LyX and set
- the image to be a subfigure of a figure float with an own caption.
- Subfigures are explained in section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Figure-Floats"
-
-\end_inset
-
-.
+ In this tab you can modify the appearance of the image within LyX and LaTeX
+ experts can specify additional LaTeX options.
 \begin_inset Newline newline
 \end_inset
 
- LaTeX experts can also specify on this tab additional LaTeX options.
-\begin_inset Newline newline
-\end_inset
-
- The option 
+The option 
 \family sans
 Draft
 \begin_inset space ~
@@ -597,7 +581,7 @@ export
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 
@@ -653,6 +637,38 @@ x.eps.bb
 \end_inset
 
  that is needed by LaTeX for zipped graphics.
+\begin_inset Newline newline
+\end_inset
+
+The field 
+\family sans
+Initialize
+\begin_inset space ~
+\end_inset
+
+Group
+\begin_inset space ~
+\end_inset
+
+Name
+\family default
+ allows you define or join an image settings group.
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Figures ! Settings grouping
+\end_layout
+
+\end_inset
+
+ Images within such a group share their settings, so adjusting one image
+ of the group automatically also adjusts all other images of the group in
+ the same way.
+ So you can for example change the size for a bunch of images without the
+ need to manually change each of them.
+ Joining an existing group can also be done using the context menu of the
+ image by checking the name of the desired group.
 \end_layout
 
 \begin_layout Standard
@@ -713,6 +729,13 @@ This is the same image like the one above but in draft mode:
 	scaleBeforeRotation
 	rotateOrigin center
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
 \end_inset
 
 
@@ -1065,7 +1088,7 @@ status open
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption
@@ -1090,6 +1113,7 @@ Undefinable structure.
 	filename clipart/escher-lsd.eps
 	width 45col%
 	scaleBeforeRotation
+	groupId distorted
 
 \end_inset
 
@@ -1106,7 +1130,7 @@ Undefinable structure.
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption
@@ -1129,9 +1153,9 @@ A Platypus.
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename clipart/platypus.eps
-	lyxscale 60
 	width 45col%
 	scaleBeforeRotation
+	groupId distorted
 
 \end_inset
 
@@ -1158,6 +1182,15 @@ name "fig:Two-distorted-images"
 \end_inset
 
 Two distorted images.
+ Both images are in the image settings group named 
+\begin_inset Quotes eld
+\end_inset
+
+distorted
+\begin_inset Quotes erd
+\end_inset
+
+.
 \end_layout
 
 \end_inset
@@ -1165,6 +1198,13 @@ Two distorted images.
 
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
 \end_inset
 
 
@@ -1663,13 +1703,6 @@ PDF/EPS converter available.
 
 \begin_layout Chapter
 Tables
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:Tables"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -2936,7 +2969,7 @@ table
 Longtable
 \family default
  of the table dialog to split the table automatically over more pages.
- Doing this enables some check boxes and you can now define:
+ Doing this enables the following options:
 \end_layout
 
 \begin_layout Description
@@ -3000,6 +3033,28 @@ footer
 \family default
 : The current row and all rows below, that don't have any special options
  defined, are defined to be the footer rows of the last page of the longtable.
+\end_layout
+
+\begin_layout Description
+Caption: The first row is reset as single column.
+ You can now insert there the table caption via the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Caption
+\family default
+.
+ More about longtable captions is explained in sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Longtable-Captions"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -5658,69 +5713,20 @@ name "sub:Longtable-Captions"
 A longtable cannot be put into a table float because floats can only be
  on one page but the caption environment of floats can also be used for
  longtables.
-\end_layout
+ Therefore the caption is inserted as first row of the table, as explained
+ in sec.
+\begin_inset space \thinspace{}
+\end_inset
 
-\begin_layout Standard
-As LyX does not yet fully support captions in longtables, a hack is needed
- to create them:
-\end_layout
 
-\begin_layout Enumerate
-Create a longtable
-\family sans
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Longtables"
+
+\end_inset
+
 .
-\end_layout
-
-\begin_layout Enumerate
-Mark the first row and disable its upper line.
-\end_layout
-
-\begin_layout Enumerate
-Insert a caption via the menu 
-\family sans
-Insert\SpecialChar \menuseparator
-Caption
-\family default
- into the first table cell.
-\begin_inset Newline newline
-\end_inset
-
-You can also add a short title for the caption.
-\end_layout
-
-\begin_layout Enumerate
-Insert a 
-\begin_inset Quotes eld
-\end_inset
-
-
-\series bold
-
-\backslash
-
-\backslash
-%
-\series default
-
-\begin_inset Quotes erd
-\end_inset
-
- as TeX-Code behind the caption.
-\end_layout
-
-\begin_layout Standard
-A short title that will appear in the LOT instead of the full title.
- The 
-\series bold
-
-\backslash
-
-\backslash
-%
-\series default
- behind the caption omits the vertical lines between the following cells
- in the row.
- The first table row is now only a dummy row for the caption, the actual
+ The first table row is then only a dummy row for the caption, the actual
  table starts with the second row.
 \end_layout
 
@@ -6059,8 +6065,15 @@ Note:
 \series default
  The table number is increased for every longtable, also if you didn't set
  a caption for it.
- For this reason you could have the case that e.g.
- Table
+ For this reason you could have the case that e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+Table
 \begin_inset space ~
 \end_inset
 
@@ -6095,9 +6108,9 @@ status open
 \series bold
 Note:
 \series default
- If you are using the LaTeX-package 
+ If you are using
 \series bold
-hyperref
+ hyperref
 \series default
 
 \begin_inset Index
@@ -6109,8 +6122,16 @@ LaTeX-packages ! hyperref
 
 \end_inset
 
- to link cross-references, the link to a longtable caption will always point
- to the beginning of the document.
+ in the 
+\family sans
+PDF Properties
+\family default
+ of the 
+\family sans
+Document Settings
+\family default
+ dialog to link cross-references, the link to a longtable caption will always
+ point to the beginning of the document.
 \end_layout
 
 \end_inset
@@ -6454,19 +6475,6 @@ asd
 
 \begin_layout Standard
 To reference a longtable, insert a label into the caption.
- Note that you have to add the label prefix 
-\begin_inset Quotes eld
-\end_inset
-
-
-\emph on
-tab:
-\emph default
-
-\begin_inset Quotes eld
-\end_inset
-
- manually in the label field.
 \end_layout
 
 \begin_layout Standard
@@ -6485,7 +6493,7 @@ reference "tab:RefExample"
 \end_layout
 
 \begin_layout Standard
-The caption layout can be set together with all other caption of your document
+The caption layout can be set together with all other captions of your document
  using the LaTeX-package 
 \series bold
 caption
@@ -7307,8 +7315,15 @@ in wide caption, you can either use a value slightly different from 4.0
 \begin_inset space \thinspace{}
 \end_inset
 
-in, e.g.
- 3.99
+in, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+3.99
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -7383,7 +7398,7 @@ reference "tab:DiffCaptions"
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="59" columns="3">
+<lyxtabular version="3" rows="60" columns="3">
 <features islongtable="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
@@ -8089,7 +8104,7 @@ Rizzardi
 \series default
 
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 Example footnote
@@ -9266,6 +9281,35 @@ Roberto
 \end_inset
 </cell>
 </row>
+<row endlastfoot="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
 </lyxtabular>
 
 \end_inset
@@ -9522,7 +9566,7 @@ must be inserted as TeX-Code at the beginning of the cell.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="38" columns="3">
+<lyxtabular version="3" rows="39" columns="3">
 <features islongtable="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="3cm">
@@ -10775,6 +10819,35 @@ Franz
 \end_inset
 </cell>
 </row>
+<row endlastfoot="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
 </lyxtabular>
 
 \end_inset
@@ -10825,7 +10898,7 @@ Table ! Linebreaks
 \end_layout
 
 \begin_layout Standard
-\align center
+\noindent
 \begin_inset Float table
 placement H
 wide false
@@ -10991,9 +11064,11 @@ cm and choose centered for the vertical and horizontal alignment.
 
 cm, only one line will appear.
  To get two lines, a justified line break (shortcut 
-\family sans
-Ctrl-Shift-Return
-\family default
+\begin_inset Info
+type  "shortcut"
+arg   "newline-insert linebreak"
+\end_inset
+
 ) was added.
  If the text is wider than the set cell width, it will automatically be
  broken to several lines.
@@ -11264,13 +11339,6 @@ i
 
 \end_layout
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
 \end_inset
 
 
@@ -12064,16 +12132,6 @@ Table ! Multirows
 \end_inset
 
 
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-LaTeX-packages ! multirow
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -12083,6 +12141,16 @@ In contrary to multicolumns multirows are not yet supported by LyX so a
 \series bold
 multirow
 \series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-packages ! multirow
+\end_layout
+
+\end_inset
+
  in your document preamble with the command
 \end_layout
 
@@ -12464,7 +12532,7 @@ System
 
 \begin_layout Plain Layout
 Medipix
-\begin_inset Formula $\,$
+\begin_inset space \thinspace{}
 \end_inset
 
 1
@@ -12477,7 +12545,7 @@ Medipix
 
 \begin_layout Plain Layout
 Medipix
-\begin_inset Formula $\,$
+\begin_inset space \thinspace{}
 \end_inset
 
 2
@@ -14816,7 +14884,7 @@ You can e.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 define the color "
@@ -16313,7 +16381,7 @@ Sometimes it looks better when the cell entries of a column are aligned
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 with the decimal separator as in Table
@@ -18924,13 +18992,6 @@ Floats
 \end_inset
 
 
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:Floats"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
@@ -19084,15 +19145,7 @@ Algorithm
 \series default
  and 
 \series bold
-Text
-\begin_inset space ~
-\end_inset
-
 Wrap
-\begin_inset space ~
-\end_inset
-
-Float
 \series default
 .
 \end_layout
@@ -19105,13 +19158,6 @@ status collapsed
 \begin_layout Plain Layout
 Floats ! Algorithms
 \end_layout
-
-\end_inset
-
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Algorithm-Floats"
 
 \end_inset
 
@@ -19357,20 +19403,13 @@ package
 \end_layout
 
 \begin_layout Subsection
-Text Wrap Floats
+Wrap Floats
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Floats ! Text Wrap Floats
+Floats ! Wrap Floats
 \end_layout
-
-\end_inset
-
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:floatflt-wrap-float"
 
 \end_inset
 
@@ -19381,7 +19420,7 @@ name "sub:floatflt-wrap-float"
 \begin_inset Wrap figure
 lines 0
 placement l
-overhang 0col%
+overhang 1cm
 width "40col%"
 status open
 
@@ -19407,12 +19446,7 @@ name "fig:This-is-a"
 
 \end_inset
 
-This is a wrapped figure, and this is the brilliant caption that describes
- it.
-\begin_inset VSpace medskip
-\end_inset
-
-
+This is a figure wrap float.
 \end_layout
 
 \end_inset
@@ -19422,21 +19456,25 @@ This is a wrapped figure, and this is the brilliant caption that describes
 
 \end_inset
 
-This float type is used if you want to 
-\begin_inset Quotes eld
-\end_inset
-
-wrap
-\begin_inset Quotes erd
-\end_inset
-
- text around a figure so that it only occupies some fraction of the column
- width.
+ This float type is used if you want to wrap text around a figure or table
+ so that it only occupies some fraction of the column width.
  It can be inserted using the menu 
 \family sans
 Insert\SpecialChar \menuseparator
 Floats\SpecialChar \menuseparator
-Text
+Figure
+\begin_inset space ~
+\end_inset
+
+Wrap
+\begin_inset space ~
+\end_inset
+
+Float
+\family default
+ or 
+\family sans
+Table
 \begin_inset space ~
 \end_inset
 
@@ -19491,8 +19529,42 @@ Configuration
 
 \end_inset
 
- The width and placement of the float is adjusted by right-clicking on the
- float box.
+ The settings of the float can be modified by right-clicking on the float
+ box.
+ The mandatory settings are the float 
+\family sans
+Placement
+\family default
+ and its 
+\family sans
+Width
+\family default
+.
+ Optional are the 
+\family sans
+Overhang
+\family default
+ that specifies how much the float is set into the paragraph
+\begin_inset space \thinspace{}
+\end_inset
+
+/
+\begin_inset space \thinspace{}
+\end_inset
+
+page margin, and the 
+\family sans
+Line
+\begin_inset space ~
+\end_inset
+
+span
+\family default
+ that specifies how many text lines the float will approximately need.
+ The line span is often hard to be approximated, so better only use it when
+ you encounter float placement problems.
+ You can furthermore decide if LaTeX is allowed to let the float float within
+ the paragraph or to surrounding paragraphs.
  Figure
 \begin_inset space ~
 \end_inset
@@ -19508,7 +19580,11 @@ reference "fig:This-is-a"
 \begin_inset space \thinspace{}
 \end_inset
 
-col%.
+col%, 1
+\begin_inset space \thinspace{}
+\end_inset
+
+cm overhang, set to the left.
 \begin_inset Foot
 status collapsed
 
@@ -19529,28 +19605,7 @@ reference "cha:Units-available-in"
 
 \end_inset
 
- Some space was added under the caption to separate it better from the surroundi
-ng text.
-\end_layout
 
-\begin_layout Standard
-The LaTeX-package 
-\series bold
-wrapfig
-\series default
- also supports table wrap floats, but they are not yet supported by LyX.
- If you need this, read the documentation of 
-\series bold
-wrapfig
-\series default
- 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "wrapfig"
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -19571,7 +19626,7 @@ wrap float floats are fragile! E.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 having a figure too close to the bottom of the page can mess things up in
@@ -19611,13 +19666,6 @@ Wrap floats are not allowed in section headings or tables.
 
 \begin_layout Section
 Float Numbering
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Float-Numbering"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -19785,7 +19833,7 @@ Floats ! References
 status collapsed
 
 \begin_layout Plain Layout
-References
+References ! to Floats
 \end_layout
 
 \end_inset
@@ -19823,7 +19871,7 @@ Label
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 for figure floats the prefix will be "
@@ -20052,7 +20100,7 @@ Note that the style <page> won't print the page number if the label is on
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 see the text 
@@ -20100,30 +20148,6 @@ The LaTeX-package
 \series bold
 hyperref
 \series default
- provides a very useful feature that cross-references automatically include
- the name of the referenced floats (or text parts like sections).
- You save to write e.
-\begin_inset space \thinspace{}
-\end_inset
-
-g.
-\begin_inset space ~
-\end_inset
-
-the name 
-\begin_inset Quotes eld
-\end_inset
-
-Figure
-\begin_inset Quotes erd
-\end_inset
-
- before every reference box.
- To get this automatic reference naming, you have to load the LaTeX-package
- 
-\series bold
-hyperref
-\series default
 
 \begin_inset Index
 status collapsed
@@ -20134,18 +20158,47 @@ LaTeX-packages ! hyperref
 
 \end_inset
 
- in the document preamble with
+, that is enabled in the 
+\family sans
+PDF Properties
+\family default
+ of the 
+\family sans
+Document Settings
+\family default
+ dialog, provides a very useful feature that cross-references automatically
+ include the name of the referenced floats (or text parts like 
+\emph on
+section
+\emph default
+).
+ So you will save to write e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+the name 
+\begin_inset Quotes eld
+\end_inset
+
+Figure
+\begin_inset Quotes erd
+\end_inset
+
+ before every reference to a figure.
+ To use this feature, enable 
+\series bold
+hyperref
+\series default
+ and insert this line to the LaTeX preamble:
 \end_layout
 
 \begin_layout Standard
 
 \series bold
-
-\backslash
-usepackage[pdfborder={0 0 0}]{hyperref}
-\begin_inset Newline newline
-\end_inset
-
 
 \backslash
 AtBeginDocument{
@@ -20160,31 +20213,147 @@ autoref{#1}}}}
 \end_layout
 
 \begin_layout Standard
+When you prefer other reference names than the default ones, for example
+ you want instead of 
+\begin_inset Quotes eld
+\end_inset
+
+section
+\begin_inset Quotes erd
+\end_inset
+
+ the name 
+\begin_inset Quotes eld
+\end_inset
+
+sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset Quotes eld
+\end_inset
+
+, you can redefine the name by inserting this to the preamble:
+\end_layout
+
+\begin_layout Standard
 
 \series bold
-hyperref
+
+\backslash
+addto
+\backslash
+extrasenglish{
+\backslash
+renewcommand{
+\backslash
+sectionautorefname}
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+hphantom{ }
+\end_layout
+
+\end_inset
+
+{sec.
+\backslash
+negthinspace}}
+\end_layout
+
+\begin_layout Standard
+When you are using another document language than English, replace
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+extrasenglish
 \series default
- is used to link cross-references in the DVI- and PDF-output, this means
- that the reader of your document will be able to click on a table of content
- (TOC) entry or on a reference and he will be shown the referenced document
- part.
- 
+ by 
+\series bold
+
+\backslash
+extras***
+\series default
+, where *** is the name of the used language.
+\end_layout
+
+\begin_layout Standard
+To get automatic names, but not for certain reference types, for example
+ not for equations, use this preamble code:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+newlength{
+\backslash
+abc}
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+settowidth{
+\backslash
+abc}{
+\backslash
+space}
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+addto
+\backslash
+extrasenglish{
+\backslash
+renewcommand{
+\backslash
+equationautorefname}
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+hphantom{ }
+\end_layout
+
+\end_inset
+
+{
+\backslash
+hspace{-
+\backslash
+abc}}
+\end_layout
+
+\begin_layout Standard
+More about this topic can be found in 
 \series bold
 hyperref
 \series default
- also creates PDF-bookmarks for every section of your document to make it
- easier for readers to navigate through the document.
- This is also used in this document but when you have a look in the document
- preamble you will find various options in the load command of 
-\series bold
-hyperref
-\series default
-.
- To learn more about the 
-\series bold
-hyperref
-\series default
- package, we refer to its documentation 
+'s documentation 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "hyperref"
@@ -20212,7 +20381,7 @@ Formatted
 
 reference
 \family default
- style, described in section
+ style, as described in section
 \begin_inset space ~
 \end_inset
 
@@ -20229,6 +20398,14 @@ reference "sub:Cross-Reference-Formats"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+Math
+\emph default
+ manual is an example where automatic reference naming is used.
 \end_layout
 
 \begin_layout Subsection
@@ -20267,8 +20444,16 @@ LaTeX-packages ! hyperref
 
 \end_inset
 
- to link cross-references in the output, you will see that clicking on an
- image float reference jumps to the image label.
+ in the 
+\family sans
+PDF Properties
+\family default
+ of the 
+\family sans
+Document Settings
+\family default
+ dialog to link cross-references in the output, you will see that clicking
+ on an image float reference jumps to the image label.
  The caption will be the first text part on the screen, so that you cannot
  see the image without scrolling.
  This is because the reference link anchor is placed at the position of
@@ -20322,7 +20507,7 @@ You can also use
 \series bold
 hypcap
 \series default
- for all floats but this isn't recommended for stability reasons.
+ for all float types but this is not recommended for stability reasons.
  For more informations, have a look at 
 \series bold
 hypcap
@@ -20335,31 +20520,6 @@ key "hypcap"
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-Note:
-\series default
- 
-\series bold
-hypcap
-\series default
- must be loaded after 
-\series bold
-hyperref
-\series default
- in the document preamble.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -20953,9 +21113,18 @@ sideways
 \end_layout
 
 \begin_layout Standard
-Rotated floats are always placed on its own page (or column, when you have
- a two-column document).
- They are rotated so that you can read them from the outside margin.
+Rotated floats are always placed on its own page (or column, in case you
+ have a multi-column document).
+ You can let them span several columns using the float settings option 
+\family sans
+Span
+\begin_inset space ~
+\end_inset
+
+columns
+\family default
+.
+ Floats are rotated so that you can read them from the outside margin.
  To force a certain rotation direction for all pages, you can add either
  the option 
 \series bold
@@ -21319,16 +21488,6 @@ Floats ! Caption Formatting
 \end_inset
 
 
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-LaTeX-packages ! caption
-\end_layout
-
-\end_inset
-
-
 \begin_inset CommandInset label
 LatexCommand label
 name "sec:Caption-Formatting"
@@ -21353,7 +21512,7 @@ Floats
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 
@@ -21572,8 +21731,15 @@ key "caption"
 \end_layout
 
 \begin_layout Standard
-To change the label name from e.g.
- 
+To change the label name from e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+
 \begin_inset Quotes eld
 \end_inset
 
@@ -23082,13 +23248,6 @@ fi
 
 \begin_layout Section
 Listings of Floats
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Listings-of-Floats"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -23136,13 +23295,6 @@ Notes
 
 \begin_layout Section
 LyX Notes
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:LyX-Notes"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -23170,7 +23322,7 @@ Insert\SpecialChar \menuseparator
 Note
 \family default
 .
- There are five types of notes:
+ There are three types of notes:
 \end_layout
 
 \begin_layout Description
@@ -23367,132 +23519,6 @@ As you can see in the example, the first line of greyed out notes is a bit
  indented and greyed out notes can have footnotes.
 \end_layout
 
-\begin_layout Description
-Framed This note will appear in the output as framed text.
- Its note-box looks like this:
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Graphics
-	filename clipart/FramedNoteImageQt4.png
-	display false
-	scale 85
-	scaleBeforeRotation
-
-\end_inset
-
- 
-\begin_inset Box Framed
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-This is text in a note box that appears framed in the output.
-\end_layout
-
-\end_inset
-
- In contrary to framed boxes
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Framed boxes are described in section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Framed-Boxes"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
- the frame uses always the whole text width and the note is set into its
- own paragraph.
-\end_layout
-
-\begin_layout Description
-Shaded This note will appear in the output with red background color.
- Its note box looks like this:
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Graphics
-	filename clipart/ShadedNoteImageQt4.png
-	display false
-	scale 85
-	scaleBeforeRotation
-
-\end_inset
-
-
-\begin_inset Box Shaded
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-This text in a note box appears in the output with red background.
-\end_layout
-
-\end_inset
-
-In contrary to colored boxes
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Colored boxes are described in section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Colored-Boxes"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
- the note uses always the whole text width and the note is set into its
- own paragraph.
-\end_layout
-
 \begin_layout Standard
 \begin_inset VSpace bigskip
 \end_inset
@@ -23596,331 +23622,6 @@ reference "sec:Colored-Tables"
 \begin_layout Standard
 Notes that appear in blue in this document are set using greyed out notes
  with blue text.
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The text style of 
-\family sans
-Framed
-\family default
- and 
-\family sans
-Shaded
-\family default
- notes can be set in the 
-\family sans
-Text Style
-\family default
- dialog.
-\end_layout
-
-\begin_layout Standard
-The default frame width for 
-\family sans
-Framed
-\family default
- notes is 0.4
-\begin_inset space \thinspace{}
-\end_inset
-
-pt; it can be changed by changing the size 
-\series bold
-
-\backslash
-FrameRule
-\series default
-.
- The default space between the note content and the frame is 9
-\begin_inset space \thinspace{}
-\end_inset
-
-pt; it can be changed by changing the size 
-\series bold
-
-\backslash
-FrameSep
-\series default
-.
- For example the frame appearance of the following 
-\family sans
-Framed
-\family default
- note is set with the TeX-Code commands
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-FrameRule 5pt 
-\backslash
-FrameSep 0.5cm
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-FrameRule 5pt 
-\backslash
-FrameSep 0.5cm
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Framed
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-This is text in a 
-\family sans
-Framed
-\family default
- note.
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-FrameRule 0.4pt 
-\backslash
-FrameSep 9pt
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-For 
-\family sans
-Shaded
-\family default
- notes the default space between the note content and the note border is
- 3
-\begin_inset space \thinspace{}
-\end_inset
-
-pt; it can be changed by changing the size 
-\series bold
-
-\backslash
-fboxsep
-\series default
-.
-\begin_inset Newline newline
-\end_inset
-
-The default background color red can be changed with the command 
-\series bold
-
-\backslash
-definecolor{shadebox}
-\series default
-.
- The scheme of the 
-\series bold
-
-\backslash
-definecolor
-\series default
- command is explained in section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Colored-Tables"
-
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Note that 
-\series bold
-
-\backslash
-def
-\series default
-\SpecialChar \textcompwordmark{}
-
-\series bold
-inecolor
-\series default
- requires the LaTeX-package 
-\series bold
-color
-\series default
- in the preamble, see section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Colored-Boxes"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-For example the appearance of the following 
-\family sans
-Shaded
-\family default
- note is set with the TeX-Code commands
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-fboxsep 0.5cm
-\series default
-
-\begin_inset Newline newline
-\end_inset
-
-
-\series bold
-
-\backslash
-definecolor{shadecolor}{cmyk}{0.5,0,1,0.5}
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-fboxsep 0.5cm
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-definecolor{shadecolor}{cmyk}{0.5,0,1,0.5}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Shaded
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-
-\color yellow
-This is yellow text in a
-\color none
- 
-\family sans
-\color yellow
-Shaded
-\family default
-\color none
- 
-\color yellow
-note with darkgreen background.
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-fboxsep 3pt
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-definecolor{shadecolor}{rgb}{1,0,0}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
@@ -24643,7 +24344,7 @@ If you have several footnotes in one page, they appear without vertical
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 add 1.5
@@ -26081,7 +25782,7 @@ reference "sec:Minipages"
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Framed-Boxes"
+reference "sec:Decoration"
 
 \end_inset
 
@@ -26148,7 +25849,7 @@ Box (Minipage)
 
 \end_inset
 
-, will be inserted.
+ will be inserted.
  The box type can be specified by right-clicking on the box.
  The appearing box dialog offers the 
 \family sans
@@ -26407,7 +26108,7 @@ Height This is the heigth of the text that is inside the box.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 2 for this size will set the box heigth to 2 times the text height: 
@@ -26625,7 +26326,7 @@ Note:
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 a shadow and the other one not.
@@ -26857,11 +26558,11 @@ This box text is horizontally stretched.
 
 \end_layout
 
-\begin_layout Section
-Framed Boxes
+\begin_layout Subsection
+Decoration
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:Framed-Boxes"
+name "sec:Decoration"
 
 \end_inset
 
@@ -26870,7 +26571,7 @@ name "sec:Framed-Boxes"
 status collapsed
 
 \begin_layout Plain Layout
-Boxes ! Frames
+Boxes ! Decoration
 \end_layout
 
 \end_inset
@@ -26879,21 +26580,25 @@ Boxes ! Frames
 \end_layout
 
 \begin_layout Standard
-The frame style of the box can be specified in the box-dialog in the drop-down
+The type of the box can be specified in the box-dialog in the drop-down
  list 
 \family sans
-Type
+Decoration
 \family default
 .
- The following frame types are possible:
+ The following types are possible:
 \end_layout
 
 \begin_layout Description
-Rectangular
+Simple
 \begin_inset space ~
 \end_inset
 
-box This draws a rectangle frame around the box.
+rectangular
+\begin_inset space ~
+\end_inset
+
+frame This draws a rectangle frame around the box.
  The frame line thickness has the size of 
 \series bold
 
@@ -26917,6 +26622,63 @@ status collapsed
 \begin_layout Plain Layout
 \align center
 Rectangular box
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Allow
+\begin_inset space ~
+\end_inset
+
+page
+\begin_inset space ~
+\end_inset
+
+break When you use the decoration 
+\family sans
+simple rectangular frame
+\family default
+ and no inner box, you can allow page breaks within a box.
+ Note that then, in contrary to other framed boxes, the frame always uses
+ the whole column width, the box is set as its own paragraph, and 
+\series bold
+
+\backslash
+fboxrule
+\series default
+ and 
+\series bold
+
+\backslash
+fboxsep
+\series default
+ has no effect on this box type.
+ The frame line thickness has the size of 
+\series bold
+
+\backslash
+FrameRule
+\series default
+.
+ 
+\begin_inset Box Framed
+position "t"
+hor_pos "c"
+has_inner_box 0
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status collapsed
+
+\begin_layout Plain Layout
+Allow page break box
 \end_layout
 
 \end_inset
@@ -27001,11 +26763,11 @@ Oval box, thick
 \end_layout
 
 \begin_layout Description
-Shadow
+Drop
 \begin_inset space ~
 \end_inset
 
-box This draws a rectangle frame with a shadow around the box.
+shadow This draws a rectangle frame with a shadow around the box.
  The frame line thickness has the size of 
 \series bold
 
@@ -27041,11 +26803,65 @@ Shadow box
 \end_layout
 
 \begin_layout Description
+Shaded
+\begin_inset space ~
+\end_inset
+
+background This draws a box with red background color.
+ In contrary to colored boxes
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+see sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Colored-Boxes"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+, it always uses the whole column width and the box is set as its own paragraph.
+ 
+\begin_inset Box Shaded
+position "t"
+hor_pos "c"
+has_inner_box 0
+inner_pos "t"
+use_parbox 0
+width "50col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status collapsed
+
+\begin_layout Plain Layout
+Shaded background box
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
 Double
 \begin_inset space ~
 \end_inset
 
-box This draws a double-line rectangle frame around the box.
+rectangular
+\begin_inset space ~
+\end_inset
+
+frame This draws a double-line rectangle frame around the box.
  The line thickness of the inner frame is 0.75
 \begin_inset space \thinspace{}
 \end_inset
@@ -27105,7 +26921,7 @@ status collapsed
 
 \begin_layout Plain Layout
 \align center
-Double box
+Double rectangular box
 \end_layout
 
 \end_inset
@@ -27117,8 +26933,8 @@ Double box
 \begin_inset VSpace bigskip
 \end_inset
 
-LyX's box label will change to the used frame style when you set a frame.
- To be able to use the different frame styles, the LaTeX-package 
+LyX's box label will reflect the different frame types.
+ To be able to use all types, the LaTeX-package 
 \series bold
 fancybox
 \series default
@@ -27135,10 +26951,21 @@ LaTeX-packages ! fancybox
  must be installed.
 \end_layout
 
-\begin_layout Standard
-\begin_inset VSpace bigskip
+\begin_layout Section
+Box customization
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Boxes ! Customization
+\end_layout
+
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 The default value for the size 
 \series bold
 
@@ -27155,7 +26982,7 @@ pt.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 2
@@ -27201,7 +27028,7 @@ width "25col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -27310,7 +27137,7 @@ width "25col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -27442,7 +27269,7 @@ width "25col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -27539,7 +27366,7 @@ width "25col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -27577,6 +27404,327 @@ status collapsed
 setlength{
 \backslash
 shadowsize}{4pt}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The default value for the size 
+\series bold
+
+\backslash
+FrameRule
+\series default
+ is 0.4
+\begin_inset space \thinspace{}
+\end_inset
+
+pt.
+ The default space between the note content and the frame is 9
+\begin_inset space \thinspace{}
+\end_inset
+
+pt and can be changed with the value of 
+\series bold
+
+\backslash
+FrameSep
+\series default
+.
+ For example the frame appearance of the following 
+\family sans
+box
+\family default
+ is set with the TeX-Code commands
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+setlength{
+\backslash
+FrameRule}{5pt}
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+setlength{
+\backslash
+FrameSep}{0.5cm}
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+FrameRule}{5pt}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+FrameSep}{0.5cm}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Box Framed
+position "t"
+hor_pos "c"
+has_inner_box 0
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+This is text in an 
+\family sans
+allow page break
+\family default
+ box.
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+FrameRule}{0.4pt}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+FrameSep}{9pt}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\family sans
+shaded background
+\family default
+ boxes the default space between the box content and the box border is 3
+\begin_inset space \thinspace{}
+\end_inset
+
+pt and can be changed with the value of 
+\series bold
+
+\backslash
+fboxsep
+\series default
+.
+ The default background color red can either be changed locally with the
+ command 
+\series bold
+
+\backslash
+definecolor{shadebox}
+\series default
+ or globally with the menu 
+\family sans
+Tools\SpecialChar \menuseparator
+Preferences\SpecialChar \menuseparator
+Colors\SpecialChar \menuseparator
+shaded
+\begin_inset space ~
+\end_inset
+
+box
+\family default
+.
+ The scheme of the 
+\series bold
+
+\backslash
+definecolor
+\series default
+ command is explained in section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Colored-Tables"
+
+\end_inset
+
+.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Note that 
+\series bold
+
+\backslash
+definecolor
+\series default
+ requires the LaTeX-package 
+\series bold
+color
+\series default
+ in the preamble, see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Colored-Boxes"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ For example the appearance of the following shaded background note is set
+ with the TeX-Code commands
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+setlength{
+\backslash
+fboxsep}{0.5cm}
+\series default
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+definecolor{shadecolor}{cmyk}{0.5,0,1,0.5}
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+fboxsep}{0.5cm}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+definecolor{shadecolor}{cmyk}{0.5,0,1,0.5}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Box Shaded
+position "t"
+hor_pos "c"
+has_inner_box 0
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+
+\color yellow
+This is yellow text in a
+\color none
+ 
+\family sans
+\color yellow
+shaded background
+\family default
+\color none
+ 
+\color yellow
+box with dark green background.
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+setlength{
+\backslash
+fboxsep}{3pt}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+definecolor{shadecolor}{rgb}{1,0,0}
 \end_layout
 
 \end_inset
@@ -27644,6 +27792,10 @@ Horizontal
 Fill
 \family default
 .
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -28068,7 +28220,7 @@ The document-wide paragraph settings are ignored within minipages.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 
@@ -28370,9 +28522,11 @@ Line
 Break
 \family default
  (shortcut 
-\series bold
-Ctrl-Return
-\series default
+\begin_inset Info
+type  "shortcut"
+arg   "newline-insert newline"
+\end_inset
+
 ) a line break before the word:
 \end_layout
 
@@ -28951,7 +29105,7 @@ To have e.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 a red background for a word, insert the command
@@ -29078,7 +29232,7 @@ fboxsep
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Framed-Boxes"
+reference "sec:Decoration"
 
 \end_inset
 
@@ -30280,7 +30434,7 @@ The boxes can be combined in any order.
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 the command
@@ -30639,7 +30793,7 @@ Templates
 
 \begin_layout Description
 ChessDiagram This template supports chess position diagrams made with the
- programas 
+ program 
 \series bold
 
 \begin_inset CommandInset href
@@ -30730,6 +30884,28 @@ target "http://en.wikipedia.org/wiki/LilyPond"
 
 \series default
 .
+\end_layout
+
+\begin_layout Description
+PDFPages With this template you can insert PDF documents to your document.
+ To insert certain or all pages of a PDF, use the 
+\emph on
+pages
+\emph default
+ option in the 
+\family sans
+Option
+\family default
+ field in the 
+\family sans
+LaTeX and LyX options
+\family default
+ tab according to the template description in the dialog.
+ When no 
+\emph on
+pages
+\emph default
+ option is given, only the first page of the PDF will be inserted.
 \end_layout
 
 \begin_layout Description
@@ -31008,19 +31184,15 @@ External material is displayed in LyX either as box like this:
 
 \end_inset
 
- or as image, depending on the setting in the 
+ or as image, depending on the option 
 \family sans
-LyX
-\begin_inset space ~
-\end_inset
-
-View
+Show in LyX
 \family default
- tab of the 
+ in the 
 \family sans
-External Material
+LaTeX and LyX options
 \family default
- dialog.
+ tab of the dialog.
 \end_layout
 
 \begin_layout Standard
@@ -31071,6 +31243,25 @@ Child documents are used when you have a long document consisting of several
  the document in several files that can be revised separately.
  The different documents are then the so called child documents and a master
  document connects them to print the full document or parts of it.
+ A child documents inherits contents of its master, for example the bibliography
+ and the labels for cross-references.
+\end_layout
+
+\begin_layout Standard
+To be able to work on child documents without the need to open its master,
+ specify in the child document the master in the menu
+\family sans
+ Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Document
+\begin_inset space ~
+\end_inset
+
+Class
+\family default
+.
+ This master file will then be used in the background by LyX when you edit
+ the child document.
 \end_layout
 
 \begin_layout Standard
@@ -31173,7 +31364,11 @@ you can specify which included child documents are processed when the output
 includeonly
 \series default
  is inserted to the master document preamble.
- It takes a comma-separated list of the filenames as argument, e.g.
+ It takes a comma-separated list of the filenames as argument, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
 \end_layout
 
 \begin_layout Standard
@@ -31494,8 +31689,8 @@ LaTeX-packages ! listings
 \end_layout
 
 \begin_layout Standard
-When right-clicking on a listings inset a dialog pops up where you can set
- the listings format.
+Right-clicking on a listings inset opens the context menu containing where
+ you can set the listings format.
 \end_layout
 
 \begin_layout Standard
@@ -31515,6 +31710,7 @@ inline true
 status open
 
 \begin_layout Plain Layout
+
 int a=5;
 \end_layout
 
@@ -31594,7 +31790,7 @@ reference "sec:Float-Placement"
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 
@@ -31654,6 +31850,7 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
 \begin_inset Caption
 
 \begin_layout Plain Layout
@@ -31672,14 +31869,17 @@ Example Listing float
 \end_layout
 
 \begin_layout Plain Layout
+
 def func(param):
 \end_layout
 
 \begin_layout Plain Layout
+
     'this is a python function'
 \end_layout
 
 \begin_layout Plain Layout
+
     pass
 \end_layout
 
@@ -31711,7 +31911,10 @@ status open
 \series bold
 Note:
 \series default
- If you don't get bold keywords when using typewriter fonts, your typewriter
+ If you don't get bold keywords when using typewriter fonts, your 
+\family typewriter
+typewriter
+\family default
  font probably doesn't provide a bold shape.
  In this case select a different one in the menu 
 \family sans
@@ -31752,8 +31955,15 @@ numbering
 Step
 \family default
 .
- When you insert e.g.
- 
+ When you insert e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+
 \begin_inset Quotes eld
 \end_inset
 
@@ -31769,11 +31979,7 @@ You can furthermore specify a range of lines, only these will then appear
  in the output.
  The option 
 \family sans
-Extended
-\begin_inset space ~
-\end_inset
-
-chars
+Extended character table
 \family default
  should be used when you use national characters like the German umlauts
  in the listing.
@@ -31800,11 +32006,7 @@ Python
 \begin_inset Quotes eld
 \end_inset
 
-Extended
-\begin_inset space ~
-\end_inset
-
-chars
+Extended character table
 \begin_inset Quotes erd
 \end_inset
 
@@ -31820,7 +32022,7 @@ as
 \begin_inset space ~
 \end_inset
 
-Symbol
+symbol
 \begin_inset Quotes erd
 \end_inset
 
@@ -31842,44 +32044,66 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
 def func(param):
 \end_layout
 
 \begin_layout Plain Layout
+
     'this is a python function'
 \end_layout
 
 \begin_layout Plain Layout
+
     pass
 \end_layout
 
 \begin_layout Plain Layout
+
 def func(param):
 \end_layout
 
 \begin_layout Plain Layout
+
 'This is a German word: Tschüß'
 \end_layout
 
 \begin_layout Plain Layout
+
 pass
 \end_layout
 
 \begin_layout Plain Layout
+
 def func(param):
 \end_layout
 
 \begin_layout Plain Layout
+
 'this is a python function'
 \end_layout
 
 \begin_layout Plain Layout
+
 pass
 \end_layout
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+When you have tabulators in your listing, you can specify the number of
+ characters that are spanned by a tabulator in the field 
+\family sans
+Tabulator
+\begin_inset space ~
+\end_inset
+
+size
+\family default
+.
 \end_layout
 
 \begin_layout Standard
@@ -31996,7 +32220,7 @@ reference "lst:file-listing"
 \begin_inset CommandInset include
 LatexCommand lstinputlisting
 filename "EmbeddedObjects.lyx"
-lstparams "breaklines=true,caption={Lines 10 - 15 of this LyX file},firstline=10,label={lst:file-listing},language={[LaTeX]TeX},lastline=15"
+lstparams "breaklines=true,caption={Lines 10 - 15 of this LyX file},extendedchars=true,firstline=10,label={lst:file-listing},language={[LaTeX]TeX},lastline=15"
 
 \end_inset
 
@@ -32914,13 +33138,6 @@ View
 
 \begin_layout Section
 PDF
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:PDF"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 

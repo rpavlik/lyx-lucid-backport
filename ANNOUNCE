@@ -1,73 +1,32 @@
-Public release of LyX version 1.6.0 (beta 4)
-=============================================
+Public release of LyX version 1.6.0
+===================================
 
-We are pleased to announce the fourth beta release of LyX 1.6.0.
+We are pleased to announce the release of LyX 1.6.0.
 
-LyX 1.6.0 will be the culmination of 9 months of hard work since the
-release of the LyX 1.5 series. We sincerely hope you will enjoy the
-result.
+LyX is a document processor that encourages an approach to writing
+based on the structure of your documents, not their appearance. It
+is released under a Free Software / Open Source license.
 
-As usual with a major release, a lot of work that is not directly
-visible has taken place. The core of LyX has seen more cleanups and
-some of the new features are the direct results of this work.
+You can download LyX 1.6.0 from http://www.lyx.org/Download
 
-The file RELEASE-NOTES lists some known issues with this release
-compared to the current stable release (LyX 1.5.5). An updated list of
-issues might later be found at http://wiki.lyx.org/LyX/ReleaseNotes
+LyX 1.6.0 is the culmination of 15 months of hard work and you can
+find an overview of the new features here:
 
+http://wiki.lyx.org/LyX/NewInLyX16
 
-In case you are wondering what LyX is, here is what
-http://www.lyx.org/ has to say on the subject:
+We hope you will enjoy the result!
 
-   LyX is a document processor that encourages an approach to writing
-   based on the structure of your documents, not their appearance. It
-   is released under a Free Software / Open Source license.
+Known issues with LyX 1.6 compared to the previous stable release
+(LyX 1.5.6) can be found at http://wiki.lyx.org/LyX/ReleaseNotes160
 
-   LyX is for people that write and want their writing to look great,
-   right out of the box. No more endless tinkering with formatting
-   details, 'finger painting' font attributes or futzing around with page
-   boundaries. You just write. In the background, Prof. Knuth's legendary
-   TeX typesetting engine makes you look good.
+If you think you found a bug in LyX 1.6.0, either e-mail the LyX
+developers' mailing list (lyx-devel at lists.lyx.org), or open a bug
+report at http://bugzilla.lyx.org
 
-   On screen, LyX looks like any word processor; its printed output -- or
-   richly cross-referenced PDF, just as readily produced -- looks like
-   nothing else. Gone are the days of industrially bland .docs, all
-   looking similarly not-quite-right, yet coming out unpredictably
-   different on different printer drivers. Gone are the crashes 'eating'
-   your dissertation the evening before going to press.
-
-   LyX is stable and fully featured. It is a multi-platform, fully
-   internationalized application running natively on Unix/Linux and the
-   Macintosh and modern Windows platforms.
-
-You can download LyX 1.6.0alpha2 here (the .bz2 are compressed with bzip2,
-which yields smaller files):
-
-	ftp://ftp.devel.lyx.org/pub/lyx/devel/lyx-1.6.0alpha2.tar.gz
-	ftp://ftp.devel.lyx.org/pub/lyx/devel/lyx-1.6.0alpha2.tar.bz2
-
-Note that due to the amount of change, no patch is provided to upgrade
-from version 1.5.5.
-
-Prebuilt binaries (rpms for linux distributions, Mac OS X and Windows
-installers) should soon be available at
-	ftp://ftp.devel.lyx.org/pub/bin/1.6.0alpha2/
-
-If you find what you think is a bug in LyX 1.6.0alpha2, you may either
-e-mail the LyX developers' mailing list (lyx-devel at lists.lyx.org), or open
-a bug report at http://bugzilla.lyx.org
-
-If you're having trouble using the new version of LyX, or have a question,
-first check out http://www.lyx.org/help/. If you can't find the answer there,
-e-mail the LyX users' list (lyx-users at lists.lyx.org).
-
-Enjoy!
+If you have trouble using LyX or have a question, consult the
+documentation that comes with lyx and http://wiki.lyx.org. If you
+can't find the answer there, e-mail the LyX users' list
+(lyx-users at lists.lyx.org).
 
 The LyX team.
-
-
-What's new in version 1.6.0beta4?
-----------------------------
-
-The new features in LyX 1.6 are detailed in
-http://wiki.lyx.org/LyX/NewInLyX16
+http://www.lyx.org

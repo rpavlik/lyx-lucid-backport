@@ -14,6 +14,7 @@
 
 #include "MathMacro.h"
 
+#include "InsetMathChar.h"
 #include "MathCompletionList.h"
 #include "MathExtern.h"
 #include "MathStream.h"
@@ -59,13 +60,12 @@ public:
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const {
 		mathMacro_.macro()->unlock();
-		if (!mathMacro_.editMetrics(mi.base.bv) 
+		mathMacro_.cell(idx_).metrics(mi, dim);
+
+		if (!mathMacro_.editMetrics(mi.base.bv)
 		    && mathMacro_.cell(idx_).empty())
 			def_.metrics(mi, dim);
-		else {
-			CoordCache & coords = mi.base.bv->coordCache();
-			dim = coords.arrays().dim(&mathMacro_.cell(idx_));
-		}
+
 		mathMacro_.macro()->lock();
 	}
 	///
@@ -133,8 +133,7 @@ Inset * MathMacro::clone() const
 
 docstring MathMacro::name() const
 {
-	if (displayMode_ == DISPLAY_UNFOLDED
-	    && (name_.size() > 1 || (name_[0] != '_' && name_[0] != '^')))
+	if (displayMode_ == DISPLAY_UNFOLDED && name_.size() != 1)
 		return asString(cell(0));
 
 	return name_;
@@ -236,13 +235,18 @@ void MathMacro::metrics(MetricsInfo & mi, Dimension & dim) const
 	} else {
 		LASSERT(macro_ != 0, /**/);
 
-		// metrics are computed here for the cells,
-		// in the proxy we will then use the dim from the cache
-		InsetMathNest::metrics(mi);
-		
-		// calculate metrics finally
+		// calculate metrics, hoping that all cells are seen
 		macro_->lock();
 		expanded_.cell(0).metrics(mi, dim);
+
+		// otherwise do a manual metrics call
+		CoordCache & coords = mi.base.bv->coordCache();
+		for (idx_type i = 0; i < nargs(); ++i) {
+			if (!coords.getArrays().has(&cell(i))) {
+				Dimension tdim;
+				cell(i).metrics(mi, tdim);
+			}
+		}
 		macro_->unlock();
 
 		// calculate dimension with label while editing
@@ -350,7 +354,7 @@ void MathMacro::draw(PainterInfo & pi, int x, int y) const
 		   && editing_[pi.base.bv]) {
 		// Macro will be edited in a old-style list mode here:
 		
-		CoordCache & coords = pi.base.bv->coordCache();
+		CoordCache const & coords = pi.base.bv->coordCache();
 		FontInfo const & labelFont = sane_font;
 		
 		// markers and box needs two pixels
@@ -367,8 +371,7 @@ void MathMacro::draw(PainterInfo & pi, int x, int y) const
 
 		// draw definition
 		definition_.draw(pi, x, y);
-		Dimension defDim
-		= coords.arrays().dim(&definition_);
+		Dimension const & defDim = coords.getArrays().dim(&definition_);
 		y += max(fontDim.des, defDim.des);
 				
 		// draw parameters
@@ -378,8 +381,7 @@ void MathMacro::draw(PainterInfo & pi, int x, int y) const
 		
 		for (idx_type i = 0; i < nargs(); ++i) {
 			// position of label
-			Dimension cdim
-			= coords.arrays().dim(&cell(i));
+			Dimension const & cdim = coords.getArrays().dim(&cell(i));
 			x = expx + 2;
 			y += max(fontDim.asc, cdim.asc) + 1;
 			
@@ -514,8 +516,8 @@ void MathMacro::validate(LaTeXFeatures & features) const
 	if (!requires_.empty())
 		features.require(requires_);
 
-	if (name() == "binom" || name() == "mathcircumflex")
-		features.require(to_utf8(name()));
+	if (name() == "binom")
+		features.require("binom");
 	
 	// validate the cells and the definition
 	if (displayMode() == DISPLAY_NORMAL) {
@@ -694,7 +696,8 @@ void MathMacro::write(WriteStream & os) const
 	// Print remaining macros 
 	for (; i < cells_.size(); ++i) {
 		if (cell(i).size() == 1 
-			 && cell(i)[0].nucleus()->asCharInset()) {
+			&& cell(i)[0].nucleus()->asCharInset()
+			&& cell(i)[0].nucleus()->asCharInset()->getChar() < 0x80) {
 			if (first)
 				os << " ";
 			os << cell(i);

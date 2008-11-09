@@ -200,6 +200,22 @@ def checkLatex(dtl_tools):
     ''' Check latex, return lyx_check_config '''
     path, LATEX = checkProg('a Latex2e program', ['latex $$i', 'platex $$i', 'latex2e $$i'])
     path, PPLATEX = checkProg('a DVI postprocessing program', ['pplatex $$i'])
+    #-----------------------------------------------------------------
+    path, PLATEX = checkProg('pLaTeX, the Japanese LaTeX', ['platex $$i'])
+    # check if PLATEX is pLaTeX2e
+    writeToFile('chklatex.ltx', '''
+\\nonstopmode
+\\@@end
+''')
+    # run platex on chklatex.ltx and check result
+    if cmdOutput(PLATEX + ' chklatex.ltx').find('pLaTeX2e') != -1:
+        # We have the Japanese pLaTeX2e
+        addToRC(r'\converter platex   dvi       "%s"   "latex"' % PLATEX)
+        LATEX = PLATEX
+    else:
+        PLATEX = ''
+    removeFiles(['chklatex.ltx', 'chklatex.log'])
+    #-----------------------------------------------------------------
     # use LATEX to convert from latex to dvi if PPLATEX is not available    
     if PPLATEX == '':
         PPLATEX = LATEX
@@ -267,10 +283,10 @@ def checkFormatEntries(dtl_tools):
 \Format docbook    sgml    DocBook                B  ""	"%%"	"document"
 \Format docbook-xml xml   "Docbook (XML)"         "" ""	"%%"	"document"
 \Format dot        dot    "Graphviz Dot"          "" ""	"%%"	"vector"
+\Format platex     tex    "LaTeX (pLaTeX)"        "" "" "%%"    "document"
 \Format literate   nw      NoWeb                  N  ""	"%%"	"document"
 \Format lilypond   ly     "LilyPond music"        "" ""	"%%"	"vector"
 \Format latex      tex    "LaTeX (plain)"         L  ""	"%%"	"document"
-\Format linuxdoc   sgml    LinuxDoc               x  ""	"%%"	"document"
 \Format pdflatex   tex    "LaTeX (pdflatex)"      "" ""	"%%"	"document"
 \Format text       txt    "Plain text"            a  ""	"%%"	"document"
 \Format text2      txt    "Plain text (pstotext)" "" ""	"%%"	"document"
@@ -309,7 +325,7 @@ def checkFormatEntries(dtl_tools):
     checkViewer('Noteedit', ['noteedit'],
         rc_entry = [r'\Format noteedit   not     Noteedit               "" "%%"	"%%"	"vector"'])
     #
-    checkViewer('an OpenDocument viewer', ['oowriter'],
+    checkViewer('an OpenDocument viewer', ['swriter', 'oowriter'],
         rc_entry = [r'\Format odt        odt     OpenDocument           "" "%%"	"%%"	"document,vector"'])
     #
     # entried that do not need checkProg
@@ -324,6 +340,7 @@ def checkFormatEntries(dtl_tools):
 \Format jlyx       cjklyx "CJK LyX 1.4.x (euc-jp)" "" ""	""	"document"
 \Format klyx       cjklyx "CJK LyX 1.4.x (euc-kr)" "" ""	""	"document"
 \Format lyxpreview lyxpreview "LyX Preview"       "" ""	""	""
+\Format lyxpreview-platex lyxpreview-platex "LyX Preview (pLaTeX)"       "" ""	""	""
 \Format pdftex     pdftex_t PDFTEX                "" ""	""	""
 \Format program    ""      Program                "" ""	""	""
 \Format pstex      pstex_t PSTEX                  "" ""	""	""
@@ -358,7 +375,8 @@ def checkConverterEntries():
 
     #
     checkProg('a Noweb -> LaTeX converter', ['noweave -delay -index $$i > $$o'],
-        rc_entry = [ r'\converter literate   latex      "%%"	""' ])
+        rc_entry = [r'''\converter literate   latex      "%%"	""
+\converter literate   pdflatex      "%%"	""'''])
     #
     checkProg('an HTML -> LaTeX converter', ['html2latex $$i', 'gnuhtml2latex $$i', \
         'htmltolatex -input $$i -output $$o', 'java -jar htmltolatex.jar -input $$i -output $$o'],
@@ -389,12 +407,15 @@ def checkConverterEntries():
     #
     checkProg('an OpenDocument -> LaTeX converter', ['w2l -clean $$i'],
         rc_entry = [ r'\converter odt        latex      "%%"	""' ])
+    # According to http://www.tug.org/applications/tex4ht/mn-commands.html
+    # the command mk4ht oolatex $$i has to be used as default,
+    # but as this would require to have Perl installed, in MiKTeX oolatex is
+    # directly available as application.
     # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
     # Both SuSE and debian have oolatex
     checkProg('a LaTeX -> Open Document converter', [
-        'htlatex $$i \'xhtml,ooffice\' \'ooffice/! -cmozhtf\' \'-coo\' \'-cvalidate\'', \
-	'oolatex $$i', 'oolatex.sh $$i', \
-        '/usr/share/tex4ht/oolatex $$i'],
+        'oolatex $$i', 'mk4ht oolatex $$i', 'oolatex.sh $$i', '/usr/share/tex4ht/oolatex $$i',
+        'htlatex $$i \'xhtml,ooffice\' \'ooffice/! -cmozhtf\' \'-coo\' \'-cvalidate\''],
         rc_entry = [ r'\converter latex      odt        "%%"	"needaux"' ])
     # On windows it is called latex2rt.exe
     checkProg('a LaTeX -> RTF converter', ['latex2rtf -p -S -o $$o $$i', 'latex2rt -p -S -o $$o $$i'],
@@ -508,6 +529,7 @@ def checkConverterEntries():
     #
     # Entries that do not need checkProg
     addToRC(r'''\converter lyxpreview ppm        "python -tt $$s/scripts/lyxpreview2bitmap.py"	""
+\converter lyxpreview-platex ppm        "python -tt $$s/scripts/lyxpreview-platex2bitmap.py"	""
 \converter csv        lyx        "python -tt $$s/scripts/csv2lyx.py $$i $$o"	""
 \converter date       dateout    "python -tt $$s/scripts/date.py %d-%m-%Y > $$o"	""
 \converter docbook    docbook-xml "cp $$i $$o"	"xml"
@@ -524,25 +546,6 @@ def checkConverterEntries():
 \converter jlyx       lyx        "python -tt $$s/lyx2lyx/lyx2lyx -c euc_jp $$i > $$o"	""
 \converter klyx       lyx        "python -tt $$s/lyx2lyx/lyx2lyx -c euc_kr $$i > $$o"	""
 ''')
-
-
-def checkLinuxDoc():
-    ''' Check linuxdoc '''
-    #
-    path, LINUXDOC = checkProg('SGML-tools 1.x (LinuxDoc)', ['sgml2lyx'],
-        rc_entry = [
-        r'''\converter linuxdoc   lyx        "sgml2lyx $$i"	""
-\converter linuxdoc   latex      "sgml2latex $$i"	""
-\converter linuxdoc   dvi        "sgml2latex -o dvi $$i"	""
-\converter linuxdoc   html       "sgml2html $$i"	""''',
-        r'''\converter linuxdoc   lyx        ""	""
-\converter linuxdoc   latex      ""	""
-\converter linuxdoc   dvi        ""	""
-\converter linuxdoc   html       ""	""''' ])
-    if LINUXDOC != '':
-        return ('yes', 'true', '\\def\\haslinuxdoc{yes}')
-    else:
-        return ('no', 'false', '')
 
 
 def checkDocBook():
@@ -575,6 +578,8 @@ def checkOtherEntries():
         rc_entry = [ r'\bibtex_command "%%"' ])
     checkProg('an index processor', ['texindy', 'makeindex -c -q'],
         rc_entry = [ r'\index_command "%%"' ])
+    checkProg('a nomenclature processor', ['makeindex'],
+        rc_entry = [ r'\nomencl_command "makeindex -s nomencl.ist"' ])
     checkProg('a spellchecker', ['ispell'],
         rc_entry = [ r'\spell_command "%%"' ])
     ## FIXME: OCTAVE is not used anywhere
@@ -596,7 +601,7 @@ def checkOtherEntries():
 ''')
 
 
-def processLayoutFile(file, bool_docbook, bool_linuxdoc):
+def processLayoutFile(file, bool_docbook):
     ''' process layout file and get a line of result
         
         Declare lines look like this: (article.layout, scrbook.layout, svjog.layout)
@@ -613,20 +618,20 @@ def processLayoutFile(file, bool_docbook, bool_linuxdoc):
     '''
     classname = file.split(os.sep)[-1].split('.')[0]
     # return ('LaTeX', '[a,b]', 'a', ',b,c', 'article') for \DeclareLaTeXClass[a,b,c]{article}
-    p = re.compile(r'\Declare(LaTeX|DocBook|LinuxDoc)Class\s*(\[([^,]*)(,.*)*\])*\s*{(.*)}')
+    p = re.compile(r'\Declare(LaTeX|DocBook)Class\s*(\[([^,]*)(,.*)*\])*\s*{(.*)}')
     for line in open(file).readlines():
         res = p.search(line)
         if res != None:
             (classtype, optAll, opt, opt1, desc) = res.groups()
-            avai = {'LaTeX':'false', 'DocBook':bool_docbook, 'LinuxDoc':bool_linuxdoc}[classtype]
+            avai = {'LaTeX':'false', 'DocBook':bool_docbook}[classtype]
             if opt == None:
                 opt = classname
             return '"%s" "%s" "%s" "%s"\n' % (classname, opt, desc, avai)
-    print "Layout file without \DeclareXXClass line. "
-    sys.exit(2)
+    print "Layout file " + file + " has no \DeclareXXClass line. "
+    return ""
 
-    
-def checkLatexConfig(check_config, bool_docbook, bool_linuxdoc):
+
+def checkLatexConfig(check_config, bool_docbook):
     ''' Explore the LaTeX configuration 
         Return None (will be passed to sys.exit()) for success.
     '''
@@ -665,7 +670,9 @@ def checkLatexConfig(check_config, bool_docbook, bool_linuxdoc):
             # make sure the same class is not considered twice
             if foundClasses.count(cleanclass) == 0: # not found before
                 foundClasses.append(cleanclass)
-                tx.write(processLayoutFile(file, bool_docbook, bool_linuxdoc))
+                retval = processLayoutFile(file, bool_docbook)
+                if retval != "":
+                    tx.write(retval)
         tx.close()
         print '\tdone'
     if not check_config:
@@ -679,8 +686,8 @@ def checkLatexConfig(check_config, bool_docbook, bool_linuxdoc):
         if not os.path.isfile( 'chkconfig.ltx' ):
             shutil.copyfile( os.path.join(srcdir, 'chkconfig.ltx'), 'chkconfig.ltx' )
             rmcopy = True
-        writeToFile('wrap_chkconfig.ltx', '%s\n%s\n\\input{chkconfig.ltx}\n' \
-            % (linuxdoc_cmd, docbook_cmd) )
+        writeToFile('wrap_chkconfig.ltx', '%s\n%s\n\\input{chkconfig.ltx}\n',
+            docbook_cmd)
         # Construct the list of classes to test for.
         # build the list of available layout files and convert it to commands
         # for chkconfig.ltx
@@ -757,12 +764,14 @@ def checkModulesConfig():
       print file
       if not os.path.isfile(file): 
           continue
-      tx.write(processModuleFile(file, bool_docbook, bool_linuxdoc))
+      retval = processModuleFile(file, bool_docbook)
+      if retval != "":
+          tx.write(retval)
   tx.close()
   print '\tdone'
 
 
-def processModuleFile(file, bool_docbook, bool_linuxdoc):
+def processModuleFile(file, bool_docbook):
     ''' process module file and get a line of result
 
         The top of a module file should look like this:
@@ -825,7 +834,7 @@ def processModuleFile(file, bool_docbook, bool_linuxdoc):
     if modname != "":
         return '"%s" "%s" "%s" "%s" "%s" "%s"\n' % (modname, filename, desc, pkgs, req, excl)
     print "Module file without \DeclareLyXModule line. "
-    sys.exit(2)
+    return ""
 
 
 def checkTeXAllowSpaces():
@@ -912,15 +921,13 @@ Options:
     LATEX = checkLatex(dtl_tools)
     checkFormatEntries(dtl_tools)
     checkConverterEntries()
-    (chk_linuxdoc, bool_linuxdoc, linuxdoc_cmd) = checkLinuxDoc()
     (chk_docbook, bool_docbook, docbook_cmd) = checkDocBook()
     checkTeXAllowSpaces()
     if windows_style_tex_paths != '':
         addToRC(r'\tex_expects_windows_paths %s' % windows_style_tex_paths)
     checkOtherEntries()
     # --without-latex-config can disable lyx_check_config
-    ret = checkLatexConfig(lyx_check_config and LATEX != '',
-        bool_docbook, bool_linuxdoc)
+    ret = checkLatexConfig(lyx_check_config and LATEX != '', bool_docbook)
     checkModulesConfig() #lyx_check_config and LATEX != '')
     removeTempFiles()
     # The return error code can be 256. Because most systems expect an error code

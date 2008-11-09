@@ -22,12 +22,11 @@
 
 using namespace std;
 using lyx::lyxerr;
-using lyx::LyX;
 
 namespace boost {
 
 #ifndef BOOST_NO_EXCEPTIONS
-void throw_exception(exception const & e)
+void throw_exception(std::exception const & e)
 {
 	lyxerr << "Exception caught:\n" << e.what() << endl;
 	LASSERT(false, /**/);
@@ -45,7 +44,7 @@ void assertion_failed(char const * expr, char const * function,
 	// FIXME: by default we exit here but we could also inform the user
 	// about the assertion and do the emergency cleanup without exiting.
 	// FIXME: do we have a list of exit codes defined somewhere?
-	LyX::cref().exit(1);
+	lyx::lyx_exit(1);
 }
 
 } // namespace boost

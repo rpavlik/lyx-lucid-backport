@@ -106,22 +106,9 @@ KernelDocType Dialog::docType() const
 }
 
 
-BufferView * Dialog::bufferview()
-{
-	return lyxview_->view();
-}
-
-
 BufferView const * Dialog::bufferview() const
 {
 	return lyxview_->view();
-}
-
-
-Buffer & Dialog::buffer()
-{
-	LASSERT(lyxview_->buffer(), /**/);
-	return *lyxview_->buffer();
 }
 
 
@@ -257,7 +244,7 @@ void Dialog::checkStatus()
 
 QString Dialog::sessionKey() const
 {
-	return "view-" + QString::number(lyxview_->id())
+	return "views/" + QString::number(lyxview_->id())
 		+ "/" + name();
 }
 

@@ -36,28 +36,23 @@ static bool moveItem(Paragraph & fromPar, pos_type fromPos,
 	// Note: moveItem() does not honour change tracking!
 	// Therefore, it should only be used for breaking and merging paragraphs
 
-	char_type const tmpChar = fromPar.getChar(fromPos);
+	// We need a copy here because the character at fromPos is going to be erased.
 	Font const tmpFont = fromPar.getFontSettings(params, fromPos);
 	Change const tmpChange = fromPar.lookupChange(fromPos);
 
-	if (fromPar.isInset(fromPos)) {
-		Inset * tmpInset = 0;
-		if (fromPar.getInset(fromPos)) {
-			// the inset is not in the paragraph any more
-			tmpInset = fromPar.releaseInset(fromPos);
-		}
-
-		if (!toPar.insetAllowed(tmpInset->lyxCode())) {
+	if (Inset * tmpInset = fromPar.getInset(fromPos)) {
+		fromPar.releaseInset(fromPos);
+		// The inset is not in fromPar any more.
+		if (!toPar.insertInset(toPos, tmpInset, tmpFont, tmpChange)) {
 			delete tmpInset;
 			return false;
 		}
-
-		toPar.insertInset(toPos, tmpInset, tmpFont, tmpChange);
-	} else {
-		fromPar.eraseChar(fromPos, false);
-		toPar.insertChar(toPos, tmpChar, tmpFont, tmpChange);
+		return true;
 	}
 
+	char_type const tmpChar = fromPar.getChar(fromPos);
+	fromPar.eraseChar(fromPos, false);
+	toPar.insertChar(toPos, tmpChar, tmpFont, tmpChange);
 	return true;
 }
 
@@ -74,7 +69,7 @@ void breakParagraph(BufferParams const & bparams,
 	Paragraph & par = pars[par_offset];
 
 	// remember to set the inset_owner
-	tmp->setInsetOwner(par.inInset());
+	tmp->setInsetOwner(&par.inInset());
 	// without doing that we get a crash when typing <Return> at the
 	// end of a paragraph
 	tmp->setPlainOrDefaultLayout(bparams.documentClass());
@@ -129,7 +124,7 @@ void breakParagraph(BufferParams const & bparams,
 		// breaking paragraph.
 		if (tmp->empty()) {
 			Font changed = tmp->getFirstFontSettings(bparams);
-			Font old = par.getFontSettings(bparams, par.size());
+			Font const & old = par.getFontSettings(bparams, par.size());
 			changed.setLanguage(old.language());
 			tmp->setFont(0, changed);
 		}
@@ -162,6 +157,7 @@ void breakParagraphConservative(BufferParams const & bparams,
 				       Paragraph());
 	Paragraph & par = pars[par_offset];
 
+	tmp.setInsetOwner(&par.inInset());
 	tmp.makeSameLayout(par);
 
 	LASSERT(pos <= par.size(), /**/);

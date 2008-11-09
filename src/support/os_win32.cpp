@@ -64,6 +64,10 @@
 # endif
 #endif
 
+#if !defined(ASSOCF_INIT_IGNOREUNKNOWN) && !defined(__MINGW32__)
+#define ASSOCF_INIT_IGNOREUNKNOWN 0
+#endif
+
 using namespace std;
 
 namespace lyx {
@@ -165,6 +169,12 @@ string current_root()
 	// _getdrive returns the current drive (1=A, 2=B, and so on).
 	char const drive = ::_getdrive() + 'A' - 1;
 	return string(1, drive) + ":/";
+}
+
+
+bool isFilesystemCaseSensitive()
+{
+	return false;
 }
 
 
@@ -347,19 +357,16 @@ bool canAutoOpenFile(string const & ext, auto_open_mode const mode)
 
 	DWORD bufSize = MAX_PATH + 100;
 	TCHAR buf[MAX_PATH + 100];
-	// reference: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc
-	//                 /platform/shell/reference/shlwapi/registry/assocquerystring.asp
+	// reference: http://msdn.microsoft.com/en-us/library/bb773471.aspx
 	char const * action = (mode == VIEW) ? "open" : "edit";
-	return S_OK == AssocQueryString(0, ASSOCSTR_EXECUTABLE,
-		full_ext.c_str(), action, buf, &bufSize);
+	return S_OK == AssocQueryString(ASSOCF_INIT_IGNOREUNKNOWN,
+		ASSOCSTR_EXECUTABLE, full_ext.c_str(), action, buf, &bufSize);
 }
 
 
 bool autoOpenFile(string const & filename, auto_open_mode const mode)
 {
-	// reference: http://msdn.microsoft.com/library/default.asp
-	// ?url=/library/en-us/shellcc/platform/shell/reference/functions/
-	// shellexecute.asp
+	// reference: http://msdn.microsoft.com/en-us/library/bb762153.aspx
 	char const * action = (mode == VIEW) ? "open" : "edit";
 	return reinterpret_cast<int>(ShellExecute(NULL, action,
 		to_local8bit(from_utf8(filename)).c_str(), NULL, NULL, 1)) > 32;

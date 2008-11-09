@@ -365,8 +365,9 @@ void GuiLayoutBox::setFilter(QString const & s)
 		filterModel_->triggerLayoutChange();
 		
 		if (!s.isEmpty())
-			owner_.message(_("Filtering layouts with \"" + fromqstr(s) + "\". "
-					 "Press ESC to remove filter."));
+			owner_.message(bformat(_("Filtering layouts with \"%1$s\". "
+						 "Press ESC to remove filter."),
+					       qstring_to_ucs4(s)));
 		else
 			owner_.message(_("Enter characters to filter the layout list."));
 	}
@@ -507,13 +508,20 @@ void GuiLayoutBox::set(docstring const & layout)
 		return;
 
 	Layout const & lay = (*text_class_)[layout];
-	QString const & name = toqstr(lay.name() + (lay.isUnknown() ? " (unknown)" : ""));
-	if (name == currentText())
-		return;
+	QString const newLayout = toqstr(lay.name());
 
-	QList<QStandardItem *> r = model_->findItems(name, Qt::MatchExactly, 1);
+	int const curItem = currentIndex();
+	QModelIndex const mindex = 
+		filterModel_->mapToSource(filterModel_->index(curItem, 1));
+	QString const & currentLayout = model_->itemFromIndex(mindex)->text();
+	if (newLayout == currentLayout) {
+		LYXERR(Debug::GUI, "Already had " << newLayout << " selected.");
+		return;
+	}
+
+	QList<QStandardItem *> r = model_->findItems(newLayout, Qt::MatchExactly, 1);
 	if (r.empty()) {
-		LYXERR0("Trying to select non existent layout type " << name);
+		LYXERR0("Trying to select non existent layout type " << newLayout);
 		return;
 	}
 
@@ -522,10 +530,12 @@ void GuiLayoutBox::set(docstring const & layout)
 
 
 void GuiLayoutBox::addItemSort(docstring const & item, docstring const & category,
-	bool sorted, bool sortedByCat)
+	bool sorted, bool sortedByCat, bool unknown)
 {
 	QString qitem = toqstr(item);
-	QString titem = toqstr(translateIfPossible(item));
+	// FIXME This is wrong for RTL, I'd suppose.
+	QString titem = toqstr(translateIfPossible(item) +
+	                       (unknown ? _(" (unknown)") : from_ascii("")));
 	QString qcat = toqstr(translateIfPossible(category));
 
 	QList<QStandardItem *> row;
@@ -593,7 +603,7 @@ void GuiLayoutBox::updateContents(bool reset)
 	// or we've moved from one inset to another
 	DocumentClass const * text_class = &buffer->params().documentClass();
 	Inset const * inset = 
-		owner_.view()->cursor().innerParagraph().inInset();
+		&(owner_.view()->cursor().innerParagraph().inInset());
 	if (!reset && text_class_ == text_class && inset_ == inset) {
 		set(owner_.view()->cursor().innerParagraph().layout().name());
 		return;
@@ -614,10 +624,13 @@ void GuiLayoutBox::updateContents(bool reset)
 		if (name == text_class_->defaultLayoutName() && inset_ && useEmpty)
 			continue;
 		// if it doesn't require the empty layout, we skip it
-		if (name == text_class_->emptyLayoutName() && inset_ && !useEmpty)
+		if (name == text_class_->plainLayoutName() && inset_ && !useEmpty)
 			continue;
-		addItemSort(name + (lit->isUnknown() ? " (unknown)" : ""),
-			lit->category(), lyxrc.sort_layouts, lyxrc.group_layouts);
+		// obsoleted layouts are skipped as well
+		if (!lit->obsoleted_by().empty())
+			continue;
+		addItemSort(name, lit->category(), lyxrc.sort_layouts, 
+				lyxrc.group_layouts, lit->isUnknown());
 	}
 
 	set(owner_.view()->cursor().innerParagraph().layout().name());
@@ -626,7 +639,8 @@ void GuiLayoutBox::updateContents(bool reset)
 	// needed to recalculate size hint
 	hide();
 	setMinimumWidth(sizeHint().width());
-	setEnabled(!buffer->isReadonly());
+	setEnabled(!buffer->isReadonly() &&
+		lyx::getStatus(FuncRequest(LFUN_LAYOUT)).enabled());
 	show();
 }
 
@@ -635,9 +649,7 @@ void GuiLayoutBox::selected(int index)
 {
 	// get selection
 	QModelIndex mindex = filterModel_->mapToSource(filterModel_->index(index, 1));
-	docstring const layoutName = rtrim(
-		qstring_to_ucs4(model_->itemFromIndex(mindex)->text()), " (unknown)");
-
+	docstring layoutName = qstring_to_ucs4(model_->itemFromIndex(mindex)->text());
 	owner_.setFocus();
 
 	if (!text_class_) {
@@ -655,7 +667,7 @@ void GuiLayoutBox::selected(int index)
 		resetFilter();
 		return;
 	}
-	LYXERR0("ERROR (layoutSelected): layout not found!");
+	LYXERR0("ERROR (layoutSelected): layout " << layoutName << " not found!");
 }
 
 
@@ -668,7 +680,7 @@ void GuiLayoutBox::selected(int index)
 
 
 GuiToolbar::GuiToolbar(ToolbarInfo const & tbinfo, GuiView & owner)
-	: QToolBar(qt_(tbinfo.gui_name), &owner), visibility_(0),
+	: QToolBar(toqstr(tbinfo.gui_name), &owner), visibility_(0),
 	  allowauto_(false), owner_(owner), layout_(0), command_buffer_(0),
 	  tbinfo_(tbinfo), filled_(false)
 {
@@ -906,7 +918,7 @@ void GuiToolbar::update(bool in_math, bool in_table, bool in_review,
 
 QString GuiToolbar::sessionKey() const
 {
-	return "view-" + QString::number(owner_.id()) + "/" + objectName();
+	return "views/" + QString::number(owner_.id()) + "/" + objectName();
 }
 
 

@@ -10,7 +10,7 @@
 # Modularized Jan '08 by Richard Heck <rgheck@brown.edu>
 
 
-Format 7
+Format 11
 Columns                 1
 Sides                   2
 PageStyle               Headers
@@ -20,6 +20,7 @@ ClassOptions
 	FontSize   8|9|10|11|12
 End
 
+DefaultModule theorems-ams
 
 Style Standard
 	Category              MainText

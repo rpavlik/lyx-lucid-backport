@@ -1,12 +1,13 @@
 #\DeclareLyXModule[covington.sty]{Linguistics}
 #DescriptionBegin
 #Defines some special environments useful for linguistics (numbered examples,
-#glosses, semantic markup).
+#glosses, semantic markup, tableau floats).
+#See linguistics.lyx file in examples.
 #DescriptionEnd
 
 # Author: Jürgen Spitzmüller <spitz@lyx.org>
 
-Format 7
+Format 11
 
 # single numbered example with covington.sty
 Style Numbered_Example_(multiline)
@@ -75,6 +76,8 @@ InsetLayout Custom:Glosse
 	  Size                Small
 	EndFont
 	MultiPar              true
+	CustomPars            false
+	ForcePlain            true
 	PassThru              true
 	FreeSpacing           true
 	Requires	      covington
@@ -99,6 +102,8 @@ InsetLayout Custom:Tri-Glosse
 	  Size                Small
 	EndFont
 	MultiPar              true
+	CustomPars            false
+	ForcePlain            true
 	PassThru              true
 	FreeSpacing           true
 	Requires	      covington
@@ -111,6 +116,7 @@ InsetLayout Custom:Tri-Glosse
 End
 
 
+# Some semantik markup for Semantics
 InsetLayout CharStyle:Expression
 	LyxType               charstyle
 	LabelString           expr.
@@ -149,3 +155,17 @@ InsetLayout CharStyle:Meaning
 		\newcommand{\lingmeaning}[1]{\enquote*{#1}}
 	EndPreamble
 End
+
+
+# Tableaux for Optimality Theory
+Float
+	Type                  tableau
+	GuiName               Tableau
+	Placement             tbp
+	Extension             otl
+	NumberWithin          none
+	Style                 plain
+	ListName              "List of Tableaux"
+	LaTeXBuiltin          false
+End
+

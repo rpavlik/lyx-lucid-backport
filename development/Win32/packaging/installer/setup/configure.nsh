@@ -51,6 +51,7 @@ Section -InstallData
 
   # Start Menu shortcut
   # There is only one shortcut to the application, so it should be in the main group
+  SetOutPath "$INSTDIR\bin"
   CreateShortCut "$SMPROGRAMS\${SHORTCUT}
     
   # Uninstaller information
@@ -126,26 +127,30 @@ Section -Configure
 SectionEnd
 
 #--------------------------------
-# dvipost package
+# LaTeX files
 
 Var UpdateFNDBReturn
 
-Section -dvipost
+Section -LaTeXFiles
 
-  # Install package in local root
+  # Install files in local root
 
-  ${if} $PathLaTeXLocal != ""
+  ${If} $PathLaTeXLocal != ""
+    # dvipost
     SetOutPath "$PathLaTeXLocal\tex\latex\dvipost"
     File "${FILES_DVIPOST_PKG}\dvipost.sty"
-  ${endif}
+    # LyX files in Resources\tex
+    SetOutPath "$PathLaTeXLocal\tex\latex\lyx"
+    CopyFiles /SILENT "$INSTDIR\Resources\tex\*.*" "$PathLaTeXLocal\tex\latex\lyx"
+  ${EndIf}
 
   # Update file name database
 
-  ${if} $PathLaTeX != ""
+  ${If} $PathLaTeX != ""
     DetailPrint $(TEXT_CONFIGURE_MIKTEXFNDB)
     nsExec::ExecToLog '"$PathLaTeX\initexmf.exe" --update-fndb'
     Pop $UpdateFNDBReturn # Return value
-  ${endif}
+  ${EndIf}
 
 SectionEnd
 
@@ -159,15 +164,10 @@ Section -PSPrinter
 
     # Delete printer
     ExecWait '$PrinterConf /q /dl /n "Metafile to EPS Converter"'
-
-    # Delete printer driver
-    ExecWait '$PrinterConf /q /dd /m "Metafile to EPS Converter"'
-
     # Install printer and driver
-    ExecWait '$PrinterConf /if /f "$INSTDIR\PSPrinter\metafile2eps.inf" /r "FILE:" /m "Metafile to EPS Converter"'
-
+    ExecWait '$PrinterConf /if /b "Metafile to EPS Converter" /r "FILE:" /m "MS Publisher Imagesetter"'
     # Restore DEVMODE with proper settings
-    ExecWait '$PrinterConf /q /Sr /n "Metafile to EPS Converter" /a "$INSTDIR\PSPrinter\metafile2eps.dat" g'
+    ExecWait '$PrinterConf /q /Sr /n "Metafile to EPS Converter" /a "$INSTDIR\bin\metafile2eps.dat" g'
 
   ${EndIf}
 
@@ -180,6 +180,7 @@ Var ConfigureReturn
 
 Section -ConfigureScript
 
+  SetOutPath "$INSTDIR\Resources"
   DetailPrint $(TEXT_CONFIGURE_LYX)
   nsExec::ExecToLog '"$INSTDIR\python\python.exe" "$INSTDIR\Resources\configure.py"'
   Pop $ConfigureReturn # Return value
@@ -203,7 +204,7 @@ FunctionEnd
 Function CreateDesktopShortcut
 
   # Desktop icon creation is an option on the finish page
-
+  SetOutPath "$INSTDIR\bin"
   CreateShortCut "$DESKTOP\${SHORTCUT}
 
 FunctionEnd

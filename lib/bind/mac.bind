@@ -42,7 +42,7 @@
 \bind "M-Tab" 			"buffer-next"
 \bind "M-S-BackTab" 		"buffer-previous"
 
-\bind "C-M-b"			"math-insert \mathbf"
+\bind "C-M-b"			"font-boldsymbol"
 \bind "C-b"			"font-bold"
 \bind "C-e"			"font-emph"
 \bind "C-k"			"font-noun"		# 'k' for capitals
@@ -79,7 +79,7 @@
 #bind "F1"			"help"			# Not yet implemented!
 #bind "C-F1"			"help-context"		# Not yet implemented!
 \bind "F2"			"buffer-write"
-\bind "F3"			"word-find"
+\bind "C-g"			"word-find"
 \bind "C-F4"			"buffer-close"
 \bind "F5"			"screen-recenter"
 \bind "M-F4"			"lyx-quit"
@@ -183,9 +183,10 @@
 \bind "C-S-Return"		"newline-insert linebreak"
 \bind "C-k"			"line-delete-forward"
 \bind "M-space"			"space-insert protected"
+\bind "nobreakspace"		"space-insert protected"
 \bind "C-M-space"		"space-insert normal"
 \bind "S-M-space"		"space-insert thin"
-\bind "C-S-slash"		"specialchar-insert slash"
+\bind "C-~S-slash"		"specialchar-insert slash"
 \bind "C-period"		"specialchar-insert end-of-sentence-period"
 \bind "M-period"		"specialchar-insert dots"
 \bind "Escape"			"cancel"

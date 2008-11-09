@@ -52,6 +52,9 @@ public:
 	GuiApplication(int & argc, char ** argv);
 	~GuiApplication();
 
+	/// Clear all session information.
+	void clearSession();
+
 	/// Method inherited from \c Application class
 	//@{
 	bool getStatus(FuncRequest const & cmd, FuncStatus & flag) const;
@@ -63,6 +66,7 @@ public:
 	FontLoader & fontLoader();
 	int exec();
 	void exit(int status);
+	void customEvent(QEvent * event);
 	bool event(QEvent * e);
 	bool getRgbColor(ColorCode col, RGBColor & rgbcol);
 	std::string const hexName(ColorCode col);
@@ -130,12 +134,14 @@ private Q_SLOTS:
 	void handleRegularEvents();
 	///
 	void onLastWindowClosed();
-	
+
 private:
 	///
 	bool closeAllViews();
 	/// read the given ui (menu/toolbar) file
 	bool readUIFile(QString const & name, bool include = false);
+	///
+	void setGuiLanguage();
 
 	/// This LyXView is the one receiving Clipboard and Selection
 	/// events

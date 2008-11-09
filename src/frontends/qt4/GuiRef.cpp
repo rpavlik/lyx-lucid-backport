@@ -22,6 +22,7 @@
 #include "insets/InsetRef.h"
 
 #include "support/FileName.h"
+#include "support/FileNameList.h"
 #include "support/filetools.h" // makeAbsPath, makeDisplayPath
 
 #include <QLineEdit>
@@ -58,7 +59,7 @@ GuiRef::GuiRef(GuiView & lv)
 	connect(applyPB, SIGNAL(clicked()), this, SLOT(slotApply()));
 	connect(closePB, SIGNAL(clicked()), this, SLOT(slotClose()));
 	connect(closePB, SIGNAL(clicked()), this, SLOT(reset_dialog()));
-	connect(this, SIGNAL(rejected()), this, SLOT(reset_dialog()));
+	connect(this, SIGNAL(rejected()), this, SLOT(dialog_rejected()));
 
 	connect(typeCO, SIGNAL(activated(int)),
 		this, SLOT(changed_adaptor()));
@@ -95,6 +96,7 @@ GuiRef::GuiRef(GuiView & lv)
 	bc().addReadOnly(bufferCO);
 
 	restored_buffer_ = -1;
+	active_buffer_ = -1;
 }
 
 
@@ -177,6 +179,15 @@ void GuiRef::updateClicked()
 }
 
 
+void GuiRef::dialog_rejected()
+{
+	reset_dialog();
+	// We have to do this manually, instead of calling slotClose(), because
+	// the dialog has already been made invisible before rejected() triggers.
+	Dialog::disconnect();
+}
+
+
 void GuiRef::reset_dialog()
 {
 	at_ref_ = false;
@@ -214,20 +225,24 @@ void GuiRef::updateContents()
 
 	// insert buffer list
 	bufferCO->clear();
-	vector<string> buffers = theBufferList().getFileNames();
-	for (vector<string>::iterator it = buffers.begin();
+	FileNameList const & buffers = theBufferList().fileNames();
+	for (FileNameList::const_iterator it = buffers.begin();
 	     it != buffers.end(); ++it) {
-		bufferCO->addItem(toqstr(makeDisplayPath(*it)));
+		bufferCO->addItem(toqstr(makeDisplayPath(it->absFilename())));
 	}
 
+	int const thebuffer = theBufferList().bufferNum(buffer().fileName());
 	// restore the buffer combo setting for new insets
 	if (params_["reference"].empty() && restored_buffer_ != -1
-	    && restored_buffer_ < bufferCO->count()) 
+	    && restored_buffer_ < bufferCO->count() && thebuffer == active_buffer_)
 		bufferCO->setCurrentIndex(restored_buffer_);
 	else {
-		int num = theBufferList().bufferNum(buffer().absFileName());
+		int const num = theBufferList().bufferNum(buffer().fileName());
 		bufferCO->setCurrentIndex(num);
+		if (thebuffer != active_buffer_)
+			restored_buffer_ = num;
 	}
+	active_buffer_ = thebuffer;
 
 	updateRefs();
 	bc().setValid(false);
@@ -346,12 +361,13 @@ void GuiRef::redoRefs()
 void GuiRef::updateRefs()
 {
 	refs_.clear();
-	string const name = theBufferList().getFileNames()[bufferCO->currentIndex()];
-	Buffer const * buf = theBufferList().getBuffer(
-		support::makeAbsPath(name).absFilename());
+	FileName const & name = theBufferList().fileNames()[bufferCO->currentIndex()];
+	Buffer const * buf = theBufferList().getBuffer(name);
 	buf->getLabelList(refs_);
 	sortCB->setEnabled(!refs_.empty());
 	refsLW->setEnabled(!refs_.empty());
+	// refsLW should only be the focus proxy when it is enabled
+	setFocusProxy(refs_.empty() ? 0 : refsLW);
 	gotoPB->setEnabled(!refs_.empty());
 	redoRefs();
 }

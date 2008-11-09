@@ -44,8 +44,10 @@ using namespace lyx::support;
 namespace lyx {
 
 InsetERT::InsetERT(Buffer const & buf, CollapseStatus status)
-	: InsetCollapsable(buf, status)
-{}
+	: InsetCollapsable(buf)
+{
+	status_ = status;
+}
 
 
 InsetERT::~InsetERT()
@@ -104,7 +106,7 @@ int InsetERT::docbook(odocstream & os, OutputParams const &) const
 void InsetERT::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	BufferParams const & bp = cur.buffer().params();
-	Layout const layout = bp.documentClass().emptyLayout();
+	Layout const layout = bp.documentClass().plainLayout();
 	//lyxerr << "\nInsetERT::doDispatch (begin): cmd: " << cmd << endl;
 	switch (cmd.action) {
 	case LFUN_QUOTE_INSERT: {
@@ -162,7 +164,7 @@ bool InsetERT::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 void InsetERT::setButtonLabel()
 {
-	if (decoration() == InsetLayout::Classic)
+	if (decoration() == InsetLayout::CLASSIC)
 		setLabel(isOpen() ? _("ERT") : getNewLabel(_("ERT")));
 	else
 		setLabel(getNewLabel(_("ERT")));
@@ -172,13 +174,6 @@ void InsetERT::setButtonLabel()
 bool InsetERT::insetAllowed(InsetCode /* code */) const
 {
 	return false;
-}
-
-
-void InsetERT::draw(PainterInfo & pi, int x, int y) const
-{
-	const_cast<InsetERT &>(*this).setButtonLabel();
-	InsetCollapsable::draw(pi, x, y);
 }
 
 

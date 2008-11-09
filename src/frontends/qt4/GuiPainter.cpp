@@ -231,6 +231,9 @@ void GuiPainter::rectangle(int x, int y, int w, int h,
 
 void GuiPainter::fillRectangle(int x, int y, int w, int h, ColorCode col)
 {
+	if (!isDrawingEnabled())
+		return;
+
 	fillRect(x, y, w, h, guiApp->colorCache().get(col));
 }
 
@@ -260,7 +263,7 @@ void GuiPainter::image(int x, int y, int w, int h, graphics::Image const & i)
 	if (!isDrawingEnabled())
 		return;
 
-	drawPixmap(x, y, qlimage.pixmap(), 0, 0, w, h);
+	drawImage(x, y, qlimage.image(), 0, 0, w, h);
 }
 
 
@@ -363,31 +366,24 @@ int GuiPainter::text(int x, int y, docstring const & s,
 		return textwidth;
 	}
 
-	if (!use_pixmap_cache_) {
-		// don't use the pixmap cache,
-		// draw directly onto the painting device
-		setQPainterPen(computeColor(f.realColor()));
-		if (font() != ff)
-			setFont(ff);
-		// We need to draw the text as LTR as we use our own bidi code.
-		setLayoutDirection(Qt::LeftToRight);
-		drawText(x, y, str);
-		//LYXERR(Debug::PAINTING, "draw " << string(str.toUtf8())
-		//	<< " at " << x << "," << y);
-		return textwidth;
-	}
+	if (use_pixmap_cache_) {
+		QPixmap pm;
+		QString key = generateStringSignature(str, f);
 
-	QPixmap pm;
-	QString key = generateStringSignature(str, f);
-	// Warning: Left bearing is in general negative! Only the case
-	// where left bearing is negative is of interest WRT the the 
-	// pixmap width and the text x-position.
-	// Only the left bearing of the first character is important
-	// as we always write from left to right, even for
-	// right-to-left languages.
-	int const lb = min(fm.lbearing(s[0]), 0);
-	int const mA = fm.maxAscent();
-	if (!QPixmapCache::find(key, pm)) {
+		// Warning: Left bearing is in general negative! Only the case
+		// where left bearing is negative is of interest WRT the
+		// pixmap width and the text x-position.
+		// Only the left bearing of the first character is important
+		// as we always write from left to right, even for
+		// right-to-left languages.
+		int const lb = min(fm.lbearing(s[0]), 0);
+		int const mA = fm.maxAscent();
+		if (QPixmapCache::find(key, pm)) {
+			// Draw the cached pixmap.
+			drawPixmap(x + lb, y - mA, pm);
+			return textwidth;
+		}
+
 		// Only the right bearing of the last character is
 		// important as we always write from left to right,
 		// even for right-to-left languages.
@@ -395,23 +391,38 @@ int GuiPainter::text(int x, int y, docstring const & s,
 		int const w = textwidth + rb - lb;
 		int const mD = fm.maxDescent();
 		int const h = mA + mD;
-		pm = QPixmap(w, h);
-		pm.fill(Qt::transparent);
-		GuiPainter p(&pm);
-		p.setQPainterPen(computeColor(f.realColor()));
-		if (p.font() != ff)
-			p.setFont(ff);
-		// We need to draw the text as LTR as we use our own bidi code.
-		p.setLayoutDirection(Qt::LeftToRight);
-		p.drawText(-lb, mA, str);
-		QPixmapCache::insert(key, pm);
-		//LYXERR(Debug::PAINTING, "h=" << h << "  mA=" << mA << "  mD=" << mD
-		//	<< "  w=" << w << "  lb=" << lb << "  tw=" << textwidth 
-		//	<< "  rb=" << rb);
-	}
-	// Draw the cached pixmap.
-	drawPixmap(x + lb, y - mA, pm);
+		if (w > 0 && h > 0) {
+			pm = QPixmap(w, h);
+			pm.fill(Qt::transparent);
+			GuiPainter p(&pm);
+			p.setQPainterPen(computeColor(f.realColor()));
+			if (p.font() != ff)
+				p.setFont(ff);
+			// We need to draw the text as LTR as we use our own bidi code.
+			p.setLayoutDirection(Qt::LeftToRight);
+			p.drawText(-lb, mA, str);
+			QPixmapCache::insert(key, pm);
+			//LYXERR(Debug::PAINTING, "h=" << h << "  mA=" << mA << "  mD=" << mD
+			//	<< "  w=" << w << "  lb=" << lb << "  tw=" << textwidth
+			//	<< "  rb=" << rb);
 
+			// Draw the new cached pixmap.
+			drawPixmap(x + lb, y - mA, pm);
+
+			return textwidth;
+		}
+	}
+
+	// don't use the pixmap cache,
+	// draw directly onto the painting device
+	setQPainterPen(computeColor(f.realColor()));
+	if (font() != ff)
+		setFont(ff);
+	// We need to draw the text as LTR as we use our own bidi code.
+	QPainter::setLayoutDirection(Qt::LeftToRight);
+	drawText(x, y, str);
+	//LYXERR(Debug::PAINTING, "draw " << string(str.toUtf8())
+	//	<< " at " << x << "," << y);
 	return textwidth;
 }
 
@@ -517,9 +528,9 @@ void GuiPainter::underline(FontInfo const & f, int x, int y, int width)
 	int const height = max((fm.maxDescent() / 4) - 1, 1);
 
 	if (height < 2)
-		line(x, y + below, x + width, y + below, f.color());
+		line(x, y + below, x + width, y + below, f.realColor());
 	else
-		fillRectangle(x, y + below, width, below + height, f.color());
+		fillRectangle(x, y + below, width, below + height, f.realColor());
 }
 
 
@@ -534,7 +545,7 @@ void GuiPainter::dashedUnderline(FontInfo const & f, int x, int y, int width)
 		height += below;
 
 	for (int n = 0; n != height; ++n)
-		line(x, y + below + n, x + width, y + below + n, f.color(), line_onoffdash);
+		line(x, y + below + n, x + width, y + below + n, f.realColor(), line_onoffdash);
 }
 
 } // namespace frontend

@@ -35,8 +35,6 @@ public:
 	void write(std::ostream &) const;
 	///
 	void read(Lexer & lex);
-	///
-	virtual bool allowParagraphCustomization(idx_type = 0) const { return false; }
 
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
@@ -44,8 +42,6 @@ public:
 	int docbook(odocstream &, OutputParams const &) const;
 	/// the string that is passed to the TOC
 	void textString(odocstream &) const;
-	///
-	void validate(LaTeXFeatures &) const;
 
 	/// should paragraph indendation be ommitted in any case?
 	bool neverIndent() const { return true; }
@@ -55,6 +51,17 @@ protected:
 
 private:
 	Inset * clone() const { return new InsetFlex(*this); }
+	// FIXME The following two routines should be moved to InsetCollapsable.
+	// That will allow the redeclarations of these routines to be removed
+	// from its subclasses, such as InsetERT. But it will also require us
+	// to rework stdinsets.inc, to make sure we get the right behavior from
+	// the subclasses.
+	/// should paragraphs be forced to use the empty layout?
+	virtual bool forcePlainLayout(idx_type = 0) const 
+		{ return getLayout().forcePlainLayout(); }
+	/// should the user be allowed to customize alignment, etc.?
+	virtual bool allowParagraphCustomization(idx_type = 0) const 
+		{ return getLayout().allowParagraphCustomization(); }
 
 	///
 	std::string name_;

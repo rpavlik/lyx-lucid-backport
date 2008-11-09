@@ -77,9 +77,9 @@ RGBColor rgbFromHexName(string const & x11hexname)
 {
 	RGBColor c;
 	LASSERT(x11hexname.size() == 7 && x11hexname[0] == '#', /**/);
-	c.r = hexstrToInt(x11hexname.substr(1,2));
-	c.g = hexstrToInt(x11hexname.substr(3,2));
-	c.b = hexstrToInt(x11hexname.substr(5,2));
+	c.r = hexstrToInt(x11hexname.substr(1, 2));
+	c.g = hexstrToInt(x11hexname.substr(3, 2));
+	c.b = hexstrToInt(x11hexname.substr(5, 2));
 	return c;
 }
 
@@ -120,6 +120,7 @@ ColorSet::ColorSet()
 	{ Color_greyedoutlabel, N_("greyedout inset label"), "greyedout", "#ff0080", "greyedout" },
 	{ Color_greyedoutbg, N_("greyedout inset background"), "greyedoutbg", "linen", "greyedoutbg" },
 	{ Color_shadedbg, N_("shaded box"), "shaded", "#ff0000", "shaded" },
+	{ Color_listingsbg, N_("listings background"), "listingsbg", "white", "listingsbg" },
 	{ Color_branchlabel, N_("branch label"), "branchlabel", "#c88000", "branchlabel" },
 	{ Color_footlabel, N_("footnote label"), "footlabel", "#00aaff", "footlabel" },
 	{ Color_indexlabel, N_("index label"), "indexlabel", "green", "indexlabel" },
@@ -135,17 +136,17 @@ ColorSet::ColorSet()
 	{ Color_math, N_("math"), "math", "DarkBlue", "math" },
 	{ Color_mathbg, N_("math background"), "mathbg", "linen", "mathbg" },
 	{ Color_graphicsbg, N_("graphics background"), "graphicsbg", "linen", "graphicsbg" },
-	{ Color_mathmacrobg, N_("Math macro background"), "mathmacrobg", "linen", "mathmacrobg" },
+	{ Color_mathmacrobg, N_("math macro background"), "mathmacrobg", "linen", "mathmacrobg" },
 	{ Color_mathframe, N_("math frame"), "mathframe", "Magenta", "mathframe" },
 	{ Color_mathcorners, N_("math corners"), "mathcorners", "linen", "mathcorners" },
 	{ Color_mathline, N_("math line"), "mathline", "Blue", "mathline" },
-	{ Color_mathmacrobg, N_("Math macro background"), "mathmacrobg", "#ede2d8", "mathmacrobg" },
-	{ Color_mathmacrohoverbg, N_("Math macro hovered background"), "mathmacrohoverbg", "#cdc3b8", "mathmacrohoverbg" },
-	{ Color_mathmacrolabel, N_("Math macro label"), "mathmacrolabel", "#a19992", "mathmacrolabel" },
-	{ Color_mathmacroframe, N_("Math macro frame"), "mathmacroframe", "#ede2d8", "mathmacroframe" },
-	{ Color_mathmacroblend, N_("Math macro blended out"), "mathmacroblend", "black", "mathmacroblend" },
-	{ Color_mathmacrooldarg, N_("Math macro old parameter"), "mathmacrooldarg", grey80, "mathmacrooldarg" },
-	{ Color_mathmacronewarg, N_("Math macro new parameter"), "mathmacronewarg", "black", "mathmacronewarg" },
+	{ Color_mathmacrobg, N_("math macro background"), "mathmacrobg", "#ede2d8", "mathmacrobg" },
+	{ Color_mathmacrohoverbg, N_("math macro hovered background"), "mathmacrohoverbg", "#cdc3b8", "mathmacrohoverbg" },
+	{ Color_mathmacrolabel, N_("math macro label"), "mathmacrolabel", "#a19992", "mathmacrolabel" },
+	{ Color_mathmacroframe, N_("math macro frame"), "mathmacroframe", "#ede2d8", "mathmacroframe" },
+	{ Color_mathmacroblend, N_("math macro blended out"), "mathmacroblend", "black", "mathmacroblend" },
+	{ Color_mathmacrooldarg, N_("math macro old parameter"), "mathmacrooldarg", grey80, "mathmacrooldarg" },
+	{ Color_mathmacronewarg, N_("math macro new parameter"), "mathmacronewarg", "black", "mathmacronewarg" },
 	{ Color_captionframe, N_("caption frame"), "captionframe", "DarkRed", "captionframe" },
 	{ Color_collapsable, N_("collapsable inset text"), "collapsable", "DarkRed", "collapsable" },
 	{ Color_collapsableframe, N_("collapsable inset frame"), "collapsableframe", "IndianRed", "collapsableframe" },
@@ -155,8 +156,13 @@ ColorSet::ColorSet()
 	{ Color_eolmarker, N_("end-of-line marker"), "eolmarker", "Brown", "eolmarker" },
 	{ Color_appendix, N_("appendix marker"), "appendix", "Brown", "appendix" },
 	{ Color_changebar, N_("change bar"), "changebar", "Blue", "changebar" },
-	{ Color_deletedtext, N_("Deleted text"), "deletedtext", "#ff0000", "deletedtext" },
-	{ Color_addedtext, N_("Added text"), "addedtext", "#0000ff", "addedtext" },
+	{ Color_deletedtext, N_("deleted text"), "deletedtext", "#ff0000", "deletedtext" },
+	{ Color_addedtext, N_("added text"), "addedtext", "#0000ff", "addedtext" },
+	{ Color_changedtextauthor1, N_("changed text 1st author"), "changedtextauthor1", "#0000ff", "changedtextauthor1" },
+	{ Color_changedtextauthor2, N_("changed text 2nd author"), "changedtextauthor2", "#ff00ff", "changedtextauthor2" },
+	{ Color_changedtextauthor3, N_("changed text 3rd author"), "changedtextauthor3", "#ff0000", "changedtextauthor3" },
+	{ Color_changedtextauthor4, N_("changed text 4th author"), "changedtextauthor4", "#aa00ff", "changedtextauthor4" },
+	{ Color_changedtextauthor5, N_("changed text 5th author"), "changedtextauthor5", "#55aa00", "changedtextauthor5" },
 	{ Color_added_space, N_("added space markers"), "added_space", "Brown", "added_space" },
 	{ Color_topline, N_("top/bottom line"), "topline", "Brown", "topline" },
 	{ Color_tabularline, N_("table line"), "tabularline", "black", "tabularline" },

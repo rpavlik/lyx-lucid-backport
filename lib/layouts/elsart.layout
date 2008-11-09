@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[elsart,amssymb.sty]{article (Elsevier)}
+#  \DeclareLaTeXClass[elsart,amssymb.sty]{article (Elsevier, obsolete version)}
 # Author: Rod Pinna <rpinna@civil.uwa.edu.au>
 # The Elsevier doc style also duplicates the theorem
 # environments used by the AMS. The definitions here have been
@@ -22,7 +22,7 @@
 #       numbered sections, as does the class file.
 
 
-Format 7
+Format 11
 Columns                 1
 Sides                   2
 PageStyle               headings
@@ -36,13 +36,11 @@ End
 TitleLatexType Environment
 TitleLatexName frontmatter
 
-Counter
-	Name                  summ
+Counter summ
 End
 
 
-Counter
-	Name                  case
+Counter case
 End
 
 
@@ -192,6 +190,7 @@ Style Thanks
 	LatexType             Command
 	LatexName             thanks
 	InTitle               1
+	OptionalArgs          1
 	Font
 	  Size                Small
 	  Family              Typewriter
@@ -227,9 +226,9 @@ Style Abstract
 End
 
 
-# Theorem environments have been copied over from the amsmaths.inc file. It
-# could not be input as it does some stuff which is incompatible with the
-# Elsevier stlye: it redefines the theorem* environments in the preamble.
+# Theorem environments have been copied over from the theorem modules. They
+# could not be input as they do some stuff which is incompatible with the
+# Elsevier stlye: redefine the theorem* environments in the preamble.
 
 # The environments defined are :
 # - Theorem
@@ -250,8 +249,7 @@ End
 # - Acknowledgement
 # - Case
 
-Counter
-	Name                  theorem
+Counter theorem
 End
 
 

@@ -35,6 +35,7 @@
 #include "Cursor.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
+#include "Language.h"
 #include "LyXRC.h"
 #include "OutputParams.h"
 #include "ParIterator.h"
@@ -341,7 +342,7 @@ void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 		dim.wid += 1;
 		if (display())
 			dim.des += displayMargin();
-		// Cache the inset dimension. 
+		// Cache the inset dimension.
 		setDimCache(mi, dim);
 		return;
 	}
@@ -379,16 +380,17 @@ void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 }
 
 
+void InsetMathHull::drawBackground(PainterInfo & pi, int x, int y) const
+{
+	Dimension const dim = dimension(*pi.base.bv);
+	pi.pain.fillRectangle(x + 1, y - dim.asc + 1, dim.wid - 2,
+		dim.asc + dim.des - 1, pi.backgroundColor(this));
+}
+
+
 void InsetMathHull::draw(PainterInfo & pi, int x, int y) const
 {
 	use_preview_ = previewState(pi.base.bv);
-	Dimension const dim = dimension(*pi.base.bv);
-
-	// background of mathed under focus is not painted because
-	// selection at the top level of nested inset is difficult to handle.
-	if (!editing(pi.base.bv))
-		pi.pain.fillRectangle(x + 1, y - dim.asc + 1, dim.wid - 2,
-				dim.asc + dim.des - 1, Color_mathbg);
 
 	if (use_preview_) {
 		// one pixel gap in front
@@ -445,9 +447,25 @@ void InsetMathHull::drawT(TextPainter & pain, int x, int y) const
 static docstring latexString(InsetMathHull const & inset)
 {
 	odocstringstream ls;
-	WriteStream wi(ls, false, false, false);
+	// This has to be static, because a preview snippet containing math
+	// in text mode (such as $\text{$\phi$}$) gets processed twice. The
+	// first time as a whole, and the second time only the inner math.
+	// In this last case inset.buffer() would be invalid.
+	// FIXME: preview snippets should only be processed once, such that
+	// both static qualifier and isBufferValid() check can be dropped.
+	static Encoding const * encoding = 0;
+	if (inset.isBufferValid())
+		encoding = &(inset.buffer().params().encoding());
+	WriteStream wi(ls, false, true, false, encoding);
 	inset.write(wi);
 	return ls.str();
+}
+
+
+void InsetMathHull::initUnicodeMath() const
+{
+	// Trigger classification of the unicode symbols in this inset
+	docstring const dummy = latexString(*this);
 }
 
 
@@ -489,6 +507,9 @@ void InsetMathHull::label(row_type row, docstring const & label)
 		if (label.empty()) {
 			delete label_[row];
 			label_[row] = dummy_pointer;
+			// We need an update of the Buffer reference cache.
+			// This is achieved by updateLabels().
+			lyx::updateLabels(buffer());
 		} else
 			label_[row]->updateCommand(label);
 		return;
@@ -507,6 +528,9 @@ void InsetMathHull::numbered(row_type row, bool num)
 	if (nonum_[row] && label_[row]) {
 		delete label_[row];
 		label_[row] = 0;
+		// We need an update of the Buffer reference cache.
+		// This is achieved by updateLabels().
+		lyx::updateLabels(buffer());
 	}
 }
 
@@ -555,7 +579,6 @@ void InsetMathHull::validate(LaTeXFeatures & features) const
 {
 	if (ams())
 		features.require("amsmath");
-
 
 	// Validation is necessary only if not using AMS math.
 	// To be safe, we will always run mathedvalidate.
@@ -1008,6 +1031,7 @@ docstring InsetMathHull::eolString(row_type row, bool emptyline, bool fragile) c
 
 void InsetMathHull::write(WriteStream & os) const
 {
+	ModeSpecifier specifier(os, MATH_MODE);
 	header_write(os);
 	InsetMathGrid::write(os);
 	footer_write(os);
@@ -1157,7 +1181,7 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		else
 			for (row_type row = 0; row < nrows(); ++row)
 				numbered(row, !old);
-		
+
 		cur.message(old ? _("No number") : _("Number"));
 		break;
 	}
@@ -1260,7 +1284,7 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		if (cur.pos() > cur.lastpos())
 			cur.pos() = cur.lastpos();
-		
+
 		// FIXME: find some more clever handling of the selection,
 		// i.e. preserve it.
 		cur.clearSelection();
@@ -1441,7 +1465,7 @@ void InsetMathHull::handleFont2(Cursor & cur, docstring const & arg)
 void InsetMathHull::edit(Cursor & cur, bool front, EntryDirection entry_from)
 {
 	cur.push(*this);
-	bool enter_front = (entry_from == Inset::ENTRY_DIRECTION_LEFT || 
+	bool enter_front = (entry_from == Inset::ENTRY_DIRECTION_LEFT ||
 		(entry_from == Inset::ENTRY_DIRECTION_IGNORE && front));
 	enter_front ? idxFirst(cur) : idxLast(cur);
 	// The inset formula dimension is not necessarily the same as the
@@ -1561,7 +1585,16 @@ void InsetMathHull::read(Lexer & lex)
 }
 
 
-int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
+bool InsetMathHull::readQuiet(Lexer & lex)
+{
+	MathAtom at;
+	bool result = mathed_parse_normal(at, lex, Parse::QUIET);
+	operator=(*at->asHullInset());
+	return result;
+}
+
+
+int InsetMathHull::plaintext(odocstream & os, OutputParams const & runparams) const
 {
 	if (0 && display()) {
 		Dimension dim;
@@ -1575,7 +1608,7 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
 		return tpain.textheight();
 	} else {
 		odocstringstream oss;
-		WriteStream wi(oss, false, true, false);
+		WriteStream wi(oss, false, true, false, runparams.encoding);
 		wi << cell(0);
 
 		docstring const str = oss.str();
@@ -1607,7 +1640,7 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 		// Workaround for db2latex: db2latex always includes equations with
 		// \ensuremath{} or \begin{display}\end{display}
 		// so we strip LyX' math environment
-		WriteStream wi(ls, false, false, false);
+		WriteStream wi(ls, false, false, false, runparams.encoding);
 		InsetMathGrid::write(wi);
 		ms << from_utf8(subst(subst(to_utf8(ls.str()), "&", "&amp;"), "<", "&lt;"));
 		ms << ETag("alt");

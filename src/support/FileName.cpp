@@ -16,7 +16,9 @@
 #include "support/convert.h"
 #include "support/debug.h"
 #include "support/filetools.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
+#include "support/qstring_helpers.h"
 #include "support/os.h"
 #include "support/Package.h"
 #include "support/qstring_helpers.h"
@@ -26,15 +28,18 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QList>
+#include <QTemporaryFile>
 #include <QTime>
 
-#include "support/lassert.h"
+#include <boost/crc.hpp>
 #include <boost/scoped_array.hpp>
 
+#include <algorithm>
+#include <iterator>
+#include <fstream>
+#include <iomanip>
 #include <map>
 #include <sstream>
-#include <fstream>
-#include <algorithm>
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -55,11 +60,6 @@
 #include <cerrno>
 #include <fcntl.h>
 
-
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-
 #if defined(HAVE_MKSTEMP) && ! defined(HAVE_DECL_MKSTEMP)
 extern "C" int mkstemp(char *);
 #endif
@@ -73,11 +73,25 @@ extern "C" int mkstemp(char *);
 # endif
 #endif
 
+// Three implementations of checksum(), depending on having mmap support or not.
+#if defined(HAVE_MMAP) && defined(HAVE_MUNMAP)
+#define SUM_WITH_MMAP
+#include <sys/mman.h>
+#endif // SUM_WITH_MMAP
+
 using namespace std;
+
+// OK, this is ugly, but it is the only workaround I found to compile
+// with gcc (any version) on a system which uses a non-GNU toolchain.
+// The problem is that gcc uses a weak symbol for a particular
+// instantiation and that the system linker usually does not
+// understand those weak symbols (seen on HP-UX, tru64, AIX and
+// others). Thus we force an explicit instanciation of this particular
+// template (JMarc)
+template struct boost::detail::crc_table_t<32, 0x04C11DB7, true>;
 
 namespace lyx {
 namespace support {
-
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -93,6 +107,28 @@ struct FileName::Private
 	{
 		fi.setCaching(fi.exists() ? true : false);
 	}
+	///
+	inline void refresh() 
+	{
+// There seems to be a bug in Qt >= 4.2.0, at least, that causes problems with
+// QFileInfo::refresh() on *nix. So we recreate the object in that case.
+// FIXME: When Trolltech fixes the bug, we will have to replace 0x999999 below
+// with the actual working minimum version.
+#if defined(_WIN32) || (QT_VERSION >= 0x999999)
+		fi.refresh();
+#else
+		fi = QFileInfo(fi.absoluteFilePath());
+#endif
+	}
+
+
+	static
+	bool isFilesystemEqual(QString const & lhs, QString const & rhs)
+	{
+		return QString::compare(lhs, rhs, os::isFilesystemCaseSensitive() ?
+			Qt::CaseSensitive : Qt::CaseInsensitive) == 0;
+	}
+
 	///
 	QFileInfo fi;
 };
@@ -127,6 +163,12 @@ FileName::FileName(FileName const & rhs) : d(new Private)
 }
 
 
+FileName::FileName(FileName const & rhs, string const & suffix) : d(new Private)
+{
+	set(rhs, suffix);
+}
+
+
 FileName & FileName::operator=(FileName const & rhs)
 {
 	d->fi = rhs.d->fi;
@@ -158,6 +200,15 @@ void FileName::set(string const & name)
 }
 
 
+void FileName::set(FileName const & rhs, string const & suffix)
+{
+	if (!rhs.d->fi.isDir())
+		d->fi.setFile(rhs.d->fi.filePath() + toqstr(suffix));
+	else
+		d->fi.setFile(QDir(rhs.d->fi.absoluteFilePath()), toqstr(suffix));
+}
+
+
 void FileName::erase()
 {
 	d->fi = QFileInfo();
@@ -166,11 +217,12 @@ void FileName::erase()
 
 bool FileName::copyTo(FileName const & name) const
 {
+	LYXERR(Debug::FILES, "Copying " << name);
 	QFile::remove(name.d->fi.absoluteFilePath());
 	bool success = QFile::copy(d->fi.absoluteFilePath(), name.d->fi.absoluteFilePath());
 	if (!success)
-		lyxerr << "FileName::copyTo(): Could not copy file "
-			<< *this << " to " << name << endl;
+		LYXERR0("FileName::copyTo(): Could not copy file "
+			<< *this << " to " << name);
 	return success;
 }
 
@@ -211,6 +263,8 @@ bool FileName::changePermission(unsigned long int mode) const
 
 string FileName::toFilesystemEncoding() const
 {
+	// FIXME: This doesn't work on Windows for non ascii file names with Qt < 4.4.
+	// Provided that Windows package uses Qt4.4, this isn't a problem.
 	QByteArray const encoded = QFile::encodeName(d->fi.absoluteFilePath());
 	return string(encoded.begin(), encoded.end());
 }
@@ -267,7 +321,19 @@ string FileName::onlyFileName() const
 
 string FileName::onlyFileNameWithoutExt() const
 {
-       return fromqstr(d->fi.baseName());
+	return fromqstr(d->fi.completeBaseName());
+}
+
+
+string FileName::extension() const
+{
+	return fromqstr(d->fi.suffix());
+}
+
+
+bool FileName::hasExtension(const string & ext)
+{
+	return Private::isFilesystemEqual(d->fi.suffix(), toqstr(ext));
 }
 
 
@@ -293,15 +359,15 @@ bool FileName::isWritable() const
 
 bool FileName::isDirWritable() const
 {
-	LYXERR(Debug::FILES, "isDirWriteable: " << *this);
-
-	FileName const tmpfl = FileName::tempName(absFilename() + "/lyxwritetest");
-
-	if (tmpfl.empty())
-		return false;
-
-	tmpfl.removeFile();
-	return true;
+	LASSERT(d->fi.isDir(), return false);
+	QFileInfo tmp(QDir(d->fi.absoluteFilePath()), "lyxwritetest");
+	QTemporaryFile qt_tmp(tmp.absoluteFilePath());
+	if (qt_tmp.open()) {
+		LYXERR(Debug::FILES, "Directory " << *this << " is writable");
+		return true;
+	}
+	LYXERR(Debug::FILES, "Directory " << *this << " is not writable");
+	return false;
 }
 
 
@@ -338,71 +404,31 @@ FileNameList FileName::dirList(string const & ext) const
 }
 
 
-static int make_tempfile(char * templ)
+static string createTempFile(QString const & mask)
 {
-#if defined(HAVE_MKSTEMP)
-	return ::mkstemp(templ);
-#elif defined(HAVE_MKTEMP)
-	// This probably just barely works...
-	::mktemp(templ);
-# if defined (HAVE_OPEN)
-# if (!defined S_IRUSR)
-#   define S_IRUSR S_IREAD
-#   define S_IWUSR S_IWRITE
-# endif
-	return ::open(templ, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-# elif defined (HAVE__OPEN)
-	return ::_open(templ,
-		       _O_RDWR | _O_CREAT | _O_EXCL,
-		       _S_IREAD | _S_IWRITE);
-# else
-#  error No open() function.
-# endif
-#else
-#error FIX FIX FIX
-#endif
+	QTemporaryFile qt_tmp(mask);
+	if (qt_tmp.open()) {
+		string const temp_file = fromqstr(qt_tmp.fileName());
+		LYXERR(Debug::FILES, "Temporary file `" << temp_file << "' created.");
+		return temp_file;
+	}
+	LYXERR(Debug::FILES, "Unable to create temporary file with following template: "
+		<< qt_tmp.fileTemplate());
+	return string();
+}
+
+
+FileName FileName::tempName(FileName const & temp_dir, string const & mask)
+{
+	QFileInfo tmp_fi(QDir(temp_dir.d->fi.absoluteFilePath()), toqstr(mask));
+	LYXERR(Debug::FILES, "Temporary file in " << tmp_fi.absoluteFilePath());
+	return FileName(createTempFile(tmp_fi.absoluteFilePath()));
 }
 
 
 FileName FileName::tempName(string const & mask)
 {
-	FileName tmp_name(mask);
-	string tmpfl;
-	if (tmp_name.d->fi.isAbsolute())
-		tmpfl = mask;
-	else
-		tmpfl = package().temp_dir().absFilename() + "/" + mask;
-
-#if defined (HAVE_GETPID)
-	tmpfl += convert<string>(getpid());
-#elif defined (HAVE__GETPID)
-	tmpfl += convert<string>(_getpid());
-#else
-# error No getpid() function
-#endif
-	tmpfl += "XXXXXX";
-
-	// The supposedly safe mkstemp version
-	// FIXME: why not using std::string directly?
-	boost::scoped_array<char> tmpl(new char[tmpfl.length() + 1]); // + 1 for '\0'
-	tmpfl.copy(tmpl.get(), string::npos);
-	tmpl[tmpfl.length()] = '\0'; // terminator
-
-	int const tmpf = make_tempfile(tmpl.get());
-	if (tmpf != -1) {
-		string const t(to_utf8(from_filesystem8bit(tmpl.get())));
-#if defined (HAVE_CLOSE)
-		::close(tmpf);
-#elif defined (HAVE__CLOSE)
-		::_close(tmpf);
-#else
-# error No x() function.
-#endif
-		LYXERR(Debug::FILES, "Temporary file `" << t << "' created.");
-		return FileName(t);
-	}
-	LYXERR(Debug::FILES, "LyX Error: Unable to create temporary file.");
-	return FileName();
+	return tempName(package().temp_dir(), mask);
 }
 
 
@@ -412,8 +438,18 @@ FileName FileName::getcwd()
 }
 
 
+FileName FileName::tempPath()
+{
+	return FileName(os::internal_path(fromqstr(QDir::tempPath())));
+}
+
+
 time_t FileName::lastModified() const
 {
+	// QFileInfo caches information about the file. So, in case this file has
+	// been touched between the object creation and now, we refresh the file
+	// information.
+	d->refresh();
 	return d->fi.lastModified().toTime_t();
 }
 
@@ -424,28 +460,96 @@ bool FileName::chdir() const
 }
 
 
-extern unsigned long sum(char const * file);
-
 unsigned long FileName::checksum() const
 {
+	unsigned long result = 0;
+
 	if (!exists()) {
 		//LYXERR0("File \"" << absFilename() << "\" does not exist!");
-		return 0;
+		return result;
 	}
 	// a directory may be passed here so we need to test it. (bug 3622)
 	if (isDirectory()) {
 		LYXERR0('"' << absFilename() << "\" is a directory!");
-		return 0;
+		return result;
 	}
-	if (!lyxerr.debugging(Debug::FILES))
-		return sum(absFilename().c_str());
 
-	QTime t;
-	t.start();
-	unsigned long r = sum(absFilename().c_str());
-	lyxerr << "Checksumming \"" << absFilename() << "\" lasted "
-		<< t.elapsed() << " ms." << endl;
-	return r;
+	// This is used in the debug output at the end of the method.
+	static QTime t;
+	if (lyxerr.debugging(Debug::FILES))
+		t.restart();
+
+#if QT_VERSION >= 0x999999
+	// First version of checksum uses Qt4.4 mmap support.
+	// FIXME: This code is not ready with Qt4.4.2,
+	// see http://bugzilla.lyx.org/show_bug.cgi?id=5293
+	// FIXME: should we check if the MapExtension extension is supported?
+	// see QAbstractFileEngine::supportsExtension() and 
+	// QAbstractFileEngine::MapExtension)
+	QFile qf(fi.filePath());
+	if (!qf.open(QIODevice::ReadOnly))
+		return result;
+	qint64 size = fi.size();
+	uchar * ubeg = qf.map(0, size);
+	uchar * uend = ubeg + size;
+	boost::crc_32_type ucrc;
+	ucrc.process_block(ubeg, uend);
+	qf.unmap(ubeg);
+	qf.close();
+	result = ucrc.checksum();
+
+#else // QT_VERSION
+
+	string const encoded = toFilesystemEncoding();
+	char const * file = encoded.c_str();
+
+ #ifdef SUM_WITH_MMAP
+	//LYXERR(Debug::FILES, "using mmap (lightning fast)");
+
+	int fd = open(file, O_RDONLY);
+	if (!fd)
+		return result;
+
+	struct stat info;
+	fstat(fd, &info);
+
+	void * mm = mmap(0, info.st_size, PROT_READ,
+			 MAP_PRIVATE, fd, 0);
+	// Some platforms have the wrong type for MAP_FAILED (compaq cxx).
+	if (mm == reinterpret_cast<void*>(MAP_FAILED)) {
+		close(fd);
+		return result;
+	}
+
+	char * beg = static_cast<char*>(mm);
+	char * end = beg + info.st_size;
+
+	boost::crc_32_type crc;
+	crc.process_block(beg, end);
+	result = crc.checksum();
+
+	munmap(mm, info.st_size);
+	close(fd);
+
+ #else // no SUM_WITH_MMAP
+
+	//LYXERR(Debug::FILES, "lyx::sum() using istreambuf_iterator (fast)");
+	ifstream ifs(file, ios_base::in | ios_base::binary);
+	if (!ifs)
+		return result;
+
+	istreambuf_iterator<char> beg(ifs);
+	istreambuf_iterator<char> end;
+	boost::crc_32_type crc;
+	crc = for_each(beg, end, crc);
+	result = crc.checksum();
+
+ #endif // SUM_WITH_MMAP
+#endif // QT_VERSION
+
+	LYXERR(Debug::FILES, "Checksumming \"" << absFilename() << "\" "
+		<< result << " lasted " << t.elapsed() << " ms.");
+	return result;
 }
 
 
@@ -501,6 +605,7 @@ bool FileName::destroyDirectory() const
 }
 
 
+// Only used in non Win32 platforms
 static int mymkdir(char const * pathname, unsigned long int mode)
 {
 	// FIXME: why don't we have mode_t in lyx::mkdir prototype ??
@@ -529,16 +634,22 @@ static int mymkdir(char const * pathname, unsigned long int mode)
 
 bool FileName::createDirectory(int permission) const
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return false);
+#ifdef Q_OS_WIN32
+	// FIXME: "Permissions of created directories are ignored on this system."
+	return createPath();
+#else
 	return mymkdir(toFilesystemEncoding().c_str(), permission) == 0;
+#endif
 }
 
 
 bool FileName::createPath() const
 {
 	LASSERT(!empty(), /**/);
+	LYXERR(Debug::FILES, "creating path '" << *this << "'.");
 	if (isDirectory())
-		return true;
+		return false;
 
 	QDir dir;
 	bool success = dir.mkpath(d->fi.absoluteFilePath());
@@ -805,15 +916,46 @@ docstring const FileName::relPath(string const & path) const
 }
 
 
-bool operator==(FileName const & lhs, FileName const & rhs)
+bool operator==(FileName const & l, FileName const & r)
 {
-	return lhs.absFilename() == rhs.absFilename();
+	// FIXME: In future use Qt.
+	// Qt 4.4: We need to solve this warning from Qt documentation:
+	// * Long and short file names that refer to the same file on Windows are
+	//   treated as if they referred to different files.
+	// This is supposed to be fixed for Qt5.
+	FileName const lhs(os::internal_path(l.absFilename()));
+	FileName const rhs(os::internal_path(r.absFilename()));
+
+	if (lhs.empty())
+		// QFileInfo::operator==() returns false if the two QFileInfo are empty.
+		return rhs.empty();
+
+	if (rhs.empty())
+		// Avoid unnecessary checks below.
+		return false;
+
+	lhs.d->refresh();
+	rhs.d->refresh();
+	
+	if (!lhs.d->fi.isSymLink() && !rhs.d->fi.isSymLink()) {
+		// Qt already checks if the filesystem is case sensitive or not.
+		return lhs.d->fi == rhs.d->fi;
+	}
+
+	// FIXME: When/if QFileInfo support symlink comparison, remove this code.
+	QFileInfo fi1(lhs.d->fi);
+	if (fi1.isSymLink())
+		fi1 = QFileInfo(fi1.symLinkTarget());
+	QFileInfo fi2(rhs.d->fi);
+	if (fi2.isSymLink())
+		fi2 = QFileInfo(fi2.symLinkTarget());
+	return fi1 == fi2;
 }
 
 
 bool operator!=(FileName const & lhs, FileName const & rhs)
 {
-	return lhs.absFilename() != rhs.absFilename();
+	return !(operator==(lhs, rhs));
 }
 
 
@@ -968,7 +1110,8 @@ string DocFileName::unzippedFilename() const
 
 bool operator==(DocFileName const & lhs, DocFileName const & rhs)
 {
-	return lhs.absFilename() == rhs.absFilename()
+	return static_cast<FileName const &>(lhs)
+		== static_cast<FileName const &>(rhs)
 		&& lhs.saveAbsPath() == rhs.saveAbsPath();
 }
 

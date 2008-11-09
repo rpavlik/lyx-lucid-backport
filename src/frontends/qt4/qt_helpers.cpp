@@ -57,12 +57,6 @@ using namespace lyx::support;
 
 namespace lyx {
 
-LyXErr & operator<<(LyXErr & err, QString const & str)
-{
-	return err << fromqstr(str);
-}
-
-
 FileName libFileSearch(QString const & dir, QString const & name,
 				QString const & ext)
 {
@@ -205,6 +199,27 @@ QStringList texFileList(QString const & filename)
 
 	// remove duplicates
 	return QList<QString>::fromSet(set);
+}
+
+QString const externalLineEnding(docstring const & str)
+{
+#ifdef Q_WS_MACX
+	// The MAC clipboard uses \r for lineendings, and we use \n
+	return toqstr(subst(str, '\n', '\r'));
+#elif defined(Q_WS_WIN)
+	// Windows clipboard uses \r\n for lineendings, and we use \n
+	return toqstr(subst(str, from_ascii("\n"), from_ascii("\r\n")));
+#else
+	return toqstr(str);
+#endif
+}
+
+
+docstring const internalLineEnding(QString const & str)
+{
+	docstring const s = subst(qstring_to_ucs4(str), 
+				  from_ascii("\r\n"), from_ascii("\n"));
+	return subst(s, '\r', '\n');
 }
 
 
@@ -504,6 +519,8 @@ QString guiName(string const & type, BufferParams const & bp)
 		return qt_("Labels and References");
 	if (type == "branch")
 		return qt_("List of Branches");
+	if (type == "change")
+		return qt_("List of Changes");
 
 	FloatList const & floats = bp.documentClass().floats();
 	if (floats.typeExist(type))

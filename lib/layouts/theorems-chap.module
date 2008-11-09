@@ -1,16 +1,16 @@
-#\DeclareLyXModule{Theorems (Order By Chapter)}
+#\DeclareLyXModule{Theorems (By Chapter)}
 #DescriptionBegin
 #Numbers theorems and the like by chapter. Use this module only with
 #layouts that provide a chapter environment.
 #DescriptionEnd
 #Requires: theorems-std | theorems-ams
+#Excludes: theorems-sec
 
 # Author: Richard Heck <rgheck@comcast.net>
 
-Format 7
+Format 11
 
-Counter
-	Name           theorem
+Counter theorem
 	Within         chapter
 End
 
@@ -21,6 +21,5 @@ Style Theorem
 		\else
 			\newtheorem{thm}{Theorem}[chapter]
 		\fi
-		
 	EndPreamble
 End

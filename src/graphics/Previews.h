@@ -26,11 +26,11 @@ class PreviewLoader;
 
 class Previews {
 public:
+	/// This should be a singleton class only instanciated in LyX.cpp.
+	Previews() {}
+
 	/// a wrapper for lyxrc.preview
 	static LyXRC_PreviewStatus status();
-
-	/// This is a singleton class. Get the instance.
-	static Previews & get();
 
 	/** Returns the PreviewLoader for this buffer.
 	 *  Used by individual insets to update their own preview.
@@ -50,20 +50,14 @@ private:
 	/// noncopyable
 	Previews(Previews const &);
 	void operator=(Previews const &);
-
-	/** Make the c-tor, d-tor private so we can control how many objects
-	 *  are instantiated.
-	 */
-	Previews();
-	~Previews();
-
-	/// Use the Pimpl idiom to hide the internals.
-	class Impl;
-	/// The pointer never changes although *pimpl_'s contents may.
-	Impl * const pimpl_;
 };
 
 } // namespace graphics
+
+/// This is a singleton class. Get the instance.
+/// Implemented in LyX.cpp.
+graphics::Previews & thePreviews();
+
 } // namespace lyx
 
 #endif // PREVIEWS_H

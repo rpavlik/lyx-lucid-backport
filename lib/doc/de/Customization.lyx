@@ -1,7 +1,8 @@
-#LyX 1.6.0beta4 created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrbook
 \begin_preamble
 % Präambel nicht verändern!!!
@@ -60,7 +61,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -77,7 +77,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
@@ -101,8 +100,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -146,8 +145,8 @@ Haase
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 12.
- Juli 2008
+letzte Änderung: 25.
+ September 2008
 \end_layout
 
 \begin_layout Standard
@@ -200,12 +199,6 @@ Die Konfigurationsdateien von LyX
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "chap:config"
-
-\end_inset
-
 Dieses Kapitel soll Ihnen dabei helfen, sich mit den Konfigurationsdateien
  von LyX vertraut zu machen.
  Bevor Sie jedoch weiterlesen, sollten Sie herausfinden, wo sich das Systemverze
@@ -1123,13 +1116,6 @@ Hilfe
 
 \begin_layout Section
 LyX mit mehreren Konfigurationen
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:LyX-multiconf"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1164,7 +1150,7 @@ Indem Sie LyX mit der Option
  Anstelle der Kommandozeilenoption können Sie übrigens auch die Umgebungsvariabl
 e 
 \family typewriter
-LYX_USERDIR_15x
+LYX_USERDIR_VER
 \family default
  auf das zu verwendende Verzeichnis setzen.
 \end_layout
@@ -1884,12 +1870,6 @@ Wenn Sie Linux selber auf einem PC installiert haben, können Sie diesen
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:x-win-keys"
-
-\end_inset
-
 Um LyX richtig benutzen zu können, 
 \emph on
 muss
@@ -3967,7 +3947,7 @@ mo
  Eine umfassende Anleitung dazu finden Sie in der Dokumentation für GNU
  gettext
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Natürlich nur auf englisch.
@@ -3991,29 +3971,19 @@ xx
 \end_layout
 
 \begin_layout Itemize
-Kopieren Sie im Verzeichnis des LyX-Quellcodes die Datei
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-LYX-SOURCE-DIR/po/lyx.pot
-\end_layout
-
-\end_inset
-
- nach 
+Kopieren Sie die Datei 
+\family typewriter
+lyx.pot
+\family default
+ in das Verzeichnis der .po-Dateien.
+ Benennen Sie anschließend die Datei in 
 \family typewriter
 \series bold
 xx
 \series default
 .po
 \family default
-.
+ um.
  (Falls 
 \family typewriter
 lyx.pot
@@ -4034,12 +4004,23 @@ Editieren Sie
 \family typewriter
 xx.po
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
-Wir empfehlen, für diese Aufgabe Emacs zu benutzen, da die Distribution
- der gettext-Library auch einen hübschen Emacs-Modus enthält, der Sie bei
- dieser Arbeit unterstützt.
+Für diese Aufgabe gibt es spezielle Programme, wie 
+\family typewriter
+Poedit
+\family default
+ (für alle Plattformen) oder 
+\family typewriter
+KBabel
+\family default
+ (für KDE).
+ 
+\family typewriter
+Emacs
+\family default
+ hat ebenfalls einen Modus, der Sie bei dieser Arbeit unterstützt.
 \end_layout
 
 \end_inset
@@ -5675,13 +5656,6 @@ reference "sec:kmap"
 
 \begin_layout Subsection
 Ihre Sprachkonfiguration einstellen
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:savlang"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -6532,7 +6506,11 @@ verwendet; diese werden in der
 \begin_layout Standard
 Weiterhin müssen Sie sicherstellen, dass alle Umgebungstypen, die in 
 \family typewriter
-myclass.cls
+myclass.
+\begin_inset Newline linebreak
+\end_inset
+
+cls
 \family default
  definiert werden, auch in 
 \begin_inset Flex URL
@@ -6732,9 +6710,18 @@ Auf diese Weise deklarieren Sie eine Textklasse
 \family typewriter
 myarticle
 \family default
-, die die LaTeX-Dokumenten\SpecialChar \-
-klas\SpecialChar \-
-se 
+, die die LaTeX
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Dokumentklasse 
 \family typewriter
 article.cls
 \family default
@@ -6775,7 +6762,18 @@ status open
 
 \family default
 \size small
-XClass[article,foo.sty]{article (with my own headings)}
+XClass[article,foo.sty]{article (with my own head
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"-
+\end_layout
+
+\end_inset
+
+ings)}
 \end_layout
 
 \begin_layout Standard

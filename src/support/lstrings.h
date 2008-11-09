@@ -103,8 +103,9 @@ bool prefixIs(docstring const & str, docstring const & pre);
 bool suffixIs(std::string const &, char);
 bool suffixIs(docstring const &, char_type);
 
-/// Does the std::string end with this suffix?
+/// Does the string end with this suffix?
 bool suffixIs(std::string const &, std::string const &);
+bool suffixIs(docstring const &, docstring const &);
 
 ///
 inline bool contains(std::string const & a, std::string const & b)
@@ -183,9 +184,10 @@ docstring const trim(docstring const & a, char const * p = " ");
 */
 std::string const trim(std::string const & a, char const * p = " ");
 
-/** Trims characters off the end of a string.
+/** Trims characters off the end of a string, removing any character
+    in p.
     \code
-    rtrim("abccc", "c") == "ab".
+    rtrim("abcde", "dec") == "ab".
     \endcode
 */
 std::string const rtrim(std::string const & a, char const * p = " ");
@@ -193,7 +195,7 @@ docstring const rtrim(docstring const & a, char const * p = " ");
 
 /** Trims characters off the beginning of a string.
     \code
-   ("ababcdef", "ab") = "cdef"
+   ("abbabcdef", "ab") = "cdef"
     \endcode
 */
 std::string const ltrim(std::string const & a, char const * p = " ");
@@ -225,10 +227,12 @@ std::string const rsplit(std::string const & a, std::string & piece, char delim)
 docstring const escape(docstring const & lab);
 
 /// gives a vector of stringparts which have the delimiter delim
+/// If \p keepempty is true, empty strings will be pushed to the vector as well
 std::vector<std::string> const getVectorFromString(std::string const & str,
-					      std::string const & delim = std::string(","));
+					      std::string const & delim = std::string(","),
+					      bool keepempty = false);
 std::vector<docstring> const getVectorFromString(docstring const & str,
-		docstring const & delim = from_ascii(","));
+		docstring const & delim = from_ascii(","), bool keepempty = false);
 
 // the same vice versa
 std::string const getStringFromVector(std::vector<std::string> const & vec,
@@ -237,13 +241,6 @@ std::string const getStringFromVector(std::vector<std::string> const & vec,
 /// Search \p search_token in \p str and return the position if it is
 /// found, else -1. The last item in \p str must be "".
 int findToken(char const * const str[], std::string const & search_token);
-
-/// Convert internal line endings to line endings as expected by the OS
-docstring const externalLineEnding(docstring const & str);
-
-/// Convert line endings in any formnat to internal line endings
-docstring const internalLineEnding(docstring const & str);
-
 
 template <class Arg1>
 docstring bformat(docstring const & fmt, Arg1);

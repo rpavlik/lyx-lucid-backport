@@ -96,11 +96,14 @@ QString browseFile(QString const & filename,
 	QString const & label1 = QString(),
 	QString const & dir1 = QString(),
 	QString const & label2 = QString(),
-	QString const & dir2 = QString())
+	QString const & dir2 = QString(),
+	QString const & fallback_dir = QString())
 {
 	QString lastPath = ".";
 	if (!filename.isEmpty())
 		lastPath = onlyPath(filename);
+	else if(!fallback_dir.isEmpty())
+		lastPath = fallback_dir;
 
 	FileDialog dlg(title, LFUN_SELECT_FILE_SYNC);
 	dlg.setButton2(label1, dir1);
@@ -139,7 +142,7 @@ QString browseLibFile(QString const & dir,
 
 	QString const result = browseFile(toqstr(
 		libFileSearch(dir, name, ext).absFilename()),
-		title, filters, false, dir1, dir2);
+		title, filters, false, dir1, dir2, QString(), QString(), dir1);
 
 	// remove the extension if it is the default one
 	QString noextresult;
@@ -556,6 +559,7 @@ void PrefLatex::apply(LyXRC & rc) const
 	rc.chktex_command = fromqstr(latexChecktexED->text());
 	rc.bibtex_command = fromqstr(latexBibtexED->text());
 	rc.index_command = fromqstr(latexIndexED->text());
+	rc.nomencl_command = fromqstr(latexNomenclED->text());
 	rc.auto_reset_options = latexAutoresetCB->isChecked();
 	rc.view_dvi_paper_option = fromqstr(latexDviPaperED->text());
 	rc.default_papersize =
@@ -572,6 +576,7 @@ void PrefLatex::update(LyXRC const & rc)
 	latexChecktexED->setText(toqstr(rc.chktex_command));
 	latexBibtexED->setText(toqstr(rc.bibtex_command));
 	latexIndexED->setText(toqstr(rc.index_command));
+	latexNomenclED->setText(toqstr(rc.nomencl_command));
 	latexAutoresetCB->setChecked(rc.auto_reset_options);
 	latexDviPaperED->setText(toqstr(rc.view_dvi_paper_option));
 	latexPaperSizeCO->setCurrentIndex(
@@ -1945,6 +1950,13 @@ void PrefUserInterface::select_ui()
 }
 
 
+void PrefUserInterface::on_clearSessionPB_clicked()
+{
+	guiApp->clearSession();
+}
+
+
+
 /////////////////////////////////////////////////////////////////////
 //
 // PrefEdit
@@ -2055,8 +2067,12 @@ PrefShortcuts::PrefShortcuts(GuiPreferences * form)
 		shortcut_, SLOT(reject()));
 	connect(shortcut_->clearPB, SIGNAL(clicked()),
 		this, SLOT(shortcut_clearPB_pressed()));
+	connect(shortcut_->removePB, SIGNAL(clicked()),
+		this, SLOT(shortcut_removePB_pressed()));
 	connect(shortcut_->okPB, SIGNAL(clicked()),
 		this, SLOT(shortcut_okPB_pressed()));
+	connect(shortcut_->cancelPB, SIGNAL(clicked()),
+		this, SLOT(shortcut_cancelPB_pressed()));
 }
 
 
@@ -2094,6 +2110,7 @@ void PrefShortcuts::update(LyXRC const & rc)
 	system_bind_.clear();
 	user_bind_.clear();
 	user_unbind_.clear();
+	system_bind_.read("site");
 	system_bind_.read(rc.bind_file);
 	// \unbind in user.bind is added to user_unbind_
 	user_bind_.read("user", &user_unbind_);
@@ -2128,11 +2145,11 @@ void PrefShortcuts::updateShortcutsTW()
 	// listBindings(unbound=true) lists all bound and unbound lfuns
 	// Items in this list is tagged by its source.
 	KeyMap::BindingList bindinglist = system_bind_.listBindings(true,
-		static_cast<int>(System));
+		KeyMap::System);
 	KeyMap::BindingList user_bindinglist = user_bind_.listBindings(false,
-		static_cast<int>(UserBind));
+		KeyMap::UserBind);
 	KeyMap::BindingList user_unbindinglist = user_unbind_.listBindings(false,
-		static_cast<int>(UserUnbind));
+		KeyMap::UserUnbind);
 	bindinglist.insert(bindinglist.end(), user_bindinglist.begin(),
 			user_bindinglist.end());
 	bindinglist.insert(bindinglist.end(), user_unbindinglist.begin(),
@@ -2141,7 +2158,7 @@ void PrefShortcuts::updateShortcutsTW()
 	KeyMap::BindingList::const_iterator it = bindinglist.begin();
 	KeyMap::BindingList::const_iterator it_end = bindinglist.end();
 	for (; it != it_end; ++it)
-		insertShortcutItem(it->request, it->sequence, ItemType(it->tag));
+		insertShortcutItem(it->request, it->sequence, KeyMap::ItemType(it->tag));
 
 	shortcutsTW->sortItems(0, Qt::AscendingOrder);
 	QList<QTreeWidgetItem*> items = shortcutsTW->selectedItems();
@@ -2152,22 +2169,22 @@ void PrefShortcuts::updateShortcutsTW()
 }
 
 
-void PrefShortcuts::setItemType(QTreeWidgetItem * item, ItemType tag)
+void PrefShortcuts::setItemType(QTreeWidgetItem * item, KeyMap::ItemType tag)
 {
 	item->setData(0, Qt::UserRole, QVariant(tag));
 	QFont font;
 
 	switch (tag) {
-	case System:
+	case KeyMap::System:
 		break;
-	case UserBind:
+	case KeyMap::UserBind:
 		font.setBold(true);
 		break;
-	case UserUnbind:
+	case KeyMap::UserUnbind:
 		font.setStrikeOut(true);
 		break;
 	// this item is not displayed now.
-	case UserExtraUnbind:
+	case KeyMap::UserExtraUnbind:
 		font.setStrikeOut(true);
 		break;
 	}
@@ -2177,18 +2194,18 @@ void PrefShortcuts::setItemType(QTreeWidgetItem * item, ItemType tag)
 
 
 QTreeWidgetItem * PrefShortcuts::insertShortcutItem(FuncRequest const & lfun,
-		KeySequence const & seq, ItemType tag)
+		KeySequence const & seq, KeyMap::ItemType tag)
 {
 	FuncCode action = lfun.action;
 	string const action_name = lyxaction.getActionName(action);
 	QString const lfun_name = toqstr(from_utf8(action_name)
 			+ ' ' + lfun.argument());
 	QString const shortcut = toqstr(seq.print(KeySequence::ForGui));
-	ItemType item_tag = tag;
+	KeyMap::ItemType item_tag = tag;
 
 	QTreeWidgetItem * newItem = 0;
 	// for unbind items, try to find an existing item in the system bind list
-	if (tag == UserUnbind) {
+	if (tag == KeyMap::UserUnbind) {
 		QList<QTreeWidgetItem*> const items = shortcutsTW->findItems(lfun_name,
 			Qt::MatchFlags(Qt::MatchExactly | Qt::MatchRecursive), 0);
 		for (int i = 0; i < items.size(); ++i) {
@@ -2196,11 +2213,11 @@ QTreeWidgetItem * PrefShortcuts::insertShortcutItem(FuncRequest const & lfun,
 				newItem = items[i];
 				break;
 			}
-		// if not found, this unbind item is UserExtraUnbind
+		// if not found, this unbind item is KeyMap::UserExtraUnbind
 		// Such an item is not displayed to avoid confusion (what is
 		// unmatched removed?).
 		if (!newItem) {
-			item_tag = UserExtraUnbind;
+			item_tag = KeyMap::UserExtraUnbind;
 			return 0;
 		}
 	}
@@ -2246,8 +2263,9 @@ void PrefShortcuts::on_shortcutsTW_itemSelectionChanged()
 	if (items.isEmpty())
 		return;
 
-	ItemType tag = static_cast<ItemType>(items[0]->data(0, Qt::UserRole).toInt());
-	if (tag == UserUnbind)
+	KeyMap::ItemType tag = 
+		static_cast<KeyMap::ItemType>(items[0]->data(0, Qt::UserRole).toInt());
+	if (tag == KeyMap::UserUnbind)
 		removePB->setText(qt_("Res&tore"));
 	else
 		removePB->setText(qt_("Remo&ve"));
@@ -2265,9 +2283,66 @@ void PrefShortcuts::modifyShortcut()
 	QTreeWidgetItem * item = shortcutsTW->currentItem();
 	if (item->flags() & Qt::ItemIsSelectable) {
 		shortcut_->lfunLE->setText(item->text(0));
-		shortcut_->shortcutLE->setText(item->text(1));
-		shortcut_->shortcutLE->setFocus();
+		save_lfun_ = item->text(0);
+		shortcut_->shortcutWG->setText(item->text(1));
+		KeySequence seq;
+		seq.parse(fromqstr(item->data(1, Qt::UserRole).toString()));
+		shortcut_->shortcutWG->setKeySequence(seq);
+		shortcut_->shortcutWG->setFocus();
 		shortcut_->exec();
+	}
+}
+
+
+void PrefShortcuts::removeShortcut()
+{
+	// it seems that only one item can be selected, but I am
+	// removing all selected items anyway.
+	QList<QTreeWidgetItem*> items = shortcutsTW->selectedItems();
+	for (int i = 0; i < items.size(); ++i) {
+		string shortcut = fromqstr(items[i]->data(1, Qt::UserRole).toString());
+		string lfun = fromqstr(items[i]->text(0));
+		FuncRequest func = lyxaction.lookupFunc(lfun);
+		KeyMap::ItemType tag = 
+			static_cast<KeyMap::ItemType>(items[i]->data(0, Qt::UserRole).toInt());
+
+		switch (tag) {
+		case KeyMap::System: {
+			// for system bind, we do not touch the item
+			// but add an user unbind item
+			user_unbind_.bind(shortcut, func);
+			setItemType(items[i], KeyMap::UserUnbind);
+			removePB->setText(qt_("Res&tore"));
+			break;
+		}
+		case KeyMap::UserBind: {
+			// for user_bind, we remove this bind
+			QTreeWidgetItem * parent = items[i]->parent();
+			int itemIdx = parent->indexOfChild(items[i]);
+			parent->takeChild(itemIdx);
+			if (itemIdx > 0)
+				shortcutsTW->scrollToItem(parent->child(itemIdx - 1));
+			else
+				shortcutsTW->scrollToItem(parent);
+			user_bind_.unbind(shortcut, func);
+			break;
+		}
+		case KeyMap::UserUnbind: {
+			// for user_unbind, we remove the unbind, and the item
+			// become KeyMap::System again.
+			user_unbind_.unbind(shortcut, func);
+			setItemType(items[i], KeyMap::System);
+			removePB->setText(qt_("Remo&ve"));
+			break;
+		}
+		case KeyMap::UserExtraUnbind: {
+			// for user unbind that is not in system bind file,
+			// remove this unbind file
+			QTreeWidgetItem * parent = items[i]->parent();
+			parent->takeChild(parent->indexOfChild(items[i]));
+			user_unbind_.unbind(shortcut, func);
+		}
+		}
 	}
 }
 
@@ -2293,60 +2368,15 @@ void PrefShortcuts::on_modifyPB_pressed()
 void PrefShortcuts::on_newPB_pressed()
 {
 	shortcut_->lfunLE->clear();
-	shortcut_->shortcutLE->reset();
+	shortcut_->shortcutWG->reset();
+	save_lfun_ = QString();
 	shortcut_->exec();
 }
 
 
 void PrefShortcuts::on_removePB_pressed()
 {
-	// it seems that only one item can be selected, but I am
-	// removing all selected items anyway.
-	QList<QTreeWidgetItem*> items = shortcutsTW->selectedItems();
-	for (int i = 0; i < items.size(); ++i) {
-		string shortcut = fromqstr(items[i]->data(1, Qt::UserRole).toString());
-		string lfun = fromqstr(items[i]->text(0));
-		FuncRequest func = lyxaction.lookupFunc(lfun);
-		ItemType tag = static_cast<ItemType>(items[i]->data(0, Qt::UserRole).toInt());
-
-		switch (tag) {
-		case System: {
-			// for system bind, we do not touch the item
-			// but add an user unbind item
-			user_unbind_.bind(shortcut, func);
-			setItemType(items[i], UserUnbind);
-			removePB->setText(qt_("Res&tore"));
-			break;
-		}
-		case UserBind: {
-			// for user_bind, we remove this bind
-			QTreeWidgetItem * parent = items[i]->parent();
-			int itemIdx = parent->indexOfChild(items[i]);
-			parent->takeChild(itemIdx);
-			if (itemIdx > 0)
-				shortcutsTW->scrollToItem(parent->child(itemIdx - 1));
-			else
-				shortcutsTW->scrollToItem(parent);
-			user_bind_.unbind(shortcut, func);
-			break;
-		}
-		case UserUnbind: {
-			// for user_unbind, we remove the unbind, and the item
-			// become System again.
-			user_unbind_.unbind(shortcut, func);
-			setItemType(items[i], System);
-			removePB->setText(qt_("Remo&ve"));
-			break;
-		}
-		case UserExtraUnbind: {
-			// for user unbind that is not in system bind file,
-			// remove this unbind file
-			QTreeWidgetItem * parent = items[i]->parent();
-			parent->takeChild(parent->indexOfChild(items[i]));
-			user_unbind_.unbind(shortcut, func);
-		}
-		}
-	}
+	removeShortcut();
 }
 
 
@@ -2377,10 +2407,19 @@ void PrefShortcuts::on_searchLE_textEdited()
 }
 
 
+docstring makeCmdString(FuncRequest const & f)
+{
+	docstring actionStr = from_ascii(lyxaction.getActionName(f.action));
+	if (!f.argument().empty())
+		actionStr += " " + f.argument();
+	return actionStr;
+}
+
+
 void PrefShortcuts::shortcut_okPB_pressed()
 {
-	string lfun = fromqstr(shortcut_->lfunLE->text());
-	FuncRequest func = lyxaction.lookupFunc(lfun);
+	QString const new_lfun = shortcut_->lfunLE->text();
+	FuncRequest func = lyxaction.lookupFunc(fromqstr(new_lfun));
 
 	if (func.action == LFUN_UNKNOWN_ACTION) {
 		Alert::error(_("Failed to create shortcut"),
@@ -2388,21 +2427,45 @@ void PrefShortcuts::shortcut_okPB_pressed()
 		return;
 	}
 
-	KeySequence k = shortcut_->shortcutLE->getKeySequence();
+	KeySequence k = shortcut_->shortcutWG->getKeySequence();
 	if (k.length() == 0) {
 		Alert::error(_("Failed to create shortcut"),
 			_("Invalid or empty key sequence"));
 		return;
 	}
 
-	// if both lfun and shortcut is valid
-	if (user_bind_.hasBinding(k, func) || system_bind_.hasBinding(k, func)) {
+	// check to see if there's been any change
+	FuncRequest oldBinding = system_bind_.getBinding(k);
+	if (oldBinding.action == LFUN_UNKNOWN_ACTION)
+		oldBinding = user_bind_.getBinding(k);
+	if (oldBinding == func) {
+		docstring const actionStr = makeCmdString(func);
 		Alert::error(_("Failed to create shortcut"),
-			_("Shortcut is already defined"));
+			bformat(_("Shortcut `%1$s' is already bound to:\n%2$s"), 
+			k.print(KeySequence::ForGui), actionStr));
+		return;
+	}
+	
+	// make sure this key isn't already bound---and, if so, not unbound
+	FuncCode const unbind = user_unbind_.getBinding(k).action;
+	if (oldBinding.action != LFUN_UNKNOWN_ACTION && unbind == LFUN_UNKNOWN_ACTION)
+	{
+		// FIXME Perhaps we should offer to over-write the old shortcut?
+		// If so, we'll need to remove it from our list, etc.
+		docstring const actionStr = makeCmdString(oldBinding);
+		Alert::error(_("Failed to create shortcut"),
+			bformat(_("Shortcut `%1$s' is already bound to:\n%2$s\n"
+			  "You need to remove that binding before creating a new one."), 
+			k.print(KeySequence::ForGui), actionStr));
 		return;
 	}
 
-	QTreeWidgetItem * item = insertShortcutItem(func, k, UserBind);
+	if (!save_lfun_.isEmpty() && new_lfun == save_lfun_)
+		// real modification of the lfun's shortcut,
+		// so remove the previous one
+		removeShortcut();
+
+	QTreeWidgetItem * item = insertShortcutItem(func, k, KeyMap::UserBind);
 	if (item) {
 		user_bind_.bind(&k, func);
 		shortcutsTW->sortItems(0, Qt::AscendingOrder);
@@ -2416,10 +2479,21 @@ void PrefShortcuts::shortcut_okPB_pressed()
 }
 
 
+void PrefShortcuts::shortcut_cancelPB_pressed()
+{
+	shortcut_->shortcutWG->reset();
+}
+
+
 void PrefShortcuts::shortcut_clearPB_pressed()
 {
-	shortcut_->shortcutLE->reset();
-	shortcut_->shortcutLE->setFocus();
+	shortcut_->shortcutWG->reset();
+}
+
+
+void PrefShortcuts::shortcut_removePB_pressed()
+{
+	shortcut_->shortcutWG->removeFromSequence();
 }
 
 

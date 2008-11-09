@@ -1,7 +1,8 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass book
 \begin_preamble
 % DO NOT ALTER THIS PREAMBLE!!!
@@ -45,7 +46,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -62,7 +62,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue,  filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize a4paper
@@ -86,8 +85,8 @@
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -127,7 +126,7 @@ Peter Sütterlin
 
 
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 Wenn Sie Anmerkungen oder Fehlerkorrekturen haben, senden Sie diese bitte
@@ -148,8 +147,8 @@ type "mailto:"
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 23.
- Juni 2008
+letzte Änderung: 25.
+ September 2008
 \end_layout
 
 \begin_layout Standard
@@ -359,12 +358,6 @@ Ihr erstes LyX-Dokument
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "der-erste-text"
-
-\end_inset
-
 Sie sind nun vorbereitet, mit dem Schreiben zu beginnen.
  Zu Beginn wollen wir aber noch ein paar Dinge erwähnen, die dieses 
 \emph on
@@ -489,7 +482,7 @@ beispiel_gelyxt.lyx
 \begin_layout Standard
 Die Beispieldateien finden Sie im Verzeichnis 
 \family typewriter
-examples/de
+[resources/]examples/de
 \family default
  des LyX-In\SpecialChar \-
 stal\SpecialChar \-
@@ -511,11 +504,17 @@ Schaltfläche
 Beispiele
 \family default
 \SpecialChar \menuseparator
-Verzeichnis 
+Ver\SpecialChar \-
+zeich\SpecialChar \-
+nis 
 \series bold
 de
 \series default
-).
+) (
+\family typewriter
+resources
+\family default
+ bei Windows).
  Laden Sie die nicht modifizierte Datei und verwenden Sie 
 \family sans
 Datei\SpecialChar \menuseparator
@@ -1134,7 +1133,7 @@ Umgebungstypen
 
 \begin_layout Standard
 Unterschiedliche Teile eines Dokumentes dienen verschiedenen Zwecken; man
- bezeichnet solche logischen Unterteilungen 
+ bezeichnet solche logischen Unterteilungen als 
 \emph on
 Umgebungen
 \emph default
@@ -2544,12 +2543,6 @@ Marken und Querverweise
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "Marken"
-
-\end_inset
-
 Sie können jedes Kapitel, Unterkapitel (oder, wenn auch seltener benötigt,
  jeden Abschnitt) Ihres Dokumentes mit einer Marke versehen.
  Wenn Sie dies getan haben, können Sie in anderen Teilen Ihres Textes auf
@@ -2558,8 +2551,6 @@ Sie können jedes Kapitel, Unterkapitel (oder, wenn auch seltener benötigt,
  Seite im Text, auf der das besagte Kapitel steht, beziehen.
  Wie auch bei der Nummerierung von Abschnitten und Fußnoten kümmert sich
  LyX um die korrekte Verwaltung dieser Querverweise.
- Automatische Marken und Querverweise stellen einen der größten Vorzüge
- von LyX (und LaTeX) gegenüber gewöhnlichen Textverarbeitungen dar.
 \end_layout
 
 \begin_layout Subsection
@@ -2599,7 +2590,7 @@ Marke\SpecialChar \ldots{}
 \family sans
 ).
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Falls Sie diesen Text direkt über das Hilfe-Menü von LyX geöffnet haben,
@@ -2632,24 +2623,19 @@ unter
  Marke vorschlägt.
  In diesem Fall wird es 
 \family typewriter
-sub:Was-das-Tutorium 
+sec:Was-das-Tutorium 
 \family default
 sein.
- Sie können den Namen für die Marke ändern.
- Geben Sie zum Beispiel ein 
-\family typewriter
-sec:Was-das-Tutorium
-\family default
-.
- Dies ist ein einprägsamer Name, den Sie nicht so einfach mit anderen Marken
- im Text verwechseln können.
+ Sie können den Namen für die Marke ändern und einen einprägsamen Namen
+ verwenden, den Sie nicht so einfach mit anderen Marken im Text verwechseln
+ können.
  Das 
 \begin_inset Quotes gld
 \end_inset
 
 
 \family typewriter
-sub:
+ec:
 \family default
 
 \begin_inset Quotes grd
@@ -2743,7 +2729,7 @@ Querverweis
 \begin_inset Quotes gld
 \end_inset
 
-sub:Was-das-Tutorium
+sec:Was-das-Tutorium
 \begin_inset Quotes grd
 \end_inset
 
@@ -3099,16 +3085,6 @@ Zumindest in den exakten Wissenschaften ist ein Literaturverzeichnis in
  gewisser Weise so etwas wie ein Querverweis.
  Das Literaturverzeichnis besteht aus einer Liste von Referenzen am Ende
  des Dokumentes, auf die vom Dokument aus verwiesen werden kann.
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-Um Bibliographien im Stile der Geisteswissenschaften zu erstellen, müssen
- Sie die Techniken dieses Abschnittes mit Fußnoten kombinieren.
-\end_layout
-
-\end_inset
-
  Wie auch bei den Kapitelüberschriften vereinfachen LyX und LaTeX die Arbeit
  mit Literaturverzeichnissen dadurch, dass die Einträge automatisch nummeriert
  werden und die Zitate entsprechend verändert werden, wenn sich die Nummerierung
@@ -3643,7 +3619,7 @@ Rückgängig
 \family default
  (
 \begin_inset Graphics
-	filename ../../images/redo.png
+	filename ../../images/undo.png
 	scale 70
 	BoundingBox 0bp 4bp 22bp 22bp
 

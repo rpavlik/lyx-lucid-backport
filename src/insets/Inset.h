@@ -17,6 +17,7 @@
 
 #include "ColorCode.h"
 #include "InsetCode.h"
+#include "Layout.h"
 
 #include "support/strfwd.h"
 #include "support/types.h"
@@ -53,8 +54,6 @@ class ParConstIterator;
 class ParIterator;
 class Text;
 class TocList;
-class FileNameList;
-
 
 namespace graphics { class PreviewLoader; }
 
@@ -174,6 +173,9 @@ public:
 	virtual void draw(PainterInfo & pi, int x, int y) const = 0;
 	/// draw inset selection if necessary
 	virtual void drawSelection(PainterInfo &, int, int) const {}
+	/// draw inset background if the inset has an own background and a
+	/// selection is drawn by drawSelection.
+	virtual void drawBackground(PainterInfo &, int, int) const {}
 	///
 	virtual bool editing(BufferView const * bv) const;
 	///
@@ -405,6 +407,8 @@ public:
 
 	/// should we have a non-filled line before this inset?
 	virtual DisplayType display() const { return Inline; }
+	///
+	virtual LyXAlignment contentAlignment() const { return LYX_ALIGN_NONE; }
 	/// should we break lines after this inset?
 	virtual bool isLineSeparator() const { return false; }
 	/// should paragraph indendation be ommitted in any case?
@@ -437,6 +441,16 @@ public:
 	 *  defaults to empty.
 	 */
 	virtual void addPreview(graphics::PreviewLoader &) const {}
+
+	/** Classifies the unicode characters appearing in a math inset
+	 *  depending on whether they are to be translated as latex
+	 *  math/text commands or used as math symbols without translation.
+	 *
+	 *  Only math insets have interest in this classification, so the
+	 *  method defaults to empty.
+	 */
+	virtual void initUnicodeMath() const {}
+
 	/// Add an entry to the TocList
 	/// pit is the ParConstIterator of the paragraph containing the inset
 	virtual void addToToc(DocIterator const &) {}
@@ -492,8 +506,9 @@ public:
 	enum { TEXT_TO_INSET_OFFSET = 4 };
 
 protected:
-	/// Constructor
-	explicit Inset() : buffer_(0) {}
+	/// Constructors
+	Inset() : buffer_(0) {}
+	Inset(Inset const &) : buffer_(0) {}
 
 	/// replicate ourselves
 	friend class InsetList;

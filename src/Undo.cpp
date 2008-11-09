@@ -71,10 +71,34 @@ struct UndoElement
 	            StableDocIterator const & cel,
 	            pit_type fro, pit_type en, ParagraphList * pl, 
 	            MathData * ar, BufferParams const & bp, 
-	            bool ifb) :
+	            bool ifb, size_t gid) :
 	        kind(kin), cursor(cur), cell(cel), from(fro), end(en),
-	        pars(pl), array(ar), bparams(bp), isFullBuffer(ifb)
-	{}
+	        pars(pl), array(ar), bparams(0), isFullBuffer(ifb), group_id(gid)
+	{
+		if (isFullBuffer)
+			bparams = new BufferParams(bp);
+	}
+	///
+	UndoElement(UndoElement const & ue)
+	{
+		kind = ue.kind;
+		cursor = ue.cursor;
+		cell = ue.cell;
+		from = ue.from;
+		end = ue.end;
+		pars = ue.pars;
+		array = ue.array;
+		bparams = ue.isFullBuffer
+			? new BufferParams(*ue.bparams) : ue.bparams;
+		isFullBuffer = ue.isFullBuffer;
+		group_id = ue.group_id;
+	}
+	///
+	~UndoElement()
+	{
+		if (isFullBuffer)
+			delete bparams;
+	}
 	/// Which kind of operation are we recording for?
 	UndoKind kind;
 	/// the position of the cursor
@@ -90,9 +114,11 @@ struct UndoElement
 	/// the contents of the saved MathData (for mathed)
 	MathData * array;
 	/// Only used in case of full backups
-	BufferParams bparams;
+	BufferParams const * bparams;
 	/// Only used in case of full backups
 	bool isFullBuffer;
+	/// the element's group id
+	size_t group_id;
 private:
 	/// Protect construction
 	UndoElement();	
@@ -125,12 +151,16 @@ public:
 		c_.clear();
 	}
 
-	/// Push an item on to the stack, deleting the
-	/// bottom item on overflow.
+	/// Push an item on to the stack, deleting the bottom group on
+	/// overflow.
 	void push(UndoElement const & v) {
 		c_.push_front(v);
-		if (c_.size() > limit_)
-			c_.pop_back();
+		if (c_.size() > limit_) {
+			// remove a whole group at once.
+			const size_t gid = c_.back().group_id;
+			while (!c_.empty() && c_.back().group_id == gid)
+				c_.pop_back();
+		}
 	}
 
 private:
@@ -143,10 +173,14 @@ private:
 
 struct Undo::Private
 {
-	Private(Buffer & buffer) : buffer_(buffer), undo_finished_(true) {}
+	Private(Buffer & buffer) : buffer_(buffer), undo_finished_(true), 
+				   group_id(0), group_level(0) {}
 	
-	// Returns false if no undo possible.
+	// Do one undo/redo step
+	void doTextUndoOrRedo(DocIterator & cur, UndoElementStack & stack, UndoElementStack & otherStack);
+	// Apply one undo/redo group. Returns false if no undo possible.
 	bool textUndoOrRedo(DocIterator & cur, bool isUndoOperation);
+
 	///
 	void doRecordUndo(UndoKind kind,
 		DocIterator const & cell,
@@ -154,11 +188,10 @@ struct Undo::Private
 		pit_type last_pit,
 		DocIterator const & cur,
 		bool isFullBuffer,
-		bool isUndoOperation);
-
+		UndoElementStack & stack);
 	///
 	void recordUndo(UndoKind kind,
-		DocIterator & cur,
+		DocIterator const & cur,
 		pit_type first_pit,
 		pit_type last_pit);
 
@@ -171,6 +204,11 @@ struct Undo::Private
 
 	/// The flag used by Undo::finishUndo().
 	bool undo_finished_;
+
+	/// Current group Id.
+	size_t group_id;
+	/// Current group nesting nevel.
+	size_t group_level;
 };
 
 
@@ -223,8 +261,13 @@ void Undo::Private::doRecordUndo(UndoKind kind,
 	pit_type first_pit, pit_type last_pit,
 	DocIterator const & cur,
 	bool isFullBuffer,
-	bool isUndoOperation)
+	UndoElementStack & stack)
 {
+	if (!group_level) {
+		LYXERR0("There is no group open (creating one)");
+		++group_id;
+	}
+
 	if (first_pit > last_pit)
 		swap(first_pit, last_pit);
 
@@ -233,7 +276,6 @@ void Undo::Private::doRecordUndo(UndoKind kind,
 	// we want combine 'similar' non-ATOMIC undo recordings to one.
 	pit_type from = first_pit;
 	pit_type end = cell.lastpit() - last_pit;
-	UndoElementStack & stack = isUndoOperation ?  undostack_ : redostack_;
 	if (!undo_finished_
 	    && kind != ATOMIC_UNDO
 	    && !stack.empty()
@@ -243,9 +285,13 @@ void Undo::Private::doRecordUndo(UndoKind kind,
 	    && stack.top().end == end)
 		return;
 
+	if (isFullBuffer)
+		LYXERR(Debug::UNDO, "Create full buffer undo element of group " << group_id);
+	else
+		LYXERR(Debug::UNDO, "Create undo element of group " << group_id);
 	// create the position information of the Undo entry
 	UndoElement undo(kind, cur, cell, from, end, 0, 0, 
-	                 buffer_.params(), isFullBuffer);
+	                 buffer_.params(), isFullBuffer, group_id);
 
 	// fill in the real data to be saved
 	if (cell.inMathed()) {
@@ -274,14 +320,14 @@ void Undo::Private::doRecordUndo(UndoKind kind,
 }
 
 
-void Undo::Private::recordUndo(UndoKind kind, DocIterator & cur,
+void Undo::Private::recordUndo(UndoKind kind, DocIterator const & cur,
 	pit_type first_pit, pit_type last_pit)
 {
 	LASSERT(first_pit <= cur.lastpit(), /**/);
 	LASSERT(last_pit <= cur.lastpit(), /**/);
 
 	doRecordUndo(kind, cur, first_pit, last_pit, cur,
-		false, true);
+		false, undostack_);
 
 	undo_finished_ = false;
 	redostack_.clear();
@@ -291,38 +337,30 @@ void Undo::Private::recordUndo(UndoKind kind, DocIterator & cur,
 }
 
 
-bool Undo::Private::textUndoOrRedo(DocIterator & cur, bool isUndoOperation)
+void Undo::Private::doTextUndoOrRedo(DocIterator & cur, UndoElementStack & stack, UndoElementStack & otherstack)
 {
-	undo_finished_ = true;
-
-	UndoElementStack & stack = isUndoOperation ?  undostack_ : redostack_;
-
-	if (stack.empty())
-		// Nothing to do.
-		return false;
-
-	UndoElementStack & otherstack = isUndoOperation ?  redostack_ : undostack_;
-
 	// Adjust undo stack and get hold of current undo data.
-	UndoElement undo = stack.top();
-	stack.pop();
+	UndoElement & undo = stack.top();
+	LYXERR(Debug::UNDO, "Undo element of group " << undo.group_id);
+	// We'll pop the stack only when we're done with this element. So do NOT
+	// try to return early.
 
 	// We will store in otherstack the part of the document under 'undo'
 	DocIterator cell_dit = undo.cell.asDocIterator(&buffer_.inset());
 
 	doRecordUndo(ATOMIC_UNDO, cell_dit,
 		undo.from, cell_dit.lastpit() - undo.end, cur,
-		undo.isFullBuffer, !isUndoOperation);
+		undo.isFullBuffer, otherstack);
 
 	// This does the actual undo/redo.
 	//LYXERR0("undo, performing: " << undo);
-	bool labelsUpdateNeeded = false;
 	DocIterator dit = undo.cell.asDocIterator(&buffer_.inset());
 	if (undo.isFullBuffer) {
 		LASSERT(undo.pars, /**/);
 		// This is a full document
-		otherstack.top().bparams = buffer_.params();
-		buffer_.params() = undo.bparams;
+		delete otherstack.top().bparams;
+		otherstack.top().bparams = new BufferParams(buffer_.params());
+		buffer_.params() = *undo.bparams;
 		swap(buffer_.paragraphs(), *undo.pars);
 		delete undo.pars;
 		undo.pars = 0;
@@ -362,16 +400,34 @@ bool Undo::Private::textUndoOrRedo(DocIterator & cur, bool isUndoOperation)
 		plist.insert(first, undo.pars->begin(), undo.pars->end());
 		delete undo.pars;
 		undo.pars = 0;
-		labelsUpdateNeeded = true;
 	}
 	LASSERT(undo.pars == 0, /**/);
 	LASSERT(undo.array == 0, /**/);
 
 	cur = undo.cursor.asDocIterator(&buffer_.inset());
-	
-	if (labelsUpdateNeeded)
-		updateLabels(buffer_);
+	// Now that we're done with undo, we pop it off the stack.
+	stack.pop();
+}
+
+
+bool Undo::Private::textUndoOrRedo(DocIterator & cur, bool isUndoOperation)
+{
 	undo_finished_ = true;
+
+	UndoElementStack & stack = isUndoOperation ?  undostack_ : redostack_;
+
+	if (stack.empty())
+		// Nothing to do.
+		return false;
+
+	UndoElementStack & otherstack = isUndoOperation ? redostack_ : undostack_;
+
+	const size_t gid = stack.top().group_id;
+	while (!stack.empty() && stack.top().group_id == gid)
+		doTextUndoOrRedo(cur, stack, otherstack);
+
+	// Addapt the new material to current buffer.
+	updateLabels(buffer_);
 	return true;
 }
 
@@ -395,43 +451,71 @@ bool Undo::textRedo(DocIterator & cur)
 }
 
 
-void Undo::recordUndo(DocIterator & cur, UndoKind kind)
+void Undo::beginUndoGroup()
+{
+	if (d->group_level == 0) {
+		// create a new group
+		++d->group_id;
+		LYXERR(Debug::UNDO, "+++++++Creating new group " << d->group_id);
+	}
+	++d->group_level;
+}
+
+
+void Undo::endUndoGroup()
+{
+	if (d->group_level == 0)
+		LYXERR0("There is no undo group to end here");
+	--d->group_level;
+	if (d->group_level == 0) {
+		// real end of the group
+		LYXERR(Debug::UNDO, "-------End of group " << d->group_id);
+	}
+}
+
+
+
+void Undo::recordUndo(DocIterator const & cur, UndoKind kind)
 {
 	d->recordUndo(kind, cur, cur.pit(), cur.pit());
 }
 
 
-void Undo::recordUndoInset(DocIterator & cur, UndoKind kind)
+void Undo::recordUndoInset(DocIterator const & cur, UndoKind kind)
 {
 	DocIterator c = cur;
 	c.pop_back();
-	d->doRecordUndo(kind, c, c.pit(), c.pit(), cur, false, true);
+	d->doRecordUndo(kind, c, c.pit(), c.pit(), cur, false, d->undostack_);
 }
 
 
-void Undo::recordUndo(DocIterator & cur, UndoKind kind, pit_type from)
+void Undo::recordUndo(DocIterator const & cur, UndoKind kind, pit_type from)
 {
 	d->recordUndo(kind, cur, cur.pit(), from);
 }
 
 
-void Undo::recordUndo(DocIterator & cur, UndoKind kind,
+void Undo::recordUndo(DocIterator const & cur, UndoKind kind,
 	pit_type from, pit_type to)
 {
 	d->recordUndo(kind, cur, from, to);
 }
 
 
-void Undo::recordUndoFullDocument(DocIterator & cur)
+void Undo::recordUndoFullDocument(DocIterator const & cur)
 {
+	// This one may happen outside of the main undo group, so we
+	// put it in its own subgroup to avoid complaints.
+	beginUndoGroup();
 	d->doRecordUndo(
 		ATOMIC_UNDO,
 		doc_iterator_begin(d->buffer_.inset()),
 		0, d->buffer_.paragraphs().size() - 1,
 		cur,
 		true,
-		true
+		d->undostack_
 	);
+	endUndoGroup();
 }
 
 

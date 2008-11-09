@@ -32,7 +32,7 @@ Note for Subversion (SVN) checkouts
 
 If you have checked this out from Subversion, you need to have:
 * automake >= 1.5
-* autoconf >= 2.52
+* autoconf >= 2.59c
 * gettext >= 0.12
 Then type "./autogen.sh" to build the needed configuration
 files and proceed as stated below.
@@ -49,9 +49,10 @@ LyX 1.6.x makes great use of C++ Standard Template Library (STL).
 This means that gcc users will have to install the relevant libstdc++
 library to be able to compile this version of LyX. 
 
-LyX has been tested with Qt 4.2.x and Qt 4.3.x. The only special point
-to make is that you must ensure that both LyX and the Qt libraries are
-compiled with the same C++ compiler.
+LyX has been tested with Qt 4.2/3/4.x. For compilation you need to compile
+against at least Qt 4.2.2. The only special point to make is that you must
+ensure that both LyX and the Qt libraries are compiled with the same C++
+compiler.
 
 Note that if Qt is using Xft2/fontconfig, you may need to install the
 latex-xft-fonts package (at ftp://ftp.lyx.org/pub/lyx/contrib/) to get
@@ -130,10 +131,11 @@ flags:
        --with-extra-lib=DIRECTORY/lib --with-extra-inc=DIRECTORY/include
     If DIRECTORY is not specified, the current prefix is used.
 
-  o --with-version-suffix[=VERSION] will install LyX as lyx-VERSION,
-    e.g. lyx-1.6.1. The LyX data directory will be something like 
-    <whatever>/lyx-1.6.1/. Additionally your user configuration files 
-    will be found in e.g. $HOME/.lyx-1.6.1
+  o --with-version-suffix[=SUFFIX] will install LyX as lyxSUFFIX. The
+    LyX data directory will be something like <whatever>/lyxSUFFIX/.
+    Additionally your user configuration files will be found in e.g.
+    $HOME/.lyxSUFFIX. The default for SUFFIX is "-<currentversion>",
+    e.g. lyx-1.6.1.
 
     You can use this feature to install more than one version of LyX
     on the same system. You can optionally specify a "version" of your

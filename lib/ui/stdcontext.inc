@@ -41,7 +41,7 @@ Menuset
 		Item "Inline Formula|I" "math-mutate simple"
 		Item "Displayed Formula|D" "math-mutate equation"
 		Item "Eqnarray Environment|E" "math-mutate eqnarray"
-		SubMenu "AMS Environment|A" "ams_environment"
+		Submenu "AMS Environment|A" "ams_environment"
 		Separator		
 		OptItem "Equation Label|L" "label-insert"
 		OptItem "Toggle Labeling/Numbering|T" "math-number-toggle"
@@ -253,6 +253,7 @@ Menuset
 		OptItem "Demote Section|m" "outline-in"
 		OptItem "Move Section down|d" "outline-down"
 		OptItem "Move Section up|u" "outline-up"
+		OptItem "Insert Short Title|T" "optional-insert"
 		Separator
 		Item "Apply Last Text Style|A" "textstyle-apply"
 		Submenu "Text Style|S" "edit_textstyles"
@@ -289,6 +290,10 @@ Menuset
 		Item "Paste" "paste"
 		Submenu "Paste Recent|e" "edit_pasterecent"
 		Separator
+		OptItem "Open Inset|O" "next-inset-toggle open"
+		OptItem "Close Inset|C" "next-inset-toggle close"
+		Separator
+		Item "Dissolve Inset|D" "inset-dissolve"
 		Item "Settings...|S" "inset-settings listings"
 	End
 

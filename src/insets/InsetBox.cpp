@@ -28,6 +28,7 @@
 
 #include "support/debug.h"
 #include "support/gettext.h"
+#include "support/lstrings.h"
 #include "support/Translator.h"
 
 #include "frontends/Application.h"
@@ -35,6 +36,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
@@ -95,10 +97,7 @@ BoxTranslatorLoc const & boxtranslator_loc()
 
 InsetBox::InsetBox(Buffer const & buffer, string const & label)
 	: InsetCollapsable(buffer), params_(label)
-{
-	if (forcePlainLayout())
-		paragraphs().back().setLayout(buffer.params().documentClass().emptyLayout());
-}
+{}
 
 
 InsetBox::~InsetBox()
@@ -139,21 +138,34 @@ void InsetBox::read(Lexer & lex)
 
 void InsetBox::setButtonLabel()
 {
-	BoxType btype = boxtranslator().find(params_.type);
+	BoxType const btype = boxtranslator().find(params_.type);
+
+	docstring const type = _("Box");
+
+	docstring inner;
+	if (params_.inner_box) {
+		if (params_.use_parbox)
+			inner = _("Parbox");
+		else
+			inner = _("Minipage");
+	}
+
+	docstring frame;
+	if (btype != Frameless)
+		frame = boxtranslator_loc().find(btype);
 
 	docstring label;
-	label += _("Box");
-	label += " (";
-	if (btype == Frameless) {
-		if (params_.use_parbox)
-			label += _("Parbox");
-		else
-			label += _("Minipage");
-	} else {
-		label += boxtranslator_loc().find(btype);
-	}
-	label += ")";
-
+	if (inner.empty() && frame.empty())
+		label = type;
+	else if (inner.empty())
+		label = bformat(_("%1$s (%2$s)"),
+			type, frame);
+	else if (frame.empty())
+		label = bformat(_("%1$s (%2$s)"),
+			type, inner);
+	else
+		label = bformat(_("%1$s (%2$s, %3$s)"),
+			type, inner, frame);
 	setLabel(label);
 }
 

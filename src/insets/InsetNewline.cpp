@@ -133,18 +133,20 @@ ColorCode InsetNewline::ColorName() const
 		case InsetNewlineParams::LINEBREAK:
 			return Color_pagebreak;
 			break;
-		default:
-			return Color_eolmarker;
-			break;
 	}
+	// not really useful, but to avoids gcc complaints
+	return Color_eolmarker;
 }
 
 
-int InsetNewline::latex(odocstream & os, OutputParams const &) const
+int InsetNewline::latex(odocstream & os, OutputParams const & rp) const
 {
 	switch (params_.kind) {
 		case InsetNewlineParams::NEWLINE:
-			os << "\\\\\n";
+			if (rp.inTableCell == OutputParams::PLAIN)
+				os << "\\newline\n";
+			else
+				os << "\\\\\n";
 			break;
 		case InsetNewlineParams::LINEBREAK:
 			os << "\\linebreak{}\n";

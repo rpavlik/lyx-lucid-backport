@@ -40,8 +40,7 @@ FuncRequest const & KeySequence::addkey(KeySymbol const & key,
 	if (curmap)
 		return curmap->lookup(key, mod, this);
 
-	static FuncRequest unknown(LFUN_UNKNOWN_ACTION);
-	return unknown;
+	return FuncRequest::unknown;
 }
 
 
@@ -187,6 +186,15 @@ void KeySequence::clear()
 {
 	sequence.clear();
 	reset();
+}
+
+
+void KeySequence::removeKey()
+{
+	if (deleted_)
+		return;
+	sequence.pop_back();
+	modifiers.pop_back();
 }
 
 

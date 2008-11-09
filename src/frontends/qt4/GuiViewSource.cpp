@@ -23,9 +23,12 @@
 #include "Paragraph.h"
 #include "TexRow.h"
 
+#include "support/debug.h"
 #include "support/lassert.h"
 #include "support/docstream.h"
 #include "support/gettext.h"
+
+#include <boost/crc.hpp>
 
 #include <QSettings>
 #include <QTextCursor>
@@ -37,8 +40,8 @@ using namespace std;
 namespace lyx {
 namespace frontend {
 
-ViewSourceWidget::ViewSourceWidget(GuiViewSource & controller)
-	:	controller_(controller), document_(new QTextDocument(this)),
+ViewSourceWidget::ViewSourceWidget()
+	:	bv_(0), document_(new QTextDocument(this)),
 		highlighter_(new LaTeXHighlighter(document_))
 {
 	setupUi(this);
@@ -68,23 +71,81 @@ ViewSourceWidget::ViewSourceWidget(GuiViewSource & controller)
 }
 
 
+static size_t crcCheck(docstring const & s)
+{
+	boost::crc_32_type crc;
+	crc.process_bytes(&s[0], sizeof(char_type) * s.size());
+	return crc.checksum();
+}
+
+
+/** get the source code of selected paragraphs, or the whole document
+	\param fullSource get full source code
+	\return true if the content has changed since last call.
+ */
+static bool getContent(BufferView const * view, bool fullSource, QString & qstr)
+{
+	// get the *top* level paragraphs that contain the cursor,
+	// or the selected text
+	pit_type par_begin;
+	pit_type par_end;
+
+	if (!view->cursor().selection()) {
+		par_begin = view->cursor().bottom().pit();
+		par_end = par_begin;
+	} else {
+		par_begin = view->cursor().selectionBegin().bottom().pit();
+		par_end = view->cursor().selectionEnd().bottom().pit();
+	}
+	if (par_begin > par_end)
+		swap(par_begin, par_end);
+	odocstringstream ostr;
+	view->buffer().getSourceCode(ostr, par_begin, par_end + 1, fullSource);
+	docstring s = ostr.str();
+	static size_t crc = 0;
+	size_t newcrc = crcCheck(s);
+	if (newcrc == crc)
+		return false;
+	crc = newcrc;
+	qstr = toqstr(s);
+	return true;
+}
+
+
+void ViewSourceWidget::setBufferView(BufferView const * bv)
+{
+	bv_ = bv;
+}
+
+
 void ViewSourceWidget::updateView()
 {
-	BufferView * view = controller_.bufferview();
-	if (!view) {
+	if (!bv_) {
 		document_->setPlainText(QString());
 		setEnabled(false);
 		return;
 	}
-	document_->setPlainText(controller_.getContent(
-		viewFullSourceCB->isChecked()));
 
-	GuiViewSource::Row row = controller_.getRows();
+	QString content;
+	if (getContent(bv_, viewFullSourceCB->isChecked(), content))
+		document_->setPlainText(content);
+
+	CursorSlice beg = bv_->cursor().selectionBegin().bottom();
+	CursorSlice end = bv_->cursor().selectionEnd().bottom();
+	int const begrow = bv_->buffer().texrow().
+		getRowFromIdPos(beg.paragraph().id(), beg.pos());
+	int endrow = bv_->buffer().texrow().
+		getRowFromIdPos(end.paragraph().id(), end.pos());
+	int const nextendrow = bv_->buffer().texrow().
+		getRowFromIdPos(end.paragraph().id(), end.pos() + 1);
+	if (endrow != nextendrow)
+		endrow = nextendrow - 1;
+
 	QTextCursor c = QTextCursor(viewSourceTV->document());
-	c.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, row.begin);
+	c.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, begrow);
 	c.select(QTextCursor::BlockUnderCursor);
 	c.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor,
-		row.end - row.begin + 1);
+		endrow - begrow + 1);
 	viewSourceTV->setTextCursor(c);
 }
 
@@ -93,7 +154,7 @@ GuiViewSource::GuiViewSource(GuiView & parent,
 		Qt::DockWidgetArea area, Qt::WindowFlags flags)
 	: DockView(parent, "view-source", qt_("LaTeX Source"), area, flags)
 {
-	widget_ = new ViewSourceWidget(*this);
+	widget_ = new ViewSourceWidget();
 	setWidget(widget_);
 }
 
@@ -106,16 +167,20 @@ GuiViewSource::~GuiViewSource()
 
 void GuiViewSource::updateView()
 {
-	if (widget_->autoUpdateCB->isChecked())
+	if (widget_->autoUpdateCB->isChecked()) {
+		widget_->setBufferView(bufferview());
 		widget_->updateView();
+	}
 }
 
 
 void GuiViewSource::enableView(bool enable)
 {
-	if (!enable)
+	if (!enable) {
 		// In the opposite case, updateView() will be called anyway.
+		widget_->setBufferView(bufferview());
 		widget_->updateView();
+	}
 	widget_->setEnabled(enable);
 }
 
@@ -124,48 +189,6 @@ bool GuiViewSource::initialiseParams(string const & /*source*/)
 {
 	setWindowTitle(title());
 	return true;
-}
-
-
-QString GuiViewSource::getContent(bool fullSource)
-{
-	// get the *top* level paragraphs that contain the cursor,
-	// or the selected text
-	pit_type par_begin;
-	pit_type par_end;
-
-	BufferView * view = bufferview();
-	if (!view->cursor().selection()) {
-		par_begin = view->cursor().bottom().pit();
-		par_end = par_begin;
-	} else {
-		par_begin = view->cursor().selectionBegin().bottom().pit();
-		par_end = view->cursor().selectionEnd().bottom().pit();
-	}
-	if (par_begin > par_end)
-		swap(par_begin, par_end);
-	odocstringstream ostr;
-	view->buffer().getSourceCode(ostr, par_begin, par_end + 1, fullSource);
-	return toqstr(ostr.str());
-}
-
-
-GuiViewSource::Row GuiViewSource::getRows() const
-{
-	BufferView const * view = bufferview();
-	CursorSlice beg = view->cursor().selectionBegin().bottom();
-	CursorSlice end = view->cursor().selectionEnd().bottom();
-
-	int begrow = view->buffer().texrow().
-		getRowFromIdPos(beg.paragraph().id(), beg.pos());
-	int endrow = view->buffer().texrow().
-		getRowFromIdPos(end.paragraph().id(), end.pos());
-	int nextendrow = view->buffer().texrow().
-		getRowFromIdPos(end.paragraph().id(), end.pos() + 1);
-	Row row;
-	row.begin = begrow;
-	row.end = endrow == nextendrow ? endrow : (nextendrow - 1);
-	return row;
 }
 
 
@@ -197,10 +220,12 @@ void GuiViewSource::saveSession() const
 
 void GuiViewSource::restoreSession()
 {
-	Dialog::restoreSession();
+	DockView::restoreSession();
+	// FIXME: Full source updating is too slow to be done at startup.
+	//widget_->viewFullSourceCB->setChecked(
+	//	settings.value(sessionKey() + "/fullsource", false).toBool());
+	widget_->viewFullSourceCB->setChecked(false);
 	QSettings settings;
-	widget_->viewFullSourceCB->setChecked(
-		settings.value(sessionKey() + "/fullsource", false).toBool());
 	widget_->autoUpdateCB->setChecked(
 		settings.value(sessionKey() + "/autoupdate", true).toBool());
 }

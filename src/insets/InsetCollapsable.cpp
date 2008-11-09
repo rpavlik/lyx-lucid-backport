@@ -46,7 +46,7 @@ namespace lyx {
 
 InsetCollapsable::CollapseStatus InsetCollapsable::status() const
 {
-	if (decoration() == InsetLayout::Conglomerate)
+	if (decoration() == InsetLayout::CONGLOMERATE)
 		return status_;
 	return autoOpen_ ? Open : status_;
 }
@@ -55,18 +55,18 @@ InsetCollapsable::CollapseStatus InsetCollapsable::status() const
 InsetCollapsable::Geometry InsetCollapsable::geometry() const
 {
 	switch (decoration()) {
-	case InsetLayout::Classic:
+	case InsetLayout::CLASSIC:
 		if (status() == Open)
 			return openinlined_ ? LeftButton : TopButton;
 		return ButtonOnly;
 
-	case InsetLayout::Minimalistic:
+	case InsetLayout::MINIMALISTIC:
 		return status() == Open ? NoButton : ButtonOnly ;
 
-	case InsetLayout::Conglomerate:
+	case InsetLayout::CONGLOMERATE:
 		return status() == Open ? SubLabel : Corners ;
 
-	case InsetLayout::Default:
+	case InsetLayout::DEFAULT:
 		break; // this shouldn't happen
 	}
 
@@ -76,9 +76,8 @@ InsetCollapsable::Geometry InsetCollapsable::geometry() const
 }
 
 
-InsetCollapsable::InsetCollapsable(Buffer const & buf,
-		CollapseStatus status)
-	: InsetText(buf), status_(status),
+InsetCollapsable::InsetCollapsable(Buffer const & buf)
+	: InsetText(buf), status_(Inset::Open),
 	  openinlined_(false), autoOpen_(false), mouse_hover_(false)
 {
 	DocumentClass const & dc = buf.params().documentClass();
@@ -86,20 +85,20 @@ InsetCollapsable::InsetCollapsable(Buffer const & buf,
 	setAutoBreakRows(true);
 	setDrawFrame(true);
 	setFrameColor(Color_collapsableframe);
-	paragraphs().back().setLayout(dc.emptyLayout());
+	paragraphs().back().setPlainLayout(dc); 
 }
 
 
 InsetCollapsable::InsetCollapsable(InsetCollapsable const & rhs)
 	: InsetText(rhs),
-		layout_(rhs.layout_),
-		labelstring_(rhs.labelstring_),
-		button_dim(rhs.button_dim),
-		status_(rhs.status_),
-		openinlined_(rhs.openinlined_),
-		autoOpen_(rhs.autoOpen_),
-		// the sole purpose of this copy constructor
-		mouse_hover_(false)
+	  status_(rhs.status_),
+	  layout_(rhs.layout_),
+	  labelstring_(rhs.labelstring_),
+	  button_dim(rhs.button_dim),
+	  openinlined_(rhs.openinlined_),
+	  autoOpen_(rhs.autoOpen_),
+	  // the sole purpose of this copy constructor
+	  mouse_hover_(false)
 {
 }
 
@@ -109,18 +108,8 @@ docstring InsetCollapsable::toolTip(BufferView const & bv, int x, int y) const
 	Dimension dim = dimensionCollapsed();
 	if (geometry() == NoButton)
 		return translateIfPossible(layout_->labelstring());
-	if (x > xo(bv) + dim.wid || y > yo(bv) + dim.des)
+	if (x > xo(bv) + dim.wid || y > yo(bv) + dim.des || isOpen())
 		return docstring();
-
-	docstring default_tip;
-	switch (status_) {
-	case Open:
-		default_tip = _("Left-click to collapse the inset");
-		break;
-	case Collapsed:
-		default_tip = _("Left-click to open the inset");
-		break;
-	}
 
 	OutputParams rp(&buffer().params().encoding());
 	odocstringstream ods;
@@ -129,9 +118,7 @@ docstring InsetCollapsable::toolTip(BufferView const & bv, int x, int y) const
 	// shorten it if necessary
 	if (content_tip.size() > 200)
 		content_tip = content_tip.substr(0, 200) + "...";
-	if (!isOpen() && !content_tip.empty())
-		return content_tip + '\n' + default_tip;
-	return default_tip;
+	return content_tip;
 }
 
 
@@ -147,7 +134,7 @@ void InsetCollapsable::setLayout(DocumentClass const * const dc)
 		layout_ = &(dc->insetLayout(name()));
 		labelstring_ = translateIfPossible(layout_->labelstring());
 	} else {
-		layout_ = &DocumentClass::emptyInsetLayout();
+		layout_ = &DocumentClass::plainInsetLayout();
 		labelstring_ = _("UNDEFINED");
 	}
 
@@ -167,7 +154,7 @@ void InsetCollapsable::write(ostream & os) const
 		break;
 	}
 	os << "\n";
-	text_.write(buffer(), os);
+	text().write(buffer(), os);
 }
 
 
@@ -182,8 +169,10 @@ void InsetCollapsable::read(Lexer & lex)
 
 	// this must be set before we enter InsetText::read()
 	setLayout(buffer().params());
-
 	InsetText::read(lex);
+	// set button label again as the inset contents was not read yet at
+	// setLayout() time.
+	setButtonLabel();
 
 	// Force default font, if so requested
 	// This avoids paragraphs in buffer language that would have a
@@ -276,8 +265,6 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 	LASSERT(layout_, /**/);
 
 	autoOpen_ = pi.base.bv->cursor().isInside(this);
-	ColorCode const old_color = pi.background_color;
-	pi.background_color = backgroundColor();
 
 	FontInfo tmpfont = pi.base.font;
 	pi.base.font = layout_->font();
@@ -387,7 +374,6 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 		}
 		break;
 	}
-	pi.background_color = old_color;
 
 	pi.base.font = tmpfont;
 }
@@ -425,7 +411,7 @@ void InsetCollapsable::cursorPos(BufferView const & bv,
 
 Inset::EDITABLE InsetCollapsable::editable() const
 {
-	return geometry() != ButtonOnly? HIGHLY_EDITABLE : IS_EDITABLE;
+	return geometry() != ButtonOnly ? HIGHLY_EDITABLE : IS_EDITABLE;
 }
 
 
@@ -489,28 +475,23 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	switch (cmd.action) {
 	case LFUN_MOUSE_PRESS:
-		if (hitButton(cmd) && geometry() != NoButton) {
+		if (hitButton(cmd)) {
 			switch (cmd.button()) {
 			case mouse_button::button1:
-				// reset selection if necessary (see bug 3060)
-				if (cur.selection())
-					cur.bv().cursor().clearSelection();
-				else
-					cur.noUpdate();
-				cur.dispatched();
-				return;
+			case mouse_button::button3:
+				// Pass the command to the enclosing InsetText,
+				// so that the cursor gets set.
+				cur.undispatched();
+				break;
 			case mouse_button::none:
 			case mouse_button::button2:
-			case mouse_button::button3:
 			case mouse_button::button4:
 			case mouse_button::button5:
 				// Nothing to do.
-				cur.undispatched();
-				return;
+				cur.noUpdate();
+				break;
 			}
-		}
-		if (geometry() == NoButton 
-			|| (geometry() != ButtonOnly && !hitButton(cmd)))
+		} else if (geometry() != ButtonOnly)
 			InsetText::doDispatch(cur, cmd);
 		else
 			cur.undispatched();
@@ -519,23 +500,26 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_MOTION:
 	case LFUN_MOUSE_DOUBLE:
 	case LFUN_MOUSE_TRIPLE:
-		if (geometry() == NoButton)
-			InsetText::doDispatch(cur, cmd);
-		else if (geometry() != ButtonOnly
-		     && !hitButton(cmd))
+		if (hitButton(cmd)) 
+			cur.noUpdate();
+		else if (geometry() != ButtonOnly)
 			InsetText::doDispatch(cur, cmd);
 		else
 			cur.undispatched();
 		break;
 
 	case LFUN_MOUSE_RELEASE:
-		if (geometry() == NoButton || !hitButton(cmd)) {
+		if (!hitButton(cmd)) {
 			// The mouse click has to be within the inset!
-			InsetText::doDispatch(cur, cmd);
+			if (geometry() != ButtonOnly)
+				InsetText::doDispatch(cur, cmd);
+			else
+				cur.undispatched();			
 			break;
 		}
 		if (cmd.button() != mouse_button::button1) {
-			cur.dispatched();
+			// Nothing to do.
+			cur.noUpdate();
 			break;
 		}
 		// if we are selecting, we do not want to
@@ -629,7 +613,10 @@ bool InsetCollapsable::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
 	switch (cmd.action) {
-	// suppress these
+	// FIXME At present, these are being enabled and disabled according to
+	// whether PASSTHRU has been set in the InsetLayout. This makes some
+	// sense, but there are other checks that should really be done. E.g.,
+	// one should not be able to inset IndexPrint inside an optional argument!!
 	case LFUN_ACCENT_ACUTE:
 	case LFUN_ACCENT_BREVE:
 	case LFUN_ACCENT_CARON:
@@ -647,7 +634,6 @@ bool InsetCollapsable::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_ACCENT_UNDERBAR:
 	case LFUN_ACCENT_UNDERDOT:
 	case LFUN_APPENDIX:
-	case LFUN_BIBITEM_INSERT:
 	case LFUN_BOX_INSERT:
 	case LFUN_BRANCH_INSERT:
 	case LFUN_NEWLINE_INSERT:
@@ -661,6 +647,7 @@ bool InsetCollapsable::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_FLOAT_LIST_INSERT:
 	case LFUN_FLOAT_WIDE_INSERT:
 	case LFUN_FONT_BOLD:
+	case LFUN_FONT_BOLDSYMBOL:
 	case LFUN_FONT_TYPEWRITER:
 	case LFUN_FONT_DEFAULT:
 	case LFUN_FONT_EMPH:
@@ -683,8 +670,6 @@ bool InsetCollapsable::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_LABEL_INSERT:
 	case LFUN_LINE_INSERT:
 	case LFUN_NEWPAGE_INSERT:
-	case LFUN_LAYOUT:
-	case LFUN_LAYOUT_PARAGRAPH:
 	case LFUN_LAYOUT_TABULAR:
 	case LFUN_MARGINALNOTE_INSERT:
 	case LFUN_MATH_DISPLAY:
@@ -698,10 +683,6 @@ bool InsetCollapsable::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_NOTE_INSERT:
 	case LFUN_NOTE_NEXT:
 	case LFUN_OPTIONAL_INSERT:
-	case LFUN_PARAGRAPH_PARAMS:
-	case LFUN_PARAGRAPH_PARAMS_APPLY:
-	case LFUN_PARAGRAPH_SPACING:
-	case LFUN_PARAGRAPH_UPDATE:
 	case LFUN_REFERENCE_NEXT:
 	case LFUN_SERVER_GOTO_FILE_ROW:
 	case LFUN_SERVER_NOTIFY:
@@ -773,19 +754,19 @@ docstring InsetCollapsable::floatName(
 InsetLayout::InsetDecoration InsetCollapsable::decoration() const
 {
 	if (!layout_)
-		return InsetLayout::Classic;
+		return InsetLayout::CLASSIC;
 	InsetLayout::InsetDecoration const dec = layout_->decoration();
 	switch (dec) {
-	case InsetLayout::Classic:
-	case InsetLayout::Minimalistic:
-	case InsetLayout::Conglomerate:
+	case InsetLayout::CLASSIC:
+	case InsetLayout::MINIMALISTIC:
+	case InsetLayout::CONGLOMERATE:
 		return dec;
-	case InsetLayout::Default:
+	case InsetLayout::DEFAULT:
 		break;
 	}
 	if (lyxCode() == FLEX_CODE)
-		return InsetLayout::Conglomerate;
-	return InsetLayout::Classic;
+		return InsetLayout::CONGLOMERATE;
+	return InsetLayout::CLASSIC;
 }
 
 
@@ -803,7 +784,7 @@ int InsetCollapsable::latex(odocstream & os,
 	// collapsable insets should not redefine this, non-standard ones may
 	// call this.
 	if (!layout_->latexname().empty()) {
-		if (layout_->latextype() == "command") {
+		if (layout_->latextype() == InsetLayout::COMMAND) {
 			// FIXME UNICODE
 			if (runparams.moving_arg)
 				os << "\\protect";
@@ -811,7 +792,7 @@ int InsetCollapsable::latex(odocstream & os,
 			if (!layout_->latexparam().empty())
 				os << from_utf8(layout_->latexparam());
 			os << '{';
-		} else if (layout_->latextype() == "environment") {
+		} else if (layout_->latextype() == InsetLayout::ENVIRONMENT) {
 			os << "%\n\\begin{" << from_utf8(layout_->latexname()) << "}\n";
 			if (!layout_->latexparam().empty())
 				os << from_utf8(layout_->latexparam());
@@ -824,9 +805,9 @@ int InsetCollapsable::latex(odocstream & os,
 		rp.moving_arg = true;
 	int i = InsetText::latex(os, rp);
 	if (!layout_->latexname().empty()) {
-		if (layout_->latextype() == "command") {
+		if (layout_->latextype() == InsetLayout::COMMAND) {
 			os << "}";
-		} else if (layout_->latextype() == "environment") {
+		} else if (layout_->latextype() == InsetLayout::ENVIRONMENT) {
 			os << "\n\\end{" << from_utf8(layout_->latexname()) << "}\n";
 			i += 4;
 		}
@@ -837,11 +818,10 @@ int InsetCollapsable::latex(odocstream & os,
 
 void InsetCollapsable::validate(LaTeXFeatures & features) const
 {
-	if (!layout_)
-		return;
-
-	// Force inclusion of preamble snippet in layout file
-	features.require(to_utf8(layout_->name()));
+	string const preamble = getLayout().preamble();
+	if (!preamble.empty())
+		features.addPreambleSnippet(preamble);
+	features.require(getLayout().requires());
 	InsetText::validate(features);
 }
 
@@ -849,14 +829,14 @@ void InsetCollapsable::validate(LaTeXFeatures & features) const
 bool InsetCollapsable::undefined() const
 {
 	docstring const & n = getLayout().name();
-	return n.empty() || n == DocumentClass::emptyInsetLayout().name();
+	return n.empty() || n == DocumentClass::plainInsetLayout().name();
 }
 
 
 docstring InsetCollapsable::contextMenu(BufferView const & bv, int x,
 	int y) const
 {
-	if (decoration() == InsetLayout::Conglomerate)
+	if (decoration() == InsetLayout::CONGLOMERATE)
 		return from_ascii("context-conglomerate");
 
 	if (geometry() == NoButton)

@@ -288,10 +288,10 @@ public:
 	void expandFormats(MenuItem::Kind kind, Buffer const * buf);
 	void expandFloatListInsert(Buffer const * buf);
 	void expandFloatInsert(Buffer const * buf);
-	void expandFlexInsert(Buffer const * buf, std::string s);
+	void expandFlexInsert(Buffer const * buf, InsetLayout::InsetLyXType type);
 	void expandToc2(Toc const & toc_list, size_t from, size_t to, int depth);
 	void expandToc(Buffer const * buf);
-	void expandPasteRecent();
+	void expandPasteRecent(Buffer const * buf);
 	void expandToolbars();
 	void expandBranches(Buffer const * buf);
 	void expandCiteStyles(BufferView const *);
@@ -656,7 +656,7 @@ void MenuDefinition::expandGraphicsGroups(BufferView const * bv)
 
 void MenuDefinition::expandLastfiles()
 {
-	LastFilesSection::LastFiles const & lf = LyX::cref().session().lastFiles().lastFiles();
+	LastFilesSection::LastFiles const & lf = theSession().lastFiles().lastFiles();
 	LastFilesSection::LastFiles::const_iterator lfit = lf.begin();
 
 	int ii = 1;
@@ -699,7 +699,7 @@ void MenuDefinition::expandDocuments()
 
 void MenuDefinition::expandBookmarks()
 {
-	lyx::BookmarksSection const & bm = LyX::cref().session().bookmarks();
+	lyx::BookmarksSection const & bm = theSession().bookmarks();
 
 	for (size_t i = 1; i <= bm.size(); ++i) {
 		if (bm.isValid(i)) {
@@ -834,7 +834,8 @@ void MenuDefinition::expandFloatInsert(Buffer const * buf)
 }
 
 
-void MenuDefinition::expandFlexInsert(Buffer const * buf, string s)
+void MenuDefinition::expandFlexInsert(
+		Buffer const * buf, InsetLayout::InsetLyXType type)
 {
 	if (!buf) {
 		add(MenuItem(MenuItem::Command, qt_("No Document Open!"),
@@ -847,11 +848,16 @@ void MenuDefinition::expandFlexInsert(Buffer const * buf, string s)
 	TextClass::InsetLayouts::const_iterator end = insetLayouts.end();
 	for (; cit != end; ++cit) {
 		docstring const label = cit->first;
-		if (cit->second.lyxtype() == s)
+		if (cit->second.lyxtype() == type)
 			addWithStatusCheck(MenuItem(MenuItem::Command, 
 				toqstr(translateIfPossible(label)),
 				FuncRequest(LFUN_FLEX_INSERT, label)));
 	}
+	// FIXME This is a little clunky.
+	if (items_.empty() && type == InsetLayout::CUSTOM)
+		add(MenuItem(MenuItem::Command,
+				    qt_("No custom insets defined!"),
+				    FuncRequest(LFUN_NOACTION)));
 }
 
 
@@ -924,10 +930,6 @@ void MenuDefinition::expandToc(Buffer const * buf)
 		return;
 	}
 
-	Buffer* cbuf = const_cast<Buffer*>(buf);
-	cbuf->tocBackend().update();
-	cbuf->structureChanged();
-
 	// Add an entry for the master doc if this is a child doc
 	Buffer const * const master = buf->masterBuffer();
 	if (buf != master) {
@@ -988,9 +990,9 @@ void MenuDefinition::expandToc(Buffer const * buf)
 }
 
 
-void MenuDefinition::expandPasteRecent()
+void MenuDefinition::expandPasteRecent(Buffer const * buf)
 {
-	docstring_list const sel = cap::availableSelections();
+	docstring_list const sel = cap::availableSelections(buf);
 
 	docstring_list::const_iterator cit = sel.begin();
 	docstring_list::const_iterator end = sel.end();
@@ -1009,7 +1011,7 @@ void MenuDefinition::expandToolbars()
 	Toolbars::Infos::const_iterator cit = guiApp->toolbars().begin();
 	Toolbars::Infos::const_iterator end = guiApp->toolbars().end();
 	for (; cit != end; ++cit) {
-		MenuItem const item(MenuItem::Command, qt_(cit->gui_name),
+		MenuItem const item(MenuItem::Command, toqstr(cit->gui_name),
 				FuncRequest(LFUN_TOOLBAR_TOGGLE, cit->name));
 		if (guiApp->toolbars().isMainToolbar(cit->name))
 			add(item);
@@ -1046,12 +1048,14 @@ void MenuDefinition::expandBranches(Buffer const * buf)
 	BranchList::const_iterator end = params.branchlist().end();
 
 	for (int ii = 1; cit != end; ++cit, ++ii) {
-		docstring label = cit->getBranch();
-		if (ii < 10)
-			label = convert<docstring>(ii) + ". " + label + char_type('|') + convert<docstring>(ii);
+		docstring label = cit->branch();
+		if (ii < 10) {
+			label = convert<docstring>(ii) + ". " + label
+				+ char_type('|') + convert<docstring>(ii);
+		}
 		addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
 				    FuncRequest(LFUN_BRANCH_INSERT,
-						cit->getBranch())));
+						cit->branch())));
 	}
 }
 
@@ -1222,9 +1226,14 @@ struct Menus::Impl {
 	/// Mac special menu.
 	/** This defines a menu whose entries list the FuncRequests
 	    that will be removed by expand() in other menus. This is
-	    used by the Qt/Mac code
+	    used by the Qt/Mac code.
+
+	    NOTE: Qt does not remove the menu items when clearing a QMenuBar,
+	    such that the items will keep accessing the FuncRequests in
+	    the MenuDefinition. While Menus::Impl might be recreated,
+	    we keep mac_special_menu_ in memory by making it static.
 	*/
-	MenuDefinition specialmenu_;
+	static MenuDefinition mac_special_menu_;
 
 	///
 	MenuList menulist_;
@@ -1236,6 +1245,10 @@ struct Menus::Impl {
 	/// name to menu for \c menu() method.
 	NameMap name_map_;
 };
+
+
+MenuDefinition Menus::Impl::mac_special_menu_;
+
 
 /*
   Here is what the Qt documentation says about how a menubar is chosen:
@@ -1293,11 +1306,11 @@ void Menus::Impl::macxMenuBarInit(GuiView * view, QMenuBar * qmb)
 	const size_t num_entries = sizeof(entries) / sizeof(entries[0]);
 
 	// the special menu for Menus. Fill it up only once.
-	if (specialmenu_.size() == 0) {
+	if (mac_special_menu_.size() == 0) {
 		for (size_t i = 0 ; i < num_entries ; ++i) {
 			FuncRequest const func(entries[i].action,
 				from_utf8(entries[i].arg));
-			specialmenu_.add(MenuItem(MenuItem::Command, 
+			mac_special_menu_.add(MenuItem(MenuItem::Command,
 				entries[i].label, func));
 		}
 	}
@@ -1305,8 +1318,8 @@ void Menus::Impl::macxMenuBarInit(GuiView * view, QMenuBar * qmb)
 	// add the entries to a QMenu that will eventually be empty
 	// and therefore invisible.
 	QMenu * qMenu = qmb->addMenu("special");
-	MenuDefinition::const_iterator cit = specialmenu_.begin();
-	MenuDefinition::const_iterator end = specialmenu_.end();
+	MenuDefinition::const_iterator cit = mac_special_menu_.begin();
+	MenuDefinition::const_iterator end = mac_special_menu_.end();
 	for (size_t i = 0 ; cit != end ; ++cit, ++i) {
 		Action * action = new Action(view, QIcon(), cit->label(),
 			cit->func(), QString(), qMenu);
@@ -1346,15 +1359,15 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 			break;
 
 		case MenuItem::CharStyles:
-			tomenu.expandFlexInsert(buf, "charstyle");
+			tomenu.expandFlexInsert(buf, InsetLayout::CHARSTYLE);
 			break;
 
 		case MenuItem::Custom:
-			tomenu.expandFlexInsert(buf, "custom");
+			tomenu.expandFlexInsert(buf, InsetLayout::CUSTOM);
 			break;
 
 		case MenuItem::Elements:
-			tomenu.expandFlexInsert(buf, "element");
+			tomenu.expandFlexInsert(buf, InsetLayout::ELEMENT);
 			break;
 
 		case MenuItem::FloatListInsert:
@@ -1366,7 +1379,7 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 			break;
 
 		case MenuItem::PasteRecent:
-			tomenu.expandPasteRecent();
+			tomenu.expandPasteRecent(buf);
 			break;
 
 		case MenuItem::Toolbars:
@@ -1402,7 +1415,7 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 			break;
 
 		case MenuItem::Command:
-			if (!specialmenu_.hasFunc(cit->func()))
+			if (!mac_special_menu_.hasFunc(cit->func()))
 				tomenu.addWithStatusCheck(*cit);
 		}
 	}
@@ -1532,7 +1545,11 @@ void Menus::fillMenuBar(QMenuBar * qmb, GuiView * view, bool initial)
 {
 	if (initial) {
 #ifdef Q_WS_MACX
-		// setup special mac specific menu item
+		// setup special mac specific menu items, but only do this
+		// the first time a QMenuBar is created. Otherwise Qt will
+		// create duplicate items in the application menu. It seems
+		// that Qt does not remove them when the QMenubar is cleared.
+		LYXERR(Debug::GUI, "Creating Mac OS X special menu bar");
 		d->macxMenuBarInit(view, qmb);
 #endif
 	} else {

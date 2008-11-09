@@ -18,6 +18,8 @@
 #include "pcheaders.h"
 #endif
 
+#cmakedefine WORDS_BIGENDIAN 1
+
 #cmakedefine HAVE_ASPELL_ASPELL_H 1
 #cmakedefine HAVE_ASPELL_H 1
 
@@ -25,6 +27,8 @@
 #cmakedefine PACKAGE_VERSION "${PACKAGE_VERSION}"
 #cmakedefine LYX_DATE "${LYX_DATE}"
 #cmakedefine VERSION_INFO "${VERSION_INFO}"
+#cmakedefine LYX_DIR_VER "${LYX_DIR_VER}"
+#cmakedefine LYX_USERDIR_VER "${LYX_USERDIR_VER}"
 
 #cmakedefine PROGRAM_SUFFIX "${PPROGRAM_SUFFIX}"
 #cmakedefine LYX_ABS_INSTALLED_DATADIR "${LYX_DIR}"

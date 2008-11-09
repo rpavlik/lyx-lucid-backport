@@ -75,7 +75,12 @@ class Toc : public std::vector<TocItem>
 {
 public:
 	typedef std::vector<TocItem>::const_iterator const_iterator;
+	typedef std::vector<TocItem>::iterator iterator;
 	const_iterator item(DocIterator const & dit) const;
+	/// Look for a TocItem given its depth and string.
+	/// \return The first matching item.
+	/// \retval end() if no item was found.
+	iterator item(int depth, docstring const & str);
 };
 
 typedef Toc::const_iterator TocIterator;
@@ -97,8 +102,8 @@ public:
 	void setBuffer(Buffer const * buffer) { buffer_ = buffer; }
 	///
 	void update();
-	///
-	void updateItem(DocIterator const & pit);
+	/// \return true if the item was updated.
+	bool updateItem(DocIterator const & pit);
 
 	///
 	TocList const & tocs() const { return tocs_; }

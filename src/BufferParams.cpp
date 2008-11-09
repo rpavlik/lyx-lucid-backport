@@ -84,8 +84,11 @@ static char const * const string_footnotekinds[] = {
 
 
 static char const * const tex_graphics[] = {
-	"default", "dvips", "dvitops", "emtex",
-	"ln", "oztex", "textures", "none", ""
+	"default", "dvialw", "dvilaser", "dvipdf", "dvipdfm", "dvipdfmx",
+	"dvips", "dvipsone", "dvitops", "dviwin", "dviwindo", "dvi2ps", "emtex",
+	"ln", "oztex", "pctexhp", "pctexps", "pctexwin", "pctex32", "pdftex",
+	"psprint", "pubps", "tcidvi", "textures", "truetex", "vtex", "xdvi",
+	"xetex", "none", ""
 };
 
 
@@ -332,6 +335,7 @@ BufferParams::BufferParams()
 	use_bibtopic = false;
 	trackChanges = false;
 	outputChanges = false;
+	use_default_options = true;
 	secnumdepth = 3;
 	tocdepth = 3;
 	language = default_language;
@@ -487,9 +491,13 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		readLocalLayout(lex);
 	} else if (token == "\\begin_modules") {
 		readModules(lex);
+	} else if (token == "\\begin_removed_modules") {
+		readRemovedModules(lex);
 	} else if (token == "\\options") {
 		lex.eatLine();
 		options = lex.getString();
+	} else if (token == "\\use_default_options") {
+		lex >> use_default_options;
 	} else if (token == "\\master") {
 		lex.eatLine();
 		master = lex.getString();
@@ -687,20 +695,35 @@ void BufferParams::writeFile(ostream & os) const
 		os << "\\options " << options << '\n';
 	}
 
+	// use the class options defined in the layout?
+	os << "\\use_default_options " 
+	   << convert<string>(use_default_options) << "\n";
+
 	// the master document
 	if (!master.empty()) {
 		os << "\\master " << master << '\n';
 	}
 	
-	//the modules
+	// removed modules
+	if (!removedModules_.empty()) {
+		os << "\\begin_removed_modules" << '\n';
+		set<string>::const_iterator it = removedModules_.begin();
+		set<string>::const_iterator en = removedModules_.end();
+		for (; it != en; it++)
+			os << *it << '\n';
+		os << "\\end_removed_modules" << '\n';
+	}
+
+	// the modules
 	if (!layoutModules_.empty()) {
 		os << "\\begin_modules" << '\n';
 		LayoutModuleList::const_iterator it = layoutModules_.begin();
-		for (; it != layoutModules_.end(); it++)
+		LayoutModuleList::const_iterator en = layoutModules_.end();
+		for (; it != en; it++)
 			os << *it << '\n';
 		os << "\\end_modules" << '\n';
 	}
-
+	
 	// local layout information
 	if (!local_layout.empty()) {
 		// remove '\n' from the end 
@@ -748,9 +771,9 @@ void BufferParams::writeFile(ostream & os) const
 	BranchList::const_iterator it = branchlist().begin();
 	BranchList::const_iterator end = branchlist().end();
 	for (; it != end; ++it) {
-		os << "\\branch " << to_utf8(it->getBranch())
-		   << "\n\\selected " << it->getSelected()
-		   << "\n\\color " << lyx::X11hexname(it->getColor())
+		os << "\\branch " << to_utf8(it->branch())
+		   << "\n\\selected " << it->isSelected()
+		   << "\n\\color " << lyx::X11hexname(it->color())
 		   << "\n\\end_branch"
 		   << "\n";
 	}
@@ -904,8 +927,19 @@ void BufferParams::validate(LaTeXFeatures & features) const
 		}
 	}
 
-	if (pdfoptions().use_hyperref)
+	if (pdfoptions().use_hyperref) {
 		features.require("hyperref");
+		// due to interferences with babel and hyperref, the color package has to
+		// be loaded after hyperref when hyperref is used with the colorlinks
+		// option, see http://bugzilla.lyx.org/show_bug.cgi?id=5291
+		if (pdfoptions().colorlinks)
+			features.require("color");
+	}
+
+	if (language->lang() == "vietnamese")
+		features.require("vietnamese");
+	else if (language->lang() == "japanese")
+		features.require("japanese");
 }
 
 
@@ -998,20 +1032,31 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 				language_options << ',';
 			language_options << language->babel();
 		}
-		// when Vietnamese is used, babel must directly be loaded with the
-		// language options, not in the class options, see
+		// if Vietnamese is used, babel must directly be loaded
+		// with language options, not in the class options, see
 		// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg129417.html
 		size_t viet = language_options.str().find("vietnam");
 		// viet = string::npos when not found
-		// when Japanese is used, babel must directly be loaded with the
-		// language options, not in the class options, see
+		// the same is for all other languages that are not directly supported by
+		// babel, but where LaTeX-packages add babel support.
+		// this is currently the case for Latvian, Lithuanian, and Mongolian
+		size_t latvian = language_options.str().find("latvian");
+		size_t lithu = language_options.str().find("lithuanian");
+		size_t mongo = language_options.str().find("mongolian");
+		// if Japanese is used, babel must directly be loaded
+		// with language options, not in the class options, see
 		// http://bugzilla.lyx.org/show_bug.cgi?id=4597#c4
 		size_t japan = language_options.str().find("japanese");
-		// japan = string::npos when not found
 		if (lyxrc.language_global_options && !language_options.str().empty()
-			&& viet == string::npos && japan == string::npos)
+			&& viet == string::npos && japan == string::npos
+			&& latvian == string::npos && lithu == string::npos
+			&& mongo == string::npos)
 			clsoptions << language_options.str() << ',';
 	}
+
+	// the predefined options from the layout
+	if (use_default_options && !tclass.options().empty())
+		clsoptions << tclass.options() << ',';
 
 	// the user-defined options
 	if (!options.empty()) {
@@ -1044,9 +1089,11 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 
 	// set font encoding
 	// this one is not per buffer
-	// for arabic_arabi and farsi we also need to load the LAE and LFE encoding
-	if (lyxrc.fontenc != "default") {
-		if (language->lang() == "arabic_arabi" || language->lang() == "farsi") {
+	// for arabic_arabi and farsi we also need to load the LAE and
+	// LFE encoding
+	if (lyxrc.fontenc != "default" && language->lang() != "japanese") {
+		if (language->lang() == "arabic_arabi"
+		    || language->lang() == "farsi") {
 			os << "\\usepackage[" << from_ascii(lyxrc.fontenc)
 			   << ",LFE,LAE]{fontenc}\n";
 			texrow.newline();
@@ -1060,13 +1107,20 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	// handle inputenc etc.
 	writeEncodingPreamble(os, features, texrow);
 
-	if (!listings_params.empty()) {
+	if (!listings_params.empty() || features.isRequired("listings")) {
 		os << "\\usepackage{listings}\n";
 		texrow.newline();
+	}
+	if (!listings_params.empty()) {
 		os << "\\lstset{";
-		// do not test validity because listings_params is supposed to be valid
-		string par = InsetListingsParams(listings_params).separatedParams(true);
-		os << from_ascii(par);
+		// do not test validity because listings_params is 
+		// supposed to be valid
+		string par =
+			InsetListingsParams(listings_params).separatedParams(true);
+		// we can't support all packages, but we should load the color package
+		if (par.find("\\color", 0) != string::npos)
+			features.require("color");
+		os << from_utf8(par);
 		// count the number of newlines
 		for (size_t i = 0; i < par.size(); ++i)
 			if (par[i] == '\n')
@@ -1221,48 +1275,38 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		texrow.newline();
 	}
 
-	// If we use jurabib, we have to call babel here.
-	if (use_babel && features.isRequired("jurabib")) {
-		os << from_ascii(babelCall(language_options.str()))
-		   << '\n'
-		   << from_ascii(features.getBabelOptions());
-		texrow.newline();
+	// Now insert the LyX specific LaTeX commands...
+	docstring lyxpreamble;
+
+	// due to interferences with babel and hyperref, the color package has to
+	// be loaded (when it is not already loaded) before babel when hyperref
+	// is used with the colorlinks option, see
+	// http://bugzilla.lyx.org/show_bug.cgi?id=5291
+	// we decided therefore to load color always before babel, see
+	// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg144349.html
+	lyxpreamble += from_ascii(features.getColorOptions());
+	
+	// If we use hyperref, jurabib, japanese, or vietnamese, we have to call babel before them.
+	if (use_babel
+		&& (features.isRequired("jurabib")
+			|| features.isRequired("hyperref")
+			|| features.isRequired("vietnamese")
+			|| features.isRequired("japanese") ) ) {
+				// FIXME UNICODE
+				lyxpreamble += from_utf8(babelCall(language_options.str())) + '\n';
+				lyxpreamble += from_utf8(features.getBabelOptions()) + '\n';
 	}
 
-	// Now insert the LyX specific LaTeX commands...
-
 	// The optional packages;
-	docstring lyxpreamble(from_ascii(features.getPackages()));
+	lyxpreamble += from_ascii(features.getPackages());
 
 	// Line spacing
 	lyxpreamble += from_utf8(spacing().writePreamble(tclass.provides("SetSpace")));
 
-	// We try to load babel late, in case it interferes with other
-	// packages. But some packages also need babel to be loaded
-	// before, e.g. jurabib has to be called after babel. So load
-	// babel after the optional packages but before the
-	// user-defined preamble. This allows the users to redefine
-	// babel commands, e.g. to translate the word "Index" to the
-	// German "Stichwortverzeichnis". For more infos why this
-	// place was chosen, see
-	// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg128425.html
-	// If you encounter problems, you can shift babel to its old
-	// place behind the user-defined preamble. But in this case
-	// you must change the Vietnamese support from currently
-	// "\usepackage[vietnamese]{babel}" to:
-	// \usepackage{vietnamese}
-	// \usepackage{babel}
-	// because vietnamese must be loaded before hyperref
-	if (use_babel && !features.isRequired("jurabib")) {
-		// FIXME UNICODE
-		lyxpreamble += from_utf8(babelCall(language_options.str())) + '\n';
-		lyxpreamble += from_utf8(features.getBabelOptions());
-	}
-
 	// PDF support.
 	// * Hyperref manual: "Make sure it comes last of your loaded
 	//   packages, to give it a fighting chance of not being over-written,
-	//   since its job is to redefine many LATEX commands."
+	//   since its job is to redefine many LaTeX commands."
 	// * Email from Heiko Oberdiek: "It is usually better to load babel
 	//   before hyperref. Then hyperref has a chance to detect babel.
 	// * Has to be loaded before the "LyX specific LaTeX commands" to
@@ -1273,7 +1317,7 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		pdfoptions().writeLaTeX(oss, documentClass().provides("hyperref"));
 		lyxpreamble += oss.str();
 	}
-
+	
 	// Will be surrounded by \makeatletter and \makeatother when needed
 	docstring atlyxpreamble;
 
@@ -1356,6 +1400,17 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	else
 		lyxpreamble += '\n' + atlyxpreamble;
 
+	// We try to load babel late, in case it interferes with other packages.
+	// Jurabib and Hyperref have to be called after babel, though.
+	if (use_babel && !features.isRequired("jurabib")
+	    && !features.isRequired("hyperref")
+	    && !features.isRequired("vietnamese")
+	    && !features.isRequired("japanese")) {
+		// FIXME UNICODE
+		lyxpreamble += from_utf8(babelCall(language_options.str())) + '\n';
+		lyxpreamble += from_utf8(features.getBabelOptions()) + '\n';
+	}
+
 	int const nlines =
 		int(count(lyxpreamble.begin(), lyxpreamble.end(), '\n'));
 	for (int j = 0; j != nlines; ++j) {
@@ -1374,7 +1429,7 @@ void BufferParams::useClassDefaults()
 	sides = tclass.sides();
 	columns = tclass.columns();
 	pagestyle = tclass.pagestyle();
-	options = tclass.options();
+	use_default_options = true;
 	// Only if class has a ToC hierarchy
 	if (tclass.hasTocLevels()) {
 		secnumdepth = tclass.secnumdepth();
@@ -1390,7 +1445,7 @@ bool BufferParams::hasClassDefaults() const
 	return sides == tclass.sides()
 		&& columns == tclass.columns()
 		&& pagestyle == tclass.pagestyle()
-		&& options == tclass.options()
+		&& use_default_options
 		&& secnumdepth == tclass.secnumdepth()
 		&& tocdepth == tclass.tocdepth();
 }
@@ -1413,6 +1468,168 @@ void BufferParams::setDocumentClass(DocumentClass const * const tc) {
 }
 
 
+bool BufferParams::removeBadModules()
+{
+	// we'll write a new list of modules, since we can't just remove them,
+	// as that would invalidate our iterators
+	list<string> oldModules = getModules();
+	clearLayoutModules();
+
+	list<string> const & provmods = baseClass()->providedModules();
+	list<string> const & exclmods = baseClass()->excludedModules();
+	bool consistent = true; // set to false if we have to do anything
+
+	list<string>::const_iterator oit = oldModules.begin();
+	list<string>::const_iterator const oen = oldModules.end();
+	for (; oit != oen; ++oit) {
+		string const & modname = *oit;
+		// skip modules that the class provides
+		if (find(provmods.begin(), provmods.end(), modname) != provmods.end()) {
+			LYXERR0("Module `" << modname << "' dropped because provided by document class.");
+			consistent = false;
+			continue;
+		}
+		// are we excluded by the document class?
+		if (find(exclmods.begin(), exclmods.end(), modname) != exclmods.end()) {
+			LYXERR0("Module `" << modname << "' dropped because excluded by document class.");
+			consistent = false;
+			continue;
+		}
+		// determine whether some provided module excludes us or we exclude it
+		list<string>::const_iterator pit = provmods.begin();
+		list<string>::const_iterator const pen = provmods.end();
+		bool excluded = false;
+		for (; !excluded && pit != pen; ++pit) {
+			if (!LyXModule::areCompatible(modname, *pit)) {
+				LYXERR0("Module " << modname << 
+						" dropped becuase it conflicts with provided module `" << *pit << "'.");
+				consistent = false;
+				excluded = true;
+			}
+		}
+		if (excluded)
+			continue;
+		layoutModules_.push_back(modname);
+	}
+	return consistent;
+}
+
+
+void BufferParams::addDefaultModules()
+{
+	// add any default modules not already in use
+	list<string> const & mods = baseClass()->defaultModules();
+	list<string>::const_iterator mit = mods.begin();
+	list<string>::const_iterator men = mods.end();
+
+	// We want to insert the default modules at the beginning of
+	// the list, but also to insert them in the correct order.
+	// The obvious thing to do would be to collect them and then
+	// insert them, but that doesn't work because a later default
+	// module may require an earlier one, and then the test below
+	//     moduleCanBeAdded(modname)
+	// will fail. So we have to do it a more complicated way.
+	list<string>::iterator insertpos = layoutModules_.begin();
+	int numinserts = 0;
+
+	for (; mit != men; mit++) {
+		string const & modName = *mit;
+		// make sure the user hasn't removed it
+		if (find(removedModules_.begin(), removedModules_.end(), modName) !=
+		    removedModules_.end()) {
+			LYXERR(Debug::TCLASS, "Default module `" << modName << 
+					"' not added because removed by user.");
+			continue;
+		}
+
+		if (!moduleCanBeAdded(modName)) {
+			// FIXME This could be because it's already present, so we should
+			// probably return something indicating that.
+			LYXERR(Debug::TCLASS, "Default module `" << modName << 
+					"' could not be added.");
+			continue;
+		}
+		LYXERR(Debug::TCLASS, "Default module `" << modName << "' added.");
+		layoutModules_.insert(insertpos, modName);
+		// now we reset insertpos
+		++numinserts;
+		insertpos = layoutModules_.begin();
+		advance(insertpos, numinserts);
+	}
+}
+
+
+bool BufferParams::checkModuleConsistency() {
+	bool consistent = true;
+	// Perform a consistency check on the set of modules. We need to make
+	// sure that none of the modules exclude each other and that requires
+	// are satisfied.
+	list<string> oldModules = getModules();
+	clearLayoutModules();
+	list<string>::const_iterator oit = oldModules.begin();
+	list<string>::const_iterator oen = oldModules.end();
+	list<string> const & provmods = baseClass()->providedModules();
+	list<string> const & exclmods = baseClass()->excludedModules();
+	for (; oit != oen; ++oit) {
+		string const & modname = *oit;
+		bool excluded = false;
+		// Determine whether some prior module excludes us, or we exclude it
+		list<string>::const_iterator lit = layoutModules_.begin();
+		list<string>::const_iterator len = layoutModules_.end();
+		for (; !excluded && lit != len; ++lit) {
+			if (!LyXModule::areCompatible(modname, *lit)) {
+				consistent = false;
+				LYXERR0("Module " << modname << 
+						" dropped because it is excluded by prior module " << *lit);
+				excluded = true;
+			}
+		}
+
+		if (excluded)
+			continue;
+
+		// determine whether some provided module or some prior module
+		// satisfies our requirements
+		LyXModule const * const oldmod = moduleList[modname];
+		if (!oldmod) {
+			LYXERR0("Default module " << modname << 
+					" added although it is unavailable and can't check requirements.");
+			continue;
+		}
+			
+		vector<string> const & reqs = oldmod->getRequiredModules();
+		if (!reqs.empty()) {
+			// we now set excluded to true, meaning that we haven't
+			// yet found a required module.
+			excluded = true;
+			vector<string>::const_iterator rit  = reqs.begin();
+			vector<string>::const_iterator ren = reqs.end();
+			for (; rit != ren; ++rit) {
+				string const reqmod = *rit;
+				if (find(provmods.begin(), provmods.end(), reqmod) != 
+						provmods.end()) {
+					excluded = false;
+					break;
+				}
+				if (find(layoutModules_.begin(), layoutModules_.end(), reqmod) != 
+						layoutModules_.end()) {
+					excluded = false;
+					break;
+				}
+			}
+		}
+		if (excluded) {
+			consistent = false;
+			LYXERR0("Module " << modname << " dropped because requirements not met.");
+		} else {
+			LYXERR(Debug::TCLASS, "Module " << modname << " passed consistency check.");
+			layoutModules_.push_back(modname);
+		}
+	}
+	return consistent;
+}
+
+
 bool BufferParams::setBaseClass(string const & classname)
 {
 	LYXERR(Debug::TCLASS, "setBaseClass: " << classname);
@@ -1428,16 +1645,39 @@ bool BufferParams::setBaseClass(string const & classname)
 		bcl.addEmptyClass(classname);
 	}
 
-	if (bcl[classname].load()) {
-		pimpl_->baseClass_ = classname;
-		return true;
+	bool const success = bcl[classname].load();
+	if (!success) {
+		docstring s = 
+			bformat(_("The document class %1$s could not be loaded."),
+			from_utf8(classname));
+		frontend::Alert::error(_("Could not load class"), s);
+		return false;
 	}
-	
-	docstring s = 
-		bformat(_("The document class %1$s could not be loaded."),
-		from_utf8(classname));
-	frontend::Alert::error(_("Could not load class"), s);
-	return false;
+
+	pimpl_->baseClass_ = classname;
+	// the previous document class may have loaded some modules that the
+	// new one excludes, and the new class may provide, etc, some that
+	// conflict with ones that were already loaded. So we need to go 
+	// through the list and fix everything. I suppose there are various
+	// ways this could be done, but the following seems to work at the 
+	// moment. (Thanks to Philippe Charpentier for helping work out all 
+	// the bugs---rgh.)
+	// 
+	// first, we remove any modules the new document class itself provides,
+	// those it excludes, and those that conflict with ones it excludes.
+	// this has to be done first because, otherwise, a module we're about
+	// to remove could prevent a default module from being added.
+	removeBadModules();
+	// next, we add any default modules the new class provides.
+	addDefaultModules();
+	// finally, we perform a general consistency check on the set of
+	// loaded modules.
+	checkModuleConsistency();
+	// FIXME removeBadModules() and checkModuleConsistency() both return
+	// a boolean indicating whether something had to be changed. It might
+	// be worth popping a message to the user if so.
+
+	return true;
 }
 
 
@@ -1462,10 +1702,10 @@ void BufferParams::makeDocumentClass()
 		return;
 
 	doc_class_ = &(DocumentClassBundle::get().newClass(*baseClass()));
-	
-	//FIXME It might be worth loading the children's modules here,
-	//just as we load their bibliographies and such, instead of just 
-	//doing a check in InsetInclude.
+
+	// FIXME It might be worth loading the children's modules here,
+	// just as we load their bibliographies and such, instead of just 
+	// doing a check in InsetInclude.
 	LayoutModuleList::const_iterator it = layoutModules_.begin();
 	for (; it != layoutModules_.end(); it++) {
 		string const modName = *it;
@@ -1505,14 +1745,71 @@ void BufferParams::makeDocumentClass()
 }
 
 
-vector<string> const & BufferParams::getModules() const 
+bool BufferParams::moduleCanBeAdded(string const & modName) const
 {
-	return layoutModules_;
+	// Is the module already present?
+	LayoutModuleList::const_iterator it = layoutModules_.begin();
+	LayoutModuleList::const_iterator end = layoutModules_.end();
+	for (; it != end; it++)
+		if (*it == modName) 
+			return false;
+
+	LyXModule const * const lm = moduleList[modName];
+	if (!lm)
+		return true;
+
+	// Is this module explicitly excluded by the document class?
+	list<string>::const_iterator const exclmodstart = 
+			baseClass()->excludedModules().begin();
+	list<string>::const_iterator const exclmodend = 
+			baseClass()->excludedModules().end();
+	if (find(exclmodstart, exclmodend, modName) != exclmodend)
+		return false;
+
+	// Is this module already provided by the document class?
+	list<string>::const_iterator const provmodstart = 
+			baseClass()->providedModules().begin();
+	list<string>::const_iterator const provmodend = 
+			baseClass()->providedModules().end();
+	if (find(provmodstart, provmodend, modName) != provmodend)
+		return false;
+
+	// Check for conflicts with used modules
+	// first the provided modules...
+	list<string>::const_iterator provmodit = provmodstart;
+	for (; provmodit != provmodend; ++provmodit) {
+		if (!LyXModule::areCompatible(modName, *provmodit))
+			return false;
+	}
+	// and then the selected modules
+	LayoutModuleList::const_iterator mit = getModules().begin();
+	LayoutModuleList::const_iterator const men = getModules().end();
+	for (; mit != men; ++mit)
+		if (!LyXModule::areCompatible(modName, *mit))
+			return false;
+
+	// Check whether some required module is available
+	vector<string> const reqs = lm->getRequiredModules();
+	if (reqs.empty())
+		return true;
+
+	mit = getModules().begin(); // reset
+	vector<string>::const_iterator rit = reqs.begin();
+	vector<string>::const_iterator ren = reqs.end();
+	bool foundone = false;
+	for (; rit != ren; ++rit) {
+		if (find(mit, men, *rit) != men || 
+		    find(provmodstart, provmodend, *rit) != provmodend) {
+			foundone = true;
+			break;
+		}
+	}
+
+	return foundone;
 }
 
 
-
-bool BufferParams::addLayoutModule(string const & modName) 
+bool BufferParams::addLayoutModule(string const & modName)
 {
 	LayoutModuleList::const_iterator it = layoutModules_.begin();
 	LayoutModuleList::const_iterator end = layoutModules_.end();
@@ -1521,12 +1818,6 @@ bool BufferParams::addLayoutModule(string const & modName)
 			return false;
 	layoutModules_.push_back(modName);
 	return true;
-}
-
-
-void BufferParams::clearLayoutModules() 
-{
-	layoutModules_.clear();
 }
 
 
@@ -1657,6 +1948,37 @@ void BufferParams::readModules(Lexer & lex)
 }
 
 
+void BufferParams::readRemovedModules(Lexer & lex)
+{
+	if (!lex.eatLine()) {
+		lyxerr << "Error (BufferParams::readRemovedModules):"
+				"Unexpected end of input." << endl;
+		return;
+	}
+	while (true) {
+		string mod = lex.getString();
+		if (mod == "\\end_removed_modules")
+			break;
+		removedModules_.insert(mod);
+		lex.eatLine();
+	}
+	// now we want to remove any removed modules that were previously 
+	// added. normally, that will be because default modules were added in 
+	// setBaseClass(), which gets called when \textclass is read at the 
+	// start of the read.
+	set<string>::const_iterator rit = removedModules_.begin();
+	set<string>::const_iterator const ren = removedModules_.end();
+	for (; rit != ren; rit++) {
+		LayoutModuleList::iterator const mit = layoutModules_.begin();
+		LayoutModuleList::iterator const men = layoutModules_.end();
+		LayoutModuleList::iterator found = find(mit, men, *rit);
+		if (found == men)
+			continue;
+		layoutModules_.erase(found);
+	}
+}
+
+
 string BufferParams::paperSizeName(PapersizePurpose purpose) const
 {
 	char real_papersize = papersize;
@@ -1759,17 +2081,24 @@ string BufferParams::babelCall(string const & lang_opts) const
 	// other languages are used (lang_opts is then empty)
 	if (lang_opts.empty())
 		return string();
-	// when Vietnamese is used, babel must directly be loaded with the
+	// If Vietnamese is used, babel must directly be loaded with the
 	// language options, see
 	// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg129417.html
 	size_t viet = lang_opts.find("vietnam");
 	// viet = string::npos when not found
-	// when Japanese is used, babel must directly be loaded with the
+	// the same is for all other languages that are not directly supported by
+	// babel, but where LaTeX-packages add babel support.
+	// this is currently the case for Latvian, Lithuanian, and Mongolian
+	size_t latvian = lang_opts.find("latvian");
+	size_t lithu = lang_opts.find("lithuanian");
+	size_t mongo = lang_opts.find("mongolian");
+	// If Japanese is used, babel must directly be loaded with the
 	// language options, see
 	// http://bugzilla.lyx.org/show_bug.cgi?id=4597#c4
 	size_t japan = lang_opts.find("japanese");
-	// japan = string::npos when not found
-	if (!lyxrc.language_global_options || viet != string::npos || japan != string::npos)
+	if (!lyxrc.language_global_options || viet != string::npos
+		|| japan != string::npos || latvian != string::npos
+		|| lithu != string::npos || mongo != string::npos)
 		return "\\usepackage[" + lang_opts + "]{babel}";
 	return lang_pack;
 }
@@ -1789,14 +2118,14 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 		set<string> encodings =
 			features.getEncodingSet(doc_encoding);
 
-		// When the encodings EUC-JP-plain, JIS-plain, or SJIS-plainare used, the
-		// package inputenc must be omitted. Therefore set the encoding to empty.
+		// If the "japanese" package (i.e. pLaTeX) is used,
+		// inputenc must be omitted.
 		// see http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg129680.html
-		if (doc_encoding == "EUC-JP-plain" || doc_encoding == "JIS-plain" ||
-			doc_encoding == "SJIS-plain")
-			encodings.clear();
+		if (package == Encoding::japanese)
+		     features.require("japanese");
 
-		if (!encodings.empty() || package == Encoding::inputenc) {
+		if ((!encodings.empty() || package == Encoding::inputenc)
+		    && !features.isRequired("japanese")) {
 			os << "\\usepackage[";
 			set<string>::const_iterator it = encodings.begin();
 			set<string>::const_iterator const end = encodings.end();
@@ -1821,8 +2150,12 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 	} else if (inputenc != "default") {
 		switch (encoding().package()) {
 		case Encoding::none:
+		case Encoding::japanese:
 			break;
 		case Encoding::inputenc:
+			// do not load inputenc if japanese is used
+			if (features.isRequired("japanese"))
+				break;
 			os << "\\usepackage[" << from_ascii(inputenc)
 			   << "]{inputenc}\n";
 			texrow.newline();
@@ -1834,9 +2167,10 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 		}
 	}
 
-	// The encoding "armscii8" is only available when the package "armtex" is loaded.
-	// armscii8 is used for Armenian.
-	if (language->encoding()->latexName() == "armscii8" || inputenc == "armscii8") {
+	// The encoding "armscii8" (for Armenian) is only available when
+	// the package "armtex" is loaded.
+	if (language->encoding()->latexName() == "armscii8"
+	    || inputenc == "armscii8") {
 		os << "\\usepackage{armtex}\n";
 		texrow.newline();
 	}

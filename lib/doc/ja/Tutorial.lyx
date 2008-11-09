@@ -1,7 +1,8 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 336
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass book
 \begin_preamble
 % DO NOT ALTER THIS PREAMBLE!!!
@@ -46,7 +47,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics dvips
 \paperfontsize default
 \spacing single
@@ -63,7 +63,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize a4paper
@@ -83,8 +82,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -275,13 +274,6 @@ LyXをはじめよう
 
 \begin_layout Section
 最初のLyXの文章
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Your-first-LyX"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -677,13 +669,6 @@ status collapsed
 
 \begin_layout Subsection
 WYSIWYM: LyXでの空白
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:空白"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1722,13 +1707,6 @@ lyxのタイトル・日付・著者名を正しくしてください。
 
 \begin_layout Section
 ラベルと相互参照 
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:ラベル"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -2662,13 +2640,6 @@ example_raw.lyx
 
 \begin_layout Subsection
 行列
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:行列"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard

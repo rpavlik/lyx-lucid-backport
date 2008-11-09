@@ -24,6 +24,7 @@ namespace lyx {
 
 namespace support { class FileName; }
 
+class Buffer;
 class LaTeXFeatures;
 
 class EncodingException : public std::exception {
@@ -45,7 +46,8 @@ public:
 	enum Package {
 		none,
 		inputenc,
-		CJK
+		CJK,
+		japanese
 	};
 	///
 	Encoding() {}
@@ -63,6 +65,8 @@ public:
 	std::string const & guiName() const { return guiName_; }
 	///
 	std::string const & iconvName() const { return iconvName_; }
+	///
+	bool const & hasFixedWidth() const { return fixedwidth_; }
 	/**
 	 * Convert \p c to something that LaTeX can understand.
 	 * This is either the character itself (if it is representable
@@ -71,7 +75,7 @@ public:
 	 * LaTeX macro is known, a warning is given of lyxerr, and the
 	 * character is returned.
 	 */
-	docstring latexChar(char_type c) const;
+	docstring latexChar(char_type c, bool for_mathed = false) const;
 	/// Which LaTeX package handles this encoding?
 	Package package() const { return package_; }
 	/// A list of all characters usable in this encoding
@@ -110,6 +114,12 @@ private:
 
 class Encodings {
 public:
+	///
+	typedef std::set<char_type> MathCommandSet;
+	///
+	typedef std::set<char_type> TextCommandSet;
+	///
+	typedef std::set<char_type> MathSymbolSet;
 	///
 	typedef std::map<std::string, Encoding> EncodingList;
 	/// iterator to iterate over all encodings.
@@ -173,16 +183,51 @@ public:
 	static bool isKnownScriptChar(char_type const c, std::string & preamble);
 	/**
 	 * Do we have to output this character as LaTeX command in any case?
-	 * This is true if the "forced" flag is set.
+	 * This is true if the "force" flag is set.
 	 * We need this if the inputencoding does not support a certain glyph.
 	 */
 	static bool isForced(char_type c);
 	/**
-	 * Convert \p c to something that LaTeX can understand in math mode.
-	 * \return whether \p command is a math mode command
+	 * Do we have to display in italics this character when in mathmode?
+	 * This is true if the "mathalpha" flag is set. We use this for
+	 * accented characters that are output as math commands.
 	 */
-	static bool latexMathChar(char_type c, docstring & command);
-
+	static bool isMathAlpha(char_type c);
+	/**
+	 * Register \p c as a mathmode command.
+	 */
+	static void addMathCmd(char_type c) { mathcmd.insert(c); }
+	/**
+	 * Register \p c as a textmode command.
+	 */
+	static void addTextCmd(char_type c) { textcmd.insert(c); }
+	/**
+	 * Register \p c as a mathmode symbol.
+	 */
+	static void addMathSym(char_type c) { mathsym.insert(c); }
+	/**
+	 * Tell whether \p c is registered as a mathmode command.
+	 */
+	static bool isMathCmd(char_type c) { return mathcmd.count(c); }
+	/**
+	 * Tell whether \p c is registered as a textmode command.
+	 */
+	static bool isTextCmd(char_type c) { return textcmd.count(c); }
+	/**
+	 * Tell whether \p c is registered as a mathmode symbol.
+	 */
+	static bool isMathSym(char_type c) { return mathsym.count(c); }
+	/**
+	 * Initialize mathcmd, textcmd, and mathsym sets.
+	 */
+	static void initUnicodeMath(Buffer const & buffer);
+	/**
+	 * If \p c cannot be encoded in the given \p encoding, convert
+	 * it to something that LaTeX can understand in mathmode.
+	 * \return whether \p command is a mathmode command
+	 */
+	static bool latexMathChar(char_type c, bool mathmode,
+			Encoding const * encoding, docstring & command);
 	/**
 	 * Convert the LaTeX command in \p cmd to the corresponding unicode
 	 * point and set \p combining to true if it is a combining symbol
@@ -207,6 +252,12 @@ public:
 private:
 	///
 	EncodingList encodinglist;
+	///
+	static MathCommandSet mathcmd;
+	///
+	static TextCommandSet textcmd;
+	///
+	static MathSymbolSet mathsym;
 };
 
 extern Encodings encodings;

@@ -60,7 +60,7 @@ namespace Alert = frontend::Alert;
 Buffer * checkAndLoadLyXFile(FileName const & filename)
 {
 	// File already open?
-	Buffer * checkBuffer = theBufferList().getBuffer(filename.absFilename());
+	Buffer * checkBuffer = theBufferList().getBuffer(filename);
 	if (checkBuffer) {
 		if (checkBuffer->isClean())
 			return checkBuffer;
@@ -153,16 +153,15 @@ Buffer * newUnnamedFile(string const & templatename, FileName const & path)
 {
 	static int newfile_number;
 
-	string document_path = path.absFilename();
-	string filename = addName(document_path,
+	FileName filename(path, 
 		"newfile" + convert<string>(++newfile_number) + ".lyx");
 	while (theBufferList().exists(filename)
-		|| FileName(filename).isReadableFile()) {
+		|| filename.isReadableFile()) {
 		++newfile_number;
-		filename = addName(document_path,
+		filename.set(path,
 			"newfile" +	convert<string>(newfile_number) + ".lyx");
 	}
-	return newFile(filename, templatename, false);
+	return newFile(filename.absFilename(), templatename, false);
 }
 
 
@@ -477,33 +476,40 @@ void updateLabels(Buffer const & buf, ParIterator & parit)
 // the contents of the paragraphs.
 void updateLabels(Buffer const & buf, bool childonly)
 {
-	Buffer const * const master = buf.masterBuffer();
 	// Use the master text class also for child documents
+	Buffer const * const master = buf.masterBuffer();
 	DocumentClass const & textclass = master->params().documentClass();
 
+	// keep the buffers to be children in this set. If the call from the
+	// master comes back we can see which of them were actually seen (i.e.
+	// via an InsetInclude). The remaining ones in the set need still be updated.
+	static std::set<Buffer const *> bufToUpdate;
 	if (!childonly) {
 		// If this is a child document start with the master
 		if (master != &buf) {
+			bufToUpdate.insert(&buf);
 			updateLabels(*master);
-			return;
+
+			// was buf referenced from the master (i.e. not in bufToUpdate anymore)?
+			if (bufToUpdate.find(&buf) == bufToUpdate.end())
+				return;
 		}
 
-		// start over the counters
+		// start over the counters in the master
 		textclass.counters().reset();
-		buf.clearReferenceCache();
-		buf.updateMacros();
 	}
+
+	// update will be done below for buf
+	bufToUpdate.erase(&buf);
+
+	// update all caches
+	buf.clearReferenceCache();
+	buf.inset().setBuffer(const_cast<Buffer &>(buf));
+	buf.updateMacros();
 
 	Buffer & cbuf = const_cast<Buffer &>(buf);
 
-	if (buf.text().empty()) {
-		// FIXME: we don't call continue with updateLabels()
-		// here because it crashes on newly created documents.
-		// But the TocBackend needs to be initialised
-		// nonetheless so we update the tocBackend manually.
-		cbuf.tocBackend().update();
-		return;
-	}
+	BOOST_ASSERT(!buf.text().paragraphs().empty());
 
 	// do the real work
 	ParIterator parit = par_iterator_begin(buf.inset());

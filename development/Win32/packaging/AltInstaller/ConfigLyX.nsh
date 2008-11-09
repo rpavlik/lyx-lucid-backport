@@ -28,17 +28,6 @@ Function ConfigureLyX
    StrCpy $PathPrefix "$PathPrefix;$SVGPath"
   ${endif}
   
-  # Set a path prefix in lyxrc.dist
-  ClearErrors
-  ${if} "$PathPrefix" != ""
-   Delete "$INSTDIR\Resources\lyxrc.dist"
-   FileOpen $R1 "$INSTDIR\Resources\lyxrc.dist" w
-   FileWrite $R1 '\path_prefix "$PathPrefix"$\r$\n'
-   FileClose $R1
-   IfErrors 0 +2
-    MessageBox MB_OK|MB_ICONEXCLAMATION "$(ModifyingConfigureFailed)"
-  ${endif}
-
   # Create a batch file to start LyX with the environment variables set
   ClearErrors
   Delete "${PRODUCT_BAT}"
@@ -50,29 +39,33 @@ Function ConfigureLyX
   FileClose $R1
   IfErrors 0 +2
    MessageBox MB_OK|MB_ICONEXCLAMATION "$(CreateCmdFilesFailed)"
-
-  # set up the preferences file
+   
+  # Set the path prefix in lyxrc.dist
+  ClearErrors
+  Delete "$INSTDIR\Resources\lyxrc.dist"
+  FileOpen $R1 "$INSTDIR\Resources\lyxrc.dist" w
+  # set some general things
+  FileWrite $R1 '\preview_scale_factor "1.0"$\r$\n\
+  		 \screen_zoom "120"$\r$\n'
+  ${if} "$PathPrefix" != ""
+   FileWrite $R1 '\path_prefix "$PathPrefix"$\r$\n'
+  ${endif}
   # if Acrobat or Adobe Reader is used
   ${if} $Acrobat == "Yes" # used for Acrobat / Adobe Reader
-    # writes settings to the preferences file
-    ${LineFind} "$INSTDIR\Resources\preferences" "$INSTDIR\Resources\preferences" "75" "AcroPref"
-    # ${LineFind} is a macro from TextFunc.nsh # calls Function AcroPref
+   FileWrite $R1 '\format "pdf3" "pdf" "PDF (dvipdfm)" "m" "pdfview" "" "document,vector"$\r$\n\
+   		  \format "pdf2" "pdf" "PDF (pdflatex)" "F" "pdfview" "" "document,vector"$\r$\n\
+		  \format "pdf" "pdf" "PDF (ps2pdf)" "P" "pdfview" "" "document,vector"$\r$\n'
   ${endif}
-  
-  # if a SVG to PDF converter ws found (e.g. Inkscape) define it in the preferences
+  # if a SVG to PDF converter ws found (e.g. Inkscape)
   ${if} $SVGPath != ""
-   ${if} $Acrobat == "Yes"
-    # writes settings to the preferences file
-    ${LineFind} "$INSTDIR\Resources\preferences" "$INSTDIR\Resources\preferences" "78" "SVGPref1"
-    # deletes lines from the preferences file
-    ${LineFind} "$INSTDIR\Resources\preferences" "$INSTDIR\Resources\preferences" "87:90" "SVGPref2"
-   ${else}
-    # writes settings to the preferences file but 3 lines earlier because the
-    #3 PDF lines are in this case not here
-    ${LineFind} "$INSTDIR\Resources\preferences" "$INSTDIR\Resources\preferences" "75" "SVGPref1"
-    ${LineFind} "$INSTDIR\Resources\preferences" "$INSTDIR\Resources\preferences" "84:87" "SVGPref2"
-   ${endif}
-  ${endif} 
+   FileWrite $R1 '\format "svg" "svg" "SVG" "" "inkscape --file=$$$$i" "inkscape --file=$$$$i" "vector"$\r$\n\
+   		  \converter "svg" "png" "inkscape --without-gui --file=$$$$i --export-png=$$$$o" ""$\r$\n\
+		  \converter "svg" "pdf" "inkscape --file=$$$$i --export-area-drawing --without-gui --export-pdf=$$$$o" ""$\r$\n\
+		  \converter "svg" "pdf2" "inkscape --file=$$$$i --export-area-drawing --without-gui --export-pdf=$$$$o" ""'
+  ${endif}
+  FileClose $R1
+  IfErrors 0 +2
+  MessageBox MB_OK|MB_ICONEXCLAMATION "$(ModifyingConfigureFailed)"
   
   # register LyX
   ${if} $CreateFileAssociations == "true"
@@ -113,23 +106,24 @@ Function ConfigureLyX
    WriteRegStr SHCTX "Software\Classes\${PRODUCT_REGNAME}\Shell\open\command" "" '"${PRODUCT_BAT}" "%1"'
    # write informations about file extensions
    WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}" "" "${PRODUCT_REGNAME}"
-   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}" "Content Type" "${PRODUCT_MIME_TYPE}"  
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}" "Content Type" "${PRODUCT_MIME_TYPE}"
+   # .lyx13
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}13" "" "${PRODUCT_REGNAME}"
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}13" "Content Type" "${PRODUCT_MIME_TYPE}"
+   # .lyx14
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}14" "" "${PRODUCT_REGNAME}"
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}14" "Content Type" "${PRODUCT_MIME_TYPE}"
+   # .lyx15
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}15" "" "${PRODUCT_REGNAME}"
+   WriteRegStr SHCTX "Software\Classes\${PRODUCT_EXT}15" "Content Type" "${PRODUCT_MIME_TYPE}"
    # refresh shell
    System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) (${SHCNE_ASSOCCHANGED}, ${SHCNF_IDLIST}, 0, 0)'
   ${endif}
 
-  # create the LyX Application Data folder for all users
-  # this folder is automatically created by LyX when it is first started but we want to start LyX with a specific session file,
-  # so we create this folder before LyX starts and copy there the session file
-  StrCpy $AppSubfolder ${PRODUCT_SUBFOLDER}
-  StrCpy $AppFiles "$INSTDIR\Resources\session"
-  Call CreateAppPathSub # function from LyXUtils.nsh
-  Delete "$INSTDIR\Resources\session" # delete the session file in the INSTDIR because it is unneeded there
-  
   # delete unnecessary files
   ${if} $DelPythonFiles == "True"
    Delete $INSTDIR\bin\python.exe
-   Delete $INSTDIR\bin\python25.dll
+   Delete $INSTDIR\bin\python26.dll
    Delete $INSTDIR\bin\Python-License.txt
    RMDir /r $INSTDIR\bin\Lib
    RMDir /r $INSTDIR\bin\DLLs
@@ -153,43 +147,5 @@ Function ConfigureLyX
   		 "$PythonPath\python.exe" configure.py'
   FileClose $R1
 
-FunctionEnd
-
-# --------------------------------
-
-Function AcroPref
- # writes PDF settings to the preferences file
-
-  FileWrite $R4 '\format "pdf3" "pdf" "PDF (dvipdfm)" "m" "pdfview" "" "document,vector"$\r$\n\
-		 \format "pdf2" "pdf" "PDF (pdflatex)" "F" "pdfview" "" "document,vector"$\r$\n\
-		 \format "pdf" "pdf" "PDF (ps2pdf)" "P" "pdfview" "" "document,vector"$\r$\n'
-  Push $0
-  
-FunctionEnd
-
-# --------------------------------
-
-Function SVGPref1
- # writes SVG settings to the preferences file
-  
-  FileWrite $R4 '\format "svg" "svg" "SVG" "" "inkscape --file=$$$$i" "inkscape --file=$$$$i" "vector"$\r$\n\
-		 $\r$\n\
-		 #$\r$\n\
-		 # CONVERTERS SECTION ##########################$\r$\n\
-		 #$\r$\n\
-		 $\r$\n\
-		 \converter "svg" "png" "inkscape --without-gui --file=$$$$i --export-png=$$$$o" ""$\r$\n\
-                 \converter "svg" "pdf" "inkscape --file=$$$$i --export-area-drawing --without-gui --export-pdf=$$$$o" ""$\r$\n\
-		 \converter "svg" "pdf2" "inkscape --file=$$$$i --export-area-drawing --without-gui --export-pdf=$$$$o" ""'
-  Push $0
-  
-FunctionEnd
-
-Function SVGPref2
- # deletes lines from the preferences file
-  
-  StrCpy $0 SkipWrite
-  Push $0
-  
 FunctionEnd
 

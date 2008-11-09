@@ -185,28 +185,6 @@ InsetInclude::InsetInclude(InsetInclude const & other)
 InsetInclude::~InsetInclude()
 {
 	delete label_;
-	if (isVerbatim(params()) || isListings(params()))
-		return;
-
-
-	string const parent_filename = buffer().absFileName();
-	FileName const included_file = makeAbsPath(to_utf8(params()["filename"]),
-			   onlyPath(parent_filename));
-
-	if (!isLyXFilename(included_file.absFilename()))
-		return;
-
-	Buffer * child = theBufferList().getBuffer(included_file.absFilename());
-	// File not opened, nothing to close.
-	if (!child)
-		return;
-
-	// Child document has a different parent, don't close it.
-	if (child->parent() != &buffer())
-		return;
-
-	//close the buffer.
-	theBufferList().release(child);
 }
 
 
@@ -258,13 +236,23 @@ void InsetInclude::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (!p.getCmdName().empty()) {
 			if (isListings(p)){
 				InsetListingsParams new_params(to_utf8(p["lstparams"]));
-				docstring const label_str = from_utf8(new_params.getParamValue("label"));
-				if (label_str.empty())
+				docstring const new_label =
+					from_utf8(new_params.getParamValue("label"));
+				docstring old_label;
+				if (label_)
+					old_label = label_->getParam("name");
+				if (new_label.empty())
 					delete label_;
-				else if (label_)
-					label_->updateCommand(label_str);
-				else {
-					label_ = createLabel(label_str);
+				else if (label_ && old_label != new_label) {
+					label_->updateCommand(new_label);
+					// the label might have been adapted (duplicate)
+					if (new_label != label_->getParam("name")) {
+						new_params.addParam("label",
+							"{" + to_utf8(label_->getParam("name")) + "}");
+						p["lstparams"] = from_utf8(new_params.params());
+					}
+				} else if (old_label != new_label) {
+					label_ = createLabel(new_label);
 					label_->setBuffer(buffer());
 					label_->initView();
 				}
@@ -393,7 +381,7 @@ Buffer * loadIfNeeded(Buffer const & parent, InsetCommandParams const & params)
 	if (!isLyXFilename(included_file.absFilename()))
 		return 0;
 
-	Buffer * child = theBufferList().getBuffer(included_file.absFilename());
+	Buffer * child = theBufferList().getBuffer(included_file);
 	if (!child) {
 		// the readonly flag can/will be wrong, not anymore I think.
 		if (!included_file.exists())
@@ -481,7 +469,7 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		if (!loadIfNeeded(buffer(), params()))
 			return false;
 
-		Buffer * tmp = theBufferList().getBuffer(included_file.absFilename());
+		Buffer * tmp = theBufferList().getBuffer(included_file);
 
 		if (tmp->params().baseClass() != masterBuffer->params().baseClass()) {
 			// FIXME UNICODE
@@ -497,13 +485,13 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 		// Make sure modules used in child are all included in master
 		//FIXME It might be worth loading the children's modules into the master
 		//over in BufferParams rather than doing this check.
-		vector<string> const masterModules = masterBuffer->params().getModules();
-		vector<string> const childModules = tmp->params().getModules();
-		vector<string>::const_iterator it = childModules.begin();
-		vector<string>::const_iterator end = childModules.end();
+		list<string> const masterModules = masterBuffer->params().getModules();
+		list<string> const childModules = tmp->params().getModules();
+		list<string>::const_iterator it = childModules.begin();
+		list<string>::const_iterator end = childModules.end();
 		for (; it != end; ++it) {
 			string const module = *it;
-			vector<string>::const_iterator found =
+			list<string>::const_iterator found =
 				find(masterModules.begin(), masterModules.end(), module);
 			if (found == masterModules.end()) {
 				docstring text = bformat(_("Included file `%1$s'\n"
@@ -639,7 +627,7 @@ int InsetInclude::docbook(odocstream & os, OutputParams const & runparams) const
 	DocFileName writefile(changeExtension(included_file, ".sgml"));
 
 	if (loadIfNeeded(buffer(), params())) {
-		Buffer * tmp = theBufferList().getBuffer(included_file);
+		Buffer * tmp = theBufferList().getBuffer(FileName(included_file));
 
 		string const mangled = writefile.mangledFilename();
 		writefile = makeAbsPath(mangled,
@@ -703,7 +691,7 @@ void InsetInclude::validate(LaTeXFeatures & features) const
 	// to be loaded:
 	if (loadIfNeeded(buffer(), params())) {
 		// a file got loaded
-		Buffer * const tmp = theBufferList().getBuffer(included_file);
+		Buffer * const tmp = theBufferList().getBuffer(FileName(included_file));
 		// make sure the buffer isn't us
 		// FIXME RECURSIVE INCLUDES
 		// This is not sufficient, as recursive includes could be
@@ -725,7 +713,7 @@ void InsetInclude::fillWithBibKeys(BiblioInfo & keys,
 {
 	if (loadIfNeeded(buffer(), params())) {
 		string const included_file = includedFilename(buffer(), params()).absFilename();
-		Buffer * tmp = theBufferList().getBuffer(included_file);
+		Buffer * tmp = theBufferList().getBuffer(FileName(included_file));
 		BiblioInfo const & newkeys = tmp->localBibInfo();
 		keys.mergeBiblioInfo(newkeys);
 	}

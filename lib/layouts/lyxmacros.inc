@@ -8,7 +8,7 @@
 # be removed later.
 
 
-Format 7
+Format 11
 Style LyX-Code
 	Category              MainText
 	Margin                Static
@@ -25,7 +25,7 @@ Style LyX-Code
 	FreeSpacing           1
 	Preamble
 		\newenvironment{lyxcode}
-			{\begin{list}{}{
+			{\par\begin{list}{}{
 				\setlength{\rightmargin}{\leftmargin}
 				\setlength{\listparindent}{0pt}% needed for AMS classes
 				\raggedright

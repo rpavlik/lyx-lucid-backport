@@ -22,6 +22,8 @@ class BufferList;
 class CmdDef;
 class Converters;
 class ErrorItem;
+class FuncRequest;
+class FuncStatus;
 class KeyMap;
 class LyXFunc;
 class Messages;
@@ -38,6 +40,10 @@ class Application;
 class LyXView;
 }
 
+namespace graphics {
+class Previews;
+}
+
 /// initial startup
 class LyX {
 public:
@@ -48,56 +54,8 @@ public:
 	/// Execute LyX.
 	int exec(int & argc, char * argv[]);
 
-	/// Try to exit LyX properly.
-	/// \p exit_code is 0 by default, if a non zero value is passed,
-	/// emergencyCleanup() will be called before exiting.
-	void exit(int exit_code = 0) const;
-
-	static LyX & ref();
-	static LyX const & cref();
-
-	/// in the case of failure
-	void emergencyCleanup() const;
-
-	///
-	BufferList & bufferList();
-	BufferList const & bufferList() const;
-	///
-	Session & session();
-	Session const & session() const;
-	///
-	LyXFunc & lyxFunc();
-	LyXFunc const & lyxFunc() const;
-	///
-	Server & server();
-	Server const & server() const;
-	///
-	ServerSocket & socket();
-	ServerSocket const & socket() const;
-
-	///
-	frontend::Application & application();
-	frontend::Application const & application() const;
-
-	///
-	CmdDef & topLevelCmdDef();
-
-	///
-	Converters & converters();
-	Converters & systemConverters();
-
-	///
-	Messages & getMessages(std::string const & language);
-	///
-	Messages & getGuiMessages();
-	///
-	void setRcGuiLanguage();
-
 	///
 	frontend::LyXView * newLyXView();
-
-	/// Execute batch commands if available.
-	void execBatchCommands();
 
 private:
 	/// noncopyable
@@ -115,6 +73,9 @@ private:
 	\return exit code failure if any.
 	*/
 	int init(int & argc, char * argv[]);
+
+	/// Execute batch commands if available.
+	void execCommands();
 
 	/// Load files passed at command-line.
 	/// return true on success false if we encounter an error
@@ -146,6 +107,9 @@ private:
 	/// shows up a parsing error on screen
 	void printError(ErrorItem const &);
 
+	///
+	Messages & messages(std::string const & language);
+
 	/// Use the Pimpl idiom to hide the internals.
 	// Mostly used for singletons.
 	struct Impl;
@@ -154,13 +118,42 @@ private:
 	/// has this user started lyx for the first time?
 	bool first_start;
 
+	friend FuncStatus getStatus(FuncRequest const & action);
+	friend void dispatch(FuncRequest const & action);
+	friend BufferList & theBufferList();
+	friend LyXFunc & theLyXFunc();
+	friend Server & theServer();
+	friend ServerSocket & theServerSocket();
+	friend Converters & theConverters();
+	friend Converters & theSystemConverters();
+	friend Messages & getMessages(std::string const & language);
+	friend Messages & getGuiMessages();
+	friend KeyMap & theTopLevelKeymap();
 	friend Movers & theMovers();
 	friend Mover const & getMover(std::string  const & fmt);
 	friend void setMover(std::string const & fmt, std::string const & command);
 	friend Movers & theSystemMovers();
 	friend frontend::Application * theApp();
-	friend KeyMap & theTopLevelKeymap();
+	friend graphics::Previews & thePreviews();
+	friend Session & theSession();
+	friend CmdDef & theTopLevelCmdDef();
+	friend void setRcGuiLanguage();
+	friend void emergencyCleanup();
+	friend void execBatchCommands();
+	friend void lyx_exit(int exit_code);
 };
+
+
+/// in the case of failure
+void emergencyCleanup();
+/// Try to exit LyX properly.
+/// \p exit_code is 0 by default, if a non zero value is passed,
+/// emergencyCleanup() will be called before exiting.
+void lyx_exit(int exit_code);
+/// Set the language defined by the user.
+void setRcGuiLanguage();
+/// Execute batch commands if available.
+void execBatchCommands();
 
 } // namespace lyx
 

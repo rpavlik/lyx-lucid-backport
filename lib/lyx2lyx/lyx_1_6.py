@@ -64,6 +64,11 @@ def add_to_preamble(document, text):
 
     document.preamble.extend(text)
 
+def insert_to_preamble(index, document, text):
+    """ Insert text to the preamble at a given line"""
+
+    document.preamble.insert(index, text)
+
 # Convert a LyX length into a LaTeX length
 def convert_len(len):
     units = {"text%":"\\backslash\ntextwidth", "col%":"\\backslash\ncolumnwidth",
@@ -207,7 +212,11 @@ def latex2ert(line):
 
     retval = ""
     ## FIXME Escaped \ ??
-    labelre = re.compile(r'(.*?)\\(\\(?:[a-zA-Z]+|.))(.*)')
+    # This regex looks for a LaTeX command---i.e., something of the form
+    # "\alPhaStuFF", or "\X", where X is any character---where the command
+    # may also be preceded by an additional backslash, which is how it would
+    # appear (e.g.) in an InsetIndex.
+    labelre = re.compile(r'(.*?)\\?(\\(?:[a-zA-Z]+|.))(.*)')
 
     m = labelre.match(line)
     while m != None:
@@ -221,6 +230,10 @@ def latex2ert(line):
                 break
             cmd += arg
             end = rest
+        # If we wanted to put labels into an InsetLabel, for example, then we
+        # would just need to test here for cmd == "label" and then take some
+        # appropriate action, i.e., to use arg to get the content and then
+        # wrap it appropriately.
         cmd = put_cmd_in_ert(cmd)
         retval += "\n" + cmd + "\n"
         line = end
@@ -229,20 +242,28 @@ def latex2ert(line):
     return retval
 
 
+unicode_reps = read_unicodesymbols()
+
+#Bug 5022....
+#Might should do latex2ert first, then deal with stuff that DOESN'T
+#end up inside ERT. That routine could be modified so that it returned
+#a list of lines, and we could then skip ERT bits and only deal with
+#the other bits.
 def latex2lyx(data):
-    '''Takes a string, possibly multi-line, and returns the result of 
+    '''Takes a string, possibly multi-line, and returns the result of
     converting LaTeX constructs into LyX constructs. Returns a list of
     lines, suitable for insertion into document.body.'''
 
+    if not data:
+        return [""]
     retval = []
 
     # Convert LaTeX to Unicode
-    reps = read_unicodesymbols()
     # Commands of this sort need to be checked to make sure they are
     # followed by a non-alpha character, lest we replace too much.
     hardone = re.compile(r'^\\\\[a-zA-Z]+$')
-    
-    for rep in reps:
+
+    for rep in unicode_reps:
         if hardone.match(rep[0]):
             pos = 0
             while True:
@@ -290,13 +311,12 @@ def latex2lyx(data):
     return retval
 
 
-def lyx2latex(lines):
+def lyx2latex(document, lines):
     'Convert some LyX stuff into corresponding LaTeX stuff, as best we can.'
     # clean up multiline stuff
     content = ""
     ert_end = 0
-    reps = read_unicodesymbols()
-  
+
     for curline in range(len(lines)):
       line = lines[curline]
       if line.startswith("\\begin_inset ERT"):
@@ -333,16 +353,27 @@ def lyx2latex(lines):
             line.strip() == "status open":
           #skip all that stuff
           continue
-  
+
+      # this needs to be added to the preamble because of cases like
+      # \textmu, \textbackslash, etc.
+      add_to_preamble(document, ['% added by lyx2lyx for converted index entries',
+                                 '\\@ifundefined{textmu}',
+                                 ' {\\usepackage{textcomp}}{}'])
       # a lossless reversion is not possible
       # try at least to handle some common insets and settings
-      # do not replace inside ERTs
       if ert_end >= curline:
           line = line.replace(r'\backslash', r'\\')
       else:
+          line = line.replace('&', '\\&{}')
+          line = line.replace('#', '\\#{}')
+          line = line.replace('^', '\\^{}')
+          line = line.replace('%', '\\%{}')
+          line = line.replace('_', '\\_{}')
+          line = line.replace('$', '\\${}')
+
           # Do the LyX text --> LaTeX conversion
-          for rep in reps:
-            line = line.replace(rep[1], rep[0])
+          for rep in unicode_reps:
+            line = line.replace(rep[1], rep[0] + "{}")
           line = line.replace(r'\backslash', r'\textbackslash{}')
           line = line.replace(r'\series bold', r'\bfseries{}').replace(r'\series default', r'\mdseries{}')
           line = line.replace(r'\shape italic', r'\itshape{}').replace(r'\shape smallcaps', r'\scshape{}')
@@ -655,7 +686,7 @@ def revert_long_charstyle_names(document):
         i = find_token(document.body, "\\begin_inset CharStyle", i)
         if i == -1:
             return
-        document.body[i] = document.body[i].replace("CharStyle CharStyle:", "CharStyle")
+        document.body[i] = document.body[i].replace("CharStyle CharStyle:", "CharStyle ")
         i += 1
 
 
@@ -864,9 +895,12 @@ def revert_pdf_options(document):
                 setupstart = ""
                 setupend = ""
             # write the preamble
-            add_to_preamble(document,
-                                ['% Commands inserted by lyx2lyx for PDF properties',
-                                 '\\usepackage[unicode=true'
+            # babel must be loaded before hyperref and hyperref the first part
+            # of the preamble, like in LyX 1.6
+            insert_to_preamble(0, document,
+                                 '% Commands inserted by lyx2lyx for PDF properties\n'
+                                 + '\\usepackage{babel}\n'
+                                 + '\\usepackage[unicode=true'
                                  + bookmarks
                                  + breaklinks
                                  + pdfborder
@@ -875,14 +909,14 @@ def revert_pdf_options(document):
                                  + colorlinks
                                  + pagemode
                                  + ']\n'
-                                 ' {hyperref}\n'
+                                 + ' {hyperref}\n'
                                  + setupstart
                                  + title
                                  + author
                                  + subject
                                  + keywords
                                  + otheroptions
-                                 + setupend])
+                                 + setupend)
 
 
 def remove_inzip_options(document):
@@ -1031,26 +1065,25 @@ def convert_latexcommand_index(document):
             return
         if document.body[i + 1] != "LatexCommand index": # Might also be index_print
             return
+        j = find_end_of_inset(document.body, i + 2)
+        if j == -1:
+            document.warning("Unable to find end of index inset at line " + i + "!")
+            i += 2
+            continue
         m = r1.match(document.body[i + 2])
         if m == None:
             document.warning("Unable to match: " + document.body[i+2])
-            i += 1
-            continue
-        fullcontent = m.group(1)
+            # this can happen with empty index insets!
+            linelist = [""]
+        else:
+            fullcontent = m.group(1)
+            linelist = latex2lyx(fullcontent)
         #document.warning(fullcontent)
-        document.body[i:i + 3] = ["\\begin_inset Index",
-          "status collapsed",
-          "\\begin_layout Standard"]
-        i += 3
-        # We are now on the blank line preceding "\end_inset"
-        # We will write the content here, into the inset.
 
-        linelist = latex2lyx(fullcontent)
-        document.body[i+1:i+1] = linelist
-        i += len(linelist)
-
-        document.body.insert(i + 1, "\\end_layout")
-        i += 1
+        linelist = ["\\begin_inset Index", "status collapsed", "\\begin_layout Standard", ""] + \
+                   linelist + ["\\end_layout"]
+        document.body[i : j] = linelist
+        i += len(linelist) - (j - i)
 
 
 def revert_latexcommand_index(document):
@@ -1064,7 +1097,7 @@ def revert_latexcommand_index(document):
         if j == -1:
           return
 
-        content = lyx2latex(document.body[i:j])
+        content = lyx2latex(document, document.body[i:j])
         # escape quotes
         content = content.replace('"', r'\"')
         document.body[i:j] = ["\\begin_inset CommandInset index", "LatexCommand index",
@@ -1307,7 +1340,8 @@ def convert_ams_classes(document):
       return
     m = r.match(document.body[i])
     if m == None:
-      document.warning("Weirdly formed \\begin_layout at line %d of body!" % i)
+      # This is an empty layout
+      # document.warning("Weirdly formed \\begin_layout at line %d of body!" % i)
       i += 1
       continue
     m = m.group(1)
@@ -1398,11 +1432,6 @@ def revert_include(document):
     if i == -1:
       return
     nextline = i + 1
-    if r0.match(document.body[nextline]):
-      previewline = document.body[nextline]
-      nextline += 1
-    else:
-      previewline = ""
     m = r1.match(document.body[nextline])
     if m == None:
       document.warning("Malformed LyX document: No LatexCommand line for `" +
@@ -1411,6 +1440,11 @@ def revert_include(document):
       continue
     cmd = m.group(1)
     nextline += 1
+    if r0.match(document.body[nextline]):
+      previewline = document.body[nextline]
+      nextline += 1
+    else:
+      previewline = ""
     m = r2.match(document.body[nextline])
     if m == None:
       document.warning("Malformed LyX document: No filename line for `" + \
@@ -1502,6 +1536,44 @@ def convert_usorbian(document):
             return
         document.body[j] = document.body[j].replace("\\lang usorbian", "\\lang uppersorbian")
         j = j + 1
+
+
+def convert_macro_global(document):
+    "Remove TeX code command \global when it is in front of a macro"
+    # math macros are nowadays already defined \global, so that an additional
+    # \global would make the document uncompilable, see
+    # http://bugzilla.lyx.org/show_bug.cgi?id=5371
+    # We're looking for something like this:
+    # \begin_inset ERT
+    # status collapsed
+    #
+    # \begin_layout Plain Layout
+    #
+    #
+    # \backslash
+    # global
+    # \end_layout
+    #
+    # \end_inset
+    #
+    #
+    # \begin_inset FormulaMacro
+    # \renewcommand{\foo}{123}
+    # \end_inset
+    i = 0
+    while True:
+        i = find_token(document.body, "\\begin_inset FormulaMacro", i)
+        if i == -1:
+            return
+        # if i <= 13, then there isn't enough room for the ERT
+        if i <= 12:
+            i += 1
+            continue
+        if document.body[i-6] == "global":
+            del document.body[i-13 : i]
+            i = i - 12
+        else:
+            i += 1
 
 
 def revert_macro_optional_params(document):
@@ -1614,7 +1686,7 @@ def convert_framed_notes(document):
                  'position "t"',
                  'hor_pos "c"',
                  'has_inner_box 0',
-                 'inner_pos "t"', 
+                 'inner_pos "t"',
                  'use_parbox 0',
                  'width "100col%"',
                  'special "none"',
@@ -1770,7 +1842,7 @@ def revert_nobreakdash(document):
 
 #Returns number of lines added/removed
 def revert_nocite_key(body, start, end):
-    'key "..." -> \nocite{...}' 
+    'key "..." -> \nocite{...}'
     r = re.compile(r'^key "(.*)"')
     i = start
     j = end
@@ -1940,17 +2012,17 @@ def revert_rotfloat(document):
         subst = ['\\begin_layout Standard',
                   '\\begin_inset ERT',
                   'status collapsed', '',
-                  '\\begin_layout Standard', '', '', 
+                  '\\begin_layout Standard', '', '',
                   '\\backslash', '',
                   'end{sideways' + floattype + '}',
                   '\\end_layout', '', '\\end_inset']
         document.body[j : j+1] = subst
         addedLines = len(subst) - 1
         del document.body[i+1 : l]
-        addedLines -= (l-1) - (i+1) 
+        addedLines -= (l-1) - (i+1)
         subst = ['\\begin_inset ERT', 'status collapsed', '',
-                  '\\begin_layout Standard', '', '', '\\backslash', 
-                  'begin{sideways' + floattype + '}', 
+                  '\\begin_layout Standard', '', '', '\\backslash',
+                  'begin{sideways' + floattype + '}',
                   '\\end_layout', '', '\\end_inset', '',
                   '\\end_layout', '']
         document.body[i : i+1] = subst
@@ -1999,10 +2071,10 @@ def revert_widesideways(document):
         if l == -1:
             document.warning("Malformed LyX document: Missing `\\begin_layout' in Float inset.")
             return
-        subst = ['\\begin_layout Standard', '\\begin_inset ERT', 
-                  'status collapsed', '', 
+        subst = ['\\begin_layout Standard', '\\begin_inset ERT',
+                  'status collapsed', '',
                   '\\begin_layout Standard', '', '', '\\backslash',
-                  'end{sideways' + floattype + '*}', 
+                  'end{sideways' + floattype + '*}',
                   '\\end_layout', '', '\\end_inset']
         document.body[j : j+1] = subst
         addedLines = len(subst) - 1
@@ -2047,6 +2119,7 @@ def convert_subfig(document):
     " Convert subfigures to subfloats. "
     i = 0
     while 1:
+        addedLines = 0
         i = find_token(document.body, '\\begin_inset Graphics', i)
         if i == -1:
             return
@@ -2061,17 +2134,17 @@ def convert_subfig(document):
             continue
         l = find_token(document.body, '\tsubcaptionText', i, endInset)
         if l == -1:
-            document.warning("Malformed lyx document: Can't find subcaptionText!")
-            i = endInset
-            continue
-        caption = document.body[l][16:].strip('"')
-        del document.body[l]
+            caption = ""
+        else:
+            caption = document.body[l][16:].strip('"')
+            del document.body[l]
+            addedLines -= 1
         del document.body[k]
-        addedLines = -2
-        subst = ['\\begin_inset Float figure', 'wide false', 'sideways false', 
-                 'status open', '', '\\begin_layout Plain Layout', '\\begin_inset Caption', 
+        addedLines -= 1
+        subst = ['\\begin_inset Float figure', 'wide false', 'sideways false',
+                 'status open', '', '\\begin_layout Plain Layout', '\\begin_inset Caption',
                  '', '\\begin_layout Plain Layout'] + latex2lyx(caption) + \
-                 [ '\\end_layout', '', '\\end_inset', '', 
+                 [ '\\end_layout', '', '\\end_inset', '',
                  '\\end_layout', '', '\\begin_layout Plain Layout']
         document.body[i : i] = subst
         addedLines += len(subst)
@@ -2104,6 +2177,20 @@ def revert_subfig(document):
             k = find_token(document.body, '\\begin_inset Float ', i + 1, j)
             if k == -1:
                 break
+            # is the subfloat aligned?
+            al = find_token(document.body, '\\align ', k - 1)
+            alignment_beg = ""
+            alignment_end = ""
+            if al != -1:
+                if get_value(document.body, '\\align', al) == "center":
+                    alignment_beg = "\\backslash\nbegin{centering}"
+                    alignment_end = "\\backslash\npar\\backslash\nend{centering}"
+                elif get_value(document.body, '\\align', al) == "left":
+                    alignment_beg = "\\backslash\nbegin{raggedright}"
+                    alignment_end = "\\backslash\npar\\backslash\nend{raggedright}"
+                elif get_value(document.body, '\\align', al) == "right":
+                    alignment_beg = "\\backslash\nbegin{raggedleft}"
+                    alignment_end = "\\backslash\npar\\backslash\nend{raggedleft}"
             l = find_end_of_inset(document.body, k)
             if l == -1:
                 document.warning("Malformed lyx document: Missing '\\end_inset' (embedded float).")
@@ -2165,7 +2252,8 @@ def revert_subfig(document):
                 if len(label) > 0:
                     caption += "\\backslash\nlabel{" + label + "}"
             subst = '\\begin_layout Plain Layout\n\\begin_inset ERT\nstatus collapsed\n\n' \
-                      '\\begin_layout Plain Layout\n\n}\n\\end_layout\n\n\\end_inset\n\n' \
+                      '\\begin_layout Plain Layout\n\n}' + alignment_end + \
+                      '\n\\end_layout\n\n\\end_inset\n\n' \
                       '\\end_layout\n\n\\begin_layout Plain Layout\n'
             subst = subst.split('\n')
             document.body[l : l+1] = subst
@@ -2177,7 +2265,7 @@ def revert_subfig(document):
             del document.body[k+1:m-1]
             addedLines -= (m - 1 - (k + 1))
             insertion = '\\begin_inset ERT\nstatus collapsed\n\n' \
-                        '\\begin_layout Plain Layout\n\n\\backslash\n' \
+                        '\\begin_layout Plain Layout\n\n' + alignment_beg + '\\backslash\n' \
                         'subfloat'
             if len(shortcap) > 0:
                 insertion = insertion + "[" + shortcap + "]"
@@ -2187,6 +2275,9 @@ def revert_subfig(document):
             insertion = insertion.split('\n')
             document.body[k : k + 1] = insertion
             addedLines += len(insertion) - 1
+            if al != -1:
+                del document.body[al]
+                addedLines -= 1
             add_to_preamble(document, ['\\usepackage{subfig}\n'])
         i += addedLines + 1
 
@@ -2797,7 +2888,7 @@ def remove_fontsCJK(document):
 
 
 def convert_plain_layout(document):
-    " Convert 'PlainLayout' to 'Plain Layout'" 
+    " Convert 'PlainLayout' to 'Plain Layout'"
     i = 0
     while True:
         i = find_token(document.body, '\\begin_layout PlainLayout', i)
@@ -2809,7 +2900,7 @@ def convert_plain_layout(document):
 
 
 def revert_plain_layout(document):
-    " Convert 'PlainLayout' to 'Plain Layout'" 
+    " Convert 'PlainLayout' to 'Plain Layout'"
     i = 0
     while True:
         i = find_token(document.body, '\\begin_layout Plain Layout', i)
@@ -2821,7 +2912,7 @@ def revert_plain_layout(document):
 
 
 def revert_plainlayout(document):
-    " Convert 'PlainLayout' to 'Plain Layout'" 
+    " Convert 'PlainLayout' to 'Plain Layout'"
     i = 0
     while True:
         i = find_token(document.body, '\\begin_layout PlainLayout', i)
@@ -2852,6 +2943,140 @@ def revert_polytonicgreek(document):
         j = j + 1
 
 
+def revert_removed_modules(document):
+    i = 0
+    while True:
+        i = find_token(document.header, "\\begin_remove_modules", i)
+        if i == -1:
+            return
+        j = find_end_of(document.header, i, "\\begin_remove_modules", "\\end_remove_modules")
+        if j == -1:
+            # this should not happen
+            break
+        document.header[i : j + 1] = []
+
+
+def add_plain_layout(document):
+    i = 0
+    while True:
+        i = find_token(document.body, "\\begin_layout", i)
+        if i == -1:
+            return
+        if len(document.body[i].split()) == 1:
+            document.body[i] = "\\begin_layout Plain Layout"
+        i += 1
+
+
+def revert_tabulators(document):
+    "Revert tabulators to 4 spaces"
+    i = 0
+    while True:
+        i = find_token(document.body, "\t", i)
+        if i == -1:
+            return
+        document.body[i] = document.body[i].replace("\t", "    ")
+        i += 1
+
+
+def revert_tabsize(document):
+    "Revert the tabsize parameter of listings"
+    i = 0
+    j = 0
+    while True:
+        # either it is the only parameter
+        i = find_token(document.body, 'lstparams "tabsize=4"', i)
+        if i != -1:
+            del document.body[i]
+        # or the last one
+        j = find_token(document.body, "lstparams", j)
+        if j == -1:
+            return
+        pos = document.body[j].find(",tabsize=")
+        document.body[j] = document.body[j][:pos] + '"'
+        i += 1
+        j += 1
+
+
+def revert_mongolian(document):
+    "Set language Mongolian to English"
+    i = 0
+    if document.language == "mongolian":
+        document.language = "english"
+        i = find_token(document.header, "\\language", 0)
+        if i != -1:
+            document.header[i] = "\\language english"
+    j = 0
+    while True:
+        j = find_token(document.body, "\\lang mongolian", j)
+        if j == -1:
+            return
+        document.body[j] = document.body[j].replace("\\lang mongolian", "\\lang english")
+        j = j + 1
+
+
+def revert_default_options(document):
+    ' Remove param use_default_options '
+    i = find_token(document.header, "\\use_default_options", 0)
+    if i != -1:
+        del document.header[i]
+
+
+def convert_default_options(document):
+    ' Add param use_default_options and set it to false '
+    i = find_token(document.header, "\\textclass", 0)
+    if i == -1:
+        document.warning("Malformed LyX document: Missing `\\textclass'.")
+        return
+    document.header.insert(i, '\\use_default_options false')
+
+
+def revert_backref_options(document):
+    ' Revert option pdf_backref=page to pagebackref '
+    i = find_token(document.header, "\\pdf_backref page", 0)
+    if i != -1:
+        document.header[i] = "\\pdf_pagebackref true"
+
+
+def convert_backref_options(document):
+    ' We have changed the option pagebackref to backref=true '
+    i = find_token(document.header, "\\pdf_pagebackref true", 0)
+    if i != -1:
+        document.header[i] = "\\pdf_backref page"
+    j = find_token(document.header, "\\pdf_pagebackref false", 0)
+    if j != -1:
+        del document.header[j]
+    # backref=true was not a valid option, we meant backref=section
+    k = find_token(document.header, "\\pdf_backref true", 0)
+    if k != -1 and i != -1:
+        del document.header[k]
+    elif k != -1 and j != -1:
+        document.header[k] = "\\pdf_backref section"
+
+
+def convert_charstyle_element(document):
+    "Convert CharStyle to Element for docbook backend"
+    if document.backend != "docbook":
+        return
+    i = 0
+    while True:
+        i = find_token(document.body, "\\begin_inset Flex CharStyle:", i)
+        if i == -1:
+            return
+        document.body[i] = document.body[i].replace('\\begin_inset Flex CharStyle:',
+                                                    '\\begin_inset Flex Element:')
+
+def revert_charstyle_element(document):
+    "Convert Element to CharStyle for docbook backend"
+    if document.backend != "docbook":
+        return
+    i = 0
+    while True:
+        i = find_token(document.body, "\\begin_inset Flex Element:", i)
+        if i == -1:
+            return
+        document.body[i] = document.body[i].replace('\\begin_inset Flex Element:',
+                                                    '\\begin_inset Flex CharStyle:')
+
 ##
 # Conversion hub
 #
@@ -2878,7 +3103,7 @@ convert = [[277, [fix_wrong_tables]],
            [295, [convert_htmlurl, convert_url]],
            [296, [convert_include]],
            [297, [convert_usorbian]],
-           [298, []],
+           [298, [convert_macro_global]],
            [299, []],
            [300, []],
            [301, []],
@@ -2919,9 +3144,23 @@ convert = [[277, [fix_wrong_tables]],
            [336, []],
            [337, [convert_display_enum]],
            [338, []],
+           [339, []],
+           [340, [add_plain_layout]],
+           [341, []],
+           [342, []],
+           [343, [convert_default_options]],
+           [344, [convert_backref_options]],
+           [345, [convert_charstyle_element]]
           ]
 
-revert =  [[337, [revert_polytonicgreek]],
+revert =  [[344, [revert_charstyle_element]],
+           [343, [revert_backref_options]],
+           [342, [revert_default_options]],
+           [341, [revert_mongolian]],
+           [340, [revert_tabulators, revert_tabsize]],
+           [339, []],
+           [338, [revert_removed_modules]],
+           [337, [revert_polytonicgreek]],
            [336, [revert_display_enum]],
            [335, [remove_fontsCJK]],
            [334, [revert_InsetSpace]],

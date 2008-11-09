@@ -52,6 +52,7 @@
 #include "support/lassert.h"
 #include "support/convert.h"
 #include "support/debug.h"
+#include "support/ExceptionMessage.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/Messages.h"
@@ -83,6 +84,8 @@ public:
 	Private(Paragraph * owner, Layout const & layout);
 	/// "Copy constructor"
 	Private(Private const &, Paragraph * owner);
+	/// Copy constructor from \p beg  to \p end
+	Private(Private const &, Paragraph * owner, pos_type beg, pos_type end);
 
 	///
 	void insertChar(pos_type pos, char_type c, Change const & change);
@@ -106,15 +109,15 @@ public:
 	/// specified by the latex macro \p ltx, to \p os starting from \p i.
 	/// \return the number of characters written.
 	int writeScriptChars(odocstream & os, docstring const & ltx,
-			   Change &, Encoding const &, pos_type & i);
+			   Change const &, Encoding const &, pos_type & i);
 
 	/// This could go to ParagraphParameters if we want to.
 	int startTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			      bool) const;
+			      OutputParams const &) const;
 
 	/// This could go to ParagraphParameters if we want to.
 	int endTeXParParams(BufferParams const &, odocstream &, TexRow &,
-			    bool) const;
+			    OutputParams const &) const;
 
 	///
 	void latexInset(BufferParams const &,
@@ -132,9 +135,9 @@ public:
 	///
 	void latexSpecialChar(
 				   odocstream & os,
-				   OutputParams & runparams,
-				   Font & running_font,
-				   Change & running_change,
+				   OutputParams const & runparams,
+				   Font const & running_font,
+				   Change const & running_change,
 				   Layout const & style,
 				   pos_type & i,
 				   unsigned int & column);
@@ -143,20 +146,20 @@ public:
 	bool latexSpecialT1(
 		char_type const c,
 		odocstream & os,
-		pos_type & i,
+		pos_type i,
 		unsigned int & column);
 	///
 	bool latexSpecialTypewriter(
 		char_type const c,
 		odocstream & os,
-		pos_type & i,
+		pos_type i,
 		unsigned int & column);
 	///
 	bool latexSpecialPhrase(
 		odocstream & os,
 		pos_type & i,
 		unsigned int & column,
-		OutputParams & runparams);
+		OutputParams const & runparams);
 
 	///
 	void validate(LaTeXFeatures & features,
@@ -173,7 +176,7 @@ public:
 	Paragraph * owner_;
 
 	/// In which Inset?
-	Inset * inset_owner_;
+	Inset const * inset_owner_;
 
 	///
 	FontList fontlist_;
@@ -244,6 +247,42 @@ Paragraph::Private::Private(Private const & p, Paragraph * owner)
 	  layout_(p.layout_)
 {
 	id_ = paragraph_id++;
+}
+
+
+Paragraph::Private::Private(Private const & p, Paragraph * owner,
+	pos_type beg, pos_type end)
+	: owner_(owner), inset_owner_(p.inset_owner_),
+	  params_(p.params_), changes_(p.changes_),
+	  insetlist_(p.insetlist_, beg, end),
+	  begin_of_body_(p.begin_of_body_), words_(p.words_),
+	  layout_(p.layout_)
+{
+	id_ = paragraph_id++;
+	if (beg >= pos_type(p.text_.size()))
+		return;
+	text_ = p.text_.substr(beg, end - beg);
+
+	FontList::const_iterator fcit = fontlist_.begin();
+	FontList::const_iterator fend = fontlist_.end();
+	for (; fcit != fend; ++fcit) {
+		if (fcit->pos() < beg)
+			continue;
+		if (fcit->pos() >= end) {
+			// Add last entry in the fontlist_.
+			fontlist_.set(text_.size() - 1, fcit->font());
+			break;
+		}
+		// Add a new entry in the fontlist_.
+		fontlist_.set(fcit->pos() - beg, fcit->font());
+	}
+}
+
+
+void Paragraph::addChangesToToc(DocIterator const & cdit,
+	Buffer const & buf) const
+{
+	d->changes_.addToToc(cdit, buf);
 }
 
 
@@ -410,23 +449,29 @@ void Paragraph::Private::insertChar(pos_type pos, char_type c,
 }
 
 
-void Paragraph::insertInset(pos_type pos, Inset * inset,
+bool Paragraph::insertInset(pos_type pos, Inset * inset,
 				   Change const & change)
 {
 	LASSERT(inset, /**/);
 	LASSERT(pos >= 0 && pos <= size(), /**/);
+
+	// Paragraph::insertInset() can be used in cut/copy/paste operation where
+	// d->inset_owner_ is not set yet.
+	if (d->inset_owner_ && !d->inset_owner_->insetAllowed(inset->lyxCode()))
+		return false;
 
 	d->insertChar(pos, META_INSET, change);
 	LASSERT(d->text_[pos] == META_INSET, /**/);
 
 	// Add a new entry in the insetlist_.
 	d->insetlist_.insert(inset, pos);
+	return true;
 }
 
 
 bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
 {
-	LASSERT(pos >= 0 && pos <= size(), /**/);
+	LASSERT(pos >= 0 && pos <= size(), return false);
 
 	// keep the logic here in sync with the logic of isMergedOnEndOfParDeletion()
 
@@ -558,7 +603,7 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 
 int Paragraph::Private::writeScriptChars(odocstream & os,
 					 docstring const & ltx,
-					 Change & runningChange,
+					 Change const & runningChange,
 					 Encoding const & encoding,
 					 pos_type & i)
 {
@@ -566,9 +611,10 @@ int Paragraph::Private::writeScriptChars(odocstream & os,
 
 	// We only arrive here when a proper language for character text_[i] has
 	// not been specified (i.e., it could not be translated in the current
-	// latex encoding) and it belongs to a known script.
-	// Parameter ltx contains the latex translation of text_[i] as specified in
-	// the unicodesymbols file and is something like "\textXXX{<spec>}".
+	// latex encoding) or its latex translation has been forced, and it
+	// belongs to a known script.
+	// Parameter ltx contains the latex translation of text_[i] as specified
+	// in the unicodesymbols file and is something like "\textXXX{<spec>}".
 	// The latex macro name "textXXX" specifies the script to which text_[i]
 	// belongs and we use it in order to check whether characters from the
 	// same script immediately follow, such that we can collect them in a
@@ -577,8 +623,16 @@ int Paragraph::Private::writeScriptChars(odocstream & os,
 	docstring::size_type const brace1 = ltx.find_first_of(from_ascii("{"));
 	docstring::size_type const brace2 = ltx.find_last_of(from_ascii("}"));
 	string script = to_ascii(ltx.substr(1, brace1 - 1));
-	int length = ltx.substr(0, brace2).length();
-	os << ltx.substr(0, brace2);
+	int pos = 0;
+	int length = brace2;
+	bool closing_brace = true;
+	if (script == "textgreek" && encoding.latexName() == "iso-8859-7") {
+		// Correct encoding is being used, so we can avoid \textgreek.
+		pos = brace1 + 1;
+		length -= pos;
+		closing_brace = false;
+	}
+	os << ltx.substr(pos, length);
 	int size = text_.size();
 	while (i + 1 < size) {
 		char_type const next = text_[i + 1];
@@ -612,8 +666,10 @@ int Paragraph::Private::writeScriptChars(odocstream & os,
 		length += len;
 		++i;
 	}
-	os << '}';
-	++length;
+	if (closing_brace) {
+		os << '}';
+		++length;
+	}
 	return length;
 }
 
@@ -701,16 +757,16 @@ void Paragraph::Private::latexInset(
 	}
 
 	bool close = false;
-	odocstream::pos_type const len = os.tellp();
+	odocstringstream ods;
 
 	if (inset->forceLTR() 
 	    && running_font.isRightToLeft()
 		// ERT is an exception, it should be output with no decorations at all
 		&& inset->lyxCode() != ERT_CODE) {
 	    	if (running_font.language()->lang() == "farsi")
-			os << "\\beginL{}";
+			ods << "\\beginL{}";
 		else
-			os << "\\L{";
+			ods << "\\L{";
 		close = true;
 	}
 
@@ -729,7 +785,7 @@ void Paragraph::Private::latexInset(
 	if (open_font && inset->noFontChange()) {
 		bool closeLanguage = arabtex
 			|| basefont.isRightToLeft() == running_font.isRightToLeft();
-		unsigned int count = running_font.latexWriteEndChanges(os,
+		unsigned int count = running_font.latexWriteEndChanges(ods,
 			bparams, runparams, basefont, basefont, closeLanguage);
 		column += count;
 		// if any font properties were closed, update the running_font, 
@@ -752,7 +808,7 @@ void Paragraph::Private::latexInset(
 	int tmp;
 
 	try {
-		tmp = inset->latex(os, runparams);
+		tmp = inset->latex(ods, runparams);
 	} catch (EncodingException & e) {
 		// add location information and throw again.
 		e.par_id = id_;
@@ -761,11 +817,13 @@ void Paragraph::Private::latexInset(
 	}
 
 	if (close) {
-    	if (running_font.language()->lang() == "farsi")
-			os << "\\endL{}";
-		else
-			os << '}';
+		if (running_font.language()->lang() == "farsi")
+				ods << "\\endL{}";
+			else
+				ods << '}';
 	}
+
+	os << ods.str();
 
 	if (tmp) {
 		for (int j = 0; j < tmp; ++j)
@@ -774,7 +832,7 @@ void Paragraph::Private::latexInset(
 		texrow.start(owner_->id(), i + 1);
 		column = 0;
 	} else {
-		column += os.tellp() - len;
+		column += ods.str().size();
 	}
 
 	if (owner_->lookupChange(i).type == Change::DELETED)
@@ -784,9 +842,9 @@ void Paragraph::Private::latexInset(
 
 void Paragraph::Private::latexSpecialChar(
 					     odocstream & os,
-					     OutputParams & runparams,
-					     Font & running_font,
-					     Change & running_change,
+					     OutputParams const & runparams,
+					     Font const & running_font,
+					     Change const & running_change,
 					     Layout const & style,
 					     pos_type & i,
 					     unsigned int & column)
@@ -914,7 +972,7 @@ void Paragraph::Private::latexSpecialChar(
 
 
 bool Paragraph::Private::latexSpecialT1(char_type const c, odocstream & os,
-	pos_type & i, unsigned int & column)
+	pos_type i, unsigned int & column)
 {
 	switch (c) {
 	case '>':
@@ -930,6 +988,11 @@ bool Paragraph::Private::latexSpecialT1(char_type const c, odocstream & os,
 	case '|':
 		os.put(c);
 		return true;
+	case '\"':
+		// soul.sty breaks with \char`\"
+		os << "\\textquotedbl{}";
+		column += 14;
+		return true;
 	default:
 		return false;
 	}
@@ -937,7 +1000,7 @@ bool Paragraph::Private::latexSpecialT1(char_type const c, odocstream & os,
 
 
 bool Paragraph::Private::latexSpecialTypewriter(char_type const c, odocstream & os,
-	pos_type & i, unsigned int & column)
+	pos_type i, unsigned int & column)
 {
 	switch (c) {
 	case '-':
@@ -959,7 +1022,7 @@ bool Paragraph::Private::latexSpecialTypewriter(char_type const c, odocstream & 
 
 
 bool Paragraph::Private::latexSpecialPhrase(odocstream & os, pos_type & i,
-	unsigned int & column, OutputParams & runparams)
+	unsigned int & column, OutputParams const & runparams)
 {
 	// FIXME: if we have "LaTeX" with a font
 	// change in the middle (before the 'T', then
@@ -1049,6 +1112,14 @@ Paragraph::Paragraph(Paragraph const & par)
 }
 
 
+Paragraph::Paragraph(Paragraph const & par, pos_type beg, pos_type end)
+	: itemdepth(par.itemdepth),
+	d(new Paragraph::Private(*par.d, this, beg, end))
+{
+	registerWords();
+}
+
+
 Paragraph & Paragraph::operator=(Paragraph const & par)
 {
 	// needed as we will destroy the private part before copying it
@@ -1109,7 +1180,7 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 			break;
 
 		// Write font changes
-		Font font2 = getFontSettings(bparams, i);
+		Font const & font2 = getFontSettings(bparams, i);
 		if (font2 != font1) {
 			font2.lyxWriteChanges(font1, os);
 			column = 0;
@@ -1240,18 +1311,13 @@ void Paragraph::insertChar(pos_type pos, char_type c,
 }
 
 
-void Paragraph::insertInset(pos_type pos, Inset * inset,
+bool Paragraph::insertInset(pos_type pos, Inset * inset,
 			    Font const & font, Change const & change)
 {
-	insertInset(pos, inset, change);
+	bool const success = insertInset(pos, inset, change);
 	// Set the font/language of the inset...
 	setFont(pos, font);
-}
-
-
-bool Paragraph::insetAllowed(InsetCode code)
-{
-	return !d->inset_owner_ || d->inset_owner_->insetAllowed(code);
+	return success;
 }
 
 
@@ -1263,7 +1329,7 @@ void Paragraph::resetFonts(Font const & font)
 }
 
 // Gets uninstantiated font setting at position.
-Font const Paragraph::getFontSettings(BufferParams const & bparams,
+Font const & Paragraph::getFontSettings(BufferParams const & bparams,
 					 pos_type pos) const
 {
 	if (pos > size()) {
@@ -1278,7 +1344,16 @@ Font const Paragraph::getFontSettings(BufferParams const & bparams,
 	if (pos == size() && !empty())
 		return getFontSettings(bparams, pos - 1);
 
-	return Font(inherit_font, getParLanguage(bparams));
+	// Optimisation: avoid a full font instantiation if there is no
+	// language change from previous call.
+	static Font previous_font;
+	static Language const * previous_lang = 0;
+	Language const * lang = getParLanguage(bparams);
+	if (lang != previous_lang) {
+		previous_lang = lang;
+		previous_font = Font(inherit_font, lang);
+	}
+	return previous_font;
 }
 
 
@@ -1309,12 +1384,21 @@ FontSpan Paragraph::fontSpan(pos_type pos) const
 
 
 // Gets uninstantiated font setting at position 0
-Font const Paragraph::getFirstFontSettings(BufferParams const & bparams) const
+Font const & Paragraph::getFirstFontSettings(BufferParams const & bparams) const
 {
 	if (!empty() && !d->fontlist_.empty())
 		return d->fontlist_.begin()->font();
 
-	return Font(inherit_font, bparams.language);
+	// Optimisation: avoid a full font instantiation if there is no
+	// language change from previous call.
+	static Font previous_font;
+	static Language const * previous_lang = 0;
+	if (bparams.language != previous_lang) {
+		previous_lang = bparams.language;
+		previous_font = Font(inherit_font, bparams.language);
+	}
+
+	return previous_font;
 }
 
 
@@ -1331,13 +1415,14 @@ Font const Paragraph::getFont(BufferParams const & bparams, pos_type pos,
 	Font font = getFontSettings(bparams, pos);
 
 	pos_type const body_pos = beginOfBody();
+	FontInfo & fi = font.fontInfo();
 	if (pos < body_pos)
-		font.fontInfo().realize(d->layout_->labelfont);
+		fi.realize(d->layout_->labelfont);
 	else
-		font.fontInfo().realize(d->layout_->font);
+		fi.realize(d->layout_->font);
 
-	font.fontInfo().realize(outerfont.fontInfo());
-	font.fontInfo().realize(bparams.getFont().fontInfo());
+	fi.realize(outerfont.fontInfo());
+	fi.realize(bparams.getFont().fontInfo());
 
 	return font;
 }
@@ -1607,28 +1692,19 @@ void Paragraph::setBeginOfBody()
 
 bool Paragraph::forcePlainLayout() const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return true;
-	return inset->forcePlainLayout();
+	return inInset().forcePlainLayout();
 }
 
 
 bool Paragraph::allowParagraphCustomization() const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return true;
-	return inset->allowParagraphCustomization();
+	return inInset().allowParagraphCustomization();
 }
 
 
 bool Paragraph::usePlainLayout() const
 {
-	Inset const * const inset = inInset();
-	if (!inset)
-		return false;
-	return inset->usePlainLayout();
+	return inInset().usePlainLayout();
 }
 
 
@@ -1639,7 +1715,9 @@ namespace {
 
 bool noTrivlistCentering(InsetCode code)
 {
-	return code == FLOAT_CODE || code == WRAP_CODE;
+	return code == FLOAT_CODE
+	       || code == WRAP_CODE
+	       || code == CELL_CODE;
 }
 
 
@@ -1656,12 +1734,19 @@ string correction(string const & orig)
 
 
 string const corrected_env(string const & suffix, string const & env,
-	InsetCode code)
+	InsetCode code, bool const lastpar)
 {
 	string output = suffix + "{";
-	if (noTrivlistCentering(code))
+	if (noTrivlistCentering(code)) {
+		if (lastpar) {
+			// the last paragraph in non-trivlist-aligned
+			// context is special (to avoid unwanted whitespace)
+			if (suffix == "\\begin")
+				return "\\" + correction(env) + "{}";
+			return string();
+		}
 		output += correction(env);
-	else
+	} else
 		output += env;
 	output += "}";
 	if (suffix == "\\begin")
@@ -1686,7 +1771,7 @@ void adjust_row_column(string const & str, TexRow & texrow, int & column)
 
 int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 				 odocstream & os, TexRow & texrow,
-				 bool moving_arg) const
+				 OutputParams const & runparams) const
 {
 	int column = 0;
 
@@ -1709,12 +1794,16 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_LEFT:
 	case LYX_ALIGN_RIGHT:
 	case LYX_ALIGN_CENTER:
-		if (moving_arg) {
+		if (runparams.moving_arg) {
 			os << "\\protect";
 			column += 8;
 		}
 		break;
 	}
+
+	string const begin_tag = "\\begin";
+	InsetCode code = owner_->ownerCode();
+	bool const lastpar = runparams.isLastPar;
 
 	switch (curAlign) {
 	case LYX_ALIGN_NONE:
@@ -1725,24 +1814,24 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_LEFT: {
 		string output;
 		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\\begin", "flushleft", owner_->ownerCode());
+			output = corrected_env(begin_tag, "flushleft", code, lastpar);
 		else
-			output = corrected_env("\\begin", "flushright", owner_->ownerCode());
+			output = corrected_env(begin_tag, "flushright", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
 		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\\begin", "flushright", owner_->ownerCode());
+			output = corrected_env(begin_tag, "flushright", code, lastpar);
 		else
-			output = corrected_env("\\begin", "flushleft", owner_->ownerCode());
+			output = corrected_env(begin_tag, "flushleft", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
-		output = corrected_env("\\begin", "center", owner_->ownerCode());
+		output = corrected_env(begin_tag, "center", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
@@ -1755,7 +1844,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 
 int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 			       odocstream & os, TexRow & texrow,
-			       bool moving_arg) const
+			       OutputParams const & runparams) const
 {
 	int column = 0;
 
@@ -1768,12 +1857,16 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_LEFT:
 	case LYX_ALIGN_RIGHT:
 	case LYX_ALIGN_CENTER:
-		if (moving_arg) {
+		if (runparams.moving_arg) {
 			os << "\\protect";
 			column = 8;
 		}
 		break;
 	}
+
+	string const end_tag = "\n\\par\\end";
+	InsetCode code = owner_->ownerCode();
+	bool const lastpar = runparams.isLastPar;
 
 	switch (params_.align()) {
 	case LYX_ALIGN_NONE:
@@ -1784,24 +1877,24 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_LEFT: {
 		string output;
 		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\n\\par\\end", "flushleft", owner_->ownerCode());
+			output = corrected_env(end_tag, "flushleft", code, lastpar);
 		else
-			output = corrected_env("\n\\par\\end", "flushright", owner_->ownerCode());
+			output = corrected_env(end_tag, "flushright", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
 		if (owner_->getParLanguage(bparams)->babel() != "hebrew")
-			output = corrected_env("\n\\par\\end", "flushright", owner_->ownerCode());
+			output = corrected_env(end_tag, "flushright", code, lastpar);
 		else
-			output = corrected_env("\n\\par\\end", "flushleft", owner_->ownerCode());
+			output = corrected_env(end_tag, "flushleft", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
-		output = corrected_env("\n\\par\\end", "center", owner_->ownerCode());
+		output = corrected_env(end_tag, "center", code, lastpar);
 		os << from_ascii(output);
 		adjust_row_column(output, texrow, column);
 		break;
@@ -1818,15 +1911,16 @@ bool Paragraph::latex(BufferParams const & bparams,
 				odocstream & os, TexRow & texrow,
 				OutputParams const & runparams) const
 {
-	LYXERR(Debug::LATEX, "SimpleTeXOnePar...     " << this);
+	LYXERR(Debug::LATEX, "Paragraph::latex...     " << this);
 
 	bool return_value = false;
 
-	bool asdefault = forcePlainLayout();
+	bool const allowcust = allowParagraphCustomization();
 
-	Layout const & style = asdefault ?
-		bparams.documentClass().emptyLayout() :
-		*d->layout_;
+	// FIXME This check should not be needed. Perhaps issue an
+	// error if it triggers.
+	Layout const & style = forcePlainLayout() ?
+		bparams.documentClass().plainLayout() : *d->layout_;
 
 	// Current base font for all inherited font changes, without any
 	// change caused by an individual character, except for the language:
@@ -1865,9 +1959,9 @@ bool Paragraph::latex(BufferParams const & bparams,
 			os << '{';
 			++column;
 		}
-		if (!asdefault)
+		if (allowcust)
 			column += d->startTeXParParams(bparams, os, texrow,
-						    runparams.moving_arg);
+						    runparams);
 	}
 
 	for (pos_type i = 0; i < size(); ++i) {
@@ -1895,10 +1989,10 @@ bool Paragraph::latex(BufferParams const & bparams,
 				++column;
 			}
 
-			if (!asdefault)
+			if (allowcust)
 				column += d->startTeXParParams(bparams, os,
 							    texrow,
-							    runparams.moving_arg);
+							    runparams);
 		}
 
 		Change const & change = runparams.inDeletedInset ? runparams.changeOfDeletedInset
@@ -1956,8 +2050,10 @@ bool Paragraph::latex(BufferParams const & bparams,
 		if (!runparams.verbatim && 
 		    runparams.encoding->package() != Encoding::none &&
 		    font.language()->encoding()->package() != Encoding::none) {
-			pair<bool, int> const enc_switch = switchEncoding(os, bparams,
+			odocstringstream ods;
+			pair<bool, int> const enc_switch = switchEncoding(ods, bparams,
 					runparams, *(font.language()->encoding()));
+			os << ods.str();
 			if (enc_switch.first) {
 				column += enc_switch.second;
 				runparams.encoding = font.language()->encoding();
@@ -2073,12 +2169,12 @@ bool Paragraph::latex(BufferParams const & bparams,
 		return_value = false;
 	}
 
-	if (!asdefault) {
+	if (allowcust) {
 		column += d->endTeXParParams(bparams, os, texrow,
-					  runparams.moving_arg);
+					  runparams);
 	}
 
-	LYXERR(Debug::LATEX, "SimpleTeXOnePar...done " << this);
+	LYXERR(Debug::LATEX, "Paragraph::latex... done " << this);
 	return return_value;
 }
 
@@ -2331,7 +2427,8 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 
 	for (pos_type i = beg; i < end; ++i) {
 		char_type const c = d->text_[i];
-		if (isPrintable(c))
+		if (isPrintable(c) || c == '\t'
+		    || (c == '\n' && options & AS_STR_NEWLINES))
 			os.put(c);
 		else if (c == META_INSET && options & AS_STR_INSETS)
 			getInset(i)->textString(os);
@@ -2341,7 +2438,7 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 }
 
 
-void Paragraph::setInsetOwner(Inset * inset)
+void Paragraph::setInsetOwner(Inset const * inset)
 {
 	d->inset_owner_ = inset;
 }
@@ -2365,18 +2462,32 @@ void Paragraph::setLayout(Layout const & layout)
 }
 
 
-void Paragraph::setPlainOrDefaultLayout(DocumentClass const & tclass)
-{
-	if (usePlainLayout())
-		setLayout(tclass.emptyLayout());
-	else
-		setLayout(tclass.defaultLayout());
+void Paragraph::setDefaultLayout(DocumentClass const & tc)
+{ 
+	setLayout(tc.defaultLayout()); 
 }
 
 
-Inset * Paragraph::inInset() const
+void Paragraph::setPlainLayout(DocumentClass const & tc)
+{ 
+	setLayout(tc.plainLayout()); 
+}
+
+
+void Paragraph::setPlainOrDefaultLayout(DocumentClass const & tclass)
 {
-	return d->inset_owner_;
+	if (usePlainLayout())
+		setPlainLayout(tclass);
+	else
+		setDefaultLayout(tclass);
+}
+
+
+Inset const & Paragraph::inInset() const
+{
+	LASSERT(d->inset_owner_, throw ExceptionMessage(BufferException,
+		_("Memory problem"), _("Paragraph not properly initiliazed")));
+	return *d->inset_owner_;
 }
 
 
@@ -2551,6 +2662,12 @@ bool Paragraph::isDeleted(pos_type pos) const
 InsetList const & Paragraph::insetList() const
 {
 	return d->insetlist_;
+}
+
+
+void Paragraph::setBuffer(Buffer & b)
+{
+	d->insetlist_.setBuffer(b);
 }
 
 

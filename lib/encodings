@@ -29,7 +29,7 @@ End
 Encoding iso8859-2 latin2 "Central European (ISO 8859-2)" ISO-8859-2 fixed inputenc
 End
 
-Encoding iso8859-3 latin3 "Middle European (ISO 8859-3)" ISO-8859-3 fixed inputenc
+Encoding iso8859-3 latin3 "South European (ISO 8859-3)" ISO-8859-3 fixed inputenc
 End
 
 Encoding iso8859-4 latin4 "Baltic (ISO 8859-4)" ISO-8859-4 fixed inputenc
@@ -171,13 +171,13 @@ End
 
 # encodings that do not use a package
 
-# Traditional Japanese TeX programs require neither CJK nor inputenc
-# package.
-Encoding euc-jp-plain EUC-JP-pLaTeX "Japanese (non-CJK) (EUC-JP)" EUC-JP variable none
+# Traditional Japanese TeX programs require the japanese package.
+# that is incompatible with CJK and inputenc.
+Encoding euc-jp-plain EUC-JP-pLaTeX "Japanese (non-CJK) (EUC-JP)" EUC-JP variable japanese
 End
-Encoding jis-plain JIS-pLaTeX "Japanese (non-CJK) (JIS)" ISO-2022-JP variable none
+Encoding jis-plain JIS-pLaTeX "Japanese (non-CJK) (JIS)" ISO-2022-JP variable japanese
 End
-Encoding shift-jis-plain SJIS-pLaTeX "Japanese (non-CJK) (SJIS)" CP932 variable none
+Encoding shift-jis-plain SJIS-pLaTeX "Japanese (non-CJK) (SJIS)" CP932 variable japanese
 End
 
 # This one needs hardcoded support, since the inputenc package does not know

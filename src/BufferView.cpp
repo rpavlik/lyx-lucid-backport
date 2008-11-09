@@ -282,7 +282,7 @@ BufferView::BufferView(Buffer & buf)
 	d->cursor_.setCurrentFont();
 
 	if (graphics::Previews::status() != LyXRC::PREVIEW_OFF)
-		graphics::Previews::get().generateBufferPreviews(buffer_);
+		thePreviews().generateBufferPreviews(buffer_);
 }
 
 
@@ -296,7 +296,7 @@ BufferView::~BufferView()
 	LastFilePosSection::FilePos fp;
 	fp.pit = d->cursor_.bottom().pit();
 	fp.pos = d->cursor_.bottom().pos();
-	LyX::ref().session().lastFilePos().save(buffer_.fileName(), fp);
+	theSession().lastFilePos().save(buffer_.fileName(), fp);
 
 	delete d;
 }
@@ -533,6 +533,10 @@ docstring BufferView::toolTip(int x, int y) const
 
 docstring BufferView::contextMenu(int x, int y) const
 {
+	//If there is a selection, return the containing inset menu
+	if (d->cursor_.selection())
+		return d->cursor_.inset().contextMenu(*this, x, y);
+
 	// Get inset under mouse, if there is one.
 	Inset const * covering_inset = getCoveringInset(buffer_.text(), x, y);
 	if (covering_inset)
@@ -602,31 +606,28 @@ void BufferView::setCursorFromScrollbar()
 	int const height = 2 * defaultRowHeight();
 	int const first = height;
 	int const last = height_ - height;
-	Cursor & cur = d->cursor_;
+	int newy = 0;
+	Cursor const & oldcur = d->cursor_;
 
-	switch (cursorStatus(cur)) {
+	switch (cursorStatus(oldcur)) {
 	case CUR_ABOVE:
-		// We reset the cursor because cursorStatus() does not
-		// work when the cursor is within mathed.
-		cur.reset(buffer_.inset());
-		tm.setCursorFromCoordinates(cur, 0, first);
-		cur.clearSelection();
+		newy = first;
 		break;
 	case CUR_BELOW:
-		// We reset the cursor because cursorStatus() does not
-		// work when the cursor is within mathed.
-		cur.reset(buffer_.inset());
-		tm.setCursorFromCoordinates(cur, 0, last);
-		cur.clearSelection();
+		newy = last;
 		break;
 	case CUR_INSIDE:
-		int const y = getPos(cur, cur.boundary()).y_;
-		int const newy = min(last, max(y, first));
-		if (y != newy) {
-			cur.reset(buffer_.inset());
-			tm.setCursorFromCoordinates(cur, 0, newy);
-		}
+		int const y = getPos(oldcur, oldcur.boundary()).y_;
+		newy = min(last, max(y, first));
+		if (y == newy) 
+			return;
 	}
+	// We reset the cursor because cursorStatus() does not
+	// work when the cursor is within mathed.
+	Cursor cur(*this);
+	cur.reset(buffer_.inset());
+	tm.setCursorFromCoordinates(cur, 0, newy);
+	mouseSetCursor(cur);
 }
 
 
@@ -659,7 +660,7 @@ void BufferView::saveBookmark(unsigned int idx)
 	// acturately locate a bookmark in a 'live' lyx session.
 	// pit and pos will be updated with bottom level pit/pos
 	// when lyx exits.
-	LyX::ref().session().bookmarks().save(
+	theSession().bookmarks().save(
 		buffer_.fileName(),
 		d->cursor_.bottom().pit(),
 		d->cursor_.bottom().pos(),
@@ -872,7 +873,6 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 	case LFUN_SCREEN_RECENTER:
 	case LFUN_BIBTEX_DATABASE_ADD:
 	case LFUN_BIBTEX_DATABASE_DEL:
-	case LFUN_GRAPHICS_GROUPS_UNIFY:
 	case LFUN_NOTES_MUTATE:
 	case LFUN_ALL_INSETS_TOGGLE:
 	case LFUN_STATISTICS:
@@ -1072,9 +1072,12 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		if (!inset || !cur.result().dispatched())
 			cur.dispatch(cmd);
 
+		// FIXME I'm adding the last break to solve a crash,
+		// but that is obviously not right.
 		if (!cur.result().dispatched())
 			// It did not work too; no action needed.
 			break;
+		break;
 	}
 
 	case LFUN_PARAGRAPH_GOTO: {
@@ -1151,11 +1154,15 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 
 	case LFUN_CHANGE_NEXT:
 		findNextChange(this);
+		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
+		processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
 	case LFUN_CHANGES_MERGE:
-		if (findNextChange(this))
+		if (findNextChange(this)) {
+			processUpdateFlags(Update::Force | Update::FitCursor);
 			showDialog("changes");
+		}
 		break;
 
 	case LFUN_ALL_CHANGES_ACCEPT:
@@ -1185,6 +1192,10 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		FuncRequest req = cmd;
 		if (cmd.argument().empty() && !d->search_request_cache_.argument().empty())
 			req = d->search_request_cache_;
+		if (req.argument().empty()) {
+			theLyXFunc().dispatch(FuncRequest(LFUN_DIALOG_SHOW, "findreplace"));
+			break;
+		}
 		if (find(this, req))
 			showCursor();
 		else
@@ -1217,7 +1228,7 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 
 	case LFUN_MARK_ON:
 		cur.clearSelection();
-		cur.mark() = true;
+		cur.setMark(true);
 		cur.resetAnchor();
 		cur.message(from_utf8(N_("Mark on")));
 		break;
@@ -1225,10 +1236,10 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 	case LFUN_MARK_TOGGLE:
 		cur.clearSelection();
 		if (cur.mark()) {
-			cur.mark() = false;
+			cur.setMark(false);
 			cur.message(from_utf8(N_("Mark removed")));
 		} else {
-			cur.mark() = true;
+			cur.setMark(true);
 			cur.message(from_utf8(N_("Mark set")));
 		}
 		cur.resetAnchor();
@@ -1423,21 +1434,11 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		processUpdateFlags(Update::Force);
 		break;
 
-	// These two could be rewriten using some command like forall <insetname> <command>
+	// This could be rewriten using some command like forall <insetname> <command>
 	// once the insets refactoring is done.
-	case LFUN_GRAPHICS_GROUPS_UNIFY: {
-		if (cmd.argument().empty())
-			break;
-		//view()->cursor().recordUndoFullDocument(); let inset-apply do that job
-		graphics::unifyGraphicsGroups(cur.buffer(), to_utf8(cmd.argument()));
-		processUpdateFlags(Update::Force | Update::FitCursor);
-		break;
-	}
-
 	case LFUN_NOTES_MUTATE: {
 		if (cmd.argument().empty())
 			break;
-		cur.recordUndoFullDocument();
 
 		if (mutateNotes(cur, cmd.getArg(0), cmd.getArg(1))) {
 			processUpdateFlags(Update::Force);
@@ -1456,15 +1457,12 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		InsetIterator it  = inset_iterator_begin(inset);
 		InsetIterator const end = inset_iterator_end(inset);
 		for (; it != end; ++it) {
-			if (!it->asInsetMath()
+			if (it->asInsetCollapsable()
 			    && (inset_code == NO_CODE
 			    || inset_code == it->lyxCode())) {
 				Cursor tmpcur = cur;
 				tmpcur.pushBackward(*it);
-				FuncStatus flag;
-				it->getStatus(tmpcur, fr, flag);
-				if (flag.enabled())
-					it->dispatch(tmpcur, fr);
+				it->dispatch(tmpcur, fr);
 			}
 		}
 		processUpdateFlags(Update::Force | Update::FitCursor);
@@ -1483,11 +1481,13 @@ docstring const BufferView::requestSelection()
 {
 	Cursor & cur = d->cursor_;
 
+	LYXERR(Debug::SELECTION, "requestSelection: cur.selection: " << cur.selection());
 	if (!cur.selection()) {
 		d->xsel_cache_.set = false;
 		return docstring();
 	}
 
+	LYXERR(Debug::SELECTION, "requestSelection: xsel_cache.set: " << d->xsel_cache_.set);
 	if (!d->xsel_cache_.set ||
 	    cur.top() != d->xsel_cache_.cursor ||
 	    cur.anchor_.top() != d->xsel_cache_.anchor)
@@ -1569,7 +1569,7 @@ void BufferView::mouseEventDispatch(FuncRequest const & cmd0)
 	Cursor old = cursor();
 	Cursor cur(*this);
 	cur.push(buffer_.inset());
-	cur.selection() = d->cursor_.selection();
+	cur.setSelection(d->cursor_.selection());
 
 	// Either the inset under the cursor or the
 	// surrounding Text will handle this event.
@@ -1616,6 +1616,8 @@ void BufferView::mouseEventDispatch(FuncRequest const & cmd0)
 	// Put anchor at the same position.
 	cur.resetAnchor();
 
+	cur.beginUndoGroup();
+
 	// Try to dispatch to an non-editable inset near this position
 	// via the temp cursor. If the inset wishes to change the real
 	// cursor it has to do so explicitly by using
@@ -1627,6 +1629,8 @@ void BufferView::mouseEventDispatch(FuncRequest const & cmd0)
 	// be modified, the inset's dispatch has to do so explicitly.
 	if (!inset || !cur.result().dispatched())
 		cur.dispatch(cmd);
+
+	cur.endUndoGroup();
 
 	// Notify left insets
 	if (cur != old) {
@@ -1739,6 +1743,26 @@ void BufferView::setCursorFromRow(int row)
 }
 
 
+bool BufferView::setCursorFromInset(Inset const * inset)
+{
+	// are we already there?
+	if (cursor().nextInset() == inset)
+		return true;
+
+	// Inset is not at cursor position. Find it in the document.
+	Cursor cur(*this);
+	cur.reset(buffer().inset());
+	while (cur && cur.nextInset() != inset)
+		cur.forwardInset();
+
+	if (cur) {
+		setCursor(cur);
+		return true;
+	}
+	return false;
+}
+
+
 void BufferView::gotoLabel(docstring const & label)
 {
 	Toc & toc = buffer().tocBackend().toc("label");
@@ -1790,7 +1814,7 @@ void BufferView::setCursor(DocIterator const & dit)
 		dit[i].inset().edit(d->cursor_, true);
 
 	d->cursor_.setCursor(dit);
-	d->cursor_.selection() = false;
+	d->cursor_.setSelection(false);
 }
 
 
@@ -2200,7 +2224,7 @@ void BufferView::draw(frontend::Painter & pain)
 
 		// Clear background.
 		pain.fillRectangle(0, 0, width_, height_,
-			buffer_.inset().backgroundColor());
+			pi.backgroundColor(&buffer_.inset()));
 
 		// Draw everything.
 		tm.draw(pi, 0, y);

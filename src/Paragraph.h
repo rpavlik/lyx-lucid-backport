@@ -33,6 +33,7 @@ class Change;
 class Counters;
 class Cursor;
 class CursorSlice;
+class DocIterator;
 class DocumentClass;
 class Inset;
 class InsetBibitem;
@@ -47,7 +48,7 @@ class OutputParams;
 class PainterInfo;
 class ParagraphParameters;
 class TexRow;
-
+class Toc;
 
 class FontSpan {
 public:
@@ -77,7 +78,8 @@ enum AsStringParameter
 {
 	AS_STR_NONE = 0, ///< No option, only printable characters.
 	AS_STR_LABEL = 1, ///< Prefix with paragraph label.
-	AS_STR_INSETS = 2 ///< Go into insets.
+	AS_STR_INSETS = 2, ///< Go into insets.
+	AS_STR_NEWLINES = 4 ///< Get also newline characters.
 };
 
 
@@ -89,6 +91,9 @@ public:
 	Paragraph();
 	///
 	Paragraph(Paragraph const &);
+	/// Partial copy constructor.
+	/// Copy the Paragraph contents from \p beg to \p end (without end).
+	Paragraph(Paragraph const & par, pos_type beg, pos_type end);
 	///
 	Paragraph & operator=(Paragraph const &);
 	///
@@ -96,6 +101,8 @@ public:
 	///
 	int id() const;
 
+	///
+	void addChangesToToc(DocIterator const & cdit, Buffer const & buf) const;
 	///
 	Language const * getParLanguage(BufferParams const &) const;
 	///
@@ -150,9 +157,9 @@ public:
 	void makeSameLayout(Paragraph const & par);
 
 	///
-	void setInsetOwner(Inset * inset);
+	void setInsetOwner(Inset const * inset);
 	///
-	Inset * inInset() const;
+	Inset const & inInset() const;
 	///
 	InsetCode ownerCode() const;
 	///
@@ -172,6 +179,10 @@ public:
 	void setLayout(Layout const & layout);
 	///
 	void setPlainOrDefaultLayout(DocumentClass const & tc);
+	///
+	void setDefaultLayout(DocumentClass const & tc);
+	///
+	void setPlainLayout(DocumentClass const & tc);
 
 	/// This is the item depth, only used by enumerate and itemize
 	signed char itemdepth;
@@ -247,10 +258,10 @@ public:
 	    between the characters font and the layoutfont.
 	    This is what is stored in the fonttable
 	*/
-	Font const
+	Font const &
 	getFontSettings(BufferParams const &, pos_type pos) const;
 	///
-	Font const getFirstFontSettings(BufferParams const &) const;
+	Font const & getFirstFontSettings(BufferParams const &) const;
 
 	/** Get fully instantiated font. If pos == -1, use the layout
 	    font attached to this paragraph.
@@ -298,14 +309,15 @@ public:
 	///
 	void insertChar(pos_type pos, char_type c,
 			Font const &, Change const & change);
-	///
-	void insertInset(pos_type pos, Inset * inset,
+	/// Insert \p inset at position \p pos with \p change traking status.
+	/// \return true if successful.
+	bool insertInset(pos_type pos, Inset * inset,
 			 Change const & change);
-	///
-	void insertInset(pos_type pos, Inset * inset,
-			 Font const &, Change const & change);
-	///
-	bool insetAllowed(InsetCode code);
+	/// Insert \p inset at position \p pos with \p change traking status and
+	/// \p font.
+	/// \return true if successful.
+	bool insertInset(pos_type pos, Inset * inset,
+			 Font const & font, Change const & change);
 	///
 	Inset * getInset(pos_type pos);
 	///
@@ -319,6 +331,8 @@ public:
 
 	///
 	InsetList const & insetList() const;
+	///
+	void setBuffer(Buffer &);
 
 	///
 	bool isHfill(pos_type pos) const;

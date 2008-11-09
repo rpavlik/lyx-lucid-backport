@@ -83,7 +83,6 @@ TODO
 #include "support/os.h"
 #include "support/Systemcall.h"
 
-#include <boost/bind.hpp>
 #include <boost/tuple/tuple.hpp>
 
 #include <algorithm>
@@ -164,8 +163,7 @@ InsetGraphics::InsetGraphics(Buffer & buf)
 
 InsetGraphics::InsetGraphics(InsetGraphics const & ig)
 	: Inset(ig),
-	  boost::signals::trackable(),
-		graphic_label(sgml::uniqueID(from_ascii("graph"))),
+	  graphic_label(sgml::uniqueID(from_ascii("graph"))),
 	  graphic_(new RenderGraphic(*ig.graphic_, this))
 {
 	setParams(ig.params());
@@ -181,6 +179,7 @@ Inset * InsetGraphics::clone() const
 InsetGraphics::~InsetGraphics()
 {
 	hideDialogs("graphics", this);
+	delete graphic_;
 }
 
 
@@ -198,10 +197,17 @@ void InsetGraphics::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_MODIFY: {
 		InsetGraphicsParams p;
 		string2params(to_utf8(cmd.argument()), buffer(), p);
-		if (!p.filename.empty())
-			setParams(p);
-		else
+		if (p.filename.empty()) {
 			cur.noUpdate();
+			break;
+		}
+
+		setParams(p);
+		// if the inset is part of a graphics group, all the
+		// other members should be updated too.
+		if (!params_.groupId.empty())
+			graphics::unifyGraphicsGroups(cur.buffer(), 
+						      to_utf8(cmd.argument()));
 		break;
 	}
 
@@ -662,7 +668,7 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 	LYXERR(Debug::GRAPHICS, "\tthe orig file is: " << orig_file);
 
 	if (from == to) {
-		if (!runparams.nice && getExtension(temp_file.absFilename()) != ext) {
+		if (!runparams.nice && !FileName(temp_file).hasExtension(ext)) {
 			// The LaTeX compiler will not be able to determine
 			// the file format from the extension, so we must
 			// change it.
@@ -987,11 +993,12 @@ string getGroupParams(Buffer const & b, string const & groupId)
 }
 
 
-void unifyGraphicsGroups(Buffer const & b, string const & argument)
+void unifyGraphicsGroups(Buffer & b, string const & argument)
 {
 	InsetGraphicsParams params;
 	InsetGraphics::string2params(argument, b, params);
 
+	b.undo().beginUndoGroup();
 	Inset & inset = b.inset();
 	InsetIterator it  = inset_iterator_begin(inset);
 	InsetIterator const end = inset_iterator_end(inset);
@@ -1000,12 +1007,13 @@ void unifyGraphicsGroups(Buffer const & b, string const & argument)
 			InsetGraphics & ins = static_cast<InsetGraphics &>(*it);
 			InsetGraphicsParams inspar = ins.getParams();
 			if (params.groupId == inspar.groupId) {
+				b.undo().recordUndo(it);
 				params.filename = inspar.filename;
 				ins.setParams(params);
 			}
 		}
 	}
-
+	b.undo().endUndoGroup();
 }
 
 

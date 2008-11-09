@@ -41,7 +41,12 @@ namespace lyx {
 
 InsetBranch::InsetBranch(Buffer const & buf, InsetBranchParams const & params)
 	: InsetCollapsable(buf), params_(params)
-{}
+{
+	// override the default for InsetCollapsable, which is to
+	// use the plain layout.
+	DocumentClass const & dc = buf.params().documentClass();
+	paragraphs().back().setDefaultLayout(dc);
+}
 
 
 InsetBranch::~InsetBranch()
@@ -85,7 +90,7 @@ void InsetBranch::setButtonLabel()
 		if (c == Color_none)
 			s = _("Undef: ") + s;
 	}
-	if (decoration() == InsetLayout::Classic)
+	if (decoration() == InsetLayout::CLASSIC)
 		setLabel(isOpen() ? s : getNewLabel(s) );
 	else
 		setLabel(params_.branch + ": " + getNewLabel(s));
@@ -196,7 +201,7 @@ bool InsetBranch::isBranchSelected() const
 	Branch const * ourBranch = branchlist.find(params_.branch);
 	if (!ourBranch)
 		return false;
-	return ourBranch->getSelected();
+	return ourBranch->isSelected();
 }
 
 
@@ -230,7 +235,7 @@ int InsetBranch::docbook(odocstream & os,
 void InsetBranch::textString(odocstream & os) const
 {
 	if (isBranchSelected())
-		os << paragraphs().begin()->asString(AS_STR_LABEL | AS_STR_INSETS);
+		os << text().asString(0, 1, AS_STR_LABEL | AS_STR_INSETS);
 }
 
 
@@ -277,7 +282,7 @@ void InsetBranch::addToToc(DocIterator const & cpit)
 	pit.push_back(CursorSlice(*this));
 
 	Toc & toc = buffer().tocBackend().toc("branch");
-	docstring const str = params_.branch + ": " + text_.getPar(0).asString();
+	docstring const str = params_.branch + ": " + text().getPar(0).asString();
 	toc.push_back(TocItem(pit, 0, str));
 	// Proceed with the rest of the inset.
 	InsetCollapsable::addToToc(cpit);

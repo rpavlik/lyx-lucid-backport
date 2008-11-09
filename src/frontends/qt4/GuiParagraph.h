@@ -57,13 +57,11 @@ private:
 	///
 	void alignmentToRadioButtons(LyXAlignment align = LYX_ALIGN_LAYOUT);
 	///
-	LyXAlignment getAlignmentFromDialog();
-	///
-	ParagraphParameters & params();
+	LyXAlignment getAlignmentFromDialog() const;
 	///
 	ParagraphParameters const & params() const;
 	///
-	bool haveMultiParSelection();
+	bool haveMultiParSelection() const;
 	///
 	bool canIndent() const;
 	///
@@ -96,7 +94,7 @@ private:
 	///
 	QString alignDefaultLabel_;
 	///
-	ParagraphParameters multiparsel_;
+	ParagraphParameters params_;
 };
 
 } // namespace frontend

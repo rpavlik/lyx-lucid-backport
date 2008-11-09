@@ -19,7 +19,7 @@
 # - Proof
 # - Case (regular only -- defined as an enumeration)
 
-Format 7
+Format 11
 
 Style Theorem
 	Category              Theorem
@@ -206,16 +206,36 @@ End
 # Define Case as an enumeration environment
 Style Case
 	Category              Theorem
-	CopyStyle             Enumerate
+	Margin                Static
+	LatexType             Item_Environment
 	LatexName             caseenv
 	LabelType             Static
-	LeftMargin            "Case ###:"
-	LabelString           "Case #:"
+	NextNoIndent          1
+	LeftMargin            "Case ###."
+	ParSkip               0.0
+	ItemSep               0.2
+	TopSep                0.7
+	BottomSep             0.7
+	ParSep                0.3
+	Align                 Block
+	AlignPossible         Block, Left
+	LabelSep              xx
+	LabelString           "Case #."
+	LabelFont
+	  Series              Medium
+	  Shape               Italic
+	EndFont
 	Preamble
 	  \newcounter{casectr}
 	  \newenvironment{caseenv}
-			{\begin{list}{\bfseries\upshape Case \arabic{casectr}:}%
-			{}\setcounter{casectr}{0}\usecounter{casectr}}%
-		{\end{list}}
+	  {\begin{list}{{\itshape\ Case} \arabic{casectr}.}{%
+	   \setlength{\leftmargin}{\labelwidth}
+	   \addtolength{\leftmargin}{\parskip}
+	   \setlength{\itemindent}{\listparindent}
+	   \setlength{\itemsep}{\medskipamount}
+	   \setlength{\topsep}{\itemsep}}
+	   \setcounter{casectr}{0}
+	   \usecounter{casectr}}
+	  {\end{list}}
 	EndPreamble
 End

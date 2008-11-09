@@ -35,7 +35,7 @@ namespace lyx {
 namespace frontend {
 
 TocWidget::TocWidget(GuiView & gui_view, QWidget * parent)
-	: QWidget(parent), depth_(0), gui_view_(gui_view)
+	: QWidget(parent), depth_(0), persistent_(false), gui_view_(gui_view)
 {
 	setupUi(this);
 
@@ -61,6 +61,12 @@ TocWidget::TocWidget(GuiView & gui_view, QWidget * parent)
 
 	// The toc types combo won't change its model.
 	typeCO->setModel(gui_view_.tocModels().nameModel());
+
+	// Make sure the buttons are disabled when first shown without a loaded
+	// Buffer.
+	enableControls(false);
+
+	init(QString());
 }
 
 
@@ -92,6 +98,18 @@ void TocWidget::on_updateTB_clicked()
 	// the controls while waiting.
 	enableControls(false);
 	gui_view_.tocModels().updateBackend();
+}
+
+
+void TocWidget::on_sortCB_stateChanged(int state)
+{
+	gui_view_.tocModels().sort(current_type_, state == Qt::Checked);
+	updateView();
+}
+
+void TocWidget::on_persistentCB_stateChanged(int state)
+{
+	persistent_ = state == Qt::Checked;
 }
 
 
@@ -128,7 +146,7 @@ void TocWidget::setTreeDepth(int depth)
 	// but my qt 4.1.2 doesn't have expandAll()..
 	//tocTV->expandAll();
 	QModelIndexList indices = tocTV->model()->match(
-		tocTV->model()->index(0,0),
+		tocTV->model()->index(0, 0),
 		Qt::DisplayRole, "*", -1,
 		Qt::MatchFlags(Qt::MatchWildcard|Qt::MatchRecursive));
 
@@ -209,6 +227,7 @@ static bool canOutline(QString const & type)
 void TocWidget::enableControls(bool enable)
 {
 	updateTB->setEnabled(enable);
+	sortCB->setEnabled(enable);
 
 	if (!canOutline(current_type_))
 		enable = false;
@@ -217,6 +236,11 @@ void TocWidget::enableControls(bool enable)
 	moveDownTB->setEnabled(enable);
 	moveInTB->setEnabled(enable);
 	moveOutTB->setEnabled(enable);
+	persistentCB->setEnabled(enable);
+	if (!enable) {
+		depthSL->setMaximum(0);
+		depthSL->setValue(0);
+	}
 }
 
 
@@ -227,7 +251,7 @@ static bool canNavigate(QString const & type)
 	// and efficient way with the label type because Toc::item() do a linear
 	// seatch. Even if fixed, it might even not be desirable to do so if we 
 	// want to support drag&drop of labels and references.
-	return type != "label";
+	return type != "label" && type != "change";
 }
 
 
@@ -241,22 +265,33 @@ void TocWidget::updateView()
 		return;
 	}
 	typeCO->setEnabled(true);
-	tocTV->setEnabled(true);
+	tocTV->setEnabled(false);
+	tocTV->setUpdatesEnabled(false);
 
-	QStandardItemModel * toc_model = gui_view_.tocModels().model(current_type_);	
+	QAbstractItemModel * toc_model = gui_view_.tocModels().model(current_type_);	
 	if (tocTV->model() != toc_model) {
 		tocTV->setModel(toc_model);
 		tocTV->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		if (persistent_) setTreeDepth(depth_);
 	}
+
+	sortCB->blockSignals(true);
+	sortCB->setChecked(gui_view_.tocModels().isSorted(current_type_));
+	sortCB->blockSignals(false);
+
+	persistentCB->setChecked(persistent_);
+
 	bool controls_enabled = toc_model && toc_model->rowCount() > 0
 		&& !gui_view_.buffer()->isReadonly();
 	enableControls(controls_enabled);
 
 	depthSL->setMaximum(gui_view_.tocModels().depth(current_type_));
 	depthSL->setValue(depth_);
-	setTreeDepth(depth_);
+	if (!persistent_) setTreeDepth(depth_);
 	if (canNavigate(current_type_))
 		select(gui_view_.tocModels().currentIndex(current_type_));
+	tocTV->setEnabled(true);
+	tocTV->setUpdatesEnabled(true);
 }
 
 
@@ -290,11 +325,14 @@ void TocWidget::init(QString const & str)
 	if (new_index == -1) {
 		current_type_ = "tableofcontents";
 		new_index = typeCO->findData(current_type_);
+	} else {
+		current_type_ = typeCO->itemData(new_index).toString();
 	}
 
 	typeCO->blockSignals(true);
 	typeCO->setCurrentIndex(new_index);
 	typeCO->blockSignals(false);
+	updateView();
 }
 
 } // namespace frontend

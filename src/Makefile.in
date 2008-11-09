@@ -53,17 +53,17 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
 	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
 	$(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/isc-posix.m4 \
-	$(top_srcdir)/m4/lcmessage.m4 $(top_srcdir)/m4/lib-ld.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
-	$(top_srcdir)/m4/lock.m4 $(top_srcdir)/m4/longdouble.m4 \
-	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/size_max.m4 \
-	$(top_srcdir)/m4/stdint_h.m4 $(top_srcdir)/m4/uintmax_t.m4 \
-	$(top_srcdir)/m4/ulonglong.m4 $(top_srcdir)/m4/visibility.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
-	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/lcmessage.m4 \
+	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/lock.m4 \
+	$(top_srcdir)/m4/longdouble.m4 $(top_srcdir)/m4/longlong.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-posix.m4 $(top_srcdir)/m4/progtest.m4 \
+	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
+	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
+	$(top_srcdir)/m4/visibility.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
@@ -143,9 +143,8 @@ am__objects_3 =
 liblyxcore_la_OBJECTS = $(am_liblyxcore_la_OBJECTS)
 liblyxgraphics_la_LIBADD =
 am_liblyxgraphics_la_OBJECTS = GraphicsCache.lo GraphicsCacheItem.lo \
-	GraphicsConverter.lo GraphicsImage.lo GraphicsLoader.lo \
-	GraphicsParams.lo GraphicsTypes.lo PreviewImage.lo \
-	PreviewLoader.lo Previews.lo
+	GraphicsConverter.lo GraphicsLoader.lo GraphicsParams.lo \
+	PreviewImage.lo PreviewLoader.lo Previews.lo
 liblyxgraphics_la_OBJECTS = $(am_liblyxgraphics_la_OBJECTS)
 liblyxinsets_la_LIBADD =
 am__liblyxinsets_la_SOURCES_DIST = insets/ExternalSupport.cpp \
@@ -224,18 +223,19 @@ am__liblyxmathed_la_SOURCES_DIST = mathed/InsetMathAMSArray.cpp \
 	mathed/InsetMathComment.cpp mathed/InsetMathDecoration.cpp \
 	mathed/InsetMathDecoration.h mathed/InsetMathDelim.cpp \
 	mathed/InsetMathDiff.cpp mathed/InsetMathDots.cpp \
-	mathed/InsetMathEnv.cpp mathed/InsetMathExFunc.cpp \
-	mathed/InsetMathExInt.cpp mathed/InsetMathFont.cpp \
-	mathed/InsetMathFontOld.cpp mathed/InsetMathFrac.cpp \
-	mathed/InsetMathGrid.cpp mathed/InsetMathHull.cpp \
-	mathed/InsetMathKern.cpp mathed/InsetMathLefteqn.cpp \
-	mathed/InsetMathLim.cpp mathed/MathMacro.cpp \
-	mathed/InsetMathMatrix.cpp mathed/InsetMathNest.cpp \
-	mathed/InsetMathNumber.cpp mathed/InsetMathOverset.cpp \
-	mathed/InsetMathPar.cpp mathed/InsetMathPhantom.cpp \
-	mathed/InsetMathRef.cpp mathed/InsetMathRoot.cpp \
-	mathed/InsetMathScript.cpp mathed/InsetMathSize.cpp \
-	mathed/InsetMathSpace.cpp mathed/InsetMathSplit.cpp \
+	mathed/InsetMathEnsureMath.cpp mathed/InsetMathEnv.cpp \
+	mathed/InsetMathExFunc.cpp mathed/InsetMathExInt.cpp \
+	mathed/InsetMathFont.cpp mathed/InsetMathFontOld.cpp \
+	mathed/InsetMathFrac.cpp mathed/InsetMathGrid.cpp \
+	mathed/InsetMathHull.cpp mathed/InsetMathKern.cpp \
+	mathed/InsetMathLefteqn.cpp mathed/InsetMathLim.cpp \
+	mathed/MathMacro.cpp mathed/InsetMathMatrix.cpp \
+	mathed/InsetMathNest.cpp mathed/InsetMathNumber.cpp \
+	mathed/InsetMathOverset.cpp mathed/InsetMathPar.cpp \
+	mathed/InsetMathPhantom.cpp mathed/InsetMathRef.cpp \
+	mathed/InsetMathRoot.cpp mathed/InsetMathScript.cpp \
+	mathed/InsetMathSize.cpp mathed/InsetMathSpace.cpp \
+	mathed/InsetMathSpecialChar.cpp mathed/InsetMathSplit.cpp \
 	mathed/InsetMathSqrt.cpp mathed/InsetMathStackrel.cpp \
 	mathed/InsetMathString.cpp mathed/InsetMathSubstack.cpp \
 	mathed/InsetMathSymbol.cpp mathed/InsetMathTabular.cpp \
@@ -254,18 +254,19 @@ am__liblyxmathed_la_SOURCES_DIST = mathed/InsetMathAMSArray.cpp \
 	mathed/InsetMathColor.h mathed/CommandInset.h \
 	mathed/InsetMathComment.h mathed/InsetMathDelim.h \
 	mathed/InsetMathDiff.h mathed/InsetMathDots.h \
-	mathed/InsetMathEnv.h mathed/InsetMathExFunc.h \
-	mathed/InsetMathExInt.h mathed/InsetMathFont.h \
-	mathed/InsetMathFontOld.h mathed/InsetMathFrac.h \
-	mathed/InsetMathGrid.h mathed/InsetMath.h \
-	mathed/InsetMathHull.h mathed/InsetMathKern.h \
-	mathed/InsetMathLefteqn.h mathed/InsetMathLim.h \
-	mathed/MathMacro.h mathed/InsetMathMatrix.h \
-	mathed/InsetMathNest.h mathed/InsetMathNumber.h \
-	mathed/InsetMathOverset.h mathed/InsetMathPar.h \
-	mathed/InsetMathPhantom.h mathed/InsetMathRef.h \
-	mathed/InsetMathRoot.h mathed/InsetMathScript.h \
-	mathed/InsetMathSize.h mathed/InsetMathSpace.h \
+	mathed/InsetMathEnsureMath.h mathed/InsetMathEnv.h \
+	mathed/InsetMathExFunc.h mathed/InsetMathExInt.h \
+	mathed/InsetMathFont.h mathed/InsetMathFontOld.h \
+	mathed/InsetMathFrac.h mathed/InsetMathGrid.h \
+	mathed/InsetMath.h mathed/InsetMathHull.h \
+	mathed/InsetMathKern.h mathed/InsetMathLefteqn.h \
+	mathed/InsetMathLim.h mathed/MathMacro.h \
+	mathed/InsetMathMatrix.h mathed/InsetMathNest.h \
+	mathed/InsetMathNumber.h mathed/InsetMathOverset.h \
+	mathed/InsetMathPar.h mathed/InsetMathPhantom.h \
+	mathed/InsetMathRef.h mathed/InsetMathRoot.h \
+	mathed/InsetMathScript.h mathed/InsetMathSize.h \
+	mathed/InsetMathSpace.h mathed/InsetMathSpecialChar.h \
 	mathed/InsetMathSplit.h mathed/InsetMathSqrt.h \
 	mathed/InsetMathStackrel.h mathed/InsetMathString.h \
 	mathed/InsetMathSubstack.h mathed/InsetMathSymbol.h \
@@ -277,28 +278,30 @@ am__liblyxmathed_la_SOURCES_DIST = mathed/InsetMathAMSArray.cpp \
 	mathed/MathFactory.h mathed/MathGridInfo.h \
 	mathed/MathMacroArgument.h mathed/MacroTable.h \
 	mathed/MathMacroTemplate.h mathed/MathParser.h \
-	mathed/ReplaceData.h mathed/MathStream.h mathed/MathSupport.h \
-	mathed/TextPainter.h lyxmathed.cpp
+	mathed/MathParser_flags.h mathed/ReplaceData.h \
+	mathed/MathStream.h mathed/MathSupport.h mathed/TextPainter.h \
+	lyxmathed.cpp
 am__objects_5 = InsetMathAMSArray.lo InsetMathArray.lo InsetMathBig.lo \
 	InsetMathBoldSymbol.lo InsetMathBox.lo InsetMathBrace.lo \
 	InsetMath.lo InsetMathCases.lo InsetMathChar.lo \
 	InsetMathColor.lo CommandInset.lo InsetMathComment.lo \
 	InsetMathDecoration.lo InsetMathDelim.lo InsetMathDiff.lo \
-	InsetMathDots.lo InsetMathEnv.lo InsetMathExFunc.lo \
-	InsetMathExInt.lo InsetMathFont.lo InsetMathFontOld.lo \
-	InsetMathFrac.lo InsetMathGrid.lo InsetMathHull.lo \
-	InsetMathKern.lo InsetMathLefteqn.lo InsetMathLim.lo \
-	MathMacro.lo InsetMathMatrix.lo InsetMathNest.lo \
-	InsetMathNumber.lo InsetMathOverset.lo InsetMathPar.lo \
-	InsetMathPhantom.lo InsetMathRef.lo InsetMathRoot.lo \
-	InsetMathScript.lo InsetMathSize.lo InsetMathSpace.lo \
-	InsetMathSplit.lo InsetMathSqrt.lo InsetMathStackrel.lo \
-	InsetMathString.lo InsetMathSubstack.lo InsetMathSymbol.lo \
-	InsetMathTabular.lo InsetMathUnderset.lo InsetMathUnknown.lo \
-	InsetMathXArrow.lo InsetMathXYMatrix.lo MathAtom.lo \
-	MathAutoCorrect.lo MathData.lo MathExtern.lo MathFactory.lo \
-	MathMacroArgument.lo MacroTable.lo MathMacroTemplate.lo \
-	MathParser.lo MathStream.lo MathSupport.lo TextPainter.lo
+	InsetMathDots.lo InsetMathEnsureMath.lo InsetMathEnv.lo \
+	InsetMathExFunc.lo InsetMathExInt.lo InsetMathFont.lo \
+	InsetMathFontOld.lo InsetMathFrac.lo InsetMathGrid.lo \
+	InsetMathHull.lo InsetMathKern.lo InsetMathLefteqn.lo \
+	InsetMathLim.lo MathMacro.lo InsetMathMatrix.lo \
+	InsetMathNest.lo InsetMathNumber.lo InsetMathOverset.lo \
+	InsetMathPar.lo InsetMathPhantom.lo InsetMathRef.lo \
+	InsetMathRoot.lo InsetMathScript.lo InsetMathSize.lo \
+	InsetMathSpace.lo InsetMathSpecialChar.lo InsetMathSplit.lo \
+	InsetMathSqrt.lo InsetMathStackrel.lo InsetMathString.lo \
+	InsetMathSubstack.lo InsetMathSymbol.lo InsetMathTabular.lo \
+	InsetMathUnderset.lo InsetMathUnknown.lo InsetMathXArrow.lo \
+	InsetMathXYMatrix.lo MathAtom.lo MathAutoCorrect.lo \
+	MathData.lo MathExtern.lo MathFactory.lo MathMacroArgument.lo \
+	MacroTable.lo MathMacroTemplate.lo MathParser.lo MathStream.lo \
+	MathSupport.lo TextPainter.lo
 @MONOLITHIC_MATHED_FALSE@am_liblyxmathed_la_OBJECTS =  \
 @MONOLITHIC_MATHED_FALSE@	$(am__objects_5) $(am__objects_3)
 @MONOLITHIC_MATHED_TRUE@am_liblyxmathed_la_OBJECTS = lyxmathed.lo \
@@ -408,6 +411,7 @@ DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -457,10 +461,12 @@ LTLIBOBJS = @LTLIBOBJS@
 LTLIBPTH = @LTLIBPTH@
 LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
+LYX_DIR_VER = @LYX_DIR_VER@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
+LYX_USERDIR_VER = @LYX_USERDIR_VER@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -468,6 +474,7 @@ MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NMEDIT = @NMEDIT@
 OBJC = @OBJC@
 OBJCDEPMODE = @OBJCDEPMODE@
 OBJCFLAGS = @OBJCFLAGS@
@@ -505,6 +512,7 @@ RANLIB = @RANLIB@
 RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOCKET_LIBS = @SOCKET_LIBS@
@@ -572,6 +580,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
+real_pkgdatadir = @real_pkgdatadir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -581,6 +590,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
@@ -848,13 +858,11 @@ liblyxgraphics_la_SOURCES = \
 	graphics/GraphicsConverter.h \
 	graphics/GraphicsConverter.cpp \
 	graphics/GraphicsImage.h \
-	graphics/GraphicsImage.cpp \
 	graphics/GraphicsLoader.h \
 	graphics/GraphicsLoader.cpp \
 	graphics/GraphicsParams.cpp \
 	graphics/GraphicsParams.h \
 	graphics/GraphicsTypes.h \
-	graphics/GraphicsTypes.cpp \
 	graphics/PreviewImage.h \
 	graphics/PreviewImage.cpp \
 	graphics/PreviewLoader.h \
@@ -880,6 +888,7 @@ SOURCEFILESMATHED = \
 	mathed/InsetMathDelim.cpp \
 	mathed/InsetMathDiff.cpp \
 	mathed/InsetMathDots.cpp \
+	mathed/InsetMathEnsureMath.cpp \
 	mathed/InsetMathEnv.cpp \
 	mathed/InsetMathExFunc.cpp \
 	mathed/InsetMathExInt.cpp \
@@ -903,6 +912,7 @@ SOURCEFILESMATHED = \
 	mathed/InsetMathScript.cpp \
 	mathed/InsetMathSize.cpp \
 	mathed/InsetMathSpace.cpp \
+	mathed/InsetMathSpecialChar.cpp \
 	mathed/InsetMathSplit.cpp \
 	mathed/InsetMathSqrt.cpp \
 	mathed/InsetMathStackrel.cpp \
@@ -942,6 +952,7 @@ HEADERFILESMATHED = \
 	mathed/InsetMathDelim.h \
 	mathed/InsetMathDiff.h \
 	mathed/InsetMathDots.h \
+	mathed/InsetMathEnsureMath.h \
 	mathed/InsetMathEnv.h \
 	mathed/InsetMathExFunc.h \
 	mathed/InsetMathExInt.h \
@@ -966,6 +977,7 @@ HEADERFILESMATHED = \
 	mathed/InsetMathScript.h \
 	mathed/InsetMathSize.h \
 	mathed/InsetMathSpace.h \
+	mathed/InsetMathSpecialChar.h \
 	mathed/InsetMathSplit.h \
 	mathed/InsetMathSqrt.h \
 	mathed/InsetMathStackrel.h \
@@ -988,6 +1000,7 @@ HEADERFILESMATHED = \
 	mathed/MacroTable.h \
 	mathed/MathMacroTemplate.h \
 	mathed/MathParser.h \
+	mathed/MathParser_flags.h \
 	mathed/ReplaceData.h \
 	mathed/MathStream.h \
 	mathed/MathSupport.h \
@@ -1234,10 +1247,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsCache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsCacheItem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsConverter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsImage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsLoader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsParams.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GraphicsTypes.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ISpell.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Inset.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetBibitem.Plo@am__quote@
@@ -1285,6 +1296,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathDelim.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathDiff.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathDots.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathEnsureMath.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathEnv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathExFunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathExInt.Plo@am__quote@
@@ -1307,6 +1319,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathScript.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathSize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathSpace.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathSpecialChar.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathSplit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathSqrt.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetMathStackrel.Plo@am__quote@
@@ -1457,13 +1470,6 @@ GraphicsConverter.lo: graphics/GraphicsConverter.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GraphicsConverter.lo `test -f 'graphics/GraphicsConverter.cpp' || echo '$(srcdir)/'`graphics/GraphicsConverter.cpp
 
-GraphicsImage.lo: graphics/GraphicsImage.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GraphicsImage.lo -MD -MP -MF $(DEPDIR)/GraphicsImage.Tpo -c -o GraphicsImage.lo `test -f 'graphics/GraphicsImage.cpp' || echo '$(srcdir)/'`graphics/GraphicsImage.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GraphicsImage.Tpo $(DEPDIR)/GraphicsImage.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='graphics/GraphicsImage.cpp' object='GraphicsImage.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GraphicsImage.lo `test -f 'graphics/GraphicsImage.cpp' || echo '$(srcdir)/'`graphics/GraphicsImage.cpp
-
 GraphicsLoader.lo: graphics/GraphicsLoader.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GraphicsLoader.lo -MD -MP -MF $(DEPDIR)/GraphicsLoader.Tpo -c -o GraphicsLoader.lo `test -f 'graphics/GraphicsLoader.cpp' || echo '$(srcdir)/'`graphics/GraphicsLoader.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GraphicsLoader.Tpo $(DEPDIR)/GraphicsLoader.Plo
@@ -1477,13 +1483,6 @@ GraphicsParams.lo: graphics/GraphicsParams.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='graphics/GraphicsParams.cpp' object='GraphicsParams.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GraphicsParams.lo `test -f 'graphics/GraphicsParams.cpp' || echo '$(srcdir)/'`graphics/GraphicsParams.cpp
-
-GraphicsTypes.lo: graphics/GraphicsTypes.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GraphicsTypes.lo -MD -MP -MF $(DEPDIR)/GraphicsTypes.Tpo -c -o GraphicsTypes.lo `test -f 'graphics/GraphicsTypes.cpp' || echo '$(srcdir)/'`graphics/GraphicsTypes.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/GraphicsTypes.Tpo $(DEPDIR)/GraphicsTypes.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='graphics/GraphicsTypes.cpp' object='GraphicsTypes.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GraphicsTypes.lo `test -f 'graphics/GraphicsTypes.cpp' || echo '$(srcdir)/'`graphics/GraphicsTypes.cpp
 
 PreviewImage.lo: graphics/PreviewImage.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PreviewImage.lo -MD -MP -MF $(DEPDIR)/PreviewImage.Tpo -c -o PreviewImage.lo `test -f 'graphics/PreviewImage.cpp' || echo '$(srcdir)/'`graphics/PreviewImage.cpp
@@ -1961,6 +1960,13 @@ InsetMathDots.lo: mathed/InsetMathDots.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o InsetMathDots.lo `test -f 'mathed/InsetMathDots.cpp' || echo '$(srcdir)/'`mathed/InsetMathDots.cpp
 
+InsetMathEnsureMath.lo: mathed/InsetMathEnsureMath.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT InsetMathEnsureMath.lo -MD -MP -MF $(DEPDIR)/InsetMathEnsureMath.Tpo -c -o InsetMathEnsureMath.lo `test -f 'mathed/InsetMathEnsureMath.cpp' || echo '$(srcdir)/'`mathed/InsetMathEnsureMath.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/InsetMathEnsureMath.Tpo $(DEPDIR)/InsetMathEnsureMath.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mathed/InsetMathEnsureMath.cpp' object='InsetMathEnsureMath.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o InsetMathEnsureMath.lo `test -f 'mathed/InsetMathEnsureMath.cpp' || echo '$(srcdir)/'`mathed/InsetMathEnsureMath.cpp
+
 InsetMathEnv.lo: mathed/InsetMathEnv.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT InsetMathEnv.lo -MD -MP -MF $(DEPDIR)/InsetMathEnv.Tpo -c -o InsetMathEnv.lo `test -f 'mathed/InsetMathEnv.cpp' || echo '$(srcdir)/'`mathed/InsetMathEnv.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/InsetMathEnv.Tpo $(DEPDIR)/InsetMathEnv.Plo
@@ -2121,6 +2127,13 @@ InsetMathSpace.lo: mathed/InsetMathSpace.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mathed/InsetMathSpace.cpp' object='InsetMathSpace.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o InsetMathSpace.lo `test -f 'mathed/InsetMathSpace.cpp' || echo '$(srcdir)/'`mathed/InsetMathSpace.cpp
+
+InsetMathSpecialChar.lo: mathed/InsetMathSpecialChar.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT InsetMathSpecialChar.lo -MD -MP -MF $(DEPDIR)/InsetMathSpecialChar.Tpo -c -o InsetMathSpecialChar.lo `test -f 'mathed/InsetMathSpecialChar.cpp' || echo '$(srcdir)/'`mathed/InsetMathSpecialChar.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/InsetMathSpecialChar.Tpo $(DEPDIR)/InsetMathSpecialChar.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mathed/InsetMathSpecialChar.cpp' object='InsetMathSpecialChar.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o InsetMathSpecialChar.lo `test -f 'mathed/InsetMathSpecialChar.cpp' || echo '$(srcdir)/'`mathed/InsetMathSpecialChar.cpp
 
 InsetMathSplit.lo: mathed/InsetMathSplit.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT InsetMathSplit.lo -MD -MP -MF $(DEPDIR)/InsetMathSplit.Tpo -c -o InsetMathSplit.lo `test -f 'mathed/InsetMathSplit.cpp' || echo '$(srcdir)/'`mathed/InsetMathSplit.cpp
@@ -2593,7 +2606,7 @@ uninstall-am: uninstall-binPROGRAMS
 
 @LYX_WIN_RESOURCE_TRUE@.rc.o:
 @LYX_WIN_RESOURCE_TRUE@	cp $(top_srcdir)/development/Win32/packaging/icons/lyx_*32x32.ico .
-@LYX_WIN_RESOURCE_TRUE@	windres -I. --preprocessor "$(CPP) -xc-header -DRC_INVOKED" $< -o $@
+@LYX_WIN_RESOURCE_TRUE@	windres -I$(top_builddir) --preprocessor "$(CPP) -xc-header -DRC_INVOKED" $< -o $@
 
 lyxcore.cpp:
 	@echo -e '$(SOURCEFILESCORE:%=\n#include "%")\n' > $@

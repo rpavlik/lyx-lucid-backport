@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrartcl
@@ -54,7 +54,7 @@
 
 % the pages of the TOC is numbered roman
 % and a PDF-bookmark for the TOC is added
-\pagenumbering{Roman}
+\pagenumbering{roman}
 \let\myTOC\tableofcontents
 \renewcommand{\tableofcontents}{%
  \vspace{1cm}
@@ -70,9 +70,6 @@
 % provides caption formatting
 \setkomafont{captionlabel}{\bfseries}
 
-% used in Kap. 22.4
-\usepackage{braket}
-
 % used in Kap. 22.6
 \usepackage[samesize]{cancel}
 
@@ -82,9 +79,6 @@
 % for multiple table row and column cells
 \usepackage{multirow}
 \usepackage{multicol}
-
-% needed for diagrams
-\usepackage{amscd}
 
 % needed in sec. 19.4
 \usepackage{remreset}
@@ -149,6 +143,7 @@
  {\setboolean{upgreek}{false}}
 \end_preamble
 \options bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\use_default_options false
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -159,7 +154,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -176,7 +170,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize a4paper
@@ -199,8 +192,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -309,13 +302,6 @@ http://wiki.lyx.org/LyX/DocumentationDevelopment#Math
 
 \begin_layout Section
 Introducción
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Introducción"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -455,13 +441,6 @@ AmS
 
 \begin_layout Section
 Instrucciones generales
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Instrucciones-generales"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -495,7 +474,7 @@ Para crear una ecuación en estilo presentación
 status collapsed
 
 \begin_layout Plain Layout
-Ecuación ! en presentación
+Ecuación ! presentada
 \end_layout
 
 \end_inset
@@ -508,8 +487,8 @@ Ecuación ! en presentación
 \end_layout
 
 \begin_layout Standard
-Para cambiar una ecuación en estilo presentación a estilo en línea, pon
- el cursor dentro de la ecuación y teclea 
+Para cambiar una ecuación presentada a ecuación en línea, pon el cursor
+ dentro de la ecuación y teclea 
 \family sans
 Ctrl-M
 \family default
@@ -524,8 +503,8 @@ Cambiar tipo de ecuación
 \end_layout
 
 \begin_layout Standard
-Para mostrar partes de una ecuación en línea en el tamaño del estilo presentació
-n, escribe el comando 
+Para mostrar partes de una ecuación en línea en el tamaño de una ecuación
+ presentada, escribe el comando 
 \series bold
 
 \backslash
@@ -672,15 +651,7 @@ nombres propios
 
 \begin_layout Plain Layout
 Para evitar que estas palabras sean reconocidas como tales nombres propios,
- 
-\lang english
-a
-\lang spanish
- llaves TeX 
-\lang english
-pair is inserted.
-
-\lang spanish
+ se inserta un par de llaves TeX.
  
 \end_layout
 
@@ -956,7 +927,7 @@ Una flecha como
 \end_layout
 
 \begin_layout Subsection*
-Unidades empleadas
+Unidades disponibles
 \end_layout
 
 \begin_layout Standard
@@ -974,11 +945,11 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset label
 LatexCommand label
-name "tab:Unidades-empleadas"
+name "tab:Unidades-disponibles"
 
 \end_inset
 
-Unidades empleadas
+Unidades disponibles
 \end_layout
 
 \end_inset
@@ -1389,7 +1360,7 @@ Exponentes
 status collapsed
 
 \begin_layout Plain Layout
-In@Índices
+Indices@Índices
 \end_layout
 
 \end_inset
@@ -2198,7 +2169,37 @@ nicefrac
 \begin_inset Formula $\nicefrac{5}{31}$
 \end_inset
 
- 
+ Hay además el comando 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ que permite escribir una fracción en combinación con un número: 
+\begin_inset Formula $\unitfrac[2]{1}{3}$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Ten en cuenta que 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ no es un comando LaTeX auténtico, sino el comando
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+unitfrac[número]{numerador}{denominador}
+\series default
+, por tanto no puedes usarlo en código TeX.
 \end_layout
 
 \begin_layout Standard
@@ -2941,6 +2942,10 @@ B
 \end_inset
 
 
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -3060,7 +3065,7 @@ spce
 
 \end_inset
 
-Ctrl-Intro
+Ctrl-Retorno
 \end_layout
 
 \end_inset
@@ -3103,7 +3108,7 @@ cases
 
  de la barra de ecuaciones puedes añadir líneas nuevas con el atajo 
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
  o con el botón
 \family sans
@@ -3306,10 +3311,10 @@ reference "sec:Relaciones"
 \end_layout
 
 \begin_layout Subsection
-Espaciadores fantasma 
+Espacios reservados 
 \begin_inset CommandInset label
 LatexCommand label
-name "sub:Espaciadores-fantasma"
+name "sub:Espacios-reservados"
 
 \end_inset
 
@@ -3318,7 +3323,7 @@ name "sub:Espaciadores-fantasma"
 status collapsed
 
 \begin_layout Plain Layout
-Espaciadores fantasma
+Espacios reservados
 \end_layout
 
 \end_inset
@@ -3369,7 +3374,11 @@ status collapsed
 \end_layout
 
 \begin_layout Standard
-En la presentación de isótopos,
+En la presentación de, p.
+\begin_inset space \thinspace{}
+\end_inset
+
+e., isótopos,
 \begin_inset Foot
 status collapsed
 
@@ -3386,11 +3395,7 @@ reference "sub:Símbolos-y-ecuaciones-químicas"
 
 \end_inset
 
- p.
-\begin_inset space \thinspace{}
-\end_inset
-
-e., surge el problema siguiente:
+ surge el problema siguiente:
 \end_layout
 
 \begin_layout Standard
@@ -3471,7 +3476,7 @@ raisebox
 \end_layout
 
 \begin_layout Standard
-Por defecto, el índice más corto se coloca sobre o bajo el primer carácter
+Por omisión, el índice más corto se coloca sobre o bajo el primer carácter
  del índice más largo.
  Para evitarlo está el comando 
 \series bold
@@ -3519,7 +3524,7 @@ Botón
 
 \end_inset
 
-, que genera uno o más caracteres fantasma.
+, que genera uno o más espacios reservados.
  Al insertar 
 \series bold
 
@@ -3531,9 +3536,9 @@ phantom
 \end_inset
 
 .
- Las flechas indican que se utilizarán como espaciador la anchura y altura
- totales del contenido del marco.
- Los caracteres fantasmas son espaciadores adecuados al tamaño de los caracteres.
+ Las flechas indican que se reservará un espacio equivalente a la anchura
+ y altura totales del contenido del marco.
+ Los espacios reservados son correspondientes al tamaño de los caracteres.
 \end_layout
 
 \begin_layout Standard
@@ -3932,12 +3937,12 @@ reference "sub:Delimitadores-multilínea"
 \end_layout
 
 \begin_layout Subsection
-Barras
+Líneas
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Barras
+Lineas@Líneas
 \end_layout
 
 \end_inset
@@ -4192,10 +4197,99 @@ underline
 
 \begin_layout Standard
 Es posible colocar hasta 6 líneas sobre o bajo los caracteres.
+\begin_inset VSpace bigskip
+\end_inset
+
+Se pueden crear líneas personalizadas con el comando 
+\series bold
+
+\backslash
+rule
+\series default
+
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Comandos ! R ! 
+\backslash
+rule
+\end_layout
+
+\end_inset
+
+ con el esquema siguiente:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule[hueco vertical]{longitud}{grosor}
+\end_layout
+
+\begin_layout Standard
+El hueco vertical opcional desplaza la línea hacia arriba (o hacia abajo
+ si el valor es negativo).
+ Las unidades disponibles para los valores están listadas en
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Unidades-disponibles"
+
+\end_inset
+
+.
+ A continuación hay dos ejemplos de líneas creadas con los comandos
+\series bold
+
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+rule[-2ex]{3cm}{2pt}
+\series default
+ y 
+\series bold
+
+\backslash
+rule{2cm}{1pt}
+\series default
+:
+\end_layout
+
+\begin_layout Standard
+Esto es una frase 
+\begin_inset Formula $\rule[-2ex]{3cm}{2pt}\rule{2cm}{1pt}$
+\end_inset
+
+ con dos líneas.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule
+\series default
+ también se puede usar para texto si se inserta en modo TeX.
 \end_layout
 
 \begin_layout Subsection
 Puntos
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Puntos"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -4899,7 +4993,7 @@ lccr
 \series default
  en la alineación horizontal.
  Normalmente todas las columnas de una matriz están centradas, por tanto
- el valor por defecto es 
+ el valor por omisión es 
 \series bold
 c
 \series default
@@ -4976,7 +5070,7 @@ Filas y columnas
 .
  También se pueden añadir filas nuevas con 
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
 .
 \end_layout
@@ -7609,7 +7703,7 @@ hphantom
  en 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:Espaciadores-fantasma"
+reference "sub:Espacios-reservados"
 
 \end_inset
 
@@ -9232,7 +9326,7 @@ Más sobre
 texorpdfstring en la sección 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:Ecuaciones-en-títulos"
+reference "sub:Ecuaciones-en-encabezados"
 
 \end_inset
 
@@ -9872,7 +9966,7 @@ Para poner diéresis
 status collapsed
 
 \begin_layout Plain Layout
-Diéresis
+Dieresis@Diéresis
 \end_layout
 
 \end_inset
@@ -10405,13 +10499,6 @@ sideset
 
 \begin_layout Subsection
 Acentos para varios caracteres
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Acentos-para-varios"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -11798,7 +11885,7 @@ Más sobre
 texorpdfstring en la sección 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:Ecuaciones-en-títulos"
+reference "sub:Ecuaciones-en-encabezados"
 
 \end_inset
 
@@ -11854,7 +11941,7 @@ hspace
  Para la longitud están permitidas todas las unidades de la 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "tab:Unidades-empleadas"
+reference "tab:Unidades-disponibles"
 
 \end_inset
 
@@ -12064,6 +12151,39 @@ reference "sec:Estilos-de-ecuación"
 \end_inset
 
 ).
+\end_layout
+
+\begin_layout Standard
+Además de 
+\series bold
+
+\backslash
+hfill
+\series default
+ hay los comandos 
+\series bold
+
+\backslash
+dotfill
+\series default
+ y 
+\series bold
+
+\backslash
+hrulefill
+\series default
+ que llenan el espacio con un patrón, véase un ejemplo en 
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Puntos"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -12305,7 +12425,7 @@ Cuadros
 \emph default
  del manual 
 \emph on
-Objetos incrustados
+Objetos insertados
 \emph default
 .
 \end_layout
@@ -12432,7 +12552,7 @@ fbox
 fboxed
 \series default
  no es adecuada para enmarcar ecuaciones en línea porque la ecuación tendría
- siempre el tamaño de una ecuación en modo presentación.
+ siempre el tamaño de una ecuación presentada.
 \end_layout
 
 \begin_layout Standard
@@ -12671,8 +12791,7 @@ A=B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula \raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}
-
+\begin_inset Formula $\raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}$
 \end_inset
 
 
@@ -14345,7 +14464,7 @@ Cuadros
 \emph default
  del manual 
 \emph on
-Objetos incrustados
+Objetos insertados
 \emph default
  para ejemplos.
 \end_layout
@@ -15967,7 +16086,7 @@ l
 \end_layout
 
 \begin_layout Standard
-Los límites por defecto son:
+Los límites por omisión son:
 \begin_inset Formula \[
 \sum_{x=0}^{\infty}\frac{1}{x^{2}}\]
 
@@ -16003,7 +16122,7 @@ intop
 \backslash
 ointop
 \series default
-, los límites se colocan por defecto junto al operador.
+, los límites se colocan por omisión junto al operador.
  Pero en integrales múltiples los límites se ponen con frecuencia bajo el
  operador.
  Por tanto, en el siguiente ejemplo se ha elegido el tipo 
@@ -16114,7 +16233,7 @@ spce
  distintas.
  Cada línea nueva se crea con un salto de línea (
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
 ).
  Si ahora se escribe en ella
@@ -16123,7 +16242,7 @@ Ctrl-Intro
 
 
 \series bold
-0<k<1000 Ctrl-Intro
+0<k<1000 Ctrl-Retorno
 \begin_inset Newline newline
 \end_inset
 
@@ -16313,7 +16432,7 @@ spce
 
 \end_inset
 
-0<k<1000 Ctrl-Intro
+0<k<1000 Ctrl-Retorno
 \end_layout
 
 \begin_layout Standard
@@ -17917,7 +18036,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
--
+Ctrl-b
 \end_layout
 
 \end_inset
@@ -17968,7 +18087,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-c b
+Alt-c b o Ctrl-Alt-b
 \end_layout
 
 \end_inset
@@ -18561,6 +18680,134 @@ unboldmath
 \end_layout
 
 \begin_layout Subsection
+Ecuaciones coloreadas
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Ecuación ! coloreada
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Las ecuaciones se pueden colorear como texto normal: selecciona una ecuación
+ o una parte de una ecuación y us el diálogo 
+\family sans
+Estilo del texto
+\family default
+.
+ Aquí hay una ecuación en magenta:
+\begin_inset Formula \[
+{\color{magenta}\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}\]
+
+\end_inset
+
+También puedes definir tus propios colores como se describe en
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Cuadros-coloreados"
+
+\end_inset
+
+.
+ Pueden usarse con el comando en código TeX 
+\series bold
+
+\backslash
+textcolor
+\series default
+
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Comandos ! T ! 
+\backslash
+textcolor
+\end_layout
+
+\end_inset
+
+ según el esquema
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+textcolor{color}{caracteres o ecuación}
+\end_layout
+
+\begin_layout Standard
+El ejemplo siguiente se ha coloreado completamente en verde oscuro y parcialment
+e en rojo:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+textcolor{verdeoscuro}{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Formula \[
+\int A\,\mathrm{d}x=\frac{{\color{red}\sqrt[5]{B}}}{\ln\left(\frac{1}{3}\right)}\]
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Debido a un error en LyX los colores personalizados se pueden aplicar sólo
+ a ecuaciones completas.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset CommandInset href
+LatexCommand href
+name "LyX-bug #5269"
+target "http://bugzilla.lyx.org/show_bug.cgi?id=5269"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 Tamaños de fuentes
 \begin_inset CommandInset label
 LatexCommand label
@@ -18910,7 +19157,7 @@ A
 
 \begin_layout Standard
 Si un símbolo no se puede mostrar en distintos tamaños se usará siempre
- el tamaño por defecto.
+ el tamaño por omisión.
 \end_layout
 
 \begin_layout Section
@@ -18940,13 +19187,6 @@ Todas las letras griegas se pueden insertar además mediante el botón
 
 \begin_layout Subsection
 Minúsculas
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Minúsculas"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -20425,7 +20665,7 @@ status collapsed
 
 
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -20440,7 +20680,7 @@ Más sobre
 texorpdfstring en la sección 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:Ecuaciones-en-títulos"
+reference "sub:Ecuaciones-en-encabezados"
 
 \end_inset
 
@@ -22158,6 +22398,9 @@ Símbolos ! euro
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
@@ -25206,7 +25449,7 @@ Límites
 status collapsed
 
 \begin_layout Plain Layout
-Límites
+Limites@Límites
 \end_layout
 
 \end_inset
@@ -25758,14 +26001,15 @@ AA
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
 \begin_layout Plain Layout
 
 
-\backslash
-@
 \backslash
 textrm{
 \backslash
@@ -27202,7 +27446,7 @@ Números minúsculos
 status collapsed
 
 \begin_layout Plain Layout
-Números ! minúsculos
+Numeros@Números ! minúsculos
 \end_layout
 
 \end_inset
@@ -27398,7 +27642,9 @@ circ
 status collapsed
 
 \begin_layout Plain Layout
-°
+
+\backslash
+@°
 \end_layout
 
 \end_inset
@@ -27606,8 +27852,8 @@ leqno
 \end_layout
 
 \begin_layout Standard
-Los estilos escogidos se aplican a todas las ecuaciones en presentación
- del documento.
+Los estilos escogidos se aplican a todas las ecuaciones presentadas del
+ documento.
  Si un documento debe tener ecuaciones centradas y sangradas, se usa el
  estilo 
 \series bold
@@ -27652,15 +27898,65 @@ General
 En LyX se generan nuevas líneas en una ecuación con 
 \family sans
 \series bold
-Ctrl-Intro
+Ctrl-Retorno
 \family default
 \series default
 .
  Esto crea un 
 \series bold
-entorno align
+entorno eqnarray
 \series default
-, que se describe en la 
+, que se describe en
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Entorno-eqnarray"
+
+\end_inset
+
+ o, si se ha marcado la opción 
+\family sans
+Usar
+\begin_inset space ~
+\end_inset
+
+el
+\begin_inset space ~
+\end_inset
+
+paquete
+\begin_inset space ~
+\end_inset
+
+de
+\begin_inset space ~
+\end_inset
+
+ecuaciones
+\begin_inset space ~
+\end_inset
+
+AMS
+\family default
+ en la configuración del documento
+\family sans
+, un 
+\series bold
+entorno
+\family default
+\series default
+ 
+\series bold
+align
+\series default
+, que se describe en
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Entorno-align-estándar"
@@ -27684,7 +27980,7 @@ Ecuación
 \begin_layout Standard
 En todos los entornos de ecuación multilínea la combinación 
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
  genera una línea nueva.
  Para añadir o quitar líneas se pueden usar los botones 
@@ -28613,7 +28909,7 @@ Ecuación ! multilínea ! entorno align
 \begin_layout Standard
 Este entorno align se crea pulsando 
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
  en una ecuación o con el menú 
 \family sans
@@ -28802,6 +29098,13 @@ pt al comienzo de la primera columna.
 
 \begin_layout Subsection
 Entorno eqnarray
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Entorno-eqnarray"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -29019,7 +29322,7 @@ multlinegap
 \begin_inset space \thinspace{}
 \end_inset
 
-pt por defecto.
+pt por omisión.
 \end_layout
 
 \begin_layout Standard
@@ -29166,8 +29469,8 @@ Los tres primeros tienen las mismas propiedades que los correspondientes
 
 \end_inset
 
-Para componer esta expresión se inserta una ecuación en presentación y en
- ella se introduce el comando 
+Para componer esta expresión se inserta una ecuación presentada y en ella
+ se introduce el comando 
 \series bold
 
 \backslash
@@ -29195,8 +29498,8 @@ aligned
 \begin_layout Standard
 El entorno aligned también es apropiado para ecuaciones largas cuyas líneas
  se alinean horizontalmente.
- Usar aligned en una ecuación en presentación tiene la ventaja de que el
- número de ecuación se centra verticalmente con las líneas.
+ Usar aligned en una ecuación presentada tiene la ventaja de que el número
+ de ecuación se centra verticalmente con las líneas.
  Como ejemplo, la ecuación 
 \begin_inset CommandInset ref
 LatexCommand eqref
@@ -29519,13 +29822,6 @@ reference "sec:Estilos-de-ecuación"
 
 \begin_layout Subsection
 Referencias cruzadas
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Referencias-cruzadas"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -29553,7 +29849,7 @@ Etiqueta
 \end_inset
 
  de la barra de herramientas.
- El cursor debe estar dentro de una ecuación en presentación.
+ El cursor debe estar dentro de una ecuación en modo presentación.
  Surge un diálogo con el prefijo 
 \series bold
 eq:
@@ -30001,7 +30297,7 @@ begin{subequations}
 
 \begin_inset Formula \begin{eqnarray}
 A & = & (B-Z)^{2}=(B-Z)(B-Z)\label{eq:d}\\
- & = & B^{2}-ZB-BZ+Z^{²}\nonumber \\
+ & = & B^{2}-ZB-BZ+Z^{2}\nonumber \\
  & = & B^{2}-2BZ+Z^{2}\label{eq:f}\end{eqnarray}
 
 \end_inset
@@ -30536,8 +30832,8 @@ sectioning
 \end_layout
 
 \begin_layout Standard
-Así pues, en nuestro caso se ha usado la siguiente línea ERT o de preámbulo
- LaTeX:
+Así pues, en nuestro caso se ha usado la siguiente línea en código TeX o
+ en el preámbulo LaTeX:
 \end_layout
 
 \begin_layout Standard
@@ -30602,7 +30898,7 @@ numberwithin{table}{part}
 \begin_layout Standard
 Para volver a la numeración estándar o evitar esta clase numeración cuando
  es definida por la clase de documento, se inserta el siguiente comando
- como ERT o en el preámbulo LaTeX:
+ en código TeX o en el preámbulo LaTeX:
 \end_layout
 
 \begin_layout Standard
@@ -30713,13 +31009,6 @@ makeatother
 
 \begin_layout Subsection
 Numeración con números romanos y letras
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Numeración-con-romanos"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -31099,7 +31388,7 @@ D=\textrm{latinas en mayúscula}\label{eq:Lat}\end{equation}
 \end_layout
 
 \begin_layout Standard
-Para volver a la numeración por defecto se inserta el comando:
+Para volver a la numeración por omisión se inserta el comando:
 \end_layout
 
 \begin_layout Standard
@@ -31878,15 +32167,35 @@ A=B
 \end_inset
 
 
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Diagramas
+\end_layout
+
+\begin_layout Standard
+Lyx soporta dos tipos de diagramas conmutativos: 
+\series bold
+amscd
+\series default
+ y 
+\series bold
+xymatrix
+\series default
+, que se explican a continuación.
+\end_layout
+
+\begin_layout Subsection
+Diagramas amscd
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Diagramas
+Diagramas ! amscd
 \end_layout
 
 \end_inset
@@ -31895,51 +32204,8 @@ Diagramas
 \end_layout
 
 \begin_layout Standard
-Para componer diagramas se necesita el paquete LaTeX 
-\series bold
-amscd
-\series default
-.
-\series bold
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-amscd
-\series default
- forma parte de las instalaciones estándar de LaTeX.
-\end_layout
-
-\end_inset
-
-
-\series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Paquetes ! amscd
-\end_layout
-
-\end_inset
-
- Se carga en el preámbulo LaTeX con la línea:
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-usepackage{amscd}
-\end_layout
-
-\begin_layout Standard
-Los diagramas visualizan relaciones y su aspecto es como este:
+Los diagramas de este tipo visualizan relaciones mediante líneas o flechas
+ verticales y horizontales:
 \begin_inset Formula \[
 \begin{CD}A@)))B@)))C\\
 @AAA@.@VVV\\
@@ -31970,7 +32236,7 @@ CD
  continuación comandos.
  Con 
 \family sans
-Ctrl-Intro
+Ctrl-Retorno
 \family default
  se inicia una nueva línea.
  En las líneas impares se insertan relaciones horizontales, en las pares
@@ -32142,7 +32408,7 @@ spce
 
 \end_inset
 
-A@>j>>B@>>k>C@=F Ctrl-Intro
+A@>j>>B@>>k>C@=F Ctrl-Retorno
 \begin_inset Newline newline
 \end_inset
 
@@ -32195,7 +32461,7 @@ status collapsed
 
 
 \series bold
-V@| Ctrl-Intro
+V@| Ctrl-Retorno
 \begin_inset Newline newline
 \end_inset
 
@@ -32241,11 +32507,60 @@ status collapsed
 D@<<j<E@>k>>F@=C
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
+\begin_layout Subsection
+Diagramas xymatrix
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Diagramas ! xymatrix
+\end_layout
+
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Para usar matrices xy debe estar instalado el paquete LaTeX 
+\series bold
+xypic
+\series default
+.
+ Una matriz xy se crea insertando el comando 
+\series bold
+
+\backslash
+xymatrix
+\series default
+ en una ecuación.
+ Después podrás añadir nuevas columnas y filas como en matrices normales,
+ véase
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Matrices"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A diferencia de los diagramas amscd, las matrices xy soportan flechas diagonales
+ y curvadas, y mucho más.
+ Todas las posibilidades para generar diagamas conmutativos y decoraciones
+ se explican en este manual: 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://wiki.lyx.org/LyX/XY-pic#xy-manual"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -32307,7 +32622,7 @@ Más sobre
 texorpdfstring hay en la sección 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sub:Ecuaciones-en-Sección"
+reference "sub:Ecuaciones-en-encabezados"
 
 \end_inset
 
@@ -32466,7 +32781,7 @@ Números negativos
 status collapsed
 
 \begin_layout Plain Layout
-Números ! negativos
+Numeros@Números ! negativos
 \end_layout
 
 \end_inset
@@ -33104,7 +33419,7 @@ Estilo (tamaño)
 \begin_inset Text
 
 \begin_layout Plain Layout
-ecuación en presentación
+ecuación presentada
 \end_layout
 
 \end_inset
@@ -33287,13 +33602,6 @@ Como se puede ver, la distancia del numerador y el denominador a la raya
 
 \begin_layout Subsection
 Ecuaciones canceladas
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Ecuaciones-canceladas"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -33643,8 +33951,7 @@ Propiedades
 
 
 \family default
-PDF, los marcadores PDF se generan para cada encabezado de sección en el
- índice.
+PDF, se generan marcadores PDF para cada encabezado de sección en el índice.
  Si el encabezado contiene ecuaciones, se muestran incorrectamente en el
  texto del marcador, porque se infringen las convenciones PDF.
 \end_layout
@@ -33700,14 +34007,18 @@ texorpdfstring
 \end_layout
 
 \begin_layout Standard
-Parte se refiere a la parte del encabezado que no debería aparecer en el
+parte se refiere a la parte del encabezado que no debería aparecer en el
  marcador PDF.
  Puede ser caracteres, ecuaciones, notas al pie, y también referencias cruzadas.
  La alternativa se usa para el marcador en vez de la parte.
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Aquí hay dos ejemplo de encabezados:
+Aquí hay dos ejemplos de encabezados con ecuación:
 \end_layout
 
 \begin_layout Standard
@@ -34753,6 +35064,40 @@ reference "sub:Espacio-predefinido"
 \end_inset
 
 .
+\begin_inset Newline newline
+\end_inset
+
+Esta norma la cumple automáticamente el comando 
+\series bold
+
+\backslash
+unittwo
+\series default
+.
+ Si se introduce en una fórmula aparecen dos cuadros.
+ En el primero se inserta el valor y en el segundo la unidad, y se obtiene,
+ como antes, 
+\begin_inset Formula $\unit[30]{km/h}$
+\end_inset
+
+
+\begin_inset space \thinspace{}
+\end_inset
+
+.
+ Ten en cuenta que 
+\series bold
+
+\backslash
+unittwo
+\series default
+ no es un auténtico comando LaTeX, sino el comando 
+\series bold
+
+\backslash
+unit[value]{unit}
+\series default
+, por tanto no lo puedes usar en código TeX.
 \end_layout
 
 \begin_layout Itemize

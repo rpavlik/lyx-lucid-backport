@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 337
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrbook
@@ -41,6 +41,7 @@
 \usepackage{inputenc}
 \end_preamble
 \options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\use_default_options false
 \begin_modules
 logicalmkup
 \end_modules
@@ -69,8 +70,7 @@ End
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
-\graphics none
+\graphics default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -86,7 +86,6 @@ End
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
@@ -110,8 +109,8 @@ End
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -123,12 +122,30 @@ Customizing LyX: Features for the Advanced User
 \begin_layout Author
 by the LyX Team
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \noindent
 If you have comments or error corrections, please send them to the LyX Documenta
-tion mailing list, <lyx-docs@lists.lyx.org>.
+tion mailing list, 
+\begin_inset CommandInset href
+LatexCommand href
+target "lyx-docs@lists.lyx.org"
+type "mailto:"
+
+\end_inset
+
+.
+ Include 
+\begin_inset Quotes eld
+\end_inset
+
+[Customization]
+\begin_inset Quotes erd
+\end_inset
+
+ in the subject header, and please cc the current maintainer of this file,
+ Richard Heck <rgheck@comcast.net>.
 \end_layout
 
 \end_inset
@@ -180,12 +197,6 @@ LyX configuration files
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "chap:config"
-
-\end_inset
-
 This chapter aims to help you to find your way through the LyX configuration
  files.
  Before continuing to read this chapter, you should find out where your
@@ -268,16 +279,8 @@ LyXDir
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
+Tools\SpecialChar \menuseparator
+Preferences
 \end_layout
 
 \end_inset
@@ -523,18 +526,7 @@ status collapsed
 
 \end_inset
 
- that define the keybindings used in LyX (see section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:bindings"
-
-\end_inset
-
-).
+ that define the keybindings used in LyX.
  If there exists an internationalized version of the bind file named 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -546,25 +538,6 @@ $LANG_xxx.bind
 \end_inset
 
 , that will be used first.
- See Chapter
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "chap:i18n"
-
-\end_inset
-
-, and section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:bindings"
-
-\end_inset
-
-for details.
 \end_layout
 
 \begin_layout Labeling
@@ -837,14 +810,6 @@ status collapsed
  that define the user interface to LyX.
  That is, the files define which items appear in which menus and the items
  appearing on the toolbar.
- See 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:ui"
-
-\end_inset
-
- for details.
 \end_layout
 
 \begin_layout Subsection
@@ -1158,16 +1123,8 @@ UserDir/layouts
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -1256,7 +1213,7 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-LYX_USERDIR_15x
+LYX_USERDIR_VER
 \end_layout
 
 \end_inset
@@ -1320,6 +1277,19 @@ econfigure
 The Preferences dialog
 \end_layout
 
+\begin_layout Standard
+All options of the preferences dialog are described in the Appendix 
+\emph on
+The Preferences Dialog
+\emph default
+ in the 
+\emph on
+User's Guide
+\emph default
+.
+ For some options you might find here more details.
+\end_layout
+
 \begin_layout Section
 Using the dialog for the first time
 \end_layout
@@ -1335,7 +1305,7 @@ UserDir/preferences
 
 \end_inset
 
- file will contain only changes that you have made to the default behaviour,
+ file will contain only changes that you have made to the default behavior,
  some of which is hard-coded into LyX and some of which is contained in
  the system file 
 \begin_inset Flex CharStyle:Code
@@ -1373,16 +1343,8 @@ LyXDir/lyxrc.defaults
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
+Tools\SpecialChar \menuseparator
+Preferences
 \end_layout
 
 \end_inset
@@ -1406,16 +1368,8 @@ We hope that the
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
+Tools\SpecialChar \menuseparator
+Preferences
 \end_layout
 
 \end_inset
@@ -1424,19 +1378,24 @@ references
  Most things in the dialog have associated `tool tips': hover your mouse
  pointer over something for more information.
  Before we highlight a few of the more important commands below, however,
- a word of warning: 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Apply
-\end_layout
-
+ a word of warning: Applying some of your changes (e.
+\begin_inset space \thinspace{}
 \end_inset
 
-ing some of your changes (e.g., screen fonts) will have an instant effect.
- Others (e.g.
- changing the bind file) will not.
+g.
+\begin_inset space \space{}
+\end_inset
+
+screen fonts) will have an instant effect.
+ Others (e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+changing the bind file) will not.
  If nothing appears to have changed, just 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
@@ -1451,1087 +1410,6 @@ Save
 \end_layout
 
 \begin_layout Section
-Look and Feel
-\end_layout
-
-\begin_layout Subsection
-Screen fonts
-\end_layout
-
-\begin_layout Standard
-The font used to display your documents on the LyX screen is very important,
- since you'll be reading all your documents with this font.
- Therefore it is important that the font be as readable and good-looking
- as possible.
- The LyX team tried to provide the best possible default font for you, but
- since systems can be so different, it's quite possible that the default
- fonts will be sub-optimal on your system.
- Fortunately, you can do something about this.
- Before we explain how, you should learn a bit more about fonts so that
- you are better prepared for choosing your fonts.
- There are trade-offs that are specific to your preferences and the capabilities
- of your system.
-\end_layout
-
-\begin_layout Standard
-Notice that this section only deals with the fonts on the 
-\emph on
-screen
-\emph default
- inside the LyX window.
- The fonts that appear on the 
-\emph on
-paper
-\emph default
- 
-\emph on
-output
-\emph default
- are independent from these fonts, and are determined by the document class.
- Read the 
-\emph on
-User's Guide
-\emph default
- to learn how to change the font of the printed version of your document.
-\end_layout
-
-\begin_layout Standard
-Basically, screen fonts come in two different kinds: scalable outline fonts
- and non-scalable bitmap fonts.
- This distinction seems a bit arbitrary, since non-scalable fonts are actually
- scalable in most modern font renderers.
- The difference lies in the 
-\emph on
-quality
-\emph default
- of the scaling and the 
-\emph on
-speed
-\emph default
- of display.
- The most important decision is thus whether you should use non-scalable
- bitmap fonts or scalable outline fonts.
-\end_layout
-
-\begin_layout Standard
-The scalable fonts are built from 
-\emph on
-outlines
-\emph default
- of the single glyphs (i.e.
- characters) in the font.
- This means that each glyph is defined using mathematical curves that are
- well suited for scaling to any requested size.
- This mathematical definition is interpreted by the font renderer and turned
- into a small picture composed of pixels according to which size and glyph
- (or symbol) the programmer requests.
- This means that scalable fonts will look pretty good in most sizes.Since
- scalable fonts are defined in an abstract way, it can be hard to provide
- a good rendering at small sizes, where each pixel has to be very carefully
- computed to provide a good image.
- Technically it is possible to do this from the mathematical definition,
- but in order to keep the rendering reasonably fast, tradeoffs have to be
- made, and the result is that scalable fonts can be difficult to read at
- small sizes.
-\end_layout
-
-\begin_layout Standard
-Bitmap fonts on the other hand, are defined by bitmap graphics from the
- start, so they will look good at all the sizes they are meant for.
- However, they don't scale well, because in order to scale a glyph, each
- pixel is enlarged into several pixels.
- It is the same effect that happens if you try to enlarge a picture in an
- image manipulation program.
- In order to relieve this effect, bitmap fonts are typically provided in
- several fixed sizes typically from around 8 pixels high up to 34 pixels
- or so high in steps according to what is believed to be useful.
- The advantage of bitmap fonts is that no complicated computations are necessary
- to display each glyph, so bitmap fonts are thus faster displayed than scalable
- fonts.
- The disadvantage is that sizes that don't exists as fixed versions have
- to be scaled by doubling pixels, and thus look bad.
-\end_layout
-
-\begin_layout Standard
-The net result of all this is that bitmap fonts are generally best for the
- small sizes, where they are available, while scalable fonts are generally
- best for large sizes.
- The logical conclusion would thus be to use bitmap fonts for the small
- sizes, and scalable fonts for the large sizes.
- Unfortunately, this is not a good idea, since bitmap fonts and scalable
- fonts are not designed to be used together, so the overall look of such
- a scheme would be bad.
- The best you can do is thus to try both schemes and decide for yourself
- what suits you.
-\end_layout
-
-\begin_layout Standard
-In the following, we will describe what to do if the text does not look
- good in LyX.
- We'll start with the most important parameters: DPI and font zoom.
-\end_layout
-
-\begin_layout Subsubsection
-DPI setting and Font Zoom
-\end_layout
-
-\begin_layout Standard
-LyX automatically tries to scale the fonts to look as close as the paper
- output size as possible, except for the so-called font zoom factor.
-\end_layout
-
-\begin_layout Standard
-In order for this to work on all systems, it relies on the screen DPI (dots
- per inch) setting to be correct.
- The DPI setting for your system is autodetected by LyX using information
- provided by your system.
- You can check what LyX autodetects the DPI setting to, by running LyX as
- 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyx -dbg 2
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-On many systems, this will not be correct, so you should check that it is
- correct by hand.
- On X11 systems, you can run 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-xdpyinfo | more
-\end_layout
-
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
- and write down what the DPI is for the resolution you use (this will be
- close to the value LyX detects).
- It is the number mentioned as 
-\begin_inset Quotes eld
-\end_inset
-
-resolution
-\begin_inset Quotes erd
-\end_inset
-
-.
- Also write down the number of pixels you have in the width (the first number
- under 
-\begin_inset Quotes eld
-\end_inset
-
-dimensions
-\begin_inset Quotes erd
-\end_inset
-
-).
-\end_layout
-
-\begin_layout Standard
-Then get the good old ruler out of the closet, and measure the width of
- the visible screen-image on your monitor.
- Convert this measurement to inches if you used a centimeter ruler by dividing
- by 2.54.
- Now you can determine the correct DPI setting for your screen by dividing
- the number of pixels in the width by the width of the screen-image on the
- monitor.
- If this number is more than, say, 5 DPI from the detected value, you should
- either fix your system setup, or at least tell LyX that the DPI is different
- than the detected value.
-\end_layout
-
-\begin_layout Standard
-If you can't fix system setup (which of course is best since other programs
- than LyX will benefit from this as well), you can tell LyX the correct
- DPI using the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Preferences
-\end_layout
-
-\end_inset
-
- dialog.
-\end_layout
-
-\begin_layout Standard
-If the text is too small or too big for your taste, you should fiddle with
- the font zoom setting.
- This setting is used to scale the point size of the text.
- If your DPI setting is correct, and the font zoom setting is set to 100,
- this means that LyX will try to display the text exactly the same size
- as it will appear on the paper-output.
- If you set the zoom factor to 200, the text will try to be 2 times as big
- as on paper.
- Of course, this will only happen if LyX can find a font that has the appropriat
-e size, which you can't count on.
- Since LyX is a WYSIWYM system anyways, this limitation isn't much of an
- issue.
-\end_layout
-
-\begin_layout Standard
-The default font zoom setting is 150, since a monitor is typically wider
- than a piece of paper, but you should try to fiddle with it through the
- 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Font
-\begin_inset space ~
-\end_inset
-
-
-\bar under
-Z
-\bar default
-oom
-\end_layout
-
-\end_inset
-
- setting in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Preferences
-\end_layout
-
-\end_inset
-
- dialog to find a size that you like.
- When you've found a setting that seems to work nicely for you (tip: use
- the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-
-\bar under
-A
-\bar default
-pply
-\end_layout
-
-\end_inset
-
- button to keep the dialog open while you experiment), you can make this
- setting the default by using the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-
-\bar under
-S
-\bar default
-ave
-\end_layout
-
-\end_inset
-
- button.
-\end_layout
-
-\begin_layout Standard
-While it is often possible to find a suitable size for the text on the screen,
- this doesn't necessarily mean that the fonts are the best ones available
- on your system.
- In order to help you get the most out of your system, you can use the font
- definition commands to fine-tune the look of the text in greater detail
- than merely size.
-\end_layout
-
-\begin_layout Subsubsection
-Font definition commands
-\end_layout
-
-\begin_layout Standard
-You can change LyX's screen fonts from within the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Preferences
-\end_layout
-
-\end_inset
-
- dialog.
- The number of fonts that are available on different systems vary.
- 
-\end_layout
-
-\begin_layout Standard
-Before you go about scrapping a bitmap font because the larger sizes look
- 
-\begin_inset Quotes eld
-\end_inset
-
-blocky
-\begin_inset Quotes erd
-\end_inset
-
-, you should toggle the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Use scalable fonts
-\end_layout
-
-\end_inset
-
- button.
- This is only useful if you use bitmap fonts, because only these don't scale
- well.
- If you define this flag, LyX will only use the fixed font sizes that are
- available, and this guarantees that all bitmap fonts look good.
- However, the downside is that there will be a greater difference between
- the size of the fonts on screen and the size of fonts on paper because
- LyX will have to be satisfied with the closest available size, and not
- try to scale a size to fit.
- Also, you can risk that some logically different sizes, such as 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Large
-\end_layout
-
-\end_inset
-
- and 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Larger
-\end_layout
-
-\end_inset
-
-, will be mapped to the same screen font, making it hard for you to see
- the difference on screen.
- 
-\end_layout
-
-\begin_layout Standard
-One final note regarding the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Use scalable fonts
-\end_layout
-
-\end_inset
-
- flag: you should know that there is nothing wrong with using bitmap and
- scalable fonts at the same time for different purposes.
- For instance, it's common to use the scalable 
-\begin_inset Quotes eld
-\end_inset
-
-Utopia
-\begin_inset Quotes erd
-\end_inset
-
- for the serif text together with a bitmap version of 
-\begin_inset Quotes eld
-\end_inset
-
-Helvetica
-\begin_inset Quotes erd
-\end_inset
-
-.
- And you can safely select the 
-\begin_inset Quotes eld
-\end_inset
-
-Use scalable fonts
-\begin_inset Quotes erd
-\end_inset
-
- button without worries: It will only apply to the Helvetica font.
-\end_layout
-
-\begin_layout Standard
-Sometimes the artifacts introduced by use of the flag can be relieved by
- using the fine-detail screen font sizes which defines which point sizes
- the different logical font sizes correspond to.
- Run LyX as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyx -dbg 513
-\end_layout
-
-\end_inset
-
- to see exactly what concrete fonts the logical sizes map to, and try adjusting
- the corresponding entries in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Preferences
-\end_layout
-
-\end_inset
-
- dialog until you've managed to hit the nail and get the fonts you want.
- This can be hard to do, because LyX uses the DPI setting and the font zoom
- settings to calculate which exact screen font size to ask the X server
- for, thus obfuscating the mapping.
- If you can't make it by trial-and-error, you can make the process more
- transparent if you set both the DPI setting and font zoom settings to 100---eve
-n when this is known to be wrong.
- This will of course make your scalable fonts look weird, so use with care.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Branch OutDated
-status collapsed
-
-\begin_layout Subsubsection
-Font encoding
-\end_layout
-
-\begin_layout Standard
-By default, LyX will use fonts meant to write Western European text, including
- all kinds of English.
- This is defined through the so-called 
-\emph on
-font
-\emph default
- 
-\emph on
-encoding
-\emph default
-.
- If you want to use LyX to write for instance Eastern European text, Cyrillic
- or any other language not covered by the ISO-8859-1 font encoding, you
- can define a different one with the encoding setting.
- This requires you to have special fonts installed.
- You can use 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-xfontsel
-\end_layout
-
-\end_inset
-
- to see whether this is the case: check the 
-\begin_inset Quotes eld
-\end_inset
-
-rgstry
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-encdng
-\begin_inset Quotes erd
-\end_inset
-
- fields for ISO-8859-X values different from ISO-8859-1, and search for
- one that contains the national characters of your language.
- If you find any, enter this encoding in the dialog.
- If not, go searching the Web for appropriate fonts.
- For the Qt frontend, it's recommended you use an iso646 font set.
-\end_layout
-
-\begin_layout Standard
-When you've set LyX up to use a different font encoding, you should also
- consider changing the font used by dialog windows in LyX.
- For instance, the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Table
-\begin_inset space ~
-\end_inset
-
-of
-\begin_inset space ~
-\end_inset
-
-Contents
-\end_layout
-
-\end_inset
-
- dialog will not be understandable unless you tell LyX to use a different
- font for this.
- By default the menu font is set to 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
--*-helvetica-medium-r
-\end_layout
-
-\end_inset
-
-, but often Helvetica is not available in the font encoding you need, so
- the dialog allows this to be changed.
-\end_layout
-
-\begin_layout Standard
-As you can see, there are quite a few options that can be used to fine tune
- the look of your fonts.
- This should not scare you from fiddling with the settings, because after
- all, you will hopefully be using LyX for many hours in the future.
- And contrary to real WYSIWYG word processors where you are tied to using
- fonts that have to look good both on paper and on screen, LyX gives you
- the possibility of using fonts that are designed to look good on the screen
- while using a different set of fonts to look good on paper.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-User Interface
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:ui"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The appearance of both the menu and toolbar may both be changed using the
- 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Preferences
-\end_layout
-
-\end_inset
-
- dialog.
- Simply select a different 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.ui
-\end_layout
-
-\end_inset
-
- file in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Look & Feel\SpecialChar \menuseparator
-User Interface
-\end_layout
-
-\end_inset
-
- section.
- You can customize the interface by copying one of the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.ui
-\end_layout
-
-\end_inset
-
- files from 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-LyXDir/ui/
-\end_layout
-
-\end_inset
-
- to 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-UserDir/ui/
-\end_layout
-
-\end_inset
-
-.
- You may have to restart LyX for these changes to take effect.
-\end_layout
-
-\begin_layout Standard
-The syntax of the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.ui
-\end_layout
-
-\end_inset
-
- files is straightforward: have a look at 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-default.ui
-\end_layout
-
-\end_inset
-
-.
- The 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Menubar
-\end_layout
-
-\end_inset
-
-, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Menu
-\end_layout
-
-\end_inset
-
- and 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Toolbar
-\end_layout
-
-\end_inset
-
- entries must be ended with an explicit 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-End
-\end_layout
-
-\end_inset
-
-.
- They may contain 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Submenu
-\end_layout
-
-\end_inset
-
-s, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Item
-\end_layout
-
-\end_inset
-
-s, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-OptItem
-\end_layout
-
-\end_inset
-
-s, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Separator
-\end_layout
-
-\end_inset
-
-s, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Icon
-\end_layout
-
-\end_inset
-
-s and in the case of the 
-\begin_inset Quotes eld
-\end_inset
-
-file
-\begin_inset Quotes erd
-\end_inset
-
- menus, a 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Lastfiles
-\end_layout
-
-\end_inset
-
- entry.
- One small word of warning.
- 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Submenu
-\end_layout
-
-\end_inset
-
-s may be inserted in a 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Menubar
-\end_layout
-
-\end_inset
-
- or 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Menu
-\end_layout
-
-\end_inset
-
-, but they are defined as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Menu
-\end_layout
-
-\end_inset
-
-s, not as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Submenu
-\end_layout
-
-\end_inset
-
-s.
- A 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Submenu
-\end_layout
-
-\end_inset
-
- tag is used to insert context-dependent information that is generated by
- LyX itself.
- Unfortunately, the available tags are not documented outside the source
- code.
-\end_layout
-
-\begin_layout Standard
-Note that, as of LyX 1.6, there are extensive context menus, normally accessed
- via a right click.
- These are defined in the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.ui
-\end_layout
-
-\end_inset
-
- files.
-\end_layout
-
-\begin_layout Section
-Editing
-\end_layout
-
-\begin_layout Standard
-The settings in this section are used to customise the behavior of the LyX
- editor.
-\end_layout
-
-\begin_layout Subsection
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:bindings"
-
-\end_inset
-
-Shortcuts
-\end_layout
-
-\begin_layout Standard
-Bindings are used to associate a LyX function to a key.
- Several prepackaged binding files are available: a CUA set of bindings
- (familiar as the typical set of PC and CDE set of keyboard shortcuts),
- an Emacs set of bindings, for those of us who follow the One True Way and
- refuse to lower our standards,
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-I'm kidding here, of course!
-\end_layout
-
-\end_inset
-
- as well as specialty bindings (broadway and hollywood) and bindings for
- languages other than English.
- You can select your binding in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Editing\SpecialChar \menuseparator
-Shortcuts
-\end_layout
-
-\end_inset
-
- section of the 
-\bar under
-
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
-\end_layout
-
-\end_inset
-
-
-\bar default
- dialog.
- 
-\end_layout
-
-\begin_layout Standard
-If, however, you'd like to customise the bindings to your own exacting tastes,
- then there are two ways to proceed.
- The first, and older method, is to copy a file from 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-LyXDir/bind/
-\end_layout
-
-\end_inset
-
- to your own 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-UserDir/bind/
-\end_layout
-
-\end_inset
-
- and modify that in a text editor.
- Don't forget to select this file in 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Editing\SpecialChar \menuseparator
-Shortcuts
-\end_layout
-
-\end_inset
-
-.
- The second method is to use the shortcut editor, which you will also find
- at 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Editing\SpecialChar \menuseparator
-Shortcuts
-\end_layout
-
-\end_inset
-
-.
- The changes you make here will be stored at 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-UserDir/bind/user.bind
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-LyX supports internationalization of the user interface (see Chapter
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "chap:i18n"
-
-\end_inset
-
-).
- If your 
-\emph on
-locale
-\emph default
- is set, LyX will try to use bindfiles by prepending the standard language
- code to their name.
- For example, you can put a translated copy of some standard bind file in
- your personal 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-bind/
-\end_layout
-
-\end_inset
-
- directory, and LyX will use it automatically.
-\end_layout
-
-\begin_layout Standard
-The syntax of the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.bind
-\end_layout
-
-\end_inset
-
- files is straightforward:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-bind ``<key combination>'' ``<lyx-function>
-\begin_inset Quotes erd
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Both key combination and lyx-function (including any arguments) must be
- enclosed in "double quotes".
- The LyX functions are partially documented on listed on the 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyXWiki"
-target "http://wiki.lyx.org/LyX/LyxFunctions"
-
-\end_inset
-
-.
- A major effort is presently underway to improve this documentation.
-\end_layout
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:converters-etc"
-
-\end_inset
-
 File Handling
 \end_layout
 
@@ -2916,7 +1794,7 @@ status collapsed
 
 \begin_layout Plain Layout
 For example, the file may refer to other files---images, for example---using
- relative filenames, and these may become invalid when the file is copied
+ relative file names, and these may become invalid when the file is copied
  to the temporary directory.
 \end_layout
 
@@ -2946,7 +1824,7 @@ $$s
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 
@@ -3005,14 +1883,14 @@ $$l
 \end_layout
 
 \begin_layout Standard
-The latter is to be given in a form suitable for inclusion in a LaTeX's
- 
+The latter should be the filename as it would be used in a LaTeX's 
 \series bold
 
 \backslash
 include
 \series default
- command and is relevant only when exporting files suitable for such inclusion.
+ command.
+ It is relevant only when exporting files suitable for such inclusion.
 \end_layout
 
 \begin_layout Standard
@@ -3038,18 +1916,22 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
 #!/bin/bash
 \end_layout
 
 \begin_layout Plain Layout
+
 FROMFILE=$1
 \end_layout
 
 \begin_layout Plain Layout
+
 TOFILE=`basename $2`
 \end_layout
 
 \begin_layout Plain Layout
+
 cp $FROMFILE /home/you/pdf/$TOFILE
 \end_layout
 
@@ -3259,11 +2141,7 @@ format
 
 \end_inset
 
- and
-\begin_inset space \thinspace{}
-\end_inset
-
- 
+ and 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -3345,7 +2223,11 @@ $$b
 
 \end_inset
 
- The base filename of the input file (i.e., without the extension)
+ The base filename of the input file (i.
+\begin_inset space \thinspace{}
+\end_inset
+
+g., without the extension)
 \end_layout
 
 \begin_layout Labeling
@@ -3526,7 +2408,7 @@ $$b
 
 \end_inset
 
-, which will be replaced by the basename of the input and output files,
+, which will be replaced by the base name of the input and output files,
  respectively, when the directory is copied.
 \begin_inset Newline newline
 \end_inset
@@ -3546,7 +2428,7 @@ resultfile
 
 \end_inset
 
- Determines the output filename and may, contain 
+ Determines the output file name and may, contain 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -3663,105 +2545,6 @@ status collapsed
 , and which correspond to the conversion methods just mentioned.
 \end_layout
 
-\begin_layout Section
-Output 
-\end_layout
-
-\begin_layout Standard
-The settings in this section affect the output LyX produces.
-\end_layout
-
-\begin_layout Subsection
-Plain text export options
-\end_layout
-
-\begin_layout Standard
-\noindent
-There are a couple of commands that can be used to 
-\begin_inset Quotes eld
-\end_inset
-
-clean up
-\begin_inset Quotes erd
-\end_inset
-
- exported plain text files.
- Note that LyX automatically detects and tries to use the best settings
- for your system at installation time, but you can modify them in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-Output\SpecialChar \menuseparator
-Plain Text
-\end_layout
-
-\end_inset
-
- dialog if you disagree with its interpretation.
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-roff command
-\end_layout
-
-\end_inset
-
- This option defines the command used to produce better plain text tables
- with the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-groff/troff/nroff
-\end_layout
-
-\end_inset
-
- UNIX-commands (refer to their manpages for more information about them).
- Setting this as empty tells LyX to use the internal (inferior) formatter.
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Output line length
-\end_layout
-
-\end_inset
-
- With this command you can set the default line length of the plain text
- output file.
- Setting it to 0 means that no line breaks will be inserted except between
- paragraphs and the like.
-\end_layout
-
-\begin_layout Section
-The rest
-\end_layout
-
-\begin_layout Standard
-There are many other configuration options that can be used to customize
- LyX behavior.
- Most of them are sufficiently self-explanatory that we have not felt it
- necessary to document them here.
- Please ask on the 
-\begin_inset CommandInset href
-LatexCommand href
-name "mailing lists"
-target "http://www.lyx.org/mailing.php"
-
-\end_inset
-
- if you need some more information.
-\end_layout
-
 \begin_layout Chapter
 Internationalizing LyX
 \begin_inset CommandInset label
@@ -3854,7 +2637,7 @@ po
 -file for that language.
  When this is available, you'll have to generate a 
 \begin_inset Flex CharStyle:Code
-status open
+status collapsed
 
 \begin_layout Plain Layout
 mo
@@ -3910,31 +2693,7 @@ target "http://www.lyx.org/devel/cvs.php"
 \end_layout
 
 \begin_layout Itemize
-Copy 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-po/lyx.pot
-\end_layout
-
-\end_inset
-
- to
-\series bold
- 
-\series default
-
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-xx.po
-\end_layout
-
-\end_inset
-
- (if 
+Copy the file 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -3944,7 +2703,39 @@ lyx.pot
 
 \end_inset
 
- doesn't exist, it can be remade with 
+ to the folder of the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+**.po
+\end_layout
+
+\end_inset
+
+ files.
+ Then rename it to 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+xx.po
+\end_layout
+
+\end_inset
+
+.
+ (If 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyx.pot
+\end_layout
+
+\end_inset
+
+ doesn't exist anywhere, it can be remade with the console command 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -3976,8 +2767,20 @@ status collapsed
 \begin_layout Plain Layout
 This is just a text file, so it can be edited in any text editor.
  But there are also specialized programs that support such editing, such
- as KBabel (for KDE).
- Emacs contains a `mode' for editing 
+ as 
+\family typewriter
+Poedit
+\family default
+ (for all platforms) or 
+\family typewriter
+KBabel
+\family default
+ (for KDE).
+ 
+\family typewriter
+Emacs
+\family default
+ contains a `mode' for editing 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4066,8 +2869,15 @@ lyx.mo
 
 \end_inset
 
- (e.g.
- 
+ (e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4306,8 +3116,8 @@ DocStyle.lyx
 Check out the documentation translation web page at 
 \begin_inset CommandInset href
 LatexCommand href
-name "http://www.devel.lyx.org"
-target "http://www.devel.lyx.org"
+name "http://www.lyx.org/Translation"
+target "http://www.lyx.org/Translation"
 
 \end_inset
 
@@ -5589,12 +4399,7 @@ sequence,
 \shape up
 \emph on
 result
-\family default
-\shape default
 \emph default
- 
-\family roman
-\shape up
  is produced.
  If such a declaration does not exist in
 \family default
@@ -5622,7 +4427,7 @@ u enter
  
 \family roman
 \emph on
-accent  char
+accent char
 \emph default
 , you get
 \family default
@@ -5630,20 +4435,14 @@ accent  char
 \family roman
 \emph on
 accent_key char
-\family default
 \emph default
- 
-\family roman
  where
 \family default
  
 \family roman
 \emph on
 accent_key
-\family default
 \emph default
- 
-\family roman
  is the first arg
 \family default
 ument of the 
@@ -6362,7 +5161,7 @@ xkeycaps
 
 \end_inset
 
-  to set up the special 
+ to set up the special 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -6555,28 +5354,14 @@ Saving your Language Configuration
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:savlang"
-
-\end_inset
-
 You can edit your preferences so that your desired language environment
  is automatically configured when LyX starts up, via the 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-E
-\bar default
-dit\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
+Edit\SpecialChar \menuseparator
+Preferences
 \end_layout
 
 \end_inset
@@ -6683,14 +5468,86 @@ Installing a new LaTeX package
 \begin_layout Standard
 Some installations may not include a LaTeX package that you would like to
  use within LyX.
- For example, you might need FoilTeX, a common (and very powerful) package
- for preparing slides or viewgraphs for overhead projectors.
- On some systems, you may have a GUI for installing such packages: MikTeX
- on Windows®, for example.
+ For example, you might need FoilTeX, a package for preparing slides or
+ viewgraphs for overhead projectors.
+ Modern LaTeX distributions like TeXLive (2008 or newer) or MiKTeX provide
+ a user interface for that.
+ For example on MiKTeX you start its program 
+\begin_inset Quotes eld
+\end_inset
+
+Browse Packages
+\begin_inset Quotes erd
+\end_inset
+
+ to get a list of available packages.
+ To install one, right click on it or use the installing toolbar button.
+ When the package you want to install is not in the list, but you have it
+ in form of a 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.cls
+\end_layout
+
+\end_inset
+
+ or 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.sty
+\end_layout
+
+\end_inset
+
+-file, then copy these files to a subfolder of your LaTeX distribution,
+ for example to the folder 
+\family sans
+~
+\backslash
+tex
+\backslash
+latex
+\family default
+.
+ Then update the file name database of your LaTeX-distribution.
+ For example on MiKTeX this is done by pressing the button 
+\family sans
+Refresh
+\begin_inset space ~
+\end_inset
+
+FNDB
+\family default
+ that you find in MiKTeX's 
+\begin_inset Quotes eld
+\end_inset
+
+Settings
+\begin_inset Quotes erd
+\end_inset
+
+ program.
+ In both cases you need afterwards to reconfigure LyX using the menu 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Tools\SpecialChar \menuseparator
+Reconfigure
+\end_layout
+
+\end_inset
+
+ and then to restart LyX.
 \end_layout
 
 \begin_layout Standard
-If you don't have such a GUI, then you can follow these steps.
+If your LaTeX distribution doesn't provide a user interface, then you can
+ follow these steps by using a UNIX/Linux console.
 \end_layout
 
 \begin_layout Enumerate
@@ -6830,8 +5687,11 @@ TEXMFHOME
 
 \end_inset
 
- variables; e.g.
- 
+ variables; e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
 \begin_inset Newline newline
 \end_inset
 
@@ -6968,16 +5828,8 @@ Your package is now installed and available to LaTeX.
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \end_layout
 
 \end_inset
@@ -6998,16 +5850,8 @@ slides (FoilTeX)
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -7027,12 +5871,6 @@ Document Class
 \end_layout
 
 \begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Layouts"
-
-\end_inset
-
 Layouts
 \end_layout
 
@@ -7203,16 +6041,8 @@ stdsections.inc
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -7539,16 +6369,8 @@ Start LyX and select
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \end_layout
 
 \end_inset
@@ -7570,16 +6392,8 @@ report (myclass)
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -7808,16 +6622,8 @@ article
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -8017,14 +6823,7 @@ layout-reload
 
 .
  There is no default binding for this function---though, of course, you
- can bind it to a key yourself (see section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:bindings"
-
-\end_inset
-
-).
+ can bind it to a key yourself.
  If you want to use this function, then, you should simply enter it in the
  mini-buffer.
  
@@ -8081,7 +6880,7 @@ int
 
 ] This tag was introduced with LyX 1.4.0 (layout files of LyX 1.3.x and earlier
  don't have an explicit file format).
- The file format that is documented here is format 7.
+ The file format that is documented here is format 8.
 \end_layout
 
 \begin_layout Subsection
@@ -8206,16 +7005,8 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -8316,6 +7107,43 @@ EndFont
 status collapsed
 
 \begin_layout Plain Layout
+DefaultModule
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+string]
+\end_layout
+
+\end_inset
+
+ Specifies a module to be included by default with this document class,
+ which should be specified by filename without the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.module
+\end_layout
+
+\end_inset
+
+ extension.
+ The user can still remove the module, but it will be active at the outset.
+ (This applies only when new files are created, or when this class is chosen
+ for an existing document.)
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
 DefaultStyle
 \end_layout
 
@@ -8344,6 +7172,65 @@ Standard
 .
  This will default to the first defined style if not given, but you are
  highly encouraged to use this directive.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+ExcludesModule
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+
+] Indicates that the module in question---which should be specified by filename
+ without the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.module
+\end_layout
+
+\end_inset
+
+ extension---cannot be used with this document class.
+ This might be used in a journal-specific layout file to prevent, say, the
+ use of the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+theorems-sec
+\end_layout
+
+\end_inset
+
+ module that numbers theorems by section.
+ This tag may 
+\emph on
+not
+\emph default
+ be used in a module.
+ Modules have their own way of excluding other modules (see 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Layout-modules"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Description
@@ -8427,7 +7314,15 @@ InsetLayout
 
  This section (re-)defines the layout of an inset.
  It can be applied to an existing inset of to a new, user-defined inset,
- e.g., a new character style.
+ e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+a new character style.
  See Section
 \begin_inset space ~
 \end_inset
@@ -8471,7 +7366,16 @@ LeftMargin
 
 \end_inset
 
- [[FIXME]]
+ A string that indicates the width of the left margin on the screen, for
+ example, 
+\begin_inset Quotes eld
+\end_inset
+
+MMMMM
+\begin_inset Quotes erd
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Description
@@ -8514,7 +7418,9 @@ OutputType
 
 \end_inset
 
- [[FIXME]]
+ A string indicating what sort of output documents using this class will
+ produce.
+ At present, the options are: `docbook', `latex', and `literate'.
 \end_layout
 
 \begin_layout Description
@@ -8571,16 +7477,8 @@ headings
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -8651,14 +7549,7 @@ Provides
 
 \end_inset
 
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "des:Provides"
-
-\end_inset
-
-[
+ [
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -8782,6 +7673,55 @@ aTeX Configuration
 status collapsed
 
 \begin_layout Plain Layout
+ProvidesModule
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+
+] Indicates that this layout provides the functionality of the module mentioned,
+ which should be specified by filename, which should be specified by filename
+ without the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.module
+\end_layout
+
+\end_inset
+
+ extension.
+ This will typically be used if the layout includes the module directly,
+ rather than using the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+DefaultModule
+\end_layout
+
+\end_inset
+
+ tag to indicate that it ought to be used.
+ It could be used in a module that that provided an alternate implementation
+ of the same functionality.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
 Requires
 \end_layout
 
@@ -8822,7 +7762,16 @@ RightMargin
 
 \end_inset
 
- [[FIXME]]
+ A string that indicates the width of the right margin on the screen, for
+ example, 
+\begin_inset Quotes eld
+\end_inset
+
+MMMMM
+\begin_inset Quotes erd
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Description
@@ -8835,7 +7784,18 @@ SecNumDepth
 
 \end_inset
 
- [[FIXME]]
+ Sets which divisions get numbered.
+ Corresponds to the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+secnumdepth
+\end_layout
+
+\end_inset
+
+ counter in LaTeX.
 \end_layout
 
 \begin_layout Description
@@ -8881,16 +7841,8 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-D
-\bar default
-ocument\SpecialChar \menuseparator
-
-\bar under
-S
-\bar default
-ettings
+Document\SpecialChar \menuseparator
+Settings
 \end_layout
 
 \end_inset
@@ -9091,7 +8043,7 @@ TitleLatexName
 
 \begin_layout Description
 \begin_inset Flex CharStyle:Code
-status collapsed
+status open
 
 \begin_layout Plain Layout
 TocDepth
@@ -9099,7 +8051,18 @@ TocDepth
 
 \end_inset
 
- [[FIXME]]
+ Sets which divisions are included in the table of contents.
+ Corresponds to the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+tocdepth
+\end_layout
+
+\end_inset
+
+ counter in LaTeX.
 \end_layout
 
 \begin_layout Subsection
@@ -9187,7 +8150,20 @@ Header
 
 \end_inset
 
- [[FIXME]]
+ Used to set the DTD line with XML-based output classes.
+ E.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.: PUBLIC 
+\begin_inset Quotes eld
+\end_inset
+
+-//OASIS//DTD DocBook V4.2//EN
+\begin_inset Quotes erd
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Description
@@ -9472,7 +8448,8 @@ CommandDepth
 
 \end_inset
 
- [[FIXME]]
+ Depth of XML command.
+ Used only with XML-type formats.
 \end_layout
 
 \begin_layout Description
@@ -9486,6 +8463,13 @@ CopyStyle
 \end_inset
 
  
+\begin_inset CommandInset label
+LatexCommand label
+name "des:CopyStyle"
+
+\end_inset
+
+
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -9783,16 +8767,8 @@ Vertical space above
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-E
-\bar default
-dit\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-aragraph
+Edit\SpecialChar \menuseparator
+Paragraph
 \begin_inset space ~
 \end_inset
 
@@ -9943,7 +8919,7 @@ InnerTag
 
 \end_inset
 
- [[FIXME]]
+ [[FIXME]] (Used only with XML-type formats.)
 \end_layout
 
 \begin_layout Description
@@ -10049,7 +9025,7 @@ ItemTag
 
 \end_inset
 
- [[FIXME]]
+ [[FIXME]] (Used only with XML-type formats.)
 \end_layout
 
 \begin_layout Description
@@ -10215,6 +9191,19 @@ reference "sec:fonts"
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+LabelIndent
+\end_layout
+
+\end_inset
+
+ Text that indicates how far a label should be indented.
 \end_layout
 
 \begin_layout Description
@@ -10400,6 +9389,19 @@ LabelStringAppendix
 \end_inset
 
  too.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+LabelTag
+\end_layout
+
+\end_inset
+
+ [FIXME] (Used only with XML-type formats.)
 \end_layout
 
 \begin_layout Description
@@ -10614,59 +9616,13 @@ reference "sec:counter"
 status collapsed
 
 \begin_layout Plain Layout
-LatexFooter
-\end_layout
-
-\end_inset
-
- [[FIXME]]
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-LatexHeader
-\end_layout
-
-\end_inset
-
- [[FIXME]]
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
 LatexName
 \end_layout
 
 \end_inset
 
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "des:LatexName"
-
-\end_inset
-
-The name of the corresponding LaTeX stuff.
+ The name of the corresponding LaTeX stuff.
  Either the environment or command name.
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-LatexParagraph
-\end_layout
-
-\end_inset
-
- [[FIXME]]
 \end_layout
 
 \begin_layout Description
@@ -10679,14 +9635,7 @@ LatexParam
 
 \end_inset
 
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "des:LatexParam"
-
-\end_inset
-
-An optional parameter for the corresponding 
+ An optional parameter for the corresponding 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -11121,16 +10070,8 @@ Manual
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-E
-\bar default
-dit\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-aragraph
+Edit\SpecialChar \menuseparator
+Paragraph
 \begin_inset space ~
 \end_inset
 
@@ -11223,14 +10164,7 @@ NeedProtect
 
 \end_inset
 
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "des:NeedProtect"
-
-\end_inset
-
-[
+ [
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -11265,6 +10199,11 @@ protect
 \end_inset
 
 'ed.
+ (Note: This is 
+\emph on
+not
+\emph default
+ whether this command should itself be protected.)
 \end_layout
 
 \begin_layout Description
@@ -11384,7 +10323,8 @@ ObsoletedBy
 
 \end_inset
 
- [[FIXME]]
+ Name of a layout that has replaced this layout.
+ This is used to rename a layout, while keeping backward compatibility.
 \end_layout
 
 \begin_layout Description
@@ -11597,7 +10537,7 @@ PassThru
  
 \begin_inset CommandInset label
 LatexCommand label
-name "des:PassThru"
+name "des:PathThru"
 
 \end_inset
 
@@ -12467,7 +11407,7 @@ type
 \end_layout
 
 \begin_layout Subsection
-Inset layouts and Flex insets
+Flex insets and InsetLayout
 \end_layout
 
 \begin_layout Standard
@@ -12477,18 +11417,8 @@ name "sec:charstyle"
 
 \end_inset
 
-LyX has supported character styles since version 1.4.0; since version 1.6.0
+LyX has supported character styles since version 1.4.0; as of version 1.6.0,
  these are called Flex insets.
- 
-\end_layout
-
-\begin_layout Standard
-Furthermore, it is possible to define the general layout of many different
- types of insets.
- Currently, InsetLayout can be used to customize the  layout parameters
- for footnotes, marginal notes, note insets, ERT insets, branches, listings,
- indexes, boxes, tables, algorithms, URLs, and optional arguments, as well
- as Flex insets.
  
 \end_layout
 
@@ -12548,6 +11478,17 @@ Custom
 
 ): These can be used to define custom collapsable insets, similar to ERT,
  footnote, and the like.
+ An obvious example is an endnote inset, which is defined in the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+endnote
+\end_layout
+
+\end_inset
+
+ module.
 \end_layout
 
 \begin_layout Itemize
@@ -12565,6 +11506,20 @@ Element
 \end_layout
 
 \begin_layout Standard
+Flex insets are defined using the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+InsetLayout
+\end_layout
+
+\end_inset
+
+ tag, which shall be explained in a moment.
+\end_layout
+
+\begin_layout Standard
 The 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -12575,15 +11530,43 @@ InsetLayout
 
 \end_inset
 
- definition starting line is of the form
+ tag also serves another function: It can be used to customize the general
+ layout of many different types of insets.
+ Currently, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+InsetLayout
 \end_layout
 
-\begin_layout LyX-Code
-InsetLayout <Type> <Name>
+\end_inset
+
+ can be used to customize the layout parameters for footnotes, marginal
+ notes, note insets, ERT insets, branches, listings, indexes, boxes, tables,
+ algorithms, URLs, and optional arguments, as well as to define Flex insets.
 \end_layout
 
 \begin_layout Standard
-where 
+The 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+InsetLayout
+\end_layout
+
+\end_inset
+
+ definition must begin with a line of the form:
+\end_layout
+
+\begin_layout LyX-Code
+InsetLayout <Type>
+\end_layout
+
+\begin_layout Standard
+Here 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12593,7 +11576,23 @@ status collapsed
 
 \end_inset
 
- can be 
+ indicates the inset whose layout is being defined, and here there are two
+ cases.
+\end_layout
+
+\begin_layout Enumerate
+The layout for a pre-existing inset is being modified.
+ In this case, can be 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+<Type>
+\end_layout
+
+\end_inset
+
+ any one of the following: 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12619,6 +11618,16 @@ status collapsed
 
 \begin_layout Plain Layout
 Box
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Box:shaded
 \end_layout
 
 \end_inset
@@ -12659,6 +11668,46 @@ status collapsed
 
 \begin_layout Plain Layout
 Index
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Info
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Info:menu
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Info:shortcut
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Info:shortcuts
 \end_layout
 
 \end_inset
@@ -12733,7 +11782,7 @@ Table
 
 \end_inset
 
-, 
+, or 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12743,18 +11792,13 @@ URL
 
 \end_inset
 
-, or 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Flex
+.
+ 
 \end_layout
 
-\end_inset
-
-.
- If 
+\begin_layout Enumerate
+The layout for a Flex inset is being defined.
+ In this case, 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12764,92 +11808,26 @@ status collapsed
 
 \end_inset
 
- is 
+ can be any valid identifier not used by a pre-existing inset.
+ Note that the definition of a flex inset must
+\emph on
+ als
+\emph default
+o include a 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
 \begin_layout Plain Layout
-Flex
+LyXType
 \end_layout
 
 \end_inset
 
-, then 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-<Name>
-\end_layout
-
-\end_inset
-
- should have the form 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-SubType:StyleName
-\end_layout
-
-\end_inset
-
-, where 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-SubType
-\end_layout
-
-\end_inset
-
- is either 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-CharStyle
-\end_layout
-
-\end_inset
-
-, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Custom
-\end_layout
-
-\end_inset
-
-, or 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Element
-\end_layout
-
-\end_inset
-
-, and 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-StyleName
-\end_layout
-
-\end_inset
-
- is any valid identifier.
- 
+ entry.
 \end_layout
 
 \begin_layout Standard
-The following 
+The 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12859,7 +11837,7 @@ InsetLayout
 
 \end_inset
 
- section can contain the following entries:
+ definition can contain the following entries:
 \end_layout
 
 \begin_layout Description
@@ -12873,7 +11851,7 @@ BgColor
 \end_inset
 
  The color for the inset's background.
- These valid colors are defined in 
+ The valid colors are defined in 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12884,6 +11862,62 @@ src/ColorCode.h
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+CopyStyle
+\end_layout
+
+\end_inset
+
+ As with paragraph styles (see page 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "des:CopyStyle"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+CustomPars
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+,
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+] Indicates whether the user may employ the Paragraph Settings dialog to
+ customize the paragraph.
 \end_layout
 
 \begin_layout Description
@@ -12937,7 +11971,7 @@ Classic
 
 \end_inset
 
-; ERT insets generally use 
+, ERT insets generally 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12947,7 +11981,7 @@ Minimalistic
 
 \end_inset
 
-; and character styles use 
+, and character styles 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -12958,6 +11992,19 @@ Conglomerate
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+End
+\end_layout
+
+\end_inset
+
+ Required at the end of the InsetLayout declarations.
 \end_layout
 
 \begin_layout Description
@@ -13020,7 +12067,60 @@ ForceLTR
 
 \end_inset
 
- [[FIXME]]
+ Force the 
+\begin_inset Quotes eld
+\end_inset
+
+latex
+\begin_inset Quotes erd
+\end_inset
+
+ language, leading to Left-to-Right (latin) output, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+in ERT or URL.
+ A kludge.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+ForcePlain
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+,
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+] Indicates whether the PlainLayout should be used or, instead, the user
+ can change the paragraph style used in the inset.
 \end_layout
 
 \begin_layout Description
@@ -13068,20 +12168,6 @@ reference "des:KeepEmpty"
 status collapsed
 
 \begin_layout Plain Layout
-LabelString
-\end_layout
-
-\end_inset
-
- What will be displayed on the button or elsewhere as the inset label.
- Some inset types (ERT and Branch) modify this label on the fly.
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
 LabelFont
 \end_layout
 
@@ -13111,6 +12197,20 @@ Font
 \end_inset
 
 , lest it be ineffective.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+LabelString
+\end_layout
+
+\end_inset
+
+ What will be displayed on the button or elsewhere as the inset label.
+ Some inset types (ERT and Branch) modify this label on the fly.
 \end_layout
 
 \begin_layout Description
@@ -13221,7 +12321,7 @@ element
 
 \end_inset
 
-, 
+, or 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -13231,8 +12331,145 @@ end
 
 \end_inset
 
- (indicating a dummy definition ending definitions of charstyles etc.).
- This entry is only meaningful for Flex (user definable) insets.
+ (indicating a dummy definition ending definitions of charstyles, etc).
+ This entry is required in and is only meaningful for Flex insets.
+ Among other things, it determines on which menu this inset will appear.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+MultiPar
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+,
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+] Whether multiple paragraphs are permitted in this inset.
+ This will also set CustomPars to the same value and ForcePlain to the opposite
+ value.
+ These can be reset to other values, if they are used 
+\emph on
+after
+\emph default
+ MultiPar.
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+NeedProtect
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+,
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+] Whether fragile commands in this layout should be 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+protect
+\end_layout
+
+\end_inset
+
+'ed.
+ (Note: This is 
+\emph on
+not
+\emph default
+ whether the command should itself be protected.)
+\end_layout
+
+\begin_layout Description
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+PassThru
+\end_layout
+
+\end_inset
+
+ [
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+,
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+] As with paragraph styles (see page 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "des:PathThru"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Description
@@ -13338,8 +12575,36 @@ Input stdcounters.inc
 
 \begin_layout Standard
 to your layout file to get them to work.
- But if you want to define custom counters, then you can do so, using the
- following parameters:
+ But if you want to define custom counters, then you can do so.
+ The counter declaration must begin with:
+\end_layout
+
+\begin_layout LyX-Code
+Counter name
+\end_layout
+
+\begin_layout Standard
+where of course `name' is replaced by the name of the counter.
+ And it must end with 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+End
+\end_layout
+
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The following parameters can also be used:
 \end_layout
 
 \begin_layout Description
@@ -13626,38 +12891,7 @@ LabelString
 
 \end_inset
 
-.
-\end_layout
-
-\begin_layout Description
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Name
-\end_layout
-
-\end_inset
-
- [
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-
-=
-\begin_inset Quotes erd
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-] The name of the counter.
+, but for use in the Appendix.
 \end_layout
 
 \begin_layout Description
@@ -14342,19 +13576,8 @@ LyXDir/templates/
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\family sans
-\bar default
-ools
-\family default
-\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references\SpecialChar \menuseparator
+Tools\SpecialChar \menuseparator
+Preferences\SpecialChar \menuseparator
 Paths
 \end_layout
 
@@ -14380,26 +13603,8 @@ defaults.lyx
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-F
-\bar default
-ile
-\end_layout
-
-\end_inset
-
-\SpecialChar \menuseparator
-
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-
-\bar under
-N
-\bar default
-ew
+File\SpecialChar \menuseparator
+New
 \end_layout
 
 \end_inset
@@ -14411,11 +13616,7 @@ ew
 status collapsed
 
 \begin_layout Plain Layout
-Sa
-\bar under
-v
-\bar default
-e as Document Defaults
+Save as Document Defaults
 \end_layout
 
 \end_inset
@@ -14425,6 +13626,30 @@ e as Document Defaults
 
 \begin_layout Chapter
 Including External Material
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Shadowbox
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+WARNING: This portion of the documentation has not been updated for some
+ time.
+ We certainly hope that it is still accurate, but there are no guarantees.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -14927,8 +14152,12 @@ FileFilter
 
  A glob pattern that is used in the file dialog to filter out the desired
  files.
- If there is more than one possible file extension (e.g.
-\begin_inset space ~
+ If there is more than one possible file extension (e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
 \end_inset
 
 tgif has 
@@ -15812,8 +15041,15 @@ $$Tempname
 
 \begin_layout Standard
 All path macros contain a trailing directory separator, so you can construct
- e.g.
- the absolute filename with 
+ e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+the absolute filename with 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -16077,8 +15313,12 @@ $$AbsOrRelPathParent
 \end_layout
 
 \begin_layout Standard
-There are special cases where this rule does not work and e.g.
-\begin_inset space ~
+There are special cases where this rule does not work and e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
 \end_inset
 
 relative names are needed, but normally it will work just fine.
@@ -16117,15 +15357,28 @@ Security discussion
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status collapsed
+\begin_inset Box Shadowbox
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
 
 \begin_layout Plain Layout
-This section is outdated
+WARNING: This section is definitely outdated.
 \end_layout
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 The external material feature interfaces with a lot of external programs
  and does so automatically, so we have to consider the security implications
  of this.
@@ -16255,503 +15508,6 @@ Including external material provides a lot of power, and you have to be
  a knowledgable security professional or the LyX development team if you
  have any questions about whether a given template is safe or not.
  And do this before you use it in an uncontrolled environment.
-\end_layout
-
-\begin_layout Chapter
-The LyX Server
-\end_layout
-
-\begin_layout Section
-Introduction
-\end_layout
-
-\begin_layout Standard
-The LyX server is a method implemented in LyX that will enable other programs
- to talk to LyX, invoke LyX commands, and retrieve information about the
- LyX internal state.
- This is only intended for advanced users, but they should find it useful.
- Please note that, at present, 
-\emph on
-the server does not work on Windows
-\emph default
-.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-There is no principled reason it cannot do so.
- But none of the developers on Windows® have yet implemented this functionality
- there.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Starting the LyX Server
-\end_layout
-
-\begin_layout Standard
-The LyX server works through the use of a pair of named pipes.
- These are usually located in 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-UserDir
-\end_layout
-
-\end_inset
-
- and have the names 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.lyxpipe.in
-\end_layout
-
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.lyxpipe.out
-\end_layout
-
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-.
- External programs write into 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.lyxpipe.in
-\end_layout
-
-\end_inset
-
- and read back data from 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.lyxpipe.out
-\end_layout
-
-\end_inset
-
-.
- The stem of the pipe names can be defined in the 
-\begin_inset Flex CharStyle:MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
-\end_layout
-
-\end_inset
-
- dialog, for example 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-"/home/myhome/.lyxpipe"
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-LyX will add the '
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.in
-\end_layout
-
-\end_inset
-
-' and '
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-.out
-\end_layout
-
-\end_inset
-
-' to create the pipes.
- The above setting also has the effect of activating the LyX server.
- If one of the pipes already exists, LyX will assume that another LyX process
- is already running and will not start the server.
- To have several LyX processes with servers at the same time, you have to
- change the configuration between the start of the programs.
-\end_layout
-
-\begin_layout Standard
-If you are developing a client program, you might find it useful to enable
- debugging information from the LyX server.
- Do this by starting LyX as lyx -dbg lyxserver.
-\end_layout
-
-\begin_layout Standard
-Warning: if LyX crashes, it may not manage to remove the pipes; in this
- case you must remove them manually.
- If LyX starts and the pipes exist already, it will not start any server.
-\end_layout
-
-\begin_layout Standard
-Other than this, there are a few points to consider:
-\end_layout
-
-\begin_layout Itemize
-Both server and clients must run on UNIX or OS/2 machines.
- Communications between LyX on UNIX and clients on OS/2 or vice versa is
- not possible right now.
-\end_layout
-
-\begin_layout Itemize
-On OS/2, only one client can connect to LyXServer at a time.
-\end_layout
-
-\begin_layout Itemize
-On OS/2, clients must open inpipe with 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-O_WRONLY
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-mode.
-\end_layout
-
-\begin_layout Standard
-You can find a complete example client written in C in the source distribution
- as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-development/lyxserver/server_monitor.c
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Section
-Normal communication
-\end_layout
-
-\begin_layout Standard
-To issue a LyX call, the client writes a line of ASCII text into the input
- pipe.
- This line has the following format:
-\end_layout
-
-\begin_layout Quote
-LYXCMD:
-\emph on
-clientname
-\emph default
-:
-\emph on
-function
-\emph default
-:
-\emph on
-argument
-\end_layout
-
-\begin_layout Description
-
-\emph on
-clientname
-\emph default
- is a name that the client can choose arbitrarily.
- Its only use is that LyX will echo it if it sends an answer---so a client
- can dispatch results from different requesters.
-\end_layout
-
-\begin_layout Description
-
-\emph on
-function
-\emph default
- is the function you want LyX to perform.
- It is the same as the commands you'd use in the minibuffer.
-\end_layout
-
-\begin_layout Description
-
-\emph on
-argument
-\emph default
- is an optional argument which is meaningful only to some functions (for
- instance 
-\begin_inset Quotes eld
-\end_inset
-
-self-insert
-\begin_inset Quotes erd
-\end_inset
-
- which will insert the argument as text at the cursor position.)
-\end_layout
-
-\begin_layout Standard
-The answer from LyX will arrive in the output pipe and be of the form
-\end_layout
-
-\begin_layout Quote
-INFO:
-\emph on
-clientname
-\emph default
-:
-\emph on
-function
-\emph default
-:
-\emph on
-data
-\end_layout
-
-\begin_layout Standard
-where 
-\emph on
-clientname
-\emph default
- and 
-\emph on
-function
-\emph default
- are just echoed from the command request, while 
-\emph on
-data
-\emph default
- is more or less useful information filled according to how the command
- execution worked out.
- Some commands will return information about the internal state of LyX,
- such as 
-\begin_inset Quotes eld
-\end_inset
-
-font-state
-\begin_inset Quotes erd
-\end_inset
-
-, while other will return an empty data-response.
- This means that the command execution went fine.
-\end_layout
-
-\begin_layout Standard
-In case of errors, the response from LyX will have this form
-\end_layout
-
-\begin_layout Quote
-ERROR:
-\emph on
-clientname
-\emph default
-:
-\emph on
-function
-\emph default
-:
-\emph on
-error message
-\end_layout
-
-\begin_layout Standard
-where the 
-\emph on
-error message
-\emph default
- should contain an explanation of why the command failed.
-\end_layout
-
-\begin_layout Standard
-Examples:
-\end_layout
-
-\begin_layout LyX-Code
-echo "LYXCMD:test:beginning-of-buffer:" >~/.lyxpipe.in
-\end_layout
-
-\begin_layout LyX-Code
-echo "LYXCMD:test:get-xy:" >~/.lyxpipe.in
-\begin_inset Newline newline
-\end_inset
-
-read a <~/.lyxpipe.out
-\begin_inset Newline newline
-\end_inset
-
-echo $a
-\end_layout
-
-\begin_layout Section
-Notification
-\end_layout
-
-\begin_layout Standard
-LyX can notify clients of events going on asynchronously.
- Currently it will only do this if the user binds a key sequence with the
- function 
-\begin_inset Quotes eld
-\end_inset
-
-notify
-\begin_inset Quotes erd
-\end_inset
-
-.
- The format of the string LyX sends is as follows:
-\end_layout
-
-\begin_layout Quote
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-NOTIFY:
-\end_layout
-
-\end_inset
-
-
-\emph on
-key-sequence
-\end_layout
-
-\begin_layout Standard
-where 
-\emph on
-key-sequence
-\emph default
- is the printed representation of the key sequence that was actually typed
- by the user.
-\end_layout
-
-\begin_layout Standard
-This mechanism can be used to extend LyX's command set and implement macros:
- bind some key sequence to 
-\begin_inset Quotes eld
-\end_inset
-
-notify
-\begin_inset Quotes erd
-\end_inset
-
-, start a client that listens on the out pipe, dispatches the command according
- to the sequence and starts a function that may use LyX calls and LyX requests
- to issue a command or a series of commands to LyX.
-\end_layout
-
-\begin_layout Section
-The simple LyX Server Protocol
-\end_layout
-
-\begin_layout Standard
-LyX implements a simple protocol that can be used for session management.
- All messages are of the form
-\end_layout
-
-\begin_layout Quote
-LYXSRV:
-\emph on
-clientname
-\emph default
-:
-\emph on
-protocol message
-\end_layout
-
-\begin_layout Standard
-where 
-\emph on
-protocol message
-\emph default
- can be 
-\begin_inset Quotes eld
-\end_inset
-
-hello
-\begin_inset Quotes erd
-\end_inset
-
- or 
-\begin_inset Quotes eld
-\end_inset
-
-bye
-\begin_inset Quotes erd
-\end_inset
-
-.
- If 
-\begin_inset Quotes eld
-\end_inset
-
-hello
-\begin_inset Quotes erd
-\end_inset
-
- is received from a client, LyX will report back to inform the client that
- it's listening to it's messages, while 
-\begin_inset Quotes eld
-\end_inset
-
-bye
-\begin_inset Quotes erd
-\end_inset
-
- sent from LyX will inform clients that LyX is closing.
 \end_layout
 
 \end_body

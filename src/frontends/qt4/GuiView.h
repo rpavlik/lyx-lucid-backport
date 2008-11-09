@@ -106,6 +106,7 @@ public:
 	void resetAutosaveTimers();
 	void errors(std::string const &);
 	void structureChanged();
+	void updateTocItem(std::string const &, DocIterator const &);
 	///@}
 
 	///
@@ -150,6 +151,8 @@ public Q_SLOTS:
 private Q_SLOTS:
 	///
 	void updateWindowTitle(GuiWorkArea * wa);
+	///
+	void resetWindowTitleAndIconText();
 
 	///
 	void on_currentWorkAreaChanged(GuiWorkArea *);

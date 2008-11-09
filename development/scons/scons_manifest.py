@@ -21,7 +21,7 @@ TOP_extra_files = Split('''
     autogen.sh
     config.log
     configure.ac
-    lyx.man
+    lyx.1in
     rename.sh
     scons_lyx.log
 ''')
@@ -341,7 +341,6 @@ src_support_files = Split('''
     kill.cpp
     lassert.cpp
     lstrings.cpp
-    lyxsum.cpp
     lyxtime.cpp
     os.cpp
     qstring_helpers.cpp
@@ -409,10 +408,8 @@ src_graphics_files = Split('''
     GraphicsCache.cpp
     GraphicsCacheItem.cpp
     GraphicsConverter.cpp
-    GraphicsImage.cpp
     GraphicsLoader.cpp
     GraphicsParams.cpp
-    GraphicsTypes.cpp
     PreviewImage.cpp
     PreviewLoader.cpp
     Previews.cpp
@@ -442,6 +439,7 @@ src_mathed_header_files = Split('''
     InsetMathDelim.h
     InsetMathDiff.h
     InsetMathDots.h
+    InsetMathEnsureMath.h
     InsetMathEnv.h
     InsetMathExFunc.h
     InsetMathExInt.h
@@ -464,6 +462,7 @@ src_mathed_header_files = Split('''
     InsetMathScript.h
     InsetMathSize.h
     InsetMathSpace.h
+    InsetMathSpecialChar.h
     InsetMathSplit.h
     InsetMathSqrt.h
     InsetMathStackrel.h
@@ -487,6 +486,7 @@ src_mathed_header_files = Split('''
     MathMacroArgument.h
     MathMacroTemplate.h
     MathParser.h
+    MathParser_flags.h
     MathStream.h
     MathSupport.h
     ReplaceData.h
@@ -511,6 +511,7 @@ src_mathed_files = Split('''
     InsetMathDelim.cpp
     InsetMathDiff.cpp
     InsetMathDots.cpp
+    InsetMathEnsureMath.cpp
     InsetMathEnv.cpp
     InsetMathExFunc.cpp
     InsetMathExInt.cpp
@@ -533,6 +534,7 @@ src_mathed_files = Split('''
     InsetMathScript.cpp
     InsetMathSize.cpp
     InsetMathSpace.cpp
+    InsetMathSpecialChar.cpp
     InsetMathSplit.cpp
     InsetMathSqrt.cpp
     InsetMathStackrel.cpp
@@ -898,6 +900,7 @@ src_frontends_qt4_ui_files = Split('''
     MarginsUi.ui
     MathMatrixUi.ui
     MathsUi.ui
+    ModulesUi.ui
     NomenclUi.ui
     NoteUi.ui
     NumberingUi.ui
@@ -1159,6 +1162,7 @@ po_extra_files = Split('''
     POTFILES.in
     README
     Rules-quot
+    ar.po
     bg.po
     boldquot.sed
     ca.po
@@ -1167,6 +1171,7 @@ po_extra_files = Split('''
     de.po
     en@boldquot.header
     en@quot.header
+    en.po
     es.po
     eu.po
     fi.po
@@ -1194,6 +1199,7 @@ po_extra_files = Split('''
     sl.po
     sv.po
     tr.po
+    uk.po
     wa.po
     zh_CN.po
     zh_TW.po
@@ -1265,22 +1271,22 @@ lib_kbd_files = Split('''
 
 
 lib_templates_files = Split('''
-    IEEEtran.lyx
-    README.new_templates
     aa.lyx
     aastex.lyx
+    ACM-sigplan.lyx
     agu_article.lyx
     apa.lyx
     beamer-conference-ornate-20min.lyx
     de_beamer-conference-ornate-20min.lyx
     dinbrief.lyx
     docbook_article.lyx
-    elsart.lyx
+    elsarticle.lyx
     fr_beamer-conference-ornate-20min.lyx
     g-brief-de.lyx
     g-brief-en.lyx
     g-brief2.lyx
     hollywood.lyx
+    IEEEtran.lyx
     ijmpc.lyx
     ijmpd.lyx
     iop-article.lyx
@@ -1289,6 +1295,7 @@ lib_templates_files = Split('''
     koma-letter2.lyx
     latex8.lyx
     letter.lyx
+    README.new_templates
     revtex.lyx
     revtex4.lyx
     slides.lyx
@@ -1352,6 +1359,7 @@ lib_images_files = Split('''
     changes-output.png
     changes-track.png
     closetab.png
+    close-tab-group.png
     copy.png
     cut.png
     demote.png
@@ -1396,6 +1404,11 @@ lib_images_files = Split('''
     layout_Section.png
     lyx-quit.png
     lyx.png
+    vc-check-in.png
+    vc-check-out.png
+    dialog-show_vclog.png
+    vc-register.png
+    vc-revert.png
     marginalnote-insert.png
     math-display.png
     math-macro-add-greedy-optional-param.png
@@ -1423,6 +1436,8 @@ lib_images_files = Split('''
     psnfss4.png
     redo.png
     reload.png
+    split-view_horizontal.png
+    split-view_vertical.png
     standard.png
     tabular-feature_align-center.png
     tabular-feature_align-left.png
@@ -2009,12 +2024,11 @@ lib_doc_files = Split('''
     DummyTextDocument.txt
     EmbeddedObjects.lyx
     Extended.lyx
-    FAQ.lyx
     Formula-numbering.lyx
     Intro.lyx
     LaTeXConfig.lyx
+    LFUNs.lyx
     Math.lyx
-    Reference.lyx
     Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
@@ -2036,11 +2050,9 @@ lib_doc_clipart_files = Split('''
     ERT.png
     ExternalMaterialQt4.png
     ExtraToolbar.png
-    FramedNoteImageQt4.png
     GreyedOutNoteImageQt4.png
     LaTeX.png
     LyXNoteImageQt4.png
-    ShadedNoteImageQt4.png
     SpaceMarker.png
     StandardToolbar.png
     ToolbarEnvBox.png
@@ -2063,10 +2075,12 @@ lib_doc_clipart_files = Split('''
 
 lib_doc_extra_files = Split('''
     Makefile.am
-    Makefile.depend
     README.Documentation
-    depend.py
-    doc_toc.py
+''')
+
+
+lib_doc_ca_files = Split('''
+    Intro.lyx
 ''')
 
 
@@ -2082,7 +2096,6 @@ lib_doc_de_files = Split('''
     DummyTextDocument.txt
     EmbeddedObjects.lyx
     Extended.lyx
-    FAQ.lyx
     Formelnummerierung.lyx
     Intro.lyx
     Math.lyx
@@ -2096,14 +2109,12 @@ lib_doc_de_clipart_files = Split('''
     ERT.png
     ExternesMaterialQt4.png
     FussnoteQt4.png
-    GerahmteNotizQt4.png
     GleitobjektQt4.png
     GrauschriftNotizQt4.png
     KommentarQt4.png
     LyXNotizQt4.png
     Marke.png
     Querverweis.png
-    SchattierteNotizQt4.png
     StandardBoxQt4.png
     UnterdokumentQt4.png
 ''')
@@ -2120,10 +2131,10 @@ lib_doc_es_files = Split('''
     DocumentoTextoPostizo.txt
     EmbeddedObjects.lyx
     Extended.lyx
-    FAQ.lyx
     Formula-numbering.lyx
     Intro.lyx
     Math.lyx
+    Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2135,11 +2146,10 @@ lib_doc_es_clipart_files = Split('''
     DocumentoHijoQt4.png
     GrisNotaImagenQt4.png
     MaterialExternoQt4.png
-    NotaEnmarcadaImg.png
     NotaLyXImagenQt4.png
-    NotaSombreadaImg.png
     Resumen.pdf
     es_ERT.png
+    es_ToolbarEnvBox.png
     etiquetaQt4.png
     flotanteQt4.png
     notapieQt4.png
@@ -2150,7 +2160,6 @@ lib_doc_es_clipart_files = Split('''
 lib_doc_eu_files = Split('''
     Customization.lyx
     Extended.lyx
-    FAQ.lyx
     Intro.lyx
     Tutorial.lyx
     UserGuide.lyx
@@ -2164,7 +2173,6 @@ lib_doc_fr_files = Split('''
     DocumentTexteBidon.txt
     EmbeddedObjects.lyx
     Extended.lyx
-    FAQ.lyx
     Formula-numbering.lyx
     Intro.lyx
     Math.lyx
@@ -2177,10 +2185,8 @@ lib_doc_fr_clipart_files = Split('''
     BoxInsetDefaultQt4.png
     ChildDocumentQt4.png
     CommentNoteImageQt4.png
-    FramedNoteImageQt4.png
     GreyedOutNoteImageQt4.png
     LyXNoteImageQt4.png
-    ShadedNoteImageQt4.png
     floatQt4.png
     footnoteQt4.png
     labelQt4.png
@@ -2220,17 +2226,21 @@ lib_doc_it_clipart_files = Split('''
 
 
 lib_doc_ja_files = Split('''
-    FAQ.lyx
+    Extended.lyx
     Intro.lyx
     LaTeXConfig.lyx
     Shortcuts.lyx
     Tutorial.lyx
+    UserGuide.lyx
 ''')
 
 
 lib_doc_ja_clipart_files = Split('''
+    floatQt4.png
     footnoteQt4.png
     referenceQt4.png
+    ERT.png
+    ToolbarEnvBox.png
 ''')
 
 
@@ -2264,7 +2274,6 @@ lib_doc_ro_files = Split('''
 
 
 lib_doc_ru_files = Split('''
-    FAQ.lyx
     Intro.lyx
     Tutorial.lyx
 ''')
@@ -2288,6 +2297,16 @@ lib_doc_sv_files = Split('''
 ''')
 
 
+lib_doc_uk_files = Split('''
+    Intro.lyx
+''')
+
+
+lib_doc_uk_clipart_files = Split('''
+    FootnoteQT4.png
+''')
+
+
 lib_examples_files = Split('''
     Braille.lyx
     CV-image.eps
@@ -2295,7 +2314,6 @@ lib_examples_files = Split('''
     Foils.lyx
     ItemizeBullets.lyx
     Literate.lyx
-    Minipage.lyx
     aa_sample.lyx
     aas_sample.lyx
     addressExample.adr
@@ -2327,21 +2345,25 @@ lib_examples_files = Split('''
     landslide.lyx
     linguistics.lyx
     listerrors.lyx
-    listings.lyx
     modernCV.lyx
     multicol.lyx
     noweb2lyx.lyx
     powerdot-example.lyx
     script_form.lyx
+    seminar.lyx
     serial_letter1.lyx
     serial_letter2.lyx
     serial_letter3.lyx
     simplecv.lyx
     splash.lyx
+    xyfigure.png
+    xypic.lyx
 ''')
 
 
 lib_examples_ca_files = Split('''
+    ItemizeBullets.lyx
+    mathed.lyx
     splash.lyx
 ''')
 
@@ -2360,7 +2382,6 @@ lib_examples_de_files = Split('''
     Dezimal.lyx
     ItemizeBullets.lyx
     Lebenslauf.lyx
-    Minipage.lyx
     beispiel_gelyxt.lyx
     beispiel_roh.lyx
     multicol.lyx
@@ -2380,7 +2401,6 @@ lib_examples_fr_files = Split('''
     AlignementDecimal.lyx
     Foils.lyx
     ListesPuces.lyx
-    Minipage.lyx
     exemple_brut.lyx
     exemple_lyxifie.lyx
     multicol.lyx
@@ -2390,9 +2410,10 @@ lib_examples_fr_files = Split('''
 
 
 lib_examples_es_files = Split('''
-    ItemizeBullets.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
+    ItemizeBullets.lyx
+    multicol.lyx
     splash.lyx
 ''')
 
@@ -2504,7 +2525,6 @@ lib_lyx2lyx_extra_files = Split('''
 
 
 lib_layouts_files = Split('''
-    IEEEtran.layout
     aa.layout
     aapaper.layout
     aastex.layout
@@ -2530,6 +2550,7 @@ lib_layouts_files = Split('''
     dtk.layout
     egs.layout
     elsart.layout
+    elsarticle.layout
     entcs.layout
     europecv.layout
     extarticle.layout
@@ -2543,6 +2564,7 @@ lib_layouts_files = Split('''
     heb-article.layout
     heb-letter.layout
     hollywood.layout
+    IEEEtran.layout
     ijmpc.layout
     ijmpd.layout
     iopart.layout
@@ -2581,10 +2603,13 @@ lib_layouts_files = Split('''
     scrreprt.layout
     seminar.layout
     siamltex.layout
+    sigplanconf.layout
     simplecv.layout
+    singlecol.layout
     slides.layout
     spie.layout
     svglobal.layout
+    svglobal3.layout
     svjog.layout
     svprobth.layout
     tarticle.layout
@@ -2672,6 +2697,7 @@ lib_scripts_files = Split('''
     legacy_lyxpreview2ppm.py
     listerrors
     lyxpreview2bitmap.py
+    lyxpreview-platex2bitmap.py
     lyxpreview_tools.py
     tex_copy.py
 ''')

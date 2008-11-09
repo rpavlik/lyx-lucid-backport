@@ -166,7 +166,7 @@ void GuiInclude::typeChanged(int v)
 }
 
 
-void GuiInclude::updateContents()
+void GuiInclude::paramsToDialog(InsetCommandParams const & params_)
 {
 	filenameED->setText(toqstr(params_["filename"]));
 
@@ -256,7 +256,7 @@ void GuiInclude::applyView()
 		if (!label.empty())
 			par.addParam("label", "{" + label + "}");
 		string const listparams = par.params();
-		params_["lstparams"] = from_ascii(listparams);
+		params_["lstparams"] = from_utf8(listparams);
 	} else {
 		if (visiblespaceCB->isChecked())
 			params_.setCmdName("verbatiminput*");
@@ -329,6 +329,7 @@ QString GuiInclude::browse(QString const & in_name, Type in_type) const
 bool GuiInclude::initialiseParams(std::string const & data)
 {
 	InsetCommand::string2params("include", data, params_);
+	paramsToDialog(params_);
 	return true;
 }
 

@@ -228,7 +228,6 @@ public:
 	 *  stored by the dialog are not applied to the inset currently
 	 *  connected to the dialog. Instead, they will be used to generate
 	 *  a new inset at the cursor position.
-	 *  \param name is used to identify the dialog to the kernel.
 	 */
 	void disconnect() const;
 
@@ -249,13 +248,8 @@ public:
 	 *  We should aim to reduce/remove these from the interface.
 	 */
 	//@{
-	GuiView & lyxview() { return *lyxview_; }
 	GuiView const & lyxview() const { return *lyxview_; }
-
-	Buffer & buffer();
 	Buffer const & buffer() const;
-
-	BufferView * bufferview();
 	BufferView const * bufferview() const;
 	//@}
 

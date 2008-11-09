@@ -35,6 +35,12 @@ public:
 		XML
 	};
 
+	enum TableCell {
+		NO,
+		PLAIN,
+		ALIGNED
+	};
+
 	OutputParams(Encoding const *);
 	~OutputParams();
 
@@ -98,6 +104,10 @@ public:
 	*/
 	bool use_babel;
 
+	/** Are we using japanese (pLaTeX)?
+	*/
+	bool use_japanese;
+
 	/** Line length to use with plaintext export.
 	*/
 	size_type linelen;
@@ -121,6 +131,11 @@ public:
 	 */
 	bool inComment;
 
+	/** Whether we are in a table cell.
+	 *  For newline, it matters whether its content is aligned or not.
+         */
+	TableCell inTableCell;
+
 	/** Whether we are inside an inset that is logically deleted.
 	 *  A value > 0 indicates a deleted inset.
          */
@@ -141,6 +156,9 @@ public:
 	 *  if par_begin=par_end, output all paragraphs
 	 */
 	pit_type par_end;
+
+	/// is this the last paragraph in the current buffer/inset?
+	bool isLastPar;
 
 	/** whether or not do actual file copying and image conversion
 	 *  This mode will be used to preview the source code

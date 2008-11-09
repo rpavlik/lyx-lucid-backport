@@ -66,7 +66,7 @@ namespace Debug {
 		///
 		LYXSERVER  = (1 << 12),  // 4096
 		///
-		ROFF       = (1 << 13),  // 8192
+		UNDO       = (1 << 13),  // 8192
 		///
 		ACTION     = (1 << 14),   // 16384
 		///
@@ -96,7 +96,9 @@ namespace Debug {
 		///	rtl-related
 		RTL        = (1 << 27),
 		///	locale related
-		LOCALE        = (1 << 28),
+		LOCALE     = (1 << 28),
+		///	selection
+		SELECTION  = (1 << 29),
 		///
 		DEBUG      = (1 << 31),
 		///

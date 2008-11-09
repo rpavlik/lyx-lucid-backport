@@ -150,7 +150,7 @@ Buffer const & Inset::buffer() const
 
 bool Inset::isBufferValid() const
 {
-	return theBufferList().isLoaded(buffer_);
+	return buffer_ && theBufferList().isLoaded(buffer_);
 }
 
 
@@ -430,7 +430,7 @@ void Inset::dump() const
 
 ColorCode Inset::backgroundColor() const
 {
-	return Color_background;
+	return Color_none;
 }
 
 

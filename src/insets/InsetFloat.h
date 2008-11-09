@@ -60,16 +60,18 @@ public:
 	///
 	static std::string params2string(InsetFloatParams const &);
 	///
-	void setWide(bool w, BufferParams const &);
+	void setWide(bool w, BufferParams const &, bool update_label = true);
 	///
-	void setSideways(bool s, BufferParams const &);
+	void setSideways(bool s, BufferParams const &, bool update_label = true);
 	///
-	void setSubfloat(bool s, BufferParams const &);
+	void setSubfloat(bool s, BufferParams const &, bool update_label = true);
+	///
+	void setNewLabel(BufferParams const &);
 	///
 	InsetFloatParams const & params() const { return params_; }
 private:
 	///
-	docstring name() const { return name_; }
+	docstring name() const;
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///

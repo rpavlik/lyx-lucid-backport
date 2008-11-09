@@ -22,6 +22,8 @@
 
 namespace lyx {
 
+class DocIterator;
+
 /**
  * An on-screen row of text. A paragraph is broken into a
  * RowList for display. Each Row contains position pointers
@@ -31,8 +33,6 @@ class Row {
 public:
 	///
 	Row();
-	///
-	Row(pos_type pos);
 	///
 	bool changed() const { return changed_; }
 	///
@@ -45,7 +45,13 @@ public:
 	  * time.
 	  */
 	void setSelection(pos_type sel_beg, pos_type sel_end) const;
-
+	///
+	bool selection() const;
+	/// Set the selection begin and end and whether the left and/or right
+	/// margins are selected.
+	void setSelectionAndMargins(DocIterator const & beg, 
+		DocIterator const & end) const;
+	
 	///
 	void pos(pos_type p);
 	///
@@ -80,7 +86,21 @@ public:
 	mutable pos_type sel_beg;
 	///
 	mutable pos_type sel_end;
+	///
+	mutable bool begin_margin_sel;
+	///
+	mutable bool end_margin_sel;
+
 private:
+	/// Decides whether the margin is selected.
+	/**
+	  * \param margin_begin
+	  * \param beg
+	  * \param end
+	  */
+	bool isMarginSelected(bool left_margin, DocIterator const & beg,
+		DocIterator const & end) const;
+
 	/// has the Row appearance changed since last drawing?
 	mutable bool changed_;
 	/// CRC of row contents.

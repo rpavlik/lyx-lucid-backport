@@ -84,6 +84,15 @@ int InsetHyperlink::latex(odocstream & os, OutputParams const & runparams) const
 				url.replace(pos, 1, backslash + chars_url[k]);
 			}
 		}
+
+		// add "http://" when the type is web (type = empty)
+		// and no "://" or "run:" is given
+		docstring type = getParam("type");
+		if (url.find(from_ascii("://")) == string::npos
+			&& url.find(from_ascii("run:")) == string::npos
+			&& type.empty())
+			url = from_ascii("http://") + url;
+
 	} // end if (!url.empty())
 
 	docstring name = getParam("name");

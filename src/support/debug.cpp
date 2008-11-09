@@ -49,7 +49,7 @@ ErrorItem errorTags[] = {
 	{ Debug::TCLASS,    "tclass",    N_("Textclass files reading")},
 	{ Debug::LYXVC,     "lyxvc",     N_("Version control")},
 	{ Debug::LYXSERVER, "lyxserver", N_("External control interface")},
-	{ Debug::ROFF,      "roff",      N_("Keep *roff temporary files")},
+	{ Debug::UNDO,      "undo",      N_("Undo/Redo mechanism")},
 	{ Debug::ACTION,    "action",    N_("User commands")},
 	{ Debug::LYXLEX,    "lyxlex",    N_("The LyX Lexxer")},
 	{ Debug::DEPEND,    "depend",    N_("Dependency information")},
@@ -65,6 +65,7 @@ ErrorItem errorTags[] = {
 	{ Debug::MACROS,    "macros",    N_("Math macros")},
 	{ Debug::RTL,       "rtl",       N_("RTL/Bidi")},
 	{ Debug::LOCALE,    "locale",    N_("Locale/Internationalisation")},
+	{ Debug::SELECTION, "selection", N_("Selection copy/paste mechanism")},
 	{ Debug::DEBUG,     "debug",     N_("Developers' general debug messages")},
 	{ Debug::ANY,       "any",       N_("All debugging messages")}
 };

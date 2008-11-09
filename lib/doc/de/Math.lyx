@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrartcl
@@ -70,9 +70,6 @@
 % provides caption formatting
 \setkomafont{captionlabel}{\bfseries}
 
-% benutzt in Kap. 22.4
-\usepackage{braket}
-
 % benutzt in Kap. 22.6
 \usepackage[samesize]{cancel}
 
@@ -82,9 +79,6 @@
 % für Mehrfachzeilen und -spalten
 \usepackage{multirow}
 \usepackage{multicol}
-
-% für Diagramme
-\usepackage{amscd}
 
 % benutzt in Kap. 19.4
 \usepackage{remreset}
@@ -158,6 +152,7 @@
  {\usepackage{icomma}}{}
 \end_preamble
 \options bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\use_default_options false
 \language ngerman
 \inputencoding auto
 \font_roman default
@@ -168,7 +163,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -185,7 +179,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize a4paper
@@ -208,8 +201,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -311,13 +304,6 @@ was
 
 \begin_layout Section
 Einleitung
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Einleitung"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -461,13 +447,6 @@ target "ftp://ctan.tug.org/tex-archive/macros/amstex/doc/amsguide.ps"
 
 \begin_layout Section
 Allgemeine Hinweise
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Allgemeine-Hinweise"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1001,7 +980,7 @@ B.
 \end_layout
 
 \begin_layout Subsection*
-Verwendete Einheiten
+Verfügbare Einheiten
 \end_layout
 
 \begin_layout Standard
@@ -1019,11 +998,11 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset label
 LatexCommand label
-name "tab:Verwendete-Einheiten"
+name "tab:Verfügbare-Einheiten"
 
 \end_inset
 
-Verwendete Einheiten
+Verfügbare Einheiten
 \end_layout
 
 \end_inset
@@ -2192,6 +2171,8 @@ Um Brüche mit schrägem Bruchstrich zu erzeugen, kann der Befehl
 
 \backslash
 nicefrac
+\series default
+
 \begin_inset Index
 status collapsed
 
@@ -2203,13 +2184,64 @@ nicefrac
 
 \end_inset
 
-
-\series default
- benutzt werden: 
+: 
 \begin_inset Formula $\nicefrac{5}{31}$
 \end_inset
 
+ oder 
+\series bold
 
+\backslash
+unitfrac
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Befehle! U ! 
+\backslash
+unitfrac
+\end_layout
+
+\end_inset
+
+: 
+\begin_inset Formula $\unitfrac{5}{31}$
+\end_inset
+
+ benutzt werden.
+ Des Weiteren gibt es den Befehl 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ mit dem man einen Bruch in Kombination mit einer Zahl setzen kann: 
+\begin_inset Formula $\unitfrac[2]{1}{3}$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Zu beachten ist, dass 
+\series bold
+
+\backslash
+unitfracthree
+\series default
+ kein echter LaTeX-Befehl, sondern der Befehl
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+unitfrac[Zahl]{Zähler}{Nenner}
+\series default
+ ist, daher kann man ihn nicht im TeX-Code benutzen.
 \end_layout
 
 \begin_layout Standard
@@ -4211,8 +4243,96 @@ underline
 Man kann bis zu 6 Striche über oder unter Zeichen setzen.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+Benutzerdefinierte Linien können mit dem Befehl 
+\series bold
+
+\backslash
+rule
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Befehle! R ! 
+\backslash
+rule
+\end_layout
+
+\end_inset
+
+ erstellt werden, der folgendes Schema besitzt:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule[vertikaler Versatz]{Länge}{Dicke}
+\end_layout
+
+\begin_layout Standard
+Der optionale vertikale Versatz verschiebt die Linie nach oben (oder nach
+ unten, wenn der Wert negativ ist).
+ Die Einheiten, die in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Verfügbare-Einheiten"
+
+\end_inset
+
+ aufgelistet sind, können für die Werte benutzt werden.
+ Hier sind zwei Beispiele, die mit den Befehlen
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+rule[-2ex]{3cm}{2pt}
+\series default
+ und 
+\series bold
+
+\backslash
+rule{2cm}{1pt}
+\series default
+ erzeugt wurden:
+\end_layout
+
+\begin_layout Standard
+Dies ist ein Satz 
+\begin_inset Formula $\rule[-2ex]{3cm}{2pt}\rule{2cm}{1pt}$
+\end_inset
+
+ mit zwei Linien.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+rule
+\series default
+ kann auch für Text verwendet werden, wenn er als TeX-Code eingegeben wird.
+\end_layout
+
 \begin_layout Subsection
 Fortsetzungspunkte
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Fortsetzungspunkte"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -4301,10 +4421,6 @@ dots
 
 , entscheidet LaTeX anhand des nachfolgenden Zeichens, welche Punktart verwendet
  wird.
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -4992,7 +5108,7 @@ Um nachträglich Zeilen und Spalten hinzuzufügen oder zu entfernen, kann
 \end_inset
 
 , usw.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 oder das Menü 
@@ -5610,6 +5726,13 @@ C & D\end{smallmatrix}\right)$
 \end_inset
 
  in einer Textzeile.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -9813,7 +9936,10 @@ A
 \begin_inset VSpace bigskip
 \end_inset
 
-Wenn man in einer Formel Umlaute
+Akzente wie z.B.
+ é können direkt in Formeln eingegeben werden.
+ LyX transformiert sie dann in den entsprechenden Akzentbefehl.
+ Für Umlaute
 \begin_inset Index
 status collapsed
 
@@ -9823,7 +9949,7 @@ Umlaute
 
 \end_inset
 
- erstellen will, schreibt man ein Anführungszeichen vor den Selbstlaut.
+ ist es besser wenn man ein Anführungszeichen vor den Selbstlaut schreibt.
  Diese beiden Zeichen bilden dann für LaTeX 
 \emph on
 ein
@@ -10239,13 +10365,6 @@ sideset
 
 \begin_layout Subsection
 Akzente für mehrere Zeichen
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Akzente-für-mehrere"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -11662,7 +11781,7 @@ hspace
  Dabei können alle Längeneinheiten verwendet werden, die in 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "tab:Verwendete-Einheiten"
+reference "tab:Verfügbare-Einheiten"
 
 \end_inset
 
@@ -11870,6 +11989,35 @@ reference "sec:Formelstile"
 \end_inset
 
  erklärt.)
+\end_layout
+
+\begin_layout Standard
+Neben 
+\series bold
+
+\backslash
+hfill
+\series default
+ gibt es noch die Befehle 
+\series bold
+
+\backslash
+dotfill
+\series default
+ und 
+\series bold
+
+\backslash
+hrulefill
+\series default
+, die den Leerraum mit einem Muster füllen, siehe 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Fortsetzungspunkte"
+
+\end_inset
+
+ für ein Beispiel.
 \end_layout
 
 \begin_layout Standard
@@ -12483,8 +12631,7 @@ A=B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula \raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}
-
+\begin_inset Formula $\raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}$
 \end_inset
 
 
@@ -15624,10 +15771,6 @@ dotsint
 \end_inset
 
 
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -17752,7 +17895,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
--
+Strg-b
 \end_layout
 
 \end_inset
@@ -17803,7 +17946,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z f
+Alt-z f oder Strg-Alt-b
 \end_layout
 
 \end_inset
@@ -18396,6 +18539,133 @@ unboldmath
 \end_layout
 
 \begin_layout Subsection
+Farbige Formeln
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Formel ! farbige
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Formeln können wie normaler Text gefärbt werden: Markieren Sie eine Formel
+ oder Formelteile und verwenden dann den 
+\family sans
+Textstil
+\family default
+ Dialog.
+ Hier ist eine Formel in Magenta:
+\begin_inset Formula \[
+{\color{magenta}\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Man kann auch eigene Farben definieren, wie in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Farbige-Boxen"
+
+\end_inset
+
+ erklärt ist.
+ Diese können dann mit dem TeX-Code Befehl 
+\series bold
+
+\backslash
+textcolor
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Befehle! T ! 
+\backslash
+textcolor
+\end_layout
+
+\end_inset
+
+ verwendet werden, dass folgendes Schema besitzt:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+textcolor{Farbe}{Zeichen oder Formel}
+\end_layout
+
+\begin_layout Standard
+Das folgende Beispiel wurde komplett dunkelgrün und teilweise rot eingefärbt:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+textcolor{dunkelgruen}{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Formula \[
+\int A\,\mathrm{d}x=\frac{{\color{red}\sqrt[5]{B}}}{\ln\left(\frac{1}{3}\right)}\]
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Aufgrund eines Fehlers in LyX können nur komplette Formeln mit selbst definierte
+n Farben gefärbt werden.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset CommandInset href
+LatexCommand href
+name "LyX-bug #5269"
+target "http://bugzilla.lyx.org/show_bug.cgi?id=5269"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 Schriftgrößen
 \begin_inset CommandInset label
 LatexCommand label
@@ -18775,13 +19045,6 @@ Alle griechischen Buchstaben können auch über den Mathe-Werkzeugleistenknopf
 
 \begin_layout Subsection
 Kleine Buchstaben
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Kleine-Buchstaben"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -20323,13 +20586,6 @@ leistenknöpfe
  eingefügt werden.
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
 \begin_layout Subsection
 Mathematische Symbole
 \begin_inset CommandInset label
@@ -21175,6 +21431,13 @@ bot
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Sonstige Symbole
 \begin_inset CommandInset label
@@ -22004,6 +22267,9 @@ Symbole ! Euro-Symbol
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
@@ -23922,13 +24188,6 @@ B
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Funktionen
 \end_layout
@@ -25089,10 +25348,6 @@ Funktionen ! Modulo-
 \begin_layout Standard
 Eine Besonderheit stellt die Modulo-Funktion dar, denn es gibt sie in vier
  Varianten.
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -25304,14 +25559,15 @@ AA
 status collapsed
 
 \begin_layout Plain Layout
+
+\backslash
+@
 \begin_inset ERT
 status collapsed
 
 \begin_layout Plain Layout
 
 
-\backslash
-@
 \backslash
 textrm{
 \backslash
@@ -26939,7 +27195,9 @@ circ
 status collapsed
 
 \begin_layout Plain Layout
-°
+
+\backslash
+@°
 \end_layout
 
 \end_inset
@@ -27200,7 +27458,22 @@ Strg-Enter
 \family default
 \series default
  drückt.
- Dies erzeugt eine 
+ Dies erzeugt entweder eine 
+\series bold
+eqnarray-Umgebung
+\series default
+, die in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Eqnarray-Umgebung"
+
+\end_inset
+
+ beschrieben ist oder, wenn die Option 
+\family sans
+AMS-Mathe-Paket verwenden
+\family default
+ in den Dokumenteinstellungen gewählt ist, eine 
 \series bold
 align-Umgebung
 \series default
@@ -28456,6 +28729,13 @@ pt Leerraum eingefügt.
 
 \begin_layout Subsection
 Eqnarray-Umgebung
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Eqnarray-Umgebung"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -29136,13 +29416,6 @@ reference "sec:Formelstile"
 
 \begin_layout Subsection
 Querverweise
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Querverweise"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -29838,24 +30111,6 @@ Der Befehl
 mbox
 \series default
  verhindert, dass am Bindestrich umgebrochen wird.
- Mehr zu 
-\series bold
-
-\backslash
-mbox
-\series default
- siehe Kap.
-\begin_inset space \thinspace{}
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Worttrennungen"
-
-\end_inset
-
-.
 \end_layout
 
 \end_inset
@@ -30362,13 +30617,6 @@ makeatother
 
 \begin_layout Subsection
 Nummerierung mit römischen Zahlen und Buchstaben
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Nummerierung-mit-römischen"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -31247,10 +31495,6 @@ cb
 white
 \series default
  verwendet.
-\begin_inset Newpage pagebreak
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -31518,11 +31762,27 @@ A=B
 
 \begin_layout Section
 Diagramme
+\end_layout
+
+\begin_layout Standard
+LyX unterstützt zwei Typen kommutativer Diagramme: 
+\series bold
+amscd
+\series default
+ und 
+\series bold
+xymatrix
+\series default
+, die im Folgenden erläutert sind.
+\end_layout
+
+\begin_layout Subsection
+amscd Diagramme
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Diagramme
+Diagramme ! amscd
 \end_layout
 
 \end_inset
@@ -31531,52 +31791,8 @@ Diagramme
 \end_layout
 
 \begin_layout Standard
-Um Diagramme zu erstellen, wird das LaTeX-Paket 
-\series bold
-amscd
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-amscd
-\series default
- ist Teil jeder LaTeX-Standardinstallation.
-\end_layout
-
-\end_inset
-
-
-\series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Pakete ! amscd
-\end_layout
-
-\end_inset
-
- benötigt.
- Es wird im LaTeX-Vorspann mit der Zeile
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-usepackage{amscd}
-\end_layout
-
-\begin_layout Standard
-geladen.
-\end_layout
-
-\begin_layout Standard
-Diagramme stellen Beziehungen dar und sehen folgendermaßen aus:
+Diagramme dieses Typs stellen Beziehungen mittels horizontaler und vertikaler
+ Linien oder Pfeilen dar:
 \begin_inset Formula \[
 \begin{CD}A@>>>B@>>>C\\
 @AAA@.@VVV\\
@@ -31847,6 +32063,62 @@ status collapsed
 \end_inset
 
 D@<<j<E@>k>>F@=C
+\end_layout
+
+\begin_layout Subsection
+xymatrix Diagramme
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Diagramme ! xymatrix
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Um Xymatrizen nutzen zu können, muss das LaTeX-Paket 
+\series bold
+xypic
+\series default
+ installiert sein.
+ Eine Xymatrix wird erstellt, indem der Befehl 
+\series bold
+
+\backslash
+xymatrix
+\series default
+ in eine Formel eingegeben wird.
+ Dann können Sie neue Matrixspalten und -zeilen wie bei normalen Matrizen
+ hinzufügen, siehe 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Matrizen"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Im Gegensatz zu amscd Diagrammen, unterstützen Xymatrixen diagonale und
+ gekrümmte Pfeile und vieles mehr.
+ Alle Möglichkeiten kommutative Diagramme und Dekorationen zu erzeugen,
+ sind im Detail in diesem Handbuch erklärt:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+target "http://wiki.lyx.org/LyX/XY-pic#xy-manual"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -32915,13 +33187,6 @@ Wie man sieht, entspricht der Abstand des Zählers und Nenners vom Strich
 
 \begin_layout Subsection
 Durchgestrichene Formeln
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Durchgestrichene-Formeln"
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -34358,6 +34623,40 @@ reference "sub:Vordefinierter-Leerraum"
 \end_inset
 
 .
+\begin_inset Newline newline
+\end_inset
+
+Diese Richtlinie wird automatisch eingehalten, wenn man den Befehl 
+\series bold
+
+\backslash
+unittwo
+\series default
+ verwendet.
+ Gibt man ihn in eine Formel ein, erscheinen zwei Kästchen.
+ In das Erste wird der Wert, in das Zweite die Einheit eingegeben und man
+ erhält wie oben: 
+\begin_inset Formula $\unit[30]{km/h}$
+\end_inset
+
+
+\begin_inset space \thinspace{}
+\end_inset
+
+.
+ Zu beachten ist, dass 
+\series bold
+
+\backslash
+unittwo
+\series default
+ kein echter LaTeX-Befehl, sondern der Befehl 
+\series bold
+
+\backslash
+unit[Wert]{Einheit}
+\series default
+ ist, daher kann man ihn nicht im TeX-Code benutzen.
 \end_layout
 
 \begin_layout Itemize

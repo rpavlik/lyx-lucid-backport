@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass book
@@ -35,6 +35,7 @@
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
   {LyX }}
 \end_preamble
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman default
@@ -45,7 +46,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -62,7 +62,6 @@
 \pdf_pdfborder false
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
@@ -82,8 +81,8 @@
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -304,13 +303,6 @@ Getting started with LyX
 
 \begin_layout Section
 Your first LyX document
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Your-first-LyX"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -756,13 +748,6 @@ Of course, you haven't yet written enough to make most of these functions
 
 \begin_layout Subsection
 WYSIWYM: Whitespace in LyX
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:whitespace"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1808,7 +1793,7 @@ Special Document Classes
 \emph default
  section of the 
 \emph on
-Extended Features
+Additional Features
 \emph default
  manual for many more details.
 \end_layout
@@ -2194,13 +2179,6 @@ example_raw.lyx
 
 \begin_layout Section
 Labels and Cross-References
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:labels"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -3157,7 +3135,7 @@ sqrt
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 missing brackets.
@@ -3628,7 +3606,7 @@ Delimiter
 \end_inset
 
 g.
-\begin_inset space ~
+\begin_inset space \space{}
 \end_inset
 
 a (
@@ -3915,13 +3893,6 @@ example_raw.lyx
 
 \begin_layout Subsection
 Matrices
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:matrices"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -4203,7 +4174,15 @@ Multi-line equations
 \end_layout
 
 \begin_layout Itemize
-Change typefaces, e.g., to write bold-face text in an expression.
+Change typefaces, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+to write bold-face text in an expression.
 \end_layout
 
 \begin_layout Itemize

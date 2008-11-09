@@ -25,6 +25,7 @@
 #include "FuncRequest.h"
 
 #include "frontends/Clipboard.h"
+#include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
 #include "support/debug.h"
@@ -61,6 +62,17 @@ static int extractInt(istream & is)
 }
 
 
+static void resetGrid(InsetMathGrid & grid)
+{
+	while (grid.ncols() > 1)
+		grid.delCol(grid.ncols());
+	while (grid.nrows() > 1)
+		grid.delRow(grid.nrows());
+	grid.cell(0).erase(0, grid.cell(0).size());
+	grid.setDefaults();
+}
+
+
 
 //////////////////////////////////////////////////////////////
 
@@ -80,9 +92,11 @@ InsetMathGrid::RowInfo::RowInfo()
 
 
 
-int InsetMathGrid::RowInfo::skipPixels() const
+int InsetMathGrid::RowInfo::skipPixels(MetricsInfo const & mi) const
 {
-	return crskip_.inBP();
+	frontend::FontMetrics const & fm = theFontMetrics(mi.base.font);
+	return crskip_.inPixels(mi.base.textwidth,
+				fm.width(char_type('M')));
 }
 
 
@@ -367,7 +381,7 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 		rowinfo_[row].offset_  =
 			rowinfo_[row - 1].offset_  +
 			rowinfo_[row - 1].descent_ +
-			rowinfo_[row - 1].skipPixels() +
+			rowinfo_[row - 1].skipPixels(mi) +
 			rowsep() +
 			rowinfo_[row].lines_ * hlinesep() +
 			rowinfo_[row].ascent_;
@@ -477,7 +491,7 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 	}
 */
 	metricsMarkers2(dim);
-	// Cache the inset dimension. 
+	// Cache the inset dimension.
 	setDimCache(mi, dim);
 }
 
@@ -550,7 +564,7 @@ void InsetMathGrid::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 		rowinfo_[row].offset_  =
 			rowinfo_[row - 1].offset_  +
 			rowinfo_[row - 1].descent_ +
-			//rowinfo_[row - 1].skipPixels() +
+			//rowinfo_[row - 1].skipPixels(mi) +
 			1 + //rowsep() +
 			//rowinfo_[row].lines_ * hlinesep() +
 			rowinfo_[row].ascent_;
@@ -1050,15 +1064,13 @@ void InsetMathGrid::splitCell(Cursor & cur)
 void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	//lyxerr << "*** InsetMathGrid: request: " << cmd << endl;
+
+	Parse::flags parseflg = Parse::QUIET;
+
 	switch (cmd.action) {
 
 	// insert file functions
 	case LFUN_LINE_DELETE:
-		// FIXME: We use recordUndoInset when a change reflects more
-		// than one cell, because recordUndo does not work for
-		// multiple cells. Unfortunately this puts the cursor in front
-		// of the inset after undo. This is (especilally for large
-		// grids) annoying.
 		cur.recordUndoInset();
 		//autocorrect_ = false;
 		//macroModeClose();
@@ -1081,7 +1093,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_CELL_BACKWARD:
 		// See below.
-		cur.selection() = false;
+		cur.setSelection(false);
 		if (!idxPrev(cur)) {
 			cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
 			cur.undispatched();
@@ -1091,7 +1103,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_CELL_FORWARD:
 		// Can't handle selection by additional 'shift' as this is
 		// hard bound to LFUN_CELL_BACKWARD
-		cur.selection() = false;
+		cur.setSelection(false);
 		if (!idxNext(cur)) {
 			cmd = FuncRequest(LFUN_FINISHED_FORWARD);
 			cur.undispatched();
@@ -1235,7 +1247,12 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
+	case LFUN_CLIPBOARD_PASTE:
+		parseflg |= Parse::VERBATIM;
+		// fall through
 	case LFUN_PASTE: {
+		if (cur.currentMode() == TEXT_MODE)
+			parseflg |= Parse::TEXTMODE;
 		cur.message(_("Paste"));
 		cap::replaceSelection(cur);
 		docstring topaste;
@@ -1249,7 +1266,12 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		InsetMathGrid grid(1, 1);
 		if (!topaste.empty())
-			mathed_parse_normal(grid, topaste);
+			if (topaste.size() == 1
+			    || !mathed_parse_normal(grid, topaste, parseflg)) {
+				resetGrid(grid);
+				mathed_parse_normal(grid, topaste,
+						parseflg | Parse::VERBATIM);
+			}
 
 		if (grid.nargs() == 1) {
 			// single cell/part of cell

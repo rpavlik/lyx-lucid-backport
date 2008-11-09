@@ -23,6 +23,8 @@
 
 #include "support/copied_ptr.h"
 
+#include <list>
+#include <set>
 #include <vector>
 
 namespace lyx {
@@ -51,6 +53,8 @@ class VSpace;
  */
 class BufferParams {
 public:
+	///
+	typedef std::list<std::string> LayoutModuleList;
 	///
 	enum ParagraphSeparation {
 		///
@@ -124,16 +128,26 @@ public:
 	/// but it seems to be needed by CutAndPaste::putClipboard().
 	void setDocumentClass(DocumentClass const * const);
 	/// List of modules in use
-	std::vector<std::string> const & getModules() const;
-	/// Add a module to the list of modules in use.
-	/// Returns true if module was successfully added.
-	/// The makeClass variable signals whether to call makeDocumentClass. This
-	/// need not be done if we know this isn't the final time through, or if
-	/// the BufferParams do not represent the parameters for an actual buffer
-	/// (as in GuiDocument).
+	LayoutModuleList const & getModules() const { return layoutModules_; }
+	/// List of default modules the user has removed
+	std::set<std::string> const & getRemovedModules() const 
+			{ return removedModules_; }
+	///
+	/// Add a module to the list of modules in use. This checks only that the
+	/// module is not already in the list, so use moduleIsCompatible first if
+	/// you want to check for compatibility.
+	/// \return true if module was successfully added.
 	bool addLayoutModule(std::string const & modName);
+	/// checks to make sure module's requriements are satisfied, that it does
+	/// not conflict with already-present modules, isn't already loaded, etc.
+	bool moduleCanBeAdded(std::string const & modName) const;
+	///
+	void addRemovedModule(std::string const & modName) 
+			{ removedModules_.insert(modName); }
 	/// Clear the list
-	void clearLayoutModules();
+	void clearLayoutModules() { layoutModules_.clear(); }
+	/// Clear the removed module list
+	void clearRemovedModules() { removedModules_.clear(); }
 
 	/// returns the main font for the buffer (document)
 	Font const getFont() const;
@@ -224,6 +238,8 @@ public:
 	std::string local_layout;
 	///
 	std::string options;
+	/// use the class options defined in the layout?
+	bool use_default_options;
 	///
 	std::string master;
 	///
@@ -327,15 +343,31 @@ private:
 	void readBulletsLaTeX(Lexer &);
 	///
 	void readModules(Lexer &);
+	///
+	void readRemovedModules(Lexer &);
+	/// Called when the document class changes. Removes modules
+	/// excluded by, provided by, etc, the document class.
+	/// \return true if modules were consistent, false if changes had
+	/// to be made.
+	bool removeBadModules();
+	/// Adds default modules, if they're addable.
+	void addDefaultModules();
+	/// checks for consistency among modules: makes sure requirements
+	/// are met, no modules exclude one another, etc, and resolves any
+	/// such conflicts, leaving us with a consistent collection.
+	/// \return true if modules were consistent, false if changes had
+	/// to be made.
+	bool checkModuleConsistency();
 
 	/// for use with natbib
 	CiteEngine cite_engine_;
 	///
 	DocumentClass * doc_class_;
-	///
-	typedef std::vector<std::string> LayoutModuleList;
 	/// 
 	LayoutModuleList layoutModules_;
+	/// this is for modules that are required by the document class but that
+	/// the user has chosen not to use
+	std::set<std::string> removedModules_;
 
 	/** Use the Pimpl idiom to hide those member variables that would otherwise
 	 *  drag in other header files.

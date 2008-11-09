@@ -104,14 +104,14 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 
 		if (par.forcePlainLayout()) {
 			// in this case only the empty layout is allowed
-			layoutname = tclass.emptyLayoutName();
+			layoutname = tclass.plainLayoutName();
 		} else if (par.usePlainLayout()) {
 			// in this case, default layout maps to empty layout 
 			if (layoutname == tclass.defaultLayoutName())
-				layoutname = tclass.emptyLayoutName();
+				layoutname = tclass.plainLayoutName();
 		} else { 
 			// otherwise, the empty layout maps to the default
-			if (layoutname == tclass.emptyLayoutName())
+			if (layoutname == tclass.plainLayoutName())
 				layoutname = tclass.defaultLayoutName();
 		}
 
@@ -202,7 +202,7 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 	} else if (token == "\\backslash") {
 		par.appendChar('\\', font, change);
 	} else if (token == "\\LyXTable") {
-		auto_ptr<Inset> inset(new InsetTabular(buf));
+		auto_ptr<Inset> inset(new InsetTabular(const_cast<Buffer &>(buf)));
 		inset->read(lex);
 		par.insertInset(par.size(), inset.release(), font, change);
 	} else if (token == "\\lyxline") {
@@ -382,11 +382,11 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	if (sensitive) {
 		if (cur.pos() == 0)
 			// set to standard-layout
-		//FIXME Check if this should be emptyLayout() in some cases
+		//FIXME Check if this should be plainLayout() in some cases
 			pars_[cpit].applyLayout(tclass.defaultLayout());
 		else
 			// set to standard-layout
-			//FIXME Check if this should be emptyLayout() in some cases
+			//FIXME Check if this should be plainLayout() in some cases
 			pars_[next_par].applyLayout(tclass.defaultLayout());
 	}
 
@@ -922,7 +922,7 @@ void Text::deleteWordForward(Cursor & cur)
 		cursorForward(cur);
 	else {
 		cur.resetAnchor();
-		cur.selection() = true;
+		cur.setSelection(true);
 		cursorForwardOneWord(cur);
 		cur.setSelection();
 		cutSelection(cur, true, false);
@@ -938,7 +938,7 @@ void Text::deleteWordBackward(Cursor & cur)
 		cursorBackward(cur);
 	else {
 		cur.resetAnchor();
-		cur.selection() = true;
+		cur.setSelection(true);
 		cursorBackwardOneWord(cur);
 		cur.setSelection();
 		cutSelection(cur, true, false);
@@ -1180,14 +1180,15 @@ bool Text::backspace(Cursor & cur)
 }
 
 
-bool Text::dissolveInset(Cursor & cur) {
-	LASSERT(this == cur.text(), /**/);
+bool Text::dissolveInset(Cursor & cur)
+{
+	LASSERT(this == cur.text(), return false);
 
 	if (isMainText(cur.bv().buffer()) || cur.inset().nargs() != 1)
 		return false;
 
 	cur.recordUndoInset();
-	cur.mark() = false;
+	cur.setMark(false);
 	cur.selHandle(false);
 	// save position
 	pos_type spos = cur.pos();
@@ -1304,9 +1305,9 @@ bool Text::read(Buffer const & buf, Lexer & lex,
 			lex.pushToken(token);
 
 			Paragraph par;
+			par.setInsetOwner(insetPtr);
 			par.params().depth(depth);
 			par.setFont(0, Font(inherit_font, buf.params().language));
-			par.setInsetOwner(insetPtr);
 			pars_.push_back(par);
 
 			// FIXME: goddamn InsetTabular makes us pass a Buffer
@@ -1332,7 +1333,7 @@ bool Text::read(Buffer const & buf, Lexer & lex,
 }
 
 // Returns the current font and depth as a message.
-docstring Text::currentState(Cursor & cur)
+docstring Text::currentState(Cursor const & cur) const
 {
 	LASSERT(this == cur.text(), /**/);
 	Buffer & buf = cur.buffer();
@@ -1411,7 +1412,7 @@ docstring Text::currentState(Cursor & cur)
 }
 
 
-docstring Text::getPossibleLabel(Cursor & cur) const
+docstring Text::getPossibleLabel(Cursor const & cur) const
 {
 	pit_type pit = cur.pit();
 
@@ -1488,6 +1489,25 @@ docstring Text::getPossibleLabel(Cursor & cur) const
 }
 
 
+docstring Text::asString(int options) const
+{
+	return asString(0, pars_.size(), options);
+}
+
+
+docstring Text::asString(pit_type beg, pit_type end, int options) const
+{
+	size_t i = size_t(beg);
+	docstring str = pars_[i].asString(options);
+	for (++i; i != size_t(end); ++i) {
+		str += '\n';
+		str += pars_[i].asString(options);
+	}
+	return str;
+}
+
+
+
 void Text::charsTranspose(Cursor & cur)
 {
 	LASSERT(this == cur.text(), /**/);
@@ -1520,11 +1540,11 @@ void Text::charsTranspose(Cursor & cur)
 		return;
 
 	// Store the characters to be transposed (including font information).
-	char_type char1 = par.getChar(pos1);
+	char_type const char1 = par.getChar(pos1);
 	Font const font1 =
 		par.getFontSettings(cur.buffer().params(), pos1);
 
-	char_type char2 = par.getChar(pos2);
+	char_type const char2 = par.getChar(pos2);
 	Font const font2 =
 		par.getFontSettings(cur.buffer().params(), pos2);
 

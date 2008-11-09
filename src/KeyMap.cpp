@@ -85,12 +85,11 @@ size_t KeyMap::unbind(string const & seq, FuncRequest const & func)
 }
 
 
-bool KeyMap::hasBinding(KeySequence const & seq, FuncRequest const & func,
-		unsigned int r)
+FuncRequest KeyMap::getBinding(KeySequence const & seq, unsigned int r)
 {
 	KeySymbol code = seq.sequence[r];
 	if (!code.isOK())
-		return false;
+		return FuncRequest::unknown;
 
 	KeyModifier const mod1 = seq.modifiers[r].first;
 	KeyModifier const mod2 = seq.modifiers[r].second;
@@ -102,12 +101,12 @@ bool KeyMap::hasBinding(KeySequence const & seq, FuncRequest const & func,
 		    && mod1 == it->mod.first
 		    && mod2 == it->mod.second) {
 			if (r + 1 == seq.length())
-				return it->func == func;
+				return it->func;
 			else if (it->table.get())
-				return it->table->hasBinding(seq, func, r + 1);
+				return it->table->getBinding(seq, r + 1);
 		}
 	}
-	return false;
+	return FuncRequest::unknown;
 }
 
 
@@ -262,12 +261,10 @@ void KeyMap::write(string const & bind_file, bool append, bool unbind) const
 FuncRequest const & KeyMap::lookup(KeySymbol const &key,
 		  KeyModifier mod, KeySequence * seq) const
 {
-	static FuncRequest const unknown(LFUN_UNKNOWN_ACTION);
-
 	if (table.empty()) {
 		seq->curmap = seq->stdmap;
 		seq->mark_deleted();
-		return unknown;
+		return FuncRequest::unknown;
 	}
 
 	Table::const_iterator end = table.end();
@@ -295,7 +292,7 @@ FuncRequest const & KeyMap::lookup(KeySymbol const &key,
 	seq->curmap = seq->stdmap;
 	seq->mark_deleted();
 
-	return unknown;
+	return FuncRequest::unknown;
 }
 
 
@@ -400,7 +397,8 @@ void KeyMap::unbind(KeySequence * seq, FuncRequest const & func, unsigned int r)
 }
 
 
-docstring KeyMap::printBindings(FuncRequest const & func) const
+docstring KeyMap::printBindings(FuncRequest const & func,
+				KeySequence::outputFormat format) const
 {
 	Bindings bindings = findBindings(func);
 	if (bindings.empty())
@@ -409,11 +407,11 @@ docstring KeyMap::printBindings(FuncRequest const & func) const
 	odocstringstream res;
 	Bindings::const_iterator cit = bindings.begin();
 	Bindings::const_iterator cit_end = bindings.end();
-	// prin the first item
-	res << cit->print(KeySequence::ForGui);
+	// print the first item
+	res << cit->print(format);
 	// more than one shortcuts?
 	for (++cit; cit != cit_end; ++cit)
-		res << ", " << cit->print(KeySequence::ForGui);
+		res << ", " << cit->print(format);
 	return res.str();
 }
 
@@ -449,7 +447,7 @@ KeyMap::Bindings KeyMap::findBindings(FuncRequest const & func,
 }
 
 
-KeyMap::BindingList KeyMap::listBindings(bool unbound, int tag) const
+KeyMap::BindingList KeyMap::listBindings(bool unbound, KeyMap::ItemType tag) const
 {
 	BindingList list;
 	listBindings(list, KeySequence(0, 0), tag);
@@ -475,7 +473,7 @@ KeyMap::BindingList KeyMap::listBindings(bool unbound, int tag) const
 
 
 void KeyMap::listBindings(BindingList & list,
-	KeySequence const & prefix, int tag) const
+	KeySequence const & prefix, KeyMap::ItemType tag) const
 {
 	Table::const_iterator it = table.begin();
 	Table::const_iterator it_end = table.end();

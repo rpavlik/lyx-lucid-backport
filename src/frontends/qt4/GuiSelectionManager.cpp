@@ -13,16 +13,19 @@
  */
 
 #include <config.h>
+
 #include "GuiSelectionManager.h"
-#include "GuiDocument.h"
 
 #include "support/debug.h"
 
-using std::vector;
+#include <QKeyEvent>
+#include <QListView>
+#include <QPushButton>
+#include <QAbstractListModel>
+
 
 namespace lyx {
 namespace frontend {
-
 
 GuiSelectionManager::GuiSelectionManager(
 	QListView * avail, 
@@ -47,11 +50,11 @@ GuiSelectionManager::GuiSelectionManager(
 	availableLV->setModel(amod);
 	
 	connect(availableLV->selectionModel(),
-	        SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-	        this, SLOT(availableChanged(const QModelIndex &, const QModelIndex &)));
+	        SIGNAL(currentChanged(QModelIndex,QModelIndex)),
+	        this, SLOT(availableChanged(QModelIndex, QModelIndex)));
 	connect(selectedLV->selectionModel(),
-	        SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-	        this, SLOT(selectedChanged(const QModelIndex &, const QModelIndex &)));
+	        SIGNAL(currentChanged(QModelIndex, QModelIndex)),
+	        this, SLOT(selectedChanged(QModelIndex, QModelIndex)));
 	connect(addPB, SIGNAL(clicked()), 
 	        this, SLOT(addPB_clicked()));
 	connect(deletePB, SIGNAL(clicked()), 
@@ -60,12 +63,12 @@ GuiSelectionManager::GuiSelectionManager(
 	        this, SLOT(upPB_clicked()));
 	connect(downPB, SIGNAL(clicked()), 
 	        this, SLOT(downPB_clicked()));
-	connect(availableLV, SIGNAL(clicked(const QModelIndex &)), 
-	        this, SLOT(availableLV_clicked(const QModelIndex &)));
-	connect(availableLV, SIGNAL(doubleClicked(const QModelIndex &)), 
-	        this, SLOT(availableLV_doubleClicked(const QModelIndex &)));
-	connect(selectedLV, SIGNAL(clicked(const QModelIndex &)), 
-	        this, SLOT(selectedLV_clicked(const QModelIndex &)));
+	connect(availableLV, SIGNAL(clicked(QModelIndex)), 
+	        this, SLOT(availableLV_clicked(QModelIndex)));
+	connect(availableLV, SIGNAL(doubleClicked(QModelIndex)), 
+	        this, SLOT(availableLV_doubleClicked(QModelIndex)));
+	connect(selectedLV, SIGNAL(clicked(QModelIndex)), 
+	        this, SLOT(selectedLV_clicked(QModelIndex)));
 	
 	availableLV->installEventFilter(this);
 	selectedLV->installEventFilter(this);
@@ -180,9 +183,12 @@ bool GuiSelectionManager::insertRowToSelected(int i,
 
 void GuiSelectionManager::addPB_clicked()
 {
-	QModelIndex const idxToAdd = getSelectedIndex(availableLV);
-	if (!idxToAdd.isValid())
+	QModelIndexList selIdx =
+		availableLV->selectionModel()->selectedIndexes();
+	if (selIdx.isEmpty())
 		return;
+
+	QModelIndex const idxToAdd = selIdx.first();
 	QModelIndex const idx = selectedLV->currentIndex();
 	int const srows = selectedModel->rowCount();
 	
@@ -190,7 +196,7 @@ void GuiSelectionManager::addPB_clicked()
 	insertRowToSelected(srows, qm);
 	
 	selectionChanged(); //signal
-	
+
 	if (idx.isValid())
 		selectedLV->setCurrentIndex(idx);
 	
@@ -200,10 +206,11 @@ void GuiSelectionManager::addPB_clicked()
 
 void GuiSelectionManager::deletePB_clicked()
 {
-	QModelIndex idx = getSelectedIndex(selectedLV);
-	if (!idx.isValid())
+	QModelIndexList selIdx =
+		selectedLV->selectionModel()->selectedIndexes();
+	if (selIdx.isEmpty())
 		return;
-	
+	QModelIndex idx = selIdx.first();
 	selectedModel->removeRow(idx.row());
 	selectionChanged(); //signal
 	
@@ -214,7 +221,7 @@ void GuiSelectionManager::deletePB_clicked()
 	if (nrows > 1)
 		selectedLV->setCurrentIndex(idx);
 	else if (nrows == 1)
-		selectedLV->setCurrentIndex(selectedLV->model()->index(0,0));
+		selectedLV->setCurrentIndex(selectedLV->model()->index(0, 0));
 	selectedHasFocus_ = (nrows > 0);
 	updateHook();
 }
@@ -266,6 +273,7 @@ void GuiSelectionManager::downPB_clicked()
 // can enter the QListView in other ways. But there are no signals sent
 // in that case. We need to reimplement focusInEvent() to capture those,
 // which means subclassing QListView. (rgh)
+// Or by installing an event listener.. (andre)
 void GuiSelectionManager::availableLV_clicked(const QModelIndex &)
 {
 	selectedHasFocus_ = false;
@@ -307,10 +315,9 @@ bool GuiSelectionManager::eventFilter(QObject * obj, QEvent * event)
 		if (keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return) {
 			if (!keyModifiers)
 				addPB_clicked();
-			else if ((keyModifiers == Qt::ControlModifier) ||
-					(keyModifiers == Qt::KeypadModifier)  ||
-					(keyModifiers == (Qt::ControlModifier | Qt::KeypadModifier))
-				 ) {
+			else if (keyModifiers == Qt::ControlModifier ||
+					keyModifiers == Qt::KeypadModifier  ||
+					keyModifiers == (Qt::ControlModifier | Qt::KeypadModifier)) {
 				if (addPB->isEnabled()) {
 					addPB_clicked();
 					okHook(); //signal

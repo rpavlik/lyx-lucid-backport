@@ -1,8 +1,9 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass article
+\use_default_options false
 \language english
 \inputencoding default
 \font_roman default
@@ -34,8 +35,8 @@
 \paperpagestyle plain
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -86,6 +87,10 @@ status collapsed
 
 \begin_layout Plain Layout
 The participating hosts in the Comprehensive TeX Archive Network are:
+\end_layout
+
+\begin_layout LyX-Code
+ftp://ctan.org/tex-archive/
 \end_layout
 
 \begin_layout LyX-Code
@@ -149,39 +154,14 @@ Some common LaTeX packages that you might need with LyX, and you might also
 
 \begin_layout Standard
 Note that most of these packages will be available if you use a modern TeX
- distribution such as teTeX.
+ distribution such as TeXLive and MiKTeX.
  If you decide to install one of the missing items, you should tell LyX
  about it.
  After the installation, please use the menu entry 
 \family sans
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \family default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-or, if you want to change the system-wide settings, issue the command 
-\family typewriter
-./configure
-\family default
- from the LyX system directory (by default 
-\family typewriter
-/usr/local/lib/lyx/
-\family default
-)
-\end_layout
-
-\end_inset
-
  and reload this file to see if the new package was recognized.
  If the 
 \begin_inset Quotes eld
@@ -195,19 +175,16 @@ Found
 \begin_inset Quotes eld
 \end_inset
 
-???
+no
 \begin_inset Quotes erd
 \end_inset
 
 , it means that LyX could not do the inventory of your LaTeX configuration
  for some reason.
- If you are using teTeX, it might be that the new package you installed
- is not found.
- This is because you forgot to run the command 
-\family typewriter
-texhash
-\family default
-, which tells teTeX to update its own configuration.
+ In most cases, you only have forgotten to update the file name database
+ (texhash).
+ Check the documentation of your LaTeX distribution for how this is done
+ properly.
 \end_layout
 
 \begin_layout Section
@@ -287,9 +264,9 @@ Notes: The
 \family sans
 Latin Modern
 \family default
- fonts are PostScript® versions of LaTeX' standard font (Computer Modern).
+ fonts are PostScript versions of LaTeX' standard font (Computer Modern).
  They aim to become the default LaTeX font eventually.
- We recommend to use them instead of other PostScript® versions of Computer
+ We recommend to use them instead of other PostScript versions of Computer
  Modern (like AE).
  
 \end_layout
@@ -319,7 +296,7 @@ Notes: The
 \family sans
 AE
 \family default
- package provide virtual PostScript® versions of LaTeX' standard font (Computer
+ package provide virtual PostScript versions of LaTeX' standard font (Computer
  Modern).
  Unless you rely on special characters, we recommend to use 
 \family sans
@@ -388,12 +365,12 @@ Notes: The
 psnfss
 \family default
  bundle allows you to change the fonts used by LyX to one of the 35 classical
- fonts available on PostScript® printers.
+ fonts available on PostScript printers.
  Currently, the support for 
 \family sans
 psnfss
 \family default
- is limited in LyX: you can only chose a few combinations of PostScript®
+ is limited in LyX: you can only chose a few combinations of PostScript
  fonts in 
 \family sans
 \size normal
@@ -416,101 +393,6 @@ psnfss
 psnfss
 \family default
  bundle should at least include:
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-mathpazo
-\family default
- (newest Palatino support).
- 
-\series bold
-Found:
-\series default
- 
-\begin_inset Info
-type  "package"
-arg   "mathpazo"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-mathpple
-\family default
- (deprecated Palatino support).
- 
-\series bold
-Found:
-\series default
- 
-\begin_inset Info
-type  "package"
-arg   "mathpple"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-mathptmx
-\family default
- (newest Times support).
- 
-\series bold
-Found:
-\series default
- 
-\begin_inset Info
-type  "package"
-arg   "mathptmx"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-mathptm
-\family default
- (deprecated Times support).
- 
-\series bold
-Found:
-\series default
- 
-\begin_inset Info
-type  "package"
-arg   "mathptm"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-utopia
-\family default
- (Utopia).
- 
-\series bold
-Found:
-\series default
- 
-\begin_inset Info
-type  "package"
-arg   "utopia"
-\end_inset
-
-
 \end_layout
 
 \begin_layout Itemize
@@ -554,6 +436,25 @@ arg   "bookman"
 \begin_layout Itemize
 
 \family sans
+chancery
+\family default
+ (Zapf Chancery).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "chancery"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
 charter
 \family default
  (Charter).
@@ -565,6 +466,120 @@ Found:
 \begin_inset Info
 type  "package"
 arg   "charter"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+courier
+\family default
+ (Courier).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "courier"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+helvet
+\family default
+ (Helvetica).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "helvet"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+mathpazo
+\family default
+ (newest Palatino support).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "mathpazo"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+mathpple
+\family default
+ (deprecated Palatino support).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "mathpple"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+mathptm
+\family default
+ (deprecated Times support).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "mathptm"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+mathptmx
+\family default
+ (newest Times support).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "mathptmx"
 \end_inset
 
 
@@ -592,9 +607,9 @@ arg   "newcent"
 \begin_layout Itemize
 
 \family sans
-chancery
+pifont
 \family default
- (Zapf Chancery).
+ (Zapf Dingbats).
  
 \series bold
 Found:
@@ -602,7 +617,26 @@ Found:
  
 \begin_inset Info
 type  "package"
-arg   "chancery"
+arg   "pifont"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+utopia
+\family default
+ (Utopia).
+ 
+\series bold
+Found:
+\series default
+ 
+\begin_inset Info
+type  "package"
+arg   "utopia"
 \end_inset
 
 
@@ -633,7 +667,7 @@ Notes: The
 \family sans
 fourier
 \family default
- package provides support for the Utopia PostScript® font.
+ package provides support for the Utopia PostScript font.
  Contrary to the 
 \family sans
 utopia
@@ -1159,7 +1193,11 @@ agums
 agums.layout
 \family default
 ) can be used to write articles for first-time submission to AGU editors
- (e.g., for review and copy editing)
+ (e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g., for review and copy editing)
 \end_layout
 
 \end_deeper
@@ -2579,7 +2617,7 @@ report
 book
 \family default
 .
- They have been adapted to polish typesetting standards by Marcin Woliñski.
+ They have been adapted to polish typesetting standards by Marcin Woliński.
 \end_layout
 
 \begin_layout Subsection
@@ -2893,8 +2931,12 @@ Notes:
 Svglobal
 \family default
  is a format suitable for publication in a Springer journal for which a
- specific style is not provided; i.e., if the journal author guidelines at
- the above Springer site suggest using the 
+ specific style is not provided; i.
+\begin_inset space \thinspace{}
+\end_inset
+
+g., if the journal author guidelines at the above Springer site suggest using
+ the 
 \family sans
 svglobal
 \family default
@@ -3392,7 +3434,7 @@ color
 \family default
  is needed by LyX to handle colored text.
  These colors will not show in the DVI preview window, but will be correct
- on the printed output or with a PostScript® previewer.
+ on the printed output or with a PostScript previewer.
  This package is bundled with the 
 \family sans
 graphics
@@ -3425,8 +3467,7 @@ Notes: The package
 \family sans
 graphicx
 \family default
- is needed by LyX to insert PostScript® figures (using the new graphics
- inset).
+ is needed by LyX to insert PostScript figures (using the new graphics inset).
  You will also need 
 \family typewriter
 \size normal
@@ -3435,44 +3476,6 @@ ghost
 script
 \family default
  to see them on screen.
- The configuration script has determined that the graphics driver used by
- the package should be 
-\family sans
-
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Info
-type  "package"
-arg   "graphicsdriver"
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-
-\family default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Here, a value of 
-\begin_inset Quotes eld
-\end_inset
-
-default
-\begin_inset Quotes erd
-\end_inset
-
- means that your LaTeX installation provides a sensible value for this parameter.
-\end_layout
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Subsection
@@ -3840,6 +3843,35 @@ makes it possible to typeset Braille, a character system for blind people.
 \series bold
 \size large
 Other packages
+\end_layout
+
+\begin_layout Subsection
+accents
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "accents"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/bezos/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+accents
+\family default
+ is needed by LyX to correctly typeset unicode symbols with under accents
+ in math.
 \end_layout
 
 \begin_layout Subsection
@@ -4414,7 +4446,7 @@ Notes: The package
 rotating
 \family default
  is needed by LyX to change the orientation of some parts of your documents.
- Note that it only really works with a PostScript® compatible printer.
+ Note that it only really works with a PostScript compatible printer.
 \end_layout
 
 \begin_layout Subsection
@@ -4443,7 +4475,35 @@ Notes: The package
 rotfloat
 \family default
  is needed by LyX to rotate floats sideways.
- Note that it only really works with a PostScript® compatible printer.
+ Note that it only really works with a PostScript compatible printer.
+\end_layout
+
+\begin_layout Subsection
+slashed
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "slashed"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/carlisle/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+slashed
+\family default
+ is needed by LyX to correctly typeset unicode symbols with slashes in math.
 \end_layout
 
 \begin_layout Subsection

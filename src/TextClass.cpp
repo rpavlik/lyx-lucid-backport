@@ -61,7 +61,7 @@ private:
 };
 
 
-int const FORMAT = 7;
+int const FORMAT = 11;
 
 
 bool layout2layout(FileName const & filename, FileName const & tempfile)
@@ -111,10 +111,10 @@ std::string translateRT(TextClass::ReadType rt)
 
 // This string should not be translated here, 
 // because it is a layout identifier.
-docstring const TextClass::emptylayout_ = from_ascii("Plain Layout");
+docstring const TextClass::plain_layout_ = from_ascii("Plain Layout");
 
 
-InsetLayout DocumentClass::empty_insetlayout_;
+InsetLayout DocumentClass::plain_insetlayout_;
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,10 @@ enum TextClassTags {
 	TC_TITLELATEXNAME,
 	TC_TITLELATEXTYPE,
 	TC_FORMAT,
-	TC_ADDTOPREAMBLE
+	TC_ADDTOPREAMBLE,
+	TC_DEFAULTMODULE,
+	TC_PROVIDESMODULE,
+	TC_EXCLUDESMODULE
 };
 
 
@@ -194,7 +197,9 @@ namespace {
 		{ "columns",         TC_COLUMNS },
 		{ "counter",         TC_COUNTER },
 		{ "defaultfont",     TC_DEFAULTFONT },
+		{ "defaultmodule",   TC_DEFAULTMODULE },
 		{ "defaultstyle",    TC_DEFAULTSTYLE },
+		{ "excludesmodule",  TC_EXCLUDESMODULE },
 		{ "float",           TC_FLOAT },
 		{ "format",          TC_FORMAT },
 		{ "input",           TC_INPUT },
@@ -206,6 +211,7 @@ namespace {
 		{ "pagestyle",       TC_PAGESTYLE },
 		{ "preamble",        TC_PREAMBLE },
 		{ "provides",        TC_PROVIDES },
+		{ "providesmodule",  TC_PROVIDESMODULE },
 		{ "requires",        TC_REQUIRES },
 		{ "rightmargin",     TC_RIGHTMARGIN },
 		{ "secnumdepth",     TC_SECNUMDEPTH },
@@ -222,12 +228,12 @@ namespace {
 bool TextClass::convertLayoutFormat(support::FileName const & filename, ReadType rt)
 {
 	LYXERR(Debug::TCLASS, "Converting layout file to " << FORMAT);
-		FileName const tempfile = FileName::tempName();
-		bool success = layout2layout(filename, tempfile);
-		if (success)
-			success = read(tempfile, rt);
-		tempfile.removeFile();
-		return success;
+	FileName const tempfile = FileName::tempName("convert_layout");
+	bool success = layout2layout(filename, tempfile);
+	if (success)
+		success = read(tempfile, rt);
+	tempfile.removeFile();
+	return success;
 }
 
 bool TextClass::read(FileName const & filename, ReadType rt)
@@ -241,11 +247,11 @@ bool TextClass::read(FileName const & filename, ReadType rt)
 	LYXERR(Debug::TCLASS, "Reading " + translateRT(rt) + ": " +
 		to_utf8(makeDisplayPath(filename.absFilename())));
 
-	// Define the `empty' layout used in table cells, ert, etc. Note that 
+	// Define the plain layout used in table cells, ert, etc. Note that 
 	// we do this before loading any layout file, so that classes can 
 	// override features of this layout if they should choose to do so.
-	if (rt == BASECLASS && !hasLayout(emptylayout_))
-		layoutlist_.push_back(createEmptyLayout(emptylayout_));
+	if (rt == BASECLASS && !hasLayout(plain_layout_))
+		layoutlist_.push_back(createBasicLayout(plain_layout_));
 
 	Lexer lexrc(textClassTags);
 	lexrc.setFile(filename);
@@ -259,8 +265,8 @@ bool TextClass::read(FileName const & filename, ReadType rt)
 	
 	bool const worx = convertLayoutFormat(filename, rt);
 	if (!worx) {
-		lyxerr << "Unable to convert " << filename << 
-			" to format " << FORMAT << std::endl;
+		LYXERR0 ("Unable to convert " << filename << 
+			" to format " << FORMAT);
 		return false;
 	}
 	return true;
@@ -285,10 +291,10 @@ bool TextClass::read(std::string const & str, ReadType rt)
 		return retval == OK;
 
 	// write the layout string to a temporary file
-	FileName const tempfile = FileName::tempName();
+	FileName const tempfile = FileName::tempName("TextClass_read");
 	ofstream os(tempfile.toFilesystemEncoding().c_str());
 	if (!os) {
-		LYXERR0("Unable to create tempoary file");
+		LYXERR0("Unable to create temporary file");
 		return false;
 	}
 	os << str;
@@ -396,10 +402,6 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 				}
 			}
 			else {
-				//FIXME Should we also eat the style here? viz:
-				//Layout layout;
-				//readStyle(lexrc, layout);
-				//as above...
 				lexrc.printError("No name given for style: `$$Token'.");
 				error = true;
 			}
@@ -491,6 +493,35 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			break;
 		}
 
+		case TC_DEFAULTMODULE: {
+			lexrc.next();
+			string const module = lexrc.getString();
+			if (find(default_modules_.begin(), default_modules_.end(), module) == default_modules_.end())
+				default_modules_.push_back(module);
+			break;
+		}
+
+		case TC_PROVIDESMODULE: {
+			lexrc.next();
+			string const module = lexrc.getString();
+			if (find(provided_modules_.begin(), provided_modules_.end(), module) == provided_modules_.end())
+				provided_modules_.push_back(module);
+			break;
+		}
+
+		case TC_EXCLUDESMODULE: {
+			lexrc.next();
+			string const module = lexrc.getString();
+			// modules already have their own way to exclude other modules
+			if (rt == MODULE) {
+				LYXERR0("ExcludesModule tag cannot be used in a module!");
+				break;
+			}
+			if (find(excluded_modules_.begin(), excluded_modules_.end(), module) == excluded_modules_.end())
+				excluded_modules_.push_back(module);
+			break;
+		}
+
 		case TC_LEFTMARGIN:	// left margin type
 			if (lexrc.next())
 				leftmargin_ = lexrc.getDocString();
@@ -504,7 +535,7 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 		case TC_INSETLAYOUT:
 			if (lexrc.next()) {
 				InsetLayout il;
-				if (il.read(lexrc))
+				if (il.read(lexrc, *this))
 					insetlayoutlist_[il.name()] = il;
 				// else there was an error, so forget it
 			}
@@ -515,7 +546,23 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			break;
 
 		case TC_COUNTER:
-			readCounter(lexrc);
+			if (lexrc.next()) {
+				docstring const name = lexrc.getDocString();
+				if (name.empty()) {
+					string s = "Could not read name for counter: `$$Token' "
+							+ lexrc.getString() + " is probably not valid UTF-8!";
+					lexrc.printError(s.c_str());
+					Counter c;
+					// Since we couldn't read the name, we just scan the rest
+					// and discard it.
+					c.read(lexrc);
+				} else
+					error = !counters_.read(lexrc, name);
+			}
+			else {
+				lexrc.printError("No name given for style: `$$Token'.");
+				error = true;
+			}
 			break;
 
 		case TC_TITLELATEXTYPE:
@@ -533,7 +580,7 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 				floatlist_.erase(nofloat);
 			}
 			break;
-		}
+		} // end of switch
 
 		//Note that this is triggered the first time through the loop unless
 		//we hit a format tag.
@@ -820,79 +867,6 @@ void TextClass::readFloat(Lexer & lexrc)
 }
 
 
-void TextClass::readCounter(Lexer & lexrc)
-{
-	enum {
-		CT_NAME = 1,
-		CT_WITHIN,
-		CT_LABELSTRING,
-		CT_LABELSTRING_APPENDIX,
-		CT_END
-	};
-
-	LexerKeyword counterTags[] = {
-		{ "end", CT_END },
-		{ "labelstring", CT_LABELSTRING },
-		{ "labelstringappendix", CT_LABELSTRING_APPENDIX },
-		{ "name", CT_NAME },
-		{ "within", CT_WITHIN }
-	};
-
-	lexrc.pushTable(counterTags);
-
-	docstring name;
-	docstring within;
-	docstring labelstring;
-	docstring labelstring_appendix;
-
-	bool getout = false;
-	while (!getout && lexrc.isOK()) {
-		int le = lexrc.lex();
-		switch (le) {
-		case Lexer::LEX_UNDEF:
-			lexrc.printError("Unknown counter tag `$$Token'");
-			continue;
-		default: break;
-		}
-		switch (le) {
-		case CT_NAME:
-			lexrc.next();
-			name = lexrc.getDocString();
-			if (counters_.hasCounter(name))
-				LYXERR(Debug::TCLASS, "Reading existing counter " << to_utf8(name));
-			else
-				LYXERR(Debug::TCLASS, "Reading new counter " << to_utf8(name));
-			break;
-		case CT_WITHIN:
-			lexrc.next();
-			within = lexrc.getDocString();
-			if (within == "none")
-				within.erase();
-			break;
-		case CT_LABELSTRING:
-			lexrc.next();
-			labelstring = lexrc.getDocString();
-			labelstring_appendix = labelstring;
-			break;
-		case CT_LABELSTRING_APPENDIX:
-			lexrc.next();
-			labelstring_appendix = lexrc.getDocString();
-			break;
-		case CT_END:
-			getout = true;
-			break;
-		}
-	}
-
-	// Here if have a full counter if getout == true
-	if (getout)
-		counters_.newCounter(name, within, 
-				      labelstring, labelstring_appendix);
-
-	lexrc.popTable();
-}
-
-
 bool TextClass::hasLayout(docstring const & n) const
 {
 	docstring const name = n.empty() ? defaultLayoutName() : n;
@@ -900,13 +874,6 @@ bool TextClass::hasLayout(docstring const & n) const
 	return find_if(layoutlist_.begin(), layoutlist_.end(),
 		       LayoutNamesEqual(name))
 		!= layoutlist_.end();
-}
-
-
-void TextClass::addLayoutIfNeeded(docstring const & n) const
-{
-	if (!hasLayout(n))
-		layoutlist_.push_back(createEmptyLayout(n, true));
 }
 
 
@@ -954,7 +921,7 @@ Layout & TextClass::operator[](docstring const & name)
 
 bool TextClass::deleteLayout(docstring const & name)
 {
-	if (name == defaultLayoutName() || name == emptyLayoutName())
+	if (name == defaultLayoutName() || name == plainLayoutName())
 		return false;
 
 	LayoutList::iterator it =
@@ -995,8 +962,17 @@ bool TextClass::load(string const & path) const
 }
 
 
+void DocumentClass::addLayoutIfNeeded(docstring const & n) const
+{
+	if (!hasLayout(n))
+		layoutlist_.push_back(createBasicLayout(n, true));
+}
+
+
 InsetLayout const & DocumentClass::insetLayout(docstring const & name) const 
 {
+	// FIXME The fix for the InsetLayout part of 4812 would be here:
+	// Add the InsetLayout to the document class if it is not found.
 	docstring n = name;
 	InsetLayouts::const_iterator cen = insetlayoutlist_.end();
 	while (!n.empty()) {
@@ -1006,9 +982,9 @@ InsetLayout const & DocumentClass::insetLayout(docstring const & name) const
 		size_t i = n.find(':');
 		if (i == string::npos)
 			break;
-		n = n.substr(0,i);
+		n = n.substr(0, i);
 	}
-	return empty_insetlayout_;
+	return plain_insetlayout_;
 }
 
 
@@ -1033,11 +1009,11 @@ bool TextClass::isDefaultLayout(Layout const & layout) const
 
 bool TextClass::isPlainLayout(Layout const & layout) const 
 {
-	return layout.name() == emptyLayoutName();
+	return layout.name() == plainLayoutName();
 }
 
 
-Layout TextClass::createEmptyLayout(docstring const & name, bool unknown) const
+Layout TextClass::createBasicLayout(docstring const & name, bool unknown) const
 {
 	static Layout * defaultLayout = NULL;
 

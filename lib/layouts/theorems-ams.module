@@ -3,7 +3,7 @@
 #Defines theorem environments and the proof environment using the extended 
 #AMS machinery. Both numbered and unnumbered types are provided. By default, 
 #the theorems are numbered consecutively throughout the document. This can be
-#changed by loading one of the Theorems (Ordered By ...) modules.
+#changed by loading one of the Theorems (By ...) modules.
 #DescriptionEnd
 #Excludes: theorems-std | theorems-starred
 
@@ -13,12 +13,11 @@
 # Tinkered with Sep. '07 by Paul Rubin <rubin@msu.edu>
 # Modularized Jan 08 by Richard Heck <rgheck@comcast.net>
 
-Format 7
+Format 11
 
 Requires	amsmath,amsthm
 
-Counter
-	Name theorem
+Counter theorem
 End
 
 AddToPreamble

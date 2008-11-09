@@ -1,5 +1,5 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 338
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrbook
@@ -64,6 +64,7 @@
  {\setboolean{picinpar}{false}}
 \end_preamble
 \options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\use_default_options false
 \language ngerman
 \inputencoding auto
 \font_roman default
@@ -74,7 +75,6 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \paperfontsize default
 \spacing single
@@ -91,7 +91,6 @@
 \pdf_pdfborder true
 \pdf_colorlinks true
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels,pdftex"
 \papersize a4paper
@@ -111,8 +110,8 @@
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -154,8 +153,8 @@ Haase
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 23.
- Juni 2008
+letzte Änderung: 12.
+ Oktober 2008
 \end_layout
 
 \begin_layout Standard
@@ -328,12 +327,6 @@ X
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "Wie-LyX-LaTeX-benutzt"
-
-\end_inset
-
 Dieses Kapitel ist für LaTeX-niker und LaTeX-Sonderlinge gedacht.
  Hier werden wir erklären, wie LyX und LaTeX zusammenarbeiten, um eine Druckausg
 abe zu erzeugen.
@@ -1503,12 +1496,6 @@ LyX und der LaTeX-Vorspann
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "LaTeX-Vorspann"
-
-\end_inset
-
 Wenn Sie LaTeX bereits kennen, müssen wir Ihnen hier nicht erklären, wofür
  der Vorspann da ist.
  Wenn nicht, wird das Folgende Ihnen einige Ideen geben --- wir empfehlen
@@ -1992,14 +1979,6 @@ Abstand
 ), wird zwischen zwei Absätze ein Standard-Zwischenraum eingefügt.
 \end_layout
 
-\begin_layout LyX-Code
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
 \begin_layout Subsubsection*
 Beispiel 4: Dieses Dokument
 \end_layout
@@ -2462,12 +2441,6 @@ Gut, Sie haben keine der Feineinstellungen benutzt, Sie haben die Regeln
 \end_layout
 
 \begin_layout Enumerate
-\begin_inset CommandInset label
-LatexCommand label
-name "Sloppypar"
-
-\end_inset
-
 Haben Sie lange Textabschnitte, bei denen LaTeX keinen Zeilenumbruch finden
  kann? Standardmäßig ist LaTeX ziemlich streng mit dem Wortzwischenraum
  beim Zeilenumbruch.
@@ -3429,6 +3402,60 @@ Querverweis
 \end_inset
 
 und wählen die gewünschte.
+\end_layout
+
+\begin_layout Subsection
+Literaturverzeichnisse in allen Unterdokumenten
+\end_layout
+
+\begin_layout Standard
+Kopieren Sie das Literaturverzeichnis mit allen Einträgen in alle Unterdokumente
+, und ändern Sie es um in einen Kommentar.
+ Auf diese Weise findet LyX die 
+\family typewriter
+.bib
+\family default
+-Dateien, und Sie können die Verweise einfach einfügen, ohne das Literaturverzei
+chnis sichtbar zu machen.
+\end_layout
+
+\begin_layout Standard
+Da das Literaturverzeichnis in einem Kommentar ist, wird LaTeX es aber nicht
+ benutzen, und die Verweise werden wie [?] anstatt [1] aussehen.
+ Eine Lösung ist, das LaTeX-Paket 
+\family typewriter
+comment
+\family default
+ zu benutzen, mit dem die Kommentare nur beim separaten Druck eingefügt
+ werden.
+ Fügen Sie im LaTeX-Vorspann jedes Unterdokuments folgendes ein:
+\end_layout
+
+\begin_layout LyX-Code
+
+\backslash
+usepackage{comment}
+\end_layout
+
+\begin_layout LyX-Code
+
+\backslash
+includecomment{comment}
+\end_layout
+
+\begin_layout Standard
+Siehe auch 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/FAQ/Unsorted#toc31
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -5567,7 +5594,7 @@ Im
 \family sans
 Werkzeuge
 \family default
--Menü finden Sie den 
+-Menü finden Sie den Eintrag 
 \family sans
 Te
 \begin_inset ERT
@@ -5586,24 +5613,20 @@ X
 
 prüfen
 \family default
--Befehl.
- Er ist nur aktiviert, wenn das 
+.
+ Er ist nur vorhanden, wenn das Program 
 \family typewriter
 chktex
 \family default
--Programm installiert ist.
- Sie können es bei CTAN oder von der Seite 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.ifi.uio.no/~jensthi/chktex/
-\end_layout
+ installiert ist.
+ Sie können es von CTAN beziehen, 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://www.ctan.org/tex-archive/help/Catalogue/entries/chktex.html"
 
 \end_inset
 
- beziehen.
+.
 \end_layout
 
 \begin_layout Standard
@@ -5704,13 +5727,6 @@ Die Marke sollte am Text
 kleben
 \emph default
 , damit sie nicht auf die falsche Seite gerät.
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "Chktex"
-
-\end_inset
-
  
 \begin_inset Foot
 status open
@@ -14013,13 +14029,6 @@ Blocksatz
 
 \begin_layout Subsubsection
 Literaturverzeichnisse
-\begin_inset CommandInset label
-LatexCommand label
-name "Literaturverzeichnisse"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard

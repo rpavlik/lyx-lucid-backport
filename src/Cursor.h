@@ -17,6 +17,8 @@
 #include "Font.h"
 #include "Undo.h"
 
+#include "mathed/MathParser_flags.h"
+
 #include <vector>
 
 
@@ -37,7 +39,8 @@ class Encoding;
 
 // The public inheritance should go in favour of a suitable data member
 // (or maybe private inheritance) at some point of time.
-class Cursor : public DocIterator {
+class Cursor : public DocIterator
+{
 public:
 	/// create the cursor of a BufferView
 	explicit Cursor(BufferView & bv);
@@ -69,12 +72,18 @@ public:
 	//
 	/// selection active?
 	bool selection() const { return selection_; }
-	/// selection active?
-	bool & selection() { return selection_; }
+	/// set selection;
+	void setSelection(bool sel) { selection_ = sel; }
+	/// do we have a multicell selection?
+	bool selIsMultiCell() const 
+		{ return selection_ && selBegin().idx() != selEnd().idx(); }
+	/// do we have a multiline selection?
+	bool selIsMultiLine() const 
+		{ return selection_ && selBegin().pit() != selEnd().pit(); }
 	/// did we place the anchor?
 	bool mark() const { return mark_; }
 	/// did we place the anchor?
-	bool & mark() { return mark_; }
+	void setMark(bool mark) { mark_ = mark; }
 	///
 	void setSelection();
 	/// set selection at given position
@@ -89,12 +98,17 @@ public:
 	DocIterator selectionBegin() const;
 	/// access start of selection
 	DocIterator selectionEnd() const;
-	/// FIXME: document this
+	/**
+	 * Update the selection status and save permanent
+	 * selection if needed.
+	 * @param selecting the new selection status
+	 * @return whether the selection status has changed
+	 */
 	bool selHandle(bool selecting);
 	///
 	docstring selectionAsString(bool label) const;
 	///
-	docstring currentState();
+	docstring currentState() const;
 
 	/// auto-correct mode
 	bool autocorrect() const { return autocorrect_; }
@@ -234,26 +248,32 @@ public:
 	bool textRedo();
 
 	/// makes sure the next operation will be stored
-	void finishUndo();
+	void finishUndo() const;
+
+	/// open a new group of undo operations. Groups can be nested.
+	void beginUndoGroup() const;
+
+	/// end the current undo group
+	void endUndoGroup() const;
 
 	/// The general case: prepare undo for an arbitrary range.
-	void recordUndo(UndoKind kind, pit_type from, pit_type to);
+	void recordUndo(UndoKind kind, pit_type from, pit_type to) const;
 
 	/// Convenience: prepare undo for the range between 'from' and cursor.
-	void recordUndo(UndoKind kind, pit_type from);
+	void recordUndo(UndoKind kind, pit_type from) const;
 
 	/// Convenience: prepare undo for the single paragraph or cell
 	/// containing the cursor
-	void recordUndo(UndoKind kind = ATOMIC_UNDO);
+	void recordUndo(UndoKind kind = ATOMIC_UNDO) const;
 
 	/// Convenience: prepare undo for the inset containing the cursor
-	void recordUndoInset(UndoKind kind = ATOMIC_UNDO);
+	void recordUndoInset(UndoKind kind = ATOMIC_UNDO) const;
 
 	/// Convenience: prepare undo for the whole buffer
-	void recordUndoFullDocument();
+	void recordUndoFullDocument() const;
 
 	/// Convenience: prepare undo for the selected paragraphs or cells
-	void recordUndoSelection();
+	void recordUndoSelection() const;
 
 	///
 	void checkBufferStructure();
@@ -353,7 +373,7 @@ public:
 	///
 	void niceInsert(MathAtom const & at);
 	///
-	void niceInsert(docstring const & str);
+	void niceInsert(docstring const & str, Parse::flags f = Parse::NORMAL);
 
 	/// in pixels from top of screen
 	void setScreenPos(int x, int y);
@@ -394,7 +414,7 @@ public:
 	/// display an error message
 	void errorMessage(docstring const & msg) const;
 	///
-	docstring getPossibleLabel();
+	docstring getPossibleLabel() const;
 
 	/// the name of the macro we are currently inputting
 	docstring macroName();

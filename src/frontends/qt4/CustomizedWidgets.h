@@ -6,6 +6,7 @@
  *
  * \author Bo Peng
  * \author Edwin Leuven
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,7 +14,7 @@
 #ifndef CUSTOMIZEDWIDGETS_H
 #define CUSTOMIZEDWIDGETS_H
 
-#include <QLineEdit>
+#include <QLabel>
 #include "KeySequence.h"
 
 class QEvent;
@@ -23,21 +24,23 @@ namespace lyx {
 namespace frontend {
 
 /**
- * A lineedit for inputting shortcuts
+ * A widget for inputting shortcuts
  */
-class ShortcutLineEdit : public QLineEdit {
+class ShortcutWidget : public QLabel {
 	Q_OBJECT
 public:
-	ShortcutLineEdit(QWidget * parent);
+	ShortcutWidget(QWidget * parent);
 	void reset();
 	bool eventFilter(QObject*, QEvent* e );
-	lyx::KeySequence const getKeySequence() const;
+	KeySequence const getKeySequence() const;
+	void setKeySequence(lyx::KeySequence const s);
+	void removeFromSequence();
 protected Q_SLOTS:
 	bool event(QEvent* e);
 	void keyPressEvent(QKeyEvent * e);
 private:
 	void appendToSequence(QKeyEvent * e);
-	lyx::KeySequence keysequence_;
+	KeySequence keysequence_;
 	bool has_cursor_;
 };
 

@@ -19,19 +19,23 @@
 #include "Counters.h"
 #include "Cursor.h"
 #include "DispatchResult.h"
+#include "Encoding.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "InsetCaption.h"
 #include "InsetList.h"
 #include "Language.h"
 #include "MetricsInfo.h"
+#include "output_latex.h"
 #include "TextClass.h"
 
 #include "support/debug.h"
 #include "support/docstream.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
+#include "support/lassert.h"
 
+#include "frontends/alert.h"
 #include "frontends/Application.h"
 
 #include <boost/regex.hpp>
@@ -49,8 +53,10 @@ char const lstinline_delimiters[] =
 	"!*()-=+|;:'\"`,<.>/?QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
 
 InsetListings::InsetListings(Buffer const & buf, InsetListingsParams const & par)
-	: InsetCollapsable(buf, par.status())
-{}
+	: InsetCollapsable(buf)
+{
+	status_ = par.status();
+}
 
 
 InsetListings::~InsetListings()
@@ -134,8 +140,31 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 	// get the paragraphs. We can not output them directly to given odocstream
 	// because we can not yet determine the delimiter character of \lstinline
 	docstring code;
+	docstring uncodable;
 	ParagraphList::const_iterator par = paragraphs().begin();
 	ParagraphList::const_iterator end = paragraphs().end();
+
+	bool encoding_switched = false;
+	Encoding const * const save_enc = runparams.encoding;
+
+	if (!runparams.encoding->hasFixedWidth()) {
+		// We need to switch to a singlebyte encoding, since the listings
+		// package cannot deal with multiple-byte-encoded glyphs
+		Language const * const outer_language =
+			(runparams.local_font != 0) ?
+				runparams.local_font->language()
+				: buffer().params().language;
+		// We try if there's a singlebyte encoding for the current
+		// language; if not, fall back to latin1.
+		Encoding const * const lstenc =
+			(outer_language->encoding()->hasFixedWidth()) ?
+				outer_language->encoding() 
+				: encodings.fromLyXName("iso8859-1");
+		pair<bool, int> const c = switchEncoding(os, buffer().params(),
+				runparams, *lstenc, true);
+		runparams.encoding = lstenc;
+		encoding_switched = true;
+	}
 
 	while (par != end) {
 		pos_type siz = par->size();
@@ -146,7 +175,28 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 			// ignore all struck out text and (caption) insets
 			if (par->isDeleted(i) || par->isInset(i))
 				continue;
-			code += par->getChar(i);
+			char_type c = par->getChar(i);
+			// we can only output characters covered by the current
+			// encoding!
+			try {
+				if (runparams.encoding->latexChar(c) == docstring(1, c))
+					code += c;
+				else if (runparams.dryrun) {
+					code += "<" + _("LyX Warning: ")
+					   + _("uncodable character") + " '";
+					code += docstring(1, c);
+					code += "'>";
+ 				} else
+					uncodable += c;
+			} catch (EncodingException & /* e */) {
+ 				if (runparams.dryrun) {
+					code += "<" + _("LyX Warning: ")
+					   + _("uncodable character") + " '";
+					code += docstring(1, c);
+					code += "'>";
+ 				} else
+					uncodable += c;
+			}
 		}
 		++par;
 		// for the inline case, if there are multiple paragraphs
@@ -164,27 +214,35 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 		// This code piece contains all possible special character? !!!
 		// Replace ! with a warning message and use ! as delimiter.
 		if (*delimiter == '\0') {
-			code = subst(code, from_ascii("!"), from_ascii(" WARNING: no lstline delimiter can be used "));
+			docstring delim_error = "<" + _("LyX Warning: ")
+				+ _("no more lstline delimiters available") + ">";
+			code = subst(code, from_ascii("!"), delim_error);
 			delimiter = lstinline_delimiters;
+			if (!runparams.dryrun) {
+				// FIXME: warning should be passed to the error dialog
+				frontend::Alert::warning(_("Running out of delimiters"),
+				_("For inline program listings, one character must be reserved\n"
+				  "as a delimiter. One of the listings, however, uses all available\n"
+				  "characters, so none is left for delimiting purposes.\n"
+				  "For the time being, I have replaced '!' by a warning, but you\n"
+				  "must investigate!"));
+			}
 		}
 		if (param_string.empty())
 			os << "\\lstinline" << *delimiter;
 		else
-			os << "\\lstinline[" << from_ascii(param_string) << "]" << *delimiter;
+			os << "\\lstinline[" << from_utf8(param_string) << "]" << *delimiter;
                 os << code
                    << *delimiter;
 	} else {
 		OutputParams rp = runparams;
-		// FIXME: the line below would fix bug 4182,
-		// but real_current_font moved to cursor.
-		//rp.local_font = &text_.real_current_font;
 		rp.moving_arg = true;
 		docstring const caption = getCaption(rp);
 		runparams.encoding = rp.encoding;
 		if (param_string.empty() && caption.empty())
-			os << "\n\\begingroup\n\\inputencoding{latin1}\n\\begin{lstlisting}\n";
+			os << "\n\\begin{lstlisting}\n";
 		else {
-			os << "\n\\begingroup\n\\inputencoding{latin1}\n\\begin{lstlisting}[";
+			os << "\n\\begin{lstlisting}[";
 			if (!caption.empty()) {
 				os << "caption={" << caption << '}';
 				if (!param_string.empty())
@@ -192,9 +250,25 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 			}
 			os << from_utf8(param_string) << "]\n";
 		}
-		lines += 4;
-		os << code << "\n\\end{lstlisting}\n\\endgroup\n";
-		lines += 3;
+		lines += 2;
+		os << code << "\n\\end{lstlisting}\n";
+		lines += 2;
+	}
+
+	if (encoding_switched){
+		// Switch back
+		pair<bool, int> const c = switchEncoding(os, buffer().params(),
+				runparams, *save_enc, true);
+		runparams.encoding = save_enc;
+	}
+
+	if (!uncodable.empty()) {
+		// issue a warning about omitted characters
+		// FIXME: should be passed to the error dialog
+		frontend::Alert::warning(_("Uncodable characters in listings inset"),
+			bformat(_("The following characters in one of the program listings are\n"
+				  "not representable in the current encoding and have been omitted:\n%1$s."),
+			uncodable));
 	}
 
 	return lines;
@@ -218,6 +292,83 @@ void InsetListings::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_DIALOG_UPDATE:
 		cur.bv().updateDialog("listings", params2string(params()));
 		break;
+	case LFUN_TAB_INSERT:
+		if (cur.selection()) {
+			// If there is a selection, a tab is inserted at the
+			// beginning of each paragraph.
+			cur.recordUndoSelection();
+			pit_type const pit_end = cur.selEnd().pit();
+			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
+				paragraphs()[pit].insertChar(0, '\t', 
+					buffer().params().trackChanges);
+				// Update the selection pos to make sure the selection does not
+				// change as the inserted tab will increase the logical pos.
+				if (cur.anchor_.pit() == pit)
+					cur.anchor_.forwardPos();
+				if (cur.pit() == pit)
+					cur.forwardPos();
+			}
+			cur.finishUndo();
+		} else {
+			// Maybe we shouldn't allow tabs within a line, because they
+			// are not (yet) aligned as one might do expect.
+			cur.recordUndo();
+			cur.insert(from_ascii("\t"));
+			cur.finishUndo();
+		}
+		break;
+	case LFUN_TAB_DELETE:
+		if (cur.selection()) {
+			// If there is a selection, a tab (if present) is removed from
+			// the beginning of each paragraph.
+			cur.recordUndoSelection();
+			pit_type const pit_end = cur.selEnd().pit();
+			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
+				Paragraph & par = paragraphs()[pit];
+				if (par.getChar(0) == '\t') {
+					if (cur.pit() == pit)
+						cur.posBackward();
+					if (cur.anchor_.pit() == pit && cur.anchor_.pos() > 0 )
+						cur.anchor_.backwardPos();
+
+					par.eraseChar(0, buffer().params().trackChanges);
+				} else 
+					// If no tab was present, try to remove up to four spaces.
+					for (int n_spaces = 0;
+						par.getChar(0) == ' ' && n_spaces < 4; ++n_spaces) {
+							if (cur.pit() == pit)
+								cur.posBackward();
+							if (cur.anchor_.pit() == pit && cur.anchor_.pos() > 0 )
+								cur.anchor_.backwardPos();
+
+							par.eraseChar(0, buffer().params().trackChanges);
+					}
+			}
+			cur.finishUndo();
+		} else {
+			// If there is no selection, try to remove a tab or some spaces 
+			// before the position of the cursor.
+			Paragraph & par = paragraphs()[cur.pit()];
+			pos_type const pos = cur.pos();
+
+			if (pos == 0)
+				break;
+
+			char_type const c = par.getChar(pos - 1);
+			cur.recordUndo();
+			if (c == '\t') {
+				cur.posBackward();
+				par.eraseChar(cur.pos(), buffer().params().trackChanges);
+			} else
+				for (int n_spaces = 0; cur.pos() > 0
+					&& par.getChar(cur.pos() - 1) == ' ' && n_spaces < 4;
+					++n_spaces) {
+						cur.posBackward();
+						par.eraseChar(cur.pos(), buffer().params().trackChanges);
+				}
+				cur.finishUndo();
+		}
+		break;
 	default:
 		InsetCollapsable::doDispatch(cur, cmd);
 		break;
@@ -236,6 +387,10 @@ bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 		case LFUN_CAPTION_INSERT:
 			status.setEnabled(!params().isInline());
 			return true;
+			case LFUN_TAB_INSERT:
+			case LFUN_TAB_DELETE:
+				status.setEnabled(true);
+				return true;
 		default:
 			return InsetCollapsable::getStatus(cur, cmd, status);
 	}
@@ -245,7 +400,7 @@ bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 void InsetListings::setButtonLabel()
 {
 	// FIXME UNICODE
-	if (decoration() == InsetLayout::Classic)
+	if (decoration() == InsetLayout::CLASSIC)
 		setLabel(isOpen() ?  _("Listing") : getNewLabel(_("Listing")));
 	else
 		setLabel(getNewLabel(_("Listing")));
@@ -255,6 +410,9 @@ void InsetListings::setButtonLabel()
 void InsetListings::validate(LaTeXFeatures & features) const
 {
 	features.require("listings");
+	string param_string = params().params();
+	if (param_string.find("\\color") != string::npos)
+		features.require("color");
 	InsetCollapsable::validate(features);
 }
 

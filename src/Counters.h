@@ -23,6 +23,8 @@
 
 namespace lyx {
 
+class Lexer;
+
 /// This represents a single counter.
 class Counter {
 public:
@@ -31,6 +33,8 @@ public:
 	///
 	Counter(docstring const & mc, docstring const & ls, 
 		docstring const & lsa);
+	/// \return true on success
+	bool read(Lexer & lex);
 	///
 	void set(int v);
 	///
@@ -44,27 +48,27 @@ public:
 	/// Returns the master counter of this counter.
 	docstring const & master() const;
 	/// Returns a LaTeX-like string to format the counter. 
-	/* This is similar to what one gets in LaTeX when using
-	 * "\the<counter>".
+	/** This is similar to what one gets in LaTeX when using
+	 *  "\the<counter>".
 	 */
 	docstring const & labelString() const;
 	/// Returns a LaTeX-like string to format the counter in appendix.
-	/* This is similar to what one gets in LaTeX when using
-	 * "\the<counter>" in an appendix.
+	/** This is similar to what one gets in LaTeX when using
+	 *  "\the<counter>" in an appendix.
 	 */
 	docstring const & labelStringAppendix() const;
 private:
 	///
 	int value_;
 	/// contains master counter name.
-	/* The master counter is the counter that, if stepped
-	 * (incremented) zeroes this counter. E.g. "subsection"'s
-	 * master is "section".
+	/** The master counter is the counter that, if stepped
+	 *  (incremented) zeroes this counter. E.g. "subsection"'s
+	 *  master is "section".
 	 */
 	docstring master_;
-	// Contains a LaTeX-like string to format the counter.
+	/// Contains a LaTeX-like string to format the counter.
 	docstring labelstring_;
-	// The same as labelstring_, but in appendices.
+	/// The same as labelstring_, but in appendices.
 	docstring labelstringappendix_;
 };
 
@@ -75,15 +79,17 @@ class Counters {
 public:
 	///
 	Counters() : appendix_(false), subfloat_(false) {}
-	/// Add a new counter to array.
-	void newCounter(docstring const & newc);
-	/// Add new counter having oldc as its master and ls as its label.
+	/// Add new counter newc having masterc as its master, 
+	/// ls as its label, and lsa as its appendix label.
 	void newCounter(docstring const & newc,
 			docstring const & masterc,
 			docstring const & ls,
 			docstring const & lsa);
 	/// Checks whether the given counter exists.
 	bool hasCounter(docstring const & c) const;
+	/// reads the counter name
+	/// \return true on success
+	bool read(Lexer & lex, docstring const & name);
 	///
 	void set(docstring const & ctr, int val);
 	///
@@ -92,8 +98,8 @@ public:
 	int value(docstring const & ctr) const;
 	/// Increment by one counter named by arg, and zeroes slave
 	/// counter(s) for which it is the master.
-	/* Sub-slaves not zeroed! That happens at slave's first step
-	 * 0->1. Seems to be sufficient.
+	/** Sub-slaves not zeroed! That happens at slave's first step
+	 *  0->1. Seems to be sufficient.
 	 */
 	void step(docstring const & ctr);
 	/// Reset all counters.
@@ -129,9 +135,9 @@ private:
 	                     std::set<docstring> & callers);
 	/// Returns the value of the counter according to the
 	/// numbering scheme numbertype.
-	/* Available numbering schemes are arabic (1, 2,...), roman
-	 * (i, ii,...), Roman (I, II,...), alph (a, b,...), Alpha (A,
-	 * B,...) and hebrew.
+	/** Available numbering schemes are arabic (1, 2,...), roman
+	 *  (i, ii,...), Roman (I, II,...), alph (a, b,...), Alpha (A,
+	 *  B,...) and hebrew.
 	 */
 	docstring labelItem(docstring const & ctr,
 			    docstring const & numbertype);

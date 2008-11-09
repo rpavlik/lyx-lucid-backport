@@ -235,7 +235,7 @@ public:
 	static const idx_type npos = static_cast<idx_type>(-1);
 
 	/// constructor
-	Tabular(Buffer const &, col_type columns_arg, row_type rows_arg);
+	Tabular(Buffer &, col_type columns_arg, row_type rows_arg);
 
 	/// Returns true if there is a topline, returns false if not
 	bool topLine(idx_type cell) const;
@@ -431,16 +431,18 @@ public:
 			  boost::shared_ptr<InsetTableCell>) const;
 	/// Search for \param inset in the tabular, with the
 	///
-	idx_type cellFromInset(Inset const * inset) const;
-	///
 	void validate(LaTeXFeatures &) const;
-	///
 //private:
+  // FIXME Now that cells have an InsetTableCell as their insets, rather
+  // than an InsetText, it'd be possible to reverse the relationship here,
+  // so that cell_vector was a vector<InsetTableCell> rather than a 
+  // vector<CellData>, and an InsetTableCell had a CellData as a member,
+  // or perhaps just had its members as members.
 	///
 	class CellData {
 	public:
 		///
-		CellData(Buffer const &, Tabular const &);
+		CellData(Buffer &);
 		///
 		CellData(CellData const &);
 		///
@@ -569,10 +571,14 @@ public:
 	ltType endlastfoot;
 
 	///
-	void init(Buffer const &, row_type rows_arg,
+	void init(Buffer &, row_type rows_arg,
 		  col_type columns_arg);
 	///
 	void updateIndexes();
+	///
+	bool setFixedWidth(row_type r, col_type c);
+	///
+	void updateContentAlignment(row_type r, col_type c);
 	/// return true of update is needed
 	bool updateColumnWidths();
 	///
@@ -582,9 +588,9 @@ public:
 	///
 	// helper function for Latex returns number of newlines
 	///
-	int TeXTopHLine(odocstream &, row_type row) const;
+	int TeXTopHLine(odocstream &, row_type row, std::string const lang) const;
 	///
-	int TeXBottomHLine(odocstream &, row_type row) const;
+	int TeXBottomHLine(odocstream &, row_type row, std::string const lang) const;
 	///
 	int TeXCellPreamble(odocstream &, idx_type cell, bool & ismulticol) const;
 	///
@@ -614,12 +620,12 @@ public:
 	int docbookRow(odocstream & os, row_type, OutputParams const &) const;
 
 	/// change associated Buffer
-	void setBuffer(Buffer const & buffer) { buffer_ = &buffer; }
+	void setBuffer(Buffer & buffer);
 	/// retrieve associated Buffer
-	Buffer const & buffer() const { return *buffer_; }
+	Buffer & buffer() const { return *buffer_; }
 
 private:
-	Buffer const * buffer_;
+	Buffer * buffer_;
 
 }; // Tabular
 
@@ -629,37 +635,66 @@ class InsetTableCell : public InsetText
 {
 public:
 	///
-	InsetTableCell(Buffer const & buf,
-		Tabular::CellData const * cd, Tabular const * t);
+	InsetTableCell(Buffer & buf);
 	///
 	InsetCode lyxCode() const { return CELL_CODE; }
 	///
 	Inset * clone() { return new InsetTableCell(*this); }
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus & status) const;
+	///
+	void toggleFixedWidth(bool fw) { isFixedWidth = fw; }
+	///
+	void setContentAlignment(LyXAlignment al) {contentAlign = al; }
+	/// writes the contents of the cell as a string, optionally
+	/// descending into insets
+	docstring asString(bool intoInsets = true);
+private:
+	/// unimplemented
+	InsetTableCell();
+	/// unimplemented
+	void operator=(InsetTableCell const &);
+	// FIXME
+	// This boolean is supposed to track whether the cell has had its
+	// width explicitly set. We need to know this to determine whether
+	// layout changes and paragraph customization are allowed---that is,
+	// we need it in forcePlainLayout() and allowParagraphCustomization(). 
+	// Unfortunately, that information is not readily available in 
+	// InsetTableCell. In the case of multicolumn cells, it is present
+	// in CellData, and so would be available here if CellData were to
+	// become a member of InsetTableCell. But in the other case, it isn't
+	// even available there, but is held in Tabular::ColumnData.
+	// So, the present solution uses this boolean to track the information
+	// we need to track, and tries to keep it updated. This is not ideal,
+	// but the other solutions are no better. These are:
+	// (i)  Keep a pointer in InsetTableCell to the table;
+	// (ii) Find the table by iterating over the Buffer's insets.
+	// Solution (i) raises the problem of updating the pointer when an 
+	// InsetTableCell is copied, and we'd therefore need a copy constructor
+	// in InsetTabular and then in Tabular, which seems messy, given how 
+	// complicated those classes are. Solution (ii) involves a lot of 
+	// iterating, since this information is needed quite often, and so may
+	// be quite slow.
+	// So, well, if someone can do better, please do!
+	// --rgh
+	///
+	bool isFixedWidth;
+	// FIXME: Here the thoughts from the comment above also apply.
+	///
+	LyXAlignment contentAlign;
+	/// should paragraph indendation be omitted in any case?
+	bool neverIndent() const { return true; }
+	///
+	LyXAlignment contentAlignment() const { return contentAlign; }
 	///
 	virtual bool usePlainLayout() const { return true; }
 	/// 
 	virtual bool forcePlainLayout(idx_type = 0) const;
 	/// 
 	virtual bool allowParagraphCustomization(idx_type = 0) const;
-	///
-	bool getStatus(Cursor & cur, FuncRequest const & cmd,
-		FuncStatus & status) const;
-	///
-	virtual bool neverIndent() { return true; }
-	///
-	void setCellData(Tabular::CellData const * cd) { cell_data_ = cd; }
-	///
-	void setTabular(Tabular const * t) { table_ = t; }
-private:
-	/// unimplemented
-	InsetTableCell();
-	/// unimplemented
-	void operator=(InsetTableCell const &);
-
-	/// 
-	Tabular::CellData const * cell_data_;
-	/// 
-	Tabular const * table_;
+	/// Is the width forced to some value?
+	bool hasFixedWidth() const { return isFixedWidth; }
 };
 
 
@@ -667,10 +702,13 @@ class InsetTabular : public Inset
 {
 public:
 	///
-	InsetTabular(Buffer const &, row_type rows = 1,
+	InsetTabular(Buffer &, row_type rows = 1,
 		     col_type columns = 1);
 	///
 	~InsetTabular();
+	///
+	void setBuffer(Buffer & buffer);
+
 	///
 	static void string2params(std::string const &, InsetTabular &);
 	///
@@ -783,6 +821,8 @@ public:
 	bool insertCompletion(Cursor & cur, docstring const & s, bool finished);
 	///
 	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
+	///
+	virtual bool usePlainLayout() const { return true; }
 
 	///
 	virtual InsetTabular * asInsetTabular() { return this; }
@@ -790,7 +830,12 @@ public:
 	virtual InsetTabular const * asInsetTabular() const { return this; }
 	///
 	bool isRightToLeft(Cursor & cur) const;
+	/// writes the cells between stidx and enidx as a string, optionally
+	/// descending into the insets
+	docstring asString(idx_type stidx, idx_type enidx, bool intoInsets = true);
 
+	/// Returns whether the cell in the specified row and column is selected.
+	bool isCellSelected(Cursor & cur, row_type row, col_type col) const;
 	//
 	// Public structures and variables
 	///
@@ -837,8 +882,6 @@ private:
 			  col_type & cs, col_type & ce) const;
 	///
 	bool insertPlaintextString(BufferView &, docstring const & buf, bool usePaste);
-	/// are we operating on several cells?
-	bool tablemode(Cursor & cur) const;
 
 	/// return the "Manhattan distance" to nearest corner
 	int dist(BufferView &, idx_type cell, int x, int y) const;

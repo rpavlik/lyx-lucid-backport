@@ -41,7 +41,7 @@ GuiErrorList::GuiErrorList(GuiView & lv)
 
 	connect(closePB, SIGNAL(clicked()),
 		this, SLOT(slotClose()));
-	connect(errorsLW, SIGNAL(itemSelectionChanged()),
+	connect(errorsLW, SIGNAL(currentRowChanged(int)),
 		this, SLOT(select()));
 
 	bc().setPolicy(ButtonPolicy::OkCancelPolicy);
@@ -51,7 +51,6 @@ GuiErrorList::GuiErrorList(GuiView & lv)
 
 void GuiErrorList::showEvent(QShowEvent * e)
 {
-	errorsLW->setCurrentRow(0);
 	select();
 	e->accept();
 }
@@ -60,8 +59,11 @@ void GuiErrorList::showEvent(QShowEvent * e)
 void GuiErrorList::select()
 {
 	int const item = errorsLW->row(errorsLW->currentItem());
-	if (goTo(item))
-        descriptionTB->setPlainText(toqstr(errorList()[item].description));
+	if (item == -1)
+		return;
+	goTo(item);
+	descriptionTB->setPlainText(
+		toqstr(errorList()[item].description));
 }
 
 
@@ -75,6 +77,7 @@ void GuiErrorList::updateContents()
 	ErrorList::const_iterator end = errorList().end();
 	for (; it != end; ++it)
 		errorsLW->addItem(toqstr(it->error));
+	errorsLW->setCurrentRow(0);
 }
 
 
@@ -101,7 +104,7 @@ bool GuiErrorList::goTo(int item)
 	if (err.par_id == -1)
 		return false;
 
-	Buffer & buf = buffer();
+	Buffer const & buf = buffer();
 	DocIterator dit = buf.getParFromID(err.par_id);
 
 	if (dit == doc_iterator_end(buf.inset())) {
@@ -118,9 +121,10 @@ bool GuiErrorList::goTo(int item)
 	pos_type const start = min(err.pos_start, end);
 	pos_type const range = end - start;
 	dit.pos() = start;
-	bufferview()->putSelectionAt(dit, range, false);
+	BufferView * bv = const_cast<BufferView *>(bufferview());
 	// FIXME: If we used an LFUN, we would not need this line:
-	bufferview()->processUpdateFlags(Update::Force | Update::FitCursor);
+	bv->putSelectionAt(dit, range, false);
+	bv->processUpdateFlags(Update::Force | Update::FitCursor);
 	return true;
 }
 

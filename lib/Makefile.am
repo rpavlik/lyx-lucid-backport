@@ -71,6 +71,8 @@ dist_commands_DATA = \
 
 caexamplesdir = $(pkgdatadir)/examples/ca
 dist_caexamples_DATA = \
+	examples/ca/ItemizeBullets.lyx \
+	examples/ca/mathed.lyx \
 	examples/ca/splash.lyx
 
 csexamplesdir = $(pkgdatadir)/examples/cs
@@ -88,7 +90,6 @@ dist_deexamples_DATA = \
 	examples/de/Dezimal.lyx \
 	examples/de/ItemizeBullets.lyx \
 	examples/de/Lebenslauf.lyx \
-	examples/de/Minipage.lyx \
 	examples/de/multicol.lyx \
 	examples/de/serienbrief1.lyx \
 	examples/de/serienbrief2.lyx \
@@ -97,9 +98,10 @@ dist_deexamples_DATA = \
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
-	examples/es/ItemizeBullets.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
+	examples/es/ItemizeBullets.lyx \
+	examples/es/multicol.lyx \
 	examples/es/splash.lyx
 
 euexamplesdir = $(pkgdatadir)/examples/eu
@@ -118,7 +120,6 @@ dist_frexamples_DATA = \
 	examples/fr/simplecv.lyx \
 	examples/fr/Foils.lyx \
 	examples/fr/ListesPuces.lyx \
-	examples/fr/Minipage.lyx \
 	examples/fr/exemple_brut.lyx \
 	examples/fr/exemple_lyxifie.lyx \
 	examples/fr/multicol.lyx \
@@ -189,7 +190,6 @@ dist_examples_DATA = \
 	examples/Foils.lyx \
 	examples/ItemizeBullets.lyx \
 	examples/Literate.lyx \
-	examples/Minipage.lyx \
 	examples/aa_sample.lyx \
 	examples/aas_sample.lyx \
 	examples/addressExample.adr \
@@ -221,17 +221,19 @@ dist_examples_DATA = \
 	examples/landslide.lyx \
 	examples/linguistics.lyx \
 	examples/listerrors.lyx \
-	examples/listings.lyx \
 	examples/modernCV.lyx \
 	examples/multicol.lyx \
 	examples/noweb2lyx.lyx \
 	examples/powerdot-example.lyx \
 	examples/script_form.lyx \
+	examples/seminar.lyx \
 	examples/serial_letter1.lyx \
 	examples/serial_letter2.lyx \
 	examples/serial_letter3.lyx \
 	examples/simplecv.lyx \
-	examples/splash.lyx
+	examples/splash.lyx \
+	examples/xyfigure.png \
+	examples/xypic.lyx
 
 fontsdir = $(pkgdatadir)/fonts
 dist_fonts_DATA = \
@@ -281,6 +283,7 @@ dist_images_DATA = \
 	images/changes-output.png \
 	images/changes-track.png \
 	images/closetab.png \
+	images/close-tab-group.png \
 	images/copy.png \
 	images/cut.png \
 	images/demote.png \
@@ -325,6 +328,11 @@ dist_images_DATA = \
 	images/layout_Section.png \
 	images/lyx-quit.png \
 	images/lyx.png \
+	images/vc-check-in.png \
+	images/vc-check-out.png \
+	images/dialog-show_vclog.png \
+	images/vc-register.png \
+	images/vc-revert.png \
 	images/marginalnote-insert.png \
 	images/math-display.png \
 	images/math-macro-add-greedy-optional-param.png \
@@ -352,6 +360,8 @@ dist_images_DATA = \
 	images/psnfss4.png \
 	images/redo.png \
 	images/reload.png \
+	images/split-view_horizontal.png \
+	images/split-view_vertical.png \
 	images/standard.png \
 	images/tabular-feature_align-center.png \
 	images/tabular-feature_align-left.png \
@@ -927,7 +937,6 @@ dist_kbd_DATA = \
 
 layoutsdir = $(pkgdatadir)/layouts
 dist_layouts_DATA =\
-	layouts/IEEEtran.layout \
 	layouts/aa.layout \
 	layouts/aapaper.inc \
 	layouts/aapaper.layout \
@@ -972,6 +981,7 @@ dist_layouts_DATA =\
 	layouts/dtk.layout \
 	layouts/egs.layout \
 	layouts/elsart.layout \
+	layouts/elsarticle.layout \
 	layouts/endnotes.module \
 	layouts/entcs.layout \
 	layouts/europecv.layout \
@@ -988,6 +998,7 @@ dist_layouts_DATA =\
 	layouts/heb-article.layout \
 	layouts/heb-letter.layout \
 	layouts/hollywood.layout \
+	layouts/IEEEtran.layout \
 	layouts/ijmpc.layout \
 	layouts/ijmpd.layout \
 	layouts/iopart.layout \
@@ -1035,7 +1046,9 @@ dist_layouts_DATA =\
 	layouts/scrreprt.layout \
 	layouts/seminar.layout \
 	layouts/siamltex.layout \
+	layouts/sigplanconf.layout \
 	layouts/simplecv.layout \
+	layouts/singlecol.layout \
 	layouts/slides.layout \
 	layouts/spie.layout \
 	layouts/stdclass.inc \
@@ -1052,6 +1065,7 @@ dist_layouts_DATA =\
 	layouts/stdstruct.inc \
 	layouts/stdtitle.inc \
 	layouts/svglobal.layout \
+	layouts/svglobal3.layout \
 	layouts/svjog.layout \
 	layouts/svjour.inc \
 	layouts/svprobth.layout \
@@ -1088,27 +1102,28 @@ dist_scripts_PYTHON = \
 	scripts/legacy_lyxpreview2ppm.py \
 	scripts/listerrors \
 	scripts/lyxpreview2bitmap.py \
+	scripts/lyxpreview-platex2bitmap.py \
 	scripts/lyxpreview_tools.py \
 	scripts/tex_copy.py
 
 templatesdir = $(pkgdatadir)/templates
 dist_templates_DATA = \
-	templates/IEEEtran.lyx \
-	templates/README.new_templates \
 	templates/aa.lyx \
 	templates/aastex.lyx \
+	templates/ACM-sigplan.lyx \
 	templates/agu_article.lyx \
 	templates/apa.lyx \
 	templates/beamer-conference-ornate-20min.lyx \
 	templates/de_beamer-conference-ornate-20min.lyx \
 	templates/dinbrief.lyx \
 	templates/docbook_article.lyx \
-	templates/elsart.lyx \
+	templates/elsarticle.lyx \
 	templates/fr_beamer-conference-ornate-20min.lyx \
 	templates/g-brief2.lyx \
 	templates/g-brief-de.lyx \
 	templates/g-brief-en.lyx \
 	templates/hollywood.lyx \
+	templates/IEEEtran.lyx \
 	templates/ijmpc.lyx \
 	templates/ijmpd.lyx \
 	templates/iop-article.lyx \
@@ -1117,6 +1132,7 @@ dist_templates_DATA = \
 	templates/koma-letter2.lyx \
 	templates/latex8.lyx \
 	templates/letter.lyx \
+	templates/README.new_templates \
 	templates/revtex.lyx \
 	templates/revtex4.lyx \
 	templates/slides.lyx

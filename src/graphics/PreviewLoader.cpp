@@ -67,10 +67,8 @@ string const unique_filename(string const & bufferpath)
 }
 
 
-lyx::Converter const * setConverter()
+lyx::Converter const * setConverter(string const from)
 {
-	string const from = "lyxpreview";
-
 	typedef vector<string> FmtList;
 	typedef lyx::graphics::Cache GCache;
 	FmtList const & loadableFormats = GCache::get().loadableFormats();
@@ -354,7 +352,7 @@ InProgress::InProgress(string const & filename_base,
 		       PendingSnippets const & pending,
 		       string const & to_format)
 	: pid(0),
-	  metrics_file(FileName(filename_base + ".metrics")),
+	  metrics_file(filename_base + ".metrics"),
 	  snippets(pending.size())
 {
 	PendingSnippets::const_iterator pit  = pending.begin();
@@ -397,8 +395,12 @@ PreviewLoader::Impl::Impl(PreviewLoader & p, Buffer const & b)
 	LYXERR(Debug::GRAPHICS, "The font scaling factor is "
 				<< font_scaling_factor_);
 
-	if (!pconverter_)
-		pconverter_ = setConverter();
+	if (!pconverter_){
+		if (b.params().encoding().package() == Encoding::japanese)
+			pconverter_ = setConverter("lyxpreview-platex");
+		else
+			pconverter_ = setConverter("lyxpreview");
+	}
 }
 
 
@@ -676,8 +678,6 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 
 void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
 {
-	// Why on earth is Buffer::makeLaTeXFile a non-const method?
-	Buffer & tmp = const_cast<Buffer &>(buffer_);
 	// Dump the preamble only.
 	// We don't need an encoding for runparams since it is not used by
 	// the preamble.
@@ -686,7 +686,7 @@ void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
 	runparams.nice = true;
 	runparams.moving_arg = true;
 	runparams.free_spacing = true;
-	tmp.writeLaTeXSource(os, buffer_.filePath(), runparams, true, false);
+	buffer_.writeLaTeXSource(os, buffer_.filePath(), runparams, true, false);
 
 	// FIXME! This is a HACK! The proper fix is to control the 'true'
 	// passed to WriteStream below:

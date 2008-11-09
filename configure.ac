@@ -1,7 +1,7 @@
-vdnl Process with autoconf to generate configure script   -*- sh -*-
+dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.0beta4,[lyx-devel@lists.lyx.org],[lyx])
-AC_SUBST(LYX_DATE, ["Fri, Jul 11, 2008"])
+AC_INIT(LyX,1.6.0,[lyx-devel@lists.lyx.org],[lyx])
+AC_SUBST(LYX_DATE, ["Fri, Nov 7, 2008"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -34,11 +34,11 @@ for file in config/install-sh config/mkinstalldirs ; do
 done
 
 ### Check for programs
-AC_PROG_MAKE_SET
-AC_PROG_INSTALL
+dnl AC_PROG_MAKE_SET
+dnl AC_PROG_INSTALL
 
 # Check for installed python
-AM_PATH_PYTHON(2.3,, :)
+AM_PATH_PYTHON(2.3.4,, :)
 
 # Work around a problem in automake 1.4: when invoking install-strip,
 # INSTALL_PROGRAM is changed to 'install -s', and since
@@ -48,11 +48,7 @@ INSTALL_SCRIPT='${INSTALL}'
 
 ### we will also need a C compiler to compile GNU gettext
 AC_PROG_CC
-AC_GNU_SOURCE
-
-### check for special systems
-AC_ISC_POSIX
-AC_AIX
+AC_USE_SYSTEM_EXTENSIONS
 
 ### we need to know the byte order for unicode conversions
 AC_C_BIGENDIAN
@@ -168,18 +164,6 @@ AC_CHECK_HEADERS(zlib.h,
  [LYX_LIB_ERROR(zlib.h,zlib)])
 
 
-### Check for X libraries
-AC_PATH_XTRA
-case $have_x in
-  yes) LIBS="$X_PRE_LIBS $LIBS $X_LIBS -lX11 $X_EXTRA_LIBS"
-       CPPFLAGS="$CPPFLAGS $X_CFLAGS";;
-  no) LYX_ERROR(dnl
-[Cannot find X window libraries and/or headers. Check your installation.
-  If you use a Linux system, check that you have installed
-  the development tools.]);;
-  disable) ;;
-esac
-
 ### check which frontend we want to use
 
 dnl The code below is not in a macro, because this would cause big
@@ -224,6 +208,10 @@ fi
 ### Setup GNU gettext
 dnl GNU gettext is written in C
 AC_LANG_PUSH(C)
+dnl Dirty trick ahead: disable macro AC_GNU_SOURCE because it triggers a bug with autoconf 2.62.
+dnl this can be removed if gettext is been updated to avoid that.
+m4_undefine([AC_GNU_SOURCE])
+m4_defun([AC_GNU_SOURCE],[])
 AM_GNU_GETTEXT
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AC_LANG_POP(C)
@@ -313,6 +301,7 @@ AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_CXXFLAGS)
 AC_SUBST(AM_CFLAGS)
 AC_SUBST(AM_LDFLAGS)
+AC_SUBST(real_pkgdatadir)
 
 ## Some config.h stuff
 
@@ -389,11 +378,6 @@ char * strerror(int n);
 ])
 
 
-AC_ARG_WITH(qmake,
-	AC_HELP_STRING([--with-qmake],
-		[Use qmake instead of automake to generate Makefiles]),,
-	[with_qmake=no])
-
 AC_ARG_ENABLE(monolithic-boost,
   AC_HELP_STRING([--enable-monolithic-boost],
 		[Use monolithic boost compilations]),,
@@ -451,12 +435,15 @@ AC_DEFINE_UNQUOTED([PROGRAM_SUFFIX],
 
 AC_DEFINE_UNQUOTED([LYX_DATE],"$LYX_DATE",[Date of release])
 AC_DEFINE_UNQUOTED([VERSION_INFO],"$VERSION_INFO",[Full version info])
+AC_DEFINE_UNQUOTED([LYX_DIR_VER],"$lyx_dir_ver",[Versioned env var for system dir])
+AC_DEFINE_UNQUOTED([LYX_USERDIR_VER],"$lyx_userdir_ver",[Versioned env var for user dir])
 AC_DEFINE_UNQUOTED([LYX_MAJOR_VERSION],$lyx_major,[Major version number])
 AC_DEFINE_UNQUOTED([LYX_MINOR_VERSION],$lyx_minor,[Minor version number])
 AC_DEFINE_UNQUOTED([LYX_RELEASE_LEVEL],$lyx_release,[Release version number])
 AC_DEFINE_UNQUOTED([LYX_RELEASE_PATCH],$lyx_patch,[Patch version number])
 
-AC_CONFIG_FILES([Makefile
+AC_CONFIG_FILES([Makefile \
+      lyx.1:lyx.1in \
       boost/Makefile \
       config/Makefile \
       development/Makefile \
@@ -484,30 +471,6 @@ AC_CONFIG_FILES([Makefile
 
 
 AC_OUTPUT
-
-if test x$with_qmake = xyes ; then
-	echo "CONFIGURE WITH QMAKE ONLY"
-	if test x$srcdir = x ; then
-		echo "ONLY FOR OUT-OF-TREE-BUILDS POSSIBLE"
-	else
-		rm boost/Makefile
-		rm src/client/Makefile
-		rm src/Makefile
-		rm src/tex2lyx/Makefile
-		rm src/support/Makefile
-		rm src/frontends/Makefile
-		rm src/frontends/qt4/Makefile
-		rm -rf boost/.deps
-		rm -rf src/client/.deps
-		rm -rf src/.deps
-		rm -rf src/tex2lyx/.deps
-		rm -rf src/support/.deps
-		rm -rf src/frontends/.deps
-		rm -rf src/frontends/qt4/.deps
-		${srcdir}/development/qmake/doit
-	fi
-fi
-
 
 # show version information
 echo

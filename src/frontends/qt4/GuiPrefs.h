@@ -395,6 +395,7 @@ public:
 
 public Q_SLOTS:
 	void select_ui();
+	void on_clearSessionPB_clicked();
 };
 
 
@@ -420,15 +421,6 @@ public:
 class PrefShortcuts : public PrefModule, public Ui::PrefShortcuts
 {
 	Q_OBJECT
-private:
-	enum ItemType {
-		System,         //< loaded from a bind file
-		UserBind,       //< \bind loaded from user.bind
-		UserUnbind,     //< \unbind loaded from user.bind, with corresponding
-		                //<    entry in system bind file
-		UserExtraUnbind	//< \unbind loaded from user.bind, without
-		                //<    corresponding entry in system bind file.
-	};
 public:
 	PrefShortcuts(GuiPreferences * form);
 
@@ -436,10 +428,11 @@ public:
 	void update(LyXRC const & rc);
 	void updateShortcutsTW();
 	void modifyShortcut();
+	void removeShortcut();
 	///
-	void setItemType(QTreeWidgetItem * item, ItemType tag);
+	void setItemType(QTreeWidgetItem * item, KeyMap::ItemType tag);
 	QTreeWidgetItem * insertShortcutItem(FuncRequest const & lfun, 
-		KeySequence const & shortcut, ItemType tag);
+		KeySequence const & shortcut, KeyMap::ItemType tag);
 
 public Q_SLOTS:
 	void select_bind();
@@ -450,7 +443,9 @@ public Q_SLOTS:
 	///
 	void on_shortcutsTW_itemSelectionChanged();
 	void shortcut_okPB_pressed();
+	void shortcut_cancelPB_pressed();
 	void shortcut_clearPB_pressed();
+	void shortcut_removePB_pressed();
 	void on_shortcutsTW_itemDoubleClicked();
 
 private:
@@ -474,6 +469,8 @@ private:
 	KeyMap system_bind_;
 	KeyMap user_bind_;
 	KeyMap user_unbind_;
+	///
+	QString save_lfun_;
 };
 
 

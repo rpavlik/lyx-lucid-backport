@@ -32,8 +32,11 @@ namespace frontend { class Painter; }
 */
 class InsetCollapsable : public InsetText {
 public:
-	///
-	InsetCollapsable(Buffer const &, CollapseStatus status = Inset::Open);
+	///	By default, InsetCollapsable uses the plain layout. If you 
+	/// want to override this in a subclass, you'll need to call 
+	/// Paragraph::setDefaultLayout() in its constructor. See
+	/// InsetBranch for an example.
+	InsetCollapsable(Buffer const &);
 	///
 	InsetCollapsable(InsetCollapsable const & rhs);
 	///
@@ -68,7 +71,9 @@ public:
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
 	///
 	bool boundary, int & x, int & y) const;
-	///
+	/// Returns true if (mouse) action is over the inset's button.
+	/// Always returns false when the inset does not have a
+	/// button.
 	bool hitButton(FuncRequest const &) const;
 	///
 	docstring const getNewLabel(docstring const & l) const;
@@ -162,7 +167,8 @@ protected:
 	docstring floatName(std::string const & type, BufferParams const &) const;
 	///
 	virtual void resetParagraphsFont();
-
+	///
+	mutable CollapseStatus status_;
 private:
 	/// cache for the layout_. Make sure it is in sync with the document class!
 	InsetLayout const * layout_;
@@ -172,8 +178,6 @@ private:
 	docstring labelstring_;
 	///
 	mutable Box button_dim;
-	///
-	mutable CollapseStatus status_;
 	/// a substatus of the Open status, determined automatically in metrics
 	mutable bool openinlined_;
 	/// the inset will automatically open when the cursor is inside

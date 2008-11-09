@@ -1,12 +1,18 @@
 @bMaarten Afman
 @iE-mail: info () afman ! net
    Dutch translation team member
+@bHatim Alahmadi
+@iE-mail: dr.hatim () hotmail ! com
+   Arabic translation
 @bAsger Alstrup
 @iE-mail: aalstrup () laerdal ! dk
    General hacking of user interface stuff and those other bits and pieces
 @bPascal André
 @iE-mail: andre () via ! ecp ! fr
    External style definition files, linuxdoc sgml support and more ftp-site ftp.lyx.org
+@bLiviu Andronic
+@iE-mail: landronimirc () gmail ! com
+   Romanian localization
 @bJoão Luis Meloni Assirati
 @iE-mail: assirati () nonada ! if ! usp ! br
    Added support for unix sockets and thence the 'inverse DVI' feature
@@ -33,7 +39,7 @@
    Small bugfixes that were very hard to find
 @bLars Gullik Bjønnes
 @iE-mail: larsbj () gullik ! net
-   Improvements to user interface (menus and keyhandling) including a configurable toolbar and a few other (not so) minor things, like rewriting most of the LyX kernel. Also current source maintainer
+   Improvements to user interface (menus and keyhandling) including a configurable toolbar and a few other (not so) minor things, like rewriting most of the LyX kernel. Also previous source maintainer.
 @bAlfredo Braunstein
 @iE-mail: abraunst () lyx ! org
    A (pseudo) threaded graphics loader queue, lots of fixes, etc.
@@ -57,10 +63,13 @@
    Bug fixes
 @bJean-Pierre Chrétien
 @iE-mail: chretien () cert ! fr
-   French translation of the Windows installer
+   French translations
 @bClaudio Coco
 @iE-mail: lacocio () libero ! it
    Italian translation
+@bYuri Chornoivan
+@iE-mail: yurchor () ukr ! net
+   Ukranian translation
 @bMatthias Kalle Dalheimer
 @iE-mail: kalle () kdab ! net
    Qt2 port
@@ -76,6 +85,9 @@
 @bDov Feldstern
 @iE-mail: dfeldstern () fastimap ! com
    RTL/BiDi-related fixes
+@bMichał Fita
+@iE-mail: michal ! fita () gmail ! com
+   Polish translation
 @bRonald Florence
 @iE-mail: ron () 18james ! com
    Maintainer of the OS X port(s)
@@ -90,7 +102,7 @@
    Italian translation of documentations
 @bEnrico Forestieri
 @iE-mail: forenr () tlc ! unipr ! it
-   Italian translation of the Windows installer
+   Italian translations, many bug fixes and features
 @bEitan Frachtenberg
 @iE-mail: sky8an () gmail ! com
    BibTeX annotation support
@@ -188,7 +200,7 @@
    Xforms dialogs and GUI related code
 @bJean-Marc Lasgouttes
 @iE-mail: lasgouttes () lyx ! org
-   configure and Makefile-stuff and more
+   configure and Makefile-stuff, many bugfixes and more. Previous stable branch maintainer.
 @bVictor Lavrenko
 @iE-mail: lyx () lavrenko ! pp ! ru
    Russian translation
@@ -211,9 +223,12 @@
 @bHangzai Luo
 @iE-mail: memcache () gmail ! com
    Bugfixes
+@bTetsuya Makimura
+@iE-mail: makimura () ims ! tsukuba.ac ! jp
+   Improvements to the Japanese language support.
 @bJosé Matos
 @iE-mail: jamatos () fc ! up ! pt
-   linuxdoc sgml support
+   linuxdoc sgml support. Current release manager.
 @bRoman Maurer
 @iE-mail: roman.maurer () amis ! net
    Slovenian translation coordinator
@@ -249,7 +264,7 @@
    Russian translation of the user interface
 @bSanda Pavel
 @iE-mail: ps () ucw ! cz
-   Czech translation, support for the LaTeX package hyperref
+   Czech translation, support for the LaTeX package hyperref, fullscreen support, lfuns docs/review
 @bBo Peng
 @iE-mail: ben.bob () gmail ! com
    Conversion of all shell scripts to Python, shortcuts dialog, session, view-source, auto-view, embedding features and scons build system.
@@ -267,7 +282,7 @@
    Keymap work
 @bAndré Pönitz
 @iE-mail: andre.poenitz () mathematik ! tu-chemnitz ! de
-   mathed rewrite to use STL file io with streams, --export and --import command line options, and more
+   mathed rewrite to use STL file io with streams --export and --import command line options
 @bKornelia Pönitz
 @iE-mail: kornelia.poenitz () mathematik ! tu-chemnitz ! de
    heavy mathed testing; provided siamltex document class
@@ -342,7 +357,7 @@
    vertical spaces
 @bJürgen Spitzmüller
 @iE-mail: juergen.sp () t-online ! de
-   Qt frontend, bugfixes
+   Qt frontend, bugfixes. Current stable branch maintainer.
 @bJohn Spray
 @iE-mail: jcs116 () york ! ac ! uk
    Gtk frontend
@@ -351,7 +366,7 @@
    fix bugs with error insets placement
 @bUwe Stöhr
 @iE-mail: uwestoehr () web ! de
-   documentation updates, Windows installer, small fixes
+   Current documentation maintainer, Windows installer, bug fixes
 @bDavid Suárez de Lis
 @iE-mail: excalibor () iname ! com
    maintaining es.po since v1.0.0 and other small i18n issues small fixes
@@ -427,6 +442,18 @@
 @bHorst Schirmeier
 @iE-mail: horst () schirmeier ! com
    small fixes
+@bVincent van Ravesteijn
+@iE-mail: V.F.vanRavesteijn () tudelft ! nl
+   lots of fixes
+@bGünter Milde
+@iE-mail: milde () users ! berlios ! de
+   Unicode and layout file fixes
+@bPeter Gumm
+@iE-mail: gumm () mathematik ! uni-marburg ! de
+   XY-pic manual
+@bİbrahim Güngör
+@iE-mail: h.ibrahim.gungor () gmail ! com
+   Turkish translation
 @bXiaokun Zhu
 @iE-mail: xiaokun () aero ! gla ! ac ! uk
    bug reports and small fixes

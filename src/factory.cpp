@@ -141,9 +141,6 @@ Inset * createInsetHelper(Buffer & buf, FuncRequest const & cmd)
 		case LFUN_OPTIONAL_INSERT:
 			return new InsetOptArg(buf);
 
-		case LFUN_BIBITEM_INSERT:
-			return new InsetBibitem(buf, InsetCommandParams(BIBITEM_CODE));
-
 		case LFUN_FLOAT_INSERT: {
 			// check if the float type exists
 			string const argument = to_utf8(cmd.argument());
@@ -391,7 +388,7 @@ Inset * createInsetHelper(Buffer & buf, FuncRequest const & cmd)
 		if (message.type_ == ErrorException) {
 			// This should never happen!
 			Alert::error(message.title_, message.details_);
-			LyX::cref().exit(1);
+			lyx_exit(1);
 		} else if (message.type_ == WarningException) {
 			Alert::warning(message.title_, message.details_);
 			return 0;
@@ -498,7 +495,7 @@ Inset * readInset(Lexer & lex, Buffer const & buf)
 		// can be translated to inset codes using insetCode(). And the insets'
 		// write() routines should use insetName() rather than hardcoding it.
 		if (tmptok == "Quotes") {
-			inset.reset(new InsetQuotes);
+			inset.reset(new InsetQuotes(buf));
 		} else if (tmptok == "External") {
 			inset.reset(new InsetExternal(const_cast<Buffer &>(buf)));
 		} else if (tmptok == "FormulaMacro") {
@@ -524,7 +521,7 @@ Inset * readInset(Lexer & lex, Buffer const & buf)
 		} else if (tmptok == "space") {
 			inset.reset(new InsetSpace);
 		} else if (tmptok == "Tabular") {
-			inset.reset(new InsetTabular(buf));
+			inset.reset(new InsetTabular(const_cast<Buffer &>(buf)));
 		} else if (tmptok == "Text") {
 			inset.reset(new InsetText(buf));
 		} else if (tmptok == "VSpace") {

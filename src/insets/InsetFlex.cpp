@@ -34,10 +34,11 @@ namespace lyx {
 
 
 InsetFlex::InsetFlex(Buffer const & buf, string const & layoutName)
-	: InsetCollapsable(buf, Collapsed), name_(layoutName)
+	: InsetCollapsable(buf), name_(layoutName)
 {
 	// again, because now the name is initialized
 	setLayout(buf.params().documentClassPtr());
+	status_= Collapsed;
 }
 
 
@@ -109,16 +110,8 @@ int InsetFlex::docbook(odocstream & os, OutputParams const & runparams) const
 
 void InsetFlex::textString(odocstream & os) const
 {
-	os << paragraphs().begin()->asString(AS_STR_LABEL | AS_STR_INSETS);
+	os << text().asString(0, 1, AS_STR_LABEL | AS_STR_INSETS);
 }
 
-
-void InsetFlex::validate(LaTeXFeatures & features) const
-{
-	string const preamble = getLayout().preamble();
-	if (!preamble.empty())
-		features.addPreambleSnippet(preamble);
-	features.require(getLayout().requires());
-}
 
 } // namespace lyx

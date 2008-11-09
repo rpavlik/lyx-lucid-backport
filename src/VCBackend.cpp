@@ -13,8 +13,11 @@
 #include "VCBackend.h"
 #include "Buffer.h"
 
+#include "frontends/alert.h"
+
 #include "support/debug.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/Path.h"
 #include "support/Systemcall.h"
@@ -33,12 +36,23 @@ using boost::smatch;
 namespace lyx {
 
 
-int VCS::doVCCommand(string const & cmd, FileName const & path)
-{
-	LYXERR(Debug::LYXVC, "doVCCommand: " << cmd);
+int VCS::doVCCommandCall(string const & cmd, FileName const & path){
+	LYXERR(Debug::LYXVC, "doVCCommandCall: " << cmd);
 	Systemcall one;
 	support::PathChanger p(path);
-	int const ret = one.startscript(Systemcall::Wait, cmd);
+	return one.startscript(Systemcall::Wait, cmd);
+}
+
+int VCS::doVCCommand(string const & cmd, FileName const & path)
+{
+	owner_->setBusy(true);
+	int const ret = doVCCommandCall(cmd, path);
+	owner_->setBusy(false);
+	if (ret)
+		frontend::Alert::error(_("Revision control error."),
+			bformat(_("Some problem occured while running the command:\n"
+				  "'%1$s'."),
+			from_ascii(cmd)));
 	return ret;
 }
 
@@ -60,7 +74,7 @@ FileName const RCS::findFile(FileName const & file)
 {
 	// Check if *,v exists.
 	FileName tmp(file.absFilename() + ",v");
-	LYXERR(Debug::LYXVC, "Checking if file is under rcs: " << tmp);
+	LYXERR(Debug::LYXVC, "LyXVC: Checking if file is under rcs: " << tmp);
 	if (tmp.isReadableFile()) {
 		LYXERR(Debug::LYXVC, "Yes " << file << " is under rcs.");
 		return tmp;
@@ -68,7 +82,7 @@ FileName const RCS::findFile(FileName const & file)
 
 	// Check if RCS/*,v exists.
 	tmp = FileName(addName(addPath(onlyPath(file.absFilename()), "RCS"), file.absFilename()) + ",v");
-	LYXERR(Debug::LYXVC, "Checking if file is under rcs: " << tmp);
+	LYXERR(Debug::LYXVC, "LyXVC: Checking if file is under rcs: " << tmp);
 	if (tmp.isReadableFile()) {
 		LYXERR(Debug::LYXVC, "Yes " << file << " it is under rcs.");
 		return tmp;
@@ -81,14 +95,17 @@ FileName const RCS::findFile(FileName const & file)
 void RCS::retrieve(FileName const & file)
 {
 	LYXERR(Debug::LYXVC, "LyXVC::RCS: retrieve.\n\t" << file);
-	VCS::doVCCommand("co -q -r " + quoteName(file.toFilesystemEncoding()),
+	doVCCommandCall("co -q -r " + quoteName(file.toFilesystemEncoding()),
 			 FileName());
 }
 
 
 void RCS::scanMaster()
 {
-	LYXERR(Debug::LYXVC, "LyXVC::RCS: scanMaster.");
+	if (master_.empty())
+		return;
+
+	LYXERR(Debug::LYXVC, "LyXVC::RCS: scanMaster: " << master_);
 
 	ifstream ifs(master_.toFilesystemEncoding().c_str());
 
@@ -156,19 +173,31 @@ void RCS::registrer(string const & msg)
 }
 
 
-void RCS::checkIn(string const & msg)
+string RCS::checkIn(string const & msg)
 {
-	doVCCommand("ci -q -u -m\"" + msg + "\" "
+	int ret = doVCCommand("ci -q -u -m\"" + msg + "\" "
 		    + quoteName(onlyFilename(owner_->absFileName())),
 		    FileName(owner_->filePath()));
+	return ret ? string() : "RCS: Proceeded";
+}
+
+bool RCS::checkInEnabled()
+{
+	return owner_ && !owner_->isReadonly();
+}
+
+string RCS::checkOut()
+{
+	owner_->markClean();
+	int ret = doVCCommand("co -q -l " + quoteName(onlyFilename(owner_->absFileName())),
+		    FileName(owner_->filePath()));
+	return ret ? string() : "RCS: Proceeded";
 }
 
 
-void RCS::checkOut()
+bool RCS::checkOutEnabled()
 {
-	owner_->markClean();
-	doVCCommand("co -q -l " + quoteName(onlyFilename(owner_->absFileName())),
-		    FileName(owner_->filePath()));
+	return owner_ && owner_->isReadonly();
 }
 
 
@@ -191,11 +220,23 @@ void RCS::undoLast()
 }
 
 
+bool RCS::undoLastEnabled()
+{
+	return true;
+}
+
+
 void RCS::getLog(FileName const & tmpf)
 {
 	doVCCommand("rlog " + quoteName(onlyFilename(owner_->absFileName()))
 		    + " > " + tmpf.toFilesystemEncoding(),
 		    FileName(owner_->filePath()));
+}
+
+
+bool RCS::toggleReadOnlyEnabled()
+{
+	return true;
 }
 
 
@@ -217,20 +258,20 @@ FileName const CVS::findFile(FileName const & file)
 {
 	// First we look for the CVS/Entries in the same dir
 	// where we have file.
-	FileName const dir(onlyPath(file.absFilename()) + "/CVS/Entries");
+	FileName const entries(onlyPath(file.absFilename()) + "/CVS/Entries");
 	string const tmpf = '/' + onlyFilename(file.absFilename()) + '/';
-	LYXERR(Debug::LYXVC, "LyXVC: checking in `" << dir
+	LYXERR(Debug::LYXVC, "LyXVC: Checking if file is under cvs in `" << entries
 			     << "' for `" << tmpf << '\'');
-	if (dir.isReadableDirectory()) {
+	if (entries.isReadableFile()) {
 		// Ok we are at least in a CVS dir. Parse the CVS/Entries
 		// and see if we can find this file. We do a fast and
 		// dirty parse here.
-		ifstream ifs(dir.toFilesystemEncoding().c_str());
+		ifstream ifs(entries.toFilesystemEncoding().c_str());
 		string line;
 		while (getline(ifs, line)) {
 			LYXERR(Debug::LYXVC, "\tEntries: " << line);
 			if (contains(line, tmpf))
-				return dir;
+				return entries;
 		}
 	}
 	return FileName();
@@ -266,6 +307,8 @@ void CVS::scanMaster()
 			string mod_date = rtrim(asctime(gmtime(&mod)), "\n");
 			LYXERR(Debug::LYXVC, "Date in Entries: `" << file_date
 				<< "'\nModification date of file: `" << mod_date << '\'');
+			//FIXME this whole locking bussiness is not working under cvs and the machinery
+			// conforms to the ci usage, not cvs.
 			if (file_date == mod_date) {
 				locker_ = "Unlocked";
 				vcstatus = UNLOCKED;
@@ -289,18 +332,34 @@ void CVS::registrer(string const & msg)
 }
 
 
-void CVS::checkIn(string const & msg)
+string CVS::checkIn(string const & msg)
 {
-	doVCCommand("cvs -q commit -m \"" + msg + "\" "
+	int ret = doVCCommand("cvs -q commit -m \"" + msg + "\" "
 		    + quoteName(onlyFilename(owner_->absFileName())),
 		    FileName(owner_->filePath()));
+	return ret ? string() : "CVS: Proceeded";
 }
 
 
-void CVS::checkOut()
+bool CVS::checkInEnabled()
+{
+	return true;
+}
+
+
+string CVS::checkOut()
 {
 	// cvs update or perhaps for cvs this should be a noop
+	// we need to detect conflict (eg "C" in output)
+	// before we can do this.
 	lyxerr << "Sorry not implemented." << endl;
+	return string();
+}
+
+
+bool CVS::checkOutEnabled()
+{
+	return false;
 }
 
 
@@ -309,8 +368,13 @@ void CVS::revert()
 	// Reverts to the version in CVS repository and
 	// gets the updated version from the repository.
 	string const fil = quoteName(onlyFilename(owner_->absFileName()));
-
-	doVCCommand("rm -f " + fil + "; cvs update " + fil,
+	// This is sensitive operation, so at lest some check about
+	// existence of cvs program and its file
+	if (doVCCommand("cvs log "+ fil, FileName(owner_->filePath())))
+		return;
+	FileName f(owner_->absFileName());
+	f.removeFile();
+	doVCCommand("cvs update " + fil,
 		    FileName(owner_->filePath()));
 	owner_->markClean();
 }
@@ -325,11 +389,201 @@ void CVS::undoLast()
 }
 
 
+bool CVS::undoLastEnabled()
+{
+	return false;
+}
+
+
 void CVS::getLog(FileName const & tmpf)
 {
 	doVCCommand("cvs log " + quoteName(onlyFilename(owner_->absFileName()))
 		    + " > " + tmpf.toFilesystemEncoding(),
 		    FileName(owner_->filePath()));
+}
+
+bool CVS::toggleReadOnlyEnabled()
+{
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////
+//
+// SVN
+//
+/////////////////////////////////////////////////////////////////////
+
+SVN::SVN(FileName const & m, FileName const & f)
+{
+	master_ = m;
+	file_ = f;
+	scanMaster();
+}
+
+
+FileName const SVN::findFile(FileName const & file)
+{
+	// First we look for the CVS/Entries in the same dir
+	// where we have file.
+	FileName const entries(onlyPath(file.absFilename()) + "/.svn/entries");
+	string const tmpf = onlyFilename(file.absFilename());
+	LYXERR(Debug::LYXVC, "LyXVC: Checking if file is under svn in `" << entries
+			     << "' for `" << tmpf << '\'');
+	if (entries.isReadableFile()) {
+		// Ok we are at least in a CVS dir. Parse the CVS/Entries
+		// and see if we can find this file. We do a fast and
+		// dirty parse here.
+		ifstream ifs(entries.toFilesystemEncoding().c_str());
+		string line, oldline;
+		while (getline(ifs, line)) {
+			if (line == "dir" || line == "file")
+				LYXERR(Debug::LYXVC, "\tEntries: " << oldline);
+			if (oldline == tmpf && line == "file")
+				return entries;
+			oldline = line;
+		}
+	}
+	return FileName();
+}
+
+
+void SVN::scanMaster()
+{
+	// if we want some locking under svn
+	// we need different infrastructure around
+	locker_ = "Unlocked";
+	vcstatus = UNLOCKED;
+}
+
+
+void SVN::registrer(string const & /*msg*/)
+{
+	doVCCommand("svn add -q " + quoteName(onlyFilename(owner_->absFileName())),
+		    FileName(owner_->filePath()));
+}
+
+
+string SVN::checkIn(string const & msg)
+{
+	FileName tmpf = FileName::tempName("lyxvcout");
+	if (tmpf.empty()){
+		LYXERR(Debug::LYXVC, "Could not generate logfile " << tmpf);
+		return N_("Error: Could not generate logfile.");
+	}
+
+	doVCCommand("svn commit -m \"" + msg + "\" "
+		    + quoteName(onlyFilename(owner_->absFileName()))
+		    + " > " + tmpf.toFilesystemEncoding(),
+		    FileName(owner_->filePath()));
+
+	string log;
+	string res = scanLogFile(tmpf, log);
+	if (!res.empty())
+		frontend::Alert::error(_("Revision control error."),
+				_("Error when commiting to repository.\n"
+				"You have to manually resolve the problem.\n"
+				"After pressing OK, LyX will reopen the document."));
+	tmpf.erase();
+	return "SVN: " + log;
+}
+
+
+bool SVN::checkInEnabled()
+{
+	return true;
+}
+
+// FIXME Correctly return code should be checked instead of this.
+// This would need another solution than just plain startscript.
+// Hint from Andre': QProcess::readAllStandardError()...
+string SVN::scanLogFile(FileName const & f, string & status)
+{
+	ifstream ifs(f.toFilesystemEncoding().c_str());
+	string line;
+
+	while (ifs) {
+		getline(ifs, line);
+		lyxerr << line << "\n";
+		if (!line.empty()) status += line + "; ";
+		if (prefixIs(line, "C ") || contains(line, "Commit failed")) {
+			ifs.close();
+			return line;
+		}
+	}
+	ifs.close();
+	return string();
+}
+
+
+string SVN::checkOut()
+{
+	FileName tmpf = FileName::tempName("lyxvcout");
+	if (tmpf.empty()) {
+		LYXERR(Debug::LYXVC, "Could not generate logfile " << tmpf);
+		return N_("Error: Could not generate logfile.");
+	}
+
+	doVCCommand("svn update " + quoteName(onlyFilename(owner_->absFileName()))
+		    + " > " + tmpf.toFilesystemEncoding(),
+		    FileName(owner_->filePath()));
+
+	string log;
+	string res = scanLogFile(tmpf, log);
+	if (!res.empty())
+		frontend::Alert::error(_("Revision control error."),
+			bformat(_("Error when updating from repository.\n"
+				"You have to manually resolve the conflicts NOW!\n'%1$s'.\n\n"
+				"After pressing OK, LyX will try to reopen resolved document."),
+			from_ascii(res)));
+	tmpf.erase();
+	return "SVN: " + log;
+}
+
+
+bool SVN::checkOutEnabled()
+{
+	return true;
+}
+
+
+void SVN::revert()
+{
+	// Reverts to the version in CVS repository and
+	// gets the updated version from the repository.
+	string const fil = quoteName(onlyFilename(owner_->absFileName()));
+
+	doVCCommand("svn revert -q " + fil,
+		    FileName(owner_->filePath()));
+	owner_->markClean();
+}
+
+
+void SVN::undoLast()
+{
+	// merge the current with the previous version
+	// in a reverse patch kind of way, so that the
+	// result is to revert the last changes.
+	lyxerr << "Sorry not implemented." << endl;
+}
+
+
+bool SVN::undoLastEnabled()
+{
+	return false;
+}
+
+
+void SVN::getLog(FileName const & tmpf)
+{
+	doVCCommand("svn log " + quoteName(onlyFilename(owner_->absFileName()))
+		    + " > " + tmpf.toFilesystemEncoding(),
+		    FileName(owner_->filePath()));
+}
+
+
+bool SVN::toggleReadOnlyEnabled()
+{
+	return false;
 }
 
 

@@ -261,17 +261,17 @@ int LaTeX::run(TeXErrors & terr)
 	if (head.haschanged(idxfile)) {
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running MakeIndex.");
-		message(_("Running MakeIndex."));
+		message(_("Running Index Processor."));
 		// onlyFilename() is needed for cygwin
 		rerun |= runMakeIndex(onlyFilename(idxfile.absFilename()),
 				runparams);
 	}
 	FileName const nlofile(changeExtension(file.absFilename(), ".nlo"));
 	if (head.haschanged(nlofile))
-		rerun |= runMakeIndexNomencl(file, runparams, ".nlo", ".nls");
+		rerun |= runMakeIndexNomencl(file, ".nlo", ".nls");
 	FileName const glofile(changeExtension(file.absFilename(), ".glo"));
 	if (head.haschanged(glofile))
-		rerun |= runMakeIndexNomencl(file, runparams, ".glo", ".gls");
+		rerun |= runMakeIndexNomencl(file, ".glo", ".gls");
 
 	// run bibtex
 	// if (scanres & UNDEF_CIT || scanres & RERUN || run_bibtex)
@@ -335,7 +335,7 @@ int LaTeX::run(TeXErrors & terr)
 	if (head.haschanged(idxfile)) {
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running MakeIndex.");
-		message(_("Running MakeIndex."));
+		message(_("Running Index Processor."));
 		// onlyFilename() is needed for cygwin
 		rerun = runMakeIndex(onlyFilename(changeExtension(
 				file.absFilename(), ".idx")), runparams);
@@ -343,9 +343,9 @@ int LaTeX::run(TeXErrors & terr)
 
 	// I am not pretty sure if need this twice.
 	if (head.haschanged(nlofile))
-		rerun |= runMakeIndexNomencl(file, runparams, ".nlo", ".nls");
+		rerun |= runMakeIndexNomencl(file, ".nlo", ".nls");
 	if (head.haschanged(glofile))
-		rerun |= runMakeIndexNomencl(file, runparams, ".glo", ".gls");
+		rerun |= runMakeIndexNomencl(file, ".glo", ".gls");
 
 	// 2
 	// we will only run latex more if the log file asks for it.
@@ -411,17 +411,18 @@ bool LaTeX::runMakeIndex(string const & f, OutputParams const & runparams,
 
 
 bool LaTeX::runMakeIndexNomencl(FileName const & file,
-		OutputParams const & runparams,
 		string const & nlo, string const & nls)
 {
 	LYXERR(Debug::LATEX, "Running MakeIndex for nomencl.");
 	message(_("Running MakeIndex for nomencl."));
+	string tmp = lyxrc.nomencl_command + ' ';
 	// onlyFilename() is needed for cygwin
-	string const nomenclstr = " -s nomencl.ist -o "
+	tmp += quoteName(onlyFilename(changeExtension(file.absFilename(), nlo)));
+	tmp += " -o "
 		+ onlyFilename(changeExtension(file.toFilesystemEncoding(), nls));
-	return runMakeIndex(
-			onlyFilename(changeExtension(file.absFilename(), nlo)),
-			runparams, nomenclstr);
+	Systemcall one;
+	one.startscript(Systemcall::Wait, tmp);
+	return true;
 }
 
 

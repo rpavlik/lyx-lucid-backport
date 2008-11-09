@@ -91,14 +91,14 @@ public:
 	};
 
 
-	/// Method to check if a file is externally modified, used by 
+	/// Method to check if a file is externally modified, used by
 	/// isExternallyModified()
 	/**
 	 * timestamp is fast but inaccurate. For example, the granularity
 	 * of timestamp on a FAT filesystem is 2 second. Also, various operations
 	 * may touch the timestamp of a file even when its content is unchanged.
 	 *
-	 * checksum is accurate but slow, which can be a problem when it is 
+	 * checksum is accurate but slow, which can be a problem when it is
 	 * frequently used, or used for a large file on a slow (network) file
 	 * system.
 	 *
@@ -108,7 +108,7 @@ public:
 		checksum_method,  ///< Use file checksum
 		timestamp_method, ///< Use timestamp, and checksum if timestamp has changed
 	};
-	
+
 	/** Constructor
 	    \param file
 	    \param b  optional \c false by default
@@ -166,7 +166,7 @@ public:
 	/// Write file. Returns \c false if unsuccesful.
 	bool writeFile(support::FileName const &) const;
 
-  /// Loads LyX file \c filename into buffer, *  and \return success 
+  /// Loads LyX file \c filename into buffer, *  and \return success
 	bool loadLyXFile(support::FileName const & s);
 
 	/// Fill in the ErrorList with the TeXErrors
@@ -278,6 +278,9 @@ public:
 	    child document)
 	 */
 	Buffer const * masterBuffer() const;
+
+	/// \return true if \p child is a child of this \c Buffer.
+	bool isChild(Buffer * child) const;
 
 	/// Is buffer read-only?
 	bool isReadonly() const;
@@ -397,7 +400,7 @@ public:
 	/// get source code (latex/docbook) for some paragraphs, or all paragraphs
 	/// including preamble
 	void getSourceCode(odocstream & os, pit_type par_begin, pit_type par_end,
-		bool full_source);
+		bool full_source) const;
 
 	/// Access to error list.
 	/// This method is used only for GUI visualisation of Buffer related
@@ -417,6 +420,8 @@ public:
 
 	/// This function is called when the buffer is changed.
 	void changed() const;
+	///
+	void updateTocItem(std::string const &, DocIterator const &) const;
 	/// This function is called when the buffer structure is changed.
 	void structureChanged() const;
 	/// This function is called when some parsing error shows up.
@@ -470,7 +475,7 @@ private:
 	void updateMacros(DocIterator & it,
 				     DocIterator & scope) const;
 
-	/// 
+	///
 	bool readFileHelper(support::FileName const & s);
 	///
 	std::vector<std::string> backends() const;

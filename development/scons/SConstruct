@@ -29,7 +29,6 @@ if os.path.exists(os.path.join(scons_dir, 'development', 'scons', 'scons_manifes
 top_src_dir = os.path.split(os.path.split(scons_absdir)[0])[0]
 
 sys.path.extend([scons_absdir, os.path.join(top_src_dir, 'lib', 'doc')])
-import depend
 
 # scons_utils.py defines a few utility function
 import scons_utils as utils
@@ -38,17 +37,8 @@ from scons_manifest import *
 
 # scons asks for 1.5.2, lyx requires 2.3
 EnsurePythonVersion(2, 3)
-# Please use at least 0.96.92 (not 0.96.1)
-EnsureSConsVersion(0, 96)
-# also check for minor version number for scons 0.96
-from SCons import __version__
-# allow the use of snapshot version of scons
-__version__ = __version__.split('d')[0]
-version = map(int, __version__.split('.'))
-if version[0] == 0 and version[1] == 96 and version[2] < 92:
-    print "Scons >= 0.96.92 is required."
-    Exit(1)
-
+# Please use at least version 0.97
+EnsureSConsVersion(0, 97)
 
 #----------------------------------------------------------
 # Global definitions
@@ -58,7 +48,7 @@ if version[0] == 0 and version[1] == 96 and version[2] < 92:
 #
 # get version number from configure.ac so that JMarc does
 # not have to change SConstruct during lyx release
-package_version, lyx_date = utils.getVerFromConfigure(top_src_dir)
+package_version, majmin_ver, lyx_date = utils.getVerFromConfigure(top_src_dir)
 package_cygwin_version = '%s-1' % package_version
 boost_version = ['1_34']
 
@@ -709,7 +699,7 @@ if platform_name == 'cygwin':
 #
 # install customized builders
 env['BUILDERS']['substFile'] = Builder(action = utils.env_subst)
-env['BUILDERS']['installTOC'] = Builder(action = utils.env_toc)
+#env['BUILDERS']['installTOC'] = Builder(action = utils.env_toc)
 env['BUILDERS']['potfiles'] = Builder(action = utils.env_potfiles)
 
 
@@ -1038,6 +1028,10 @@ result = utils.createConfigFile(conf,
             'Define to the version of this package.'),
         ('#define VERSION_INFO "%s"' % env['VERSION_INFO'].replace('\n', '\\n'),
             'Full version info'),
+        ('#define LYX_DIR_VER "LYX_DIR_%sx"' % majmin_ver,
+            'Versioned env var for system dir'),
+        ('#define LYX_USERDIR_VER "LYX_USERDIR_%sx"' % majmin_ver,
+            'Versioned env var for user dir'),
         ('#define LYX_DATE "%s"' % lyx_date,
             'Date of release'),
         ('#define PROGRAM_SUFFIX "%s"' % program_suffix,
@@ -1293,7 +1287,7 @@ if platform_name == 'cygwin':
 # to be built with all the include directories etc
 #
 if frontend == 'qt4':
-    frontend_env = env.Copy()
+    frontend_env = env.Clone()
     frontend_env['BUILDERS']['qtResource'] = Builder(action = utils.env_qtResource)
 
     # handle qt related user specified paths
@@ -1938,6 +1932,7 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
             ('doc', lib_doc_files),
             ('doc/biblio', lib_doc_biblio_files),
             ('doc/clipart', lib_doc_clipart_files),
+            ('doc/ca', lib_doc_ca_files),
             ('doc/cs', lib_doc_cs_files),
             ('doc/da', lib_doc_da_files),
             ('doc/de', lib_doc_de_files),
@@ -1962,6 +1957,8 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
             ('doc/sk', lib_doc_sk_files),
             ('doc/sl', lib_doc_sl_files),
             ('doc/sv', lib_doc_sv_files),
+            ('doc/uk', lib_doc_uk_files),
+            ('doc/uk/clipart', lib_doc_uk_clipart_files),
             ('examples', lib_examples_files),
             ('examples/ca', lib_examples_ca_files),
             ('examples/cs', lib_examples_cs_files),
@@ -2003,21 +2000,6 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
     Alias('install', share_dest_dir + '/lyx2lyx/lyx2lyx_version.py')
     sys.path.append(share_dest_dir + '/lyx2lyx')
     
-    # generate TOC files for each doc
-    languages = depend.all_documents(env.Dir('$TOP_SRCDIR/lib/doc').abspath)
-    tocs = []
-    for lang in languages.keys():
-        if os.path.isdir(os.path.join(env.Dir('$TOP_SRCDIR/lib/doc').abspath, lang)):
-            toc = env.installTOC(os.path.join(share_dest_dir, 'doc', lang, 'TOC.lyx'),
-                languages[lang])
-        else:
-            # this is for English
-            toc = env.installTOC(os.path.join(share_dest_dir, 'doc', 'TOC.lyx'),
-                languages[lang])
-        tocs.append(toc)
-        env.Depends(toc, dirs)
-    Alias('install', tocs)
-    
     if platform_name == 'cygwin':
         # cygwin packaging requires a file /usr/share/doc/Cygwin/foot-vendor-suffix.README
         Cygwin_README = os.path.join(dest_prefix_dir, 'share', 'doc', 'Cygwin', 
@@ -2043,7 +2025,7 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
         Alias('install', postinstall_path)
     # man
     env.InstallAs(os.path.join(man_dest_dir, 'lyx' + version_suffix + '.1'),
-        env.subst('$TOP_SRCDIR/lyx.man'))
+        env.subst('$TOP_SRCDIR/lyx.1in'))
     env.InstallAs(os.path.join(man_dest_dir, 'tex2lyx' + version_suffix + '.1'),
         env.subst('$TOP_SRCDIR/src/tex2lyx/tex2lyx.man'))
     env.InstallAs(os.path.join(man_dest_dir, 'lyxclient' + version_suffix + '.1'),

@@ -249,13 +249,13 @@ bool bruteFind3(Cursor & cur, int x, int y, bool up)
 
 docstring parbreak(Paragraph const & par)
 {
-	odocstringstream ods;
-	ods << '\n';
+	odocstringstream os;
+	os << '\n';
 	// only add blank line if we're not in an ERT or Listings inset
 	if (par.ownerCode() != ERT_CODE
 			&& par.ownerCode() != LISTINGS_CODE)
-		ods << '\n';
-	return ods.str();
+		os << '\n';
+	return os.str();
 }
 
 } // namespace anon
@@ -468,7 +468,7 @@ bool Cursor::posVisRight(bool skip_inset)
 	new_cur.pos() = right_pos;
 	new_cur.boundary(false);
 	if (!skip_inset &&
-		text()->checkAndActivateInsetVisual(new_cur, right_pos>=pos(), false)) {
+		text()->checkAndActivateInsetVisual(new_cur, right_pos >= pos(), false)) {
 		// we actually move the cursor at the end of this function, for now
 		// we just keep track of the new position in new_cur...
 		LYXERR(Debug::RTL, "entering inset at: " << new_cur.pos());
@@ -507,10 +507,11 @@ bool Cursor::posVisRight(bool skip_inset)
 			new_cur.pos() = right_pos + 1;
 			// set the boundary to true in two situations:
 			if (
-			// 1. if new_pos is now lastpos (which means that we're moving 
-			// right to the end of an LTR chunk which is at the end of an
-			// RTL paragraph);
-				new_cur.pos() == lastpos()
+			// 1. if new_pos is now lastpos, and we're in an RTL paragraph
+			// (this means that we're moving right to the end of an LTR chunk
+			// which is at the end of an RTL paragraph);
+				(new_cur.pos() == lastpos()
+				 && paragraph().isRTL(buffer().params()))
 			// 2. if the position *after* right_pos is RTL (we want to be 
 			// *after* right_pos, not before right_pos + 1!)
 				|| paragraph().getFontSettings(bv().buffer().params(),
@@ -598,10 +599,11 @@ bool Cursor::posVisLeft(bool skip_inset)
 			new_cur.pos() = left_pos + 1;
 			// set the boundary to true in two situations:
 			if (
-			// 1. if new_pos is now lastpos (which means that we're moving left
-			// to the end of an RTL chunk which is at the end of an LTR 
-			// paragraph);
-				new_cur.pos() == lastpos()
+			// 1. if new_pos is now lastpos and we're in an LTR paragraph
+			// (this means that we're moving left to the end of an RTL chunk
+			// which is at the end of an LTR paragraph);
+				(new_cur.pos() == lastpos()
+				 && !paragraph().isRTL(buffer().params()))
 			// 2. if the position *after* left_pos is not RTL (we want to be 
 			// *after* left_pos, not before left_pos + 1!)
 				|| !paragraph().getFontSettings(bv().buffer().params(),
@@ -944,7 +946,14 @@ DocIterator Cursor::selectionBegin() const
 {
 	if (!selection())
 		return *this;
-	DocIterator di = (anchor() < top() ? anchor_ : *this);
+
+	DocIterator di;
+	// FIXME: This is a work-around for the problem that
+	// CursorSlice doesn't keep track of the boundary.
+	if (anchor() == top())
+		di = anchor_.boundary() > boundary() ? anchor_ : *this;
+	else
+		di = anchor() < top() ? anchor_ : *this;
 	di.resize(depth());
 	return di;
 }
@@ -954,7 +963,15 @@ DocIterator Cursor::selectionEnd() const
 {
 	if (!selection())
 		return *this;
-	DocIterator di = (anchor() > top() ? anchor_ : *this);
+
+	DocIterator di;
+	// FIXME: This is a work-around for the problem that
+	// CursorSlice doesn't keep track of the boundary.
+	if (anchor() == top())
+		di = anchor_.boundary() < boundary() ? anchor_ : *this;
+	else
+		di = anchor() > top() ? anchor_ : *this;
+
 	if (di.depth() > depth()) {
 		di.resize(depth());
 		++di.pos();
@@ -965,18 +982,20 @@ DocIterator Cursor::selectionEnd() const
 
 void Cursor::setSelection()
 {
-	selection() = true;
+	setSelection(true);
 	// A selection with no contents is not a selection
 	// FIXME: doesnt look ok
-	if (pit() == anchor().pit() && pos() == anchor().pos())
-		selection() = false;
+	if (idx() == anchor().idx() && 
+	    pit() == anchor().pit() && 
+	    pos() == anchor().pos())
+		setSelection(false);
 }
 
 
 void Cursor::setSelection(DocIterator const & where, int n)
 {
 	setCursor(where);
-	selection() = true;
+	setSelection(true);
 	anchor_ = where;
 	pos() += n;
 }
@@ -984,8 +1003,8 @@ void Cursor::setSelection(DocIterator const & where, int n)
 
 void Cursor::clearSelection()
 {
-	selection() = false;
-	mark() = false;
+	setSelection(false);
+	setMark(false);
 	resetAnchor();
 }
 
@@ -1048,7 +1067,7 @@ bool Cursor::selHandle(bool sel)
 		cap::saveSelection(*this);
 
 	resetAnchor();
-	selection() = sel;
+	setSelection(sel);
 	return true;
 }
 
@@ -1225,10 +1244,10 @@ void Cursor::insert(Inset * inset0)
 }
 
 
-void Cursor::niceInsert(docstring const & t)
+void Cursor::niceInsert(docstring const & t, Parse::flags f)
 {
 	MathData ar;
-	asArray(t, ar);
+	asArray(t, ar, f);
 	if (ar.size() == 1)
 		niceInsert(ar[0]);
 	else
@@ -1307,7 +1326,7 @@ bool Cursor::backspace()
 		// let's require two backspaces for 'big stuff' and
 		// highlight on the first
 		resetAnchor();
-		selection() = true;
+		setSelection(true);
 		--pos();
 	} else {
 		--pos();
@@ -1355,7 +1374,7 @@ bool Cursor::erase()
 	// 'clever' UI hack: only erase large items if previously slected
 	if (pos() != lastpos() && nextAtom()->nargs() > 0) {
 		resetAnchor();
-		selection() = true;
+		setSelection(true);
 		++pos();
 	} else {
 		plainErase();
@@ -1812,6 +1831,8 @@ void Cursor::handleFont(string const & font)
 		safe = cap::grabAndEraseSelection(*this);
 	}
 
+	recordUndoInset();
+
 	if (lastpos() != 0) {
 		// something left in the cell
 		if (pos() == 0) {
@@ -1831,8 +1852,9 @@ void Cursor::handleFont(string const & font)
 		}
 	} else {
 		// nothing left in the cell
-		pullArg();
+		popBackward();
 		plainErase();
+		resetAnchor();
 	}
 	insert(safe);
 }
@@ -1859,11 +1881,19 @@ docstring Cursor::selectionAsString(bool with_label) const
 		? AS_STR_LABEL | AS_STR_INSETS : AS_STR_INSETS;
 
 	if (inTexted()) {
+		idx_type const startidx = selBegin().idx();
+		idx_type const endidx = selEnd().idx();
+		if (startidx != endidx) {
+			// multicell selection
+			InsetTabular * table = inset().asInsetTabular();
+			LASSERT(table, return docstring());
+			return table->asString(startidx, endidx);
+		}
+		
 		ParagraphList const & pars = text()->paragraphs();
 
-		// should be const ...
-		pit_type startpit = selBegin().pit();
-		pit_type endpit = selEnd().pit();
+		pit_type const startpit = selBegin().pit();
+		pit_type const endpit = selEnd().pit();
 		size_t const startpos = selBegin().pos();
 		size_t const endpos = selEnd().pos();
 
@@ -1895,7 +1925,7 @@ docstring Cursor::selectionAsString(bool with_label) const
 }
 
 
-docstring Cursor::currentState()
+docstring Cursor::currentState() const
 {
 	if (inMathed()) {
 		odocstringstream os;
@@ -1910,7 +1940,7 @@ docstring Cursor::currentState()
 }
 
 
-docstring Cursor::getPossibleLabel()
+docstring Cursor::getPossibleLabel() const
 {
 	return inMathed() ? from_ascii("eq:") : text()->getPossibleLabel(*this);
 }
@@ -1990,7 +2020,6 @@ bool Cursor::fixIfBroken()
 {
 	if (DocIterator::fixIfBroken()) {
 			clearSelection();
-			resetAnchor();
 			return true;
 	}
 	return false;
@@ -2082,8 +2111,7 @@ bool Cursor::textUndo()
 		return false;
 	// Set cursor
 	setCursor(dit);
-	selection() = false;
-	resetAnchor();
+	clearSelection();
 	fixIfBroken();
 	return true;
 }
@@ -2097,50 +2125,61 @@ bool Cursor::textRedo()
 		return false;
 	// Set cursor
 	setCursor(dit);
-	selection() = false;
-	resetAnchor();
+	clearSelection();
 	fixIfBroken();
 	return true;
 }
 
 
-void Cursor::finishUndo()
+void Cursor::finishUndo() const
 {
 	bv_->buffer().undo().finishUndo();
 }
 
 
-void Cursor::recordUndo(UndoKind kind, pit_type from, pit_type to)
+void Cursor::beginUndoGroup() const
+{
+	bv_->buffer().undo().beginUndoGroup();
+}
+
+
+void Cursor::endUndoGroup() const
+{
+	bv_->buffer().undo().endUndoGroup();
+}
+
+
+void Cursor::recordUndo(UndoKind kind, pit_type from, pit_type to) const
 {
 	bv_->buffer().undo().recordUndo(*this, kind, from, to);
 }
 
 
-void Cursor::recordUndo(UndoKind kind, pit_type from)
+void Cursor::recordUndo(UndoKind kind, pit_type from) const
 {
 	bv_->buffer().undo().recordUndo(*this, kind, from);
 }
 
 
-void Cursor::recordUndo(UndoKind kind)
+void Cursor::recordUndo(UndoKind kind) const
 {
 	bv_->buffer().undo().recordUndo(*this, kind);
 }
 
 
-void Cursor::recordUndoInset(UndoKind kind)
+void Cursor::recordUndoInset(UndoKind kind) const
 {
 	bv_->buffer().undo().recordUndoInset(*this, kind);
 }
 
 
-void Cursor::recordUndoFullDocument()
+void Cursor::recordUndoFullDocument() const
 {
 	bv_->buffer().undo().recordUndoFullDocument(*this);
 }
 
 
-void Cursor::recordUndoSelection()
+void Cursor::recordUndoSelection() const
 {
 	if (inMathed()) {
 		if (cap::multipleCellsSelected(*this))
@@ -2155,11 +2194,8 @@ void Cursor::recordUndoSelection()
 
 void Cursor::checkBufferStructure()
 {
-	if (paragraph().layout().toclevel == Layout::NOT_IN_TOC)
-		return;
 	Buffer const * master = buffer().masterBuffer();
-	master->tocBackend().updateItem(ParConstIterator(*this));
-	master->structureChanged();
+	master->tocBackend().updateItem(*this);
 }
 
 

@@ -427,15 +427,15 @@ namespace {
 
 
 char const * const citeCommands[] = {
-	"cite", "nocite", "citet", "citep", "citealt", "citealp",
-	"citeauthor", "citeyear", "citeyearpar" };
+	"cite", "citet", "citep", "citealt", "citealp",
+	"citeauthor", "citeyear", "citeyearpar", "nocite" };
 
 unsigned int const nCiteCommands =
 		sizeof(citeCommands) / sizeof(char *);
 
 CiteStyle const citeStylesArray[] = {
-	CITE, NOCITE, CITET, CITEP, CITEALT,
-	CITEALP, CITEAUTHOR, CITEYEAR, CITEYEARPAR };
+	CITE, CITET, CITEP, CITEALT, CITEALP, 
+	CITEAUTHOR, CITEYEAR, CITEYEARPAR, NOCITE };
 
 unsigned int const nCiteStyles =
 		sizeof(citeStylesArray) / sizeof(CiteStyle);
@@ -470,7 +470,7 @@ CitationStyle citationStyleFromString(string const & command)
 	size_t const n = cmd.size() - 1;
 	if (cmd != "cite" && cmd[n] == '*') {
 		s.full = true;
-		cmd = cmd.substr(0,n);
+		cmd = cmd.substr(0, n);
 	}
 
 	char const * const * const last = citeCommands + nCiteCommands;

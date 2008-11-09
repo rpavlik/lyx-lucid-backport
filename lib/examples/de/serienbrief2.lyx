@@ -1,7 +1,8 @@
-#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 314
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrlttr2
 \begin_preamble
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +83,6 @@ fromurl=true%               print sender URL
 \pdf_pdfborder true
 \pdf_colorlinks false
 \pdf_backref false
-\pdf_pagebackref false
 \pdf_pdfusetitle false
 \papersize default
 \use_geometry false
@@ -101,8 +101,8 @@ fromurl=true%               print sender URL
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -114,12 +114,17 @@ Das LyX-Entwicklerteam
 \begin_layout SenderAddress
 Planstr.
  140
-\newline
+\begin_inset Newline newline
+\end_inset
+
 99999 Planstadt
 \end_layout
 
 \begin_layout Telephone
-0011/222\InsetSpace \thinspace{}
+0011/222
+\begin_inset space \thinspace{}
+\end_inset
+
 333
 \end_layout
 
@@ -133,10 +138,14 @@ www.lyx.org
 
 \begin_layout Backaddress
 Das LyX-Entwicklerteam
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Planstr.
  140
-\newline
+\begin_inset Newline newline
+\end_inset
+
 99999 Planstadt
 \end_layout
 
@@ -156,7 +165,7 @@ Im Internet
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -182,7 +191,7 @@ filename "../addressExample.adr"
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -223,7 +232,7 @@ LaTeX-Vorspann
 \begin_inset ERT
 status collapsed
 
-\begin_layout PlainLayout
+\begin_layout Plain Layout
 
 "=
 \end_layout
@@ -234,7 +243,7 @@ Script
 \begin_inset ERT
 status collapsed
 
-\begin_layout PlainLayout
+\begin_layout Plain Layout
 
 "=
 \end_layout
@@ -245,7 +254,7 @@ Dokumentation
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset CommandInset href
 LatexCommand href
 target "ftp://ftp.dante.de/tex-archive/macros/latex/contrib/koma-script/scrguide.pdf"
@@ -265,7 +274,10 @@ Viel Spaß!
 \end_layout
 
 \begin_layout PS
-P.\InsetSpace \thinspace{}
+P.
+\begin_inset space \thinspace{}
+\end_inset
+
 S.: Blaufarbige Items sollen vor der Adresse eingefügt werden, magentafarbige
  danach.
 \end_layout
@@ -278,7 +290,7 @@ Die LyX-User
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 keep this environment empty
 \end_layout
 

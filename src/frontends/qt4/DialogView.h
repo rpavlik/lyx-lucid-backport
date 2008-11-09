@@ -21,9 +21,6 @@
 namespace lyx {
 namespace frontend {
 
-/** \c Dialog collects the different parts of a Model-Controller-View
- *  split of a generic dialog together.
- */
 class DialogView : public QDialog, public Dialog
 {
 public:
@@ -51,6 +48,15 @@ protected:
 		clearParams();
 		Dialog::disconnect();
 		ev->accept();
+	}
+	/// Any dialog that overrides this method should make sure to call it.
+	void hideEvent(QHideEvent * ev)
+	{
+		if (!ev->spontaneous()) {
+			clearParams();
+			Dialog::disconnect();
+			ev->accept();
+		}
 	}
 };
 

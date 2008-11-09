@@ -1,7 +1,8 @@
-#LyX 1.6.0beta3 created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrbook
 \begin_preamble
 \usepackage{multicol}
@@ -37,8 +38,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -111,12 +112,6 @@ LyX-en konfigurazioko fitxategiak
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "kapi:konfig"
-
-\end_inset
-
 Kapitulu honen xedea da LyX-en konfigurazioko fitxategien artean zure bidea
  aurkitzen laguntzea.
  Kapitulu hau irakurtzen jarraitu aurretik, LyX-eko liburutegien direktorioa
@@ -799,7 +794,7 @@ Erabdir
  dira).
  Ohartu zaitez 
 \family typewriter
-LYX_USERDIR_15x
+LYX_USERDIR_VER
 \family default
  inguruneko aldagaia balio hauetariko batekin ezartzeak antzeko eragina
  duela.
@@ -4242,12 +4237,6 @@ Hizkuntzaren konfigurazioa gordetzea
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "atal:gordeHizkunt"
-
-\end_inset
-
 Zure hobespenak edita ditzakezu, eta beraz, LyX abiatzen denean automatikoki
  nahi duzun hizkuntzaren ingurunea konfiguratu dezan ezar dezakezu.
  Horretarako erabili 

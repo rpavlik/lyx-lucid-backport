@@ -24,6 +24,8 @@
 
 #include "support/ExceptionMessage.h"
 #include "support/debug.h"
+#include "support/FileName.h"
+#include "support/FileNameList.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
@@ -47,6 +49,15 @@ namespace Alert = lyx::frontend::Alert;
 
 BufferList::BufferList()
 {}
+
+
+BufferList::~BufferList()
+{
+	BufferStorage::iterator it = binternal.begin();
+	BufferStorage::iterator end = binternal.end();
+	for (; it != end; ++it)
+		delete (*it);
+}
 
 
 bool BufferList::empty() const
@@ -108,8 +119,12 @@ Buffer * BufferList::newBuffer(string const & s, bool const ronly)
 		}
 	}
 	tmpbuf->params().useClassDefaults();
-	LYXERR(Debug::INFO, "Assigning to buffer " << bstore.size());
-	bstore.push_back(tmpbuf.get());
+	if (tmpbuf->fileName().extension() == "internal") {
+		binternal.push_back(tmpbuf.get());
+	} else {
+		LYXERR(Debug::INFO, "Assigning to buffer " << bstore.size());
+		bstore.push_back(tmpbuf.get());
+	}
 	return tmpbuf.release();
 }
 
@@ -121,12 +136,13 @@ void BufferList::closeAll()
 }
 
 
-vector<string> const BufferList::getFileNames() const
+FileNameList const & BufferList::fileNames() const
 {
-	vector<string> nvec;
+	static FileNameList nvec;
+	nvec.clear();
 	transform(bstore.begin(), bstore.end(),
 		  back_inserter(nvec),
-		  boost::bind(&Buffer::absFileName, _1));
+		  boost::bind(&Buffer::fileName, _1));
 	return nvec;
 }
 
@@ -165,10 +181,8 @@ Buffer * BufferList::next(Buffer const * buf) const
 						bstore.end(), buf);
 	LASSERT(it != bstore.end(), /**/);
 	++it;
-	if (it == bstore.end())
-		return bstore.front();
-	else
-		return *it;
+	Buffer * nextbuf = (it == bstore.end()) ? bstore.front() : *it;
+	return nextbuf;
 }
 
 
@@ -181,10 +195,9 @@ Buffer * BufferList::previous(Buffer const * buf) const
 	BufferStorage::const_iterator it = find(bstore.begin(),
 						bstore.end(), buf);
 	LASSERT(it != bstore.end(), /**/);
-	if (it == bstore.begin())
-		return bstore.back();
-	else
-		return *(it - 1);
+
+	Buffer * previousbuf = (it == bstore.begin()) ? bstore.back() : *(it - 1);
+	return previousbuf;
 }
 
 
@@ -273,33 +286,24 @@ docstring BufferList::emergencyWrite(Buffer * buf)
 }
 
 
-bool BufferList::exists(string const & s) const
+bool BufferList::exists(FileName const & fname) const
 {
-	return find_if(bstore.begin(), bstore.end(),
-		       bind(equal_to<string>(),
-			    bind(&Buffer::absFileName, _1),
-			    s))
-		!= bstore.end();
+	return getBuffer(fname) != 0;
 }
 
 
 bool BufferList::isLoaded(Buffer const * b) const
 {
-	LASSERT(b, /**/);
 	BufferStorage::const_iterator cit =
 		find(bstore.begin(), bstore.end(), b);
 	return cit != bstore.end();
 }
 
 
-Buffer * BufferList::getBuffer(string const & s)
+Buffer * BufferList::getBuffer(support::FileName const & fname) const
 {
-	BufferStorage::iterator it =
-		find_if(bstore.begin(), bstore.end(),
-			bind(equal_to<string>(),
-			     bind(&Buffer::absFileName, _1),
-			     s));
-
+	BufferStorage::const_iterator it = find_if(bstore.begin(), bstore.end(),
+		bind(equal_to<FileName>(), bind(&Buffer::fileName, _1), fname));
 	return it != bstore.end() ? (*it) : 0;
 }
 
@@ -324,14 +328,38 @@ void BufferList::setCurrentAuthor(docstring const & name, docstring const & emai
 }
 
 
-int BufferList::bufferNum(string const & name) const
+int BufferList::bufferNum(FileName const & fname) const
 {
-	vector<string> buffers = getFileNames();
-	vector<string>::const_iterator cit =
-		find(buffers.begin(), buffers.end(), name);
+	FileNameList const & buffers = fileNames();
+	FileNameList::const_iterator cit =
+		find(buffers.begin(), buffers.end(), fname);
 	if (cit == buffers.end())
 		return 0;
 	return int(cit - buffers.begin());
+}
+
+
+bool BufferList::releaseChild(Buffer * parent, Buffer * child)
+{
+	LASSERT(parent, return false);
+	LASSERT(child, return false);
+	LASSERT(parent->isChild(child), return false);
+
+	// Child document has a different parent, don't close it.
+	if (child->parent() != parent)
+		return false;
+
+	BufferStorage::iterator it = bstore.begin();
+	BufferStorage::iterator end = bstore.end();
+	for (; it != end; ++it) {
+		Buffer * buf = *it;
+		if (buf != parent && buf->isChild(child)) {
+			child->setParent(0);
+			return false;
+		}
+	}
+	release(child);
+	return true;
 }
 
 

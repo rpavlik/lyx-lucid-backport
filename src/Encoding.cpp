@@ -14,6 +14,8 @@
 
 #include "Encoding.h"
 
+#include "Buffer.h"
+#include "InsetIterator.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "LyXRC.h"
@@ -33,6 +35,10 @@ using namespace lyx::support;
 namespace lyx {
 
 Encodings encodings;
+
+Encodings::MathCommandSet Encodings::mathcmd;
+Encodings::TextCommandSet Encodings::textcmd;
+Encodings::MathSymbolSet  Encodings::mathsym;
 
 namespace {
 
@@ -250,6 +256,9 @@ CharInfoMap unicodesymbols;
 typedef std::set<char_type> CharSet;
 CharSet forced;
 
+typedef std::set<char_type> MathAlphaSet;
+MathAlphaSet mathalpha;
+
 
 /// The highest code point in UCS4 encoding (1<<20 + 1<<16)
 char_type const max_ucs4 = 0x110000;
@@ -333,7 +342,7 @@ void Encoding::init() const
 }
 
 
-docstring Encoding::latexChar(char_type c) const
+docstring Encoding::latexChar(char_type c, bool for_mathed) const
 {
 	// assure the used encoding is properly initialized
 	init();
@@ -344,6 +353,8 @@ docstring Encoding::latexChar(char_type c) const
 		return docstring(1, c);
 	if (encodable_.find(c) != encodable_.end())
 		return docstring(1, c);
+	if (for_mathed)
+		return docstring();
 
 	// c cannot (or should not) be encoded in this encoding
 	CharInfoMap::const_iterator const it = unicodesymbols.find(c);
@@ -375,19 +386,35 @@ vector<char_type> Encoding::symbolsList() const
 }
 
 
-bool Encodings::latexMathChar(char_type c, docstring & command)
+bool Encodings::latexMathChar(char_type c, bool mathmode,
+			Encoding const * encoding, docstring & command)
 {
+	if (encoding)
+		command = encoding->latexChar(c, true);
+
 	CharInfoMap::const_iterator const it = unicodesymbols.find(c);
-	if (it == unicodesymbols.end())
-		throw EncodingException(c);
-	if (it->second.mathcommand.empty()) {
-		if (it->second.textcommand.empty())
+	if (it == unicodesymbols.end()) {
+		if (!encoding || command.empty())
 			throw EncodingException(c);
-		command = it->second.textcommand;
+		if (mathmode)
+			addMathSym(c);
 		return false;
 	}
-	command = it->second.mathcommand;
-	return true;
+	// at least one of mathcommand and textcommand is nonempty
+	bool use_math = (mathmode && !it->second.mathcommand.empty()) ||
+			(!mathmode && it->second.textcommand.empty());
+	if (use_math) {
+		command = it->second.mathcommand;
+		addMathCmd(c);
+	} else {
+		if (!encoding || command.empty()) {
+			command = it->second.textcommand;
+			addTextCmd(c);
+		}
+		if (mathmode)
+			addMathSym(c);
+	}
+	return use_math;
 }
 
 
@@ -395,7 +422,7 @@ char_type Encodings::fromLaTeXCommand(docstring const & cmd, bool & combining)
 {
 	CharInfoMap::const_iterator const end = unicodesymbols.end();
 	CharInfoMap::const_iterator it = unicodesymbols.begin();
-	for (; it != end; ++it) {
+	for (combining = false; it != end; ++it) {
 		docstring const math = it->second.mathcommand;
 		docstring const text = it->second.textcommand;
 		if (math == cmd || text == cmd) {
@@ -437,7 +464,7 @@ docstring Encodings::fromLaTeXCommand(docstring const & cmd, docstring & rem)
 
 		CharInfoMap::const_iterator it = unicodesymbols.begin();
 		size_t unicmd_size = 0;
-		char_type c;
+		char_type c = 0;
 		for (; it != uniend; ++it) {
 			docstring const math = it->second.mathcommand;
 			docstring const text = it->second.textcommand;
@@ -484,32 +511,60 @@ docstring Encodings::fromLaTeXCommand(docstring const & cmd, docstring & rem)
 }
 
 
+void Encodings::initUnicodeMath(Buffer const & buffer)
+{
+	mathcmd.clear();
+	textcmd.clear();
+	mathsym.clear();
+
+	Inset & inset = buffer.inset();
+	InsetIterator it = inset_iterator_begin(inset);
+	InsetIterator const end = inset_iterator_end(inset);
+
+	for (; it != end; ++it)
+		it->initUnicodeMath();
+}
+
+
 void Encodings::validate(char_type c, LaTeXFeatures & features, bool for_mathed)
 {
 	CharInfoMap::const_iterator const it = unicodesymbols.find(c);
 	if (it != unicodesymbols.end()) {
-		// at least one of mathcommand and textcommand is nonempty
-		bool const use_math = (for_mathed && !it->second.mathcommand.empty()) ||
+		// In mathed, c could be used both in textmode and mathmode
+		bool const use_math = (for_mathed && isMathCmd(c)) ||
 		                      (!for_mathed && it->second.textcommand.empty());
+		bool const use_text = (for_mathed && isTextCmd(c)) ||
+		                      (!for_mathed && !it->second.textcommand.empty());
 		if (use_math) {
 			if (!it->second.mathpreamble.empty()) {
-				if (it->second.mathfeature)
-					features.require(it->second.mathpreamble);
-				else
+				if (it->second.mathfeature) {
+					string feats = it->second.mathpreamble;
+					while (!feats.empty()) {
+						string feat;
+						feats = split(feats, feat, ',');
+						features.require(feat);
+					}
+				} else
 					features.addPreambleSnippet(it->second.mathpreamble);
 			}
-		} else {
+		}
+		if (use_text) {
 			if (!it->second.textpreamble.empty()) {
-				if (it->second.textfeature)
-					features.require(it->second.textpreamble);
-				else
+				if (it->second.textfeature) {
+					string feats = it->second.textpreamble;
+					while (!feats.empty()) {
+						string feat;
+						feats = split(feats, feat, ',');
+						features.require(feat);
+					}
+				} else
 					features.addPreambleSnippet(it->second.textpreamble);
 			}
-			if (for_mathed) {
-				features.require("relsize");
-				features.require("lyxmathsym");
-			}
 		}
+	}
+	if (for_mathed && isMathSym(c)) {
+		features.require("relsize");
+		features.require("lyxmathsym");
 	}
 }
 
@@ -584,6 +639,12 @@ bool Encodings::isForced(char_type c)
 }
 
 
+bool Encodings::isMathAlpha(char_type c)
+{
+	return mathalpha.count(c);
+}
+
+
 Encoding const * Encodings::fromLyXName(string const & name) const
 {
 	EncodingList::const_iterator const it = encodinglist.find(name);
@@ -653,16 +714,19 @@ void Encodings::read(FileName const & encfile, FileName const & symbolsfile)
 		while (!flags.empty()) {
 			string flag;
 			flags = split(flags, flag, ',');
-			if (flag == "combining")
+			if (flag == "combining") {
 				info.combining = true;
-			else if (flag == "force") {
+			} else if (flag == "force") {
 				info.force = true;
 				forced.insert(symbol);
-			} else
+			} else if (flag == "mathalpha") {
+				mathalpha.insert(symbol);
+			} else {
 				lyxerr << "Ignoring unknown flag `" << flag
 				       << "' for symbol `0x"
 				       << hex << symbol << dec
 				       << "'." << endl;
+			}
 		}
 		// mathcommand and mathpreamble have been added for 1.6.0.
 		// make them optional so that old files still work.
@@ -753,6 +817,8 @@ void Encodings::read(FileName const & encfile, FileName const & symbolsfile)
 				package = Encoding::inputenc;
 			else if (p == "CJK")
 				package = Encoding::CJK;
+			else if (p == "japanese")
+				package = Encoding::japanese;
 			else
 				lex.printError("Unknown package");
 

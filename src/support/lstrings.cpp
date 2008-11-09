@@ -495,7 +495,8 @@ bool prefixIs(docstring const & a, docstring const & pre)
 
 bool suffixIs(string const & a, char c)
 {
-	if (a.empty()) return false;
+	if (a.empty()) 
+		return false;
 	return a[a.length() - 1] == c;
 }
 
@@ -509,6 +510,14 @@ bool suffixIs(docstring const & a, char_type c)
 
 
 bool suffixIs(string const & a, string const & suf)
+{
+	size_t const suflen = suf.length();
+	size_t const alen = a.length();
+	return suflen <= alen && a.compare(alen - suflen, suflen, suf) == 0;
+}
+
+
+bool suffixIs(docstring const & a, docstring const & suf)
 {
 	size_t const suflen = suf.length();
 	size_t const alen = a.length();
@@ -913,7 +922,7 @@ docstring const escape(docstring const & lab)
 namespace {
 
 template<typename String> vector<String> const
-getVectorFromStringT(String const & str, String const & delim)
+getVectorFromStringT(String const & str, String const & delim, bool keepempty)
 {
 // Lars would like this code to go, but for now his replacement (below)
 // doesn't fullfil the same function. I have, therefore, reactivated the
@@ -930,7 +939,7 @@ getVectorFromStringT(String const & str, String const & delim)
 			break;
 		}
 		String const key = trim(keys.substr(0, idx));
-		if (!key.empty())
+		if (!key.empty() || keepempty)
 			vec.push_back(key);
 		size_t const start = idx + delim.size();
 		keys = keys.substr(start);
@@ -949,16 +958,18 @@ getVectorFromStringT(String const & str, String const & delim)
 
 
 vector<string> const getVectorFromString(string const & str,
-					 string const & delim)
+					 string const & delim,
+					 bool keepempty)
 {
-	return getVectorFromStringT<string>(str, delim);
+	return getVectorFromStringT<string>(str, delim, keepempty);
 }
 
 
 vector<docstring> const getVectorFromString(docstring const & str,
-					    docstring const & delim)
+					    docstring const & delim,
+					    bool keepempty)
 {
-	return getVectorFromStringT<docstring>(str, delim);
+	return getVectorFromStringT<docstring>(str, delim, keepempty);
 }
 
 
@@ -990,27 +1001,6 @@ int findToken(char const * const str[], string const & search_token)
 	if (!str[i][0])
 		i = -1;
 	return i;
-}
-
-
-docstring const externalLineEnding(docstring const & str)
-{
-#if defined(__APPLE__)
-	// The MAC clipboard uses \r for lineendings, and we use \n
-	return subst(str, '\n', '\r');
-#elif defined (_WIN32) || (defined (__CYGWIN__) && defined (X_DISPLAY_MISSING))
-	// Windows clipboard uses \r\n for lineendings, and we use \n
-	return subst(str, from_ascii("\n"), from_ascii("\r\n"));
-#else
-	return str;
-#endif
-}
-
-
-docstring const internalLineEnding(docstring const & str)
-{
-	docstring const s = subst(str, from_ascii("\r\n"), from_ascii("\n"));
-	return subst(s, '\r', '\n');
 }
 
 

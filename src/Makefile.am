@@ -38,7 +38,7 @@ lyx_LDADD = \
 if LYX_WIN_RESOURCE
 .rc.o:
 	cp $(top_srcdir)/development/Win32/packaging/icons/lyx_*32x32.ico .
-	windres -I. --preprocessor "$(CPP) -xc-header -DRC_INVOKED" $< -o $@
+	windres -I$(top_builddir) --preprocessor "$(CPP) -xc-header -DRC_INVOKED" $< -o $@
 endif
 
 #lyx_LDFLAGS=-Wl,-O1
@@ -300,13 +300,11 @@ liblyxgraphics_la_SOURCES = \
 	graphics/GraphicsConverter.h \
 	graphics/GraphicsConverter.cpp \
 	graphics/GraphicsImage.h \
-	graphics/GraphicsImage.cpp \
 	graphics/GraphicsLoader.h \
 	graphics/GraphicsLoader.cpp \
 	graphics/GraphicsParams.cpp \
 	graphics/GraphicsParams.h \
 	graphics/GraphicsTypes.h \
-	graphics/GraphicsTypes.cpp \
 	graphics/PreviewImage.h \
 	graphics/PreviewImage.cpp \
 	graphics/PreviewLoader.h \
@@ -339,6 +337,7 @@ SOURCEFILESMATHED = \
 	mathed/InsetMathDelim.cpp \
 	mathed/InsetMathDiff.cpp \
 	mathed/InsetMathDots.cpp \
+	mathed/InsetMathEnsureMath.cpp \
 	mathed/InsetMathEnv.cpp \
 	mathed/InsetMathExFunc.cpp \
 	mathed/InsetMathExInt.cpp \
@@ -362,6 +361,7 @@ SOURCEFILESMATHED = \
 	mathed/InsetMathScript.cpp \
 	mathed/InsetMathSize.cpp \
 	mathed/InsetMathSpace.cpp \
+	mathed/InsetMathSpecialChar.cpp \
 	mathed/InsetMathSplit.cpp \
 	mathed/InsetMathSqrt.cpp \
 	mathed/InsetMathStackrel.cpp \
@@ -401,6 +401,7 @@ HEADERFILESMATHED = \
 	mathed/InsetMathDelim.h \
 	mathed/InsetMathDiff.h \
 	mathed/InsetMathDots.h \
+	mathed/InsetMathEnsureMath.h \
 	mathed/InsetMathEnv.h \
 	mathed/InsetMathExFunc.h \
 	mathed/InsetMathExInt.h \
@@ -425,6 +426,7 @@ HEADERFILESMATHED = \
 	mathed/InsetMathScript.h \
 	mathed/InsetMathSize.h \
 	mathed/InsetMathSpace.h \
+	mathed/InsetMathSpecialChar.h \
 	mathed/InsetMathSplit.h \
 	mathed/InsetMathSqrt.h \
 	mathed/InsetMathStackrel.h \
@@ -447,6 +449,7 @@ HEADERFILESMATHED = \
 	mathed/MacroTable.h \
 	mathed/MathMacroTemplate.h \
 	mathed/MathParser.h \
+	mathed/MathParser_flags.h \
 	mathed/ReplaceData.h \
 	mathed/MathStream.h \
 	mathed/MathSupport.h \

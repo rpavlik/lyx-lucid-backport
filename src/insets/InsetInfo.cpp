@@ -45,51 +45,13 @@ using namespace lyx::support;
 
 namespace lyx {
 
-
-InsetInfo::InsetInfo(Buffer const & buf, string const & name) 
-	: InsetText(buf), type_(UNKNOWN_INFO), name_(),
-	  mouse_hover_(false)
-{
-	setAutoBreakRows(true);
-	setDrawFrame(true);
-	setInfo(name);
-}
-
-
-Inset * InsetInfo::editXY(Cursor & cur, int x, int y)
-{
-	cur.push(*this);
-	return InsetText::editXY(cur, x, y);
-}
-
-
-void InsetInfo::draw(PainterInfo & pi, int x, int y) const
-{
-	InsetText::draw(pi, x, y); 
-}
-
-
-string InsetInfo::infoType() const
-{
-	return nameTranslator().find(type_);
-}
-
-
-docstring InsetInfo::toolTip(BufferView const &, int, int) const
-{
-	odocstringstream os;
-	os << _("Information regarding ")
-	   << _(nameTranslator().find(type_))
-	   << " " << from_utf8(name_);
-	return os.str();
-}
-
 namespace {
 
-Translator<InsetInfo::info_type, string> const initTranslator()
+typedef Translator<InsetInfo::info_type, string> NameTranslator;
+
+NameTranslator const initTranslator()
 {	
-	Translator<InsetInfo::info_type, string> 
-		translator(InsetInfo::UNKNOWN_INFO, "unknown");
+	NameTranslator translator(InsetInfo::UNKNOWN_INFO, "unknown");
 
 	translator.addPair(InsetInfo::SHORTCUTS_INFO, "shortcuts");
 	translator.addPair(InsetInfo::SHORTCUT_INFO, "shortcut");
@@ -103,16 +65,57 @@ Translator<InsetInfo::info_type, string> const initTranslator()
 	return translator;
 }
 
-} // namespace anon
-
-Translator<InsetInfo::info_type, string> 
-	const & InsetInfo::nameTranslator() const
+/// The translator between the information type enum and corresponding string.
+NameTranslator const & nameTranslator()
 {
-	static Translator<info_type, string> const translator = initTranslator();
+	static NameTranslator const translator = initTranslator();
 	return translator;
 }
 
+} // namespace anon
+
+/////////////////////////////////////////////////////////////////////////
+//
+// InsetInfo
+//
+/////////////////////////////////////////////////////////////////////////
+
+
 	
+InsetInfo::InsetInfo(Buffer const & buf, string const & name) 
+	: InsetCollapsable(buf), type_(UNKNOWN_INFO), name_()
+{
+	setAutoBreakRows(true);
+	setInfo(name);
+	status_ = Collapsed;
+}
+
+
+Inset * InsetInfo::editXY(Cursor & cur, int x, int y)
+{
+	cur.push(*this);
+	return InsetCollapsable::editXY(cur, x, y);
+}
+
+
+string InsetInfo::infoType() const
+{
+	return nameTranslator().find(type_);
+}
+
+
+docstring InsetInfo::name() const 
+{
+	return from_ascii("Info:" + infoType());
+}
+
+
+docstring InsetInfo::toolTip(BufferView const &, int, int) const
+{
+	return bformat(_("Information regarding %1$s '%2$s'"),
+			_(infoType()), from_utf8(name_));
+}
+
 
 void InsetInfo::read(Lexer & lex)
 {
@@ -125,7 +128,7 @@ void InsetInfo::read(Lexer & lex)
 			token = lex.getString();
 			type_ = nameTranslator().find(token);
 		} else if (token == "arg") {
-			lex.next();
+			lex.next(true);
 			name_ = lex.getString();
 		} else if (token == "\\end_inset")
 			break;
@@ -136,21 +139,44 @@ void InsetInfo::read(Lexer & lex)
 			_("Missing \\end_inset at this point."),
 			from_utf8(token));
 	}
+	setLayout(buffer().params());
 	updateInfo();
 }
 
 
 void InsetInfo::write(ostream & os) const
 {
-	os << "Info\ntype  \"" << nameTranslator().find(type_)
-	   << "\"\narg   \"" << name_ << '\"';
+	os << "Info\ntype  \"" << infoType() 
+	   << "\"\narg   " << Lexer::quoteString(name_);
 }
 
 
-bool  InsetInfo::validate(docstring const & argument) const
+bool InsetInfo::validate(docstring const & arg) const
 {
-	// FIXME!
-	return true;
+	string type;
+	string const name = trim(split(to_utf8(arg), type, ' '));
+	switch (nameTranslator().find(type)) {
+	case UNKNOWN_INFO:
+		return false;
+	case SHORTCUT_INFO:
+	case SHORTCUTS_INFO:
+	case MENU_INFO:
+	case ICON_INFO: {
+		FuncRequest func = lyxaction.lookupFunc(name);
+		return func.action != LFUN_UNKNOWN_ACTION;
+	}
+	case LYXRC_INFO: {
+		ostringstream oss;
+		lyxrc.write(oss, true, name);
+		return !oss.str().empty();
+	}
+	case PACKAGE_INFO:
+	case TEXTCLASS_INFO:
+		return true;
+	case BUFFER_INFO:
+		return name == "name" || name == "path" || name == "class";
+	}
+	return false;
 }
 
 
@@ -172,7 +198,7 @@ bool InsetInfo::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MOUSE_TRIPLE:
 	case LFUN_COPY:
 	case LFUN_INSET_SETTINGS:
-		return InsetText::getStatus(cur, cmd, flag);
+		return InsetCollapsable::getStatus(cur, cmd, flag);
 
 	case LFUN_INSET_MODIFY:
 		flag.setEnabled(true);
@@ -196,7 +222,7 @@ void InsetInfo::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_TRIPLE:
 	case LFUN_COPY:
 	case LFUN_INSET_SETTINGS:
-		InsetText::doDispatch(cur, cmd);
+		InsetCollapsable::doDispatch(cur, cmd);
 		break;
 
 	case LFUN_INSET_MODIFY:
@@ -218,27 +244,26 @@ void InsetInfo::setInfo(string const & name)
 	string type;
 	name_ = trim(split(name, type, ' '));
 	type_ = nameTranslator().find(type);
+	setLayout(buffer().params());
 	updateInfo();
 }
 
 
 void InsetInfo::error(string const & err)
 {
-	InsetText::setText(bformat(_(err), from_utf8(name_)), buffer().params().getFont(),
-		false);
+	setText(bformat(_(err), from_utf8(name_)), 
+		Font(inherit_font, buffer().params().language), false);
 }
 
 
 void InsetInfo::setText(docstring const & str)
 {
-	InsetText::setText(str, buffer().params().getFont(), false);
+	setText(str, Font(inherit_font, buffer().params().language), false);
 }
 
 
 void InsetInfo::updateInfo()
 {
-	InsetText::clear();
-
 	BufferParams const & bp = buffer().params();	
 
 	switch (type_) {
@@ -254,13 +279,14 @@ void InsetInfo::updateInfo()
 		}
 		KeyMap::Bindings bindings = theTopLevelKeymap().findBindings(func);
 		if (bindings.empty()) {
-			error("No binding for action %1$s");
+			// It is impropriate to use error() for undefined shortcut
+			setText(_("undefined"));
 			break;
 		}
 		if (type_ == SHORTCUT_INFO)
-			setText(bindings.rbegin()->print(KeySequence::ForGui));
+			setText(bindings.begin()->print(KeySequence::Portable));
 		else
-			setText(theTopLevelKeymap().printBindings(func));
+			setText(theTopLevelKeymap().printBindings(func, KeySequence::Portable));
 		break;
 	}
 	case LYXRC_INFO: {
@@ -296,35 +322,48 @@ void InsetInfo::updateInfo()
 			error("No menu entry for action %1$s");
 			break;
 		}
-		// if find, return its path.
-		InsetText::clear();
-		Paragraph & info = paragraphs().front();
-		unsigned int i = 0;
-		while (!names.empty()) {
+		// if found, return its path.
+		clear();
+		Paragraph & par = paragraphs().front();
+		Font const f(inherit_font, buffer().params().language);
+		//Font fu = f;
+		//fu.fontInfo().setUnderbar(FONT_ON);
+		docstring_list::const_iterator beg = names.begin();
+		docstring_list::const_iterator end = names.end();
+		for (docstring_list::const_iterator it = beg ; 
+		     it != end ; ++it) {
 			// do not insert > for the top level menu item
-			if (i != 0)
-				info.insertInset(0, new InsetSpecialChar(InsetSpecialChar::MENU_SEPARATOR),
-					Change(Change::UNCHANGED));
-			for (i = 0; i != names.back().length(); ++i)
-				info.insertChar(i, names.back()[i], bp.getFont(), false);
-			names.pop_back();
+			if (it != beg)
+				par.insertInset(par.size(), new InsetSpecialChar(InsetSpecialChar::MENU_SEPARATOR),
+						Change(Change::UNCHANGED));
+			//FIXME: add proper underlines here. This
+			// involves rewriting searchMenu used above to
+			// return a vector of menus. If we do not do
+			// that, we might as well use below
+			// Paragraph::insert on each string (JMarc)
+			for (size_type i = 0; i != it->length(); ++i)
+				par.insertChar(par.size(), (*it)[i], 
+					       f, Change(Change::UNCHANGED));
 		}
 		break;
 	}
 	case ICON_INFO: {
 		FuncRequest func = lyxaction.lookupFunc(name_);
 		docstring icon_name = theApp()->iconName(func, true);
-		//FIXME: We should use the icon directly instead of going through
-		// FileName. The code below won't work if the icon is embedded in the
-		// executable through the Qt resource system.
+		//FIXME: We should use the icon directly instead of
+		// going through FileName. The code below won't work
+		// if the icon is embedded in the executable through
+		// the Qt resource system.
 		FileName file(to_utf8(icon_name));
 		if (!file.exists())
 			break;
+		InsetGraphics * inset = new InsetGraphics(buffer());
 		InsetGraphicsParams igp;
 		igp.filename = file;
-		InsetGraphics * inset = new InsetGraphics(buffer());
 		inset->setParams(igp);
-		paragraphs().front().insertInset(0, inset, Change(Change::UNCHANGED));
+		clear();
+		paragraphs().front().insertInset(0, inset, 
+						 Change(Change::UNCHANGED));
 		break;
 	}
 	case BUFFER_INFO: {
@@ -339,15 +378,6 @@ void InsetInfo::updateInfo()
 		break;
 	}
 	}
-	// remove indent
-	paragraphs().begin()->params().noindent(true);
-}
-
-
-bool InsetInfo::setMouseHover(bool mouse_hover)
-{
-	mouse_hover_ = mouse_hover;
-	return true;
 }
 
 
@@ -355,5 +385,6 @@ docstring InsetInfo::contextMenu(BufferView const &, int, int) const
 {
 	return from_ascii("context-info");
 }
+
 
 } // namespace lyx

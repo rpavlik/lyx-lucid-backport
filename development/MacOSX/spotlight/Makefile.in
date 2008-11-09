@@ -46,17 +46,17 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
 	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
 	$(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/isc-posix.m4 \
-	$(top_srcdir)/m4/lcmessage.m4 $(top_srcdir)/m4/lib-ld.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
-	$(top_srcdir)/m4/lock.m4 $(top_srcdir)/m4/longdouble.m4 \
-	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/size_max.m4 \
-	$(top_srcdir)/m4/stdint_h.m4 $(top_srcdir)/m4/uintmax_t.m4 \
-	$(top_srcdir)/m4/ulonglong.m4 $(top_srcdir)/m4/visibility.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
-	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/lcmessage.m4 \
+	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/lock.m4 \
+	$(top_srcdir)/m4/longdouble.m4 $(top_srcdir)/m4/longlong.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-posix.m4 $(top_srcdir)/m4/progtest.m4 \
+	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
+	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
+	$(top_srcdir)/m4/visibility.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
@@ -112,6 +112,7 @@ DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -161,10 +162,12 @@ LTLIBOBJS = @LTLIBOBJS@
 LTLIBPTH = @LTLIBPTH@
 LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
+LYX_DIR_VER = @LYX_DIR_VER@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
+LYX_USERDIR_VER = @LYX_USERDIR_VER@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -172,6 +175,7 @@ MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NMEDIT = @NMEDIT@
 OBJC = @OBJC@
 OBJCDEPMODE = @OBJCDEPMODE@
 OBJCFLAGS = @OBJCFLAGS@
@@ -209,6 +213,7 @@ RANLIB = @RANLIB@
 RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOCKET_LIBS = @SOCKET_LIBS@
@@ -276,6 +281,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
+real_pkgdatadir = @real_pkgdatadir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -285,6 +291,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
@@ -370,15 +377,6 @@ uninstall-dist_spotlightDATA:
 	  echo " rm -f '$(DESTDIR)$(spotlightdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(spotlightdir)/$$f"; \
 	done
-install-dist_spotlightbinDATA: $(dist_spotlightbin_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(spotlightbindir)" || $(MKDIR_P) "$(DESTDIR)$(spotlightbindir)"
-	@list='$(dist_spotlightbin_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_spotlightbinDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(spotlightbindir)/$$f'"; \
-	  $(dist_spotlightbinDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(spotlightbindir)/$$f"; \
-	done
 
 uninstall-dist_spotlightbinDATA:
 	@$(NORMAL_UNINSTALL)
@@ -387,15 +385,6 @@ uninstall-dist_spotlightbinDATA:
 	  echo " rm -f '$(DESTDIR)$(spotlightbindir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(spotlightbindir)/$$f"; \
 	done
-install-dist_spotlightdataDATA: $(dist_spotlightdata_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(spotlightdatadir)" || $(MKDIR_P) "$(DESTDIR)$(spotlightdatadir)"
-	@list='$(dist_spotlightdata_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_spotlightdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(spotlightdatadir)/$$f'"; \
-	  $(dist_spotlightdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(spotlightdatadir)/$$f"; \
-	done
 
 uninstall-dist_spotlightdataDATA:
 	@$(NORMAL_UNINSTALL)
@@ -403,15 +392,6 @@ uninstall-dist_spotlightdataDATA:
 	  f=$(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(spotlightdatadir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(spotlightdatadir)/$$f"; \
-	done
-install-dist_spotlightenglishDATA: $(dist_spotlightenglish_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(spotlightenglishdir)" || $(MKDIR_P) "$(DESTDIR)$(spotlightenglishdir)"
-	@list='$(dist_spotlightenglish_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(dist_spotlightenglishDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(spotlightenglishdir)/$$f'"; \
-	  $(dist_spotlightenglishDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(spotlightenglishdir)/$$f"; \
 	done
 
 uninstall-dist_spotlightenglishDATA:
@@ -577,6 +557,13 @@ uninstall-am: uninstall-dist_spotlightDATA \
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"
+
+# Just in case we are doing a parallel install, make sure the
+# dependencies between directories is correct. Is there a better way
+# to do that?
+install-dist_spotlightbinDATA: install-dist_spotlightDATA
+install-dist_spotlightdataDATA: install-dist_spotlightDATA
+install-dist_spotlightenglishDATA: install-dist_spotlightdataDATA
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

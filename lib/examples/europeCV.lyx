@@ -1,7 +1,8 @@
-#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass europecv
 \begin_preamble
 \usepackage{graphicx}
@@ -48,6 +49,7 @@
 \graphics default
 \paperfontsize 10
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry true
 \use_amsmath 1
@@ -69,7 +71,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "usti"
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -78,7 +81,7 @@
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Keep entries with green labels empty!
 \end_layout
 
@@ -91,7 +94,7 @@ Keep entries with green labels empty!
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 Note:
@@ -109,7 +112,7 @@ Note:
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 The europecv-class offers lots of customization possibilities; to find out
  more, look at its documentation.
 \end_layout
@@ -123,7 +126,7 @@ The europecv-class offers lots of customization possibilities; to find out
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Inserts the personal data.
 \end_layout
 
@@ -141,7 +144,7 @@ Education
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -156,7 +159,7 @@ Master of Economics, Institution, City, Country, Description
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -175,7 +178,7 @@ Title
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -192,7 +195,7 @@ Supervisors
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -207,7 +210,7 @@ Description
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -228,7 +231,7 @@ February 2006--current
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -243,7 +246,7 @@ Maintainer of OpenSource projects
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -262,7 +265,7 @@ Languages
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 10pt
 \end_layout
 
@@ -272,7 +275,7 @@ French
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 The optional parameter is the vertical height behind the item; negative
  values are allowed.
  It is available for every kind of entries.
@@ -292,7 +295,7 @@ The optional parameter is the vertical height behind the item; negative
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Inserts the language level explanation and sets the symbol for the reference
  footnote.
  
@@ -308,7 +311,7 @@ German
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -319,7 +322,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -332,7 +335,7 @@ ecvBTwo
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -343,7 +346,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -356,7 +359,7 @@ ecvCOne
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -367,7 +370,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -380,7 +383,7 @@ ecvATwo
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -391,7 +394,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -404,7 +407,7 @@ ecvATwo
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -415,7 +418,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -428,7 +431,7 @@ ecvBOne
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 The language level codes can be found in the documentation of the europecv-packa
 ge.
 \end_layout
@@ -443,7 +446,7 @@ Italian
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -454,7 +457,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -467,7 +470,7 @@ ecvATwo
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -478,7 +481,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -491,7 +494,7 @@ ecvBOne
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -502,7 +505,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -515,7 +518,7 @@ ecvAOne
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -526,7 +529,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -539,7 +542,7 @@ ecvAOne
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -550,7 +553,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -571,7 +574,7 @@ ecvAOne
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 The footer and header should be the same character.
 \end_layout
 
@@ -588,7 +591,7 @@ Computer skills
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2.5ex
 \end_layout
 
@@ -598,7 +601,7 @@ OS
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -613,7 +616,7 @@ Programming
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -631,7 +634,7 @@ Java
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2.5ex
 \end_layout
 
@@ -641,7 +644,7 @@ Scientific
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -652,12 +655,15 @@ Matlab, Autocad, Abaqus, typography, LaTeX, ConTeXt, Scribus, QuarkXPress
 \end_layout
 
 \begin_layout Item
-Web\InsetSpace ~
+Web
+\begin_inset space ~
+\end_inset
+
 design
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -675,18 +681,21 @@ Interests
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2.5ex
 \end_layout
 
 \end_inset
 
-Adventure\InsetSpace ~
+Adventure
+\begin_inset space ~
+\end_inset
+
 sports
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -703,7 +712,7 @@ I like practicing adventure sports like skiing, rock climbing and scuba
 \begin_inset OptArg
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2.5ex
 \end_layout
 
@@ -713,7 +722,7 @@ Travelling
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -734,7 +743,7 @@ References
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -751,7 +760,7 @@ A Guide to LaTeX Fourth Edition.
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -761,12 +770,14 @@ newline%
 \end_inset
 
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -776,7 +787,9 @@ newline%
 \end_inset
 
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 [2] Leslie Lamport: 
 \emph on
 LaTeX: A Document Preparation System.
@@ -793,7 +806,7 @@ Publications
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 You can also use BibTeX references:
 \end_layout
 
@@ -806,7 +819,7 @@ You can also use BibTeX references:
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -821,7 +834,7 @@ status collapsed
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -834,7 +847,7 @@ nocite{*}
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \series bold
 
@@ -847,9 +860,10 @@ nocite{*}
 \end_inset
 
 
-\begin_inset LatexCommand bibtex
-options "plain"
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
 bibfiles "biblioExample"
+options "plain"
 
 \end_inset
 

@@ -104,13 +104,16 @@ Toc & TocBackend::toc(string const & type)
 }
 
 
-void TocBackend::updateItem(DocIterator const & dit)
+bool TocBackend::updateItem(DocIterator const & dit)
 {
+	if (dit.paragraph().layout().toclevel == Layout::NOT_IN_TOC)
+		return false;
+
 	if (toc("tableofcontents").empty()) {
 		// FIXME: should not happen, 
 		// a call to TocBackend::update() is missing somewhere
 		LYXERR0("TocBackend::updateItem called but the TOC is empty!");
-		return;
+		return false;
 	}
 
 	BufferParams const & bufparams = buffer_->params();
@@ -134,7 +137,7 @@ void TocBackend::updateItem(DocIterator const & dit)
 				*static_cast<InsetOptArg&>(inset).paragraphs().begin();
 			if (!par.labelString().empty())
 				tocstring = par.labelString() + ' ';
-			tocstring += inset_par.asString();
+			tocstring += inset_par.asString(AS_STR_INSETS);
 			break;
 		}
 	}
@@ -142,9 +145,12 @@ void TocBackend::updateItem(DocIterator const & dit)
 	int const toclevel = par.layout().toclevel;
 	if (toclevel != Layout::NOT_IN_TOC && toclevel >= min_toclevel
 		&& tocstring.empty())
-			tocstring = par.asString(AS_STR_LABEL);
+			tocstring = par.asString(AS_STR_LABEL | AS_STR_INSETS);
 
 	const_cast<TocItem &>(*toc_item).str_ = tocstring;
+
+	buffer_->updateTocItem("tableofcontents", dit);
+	return true;
 }
 
 
@@ -194,6 +200,20 @@ TocIterator Toc::item(DocIterator const & dit) const
 
 	// We are before the first Toc Item:
 	return last;
+}
+
+
+Toc::iterator Toc::item(int depth, docstring const & str)
+{
+	if (empty())
+		return end();
+	iterator it = begin();
+	iterator itend = end();
+	for (; it != itend; ++it) {
+		if (it->depth() == depth && it->str() == str)
+			break;
+	}
+	return it;
 }
 
 

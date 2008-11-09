@@ -46,6 +46,8 @@
 #include "TextMetrics.h"
 #include "VSpace.h"
 
+#include "insets/InsetCollapsable.h"
+
 #include "mathed/InsetMathHull.h"
 
 #include "support/lassert.h"
@@ -72,6 +74,7 @@ bool Text::isMainText(Buffer const & buffer) const
 }
 
 
+// Note that this is supposed to return a fully realized font.
 FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
 {
 	Layout const & layout = pars_[pit].layout();
@@ -81,7 +84,18 @@ FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
 		// In case the default family has been customized
 		if (layout.font.family() == INHERIT_FAMILY)
 			lf.setFamily(buffer.params().getFont().fontInfo().family());
-		return lf;
+		// FIXME
+		// It ought to be possible here just to use Inset::getLayout() and skip
+		// the asInsetCollapsable() bit. Unfortunatley, that doesn't work right
+		// now, because Inset::getLayout() will return a default-constructed
+		// InsetLayout, and that e.g. sets the foreground color to red. So we
+		// need to do some work to make that possible.
+		InsetCollapsable const * icp = pars_[pit].inInset().asInsetCollapsable();
+		if (!icp)
+			return lf;
+		FontInfo icf = icp->getLayout().font();
+		icf.realize(lf);
+		return icf;
 	}
 
 	FontInfo font = layout.font;
@@ -93,6 +107,7 @@ FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
 }
 
 
+// Note that this is supposed to return a fully realized font.
 FontInfo Text::labelFont(Buffer const & buffer, Paragraph const & par) const
 {
 	Layout const & layout = par.layout();
@@ -176,7 +191,7 @@ void Text::setInsetFont(BufferView const & bv, pit_type pit,
 // return past-the-last paragraph influenced by a layout change on pit
 pit_type Text::undoSpan(pit_type pit)
 {
-	pit_type end = paragraphs().size();
+	pit_type const end = paragraphs().size();
 	pit_type nextpit = pit + 1;
 	if (nextpit == end)
 		return nextpit;

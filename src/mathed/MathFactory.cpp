@@ -20,6 +20,7 @@
 #include "InsetMathColor.h"
 #include "InsetMathDecoration.h"
 #include "InsetMathDots.h"
+#include "InsetMathEnsureMath.h"
 #include "InsetMathFont.h"
 #include "InsetMathFontOld.h"
 #include "InsetMathFrac.h"
@@ -31,6 +32,7 @@
 #include "InsetMathRoot.h"
 #include "InsetMathSize.h"
 #include "InsetMathSpace.h"
+#include "InsetMathSpecialChar.h"
 #include "InsetMathSplit.h"
 #include "InsetMathSqrt.h"
 #include "InsetMathStackrel.h"
@@ -75,6 +77,9 @@ MathWordList theWordList;
 
 bool isMathFontAvailable(docstring & name)
 {
+	if (!use_gui)
+		return false;
+
 	FontInfo f;
 	augmentFont(f, name);
 
@@ -96,9 +101,6 @@ bool isMathFontAvailable(docstring & name)
 
 void initSymbols()
 {
-	if (!use_gui)
-		return;
-
 	FileName const filename = libFileSearch(string(), "symbols");
 	LYXERR(Debug::MATHED, "read symbols from " << filename);
 	if (filename.empty()) {
@@ -214,6 +216,18 @@ void initSymbols()
 	docstring tmp = from_ascii("cmm");
 	docstring tmp2 = from_ascii("cmsy");
 	has_math_fonts = isMathFontAvailable(tmp) && isMathFontAvailable(tmp2);
+}
+
+
+bool isSpecialChar(docstring const & name)
+{
+	if (name.size() != 1)
+		return  name == "textasciicircum" || name == "mathcircumflex" ||
+			name == "textasciitilde"  || name == "textbackslash";
+
+	char_type const c = name.at(0);
+	return  c == '{' || c == '}' || c == '&' || c == '$' ||
+		c == '#' || c == '%' || c == '_' || c == ' ';
 }
 
 
@@ -443,6 +457,10 @@ MathAtom createInsetMath(docstring const & s)
 		return MathAtom(new InsetMathPhantom(InsetMathPhantom::phantom));
 	if (s == "vphantom")
 		return MathAtom(new InsetMathPhantom(InsetMathPhantom::vphantom));
+	if (s == "ensuremath")
+		return MathAtom(new InsetMathEnsureMath);
+	if (isSpecialChar(s))
+		return MathAtom(new InsetMathSpecialChar(s));
 
 	return MathAtom(new MathMacro(s));
 }

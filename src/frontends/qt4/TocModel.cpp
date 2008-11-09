@@ -34,7 +34,14 @@ using namespace std;
 namespace lyx {
 namespace frontend {
 
-TocTypeModel::TocTypeModel(QObject * parent): QStandardItemModel(parent)
+///////////////////////////////////////////////////////////////////////////////
+//
+// TocTypeModel
+//
+///////////////////////////////////////////////////////////////////////////////
+
+TocTypeModel::TocTypeModel(QObject * parent)
+	: QStandardItemModel(parent)
 {
 }
 
@@ -45,9 +52,59 @@ void TocTypeModel::reset()
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// TocModel
+//
+///////////////////////////////////////////////////////////////////////////////
+
+TocModel::TocModel(QObject * parent)
+	: model_(new TocTypeModel(parent)),
+	sorted_model_(new QSortFilterProxyModel(parent)),
+	is_sorted_(false), maxdepth_(0), mindepth_(0)
+{
+#if QT_VERSION >= 0x040300
+	sorted_model_->setSortLocaleAware(true);
+#endif
+	sorted_model_->setSourceModel(model_);
+}
+
+
+QAbstractItemModel * TocModel::model()
+{
+	if (is_sorted_)
+		return sorted_model_;
+	return model_;
+}
+
+
+QAbstractItemModel const * TocModel::model() const
+{
+	if (is_sorted_)
+		return sorted_model_;
+	return model_;
+}
+
+
+void TocModel::clear()
+{
+	model_->blockSignals(true);
+	model_->clear();
+	model_->blockSignals(false);
+}
+
+
+void TocModel::sort(bool sort_it)
+{
+	is_sorted_ = sort_it;
+	if (is_sorted_)
+		sorted_model_->sort(0);
+}
+
+
 TocItem const & TocModel::tocItem(QModelIndex const & index) const
 {
-	return (*toc_)[data(index, Qt::UserRole).toUInt()];
+	return (*toc_)[model()->data(index, Qt::UserRole).toUInt()];
 }
 
 
@@ -58,7 +115,7 @@ QModelIndex TocModel::modelIndex(DocIterator const & dit) const
 
 	unsigned int const toc_index = toc_->item(dit) - toc_->begin();
 
-	QModelIndexList list = match(index(0, 0), Qt::UserRole,
+	QModelIndexList list = model()->match(model()->index(0, 0), Qt::UserRole,
 		QVariant(toc_index), 1,
 		Qt::MatchFlags(Qt::MatchExactly | Qt::MatchRecursive));
 
@@ -67,14 +124,17 @@ QModelIndex TocModel::modelIndex(DocIterator const & dit) const
 }
 
 
-TocModel::TocModel(QObject * parent): QStandardItemModel(parent)
+void TocModel::reset()
 {
+	model_->reset();
 }
 
 
-void TocModel::reset()
+void TocModel::updateItem(DocIterator const & dit)
 {
-	QStandardItemModel::reset();
+	QModelIndex index = modelIndex(dit);
+	TocItem const & toc_item = tocItem(index);
+	model_->setData(index, toqstr(toc_item.str()), Qt::DisplayRole);
 }
 
 
@@ -82,14 +142,14 @@ void TocModel::reset(Toc const & toc)
 {
 	toc_ = &toc;
 	if (toc_->empty()) {
+		maxdepth_ = 0;
+		mindepth_ = 0;
 		reset();
 		return;
 	}
 
-	blockSignals(true);
-	int current_row;
-	QModelIndex top_level_item;
-	insertColumns(0, 1);
+	model_->blockSignals(true);
+	model_->insertColumns(0, 1);
 	maxdepth_ = 0;
 	mindepth_ = INT_MAX;
 
@@ -98,11 +158,11 @@ void TocModel::reset(Toc const & toc)
 		TocItem const & item = (*toc_)[index];
 		maxdepth_ = max(maxdepth_, item.depth());
 		mindepth_ = min(mindepth_, item.depth());
-		current_row = rowCount();
-		insertRows(current_row, 1);
-		top_level_item = QStandardItemModel::index(current_row, 0);
-		setData(top_level_item, toqstr(item.str()), Qt::DisplayRole);
-		setData(top_level_item, index, Qt::UserRole);
+		int current_row = model_->rowCount();
+		model_->insertRows(current_row, 1);
+		QModelIndex top_level_item = model_->index(current_row, 0);
+		model_->setData(top_level_item, toqstr(item.str()), Qt::DisplayRole);
+		model_->setData(top_level_item, index, Qt::UserRole);
 
 		LYXERR(Debug::GUI, "Toc: at depth " << item.depth()
 			<< ", added item " << item.str());
@@ -112,8 +172,10 @@ void TocModel::reset(Toc const & toc)
 			break;
 	}
 
-	setHeaderData(0, Qt::Horizontal, QVariant("title"), Qt::DisplayRole);
-	blockSignals(false);
+	model_->setHeaderData(0, Qt::Horizontal, QVariant("title"), Qt::DisplayRole);
+	if (is_sorted_)
+		sorted_model_->sort(0);
+	model_->blockSignals(false);
 	reset();
 //	emit headerDataChanged();
 }
@@ -125,7 +187,7 @@ void TocModel::populate(unsigned int & index, QModelIndex const & parent)
 
 	int current_row;
 	QModelIndex child_item;
-	insertColumns(0, 1, parent);
+	model_->insertColumns(0, 1, parent);
 
 	size_t end = toc_->size();
 	++index;
@@ -137,11 +199,11 @@ void TocModel::populate(unsigned int & index, QModelIndex const & parent)
 		}
 		maxdepth_ = max(maxdepth_, item.depth());
 		mindepth_ = min(mindepth_, item.depth());
-		current_row = rowCount(parent);
-		insertRows(current_row, 1, parent);
-		child_item = QStandardItemModel::index(current_row, 0, parent);
-		setData(child_item, toqstr(item.str()), Qt::DisplayRole);
-		setData(child_item, index, Qt::UserRole);
+		current_row = model_->rowCount(parent);
+		model_->insertRows(current_row, 1, parent);
+		child_item = model_->index(current_row, 0, parent);
+		model_->setData(child_item, toqstr(item.str()), Qt::DisplayRole);
+		model_->setData(child_item, index, Qt::UserRole);
 		populate(index, child_item);
 		if (index >= end)
 			break;
@@ -151,15 +213,20 @@ void TocModel::populate(unsigned int & index, QModelIndex const & parent)
 
 int TocModel::modelDepth() const
 {
-	return maxdepth_ - mindepth_;
+	int const d = maxdepth_ - mindepth_;
+	LASSERT(d >= 0 && d <= 100, return 0);
+	return d;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// TocModels implementation.
+//
+// TocModels
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-TocModels::TocModels(): bv_(0)
+TocModels::TocModels()
+	: bv_(0)
 {
 	names_ = new TocTypeModel(this);
 	names_sorted_ = new QSortFilterProxyModel(this);
@@ -177,11 +244,8 @@ void TocModels::clear()
 	names_->clear();
 	names_->blockSignals(false);
 	iterator end = models_.end();
-	for (iterator it = models_.begin(); it != end;  ++it) {
-		it.value()->blockSignals(true);
+	for (iterator it = models_.begin(); it != end;  ++it)
 		it.value()->clear();
-		it.value()->blockSignals(false);
-	}
 }
 
 
@@ -194,13 +258,13 @@ int TocModels::depth(QString const & type)
 }
 
 
-QStandardItemModel * TocModels::model(QString const & type)
+QAbstractItemModel * TocModels::model(QString const & type)
 {
 	if (!bv_)
 		return 0;
 	iterator it = models_.find(type);
 	if (it != models_.end())
-		return it.value();
+		return it.value()->model();
 	LYXERR0("type not found: " << type);
 	return 0;
 }
@@ -228,7 +292,7 @@ void TocModels::goTo(QString const & type, QModelIndex const & index) const
 		LYXERR(Debug::GUI, "TocModels::goTo(): QModelIndex is invalid!");
 		return;
 	}
-	LASSERT(index.model() == it.value(), return);
+	LASSERT(index.model() == it.value()->model(), return);
 	TocItem const item = it.value()->tocItem(index);
 	LYXERR(Debug::GUI, "TocModels::goTo " << item.str());
 	dispatch(item.action());
@@ -239,6 +303,12 @@ void TocModels::updateBackend() const
 {
 	bv_->buffer().masterBuffer()->tocBackend().update();
 	bv_->buffer().structureChanged();
+}
+
+
+void TocModels::updateItem(QString const & type, DocIterator const & dit)
+{
+	models_[type]->updateItem(dit);
 }
 
 
@@ -280,6 +350,26 @@ void TocModels::reset(BufferView const * bv)
 	names_->reset();
 }
 
+
+bool TocModels::isSorted(QString const & type) const
+{
+	const_iterator it = models_.find(type);
+	if (it == models_.end()) {
+		LYXERR0("type not found: " << type);
+		return false;
+	}
+	return it.value()->isSorted();
+}
+
+
+void TocModels::sort(QString const & type, bool sort_it)
+{
+	iterator it = models_.find(type);
+	if (it == models_.end())
+		LYXERR0("type not found: " << type);
+	else
+		it.value()->sort(sort_it);
+}
 
 } // namespace frontend
 } // namespace lyx

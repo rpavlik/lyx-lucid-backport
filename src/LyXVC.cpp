@@ -60,6 +60,13 @@ bool LyXVC::file_found_hook(FileName const & fn)
 		vcs->owner(owner_);
 		return true;
 	}
+	// Check if file is under SVN
+	if (!(found_file = SVN::findFile(fn)).empty()) {
+		vcs.reset(new SVN(found_file, fn));
+		vcs->owner(owner_);
+		return true;
+	}
+
 	// file is not under any VCS.
 	return false;
 }
@@ -67,10 +74,12 @@ bool LyXVC::file_found_hook(FileName const & fn)
 
 bool LyXVC::file_not_found_hook(FileName const & fn)
 {
-	// Check if file is under RCS
+	// Check if file is under RCS.
+	// This happens if we are trying to load non existent
+	// file on disk, but existent in ,v version.
+	// Seems there is no reasonable scenario for adding implementation
+	// of retrieve for cvs or svn.
 	if (!RCS::findFile(fn).empty())
-		return true;
-	if (!CVS::findFile(fn).empty())
 		return true;
 	return false;
 }
@@ -96,9 +105,16 @@ void LyXVC::registrer()
 
 	// it is very likely here that the vcs is not created yet...
 	if (!vcs) {
-		FileName const cvs_entries(makeAbsPath("CVS/Entries"));
+		//check in the root directory of the document
+		FileName const cvs_entries(onlyPath(filename.absFilename()) + "/CVS/Entries");
+		FileName const svn_entries(onlyPath(filename.absFilename()) + "/.svn/entries");
 
-		if (cvs_entries.isReadableFile()) {
+		if (svn_entries.isReadableFile()) {
+			LYXERR(Debug::LYXVC, "LyXVC: registering "
+				<< to_utf8(filename.displayName()) << " with SVN");
+			vcs.reset(new SVN(cvs_entries, filename));
+
+		} else if (cvs_entries.isReadableFile()) {
 			LYXERR(Debug::LYXVC, "LyXVC: registering "
 				<< to_utf8(filename.displayName()) << " with CVS");
 			vcs.reset(new CVS(cvs_entries, filename));
@@ -106,7 +122,7 @@ void LyXVC::registrer()
 		} else {
 			LYXERR(Debug::LYXVC, "LyXVC: registering "
 				<< to_utf8(filename.displayName()) << " with RCS");
-			vcs.reset(new RCS(filename));
+			vcs.reset(new RCS(FileName()));
 		}
 
 		vcs->owner(owner_);
@@ -116,35 +132,40 @@ void LyXVC::registrer()
 	docstring response;
 	bool ok = Alert::askForText(response, _("LyX VC: Initial description"),
 			_("(no initial description)"));
-	if (!ok || response.empty()) {
-		// should we insist on checking response.empty()?
+	if (!ok) {
 		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
 		return;
 	}
-
+	if (response.empty())
+		response = _("(no initial description)");
 	vcs->registrer(to_utf8(response));
 }
 
 
-void LyXVC::checkIn()
+string LyXVC::checkIn()
 {
 	LYXERR(Debug::LYXVC, "LyXVC: checkIn");
 	docstring response;
+	string log;
 	bool ok = Alert::askForText(response, _("LyX VC: Log Message"));
 	if (ok) {
 		if (response.empty())
 			response = _("(no log message)");
-		vcs->checkIn(to_utf8(response));
+		log = vcs->checkIn(to_utf8(response));
 	} else {
 		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
 	}
+	return log;
 }
 
 
-void LyXVC::checkOut()
+string LyXVC::checkOut()
 {
+	//RCS allows checkOut only in ReadOnly mode
+	if (vcs->toggleReadOnlyEnabled() && !owner_->isReadonly()) return string();
+
 	LYXERR(Debug::LYXVC, "LyXVC: checkOut");
-	vcs->checkOut();
+	return vcs->checkOut();
 }
 
 
@@ -154,8 +175,8 @@ void LyXVC::revert()
 
 	docstring const file = owner_->fileName().displayName(20);
 	docstring text = bformat(_("Reverting to the stored version of the "
-		"document %1$s will lose all current changes.\n\n"
-					     "Do you want to revert to the saved version?"), file);
+				"document %1$s will lose all current changes.\n\n"
+				"Do you want to revert to the older version?"), file);
 	int const ret = Alert::prompt(_("Revert to stored version of document?"),
 		text, 0, 1, _("&Revert"), _("&Cancel"));
 
@@ -172,6 +193,9 @@ void LyXVC::undoLast()
 
 void LyXVC::toggleReadOnly()
 {
+	if (!vcs->toggleReadOnlyEnabled())
+		return;
+
 	switch (vcs->status()) {
 	case VCS::UNLOCKED:
 		LYXERR(Debug::LYXVC, "LyXVC: toggle to locked");
@@ -224,6 +248,24 @@ string const LyXVC::getLogFile() const
 	LYXERR(Debug::LYXVC, "Generating logfile " << tmpf);
 	vcs->getLog(tmpf);
 	return tmpf.absFilename();
+}
+
+
+bool LyXVC::checkOutEnabled()
+{
+	return vcs && vcs->checkOutEnabled();
+}
+
+
+bool LyXVC::checkInEnabled()
+{
+	return vcs && vcs->checkInEnabled();
+}
+
+
+bool LyXVC::undoLastEnabled()
+{
+	return vcs && vcs->undoLastEnabled();
 }
 
 

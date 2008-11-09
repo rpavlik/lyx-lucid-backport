@@ -96,11 +96,6 @@ public:
 	// NOTE: Layout pointers are directly assigned to paragraphs so a
 	// container that does not invalidate these pointers after insertion
 	// is needed.
-	//
-	// NOTE: It makes sense to add unknown layouts to DocumentClass
-	// and make them buffer-dependent. However, this requires
-	// reimplementation of a lot of functions such as hasLayout
-	// and operator[], with little benefit.
 	typedef std::list<Layout> LayoutList;
 	/// The inset layouts available to this class
 	typedef std::map<docstring, InsetLayout> InsetLayouts;
@@ -127,26 +122,21 @@ public:
 	bool isDefaultLayout(Layout const &) const;
 	/// 
 	bool isPlainLayout(Layout const &) const;
-	/// Create a default layout for this textclass.
-	/** \param unknown Set to true if this layout is a default layout used to
-	 * represent an unknown layout
-	 */
-	Layout createEmptyLayout(docstring const & name, bool unknown = false) const;
 	/// returns a special layout for use when we don't really want one,
 	/// e.g., in table cells
-	Layout const & emptyLayout() const 
-			{ return operator[](emptylayout_); };
-	/// the name of the empty layout
-	docstring const & emptyLayoutName() const 
-			{ return emptylayout_; }
+	Layout const & plainLayout() const 
+			{ return operator[](plain_layout_); };
+	/// the name of the plain layout
+	docstring const & plainLayoutName() const 
+			{ return plain_layout_; }
 	/// Enumerate the paragraph styles.
 	size_t layoutCount() const { return layoutlist_.size(); }
 	///
 	bool hasLayout(docstring const & name) const;
-	/// add a default layout \c name if it does not exist in layoutlist_
-	void addLayoutIfNeeded(docstring const & name) const;
 	///
 	Layout const & operator[](docstring const & vname) const;
+	/// Inset layouts of this doc class
+	InsetLayouts const & insetLayouts() const { return insetlayoutlist_; };
 
 	///////////////////////////////////////////////////////////////////
 	// reading routines
@@ -200,8 +190,16 @@ protected:
 	/// Protect construction
 	TextClass();
 	///
-	Layout & operator[](docstring const & vname);
-
+	Layout & operator[](docstring const & name);
+	/** Create an new, very basic layout for this textclass. This is used for
+	    the Plain Layout common to all TextClass objects and also, in 
+	    DocumentClass, for the creation of new layouts `on the fly' when
+	    previously unknown layouts are encountered.
+	    \param unknown Set to true if this layout is used to represent an 
+	    unknown layout
+	 */
+	Layout createBasicLayout(docstring const & name, bool unknown = false) const;
+	
 	///////////////////////////////////////////////////////////////////
 	// non-const iterators
 	///////////////////////////////////////////////////////////////////
@@ -245,14 +243,20 @@ protected:
 	std::string class_header_;
 	///
 	docstring defaultlayout_;
-	/// name of empty layout
-	static const docstring emptylayout_;
+	/// name of plain layout
+	static const docstring plain_layout_;
 	/// preamble text to support layout styles
 	docstring preamble_;
 	/// latex packages loaded by document class.
 	std::set<std::string> provides_;
 	/// latex packages requested by document class.
 	std::set<std::string> requires_;
+	/// default modules wanted by document class
+	std::list<std::string> default_modules_;
+	/// modules provided by document class
+	std::list<std::string> provided_modules_;
+	/// modules excluded by document class
+	std::list<std::string> excluded_modules_;
 	///
 	unsigned int columns_;
 	///
@@ -305,8 +309,6 @@ private:
 	void readCharStyle(Lexer &, std::string const &);
 	///
 	void readFloat(Lexer &);
-	///
-	void readCounter(Lexer &);
 };
 
 
@@ -335,8 +337,6 @@ public:
 	bool hasLaTeXLayout(std::string const & lay) const;
 	/// A DocumentClass nevers count as loaded, since it is dynamic
 	virtual bool loaded() { return false; }
-	/// Inset layouts of this doc class
-	InsetLayouts const & insetLayouts() const { return insetlayoutlist_; };
 	/// \return the layout object of an inset given by name. If the name
 	/// is not found as such, the part after the ':' is stripped off, and
 	/// searched again. In this way, an error fallback can be provided:
@@ -345,8 +345,10 @@ public:
 	/// If that doesn't work either, an empty object returns (shouldn't
 	/// happen).  -- Idea JMarc, comment MV
 	InsetLayout const & insetLayout(docstring const & name) const;
-	/// an empty inset layout for use as a default
-	static InsetLayout const & emptyInsetLayout() { return empty_insetlayout_; }
+	/// a plain inset layout for use as a default
+	static InsetLayout const & plainInsetLayout() { return plain_insetlayout_; }
+	/// add a new layout \c name if it does not exist in layoutlist_
+	void addLayoutIfNeeded(docstring const & name) const;
 
 	///////////////////////////////////////////////////////////////////
 	// accessors
@@ -409,7 +411,7 @@ private:
 	/// DocumentClassBundle, which calls the protected constructor.
 	friend class DocumentClassBundle;
 	///
-	static InsetLayout empty_insetlayout_;
+	static InsetLayout plain_insetlayout_;
 };
 
 

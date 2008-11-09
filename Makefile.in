@@ -32,7 +32,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	$(srcdir)/Makefile.in $(srcdir)/config.h.in $(srcdir)/lyx.1in \
 	$(top_srcdir)/config/common.am $(top_srcdir)/configure \
 	$(top_srcdir)/intl/Makefile.in ABOUT-NLS COPYING INSTALL NEWS
 subdir = .
@@ -45,24 +45,24 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
 	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
 	$(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/isc-posix.m4 \
-	$(top_srcdir)/m4/lcmessage.m4 $(top_srcdir)/m4/lib-ld.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
-	$(top_srcdir)/m4/lock.m4 $(top_srcdir)/m4/longdouble.m4 \
-	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/size_max.m4 \
-	$(top_srcdir)/m4/stdint_h.m4 $(top_srcdir)/m4/uintmax_t.m4 \
-	$(top_srcdir)/m4/ulonglong.m4 $(top_srcdir)/m4/visibility.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
-	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/lcmessage.m4 \
+	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/lock.m4 \
+	$(top_srcdir)/m4/longdouble.m4 $(top_srcdir)/m4/longlong.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-posix.m4 $(top_srcdir)/m4/progtest.m4 \
+	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
+	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
+	$(top_srcdir)/m4/visibility.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = intl/Makefile
+CONFIG_CLEAN_FILES = lyx.1 intl/Makefile
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -123,6 +123,7 @@ DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -172,10 +173,12 @@ LTLIBOBJS = @LTLIBOBJS@
 LTLIBPTH = @LTLIBPTH@
 LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
+LYX_DIR_VER = @LYX_DIR_VER@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
+LYX_USERDIR_VER = @LYX_USERDIR_VER@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -183,6 +186,7 @@ MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NMEDIT = @NMEDIT@
 OBJC = @OBJC@
 OBJCDEPMODE = @OBJCDEPMODE@
 OBJCFLAGS = @OBJCFLAGS@
@@ -220,6 +224,7 @@ RANLIB = @RANLIB@
 RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOCKET_LIBS = @SOCKET_LIBS@
@@ -287,6 +292,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
+real_pkgdatadir = @real_pkgdatadir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -296,11 +302,12 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
 CLEANFILES = pch.h.gch
-DISTCLEANFILES = pch.h.gch.dep *.orig *.rej *~ *.bak core lyx.1
+DISTCLEANFILES = pch.h.gch.dep *.orig *.rej *~ *.bak core
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in $(srcdir)/aclocal.m4 \
 	$(srcdir)/configure $(srcdir)/config.h.in
 AM_INSTALL_DATA_FLAGS = $(INSTALL) -m 644 -D
@@ -326,7 +333,7 @@ SUBDIRS = config development intl po $(BOOST) src sourcedoc lib \
 
 EXTRA_DIST = ANNOUNCE INSTALL.autoconf RELEASE-NOTES UPGRADING \
 	INSTALL.Win32 INSTALL.MacOSX INSTALL.scons INSTALL.cmake \
-	README.Win32 README.Cygwin README.localization lyx.man autogen.sh
+	README.Win32 README.Cygwin README.localization lyx.1in autogen.sh
 
 man_MANS = lyx.1
 all: config.h
@@ -384,6 +391,8 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
+lyx.1: $(top_builddir)/config.status $(srcdir)/lyx.1in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 intl/Makefile: $(top_builddir)/config.status $(top_srcdir)/intl/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
@@ -847,9 +856,6 @@ uninstall-man: uninstall-man1
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"
-
-lyx.1:
-	cp -p $(srcdir)/lyx.man lyx.1
 
 rpmdist: dist
 	$(LN_S) $(srcdir)/lib/images/lyx.png . ; \

@@ -1,7 +1,8 @@
-#LyX 1.6.0beta3 created this file. For more info see http://www.lyx.org/
-\lyxformat 335
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrbook
 \language spanish
 \inputencoding auto
@@ -34,19 +35,13 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
 
 \begin_layout Subsection
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:Subseccion-Externa-2"
-
-\end_inset
-
 Subsección Externa 2
 \end_layout
 
