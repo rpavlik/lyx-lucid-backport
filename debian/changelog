@@ -1,4 +1,4 @@
-lyx (1.6.0-1) UNRELEASED; urgency=low
+lyx (1.6.0-1) unstable; urgency=low
 
   [ Sven Hoexter ]
   * New upstream release
@@ -19,7 +19,7 @@ lyx (1.6.0-1) UNRELEASED; urgency=low
     which is not necessary since the file is deleted in preinst.
   * Don't remove profiling.py, there's no reason.
 
- -- Sven Hoexter <sven@timegate.de>  Sun, 09 Nov 2008 15:28:59 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 09 Nov 2008 23:14:51 +0100
 
 lyx (1.6.0~beta4-1) experimental; urgency=low
 
