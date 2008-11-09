@@ -1,8 +1,10 @@
-#LyX 1.5.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass aa
+\options structabstract
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman times
@@ -16,6 +18,7 @@
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -33,8 +36,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -48,12 +51,11 @@ your subtitle
 \end_layout
 
 \begin_layout Author
-Me
-\begin_inset CharStyle Institute
-show_label false
-status inlined
+first author
+\begin_inset Flex institutemark
+status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
@@ -63,7 +65,7 @@ status inlined
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -72,12 +74,11 @@ and
 
 \end_inset
 
-You
-\begin_inset CharStyle Institute
-show_label false
-status inlined
+second author
+\begin_inset Flex institutemark
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
@@ -87,15 +88,16 @@ status inlined
 \end_layout
 
 \begin_layout Address
-Here 
-\newline
+Address of first author 
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset CharStyle E-Mail
-show_label false
-status inlined
 
-\begin_layout Standard
-myaddress
+\begin_inset Flex Email
+status open
+
+\begin_layout Plain Layout
+email of first author
 \end_layout
 
 \end_inset
@@ -104,24 +106,25 @@ myaddress
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
-and
+and 
 \end_layout
 
 \end_inset
 
- There
-\newline
+Address of second author
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset CharStyle E-Mail
-show_label false
-status inlined
 
-\begin_layout Standard
-youraddress
+\begin_inset Flex Email
+status collapsed
+
+\begin_layout Plain Layout
+email of second author
 \end_layout
 
 \end_inset
@@ -141,18 +144,10 @@ Received ...; Accepted...
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
-This template uses the new 
-\begin_inset Quotes eld
-\end_inset
-
-Structured Abstract
-\begin_inset Quotes erd
-\end_inset
-
- approach that is implemented and recommended as of A&A version 6.0.
+\begin_layout Plain Layout
+This template uses the structured abstract style.
  If you want to use the traditional, unstructured abstract, you have to
- insert the 
+ add 
 \begin_inset Quotes eld
 \end_inset
 
@@ -160,18 +155,18 @@ traditabstract
 \begin_inset Quotes erd
 \end_inset
 
- document option into 
+ to the document options in 
 \family sans
 Document\SpecialChar \menuseparator
 Settings\SpecialChar \menuseparator
 Document Class\SpecialChar \menuseparator
- Options
+Options
 \family default
  and remove the red braces (
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -179,6 +174,11 @@ status collapsed
 \end_inset
 
 ).
+ See the 
+\family sans
+aa_sample.lyx
+\family default
+ example file that comes with LyX.
 \end_layout
 
 \end_inset
@@ -191,7 +191,7 @@ context (optional: leave void)
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -202,7 +202,7 @@ aims
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -213,7 +213,7 @@ methods
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -224,7 +224,7 @@ results
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout

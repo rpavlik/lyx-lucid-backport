@@ -7,8 +7,9 @@
 # This include files contains various standard environments for lists.
 
 
-Format 4
+Format 11
 Style Itemize
+	Category              List
 	Margin                Static
 	LatexType             Item_Environment
 	LatexName             itemize
@@ -27,6 +28,7 @@ End
 
 
 Style Enumerate
+	Category              List
 	Margin                Static
 	LatexType             Item_Environment
 	LatexName             enumerate
@@ -45,6 +47,7 @@ End
 
 
 Style Description
+	Category              List
 	Margin                First_Dynamic
 	LatexType             Item_environment
 	LatexName             description
@@ -67,6 +70,7 @@ End
 
 
 Style List
+	Category              List
 	Margin                Manual
 	LatexType             List_Environment
 	LatexName             lyxlist
@@ -92,43 +96,3 @@ Style List
 			{\end{list}}
 	EndPreamble
 End
-
-
-#
-# New environments (not active yet)
-#
-#Environment Itemize
-#       LaTeXHeader "\begin{itemize}"
-#       LaTeXFooter "\end{itemize}"
-#  LabelString          "*"
-#  Margin               Static
-#  LatexType            Item_Environment
-#  NextNoIndent         1
-#  LeftMargin           MMN
-#  LabelSep             xx
-#  ItemSep              0.2
-#  TopSep               0.7
-#  BottomSep            0.7
-#  ParSep               0.3
-#  Align                Block
-#  AlignPossible        Block, Left
-#  LabelType            Static
-#End
-
-#Environment Enumerate
-#  Margin               Static
-#  LatexType            Item_Environment
-#  LatexName            enumerate
-#  NextNoIndent         1
-#  LeftMargin           MMN
-#  LabelSep             xx
-#  ParSkip              0.0
-#  ItemSep              0.2
-#  TopSep               0.7
-#  BottomSep            0.7
-#  ParSep               0.3
-#  Align                Block
-#  AlignPossible        Block, Left
-#  LabelType            Enumerate
-#End
-

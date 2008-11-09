@@ -14,19 +14,19 @@
 #ifndef TEXROW_H
 #define TEXROW_H
 
-#include <list>
+#include <vector>
 
 
 namespace lyx {
 
 
-/// Represents the correspondence between paragraphs and the generated LaTeX file
+/// Represents the correspondence between paragraphs and the generated
+/// LaTeX file
+
 class TexRow {
 public:
 	///
-	TexRow() : count(0), lastid(-1), lastpos(-1) {}
-
-	TexRow & operator+= (TexRow const &);
+	TexRow() : lastid(-1), lastpos(-1) {}
 
 	/// Clears structure
 	void reset();
@@ -49,46 +49,38 @@ public:
 	 */
 	bool getIdFromRow(int row, int & id, int & pos) const;
 
+	/**
+	 * getRowFromIdPos - find row containing a given id and pos
+	 * @param id of the paragraph
+	 * @param pos a given position in that paragraph
+	 * @return the row number within the rowlist
+	 */
+	int getRowFromIdPos(int id, int pos) const;
+	
 	/// Returns the number of rows contained
-	int rows() const { return count; }
+	int rows() const { return rowlist.size(); }
 
 	/// an individual id/pos <=> row mapping
 	class RowItem {
 	public:
-		RowItem(int id, int pos, int row)
-			: id_(id), pos_(pos), rownumber_(row)
+		RowItem(int id, int pos)
+			: id_(id), pos_(pos)
 		{}
 
 		/// paragraph id
-		int id() const {
-			return id_;
-		}
-
+		int id() const { return id_; }
 		/// set paragraph position
-		void pos(int p) {
-			pos_ = p;
-		}
-
+		void pos(int p) { pos_ = p; }
 		/// paragraph position
-		int pos() const {
-			return pos_;
-		}
-
-		/// row number
-		int rownumber() const {
-			return rownumber_;
-		}
+		int pos() const { return pos_; }
 	private:
 		RowItem();
 		int id_;
 		int pos_;
-		int rownumber_;
 	};
 	///
-	typedef std::list<RowItem> RowList;
+	typedef std::vector<RowItem> RowList;
 private:
-	/// number of lines
-	unsigned int count;
 	/// container of id/pos <=> row mapping
 	RowList rowlist;
 	/// Last paragraph

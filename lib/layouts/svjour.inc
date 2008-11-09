@@ -18,7 +18,7 @@
 # see www.springer.de/author/tex/help-journals.html for class files
 
 
-Format 4
+Format 11
 Columns                 2
 Sides                   1
 PageStyle               Plain
@@ -36,6 +36,7 @@ Style Standard
 End
 
 
+Input stdinsets.inc
 Input stdsections.inc
 Input stdstarsections.inc
 Input stdlayouts.inc
@@ -107,7 +108,6 @@ Style Headnote
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Headnote (optional):"
 	LabelFont
@@ -161,7 +161,6 @@ Style Subtitle
 	BottomSep             0
 	ParSep                0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Family              Sans
@@ -191,7 +190,6 @@ Style Author
 	ItemSep               0
 	ParSep                0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Series              Bold
@@ -219,7 +217,6 @@ Style Institute
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Size                Small

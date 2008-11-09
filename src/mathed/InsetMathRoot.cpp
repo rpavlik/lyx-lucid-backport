@@ -15,16 +15,12 @@
 #include "MathData.h"
 #include "MathStream.h"
 #include "Cursor.h"
-#include "Color.h"
 
 #include "frontends/Painter.h"
 
+using namespace std;
 
 namespace lyx {
-
-using std::max;
-using std::auto_ptr;
-
 
 
 InsetMathRoot::InsetMathRoot()
@@ -32,50 +28,51 @@ InsetMathRoot::InsetMathRoot()
 {}
 
 
-auto_ptr<Inset> InsetMathRoot::doClone() const
+Inset * InsetMathRoot::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathRoot(*this));
+	return new InsetMathRoot(*this);
 }
 
 
-bool InsetMathRoot::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathRoot::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	InsetMathNest::metrics(mi);
-	dim.asc = max(cell(0).ascent()  + 5, cell(1).ascent())  + 2;
-	dim.des = max(cell(0).descent() - 5, cell(1).descent()) + 2;
-	dim.wid = cell(0).width() + cell(1).width() + 10;
+	Dimension const & dim0 = cell(0).dimension(*mi.base.bv);
+	Dimension const & dim1 = cell(1).dimension(*mi.base.bv);
+	dim.asc = max(dim0.ascent()  + 5, dim1.ascent())  + 2;
+	dim.des = max(dim0.descent() - 5, dim1.descent()) + 2;
+	dim.wid = dim0.width() + dim1.width() + 10;
 	metricsMarkers(dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
 void InsetMathRoot::draw(PainterInfo & pi, int x, int y) const
 {
-	int const w = cell(0).width();
+	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
+	int const w = dim0.width();
 	// the "exponent"
-	cell(0).draw(pi, x, y - 5 - cell(0).descent());
+	cell(0).draw(pi, x, y - 5 - dim0.descent());
 	// the "base"
 	cell(1).draw(pi, x + w + 8, y);
-	int const a = dim_.ascent();
-	int const d = dim_.descent();
+	Dimension const dim = dimension(*pi.base.bv);
+	int const a = dim.ascent();
+	int const d = dim.descent();
 	int xp[4];
 	int yp[4];
-	pi.pain.line(x + dim_.width(), y - a + 1,
-							 x + w + 4, y - a + 1, Color::math);
+	pi.pain.line(x + dim.width(), y - a + 1,
+							 x + w + 4, y - a + 1, Color_math);
 	xp[0] = x + w + 4;         yp[0] = y - a + 1;
 	xp[1] = x + w;             yp[1] = y + d;
 	xp[2] = x + w - 2;         yp[2] = y + (d - a)/2 + 2;
 	xp[3] = x + w - 5;         yp[3] = y + (d - a)/2 + 4;
-	pi.pain.lines(xp, yp, 4, Color::math);
+	pi.pain.lines(xp, yp, 4, Color_math);
 	drawMarkers(pi, x, y);
 }
 
 
 void InsetMathRoot::write(WriteStream & os) const
 {
+	MathEnsurer ensurer(os);
 	os << "\\sqrt[" << cell(0) << "]{" << cell(1) << '}';
 }
 

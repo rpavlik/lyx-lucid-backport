@@ -43,7 +43,7 @@ How does the LyX version scheme work?
     number "1.x.y" indicates a stable release '1.x', maintenance
     release 'y'.  In other words, LyX 1.5.0 was the first stable
     release in the 1.5-series of LyX. At the time of writing, the
-    latest maintenance release in the 1.5-series was LyX 1.5.3
+    latest maintenance release in the 1.5-series was LyX 1.5.2
 
     Please note that maintenance releases are designed primarily to
     fix bugs, and that the file format will _never_ change due to a
@@ -72,8 +72,8 @@ How does the LyX version scheme work?
     If you get the source from Subversion, the version string will
     look like one of:
 
-       1.5.4svn     -- this is the stable branch on which maintenance
-               release 1.5.4 will eventually be tagged.
+       1.5.1svn     -- this is the stable branch on which maintenance
+               release 1.5.1 will eventually be tagged.
        1.6.0svn     -- this is the main branch on which stable
                release 1.6.0 will eventually be tagged.
 
@@ -88,10 +88,10 @@ How do I upgrade from an earlier LyX version?
 What do I need to compile LyX from the source distribution?
 
     * A good C++ compiler.  Development is being done mainly with
-      gcc/g++, but some others work also. As of LyX 1.5.0, you need at
+      gcc/g++, but some others work also. As of LyX 1.6.0, you need at
       least gcc 3.2.x.
 
-    * The Qt4 library, version 4.1.1 or newer.
+    * The Qt4 library, version 4.2.0 or newer.
 
     Read the file "INSTALL" for more information on compiling.
 
@@ -115,7 +115,7 @@ Does LyX have support for non-English speakers/writers/readers?
     and Japanese (http://cellular.phys.pusan.ac.kr/cjk.html)
     [This support is being merged in lyx-1.5]
 
-    Menus and error messages have been translated to many languages.
+    Menus and error messages have been translated to 17 languages.
     For the status of the different translations, see
     http://www.lyx.org/devel/i18n.php
 

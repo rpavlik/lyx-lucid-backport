@@ -18,35 +18,45 @@
 #include "BufferParams.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
+#include "InsetList.h"
+#include "Layout.h"
 #include "LyXAction.h"
 #include "Paragraph.h"
-#include "debug.h"
+#include "ParIterator.h"
+#include "TextClass.h"
 
 #include "insets/InsetOptArg.h"
 
 #include "support/convert.h"
+#include "support/debug.h"
+#include "support/docstream.h"
 
-using std::string;
+#include "support/lassert.h"
+
+using namespace std;
+
 
 namespace lyx {
 
 ///////////////////////////////////////////////////////////////////////////
+//
 // TocItem implementation
+//
+///////////////////////////////////////////////////////////////////////////
 
-TocItem::TocItem(ParConstIterator const & par_it, int d,
-		docstring const & s)
-		: par_it_(par_it), depth_(d), str_(s)
+TocItem::TocItem(DocIterator const & dit, int d, docstring const & s)
+	: dit_(dit), depth_(d), str_(s)
 {
 }
 
 
-int const TocItem::id() const
+int TocItem::id() const
 {
-	return par_it_->id();
+	return dit_.paragraph().id();
 }
 
 
-int const TocItem::depth() const
+int TocItem::depth() const
 {
 	return depth_;
 }
@@ -66,155 +76,144 @@ docstring const TocItem::asString() const
 
 FuncRequest TocItem::action() const
 {
-	return FuncRequest(LFUN_PARAGRAPH_GOTO, convert<string>(id()));
+	string const arg = convert<string>(dit_.paragraph().id())
+		+ ' ' + convert<string>(dit_.pos());
+	return FuncRequest(LFUN_PARAGRAPH_GOTO, arg);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////
+//
 // TocBackend implementation
+//
+///////////////////////////////////////////////////////////////////////////
 
-Toc const & TocBackend::toc(std::string const & type) const
+Toc const & TocBackend::toc(string const & type) const
 {
 	// Is the type already supported?
 	TocList::const_iterator it = tocs_.find(type);
-	BOOST_ASSERT(it != tocs_.end());
+	LASSERT(it != tocs_.end(), /**/);
 
 	return it->second;
 }
 
 
-void TocBackend::updateItem(ParConstIterator const & par_it)
+Toc & TocBackend::toc(string const & type)
 {
+	return tocs_[type];
+}
+
+
+bool TocBackend::updateItem(DocIterator const & dit)
+{
+	if (dit.paragraph().layout().toclevel == Layout::NOT_IN_TOC)
+		return false;
+
 	if (toc("tableofcontents").empty()) {
 		// FIXME: should not happen, 
 		// a call to TocBackend::update() is missing somewhere
-		lyxerr << "TocBackend::updateItem called but the TOC is empty!"
-			<< std::endl;
-		return;
+		LYXERR0("TocBackend::updateItem called but the TOC is empty!");
+		return false;
 	}
 
 	BufferParams const & bufparams = buffer_->params();
-	const int min_toclevel = bufparams.getTextClass().min_toclevel();
+	const int min_toclevel = bufparams.documentClass().min_toclevel();
 
-	TocIterator toc_item = item("tableofcontents", par_it);
+	TocIterator toc_item = item("tableofcontents", dit);
 
 	docstring tocstring;
 
 	// For each paragraph, traverse its insets and let them add
 	// their toc items
-	InsetList::const_iterator it = toc_item->par_it_->insetlist.begin();
-	InsetList::const_iterator end = toc_item->par_it_->insetlist.end();
+	Paragraph & par = toc_item->dit_.paragraph();
+	InsetList::const_iterator it = par.insetList().begin();
+	InsetList::const_iterator end = par.insetList().end();
 	for (; it != end; ++it) {
 		Inset & inset = *it->inset;
-		if (inset.lyxCode() == Inset::OPTARG_CODE) {
+		if (inset.lyxCode() == OPTARG_CODE) {
 			if (!tocstring.empty())
 				break;
-			Paragraph const & par =
+			Paragraph const & inset_par =
 				*static_cast<InsetOptArg&>(inset).paragraphs().begin();
-			if (!toc_item->par_it_->getLabelstring().empty())
-				tocstring = toc_item->par_it_->getLabelstring() + ' ';
-			tocstring += par.printableString(false);
+			if (!par.labelString().empty())
+				tocstring = par.labelString() + ' ';
+			tocstring += inset_par.asString(AS_STR_INSETS);
 			break;
 		}
 	}
 
-	int const toclevel = toc_item->par_it_->layout()->toclevel;
-	if (toclevel != Layout::NOT_IN_TOC
-	    && toclevel >= min_toclevel
+	int const toclevel = par.layout().toclevel;
+	if (toclevel != Layout::NOT_IN_TOC && toclevel >= min_toclevel
 		&& tocstring.empty())
-			tocstring = toc_item->par_it_->printableString(true);
+			tocstring = par.asString(AS_STR_LABEL | AS_STR_INSETS);
 
 	const_cast<TocItem &>(*toc_item).str_ = tocstring;
+
+	buffer_->updateTocItem("tableofcontents", dit);
+	return true;
 }
 
 
 void TocBackend::update()
 {
 	tocs_.clear();
-
-	BufferParams const & bufparams = buffer_->params();
-	const int min_toclevel = bufparams.getTextClass().min_toclevel();
-
-	Toc & toc = tocs_["tableofcontents"];
-	ParConstIterator pit = buffer_->par_iterator_begin();
-	ParConstIterator end = buffer_->par_iterator_end();
-	for (; pit != end; ++pit) {
-
-		// the string that goes to the toc (could be the optarg)
-		docstring tocstring;
-
-		// For each paragraph, traverse its insets and let them add
-		// their toc items
-		InsetList::const_iterator it = pit->insetlist.begin();
-		InsetList::const_iterator end = pit->insetlist.end();
-		for (; it != end; ++it) {
-			Inset & inset = *it->inset;
-			inset.addToToc(tocs_, *buffer_, pit);
-			switch (inset.lyxCode()) {
-			case Inset::OPTARG_CODE: {
-				if (!tocstring.empty())
-					break;
-				Paragraph const & par =
-					*static_cast<InsetOptArg&>(inset).paragraphs().begin();
-				if (!pit->getLabelstring().empty())
-					tocstring = pit->getLabelstring() + ' ';
-				tocstring += par.printableString(false);
-				break;
-			}
-			default:
-				break;
-			}
-		}
-
-		/// now the toc entry for the paragraph
-		int const toclevel = pit->layout()->toclevel;
-		if (toclevel != Layout::NOT_IN_TOC
-		    && toclevel >= min_toclevel) {
-			// insert this into the table of contents
-			if (tocstring.empty())
-				tocstring = pit->printableString(true);
-			toc.push_back(TocItem(pit, toclevel - min_toclevel,
-				tocstring));
-		}
-	}
+	DocIterator dit;
+	buffer_->inset().addToToc(dit);
 }
 
 
-TocIterator const TocBackend::item(std::string const & type,
-		ParConstIterator const & par_it) const
+TocIterator TocBackend::item(string const & type,
+		DocIterator const & dit) const
 {
 	TocList::const_iterator toclist_it = tocs_.find(type);
 	// Is the type supported?
-	BOOST_ASSERT(toclist_it != tocs_.end());
+	LASSERT(toclist_it != tocs_.end(), /**/);
+	return toclist_it->second.item(dit);
+}
 
-	Toc const & toc_vector = toclist_it->second;
-	TocIterator last = toc_vector.begin();
-	TocIterator it = toc_vector.end();
+
+TocIterator Toc::item(DocIterator const & dit) const
+{
+	TocIterator last = begin();
+	TocIterator it = end();
 	if (it == last)
 		return it;
 
 	--it;
 
-	ParConstIterator par_it_text = par_it;
-	if (par_it_text.inMathed())
-		// It would be better to do
-		//   par_it_text.backwardInset();
-		// but this method does not exist.
-		while (par_it_text.inMathed())
-			par_it_text.backwardPos();
+	DocIterator dit_text = dit;
+	if (dit_text.inMathed()) {
+		// We are only interested in text so remove the math CursorSlice.
+		while (dit_text.inMathed())
+			dit_text.pop_back();
+	}
 
 	for (; it != last; --it) {
 		// We verify that we don't compare contents of two
 		// different document. This happens when you
 		// have parent and child documents.
-		if (&it->par_it_[0].inset() != &par_it_text[0].inset())
+		if (&it->dit_[0].inset() != &dit_text[0].inset())
 			continue;
-		if (it->par_it_ <= par_it_text)
+		if (it->dit_ <= dit_text)
 			return it;
 	}
 
 	// We are before the first Toc Item:
 	return last;
+}
+
+
+Toc::iterator Toc::item(int depth, docstring const & str)
+{
+	if (empty())
+		return end();
+	iterator it = begin();
+	iterator itend = end();
+	for (; it != itend; ++it) {
+		if (it->depth() == depth && it->str() == str)
+			break;
+	}
+	return it;
 }
 
 
@@ -225,7 +224,7 @@ void TocBackend::writePlaintextTocList(string const & type, odocstream & os) con
 		TocIterator ccit = cit->second.begin();
 		TocIterator end = cit->second.end();
 		for (; ccit != end; ++ccit)
-			os << ccit->asString() << '\n';
+			os << ccit->asString() << from_utf8("\n");
 	}
 }
 

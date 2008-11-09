@@ -12,10 +12,9 @@
 #ifndef MATH_COLORINSET_H
 #define MATH_COLORINSET_H
 
-#include "Color.h"
-
 #include "InsetMathNest.h"
 
+#include "support/docstream.h"
 
 namespace lyx {
 
@@ -25,11 +24,11 @@ class InsetMathColor : public InsetMathNest {
 public:
 	/// Create a color inset from LyX color number
 	explicit InsetMathColor(bool oldstyle,
-		Color_color const & color = Color::none);
+		ColorCode color = Color_none);
 	/// Create a color inset from LaTeX color name
 	explicit InsetMathColor(bool oldstyle, docstring const & color);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	/// we write extra braces in any case...
 	/// FIXME Why? Are they necessary if oldstyle_ == false?
 	bool extraBraces() const { return true; }
@@ -44,7 +43,7 @@ public:
 	///
 	void infoize(odocstream & os) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	/// width of '[' in current font
 	mutable int w_;
 	///

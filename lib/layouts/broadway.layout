@@ -3,7 +3,7 @@
 
 # For theater plays
 
-Format 4
+Format 11
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -13,19 +13,18 @@ ClassOptions
 FontSize                12
 End
 
+Input stdinsets.inc
 #Input stdtitle.inc
 Input stdstruct.inc
 Input stdfloats.inc
 Input stdcounters.inc
 # Input lyxmacros.inc
 
-Counter
-	Name                  act
+Counter act
 End
 
 
-Counter
-	Name                  scene
+Counter scene
 End
 
 
@@ -36,7 +35,6 @@ Style Dialogue
 	LeftMargin            MMMMMMM
 	RightMargin           MMMMMMM
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -49,7 +47,6 @@ Style Narrative
 	ParSkip               0.8
 	TopSep                1.0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Shape               Italic
@@ -67,7 +64,6 @@ Style ACT
 	TopSep                1.0
 #  KeepEmpty            1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             Counter
 	LabelCounter          act
 	LabelSep              M
@@ -84,7 +80,6 @@ Style SCENE
 	TopSep                1.0
 #  KeepEmpty            1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             Counter
 	LabelCounter          scene
 	LabelSep              M
@@ -101,7 +96,6 @@ Style SCENE*
 	TopSep                1.0
 	KeepEmpty             1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             Static
 	LabelSep              M
 	LabelString           "SCENE"
@@ -116,7 +110,6 @@ Style AT_RISE:
 	ParSkip               0.8
 	TopSep                1.0
 	Align                 Left
-	AlignPossible         Left
 	KeepEmpty             1
 	LabelType             Static
 	LabelSep              M
@@ -132,7 +125,6 @@ Style Speaker
 	ParSkip               0.4
 	TopSep                0.4
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 End
 
@@ -149,7 +141,6 @@ Style Parenthetical
 	BottomSep             0.0
 	ParSkip               0.0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "("
 	EndLabelType          Static
@@ -173,7 +164,6 @@ Style CURTAIN
 	TopSep                1.0
 	KeepEmpty             1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             Static
 	LabelString           "CURTAIN"
 End

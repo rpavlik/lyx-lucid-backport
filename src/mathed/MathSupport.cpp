@@ -12,29 +12,27 @@
 #include <config.h>
 
 #include "MathSupport.h"
-#include "MathData.h"
-#include "InsetMath.h"
-#include "MathStream.h"
-#include "MathParser.h"
 
-#include "debug.h"
-#include "Color.h"
+#include "InsetMath.h"
+#include "MathData.h"
+#include "MathParser.h"
+#include "MathStream.h"
 
 #include "frontends/FontLoader.h"
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
 
+#include "support/debug.h"
+#include "support/docstream.h"
+
 #include <map>
 #include <sstream>
 
+using namespace std;
 
 namespace lyx {
 
 using frontend::Painter;
-
-using std::max;
-using std::endl;
-using std::vector;
 
 
 ///
@@ -340,7 +338,7 @@ named_deco_struct deco_table[] = {
 };
 
 
-std::map<docstring, deco_struct> deco_list;
+map<docstring, deco_struct> deco_list;
 
 // sort the table on startup
 class init_deco_table {
@@ -361,7 +359,7 @@ static init_deco_table dummy;
 
 deco_struct const * search_deco(docstring const & name)
 {
-	std::map<docstring, deco_struct>::const_iterator p = deco_list.find(name);
+	map<docstring, deco_struct>::const_iterator p = deco_list.find(name);
 	return p == deco_list.end() ? 0 : &(p->second);
 }
 
@@ -369,20 +367,20 @@ deco_struct const * search_deco(docstring const & name)
 } // namespace anon
 
 
-int mathed_char_width(Font const & font, char_type c)
+int mathed_char_width(FontInfo const & font, char_type c)
 {
 	return theFontMetrics(font).width(c);
 }
 
 
-int mathed_char_kerning(Font const & font, char_type c)
+int mathed_char_kerning(FontInfo const & font, char_type c)
 {
 	frontend::FontMetrics const & fm = theFontMetrics(font);
 	return fm.rbearing(c) - fm.width(c);
 }
 
 
-void mathed_string_dim(Font const & font,
+void mathed_string_dim(FontInfo const & font,
 		       docstring const & s,
 		       Dimension & dim)
 {
@@ -399,7 +397,7 @@ void mathed_string_dim(Font const & font,
 }
 
 
-int mathed_string_width(Font const & font, docstring const & s)
+int mathed_string_width(FontInfo const & font, docstring const & s)
 {
 	return theFontMetrics(font).width(s);
 }
@@ -410,7 +408,7 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 {
 	if (name == ".") {
 		pi.pain.line(x + w/2, y, x + w/2, y + h,
-			  Color::cursor, Painter::line_onoffdash);
+			  Color_cursor, Painter::line_onoffdash);
 		return;
 	}
 
@@ -452,7 +450,7 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 			pi.pain.line(
 				int(x + xx + 0.5), int(y + yy + 0.5),
 				int(x + x2 + 0.5), int(y + y2 + 0.5),
-				Color::math);
+				Color_math);
 		} else {
 			int xp[32];
 			int yp[32];
@@ -469,7 +467,7 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 				yp[j] = int(y + yy + 0.5);
 				//  lyxerr << "P[" << j ' ' << xx << ' ' << yy << ' ' << x << ' ' << y << ']';
 			}
-			pi.pain.lines(xp, yp, n, Color::math);
+			pi.pain.lines(xp, yp, n, Color_math);
 		}
 	}
 }
@@ -477,21 +475,21 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 
 void drawStrRed(PainterInfo & pi, int x, int y, docstring const & str)
 {
-	Font f = pi.base.font;
-	f.setColor(Color::latex);
+	FontInfo f = pi.base.font;
+	f.setColor(Color_latex);
 	pi.pain.text(x, y, str, f);
 }
 
 
 void drawStrBlack(PainterInfo & pi, int x, int y, docstring const & str)
 {
-	Font f = pi.base.font;
-	f.setColor(Color::foreground);
+	FontInfo f = pi.base.font;
+	f.setColor(Color_foreground);
 	pi.pain.text(x, y, str, f);
 }
 
 
-void math_font_max_dim(Font const & font, int & asc, int & des)
+void math_font_max_dim(FontInfo const & font, int & asc, int & des)
 {
 	frontend::FontMetrics const & fm = theFontMetrics(font);
 	asc = fm.maxAscent();
@@ -500,105 +498,105 @@ void math_font_max_dim(Font const & font, int & asc, int & des)
 
 
 struct fontinfo {
-	std::string cmd_;
-	Font::FONT_FAMILY family_;
-	Font::FONT_SERIES series_;
-	Font::FONT_SHAPE  shape_;
-	Color::color        color_;
+	string cmd_;
+	FontFamily family_;
+	FontSeries series_;
+	FontShape  shape_;
+	ColorCode        color_;
 };
 
 
-Font::FONT_FAMILY const inh_family = Font::INHERIT_FAMILY;
-Font::FONT_SERIES const inh_series = Font::INHERIT_SERIES;
-Font::FONT_SHAPE  const inh_shape  = Font::INHERIT_SHAPE;
+FontFamily const inh_family = INHERIT_FAMILY;
+FontSeries const inh_series = INHERIT_SERIES;
+FontShape  const inh_shape  = INHERIT_SHAPE;
 
 
 // mathnormal should be the first, otherwise the fallback further down
 // does not work
 fontinfo fontinfos[] = {
 	// math fonts
-	{"mathnormal",    Font::ROMAN_FAMILY, Font::MEDIUM_SERIES,
-			  Font::ITALIC_SHAPE, Color::math},
-	{"mathbf",        inh_family, Font::BOLD_SERIES,
-			  inh_shape, Color::math},
-	{"mathcal",       Font::CMSY_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"mathfrak",      Font::EUFRAK_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"mathrm",        Font::ROMAN_FAMILY, inh_series,
-			  Font::UP_SHAPE, Color::math},
-	{"mathsf",        Font::SANS_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"mathbb",        Font::MSB_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"mathtt",        Font::TYPEWRITER_FAMILY, inh_series,
-			  inh_shape, Color::math},
+	{"mathnormal",    ROMAN_FAMILY, MEDIUM_SERIES,
+			  ITALIC_SHAPE, Color_math},
+	{"mathbf",        inh_family, BOLD_SERIES,
+			  inh_shape, Color_math},
+	{"mathcal",       CMSY_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"mathfrak",      EUFRAK_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"mathrm",        ROMAN_FAMILY, inh_series,
+			  UP_SHAPE, Color_math},
+	{"mathsf",        SANS_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"mathbb",        MSB_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"mathtt",        TYPEWRITER_FAMILY, inh_series,
+			  inh_shape, Color_math},
 	{"mathit",        inh_family, inh_series,
-			  Font::ITALIC_SHAPE, Color::math},
-	{"cmex",          Font::CMEX_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"cmm",           Font::CMM_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"cmr",           Font::CMR_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"cmsy",          Font::CMSY_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"eufrak",        Font::EUFRAK_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"msa",           Font::MSA_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"msb",           Font::MSB_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"wasy",          Font::WASY_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"esint",         Font::ESINT_FAMILY, inh_series,
-			  inh_shape, Color::math},
+			  ITALIC_SHAPE, Color_math},
+	{"cmex",          CMEX_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"cmm",           CMM_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"cmr",           CMR_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"cmsy",          CMSY_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"eufrak",        EUFRAK_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"msa",           MSA_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"msb",           MSB_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"wasy",          WASY_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"esint",         ESINT_FAMILY, inh_series,
+			  inh_shape, Color_math},
 
 	// Text fonts
 	{"text",          inh_family, inh_series,
-			  inh_shape, Color::foreground},
-	{"textbf",        inh_family, Font::BOLD_SERIES,
-			  inh_shape, Color::foreground},
+			  inh_shape, Color_foreground},
+	{"textbf",        inh_family, BOLD_SERIES,
+			  inh_shape, Color_foreground},
 	{"textit",        inh_family, inh_series,
-			  Font::ITALIC_SHAPE, Color::foreground},
-	{"textmd",        inh_family, Font::MEDIUM_SERIES,
-			  inh_shape, Color::foreground},
+			  ITALIC_SHAPE, Color_foreground},
+	{"textmd",        inh_family, MEDIUM_SERIES,
+			  inh_shape, Color_foreground},
 	{"textnormal",    inh_family, inh_series,
-			  Font::UP_SHAPE, Color::foreground},
-	{"textrm",        Font::ROMAN_FAMILY,
-			  inh_series, Font::UP_SHAPE,Color::foreground},
+			  UP_SHAPE, Color_foreground},
+	{"textrm",        ROMAN_FAMILY,
+			  inh_series, UP_SHAPE,Color_foreground},
 	{"textsc",        inh_family, inh_series,
-			  Font::SMALLCAPS_SHAPE, Color::foreground},
-	{"textsf",        Font::SANS_FAMILY, inh_series,
-			  inh_shape, Color::foreground},
+			  SMALLCAPS_SHAPE, Color_foreground},
+	{"textsf",        SANS_FAMILY, inh_series,
+			  inh_shape, Color_foreground},
 	{"textsl",        inh_family, inh_series,
-			  Font::SLANTED_SHAPE, Color::foreground},
-	{"texttt",        Font::TYPEWRITER_FAMILY, inh_series,
-			  inh_shape, Color::foreground},
+			  SLANTED_SHAPE, Color_foreground},
+	{"texttt",        TYPEWRITER_FAMILY, inh_series,
+			  inh_shape, Color_foreground},
 	{"textup",        inh_family, inh_series,
-			  Font::UP_SHAPE, Color::foreground},
+			  UP_SHAPE, Color_foreground},
 
 	// TIPA support
 	{"textipa",       inh_family, inh_series,
-			  inh_shape, Color::foreground},
+			  inh_shape, Color_foreground},
 
 	// LyX internal usage
 	{"lyxtex",        inh_family, inh_series,
-			  Font::UP_SHAPE, Color::latex},
-	{"lyxsymbol",     Font::SYMBOL_FAMILY, inh_series,
-			  inh_shape, Color::math},
-	{"lyxboldsymbol", Font::SYMBOL_FAMILY, Font::BOLD_SERIES,
-			  inh_shape, Color::math},
-	{"lyxblacktext",  Font::ROMAN_FAMILY, Font::MEDIUM_SERIES,
-			  Font::UP_SHAPE, Color::foreground},
+			  UP_SHAPE, Color_latex},
+	{"lyxsymbol",     SYMBOL_FAMILY, inh_series,
+			  inh_shape, Color_math},
+	{"lyxboldsymbol", SYMBOL_FAMILY, BOLD_SERIES,
+			  inh_shape, Color_math},
+	{"lyxblacktext",  ROMAN_FAMILY, MEDIUM_SERIES,
+			  UP_SHAPE, Color_foreground},
 	{"lyxnochange",   inh_family, inh_series,
-			  inh_shape, Color::foreground},
-	{"lyxfakebb",     Font::TYPEWRITER_FAMILY, Font::BOLD_SERIES,
-			  Font::UP_SHAPE, Color::math},
-	{"lyxfakecal",    Font::SANS_FAMILY, Font::MEDIUM_SERIES,
-			  Font::ITALIC_SHAPE, Color::math},
-	{"lyxfakefrak",   Font::ROMAN_FAMILY, Font::BOLD_SERIES,
-			  Font::ITALIC_SHAPE, Color::math}
+			  inh_shape, Color_foreground},
+	{"lyxfakebb",     TYPEWRITER_FAMILY, BOLD_SERIES,
+			  UP_SHAPE, Color_math},
+	{"lyxfakecal",    SANS_FAMILY, MEDIUM_SERIES,
+			  ITALIC_SHAPE, Color_math},
+	{"lyxfakefrak",   ROMAN_FAMILY, BOLD_SERIES,
+			  ITALIC_SHAPE, Color_math}
 };
 
 
@@ -606,7 +604,7 @@ fontinfo * lookupFont(docstring const & name0)
 {
 	//lyxerr << "searching font '" << name << "'" << endl;
 	int const n = sizeof(fontinfos) / sizeof(fontinfo);
-	std::string name = to_utf8(name0);
+	string name = to_utf8(name0);
 	for (int i = 0; i < n; ++i)
 		if (fontinfos[i].cmd_ == name) {
 			//lyxerr << "found '" << i << "'" << endl;
@@ -631,9 +629,9 @@ bool isFontName(docstring const & name)
 }
 
 
-Font getFont(docstring const & name)
+FontInfo getFont(docstring const & name)
 {
-	Font font;
+	FontInfo font;
 	augmentFont(font, name);
 	return font;
 }
@@ -655,7 +653,7 @@ void fakeFont(docstring const & orig, docstring const & fake)
 }
 
 
-void augmentFont(Font & font, docstring const & name)
+void augmentFont(FontInfo & font, docstring const & name)
 {
 	static bool initialized = false;
 	if (!initialized) {
@@ -673,7 +671,7 @@ void augmentFont(Font & font, docstring const & name)
 		font.setSeries(info->series_);
 	if (info->shape_ != inh_shape)
 		font.setShape(info->shape_);
-	if (info->color_ != Color::none)
+	if (info->color_ != Color_none)
 		font.setColor(info->color_);
 }
 
@@ -687,9 +685,11 @@ docstring asString(MathData const & ar)
 }
 
 
-void asArray(docstring const & str, MathData & ar)
+void asArray(docstring const & str, MathData & ar, Parse::flags pf)
 {
-	mathed_parse_cell(ar, str);
+	bool quiet = pf & Parse::QUIET;
+	if ((str.size() == 1 && quiet) || (!mathed_parse_cell(ar, str, pf) && quiet))
+		mathed_parse_cell(ar, str, pf | Parse::VERBATIM);
 }
 
 

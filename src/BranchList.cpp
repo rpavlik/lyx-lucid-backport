@@ -17,20 +17,37 @@
 
 #include <algorithm>
 
-using std::string;
+using namespace std;
+
 
 namespace lyx {
+
+namespace {
+
+class BranchNamesEqual : public std::unary_function<Branch, bool>
+{
+public:
+	BranchNamesEqual(docstring const & name) : name_(name) {}
+
+	bool operator()(Branch const & branch) const
+	{
+		return branch.branch() == name_;
+	}
+private:
+	docstring name_;
+};
+}
 
 
 Branch::Branch() : selected_(false)
 {
 	// no theApp() with command line export
 	if (theApp())
-		theApp()->getRgbColor(Color::background, color_);
+		theApp()->getRgbColor(Color_background, color_);
 }
 
 
-docstring const & Branch::getBranch() const
+docstring const & Branch::branch() const
 {
 	return branch_;
 }
@@ -42,7 +59,7 @@ void Branch::setBranch(docstring const & s)
 }
 
 
-bool Branch::getSelected() const
+bool Branch::isSelected() const
 {
 	return selected_;
 }
@@ -57,7 +74,7 @@ bool Branch::setSelected(bool b)
 }
 
 
-RGBColor const & Branch::getColor() const
+RGBColor const & Branch::color() const
 {
 	return color_;
 }
@@ -69,20 +86,20 @@ void Branch::setColor(RGBColor const & c)
 }
 
 
-void Branch::setColor(string const & c)
+void Branch::setColor(string const & str)
 {
-	if (c.size() == 7 && c[0] == '#')
-		color_ = RGBColor(c);
+	if (str.size() == 7 && str[0] == '#')
+		color_ = rgbFromHexName(str);
 	else
 		// no color set or invalid color - use normal background
-		theApp()->getRgbColor(Color::background, color_);
+		theApp()->getRgbColor(Color_background, color_);
 }
 
 
 Branch * BranchList::find(docstring const & name)
 {
 	List::iterator it =
-		std::find_if(list.begin(), list.end(), BranchNamesEqual(name));
+		find_if(list.begin(), list.end(), BranchNamesEqual(name));
 	return it == list.end() ? 0 : &*it;
 }
 
@@ -90,7 +107,7 @@ Branch * BranchList::find(docstring const & name)
 Branch const * BranchList::find(docstring const & name) const
 {
 	List::const_iterator it =
-		std::find_if(list.begin(), list.end(), BranchNamesEqual(name));
+		find_if(list.begin(), list.end(), BranchNamesEqual(name));
 	return it == list.end() ? 0 : &*it;
 }
 
@@ -98,9 +115,9 @@ Branch const * BranchList::find(docstring const & name) const
 bool BranchList::add(docstring const & s)
 {
 	bool added = false;
-	docstring::size_type i = 0;
+	size_t i = 0;
 	while (true) {
-		docstring::size_type const j = s.find_first_of(separator_, i);
+		size_t const j = s.find_first_of(separator_, i);
 		docstring name;
 		if (j == docstring::npos)
 			name = s.substr(i);
@@ -108,7 +125,7 @@ bool BranchList::add(docstring const & s)
 			name = s.substr(i, j - i);
 		// Is this name already in the list?
 		bool const already =
-			std::find_if(list.begin(), list.end(),
+			find_if(list.begin(), list.end(),
 				     BranchNamesEqual(name)) != list.end();
 		if (!already) {
 			added = true;

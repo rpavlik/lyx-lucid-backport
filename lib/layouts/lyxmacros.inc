@@ -8,8 +8,9 @@
 # be removed later.
 
 
-Format 4
+Format 11
 Style LyX-Code
+	Category              MainText
 	Margin                Static
 	LatexType             Environment
 	LatexName             lyxcode
@@ -24,7 +25,7 @@ Style LyX-Code
 	FreeSpacing           1
 	Preamble
 		\newenvironment{lyxcode}
-			{\begin{list}{}{
+			{\par\begin{list}{}{
 				\setlength{\rightmargin}{\leftmargin}
 				\setlength{\listparindent}{0pt}% needed for AMS classes
 				\raggedright
@@ -68,7 +69,6 @@ Style Right_Address
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
-	AlignPossible         Left
 	Preamble
 		\newcommand{\lyxrightaddress}[1]{
 			\par {\raggedleft \begin{tabular}{l}\ignorespaces

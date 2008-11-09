@@ -4,79 +4,57 @@
 # in most LyX layouts.
 
 
-Format 4
-Counter
-	Name                 part
+Format 11
+Counter part
+	LabelString	      "\Roman{part}"
 End
 
-Counter
-	Name                 chapter
+Counter chapter
 End
 
-Counter
-	Name                 section
+Counter section
 	Within               chapter
 End
 
-Counter
-	Name                 subsection
+Counter subsection
 	Within               section
 End
 
-Counter
-	Name                 subsubsection
+Counter subsubsection
 	Within               subsection
 End
 
-Counter
-	Name                 paragraph
+Counter paragraph
 	Within               subsubsection
 End
 
-Counter
-	Name                 subparagraph
+Counter subparagraph
 	Within               paragraph
 End
 
-Counter
-	Name                 enumi
+Counter enumi
 End
 
-Counter
-	Name                 enumii
+Counter enumii
 	Within               enumi
 End
 
-Counter
-	Name                 enumiii
+Counter enumiii
 	Within               enumii
 End
 
-Counter
-	Name                 enumiv
+Counter enumiv
 	Within               enumiii
 End
 
-Counter
-	Name                 bibitem
+Counter bibitem
 End
 
-Counter
-	Name                 figure
+Counter listing
 End
 
-Counter
-	Name                 table
+Counter equation
 End
 
-Counter
-	Name                 algorithm
-End
-
-Counter
-	Name                 equation
-End
-
-Counter
-	Name                 listing
+Counter footnote
 End

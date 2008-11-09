@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass{presentation (slides)}
+#  \DeclareLaTeXClass{transparencies (slides)}
 # Slides textclass definition file.
 # Author : John Weiss <jpweiss@idsi.net>
 #
@@ -7,7 +7,7 @@
 #
 
 
-Format 4
+Format 11
 Columns        1
 Sides          1
 PageStyle      Plain
@@ -75,6 +75,7 @@ End
 #  date.
 #  -jw 10/2/96
 
+Input stdinsets.inc
 Input stdlists.inc
 Input stdlayouts.inc
 Input lyxmacros.inc
@@ -97,7 +98,6 @@ Style Slide
 	BottomSep         1.0
 	ParSep            0.5
 	Align             Left
-	AlignPossible     Left
 	LabelType         Static
 	LabelBottomSep    0.5
 	LabelSep          xx
@@ -135,7 +135,6 @@ Style Overlay
 	BottomSep         1.0
 	ParSep            0.5
 	Align             Left
-	AlignPossible     Left
 	LabelType         Static
 	LabelBottomSep    0.5
 	LabelSep          xx
@@ -176,7 +175,6 @@ Style Note
 	BottomSep         1.0
 	ParSep            0.5
 	Align             Left
-	AlignPossible     Left
 	LabelType         Static
 	LabelBottomSep    0.5
 	LabelSep          xx
@@ -212,7 +210,6 @@ Style InvisibleText
 	KeepEmpty         1
 	Margin            Static
 	Align             Center
-	AlignPossible     Center
 	LabelType         Static
 	LabelString       "<Invisible Text Follows>"
 	Font
@@ -237,7 +234,6 @@ Style VisibleText
 	KeepEmpty         1
 	Margin            Static
 	Align             Center
-	AlignPossible     Center
 	LabelType         Static
 	LabelString       "<Visible Text Follows>"
 	Font

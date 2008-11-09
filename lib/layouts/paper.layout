@@ -4,7 +4,7 @@
 # Created by Jean-Marc Lasgouttes (Jean-Marc.Lasgouttes@inria.fr)
 
 
-Format 4
+Format 11
 Columns                 1
 Sides                   1
 SecNumDepth             3
@@ -22,15 +22,23 @@ Style Standard
 	LabelType             No_Label
 End
 
-
-Input stdlists.inc
+Input stdtitle.inc
+Input stdstruct.inc
+Input lyxmacros.inc
+Input stdlayouts.inc
+Input stdfloats.inc
 Input stdsections.inc
+Input stdstarsections.inc
+Input stdlists.inc
+Input stdcounters.inc
 
+# There are no chapters in a paper.
+NoStyle                 Chapter
+NoStyle                 Chapter*
 
 # All the section headings now use sans serif
 Style Part
 	Align                 Left
-	AlignPossible         Left
 	TopSep                2
 	BottomSep             1.5
 	Font
@@ -84,22 +92,6 @@ Style Subparagraph
 	EndFont
 End
 
-
-Input stdstarsections.inc
-
-
-# There are no chapters in a paper.
-NoStyle                 Chapter
-NoStyle                 Chapter*
-
-Input stdtitle.inc
-Input stdstruct.inc
-Input lyxmacros.inc
-Input stdlayouts.inc
-Input stdfloats.inc
-Input stdcounters.inc
-
-
 Style Description
 	LabelFont
 	  Family              Sans
@@ -111,7 +103,6 @@ End
 # The \maketitle stuff is by default left justified.
 Style Title
 	Align                 Left
-	AlignPossible         Left
 	Font
 	  Family              Sans
 	  Series              Bold
@@ -122,8 +113,6 @@ End
 
 Style Author
 	Align                 Left
-	AlignPossible         Left
-
 	Font
 	  Size                Larger
 	  Family              Sans

@@ -5,7 +5,7 @@
 # Author : Herbert Voss <voss@perce.de> 2001/08/13
 
 
-Format 4
+Format 11
 Columns                 2
 Sides                   2
 #SecNumDepth                            # no counting
@@ -54,7 +54,6 @@ Style Section
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Block
-	AlignPossible         Block, Left
 	Font
 	  Series              Bold
 	  Size                Normal
@@ -74,7 +73,6 @@ Style Subsection
 	BottomSep             0.5
 	ParSep                0.5
 	Align                 Block
-	AlignPossible         Block, Left
 	Font
 	  Series              Bold
 	  Size                Normal
@@ -94,7 +92,6 @@ Style Subsubsection
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Block
-	AlignPossible         Block, Left
 	Font
 	  Series              Bold
 	  Size                Normal
@@ -114,7 +111,6 @@ Style Paragraph
 	BottomSep             0
 	ParSep                0.4
 	Align                 Block
-	AlignPossible         Block, Left
 	Font
 	  Series              Bold
 	  Size                Normal
@@ -129,6 +125,7 @@ Input stdstruct.inc
 Input stdlayouts.inc
 Input stdfloats.inc
 Input stdcounters.inc
+Input stdinsets.inc
 
 
 Style Title
@@ -142,7 +139,6 @@ Style Title
 	BottomSep             1
 	ParSep                1
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	TextFont
 	  Series              Bold
@@ -163,7 +159,6 @@ Style Author
 	ParSep                0.7
 	LeftMargin            MM
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 End
 
@@ -181,7 +176,6 @@ Style Abstract
 	BottomSep             1.5
 	ParSep                0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Top_Environment
 	LabelString           "Abstract"
 	LabelBottomSep    0.5

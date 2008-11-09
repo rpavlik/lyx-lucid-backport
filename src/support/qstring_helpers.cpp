@@ -1,87 +1,70 @@
 /**
- * \file qstring_helpers.cpp
+ * \file qstring_helper.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
  * \author Dekel Tsur
- * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
+ *
+ * A collection of unicode conversion functions, using iconv.
  */
 
 #include <config.h>
 
-#include "qstring_helpers.h"
-#include "unicode.h"
+#include "support/qstring_helpers.h"
 
+#include "support/debug.h"
+#include "support/docstring.h"
+
+#include <QString>
 #include <QVector>
-
 
 namespace lyx {
 
-using std::string;
-
-#if QT_VERSION < 0x040200
-// We use QString::fromUcs4 in Qt 4.2 and higher
-QString const toqstr(docstring const & str)
+LyXErr & operator<<(LyXErr & err, QString const & str)
 {
-	QString s;
-	int i = static_cast<int>(str.size());
-	s.resize(i);
-	for (; --i >= 0;) {
-		char_type const c = str[i];
-		if (is_utf16(c))
-			// Use a simple cast in the common case for speed
-			// reasons
-			s[i] = static_cast<unsigned short>(c);
-		else {
-			// A simple cast is not possible, so we need to use
-			// the full blown conversion.
-			std::vector<unsigned short> const utf16 =
-				ucs4_to_utf16(str.data(), str.size());
-			// Enable the compiler to do NRVO
-			s = QString::fromUtf16(&utf16[0], utf16.size());
-			break;
-		}
-	}
-	return s;
+	return err << fromqstr(str);
 }
-#endif
 
 
-docstring const qstring_to_ucs4(QString const & qstr)
+QString toqstr(char const * str)
 {
-#if QT_VERSION >= 0x040200
+	return QString::fromUtf8(str);
+}
+
+QString toqstr(std::string const & str)
+{
+	return toqstr(str.c_str());
+}
+
+
+QString toqstr(docstring const & ucs4)
+{
+	// If possible we let qt do the work, since this version does not
+	// need to be superfast.
+	if (ucs4.empty())
+		return QString();
+	return QString::fromUcs4((uint const *)ucs4.data(), ucs4.length());
+}
+
+QString toqstr(char_type ucs4)
+{
+	union { char_type c; uint i; } u = { ucs4 };
+	return QString::fromUcs4(&u.i, 1);
+}
+
+docstring qstring_to_ucs4(QString const & qstr)
+{
+	if (qstr.isEmpty())
+		return docstring();
 	QVector<uint> const ucs4 = qstr.toUcs4();
-	return docstring(ucs4.begin(), ucs4.end());
-#else
-	int const ls = qstr.size();
-	docstring ucs4;
-	for (int i = 0; i < ls; ++i) {
-		char_type const c = static_cast<char_type>(qstr[i].unicode());
-		if (is_utf16(c))
-			// Use a simple cast in the common case for speed
-			// reasons
-			ucs4 += c;
-		else {
-			// A simple cast is not possible, so we need to use
-			// the full blown conversion.
-			std::vector<char_type> const v = utf16_to_ucs4(
-				reinterpret_cast<unsigned short const *>(qstr.utf16()),
-				qstr.size());
-			// Enable the compiler to do NRVO
-			ucs4 = docstring(v.begin(), v.end());
-			break;
-		}
-	}
-	return ucs4;
-#endif
+	return docstring((char_type const *)(ucs4.constData()), ucs4.size());
 }
 
-
-string const fromqstr(QString const & str)
+std::string fromqstr(QString const & str)
 {
-	return str.isEmpty() ? string() : string(str.toUtf8());
+	return str.isEmpty() ? std::string() : std::string(str.toUtf8());
 }
 
 } // namespace lyx

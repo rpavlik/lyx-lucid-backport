@@ -14,8 +14,6 @@
 
 #include "InsetMath.h"
 
-#include "Font.h"
-
 namespace lyx {
 
 /// The base character inset.
@@ -24,7 +22,9 @@ public:
 	///
 	explicit InsetMathChar(char_type c);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void setBuffer(Buffer &) {}
+	///
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -32,10 +32,12 @@ public:
 	///
 	void drawT(TextPainter &, int x, int y) const;
 	///
-	int kerning() const { return kerning_; }
+	int kerning(BufferView const *) const { return kerning_; }
 
 	///
 	void write(WriteStream & os) const;
+	///
+	void validate(LaTeXFeatures & features) const;
 	///
 	void normalize(NormalStream & ns) const;
 	///
@@ -50,7 +52,7 @@ public:
 	bool isRelOp() const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	/// the character
 	char_type char_;
 	/// cached kerning for superscript

@@ -10,26 +10,22 @@
 
 #include <config.h>
 
-#include "LaTeXFeatures.h"
 #include "InsetMathArray.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathParser.h"
 #include "MathStream.h"
+#include "MetricsInfo.h"
 
 #include "support/lstrings.h"
 
 #include <iterator>
 #include <sstream>
 
+using namespace std;
 
 namespace lyx {
-
-using std::getline;
-using std::auto_ptr;
-using std::istringstream;
-using std::istream_iterator;
-using std::vector;
-using std::string;
 
 
 InsetMathArray::InsetMathArray(docstring const & name, int m, int n)
@@ -40,12 +36,6 @@ InsetMathArray::InsetMathArray(docstring const & name, int m, int n)
 InsetMathArray::InsetMathArray(docstring const & name, int m, int n,
 		char valign, docstring const & halign)
 	: InsetMathGrid(m, n, valign, halign), name_(name)
-{}
-
-
-InsetMathArray::InsetMathArray(docstring const & name, char valign,
-		docstring const & halign)
-	: InsetMathGrid(valign, halign), name_(name)
 {}
 
 
@@ -73,20 +63,25 @@ InsetMathArray::InsetMathArray(docstring const & name, docstring const & str)
 }
 
 
-auto_ptr<Inset> InsetMathArray::doClone() const
+Inset * InsetMathArray::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathArray(*this));
+	return new InsetMathArray(*this);
 }
 
 
-bool InsetMathArray::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathArray::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	ArrayChanger dummy(mi.base);
 	InsetMathGrid::metrics(mi, dim);
 	dim.wid += 6;
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
+}
+
+
+Dimension const InsetMathArray::dimension(BufferView const & bv) const
+{
+	Dimension dim = InsetMathGrid::dimension(bv);
+	dim.wid += 6;
+	return dim;
 }
 
 
@@ -100,13 +95,16 @@ void InsetMathArray::draw(PainterInfo & pi, int x, int y) const
 
 void InsetMathArray::write(WriteStream & os) const
 {
+	MathEnsurer ensurer(os);
+
 	if (os.fragile())
 		os << "\\protect";
 	os << "\\begin{" << name_ << '}';
 
-	if (v_align_ == 't' || v_align_ == 'b')
-		os << '[' << char(v_align_) << ']';
-	os << '{' << halign() << "}\n";
+	char const v = verticalAlignment();
+	if (v == 't' || v == 'b')
+		os << '[' << v << ']';
+	os << '{' << horizontalAlignments() << "}\n";
 
 	InsetMathGrid::write(os);
 

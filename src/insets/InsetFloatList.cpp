@@ -14,77 +14,91 @@
 
 #include "Buffer.h"
 #include "BufferParams.h"
-#include "debug.h"
 #include "DispatchResult.h"
 #include "Floating.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
+#include "TextClass.h"
 #include "TocBackend.h"
 
+#include "support/debug.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 
+#include <ostream>
+
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::bformat;
-
-using std::endl;
-using std::string;
-using std::ostream;
-
 
 InsetFloatList::InsetFloatList()
-	: InsetCommand(InsetCommandParams("floatlist"), "toc")
+	: InsetCommand(InsetCommandParams(FLOAT_LIST_CODE), "toc")
 {}
 
 
 InsetFloatList::InsetFloatList(string const & type)
-	: InsetCommand(InsetCommandParams("floatlist"), "toc")
+	: InsetCommand(InsetCommandParams(FLOAT_LIST_CODE), "toc")
 {
 	setParam("type", from_ascii(type));
 }
 
 
-docstring const InsetFloatList::getScreenLabel(Buffer const & buf) const
+ParamInfo const & InsetFloatList::findInfo(string const & /* cmdName */)
 {
-	FloatList const & floats = buf.params().getTextClass().floats();
+	static ParamInfo param_info_;
+	if (param_info_.empty()) {
+		param_info_.add("type", ParamInfo::LATEX_REQUIRED);
+	}
+	return param_info_;
+}
+
+
+//HACK
+bool InsetFloatList::isCompatibleCommand(string const & s)
+{
+	string str = s.substr(0, 6);
+	return str == "listof";
+}
+
+
+docstring InsetFloatList::screenLabel() const
+{
+	FloatList const & floats = buffer().params().documentClass().floats();
 	FloatList::const_iterator it = floats[to_ascii(getParam("type"))];
 	if (it != floats.end())
-		return buf.B_(it->second.listName());
+		return buffer().B_(it->second.listName());
 	else
 		return _("ERROR: Nonexistent float type!");
 }
 
 
-Inset::Code InsetFloatList::lyxCode() const
-{
-	return Inset::FLOAT_LIST_CODE;
-}
-
-
-void InsetFloatList::write(Buffer const &, ostream & os) const
+void InsetFloatList::write(ostream & os) const
 {
 	os << "FloatList " << to_ascii(getParam("type")) << "\n";
 }
 
 
-void InsetFloatList::read(Buffer const & buf, Lexer & lex)
+void InsetFloatList::read(Lexer & lex)
 {
-	FloatList const & floats = buf.params().getTextClass().floats();
+	lex.setContext("InsetFloatList::read");
+	FloatList const & floats = buffer().params().documentClass().floats();
 	string token;
 
 	if (lex.eatLine()) {
 		setParam("type", lex.getDocString());
-		LYXERR(Debug::INSETS) << "FloatList::float_type: "
-				      << to_ascii(getParam("type")) << endl;
+		LYXERR(Debug::INSETS, "FloatList::float_type: "
+				      << to_ascii(getParam("type")));
 		if (!floats.typeExist(to_ascii(getParam("type"))))
-			lex.printError("InsetFloatList: Unknown float type: `$$Token'");
-	} else
-		lex.printError("InsetFloatList: Parse error: `$$Token'");
+			lex.printError("Unknown float type");
+	} else {
+		lex.printError("Parse error");
+	}
+
 	while (lex.isOK()) {
 		lex.next();
 		token = lex.getString();
@@ -92,16 +106,14 @@ void InsetFloatList::read(Buffer const & buf, Lexer & lex)
 			break;
 	}
 	if (token != "\\end_inset") {
-		lex.printError("Missing \\end_inset at this point. "
-			       "Read: `$$Token'");
+		lex.printError("Missing \\end_inset at this point.");
 	}
 }
 
 
-int InsetFloatList::latex(Buffer const & buf, odocstream & os,
-			  OutputParams const &) const
+int InsetFloatList::latex(odocstream & os, OutputParams const &) const
 {
-	FloatList const & floats = buf.params().getTextClass().floats();
+	FloatList const & floats = buffer().params().documentClass().floats();
 	FloatList::const_iterator cit = floats[to_ascii(getParam("type"))];
 
 	if (cit != floats.end()) {
@@ -117,7 +129,7 @@ int InsetFloatList::latex(Buffer const & buf, odocstream & os,
 			}
 		} else {
 			os << "\\listof{" << getParam("type") << "}{"
-			   << buf.B_(cit->second.listName()) << "}\n";
+			   << buffer().B_(cit->second.listName()) << "}\n";
 		}
 	} else {
 		os << "%%\\listof{" << getParam("type") << "}{"
@@ -128,12 +140,11 @@ int InsetFloatList::latex(Buffer const & buf, odocstream & os,
 }
 
 
-int InsetFloatList::plaintext(Buffer const & buffer, odocstream & os,
-			      OutputParams const &) const
+int InsetFloatList::plaintext(odocstream & os, OutputParams const &) const
 {
-	os << getScreenLabel(buffer) << "\n\n";
+	os << screenLabel() << "\n\n";
 
-	buffer.tocBackend().writePlaintextTocList(to_ascii(getParam("type")), os);
+	buffer().tocBackend().writePlaintextTocList(to_ascii(getParam("type")), os);
 
 	return PLAINTEXT_NEWLINE;
 }

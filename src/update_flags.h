@@ -16,12 +16,18 @@ namespace lyx {
 
 namespace Update {
 	enum flags {
+		/// No screen update is needed.
 		None = 0,
+		/// Recenter the screen around the cursor if is found outside the
+		/// visible area.
 		FitCursor = 1,
+		/// Force a full screen metrics update.
 		Force = 2,
+		/// Try to rebreak only the current paragraph metrics.
 		SinglePar = 4,
-		MultiParSel = 8,
-		Decoration = 16
+		/// Only the inset decorations need to be redrawn, no text metrics
+		/// update is needed.
+		Decoration = 8
 	};
 
 inline flags operator|(flags const f, flags const g)

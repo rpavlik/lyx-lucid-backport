@@ -14,53 +14,46 @@
 #include "MathData.h"
 #include "MathStream.h"
 #include "TextPainter.h"
-#include "Color.h"
 #include "frontends/Painter.h"
 
 
 namespace lyx {
-
-using std::auto_ptr;
-
 
 InsetMathSqrt::InsetMathSqrt()
 	: InsetMathNest(1)
 {}
 
 
-auto_ptr<Inset> InsetMathSqrt::doClone() const
+Inset * InsetMathSqrt::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathSqrt(*this));
+	return new InsetMathSqrt(*this);
 }
 
 
-bool InsetMathSqrt::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathSqrt::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	cell(0).metrics(mi, dim);
 	dim.asc += 4;
 	dim.des += 2;
 	dim.wid += 12;
 	metricsMarkers(dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
 void InsetMathSqrt::draw(PainterInfo & pi, int x, int y) const
 {
 	cell(0).draw(pi, x + 10, y);
-	int const a = dim_.ascent();
-	int const d = dim_.descent();
+	Dimension const dim = dimension(*pi.base.bv);
+	int const a = dim.ascent();
+	int const d = dim.descent();
 	int xp[3];
 	int yp[3];
-	pi.pain.line(x + dim_.width(), y - a + 1,
-							 x + 8, y - a + 1, Color::math);
+	pi.pain.line(x + dim.width(), y - a + 1,
+		x + 8, y - a + 1, Color_math);
 	xp[0] = x + 8;            yp[0] = y - a + 1;
 	xp[1] = x + 5;            yp[1] = y + d - 1;
 	xp[2] = x;                yp[2] = y + (d - a)/2;
-	pi.pain.lines(xp, yp, 3, Color::math);
+	pi.pain.lines(xp, yp, 3, Color_math);
 	drawMarkers(pi, x, y);
 }
 
@@ -73,17 +66,21 @@ void InsetMathSqrt::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 }
 
 
-void InsetMathSqrt::drawT(TextPainter & pain, int x, int y) const
+void InsetMathSqrt::drawT(TextPainter & /*pain*/, int /*x*/, int /*y*/) const
 {
+	/*
 	cell(0).drawT(pain, x + 2, y);
-	pain.horizontalLine(x + 2, y - cell(0).ascent(), cell(0).width(), '_');
-	pain.verticalLine  (x + 1, y - cell(0).ascent() + 1, cell(0).height());
-	pain.draw(x, y + cell(0).descent(), '\\');
+	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
+	pain.horizontalLine(x + 2, y - dim0.ascent(), dim0.width(), '_');
+	pain.verticalLine  (x + 1, y - dim0.ascent() + 1, dim0.height());
+	pain.draw(x, y + dim0.descent(), '\\');
+	*/
 }
 
 
 void InsetMathSqrt::write(WriteStream & os) const
 {
+	MathEnsurer ensurer(os);
 	os << "\\sqrt{" << cell(0) << '}';
 }
 

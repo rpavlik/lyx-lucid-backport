@@ -5,6 +5,7 @@
  *
  * \author Jürgen Vigna
  * \author Lars Gullik Bjønnes
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,37 +13,37 @@
 #include <config.h>
 
 #include "InsetFloat.h"
+#include "InsetCaption.h"
 
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "Counters.h"
 #include "Cursor.h"
-#include "debug.h"
 #include "DispatchResult.h"
 #include "Floating.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
+#include "InsetList.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "OutputParams.h"
+#include "ParIterator.h"
+#include "TextClass.h"
 
-#include "support/lstrings.h"
 #include "support/convert.h"
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
+
+#include "frontends/Application.h"
+
+using namespace std;
 
 
 namespace lyx {
-
-using support::contains;
-
-using std::endl;
-using std::string;
-using std::auto_ptr;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-
 
 // With this inset it will be possible to support the latex package
 // float.sty, and I am sure that with this and some additional support
@@ -112,22 +113,33 @@ using std::ostringstream;
 // Lgb
 
 
-InsetFloat::InsetFloat(BufferParams const & bp, string const & type)
-	: InsetCollapsable(bp), name_(from_utf8(type))
+InsetFloat::InsetFloat(Buffer const & buf, string const & type)
+	: InsetCollapsable(buf), name_(from_utf8(type))
 {
-	setLabel(_("float: ") + floatName(type, bp));
-	Font font(Font::ALL_SANE);
-	font.decSize();
-	font.decSize();
-	font.setColor(Color::collapsable);
-	setLabelFont(font);
+	setLabel(_("float: ") + floatName(type, buf.params()));
 	params_.type = type;
 }
 
 
 InsetFloat::~InsetFloat()
 {
-	InsetFloatMailer(*this).hideDialog();
+	hideDialogs("float", this);
+}
+
+
+docstring InsetFloat::name() const 
+{ 
+	return "Float:" + name_; 
+}
+
+
+docstring InsetFloat::toolTip(BufferView const & bv, int x, int y) const
+{
+	if (InsetCollapsable::toolTip(bv, x, y).empty() || isOpen())
+		return docstring();
+
+	OutputParams rp(&buffer().params().encoding());
+	return getCaptionText(rp);
 }
 
 
@@ -137,26 +149,23 @@ void InsetFloat::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_INSET_MODIFY: {
 		InsetFloatParams params;
-		InsetFloatMailer::string2params(to_utf8(cmd.argument()), params);
-		params_.placement = params.placement;
-		params_.wide      = params.wide;
-		params_.sideways  = params.sideways;
-		wide(params_.wide, cur.buffer().params());
-		sideways(params_.sideways, cur.buffer().params());
+		string2params(to_utf8(cmd.argument()), params);
+
+		// placement, wide and sideways are not used for subfloats
+		if (!params_.subfloat) {
+			params_.placement = params.placement;
+			params_.wide      = params.wide;
+			params_.sideways  = params.sideways;
+			setWide(params_.wide, cur.buffer().params(), false);
+			setSideways(params_.sideways, cur.buffer().params(), false);
+		}
+
+		setNewLabel(cur.buffer().params());
 		break;
 	}
 
 	case LFUN_INSET_DIALOG_UPDATE: {
-		InsetFloatMailer(*this).updateDialog(&cur.bv());
-		break;
-	}
-
-	case LFUN_MOUSE_RELEASE: {
-		if (cmd.button() == mouse_button::button3 && hitButton(cmd)) {
-			InsetFloatMailer(*this).showDialog(&cur.bv());
-			break;
-		}
-		InsetCollapsable::doDispatch(cur, cmd);
+		cur.bv().updateDialog("float", params2string(params()));
 		break;
 	}
 
@@ -174,12 +183,37 @@ bool InsetFloat::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
-		flag.enabled(true);
+		flag.setEnabled(true);
 		return true;
 
 	default:
 		return InsetCollapsable::getStatus(cur, cmd, flag);
 	}
+}
+
+
+void InsetFloat::updateLabels(ParIterator const & it)
+{
+	Counters & cnts = buffer().masterBuffer()->params().documentClass().counters();
+	string const saveflt = cnts.current_float();
+	bool const savesubflt = cnts.isSubfloat();
+
+	bool const subflt = (it.innerInsetOfType(FLOAT_CODE)
+			     || it.innerInsetOfType(WRAP_CODE));
+	// floats can only embed subfloats of their own kind
+	if (subflt)
+		params_.type = saveflt;
+	setSubfloat(subflt, buffer().params());
+
+	// Tell to captions what the current float is
+	cnts.current_float(params().type);
+	cnts.isSubfloat(subflt);
+
+	InsetCollapsable::updateLabels(it);
+
+	//reset afterwards
+	cnts.current_float(saveflt);
+	cnts.isSubfloat(savesubflt);
 }
 
 
@@ -204,95 +238,87 @@ void InsetFloatParams::write(ostream & os) const
 
 void InsetFloatParams::read(Lexer & lex)
 {
-	string token;
-	lex >> token;
-	if (token == "placement") {
+	lex.setContext("InsetFloatParams::read");
+	if (lex.checkFor("placement"))
 		lex >> placement;
-	} else {
-		// take countermeasures
-		lex.pushToken(token);
-	}
-	lex >> token;
-	if (token == "wide") {
-		lex >> wide;
-	} else {
-		lyxerr << "InsetFloat::Read:: Missing wide!"
-		<< endl;
-		// take countermeasures
-		lex.pushToken(token);
-	}
-	lex >> token;
-	if (token == "sideways") {
-		lex >> sideways;
-	} else {
-		lyxerr << "InsetFloat::Read:: Missing sideways!"
-		<< endl;
-		// take countermeasures
-		lex.pushToken(token);
-	}
+	lex >> "wide" >> wide;
+	lex >> "sideways" >> sideways;
 }
 
 
-void InsetFloat::write(Buffer const & buf, ostream & os) const
+void InsetFloat::write(ostream & os) const
 {
 	params_.write(os);
-	InsetCollapsable::write(buf, os);
+	InsetCollapsable::write(os);
 }
 
 
-void InsetFloat::read(Buffer const & buf, Lexer & lex)
+void InsetFloat::read(Lexer & lex)
 {
 	params_.read(lex);
-	wide(params_.wide, buf.params());
-	sideways(params_.sideways, buf.params());
-	InsetCollapsable::read(buf, lex);
+	setWide(params_.wide, buffer().params());
+	setSideways(params_.sideways, buffer().params());
+	setSubfloat(params_.subfloat, buffer().params());
+	InsetCollapsable::read(lex);
 }
 
 
 void InsetFloat::validate(LaTeXFeatures & features) const
 {
-	if (contains(params_.placement, 'H')) {
+	if (support::contains(params_.placement, 'H'))
 		features.require("float");
-	}
 
 	if (params_.sideways)
-		features.require("rotating");
+		features.require("rotfloat");
 
-	features.useFloat(params_.type);
+	if (params_.subfloat)
+		features.require("subfig");
+
+	features.useFloat(params_.type, params_.subfloat);
 	InsetCollapsable::validate(features);
 }
 
 
-auto_ptr<Inset> InsetFloat::doClone() const
-{
-	return auto_ptr<Inset>(new InsetFloat(*this));
-}
-
-
-docstring const InsetFloat::editMessage() const
+docstring InsetFloat::editMessage() const
 {
 	return _("Opened Float Inset");
 }
 
 
-int InsetFloat::latex(Buffer const & buf, odocstream & os,
-		      OutputParams const & runparams) const
+int InsetFloat::latex(odocstream & os, OutputParams const & runparams) const
 {
-	FloatList const & floats = buf.params().getTextClass().floats();
-	string tmptype = (params_.wide ? params_.type + "*" : params_.type);
-	if (params_.sideways) {
-		if (params_.type == "table")
-			tmptype = "sidewaystable";
-		else if (params_.type == "figure")
-			tmptype = "sidewaysfigure";
+	if (params_.subfloat) {
+		if (runparams.moving_arg)
+			os << "\\protect";
+		os << "\\subfloat";
+	
+		OutputParams rp = runparams;
+		docstring const caption = getCaption(rp);
+		if (!caption.empty()) {
+			os << caption;
+		}
+		os << '{';
+		int const i = InsetText::latex(os, runparams);
+		os << "}";
+	
+		return i + 1;
 	}
+
+	FloatList const & floats = buffer().params().documentClass().floats();
+	string tmptype = params_.type;
+	if (params_.sideways)
+		tmptype = "sideways" + params_.type;
+	if (params_.wide && (!params_.sideways ||
+			     params_.type == "figure" ||
+			     params_.type == "table"))
+		tmptype += "*";
 	// Figure out the float placement to use.
 	// From lowest to highest:
 	// - float default placement
 	// - document wide default placement
 	// - specific float placement
 	string placement;
-	string const buf_placement = buf.params().float_placement;
+	string const buf_placement = buffer().params().float_placement;
 	string const def_placement = floats.defaultPlacement(params_.type);
 	if (!params_.placement.empty()
 	    && params_.placement != def_placement) {
@@ -314,7 +340,7 @@ int InsetFloat::latex(Buffer const & buf, odocstream & os,
 	}
 	os << '\n';
 
-	int const i = InsetText::latex(buf, os, runparams);
+	int const i = InsetText::latex(os, runparams);
 
 	// The \n is used to force \end{<floatname>} to appear in a new line.
 	// In this case, we do not case if the current output line is empty.
@@ -324,111 +350,158 @@ int InsetFloat::latex(Buffer const & buf, odocstream & os,
 }
 
 
-int InsetFloat::plaintext(Buffer const & buf, odocstream & os,
-			  OutputParams const & runparams) const
+int InsetFloat::plaintext(odocstream & os, OutputParams const & runparams) const
 {
-	os << '[' << buf.B_("float") << ' ' << floatName(params_.type, buf.params()) << ":\n";
-	InsetText::plaintext(buf, os, runparams);
+	os << '[' << buffer().B_("float") << ' '
+		<< floatName(params_.type, buffer().params()) << ":\n";
+	InsetText::plaintext(os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetFloat::docbook(Buffer const & buf, odocstream & os,
-			OutputParams const & runparams) const
+int InsetFloat::docbook(odocstream & os, OutputParams const & runparams) const
 {
+	// FIXME Implement subfloat!
 	// FIXME UNICODE
 	os << '<' << from_ascii(params_.type) << '>';
-	int const i = InsetText::docbook(buf, os, runparams);
+	int const i = InsetText::docbook(os, runparams);
 	os << "</" << from_ascii(params_.type) << '>';
 
 	return i;
 }
 
 
-bool InsetFloat::insetAllowed(Inset::Code code) const
+bool InsetFloat::insetAllowed(InsetCode code) const
 {
-	return code != Inset::FLOAT_CODE
-	    && code != Inset::FOOT_CODE
-	    && code != Inset::MARGIN_CODE;
+	return code != FOOT_CODE
+	    && code != MARGIN_CODE
+	    && (code != FLOAT_CODE || !params_.subfloat);
 }
 
 
 bool InsetFloat::showInsetDialog(BufferView * bv) const
 {
 	if (!InsetText::showInsetDialog(bv))
-		InsetFloatMailer(const_cast<InsetFloat &>(*this)).showDialog(bv);
+		bv->showDialog("float", params2string(params()),
+			const_cast<InsetFloat *>(this));
 	return true;
 }
 
 
-void InsetFloat::wide(bool w, BufferParams const & bp)
+void InsetFloat::setWide(bool w, BufferParams const & bp, bool update_label)
 {
 	params_.wide = w;
-	docstring lab = _("float: ") + floatName(params_.type, bp);
-	if (params_.wide)
-		lab += '*';
-	setLabel(lab);
+	if (update_label)
+		setNewLabel(bp);
 }
 
 
-void InsetFloat::sideways(bool s, BufferParams const & bp)
+void InsetFloat::setSideways(bool s, BufferParams const & bp, bool update_label)
 {
 	params_.sideways = s;
-	docstring lab = _("float: ") + floatName(params_.type, bp);
+	if (update_label)
+		setNewLabel(bp);
+}
+
+
+void InsetFloat::setSubfloat(bool s, BufferParams const & bp, bool update_label)
+{
+	params_.subfloat = s;
+	if (update_label)
+		setNewLabel(bp);
+}
+
+
+void InsetFloat::setNewLabel(BufferParams const & bp)
+{
+	docstring lab = _("float: ");
+
+	if( params_.subfloat )
+		lab = _("subfloat: ");
+
+	lab += floatName(params_.type, bp);
+
+	if (params_.wide)
+		lab += '*';
+
 	if (params_.sideways)
 		lab += _(" (sideways)");
+
 	setLabel(lab);
 }
 
 
-string const InsetFloatMailer::name_("float");
-
-InsetFloatMailer::InsetFloatMailer(InsetFloat & inset)
-	: inset_(inset)
-{}
-
-
-string const InsetFloatMailer::inset2string(Buffer const &) const
+docstring InsetFloat::getCaption(OutputParams const & runparams) const
 {
-	return params2string(inset_.params());
+	if (paragraphs().empty())
+		return docstring();
+
+	ParagraphList::const_iterator pit = paragraphs().begin();
+	for (; pit != paragraphs().end(); ++pit) {
+		InsetList::const_iterator it = pit->insetList().begin();
+		for (; it != pit->insetList().end(); ++it) {
+			Inset & inset = *it->inset;
+			if (inset.lyxCode() == CAPTION_CODE) {
+				odocstringstream ods;
+				InsetCaption * ins =
+					static_cast<InsetCaption *>(it->inset);
+				ins->getOptArg(ods, runparams);
+				ods << '[';
+				ins->getArgument(ods, runparams);
+				ods << ']';
+				return ods.str();
+			}
+		}
+	}
+	return docstring();
 }
 
 
-void InsetFloatMailer::string2params(string const & in,
-				     InsetFloatParams & params)
+docstring InsetFloat::getCaptionText(OutputParams const & runparams) const
+{
+	if (paragraphs().empty())
+		return docstring();
+
+	ParagraphList::const_iterator pit = paragraphs().begin();
+	for (; pit != paragraphs().end(); ++pit) {
+		InsetList::const_iterator it = pit->insetList().begin();
+		for (; it != pit->insetList().end(); ++it) {
+			Inset & inset = *it->inset;
+			if (inset.lyxCode() == CAPTION_CODE) {
+				odocstringstream ods;
+				InsetCaption * ins =
+					static_cast<InsetCaption *>(it->inset);
+				ins->getCaptionText(ods, runparams);
+				return ods.str();
+			}
+		}
+	}
+	return docstring();
+}
+
+
+void InsetFloat::string2params(string const & in, InsetFloatParams & params)
 {
 	params = InsetFloatParams();
 	if (in.empty())
 		return;
 
 	istringstream data(in);
-	Lexer lex(0,0);
+	Lexer lex;
 	lex.setStream(data);
-
-	string name;
-	lex >> name;
-	if (!lex || name != name_)
-		return print_mailer_error("InsetFloatMailer", in, 1, name_);
-
-	// This is part of the inset proper that is usually swallowed
-	// by Text::readInset
-	string id;
-	lex >> id;
-	if (!lex || id != "Float")
-		return print_mailer_error("InsetBoxMailer", in, 2, "Float");
-
-	// We have to read the type here!
-	lex >> params.type;
+	lex.setContext("InsetFloat::string2params");
+	lex >> "float" >> "Float";
+	lex >> params.type; // We have to read the type here!
 	params.read(lex);
 }
 
 
-string const InsetFloatMailer::params2string(InsetFloatParams const & params)
+string InsetFloat::params2string(InsetFloatParams const & params)
 {
 	ostringstream data;
-	data << name_ << ' ';
+	data << "float" << ' ';
 	params.write(data);
 	return data.str();
 }

@@ -14,75 +14,72 @@
 #include "InsetMarginal.h"
 
 #include "Buffer.h"
-#include "gettext.h"
+#include "BufferParams.h"
 #include "OutputParams.h"
+#include "TocBackend.h"
 
-#include "support/std_ostream.h"
-
+#include "support/docstream.h"
+#include "support/gettext.h"
 
 namespace lyx {
 
-using std::string;
-using std::auto_ptr;
-using std::ostream;
+
+InsetMarginal::InsetMarginal(Buffer const & buf)
+	: InsetFootlike(buf)
+{}
 
 
-InsetMarginal::InsetMarginal(BufferParams const & bp)
-	: InsetFootlike(bp)
-{
-	setLabel(_("margin"));
-}
-
-
-InsetMarginal::InsetMarginal(InsetMarginal const & in)
-	: InsetFootlike(in)
-{
-	setLabel(_("margin"));
-}
-
-
-auto_ptr<Inset> InsetMarginal::doClone() const
-{
-	return auto_ptr<Inset>(new InsetMarginal(*this));
-}
-
-
-docstring const InsetMarginal::editMessage() const
+docstring InsetMarginal::editMessage() const
 {
 	return _("Opened Marginal Note Inset");
 }
 
 
-int InsetMarginal::latex(Buffer const & buf, odocstream & os,
-			 OutputParams const & runparams) const
+int InsetMarginal::latex(odocstream & os, OutputParams const & runparams) const
 {
-	os << "%\n\\marginpar{";
-	int const i = InsetText::latex(buf, os, runparams);
+	os << "%\n";
+	if (runparams.moving_arg)
+		os << "\\protect";
+	os << "\\marginpar{";
+	int const i = InsetText::latex(os, runparams);
 	os << "%\n}";
 	return i + 2;
 }
 
 
-int InsetMarginal::plaintext(Buffer const & buf, odocstream & os,
+int InsetMarginal::plaintext(odocstream & os,
 			     OutputParams const & runparams) const
 {
-	os << '[' << buf.B_("margin") << ":\n";
-	InsetText::plaintext(buf, os, runparams);
+	os << '[' << buffer().B_("margin") << ":\n";
+	InsetText::plaintext(os, runparams);
 	os << "\n]";
 
 	return PLAINTEXT_NEWLINE + 1; // one char on a separate line
 }
 
 
-int InsetMarginal::docbook(Buffer const & buf, odocstream & os,
+int InsetMarginal::docbook(odocstream & os,
 			   OutputParams const & runparams) const
 {
 	os << "<note role=\"margin\">";
-	int const i = InsetText::docbook(buf, os, runparams);
+	int const i = InsetText::docbook(os, runparams);
 	os << "</note>";
 
 	return i;
 }
 
+
+void InsetMarginal::addToToc(DocIterator const & cpit)
+{
+	DocIterator pit = cpit;
+	pit.push_back(CursorSlice(*this));
+
+	Toc & toc = buffer().tocBackend().toc("marginalnote");
+	docstring str;
+	str = getNewLabel(str);
+	toc.push_back(TocItem(pit, 0, str));
+	// Proceed with the rest of the inset.
+	InsetFootlike::addToToc(cpit);
+}
 
 } // namespace lyx

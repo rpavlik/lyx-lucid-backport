@@ -19,21 +19,17 @@
 #ifndef LCOLOR_H
 #define LCOLOR_H
 
-#include "support/docstring.h"
+#include "ColorCode.h"
 
-#include <boost/scoped_ptr.hpp>
+#include "support/strfwd.h"
 
+#include <map>
+#include <string>
 
 namespace lyx {
 
 /**
- * This is a stateless class.
- *
- * It has one basic purposes:
- * To serve as a color-namespace container (the Color enum).
- */
-/**
- * \class Color
+ * \class ColorSet
  *
  * A class holding color definitions and associated names for
  * LaTeX, X11, the GUI, and LyX internally.
@@ -44,160 +40,20 @@ namespace lyx {
  * - A logical color, such as no color, inherit, math
  */
 
-class Color
+
 // made copyable for same reasons as LyXRC was made copyable. See there for
 // explanation.
+
+class ColorSet
 {
 public:
-	/// Names of colors, including all logical colors
-	enum color {
-		/// No particular color---clear or default
-		none,
-		/// The different text colors
-		black,
-		///
-		white,
-		///
-		red,
-		///
-		green,
-		///
-		blue,
-		///
-		cyan,
-		///
-		magenta,
-		///
-		yellow,
-
-		// Needed interface colors
-
-		/// Cursor color
-		cursor,
-		/// Background color
-		background,
-		/// Foreground color
-		foreground,
-		/// Background color of selected text
-		selection,
-		/// Text color in LaTeX mode
-		latex,
-		/// The color used for previews
-		preview,
-
-		/// Text color for notes
-		note,
-		/// Background color of notes
-		notebg,
-		/// Text color for comments
-		comment,
-		/// Background color of comments
-		commentbg,
-		/// Text color for greyedout inset
-		greyedout,
-		/// Background color of greyedout inset
-		greyedoutbg,
-		/// Shaded box background
-		shadedbg,
-
-		/// Color for the depth bars in the margin
-		depthbar,
-		/// Color for marking foreign language words
-		language,
-
-		/// Text color for command insets
-		command,
-		/// Background color for command insets
-		commandbg,
-		/// Frame color for command insets
-		commandframe,
-
-		/// Special chars text color
-		special,
-
-		/// Graphics inset background color
-		graphicsbg,
-		/// Math inset text color
-		math,
-		/// Math inset background color
-		mathbg,
-		/// Macro math inset background color
-		mathmacrobg,
-		/// Math inset frame color under focus
-		mathframe,
-		/// Math inset frame color not under focus
-		mathcorners,
-		/// Math line color
-		mathline,
-
-		/// caption frame color
-		captionframe,
-
-		/// collapsable insets text
-		collapsable,
-		/// collapsable insets frame
-		collapsableframe,
-
-		/// Inset marker background color
-		insetbg,
-		/// Inset marker frame color
-		insetframe,
-
-		/// Error box text color
-		error,
-		/// EOL marker color
-		eolmarker,
-		/// Added space colour
-		added_space,
-		/// Appendix marker color
-		appendix,
-		/// changebar color
-		changebar,
-		/// deleted text color
-		deletedtext,
-		/// added text color
-		addedtext,
-		/// Top and bottom line color
-		topline,
-		/// Table line color
-		tabularline,
-		/// Table line color
-		tabularonoffline,
-		/// Bottom area color
-		bottomarea,
-		/// Page break color
-		pagebreak,
-
-		// FIXME: why are the next four separate ??
-		/// Color used for button frame
-		buttonframe,
-		/// Color used for bottom background
-		buttonbg,
-		/// Color used for buttom under focus
-		buttonhoverbg,
-
-		// Logical attributes
-
-		/// Color is inherited
-		inherit,
-		/// For ignoring updates of a color
-		ignore
-	};
-
-
 	///
-	Color();
-	///
-	Color(Color const &);
-	///
-	~Color();
-	///
-	Color & operator=(Color);
+	ColorSet();
 
 	/** set the given LyX color to the color defined by the X11 name given
 	 *  \returns true if successful.
 	 */
-	bool setColor(Color::color col, std::string const & x11name);
+	bool setColor(ColorCode col, std::string const & x11name);
 
 	/** set the given LyX color to the color defined by the X11
 	 *  name given \returns true if successful. A new color entry
@@ -206,101 +62,62 @@ public:
 	bool setColor(std::string const & lyxname, std::string const & x11name);
 
 	/// Get the GUI name of \c color.
-	docstring const getGUIName(Color::color c) const;
+	docstring const getGUIName(ColorCode c) const;
 
 	/// Get the X11 name of \c color.
-	std::string const getX11Name(Color::color c) const;
+	std::string const getX11Name(ColorCode c) const;
 
 	/// Get the LaTeX name of \c color.
-	std::string const getLaTeXName(Color::color c) const;
+	std::string const getLaTeXName(ColorCode c) const;
 
 	/// Get the LyX name of \c color.
-	std::string const getLyXName(Color::color c) const;
+	std::string const getLyXName(ColorCode c) const;
 
-	/// \returns the Color::color associated with the LyX name.
-	Color::color getFromLyXName(std::string const & lyxname) const;
-	/// \returns the Color::color associated with the LaTeX name.
-	Color::color getFromLaTeXName(std::string const & latexname) const;
+	/// \returns the ColorCode associated with the LyX name.
+	ColorCode getFromLyXName(std::string const & lyxname) const;
+	/// \returns the ColorCode associated with the LaTeX name.
+	ColorCode getFromLaTeXName(std::string const & latexname) const;
+
 private:
 	///
-	void addColor(Color::color c, std::string const & lyxname) const;
+	void addColor(ColorCode c, std::string const & lyxname); 
 	///
-	class Pimpl;
+	class Information {
+	public:
+		/// the name as it appears in the GUI
+		std::string guiname;
+		/// the name used in LaTeX
+		std::string latexname;
+		/// the name for X11
+		std::string x11name;
+		/// the name for LyX
+		std::string lyxname;
+	};
+
+	/// initialise a color entry
+	struct ColorEntry;
+	void fill(ColorEntry const & entry);
+
 	///
-	boost::scoped_ptr<Pimpl> pimpl_;
-};
+	typedef std::map<ColorCode, Information> InfoTab;
+	/// the table of color Information
+	InfoTab infotab;
 
-
-/** \c Color_color is a wrapper for Color::color. It can be forward-declared and
- *  passed as a function argument without having to expose Color.h.
- */
-class Color_color {
-	Color::color val_;
-public:
-	/** The default constructor is nasty,
-	 *  but allows us to use Color_color in STL containers.
-	 */
-	Color_color() : val_(static_cast<Color::color>(-1)) {}
-
-	Color_color(Color::color val) : val_(val) {}
-	operator Color::color() const{ return val_; }
+	typedef std::map<std::string, ColorCode> Transform;
+	/// the transform between LyX color name string and integer code.
+	Transform lyxcolors;
+	/// the transform between LaTeX color name string and integer code.
+	Transform latexcolors;
 };
 
 
 /// the current color definitions
-extern Color lcolor;
+extern ColorSet lcolor;
 /// the system color definitions
-extern Color system_lcolor;
+extern ColorSet system_lcolor;
 
-
-struct RGBColor;
-/// returns a string of form #rrggbb, given an RGBColor struct
 std::string const X11hexname(RGBColor const & col);
-
-struct HSVColor {
-	double h;
-	double s;
-	double v;
-	HSVColor() : h(0.0), s(0.0), v(0.0) {}
-	HSVColor(double hue, double sat, double val)
-		: h(hue), s(sat), v(val) {}
-	HSVColor(RGBColor const &);
-};
-
-struct RGBColor {
-	unsigned int r;
-	unsigned int g;
-	unsigned int b;
-	RGBColor() : r(0), g(0), b(0) {}
-	RGBColor(unsigned int red, unsigned int green, unsigned int blue)
-		: r(red), g(green), b(blue) {}
-	RGBColor(HSVColor const &);
-	/// \param x11hexname is of the form "#ffa071"
-	RGBColor(std::string const & x11hexname);
-};
-
-struct NamedColor : public RGBColor {
-	std::string lyxname;
-	std::string guiname;
-	NamedColor() : RGBColor() {}
-	NamedColor(std::string const & lyx, std::string const & gui,
-		   RGBColor const & c)
-		: RGBColor(c), lyxname(lyx), guiname(gui) {}
-	RGBColor const & color() const { return *this; }
-};
-
-inline
-bool operator==(RGBColor const & c1, RGBColor const & c2)
-{
-	return (c1.r == c2.r && c1.g == c2.g && c1.b == c2.b);
-}
-
-
-inline
-bool operator!=(RGBColor const & c1, RGBColor const & c2)
-{
-	return !(c1 == c2);
-}
+RGBColor rgbFromHexName(std::string const & x11hexname);
 
 } // namespace lyx
 

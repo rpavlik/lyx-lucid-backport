@@ -12,7 +12,7 @@
 #ifndef LYX_ALERT_H
 #define LYX_ALERT_H
 
-#include "support/lstrings.h"
+#include "support/docstring.h"
 
 
 namespace lyx {
@@ -54,9 +54,12 @@ void error(docstring const & title, docstring const & message);
  */
 void information(docstring const & title, docstring const & message);
 
-/// Asks for a text. DO NOT USE !!
-std::pair<bool, docstring> const
-askForText(docstring const & msg, docstring const & dflt = docstring());
+/**
+ * Asks for a text. Returns true for OK. Obtained message is in response
+ * (even empty string). dflt stands for default message in the dialog.
+ */
+bool askForText(docstring & response, docstring const & msg,
+	docstring const & dflt = docstring());
 
 } // namespace Alert
 } // namespace frontend

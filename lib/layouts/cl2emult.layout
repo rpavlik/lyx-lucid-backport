@@ -3,7 +3,7 @@
 # Springer's cl2emult textclass definition file.
 # Author : André Poenitz
 
-Format 4
+Format 11
 Columns                   1
 Sides                     1
 SecNumDepth               2
@@ -16,6 +16,7 @@ Input stdstruct.inc
 Input stdlayouts.inc
 Input stdfloats.inc
 Input stdcounters.inc
+Input stdinsets.inc
 
 NoStyle Chapter
 NoStyle Chapter*
@@ -85,7 +86,6 @@ Style Abstract
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Static
 	LabelSep              M
 	LabelString           "Abstract"

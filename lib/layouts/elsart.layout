@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[elsart,amssymb.sty]{article (Elsevier)}
+#  \DeclareLaTeXClass[elsart,amssymb.sty]{article (Elsevier, obsolete version)}
 # Author: Rod Pinna <rpinna@civil.uwa.edu.au>
 # The Elsevier doc style also duplicates the theorem
 # environments used by the AMS. The definitions here have been
@@ -22,7 +22,7 @@
 #       numbered sections, as does the class file.
 
 
-Format 4
+Format 11
 Columns                 1
 Sides                   2
 PageStyle               headings
@@ -36,13 +36,11 @@ End
 TitleLatexType Environment
 TitleLatexName frontmatter
 
-Counter
-	Name                  summ
+Counter summ
 End
 
 
-Counter
-	Name                  case
+Counter case
 End
 
 
@@ -80,6 +78,7 @@ Style Keywords
 End
 
 
+Input stdinsets.inc
 Input stdsections.inc
 Input stdstarsections.inc
 Input stdlists.inc
@@ -121,7 +120,6 @@ Style Author
 	ItemSep               0
 	ParSep                0
 	Align                 Center
-	AlignPossible         Center
 	OptionalArgs          1
 	Font
 	  Series              Bold
@@ -135,7 +133,6 @@ Style Author_Address
 	InTitle               1
 	LatexName             address
 	Align                 Center
-	AlignPossible         Center
 	Labeltype             Static
 	LabelSep              M
 	LabelString           "Address:"
@@ -153,7 +150,6 @@ Style Author_Email
 	PassThru              1
 	LatexName             ead
 	Align                 Center
-	AlignPossible         Center
 	Labeltype             Static
 	LabelSep              M
 	LabelString           "Email:"
@@ -175,7 +171,6 @@ Style Author_URL
 	LatexName             ead
 	LatexParam            "[url]"
 	Align                 Center
-	AlignPossible         Center
 	Labeltype             Static
 	LabelSep              M
 	LabelString           "URL:"
@@ -195,6 +190,7 @@ Style Thanks
 	LatexType             Command
 	LatexName             thanks
 	InTitle               1
+	OptionalArgs          1
 	Font
 	  Size                Small
 	  Family              Typewriter
@@ -217,7 +213,6 @@ Style Abstract
 	BottomSep             0.7
 	ParSep                0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Centered_Top_Environment
 	LabelString           "Abstract"
 	LabelBottomSep        0.5
@@ -231,9 +226,9 @@ Style Abstract
 End
 
 
-# Theorem environments have been copied over from the amsmaths.inc file. It
-# could not be input as it does some stuff which is incompatible with the
-# Elsevier stlye: it redefines the theorem* environments in the preamble.
+# Theorem environments have been copied over from the theorem modules. They
+# could not be input as they do some stuff which is incompatible with the
+# Elsevier stlye: redefine the theorem* environments in the preamble.
 
 # The environments defined are :
 # - Theorem
@@ -254,8 +249,7 @@ End
 # - Acknowledgement
 # - Case
 
-Counter
-	Name                  theorem
+Counter theorem
 End
 
 

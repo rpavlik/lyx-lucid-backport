@@ -28,22 +28,28 @@ public:
 	///
 	InsetNomencl(InsetCommandParams const &);
 	///
-	docstring const getScreenLabel(Buffer const &) const;
+	docstring screenLabel() const;
+	///
+	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	/// Updates needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
 	///
-	Inset::Code lyxCode() const;
+	InsetCode lyxCode() const { return NOMENCL_CODE; }
 	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	///
 	int docbookGlossary(odocstream &) const;
+	///
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "nomenclature"; };
+	///
+	static bool isCompatibleCommand(std::string const & s) 
+		{ return s == "nomenclature"; }
 private:
-	virtual std::auto_ptr<Inset> doClone() const {
-		return std::auto_ptr<Inset>(new InsetNomencl(params()));
-	}
+	Inset * clone() const { return new InsetNomencl(*this); }
 	/// unique id for this nomenclature entry for docbook export
 	docstring nomenclature_entry_id;
 };
@@ -62,18 +68,22 @@ public:
 	///
 	EDITABLE editable() const { return NOT_EDITABLE; }
 	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	///
-	Inset::Code lyxCode() const;
+	InsetCode lyxCode() const;
 	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	docstring const getScreenLabel(Buffer const &) const;
+	docstring screenLabel() const;
+	///
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "printnomenclature"; };
+	///
+	static bool isCompatibleCommand(std::string const & s) 
+		{ return s == "printnomenclature"; }
 private:
-	virtual std::auto_ptr<Inset> doClone() const {
-		return std::auto_ptr<Inset>(new InsetPrintNomencl(params()));
-	}
+	Inset * clone() const { return new InsetPrintNomencl(*this); }
 };
 
 

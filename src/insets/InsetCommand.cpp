@@ -18,48 +18,42 @@
 #include "DispatchResult.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
 
+#include "support/debug.h"
+#include "support/gettext.h"
+
+#include "frontends/Application.h"
+
 #include <sstream>
+
+using namespace std;
 
 
 namespace lyx {
 
-using std::string;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-
-
+// FIXME Would it now be possible to use the InsetCode in 
+// place of the mailer name and recover that information?
 InsetCommand::InsetCommand(InsetCommandParams const & p,
 			   string const & mailer_name)
 	: p_(p),
 	  mailer_name_(mailer_name),
-	  mouse_hover_(false),
-	  updateButtonLabel_(true)
+	  mouse_hover_(false)
 {}
 
 
 InsetCommand::~InsetCommand()
 {
 	if (!mailer_name_.empty())
-		InsetCommandMailer(mailer_name_, *this).hideDialog();
+		hideDialogs(mailer_name_, this);
 }
 
 
-bool InsetCommand::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetCommand::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	if (updateButtonLabel_) {
-		updateButtonLabel_ = false;
-		button_.update(getScreenLabel(*mi.base.bv->buffer()),
-			       editable() != NOT_EDITABLE);
-	}
+	button_.update(screenLabel(), editable() != NOT_EDITABLE);
 	button_.metrics(mi, dim);
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
 }
 
 
@@ -72,38 +66,47 @@ bool InsetCommand::setMouseHover(bool mouse_hover)
 
 void InsetCommand::draw(PainterInfo & pi, int x, int y) const
 {
-	setPosCache(pi, x, y);
 	button_.setRenderState(mouse_hover_);
 	button_.draw(pi, x, y);
+}
+
+
+void InsetCommand::setParam(std::string const & name, docstring const & value)
+{
+	p_[name] = value;
+}
+
+
+docstring const & InsetCommand::getParam(std::string const & name) const
+{
+	return p_[name];
 }
 
 
 void InsetCommand::setParams(InsetCommandParams const & p)
 {
 	p_ = p;
-	updateButtonLabel_ = true;
+	initView();
 }
 
 
-int InsetCommand::latex(Buffer const &, odocstream & os,
-			OutputParams const &) const
+int InsetCommand::latex(odocstream & os, OutputParams const &) const
 {
 	os << getCommand();
 	return 0;
 }
 
 
-int InsetCommand::plaintext(Buffer const & buf, odocstream & os,
-			    OutputParams const &) const
+int InsetCommand::plaintext(odocstream & os, OutputParams const &) const
 {
-	docstring const str = "[" + buf.B_("LaTeX Command: ") + from_utf8(getCmdName()) + "]";
+	docstring const str = "[" + buffer().B_("LaTeX Command: ")
+		+ from_utf8(getCmdName()) + "]";
 	os << str;
 	return str.size();
 }
 
 
-int InsetCommand::docbook(Buffer const &, odocstream &,
-			  OutputParams const &) const
+int InsetCommand::docbook(odocstream &, OutputParams const &) const
 {
 	return 0;
 }
@@ -112,13 +115,14 @@ int InsetCommand::docbook(Buffer const &, odocstream &,
 void InsetCommand::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	switch (cmd.action) {
-	case LFUN_INSET_REFRESH:
-		updateButtonLabel_ = true;
-		break;
-
 	case LFUN_INSET_MODIFY: {
-		InsetCommandParams p(p_.getCmdName());
-		InsetCommandMailer::string2params(mailer_name_, to_utf8(cmd.argument()), p);
+		if (cmd.getArg(0) == "changetype") {
+			p_.setCmdName(cmd.getArg(1));
+			initView();
+			break;
+		}
+		InsetCommandParams p(p_.code());
+		InsetCommand::string2params(mailer_name_, to_utf8(cmd.argument()), p);
 		if (p.getCmdName().empty())
 			cur.noUpdate();
 		else
@@ -128,12 +132,12 @@ void InsetCommand::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_INSET_DIALOG_UPDATE: {
 		string const name = to_utf8(cmd.argument());
-		InsetCommandMailer(name, *this).updateDialog(&cur.bv());
+		cur.bv().updateDialog(name, params2string(name, params()));
 		break;
 	}
 
 	case LFUN_MOUSE_RELEASE: {
-		if (!cur.selection())
+		if (!cur.selection() && cmd.button() != mouse_button::button3)
 			edit(cur, true);
 		break;
 	}
@@ -152,13 +156,19 @@ bool InsetCommand::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 	// suppress these
 	case LFUN_ERT_INSERT:
-		status.enabled(false);
+		status.setEnabled(false);
 		return true;
 	// we handle these
-	case LFUN_INSET_REFRESH:
 	case LFUN_INSET_MODIFY:
+		if (cmd.getArg(0) == "changetype") {
+			string const newtype = cmd.getArg(1);
+			status.setEnabled(p_.isCompatibleCommand(p_.code(), newtype));
+			status.setOnOff(newtype == p_.getCmdName());
+		} 
+		status.setEnabled(true);
+		return true;
 	case LFUN_INSET_DIALOG_UPDATE:
-		status.enabled(true);
+		status.setEnabled(true);
 		return true;
 	default:
 		return Inset::getStatus(cur, cmd, status);
@@ -166,62 +176,39 @@ bool InsetCommand::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetCommand::edit(Cursor & cur, bool)
+docstring InsetCommand::contextMenu(BufferView const &, int, int) const
+{
+	return from_ascii("context-") + from_ascii(mailer_name_);
+}
+
+
+void InsetCommand::edit(Cursor & cur, bool, EntryDirection)
 {
 	if (!mailer_name_.empty())
-		InsetCommandMailer(mailer_name_, *this).showDialog(&cur.bv());
+		cur.bv().showDialog(mailer_name_, params2string(mailer_name_, p_), this);
 }
 
 
-void InsetCommand::replaceContents(std::string const & from, string const & to)
-{
-	if (getContents() == from)
-		setContents(to);
-}
-
-
-InsetCommandMailer::InsetCommandMailer(string const & name,
-				       InsetCommand & inset)
-	: name_(name), inset_(inset)
-{}
-
-
-string const InsetCommandMailer::inset2string(Buffer const &) const
-{
-	return params2string(name(), inset_.params());
-}
-
-
-void InsetCommandMailer::string2params(string const & name,
-				       string const & in,
-				       InsetCommandParams & params)
+// FIXME This could take an InsetCode instead of a string
+bool InsetCommand::string2params(string const & name, string const & in,
+	InsetCommandParams & params)
 {
 	params.clear();
 	if (in.empty())
-		return;
-
+		return false;
 	istringstream data(in);
-	Lexer lex(0,0);
+	Lexer lex;
 	lex.setStream(data);
-
-	string n;
-	lex >> n;
-	if (!lex || n != name)
-		return print_mailer_error("InsetCommandMailer", in, 1, name);
-
-	// This is part of the inset proper that is usually swallowed
-	// by Text::readInset
-	string id;
-	lex >> id;
-	if (!lex || id != "LatexCommand")
-		return print_mailer_error("InsetCommandMailer", in, 2, "LatexCommand");
-
+	lex.setContext("InsetCommand::string2params");
+	lex >> name.c_str(); // check for name
+	lex >> "CommandInset";
 	params.read(lex);
+	return true;
 }
 
 
-string const
-InsetCommandMailer::params2string(string const & name,
+// FIXME This could take an InsetCode instead of a string
+string InsetCommand::params2string(string const & name,
 				  InsetCommandParams const & params)
 {
 	ostringstream data;

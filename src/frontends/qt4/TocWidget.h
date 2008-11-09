@@ -13,62 +13,66 @@
 #ifndef TOC_WIDGET_H
 #define TOC_WIDGET_H
 
-#include "ui/TocUi.h"
+#include "ui_TocUi.h"
 
 #include <QWidget>
+
+class QModelIndex;
+class QString;
 
 namespace lyx {
 namespace frontend {
 
-class QToc;
+class GuiView;
 
-class TocWidget : public QWidget, public Ui::QTocUi {
+class TocWidget : public QWidget, public Ui::TocUi
+{
 	Q_OBJECT
 public:
-	TocWidget(QToc * form, QWidget * parent = 0);
+	///
+	TocWidget(GuiView & gui_view, QWidget * parent = 0);
 
+	/// Initialise GUI.
+	void init(QString const & str);
+
+public Q_SLOTS:
 	/// Update the display of the dialog whilst it is still visible.
-	void update();
+	void updateView();
 
 protected Q_SLOTS:
-	/// Update Gui of the display.
-	void updateGui();
-	///
-	void setTocModel(size_t type);
 	///
 	void select(QModelIndex const & index);
 	///
-	void selectionChanged(const QModelIndex & current,
-		const QModelIndex & previous);
+	void goTo(QModelIndex const &);
 
+	void on_tocTV_activated(QModelIndex const &);
+	void on_tocTV_clicked(QModelIndex const &);
 	void on_updateTB_clicked();
+	void on_sortCB_stateChanged(int state);
+	void on_persistentCB_stateChanged(int state);
 	void on_depthSL_valueChanged(int depth);
 	void on_typeCO_currentIndexChanged(int value);
 	void on_moveUpTB_clicked();
 	void on_moveDownTB_clicked();
 	void on_moveInTB_clicked();
 	void on_moveOutTB_clicked();
-	void setTreeDepth() { setTreeDepth(depth_); }
 
-protected:
+private:
 	///
 	void enableControls(bool enable = true);
 	///
-	int getIndexDepth(QModelIndex const & index, int depth = -1);
-	///
 	void setTreeDepth(int depth);
-
-private:
-	/// Reconnects the selection model change signal when TOC changed.
-	void reconnectSelectionModel();
-	/// Disconnects the selection model.
-	//This is a workaround for a problem of signals blocking.
-	void disconnectSelectionModel();
-
-	QToc * form_;
+	///
+	void outline(int func_code);
+	///
+	QString current_type_;
 
 	/// depth of list shown
 	int depth_;
+	/// persistence of uncollapsed nodes in toc view
+	bool persistent_;
+	///
+	GuiView & gui_view_;
 };
 
 } // namespace frontend

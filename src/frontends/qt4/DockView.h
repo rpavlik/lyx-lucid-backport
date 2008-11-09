@@ -12,62 +12,55 @@
 #ifndef DOCK_VIEW_H
 #define DOCK_VIEW_H
 
-#include "controllers/Dialog.h"
-#include "qt_helpers.h"
-
-#include <boost/scoped_ptr.hpp>
+#include "Dialog.h"
+#include "GuiView.h"
 
 #include <QDockWidget>
-#include <QMainWindow>
 
 namespace lyx {
 namespace frontend {
 
 /// Dock Widget container for LyX dialogs.
-/// This template class that encapsulates a given Widget inside a
-/// DockWidget and presents a Dialog::View interface
-template<class Controller, class Widget>
-class DockView : public QDockWidget, public Dialog::View
+/**
+ * This template class that encapsulates a given Widget inside a
+ * QDockWidget and presents a Dialog interface
+ * FIXME: create a DockView.cpp file
+ **/
+class DockView : public QDockWidget, public Dialog
 {
 public:
 	DockView(
-		Dialog & dialog, ///< The (one) parent Dialog class.
-		Controller * form, ///< Associated model/controller
-		QMainWindow * parent, ///< the main window where to dock.
-		docstring const & title, ///< Window title (shown in the top title bar).
+		GuiView & parent, ///< the main window where to dock.
+		QString const & name, ///< dialog identifier.
+		QString const & title, ///< dialog title.
 		Qt::DockWidgetArea area = Qt::LeftDockWidgetArea, ///< Position of the dock (and also drawer)
 		Qt::WindowFlags flags = 0
-		)
-		: QDockWidget(toqstr(title), parent, flags), 
-			Dialog::View(dialog, title)
+	)
+		: QDockWidget(&parent, flags), Dialog(parent, name, title)
 	{
+		setObjectName(name);
 		if (flags & Qt::Drawer)
 			setFeatures(QDockWidget::NoDockWidgetFeatures);
-		widget_.reset(new Widget(form));
-		setWidget(widget_.get());
-		parent->addDockWidget(area, this);
+		parent.addDockWidget(area, this);
+		hide();
 	}
 
-	/// Dialog::View inherited methods
+	virtual ~DockView() {}
+
+	virtual QWidget * asQWidget() { return this; }
+	virtual QWidget const * asQWidget() const { return this; }
+
+	/// We don't want to restore geometry session for dock widgets.
+	void restoreSession() {}
+
+	/// Dialog inherited methods
 	//@{
-	void apply() {}
-	void hide()	{ QDockWidget::hide(); }
-	void show()	{ QDockWidget::show(); }
-	bool isVisible() const
-	{ return QDockWidget::isVisible(); }
-	void redraw() {}
-	void update()
-	{
-		widget_->update();
-		QDockWidget::update();
-	}
+	void applyView() {}
+	bool isClosing() const { return false; }
 	//@}
-private:
-	/// The encapsulated widget.
-	boost::scoped_ptr<Widget> widget_;
 };
 
 } // frontend
 } // lyx
 
-#endif // TOC_WIDGET_H
+#endif // DOCK_VIEW_H

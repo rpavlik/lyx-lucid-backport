@@ -32,92 +32,60 @@ autoversion=`$AUTOCONF --version 2>/dev/null | head -n 1`
 test "$autoversion" != "" && {
     echo "Using $autoversion"
 } || {
-    echo "LyX requires autoconf >= 2.52"
+    echo "LyX requires autoconf >= 2.59c"
     exit 1
 }
 
+
 case $autoversion in
-    *' '2.5[2-9]|*' '2.60[ab]|*' '2.6[0-1])
+    *' '2.59[cd]|*' '2.60[ab]|*' '2.6[0-3])
 	;;
     *)
 	echo "This autoconf version is not supported by LyX."
-	echo "LyX only supports autoconf 2.52-2.61."
+	echo "LyX only supports autoconf 2.59c-2.63."
 	exit 1
 	;;
 esac
-
-echo -n "Locating GNU m4... "
-GNUM4=
-for prog in $M4 gm4 gnum4 m4; do
-	# continue if $prog generates error (e.g. does not exist)
-	( $prog --version ) < /dev/null > /dev/null 2>&1
-	if test $? -ne 0 ; then continue; fi
-
-	# /dev/null input prevents a hang of the script for some m4 compilers (e.g. on FreeBSD)
-	case `$prog --version < /dev/null 2>&1` in
-	*GNU*)	GNUM4=$prog
-		break ;;
-	esac
-done
-if test x$GNUM4 = x ; then
-	echo "not found."
-	exit 1
-else
-	echo `which $GNUM4`
-fi
 
 # Delete old cache directories.
 # automake will stop if their contents was created by an earlier version.
 rm -rf autom4te.cache
 
 # Generate the Makefiles and configure files
+echo "Building macros..."
 if ( $ACLOCAL --version ) < /dev/null > /dev/null 2>&1; then
-	echo "Building macros..."
-	for dir in . ; do
-	    echo "        $dir"
-	    ( cd $dir ; $ACLOCAL )
-	done
-	echo "done."
+	$ACLOCAL
 else
 	echo "aclocal not found -- aborting"
 	exit 1
 fi
 
+echo "Building config header template..."
 if ( $AUTOHEADER --version ) < /dev/null > /dev/null 2>&1; then
-	echo "Building config header template..."
-	for dir in . ; do
-	    echo "        $dir"
-	    ( cd $dir ; $AUTOHEADER )
-	done
-	echo "done."
+	$AUTOHEADER
 else
 	echo "autoheader not found -- aborting"
 	exit 1
 fi
 
+echo "Building Makefile templates..."
 if ( $AUTOMAKE --version ) < /dev/null > /dev/null 2>&1; then
-	echo "Building Makefile templates..."
-	for dir in . ; do
-	    echo "        $dir"
-	    ( cd $dir ; $AUTOMAKE )
-	done
-	echo "done."
+	$AUTOMAKE
 else
 	echo "automake not found -- aborting"
 	exit 1
 fi
 
+echo "Building configure..."
 if ( $AUTOCONF --version ) < /dev/null > /dev/null 2>&1; then
-	echo "Building configure..."
-	for dir in . ; do
-	    echo "       $dir"
-	    ( cd $dir ; $AUTOCONF )
-	done
-	echo "done."
+	$AUTOCONF
 else
 	echo "autoconf not found -- aborting"
 	exit 1
 fi
+
+echo "Building po/POTFILES.in..."
+make -s -f po/Rules-lyx srcdir=po top_srcdir=. po/POTFILES.in
 
 echo
 echo 'run "./configure ; make"'

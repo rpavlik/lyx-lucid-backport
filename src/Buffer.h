@@ -12,33 +12,29 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "DocIterator.h"
+#include "insets/InsetCode.h"
 
-#include "support/FileName.h"
-#include "support/limited_stack.h"
+#include "support/strfwd.h"
 #include "support/types.h"
-#include "support/docstring.h"
-#include "support/docstream.h"
+#include "support/SignalSlot.h"
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/signal.hpp>
-
-#include <iosfwd>
 #include <string>
-#include <map>
-#include <utility>
 #include <vector>
 
 
 namespace lyx {
 
+class BiblioInfo;
 class BufferParams;
+class DocIterator;
 class ErrorItem;
 class ErrorList;
 class FuncRequest;
 class Inset;
-class InsetText;
+class InsetRef;
+class InsetLabel;
 class Font;
+class Format;
 class Lexer;
 class LyXRC;
 class Text;
@@ -46,16 +42,27 @@ class LyXVC;
 class LaTeXFeatures;
 class Language;
 class MacroData;
+class MacroNameSet;
+class MacroSet;
 class OutputParams;
+class Paragraph;
 class ParConstIterator;
 class ParIterator;
 class ParagraphList;
-class StableDocIterator;
 class TeXErrors;
 class TexRow;
 class TocBackend;
 class Undo;
 
+namespace frontend {
+class GuiBufferDelegate;
+class WorkAreaManager;
+}
+
+namespace support {
+class FileName;
+class FileNameList;
+}
 
 /** The buffer object.
  * This is the buffer object. It contains all the informations about
@@ -67,7 +74,7 @@ class Undo;
  * I am not sure if the class is complete or
  * minimal, probably not.
  * \author Lars Gullik Bjønnes
-  */
+ */
 class Buffer {
 public:
 	/// What type of log will \c getLogName() return?
@@ -83,22 +90,25 @@ public:
 		wrongversion ///< The version of the file does not match ours
 	};
 
-	/// Method to check if a file is externally modified, used by 
+
+	/// Method to check if a file is externally modified, used by
 	/// isExternallyModified()
 	/**
 	 * timestamp is fast but inaccurate. For example, the granularity
 	 * of timestamp on a FAT filesystem is 2 second. Also, various operations
 	 * may touch the timestamp of a file even when its content is unchanged.
 	 *
-	 * checksum is accurate but slow, which can be a problem when it is 
+	 * checksum is accurate but slow, which can be a problem when it is
 	 * frequently used, or used for a large file on a slow (network) file
 	 * system.
+	 *
+	 * FIXME: replace this method with support/FileMonitor.
 	 */
 	enum CheckMethod {
-		checksum_method,  ///< Use file check sum
+		checksum_method,  ///< Use file checksum
 		timestamp_method, ///< Use timestamp, and checksum if timestamp has changed
 	};
-	
+
 	/** Constructor
 	    \param file
 	    \param b  optional \c false by default
@@ -138,29 +148,12 @@ public:
 		pit_type &, pos_type &,
 		Font const &, docstring const &, bool);
 	///
-	ParIterator getParFromID(int id) const;
+	DocIterator getParFromID(int id) const;
 	/// do we have a paragraph with this id?
 	bool hasParWithID(int id) const;
 
-	/// This signal is emitted when the buffer is changed.
-	boost::signal<void()> changed;
-	/// This signal is emitted when the buffer structure is changed.
-	boost::signal<void()> structureChanged;
-	/// This signal is emitted when some parsing error shows up.
-	boost::signal<void(std::string)> errors;
-	/// This signal is emitted when some message shows up.
-	boost::signal<void(docstring)> message;
-	/// This signal is emitted when the buffer busy status change.
-	boost::signal<void(bool)> busy;
-	/// This signal is emitted when the buffer readonly status change.
-	boost::signal<void(bool)> readonly;
-	/// Update window titles of all users.
-	boost::signal<void()> updateTitles;
-	/// Reset autosave timers for all users.
-	boost::signal<void()> resetAutosaveTimers;
-	/// This signal is emitting if the buffer is being closed.
-	boost::signal<void()> closing;
-
+	///
+	frontend::WorkAreaManager & workAreaManager() const;
 
 	/** Save file.
 	    Takes care of auto-save files and backup file if requested.
@@ -173,12 +166,18 @@ public:
 	/// Write file. Returns \c false if unsuccesful.
 	bool writeFile(support::FileName const &) const;
 
+  /// Loads LyX file \c filename into buffer, *  and \return success
+	bool loadLyXFile(support::FileName const & s);
+
+	/// Fill in the ErrorList with the TeXErrors
+	void bufferErrors(TeXErrors const &, ErrorList &) const;
+
 	/// Just a wrapper for writeLaTeXSource, first creating the ofstream.
 	bool makeLaTeXFile(support::FileName const & filename,
 			   std::string const & original_path,
 			   OutputParams const &,
 			   bool output_preamble = true,
-			   bool output_body = true);
+			   bool output_body = true) const;
 	/** Export the buffer to LaTeX.
 	    If \p os is a file stream, and params().inputenc is "auto" or
 	    "default", and the buffer contains text in different languages
@@ -203,17 +202,17 @@ public:
 			   std::string const & original_path,
 			   OutputParams const &,
 			   bool output_preamble = true,
-			   bool output_body = true);
+			   bool output_body = true) const;
 	///
 	void makeDocBookFile(support::FileName const & filename,
 			     OutputParams const & runparams_in,
-			     bool only_body = false);
+			     bool only_body = false) const;
 	///
 	void writeDocBookSource(odocstream & os, std::string const & filename,
 			     OutputParams const & runparams_in,
-			     bool only_body = false);
+			     bool only_body = false) const;
 	/// returns the main language for the buffer (document)
-	Language const * getLanguage() const;
+	Language const * language() const;
 	/// get l10n translated to the buffers language
 	docstring const B_(std::string const & l10n) const;
 
@@ -236,7 +235,7 @@ public:
 	void markClean() const;
 
 	///
-	void markBakClean();
+	void markBakClean() const;
 
 	///
 	void markDepClean(std::string const & name);
@@ -251,34 +250,37 @@ public:
 	void markDirty();
 
 	/// Returns the buffer's filename. It is always an absolute path.
-	std::string const fileName() const;
+	support::FileName fileName() const;
+
+	/// Returns the buffer's filename. It is always an absolute path.
+	std::string absFileName() const;
 
 	/// Returns the the path where the buffer lives.
 	/// It is always an absolute path.
-	std::string const & filePath() const;
+	std::string filePath() const;
 
 	/** A transformed version of the file name, adequate for LaTeX.
 	    \param no_path optional if \c true then the path is stripped.
 	*/
-	std::string const getLatexName(bool no_path = true) const;
+	std::string latexName(bool no_path = true) const;
 
 	/// Get thee name and type of the log.
-	std::pair<LogType, std::string> const getLogName() const;
+	std::string logName(LogType * type = 0) const;
 
 	/// Change name of buffer. Updates "read-only" flag.
 	void setFileName(std::string const & newfile);
 
-	/// Name of the document's parent
-	void setParentName(std::string const &);
+	/// Set document's parent Buffer.
+	void setParent(Buffer const *);
+	Buffer const * parent();
 
 	/** Get the document's master (or \c this if this is not a
 	    child document)
 	 */
-	Buffer const * getMasterBuffer() const;
-	/** Get the document's master (or \c this if this is not a
-	    child document)
-	 */
-	Buffer * getMasterBuffer();
+	Buffer const * masterBuffer() const;
+
+	/// \return true if \p child is a child of this \c Buffer.
+	bool isChild(Buffer * child) const;
 
 	/// Is buffer read-only?
 	bool isReadonly() const;
@@ -304,14 +306,19 @@ public:
 	*/
 	void validate(LaTeXFeatures &) const;
 
-	/// return all bibkeys from buffer and its childs
-	void fillWithBibKeys(std::vector<std::pair<std::string, docstring> > & keys) const;
 	/// Update the cache with all bibfiles in use (including bibfiles
 	/// of loaded child documents).
-	void updateBibfilesCache();
+	void updateBibfilesCache() const;
+	///
+	void invalidateBibinfoCache();
 	/// Return the cache with all bibfiles in use (including bibfiles
 	/// of loaded child documents).
-	std::vector<support::FileName> const & getBibfilesCache() const;
+	support::FileNameList const & getBibfilesCache() const;
+	/// \return the bibliography information for this buffer's master,
+	/// or just for it, if it isn't a child.
+	BiblioInfo const & masterBibInfo() const;
+	/// \return the bibliography information for this buffer ONLY.
+	BiblioInfo const & localBibInfo() const;
 	///
 	void getLabelList(std::vector<docstring> &) const;
 
@@ -320,14 +327,6 @@ public:
 
 	///
 	bool isMultiLingual() const;
-
-	/// Does this mean that this is buffer local?
-	limited_stack<Undo> & undostack();
-	limited_stack<Undo> const & undostack() const;
-
-	/// Does this mean that this is buffer local?
-	limited_stack<Undo> & redostack();
-	limited_stack<Undo> const & redostack() const;
 
 	///
 	BufferParams & params();
@@ -345,10 +344,9 @@ public:
 	LyXVC const & lyxvc() const;
 
 	/// Where to put temporary files.
-	std::string const & temppath() const;
+	std::string const temppath() const;
 
 	/// Used when typesetting to place errorboxes.
-	TexRow & texrow();
 	TexRow const & texrow() const;
 
 	///
@@ -364,53 +362,123 @@ public:
 	 *  Used to prevent the premature generation of previews
 	 *  and by the citation inset.
 	 */
-	bool fully_loaded() const;
+	bool isFullyLoaded() const;
 	/// Set by buffer_funcs' newFile.
-	void fully_loaded(bool);
+	void setFullyLoaded(bool);
 
 	/// Our main text (inside the top InsetText)
 	Text & text() const;
 
-	/// Our top InsetText!
+	/// Our top InsetText
 	Inset & inset() const;
 
 	//
 	// Macro handling
 	//
-	///
-	void buildMacros();
-	///
-	bool hasMacro(docstring const & name) const;
-	///
-	MacroData const & getMacro(docstring const & name) const;
-	///
-	void insertMacro(docstring const & name, MacroData const & data);
+	/// Collect macro definitions in paragraphs
+	void updateMacros() const;
+	/// Iterate through the whole buffer and try to resolve macros
+	void updateMacroInstances() const;
 
-	///
-	void saveCursor(StableDocIterator cursor, StableDocIterator anchor);
-	///
-	StableDocIterator getCursor() const { return cursor_; }
-	///
-	StableDocIterator getAnchor() const { return anchor_; }
-	///
+	/// List macro names of this buffer, the parent and the children
+	void listMacroNames(MacroNameSet & macros) const;
+	/// Collect macros of the parent and its children in front of this buffer.
+	void listParentMacros(MacroSet & macros, LaTeXFeatures & features) const;
+
+	/// Return macro defined before pos (or in the master buffer)
+	MacroData const * getMacro(docstring const & name, DocIterator const & pos, bool global = true) const;
+	/// Return macro defined anywhere in the buffer (or in the master buffer)
+	MacroData const * getMacro(docstring const & name, bool global = true) const;
+	/// Return macro defined before the inclusion of the child
+	MacroData const * getMacro(docstring const & name, Buffer const & child, bool global = true) const;
+
+	/// Replace the inset contents for insets which InsetCode is equal
+	/// to the passed \p inset_code.
 	void changeRefsIfUnique(docstring const & from, docstring const & to,
-		Inset::Code code);
-/// get source code (latex/docbook) for some paragraphs, or all paragraphs
-/// including preamble
-	void getSourceCode(odocstream & os, pit_type par_begin, pit_type par_end, bool full_source);
+		InsetCode code);
 
-	/// errorLists_ accessors.
-	//@{
-	ErrorList const & errorList(std::string const & type) const;
-	ErrorList & errorList(std::string const & type);
-	//@}
+	/// get source code (latex/docbook) for some paragraphs, or all paragraphs
+	/// including preamble
+	void getSourceCode(odocstream & os, pit_type par_begin, pit_type par_end,
+		bool full_source) const;
 
-	//@{
-	TocBackend & tocBackend();
-	TocBackend const & tocBackend() const;
-	//@}
+	/// Access to error list.
+	/// This method is used only for GUI visualisation of Buffer related
+	/// errors (like parsing or LateX compilation). This method is const
+	/// because modifying the returned ErrorList does not touch the document
+	/// contents.
+	ErrorList & errorList(std::string const & type) const;
+
+	/// The Toc backend.
+	/// This is useful only for screen visualisation of the Buffer. This
+	/// method is const because modifying this backend does not touch
+	/// the document contents.
+	TocBackend & tocBackend() const;
+
+	///
+	Undo & undo();
+
+	/// This function is called when the buffer is changed.
+	void changed() const;
+	///
+	void updateTocItem(std::string const &, DocIterator const &) const;
+	/// This function is called when the buffer structure is changed.
+	void structureChanged() const;
+	/// This function is called when some parsing error shows up.
+	void errors(std::string const & err) const;
+	/// This function is called when the buffer busy status change.
+	void setBusy(bool on) const;
+	/// This function is called when the buffer readonly status change.
+	void setReadOnly(bool on) const;
+	/// Update window titles of all users.
+	void updateTitles() const;
+	/// Reset autosave timers for all users.
+	void resetAutosaveTimers() const;
+	///
+	void message(docstring const & msg) const;
+
+	void setGuiDelegate(frontend::GuiBufferDelegate * gui);
+
+	///
+	void autoSave() const;
+
+	/// return the format of the buffer on a string
+	std::string bufferFormat() const;
+
+	///
+	bool doExport(std::string const & format, bool put_in_tempdir,
+		std::string & result_file) const;
+	///
+	bool doExport(std::string const & format, bool put_in_tempdir) const;
+	///
+	bool preview(std::string const & format) const;
+	///
+	bool isExportable(std::string const & format) const;
+	///
+	std::vector<Format const *> exportableFormats(bool only_viewable) const;
+
+	///
+	typedef std::vector<std::pair<InsetRef *, ParIterator> > References;
+	References & references(docstring const & label);
+	References const & references(docstring const & label) const;
+	void clearReferenceCache() const;
+	void setInsetLabel(docstring const & label, InsetLabel const * il);
+	InsetLabel const * insetLabel(docstring const & label) const;
 
 private:
+	/// search for macro in local (buffer) table or in children
+	MacroData const * getBufferMacro(docstring const & name,
+					 DocIterator const & pos) const;
+	/** Update macro table starting with position of it
+	    \param it in some text inset
+	*/
+	void updateMacros(DocIterator & it,
+				     DocIterator & scope) const;
+
+	///
+	bool readFileHelper(support::FileName const & s);
+	///
+	std::vector<std::string> backends() const;
 	/** Inserts a file into a document
 	    \return \c false if method fails.
 	*/
@@ -420,16 +488,20 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	boost::scoped_ptr<Impl> const pimpl_;
+	Impl * const d;
 
-	/// Save the cursor Position on Buffer switch
-	/// this would not be needed if every Buffer would have
-	/// it's BufferView, this should be FIXED in future.
-	StableDocIterator cursor_;
-	StableDocIterator anchor_;
-	/// A cache for the bibfiles (including bibfiles of loaded child
-	/// documents), needed for appropriate update of natbib labels.
-	mutable std::vector<support::FileName> bibfilesCache_;
+	frontend::GuiBufferDelegate * gui_;
+
+	/// This function is called when the buffer structure is changed.
+	Signal structureChanged_;
+	/// This function is called when some parsing error shows up.
+	//Signal errors(std::string const &) = 0;
+	/// This function is called when some message shows up.
+	//Signal message(docstring const &) = 0;
+	/// This function is called when the buffer busy status change.
+	//Signal setBusy(bool) = 0;
+	/// Reset autosave timers for all users.
+	Signal resetAutosaveTimers_;
 };
 
 

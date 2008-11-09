@@ -15,6 +15,8 @@
 
 #include "InsetMath.h"
 
+#include "support/docstring.h"
+
 
 namespace lyx {
 
@@ -23,15 +25,17 @@ namespace lyx {
 class MathMacroArgument : public InsetMath {
 public:
 	///
-	explicit MathMacroArgument(std::size_t);
+	explicit MathMacroArgument(int number);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 	///
-	std::size_t number() const { return number_; }
+	int number() const { return number_; }
 	///
-	Inset::Code lyxCode() const { return MATHMACROARG_CODE; }
+	void setNumber(int n);
+	///
+	InsetCode lyxCode() const { return MATHMACROARG_CODE; }
 
 	///
 	void normalize(NormalStream &) const;
@@ -39,9 +43,9 @@ public:
 	void write(WriteStream & os) const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	Inset * clone() const;
 	/// A number between 1 and 9
-	std::size_t number_;
+	int number_;
 	///
 	docstring str_;
 };

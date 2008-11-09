@@ -1,7 +1,8 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass scrbook
 \begin_preamble
 % Präambel nicht verändern!!!
@@ -16,48 +17,29 @@
 \usepackage{ifpdf}
 \ifpdf
 
-% Fonts fuer huebschere PDF-Ansichten
-\IfFileExists{lmodern.sty}
- {\usepackage{lmodern}}{}
-
-% Alle Querverweise und URLs als Link darstellen
-% In der PDF-Ausgabe
-\usepackage[colorlinks=true, bookmarks, bookmarksnumbered, bookmarksopen, bookmarksopenlevel=0,
-  linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,
-  pdfpagelayout=OneColumn, pdfnewwindow=true,
-  pdfstartview=XYZ, plainpages=false, pdfpagelabels,
-  pdfauthor={LyX Team}, pdftex,
-  pdftitle={LyX-Anpassung:Möglichkeiten für fortgeschrittene Benutzer},
-  pdfsubject={LyX-Dokumentation, Anpassung},
-  pdfkeywords={LyX, Dokumentation}]{hyperref}
-
-\else % In der DVI- oder PS-Ausgabe
-
-% Alle Querverweise und URLs als Link in der DVI-Ansicht darstellen
- \usepackage[ps2pdf, colorlinks=true,
-  linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue]{hyperref}
+ % Schrift für hübschere PDF-Ansichten
+ \IfFileExists{lmodern.sty}
+  {\usepackage{lmodern}}{}
 
 \fi % Ende von: wenn pdflatex benutzt wird
 
-% Setzt den Link fuer Spruenge zu Gleitabbildungen
+% Setzt den Link für Spruenge zu Gleitabbildungen
 % auf den Anfang des Gelitobjekts und nicht aufs Ende
 \usepackage[figure]{hypcap}
 
-% Die Seiten des Inhaltsverzeichnisses werden roemisch numeriert,
-% ein PDF-Lesezeichen fuer das Inhaltsverzeichnis wird hinzugefuegt
-\pagenumbering{roman}
+% Die Seiten des Inhaltsverzeichnisses werden römisch numeriert,
+% ein PDF-Lesezeichen für das Inhaltsverzeichnis wird hinzugefügt
 \let\myTOC\tableofcontents
-\renewcommand{\tableofcontents}{%
- \pdfbookmark[1]{Inhaltsverzeichnis}{}
- \myTOC
- \cleardoublepage
- \pagenumbering{arabic}}
+\renewcommand\tableofcontents{%
+  \frontmatter
+  \pdfbookmark[1]{\contentsname}{}
+  \myTOC
+  \mainmatter }
 
 % Formatierung von Legenden
 \usepackage[labelfont={bf,sf}, tableposition=top]{caption}[2004/07/16]
 
 % Damit der Index den Namen "Stichwortverzeichnis" erhält
-\usepackage[ngerman]{babel}
 \addto\captionsngerman{\renewcommand{\indexname}{Stichwortverzeichnis}}
 
 % redefine the \LyX macro for PDF bookmarks
@@ -68,6 +50,7 @@
 % wird für mehrspaltigen Text benötigt
 \usepackage{multicol}
 \end_preamble
+\options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
 \language ngerman
 \inputencoding auto
 \font_roman default
@@ -79,8 +62,23 @@
 \font_sf_scale 100
 \font_tt_scale 100
 \graphics default
-\paperfontsize default
+\paperfontsize 12
 \spacing single
+\use_hyperref true
+\pdf_title "LyX-Anpassung: Möglichkeiten für fortgeschrittene Benutzer"
+\pdf_author "LyX Team, deutsche Übersetzung: Peter Sütterlin, Leif Albers und Hartmut Haase"
+\pdf_subject "LyX-Dokumentation, Anpassung"
+\pdf_keywords "LyX, Dokumentation"
+\pdf_bookmarks true
+\pdf_bookmarksnumbered true
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle false
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
 \papersize default
 \use_geometry true
 \use_amsmath 0
@@ -102,15 +100,17 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
 
 \begin_layout Title
 LyX-Anpassung:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Möglichkeiten für fortgeschrittene Benutzer
 \end_layout
 
@@ -119,7 +119,7 @@ vom LyX-Team
 \begin_inset Foot
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Übersetzung: 
 \noun on
 Peter Sütterlin
@@ -145,12 +145,13 @@ Haase
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 29.\InsetSpace ~
-Januar 2008
+letzte Änderung: 25.
+ September 2008
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand tableofcontents
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
 
 \end_inset
 
@@ -198,43 +199,46 @@ Die Konfigurationsdateien von LyX
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "chap:config"
-
-\end_inset
-
 Dieses Kapitel soll Ihnen dabei helfen, sich mit den Konfigurationsdateien
  von LyX vertraut zu machen.
  Bevor Sie jedoch weiterlesen, sollten Sie herausfinden, wo sich das Systemverze
 ichnis von LyX auf Ihrem Rechner befindet.
  Sie erfahren dies über den Menüpunkt 
 \family sans
-\bar under
-H
-\bar default
-ilfe\SpecialChar \menuseparator
-Über\InsetSpace ~
+Hilfe\SpecialChar \menuseparator
+Über
+\begin_inset space ~
+\end_inset
+
 Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
 
 \end_inset
 
-
-\bar under
 X
 \family default
-\bar default
 .
  In diesem Verzeichnis speichert LyX alle systemweiten Konfigurationsdateien,
  wir werden es im weiteren 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
  nennen.
 \end_layout
@@ -242,7 +246,18 @@ LyXDir
 \begin_layout Section
 Was befindet sich in 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
 ?
 \end_layout
@@ -250,7 +265,18 @@ LyXDir
 \begin_layout Standard
 Das Verzeichnis 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
  sowie seine Unterverzeichnisse enthalten eine Anzahl Dateien, mit denen
  das Verhalten von LyX beeinflusst werden kann.
@@ -266,7 +292,18 @@ Einstellungen
  Jedoch können auch viele interne Dinge in LyX angepasst werden, indem man
  diverse andere Dateien in 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
  verändert.
  Sie sind in verschiedene Kategorien unterteilt, die in den folgenden Unterabsch
@@ -323,7 +360,7 @@ LaTe
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
@@ -332,7 +369,10 @@ status collapsed
 
 
 \family sans
-X\InsetSpace \space{}
+X
+\begin_inset space \space{}
+\end_inset
+
 Konfiguration
 \family default
  zugänglich.
@@ -358,11 +398,37 @@ layout
 \labelwidthstring 00.00.0000
 
 \family typewriter
-doc/LaTeXConfig.lyx
+doc/LaTe
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XConfig.lyx
 \family default
  wird bei der Konfiguration aus der Datei 
 \family typewriter
-LaTeXConfig.lyx.in
+LaTe
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XConfig.
+\begin_inset Newline linebreak
+\end_inset
+
+lyx.in
 \family default
  erzeugt.
  Jeder Eintrag der Form 
@@ -403,9 +469,13 @@ bind/
 .
  In ihnen werden die Tastenkombinationen festgelegt, mit denen Sie Menüs
  öffnen und Bearbeitungsoperationen direkt starten können.
- Siehe dazu Abschnitt\InsetSpace \space{}
+ Siehe dazu Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:bindings"
 
 \end_inset
@@ -417,16 +487,24 @@ $LANG_xxx.bind
 \family default
  mit einer an die internationalisierte Version von LyX angepassten Tastenbelegun
 g existiert, wird diese bevorzugt geladen.
- Näheres dazu finden Sie in Kapitel\InsetSpace \space{}
+ Näheres dazu finden Sie in Kapitel
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "chap:i18n"
 
 \end_inset
 
- und Abschnitt\InsetSpace \space{}
+ und Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:bindings"
 
 \end_inset
@@ -459,7 +537,18 @@ doc/
  gerade lesen).
  Eine kleine Ausnahmestellung hat die bereits beschriebene Datei 
 \family typewriter
-LaTeXConfig.lyx
+LaTe
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XConfig.lyx
 \family default
 .
  Auch hier wird eine übersetzte Version mit dem Vorsatz 
@@ -467,9 +556,13 @@ LaTeXConfig.lyx
 $LANG_
 \family default
  vor dem Dateinamen zuerst gesucht und, falls vorhanden, geladen.
- Siehe dazu Kapitel\InsetSpace ~
+ Siehe dazu Kapitel
+\begin_inset space ~
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "chap:i18n"
 
 \end_inset
@@ -489,10 +582,7 @@ examples/
 iten von LyX nutzen können.
  Verwenden Sie die Schaltfläche 
 \family sans
-\bar under
-B
-\bar default
-eispiele
+Beispiele
 \family default
  im Dateiauswahlmenü, um in dieses Verzeichnis zu gelangen.
 \end_layout
@@ -533,9 +623,13 @@ kbd/
 \family default
 \series default
  Hier sind die Definitionsdateien für die Tastaturbelegung gespeichert.
- Näheres dazu finden Sie im Abschnitt\InsetSpace \space{}
+ Näheres dazu finden Sie im Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:keymap"
 
 \end_inset
@@ -551,9 +645,13 @@ reference "sec:keymap"
 layouts/
 \family default
 \series default
- Hier werden die in Abschnitt\InsetSpace \space{}
+ Hier werden die in Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "chap:textclass"
 
 \end_inset
@@ -568,10 +666,18 @@ reference "chap:textclass"
 \family typewriter
 lyx2lyx
 \family default
-/ Enthält Dateien, die für die Konvertierung zwischen verschiedenen LyX-Ver\SpecialChar \-
-sio\SpecialChar \-
-ne
-n benötigt werden.
+/ Enthält Dateien, die für die Konvertierung zwischen verschiedenen LyX
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Versionen benötigt werden.
 \end_layout
 
 \begin_layout Labeling
@@ -595,8 +701,14 @@ templates
 D
 \bar default
 atei\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
-von\InsetSpace \space{}
+Neu
+\begin_inset space \space{}
+\end_inset
+
+von
+\begin_inset space \space{}
+\end_inset
+
 
 \bar under
 V
@@ -616,7 +728,11 @@ tex/
 \family typewriter
 .cls
 \family default
-) und -Stildateien (.
+) und -Stildateien
+\begin_inset Newline linebreak
+\end_inset
+
+ (.
 \family typewriter
 sty
 \family default
@@ -635,9 +751,13 @@ ui/
 \family default
 , die die Benutzerschnittstelle von LyX festlegen, also welche Einträge
  in welchen Menüs sind, und wie die Werkzeugleiste zusammengesetzt ist.
- Siehe hierzu Abschnitt\InsetSpace \space{}
+ Siehe hierzu Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:Die-Benutzerschnittstelle"
 
 \end_inset
@@ -666,14 +786,17 @@ CREDITS
  Ihr Inhalt wird über die Menüauswahl 
 \family sans
 Hilfe\SpecialChar \menuseparator
-Über\InsetSpace \space{}
+Über
+\begin_inset space \space{}
+\end_inset
+
 Ly
 \family default
 
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
@@ -735,13 +858,20 @@ external_templates
 \family default
  Diese Datei enthält die Vorlagen für das neue 
 \family sans
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
 -Modul.
- Siehe dazu Kapitel\InsetSpace \space{}
+ Siehe dazu Kapitel
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "cha:Externes"
 
 \end_inset
@@ -786,12 +916,15 @@ Benutzerverzeichnis
  in 
 \family sans
 Hilfe\SpecialChar \menuseparator
-Über\InsetSpace \space{}
+Über
+\begin_inset space \space{}
+\end_inset
+
 Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
@@ -808,7 +941,18 @@ X
  Jede der im vorigen Abschnitt beschriebenen Konfigurationsdateien kann
  sich entweder im Systemverzeichnis 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
  oder aber in Ihrem privaten Verzeichnis befinden.
  Im ersten Fall gelten die Einstellungen für alle Benutzer, im zweiten Fall
@@ -822,8 +966,13 @@ Dies lässt sich an einigen Beispielen leichter erklären:
 \begin_layout Itemize
 Um eine LyX Version älter als 1.1.6 umzukonfigurieren, musste der Benutzer
  zunächst die Datei 
-\begin_inset LatexCommand url
-target "LyXDir/lyxrc.example"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+LyXDir/lyxrc.example
+\end_layout
 
 \end_inset
 
@@ -831,7 +980,7 @@ target "LyXDir/lyxrc.example"
 \begin_inset Note Note
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 HHa: wie bereits im Benutzerhandbuch erwähnt, ist URL eine einfache Möglichkeit,
  um Schreibmaschinenformat umzubrechen.
 \end_layout
@@ -874,7 +1023,10 @@ lyxrc
 Wenn Sie mit dem Menüpunkt 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
+Neu
+\begin_inset space \space{}
+\end_inset
+
 konfigurieren
 \family default
  eine Neukonfiguration von LyX durchführen, werden die dabei erzeugten Dateien
@@ -882,9 +1034,13 @@ konfigurieren
 \family typewriter
 UserDir
 \family default
- gespeichert (im Abschnitt\InsetSpace \space{}
+ gespeichert (im Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:autodetected"
 
 \end_inset
@@ -926,7 +1082,7 @@ TEXINPUTS
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 vorausgesetzt, es gibt auch eine 
 \family typewriter
 .layout
@@ -953,22 +1109,13 @@ UserDir/doc
 \family default
  kopieren, und sie werden automatisch über das 
 \family sans
-\bar under
-H
-\bar default
-ilfe
+Hilfe
 \family default
 -Menü geöffnet.
 \end_layout
 
 \begin_layout Section
 LyX mit mehreren Konfigurationen
-\begin_inset LatexCommand label
-name "sec:LyX-multiconf"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1003,7 +1150,7 @@ Indem Sie LyX mit der Option
  Anstelle der Kommandozeilenoption können Sie übrigens auch die Umgebungsvariabl
 e 
 \family typewriter
-LYX_USERDIR_15x
+LYX_USERDIR_VER
 \family default
  auf das zu verwendende Verzeichnis setzen.
 \end_layout
@@ -1036,7 +1183,10 @@ doc
 kript (
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
+Neu
+\begin_inset space \space{}
+\end_inset
+
 konfigurieren
 \family default
 ) abgelegt, die konfigurationsabhängig ist.
@@ -1063,14 +1213,24 @@ Der erste Aufruf des Dialogs
 \begin_layout Standard
 Bei alten Versionen von LyX bestand die Konfiguration darin, die Datei 
 \family typewriter
-UserDir/lyxrc
+UserDir/
+\begin_inset Newline linebreak
+\end_inset
+
+lyxrc
 \family default
  manuell zu editieren.
- Dies wurde mit LyX\InsetSpace ~
+ Dies wurde mit LyX
+\begin_inset space ~
+\end_inset
+
 1.1.6 geändert, es steht nun mit 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace ~
+Neu
+\begin_inset space ~
+\end_inset
+
 konfigurieren
 \family default
  ein Befehl zur Verfügung, der die Mühsal der Konfiguration beendet.
@@ -1101,7 +1261,19 @@ n abweichen.
  Einige dieser Standardwerte sind fest in LyX einkompiliert, andere werden
  in 
 \family typewriter
-LyXDir/lyxrc.defaults
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/lyxrc.de\SpecialChar \-
+faults
 \family default
  festgelegt.
  Beachten Sie bitte, dass in beiden Dateien Zeilen, die mit einem 
@@ -1115,7 +1287,18 @@ LyXDir/lyxrc.defaults
  beginnen, Kommentare sind und nicht ausgewertet werden.
  Jedoch sollte 
 \family typewriter
-LyXDir/lyxrc.defaults
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/lyxrc.defaults
 \family default
  nur vom Systemadministator verändert werden, und die Benutzer sollten ihre
  persönliche Konfiguration in 
@@ -1139,10 +1322,7 @@ Wir hoffen dass der Dialog im großen und ganzen selbsterklärend ist.
  Bevor wir nun jedoch ein paar der wichtigeren Optionen vorstelle,n ein
  Wort der Warnung: Einige der Einstellungen, die Sie mit dem Klick auf 
 \family sans
-\bar under
-Ü
-\bar default
-bernehmen
+Übernehmen
 \family default
  aktivieren, werden sofort umgesetzt (zum Beispiel Bildschirmzeichensätze),
  andere (wie etwa das Ändern der 
@@ -1249,7 +1429,7 @@ Demgegenüber sind Bitmap-Zeichensätze von vornherein als kleine Grafikdateien
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Sie kennen diesen Effekt vermutlich.
  Er tritt auch auf, wenn Sie in einem Bildbearbeitungsprogramm wie 
 \family typewriter
@@ -1337,8 +1517,14 @@ lösung der Bildschirmdarstellung.
  Welchen Wert LyX so feststellt, können Sie herausfinden, wenn Sie LyX folgender
 maßen starten: 
 \family typewriter
-lyx\InsetSpace ~
--dbg\InsetSpace ~
+lyx
+\begin_inset space ~
+\end_inset
+
+-dbg
+\begin_inset space ~
+\end_inset
+
 2
 \family default
 .
@@ -1349,8 +1535,14 @@ Nun ist X aber nicht auf jedem System richtig konfiguriert, deshalb sollten
  Sie diese Einstellung selber nachprüfen.
  Geben Sie dazu den Befehl 
 \family typewriter
-xdpyinfo\InsetSpace \space{}
-|\InsetSpace \space{}
+xdpyinfo
+\begin_inset space \space{}
+\end_inset
+
+|
+\begin_inset space \space{}
+\end_inset
+
 more
 \family default
  ein und notieren Sie sich den DPI-Wert beim Eintrag 
@@ -1417,7 +1609,10 @@ eise breiter als ein Blatt Papier ist.
 \family sans
 Vergrößerung
 \family default
-\InsetSpace ~
+
+\begin_inset space ~
+\end_inset
+
 
 \family sans
 %:
@@ -1513,7 +1708,10 @@ Groß
 \family default
  und 
 \family sans
-Groß\InsetSpace ~
+Groß
+\begin_inset space ~
+\end_inset
+
 2
 \family default
  durch denselben Bildschirm-Zeichensatz dargestellt werden und dadurch nur
@@ -1526,7 +1724,10 @@ n: Sie können für jede logische Schriftgröße genau festlegen, welche Größe
  zur Darstellung am Bildschirm verwendet wird.
  Wenn Sie LyX mit der Option 
 \family typewriter
--dbg\InsetSpace ~
+-dbg
+\begin_inset space ~
+\end_inset
+
 513
 \family default
  starten, können Sie feststellen, welche Schriftgrößen tatsächlich verwendet
@@ -1658,7 +1859,7 @@ Tastatur-Einstellung
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Wenn Sie Linux selber auf einem PC installiert haben, können Sie diesen
  Teil ignorieren.
 \end_layout
@@ -1669,11 +1870,6 @@ Wenn Sie Linux selber auf einem PC installiert haben, können Sie diesen
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
-name "sec:x-win-keys"
-
-\end_inset
-
 Um LyX richtig benutzen zu können, 
 \emph on
 muss
@@ -1750,7 +1946,10 @@ Anpassung
 \begin_layout Standard
 
 \family typewriter
-xmodmap\InsetSpace ~
+xmodmap
+\begin_inset space ~
+\end_inset
+
 .Xmodmap
 \family default
  
@@ -1807,8 +2006,12 @@ cut-and-paste
 
 \begin_layout Subsection
 Sondertasten
-\begin_inset LatexCommand index
-name "Sondertasten"
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Sondertasten
+\end_layout
 
 \end_inset
 
@@ -1871,8 +2074,14 @@ Compose
 \begin_layout Itemize
 
 \family sans
-Compose\InsetSpace ~
-e\InsetSpace ~
+Compose
+\begin_inset space ~
+\end_inset
+
+e
+\begin_inset space ~
+\end_inset
+
 '
 \family default
  
@@ -1885,8 +2094,14 @@ e\InsetSpace ~
 \begin_layout Itemize
 
 \family sans
-Compose\InsetSpace ~
-O\InsetSpace ~
+Compose
+\begin_inset space ~
+\end_inset
+
+O
+\begin_inset space ~
+\end_inset
+
 R
 \family default
  
@@ -1899,8 +2114,14 @@ R
 \begin_layout Itemize
 
 \family sans
-Compose\InsetSpace ~
-1\InsetSpace ~
+Compose
+\begin_inset space ~
+\end_inset
+
+1
+\begin_inset space ~
+\end_inset
+
 2
 \family default
  
@@ -1913,8 +2134,14 @@ Compose\InsetSpace ~
 \begin_layout Itemize
 
 \family sans
-Compose\InsetSpace ~
-<\InsetSpace ~
+Compose
+\begin_inset space ~
+\end_inset
+
+<
+\begin_inset space ~
+\end_inset
+
 <
 \family default
  
@@ -1933,6 +2160,19 @@ Diese Eingabeart ist besonders dann hilfreich, wenn man Buchstaben mit Akzenten
 locale
 \emph default
  richtig gesetzt haben.
+\end_layout
+
+\begin_layout Standard
+Eine einfachere Art, Sonderzeichen einzufügen, gibt es mit 
+\family sans
+Einfügen\SpecialChar \menuseparator
+Son\SpecialChar \-
+der\SpecialChar \-
+zei\SpecialChar \-
+chen\SpecialChar \menuseparator
+Symbole
+\family default
+.
 \end_layout
 
 \begin_layout Subsection
@@ -1989,7 +2229,7 @@ copy-and-paste
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Sie können sich etwas Schreibarbeit sparen, wenn Sie folgendes ausführen:
  
 \family typewriter
@@ -2082,7 +2322,8 @@ Rückschritt
 
 \begin_layout Section
 Tastaturkürzel
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:bindings"
 
 \end_inset
@@ -2091,8 +2332,18 @@ name "sec:bindings"
 \end_layout
 
 \begin_layout Standard
-Tastaturkürzel dienen dazu, einer Taste oder Tastenkombination eine LyX-Funktion
- zuzuordnen.
+Tastaturkürzel dienen dazu, einer Taste oder Tastenkombination eine LyX
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Funktion zuzuordnen.
  Die LyX-Distribution umfasst einige Dateien mit unterschiedlichen Tastaturzuord
 nungen: CUA, die typische Belegung auf PC und CDE, eine Emacs-Version sowie
  einige spezialisierte Versionen (broadway, hollywood) und an andere Sprachen
@@ -2104,7 +2355,18 @@ nungen: CUA, die typische Belegung auf PC und CDE, eine Emacs-Version sowie
 Wenn Sie stattdessen Ihre Kürzel lieber selbst definieren wollen, nehmen
  Sie am besten diejenige Systemdatei aus 
 \family typewriter
-LyXDir/bind
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/bind
 \family default
  als Vorlage, die am ehesten Ihren Vorstellungen entspricht, und modifizieren
  Sie diese entsprechend.
@@ -2120,7 +2382,8 @@ Einstellungen
 \begin_layout Standard
 LyX unterstützt die Internationalisierung der Benutzerschnittstelle (siehe
  Kapitel 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "chap:i18n"
 
 \end_inset
@@ -2169,7 +2432,22 @@ bind
 \begin_layout LyX-Code
 
 \backslash
-bind <Tastenkombination> <LyX_Funktion>
+bind <Tastenkombination> <Ly
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+X_Funktion>
 \end_layout
 
 \begin_layout Standard
@@ -2184,7 +2462,8 @@ Benutzerhandbuch
 
 \begin_layout Section
 Die Benutzerschnittstelle
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Die-Benutzerschnittstelle"
 
 \end_inset
@@ -2203,11 +2482,7 @@ Einstellungen
 \family sans
 Aussehen\SpecialChar \menuseparator
 Benutzerschnittstelle\SpecialChar \menuseparator
-
-\bar under
-G
-\bar default
-UI-Datei:
+GUI-Datei:
 \family default
 .
  Im 
@@ -2216,7 +2491,18 @@ ui
 \family default
 -Unterverzeichnis von 
 \family typewriter
-LyXDir
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir
 \family default
  gibt es mehrere Dateien, von denen 
 \family typewriter
@@ -2402,11 +2688,7 @@ Benutzerverzeichnisses
 \family sans
 Aussehen\SpecialChar \menuseparator
 Benutzerschnittstelle\SpecialChar \menuseparator
-
-\bar under
-G
-\bar default
-UI-Datei:
+GUI-Datei:
 \family default
  mitteilen, welche Datei Sie benutzen wollen.
 \end_layout
@@ -2420,7 +2702,18 @@ LyX besitzt einen mächtigen Mechanismus, um mittels externer Programme zwischen
  beliebigen Dateiformaten zu konvertieren.
  Geben Sie ein Paar von Formaten an, zum Beispiel 
 \family typewriter
-LaTeX
+LaTe
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X
 \family default
  und 
 \family typewriter
@@ -2519,7 +2812,10 @@ E
 \family default
 i
 \family sans
-nstellungen\SpecialChar \ldots{}
+n\SpecialChar \-
+stel\SpecialChar \-
+lun\SpecialChar \-
+gen\SpecialChar \ldots{}
 \SpecialChar \menuseparator
 Ausgaben\SpecialChar \menuseparator
 Einfacher Text
@@ -2555,7 +2851,10 @@ t wird.
 
 \family sans
 \series medium
-Ausgabe\InsetSpace ~
+Ausgabe
+\begin_inset space ~
+\end_inset
+
 Zeilenlänge
 \family default
 \series default
@@ -2597,9 +2896,13 @@ Drucker
 
 \begin_layout Standard
 Falls Sie generelle Probleme mit Ihrem Drucker haben, hilft Ihnen vielleicht
- Kapitel\InsetSpace \space{}
+ Kapitel
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "chap:printer"
 
 \end_inset
@@ -2635,14 +2938,14 @@ Farben
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="3">
 <features>
-<column alignment="left" valignment="top" leftline="true" width="0pt">
-<column alignment="left" valignment="top" leftline="true" width="0pt">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0pt">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<column alignment="left" valignment="top" width="0pt">
+<column alignment="left" valignment="top" width="0pt">
+<column alignment="left" valignment="top" width="40mm">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \series bold
@@ -2651,10 +2954,10 @@ LyX-Name
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \series bold
@@ -2663,10 +2966,10 @@ Zweck
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 \series bold
@@ -2676,11 +2979,11 @@ Standardfarbe (RGB-Wert)
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Cursor
 \end_layout
 
@@ -2689,7 +2992,7 @@ Cursor
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Textcursor
 \end_layout
 
@@ -2698,18 +3001,18 @@ Textcursor
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 schwarz (0,0,0)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Hintergrund
 \end_layout
 
@@ -2718,7 +3021,7 @@ Hintergrund
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Texthintergrund
 \end_layout
 
@@ -2727,18 +3030,18 @@ Texthintergrund
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 leinen (250,240,230)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Text
 \end_layout
 
@@ -2747,7 +3050,7 @@ Text
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Textvordergrund
 \end_layout
 
@@ -2756,18 +3059,18 @@ Textvordergrund
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 schwarz (0,0,0)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 LaTeX-Text
 \end_layout
 
@@ -2776,7 +3079,7 @@ LaTeX-Text
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 LaTeX-Text
 \end_layout
 
@@ -2785,18 +3088,18 @@ LaTeX-Text
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dunkelrot (139,0,0)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathe
 \end_layout
 
@@ -2805,7 +3108,7 @@ Mathe
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathematische Formeln
 \end_layout
 
@@ -2814,18 +3117,18 @@ Mathematische Formeln
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dunkelblau (0,0,139)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathe (Strich)
 \end_layout
 
@@ -2834,7 +3137,7 @@ Mathe (Strich)
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Bruchstriche, Klammern usw.
 \end_layout
 
@@ -2843,18 +3146,18 @@ Bruchstriche, Klammern usw.
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 blau (0,0,255)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathe (Hintergrund)
 \end_layout
 
@@ -2863,7 +3166,7 @@ Mathe (Hintergrund)
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Hintergrund für Formeln
 \end_layout
 
@@ -2872,18 +3175,18 @@ Hintergrund für Formeln
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 leinen (250,240,230)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathe (Rahmen)
 \end_layout
 
@@ -2892,7 +3195,7 @@ Mathe (Rahmen)
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -2901,18 +3204,18 @@ Mathe (Rahmen)
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 purpurrot (255,0,255)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true">
+<row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Mathe (Cursor)
 \end_layout
 
@@ -2921,7 +3224,7 @@ Mathe (Cursor)
 <cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -2930,36 +3233,36 @@ Mathe (Cursor)
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 schwarz (0,0,0)
 \end_layout
 
 \end_inset
 </cell>
 </row>
-<row topline="true" bottomline="true">
-<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Auswahl
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Auswahlhintergrund
 \end_layout
 
 \end_inset
 </cell>
-<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
-\begin_layout Standard
+\begin_layout Plain Layout
 hellblau (173,216,230)
 \end_layout
 
@@ -2982,7 +3285,8 @@ Automatische Einstellungen
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:autodetected"
 
 \end_inset
@@ -2991,7 +3295,10 @@ Einige Einstellungen werden von LyX selbständig ermittelt, wenn Sie den
  Menüpunkt 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace ~
+Neu
+\begin_inset space ~
+\end_inset
+
 konfigu\SpecialChar \-
 rie\SpecialChar \-
 ren
@@ -3111,7 +3418,10 @@ fax_command
 \series default
  wird auf 
 \family typewriter
-fax\InsetSpace ~
+fax
+\begin_inset space ~
+\end_inset
+
 send
 \family default
  oder 
@@ -3215,7 +3525,8 @@ Referenzhandbuch
 
 \begin_layout Chapter
 Internationales LyX
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "chap:i18n"
 
 \end_inset
@@ -3227,16 +3538,24 @@ name "chap:i18n"
 
 \emph on
 Anmerkung des Übersetzers: Dieses Kapitel behandelt zwei Themenbereiche.
- Einmal wird in\InsetSpace \space{}
+ Einmal wird in
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:interface-aendern"
 
 \end_inset
 
- und\InsetSpace \space{}
+ und
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:andere-tastaturkuerzel"
 
 \end_inset
@@ -3249,13 +3568,15 @@ reference "sec:andere-tastaturkuerzel"
  dieser Teil des Kapitels für die Leser dieser Übersetzung weitgehend uninteress
 ant sein.
  Die letzten beiden Abschnitte, 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:internat-tastaturbelegung"
 
 \end_inset
 
  und 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:keymap"
 
 \end_inset
@@ -3306,7 +3627,8 @@ Wir werden versuchen, diese Dinge in einer späteren Version zu korrigieren.
 
 \begin_layout Section
 Eine andere Sprache für die Schnittstelle auswählen
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:interface-aendern"
 
 \end_inset
@@ -3348,7 +3670,7 @@ de
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Noch besser wäre es, 
 \family typewriter
 LANG
@@ -3374,7 +3696,7 @@ Normalerweise werden Sie den passenden Befehl in eine der Startdateien einfügen
 \family default
  oder 
 \family typewriter
-~/.bashfrc
+~/.bashrc
 \family default
 , damit die übersetzte Schnittstelle automatisch benutzt wird.
  
@@ -3395,7 +3717,8 @@ nls
 
 \begin_layout Section
 Tastaturkürzel für andere Sprachen anpassen
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:andere-tastaturkuerzel"
 
 \end_inset
@@ -3417,24 +3740,23 @@ new-file-from-template
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family typewriter
 new-file-from-template
 \family default
  ist der LyX-interne Befehl, der das Menü 
 \family sans
-\bar under
-D
-\bar default
-atei\SpecialChar \menuseparator
-Neu\InsetSpace ~
-von\InsetSpace ~
+Datei\SpecialChar \menuseparator
+Neu
+\begin_inset space ~
+\end_inset
 
-\bar under
-V
-\bar default
-orlage
+von
+\begin_inset space ~
+\end_inset
+
+Vorlage
 \family default
 \SpecialChar \ldots{}
  auswählt.
@@ -3451,7 +3773,18 @@ orlage
 Es ist allerdings einfach, dies zu ändern, da alle Tastenkürzel für die
  Menüfunktionen in einer einzigen Datei definiert werden, in 
 \family typewriter
-LyXDir/bind/menus.bind
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/bind/menus.bind
 \family default
 .
  Jeder Anwender kann eine eigene Version dieser Datei in sein privates LyX-Verze
@@ -3475,27 +3808,38 @@ Strg+D+V
 \family default
  (für 
 \family sans
-\bar under
-D
-\bar default
-atei\SpecialChar \menuseparator
-Neu\InsetSpace ~
-von\InsetSpace ~
+Datei\SpecialChar \menuseparator
+Neu
+\begin_inset space ~
+\end_inset
 
-\bar under
-V
-\bar default
-orlage
+von
+\begin_inset space ~
+\end_inset
+
+Vorlage
 \family default
 \SpecialChar \ldots{}
 ).
  Für einige Sprachen existieren schon angepasste Versionen 
 \family typewriter
-LyXDir/bind/
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/bind/
 \series bold
 xx
 \series default
-_menus.bind
+_me\SpecialChar \-
+nus.bind
 \family default
  (
 \family typewriter
@@ -3544,7 +3888,7 @@ word-delete-forward
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family typewriter
 word-delete-forward
@@ -3566,11 +3910,7 @@ In LyX Version 1.0 werden die übersetzten Namen der Hauptmenüs (die in den
 \family typewriter
 po
 \family default
--Dateien stehen) für den Tasten\SpecialChar \-
-de\SpecialChar \-
-fi\SpecialChar \-
-ni\SpecialChar \-
-tions-Mechanismus verwendet -- deshalb
+-Dateien stehen) für den Tastendefinitions-Mechanismus verwendet -- deshalb
  müssen auch in 
 \family typewriter
 menus.bind
@@ -3607,9 +3947,9 @@ mo
  Eine umfassende Anleitung dazu finden Sie in der Dokumentation für GNU
  gettext
 \begin_inset Foot
-status open
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Natürlich nur auf englisch.
  Die Veränderungen, die an der 
 \family typewriter
@@ -3631,29 +3971,29 @@ xx
 \end_layout
 
 \begin_layout Itemize
-Kopieren Sie im Verzeichnis des LyX-Quellcodes die Datei
-\newline
-
-\begin_inset LatexCommand url
-target "LYX-SOURCE-DIR/po/lyx.pot"
-
-\end_inset
-
- nach 
+Kopieren Sie die Datei 
+\family typewriter
+lyx.pot
+\family default
+ in das Verzeichnis der .po-Dateien.
+ Benennen Sie anschließend die Datei in 
 \family typewriter
 \series bold
 xx
 \series default
 .po
 \family default
-.
+ um.
  (Falls 
 \family typewriter
 lyx.pot
 \family default
  nicht existiert, kann sie mit dem Befehl 
 \family typewriter
-make\InsetSpace \space{}
+make
+\begin_inset space \space{}
+\end_inset
+
 lyx.pot
 \family default
  neu erzeugt werden.)
@@ -3664,12 +4004,23 @@ Editieren Sie
 \family typewriter
 xx.po
 \begin_inset Foot
-status open
+status collapsed
 
-\begin_layout Standard
-Wir empfehlen, für diese Aufgabe Emacs zu benutzen, da die Distribution
- der gettext-Library auch einen hübschen Emacs-Modus enthält, der Sie bei
- dieser Arbeit unterstützt.
+\begin_layout Plain Layout
+Für diese Aufgabe gibt es spezielle Programme, wie 
+\family typewriter
+Poedit
+\family default
+ (für alle Plattformen) oder 
+\family typewriter
+KBabel
+\family default
+ (für KDE).
+ 
+\family typewriter
+Emacs
+\family default
+ hat ebenfalls einen Modus, der Sie bei dieser Arbeit unterstützt.
 \end_layout
 
 \end_inset
@@ -3689,32 +4040,45 @@ Wir empfehlen, für diese Aufgabe Emacs zu benutzen, da die Distribution
 scgen.pl
 \family default
 , das sich im Quellverzeichnis in 
-\begin_inset LatexCommand url
-target "LYX-SOURCE-DIR/development/tools/"
+\family typewriter
+
+\begin_inset CommandInset href
+LatexCommand href
+target "LYX-SOURCE- DIR/development/tools/"
+type "file:"
 
 \end_inset
 
+
+\family default
  befindet.
  Vielleicht hilft es Ihnen bei der Bestimmung der Tastenkürzel.
  Beachten Sie, dass XForms (zumindest die Version 0.86) nur 7-Bit-Zeichen
  als Tastenkürzel verarbeiten kann.
-\newline
-Sie sollten auch das Informationsfeld
- am Anfang der neuen po-Datei ausfüllen (mit Ihrer EMail-Adresse, usw.),
- damit Sie für andere Leute erreichbar sind, die Ihnen Vorschläge oder unterhalt
-same Flames schicken möchten.
+\begin_inset Newline newline
+\end_inset
+
+Sie sollten auch das Informationsfeld am Anfang der neuen po-Datei ausfüllen
+ (mit Ihrer EMail-Adresse, usw.), damit Sie für andere Leute erreichbar sind,
+ die Ihnen Vorschläge oder unterhaltsame Flames schicken möchten.
 \end_layout
 
 \begin_layout Itemize
 Erzeugen Sie in 
-\begin_inset LatexCommand url
-target "LYX-SOURCE-DIR/po/lyx.pot"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+LYX-SOURCE-DIR/po/lyx.pot
+\end_layout
 
 \end_inset
 
  mit dem Befehl 
 \family typewriter
-make update-gmo
+make up\SpecialChar \-
+date-gmo
 \family default
  die Datei 
 \family typewriter
@@ -3793,14 +4157,14 @@ Hilfe
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Derzeit (November 2006) sind praktisch alle Texte bis auf 
 \emph on
 LaTe
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
@@ -3824,7 +4188,18 @@ locale
  Zur Zeit sind Übersetzungen in etwa 20 Sprachen vorhanden.
  LyX sucht nach übersetzten Versionen in 
 \family typewriter
-LyXDir/doc/
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/doc/
 \series bold
 xx
 \series default
@@ -3868,16 +4243,25 @@ DocName
 \begin_layout Itemize
 Lesen Sie 
 \family typewriter
-LyXDir/doc/DocStyle.lyx
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/doc/DocStyle.lyx
 \family default
-, den Leitfaden zum Schreiben der LyX-Do\SpecialChar \-
-ku\SpecialChar \-
-mentation.
+, den Leitfaden zum Schreiben der LyX-Dokumentation.
  Beachten Sie vor allem den Abschnitt für Übersetzer.
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \noun on
 HHa
@@ -3896,10 +4280,14 @@ DocStyle.lyx
 
 \begin_layout Itemize
 Werfen Sie einen Blick auf die Seiten des Übersetzungsteams auf der Homepage
- des 
-\begin_inset LatexCommand url
-name "LyX Developer Teams:"
-target "http://www.devel.lyx.org"
+ des LyX Developer Teams: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.devel.lyx.org
+\end_layout
 
 \end_inset
 
@@ -3918,15 +4306,8 @@ Wenn Sie dann mit der eigentlichen Übersetzungsarbeit beginnen, sind hier
 \begin_layout Itemize
 Machen Sie im Dokumentationsteam mit! Informationen dazu gibt es in 
 \family sans
-\bar under
-H
-\bar default
-ilfe\SpecialChar \menuseparator
-
-\bar under
-E
-\bar default
-inführung
+Hilfe\SpecialChar \menuseparator
+Einführung
 \family default
 .
  Dies ist übrigens das erste Dokument, das Sie übersetzen sollten.
@@ -3952,7 +4333,7 @@ Legen Sie eine Kopie des Originaldokumentes an.
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Alternativ können Sie auch lokal eine Kopie des (englischen) Ausgangstextes
  aufbewahren und diese dann mit der neuen Version vergleichen (zum Beispiel
  mit dem Befehl 
@@ -3978,7 +4359,8 @@ Auch die Originaldokumentation ist nicht komplett.
 
 \begin_layout Section
 Internationale Tastaturbelegung
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:internat-tastaturbelegung"
 
 \end_inset
@@ -4044,7 +4426,10 @@ Taste
 Ausgabe
 \family default
  die Taste oder den String, der dafür in das Dokument eingefügt werden soll.
- Eine tote Taste definiert man mit:\InsetSpace ~
+ Eine tote Taste definiert man mit:
+\begin_inset space ~
+\end_inset
+
 
 \end_layout
 
@@ -4077,42 +4462,54 @@ Tote-Taste
 
 \emph on
 Name
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 Beispiel
 \end_layout
 
 \begin_layout Quotation
 acute (acu)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 áéíóú
 \end_layout
 
 \begin_layout Quotation
 grave (gra)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 àèìòù
 \end_layout
 
 \begin_layout Quotation
 macron (mac)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
  ō
 \end_layout
 
 \begin_layout Quotation
 tilde (til)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 ñÑ
 \end_layout
 
 \begin_layout Quotation
 underbar (underb)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4126,18 +4523,22 @@ b o
 
 \begin_layout Quotation
 cedilla (ced)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 çÇ
 \end_layout
 
 \begin_layout Quotation
 underdot (underd)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4151,24 +4552,30 @@ d o
 
 \begin_layout Quotation
 circumflex (circu)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 âêîôû
 \end_layout
 
 \begin_layout Quotation
 circle (circl)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 ÅůŮ
 \end_layout
 
 \begin_layout Quotation
 tie (tie)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4182,12 +4589,14 @@ t oo
 
 \begin_layout Quotation
 breve (bre)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 ă
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4201,30 +4610,38 @@ u o
 
 \begin_layout Quotation
 caron (car)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 čšž
 \end_layout
 
 \begin_layout Quotation
 hungarian umlaut (hug)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 őű
 \end_layout
 
 \begin_layout Quotation
 umlaut (uml)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 äöü
 \end_layout
 
 \begin_layout Quotation
 dot (dot)
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 ż
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4372,7 +4789,9 @@ kinclude Dateiname
 \family default
 \emph on
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \emph default
 bindet eine andere Datei ein 
@@ -4391,7 +4810,9 @@ Programm
 \family default
 \emph on
 
-\hfill
+\begin_inset space \hfill{}
+\end_inset
+
 
 \emph default
  definiert ein externes Keymap-Programm 
@@ -4417,7 +4838,8 @@ Internationale Tastaturtabellen:
 Keymaps
 \emph default
 
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:keymap"
 
 \end_inset
@@ -4445,7 +4867,8 @@ Die
 .kmap
 \family default
 -Datei
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:kmap"
 
 \end_inset
@@ -4625,7 +5048,7 @@ erlaubt
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Der Ausdruck 
 \emph on
 tote
@@ -4883,7 +5306,7 @@ Diese Zeilen erlauben es,
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4926,7 +5349,7 @@ i
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -4962,15 +5385,24 @@ Nachdem LyX die
 tri\SpecialChar \-
 bu\SpecialChar \-
 tion enthält wenigstens die Dateien 
-\begin_inset LatexCommand url
-target "iso8859-1.cdef"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+iso8859-1.cdef
+\end_layout
 
 \end_inset
 
  und 
 \family typewriter
 \shape up
-iso8859-2.cdef
+iso8859-
+\begin_inset Newline linebreak
+\end_inset
+
+2.cdef
 \family default
 \shape default
 .
@@ -5075,7 +5507,9 @@ so-8859-7.cdef
 
 \backslash
 "{i}}"
-\newline
+\begin_inset Newline newline
+\end_inset
+
 192 "
 \backslash
 
@@ -5124,9 +5558,13 @@ Tasten (dead keys)
 .bind
 \family default
 -Datei.
- (Genaueres finden Sie in Abschnitt\InsetSpace \space{}
+ (Genaueres finden Sie in Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:bindings"
 
 \end_inset
@@ -5173,7 +5611,7 @@ asciicircum
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Die Bezeichnungen anderer Symbole lassen sich ganz gut aus einer c-Include-Datei
  namens 
 \family typewriter
@@ -5202,9 +5640,13 @@ Leider unterscheidet sich die Wirkungsweise der toten Tasten, die in
 \family typewriter
 .lyxrc
 \family default
- definiert wurden, merklich von der, die in Abschnitt\InsetSpace ~
+ definiert wurden, merklich von der, die in Abschnitt
+\begin_inset space ~
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:kmap"
 
 \end_inset
@@ -5214,12 +5656,6 @@ reference "sec:kmap"
 
 \begin_layout Subsection
 Ihre Sprachkonfiguration einstellen
-\begin_inset LatexCommand label
-name "sec:savlang"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -5290,7 +5726,8 @@ font_norm iso8859-2
 
 \begin_layout Chapter
 Installieren neuer Textklassen, Layouts und Vorlagen
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "chap:textclass"
 
 \end_inset
@@ -5369,7 +5806,7 @@ Bei manchen TeX-Installationen fehlt möglicherweise das eine oder andere
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Weitere Dokumentation zu FoilTeX finden Sie im Teil 
 \emph on
 Handbuchergänzungen
@@ -5384,7 +5821,7 @@ Handbuchergänzungen
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Die Prozedur gilt auf jeden Fall für v1.0 sowie die 0.9 Betaversionen.
  Hinweise darauf, ob dies auch in Version 0.4 funktioniert, sind willkommen,
  andererseits ist ein Upgrade auf 1.0 sicher die bessere Wahl.
@@ -5400,7 +5837,7 @@ Besorgen Sie sich das Paket von CTAN oder einer anderen Quelle
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Informationen darüber, was CTAN ist und wo unterstützte Dokumentenklassen
  gefunden werden können, finden Sie im Hilfedokument 
 \emph on
@@ -5411,7 +5848,7 @@ LaTe
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
@@ -5469,7 +5906,11 @@ texmf.cnf
 \family default
  installiert, es bietet sich also 
 \family typewriter
-/usr/local/texmf
+/usr/local/
+\begin_inset Newline linebreak
+\end_inset
+
+texmf
 \family default
  an.
  Im Normalfall müssen Sie nur zwei Dinge verändern:
@@ -5482,7 +5923,9 @@ Setzen Sie die Umgebungsvariable
 TEXMFLOCAL
 \family default
  auf das gewählte Verzeichnis, zum Beispiel
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family typewriter
 TEXMFLOCAL = /usr/local/texmf
@@ -5498,7 +5941,9 @@ TEXMF
 TEXMFLOCAL
 \family default
  enthält:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family typewriter
 TEXMF = {$HOMETEXMF,!!$TEXMFLOCAL,!!TEXMFMAIN} 
@@ -5515,8 +5960,13 @@ texmf
 zeich\SpecialChar \-
 nis\SpecialChar \-
 ses entsprechen, also LaTeX-Pakete in 
-\begin_inset LatexCommand url
-target "/usr/local/texmf/latex/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/usr/local/texmf/latex/
+\end_layout
 
 \end_inset
 
@@ -5526,8 +5976,13 @@ target "/usr/local/texmf/latex/"
 \begin_layout Enumerate
 Installieren Sie das neue Paket.
  Am Beispiel FoilTeX: Legen Sie das Verzeichnis 
-\begin_inset LatexCommand url
-target "/usr/local/texmf/latex/foiltex"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/usr/local/texmf/latex/foiltex
+\end_layout
 
 \end_inset
 
@@ -5545,10 +6000,17 @@ texhash
 \family default
 .
  Dabei wird (unter anderem) die Datei
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset LatexCommand url
-target "/usr/local/texmf/ls-R"
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/usr/local/texmf/ls-R
+\end_layout
 
 \end_inset
 
@@ -5559,7 +6021,10 @@ target "/usr/local/texmf/ls-R"
 Wählen Sie in LyX den Menüpunkt 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
+Neu
+\begin_inset space \space{}
+\end_inset
+
 konfigurieren
 \family default
  an; starten Sie LyX danach erneut.
@@ -5568,7 +6033,22 @@ konfigurieren
 \begin_layout Standard
 Nun sollte das neue Paket --- beispielsweise 
 \family sans
-slides (FoilTeX)
+slides (FoilTe
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family sans
+X)
 \family default
  --- im Feld 
 \family sans
@@ -5677,7 +6157,7 @@ Unterstützung neuer Dokumentenklassen
 \begin_layout Standard
 Generell können drei Situationen auftreten, wenn Sie eine neue Dokumentenklasse
  unterstützen wollen.
- Bei den beiden einfacheren Fällen handelt es sich um LaTeX2e class- (
+ Bei den beiden einfacheren Fällen handelt es sich um LaTeX2e-Klassen- (
 \family typewriter
 .cls
 \family default
@@ -5733,7 +6213,22 @@ myclass.layout
 \begin_layout LyX-Code
 
 \backslash
-DeclareLaTeXClass{report}
+DeclareLaTe
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+XClass{report}
 \end_layout
 
 \begin_layout Standard
@@ -5743,7 +6238,22 @@ um in
 \begin_layout LyX-Code
 
 \backslash
-DeclareLaTeXClass[report, myclass.sty]{report (myclass)}
+DeclareLaTe
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+XClass[report, myclass.sty]{report (myclass)}
 \end_layout
 
 \begin_layout Standard
@@ -5752,11 +6262,15 @@ Fügen Sie nun irgendwo am Anfang der Datei folgende Zeilen ein:
 
 \begin_layout LyX-Code
 Preamble 
-\newline
+\begin_inset Newline newline
+\end_inset
+
    
 \backslash
 usepackage{myclass}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 EndPreamble
 \end_layout
 
@@ -5764,8 +6278,11 @@ EndPreamble
 Starten Sie jetzt LyX und konfigurieren Sie es neu (
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
-kinfigurieren
+Neu
+\begin_inset space \space{}
+\end_inset
+
+konfigurieren
 \family default
 ).
  Starten Sie LyX neu und legen Sie ein neues Dokument an.
@@ -5777,7 +6294,10 @@ Einstellungen
 \SpecialChar \ldots{}
  als mögliche Dokumentenklasse auch 
 \family sans
-report\InsetSpace \space{}
+report
+\begin_inset space \space{}
+\end_inset
+
 (myclass)
 \family default
  vorfinden.
@@ -5786,7 +6306,7 @@ report\InsetSpace \space{}
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family sans
 report
@@ -5882,14 +6402,30 @@ myclass.sty
 \end_layout
 
 \begin_layout LyX-Code
-cp LyXDir/tex/revtex.cls ~/tex/myclass.cls
+cp Ly
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+XDir/tex/revtex.cls ~/tex/myclass.cls
 \end_layout
 
 \begin_layout Standard
 (oder wo immer Sie Ihre lokalen TeX-Dateien speichern).
  Editieren Sie nun 
 \family typewriter
-myclass.cls
+my\SpecialChar \-
+class.cls
 \family default
  und ersetzen Sie jedes vorhandene 
 \emph on
@@ -5908,10 +6444,17 @@ DeclareOption
 
 \begin_layout Standard
 Als nächstes erstellen Sie wie im vorigen Abschnitt beschrieben eine Datei
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset LatexCommand url
-target "myclass.layout"
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+myclass.layout
+\end_layout
 
 \end_inset
 
@@ -5921,7 +6464,22 @@ target "myclass.layout"
 \begin_layout LyX-Code
 
 \backslash
-DeclareLaTeXClass{myclass}
+DeclareLaTe
+\family typewriter
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+XClass{myclass}
 \end_layout
 
 \begin_layout Standard
@@ -5934,7 +6492,10 @@ Preamble
  System, das lediglich ein wenig Einstellungsarbeit bei der Darstellung
  benötigt.
  Das umfasst Veränderungen der Werte, die LyX für Abstände, Zeichensätze
- usw.\InsetSpace \space{}
+ usw.
+\begin_inset space \space{}
+\end_inset
+
 verwendet; diese werden in der 
 \family typewriter
 .layout
@@ -5945,11 +6506,20 @@ verwendet; diese werden in der
 \begin_layout Standard
 Weiterhin müssen Sie sicherstellen, dass alle Umgebungstypen, die in 
 \family typewriter
-myclass.cls
+myclass.
+\begin_inset Newline linebreak
+\end_inset
+
+cls
 \family default
  definiert werden, auch in 
-\begin_inset LatexCommand url
-target "myclass.layout"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+myclass.layout
+\end_layout
 
 \end_inset
 
@@ -6017,7 +6587,24 @@ Zeilen, die mit einem
 \size small
 #  
 \backslash
-DeclareLaTeXClass{article}
+DeclareLaTe
+\family typewriter
+\size default
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+\size small
+XClass{article}
 \end_layout
 
 \begin_layout Standard
@@ -6025,8 +6612,13 @@ Die zweite Zeile wird benötigt, wenn Sie LyX konfigurieren.
  Die Textklassen-Datei wird von dem LaTeX-Skript 
 \family typewriter
 
-\begin_inset LatexCommand url
-target "chkconfig.ltx"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+chkconfig.ltx
+\end_layout
 
 \end_inset
 
@@ -6093,7 +6685,24 @@ myarticle.layout
 \size small
 #  
 \backslash
-DeclareLaTeXClass[article]{article (with my own headings)}
+DeclareLaTe
+\family typewriter
+\size default
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+\size small
+XClass[article]{article (with my own headings)}
 \end_layout
 
 \begin_layout Standard
@@ -6101,9 +6710,18 @@ Auf diese Weise deklarieren Sie eine Textklasse
 \family typewriter
 myarticle
 \family default
-, die die LaTeX-Dokumenten\SpecialChar \-
-klas\SpecialChar \-
-se 
+, die die LaTeX
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Dokumentklasse 
 \family typewriter
 article.cls
 \family default
@@ -6127,7 +6745,35 @@ article (with my own headings)
 \size small
 #  
 \backslash
-DeclareLaTeXClass[article,foo.sty]{article (with my own headings)}
+DeclareLaTe
+\family typewriter
+\size default
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+\size small
+XClass[article,foo.sty]{article (with my own head
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"-
+\end_layout
+
+\end_inset
+
+ings)}
 \end_layout
 
 \begin_layout Standard
@@ -6168,7 +6814,18 @@ Diesen Deklarationen kann außerdem ein optionaler Parameter zugefügt werden,
 Wenn Sie eine Textklasse nach Ihrem Geschmack erstellt haben, müssen Sie
  die Datei nur noch in das Verzeichnis 
 \family typewriter
-LyXDir/layouts/
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/layouts/
 \family default
  oder nach 
 \family typewriter
@@ -6177,7 +6834,10 @@ UserDir/layouts
  kopieren und unter LyX den Menüpunkt 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Neu\InsetSpace \space{}
+Neu
+\begin_inset space \space{}
+\end_inset
+
 konfigurieren
 \family default
  auswählen.
@@ -6214,9 +6874,10 @@ Columns
 , 2
 \family default
 ]
-\newline
-Gibt an, ob die Textklasse standardmäßig ein- oder zweispaltig gesetzt
- wird.
+\begin_inset Newline newline
+\end_inset
+
+Gibt an, ob die Textklasse standardmäßig ein- oder zweispaltig gesetzt wird.
  Kann im Popup-Menü 
 \family sans
 Dokument\SpecialChar \menuseparator
@@ -6238,7 +6899,10 @@ nicht
 \family sans
 Zweispaltiges
 \family default
-\InsetSpace \space{}
+
+\begin_inset space \space{}
+\end_inset
+
 
 \family sans
 Dokument
@@ -6267,7 +6931,9 @@ Sides
 , 2
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob der Text standardmäßig für ein- oder für zweiseitigen Druck
  gesetzt wird.
  Kann im Popup-Menü 
@@ -6294,12 +6960,17 @@ plain
 , empty, headings
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der Standardseitenstil.
  Kann ebenfalls im Popup-Menü 
 \family sans
 Dokument\SpecialChar \menuseparator
-Einstellungen
+Ein\SpecialChar \-
+stel\SpecialChar \-
+lun\SpecialChar \-
+gen
 \family default
 \SpecialChar \ldots{}
  geändert werden.
@@ -6318,15 +6989,19 @@ MaxCounter
 Counter_Chapter
 \emph default
 , Counter_Section, Counter_Subsection, 
-\newline
-Counter_Subsubsection, Counter_Paragraph,
- Counter_Subparagraph, 
-\newline
-Counter_EnumI, Counter_EnumII, Counter_EnumIII, Counter_E
-numIV
+\begin_inset Newline newline
+\end_inset
+
+Counter_Subsubsection, Counter_Paragraph, Counter_Subparagraph, 
+\begin_inset Newline newline
+\end_inset
+
+Counter_EnumI, Counter_EnumII, Counter_EnumIII, Counter_EnumIV
 \family default
 ] 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der kleinste Abschnitt-Typ, der automatisch nummeriert wird.
  Sinnvoll sind Werte wie 
 \family typewriter
@@ -6370,13 +7045,19 @@ ClassOptions\SpecialChar \ldots{}
 End
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
-Dieser Abschnitt beschreibt verschiedene globale Optionen, die von der
- Dokumentenklasse unterstützt werden.
+
+\begin_inset Newline newline
+\end_inset
+
+Dieser Abschnitt beschreibt verschiedene globale Optionen, die von der Dokumente
+nklasse unterstützt werden.
  Eine detaillierte Beschreibung finden Sie in Abschnitt 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:classoptions"
 
 \end_inset
@@ -6399,11 +7080,16 @@ ProvidesAmsmath
 \emph default
 ,1]
 \family default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
+
 
 \family typewriter
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family default
 Gibt an, ob die betreffende Klasse von sich aus das Paket 
@@ -6437,9 +7123,14 @@ ProvidesMakeidx
 \emph default
 ,1]
 \family default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob die betreffende Klasse die Funktionalität des Paketes 
 \family typewriter
 makeidx
@@ -6471,9 +7162,14 @@ ProvidesUrl
 \emph default
 ,1]
 \family default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob die betreffende Klasse die Funktionalität des Paketes 
 \family typewriter
 url
@@ -6493,12 +7189,18 @@ AASTeX
 DefaultFont
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Dieser Parameter definiert den Standardzeichensatz des Dokuments.
  Eine genauere Beschreibung finden Sie in Abschnitt 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:fonts"
 
 \end_inset
@@ -6520,7 +7222,9 @@ DefaultStyle
  
 \family typewriter
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family default
 Dies ist das Layout für neu angelegte Absätze, normalerweise 
@@ -6540,9 +7244,14 @@ Preamble\SpecialChar \ldots{}
 EndPreamble
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 An dieser Stelle können Sie LaTeX-Code angeben, der vor 
 \family typewriter
 
@@ -6560,9 +7269,14 @@ begin{document}
 Input
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Hiermit können Sie andere Dateien einbinden, die Definitionen für Textklassen
  enthalten.
  Damit können Sie unnötige Mehrfachdefinitionen vermeiden.
@@ -6581,15 +7295,21 @@ stdclass.inc
 NoStyle
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Mit diesem Befehl können Sie die Definition eines bereits mit 
 \family typewriter
 Style
 \family default
  (siehe Abschnitt 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:specific-layouts"
 
 \end_inset
@@ -6610,7 +7330,8 @@ ClassOptions
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:classoptions"
 
 \end_inset
@@ -6634,7 +7355,9 @@ FontSize
 string="10|11|12"
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Eine Liste verfügbarer Größen für den Hauptzeichensatz; die Einträge werden
  mit 
 \begin_inset Quotes gld
@@ -6664,7 +7387,9 @@ PageStyle
 string="empty|plain|headings|fancy"
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Eine Liste verfügbarer Seitenstile; die Einträge werden mit 
 \begin_inset Quotes gld
 \end_inset
@@ -6692,7 +7417,9 @@ Other
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Sonstige Optionen für die Dokumentenklasse, die durch Komma getrennt werden.
  Sie werden in dem 
 \family typewriter
@@ -6706,7 +7433,8 @@ Einzelne Absatz-Layouts
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:specific-layouts"
 
 \end_inset
@@ -6715,7 +7443,7 @@ Eine Layoutbeschreibung für einen Absatz sieht wie folgt aus
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Sie können mit diesem Ausdruck entweder ein neues Layout definieren oder
  aber ein bereits definiertes umdefinieren.
  
@@ -6770,11 +7498,15 @@ LatexType
 Paragraph
 \emph default
 , Command, Environment, Item_Environment, 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 List_Environment
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Legt fest, wie das Layout in LaTeX überführt wird.
  
 \end_layout
@@ -6811,7 +7543,8 @@ Command
 \emph on
 
 \backslash
-LatexBefehl
+LatexBe\SpecialChar \-
+fehl
 \emph default
  {\SpecialChar \ldots{}
 }
@@ -6830,7 +7563,7 @@ Environment
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 LaTeX-Umgebung und LaTeX-Befehl sind hier etwas irreführend, denn diese
  Regeln gelten auch für SGML-Klassen.
  Schauen Sie sich am besten die SGML-Klassen-Dateien für Beispiele an.
@@ -6839,7 +7572,9 @@ LaTeX-Umgebung und LaTeX-Befehl sind hier etwas irreführend, denn diese
 \end_inset
 
  
-\newline
+\begin_inset Newline newline
+\end_inset
+
 (
 \family typewriter
 
@@ -6895,13 +7630,15 @@ Item_Environment
 \family default
 , nur dass
 \family typewriter
- LabelWidth\SpecialChar \-
+ Label\SpecialChar \-
+Width\SpecialChar \-
 String
 \family default
  als Argument an die Umgebung übergeben wird.
 
 \family typewriter
- LabelWidthString
+ Label\SpecialChar \-
+WidthString
 \family default
  kann im Menü 
 \family sans
@@ -6916,15 +7653,23 @@ Bearbeiten
 \family sans
 Absatz-Einstellungen
 \family default
- oder 
+ 
+\begin_inset Marginal
+status open
+
+\begin_layout Plain Layout
 \begin_inset Graphics
-	filename ../../images/layout-paragraph.xpm
-	scale 70
+	filename ../../images/layout-paragraph.png
 	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
-) definiert werden.
+
+\end_layout
+
+\end_inset
+
+ definiert werden.
 
 \emph on
  [Stimmt das noch? Glaube nicht! P.S.]
@@ -6949,7 +7694,9 @@ InTitle
 \family default
 \emph default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Bei 1 wird nach dem Layout noch ein 
 \family typewriter
 
@@ -6967,9 +7714,14 @@ maketitle
 LatexName
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Der Name, den LaTeX für dieses Layout wählt, das heißt entweder der Name
  eines LaTeX-Befehls oder der einer LaTeX-Umgebung.
 \end_layout
@@ -6981,9 +7733,14 @@ Der Name, den LaTeX für dieses Layout wählt, das heißt entweder der Name
 LatexParam
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Ein optionaler Parameter, der 
 \family typewriter
 \series medium
@@ -7010,7 +7767,9 @@ Static
 , Manual, Dynamic, First_Dynamic, Right_Address_Box
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 legt fest, wie der linke Rand des Textes bestimmt wird.
  
 \end_layout
@@ -7051,11 +7810,19 @@ Bearbeiten
 \family sans
 Absatz-Einstellungen
 \family default
- oder 
+ 
+\begin_inset Marginal
+status open
+
+\begin_layout Plain Layout
 \begin_inset Graphics
-	filename ../../images/layout-paragraph.xpm
-	scale 70
+	filename ../../images/layout-paragraph.png
 	BoundingBox 0bp 6bp 20bp 20bp
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 
@@ -7108,7 +7875,18 @@ First_Dynamic
 Dynamic
 \family default
 , aber nur die erste Zeile wird dynamisch gesetzt, die anderen statisch.
- Dies wird für die LaTeX-Umgebung 
+ Dies wird für die LaTeX
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Umgebung 
 \family sans
 description
 \family default
@@ -7146,7 +7924,9 @@ NextNoIndent
 \family default
 \emph default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob der nachfolgende Absatz einen linken Einzug haben darf oder
  nicht.
  
@@ -7169,7 +7949,9 @@ ParIndent
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der Einzug der ersten Zeile eines Absatzes.
  Als Argument wird eine Zeichenkette übergeben.
  Zum Beispiel bedeutet 
@@ -7207,9 +7989,11 @@ MM
 \end_inset
 
  voranstellen.
-\newline
-Diese Methode wurde gewählt, damit das Aussehen auf dem Bildschirm
- bei unterschiedlichen Zeichensätzen möglichst ähnlich bleibt.
+\begin_inset Newline newline
+\end_inset
+
+Diese Methode wurde gewählt, damit das Aussehen auf dem Bildschirm bei unterschi
+edlichen Zeichensätzen möglichst ähnlich bleibt.
  
 \family typewriter
 ParIndent
@@ -7221,9 +8005,11 @@ ParIndent
 NextNoIndent
 \family default
  verboten werden.
-\newline
-Auch benutzt das Standard-Layout innerhalb von Umgebungen
- den Einzug der Umgebung und nicht den eigenen.
+\begin_inset Newline newline
+\end_inset
+
+Auch benutzt das Standard-Layout innerhalb von Umgebungen den Einzug der
+ Umgebung und nicht den eigenen.
  Zum Beispiel haben Standardabsätze innerhalb einer Aufzählung keinen Einzug.
 \end_layout
 
@@ -7239,7 +8025,9 @@ ParSkip
 float=0
 \family default
 ] 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 LyX erlaubt im Menü 
 \family sans
 Dokument
@@ -7257,27 +8045,36 @@ Textformat
 \family default
  die Einstellung 
 \family sans
-Absätze\InsetSpace \space{}
-trennen\InsetSpace \space{}
+Absätze
+\begin_inset space \space{}
+\end_inset
+
+trennen
+\begin_inset space \space{}
+\end_inset
+
 durch
 \family default
 .
  Mögliche Einstellungen sind entweder 
 \family sans
-\bar under
-E
-\bar default
-inrückung
+Einrückung
 \family default
  oder 
 \family sans
-Vertikaler\InsetSpace \space{}
+Vertikaler
+\begin_inset space \space{}
+\end_inset
+
 Abstand
 \family default
 .
  Wenn 
 \family sans
-Vertikaler\InsetSpace \space{}
+Vertikaler
+\begin_inset space \space{}
+\end_inset
+
 Abstand
 \family default
  gewählt wird, wird in einem Layout mit 
@@ -7310,7 +8107,9 @@ TopSep
 float=0
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der vertikale Abstand, der die erste Serie von Absätzen vom vorangehenden
  Text trennt.
 \end_layout
@@ -7327,7 +8126,9 @@ BottomSep
 float=0
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Ähnlich wie 
 \family typewriter
 TopSep
@@ -7356,7 +8157,9 @@ ParSep
 float=0
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der vertikale Anstand zwischen den Absätzen dieses Layouts.
  
 \end_layout
@@ -7373,7 +8176,9 @@ ItemSep
 float=0
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Dies ist ein zusätzlicher Abstand für die Unterpunkte eines 
 \family typewriter
 Environment
@@ -7408,7 +8213,9 @@ LeftMargin
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Definiert den linken Einzug.
  Wenn ein Layout in ein anderes 
 \family typewriter
@@ -7454,7 +8261,9 @@ RightMargin
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Ähnlich wie 
 \family typewriter
 LeftMargin
@@ -7474,15 +8283,24 @@ LabelType
 \emph on
 No_Label
 \emph default
-, Manual, Static, Top_Environment, Centered_Top_En\SpecialChar \-
+, Manual, Static, Top_Environment, Centered_Top_
+\begin_inset Newline linebreak
+\end_inset
+
+En\SpecialChar \-
 vi\SpecialChar \-
 ron\SpecialChar \-
-ment, Sensitive,
- Counter_Chapter, Counter_Section, Counter_Subsec\SpecialChar \-
-tion, Counter_Subsubsection,
- Counter_Paragraph, Counter_Subparagraph, Coun\SpecialChar \-
-ter_EnumI, Counter_EnumII,
- Counter_EnumIII, Counter_EnumIV
+ment, Sensitive, Counter_Chapter, Counter_Section, Coun\SpecialChar \-
+ter_Subsec\SpecialChar \-
+tion,
+ Counter_Subsubsection, Counter_Paragraph, Coun\SpecialChar \-
+ter_Subparagraph, Coun\SpecialChar \-
+ter_EnumI,
+ Counter_EnumII, Counter_Enum
+\begin_inset Newline linebreak
+\end_inset
+
+III, Counter_EnumIV
 \family default
 ]
 \end_layout
@@ -7519,17 +8337,33 @@ LabelString
 \series medium
 Top_Environment
 \family default
-\InsetSpace \space{}
+
+\begin_inset space \space{}
+\end_inset
+
 und
 \family typewriter
-\InsetSpace \space{}
-Centered\InsetSpace \space{}
-Top\InsetSpace \space{}
+
+\begin_inset space \space{}
+\end_inset
+
+Centered
+\begin_inset space \space{}
+\end_inset
+
+Top
+\begin_inset space \space{}
+\end_inset
+
 Environment
 \family default
 \series default
- sind Spezialfälle von 
+ sind Spezialfälle von
 \family typewriter
+
+\begin_inset Newline linebreak
+\end_inset
+
 Static
 \family default
 .
@@ -7599,7 +8433,9 @@ LabelSep
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der horizontale Abstand zwischen der Marke und dem folgenden Text.
  Wird nur für Marken benutzt, die nicht über dem folgenden Text stehen.
 \end_layout
@@ -7616,11 +8452,16 @@ LabelBottomSep
 float=0
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der vertikale Abstand zwischen der Marke und dem folgenden Text.
  Wird nur für Marken benutzt, die über dem folgenden Text stehen (
 \family typewriter
-Top_Environment
+Top_En\SpecialChar \-
+vi\SpecialChar \-
+ron\SpecialChar \-
+ment
 \family default
 , 
 \family typewriter
@@ -7642,7 +8483,9 @@ LabelString
 string=""
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Der String, der für den 
 \family typewriter
 LabelType
@@ -7685,11 +8528,19 @@ stel\SpecialChar \-
 lun\SpecialChar \-
 gen
 \family default
- oder 
+ 
+\begin_inset Marginal
+status open
+
+\begin_layout Plain Layout
 \begin_inset Graphics
-	filename ../../images/layout-paragraph.xpm
-	scale 70
+	filename ../../images/layout-paragraph.png
 	BoundingBox 0bp 6bp 20bp 20bp
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 
@@ -7701,7 +8552,11 @@ Labeltype
  
 \family typewriter
 \emph on
-Counter_xxx
+Counter_
+\begin_inset Newline linebreak
+\end_inset
+
+xxx
 \family default
 \emph default
  eingestellt wurde, wird der Zähler an diesen String angehängt.
@@ -7722,7 +8577,9 @@ block
 , left, right, center
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob der Text im Blocksatz linksbündig, rechtsbündig oder zentriert
  gesetzt wird.
 \end_layout
@@ -7742,7 +8599,9 @@ block
 , left, right, center
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Eine 
 \emph on
 Liste
@@ -7771,7 +8630,9 @@ Fill_Top
 ,1
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Hiermit wird festgelegt, ob über dem Absatz ein 
 \family typewriter
 
@@ -7782,9 +8643,15 @@ vfill
  Dies kann auch im Menü 
 \family sans
 Einfügen\SpecialChar \menuseparator
-Besondere\InsetSpace \space{}
+Besondere
+\begin_inset space \space{}
+\end_inset
+
 Formatierung\SpecialChar \menuseparator
-Vertikaler\InsetSpace \space{}
+Vertikaler
+\begin_inset space \space{}
+\end_inset
+
 Abstand\SpecialChar \ldots{}
 
 \family default
@@ -7845,7 +8712,9 @@ NeedProtect
 ,1
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob 
 \emph on
 zerbrechliche
@@ -7878,7 +8747,9 @@ Newline
 \family default
 \emph default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Gibt an, ob Zeilenumbrüche in LaTeX als 
 \begin_inset Quotes gld
 \end_inset
@@ -7910,14 +8781,27 @@ PassThru
  
 \family typewriter
 [0, 1]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family default
 Legt fest, ob der Absatzinhalt unverändert ausgegeben werden soll, also
  ohne diverse von LaTeX benötigte Ersetzungen durchzuführen.
  Dies ersetzt in gewisser Weise das alte Zeichensatzattribut 
 \family typewriter
-LaTeX
+LaTe
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X
 \family default
 .
 \end_layout
@@ -7937,7 +8821,9 @@ FreeSpacing
 , 1
 \family default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Normalerweise erlaubt es LyX nicht, mehr als ein Leerzeichen zwischen Wörtern
  einzufügen.
  Diese Eigenschaft kann in bestimmten Fällen umständlich sein, zum Beispiel,
@@ -7969,7 +8855,9 @@ KeepEmpty
 0
 \emph default
 , 1]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \family default
 Normalerweise ist es in LyX nicht möglich, einen Absatz leer zu lassen,
@@ -8000,7 +8888,9 @@ single
 Wert
 \emph default
 ]
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Dies definiert die Voreinstellung für den Zeilenabstand des Layouts.
  Die Argumente 
 \family typewriter
@@ -8045,16 +8935,25 @@ setspace.sty
 Font
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Der Zeichensatz, der für den Textkörper 
 \emph on
 und
 \emph default
- die Marke verwendet wird (siehe Abschnitt\InsetSpace \space{}
+ die Marke verwendet wird (siehe Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:fonts"
 
 \end_inset
@@ -8078,13 +8977,22 @@ LabelFont
 TextFont
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Der Zeichensatz, der für den Textkörper verwendet wird.
- (Siehe Abschnitt\InsetSpace \space{}
+ (Siehe Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:fonts"
 
 \end_inset
@@ -8099,13 +9007,22 @@ reference "sec:fonts"
 LabelFont
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Der Zeichensatz, der für die Marke verwendet wird.
- (Siehe Abschnitt\InsetSpace \space{}
+ (Siehe Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:fonts"
 
 \end_inset
@@ -8121,9 +9038,14 @@ Preamble\SpecialChar \ldots{}
 EndPreamble
 \family default
 \series default
- \InsetSpace ~
+ 
+\begin_inset space ~
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 Eine Serie von Makrodefinitionen, die in die Präambel (vor 
 \family typewriter
 
@@ -8138,7 +9060,8 @@ Beschreibung des Zeichensatzes
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:fonts"
 
 \end_inset
@@ -8291,7 +9214,18 @@ UserDir/templates/
 \family default
  kopieren, ebenso die globalen Vorlagen aus dem Verzeichnis 
 \family typewriter
-LyXDir/templates/
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/templates/
 \family default
  und anschließend das Vorlagenverzeichnis im Dialog 
 \family sans
@@ -8307,7 +9241,12 @@ Pfade
 \SpecialChar \menuseparator
 
 \family sans
-Dokumentvorlagen:
+Do\SpecialChar \-
+ku\SpecialChar \-
+ment\SpecialChar \-
+vor\SpecialChar \-
+la\SpecialChar \-
+gen:
 \family default
  auf das private Verzeichnis setzen.
 \end_layout
@@ -8316,7 +9255,11 @@ Dokumentvorlagen:
 Beachten Sie.
  dass es eine Vorlage mit besonderer Bedeutung gibt: 
 \family typewriter
-defaults.lyx
+defaults.
+\begin_inset Newline linebreak
+\end_inset
+
+lyx
 \family default
 .
  Diese Vorlage wird jedesmal geladen, wenn Sie ein neues Dokument mit 
@@ -8334,8 +9277,14 @@ Einstellungen
 \SpecialChar \ldots{}
  den Schalter 
 \family sans
-Als\InsetSpace \space{}
-Dokument-Standards\InsetSpace \space{}
+Als
+\begin_inset space \space{}
+\end_inset
+
+Dokument-Standards
+\begin_inset space \space{}
+\end_inset
+
 speichern
 \family default
  anklicken.
@@ -8343,7 +9292,8 @@ speichern
 
 \begin_layout Chapter
 Eine Anleitung für Drucker
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "chap:printer"
 
 \end_inset
@@ -8375,7 +9325,8 @@ Anmerkung des Übersetzers: Der erste Satz dieser Einleitung
 \begin_inset Quotes gld
 \end_inset
 
-Lesen Sie die Printing-HOWTO
+Lesen Sie die Print\SpecialChar \-
+ing-HOWTO
 \begin_inset Quotes grd
 \end_inset
 
@@ -8412,12 +9363,19 @@ Printing-HOWTO
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 zum Beispiel
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset LatexCommand url
-target "ftp://sunsite.unc.edu/pub/Linux/docs/HOWTO/translations/de/DE-Drucker-HOWTO.txt.gz"
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+ftp://sunsite.unc.edu/pub/Linux/docs/HOWTO/translations/de/DE-Drucker-HOWTO.txt.gz
+\end_layout
 
 \end_inset
 
@@ -8480,7 +9438,7 @@ logische Drucker
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Bemerkung von 
 \noun on
 John Weiss:
@@ -8573,11 +9531,15 @@ Epson:
 
 \size normal
         :sf:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size normal
 draft|Post
@@ -8645,11 +9607,15 @@ auf einem
 
 \size normal
         :sf:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size normal
 ps|Post
@@ -8727,10 +9693,13 @@ Bevor wir mit Erklärungen zu diesen Hieroglyphen fortfahren, haben wir eine
 \begin_layout Standard
 \align center
 WARNUNG! WARNUNG! WARNUNG!
-\newline
-Benutzen Sie nur eine Leerzeile zwischen den Einträgen
-!
-\newline
+\begin_inset Newline newline
+\end_inset
+
+Benutzen Sie nur eine Leerzeile zwischen den Einträgen!
+\begin_inset Newline newline
+\end_inset
+
 Stellen Sie sicher, dass diese Zeile VÖLLIG LEER ist!
 \end_layout
 
@@ -9242,7 +10211,7 @@ fast allen
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Warum ist die erste parallele Schnittstelle 
 \family typewriter
 /dev/lp1
@@ -9292,9 +10261,11 @@ nicht
 /dev/lp1
 \family default
  die parallele Schnittstelle.
-\newline
-Wenn Sie über mehr als eine parallele Schnittstelle
- verfügen, ändert sich die Situation.
+\begin_inset Newline newline
+\end_inset
+
+Wenn Sie über mehr als eine parallele Schnittstelle verfügen, ändert sich
+ die Situation.
  Auch wenn Sie die I/O-Adresse Ihrer Schnittstelle aus einem anderen Grund
  geändert haben sollten, wird ein anderes 
 \family typewriter
@@ -9454,8 +10425,13 @@ Das bedeutet, dass
 /var/spool/lpd/ps
 \family default
  das Spulverzeichnis ist und die Fehlermeldungen in die Datei 
-\begin_inset LatexCommand url
-target "/var/spool/lpd/ps/errs"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/var/spool/lpd/ps/errs
+\end_layout
 
 \end_inset
 
@@ -9476,7 +10452,7 @@ touch errs
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Der Befehl 
 \family typewriter
 touch
@@ -9732,7 +10708,7 @@ imum file size
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Das 
 \family typewriter
 mx#5
@@ -9985,7 +10961,7 @@ nd BJC-70
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Funktioniert auch für Apple-Drucker wie dem StyleWriter 2x00
 \end_layout
 
@@ -10882,7 +11858,7 @@ VorangestellteDatei
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ähnlich wie in der 
 \family typewriter
 printcap
@@ -11020,7 +11996,7 @@ und schwarzweiß für einen
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Bemerkung von 
 \noun on
 John Weiss
@@ -11168,8 +12144,13 @@ lpd
  Dies ist auch das Programm, das die Datei 
 \family typewriter
 
-\begin_inset LatexCommand url
-target "/etc/printcap"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/etc/printcap
+\end_layout
 
 \end_inset
 
@@ -11184,7 +12165,7 @@ liest.
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Auf einigen Computern stehen diese 
 \emph on
 bootup scripts
@@ -11443,10 +12424,17 @@ Wenn diese Datei bereits existiert, sollten Sie\SpecialChar \ldots{}
 \begin_layout Enumerate
 \SpecialChar \ldots{}
 entweder die alte Version umbenennen (zum Beispiel in
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset LatexCommand url
-target "/etc/printcap.orig"
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+/etc/printcap.orig
+\end_layout
 
 \end_inset
 
@@ -11526,11 +12514,15 @@ lp|Text printer:
 
 \size normal
         :mx#0:sh:sf:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size default
 
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \size normal
 ps|Post
@@ -11921,7 +12913,8 @@ Wenn alles funktioniert, herzlichen Glückwunsch!
 
 \begin_layout Chapter
 Externes Material
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:Externes"
 
 \end_inset
@@ -11962,14 +12955,17 @@ Das Grafik-Inset kann nicht mit unterschiedlichen Export-Formaten wie DocBook,
 \begin_layout Standard
 Die Einfügung 
 \family sans
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
  ist der Versuch, diese Probleme zu lösen
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Auch wenn das alte Grafik-Inset einige Mängel hat, so ist es dennoch sehr
  wertvoll, denn es bietet eine Anzeige der Grafik sowie die Möglichkeit
  zu geometrischen Transformationen über eine komfortable Benutzerschnittstelle.
@@ -11990,7 +12986,10 @@ Auch wenn das alte Grafik-Inset einige Mängel hat, so ist es dennoch sehr
 \begin_layout Standard
 Das Ergebnis ist eben genau diese Einfügung 
 \family sans
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
 .
@@ -12009,7 +13008,10 @@ Wie funktioniert das?
 \begin_layout Standard
 Die Einfügung 
 \family sans
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
  basiert auf dem Konzept der Vorlage.
@@ -12021,7 +13023,10 @@ Material
 \family sans
 Einfügen\SpecialChar \menuseparator
 Datei\SpecialChar \menuseparator
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
 .
@@ -12144,19 +13149,25 @@ lle so einfach wie möglich zu halten.
  die Vorschau zu haben, wurde das Konzept des primären Formats eingeführt,
  und es gibt nur einen Schalter 
 \family sans
-in\InsetSpace \space{}
+in
+\begin_inset space \space{}
+\end_inset
+
 Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
 
 \end_inset
 
-X\InsetSpace \space{}
+X
+\begin_inset space \space{}
+\end_inset
+
 anzeigen
 \family default
 , der die Datei in genau diesem primären Format anzeigt.
@@ -12181,28 +13192,22 @@ Externes Material
 \begin_layout Standard
 Eine Externe Einfügung wird vom Menü 
 \family sans
-\bar under
-E
-\bar default
-infügen
+Einfügen
 \family default
 \SpecialChar \menuseparator
 
 \family sans
-\bar under
-D
-\bar default
-atei
+Datei
 \family default
 \SpecialChar \menuseparator
 
 \family sans
-\bar under
-E
-\bar default
-xternes
+Externes
 \family default
-\InsetSpace \space{}
+
+\begin_inset space \space{}
+\end_inset
+
 
 \family sans
 Material
@@ -12211,7 +13216,10 @@ Material
  aus aufgerufen.
  Es wird dann der Dialog 
 \family sans
-Externes\InsetSpace \space{}
+Externes
+\begin_inset space \space{}
+\end_inset
+
 Material
 \family default
  geöffnet.
@@ -12240,7 +13248,10 @@ Durchsuchen
  besteht kein Grund, hierfür auch ein Dialogfeld anzulegen.
  Darunter ist ein Schalter 
 \family sans
-Datei\InsetSpace \space{}
+Datei
+\begin_inset space \space{}
+\end_inset
+
 bearbeiten\SpecialChar \ldots{}
 
 \family default
@@ -12270,44 +13281,56 @@ Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
 
 \end_inset
 
-X-Ansicht in\InsetSpace \space{}
+X-Ansicht in
+\begin_inset space \space{}
+\end_inset
+
 Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
 
 \end_inset
 
-X\InsetSpace \space{}
+X
+\begin_inset space \space{}
+\end_inset
+
 anzeigen
 \family default
  aktiviert haben, wird die externe Datei angezeigt, wenn es möglich ist.
  Ist 
 \family sans
-in\InsetSpace \space{}
+in
+\begin_inset space \space{}
+\end_inset
+
 Ly
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {}
 \end_layout
 
 \end_inset
 
-X\InsetSpace \space{}
+X
+\begin_inset space \space{}
+\end_inset
+
 anzeigen
 \family default
  deaktiviert, erscheint nur ein grau hinterlegtes Kästchen mit Vorlagentyp
@@ -12399,9 +13422,13 @@ Es ist recht einfach, eigene neue Vorlagen für externe Einfügungen zu erstelle
 \emph on
 unbedingt
 \emph default
- den Abschnitt\InsetSpace \space{}
+ den Abschnitt
+\begin_inset space \space{}
+\end_inset
 
-\begin_inset LatexCommand vref
+
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sec:Sicherheitshinweise"
 
 \end_inset
@@ -12417,7 +13444,19 @@ Trotzdem sollten Sie unbedingt selbst erstellte Vorlagen an das LyX-Team
 \begin_layout Standard
 Die Vorlagendefinitionen befinden sich in der Datei 
 \family typewriter
-LyXDir/external_templates
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/external_tem\SpecialChar \-
+plates
 \family default
 .
  Sie können sich eine Kopie davon in Ihr privates Benutzerverzeichnis 
@@ -12493,7 +13532,8 @@ ${PATH}
 
 \begin_layout Section
 Sicherheitshinweise
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Sicherheitshinweise"
 
 \end_inset
@@ -12544,11 +13584,23 @@ Bedingt durch diese Sicherheit, sind Sie allerdings etwas in der Auswahl
 \begin_layout Standard
 Im Verzeichnis 
 \family typewriter
-LyXDir/scripts
+Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XDir/scripts
 \family default
  finden Sie das Skript 
 \family typewriter
-general_command_wrapper.py
+general_command_wrap\SpecialChar \-
+per.py
 \family default
 , das auf sicherem Weg die Verwendung der Ein/Ausgabeumleitung erlaubt.
  Es ist auch ein gutes Beispiel, wenn Sie selbst eigene, sichere Skripte
@@ -12636,5886 +13688,6 @@ Erweiterung der Definitionsbasis um intelligentere Konfigurationsoptionen
  als die einfache Parameterzeile zu ermöglichen.
  Mit einer passenden Skriptsprache wäre es möglich, eine sehr benutzerfreundlich
 e Version der Einfügungsdialoge zu erstellen.
-\end_layout
-
-\begin_layout Chapter
-\start_of_appendix
-Tastaturkürzel
-\end_layout
-
-\begin_layout Standard
-Dieser Anhang ist eine große Zusammenstellung aller Tastaturkürzel der deutschen
- Version.
- Ursprünglich sollte es nur eine Liste der Kürzel, gefolgt von der zugeordneten
- Funktion werden, damit ein Benutzer schnell herausfinden kann, was ein
- Kürzel macht.
- Später haben wir uns dann entschlossen, auch die Menüs und die Definition
- der Werkzeugleiste hier aufzunehmen.
- 
-\end_layout
-
-\begin_layout Standard
-Die Form ist eigentlich selbsterklärend, dennoch ein paar Tipps: Alle Einträge
- für eine Basis (
-\family sans
-Strg+A
-\family default
-, 
-\family sans
-Strg+
-\family default
- usw.) sind alphabetisch geordnet.
- Einfachere Kombinationen stehen weiter oben als komplexere (
-\family sans
-Strg+S
-\family default
- vor 
-\family sans
-Strg+S
-\family default
-+C).
- Alle Einträge hier wurden aus der Menüstruktur und den Definitionsdateien
- in 
-\family typewriter
-LyXDir/ui
-\family default
- und 
-\family typewriter
-LyXDir/bind
-\family default
- zusammengesucht.
- Diese Dateien stellen im Zweifelsfall 
-\emph on
-die letzte Instanz
-\emph default
- dar.
- Bedenken Sie auch, dass Sie die Tastaturkürzel auch in Ihrer privaten Datei
- 
-\family typewriter
-UserDir/preferences
-\family default
- umdefinieren können.
- Wenn also etwas nicht übereinstimmt, schauen Sie bitte zuerst dort nach,
- und stellen Sie sicher, dass es dort nicht umdefiniert wurde.
-\end_layout
-
-\begin_layout Standard
-Und als letztes sei der Hinweis angebracht, dass einige Windowmanager (wie
- zum Beispiel FVWM) einige der Funktionstasten abfangen und für die eigene
- Steuerung verwenden.
- So schaltet etwa bei einigen Installationen 
-\family sans
-Strg+rechts
-\family default
- zwischen den virtuellen Bildschirmen um und springt nicht -- wie in LyX
- vorgesehen -- ein Wort vorwärts.
- Aber auch der Windowmanager ist zum Glück konfigurierbar, und Sie können
- derartige 
-\emph on
-Kollisionen
-\emph default
- beheben.
-\end_layout
-
-\begin_layout Section
-Werkzeugleiste
-\end_layout
-
-\begin_layout LyX-Code
-Toolbar
-\end_layout
-
-\begin_layout LyX-Code
-    Layouts
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "buffer-open"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "buffer-write"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "buffer-print"
-\end_layout
-
-\begin_layout LyX-Code
-    Separator
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "cut"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "copy"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "paste"
-\end_layout
-
-\begin_layout LyX-Code
-    Separator
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "font-emph"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "font-noun"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "font-free"
-\end_layout
-
-\begin_layout LyX-Code
-    Separator
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "tex-mode"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "math-mode"
-\end_layout
-
-\begin_layout LyX-Code
-    Separator
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "footnote-insert"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "marginpar-insert"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "depth-next"
-\end_layout
-
-\begin_layout LyX-Code
-    Separator
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "figure-insert"
-\end_layout
-
-\begin_layout LyX-Code
-    Icon "dialog-tabular-insert"
-\end_layout
-
-\begin_layout LyX-Code
-End
-\end_layout
-
-\begin_layout Section
-Menüs
-\end_layout
-
-\begin_layout Subsection
-Datei
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-lyx-quit
-\family default
- LyX beenden
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-C
-\family default
- 
-\family typewriter
-buffer-close
-\family default
- Datei schließen (
-\family sans
-Strg+W
-\family default
-)
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-buffer-print
-\family default
- Datei drucken (
-\family sans
-Strg+P
-\family default
-)
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-E
-\family default
- 
-\family typewriter
-file_export
-\family default
- Untermenü Exportieren
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-buffer-open
-\family default
- Datei öffnen
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-file_vc
-\family default
- Untermenü Versionskontrolle
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-E
-\family default
- 
-\family typewriter
-vc-history 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-V
-\family default
- 
-\family typewriter
-vc-check-in
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-L
-\family default
- 
-\family typewriter
-vc-revert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-\InsetSpace ~
-
-\family default
- 
-\family typewriter
-vc-check-out
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-\InsetSpace ~
-
-\family default
- 
-\family typewriter
-vc-register
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-W
-\family default
- 
-\family typewriter
-vc-undo-last
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-I
-\family default
- 
-\family typewriter
-file_import
-\family default
- Untermenü Importieren
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-N
-\family default
- 
-\family typewriter
-buffer-new
-\family default
- neues Dokument
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-buffer-write
-\family default
- Datei speichern
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-buffer-write-as
-\family default
- Datei speichern unter
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-buffer-new-template
-\family default
- neues Dokument von Vorlage
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-W
-\family default
- 
-\family typewriter
-buffer-reload
-\family default
- Datei wiederherstellen
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-buffer-export
-\family default
- Datei faxen
-\end_layout
-
-\begin_layout Subsection
-Werkzeuge
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-M
-\family default
- 
-\family typewriter
-math-panel
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-O
-\family default
- 
-\family typewriter
-reconfigure
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-P
-\family default
- 
-\family typewriter
-spellchecker
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-find-replace
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-edit_tabular
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-B
-\family default
- 
-\family typewriter
-tabular-feature align-left
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-C
-\family default
- 
-\family typewriter
-tabular-feature delete-column
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F
-\family default
- 
-\family typewriter
-tabular-feature append-row
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-G
-\family default
- 
-\family typewriter
-tabular-feature align-right
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-H
-\family default
- 
-\family typewriter
-tabular-feature delete-row
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-L
-\family default
- 
-\family typewriter
-tabular-feature toggle-line-left
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-N
-\family default
- 
-\family typewriter
-tabular-feature valign-bottom
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-O
-\family default
- 
-\family typewriter
-tabular-feature toggle-line-top
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-P
-\family default
- 
-\family typewriter
-tabular-feature multicolumn
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-R
-\family default
- 
-\family typewriter
-tabular-feature toggle-line-right
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-S
-\family default
- 
-\family typewriter
-tabular-feature append-column
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-T
-\family default
- 
-\family typewriter
-tabular-feature valign-center
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-U
-\family default
- 
-\family typewriter
-tabular-feature toggle-line-bottom
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-V
-\family default
- 
-\family typewriter
-tabular-feature valign-top
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Z
-\family default
- 
-\family typewriter
-tabular-feature align-center
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-edit_paste
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-A
-\family default
- 
-\family typewriter
-primary-selection-paste paragraph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Z
-\family default
- 
-\family typewriter
-primary-selection-paste
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-W
-\family default
- 
-\family typewriter
-redo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+B\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-buffer-chktex
-\end_layout
-
-\begin_layout Subsection
-Einfügen
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-A
-\family default
- 
-\family typewriter
-graphics-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-dialog-tabular-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-buffer-child-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-E
-\family default
- 
-\family typewriter
-insert_file
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-A
-\family default
- 
-\family typewriter
-file-insert-plaintext paragraphs
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-L
-\family default
- 
-\family typewriter
-file-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Z
-\family default
- 
-\family typewriter
-file-insert-plaintext lines
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-footnote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-insert-math
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-J
-\family default
- 
-\family typewriter
-insert_toc
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-A
-\family default
- 
-\family typewriter
-lof-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-B
-\family default
- 
-\family typewriter
-bibtex-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-G
-\family default
- 
-\family typewriter
-loa-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-I
-\family default
- 
-\family typewriter
-toc-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-L
-\family default
- 
-\family typewriter
-index-print
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-T
-\family default
- 
-\family typewriter
-lot-insert
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-L
-\family default
- 
-\family typewriter
-insert_floats
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-A
-\family default
- 
-\family typewriter
-buffer-float-insert algorithm
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-D
-\family default
- 
-\family typewriter
-buffer-float-insert wide-tab
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F
-\family default
- 
-\family typewriter
-buffer-float-insert figure
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-T
-\family default
- 
-\family typewriter
-buffer-float-insert table
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-W
-\family default
- 
-\family typewriter
-buffer-float-insert wide-fig
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-M
-\family default
- 
-\family typewriter
-label-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-N
-\family default
- 
-\family typewriter
-note-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-marginalnote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-Q
-\family default
- 
-\family typewriter
-reference-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-insert_special
-\family default
- Untermenü
-\end_layout
-
-\begin_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-A
-\family default
- 
-\family typewriter
-quote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F
-\family default
- 
-\family typewriter
-dots-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-G
-\family default
- 
-\family typewriter
-ligature-break-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-H
-\family default
- 
-\family typewriter
-hfill-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-L
-\family default
- 
-\family typewriter
-protected-space-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-M
-\family default
- 
-\family typewriter
-menu-separator-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-P
-\family default
- 
-\family typewriter
-end-of-sentence-period-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-S
-\family default
- 
-\family typewriter
-command-sequence math-insert ^;math-mode;
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-T
-\family default
- 
-\family typewriter
-hyphenation-point-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-U
-\family default
- 
-\family typewriter
-command-sequence math-insert _;math-mode;
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Z
-\family default
- 
-\family typewriter
-break-line
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-url-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-W
-\family default
- 
-\family typewriter
-index-insert-last
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-index-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+E\InsetSpace ~
-Z
-\family default
- 
-\family typewriter
-citation-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-\InsetSpace ~
-
-\family default
- 
-\family typewriter
-external-insert
-\end_layout
-
-\begin_layout Subsection
-
-\family sans
-Format
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-appendix
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-font-bold
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-Z
-\family default
- 
-\family typewriter
-layout-character
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-layout-document
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-font-emph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-layout-preamble
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-K
-\family default
- 
-\family typewriter
-font-noun
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-A
-\family default
- 
-\family typewriter
-layout-paragraph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+L\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-depth-increment
-\end_layout
-
-\begin_layout Subsubsection
-
-\family sans
-Format\SpecialChar \menuseparator
-Zeichen\SpecialChar \ldots{}
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-C
-\family default
- 
-\family typewriter
-font-code
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-font-bold
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-font-emph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-K
-\family default
- 
-\family typewriter
-font-noun
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-M
-\family default
- 
-\family typewriter
-math-mode
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-font-roman
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-font-sans
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-ert-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-font-underline
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-Leertaste
-\family default
- 
-\family typewriter
-font-default
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-nach\InsetSpace ~
-unten
-\family default
- 
-\family typewriter
-word-lowcase
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-nach\InsetSpace ~
-oben
-\family default
- 
-\family typewriter
-word-upcase
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Z\InsetSpace ~
-Rechts
-\family default
- 
-\family typewriter
-word-capitalize
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-font-size huge
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-L
-\family default
- 
-\family typewriter
-font-size large
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-N
-\family default
- 
-\family typewriter
-font-size normal
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-font-size small
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-font-size tiny
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-0
-\family default
- 
-\family typewriter
-font-size huger
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-1
-\family default
- 
-\family typewriter
-font-size tiny
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-2
-\family default
- 
-\family typewriter
-font-size smallest
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-3
-\family default
- 
-\family typewriter
-font-size smaller
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-4
-\family default
- 
-\family typewriter
-font-size small
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-5
-\family default
- 
-\family typewriter
-font-size normal
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-6
-\family default
- 
-\family typewriter
-font-size large
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-7
-\family default
- 
-\family typewriter
-font-size larger
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-8
-\family default
- 
-\family typewriter
-font-size largest
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-9
-\family default
- 
-\family typewriter
-font-size huge
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-S+H
-\family default
- 
-\family typewriter
-font-size huger
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-S+L
-\family default
- 
-\family typewriter
-font-size larger
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-S+S
-\family default
- 
-\family typewriter
-font-size smaller
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
-+
-\family default
- 
-\family typewriter
-font-size increase
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+S\InsetSpace ~
--
-\family default
- 
-\family typewriter
-font-size decrease
-\end_layout
-
-\begin_layout Subsection
-View
-\end_layout
-
-\begin_layout Subsection
-Navigate
-\end_layout
-
-\begin_layout Subsection
-Help
-\end_layout
-
-\begin_layout Subsection
-Absatzformat
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-A
-\family default
- 
-\family typewriter
-layout Abstract
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-layout Itemize
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-C
-\family default
- 
-\family typewriter
-layout LyX-Code
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-layout Description
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-E
-\family default
- 
-\family typewriter
-layout Enumerate
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-layout ShortFoilhead
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-I
-\family default
- 
-\family typewriter
-layout Itemize
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-L
-\family default
- 
-\family typewriter
-layout List
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-N
-\family default
- 
-\family typewriter
-layout Enumerate
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Q
-\family default
- 
-\family typewriter
-layout Quote
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-layout ShortRotatefoilhead
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-layout Standard
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-layout Title
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-layout Verse
-\end_layout
-
-\begin_layout Standard
-
-\family sans
-Alt+A\InsetSpace ~
-Leertaste
-\family default
- 
-\family typewriter
-drop-layouts-choice
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A
-\noun on
-\InsetSpace ~
-0
-\family default
-\noun default
- 
-\family typewriter
-layout Part
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A
-\noun on
-\InsetSpace ~
-1
-\family default
-\noun default
- 
-\family typewriter
-layout Chapter
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-2
-\family default
- 
-\family typewriter
-layout Section
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-3
-\family default
- 
-\family typewriter
-layout Subsection
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-4
-\family default
- 
-\family typewriter
-layout Subsubsection
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-5
-\family default
- 
-\family typewriter
-layout Paragraph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-6
-\family default
- 
-\family typewriter
-layout Subparagraph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-0
-\family default
- 
-\family typewriter
-layout Part*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-1
-\family default
- 
-\family typewriter
-layout Chapter*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-2
-\family default
- 
-\family typewriter
-layout Section*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-3
-\family default
- 
-\family typewriter
-layout Subsection*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-4
-\family default
- 
-\family typewriter
-layout Subsubsection*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-5
-\family default
- 
-\family typewriter
-layout Paragraph*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Stern\InsetSpace ~
-6
-\family default
- 
-\family typewriter
-layout Subparagraph*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+A
-\family default
- 
-\family typewriter
-layout Author
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+B
-\family default
- 
-\family typewriter
-layout Bibliography
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+C
-\family default
- 
-\family typewriter
-layout Comment
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+D
-\family default
- 
-\family typewriter
-layout Date
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+F
-\family default
- 
-\family typewriter
-layout Foilhead
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+L
-\family default
- 
-\family typewriter
-layout LaTeX
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+Q
-\family default
- 
-\family typewriter
-layout Quotation
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+R
-\family default
- 
-\family typewriter
-layout Rotatefoilhead
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Strg+A
-\family default
- 
-\family typewriter
-layout RightAddress
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Alt+A
-\family default
- 
-\family typewriter
-layout Address
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Alt+C
-\family default
- 
-\family typewriter
-layout Caption
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Links
-\family default
- 
-\family typewriter
-depth-decrement
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-Rechts
-\family default
- 
-\family typewriter
-depth-increment
-\end_layout
-
-\begin_layout Standard
-Die folgenden Definitionen dienen der Kompatibilität zu älteren Versionen.
- Sie sind aber nur auf qwerty-Tastaturen sinnvoll.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+@
-\family default
- 
-\family typewriter
-layout Section*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+$
-\family default
- 
-\family typewriter
-layout Subsubsection*
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+A\InsetSpace ~
-S+#
-\family default
- 
-\family typewriter
-layout Subsection*
-\end_layout
-
-\begin_layout Section
-Tastatur
-\end_layout
-
-\begin_layout Subsection
-Spezifische Definitionen aus 
-\family typewriter
-emacs.bind
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+A
-\family default
- 
-\family typewriter
-line-begin
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+B
-\family default
- 
-\family typewriter
-char-backward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+D
-\family default
- 
-\family typewriter
-delete-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+E
-\family default
- 
-\family typewriter
-line-end
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+F
-\family default
- 
-\family typewriter
-char-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+G
-\family default
- 
-\family typewriter
-cancel
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+H
-\family default
- 
-\family typewriter
-hyphenation-point-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+I
-\family default
- 
-\family typewriter
-hfill-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+K
-\family default
- 
-\family typewriter
-line-delete-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+L
-\family default
- 
-\family typewriter
-screen-recenter
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+M
-\family default
- 
-\family typewriter
-mark-toggle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+N
-\family default
- 
-\family typewriter
-down
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+O
-\family default
- 
-\family typewriter
-open-stuff
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+P
-\family default
- 
-\family typewriter
-up
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Q
-\family default
- 
-\family typewriter
-quote-insert 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S
-\family default
- 
-\family typewriter
-find-replace
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+U
-\family default
- 
-\family typewriter
-font-underline 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+V
-\family default
- 
-\family typewriter
-screen-down 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+W
-\family default
- 
-\family typewriter
-cut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Y
-\family default
- 
-\family typewriter
-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S+Y
-\family default
- 
-\family typewriter
-layout-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-A
-\family default
- 
-\family typewriter
-buffer-auto-save
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-buffer-previous
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-C
-\family default
- 
-\family typewriter
-lyx-quit
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-buffer-new
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-?\InsetSpace ~
-Strg+X\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-buffer-open
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-G
-\family default
- 
-\family typewriter
-buffer-view-ps
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-K
-\family default
- 
-\family typewriter
-buffer-close
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-P
-\family default
- 
-\family typewriter
-buffer-view
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-buffer-typeset
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-?\InsetSpace ~
-Strg+X\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-buffer-write
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-buffer-typeset
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-V\InsetSpace ~
-C
-\family default
- 
-\family typewriter
-vc-undo-last
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-V\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-vc-history
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-V\InsetSpace ~
-I
-\family default
- 
-\family typewriter
-vc-register
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-V\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-vc-revert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-V\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-vc-check-in
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-?\InsetSpace ~
-Strg+X\InsetSpace ~
-W
-\family default
- 
-\family typewriter
-buffer-write-as
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-(
-\family default
- 
-\family typewriter
-screen-up
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-)
-\family default
- 
-\family typewriter
-screen-down
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+A
-\family default
- 
-\family typewriter
-buffer-auto-save
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+B
-\family default
- 
-\family typewriter
-menu-open Documents
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+C
-\family default
- 
-\family typewriter
-lyx-quit
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+D
-\family default
- 
-\family typewriter
-buffer-new
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+F
-\family default
- 
-\family typewriter
-buffer-open
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+G
-\family default
- 
-\family typewriter
-buffer-view-ps
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+P
-\family default
- 
-\family typewriter
-buffer-view
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+Q
-\family default
- 
-\family typewriter
-buffer-toggle-read-only
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+S
-\family default
- 
-\family typewriter
-buffer-write
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+T
-\family default
- 
-\family typewriter
-buffer-typeset
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X\InsetSpace ~
-Strg+W
-\family default
- 
-\family typewriter
-buffer-write-as
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Pos1
-\family default
- 
-\family typewriter
-buffer-begin
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Ende
-\family default
- 
-\family typewriter
-buffer-end
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Pos1
-\family default
- 
-\family typewriter
-line-begin-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Ende
-\family default
- 
-\family typewriter
-line-end-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Bild
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-screen-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Bild
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-screen-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\begin_inset Formula $\leftarrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-backward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\begin_inset Formula $\rightarrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-forward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-up
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-down
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\begin_inset Formula $\leftarrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-word-backward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\begin_inset Formula $\rightarrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-word-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Entf
-\family default
- 
-\family typewriter
-word-delete-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Rückschritt
-\family default
- 
-\family typewriter
-word-delete-backward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Eingabe
-\family default
- 
-\family typewriter
-break-line
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+.
-
-\family default
- 
-\family typewriter
-end-of-sentence-period-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Leertaste
-\family default
- 
-\family typewriter
-protected-space-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+@
-\family default
- 
-\family typewriter
-mark-on
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+>
-\family default
- 
-\family typewriter
-label-goto
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+<
-\family default
- 
-\family typewriter
-reference-back
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+/
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+_
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+"
-\family default
- 
-\family typewriter
-quote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Pos1
-\family default
- 
-\family typewriter
-buffer-begin-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Ende
-\family default
- 
-\family typewriter
-buffer-end-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\begin_inset Formula $\uparrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-paragraph-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\begin_inset Formula $\downarrow$
-\end_inset
-
-
-\family default
- 
-\family typewriter
-paragraph-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\leftarrow$
-\end_inset
-
- 
-\family typewriter
-word-backward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\rightarrow$
-\end_inset
-
- 
-\family typewriter
-word-forward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Escape
-\family default
- 
-\family typewriter
-meta-prefix
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+D
-\family default
- 
-\family typewriter
-word-delete-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+W
-\family default
- 
-\family typewriter
-copy
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+X
-\family default
- 
-\family typewriter
-command-execute
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Umschalt+W
-\family default
- 
-\family typewriter
-layout-copy
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+.
-
-\family default
- 
-\family typewriter
-dots-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Eingabe
-\family default
- 
-\family typewriter
-break-paragraph-keep-layout
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Umschalt+%
-\family default
- 
-\family typewriter
-find-replace
-\end_layout
-
-\begin_layout Subsection
-Spezifische Definitionen aus 
-\family typewriter
-cua.bind
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+B
-\family default
- 
-\family typewriter
-font-bold
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+C
-\family default
- 
-\family typewriter
-copy
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+D
-\family default
- 
-\family typewriter
-buffer-view 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+E
-\family default
- 
-\family typewriter
-font-emph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+F
-\family default
- 
-\family typewriter
-find-replace
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+G
-\family default
- 
-\family typewriter
-error-next
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+I
-\family default
- 
-\family typewriter
-open-stuff 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+K
-\family default
- 
-\family typewriter
-font-noun 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+L
-\family default
- 
-\family typewriter
-tex-mode 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+M
-\family default
- 
-\family typewriter
-math-mode
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+N
-\family default
- 
-\family typewriter
-buffer-new
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+O
-\family default
- 
-\family typewriter
-buffer-open
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+P
-\family default
- 
-\family typewriter
-buffer-print
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Q
-\family default
- 
-\family typewriter
-lyx-quit
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+R
-\family default
- 
-\family typewriter
-buffer-reload
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S
-\family default
- 
-\family typewriter
-buffer-write
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+T
-\family default
- 
-\family typewriter
-buffer-view-ps
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+U
-\family default
- 
-\family typewriter
-font-underline
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+V
-\family default
- 
-\family typewriter
-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+W
-\family default
- 
-\family typewriter
-buffer-close
-\family default
- Datei schließen (
-\family sans
-Alt+D C
-\family default
-)
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X
-\family default
- 
-\family typewriter
-cut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Z
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Leertaste
-\family default
- 
-\family typewriter
-protected-space-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+C
-\family default
- 
-\family typewriter
-layout-copy
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+D
-\family default
- 
-\family typewriter
-buffer-typeset
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+M
-\family default
- 
-\family typewriter
-math-display
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+N
-\family default
- 
-\family typewriter
-buffer-new-template
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+P
-\family default
- 
-\family typewriter
-font-code 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+S
-\family default
- 
-\family typewriter
-buffer-write-as
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+T
-\family default
- 
-\family typewriter
-buffer-typeset-ps
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+V
-\family default
- 
-\family typewriter
-layout-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Z
-\family default
- 
-\family typewriter
-redo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Einfg
-\family default
- 
-\family typewriter
-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Entf
-\family default
- 
-\family typewriter
-cut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+.
-
-\family default
- 
-\family typewriter
-end-of-sentence-period-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+>
-\family default
- 
-\family typewriter
-label-goto
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+<
-\family default
- 
-\family typewriter
-reference-back
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+-
-\family default
- 
-\family typewriter
-hyphenation-point-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+"
-\family default
- 
-\family typewriter
-quote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Leertaste
-\family default
- 
-\family typewriter
-protected-space-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+X
-\family default
- 
-\family typewriter
-command-execute
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Pos1
-\family default
- 
-\family typewriter
-line-begin-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Ende
-\family default
- 
-\family typewriter
-line-end-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Entf
-\family default
- 
-\family typewriter
-cut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Einfg
-\family default
- 
-\family typewriter
-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Bild
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-screen-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Bild
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-screen-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\leftarrow$
-\end_inset
-
- 
-\family typewriter
-backward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+
-\family default
-
-\begin_inset Formula $\rightarrow$
-\end_inset
-
- 
-\family typewriter
-forward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Pos1
-\family default
- 
-\family typewriter
-buffer-begin
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Ende
-\family default
- 
-\family typewriter
-buffer-end
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-up
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-down
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Entf
-\family default
- 
-\family typewriter
-word-delete-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Rückschritt
-\family default
- 
-\family typewriter
-word-delete-backward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Einfg
-\family default
- 
-\family typewriter
-copy
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Eingabe
-\family default
- 
-\family typewriter
-break-line
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\leftarrow$
-\end_inset
-
- 
-\family typewriter
-word-backward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\rightarrow$
-\end_inset
-
- 
-\family typewriter
-word-forward
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-down-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Ende
-\family default
- 
-\family typewriter
-buffer-end-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+Pos1
-\family default
- 
-\family typewriter
-buffer-begin-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\leftarrow$
-\end_inset
-
- 
-\family typewriter
-word-backward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\rightarrow$
-\end_inset
-
- 
-\family typewriter
-word-forward-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-paragraph-up-select
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+"
-\family default
- 
-\family typewriter
-quote-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Eingabe
-\family default
- 
-\family typewriter
-break-paragraph-keep-layout
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+.
-
-\family default
- 
-\family typewriter
-dots-insert
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Umschalt+
-\family default
-
-\begin_inset Formula $\rightarrow$
-\end_inset
-
- 
-\family typewriter
-depth-increment
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+Umschalt+
-\family default
-
-\begin_inset Formula $\leftarrow$
-\end_inset
-
- 
-\family typewriter
-depth-decrement
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Esc
-\family default
- 
-\family typewriter
-cancel
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F2
-\family default
- 
-\family typewriter
-buffer-write
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F3
-\family default
- 
-\family typewriter
-buffer-open
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F5
-\family default
- 
-\family typewriter
-screen-recenter
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F7
-\family default
- 
-\family typewriter
-spellchecker
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F9
-\family default
- 
-\family typewriter
-meta-prefix
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+F4
-\family default
- 
-\family typewriter
-buffer-close
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+F4
-\family default
- 
-\family typewriter
-lyx-quit
-\end_layout
-
-\begin_layout Subsection
-Spezifische Definitionen aus 
-\family typewriter
-sciword.bind
-\end_layout
-
-\begin_layout Standard
-Definitionen die denen aus dem Programm Scientific Word ähnlich sind.
-\end_layout
-
-\begin_layout Standard
-Zusammengestellt von 
-\shape smallcaps
-Serge Winitzki
-\shape default
-.
- Version 1.2
-\end_layout
-
-\begin_layout Standard
-Diese Definitionen erleichtern das Schreiben von Gleichungen, ohne die Maus
- zu verwenden.
-\end_layout
-
-\begin_layout Standard
-Hinweis: Um den LyX-Namen herauszufinden, der einer Sequenz zugeordnet ist,
- sehen Sie auf die Statuszeile am untersten Rand des LyX-Fensters.
- Wenn Sie beispielsweise wissen wollen, wie 
-\family sans
-Strg+&
-\family default
- korrekt bezeichnet wird, drücken Sie 
-\family sans
-Strg+S
-\family default
- gefolgt von dieser Kombination, und in der Statuszeile sehen Sie dann 
-\begin_inset Quotes gld
-\end_inset
-
-
-\family sans
-Strg+S Umschalt+Strg+Ampersand
-\family default
-
-\begin_inset Quotes grd
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+C
-\family default
- 
-\family typewriter
-copy
-\end_layout
-
-\begin_layout Standard
-Wechsel normal/hervorgehobener Modus für Gleichungen.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+D
-\family default
- 
-\family typewriter
-math-display
-\end_layout
-
-\begin_layout Standard
-Bruch-Taste: Wenn Sie einen Ausdruck markieren und dann diese Taste drücken,
- wird der Ausdruck als Zähler eines Bruches verwendet.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+F
-\family default
- 
-\family typewriter
-math-insert frac
-\end_layout
-
-\begin_layout Standard
-Griechisch-Taste: Um einen einzelnen griechischen Buchstaben einzugeben.
- Das normalerweise verwendete 
-\family typewriter
-math\SpecialChar \-
-greek-toggle
-\family default
-, das dauerhaft auf griechische Zeichen wechselt, ist meist fehl am Platze.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+G
-\family default
- 
-\family typewriter
-math-greek
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+I
-\family default
- 
-\family typewriter
-math-insert int
-\family default
- Integralzeichen 
-\begin_inset Formula $\int$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+K
-\family default
- 
-\family typewriter
-line-delete-forward
-\family default
- Emacs-like binding
-\end_layout
-
-\begin_layout Standard
-Umschalten Text/Mathematik-Modus: In Mathematikmodus wechseln oder Text
- im Mathemodus schreiben
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+M
-\family default
- 
-\family typewriter
-math-mode
-\end_layout
-
-\begin_layout Standard
-Befehle, um die Numerierung von Gleichungen zu kontrollieren.
- Die in Sciword verwendete Sequenz 
-\family typewriter
-Ctrl-Tab
-\family default
- bereitet leider meist Probleme, da sie schon anderweitig benutzt wird.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+N
-\family default
- 
-\family typewriter
-math-number
-\family default
- Add/remove a number to single equation.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+N
-\family default
- 
-\family typewriter
-math-nonumber
-\family default
- Add/remove a number to a line in equation array.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+O
-\family default
- 
-\family typewriter
-open-stuff
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Q
-\family default
- 
-\family typewriter
-quote-insert
-\family default
- ' EINSETZEN
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+R
-\family default
- 
-\family typewriter
-math-insert sqrt
-\family default
- Wurzelzeichen 
-\begin_inset Formula $\sqrt{}$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+T
-\family default
- 
-\family typewriter
-math-mode
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+U
-\family default
- 
-\family typewriter
-font-underline
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+U
-\family default
- 
-\family typewriter
-paste
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+W
-\family default
- 
-\family typewriter
-buffer-close
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+X
-\family default
- 
-\family typewriter
-cut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Z
-\family default
- 
-\family typewriter
-undo
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+Z
-\family default
- 
-\family typewriter
-redo
-\end_layout
-
-\begin_layout Standard
-Klammern.
- In Sciword erhält man durch Eingabe von 
-\family typewriter
-Ctrl-<
-\emph on
-Klammer
-\emph default
->
-\family default
- ein Paar zusammengehöriger Klammern.
- Um ungleiche Klammerpaare zu erhalten, müssen Sie den Dialog 
-\family sans
-Mathe-Kontrollfläche
-\family default
- verwenden.
- Wenn Sie mit der Rück-Taste (backspace) die 
-\emph on
-linke
-\emph default
- Klammer eines solchen Paares löschen ,wird nur die Klammer und nicht der
- Inhalt gelöscht.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+9
-\family default
- 
-\family typewriter
-math-delim ( )
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+parenleft
-\family default
- 
-\family typewriter
-math-delim ( )
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+0
-\family default
- 
-\family typewriter
-math-delim ( )
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+parenright
-\family default
- 
-\family typewriter
-math-delim ( )
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+(
-\family default
- 
-\family typewriter
-math-delim [ ]
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+)
-\family default
- 
-\family typewriter
-math-delim [ ]
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+<
-\family default
- 
-\family typewriter
-math-delim langle rangle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+>
-\family default
- 
-\family typewriter
-math-delim langle rangle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+|
-\family default
- 
-\family typewriter
-math-delim | |
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Umschalt+
-\family default
-¦ 
-\family typewriter
-math-delim 
-\family default
-¦
-\family typewriter
- 
-\family default
-¦
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Alt+|
-\family default
- 
-\family typewriter
-math-delim | |
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+(
-\family default
- 
-\family typewriter
-math-delim { }
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+)
-\family default
- 
-\family typewriter
-math-delim { }
-\end_layout
-
-\begin_layout Standard
-In Sciword erhält man Akzente vorrangig, indem man die entsprechende Akzenttaste
- zusammen mit Strg drückt, also 
-\family sans
-Strg+
-\family typewriter
-.
-
-\family default
- für einen Punkt, 
-\family sans
-Ctrl-
-\family typewriter
-'
-\family default
- für den Acute-Akzent, 
-\family sans
-Ctrl-~
-\family default
- für die Tilde usw\SpecialChar \@.
- Einige davon funktionieren nur im Mathematikmodus.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+.
-
-\family default
- 
-\family typewriter
-accent-dot
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+;
-\family default
- 
-\family typewriter
-math-insert ddot
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-` 
-\family typewriter
-accent-grave
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+~
-\family default
- 
-\family typewriter
-accent-tilde
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+"
-\family default
- 
-\family typewriter
-accent-umlaut
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+Apostrophe
-\family default
- 
-\family typewriter
-accent-acute
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Strg+^
-\family default
- 
-\family typewriter
-accent-circumflex
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+=
-\family default
- 
-\family typewriter
-accent-vector
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+-
-\family default
- 
-\family typewriter
-math-insert bar
-\family default
- Why is it not "accent-bar"?
-\end_layout
-
-\begin_layout Standard
-Funktionstasten -- größtenteils kompatibel zu Sciword.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F2
-\family default
- 
-\family typewriter
-buffer-write
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F3
-\family default
- 
-\family typewriter
-find-replace
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+F4
-\family default
- 
-\family typewriter
-buffer-close
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+F4
-\family default
- 
-\family typewriter
-lyx-quit
-\end_layout
-
-\begin_layout Standard
-In Sciword werden F4 bis F8 benutzt, um die Zeichensätze zu wechseln, F4
- geht dabei zum Standardzeichensatz.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F4
-\family default
- 
-\family typewriter
-font-default
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F5
-\family default
- 
-\family typewriter
-font-bold
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F6
-\family default
- 
-\family typewriter
-font-emph
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F7
-\family default
- 
-\family typewriter
-font-code
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-F8
-\family default
- 
-\family typewriter
-font-noun
-\end_layout
-
-\begin_layout Standard
-Sciword-Abkürzungen für mathematische Symbole.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+'
-\family default
- 
-\family typewriter
-math-insert prime
-\family default
- Prime 
-\begin_inset Formula $\prime$
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\uparrow$
-\end_inset
-
- 
-\family typewriter
-math-insert ^
-\family default
- Superscript
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+
-\family default
-
-\begin_inset Formula $\downarrow$
-\end_inset
-
- 
-\family typewriter
-math-insert _
-\family default
- Subscript
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-math-insert partial
-\family default
- Partielle Ableitung 
-\begin_inset Formula $\partial$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-E
-\family default
- 
-\family typewriter
-math-insert sum
-\family default
- Summenzeichen 
-\begin_inset Formula $\sum$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-P
-\family default
- 
-\family typewriter
-math-insert prod
-\family default
- Produktzeichen 
-\begin_inset Formula $\prod$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-I
-\family default
- 
-\family typewriter
-math-insert infty
-\family default
- Infinity 
-\begin_inset Formula $\infty$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-symbol-insert times
-\end_layout
-
-\begin_layout Standard
-Meine eigenen Kürzel für Dinge, die ich oft verwende.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-'
-\family default
- 
-\family typewriter
-math-insert prime
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-Umschalt++
-\family default
- 
-\family typewriter
-math-insert dagger
-\family default
- Das 
-\begin_inset Quotes gld
-\end_inset
-
-dagger
-\begin_inset Quotes grd
-\end_inset
-
- Symbol 
-\begin_inset Formula $\dagger$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-=
-\family default
- 
-\family typewriter
-math-insert equiv
-\family default
- Die Identität 
-\begin_inset Formula $\equiv$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+=
-\family default
- 
-\family typewriter
-math-insert approx
-\family default
- 
-\begin_inset Quotes gld
-\end_inset
-
-ungefähr gleich
-\begin_inset Quotes grd
-\end_inset
-
- sign 
-\begin_inset Formula $\approx$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+-
-\family default
- 
-\family typewriter
-math-insert sim
-\family default
- Ungefähr 
-\begin_inset Formula $\sim$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+-
-\family default
- 
-\family typewriter
-math-insert rightarrow
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Alt+<
-\family default
- 
-\family typewriter
-math-insert leq
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Umschalt+Alt+>
-\family default
- 
-\family typewriter
-math-insert geq
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-Umschalt+<
-\family default
- 
-\family typewriter
-math-insert ll
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Strg+S\InsetSpace ~
-Umschalt+>
-\family default
- 
-\family typewriter
-math-insert gg
-\end_layout
-
-\begin_layout Subsection
-Standard-Definitionen im Mathematikmodus
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-B
-\family default
- 
-\family typewriter
-math-insert overline
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-D
-\family default
- 
-\family typewriter
-math-display
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-E
-\family default
- 
-\family typewriter
-math-insert ^
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-F
-\family default
- 
-\family typewriter
-math-insert frac
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-G
-\family default
- 
-\family typewriter
-math-greek
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-H
-\family default
- 
-\family typewriter
-accent-circumflex
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-I
-\family default
- 
-\family typewriter
-math-insert int
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-L
-\family default
- 
-\family typewriter
-math-limits
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-M
-\family default
- 
-\family typewriter
-math-mode
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-N
-\family default
- 
-\family typewriter
-math-number
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-O
-\family default
- 
-\family typewriter
-math-insert oint
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-P
-\family default
- 
-\family typewriter
-math-insert partial
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-R
-\family default
- 
-\family typewriter
-math-insert sqrt
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-S
-\family default
- 
-\family typewriter
-math-insert sqrt
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-U
-\family default
- 
-\family typewriter
-math-insert sum
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-V
-\family default
- 
-\family typewriter
-accent-vector
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-math-insert _
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-8
-\family default
- 
-\family typewriter
-math-insert infty
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+G
-\family default
- 
-\family typewriter
-math-greek-toggle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+N
-\family default
- 
-\family typewriter
-math-nonumber
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+'
-\family default
- 
-\family typewriter
-accent-dot
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+~
-\family default
- 
-\family typewriter
-accent-tilde
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+´
-\family default
- 
-\family typewriter
-math-insert prime
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+parenleft
-\family default
- 
-\family typewriter
-math-delim ( )
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+(
-\family default
- 
-\family typewriter
-math-delim [ ]
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+)
-\family default
- 
-\family typewriter
-math-delim { }
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+<
-\family default
- 
-\family typewriter
-math-delim langle rangle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+>
-\family default
- 
-\family typewriter
-math-delim rangle langle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+|
-\family default
- 
-\family typewriter
-math-delim | |
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt++
-\family default
- 
-\family typewriter
-math-insert pm
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+M\InsetSpace ~
-Umschalt+=
-\family default
- 
-\family typewriter
-math-insert neq
-\end_layout
-
-\begin_layout Subsection
-Sonstige Tastaturkürzel
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+K\InsetSpace ~
-O
-\family default
- 
-\family typewriter
-keymap-off
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+K\InsetSpace ~
-T
-\family default
- 
-\family typewriter
-keymap-toggle
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+K\InsetSpace ~
-X
-\family default
- 
-\family typewriter
-keymap-off
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+K\InsetSpace ~
-1
-\family default
- 
-\family typewriter
-keymap-primary
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\family sans
-Alt+K\InsetSpace ~
-2
-\family default
- 
-\family typewriter
-keymap-secondary
 \end_layout
 
 \end_body

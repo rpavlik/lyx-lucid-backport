@@ -9,7 +9,7 @@
 #
 # Version 1  2006-04-09  -  First version, for LyX 1.4.0.
 
-Format 4
+Format 11
 
 Input stdclass.inc
 Input numarticle.inc
@@ -32,7 +32,6 @@ End
 
 Style Title
 	Align                 Center
-	AlignPossible         Center
 	TextFont
 	  Size                Large
 	EndFont
@@ -40,7 +39,6 @@ End
 
 Style Author
 	Align                 Center
-	AlignPossible         Center
 	TextFont
 	  Series              Medium
 	  Size                Normal
@@ -54,7 +52,6 @@ Style Address
 	ParSkip               0.4
 	BottomSep             0.4
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	TextFont
 	  Series              Medium
@@ -67,7 +64,6 @@ Style Abstract
 	LatexType             Environment
 	ParIndent             ""
 	Align                 Block
-	AlignPossible         Block
 	LabelType             No_Label
 	TextFont
 	  Size                Small
@@ -98,7 +94,6 @@ End
 
 Style Section
 	Align                 Block
-	AlignPossible         Block
 	Font
 	  Size                Normal
 	EndFont
@@ -106,7 +101,6 @@ End
 
 Style Section*
 	Align                 Block
-	AlignPossible         Block
 	Font
 	  Size                Normal
 	EndFont
@@ -114,7 +108,6 @@ End
 
 Style Subsection
 	Align                 Block
-	AlignPossible         Block
 	TextFont
 	  Shape               Italic
 	  Size                Normal
@@ -123,7 +116,6 @@ End
 
 Style Subsubsection
 	Align                 Block
-	AlignPossible         Block
 	LabelFont
 	  Series              Medium
 	EndFont
@@ -134,8 +126,7 @@ Style Subsubsection
 	EndFont
 End
 
-Counter
-	Name                  definition
+Counter definition
 End
 Style Definition
 	LatexType             Environment
@@ -144,10 +135,9 @@ Style Definition
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Counter
 	LabelCounter          definition
-	LabelString           "Definition \arabic{definition}."
+	LabelString           "Definition \thedefinition."
 	LabelSep              M
 	NextNoIndent          1
 	LabelFont
@@ -155,52 +145,47 @@ Style Definition
 	EndFont
 End
 
-Counter
-	Name                  step
+Counter step
 End
 Style Step
         CopyStyle             Definition
 	LatexName             step
 	LabelCounter          step
-	LabelString           "Step \arabic{step}."
+	LabelString           "Step \thestep."
 	LabelFont
 	  Series              Medium
 	  Shape               Italic
 	EndFont
 End
 
-Counter
-	Name                  example
+Counter example
 End
 Style Example
         CopyStyle             Definition
 	LatexName             example
 	LabelCounter          example
-	LabelString           "Example \arabic{example}."
+	LabelString           "Example \theexample."
 End
 
-Counter
-	Name                  remark
+Counter remark
 End
 Style Remark
         CopyStyle             Definition
 	LatexName             remark
 	LabelCounter          remark
-	LabelString           "Remark \arabic{remark}."
+	LabelString           "Remark \theremark."
 End
 
-Counter
-	Name                  notation
+Counter notation
 End
 Style Notation
         CopyStyle             Definition
 	LatexName             notation
 	LabelCounter          notation
-	LabelString           "Notation \arabic{notation}."
+	LabelString           "Notation \thenotation."
 End
 
-Counter
-	Name                  theorem
+Counter theorem
 End
 Style Theorem
 	LatexType             Environment
@@ -209,11 +194,10 @@ Style Theorem
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	NextNoIndent          1
 	LabelType             Counter
 	LabelCounter          theorem
-	LabelString           "Theorem \arabic{theorem}."
+	LabelString           "Theorem \thetheorem."
 	LabelSep              M
 	LabelFont
 	  Series              Bold
@@ -231,7 +215,6 @@ Style Proof
 	TopSep                0.6
 	BottomSep             0.6
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Static
 	LabelString           "Proof."
 	LabelSep              M
@@ -241,74 +224,67 @@ Style Proof
 	EndLabelType          Box
 End
 
-Counter
-	Name                  corollary
+Counter corollary
 End
 Style Corollary
         CopyStyle             Theorem
 	LatexName             corollary
 	LabelCounter          corollary
-	LabelString           "Corollary \arabic{corollary}."
+	LabelString           "Corollary \thecorollary."
 End
 
-Counter
-	Name                  lemma
+Counter lemma
 End
 Style Lemma
         CopyStyle             Theorem
 	LatexName             lemma
 	LabelCounter          lemma
-	LabelString           "Lemma \arabic{lemma}."
+	LabelString           "Lemma \thelemma."
 End
 
-Counter
-	Name                  proposition
+Counter proposition
 End
 Style Proposition
         CopyStyle             Theorem
 	LatexName             proposition
 	LabelCounter          proposition
-	LabelString           "Proposition \arabic{proposition}."
+	LabelString           "Proposition \theproposition."
 End
 
-Counter
-	Name                  prop
+Counter prop
 End
 Style Prop
         CopyStyle             Definition
 	LatexName             prop
 	LabelCounter          prop
-	LabelString           "Prop \arabic{prop}."
+	LabelString           "Prop \theprop."
 End
 
-Counter
-	Name                  question
+Counter question
 End
 Style Question
         CopyStyle             Definition
 	LatexName             question
 	LabelCounter          question
-	LabelString           "Question \arabic{question}."
+	LabelString           "Question \thequestion."
 End
 
-Counter
-	Name                  claim
+Counter claim
 End
 Style Claim
         CopyStyle             Theorem
 	LatexName             claim
 	LabelCounter          claim
-	LabelString           "Claim \arabic{claim}."
+	LabelString           "Claim \theclaim."
 End
 
-Counter
-	Name                  conjecture
+Counter conjecture
 End
 Style Conjecture
         CopyStyle             Theorem
 	LatexName             conjecture
 	LabelCounter          conjecture
-	LabelString           "Conjecture \arabic{conjecture}."
+	LabelString           "Conjecture \theconjecture."
 End
 
 Style Appendices_Section
@@ -319,7 +295,6 @@ Style Appendices_Section
 	TopSep                0.6
 	BottomSep             0
 	Align                 Block
-	AlignPossible         Block
 	LabelType             Centered_Top_Environment
 	LabelString           "--- Appendices ---"
 	Font
@@ -329,8 +304,7 @@ Style Appendices_Section
 	EndFont
 End
 
-Counter
-	Name                  appendix
+Counter appendix
 End
 Style Appendix
 	LatexType             Command
@@ -339,7 +313,6 @@ Style Appendix
 	BottomSep             0.6
 	Margin                First_Dynamic
 	Align                 Block
-	AlignPossible         Block
 	NextNoIndent          1
 	LabelType             Counter
 	LabelCounter          appendix
@@ -357,7 +330,6 @@ End
 
 Style Bibliography
 	Align                 Block
-	AlignPossible         Block
 	LabelFont
 	  Size                Normal
 	EndFont

@@ -7,9 +7,10 @@
 # Probably broken by Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 # modified and modularized by Emmanuel GUREGHIAN <gureghia@boston.bertin.fr>
 # Tinkered with Sep. '07 by Paul Rubin <rubin@msu.edu>
+# Modularized Jan '08 by Richard Heck <rgheck@brown.edu>
 
 
-Format 4
+Format 11
 Columns                 1
 Sides                   2
 PageStyle               Headers
@@ -19,8 +20,10 @@ ClassOptions
 	FontSize   8|9|10|11|12
 End
 
+DefaultModule theorems-ams
 
 Style Standard
+	Category              MainText
 	Margin                Static
 	LatexType             Paragraph
 	LatexName             dummy
@@ -40,6 +43,7 @@ EndPreamble
 
 
 Input stdsections.inc
+Input stdinsets.inc
 Input numreport.inc
 
 

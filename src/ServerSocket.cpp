@@ -16,61 +16,59 @@
 
 #include "ServerSocket.h"
 
-#include "debug.h"
 #include "FuncRequest.h"
 #include "LyXAction.h"
 #include "LyXFunc.h"
 
 #include "frontends/Application.h"
 
+#include "support/debug.h"
 #include "support/environment.h"
 #include "support/FileName.h"
-#include "support/lyxlib.h"
 #include "support/socktools.h"
 
 #include <boost/bind.hpp>
 
 #include <cerrno>
+#include <ostream>
 
 #if defined (_WIN32)
 # include <io.h>
 #endif
 
+using namespace std;
+using namespace lyx::support;
+
 using boost::shared_ptr;
-
-using std::auto_ptr;
-using std::endl;
-using std::string;
-
 
 namespace lyx {
 
 // Address is the unix address for the socket.
 // MAX_CLIENTS is the maximum number of clients
 // that can connect at the same time.
-ServerSocket::ServerSocket(LyXFunc * f, support::FileName const & addr)
+ServerSocket::ServerSocket(LyXFunc * f, FileName const & addr)
 	: func(f),
-	  fd_(support::socktools::listen(addr, 3)),
+	  fd_(socktools::listen(addr, 3)),
 	  address_(addr)
 {
 	if (fd_ == -1) {
-		lyxerr << "lyx: Disabling LyX socket." << endl;
+		LYXERR(Debug::LYXSERVER, "lyx: Disabling LyX socket.");
 		return;
 	}
 
 	// These env vars are used by DVI inverse search
 	// Needed by xdvi
-	support::setEnv("XEDITOR", "lyxclient -g %f %l");
+	setEnv("XEDITOR", "lyxclient -g %f %l");
 	// Needed by lyxclient
-	support::setEnv("LYXSOCKET", address_.absFilename());
+	setEnv("LYXSOCKET", address_.absFilename());
 
 	theApp()->registerSocketCallback(
 		fd_,
 		boost::bind(&ServerSocket::serverCallback, this)
 		);
 
-	LYXERR(Debug::LYXSERVER) << "lyx: New server socket "
-				 << fd_ << ' ' << address_.absFilename() << endl;
+	LYXERR(Debug::LYXSERVER, "lyx: New server socket "
+				 << fd_ << ' ' << address_.absFilename());
 }
 
 
@@ -82,10 +80,11 @@ ServerSocket::~ServerSocket()
 		theApp()->unregisterSocketCallback(fd_);
 		if (::close(fd_) != 0)
 			lyxerr << "lyx: Server socket " << fd_
-			       << " IO error on closing: " << strerror(errno);
+			       << " IO error on closing: " << strerror(errno)
+			       << endl;
 	}
-	support::unlink(address_);
-	LYXERR(Debug::LYXSERVER) << "lyx: Server socket quitting" << endl;
+	address_.removeFile();
+	LYXERR(Debug::LYXSERVER, "lyx: Server socket quitting");
 }
 
 
@@ -99,11 +98,10 @@ string const ServerSocket::address() const
 // is OK and if the number of clients does not exceed MAX_CLIENTS
 void ServerSocket::serverCallback()
 {
-	int const client_fd = support::socktools::accept(fd_);
+	int const client_fd = socktools::accept(fd_);
 
 	if (fd_ == -1) {
-		LYXERR(Debug::LYXSERVER) << "lyx: Failed to accept new client"
-					 << endl;
+		LYXERR(Debug::LYXSERVER, "lyx: Failed to accept new client");
 		return;
 	}
 
@@ -130,7 +128,7 @@ void ServerSocket::dataCallback(int fd)
 	shared_ptr<LyXDataSocket> client = clients[fd];
 
 	string line;
-	string::size_type pos;
+	size_t pos;
 	bool saidbye = false;
 	while (!saidbye && client->readln(line)) {
 		// The protocol must be programmed here
@@ -193,8 +191,8 @@ void ServerSocket::writeln(string const & line)
 //	lyxerr << "ServerSocket debug dump.\n"
 //	     << "fd = " << fd_ << ", address = " << address_.absFilename() << ".\n"
 //	     << "Clients: " << clients.size() << ".\n";
-//	std::map<int, shared_ptr<LyXDataSocket> >::const_iterator client = clients.begin();
-//	std::map<int, shared_ptr<LyXDataSocket> >::const_iterator end = clients.end();
+//	map<int, shared_ptr<LyXDataSocket> >::const_iterator client = clients.begin();
+//	map<int, shared_ptr<LyXDataSocket> >::const_iterator end = clients.end();
 //	for (; client != end; ++client)
 //		lyxerr << "fd = " << client->first << '\n';
 // }
@@ -203,7 +201,7 @@ void ServerSocket::writeln(string const & line)
 LyXDataSocket::LyXDataSocket(int fd)
 	: fd_(fd), connected_(true)
 {
-	LYXERR(Debug::LYXSERVER) << "lyx: New data socket " << fd_ << endl;
+	LYXERR(Debug::LYXSERVER, "lyx: New data socket " << fd_);
 }
 
 
@@ -214,8 +212,7 @@ LyXDataSocket::~LyXDataSocket()
 		       << " IO error on closing: " << strerror(errno);
 
 	theApp()->unregisterSocketCallback(fd_);
-	LYXERR(Debug::LYXSERVER) << "lyx: Data socket " << fd_ << " quitting."
-				 << endl;
+	LYXERR(Debug::LYXSERVER, "lyx: Data socket " << fd_ << " quitting.");
 }
 
 
@@ -240,8 +237,8 @@ bool LyXDataSocket::readln(string & line)
 	// Error conditions. The buffer must still be
 	// processed for lines read
 	if (count == 0) { // EOF -- connection closed
-		LYXERR(Debug::LYXSERVER) << "lyx: Data socket " << fd_
-					 << ": connection closed." << endl;
+		LYXERR(Debug::LYXSERVER, "lyx: Data socket " << fd_
+					 << ": connection closed.");
 		connected_ = false;
 	} else if ((count == -1) && (errno != EAGAIN)) { // IO error
 		lyxerr << "lyx: Data socket " << fd_
@@ -250,10 +247,10 @@ bool LyXDataSocket::readln(string & line)
 	}
 
 	// Cut a line from buffer
-	string::size_type pos = buffer_.find('\n');
+	size_t pos = buffer_.find('\n');
 	if (pos == string::npos) {
-		LYXERR(Debug::LYXSERVER) << "lyx: Data socket " << fd_
-					 << ": line not completed." << endl;
+		LYXERR(Debug::LYXSERVER, "lyx: Data socket " << fd_
+					 << ": line not completed.");
 		return false; // No complete line stored
 	}
 	line = buffer_.substr(0, pos);

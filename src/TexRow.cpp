@@ -13,37 +13,18 @@
 #include <config.h>
 
 #include "TexRow.h"
-#include "debug.h"
+
+#include "support/debug.h"
 
 #include <algorithm>
 
 
 namespace lyx {
 
-using std::find_if;
-
-
-namespace {
-
-/// function object returning true when row number is found
-class same_rownumber {
-public:
-	same_rownumber(int row) : row_(row) {}
-	bool operator()(TexRow::RowList::value_type const & vt) const {
-		return vt.rownumber() == row_;
-	}
-
-private:
-	int row_;
-};
-
-} // namespace anon
-
 
 void TexRow::reset()
 {
 	rowlist.clear();
-	count = 0;
 	lastid = -1;
 	lastpos = -1;
 }
@@ -59,32 +40,45 @@ void TexRow::start(int id, int pos)
 void TexRow::newline()
 {
 	int const id = lastid;
-	RowList::value_type tmp(id, lastpos, ++count);
+	RowList::value_type tmp(id, lastpos);
 	rowlist.push_back(tmp);
 }
 
 
 bool TexRow::getIdFromRow(int row, int & id, int & pos) const
 {
-	RowList::const_iterator cit =
-		find_if(rowlist.begin(), rowlist.end(),
-			same_rownumber(row));
-
-	if (cit != rowlist.end()) {
-		id = cit->id();
-		pos = cit->pos();
-		return true;
+	if (row <= 0 || row > int(rowlist.size())) {
+		id = -1;
+		pos = 0;
+		return false;
 	}
-	id = -1;
-	pos = 0;
-	return false;
+
+	id = rowlist[row - 1].id();
+	pos = rowlist[row - 1].pos();
+	return true;
 }
 
 
-TexRow & TexRow::operator+=(TexRow const & tr)
+int TexRow::getRowFromIdPos(int id, int pos) const
 {
-	rowlist.insert(rowlist.end(), tr.rowlist.begin(), tr.rowlist.end());
-	return *this;
+	bool foundid = false;
+
+	// this loop finds the last *nonempty* row with the same id
+	// and position <= pos
+	RowList::const_iterator bestrow = rowlist.begin();
+	RowList::const_iterator it = rowlist.begin();
+	RowList::const_iterator const end = rowlist.end();
+	for (; it != end; ++it) {
+		if (it->id() == id && it->pos() <= pos) {
+			foundid = true;
+			if (bestrow->id() != id || it->pos() > bestrow->pos())
+				bestrow = it;
+		} else if (foundid)
+			break;
+	}
+	if (!foundid)
+		return rowlist.size();
+	return distance(rowlist.begin(), bestrow);
 }
 
 

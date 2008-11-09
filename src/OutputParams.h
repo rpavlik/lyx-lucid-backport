@@ -35,6 +35,12 @@ public:
 		XML
 	};
 
+	enum TableCell {
+		NO,
+		PLAIN,
+		ALIGNED
+	};
+
 	OutputParams(Encoding const *);
 	~OutputParams();
 
@@ -73,7 +79,7 @@ public:
 	/** Current stream encoding. Only used for LaTeX.
 	    This must be set to the document encoding (via the constructor)
 	    before output starts. Afterwards it must be kept up to date for
-	    each single character (\see Paragraph::simpleTeXOnePar).
+	    each single character (\sa Paragraph::latex).
 	    This does also mean that you need to set it back if you use a
 	    copy (e.g. in insets): \code
 	    int InsetFoo::latex(..., OutputParams const & runparams_in) const
@@ -98,6 +104,10 @@ public:
 	*/
 	bool use_babel;
 
+	/** Are we using japanese (pLaTeX)?
+	*/
+	bool use_japanese;
+
 	/** Line length to use with plaintext export.
 	*/
 	size_type linelen;
@@ -121,6 +131,11 @@ public:
 	 */
 	bool inComment;
 
+	/** Whether we are in a table cell.
+	 *  For newline, it matters whether its content is aligned or not.
+         */
+	TableCell inTableCell;
+
 	/** Whether we are inside an inset that is logically deleted.
 	 *  A value > 0 indicates a deleted inset.
          */
@@ -142,10 +157,15 @@ public:
 	 */
 	pit_type par_end;
 
+	/// is this the last paragraph in the current buffer/inset?
+	bool isLastPar;
+
 	/** whether or not do actual file copying and image conversion
 	 *  This mode will be used to preview the source code
 	 */
 	bool dryrun;
+	/// Should we output verbatim or escape LaTeX's special chars?
+	bool verbatim;
 };
 
 

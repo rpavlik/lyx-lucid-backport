@@ -14,7 +14,7 @@
 # the author information area.  There is a LaTeX 2.09 IEEEtran.sty available
 # also but LyX doesn't support 2.09 stuff so don't get that one.
 
-Format 4
+Format 11
 Style Standard
 	Margin                Static
 	LatexType             Paragraph
@@ -33,6 +33,7 @@ End
 ##
 
 Input stdlists.inc
+Input stdinsets.inc
 
 # First cut at theorem environment support.
 # What other theorem-like environments are needed?
@@ -253,9 +254,10 @@ NoStyle TheoremTemplate
 
 
 ##
-## stdsections and stdstarsections
+## stdcounters, stdsections, and stdstarsections
 ##
 
+Input stdcounters.inc
 Input stdsections.inc
 Input stdstarsections.inc
 
@@ -412,7 +414,6 @@ Style Biography
 	LaTeXType             Environment
 	LaTeXName             biography
 	Align                 Block
-	AlignPossible         Block
 	TextFont
 	  Size                Small
 	EndFont
@@ -423,7 +424,6 @@ Style BiographyNoPhoto
 	LaTeXType             Environment
 	LaTeXName             biographynophoto
 	Align                 Block
-	AlignPossible         Block
 	TextFont
 	  Size                Small
 	EndFont
@@ -464,12 +464,13 @@ End
 
 Style MarkBoth
 	LaTeXType             Command
-	LaTeXName             IEEEmarkboth
+	LaTeXName             markboth
 	Align                 Center
-	AlignPossible         Center
 	Preamble
-	% protect against redefinition of \markboth by babel >= 3.6
-	\let\IEEEmarkboth=\markboth
+	% protect \markboth against an old bug reintroduced in babel >= 3.8g
+	\let\oldforeign@language\foreign@language
+	\DeclareRobustCommand{\foreign@language}[1]{%
+	  \lowercase{\oldforeign@language{#1}}}
 	EndPreamble
 End
 
@@ -479,7 +480,6 @@ End
 ##
 
 Input stdfloats.inc
-Input stdcounters.inc
 Input lyxmacros.inc
 
 

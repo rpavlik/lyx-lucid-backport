@@ -124,13 +124,9 @@ AC_DEFUN([QT4_DO_IT_ALL],
 	fi
 
 	dnl Preprocessor flags
-	QT4_CPPFLAGS="-DQT_CLEAN_NAMESPACE -DQT_GENUINE_STR -DQT_NO_STL -DQT_NO_KEYWORDS"
+	QT4_CPPFLAGS="-DQT_NO_STL -DQT_NO_KEYWORDS"
 	case ${host} in
 	*mingw*) QT4_CPPFLAGS="-DQT_DLL $QT4_CPPFLAGS";;
-	*cygwin*)
-	if test "x$with_x" = xno ; then
-		QT4_CPPFLAGS="$QT4_CPPFLAGS -DQ_CYGWIN_WIN"
-	fi;;
 	esac
 	AC_SUBST(QT4_CPPFLAGS)
 
@@ -144,6 +140,7 @@ AC_DEFUN([QT4_DO_IT_ALL],
 	fi
 	AC_PATH_PROGS(MOC4, [moc-qt4 moc],[],$qt4_cv_bin:$PATH)
 	AC_PATH_PROGS(UIC4, [uic-qt4 uic],[],$qt4_cv_bin:$PATH)
+	AC_PATH_PROGS(RCC4, [rcc-qt4 rcc],[],$qt4_cv_bin:$PATH)
 ])
 
 AC_DEFUN([QT4_DO_PKG_CONFIG],
@@ -181,6 +178,16 @@ AC_DEFUN([QT4_DO_PKG_CONFIG],
 
 AC_DEFUN([QT4_DO_MANUAL_CONFIG],
 [
+	dnl Check for X libraries
+	AC_PATH_X
+	AC_PATH_XTRA
+	case $have_x in
+	    yes) LIBS="$X_PRE_LIBS $LIBS $X_LIBS -lX11 $X_EXTRA_LIBS"
+	         CPPFLAGS="$CPPFLAGS $X_CFLAGS";;
+	     no) LYX_ERROR([Cannot find X window libraries and/or headers.]);;
+	disable) ;;
+	esac
+
 	dnl flags for compilation
 	QT4_INCLUDES=
 	QT4_LDFLAGS=

@@ -32,7 +32,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/lyx.spec.in $(top_srcdir)/config/common.am ChangeLog
+	$(srcdir)/lyx.spec.in $(top_srcdir)/config/common.am
 subdir = development
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
@@ -41,22 +41,23 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/codeset.m4 $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/glibc2.m4 $(top_srcdir)/m4/glibc21.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
-	$(top_srcdir)/m4/intmax.m4 $(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes.m4 $(top_srcdir)/m4/inttypes_h.m4 \
-	$(top_srcdir)/m4/isc-posix.m4 $(top_srcdir)/m4/lcmessage.m4 \
+	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
+	$(top_srcdir)/m4/inttypes-pri.m4 \
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/lcmessage.m4 \
 	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
-	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/longdouble.m4 \
-	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/signed.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/lock.m4 \
+	$(top_srcdir)/m4/longdouble.m4 $(top_srcdir)/m4/longlong.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-posix.m4 $(top_srcdir)/m4/progtest.m4 \
 	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
 	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
-	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/visibility.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/config.h
+CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = lyx.spec
 SOURCES =
 DIST_SOURCES =
@@ -93,6 +94,7 @@ CATOBJEXT = @CATOBJEXT@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -104,6 +106,7 @@ DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -117,10 +120,12 @@ GENCAT = @GENCAT@
 GLIBC2 = @GLIBC2@
 GLIBC21 = @GLIBC21@
 GMSGFMT = @GMSGFMT@
+GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
 HAVE_ASPRINTF = @HAVE_ASPRINTF@
 HAVE_POSIX_PRINTF = @HAVE_POSIX_PRINTF@
 HAVE_SNPRINTF = @HAVE_SNPRINTF@
+HAVE_VISIBILITY = @HAVE_VISIBILITY@
 HAVE_WPRINTF = @HAVE_WPRINTF@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -133,34 +138,41 @@ INTLLIBS = @INTLLIBS@
 INTLOBJS = @INTLOBJS@
 INTL_LIBTOOL_SUFFIX_PREFIX = @INTL_LIBTOOL_SUFFIX_PREFIX@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-KPSEWHICH = @KPSEWHICH@
 LDFLAGS = @LDFLAGS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
+LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
+LIBTHREAD = @LIBTHREAD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
+LTLIBMULTITHREAD = @LTLIBMULTITHREAD@
 LTLIBOBJS = @LTLIBOBJS@
-LYX_ABS_INSTALLED_DATADIR = @LYX_ABS_INSTALLED_DATADIR@
-LYX_ABS_INSTALLED_LOCALEDIR = @LYX_ABS_INSTALLED_LOCALEDIR@
-LYX_ABS_TOP_SRCDIR = @LYX_ABS_TOP_SRCDIR@
+LTLIBPTH = @LTLIBPTH@
+LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
+LYX_DIR_VER = @LYX_DIR_VER@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
-M4 = @M4@
+LYX_USERDIR_VER = @LYX_USERDIR_VER@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-MKINSTALLDIRS = @MKINSTALLDIRS@
 MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
+MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NMEDIT = @NMEDIT@
+OBJC = @OBJC@
+OBJCDEPMODE = @OBJCDEPMODE@
+OBJCFLAGS = @OBJCFLAGS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -172,6 +184,7 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
+PRI_MACROS_BROKEN = @PRI_MACROS_BROKEN@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
@@ -191,8 +204,10 @@ QT4_LDFLAGS = @QT4_LDFLAGS@
 QT4_LIB = @QT4_LIB@
 QT4_VERSION = @QT4_VERSION@
 RANLIB = @RANLIB@
+RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOCKET_LIBS = @SOCKET_LIBS@
@@ -202,7 +217,9 @@ USE_INCLUDED_LIBINTL = @USE_INCLUDED_LIBINTL@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 VERSION_INFO = @VERSION_INFO@
+WOE32DLL = @WOE32DLL@
 XGETTEXT = @XGETTEXT@
+XGETTEXT_015 = @XGETTEXT_015@
 XMKMF = @XMKMF@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -214,6 +231,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
+ac_ct_OBJC = @ac_ct_OBJC@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -257,6 +275,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
+real_pkgdatadir = @real_pkgdatadir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -266,6 +285,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
@@ -280,19 +300,184 @@ AM_ETAGSFLAGS = --lang=c++
 SUFFIXES = .gch
 @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
 @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+@USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
+@USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
-@USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
-@USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
-@USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
-@USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
 @INSTALL_MACOSX_TRUE@SUBDIRS = MacOSX
-EXTRA_DIST = boostworkaround.txt ChangeLog cmake Code_rules FORMAT \
-	gettext.patch lazy_lyxtext.txt lyx3 lyx.rpm.README \
+EXTRA_DIST = boostworkaround.txt coding/Rules coding/Recommendations \
+	FORMAT lyx.rpm.README \
 	lyxserver lyx.spec.in lyx.spec Seminar.txt \
-	tools Win32 scons
+	\
+tools/convert_kmap.py \
+tools/generate_symbols_list.py \
+tools/unicodesymbols.py \
+tools/x-font \
+tools/README \
+tools/count_total_lines_of_compiled_code.sh \
+tools/count_lines_of_included_code.sh \
+Win32/launcher/launcher.nsi \
+Win32/packaging/icons/lyx_doc.svg \
+Win32/packaging/icons/lyx_32x32.png \
+Win32/packaging/icons/lyx_doc_32x32.png \
+Win32/packaging/icons/lyx.ico \
+Win32/packaging/icons/lyx_32x32.ico \
+Win32/packaging/icons/lyx_32x32_16colors.png \
+Win32/packaging/icons/lyx.svg \
+Win32/packaging/icons/lyx_doc_32x32.ico \
+Win32/packaging/icons/lyx_doc_32x32_16colors.png \
+Win32/packaging/installer/graphics/header.bmp \
+Win32/packaging/installer/graphics/wizard.bmp \
+Win32/packaging/installer/gui/external.nsh \
+Win32/packaging/installer/gui/langselect.nsh \
+Win32/packaging/installer/gui/reinstall.nsh \
+Win32/packaging/installer/include/declarations.nsh \
+Win32/packaging/installer/include/detection.nsh \
+Win32/packaging/installer/include/dictlist.nsh \
+Win32/packaging/installer/include/filelist.nsh \
+Win32/packaging/installer/include/gui.nsh \
+Win32/packaging/installer/include/init.nsh \
+Win32/packaging/installer/include/langlist.nsh \
+Win32/packaging/installer/include/nsis.nsh \
+Win32/packaging/installer/include/variables.nsh \
+Win32/packaging/installer/lang/english.nsh \
+Win32/packaging/installer/lang/french.nsh \
+Win32/packaging/installer/lang/german.nsh \
+Win32/packaging/installer/lang/italian.nsh \
+Win32/packaging/installer/license.rtf \
+Win32/packaging/installer/lyx.nsi \
+Win32/packaging/installer/settings.nsh \
+Win32/packaging/installer/setup/configure.nsh \
+Win32/packaging/installer/setup/install.nsh \
+Win32/packaging/installer/setup/uninstall.nsh \
+Win32/packaging/AltInstaller/Aspell.nsh \
+Win32/packaging/AltInstaller/Build-all.nsi \
+Win32/packaging/AltInstaller/ChangeLog.txt \
+Win32/packaging/AltInstaller/ConfigLyX.nsh \
+Win32/packaging/AltInstaller/Deleted.nsh \
+Win32/packaging/AltInstaller/InstallActions-complete-small.nsh \
+Win32/packaging/AltInstaller/InstallActions-update.nsh \
+Win32/packaging/AltInstaller/InstallThirdPartyProgs.nsh \
+Win32/packaging/AltInstaller/io_latex.ini \
+Win32/packaging/AltInstaller/io_missing_progs.ini \
+Win32/packaging/AltInstaller/io_ui_language.ini \
+Win32/packaging/AltInstaller/LanguageSettings.nsh \
+Win32/packaging/AltInstaller/LaTeX.nsh \
+Win32/packaging/AltInstaller/LaTeXFolder.nsh \
+Win32/packaging/AltInstaller/Launch.nsi \
+Win32/packaging/AltInstaller/License.txt \
+Win32/packaging/AltInstaller/LyXInstaller-complete.nsi \
+Win32/packaging/AltInstaller/LyXInstaller-small.nsi \
+Win32/packaging/AltInstaller/LyXInstaller-update.nsi \
+Win32/packaging/AltInstaller/LyXUtils.nsh \
+Win32/packaging/AltInstaller/MissingPrograms.nsh \
+Win32/packaging/AltInstaller/ReadmeComplete1.6.txt \
+Win32/packaging/AltInstaller/ReadmePackage1.6.txt \
+Win32/packaging/AltInstaller/ReadmeScripts1.6.txt \
+Win32/packaging/AltInstaller/ReadmeSmall1.6.txt \
+Win32/packaging/AltInstaller/ReadmeUpdate1.6.txt \
+Win32/packaging/AltInstaller/registry.nsh \
+Win32/packaging/AltInstaller/Settings.nsh \
+Win32/packaging/AltInstaller/Updated.nsh \
+Win32/packaging/AltInstaller/Uninstall.nsh \
+Win32/packaging/AltInstaller/icons/Lydia.svg \
+Win32/packaging/AltInstaller/icons/lyx.ico \
+Win32/packaging/AltInstaller/icons/lyx.svg \
+Win32/packaging/AltInstaller/icons/lyx_32x32.ico \
+Win32/packaging/AltInstaller/icons/lyx_doc.svg \
+Win32/packaging/AltInstaller/icons/lyx_logo_hi.bmp \
+Win32/packaging/AltInstaller/icons/lyx_logo_vert16rc4.bmp \
+Win32/packaging/AltInstaller/informations/InstallerStructure.odg \
+Win32/packaging/AltInstaller/informations/InstallerStructure.pdf \
+Win32/packaging/AltInstaller/informations/ISO_3166.html \
+Win32/packaging/AltInstaller/informations/WindowsCodePages.txt \
+Win32/packaging/AltInstaller/informations/WinLangCode.htm \
+Win32/packaging/AltInstaller/informations/iso639.htm \
+Win32/packaging/AltInstaller/lyx_languages/Encodings.txt \
+Win32/packaging/AltInstaller/lyx_languages/czech.nsh \
+Win32/packaging/AltInstaller/lyx_languages/danish.nsh \
+Win32/packaging/AltInstaller/lyx_languages/dutch.nsh \
+Win32/packaging/AltInstaller/lyx_languages/english.nsh \
+Win32/packaging/AltInstaller/lyx_languages/french.nsh \
+Win32/packaging/AltInstaller/lyx_languages/galician.nsh \
+Win32/packaging/AltInstaller/lyx_languages/german.nsh \
+Win32/packaging/AltInstaller/lyx_languages/hungarian.nsh \
+Win32/packaging/AltInstaller/lyx_languages/italian.nsh \
+Win32/packaging/AltInstaller/lyx_languages/japanese.nsh \
+Win32/packaging/AltInstaller/lyx_languages/norwegian.nsh \
+Win32/packaging/AltInstaller/lyx_languages/polish.nsh \
+Win32/packaging/AltInstaller/lyx_languages/portuguese.nsh \
+Win32/packaging/AltInstaller/lyx_languages/romanian.nsh \
+Win32/packaging/AltInstaller/lyx_languages/slovak.nsh \
+Win32/packaging/AltInstaller/lyx_languages/spanish.nsh \
+Win32/packaging/AltInstaller/lyx_languages/swedish.nsh \
+Win32/packaging/AltInstaller/lyx_languages/turkish.nsh \
+Win32/packaging/AltInstaller/specials/Launcher/lyxLauncher.cfg \
+Win32/packaging/AltInstaller/specials/Launcher/lyxLauncher.dof \
+Win32/packaging/AltInstaller/specials/Launcher/lyxLauncher.dpr \
+Win32/packaging/AltInstaller/specials/Launcher/lyxLauncher.exe \
+Win32/packaging/AltInstaller/specials/Launcher/lyxLauncher.res \
+Win32/packaging/AltInstaller/specials/PDFViewWin/pdfclose.exe \
+Win32/packaging/AltInstaller/specials/PDFViewWin/pdfdde.exe \
+Win32/packaging/AltInstaller/specials/PDFViewWin/pdfopen.exe \
+Win32/packaging/AltInstaller/specials/PDFViewWin/PDFViewWin.cfg \
+Win32/packaging/AltInstaller/specials/PDFViewWin/PDFViewWin.dof \
+Win32/packaging/AltInstaller/specials/PDFViewWin/PDFViewWin.dpr \
+Win32/packaging/AltInstaller/specials/PDFViewWin/PDFViewWin.exe \
+Win32/packaging/AltInstaller/specials/PDFViewWin/PDFViewWin.res \
+Win32/packaging/AltInstaller/specials/AspellRepositories.txt \
+Win32/packaging/AltInstaller/specials/AspellDictionaryNames.txt \
+Win32/packaging/build_msvs_debug.bat \
+Win32/packaging/build_msvc.bat \
+Win32/packaging/Microsoft.VC90.CRT.manifest \
+Win32/pdfview/pdfview.nsi \
+Win32/patches/mingw/aspell-0.60.4.patch \
+Win32/patches/mingw/gettext-0.14.5.patch \
+Win32/patches/msvc/libiconv-1.11.patch \
+Win32/patches/msvc/gettext-0.15.patch \
+Win32/patches/msvc/dirent.h \
+Win32/patches/msvc/aspell-setter-sep06.patch \
+Win32/patches/dtl.patch \
+Win32/patches/dvipost-1.1.patch \
+Win32/patches/aiksaurus-june06.patch \
+scons/qt4.py \
+scons/scons_manifest.py \
+scons/SConstruct \
+scons/scons_utils.py \
+cmake/boost/libs/signals/CMakeLists.txt \
+cmake/boost/libs/regex/CMakeLists.txt \
+cmake/boost/libs/CMakeLists.txt \
+cmake/boost/CMakeLists.txt \
+cmake/intl/CMakeLists.txt \
+cmake/intl/libgnuintl.h \
+cmake/src/tex2lyx/CMakeLists.txt \
+cmake/src/graphics/CMakeLists.txt \
+cmake/src/frontends/qt4/CMakeLists.txt \
+cmake/src/frontends/CMakeLists.txt \
+cmake/src/mathed/CMakeLists.txt \
+cmake/src/insets/CMakeLists.txt \
+cmake/src/support/CMakeLists.txt \
+cmake/src/dummy.cpp \
+cmake/src/CMakeLists.txt \
+cmake/modules/FindASPELL.cmake \
+cmake/modules/FindZLIB.cmake \
+cmake/modules/LyXMacros.cmake \
+cmake/modules/ProjectSourceGroup.cmake \
+cmake/modules/FindQt4.cmake \
+cmake/modules/LyXPaths.cmake \
+cmake/modules/FindGNUWIN32.cmake \
+cmake/modules/LyXuic.cmake \
+cmake/modules/FindICONV.cmake \
+cmake/ConfigureChecks.cmake \
+cmake/pcheaders.h \
+cmake/Install.cmake \
+cmake/config.cpp.cmake \
+cmake/config.h.cmake \
+cmake/CMakeLists.txt \
+cmake/build.bat \
+cmake/build-debug.bat
 
 all: all-recursive
 
@@ -620,7 +805,7 @@ uninstall-am:
 @LYX_BUILD_PCH_TRUE@	$(MAKE) PCH_FLAGS= pch-file
 
 @LYX_BUILD_PCH_TRUE@pch-file:
-@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header $(PCH_SOURCE) -o $(PCH_FILE) \
+@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header -fPIC -DPIC $(PCH_SOURCE) -o $(PCH_FILE) \
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"

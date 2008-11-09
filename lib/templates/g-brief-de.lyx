@@ -1,7 +1,8 @@
-#LyX 1.5.2svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
+\use_default_options false
 \textclass g-brief-de
 \begin_preamble
 %%\lochermarke
@@ -23,6 +24,7 @@
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -40,8 +42,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -51,7 +53,7 @@ Thomas Hartkens
 \begin_inset Note Note
 status open
 
-\begin_layout Brieftext
+\begin_layout Plain Layout
 
 \series bold
 Wichtiger Hinweis:
@@ -148,9 +150,13 @@ www.hartkens.de/thomas
 
 \begin_layout Adresse
 Hans Beispiel
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Teststrasse 34
-\newline
+\begin_inset Newline newline
+\end_inset
+
 26871 Musterberg
 \end_layout
 
@@ -186,7 +192,7 @@ TH
 \begin_inset ERT
 status collapsed
 
-\begin_layout Brieftext
+\begin_layout Plain Layout
 
 
 \backslash

@@ -12,42 +12,78 @@
 #ifndef INSET_NEWLINE_H
 #define INSET_NEWLINE_H
 
-
 #include "Inset.h"
 
 
 namespace lyx {
 
-class InsetNewline : public Inset {
+class InsetNewlineParams
+{
 public:
+	/// The different kinds of spaces we support
+	enum Kind {
+		///
+		NEWLINE,
+		///
+		LINEBREAK
+	};
+	///
+	InsetNewlineParams() : kind(NEWLINE) {}
+	///
+	void write(std::ostream & os) const;
+	///
+	void read(Lexer & lex);
+	///
+	Kind kind;
+};
 
-	InsetNewline() {}
 
-	Inset::Code lyxCode() const { return Inset::NEWLINE_CODE; }
-
-	bool metrics(MetricsInfo &, Dimension &) const;
-
-	virtual void draw(PainterInfo & pi, int x, int y) const;
-
-	int latex(Buffer const &, odocstream &, OutputParams const &) const;
-
-	int plaintext(Buffer const &, odocstream &, OutputParams const &) const;
-
-	int docbook(Buffer const &, odocstream &, OutputParams const &) const;
-
-	virtual void read(Buffer const &, Lexer & lex);
-
-	virtual void write(Buffer const & buf, std::ostream & os) const;
-	/// We don't need \begin_inset and \end_inset
-	virtual bool directWrite() const { return true; }
-	/// is this equivalent to a space (which is BTW different from
-	// a line separator)?
-	bool isSpace() const;
+class InsetNewline : public Inset
+{
+public:
+	///
+	InsetNewline();
+	///
+	InsetNewline(InsetNewlineParams par) { params_.kind = par.kind; }
+	///
+	static void string2params(std::string const &, InsetNewlineParams &);
+	///
+	static std::string params2string(InsetNewlineParams const &);
 private:
-	virtual std::auto_ptr<Inset> doClone() const
-	{
-		return std::auto_ptr<Inset>(new InsetNewline);
-	}
+	///
+	InsetNewlineParams params() const { return params_; }
+	///
+	InsetCode lyxCode() const { return NEWLINE_CODE; }
+	///
+	void metrics(MetricsInfo &, Dimension &) const;
+	///
+	void draw(PainterInfo & pi, int x, int y) const;
+	///
+	int latex(odocstream &, OutputParams const &) const;
+	///
+	int plaintext(odocstream &, OutputParams const &) const;
+	///
+	int docbook(odocstream &, OutputParams const &) const;
+	///
+	void read(Lexer & lex);
+	///
+	void write(std::ostream & os) const;
+	/// is this equivalent to a space (which is BTW different from
+	/// a line separator)?
+	bool isSpace() const { return true; }
+	///
+	ColorCode ColorName() const;
+	///
+	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	///
+	Inset * clone() const { return new InsetNewline(*this); }
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
+
+	///
+	InsetNewlineParams params_;
 };
 
 

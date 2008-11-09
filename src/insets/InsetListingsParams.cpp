@@ -9,39 +9,25 @@
  */
 
 #include <config.h>
+#include <algorithm>
 
 #include "InsetListingsParams.h"
 
-#include "gettext.h"
 #include "Length.h"
 #include "Lexer.h"
 
+#include "support/convert.h"
+#include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
-#include "support/convert.h"
-
-#include <boost/assert.hpp>
 
 #include <sstream>
 
-using std::map;
-using std::vector;
-using std::ostream;
-using std::string;
-using std::exception;
+using namespace std;
+using namespace lyx::support;
 
-namespace lyx
-{
-
-using support::bformat;
-using support::trim;
-using support::rtrim;
-using support::subst;
-using support::isStrInt;
-using support::prefixIs;
-using support::suffixIs;
-using support::getVectorFromString;
-using lyx::support::contains;
+namespace lyx {
 
 namespace {
 
@@ -113,13 +99,19 @@ docstring ListingsParam::validate(string const & par) const
 	bool unclosed = false;
 	string par2 = par;
 	// braces are allowed
-	if (prefixIs(par, "{") && suffixIs(par, "}"))
+	if (prefixIs(par, "{") && suffixIs(par, "}") && !suffixIs(par, "\\}"))	
 		par2 = par.substr(1, par.size() - 2);
-	else if (prefixIs(par, "{")) {
-		par2 = par.substr(1);
-		unclosed = true;
-	}
 
+	// check for unmatched braces
+	int braces = 0;
+	for (size_t i = 0; i < par2.size(); ++i) {
+		if (par2[i] == '{' && (i == 0 || par2[i-1] != '\\'))
+			++braces;
+		else if (par2[i] == '}' && (i == 0 || par2[i-1] != '\\'))
+			--braces;
+	}
+	unclosed = braces != 0;
+	
 	switch (type_) {
 
 	case ALL:
@@ -130,7 +122,7 @@ docstring ListingsParam::validate(string const & par) const
 				return _("A value is expected.");
 		}
 		if (unclosed)
-				return _("Unbalanced braces!");
+			return _("Unbalanced braces!");
 		return docstring();
 
 	case TRUEFALSE:
@@ -194,7 +186,7 @@ docstring ListingsParam::validate(string const & par) const
 			lists.push_back(v);
 
 		// good, find the string
-		if (std::find(lists.begin(), lists.end(), par2) != lists.end()) {
+		if (find(lists.begin(), lists.end(), par2) != lists.end()) {
 			if (unclosed)
 				return _("Unbalanced braces!");
 			return docstring();
@@ -693,7 +685,7 @@ bool ParValidator::onoff(string const & name) const
 } // namespace anon.
 
 // define a global ParValidator
-ParValidator * par_validator = NULL;
+ParValidator * par_validator = 0;
 
 InsetListingsParams::InsetListingsParams()
 	: inline_(false), params_(), status_(InsetCollapsable::Open)
@@ -723,10 +715,9 @@ void InsetListingsParams::write(ostream & os) const
 void InsetListingsParams::read(Lexer & lex)
 {
 	lex >> inline_;
-	int s;
+	int s = Inset::Collapsed;
 	lex >> s;
-	if (lex)
-		status_ = static_cast<InsetCollapsable::CollapseStatus>(s);
+	status_ = static_cast<InsetCollapsable::CollapseStatus>(s);
 	string par;
 	lex >> par;
 	fromEncodedString(par);
@@ -760,7 +751,7 @@ void InsetListingsParams::addParam(string const & key, string const & value)
 	if (params_.find(key) != params_.end())
 		// key=value,key=value1 is allowed in listings
 		// use key_, key__, key___ etc to avoid name conflict
-		while (params_.find(keyname += '_') != params_.end());
+		while (params_.find(keyname += '_') != params_.end()) { }
 	// check onoff flag
 	// onoff parameter with value false
 	if (!par_validator)
@@ -810,11 +801,12 @@ void InsetListingsParams::addParams(string const & par)
 		} else if (par[i] == '=' && braces == 0) {
 			isValue = true;
 			continue;
-		} else if (par[i] == '{' && i > 0 && par[i - 1] == '=')
-			braces ++;
-		else if (par[i] == '}'
-			&& (i == par.size() - 1 || par[i + 1] == ',' || par[i + 1] == '\n'))
-			braces --;
+		} else if (par[i] == '{' && i > 0 && par[i-1] != '\\')
+			// don't count a brace in first position
+			++braces;
+		else if (par[i] == '}' && i != par.size() - 1 
+		         && (i == 0 || (i > 0 && par[i-1] != '\\')))
+			--braces;
 
 		if (isValue)
 			value += par[i];

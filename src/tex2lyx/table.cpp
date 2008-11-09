@@ -16,6 +16,7 @@
 
 #include "tex2lyx.h"
 
+#include "support/lassert.h"
 #include "support/convert.h"
 #include "support/lstrings.h"
 
@@ -24,20 +25,12 @@
 #include <vector>
 #include <map>
 
+using namespace std;
 
 namespace lyx {
 
-using std::cerr;
-using std::endl;
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-using std::string;
-using std::vector;
-
-
 // filled in preamble.cpp
-std::map<char, int> special_columns;
+map<char, int> special_columns;
 
 
 namespace {
@@ -87,7 +80,7 @@ public:
 	/// These are for longtabulars only
 	/// row type (head, foot, firsthead etc.)
 	LTRowType type;
-	/// row for a pagebreak
+	/// row for a newpage
 	bool newpage;
 };
 
@@ -471,7 +464,7 @@ void fix_colalign(vector<ColInfo> & colinfo)
 bool parse_hlines(Parser & p, Token const & t, string & hlines,
 		  bool is_long_tabular)
 {
-	BOOST_ASSERT(t.cat() == catEscape);
+	LASSERT(t.cat() == catEscape, return false);
 
 	if (t.cs() == "hline")
 		hlines += "\\hline";

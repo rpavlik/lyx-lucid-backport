@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>QTocUi</class>
- <widget class="QWidget" name="QTocUi" >
+ <class>TocUi</class>
+ <widget class="QWidget" name="TocUi" >
   <property name="windowModality" >
    <enum>Qt::NonModal</enum>
   </property>
@@ -8,21 +8,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>185</width>
-    <height>250</height>
+    <width>202</width>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string/>
   </property>
-  <layout class="QGridLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
-   <property name="spacing" >
-    <number>6</number>
-   </property>
-   <item row="1" column="0" >
+  <layout class="QGridLayout" name="gridLayout" >
+   <item row="0" column="0" colspan="2" >
+    <widget class="QComboBox" name="typeCO" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Ignored" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip" >
+      <string>Switch between available lists (table of contents, list of figures, list of tables, and others)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2" >
     <widget class="QTreeView" name="tocTV" >
      <property name="sizePolicy" >
       <sizepolicy>
@@ -31,139 +38,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" >
-    <layout class="QHBoxLayout" >
-     <property name="margin" >
-      <number>0</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item>
-      <widget class="QToolButton" name="updateTB" >
-       <property name="toolTip" >
-        <string>Update navigation tree</string>
-       </property>
-       <property name="text" >
-        <string>...</string>
-       </property>
-       <property name="icon" >
-        <iconset>../../../../lib/images/reload.xpm</iconset>
-       </property>
-       <property name="iconSize" >
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>16</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QToolButton" name="moveOutTB" >
-       <property name="toolTip" >
-        <string>Decrease nesting depth of selected item</string>
-       </property>
-       <property name="text" >
-        <string>...</string>
-       </property>
-       <property name="icon" >
-        <iconset>../../../../lib/images/promote.xpm</iconset>
-       </property>
-       <property name="iconSize" >
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="moveInTB" >
-       <property name="toolTip" >
-        <string>Increase nesting depth of selected item</string>
-       </property>
-       <property name="text" >
-        <string>...</string>
-       </property>
-       <property name="icon" >
-        <iconset>../../../../lib/images/demote.xpm</iconset>
-       </property>
-       <property name="iconSize" >
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="moveDownTB" >
-       <property name="toolTip" >
-        <string>Move selected item down by one</string>
-       </property>
-       <property name="text" >
-        <string>...</string>
-       </property>
-       <property name="icon" >
-        <iconset>../../../../lib/images/down.xpm</iconset>
-       </property>
-       <property name="iconSize" >
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="moveUpTB" >
-       <property name="toolTip" >
-        <string>Move selected item up by one</string>
-       </property>
-       <property name="text" >
-        <string>...</string>
-       </property>
-       <property name="icon" >
-        <iconset>../../../../lib/images/up.xpm</iconset>
-       </property>
-       <property name="iconSize" >
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="0" column="0" >
-    <widget class="QComboBox" name="typeCO" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>13</hsizetype>
-       <vsizetype>0</vsizetype>
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="toolTip" >
-      <string>Switch between table of contents, list of figures or list of tables, if available</string>
      </property>
     </widget>
    </item>
@@ -197,15 +71,191 @@
      </property>
     </widget>
    </item>
+   <item row="2" column="1" >
+    <layout class="QVBoxLayout" name="_2" >
+     <property name="spacing" >
+      <number>0</number>
+     </property>
+     <property name="sizeConstraint" >
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+     <property name="margin" >
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QCheckBox" name="sortCB" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize" >
+        <size>
+         <width>0</width>
+         <height>21</height>
+        </size>
+       </property>
+       <property name="text" >
+        <string>Sort</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="persistentCB" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Minimum" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize" >
+        <size>
+         <width>0</width>
+         <height>21</height>
+        </size>
+       </property>
+       <property name="toolTip" >
+        <string>Try to keep persistent view of the uncollapsed nodes</string>
+       </property>
+       <property name="text" >
+        <string>Keep</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0" colspan="2" >
+    <layout class="QHBoxLayout" >
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QToolButton" name="updateTB" >
+       <property name="toolTip" >
+        <string>Update navigation tree</string>
+       </property>
+       <property name="text" >
+        <string>...</string>
+       </property>
+       <property name="icon" >
+        <iconset>
+         <normaloff>../../../../lib/images/reload.png</normaloff>../../../../lib/images/reload.png</iconset>
+       </property>
+       <property name="iconSize" >
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>16</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QToolButton" name="moveOutTB" >
+       <property name="toolTip" >
+        <string>Decrease nesting depth of selected item</string>
+       </property>
+       <property name="text" >
+        <string>...</string>
+       </property>
+       <property name="icon" >
+        <iconset>
+         <normaloff>../../../../lib/images/promote.png</normaloff>../../../../lib/images/promote.png</iconset>
+       </property>
+       <property name="iconSize" >
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="moveInTB" >
+       <property name="toolTip" >
+        <string>Increase nesting depth of selected item</string>
+       </property>
+       <property name="text" >
+        <string>...</string>
+       </property>
+       <property name="icon" >
+        <iconset>
+         <normaloff>../../../../lib/images/demote.png</normaloff>../../../../lib/images/demote.png</iconset>
+       </property>
+       <property name="iconSize" >
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="moveDownTB" >
+       <property name="toolTip" >
+        <string>Move selected item down by one</string>
+       </property>
+       <property name="text" >
+        <string>...</string>
+       </property>
+       <property name="icon" >
+        <iconset>
+         <normaloff>../../../../lib/images/down.png</normaloff>../../../../lib/images/down.png</iconset>
+       </property>
+       <property name="iconSize" >
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="moveUpTB" >
+       <property name="toolTip" >
+        <string>Move selected item up by one</string>
+       </property>
+       <property name="text" >
+        <string>...</string>
+       </property>
+       <property name="icon" >
+        <iconset>
+         <normaloff>../../../../lib/images/up.png</normaloff>../../../../lib/images/up.png</iconset>
+       </property>
+       <property name="iconSize" >
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>typeCO</tabstop>
   <tabstop>tocTV</tabstop>
-  <tabstop>depthSL</tabstop>
  </tabstops>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <resources/>
  <connections/>

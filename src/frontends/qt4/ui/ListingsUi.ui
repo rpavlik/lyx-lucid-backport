@@ -1,40 +1,20 @@
 <ui version="4.0" >
- <class>QListingsUi</class>
- <widget class="QDialog" name="QListingsUi" >
-  <property name="windowModality" >
-   <enum>Qt::NonModal</enum>
-  </property>
+ <class>ListingsUi</class>
+ <widget class="QDialog" name="ListingsUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>317</height>
+    <width>578</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Listing</string>
   </property>
-  <property name="sizeGripEnabled" >
-   <bool>true</bool>
-  </property>
-  <layout class="QGridLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
-   <property name="spacing" >
-    <number>6</number>
-   </property>
+  <layout class="QGridLayout" name="gridLayout_9" >
    <item row="0" column="0" >
     <widget class="QTabWidget" name="listingsTW" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>3</hsizetype>
-       <vsizetype>3</vsizetype>
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <property name="currentIndex" >
       <number>0</number>
      </property>
@@ -42,173 +22,20 @@
       <attribute name="title" >
        <string>&amp;Main Settings</string>
       </attribute>
-      <layout class="QGridLayout" >
-       <property name="margin" >
-        <number>9</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
-       <item rowspan="2" row="0" column="2" >
-        <widget class="QGroupBox" name="basicstyleGB" >
-         <property name="title" >
-          <string>Style</string>
-         </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
-          <item row="0" column="1" >
-           <widget class="QComboBox" name="fontsizeCO" >
-            <property name="sizePolicy" >
-             <sizepolicy>
-              <hsizetype>7</hsizetype>
-              <vsizetype>0</vsizetype>
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip" >
-             <string>The content's base font size</string>
-            </property>
-            <property name="editable" >
-             <bool>false</bool>
-            </property>
-            <property name="autoCompletion" >
-             <bool>true</bool>
-            </property>
-            <property name="duplicatesEnabled" >
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" >
-           <widget class="QLabel" name="fontsize_label_3" >
-            <property name="text" >
-             <string>F&amp;ont size:</string>
-            </property>
-            <property name="wordWrap" >
-             <bool>false</bool>
-            </property>
-            <property name="buddy" >
-             <cstring>fontsizeCO</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" >
-           <widget class="QComboBox" name="fontstyleCO" >
-            <property name="sizePolicy" >
-             <sizepolicy>
-              <hsizetype>7</hsizetype>
-              <vsizetype>0</vsizetype>
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip" >
-             <string>The content's base font style</string>
-            </property>
-            <property name="editable" >
-             <bool>false</bool>
-            </property>
-            <property name="autoCompletion" >
-             <bool>true</bool>
-            </property>
-            <property name="duplicatesEnabled" >
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" >
-           <widget class="QLabel" name="fontstyle_label_3" >
-            <property name="text" >
-             <string>Font Famil&amp;y:</string>
-            </property>
-            <property name="wordWrap" >
-             <bool>false</bool>
-            </property>
-            <property name="buddy" >
-             <cstring>fontstyleCO</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0" colspan="2" >
-           <widget class="QCheckBox" name="extendedcharsCB" >
-            <property name="enabled" >
-             <bool>true</bool>
-            </property>
-            <property name="toolTip" >
-             <string>Use extended character table</string>
-            </property>
-            <property name="text" >
-             <string>&amp;Extended character table</string>
-            </property>
-            <property name="shortcut" >
-             <number>276824133</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2" >
-           <widget class="QCheckBox" name="spaceInStringCB" >
-            <property name="toolTip" >
-             <string>Make spaces in strings visible by a special symbol</string>
-            </property>
-            <property name="text" >
-             <string>Space i&amp;n string as symbol</string>
-            </property>
-            <property name="shortcut" >
-             <number>276824147</number>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2" >
-           <widget class="QCheckBox" name="spaceCB" >
-            <property name="toolTip" >
-             <string>Make spaces visible by a special symbol</string>
-            </property>
-            <property name="text" >
-             <string>S&amp;pace as symbol</string>
-            </property>
-            <property name="shortcut" >
-             <number>276824147</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="2" >
-           <widget class="QCheckBox" name="breaklinesCB" >
-            <property name="toolTip" >
-             <string>Break lines longer than the linewidth</string>
-            </property>
-            <property name="text" >
-             <string>&amp;Break long lines</string>
-            </property>
-            <property name="shortcut" >
-             <number>276824130</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
+      <layout class="QGridLayout" name="gridLayout_6" >
        <item row="0" column="0" >
         <widget class="QGroupBox" name="placementGB" >
          <property name="title" >
           <string>Placement</string>
          </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
-          <item row="2" column="1" >
-           <widget class="QLineEdit" name="placementLE" >
+         <layout class="QGridLayout" name="gridLayout" >
+          <item row="0" column="0" colspan="2" >
+           <widget class="QCheckBox" name="inlineCB" >
             <property name="toolTip" >
-             <string>Specify placement (htbp) for floating listings</string>
+             <string>Check for inline listings</string>
+            </property>
+            <property name="text" >
+             <string>&amp;Inline listing</string>
             </property>
            </widget>
           </item>
@@ -219,16 +46,6 @@
             </property>
             <property name="text" >
              <string>&amp;Float</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2" >
-           <widget class="QCheckBox" name="inlineCB" >
-            <property name="toolTip" >
-             <string>Check for inline listings</string>
-            </property>
-            <property name="text" >
-             <string>&amp;Inline listing</string>
             </property>
            </widget>
           </item>
@@ -245,6 +62,13 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="1" >
+           <widget class="QLineEdit" name="placementLE" >
+            <property name="toolTip" >
+             <string>Specify placement (htbp) for floating listings</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -253,13 +77,17 @@
          <property name="title" >
           <string>Line numbering</string>
          </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
+         <layout class="QGridLayout" name="gridLayout_2" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="label" >
+            <property name="text" >
+             <string>&amp;Side:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>numberSideCO</cstring>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1" >
            <widget class="QComboBox" name="numberSideCO" >
             <property name="toolTip" >
@@ -280,43 +108,6 @@
               <string>Right</string>
              </property>
             </item>
-           </widget>
-          </item>
-          <item row="2" column="1" >
-           <widget class="QComboBox" name="numberFontSizeCO" >
-            <property name="sizePolicy" >
-             <sizepolicy>
-              <hsizetype>7</hsizetype>
-              <vsizetype>0</vsizetype>
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip" >
-             <string>Choose the font size for line numbers</string>
-            </property>
-            <property name="editable" >
-             <bool>false</bool>
-            </property>
-            <property name="autoCompletion" >
-             <bool>true</bool>
-            </property>
-            <property name="duplicatesEnabled" >
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" >
-           <widget class="QLabel" name="numberfontsizeL" >
-            <property name="text" >
-             <string>Font si&amp;ze:</string>
-            </property>
-            <property name="wordWrap" >
-             <bool>false</bool>
-            </property>
-            <property name="buddy" >
-             <cstring>numberFontSizeCO</cstring>
-            </property>
            </widget>
           </item>
           <item row="1" column="0" >
@@ -351,13 +142,185 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0" >
-           <widget class="QLabel" name="label" >
+          <item row="2" column="0" >
+           <widget class="QLabel" name="numberfontsizeL" >
             <property name="text" >
-             <string>&amp;Side:</string>
+             <string>Font si&amp;ze:</string>
+            </property>
+            <property name="wordWrap" >
+             <bool>false</bool>
             </property>
             <property name="buddy" >
-             <cstring>numberSideCO</cstring>
+             <cstring>numberFontSizeCO</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" >
+           <widget class="QComboBox" name="numberFontSizeCO" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip" >
+             <string>Choose the font size for line numbers</string>
+            </property>
+            <property name="editable" >
+             <bool>false</bool>
+            </property>
+            <property name="autoCompletion" >
+             <bool>true</bool>
+            </property>
+            <property name="duplicatesEnabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item rowspan="2" row="0" column="2" >
+        <widget class="QGroupBox" name="basicstyleGB" >
+         <property name="title" >
+          <string>Style</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="fontsize_label_3" >
+            <property name="text" >
+             <string>F&amp;ont size:</string>
+            </property>
+            <property name="wordWrap" >
+             <bool>false</bool>
+            </property>
+            <property name="buddy" >
+             <cstring>fontsizeCO</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QComboBox" name="fontsizeCO" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip" >
+             <string>The content's base font size</string>
+            </property>
+            <property name="editable" >
+             <bool>false</bool>
+            </property>
+            <property name="autoCompletion" >
+             <bool>true</bool>
+            </property>
+            <property name="duplicatesEnabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="fontstyle_label_3" >
+            <property name="text" >
+             <string>Font Famil&amp;y:</string>
+            </property>
+            <property name="wordWrap" >
+             <bool>false</bool>
+            </property>
+            <property name="buddy" >
+             <cstring>fontstyleCO</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QComboBox" name="fontstyleCO" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip" >
+             <string>The content's base font style</string>
+            </property>
+            <property name="editable" >
+             <bool>false</bool>
+            </property>
+            <property name="autoCompletion" >
+             <bool>true</bool>
+            </property>
+            <property name="duplicatesEnabled" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2" >
+           <widget class="QCheckBox" name="breaklinesCB" >
+            <property name="toolTip" >
+             <string>Break lines longer than the linewidth</string>
+            </property>
+            <property name="text" >
+             <string>&amp;Break long lines</string>
+            </property>
+            <property name="shortcut" >
+             <number>276824130</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2" >
+           <widget class="QCheckBox" name="spaceCB" >
+            <property name="toolTip" >
+             <string>Make spaces visible by a special symbol</string>
+            </property>
+            <property name="text" >
+             <string>S&amp;pace as symbol</string>
+            </property>
+            <property name="shortcut" >
+             <number>276824147</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2" >
+           <widget class="QCheckBox" name="spaceInStringCB" >
+            <property name="toolTip" >
+             <string>Make spaces in strings visible by a special symbol</string>
+            </property>
+            <property name="text" >
+             <string>Space i&amp;n string as symbol</string>
+            </property>
+            <property name="shortcut" >
+             <number>276824147</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" >
+           <widget class="QLabel" name="tabsizeL" >
+            <property name="text" >
+             <string>Tab&amp;ulator size:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>tabsizeSB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1" >
+           <widget class="QSpinBox" name="tabsizeSB" />
+          </item>
+          <item row="6" column="0" colspan="2" >
+           <widget class="QCheckBox" name="extendedcharsCB" >
+            <property name="enabled" >
+             <bool>true</bool>
+            </property>
+            <property name="toolTip" >
+             <string>Use extended character table</string>
+            </property>
+            <property name="text" >
+             <string>&amp;Extended character table</string>
+            </property>
+            <property name="shortcut" >
+             <number>276824133</number>
             </property>
            </widget>
           </item>
@@ -369,30 +332,7 @@
          <property name="title" >
           <string>Language</string>
          </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
-          <item row="1" column="1" >
-           <widget class="QComboBox" name="dialectCO" >
-            <property name="toolTip" >
-             <string>Select the dialect of the programming language, if available</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" >
-           <widget class="QLabel" name="dialectLBL" >
-            <property name="text" >
-             <string>&amp;Dialect:</string>
-            </property>
-            <property name="buddy" >
-             <cstring>dialectCO</cstring>
-            </property>
-           </widget>
-          </item>
+         <layout class="QGridLayout" name="gridLayout_3" >
           <item row="0" column="0" >
            <widget class="QLabel" name="languageLBL" >
             <property name="text" >
@@ -410,6 +350,23 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="0" >
+           <widget class="QLabel" name="dialectLBL" >
+            <property name="text" >
+             <string>&amp;Dialect:</string>
+            </property>
+            <property name="buddy" >
+             <cstring>dialectCO</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" >
+           <widget class="QComboBox" name="dialectCO" >
+            <property name="toolTip" >
+             <string>Select the dialect of the programming language, if available</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -418,13 +375,33 @@
          <property name="title" >
           <string>Range</string>
          </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
+         <layout class="QGridLayout" name="gridLayout_4" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="numberfontsizeL_3" >
+            <property name="text" >
+             <string>Fi&amp;rst line:</string>
+            </property>
+            <property name="wordWrap" >
+             <bool>false</bool>
+            </property>
+            <property name="buddy" >
+             <cstring>firstlineLE</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" >
+           <widget class="QLineEdit" name="firstlineLE" >
+            <property name="toolTip" >
+             <string>The first line to be printed</string>
+            </property>
+            <property name="text" >
+             <string/>
+            </property>
+            <property name="alignment" >
+             <set>Qt::AlignLeading</set>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0" >
            <widget class="QLabel" name="numberfontsizeL_2" >
             <property name="text" >
@@ -451,32 +428,6 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1" >
-           <widget class="QLineEdit" name="firstlineLE" >
-            <property name="toolTip" >
-             <string>The first line to be printed</string>
-            </property>
-            <property name="text" >
-             <string/>
-            </property>
-            <property name="alignment" >
-             <set>Qt::AlignLeading</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" >
-           <widget class="QLabel" name="numberfontsizeL_3" >
-            <property name="text" >
-             <string>Fi&amp;rst line:</string>
-            </property>
-            <property name="wordWrap" >
-             <bool>false</bool>
-            </property>
-            <property name="buddy" >
-             <cstring>firstlineLE</cstring>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -486,19 +437,11 @@
       <attribute name="title" >
        <string>Ad&amp;vanced</string>
       </attribute>
-      <layout class="QGridLayout" >
-       <property name="margin" >
-        <number>9</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
+      <layout class="QGridLayout" name="gridLayout_8" >
        <item row="0" column="0" >
         <widget class="QGroupBox" name="listingsGB" >
          <property name="sizePolicy" >
-          <sizepolicy>
-           <hsizetype>3</hsizetype>
-           <vsizetype>3</vsizetype>
+          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -506,23 +449,7 @@
          <property name="title" >
           <string>More Parameters</string>
          </property>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>9</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
-          <item row="1" column="0" >
-           <widget class="QCheckBox" name="bypassCB" >
-            <property name="toolTip" >
-             <string>Check it to enter parameters that are not recognizable by LyX</string>
-            </property>
-            <property name="text" >
-             <string>&amp;Bypass validation</string>
-            </property>
-           </widget>
-          </item>
+         <layout class="QGridLayout" name="gridLayout_7" >
           <item row="0" column="0" >
            <widget class="QSplitter" name="splitter" >
             <property name="orientation" >
@@ -535,9 +462,6 @@
                <height>16777215</height>
               </size>
              </property>
-             <property name="cursor" >
-              <cursor>0</cursor>
-             </property>
              <property name="acceptDrops" >
               <bool>false</bool>
              </property>
@@ -545,13 +469,10 @@
               <string>Feedback window</string>
              </property>
              <property name="frameShape" >
-              <enum>QFrame::NoFrame</enum>
+              <enum>QFrame::Box</enum>
              </property>
              <property name="frameShadow" >
               <enum>QFrame::Plain</enum>
-             </property>
-             <property name="lineWidth" >
-              <number>0</number>
              </property>
              <property name="acceptRichText" >
               <bool>false</bool>
@@ -559,9 +480,7 @@
             </widget>
             <widget class="QTextEdit" name="listingsED" >
              <property name="sizePolicy" >
-              <sizepolicy>
-               <hsizetype>3</hsizetype>
-               <vsizetype>3</vsizetype>
+              <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -572,6 +491,16 @@
             </widget>
            </widget>
           </item>
+          <item row="1" column="0" >
+           <widget class="QCheckBox" name="bypassCB" >
+            <property name="toolTip" >
+             <string>Check it to enter parameters that are not recognizable by LyX</string>
+            </property>
+            <property name="text" >
+             <string>&amp;Bypass validation</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -580,25 +509,16 @@
     </widget>
    </item>
    <item row="1" column="0" >
-    <layout class="QHBoxLayout" >
-     <property name="margin" >
-      <number>0</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
+    <layout class="QHBoxLayout" name="horizontalLayout" >
      <item>
-      <spacer>
+      <spacer name="horizontalSpacer" >
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" >
+       <property name="sizeHint" stdset="0" >
         <size>
-         <width>221</width>
-         <height>27</height>
+         <width>40</width>
+         <height>20</height>
         </size>
        </property>
       </spacer>
@@ -659,7 +579,7 @@
   <tabstop>listingsED</tabstop>
  </tabstops>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <resources/>
  <connections/>

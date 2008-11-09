@@ -13,23 +13,18 @@
 #include <config.h>
 
 #include "KeySequence.h"
-
-#include "gettext.h"
 #include "KeyMap.h"
-#include "lfuns.h"
+
+#include "support/gettext.h"
 
 #include "frontends/KeySymbol.h"
 
-using std::make_pair;
-using std::string;
-
+using namespace std;
 
 namespace lyx {
 
-
-FuncRequest const &
-KeySequence::addkey(KeySymbolPtr key,
-		    key_modifier::state mod, key_modifier::state nmod)
+FuncRequest const & KeySequence::addkey(KeySymbol const & key,
+	KeyModifier mod, KeyModifier nmod)
 {
 	// adding a key to a deleted sequence
 	// starts a new sequence
@@ -42,12 +37,10 @@ KeySequence::addkey(KeySymbolPtr key,
 	modifiers.push_back(make_pair(mod, nmod));
 	sequence.push_back(key);
 
-	if (curmap) {
+	if (curmap)
 		return curmap->lookup(key, mod, this);
-	}
 
-	static FuncRequest unknown(LFUN_UNKNOWN_ACTION);
-	return unknown;
+	return FuncRequest::unknown;
 }
 
 
@@ -57,8 +50,8 @@ size_t KeySequence::parse(string const & s)
 		return 1;
 
 	size_t i = 0;
-	key_modifier::state mod = key_modifier::none;
-	key_modifier::state nmod = key_modifier::none;
+	KeyModifier mod = NoModifier;
+	KeyModifier nmod = NoModifier;
 
 	while (i < s.length()) {
 		if (s[i] == ' ')
@@ -69,15 +62,15 @@ size_t KeySequence::parse(string const & s)
 		if (i + 1 < s.length() && s[i + 1] == '-') {
 			switch (s[i]) {
 			case 's': case 'S':
-				mod |= key_modifier::shift;
+				mod |= ShiftModifier;
 				i += 2;
 				continue;
 			case 'c': case 'C':
-				mod |= key_modifier::ctrl;
+				mod |= ControlModifier;
 				i += 2;
 				continue;
 			case 'm': case 'M':
-				mod |= key_modifier::alt;
+				mod |= AltModifier;
 				i += 2;
 				continue;
 			default:
@@ -87,15 +80,15 @@ size_t KeySequence::parse(string const & s)
 			   && s[i + 2] == '-') {
 			switch (s[i + 1]) {
 			case 's': case 'S':
-				nmod |= key_modifier::shift;
+				nmod |= ShiftModifier;
 				i += 3;
 				continue;
 			case 'c': case 'C':
-				nmod |= key_modifier::ctrl;
+				nmod |= ControlModifier;
 				i += 3;
 				continue;
 			case 'm': case 'M':
-				nmod |= key_modifier::alt;
+				nmod |= AltModifier;
 				i += 3;
 				continue;
 			default:
@@ -107,16 +100,16 @@ size_t KeySequence::parse(string const & s)
 			for (; j < s.length() && s[j] != ' '; ++j)
 				tbuf += s[j];    // (!!!check bounds :-)
 
-			KeySymbolPtr key(createKeySymbol());
-			key->init(tbuf);
+			KeySymbol key;
+			key.init(tbuf);
 
-			if (!key->isOK())
+			if (!key.isOK())
 				return j;
 
 			i = j;
 
 			addkey(key, mod, nmod);
-			mod = key_modifier::none;
+			mod = NoModifier;
 		}
 	}
 
@@ -129,16 +122,34 @@ size_t KeySequence::parse(string const & s)
 }
 
 
-docstring const KeySequence::print(bool forgui) const
+docstring const KeySequence::print(outputFormat format) const
 {
 	docstring buf;
 
 	size_t const length = sequence.size();
 
-	for (size_t i = 0; i < length; ++i) {
-		buf += sequence[i]->print(modifiers[i].first, forgui);
+	for (size_t i = 0; i != length; ++i) {
+		switch (format) {
+		case Portable:
+			buf += sequence[i].print(modifiers[i].first, false);
+			break;
+		case ForGui:
+			buf += sequence[i].print(modifiers[i].first, true);
+			break;
+		case BindFile:
+			KeyModifier mod = modifiers[i].first;
+			if (mod & ControlModifier)
+				buf += "C-";
+			if (mod & AltModifier)
+				buf += "M-";
+			if (mod & ShiftModifier)
+				buf += "S-";
+		
+			buf += from_utf8(sequence[i].getSymbolName());
+			break;
+		}
 		// append a blank
-		if (i + 1 < length)
+		if (i + 1 != length)
 			buf += ' ';
 	}
 	return buf;
@@ -147,15 +158,13 @@ docstring const KeySequence::print(bool forgui) const
 
 docstring const KeySequence::printOptions(bool forgui) const
 {
-	docstring buf;
-
-	buf += print(forgui);
+	docstring buf = print(forgui ? ForGui : Portable);
 
 	if (!curmap)
 		return buf;
 
 	buf += _("   options: ");
-	buf += curmap->print(forgui);
+	buf += curmap->print(forgui ? ForGui : Portable);
 	return buf;
 }
 
@@ -172,10 +181,20 @@ void KeySequence::reset()
 	curmap = stdmap;
 }
 
+
 void KeySequence::clear()
 {
 	sequence.clear();
 	reset();
+}
+
+
+void KeySequence::removeKey()
+{
+	if (deleted_)
+		return;
+	sequence.pop_back();
+	modifiers.pop_back();
 }
 
 

@@ -9,10 +9,37 @@
 
 # Full author contact details are available in file CREDITS
 
-# This script will update a .layout file to format 3
+# This script will update a .layout file to format 6
 
 
 import os, re, string, sys
+
+# Incremented to format 4, 6 April 2007, lasgouttes
+# Introduction of generic "Provides" declaration
+
+# Incremented to format 5, 22 August 2007 by vermeer
+# InsetLayout material
+
+# Incremented to format 6, 7 January 2008 by spitz
+# Requires tag added to layout files
+
+# Incremented to format 7, 24 March 2008 by rgh
+# AddToPreamble tag added to layout files
+
+# Incremented to format 8, 25 July 2008 by rgh
+# UseModule tag added to layout files
+# CopyStyle added to InsetLayout
+
+# Incremented to format 9, 5 October 2008 by rgh
+# ForcePlain and CustomPars tags added to InsetLayout
+
+# Incremented to format 10, 6 October 2008 by rgh
+# Change format of counters
+
+# Incremented to format 11, 14 October 2008 by rgh
+# Add ProvidesModule, ExcludesModule tags
+
+currentFormat = 11
 
 
 def usage(prog_name):
@@ -62,10 +89,19 @@ def concatenate_label(old, new):
     else:
         return '"' + old + new + '"'
 
+# appends a string to a list unless it's already there
+def addstring(s, l):
+    if l.count(s) > 0:
+        return
+    l.append(s)
+
 
 def convert(lines):
     " Convert to new format."
     re_Comment = re.compile(r'^(\s*)#')
+    re_Counter = re.compile(r'\s*Counter\s*', re.IGNORECASE)
+    re_Name = re.compile(r'\s*Name\s+(\S+)\s*', re.IGNORECASE)
+    re_UseMod = re.compile(r'^\s*UseModule\s+(.*)', re.IGNORECASE)
     re_Empty = re.compile(r'^(\s*)$')
     re_Format = re.compile(r'^(\s*)(Format)(\s+)(\S+)', re.IGNORECASE)
     re_Preamble = re.compile(r'^(\s*)Preamble', re.IGNORECASE)
@@ -80,6 +116,10 @@ def convert(lines):
     re_NoStyle = re.compile(r'^(\s*)(NoStyle)(\s+)(\S+)', re.IGNORECASE)
     re_End = re.compile(r'^(\s*)(End)(\s*)$', re.IGNORECASE)
     re_Provides = re.compile(r'^(\s*)Provides(\S+)(\s+)(\S+)', re.IGNORECASE)
+    re_CharStyle = re.compile(r'^(\s*)CharStyle(\s+)(\S+)$', re.IGNORECASE)
+    re_AMSMaths = re.compile(r'^\s*Input amsmaths.inc\s*')
+    re_AMSMathsPlain = re.compile(r'^\s*Input amsmaths-plain.inc\s*')
+    re_AMSMathsSeq = re.compile(r'^\s*Input amsmaths-seq.inc\s*')
 
     # counters for sectioning styles (hardcoded in 1.3)
     counters = {"part"          : "\\Roman{part}",
@@ -122,36 +162,110 @@ def convert(lines):
     style = ""
     maxcounter = 0
     format = 1
-    while i < len(lines):
+    formatline = 0
+    usemodules = []
 
+    while i < len(lines):
         # Skip comments and empty lines
         if re_Comment.match(lines[i]) or re_Empty.match(lines[i]):
-            i = i + 1
+            i += 1
             continue
 
         # insert file format if not already there
         if (only_comment):
-                match = re_Format.match(lines[i])
-                if match:
-                        format = int(match.group(4))
-                        if format > 1 and format < 4:
-                            lines[i] = "Format %d" % (format + 1)
-                            only_comment = 0
-                        elif format == 4:
-                                # nothing to do
-                                return format
-                        else:
-                            error('Cannot convert file format %s' % format)
+            match = re_Format.match(lines[i])
+            if match:
+                formatline = i
+                format = int(match.group(4))
+                if format > 1 and format < currentFormat:
+                    lines[i] = "Format %d" % (format + 1)
+                    only_comment = 0
+                elif format == currentFormat:
+                    # nothing to do
+                    return format
                 else:
-                        lines.insert(i, "Format 2")
-                        only_comment = 0
-                        continue
+                    error('Cannot convert file format %s' % format)
+            else:
+                lines.insert(i, "Format 2")
+                only_comment = 0
+                continue
 
         # Don't get confused by LaTeX code
         if re_Preamble.match(lines[i]):
-            i = i + 1
+            i += 1
             while i < len(lines) and not re_EndPreamble.match(lines[i]):
-                i = i + 1
+                i += 1
+            continue
+
+        if format == 10:
+            match = re_UseMod.match(lines[i])
+            if match:
+                module = match.group(1)
+                lines[i] = "DefaultModule " + module
+            i += 1
+            continue
+
+        if format == 9:
+            match = re_Counter.match(lines[i])
+            if match:
+                counterline = i
+                i += 1
+                while i < len(lines):
+                    namem = re_Name.match(lines[i])
+                    if namem:
+                        name = namem.group(1)
+                        lines.pop(i)
+                        lines[counterline] = "Counter %s" % name
+                        # we don't need to increment i
+                        continue
+                    endem = re_End.match(lines[i])
+                    if endem:
+                        i += 1
+                        break
+                    i += 1
+            i += 1
+            continue
+
+        if format == 8:
+            # We want to scan for ams-type includes and, if we find them,
+            # add corresponding UseModule tags to the layout.
+            match = re_AMSMaths.match(lines[i])
+            if match:
+                addstring("theorems-ams", usemodules)
+                addstring("theorems-ams-extended", usemodules)
+                addstring("theorems-sec", usemodules)
+                lines.pop(i)
+                continue
+            match = re_AMSMathsPlain.match(lines[i])
+            if match:
+                addstring("theorems-starred", usemodules)
+                lines.pop(i)
+                continue
+            match = re_AMSMathsSeq.match(lines[i])
+            if match:
+                addstring("theorems-ams", usemodules)
+                addstring("theorems-ams-extended", usemodules)
+                lines.pop(i)
+                continue
+            i += 1
+            continue
+
+        # These just involved new features, not any changes to old ones
+        if format >= 5 and format <= 7:
+          i += 1
+          continue
+
+        if format == 4:
+            # Handle conversion to long CharStyle names
+            match = re_CharStyle.match(lines[i])
+            if match:
+                lines[i] = "InsetLayout CharStyle:%s" % (match.group(3))
+                i += 1
+                lines.insert(i, "\tLyXType charstyle")
+                i += 1
+                lines.insert(i, "")
+                lines[i] = "\tLabelString %s" % (match.group(3))
+            i += 1
             continue
 
         if format == 3:
@@ -162,7 +276,7 @@ def convert(lines):
             if match:
                 lines[i] = "%sProvides %s%s%s" % (match.group(1), match.group(2).lower(),
                                                   match.group(3), match.group(4))
-            i = i + 1
+            i += 1
             continue
 
         if format == 2:
@@ -219,7 +333,7 @@ def convert(lines):
                                         '	  Series              Bold',
                                         '	EndFont']
 
-            i = i + 1
+            i += 1
             continue
 
         # Delete MaxCounter and remember the value of it
@@ -308,7 +422,7 @@ def convert(lines):
             if string.lower(label) == "bibliography":
                 if (latextype_line < 0):
                     lines.insert(i, "%sLatexType Bib_Environment" % space1)
-                    i = i + 1
+                    i += 1
                 else:
                     lines[latextype_line] = re_LatexType.sub(r'\1\2\3Bib_Environment', lines[latextype_line])
 
@@ -337,7 +451,7 @@ def convert(lines):
                 if counters.has_key(style):
                     if labelstring_line < 0:
                         lines.insert(i, '%sLabelString "%s"' % (space1, counters[style]))
-                        i = i + 1
+                        i += 1
                     else:
                         new_labelstring = concatenate_label(labelstring, counters[style])
                         lines[labelstring_line] = re_LabelString.sub(
@@ -346,7 +460,7 @@ def convert(lines):
                 if appendixcounters.has_key(style):
                     if labelstringappendix_line < 0:
                         lines.insert(i, '%sLabelStringAppendix "%s"' % (space1, appendixcounters[style]))
-                        i = i + 1
+                        i += 1
                     else:
                         new_labelstring = concatenate_label(labelstring, appendixcounters[style])
                         lines[labelstringappendix_line] = re_LabelStringAppendix.sub(
@@ -355,14 +469,20 @@ def convert(lines):
 
                 # Now we can safely add the LabelCounter line
                 lines.insert(labeltype_line + 1, "%sLabelCounter %s" % (space1, counter))
-                i = i + 1
+                i += 1
 
             # Add the TocLevel setting for sectioning styles
             if toclevels.has_key(style) and maxcounter <= toclevels[style]:
                 lines.insert(i, '%sTocLevel %d' % (space1, toclevels[style]))
-                i = i + 1
+                i += 1
 
-        i = i + 1
+        i += 1
+
+    if usemodules:
+        i = formatline + 1
+        for mod in usemodules:
+            lines.insert(i, "UseModule " + mod)
+            i += 1
 
     return format + 1
 
@@ -382,7 +502,7 @@ def main(argv):
     # Do the real work
     lines = read(input)
     format = 1
-    while (format < 4):
+    while (format < currentFormat):
         format = convert(lines)
     write(output, lines)
 

@@ -1,8 +1,9 @@
-#LyX 1.5.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass agu-dtd
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman default
@@ -16,6 +17,7 @@
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -33,6 +35,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -42,24 +46,20 @@
 \end_layout
 
 \begin_layout AGU-journal
+\begin_inset Flex Element:ISSN
+status collapsed
 
-
-\begin_inset CharStyle ISSN
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 1234-2345
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle CODEN
-status inlined
+\begin_inset Flex Element:CODEN
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 GGGGFR
 \end_layout
 
@@ -69,24 +69,20 @@ GGGGFR
 \end_layout
 
 \begin_layout Special-section
+\begin_inset Flex Element:SS-Code
+status collapsed
 
-
-\begin_inset CharStyle SS-Code
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 INPUT1
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle SS-Title
-status inlined
+\begin_inset Flex Element:SS-Title
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Special section for data
 \end_layout
 
@@ -96,24 +92,20 @@ Special section for data
 \end_layout
 
 \begin_layout AGU-volume
+\begin_inset Flex Element:Volume
+status collapsed
 
-
-\begin_inset CharStyle Volume
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 3
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 2001
 \end_layout
 
@@ -123,35 +115,30 @@ status inlined
 \end_layout
 
 \begin_layout AGU-issue
+\begin_inset Flex Element:Issue-number
+status collapsed
 
-
-\begin_inset CharStyle Issue-number
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 7
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Issue-day
-status inlined
+\begin_inset Flex Element:Issue-day
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 13
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Issue-months
-status inlined
+\begin_inset Flex Element:Issue-months
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Sep-Oct
 \end_layout
 
@@ -161,35 +148,30 @@ Sep-Oct
 \end_layout
 
 \begin_layout Received
+\begin_inset Flex Element:Day
+status collapsed
 
-
-\begin_inset CharStyle Day
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 23
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Month
-status inlined
+\begin_inset Flex Element:Month
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 1
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 1999
 \end_layout
 
@@ -199,32 +181,30 @@ status inlined
 \end_layout
 
 \begin_layout Revised
+\begin_inset Flex Element:Day
+status collapsed
 
-
-\begin_inset CharStyle Day
-status inlined
-
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Month
-status inlined
+\begin_inset Flex Element:Month
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -234,32 +214,30 @@ status inlined
 \end_layout
 
 \begin_layout Accepted
+\begin_inset Flex Element:Day
+status collapsed
 
-
-\begin_inset CharStyle Day
-status inlined
-
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Month
-status inlined
+\begin_inset Flex Element:Month
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -269,7 +247,6 @@ status inlined
 \end_layout
 
 \begin_layout Posting-order
-
 80
 \end_layout
 
@@ -294,24 +271,20 @@ status inlined
 \end_layout
 
 \begin_layout Copyright
+\begin_inset Flex Element:CCC-Code
+status collapsed
 
-
-\begin_inset CharStyle CCC-Code
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 3524-2044/01/2001GC000435$00.00
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 2001
 \end_layout
 
@@ -321,12 +294,10 @@ status inlined
 \end_layout
 
 \begin_layout Ident-line
-
 A line identifying this article
 \end_layout
 
 \begin_layout Runhead
-
 Vermeer at al.: AGU journal sample file
 \end_layout
 
@@ -335,24 +306,20 @@ Vermeer at al.: AGU journal sample file
 \end_layout
 
 \begin_layout Index-term
+\begin_inset Flex Element:Code
+status collapsed
 
-
-\begin_inset CharStyle Code
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 666
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Dscr
-status inlined
+\begin_inset Flex Element:Dscr
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Geodesy: crustal motion
 \end_layout
 
@@ -362,22 +329,20 @@ Geodesy: crustal motion
 \end_layout
 
 \begin_layout Index-term
+\begin_inset Flex Element:Code
+status collapsed
 
-
-\begin_inset CharStyle Code
-status inlined
-
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Dscr
-status inlined
+\begin_inset Flex Element:Dscr
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -387,24 +352,20 @@ status inlined
 \end_layout
 
 \begin_layout Keywords
+\begin_inset Flex Element:Keyword
+status collapsed
 
-
-\begin_inset CharStyle Keyword
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Crust
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Keyword
-status inlined
+\begin_inset Flex Element:Keyword
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Motion
 \end_layout
 
@@ -422,12 +383,10 @@ Motion
 \end_layout
 
 \begin_layout Standard
-
 Put a note here
 \end_layout
 
 \begin_layout Cite-other
-
 www link
 \end_layout
 
@@ -440,18 +399,14 @@ www link
 \end_layout
 
 \begin_layout Standard
-
 another note, no link
 \end_layout
 
 \begin_layout Affiliation
+\begin_inset Flex Element:Orgdiv
+status collapsed
 
-
-\begin_inset CharStyle Orgdiv
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Dept.
  of Surveying
 \end_layout
@@ -459,128 +414,12 @@ Dept.
 \end_inset
 
 
-\begin_inset CharStyle Orgname
-status inlined
+\begin_inset Flex Element:Orgname
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Helsinki U.
  Tech
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Street
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle City
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle State
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Postcode
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Country
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Affiliation
-
-
-\begin_inset CharStyle Orgdiv
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Orgname
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Street
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle City
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Postcode
-status inlined
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Country
-status inlined
-
-\begin_layout Standard
-
 \end_layout
 
 \end_inset
@@ -589,18 +428,14 @@ status inlined
 \end_layout
 
 \begin_layout Title
-
 Title of the article
 \end_layout
 
 \begin_layout Citation
+\begin_inset Flex Element:Abbrev
+status collapsed
 
-
-\begin_inset CharStyle Abbrev
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 J.
  Geophys.
  Res.
@@ -609,44 +444,31 @@ J.
 \end_inset
 
 
-\begin_inset CharStyle Volume
-status inlined
+\begin_inset Flex Element:Volume
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 4
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Issue-number
-status inlined
+\begin_inset Flex Element:Issue-number
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 7
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Citation-number
-status inlined
+\begin_inset Flex Element:Citation-number
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 333
-\end_layout
-
-\end_inset
-
-
-\begin_inset CharStyle Year
-status inlined
-
-\begin_layout Standard
-
 \end_layout
 
 \end_inset
@@ -656,31 +478,30 @@ status inlined
 
 \begin_layout Date
 \noindent
+\begin_inset Flex Element:Day
+status collapsed
 
-\begin_inset CharStyle Day
-status inlined
-
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
  
-\begin_inset CharStyle Month
-status inlined
+\begin_inset Flex Element:Month
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Year
-status inlined
+\begin_inset Flex Element:Year
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -691,23 +512,20 @@ status inlined
 
 \begin_layout Author
 \noindent
+\begin_inset Flex Element:Firstname
+status collapsed
 
-\begin_inset CharStyle Firstname
-status inlined
-
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Joe
 \end_layout
 
 \end_inset
 
 
-\begin_inset CharStyle Surname
-status inlined
+\begin_inset Flex Element:Surname
+status collapsed
 
-\begin_layout Standard
-
+\begin_layout Plain Layout
 Doe
 \end_layout
 
@@ -717,17 +535,14 @@ Doe
 \end_layout
 
 \begin_layout Abstract
-
 This is the abstract text.
 \end_layout
 
 \begin_layout Section
-
 First Section
 \end_layout
 
 \begin_layout Standard
-
 section text
 \end_layout
 

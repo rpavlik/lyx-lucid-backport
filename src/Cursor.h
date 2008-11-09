@@ -14,8 +14,11 @@
 
 #include "DispatchResult.h"
 #include "DocIterator.h"
+#include "Font.h"
+#include "Undo.h"
 
-#include <iosfwd>
+#include "mathed/MathParser_flags.h"
+
 #include <vector>
 
 
@@ -25,7 +28,6 @@ class Buffer;
 class BufferView;
 class FuncStatus;
 class FuncRequest;
-class Font;
 class Row;
 
 // these should go
@@ -37,7 +39,8 @@ class Encoding;
 
 // The public inheritance should go in favour of a suitable data member
 // (or maybe private inheritance) at some point of time.
-class Cursor : public DocIterator {
+class Cursor : public DocIterator
+{
 public:
 	/// create the cursor of a BufferView
 	explicit Cursor(BufferView & bv);
@@ -48,30 +51,39 @@ public:
 	DispatchResult result() const;
 	/// add a new cursor slice
 	void push(Inset & inset);
-	/// add a new cursor slice, place cursor on left end
-	void pushLeft(Inset & inset);
+	/// add a new cursor slice, place cursor at front (move backwards)
+	void pushBackward(Inset & inset);
 	/// pop one level off the cursor
 	void pop();
-	/// pop one slice off the cursor stack and go left
-	bool popLeft();
-	/// pop one slice off the cursor stack and go right
-	bool popRight();
+	/// pop one slice off the cursor stack and go backwards
+	bool popBackward();
+	/// pop one slice off the cursor stack and go forward
+	bool popForward();
 	/// make sure we are outside of given inset
 	void leaveInset(Inset const & inset);
 	/// sets cursor part
 	void setCursor(DocIterator const & it);
+
+	///
+	void setCurrentFont();
 
 	//
 	// selection
 	//
 	/// selection active?
 	bool selection() const { return selection_; }
-	/// selection active?
-	bool & selection() { return selection_; }
+	/// set selection;
+	void setSelection(bool sel) { selection_ = sel; }
+	/// do we have a multicell selection?
+	bool selIsMultiCell() const 
+		{ return selection_ && selBegin().idx() != selEnd().idx(); }
+	/// do we have a multiline selection?
+	bool selIsMultiLine() const 
+		{ return selection_ && selBegin().pit() != selEnd().pit(); }
 	/// did we place the anchor?
 	bool mark() const { return mark_; }
 	/// did we place the anchor?
-	bool & mark() { return mark_; }
+	void setMark(bool mark) { mark_ = mark; }
 	///
 	void setSelection();
 	/// set selection at given position
@@ -86,12 +98,17 @@ public:
 	DocIterator selectionBegin() const;
 	/// access start of selection
 	DocIterator selectionEnd() const;
-	/// FIXME: document this
+	/**
+	 * Update the selection status and save permanent
+	 * selection if needed.
+	 * @param selecting the new selection status
+	 * @return whether the selection status has changed
+	 */
 	bool selHandle(bool selecting);
 	///
 	docstring selectionAsString(bool label) const;
 	///
-	docstring currentState();
+	docstring currentState() const;
 
 	/// auto-correct mode
 	bool autocorrect() const { return autocorrect_; }
@@ -103,16 +120,54 @@ public:
 	bool & macromode() { return macromode_; }
 	/// returns x,y position
 	void getPos(int & x, int & y) const;
+	/// return logical positions between which the cursor is situated
+	/**
+	 * If the cursor is at the edge of a row, the position which is "over the 
+	 * edge" will be returned as -1.
+	 */
+	void getSurroundingPos(pos_type & left_pos, pos_type & right_pos);
 	/// the row in the paragraph we're in
 	Row const & textRow() const;
 
 	//
 	// common part
 	//
-	/// move one step to the left
-	bool posLeft();
-	/// move one step to the right
-	bool posRight();
+	/// move one step backwards
+	bool posBackward();
+	/// move one step forward
+	bool posForward();
+	/// move visually one step to the right
+	/**
+	 * @note: This method may move into an inset unless skip_inset == true.
+	 * @note: This method may move into a new paragraph.
+	 * @note: This method may move out of the current slice.
+	 * @return: true if moved, false if not moved
+	 */
+	bool posVisRight(bool skip_inset = false);
+	/// move visually one step to the left
+	/**
+	 * @note: This method may move into an inset unless skip_inset == true.
+	 * @note: This method may move into a new paragraph.
+	 * @note: This method may move out of the current slice.
+	 * @return: true if moved, false if not moved
+	 */
+	bool posVisLeft(bool skip_inset = false);
+	/// move visually to next/previous row
+	/**
+	 * Assuming we were to keep moving left (right) from the current cursor
+	 * position, place the cursor at the rightmost (leftmost) edge of the 
+	 * new row to which we would move according to visual-mode cursor movement.
+	 * This could be either the next or the previous row, depending on the
+	 * direction in which we're moving, and whether we're in an LTR or RTL 
+	 * paragraph. 
+	 * @note: The new position may even be in a new paragraph.
+	 * @note: This method will not move out of the current slice.
+	 * @return: false if not moved (no more rows to move to in given direction)
+	 * @return: true if moved
+	 */
+	bool posVisToNewRow(bool movingLeft);
+	/// move to right or left extremity of the current row
+	void posVisToRowExtremity(bool left);
 
 	/// insert an inset
 	void insert(Inset *);
@@ -185,6 +240,43 @@ public:
 
 	/// output
 	friend std::ostream & operator<<(std::ostream & os, Cursor const & cur);
+	friend LyXErr & operator<<(LyXErr & os, Cursor const & cur);
+
+	///
+	bool textUndo();
+	///
+	bool textRedo();
+
+	/// makes sure the next operation will be stored
+	void finishUndo() const;
+
+	/// open a new group of undo operations. Groups can be nested.
+	void beginUndoGroup() const;
+
+	/// end the current undo group
+	void endUndoGroup() const;
+
+	/// The general case: prepare undo for an arbitrary range.
+	void recordUndo(UndoKind kind, pit_type from, pit_type to) const;
+
+	/// Convenience: prepare undo for the range between 'from' and cursor.
+	void recordUndo(UndoKind kind, pit_type from) const;
+
+	/// Convenience: prepare undo for the single paragraph or cell
+	/// containing the cursor
+	void recordUndo(UndoKind kind = ATOMIC_UNDO) const;
+
+	/// Convenience: prepare undo for the inset containing the cursor
+	void recordUndoInset(UndoKind kind = ATOMIC_UNDO) const;
+
+	/// Convenience: prepare undo for the whole buffer
+	void recordUndoFullDocument() const;
+
+	/// Convenience: prepare undo for the selected paragraphs or cells
+	void recordUndoSelection() const;
+
+	///
+	void checkBufferStructure();
 
 public:
 	///
@@ -225,6 +317,13 @@ private:
 	bool logicalpos_;
 	/// position before dispatch started
 	DocIterator beforeDispatchCursor_;
+
+// FIXME: make them private.
+public:
+	/// the current font settings
+	Font current_font;
+	/// the current font
+	Font real_current_font;
 
 private:
 
@@ -274,7 +373,7 @@ public:
 	///
 	void niceInsert(MathAtom const & at);
 	///
-	void niceInsert(docstring const & str);
+	void niceInsert(docstring const & str, Parse::flags f = Parse::NORMAL);
 
 	/// in pixels from top of screen
 	void setScreenPos(int x, int y);
@@ -287,12 +386,14 @@ public:
 	bool inMacroMode() const;
 	/// get access to the macro we are currently typing
 	InsetMathUnknown * activeMacro();
+	/// get access to the macro we are currently typing
+	InsetMathUnknown const * activeMacro() const;
 
 	/// replace selected stuff with at, placing the former
 	// selection in given cell of atom
 	void handleNest(MathAtom const & at, int cell = 0);
 	///
-	bool isInside(Inset const *);
+	bool isInside(Inset const *) const;
 
 	/// make sure cursor position is valid
 	/// FIXME: It does a subset of fixIfBroken. Maybe merge them?
@@ -313,7 +414,7 @@ public:
 	/// display an error message
 	void errorMessage(docstring const & msg) const;
 	///
-	docstring getPossibleLabel();
+	docstring getPossibleLabel() const;
 
 	/// the name of the macro we are currently inputting
 	docstring macroName();
@@ -330,10 +431,10 @@ public:
 
 /**
  * Notifies all insets which appear in old, but not in cur. Make
- * Sure that the cursor old is valid, i.e. als inset pointer
+ * Sure that the cursor old is valid, i.e. all inset pointers
  * point to valid insets! Use Cursor::fixIfBroken if necessary.
  */
-bool notifyCursorLeaves(DocIterator const & old, Cursor & cur);
+bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
 
 
 } // namespace lyx

@@ -1,5 +1,5 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass scrartcl
@@ -42,6 +42,7 @@
   \let\theequation\org@theeq}
 \end_preamble
 \options fleqn
+\use_default_options false
 \language english
 \inputencoding auto
 \font_roman default
@@ -55,6 +56,7 @@
 \graphics default
 \paperfontsize 12
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 2
@@ -72,8 +74,8 @@
 \paperpagestyle empty
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\author ""
+\author ""
 \end_header
 
 \begin_body
@@ -99,7 +101,7 @@ A=C\label{eq:C}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -124,7 +126,7 @@ A=E\label{eq:E}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -149,7 +151,7 @@ A=G\label{eq:G}\end{equation}
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -175,49 +177,57 @@ A=I\label{eq:I}\end{equation}
 
 \begin_layout Standard
 Cross-references: 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:B"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:C"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:F"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:G"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:D"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:E"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:H"
 
 \end_inset
 
  , 
-\begin_inset LatexCommand eqref
+\begin_inset CommandInset ref
+LatexCommand eqref
 reference "eq:I"
 
 \end_inset
@@ -243,7 +253,9 @@ To create this example, first a counter must be defined for the Roman numbered
 
 \backslash
 newcounter{rom}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 renewcommand{
@@ -254,8 +266,9 @@ roman{rom}}
 \end_layout
 
 \begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
 
-\newpage
 To save the value of the Arabic counter 
 \series bold
 equation
@@ -271,7 +284,9 @@ equation
 newcommand{
 \backslash
 c@org@eq}{}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 let
@@ -279,13 +294,17 @@ let
 c@org@eq
 \backslash
 c@equation
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 newcommand{
 \backslash
 org@theeq}{}
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \backslash
 let

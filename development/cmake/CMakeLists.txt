@@ -4,33 +4,51 @@
 # Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
 #
 
-#not really needed
-#CMAKE_MINIMUM_REQUIRED(VERSION 2.4.4 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.4)
 
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 OLD)
+	cmake_policy(SET CMP0005 OLD)
+endif(COMMAND cmake_policy)
 
-# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
+set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
+project(lyx)
+
+# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/
+# is checked
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
+set(EXECUTABLE_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin)
 
-set (EXECUTABLE_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/bin)
+# Supress regeneration
+set(CMAKE_SUPPRESS_REGENERATION TRUE)
 
 set(PACKAGE lyx)
-set(PACKAGE_VERSION 1.5.0)
-set(LYX_DATE "July, 2007")
+set(PACKAGE_VERSION 1.6svn)
+set(LYX_DATE "2007/2008")
 #TODO
 set(VERSION_INFO "CMake Build")
+set(LYX_DIR_VER "LYX_DIR_16x")
+set(LYX_USERDIR_VER "LYX_USERDIR_16x")
+
+set(PROGRAM_SUFFIX "")
+set(LYX_ABS_INSTALLED_DATADIR "/usr/local/share/lyx")
+set(LYX_ABS_INSTALLED_LOCALEDIR "/usr/local/share/locale")
+set(LYX_ABS_TOP_SRCDIR "${CMAKE_SOURCE_DIR}")
+
 
 if(WIN32)
 	set(USE_WINDOWS_PACKAGING 1)
 elseif(APPLE)
 	set(USE_MACOSX_PACKAGING 1)
-else(WIN32)
+else()
 	set(USE_POSIX_PACKAGING 1)
-endif(WIN32)
+endif()
 
 if(NOT GROUP_CODE)
 	#set(GROUP_CODE "The Golden Code")
 	set(GROUP_CODE flat)
-endif(NOT GROUP_CODE)
+endif()
 
 # lyx's source files
 set(LYX_CPP_FILES *.cpp)
@@ -40,94 +58,108 @@ include(LyXPaths)
 include(LyXMacros)
 include(ProjectSourceGroup)
 
-if(merge)
+if(merge OR merge_rebuild)
 	set(merge 1 CACHE TYPE STRING FORCE)
 	set(MERGE_FILES 1 CACHE TYPE STRING FORCE)
 	message(STATUS "")
 	message(STATUS "All *.cpp files of a project are merged into two files, disable with -Dmerge=0")
 	message(STATUS "")
-	set(disable-pch  1)
-else(merge)
+else()
 	set(merge 0 CACHE TYPE STRING FORCE)
 	set(MERGE_FILES 0 CACHE TYPE STRING FORCE)
 	message(STATUS "Enable merging files with -Dmerge=1")
-endif(merge)	
+endif()
 
 
-set(CMAKE_BUILD_TYPE)
+set(CMAKE_BUILD_TYPE Release)
+
 if(profile)
 	set(CMAKE_BUILD_TYPE Profile CACHE TYPE STRING FORCE)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg" CACHE TYPE STRING FORCE)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg"
+	    CACHE TYPE STRING FORCE)
 	set(profile)
-endif(profile)
+endif()
+
 if(release)
 	set(CMAKE_BUILD_TYPE Release CACHE TYPE STRING FORCE)
+	set(release TRUE CACHE TYPE STRING FORCE)
 	set(release)
-endif(release)
+endif()
+
 if(debug)
 	set(CMAKE_BUILD_TYPE Debug CACHE TYPE STRING FORCE)
-endif(debug)
+	set(debug TRUE CACHE TYPE STRING FORCE)
+	set(debug)
+endif()
 
 if(shared)
 	set(library_type SHARED)
  	message(STATUS "building shared libraries")
-else(shared)
+else()
  	set(library_type STATIC)
-endif(shared)
+endif()
 
-if(UNIX)
+if(NOT MSVC)
 	if(NOT quiet)
 		set(CMAKE_VERBOSE_MAKEFILE ON CACHE TYPE STRING FORCE)
 		message(STATUS "verbose Makefile, disable with -Dquiet=1")
 		message(STATUS "")
-	endif(NOT quiet)
+	else()
+		set(CMAKE_VERBOSE_MAKEFILE OFF CACHE TYPE STRING FORCE)
+	endif()
 	set(LYX_CXX_FLAGS -Wall)
 	if(stdlib-debug)
 		set(LYX_CXX_FLAGS "${LYX_CXX_FLAGS} -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC")
-	endif(stdlib-debug)
+	endif()
 	if(concept-checks)
 		set(LYX_CXX_FLAGS "${LYX_CXX_FLAGS} -D_GLIBCPP_CONCEPT_CHECKS")
-	endif(concept-checks)
+	endif()
 	set(CMAKE_CXX_FLAGS          "${LYX_CXX_FLAGS}" CACHE TYPE STRING FORCE)
 	set(CMAKE_CXX_FLAGS_DEBUG    "${LYX_CXX_FLAGS} -O -g -D_DEBUG" CACHE TYPE STRING FORCE)
-	set(CMAKE_CXX_FLAGS_RELEASE  "${LYX_CXX_FLAGS} -O3 -DNDEBUG" CACHE TYPE STRING FORCE)
+	if(MINGW)
+		set(CMAKE_CXX_FLAGS_RELEASE  "${LYX_CXX_FLAGS} -O2 -DNDEBUG" CACHE TYPE STRING FORCE)
+	else()
+		set(CMAKE_CXX_FLAGS_RELEASE  "${LYX_CXX_FLAGS} -O3 -DNDEBUG" CACHE TYPE STRING FORCE)
+	endif()
 	set(CMAKE_CXX_FLAGS_PROFILE  "${CMAKE_CXX_FLAGS_RELEASE} -pg" CACHE TYPE STRING FORCE)
-endif(UNIX)
+endif()
 
 
-set(qt_postfix qt4)
-project(lyx-${qt_postfix})
 find_package(Qt4 REQUIRED)
-# maybe anyway
-if(MERGE_FILES)
-	add_definitions(-DQT_CLEAN_NAMESPACE -DQT_NO_STL -DQT_NO_KEYWORDS)
-endif(MERGE_FILES)
+add_definitions(-DQT_NO_STL -DQT_NO_KEYWORDS)
 
 find_package(ZLIB REQUIRED)
 
 if(all OR aspell)
 	set(aspell TRUE CACHE TYPE STRING)
-	find_package(ASPELL REQUIRED)
-else(all OR aspell)
+	find_package(ASPELL REQUIRED)	
+else()
 	find_package(ASPELL)
-endif(all OR aspell)
+endif()
 set(aspell)
+
+set(use_external_libintl TRUE)
+
+if(use_external_libintl)
+	find_package(Libintl REQUIRED)
+	add_definitions(-DHAVE_GETTEXT)
+endif()
 
 message("")
 if(nls OR all)
 	set(nls TRUE CACHE TYPE STRING)
 	add_definitions(-DENABLE_NLS=1)
 	message("----- Building with ENABLE_NLS")
-else(nls OR all)	
+else()	
 	message("----- No nls, to enable use -Dnls=1")
-endif(nls OR all)
+endif()
 set(nls)
 if(ASPELL_FOUND)
 	add_definitions(-DUSE_ASPELL=1)
 	message("----- Building with USE_ASPELL")
-else(ASPELL_FOUND)	
+else()	
 	message("----- No aspell, to get more information use -Daspell=1")
-endif(ASPELL_FOUND)
+endif()
 set(all)
 
 if(WIN32)
@@ -136,50 +168,85 @@ if(WIN32)
 		set(WIN32_CONSOLE WIN32)
 		set(LYX_QTMAIN_LIBRARY ${QT_QTMAIN_LIBRARY})
 		message("----- Console disabled")
-	else(noconsole)
+	else()
 		message("----- Console enabled, disable it with -Dnoconsole=1")
-	endif(noconsole)
-endif(WIN32)
+	endif()
+	if(MSVC)
+		add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -DNOMINMAX)	
+		# disable checked iterators for msvc release builds to get maximum speed
+		set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /D_SECURE_SCL=0")
+	else()
+		add_definitions(-DWINVER=0x0500)
+	endif()
+endif()
 
-set(LYX_DIR         "")
-set(TOP_SRCDIR      "${TOP_SRC_DIR}")
-set(PROGRAM_SUFFIX  "")
-set(LOCALEDIR       "")
+set(PROGRAM_SUFFIX "\"\"")
+set(LYX_ABS_TOP_SRCDIR "${CMAKE_SOURCE_DIR}")
+set(LYX_ABS_INSTALLED_DATADIR "/usr/local/share/lyx")
+set(LYX_ABS_INSTALLED_LOCALEDIR "/usr/local/share/locale")
 
 message("")
-message("----- LYX_DIR       : ${LYX_DIR}")
-message("----- TOP_SRCDIR    : ${TOP_SRCDIR}")
-message("----- PROGRAM_SUFFIX: ${PROGRAM_SUFFIX}")
-message("----- LOCALEDIR     : ${LOCALEDIR}")
+message("----- PROGRAM_SUFFIX              : ${PROGRAM_SUFFIX}")
+message("----- LYX_ABS_TOP_SRCDIR          : ${LYX_ABS_TOP_SRCDIR}")
+message("----- LYX_ABS_INSTALLED_DATADIR   : ${LYX_ABS_INSTALLED_DATADIR}")
+message("----- LYX_ABS_INSTALLED_LOCALEDIR : ${LYX_ABS_INSTALLED_LOCALEDIR}")
 message("")
 
-if(MSVC)
- 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -DNOMINMAX)	
- 	# disable checked iterators for msvc release builds to get maximum speed
-	set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /D_SECURE_SCL=0")
-endif(MSVC)
 
 add_definitions(-DBOOST_USER_CONFIG="<config.h>")
 	
-if(MSVC AND NOT disable-pch)
-	configure_file(${CMAKE_SOURCE_DIR}/pcheaders.h    ${CMAKE_BINARY_DIR}/pcheaders.h)
-	configure_file(${CMAKE_SOURCE_DIR}/config.C.cmake ${CMAKE_BINARY_DIR}/config_pch.C)
+if(MSVC AND NOT disable-pch AND NOT MERGE_FILES)
+	message("-----")
+	message("----- using precompiled headers, disable with -Ddisable-pch=1")
+	message("-----")
+	configure_file(${CMAKE_SOURCE_DIR}/pcheaders.h
+		${CMAKE_BINARY_DIR}/pcheaders.h)
+	configure_file(${CMAKE_SOURCE_DIR}/config.cpp.cmake
+		${CMAKE_BINARY_DIR}/config_pch.cpp)
 	macro(lyx_add_msvc_pch name_)
-		SET_SOURCE_FILES_PROPERTIES(${${name_}_sources} PROPERTIES COMPILE_FLAGS "/Yuconfig.h /Fp\$(IntDir)/config.pch")
-		SET_SOURCE_FILES_PROPERTIES(${CMAKE_BINARY_DIR}/config_pch.C PROPERTIES COMPILE_FLAGS "/Ycconfig.h /Fp\$(IntDir)/config.pch")
-		set(${name_}_sources ${${name_}_sources} ${CMAKE_BINARY_DIR}/config_pch.C ${CMAKE_BINARY_DIR}/pcheaders.h)
+		set_source_files_properties(${${name_}_sources} PROPERTIES
+			COMPILE_FLAGS "/Yuconfig.h /Fp\$(IntDir)/config.pch")
+		set_source_files_properties(${CMAKE_BINARY_DIR}/config_pch.cpp PROPERTIES
+			COMPILE_FLAGS "/Ycconfig.h /Fp\$(IntDir)/config.pch")
+		set(${name_}_sources ${${name_}_sources} ${CMAKE_BINARY_DIR}/config_pch.cpp
+			${CMAKE_BINARY_DIR}/pcheaders.h)
 		add_definitions(/DLYX_ENABLE_PCH)
 	endmacro(lyx_add_msvc_pch)
-	set(CMAKE_CXX_FLAGS_DEBUG    "${CMAKE_CXX_FLAGS_DEBUG}         /DLYX_PCH_STL /DLYX_PCH_BOOST /DLYX_PCH_QT4")
-	set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE}       /DLYX_PCH_STL /DLYX_PCH_BOOST /DLYX_PCH_QT4")
-	set(CMAKE_CXX_FLAGS_MINSIZEREL  "${CMAKE_CXX_FLAGS_MINSIZEREL} /DLYX_PCH_STL /DLYX_PCH_BOOST")
-else(MSVC AND NOT disable-pch)
+	set(CMAKE_CXX_FLAGS_DEBUG
+		"${CMAKE_CXX_FLAGS_DEBUG} /DLYX_PCH_STL /DLYX_PCH_BOOST /DLYX_PCH_QT4")
+	set(CMAKE_CXX_FLAGS_RELEASE
+		"${CMAKE_CXX_FLAGS_RELEASE} /DLYX_PCH_STL /DLYX_PCH_BOOST /DLYX_PCH_QT4")
+	set(CMAKE_CXX_FLAGS_MINSIZEREL
+		"${CMAKE_CXX_FLAGS_MINSIZEREL} /DLYX_PCH_STL /DLYX_PCH_BOOST")
+else()
+	if(MSVC)
+		message("-----")
+		message("----- precompiled headers disabled, enable with -Ddisable-pch=0")
+		message("-----")
+	endif()
 	set(disable-pch TRUE CACHE TYPE STRING)
 	macro(lyx_add_msvc_pch)
 	endmacro(lyx_add_msvc_pch)
-endif(MSVC AND NOT disable-pch)
+endif()
 
 if(MSVC)	
+       if(vld)
+               set(vld 1 CACHE TYPE STRING FORCE)
+               set(LYX_LEAK_DETECTION 1 CACHE TYPE STRING FORCE)
+               message(STATUS "")
+               message(STATUS "Leak detection enabled, disable with -Dvld=0")
+               message(STATUS "")
+               set(LIBRARY_OUTPUT_PATH  ${EXECUTABLE_OUTPUT_PATH})
+               set(vld_path ${CMAKE_CURRENT_SOURCE_DIR}/../Win32/vld)
+               include(${vld_path}/tools/cmake/vld.cmake)
+       else()
+               set(vld 0 CACHE TYPE STRING FORCE)
+               set(LYX_LEAK_DETECTION 0 CACHE TYPE STRING FORCE)
+               message(STATUS "")
+               message(STATUS "Enable leak detection with -Dvld=1")
+               message(STATUS "")
+       endif()
+
 	if(WALL)
 		set(WALL 1 CACHE TYPE STRING FORCE)
 		
@@ -188,53 +255,65 @@ if(MSVC)
 		set(WARNING_LEVEL_MESSAGE "(switch to warning level 3 with -DWALL=0)")
 		
 		if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-			STRING(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-		else(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-		endif(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+			string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+		else()
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+		endif()
 		
 		if(CMAKE_C_FLAGS MATCHES "/W[0-4]")
-			STRING(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-		else(CMAKE_C_FLAGS MATCHES "/W[0-4]")
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
-		endif(CMAKE_C_FLAGS MATCHES "/W[0-4]")
+			string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+		else()
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
+		endif()
 		
 		# add here warnings which should produce an error /weXXXX
-		SET(MSVC_W_ERROR   "/we4101 /we4189")
+		set(MSVC_W_ERROR   "/we4101 /we4189")
 		# add here warnings which should be disabled /wdXXXX
-		SET(MSVC_W_DISABLE "/wd4800 /wd4996 /wd4311 /wd4312 /wd4505 /wd4267 /wd4512 /wd4245 /wd4127 /wd4180")
+		set(MSVC_W_DISABLE "/wd4288 /wd4355 /wd4800 /wd4996 /wd4311 /wd4312 /wd4505 /wd4267 /wd4512 /wd4245 /wd4127 /wd4180")
 		
-		set(CMAKE_CXX_FLAGS_DEBUG    "${CMAKE_CXX_FLAGS_DEBUG}         /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
-		set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE}       /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
-		set(CMAKE_CXX_FLAGS_MINSIZEREL  "${CMAKE_CXX_FLAGS_MINSIZEREL} /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_DEBUG
+			"${CMAKE_CXX_FLAGS_DEBUG} /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_RELEASEs
+			"${CMAKE_CXX_FLAGS_RELEASE} /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_MINSIZEREL
+			"${CMAKE_CXX_FLAGS_MINSIZEREL} /Wp64 ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
 		
-	else(WALL)	
+	else()	
 		set(WALL 0 CACHE TYPE STRING FORCE)
 		
 		set(CMAKE_CXX_WARNING_LEVEL 3 CACHE TYPE STRING FORCE)
 		set(WARNING_LEVEL_MESSAGE "(switch to warning level 4 with -DWALL=1)")
 	
 		# add here warnings which should produce an error /weXXXX
-		SET(MSVC_W_ERROR   "/we4101 /we4189")
+		set(MSVC_W_ERROR   "/we4101 /we4189")
 		# add here warnings which should be disabled /wdXXXX
-		SET(MSVC_W_DISABLE "/wd4800 /wd4996 /wd4267 /wd4180")
+		set(MSVC_W_DISABLE "/wd4288 /wd4355 /wd4800 /wd4996 /wd4267 /wd4180")
 		
-		set(CMAKE_CXX_FLAGS_DEBUG    "${CMAKE_CXX_FLAGS_DEBUG}         ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
-		set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE}       ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
-		set(CMAKE_CXX_FLAGS_MINSIZEREL  "${CMAKE_CXX_FLAGS_MINSIZEREL} ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_DEBUG
+			"${CMAKE_CXX_FLAGS_DEBUG} ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_RELEASE
+			"${CMAKE_CXX_FLAGS_RELEASE} ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
+		set(CMAKE_CXX_FLAGS_MINSIZEREL
+			"${CMAKE_CXX_FLAGS_MINSIZEREL} ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
 		
-	endif(WALL)
+	endif()
 	
 	message("----- Warning level      : ${CMAKE_CXX_WARNING_LEVEL}  ${WARNING_LEVEL_MESSAGE}")
 	message("----- Warnings as errors : ${MSVC_W_ERROR}")
 	message("----- Warnings disabled  : ${MSVC_W_DISABLE}")
 	message("")
 	
-endif(MSVC)
+endif()
 
-# create config.h
-include(ConfigureChecks.cmake)
-configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/config.h )
+# compiler tests, config.h generation
+if(MSVC AND NOT CONFIGURECHECKS)
+	configure_file(configCompiler.h.msvc ${CMAKE_BINARY_DIR}/configCompiler.h)
+else()
+	include(ConfigureChecks.cmake)
+	configure_file(configCompiler.h.cmake ${CMAKE_BINARY_DIR}/configCompiler.h)
+endif()
+configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
+
 
 find_package(ICONV REQUIRED)
 add_definitions(-DHAVE_ICONV=1)
@@ -247,14 +326,13 @@ configure_file(${TOP_SRC_DIR}/lib/lyx2lyx/lyx2lyx_version.py.in
 include_directories( 
 	${CMAKE_BINARY_DIR} 
 	${TOP_SRC_DIR}/src 
-	${TOP_SRC_DIR}/boost 
-	${QT_INCLUDES} 
-)
+	${TOP_SRC_DIR}/boost)
 
 add_subdirectory(boost)
-add_subdirectory(intl)
+if(NOT use_external_libintl)
+	add_subdirectory(intl)
+endif()
 add_subdirectory(src)
-
 
 include(../Install)
 

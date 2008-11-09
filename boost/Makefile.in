@@ -13,6 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -32,7 +33,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/common.am ChangeLog
+	$(top_srcdir)/config/common.am
 subdir = boost
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
@@ -41,37 +42,69 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/codeset.m4 $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/glibc2.m4 $(top_srcdir)/m4/glibc21.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
-	$(top_srcdir)/m4/intmax.m4 $(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes.m4 $(top_srcdir)/m4/inttypes_h.m4 \
-	$(top_srcdir)/m4/isc-posix.m4 $(top_srcdir)/m4/lcmessage.m4 \
+	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
+	$(top_srcdir)/m4/inttypes-pri.m4 \
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/lcmessage.m4 \
 	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
-	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/longdouble.m4 \
-	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
-	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/signed.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/lock.m4 \
+	$(top_srcdir)/m4/longdouble.m4 $(top_srcdir)/m4/longlong.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/printf-posix.m4 $(top_srcdir)/m4/progtest.m4 \
 	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
 	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
-	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
-	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/visibility.m4 $(top_srcdir)/m4/wchar_t.m4 \
+	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/config.h
+CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-dvi-recursive install-exec-recursive \
-	install-html-recursive install-info-recursive \
-	install-pdf-recursive install-ps-recursive install-recursive \
-	installcheck-recursive installdirs-recursive pdf-recursive \
-	ps-recursive uninstall-recursive
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
+LTLIBRARIES = $(noinst_LTLIBRARIES)
+liblyxboost_la_LIBADD =
+am__liblyxboost_la_SOURCES_DIST = libs/regex/src/c_regex_traits.cpp \
+	libs/regex/src/cpp_regex_traits.cpp libs/regex/src/cregex.cpp \
+	libs/regex/src/fileiter.cpp libs/regex/src/instances.cpp \
+	libs/regex/src/posix_api.cpp libs/regex/src/regex.cpp \
+	libs/regex/src/regex_debug.cpp \
+	libs/regex/src/regex_raw_buffer.cpp \
+	libs/regex/src/regex_traits_defaults.cpp \
+	libs/regex/src/w32_regex_traits.cpp \
+	libs/regex/src/wide_posix_api.cpp \
+	libs/regex/src/winstances.cpp libs/signals/src/connection.cpp \
+	libs/signals/src/named_slot_map.cpp \
+	libs/signals/src/signal_base.cpp libs/signals/src/slot.cpp \
+	libs/signals/src/trackable.cpp lyxboost.cpp
+@MONOLITHIC_BOOST_FALSE@am_liblyxboost_la_OBJECTS = c_regex_traits.lo \
+@MONOLITHIC_BOOST_FALSE@	cpp_regex_traits.lo cregex.lo \
+@MONOLITHIC_BOOST_FALSE@	fileiter.lo instances.lo posix_api.lo \
+@MONOLITHIC_BOOST_FALSE@	regex.lo regex_debug.lo \
+@MONOLITHIC_BOOST_FALSE@	regex_raw_buffer.lo \
+@MONOLITHIC_BOOST_FALSE@	regex_traits_defaults.lo \
+@MONOLITHIC_BOOST_FALSE@	w32_regex_traits.lo wide_posix_api.lo \
+@MONOLITHIC_BOOST_FALSE@	winstances.lo connection.lo \
+@MONOLITHIC_BOOST_FALSE@	named_slot_map.lo signal_base.lo \
+@MONOLITHIC_BOOST_FALSE@	slot.lo trackable.lo
+@MONOLITHIC_BOOST_TRUE@am_liblyxboost_la_OBJECTS = lyxboost.lo \
+@MONOLITHIC_BOOST_TRUE@	instances.lo cpp_regex_traits.lo \
+@MONOLITHIC_BOOST_TRUE@	c_regex_traits.lo
+liblyxboost_la_OBJECTS = $(am_liblyxboost_la_OBJECTS)
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+depcomp = $(SHELL) $(top_srcdir)/config/depcomp
+am__depfiles_maybe = depfiles
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(liblyxboost_la_SOURCES)
+DIST_SOURCES = $(am__liblyxboost_la_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 pkgdatadir = @pkgdatadir@
 ACLOCAL = @ACLOCAL@
@@ -79,7 +112,8 @@ AIKSAURUS_LIBS = @AIKSAURUS_LIBS@
 ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_CFLAGS = @AM_CFLAGS@
-AM_CPPFLAGS = @AM_CPPFLAGS@
+AM_CPPFLAGS = @AM_CPPFLAGS@ -DBOOST_USER_CONFIG="<config.h>" \
+	$(BOOST_INCLUDES)
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
@@ -93,6 +127,7 @@ CATOBJEXT = @CATOBJEXT@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -104,6 +139,7 @@ DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -117,10 +153,12 @@ GENCAT = @GENCAT@
 GLIBC2 = @GLIBC2@
 GLIBC21 = @GLIBC21@
 GMSGFMT = @GMSGFMT@
+GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
 HAVE_ASPRINTF = @HAVE_ASPRINTF@
 HAVE_POSIX_PRINTF = @HAVE_POSIX_PRINTF@
 HAVE_SNPRINTF = @HAVE_SNPRINTF@
+HAVE_VISIBILITY = @HAVE_VISIBILITY@
 HAVE_WPRINTF = @HAVE_WPRINTF@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -133,34 +171,41 @@ INTLLIBS = @INTLLIBS@
 INTLOBJS = @INTLOBJS@
 INTL_LIBTOOL_SUFFIX_PREFIX = @INTL_LIBTOOL_SUFFIX_PREFIX@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-KPSEWHICH = @KPSEWHICH@
 LDFLAGS = @LDFLAGS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
+LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
+LIBTHREAD = @LIBTHREAD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
+LTLIBMULTITHREAD = @LTLIBMULTITHREAD@
 LTLIBOBJS = @LTLIBOBJS@
-LYX_ABS_INSTALLED_DATADIR = @LYX_ABS_INSTALLED_DATADIR@
-LYX_ABS_INSTALLED_LOCALEDIR = @LYX_ABS_INSTALLED_LOCALEDIR@
-LYX_ABS_TOP_SRCDIR = @LYX_ABS_TOP_SRCDIR@
+LTLIBPTH = @LTLIBPTH@
+LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
+LYX_DIR_VER = @LYX_DIR_VER@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
-M4 = @M4@
+LYX_USERDIR_VER = @LYX_USERDIR_VER@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-MKINSTALLDIRS = @MKINSTALLDIRS@
 MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
+MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NMEDIT = @NMEDIT@
+OBJC = @OBJC@
+OBJCDEPMODE = @OBJCDEPMODE@
+OBJCFLAGS = @OBJCFLAGS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -172,6 +217,7 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
+PRI_MACROS_BROKEN = @PRI_MACROS_BROKEN@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
@@ -191,8 +237,10 @@ QT4_LDFLAGS = @QT4_LDFLAGS@
 QT4_LIB = @QT4_LIB@
 QT4_VERSION = @QT4_VERSION@
 RANLIB = @RANLIB@
+RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOCKET_LIBS = @SOCKET_LIBS@
@@ -202,7 +250,9 @@ USE_INCLUDED_LIBINTL = @USE_INCLUDED_LIBINTL@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 VERSION_INFO = @VERSION_INFO@
+WOE32DLL = @WOE32DLL@
 XGETTEXT = @XGETTEXT@
+XGETTEXT_015 = @XGETTEXT_015@
 XMKMF = @XMKMF@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -214,6 +264,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
+ac_ct_OBJC = @ac_ct_OBJC@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -257,6 +308,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 pyexecdir = @pyexecdir@
 pythondir = @pythondir@
+real_pkgdatadir = @real_pkgdatadir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -266,6 +318,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
@@ -280,20 +333,53 @@ AM_ETAGSFLAGS = --lang=c++
 SUFFIXES = .gch
 @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
 @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+@USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
+@USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
-@USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
-@USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
-@USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
-@USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
-SUBDIRS = libs
+noinst_LTLIBRARIES = liblyxboost.la
+
+# Using precompiled headers makes compilation >10% slower
+#EXTRA_DIST = pch.h
+#BUILT_SOURCES = $(PCH_FILE)
+#AM_CPPFLAGS += $(PCH_FLAGS)
 EXTRA_DIST = boost
-all: all-recursive
+@MONOLITHIC_BOOST_FALSE@liblyxboost_la_SOURCES = \
+@MONOLITHIC_BOOST_FALSE@	\
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/c_regex_traits.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/cpp_regex_traits.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/cregex.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/fileiter.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/instances.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/posix_api.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/regex.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/regex_debug.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/regex_raw_buffer.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/regex_traits_defaults.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/w32_regex_traits.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/wide_posix_api.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/regex/src/winstances.cpp \
+@MONOLITHIC_BOOST_FALSE@	\
+@MONOLITHIC_BOOST_FALSE@	libs/signals/src/connection.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/signals/src/named_slot_map.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/signals/src/signal_base.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/signals/src/slot.cpp \
+@MONOLITHIC_BOOST_FALSE@	libs/signals/src/trackable.cpp
+
+
+# This version is more than three times faster than the one below
+@MONOLITHIC_BOOST_TRUE@liblyxboost_la_SOURCES = \
+@MONOLITHIC_BOOST_TRUE@	lyxboost.cpp \
+@MONOLITHIC_BOOST_TRUE@	libs/regex/src/instances.cpp \
+@MONOLITHIC_BOOST_TRUE@	libs/regex/src/cpp_regex_traits.cpp \
+@MONOLITHIC_BOOST_TRUE@	libs/regex/src/c_regex_traits.cpp 
+
+all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .gch
+.SUFFIXES: .gch .cpp .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/config/common.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -324,81 +410,195 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+liblyxboost.la: $(liblyxboost_la_OBJECTS) $(liblyxboost_la_DEPENDENCIES) 
+	$(CXXLINK)  $(liblyxboost_la_OBJECTS) $(liblyxboost_la_LIBADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_regex_traits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/connection.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpp_regex_traits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cregex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fileiter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/instances.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyxboost.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/named_slot_map.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/posix_api.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regex_debug.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regex_raw_buffer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regex_traits_defaults.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signal_base.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/slot.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trackable.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w32_regex_traits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wide_posix_api.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/winstances.Plo@am__quote@
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+c_regex_traits.lo: libs/regex/src/c_regex_traits.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT c_regex_traits.lo -MD -MP -MF $(DEPDIR)/c_regex_traits.Tpo -c -o c_regex_traits.lo `test -f 'libs/regex/src/c_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/c_regex_traits.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/c_regex_traits.Tpo $(DEPDIR)/c_regex_traits.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/c_regex_traits.cpp' object='c_regex_traits.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o c_regex_traits.lo `test -f 'libs/regex/src/c_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/c_regex_traits.cpp
+
+cpp_regex_traits.lo: libs/regex/src/cpp_regex_traits.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cpp_regex_traits.lo -MD -MP -MF $(DEPDIR)/cpp_regex_traits.Tpo -c -o cpp_regex_traits.lo `test -f 'libs/regex/src/cpp_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/cpp_regex_traits.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/cpp_regex_traits.Tpo $(DEPDIR)/cpp_regex_traits.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/cpp_regex_traits.cpp' object='cpp_regex_traits.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cpp_regex_traits.lo `test -f 'libs/regex/src/cpp_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/cpp_regex_traits.cpp
+
+cregex.lo: libs/regex/src/cregex.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cregex.lo -MD -MP -MF $(DEPDIR)/cregex.Tpo -c -o cregex.lo `test -f 'libs/regex/src/cregex.cpp' || echo '$(srcdir)/'`libs/regex/src/cregex.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/cregex.Tpo $(DEPDIR)/cregex.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/cregex.cpp' object='cregex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cregex.lo `test -f 'libs/regex/src/cregex.cpp' || echo '$(srcdir)/'`libs/regex/src/cregex.cpp
+
+fileiter.lo: libs/regex/src/fileiter.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fileiter.lo -MD -MP -MF $(DEPDIR)/fileiter.Tpo -c -o fileiter.lo `test -f 'libs/regex/src/fileiter.cpp' || echo '$(srcdir)/'`libs/regex/src/fileiter.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/fileiter.Tpo $(DEPDIR)/fileiter.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/fileiter.cpp' object='fileiter.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fileiter.lo `test -f 'libs/regex/src/fileiter.cpp' || echo '$(srcdir)/'`libs/regex/src/fileiter.cpp
+
+instances.lo: libs/regex/src/instances.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT instances.lo -MD -MP -MF $(DEPDIR)/instances.Tpo -c -o instances.lo `test -f 'libs/regex/src/instances.cpp' || echo '$(srcdir)/'`libs/regex/src/instances.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/instances.Tpo $(DEPDIR)/instances.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/instances.cpp' object='instances.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o instances.lo `test -f 'libs/regex/src/instances.cpp' || echo '$(srcdir)/'`libs/regex/src/instances.cpp
+
+posix_api.lo: libs/regex/src/posix_api.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT posix_api.lo -MD -MP -MF $(DEPDIR)/posix_api.Tpo -c -o posix_api.lo `test -f 'libs/regex/src/posix_api.cpp' || echo '$(srcdir)/'`libs/regex/src/posix_api.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/posix_api.Tpo $(DEPDIR)/posix_api.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/posix_api.cpp' object='posix_api.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o posix_api.lo `test -f 'libs/regex/src/posix_api.cpp' || echo '$(srcdir)/'`libs/regex/src/posix_api.cpp
+
+regex.lo: libs/regex/src/regex.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT regex.lo -MD -MP -MF $(DEPDIR)/regex.Tpo -c -o regex.lo `test -f 'libs/regex/src/regex.cpp' || echo '$(srcdir)/'`libs/regex/src/regex.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/regex.Tpo $(DEPDIR)/regex.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/regex.cpp' object='regex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o regex.lo `test -f 'libs/regex/src/regex.cpp' || echo '$(srcdir)/'`libs/regex/src/regex.cpp
+
+regex_debug.lo: libs/regex/src/regex_debug.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT regex_debug.lo -MD -MP -MF $(DEPDIR)/regex_debug.Tpo -c -o regex_debug.lo `test -f 'libs/regex/src/regex_debug.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_debug.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/regex_debug.Tpo $(DEPDIR)/regex_debug.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/regex_debug.cpp' object='regex_debug.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o regex_debug.lo `test -f 'libs/regex/src/regex_debug.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_debug.cpp
+
+regex_raw_buffer.lo: libs/regex/src/regex_raw_buffer.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT regex_raw_buffer.lo -MD -MP -MF $(DEPDIR)/regex_raw_buffer.Tpo -c -o regex_raw_buffer.lo `test -f 'libs/regex/src/regex_raw_buffer.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_raw_buffer.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/regex_raw_buffer.Tpo $(DEPDIR)/regex_raw_buffer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/regex_raw_buffer.cpp' object='regex_raw_buffer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o regex_raw_buffer.lo `test -f 'libs/regex/src/regex_raw_buffer.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_raw_buffer.cpp
+
+regex_traits_defaults.lo: libs/regex/src/regex_traits_defaults.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT regex_traits_defaults.lo -MD -MP -MF $(DEPDIR)/regex_traits_defaults.Tpo -c -o regex_traits_defaults.lo `test -f 'libs/regex/src/regex_traits_defaults.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_traits_defaults.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/regex_traits_defaults.Tpo $(DEPDIR)/regex_traits_defaults.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/regex_traits_defaults.cpp' object='regex_traits_defaults.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o regex_traits_defaults.lo `test -f 'libs/regex/src/regex_traits_defaults.cpp' || echo '$(srcdir)/'`libs/regex/src/regex_traits_defaults.cpp
+
+w32_regex_traits.lo: libs/regex/src/w32_regex_traits.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT w32_regex_traits.lo -MD -MP -MF $(DEPDIR)/w32_regex_traits.Tpo -c -o w32_regex_traits.lo `test -f 'libs/regex/src/w32_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/w32_regex_traits.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/w32_regex_traits.Tpo $(DEPDIR)/w32_regex_traits.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/w32_regex_traits.cpp' object='w32_regex_traits.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o w32_regex_traits.lo `test -f 'libs/regex/src/w32_regex_traits.cpp' || echo '$(srcdir)/'`libs/regex/src/w32_regex_traits.cpp
+
+wide_posix_api.lo: libs/regex/src/wide_posix_api.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wide_posix_api.lo -MD -MP -MF $(DEPDIR)/wide_posix_api.Tpo -c -o wide_posix_api.lo `test -f 'libs/regex/src/wide_posix_api.cpp' || echo '$(srcdir)/'`libs/regex/src/wide_posix_api.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/wide_posix_api.Tpo $(DEPDIR)/wide_posix_api.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/wide_posix_api.cpp' object='wide_posix_api.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wide_posix_api.lo `test -f 'libs/regex/src/wide_posix_api.cpp' || echo '$(srcdir)/'`libs/regex/src/wide_posix_api.cpp
+
+winstances.lo: libs/regex/src/winstances.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT winstances.lo -MD -MP -MF $(DEPDIR)/winstances.Tpo -c -o winstances.lo `test -f 'libs/regex/src/winstances.cpp' || echo '$(srcdir)/'`libs/regex/src/winstances.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/winstances.Tpo $(DEPDIR)/winstances.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/regex/src/winstances.cpp' object='winstances.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o winstances.lo `test -f 'libs/regex/src/winstances.cpp' || echo '$(srcdir)/'`libs/regex/src/winstances.cpp
+
+connection.lo: libs/signals/src/connection.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT connection.lo -MD -MP -MF $(DEPDIR)/connection.Tpo -c -o connection.lo `test -f 'libs/signals/src/connection.cpp' || echo '$(srcdir)/'`libs/signals/src/connection.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/connection.Tpo $(DEPDIR)/connection.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/signals/src/connection.cpp' object='connection.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o connection.lo `test -f 'libs/signals/src/connection.cpp' || echo '$(srcdir)/'`libs/signals/src/connection.cpp
+
+named_slot_map.lo: libs/signals/src/named_slot_map.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT named_slot_map.lo -MD -MP -MF $(DEPDIR)/named_slot_map.Tpo -c -o named_slot_map.lo `test -f 'libs/signals/src/named_slot_map.cpp' || echo '$(srcdir)/'`libs/signals/src/named_slot_map.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/named_slot_map.Tpo $(DEPDIR)/named_slot_map.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/signals/src/named_slot_map.cpp' object='named_slot_map.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o named_slot_map.lo `test -f 'libs/signals/src/named_slot_map.cpp' || echo '$(srcdir)/'`libs/signals/src/named_slot_map.cpp
+
+signal_base.lo: libs/signals/src/signal_base.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT signal_base.lo -MD -MP -MF $(DEPDIR)/signal_base.Tpo -c -o signal_base.lo `test -f 'libs/signals/src/signal_base.cpp' || echo '$(srcdir)/'`libs/signals/src/signal_base.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/signal_base.Tpo $(DEPDIR)/signal_base.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/signals/src/signal_base.cpp' object='signal_base.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o signal_base.lo `test -f 'libs/signals/src/signal_base.cpp' || echo '$(srcdir)/'`libs/signals/src/signal_base.cpp
+
+slot.lo: libs/signals/src/slot.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT slot.lo -MD -MP -MF $(DEPDIR)/slot.Tpo -c -o slot.lo `test -f 'libs/signals/src/slot.cpp' || echo '$(srcdir)/'`libs/signals/src/slot.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/slot.Tpo $(DEPDIR)/slot.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/signals/src/slot.cpp' object='slot.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o slot.lo `test -f 'libs/signals/src/slot.cpp' || echo '$(srcdir)/'`libs/signals/src/slot.cpp
+
+trackable.lo: libs/signals/src/trackable.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trackable.lo -MD -MP -MF $(DEPDIR)/trackable.Tpo -c -o trackable.lo `test -f 'libs/signals/src/trackable.cpp' || echo '$(srcdir)/'`libs/signals/src/trackable.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/trackable.Tpo $(DEPDIR)/trackable.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='libs/signals/src/trackable.cpp' object='trackable.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trackable.lo `test -f 'libs/signals/src/trackable.cpp' || echo '$(srcdir)/'`libs/signals/src/trackable.cpp
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-$(RECURSIVE_CLEAN_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -410,23 +610,10 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -439,7 +626,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
@@ -486,37 +673,19 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d "$(distdir)/$$subdir" \
-	    || $(MKDIR_P) "$(distdir)/$$subdir" \
-	    || exit 1; \
-	    distdir=`$(am__cd) $(distdir) && pwd`; \
-	    top_distdir=`$(am__cd) $(top_distdir) && pwd`; \
-	    (cd $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$top_distdir" \
-	        distdir="$$distdir/$$subdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(LTLIBRARIES)
+installdirs:
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -535,76 +704,79 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
+	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
-info: info-recursive
+info: info-am
 
 info-am:
 
 install-data-am:
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-exec-am:
 
-install-html: install-html-recursive
+install-html: install-html-am
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
 uninstall-am:
 
-.MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
-	install-strip
+.MAKE: install-am install-strip
 
-.PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
-	all all-am check check-am clean clean-generic clean-libtool \
-	ctags ctags-recursive distclean distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am
 
 @LYX_BUILD_PCH_TRUE@sinclude ./pch.h.gch.dep
 
@@ -614,7 +786,7 @@ uninstall-am:
 @LYX_BUILD_PCH_TRUE@	$(MAKE) PCH_FLAGS= pch-file
 
 @LYX_BUILD_PCH_TRUE@pch-file:
-@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header $(PCH_SOURCE) -o $(PCH_FILE) \
+@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header -fPIC -DPIC $(PCH_SOURCE) -o $(PCH_FILE) \
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"

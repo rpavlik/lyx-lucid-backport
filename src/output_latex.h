@@ -28,7 +28,7 @@ class TexRow;
 class Text;
 
 /// Export up to \p number optarg insets
-int latexOptArgInsets(Buffer const & buf, Paragraph const & par,
+int latexOptArgInsets(Paragraph const & par,
 		      odocstream & os, OutputParams const & runparams,
 		      int number);
 
@@ -44,11 +44,14 @@ void latexParagraphs(Buffer const & buf,
 		     OutputParams const &,
 		     std::string const & everypar = std::string());
 
-/// Switch the encoding of \p os from runparams.encoding to \p newEnc if needed.
-/// \return (did the encoding change?, number of characters written to \p os)
+/** Switch the encoding of \p os from runparams.encoding to \p newEnc if needed.
+    \p force forces this also within non-default or -auto encodings.
+    \return (did the encoding change?, number of characters written to \p os)
+ */
 std::pair<bool, int> switchEncoding(odocstream & os,
 		     BufferParams const & bparams,
-		     OutputParams const &, Encoding const & newEnc);
+		     OutputParams const &, Encoding const & newEnc,
+		     bool force = false);
 
 } // namespace lyx
 

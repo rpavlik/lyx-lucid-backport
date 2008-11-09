@@ -19,8 +19,8 @@
 
 #define BOOST_REGEX_SOURCE
 
-#include <boost/cregex.hpp>
 #include <boost/regex.hpp>
+#include <boost/cregex.hpp>
 #if !defined(BOOST_NO_STD_STRING)
 #include <map>
 #include <list>
@@ -354,7 +354,7 @@ void BuildFileList(std::list<std::string>* pl, const char* files, bool recurse)
 
       while(dstart != dend)
       {
-#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400) && !defined(_WIN32_WCE) && !defined(UNDER_CE)
          (::sprintf_s)(buf, sizeof(buf), "%s%s%s", dstart.path(), directory_iterator::separator(), ptr);
 #else
          (std::sprintf)(buf, "%s%s%s", dstart.path(), directory_iterator::separator(), ptr);
@@ -559,7 +559,7 @@ std::string RegEx::What(int i)const
    return result;
 }
 
-#ifdef BOOST_HAS_LONG_LONG
+#if defined(BOOST_HAS_LONG_LONG) && !defined(_MSC_VER)
 const std::size_t RegEx::npos = static_cast<std::size_t>(~0ULL);
 #else
 const std::size_t RegEx::npos = static_cast<std::size_t>(~0UL);

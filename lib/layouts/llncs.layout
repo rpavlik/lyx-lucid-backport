@@ -14,7 +14,7 @@
 # Modified for LyX 12 by Jean-Marc Lasgouttes and MV.
 
 
-Format 4
+Format 11
 Columns                 1
 Sides                   1
 PageStyle               Plain
@@ -32,6 +32,7 @@ Style Standard
 End
 
 
+Input stdinsets.inc
 Input stdsections.inc
 
 
@@ -131,7 +132,6 @@ Style Subtitle
 	BottomSep             0
 	ParSep                0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Family              Sans
@@ -154,7 +154,6 @@ Style Running_LaTeX_Title
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Running title:"
 	LabelFont
@@ -185,7 +184,6 @@ Style Author
 	ItemSep               0
 	ParSep                0
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Series              Bold
@@ -221,7 +219,6 @@ Style Institute
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Left
-	AlignPossible         Left
 	LabelType             No_Label
 	Font
 	  Size                Small
@@ -421,3 +418,4 @@ End
 
 Input stdfloats.inc
 Input stdcounters.inc
+Input stdinsets.inc

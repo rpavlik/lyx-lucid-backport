@@ -34,14 +34,20 @@ public:
 
 	/// register a file for version control
 	virtual void registrer(std::string const & msg) = 0;
-	/// check in the current revision
-	virtual void checkIn(std::string const & msg) = 0;
-	/// check out for editing
-	virtual void checkOut() = 0;
+	/// check in the current revision, returns log
+	virtual std::string checkIn(std::string const & msg) = 0;
+	// can be this operation processed in the current RCS?
+	virtual bool checkInEnabled() = 0;
+	/// check out for editing, returns log
+	virtual std::string checkOut() = 0;
+	// can be this operation processed in the current RCS?
+	virtual bool checkOutEnabled() = 0;
 	/// revert current edits
 	virtual void revert() = 0;
 	/// FIXME
 	virtual void undoLast() = 0;
+	// can be this operation processed in the current RCS?
+	virtual bool undoLastEnabled() = 0;
 	/**
 	 * getLog - read the revision log into the given file
 	 * @param fname file name to read into
@@ -50,9 +56,7 @@ public:
 	/// return the current version description
 	virtual std::string const versionString() const = 0;
 	/// return the current version
-	std::string const & version() const {
-		return version_;
-	}
+	std::string const & version() const { return version_; }
 	/// return the user who has locked the file
 	std::string const & locker() const { return locker_; }
 	/// set the owning buffer
@@ -61,17 +65,22 @@ public:
 	Buffer * owner() const { return owner_; }
 	/// return the lock status of this file
 	VCStatus status() const { return vcstatus; }
+	/// do we need special handling for read-only toggling?
+	/// (also used for check-out operation)
+	virtual bool toggleReadOnlyEnabled() = 0;
 protected:
 	/// parse information from the version file
 	virtual void scanMaster() = 0;
 
+	// GUI container for doVCCommandCall
+	int doVCCommand(std::string const & cmd, support::FileName const & path);
 	/**
-	 * doVCCommand - call out to the version control utility
+	 * doVCCommandCall - call out to the version control utility
 	 * @param cmd the command to execute
 	 * @param path the path from which to execute
 	 * @return exit status
 	 */
-	static int doVCCommand(std::string const & cmd, support::FileName const & path);
+	static int doVCCommandCall(std::string const & cmd, support::FileName const & path);
 
 	/**
 	 * The master VC file. For RCS this is *,v or RCS/ *,v. master should
@@ -103,25 +112,33 @@ public:
 	RCS(support::FileName const & m);
 
 	/// return the revision file for the given file, if found
-	static support::FileName const find_file(support::FileName const & file);
+	static support::FileName const findFile(support::FileName const & file);
 
 	static void retrieve(support::FileName const & file);
 
 	virtual void registrer(std::string const & msg);
 
-	virtual void checkIn(std::string const & msg);
+	virtual std::string checkIn(std::string const & msg);
 
-	virtual void checkOut();
+	virtual bool checkInEnabled();
+
+	virtual std::string checkOut();
+
+	virtual bool checkOutEnabled();
 
 	virtual void revert();
 
 	virtual void undoLast();
+
+	virtual bool undoLastEnabled();
 
 	virtual void getLog(support::FileName const &);
 
 	virtual std::string const versionString() const {
 		return "RCS: " + version_;
 	}
+
+	virtual bool toggleReadOnlyEnabled();
 
 protected:
 	virtual void scanMaster();
@@ -136,17 +153,23 @@ public:
 	CVS(support::FileName const & m, support::FileName const & f);
 
 	/// return the revision file for the given file, if found
-	static support::FileName const find_file(support::FileName const & file);
+	static support::FileName const findFile(support::FileName const & file);
 
 	virtual void registrer(std::string const & msg);
 
-	virtual void checkIn(std::string const & msg);
+	virtual std::string checkIn(std::string const & msg);
 
-	virtual void checkOut();
+	virtual bool checkInEnabled();
+
+	virtual std::string checkOut();
+
+	virtual bool checkOutEnabled();
 
 	virtual void revert();
 
 	virtual void undoLast();
+
+	virtual bool undoLastEnabled();
 
 	virtual void getLog(support::FileName const &);
 
@@ -154,8 +177,54 @@ public:
 		return "CVS: " + version_;
 	}
 
+	virtual bool toggleReadOnlyEnabled();
+
 protected:
 	virtual void scanMaster();
+
+private:
+	support::FileName file_;
+};
+
+
+///
+class SVN : public VCS {
+public:
+	///
+	explicit
+	SVN(support::FileName const & m, support::FileName const & f);
+
+	/// return the revision file for the given file, if found
+	static support::FileName const findFile(support::FileName const & file);
+
+	virtual void registrer(std::string const & msg);
+
+	virtual std::string checkIn(std::string const & msg);
+
+	virtual bool checkInEnabled();
+
+	virtual std::string checkOut();
+
+	virtual bool checkOutEnabled();
+
+	virtual void revert();
+
+	virtual void undoLast();
+
+	virtual bool undoLastEnabled();
+
+	virtual void getLog(support::FileName const &);
+
+	virtual std::string const versionString() const {
+		return "SVN: " + version_;
+	}
+
+	virtual bool toggleReadOnlyEnabled();
+
+protected:
+	virtual void scanMaster();
+	/// Check for messages in svn output. Returns error.
+	std::string scanLogFile(support::FileName const & f, std::string & status);
 
 private:
 	support::FileName file_;

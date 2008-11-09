@@ -14,7 +14,6 @@
 #define INSETERT_H
 
 #include "InsetCollapsable.h"
-#include "MailInset.h"
 
 
 namespace lyx {
@@ -33,86 +32,50 @@ class Language;
 class InsetERT : public InsetCollapsable {
 public:
 	///
-	InsetERT(BufferParams const &, CollapseStatus status = Open);
-#if 0
-	///
-	InsetERT(BufferParams const &,
-		 Language const *, std::string const & contents, CollapseStatus status);
-#endif
+	InsetERT(Buffer const &, CollapseStatus status = Open);
 	///
 	~InsetERT();
 	///
-	Inset::Code lyxCode() const { return Inset::ERT_CODE; }
+	static CollapseStatus string2params(std::string const &);
+	///
+	static std::string params2string(CollapseStatus);
+private:
+	///
+	InsetCode lyxCode() const { return ERT_CODE; }
 	///
 	docstring name() const { return from_ascii("ERT"); }
 	///
-	void write(Buffer const & buf, std::ostream & os) const;
+	void write(std::ostream & os) const;
 	///
-	void read(Buffer const & buf, Lexer & lex);
+	docstring editMessage() const;
 	///
-	virtual docstring const editMessage() const;
+	bool insetAllowed(InsetCode code) const;
 	///
-	bool insetAllowed(Inset::Code code) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	int latex(Buffer const &, odocstream &,
-		  OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
-	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const {}
 	///
-	bool metrics(MetricsInfo &, Dimension &) const;
-	///
-	void draw(PainterInfo & pi, int x, int y) const;
-	///
 	bool showInsetDialog(BufferView *) const;
 	///
-	void getDrawFont(Font &, Font) const;
+	virtual bool forcePlainLayout(idx_type = 0) const { return true; }
 	///
-	bool forceDefaultParagraphs(idx_type) const { return true; }
-	/// should paragraph indendation be ommitted in any case?
-	bool neverIndent(Buffer const &) const { return true; }
-protected:
-	InsetERT(InsetERT const &);
+	virtual bool allowParagraphCustomization(idx_type = 0) const { return false; }
+	/// should paragraph indendation be omitted in any case?
+	bool neverIndent() const { return true; }
 	///
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
-private:
-	virtual std::auto_ptr<Inset> doClone() const;
 	///
-	void init();
+	Inset * clone() const { return new InsetERT(*this); }
 	///
 	void setButtonLabel();
 	///
 	bool allowSpellCheck() const { return false; }
-};
-
-
-class InsetERTMailer : public MailInset {
-public:
-	///
-	InsetERTMailer(InsetERT & inset);
-	///
-	virtual Inset & inset() const { return inset_; }
-	///
-	virtual std::string const & name() const { return name_; }
-	///
-	virtual std::string const inset2string(Buffer const &) const;
-	///
-	static void string2params(std::string const &,
-		InsetCollapsable::CollapseStatus &);
-	///
-	static std::string const params2string(InsetCollapsable::CollapseStatus);
-private:
-	///
-	static std::string const name_;
-	///
-	InsetERT & inset_;
 };
 
 

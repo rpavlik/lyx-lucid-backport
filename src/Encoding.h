@@ -14,14 +14,17 @@
 #define ENCODING_H
 
 #include "support/docstring.h"
+#include "support/types.h"
 
 #include <map>
 #include <set>
+#include <vector>
 
 namespace lyx {
 
 namespace support { class FileName; }
 
+class Buffer;
 class LaTeXFeatures;
 
 class EncodingException : public std::exception {
@@ -29,7 +32,7 @@ public:
 	EncodingException(char_type c);
 	virtual ~EncodingException() throw() {}
 	virtual const char * what() const throw();
-
+ 
 	char_type failed_char;
 	int par_id;
 	pos_type pos;
@@ -43,21 +46,27 @@ public:
 	enum Package {
 		none,
 		inputenc,
-		CJK
+		CJK,
+		japanese
 	};
 	///
 	Encoding() {}
 	///
 	Encoding(std::string const & n, std::string const & l,
-		 std::string const & i, bool f, Package p);
+		 std::string const & g, std::string const & i,
+		 bool f, Package p);
 	///
 	void init() const;
 	///
-	std::string const & name() const { return Name_; }
+	std::string const & name() const { return name_; }
 	///
-	std::string const & latexName() const { return LatexName_; }
+	std::string const & latexName() const { return latexName_; }
+	///
+	std::string const & guiName() const { return guiName_; }
 	///
 	std::string const & iconvName() const { return iconvName_; }
+	///
+	bool const & hasFixedWidth() const { return fixedwidth_; }
 	/**
 	 * Convert \p c to something that LaTeX can understand.
 	 * This is either the character itself (if it is representable
@@ -66,14 +75,18 @@ public:
 	 * LaTeX macro is known, a warning is given of lyxerr, and the
 	 * character is returned.
 	 */
-	docstring const latexChar(char_type c) const;
+	docstring latexChar(char_type c, bool for_mathed = false) const;
 	/// Which LaTeX package handles this encoding?
 	Package package() const { return package_; }
+	/// A list of all characters usable in this encoding
+	std::vector<char_type> symbolsList() const;
 private:
 	///
-	std::string Name_;
+	std::string name_;
 	///
-	std::string LatexName_;
+	std::string latexName_;
+	///
+	std::string guiName_;
 	///
 	std::string iconvName_;
 	/// Is this a fixed width encoding?
@@ -102,6 +115,12 @@ private:
 class Encodings {
 public:
 	///
+	typedef std::set<char_type> MathCommandSet;
+	///
+	typedef std::set<char_type> TextCommandSet;
+	///
+	typedef std::set<char_type> MathSymbolSet;
+	///
 	typedef std::map<std::string, Encoding> EncodingList;
 	/// iterator to iterate over all encodings.
 	/// We hide the fact that our encoding list is implemented as a map.
@@ -121,9 +140,9 @@ public:
 	void read(support::FileName const & encfile,
 		  support::FileName const & symbolsfile);
 	/// Get encoding from LyX name \p name
-	Encoding const * getFromLyXName(std::string const & name) const;
+	Encoding const * fromLyXName(std::string const & name) const;
 	/// Get encoding from LaTeX name \p name
-	Encoding const * getFromLaTeXName(std::string const & name) const;
+	Encoding const * fromLaTeXName(std::string const & name) const;
 
 	///
 	const_iterator begin() const { return encodinglist.begin(); }
@@ -131,7 +150,7 @@ public:
 	const_iterator end() const { return encodinglist.end(); }
 
 	///
-	enum Letter_Form {
+	enum LetterForm {
 		///
 		FORM_ISOLATED,
 		///
@@ -142,19 +161,19 @@ public:
 		FORM_MEDIAL
 	};
 	///
-	static bool isComposeChar_hebrew(char_type c);
+	static bool isHebrewComposeChar(char_type c);
 	///
-	static bool isComposeChar_arabic(char_type c);
+	static bool isArabicComposeChar(char_type c);
 	///
-	static bool is_arabic_special(char_type c);
+	static bool isArabicSpecialChar(char_type c);
 	///
-	static bool is_arabic(char_type c);
+	static bool isArabicChar(char_type c);
 	///
-	static char_type transformChar(char_type c, Letter_Form form);
+	static char_type transformChar(char_type c, LetterForm form);
 	/// Is this a combining char?
 	static bool isCombiningChar(char_type c);
 	/**
-	 * Is this a known char from some script?
+	 * Is this a known char from some language?
 	 * If \p preamble is empty and code point \p c is known to belong
 	 * to a supported script, true is returned and \p preamble is set
 	 * to the corresponding entry in the unicodesymbols file.
@@ -164,10 +183,63 @@ public:
 	static bool isKnownScriptChar(char_type const c, std::string & preamble);
 	/**
 	 * Do we have to output this character as LaTeX command in any case?
-	 * This is true if the "forced" flag is set.
+	 * This is true if the "force" flag is set.
 	 * We need this if the inputencoding does not support a certain glyph.
 	 */
 	static bool isForced(char_type c);
+	/**
+	 * Do we have to display in italics this character when in mathmode?
+	 * This is true if the "mathalpha" flag is set. We use this for
+	 * accented characters that are output as math commands.
+	 */
+	static bool isMathAlpha(char_type c);
+	/**
+	 * Register \p c as a mathmode command.
+	 */
+	static void addMathCmd(char_type c) { mathcmd.insert(c); }
+	/**
+	 * Register \p c as a textmode command.
+	 */
+	static void addTextCmd(char_type c) { textcmd.insert(c); }
+	/**
+	 * Register \p c as a mathmode symbol.
+	 */
+	static void addMathSym(char_type c) { mathsym.insert(c); }
+	/**
+	 * Tell whether \p c is registered as a mathmode command.
+	 */
+	static bool isMathCmd(char_type c) { return mathcmd.count(c); }
+	/**
+	 * Tell whether \p c is registered as a textmode command.
+	 */
+	static bool isTextCmd(char_type c) { return textcmd.count(c); }
+	/**
+	 * Tell whether \p c is registered as a mathmode symbol.
+	 */
+	static bool isMathSym(char_type c) { return mathsym.count(c); }
+	/**
+	 * Initialize mathcmd, textcmd, and mathsym sets.
+	 */
+	static void initUnicodeMath(Buffer const & buffer);
+	/**
+	 * If \p c cannot be encoded in the given \p encoding, convert
+	 * it to something that LaTeX can understand in mathmode.
+	 * \return whether \p command is a mathmode command
+	 */
+	static bool latexMathChar(char_type c, bool mathmode,
+			Encoding const * encoding, docstring & command);
+	/**
+	 * Convert the LaTeX command in \p cmd to the corresponding unicode
+	 * point and set \p combining to true if it is a combining symbol
+	 */
+	static char_type fromLaTeXCommand(docstring const & cmd, bool & combining);
+	/**
+	 * Convert the LaTeX commands in \p cmd and \return a docstring
+	 * of corresponding unicode points. The conversion stops at the
+	 * first command which could not be converted, and the remaining
+	 * unconverted commands are returned in \p rem
+	 */
+	static docstring fromLaTeXCommand(docstring const & cmd, docstring & rem);
 	/**
 	 * Add the preamble snippet needed for the output of \p c to
 	 * \p features.
@@ -175,11 +247,17 @@ public:
 	 * package only maps the code point \p c to a command, it does not
 	 * make this command available.
 	 */
-	static void validate(char_type c, LaTeXFeatures & features);
+	static void validate(char_type c, LaTeXFeatures & features, bool for_mathed = false);
 
 private:
 	///
 	EncodingList encodinglist;
+	///
+	static MathCommandSet mathcmd;
+	///
+	static TextCommandSet textcmd;
+	///
+	static MathSymbolSet mathsym;
 };
 
 extern Encodings encodings;

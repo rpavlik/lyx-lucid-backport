@@ -15,39 +15,56 @@
 #ifndef INSETBASE_H
 #define INSETBASE_H
 
-#include "Changes.h"
-#include "Dimension.h"
+#include "ColorCode.h"
+#include "InsetCode.h"
+#include "Layout.h"
 
-#include "support/docstream.h"
+#include "support/strfwd.h"
+#include "support/types.h"
 
-#include <memory>
-#include <vector>
 
 namespace lyx {
 
+class BiblioInfo;
 class Buffer;
 class BufferParams;
 class BufferView;
-class ParConstIterator;
+class Change;
+class CompletionList;
+class Cursor;
 class CursorSlice;
+class Dimension;
+class DocIterator;
 class FuncRequest;
 class FuncStatus;
+class InsetCollapsable;
+class InsetIterator;
+class InsetLayout;
+class InsetList;
 class InsetMath;
+class InsetTabular;
 class InsetText;
 class LaTeXFeatures;
-class Color_color;
-class Cursor;
 class Lexer;
-class Text;
+class MathAtom;
 class MetricsInfo;
-class Dimension;
-class PainterInfo;
 class OutputParams;
+class PainterInfo;
+class ParConstIterator;
+class ParIterator;
+class Text;
 class TocList;
-
 
 namespace graphics { class PreviewLoader; }
 
+
+/** returns the InsetCode corresponding to the \c name.
+*   Eg, insetCode("branch") == BRANCH_CODE
+*   Implemented in 'Inset.cpp'.
+*/
+InsetCode insetCode(std::string const & name);
+/// the other way
+std::string insetName(InsetCode);
 
 /// Common base class to all insets
 
@@ -57,6 +74,12 @@ namespace graphics { class PreviewLoader; }
 
 class Inset {
 public:
+	///
+	enum EntryDirection {
+		ENTRY_DIRECTION_IGNORE,
+		ENTRY_DIRECTION_RIGHT,
+		ENTRY_DIRECTION_LEFT,
+	};
 	///
 	typedef ptrdiff_t  difference_type;
 	/// short of anything else reasonable
@@ -72,18 +95,47 @@ public:
 
 	/// virtual base class destructor
 	virtual ~Inset() {}
-	/// replicate ourselves
-	std::auto_ptr<Inset> clone() const;
+
+	/// change associated Buffer
+	/// FIXME this should go.
+	virtual void setBuffer(Buffer & buffer);
+	/// retrieve associated Buffer
+	virtual Buffer & buffer();
+	virtual Buffer const & buffer() const;
+	/// This checks whether the Buffer * actually points to an open 
+	/// Buffer. It might not if that Buffer has been closed.
+	bool isBufferValid() const;
+
+	/// initialize view for this inset.
+	/**
+	  * This is typically used after this inset is created interactively.
+	  * Intented purpose is to sanitize internal state with regard to current
+	  * Buffer. The default implementation calls updateLabels(buffer()) is
+	  * the inset is labeled.
+	  *
+	  * \sa isLabeled()
+	  **/
+	virtual void initView();
+	/// \return true if this inset is labeled.
+	virtual bool isLabeled() const { return false; }
 
 	/// identification as math inset
 	virtual InsetMath * asInsetMath() { return 0; }
 	/// true for 'math' math inset, but not for e.g. mbox
 	virtual bool inMathed() const { return false; }
-	/// is this inset based on the TextInset class?
-	virtual InsetText * asTextInset() { return 0; }
-	/// is this inset based on the TextInset class?
-	virtual InsetText const * asTextInset() const { return 0; }
-	
+	/// is this inset based on the InsetText class?
+	virtual InsetText * asInsetText() { return 0; }
+	/// is this inset based on the InsetText class?
+	virtual InsetText const * asInsetText() const { return 0; }
+	/// is this inset based on the InsetCollapsable class?
+	virtual InsetCollapsable * asInsetCollapsable() { return 0; }
+	/// is this inset based on the InsetCollapsable class?
+	virtual InsetCollapsable const * asInsetCollapsable() const { return 0; }
+	/// is this inset based on the InsetTabular class?
+	virtual InsetTabular * asInsetTabular() { return 0; }
+	/// is this inset based on the InsetTabular class?
+	virtual InsetTabular const * asInsetTabular() const { return 0; }
+
 	/// the real dispatcher
 	void dispatch(Cursor & cur, FuncRequest & cmd);
 	/**
@@ -109,19 +161,23 @@ public:
 		FuncStatus & status) const;
 
 	/// cursor enters
-	virtual void edit(Cursor & cur, bool left);
+	virtual void edit(Cursor & cur, bool front, 
+		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
 	/// cursor enters
 	virtual Inset * editXY(Cursor & cur, int x, int y);
 
 	/// compute the size of the object returned in dim
 	/// \retval true if metrics changed.
-	virtual bool metrics(MetricsInfo & mi, Dimension & dim) const = 0;
+	virtual void metrics(MetricsInfo & mi, Dimension & dim) const = 0;
 	/// draw inset and update (xo, yo)-cache
 	virtual void draw(PainterInfo & pi, int x, int y) const = 0;
 	/// draw inset selection if necessary
 	virtual void drawSelection(PainterInfo &, int, int) const {}
+	/// draw inset background if the inset has an own background and a
+	/// selection is drawn by drawSelection.
+	virtual void drawBackground(PainterInfo &, int, int) const {}
 	///
-	virtual bool editing(BufferView * bv) const;
+	virtual bool editing(BufferView const * bv) const;
 	///
 	virtual bool showInsetDialog(BufferView *) const { return false; }
 
@@ -142,30 +198,39 @@ public:
 	int yo(BufferView const & bv) const;
 	/// set x/y drawing position cache if available
 	virtual void setPosCache(PainterInfo const &, int, int) const;
+	///
+	void setDimCache(MetricsInfo const &, Dimension const &) const;
 	/// do we cover screen position x/y?
 	virtual bool covers(BufferView const & bv, int x, int y) const;
 	/// get the screen positions of the cursor (see note in Cursor.cpp)
 	virtual void cursorPos(BufferView const & bv,
 		CursorSlice const & sl, bool boundary, int & x, int & y) const;
 
+	///
+	virtual bool isFreeSpacing() const { return false; }
+	///
+	virtual bool allowEmpty() const { return false; }
+	/// Force inset into LTR environment if surroundings are RTL?
+	virtual bool forceLTR() const { return false; }
+
 	/// is this an inset that can be moved into?
 	/// FIXME: merge with editable()
 	virtual bool isActive() const { return nargs() > 0; }
 	/// Where should we go when we press the up or down cursor key?
 	virtual bool idxUpDown(Cursor & cur, bool up) const;
-	/// Move one cell to the left
-	virtual bool idxLeft(Cursor &) const { return false; }
-	/// Move one cell to the right
-	virtual bool idxRight(Cursor &) const { return false; }
+	/// Move one cell backwards
+	virtual bool idxBackward(Cursor &) const { return false; }
+	/// Move one cell forward
+	virtual bool idxForward(Cursor &) const { return false; }
 
-	/// Move one physical cell up
+	/// Move to the next cell
 	virtual bool idxNext(Cursor &) const { return false; }
-	/// Move one physical cell down
+	/// Move to the previous cell
 	virtual bool idxPrev(Cursor &) const { return false; }
 
-	/// Target pos when we enter the inset from the left by pressing "Right"
+	/// Target pos when we enter the inset while moving forward
 	virtual bool idxFirst(Cursor &) const { return false; }
-	/// Target pos when we enter the inset from the right by pressing "Left"
+	/// Target pos when we enter the inset while moving backwards
 	virtual bool idxLast(Cursor &) const { return false; }
 
 	/// Delete a cell and move cursor
@@ -180,7 +245,7 @@ public:
 	virtual col_type col(idx_type) const { return 0; }
 	/// to which row belongs a cell with a given index?
 	virtual row_type row(idx_type) const { return 0; }
-	/// cell idex corresponding to row and column;
+	/// cell index corresponding to row and column;
 	virtual idx_type index(row_type row, col_type col) const;
 	/// any additional x-offset when drawing a cell?
 	virtual int cellXOffset(idx_type) const { return 0; }
@@ -192,9 +257,14 @@ public:
 	virtual size_t nrows() const { return 0; }
 	/// number of columns in gridlike structures
 	virtual size_t ncols() const { return 0; }
-	/// is called when the cursor leaves this inset
-	//  returns true if cursor is now invalid.
-	virtual bool notifyCursorLeaves(Cursor &) { return false; }
+	/// Is called when the cursor leaves this inset.
+	/// Returns true if cursor is now invalid, e.g. if former 
+	/// insets in higher cursor slices of \c old do not exist 
+	/// anymore.
+	/// \c old is the old cursor, i.e. there is a slice pointing to this.
+	/// \c cur is the new cursor. Use the update flags to cause a redraw.
+	virtual bool notifyCursorLeaves(Cursor const & /*old*/, Cursor & /*cur*/)
+		{ return false; }
 	/// is called when the mouse enter or leave this inset
 	/// return true if this inset needs repaint
 	virtual bool setMouseHover(bool) { return false; }
@@ -207,34 +277,27 @@ public:
 
 	/// request "external features"
 	virtual void validate(LaTeXFeatures &) const {}
-	/// Appends \c list with all labels found within this inset.
-	virtual void getLabelList(Buffer const &,
-				  std::vector<docstring> & /* list */) const {}
 
 	/// describe content if cursor inside
 	virtual void infoize(odocstream &) const {}
 	/// describe content if cursor behind
 	virtual void infoize2(odocstream &) const {}
 
-	enum {
-		PLAINTEXT_NEWLINE = 10000
-	};
+	enum { PLAINTEXT_NEWLINE = 10000 };
 
 	/// plain text output in ucs4 encoding
 	/// return the number of characters; in case of multiple lines of
 	/// output, add PLAINTEXT_NEWLINE to the number of chars in the last line
-	virtual int plaintext(Buffer const &, odocstream &,
-			      OutputParams const &) const = 0;
+	virtual int plaintext(odocstream &, OutputParams const &) const = 0;
 	/// docbook output
-	virtual int docbook(Buffer const &, odocstream & os,
-			    OutputParams const &) const;
+	virtual int docbook(odocstream & os, OutputParams const &) const;
 	/// the string that is passed to the TOC
-	virtual void textString(Buffer const &, odocstream &) const {}
+	virtual void textString(odocstream &) const {}
 
 	/** This enum indicates by which means the inset can be modified:
 	- NOT_EDITABLE: the inset's content cannot be modified at all
 	  (e.g. printindex, insetspecialchar)
-	- IS_EDITABLE: content can be edited via dialog (e.g. bibtex, index, url)
+	- IS_EDITABLE: content can be edited via dialog (e.g. bibtex, index, href)
 	- HIGHLY_EDITABLE: content can be edited on screen (normally means that
 	  insettext is contained, e.g. collapsables, tabular) */
 	// FIXME: This has not yet been fully implemented to math insets
@@ -247,7 +310,7 @@ public:
 		HIGHLY_EDITABLE
 	};
 	/// what appears in the minibuffer when opening
-	virtual docstring const editMessage() const;
+	virtual docstring editMessage() const;
 	///
 	virtual EDITABLE editable() const;
 	/// can we go further down on mouse click?
@@ -257,127 +320,72 @@ public:
 	/// return true if the inset should be removed automatically
 	virtual bool autoDelete() const;
 
-	/** This is not quite the correct place for this enum. I think
-	    the correct would be to let each subclass of Inset declare
-	    its own enum code. Actually the notion of an Inset::Code
-	    should be avoided, but I am not sure how this could be done
-	    in a cleaner way. */
-	enum Code {
-		///
-		NO_CODE, // 0
-		///
-		TOC_CODE,  // do these insets really need a code? (ale)
-		///
-		QUOTE_CODE,
-		///
-		MARK_CODE,
-		///
-		REF_CODE,
-		///
-		URL_CODE, // 5
-		///
-		HTMLURL_CODE,
-		///
-		SEPARATOR_CODE,
-		///
-		ENDING_CODE,
-		///
-		LABEL_CODE,
-		///
-		NOTE_CODE, // 10
-		///
-		ACCENT_CODE,
-		///
-		MATH_CODE,
-		///
-		INDEX_CODE,
-		///
-		INCLUDE_CODE,
-		///
-		GRAPHICS_CODE, // 15
-		///
-		BIBITEM_CODE,
-		///
-		BIBTEX_CODE,
-		///
-		TEXT_CODE,
-		///
-		ERT_CODE,
-		///
-		FOOT_CODE, // 20
-		///
-		MARGIN_CODE,
-		///
-		FLOAT_CODE,
-		///
-		WRAP_CODE,
-		///
-		SPACE_CODE, // 25
-		///
-		SPECIALCHAR_CODE,
-		///
-		TABULAR_CODE,
-		///
-		EXTERNAL_CODE,
-#if 0
-		///
-		THEOREM_CODE,
-#endif
-		///
-		CAPTION_CODE,
-		///
-		MATHMACRO_CODE, // 30
-		///
-		CITE_CODE,
-		///
-		FLOAT_LIST_CODE,
-		///
-		INDEX_PRINT_CODE,
-		///
-		OPTARG_CODE, // 35
-		///
-		ENVIRONMENT_CODE,
-		///
-		HFILL_CODE,
-		///
-		NEWLINE_CODE,
-		///
-		LINE_CODE,
-		///
-		BRANCH_CODE, // 40
-		///
-		BOX_CODE,
-		///
-		CHARSTYLE_CODE,
-		///
-		VSPACE_CODE,
-		///
-		MATHMACROARG_CODE,
-		///
-		NOMENCL_CODE, // 45
-		///
-		NOMENCL_PRINT_CODE,
-		///
-		PAGEBREAK_CODE,
-		///
-		LISTINGS_CODE
-	};
-
-	/** returns the Code corresponding to the \c name.
-	 *  Eg, translate("branch") == BRANCH_CODE
-	 */
-	static Code translate(std::string const & name);
+	/// Returns true if the inset supports completions.
+	virtual bool completionSupported(Cursor const &) const { return false; }
+	/// Returns true if the inset supports inline completions at the
+	/// cursor position. In this case the completion might be stored
+	/// in the BufferView's inlineCompletion property.
+	virtual bool inlineCompletionSupported(Cursor const & /*cur*/) const 
+		{ return false; }
+	/// Return true if the inline completion should be automatic.
+	virtual bool automaticInlineCompletion() const { return true; }
+	/// Return true if the popup completion should be automatic.
+	virtual bool automaticPopupCompletion() const { return true; }
+	/// Return true if the cursor should indicate a completion.
+	virtual bool showCompletionCursor() const { return true; }
+	/// Returns completion suggestions at cursor position. Return an
+	/// null pointer if no completion is a available or possible.
+	/// The caller is responsible to free the returned object!
+	virtual CompletionList const * createCompletionList(Cursor const &) const 
+		{ return 0; }
+	/// Returns the completion prefix to filter the suggestions for completion.
+	/// This is only called if completionList returned a non-null list.
+	virtual docstring completionPrefix(Cursor const &) const;
+	/// Do a completion at the cursor position. Return true on success.
+	/// The completion does not contain the prefix. If finished is true, the
+	/// completion is final. If finished is false, completion might only be
+	/// a partial completion.
+	virtual bool insertCompletion(Cursor & /*cur*/, 
+		docstring const & /*completion*/, bool /*finished*/) 
+		{ return false; }
+	/// Get the completion inset position and size
+	virtual void completionPosAndDim(Cursor const &, int & /*x*/, int & /*y*/, 
+		Dimension & /*dim*/) const {}
 
 	/// returns true if the inset can hold an inset of given type
-	virtual bool insetAllowed(Code) const { return false; }
-	/// if this inset has paragraphs should they be output all as default
-	/// paragraphs with the default layout of the text class?
-	virtual bool forceDefaultParagraphs(idx_type) const { return false; }
+	virtual bool insetAllowed(InsetCode) const { return false; }
+	/// should this inset use the empty layout by default rather than 
+	/// the standard layout? (default: only if that is forced.)
+	virtual bool usePlainLayout() const { return forcePlainLayout(); }
+	/// if this inset has paragraphs should they be forced to use the
+	/// empty layout?
+	virtual bool forcePlainLayout(idx_type = 0) const { return false; }
+	/// if this inset has paragraphs should the user be allowed to
+	/// customize alignment, etc?
+	virtual bool allowParagraphCustomization(idx_type = 0) const { return true; }
 	/// Is the width forced to some value?
 	virtual bool hasFixedWidth() const { return false; }
 
+	/// Is the content of this inset part of the output document?
+	virtual bool producesOutput() const { return true; }
+
+	/// \return Tool tip for this inset.
+	/// This default implementation returns an empty string.
+	virtual docstring toolTip(BufferView const & bv, int x, int y) const;
+	
+	/// \return Context menu identifier for this inset.
+	/// This default implementation returns an empty string.
+	virtual docstring contextMenu(BufferView const & bv, int x, int y) const;
+
+	// FIXME This should really disappear in favor of 
+	//	docstring name() const { return from_ascii(insetName(lyxCode()))); }
+	// There's no reason to be using different names in different places.
+	// But to do this we would need to change the file format, since the names
+	// used there don't correspond to what is used here. 
 	///
-	virtual docstring name() const { return from_ascii("unknown"); }
+	virtual docstring name() const;
+	///
+	virtual InsetLayout const & getLayout(BufferParams const & bp) const;
 	/// used to toggle insets
 	/// is the inset open?
 	/// should this inset be handled like a normal charater
@@ -387,6 +395,8 @@ public:
 	/// is this equivalent to a space (which is BTW different from
 	/// a line separator)?
 	virtual bool isSpace() const { return false; }
+	/// is this an expandible space (rubber length)?
+	virtual bool isStretchableSpace() const { return false; }
 
 	enum DisplayType {
 		Inline = 0,
@@ -397,24 +407,25 @@ public:
 
 	/// should we have a non-filled line before this inset?
 	virtual DisplayType display() const { return Inline; }
+	///
+	virtual LyXAlignment contentAlignment() const { return LYX_ALIGN_NONE; }
 	/// should we break lines after this inset?
 	virtual bool isLineSeparator() const { return false; }
 	/// should paragraph indendation be ommitted in any case?
-	virtual bool neverIndent(Buffer const &) const { return false; }
+	virtual bool neverIndent() const { return false; }
 	/// dumps content to lyxerr
 	virtual void dump() const;
 	/// write inset in .lyx format
-	virtual void write(Buffer const &, std::ostream &) const {}
+	virtual void write(std::ostream &) const {}
 	/// read inset in .lyx format
-	virtual void read(Buffer const &, Lexer &) {}
+	virtual void read(Lexer &) {}
 	/** Export the inset to LaTeX.
 	 *  Don't use a temporary stringstream if the final output is
 	 *  supposed to go to a file.
 	 *  \sa Buffer::writeLaTeXSource for the reason.
 	 *  \return the number of rows (\n's) of generated LaTeX code.
 	 */
-	virtual int latex(Buffer const &, odocstream &,
-			  OutputParams const &) const { return 0; }
+	virtual int latex(odocstream &, OutputParams const &) const { return 0; }
 	/// returns true to override begin and end inset in file
 	virtual bool directWrite() const;
 	///
@@ -430,13 +441,30 @@ public:
 	 *  defaults to empty.
 	 */
 	virtual void addPreview(graphics::PreviewLoader &) const {}
+
+	/** Classifies the unicode characters appearing in a math inset
+	 *  depending on whether they are to be translated as latex
+	 *  math/text commands or used as math symbols without translation.
+	 *
+	 *  Only math insets have interest in this classification, so the
+	 *  method defaults to empty.
+	 */
+	virtual void initUnicodeMath() const {}
+
 	/// Add an entry to the TocList
 	/// pit is the ParConstIterator of the paragraph containing the inset
-	virtual void addToToc(TocList &, Buffer const &, ParConstIterator const &) const {}
+	virtual void addToToc(DocIterator const &) {}
+	/// Fill keys with BibTeX information
+	virtual void fillWithBibKeys(BiblioInfo &, InsetIterator const &) const {}
+	/// Update the counters of this inset and of its contents
+	virtual void updateLabels(ParIterator const &) {}
+
+	/// Updates the inset's dialog
+	virtual Buffer const * updateFrontend() const;
 
 public:
 	/// returns LyX code associated with the inset. Used for TOC, ...)
-	virtual Code lyxCode() const { return NO_CODE; }
+	virtual InsetCode lyxCode() const { return NO_CODE; }
 
 	/// -1: text mode, 1: math mode, 0 undecided
 	enum mode_type {UNDECIDED_MODE, TEXT_MODE, MATH_MODE};
@@ -461,22 +489,15 @@ public:
 	/// reject the changes within the inset
 	virtual void rejectChanges(BufferParams const &) {};
 
-	/// inset dimension.
-	Dimension const & dimension() const { return dim_; }
-	/// inset width.
-	int width() const { return dim_.wid; }
-	/// inset ascent.
-	int ascent() const { return dim_.asc; }
-	/// inset descent.
-	int descent() const { return dim_.des; }
+	///
+	virtual Dimension const dimension(BufferView const &) const;
 	///
 	int scroll() const { return 0; }
 	///
-	virtual Color_color backgroundColor() const;
+	virtual ColorCode backgroundColor() const;
 	///
 	enum CollapseStatus {
 		Collapsed,
-		Inlined,
 		Open
 	};
 	///
@@ -485,7 +506,14 @@ public:
 	enum { TEXT_TO_INSET_OFFSET = 4 };
 
 protected:
-	Inset();
+	/// Constructors
+	Inset() : buffer_(0) {}
+	Inset(Inset const &) : buffer_(0) {}
+
+	/// replicate ourselves
+	friend class InsetList;
+	friend class MathAtom;
+	virtual Inset * clone() const = 0;
 
 	/** The real dispatcher.
 	 *  Gets normally called from Cursor::dispatch(). Cursor::dispatch()
@@ -500,38 +528,8 @@ protected:
 	 */
 	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 
-	/// Cached dimensions of the inset.
-	mutable Dimension dim_;
-private:
-	virtual std::auto_ptr<Inset> doClone() const = 0;
+	Buffer * buffer_;
 };
-
-
-/**
- * returns true if pointer argument is valid
- * and points to an editable inset
- */
-bool isEditableInset(Inset const * inset);
-
-
-/**
- * returns true if pointer argument is valid
- * and points to a highly editable inset
- */
-bool isHighlyEditableInset(Inset const * inset);
-
-/** \c Inset_code is a wrapper for Inset::Code.
- *  It can be forward-declared and passed as a function argument without
- *  having to expose Inset.h.
- */
-class Inset_code {
-	Inset::Code val_;
-public:
-	Inset_code(Inset::Code val) : val_(val) {}
-	operator Inset::Code() const { return val_; }
-};
-
-
 
 } // namespace lyx
 

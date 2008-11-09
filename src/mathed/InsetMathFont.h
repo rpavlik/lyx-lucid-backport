@@ -34,7 +34,7 @@ public:
 	///
 	docstring name() const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -46,10 +46,10 @@ public:
 	///
 	void infoize(odocstream & os) const;
 	///
-	int kerning() const { return cell(0).kerning(); }
+	int kerning(BufferView const * bv) const { return cell(0).kerning(bv); }
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	/// the font to be used on screen
 	latexkeys const * key_;
 };

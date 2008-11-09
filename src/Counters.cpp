@@ -14,19 +14,19 @@
 #include <config.h>
 
 #include "Counters.h"
-#include "debug.h"
 
-#include "support/lstrings.h"
+#include "Lexer.h"
+
 #include "support/convert.h"
+#include "support/debug.h"
+#include "support/lstrings.h"
 
-#include <boost/assert.hpp>
+#include "support/lassert.h"
 
 #include <sstream>
 
-using std::endl;
-using std::ostringstream;
-using std::string;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
@@ -36,6 +36,71 @@ Counter::Counter()
 	reset();
 }
 
+
+Counter::Counter(docstring const & mc, docstring const & ls, 
+		 docstring const & lsa)
+	: master_(mc), labelstring_(ls), labelstringappendix_(lsa)
+{
+	reset();
+}
+
+
+bool Counter::read(Lexer & lex)
+{
+	enum {
+		CT_WITHIN = 1,
+		CT_LABELSTRING,
+		CT_LABELSTRING_APPENDIX,
+		CT_END
+	};
+
+	LexerKeyword counterTags[] = {
+		{ "end", CT_END },
+		{ "labelstring", CT_LABELSTRING },
+		{ "labelstringappendix", CT_LABELSTRING_APPENDIX },
+		{ "within", CT_WITHIN }
+	};
+
+	lex.pushTable(counterTags);
+
+	bool getout = false;
+	while (!getout && lex.isOK()) {
+		int le = lex.lex();
+		switch (le) {
+			case Lexer::LEX_UNDEF:
+				lex.printError("Unknown counter tag `$$Token'");
+				continue;
+			default: 
+				break;
+		}
+		switch (le) {
+			case CT_WITHIN:
+				lex.next();
+				master_ = lex.getDocString();
+				if (master_ == "none")
+					master_.erase();
+				break;
+			case CT_LABELSTRING:
+				lex.next();
+				labelstring_ = lex.getDocString();
+				labelstringappendix_ = labelstring_;
+				break;
+			case CT_LABELSTRING_APPENDIX:
+				lex.next();
+				labelstringappendix_ = lex.getDocString();
+				break;
+			case CT_END:
+				getout = true;
+				break;
+		}
+	}
+
+	// Here if have a full counter if getout == true
+	if (!getout)
+		LYXERR0("No End tag found for counter!");
+	lex.popTable();
+	return getout;
+}
 
 void Counter::set(int v)
 {
@@ -73,50 +138,53 @@ docstring const & Counter::master() const
 }
 
 
-void Counter::setMaster(docstring const & m)
+docstring const & Counter::labelString() const
 {
-	master_ = m;
+	return labelstring_;
 }
 
 
-void Counters::newCounter(docstring const & newc)
+docstring const & Counter::labelStringAppendix() const
 {
-	// First check if newc already exist
-	CounterList::iterator const cit = counterList.find(newc);
-	// if already exist give warning and return
-	if (cit != counterList.end()) {
-		lyxerr << "New counter already exists: "
-		       << to_utf8(newc)
-		       << endl;
-		return;
-	}
-	counterList[newc];
+	return labelstringappendix_;
 }
 
 
 void Counters::newCounter(docstring const & newc,
-			  docstring const & masterc)
+			  docstring const & masterc, 
+			  docstring const & ls,
+			  docstring const & lsa)
 {
-	// First check if newc already exists
-	CounterList::iterator const cit = counterList.find(newc);
-	// if already existant give warning and return
-	if (cit != counterList.end()) {
-		lyxerr << "New counter already exists: "
-		       << to_utf8(newc)
-		       << endl;
-		return;
-	}
-	// then check if masterc exists
-	CounterList::iterator const it = counterList.find(masterc);
-	// if not give warning and return
-	if (it == counterList.end()) {
+	if (!masterc.empty() && !hasCounter(masterc)) {
 		lyxerr << "Master counter does not exist: "
 		       << to_utf8(masterc)
 		       << endl;
 		return;
 	}
+	counterList[newc] = Counter(masterc, ls, lsa);
+}
 
-	counterList[newc].setMaster(masterc);
+
+bool Counters::hasCounter(docstring const & c) const
+{
+	return counterList.find(c) != counterList.end();
+}
+
+
+bool Counters::read(Lexer & lex, docstring const & name)
+{
+	if (hasCounter(name)) {
+		LYXERR(Debug::TCLASS, "Reading existing counter " << to_utf8(name));
+		return counterList[name].read(lex);
+	}
+	LYXERR(Debug::TCLASS, "Reading new counter " << to_utf8(name));
+	Counter cnt;
+	bool success = cnt.read(lex);
+	if (success)
+		counterList[name] = cnt;
+	else
+		LYXERR0("Error reading counter `" << name << "'!");
+	return success;
 }
 
 
@@ -179,6 +247,8 @@ void Counters::step(docstring const & ctr)
 void Counters::reset()
 {
 	appendix_ = false;
+	subfloat_ = false;
+	current_float_.erase();
 	CounterList::iterator it = counterList.begin();
 	CounterList::iterator const end = counterList.end();
 	for (; it != end; ++it) {
@@ -189,7 +259,7 @@ void Counters::reset()
 
 void Counters::reset(docstring const & match)
 {
-	BOOST_ASSERT(!match.empty());
+	LASSERT(!match.empty(), /**/);
 
 	CounterList::iterator it = counterList.begin();
 	CounterList::iterator end = counterList.end();
@@ -307,7 +377,7 @@ docstring const romanCounter(int const n)
 
 docstring const lowerromanCounter(int const n)
 {
-	return support::lowercase(romanCounter(n));
+	return lowercase(romanCounter(n));
 }
 
 } // namespace anon
@@ -345,13 +415,73 @@ docstring Counters::labelItem(docstring const & ctr,
 }
 
 
-docstring Counters::counterLabel(docstring const & format)
+docstring Counters::theCounter(docstring const & counter)
+{
+	std::set<docstring> callers;
+	return theCounter(counter, callers);
+}
+
+docstring Counters::theCounter(docstring const & counter,
+                               std::set<docstring> & callers)
+{
+	if (!hasCounter(counter))
+		return from_ascii("??");
+
+	docstring label;
+
+	if (callers.find(counter) == callers.end()) {
+		
+		pair<std::set<docstring>::iterator, bool> result = callers.insert(counter);
+
+		Counter const & c = counterList[counter];
+		docstring ls = appendix() ? c.labelStringAppendix() : c.labelString();
+
+		if (ls.empty()) {
+			if (!c.master().empty())
+				ls = from_ascii("\\the") + c.master() + from_ascii(".");
+			ls += from_ascii("\\arabic{") + counter + "}";
+		}
+
+		label = counterLabel(ls, &callers);
+
+		callers.erase(result.first);
+	} else {
+		// recursion detected
+		lyxerr << "Warning: Recursion in label for counter `"
+			   << counter << "' detected"
+			   << endl;
+	}
+
+	return label;
+}
+
+
+docstring Counters::counterLabel(docstring const & format,
+                                 std::set<docstring> * callers)
 {
 	docstring label = format;
+
+	// FIXME: Using regexps would be better, but we compile boost without
+	// wide regexps currently.
+
 	while (true) {
-#ifdef WITH_WARNINGS
-#warning Using boost::regex or boost::spirit would make this code a lot simpler... (Lgb)
-#endif
+		//lyxerr << "label=" << to_utf8(label) << endl;
+		size_t const i = label.find(from_ascii("\\the"), 0);
+		if (i == docstring::npos)
+			break;
+		size_t j = i + 4;
+		size_t k = j;
+		while (k < label.size() && lowercase(label[k]) >= 'a' 
+		       && lowercase(label[k]) <= 'z')
+			++k;
+		docstring counter = label.substr(j, k - j);
+		docstring repl = callers? theCounter(counter, *callers): 
+			                      theCounter(counter);
+		label.replace(i, k - j + 4, repl);
+	}
+
+	while (true) {
+		//lyxerr << "label=" << to_utf8(label) << endl;
 
 		size_t const i = label.find('\\', 0);
 		if (i == docstring::npos)
@@ -367,10 +497,8 @@ docstring Counters::counterLabel(docstring const & format)
 		docstring const rep = labelItem(counter, numbertype);
 		label = docstring(label, 0, i) + rep
 			+ docstring(label, k + 1, docstring::npos);
-		//lyxerr << "  : " << " (" << counter  << ","
-		//	<< numbertype << ") -> " << label << endl;
 	}
-	//lyxerr << "counterLabel: " << format  << " -> "	<< label << endl;
+	//lyxerr << "DONE! label=" << to_utf8(label) << endl;
 	return label;
 }
 

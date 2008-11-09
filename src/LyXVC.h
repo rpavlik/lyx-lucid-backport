@@ -26,15 +26,14 @@ class Buffer;
 
 /** Version Control for LyX.
     This is the class giving the verison control features to LyX. It is
-    intended to support different kinds of version control, but at this point
-    we will only support RCS. Later CVS is a likely candidate for support.
+    intended to support different kinds of version control.
     The support in LyX is based loosely upon the version control in GNU Emacs,
-    but is not as extensive as that one. See examples/VC.lyx for a simple
+    but is not as extensive as that one. See Extended Manual for a simple
     tutorial and manual for the use of the version control system in LyX.
 
     LyXVC use this algorithm when it searches for VC files:
-    for RCS it searches for <filename>,v and RCS/<filename>,v similar
-    should be done for CVS. By doing this there doesn't need to be any
+    for RCS it searches for <filename>,v and RCS/<filename>,v similarly
+    CVS/Entries for cvs and .svn/entries. By doing this there doesn't need to be any
     special support for VC in the lyx format, and this is especially good
     when the lyx format will be a subset of LaTeX.
 */
@@ -45,11 +44,11 @@ public:
 	///
 	~LyXVC();
 	/** Not a good name perhaps. This function should be called whenever
-	  LyX loads a file. This function then checks for a master VC file
-	  (for RCS this is *,v or RCS/ *,v) if this file is found, the loaded
-	  file is assumed to be under controll by VC (only RCS so far), and
-	  the appropiate actions is taken. Returns true if the file is under
-	  control by a VCS.
+	  LyX loads a file. This function then checks for a master VC file (for
+	  RCS this is *,v or RCS/ *,v ; for CVS this is CVS/Entries and .svn/entries
+	  for SVN) if this file or entry is found, the loaded file is assumed to be
+	  under controll by VC, and the appropiate actions is taken.
+	  Returns true if the file is under control by a VCS.
 	  */
 	bool file_found_hook(support::FileName const & fn);
 
@@ -63,26 +62,32 @@ public:
 	static bool file_not_found_hook(support::FileName const & fn);
 
 	///
-	void buffer(Buffer *);
+	void setBuffer(Buffer *);
 
 	/// Register the document as an VC file.
 	void registrer();
 
-	/// Unlock and commit changes.
-	void checkIn();
+	/// Unlock and commit changes. Returns log.
+	std::string checkIn();
+	/// Does the current VC supports this operation?
+	bool checkInEnabled();
 
-	/// Lock and prepare to edit document.
-	void checkOut();
+	/// Lock/update and prepare to edit document. Returns log.
+	std::string checkOut();
+	/// Does the current VC supports this operation?
+	bool checkOutEnabled();
 
 	/// Revert to last version
 	void revert();
 
 	/// Undo last check-in.
 	void undoLast();
+	/// Does the current VC supports this operation?
+	bool undoLastEnabled();
 
 	/**
 	 * Generate a log file and return the filename.
-	 * It is the caller's responsibility to unlink the
+	 * It is the caller's responsibility to remove the
 	 * file after use.
 	 */
 	const std::string getLogFile() const;
@@ -90,7 +95,7 @@ public:
 	///
 	void toggleReadOnly();
 
-	/// Is the document under administration by RCS?
+	/// Is the document under administration by VCS?
 	bool inUse();
 
 	/// Returns the version number.

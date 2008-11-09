@@ -13,14 +13,13 @@
 #ifndef MATH_PARSER_H
 #define MATH_PARSER_H
 
+#include "MathParser_flags.h"
+
 #include "support/types.h"
 #include "support/docstring.h"
 
-#include <string>
-#include <vector>
 
 namespace lyx {
-
 
 class MathAtom;
 class MathData;
@@ -62,17 +61,17 @@ public:
 latexkeys const * in_word_set(docstring const & str);
 
 /// parse formula from a string
-bool mathed_parse_normal(MathAtom &, docstring const &);
+bool mathed_parse_normal(MathAtom &, docstring const &, Parse::flags f = Parse::NORMAL);
 /// ... the LyX lexxer
-bool mathed_parse_normal(MathAtom &, Lexer &);
+bool mathed_parse_normal(MathAtom &, Lexer &, Parse::flags f = Parse::NORMAL);
 /// parse formula from a string into a grid
-void mathed_parse_normal(InsetMathGrid &, docstring const &);
+bool mathed_parse_normal(InsetMathGrid &, docstring const &, Parse::flags f = Parse::NORMAL);
 
 /// parse a single cell from a string
-void mathed_parse_cell(MathData & ar, docstring const &);
+bool mathed_parse_cell(MathData & ar, docstring const &, Parse::flags f = Parse::NORMAL);
 /// parse a single cell from a stream. Only use this for reading from .lyx
 /// file format, for the reason see Parser::tokenize(std::istream &).
-void mathed_parse_cell(MathData & ar, std::istream &);
+bool mathed_parse_cell(MathData & ar, std::istream &, Parse::flags f = Parse::NORMAL);
 
 void initParser();
 

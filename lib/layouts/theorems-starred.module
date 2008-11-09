@@ -1,0 +1,15 @@
+#\DeclareLyXModule{Theorems (Starred)}
+#DescriptionBegin
+#Defines only unnumbered theorem environments, and the proof environment, using 
+#the extended AMS machinery. 
+#DescriptionEnd
+#Excludes: theorems-std | theorems-ams
+
+# Author: Richard Heck <rgheck@comcast.net>
+
+Format 11
+
+Input theorems-order.inc
+Input theorems-starred.inc
+Input theorems-starred-equivalents.inc
+Input theorems-proof.inc

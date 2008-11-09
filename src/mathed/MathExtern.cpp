@@ -9,16 +9,16 @@
  */
 
 // This file contains most of the magic that extracts "context
-// information" from the unstructered layout-oriented stuff in an
+// information" from the unstructered layout-oriented stuff in
 // MathData.
 
 #include <config.h>
 
 #include "MathExtern.h"
+
 #include "InsetMathArray.h"
 #include "InsetMathChar.h"
 #include "InsetMathDelim.h"
-#include "MathData.h"
 #include "InsetMathDiff.h"
 #include "InsetMathExFunc.h"
 #include "InsetMathExInt.h"
@@ -26,45 +26,38 @@
 #include "InsetMathFrac.h"
 #include "InsetMathLim.h"
 #include "InsetMathMatrix.h"
-#include "MathStream.h"
 #include "InsetMathNumber.h"
 #include "InsetMathScript.h"
 #include "InsetMathString.h"
 #include "InsetMathSymbol.h"
+#include "MathData.h"
 #include "MathParser.h"
-#include "debug.h"
+#include "MathStream.h"
+
+#include "support/debug.h"
+#include "support/docstream.h"
+#include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
-#include "support/lyxlib.h"
-#include "frontends/controllers/ControlMath.h"
 
 #include <algorithm>
 #include <sstream>
 #include <fstream>
+#include <memory>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using support::cmd_ret;
-using support::getVectorFromString;
-using support::libFileSearch;
-using support::runCommand;
-using support::FileName;
-using support::quoteName;
-using support::tempName;
-using support::unlink;
-using support::subst;
-
-using frontend::function_names;
-
-using std::endl;
-using std::find_if;
-using std::auto_ptr;
-using std::istringstream;
-using std::ostream;
-using std::swap;
-using std::string;
-using std::vector;
+static char const * function_names[] = {
+	"arccos", "arcsin", "arctan", "arg", "bmod",
+	"cos", "cosh", "cot", "coth", "csc", "deg",
+	"det", "dim", "exp", "gcd", "hom", "inf", "ker",
+	"lg", "lim", "liminf", "limsup", "ln", "log",
+	"max", "min", "sec", "sin", "sinh", "sup",
+	"tan", "tanh", "Pr", 0
+};
 
 static size_t const npos = lyx::docstring::npos;
 
@@ -224,7 +217,7 @@ bool extractString(MathAtom const & at, docstring & str)
 // is this a known function?
 bool isKnownFunction(docstring const & str)
 {
-	for (int i = 0; *function_names[i]; ++i) {
+	for (int i = 0; function_names[i]; ++i) {
 		if (str == function_names[i])
 			return true;
 	}
@@ -1024,29 +1017,29 @@ void mathmlize(MathData const & dat, MathStream & os)
 
 namespace {
 
-	std::string captureOutput(std::string const & cmd, std::string const & data)
+	string captureOutput(string const & cmd, string const & data)
 	{
 		// In order to avoid parsing problems with command interpreters
 		// we pass input data through a file
-		FileName const cas_tmpfile(tempName(FileName(), "casinput"));
+		FileName const cas_tmpfile = FileName::tempName("casinput");
 		if (cas_tmpfile.empty()) {
 			lyxerr << "Warning: cannot create temporary file."
 			       << endl;
-			return std::string();
+			return string();
 		}
-		std::ofstream os(cas_tmpfile.toFilesystemEncoding().c_str());
+		ofstream os(cas_tmpfile.toFilesystemEncoding().c_str());
 		os << data << endl;
 		os.close();
-		std::string command =  cmd + " < "
+		string command =  cmd + " < "
 			+ quoteName(cas_tmpfile.toFilesystemEncoding());
 		lyxerr << "calling: " << cmd
 		       << "\ninput: '" << data << "'" << endl;
 		cmd_ret const ret = runCommand(command);
-		unlink(cas_tmpfile);
+		cas_tmpfile.removeFile();
 		return ret.second;
 	}
 
-	size_t get_matching_brace(std::string const & str, size_t i)
+	size_t get_matching_brace(string const & str, size_t i)
 	{
 		int count = 1;
 		size_t n = str.size();
@@ -1064,7 +1057,7 @@ namespace {
 		return npos;
 	}
 
-	size_t get_matching_brace_back(std::string const & str, size_t i)
+	size_t get_matching_brace_back(string const & str, size_t i)
 	{
 		int count = 1;
 		while (i > 0) {
@@ -1089,7 +1082,7 @@ namespace {
 		docstring expr = os.str();
 		docstring const header = from_ascii("simpsum:true;");
 
-		std::string out;
+		string out;
 		for (int i = 0; i < 100; ++i) { // at most 100 attempts
 			// try to fix missing '*' the hard way
 			//
@@ -1109,7 +1102,7 @@ namespace {
 
 			// search line with "Incorrect syntax"
 			istringstream is(out);
-			std::string line;
+			string line;
 			while (is) {
 				getline(is, line);
 				if (line.find("Incorrect syntax") != npos)
@@ -1129,11 +1122,11 @@ namespace {
 			expr.insert(pos, from_ascii("*"));
 		}
 
-		vector<std::string> tmp = getVectorFromString(out, "$$");
+		vector<string> tmp = getVectorFromString(out, "$$");
 		if (tmp.size() < 2)
 			return MathData();
 
-		out = subst(tmp[1], "\\>", std::string());
+		out = subst(tmp[1], "\\>", string());
 		lyxerr << "output: '" << out << "'" << endl;
 
 		// Ugly code that tries to make the result prettier
@@ -1143,10 +1136,10 @@ namespace {
 			size_t k = get_matching_brace(out, j + 1);
 			k = get_matching_brace(out, k + 1);
 			k = get_matching_brace(out, k + 1);
-			std::string mid = out.substr(i + 13, j - i - 13);
+			string mid = out.substr(i + 13, j - i - 13);
 			if (mid.find("\\over") != npos)
 				mid = '{' + mid + '}';
-			out = out.substr(0,i)
+			out = out.substr(0, i)
 				+ mid
 				+ out.substr(k + 1);
 			//lyxerr << "output: " << out << endl;
@@ -1162,10 +1155,10 @@ namespace {
 			size_t k = get_matching_brace(out, i + 5);
 			if (k == npos || k + 1 == out.size())
 				break;
-			out = out.substr(0,j - 1)
+			out = out.substr(0, j - 1)
 				+ "\\frac"
-				+ out.substr(j,i - j)
-				+ out.substr(i + 5,k - i - 4)
+				+ out.substr(j, i - j)
+				+ out.substr(i + 5, k - i - 4)
 				+ out.substr(k + 2);
 			//lyxerr << "output: " << out << endl;
 			i = out.find("\\over", i + 4);
@@ -1178,7 +1171,7 @@ namespace {
 
 	MathData pipeThroughMaple(docstring const & extra, MathData const & ar)
 	{
-		std::string header = "readlib(latex):\n";
+		string header = "readlib(latex):\n";
 
 		// remove the \\it for variable names
 		//"#`latex/csname_font` := `\\it `:"
@@ -1206,11 +1199,11 @@ namespace {
 		//"#`latex/latex/symbol` "
 		//	" := subs((\\'_\\' = \\'`\\_`\\',eval(`latex/latex/symbol`)): ";
 
-		std::string trailer = "quit;";
+		string trailer = "quit;";
 		odocstringstream os;
 		MapleStream ms(os);
 		ms << ar;
-		std::string expr = to_utf8(os.str());
+		string expr = to_utf8(os.str());
 		lyxerr << "ar: '" << ar << "'\n"
 		       << "ms: '" << expr << "'" << endl;
 
@@ -1435,7 +1428,7 @@ MathData pipeThroughExtern(string const & lang, docstring const & extra,
 	string data = to_utf8(os.str());
 
 	// search external script
-	support::FileName const file = libFileSearch("mathed", "extern_" + lang);
+	FileName const file = libFileSearch("mathed", "extern_" + lang);
 	if (file.empty()) {
 		lyxerr << "converter to '" << lang << "' not found" << endl;
 		return MathData();

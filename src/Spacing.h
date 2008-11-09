@@ -12,12 +12,15 @@
 #ifndef SPACING_H
 #define SPACING_H
 
-#include <iosfwd>
+#ifdef TEX2LYX
+#include "tex2lyx/Spacing.h"
+#else
+
+#include "support/strfwd.h"
+
 #include <string>
 
-
 namespace lyx {
-
 
 ///
 class Spacing {
@@ -38,16 +41,11 @@ public:
 	///
 	Spacing() : space(Default), value("1.0") {}
 	///
-	Spacing(Spacing::Space sp, double val = 1.0) {
-		set(sp, val);
-	}
-	Spacing(Spacing::Space sp, std::string const & val) {
-		set(sp, val);
-	}
+	Spacing(Spacing::Space sp, double val = 1.0) { set(sp, val); }
 	///
-	bool isDefault() const {
-		return space == Default;
-	}
+	Spacing(Spacing::Space sp, std::string const & val) { set(sp, val); }
+	///
+	bool isDefault() const { return space == Default; }
 	///
 	std::string const getValueAsString() const;
 	///
@@ -66,6 +64,9 @@ public:
 	/// useSetSpace is true when using the variant supported by
 	/// the memoir class.
 	std::string const writeEnvirEnd(bool useSetSpace) const;
+	/// useSetSpace is true when using the variant supported by
+	/// the memoir class.
+	std::string const writePreamble(bool useSetSpace) const;
 
 private:
 	///
@@ -90,8 +91,9 @@ inline
 bool operator!=(Spacing const & a, Spacing const & b)
 {
 	return !(a == b);
-
+}
 
 } // namespace lyx
-}
-#endif
+
+#endif // TEX2LYX
+#endif // SPACING_H

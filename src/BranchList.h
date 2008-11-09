@@ -27,33 +27,34 @@
  */
 
 
-#ifndef BRANCHES_H
-#define BRANCHES_H
+#ifndef BRANCHLIST_H
+#define BRANCHLIST_H
 
-#include "Color.h"
+#include "ColorCode.h"
+
+#include "support/docstring.h"
 
 #include <list>
 
 
 namespace lyx {
 
-
 class Branch {
 public:
 	///
 	Branch();
 	///
-	docstring const & getBranch() const;
+	docstring const & branch() const;
 	///
 	void setBranch(docstring const &);
 	///
-	bool getSelected() const;
+	bool isSelected() const;
 	/** Select/deselect the branch.
 	 *  \return true if the selection status changes.
 	 */
 	bool setSelected(bool);
 	///
-	RGBColor const & getColor() const;
+	RGBColor const & color() const;
 	///
 	void setColor(RGBColor const &);
 	/**
@@ -112,20 +113,6 @@ private:
 	docstring separator_;
 };
 
-
-class BranchNamesEqual : public std::unary_function<Branch, bool> {
-public:
-	BranchNamesEqual(docstring const & name)
-		: name_(name) {}
-	bool operator()(Branch const & branch) const
-	{
-		return branch.getBranch() == name_;
-	}
-private:
-	docstring name_;
-};
-
-
 } // namespace lyx
 
-#endif
+#endif // BRANCHLIST_H

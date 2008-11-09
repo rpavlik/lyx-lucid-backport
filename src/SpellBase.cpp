@@ -12,12 +12,12 @@
 #include <config.h>
 
 #include "SpellBase.h"
-#include "gettext.h"
+#include "support/gettext.h"
+#include "support/docstring.h"
 
+using namespace std;
 
 namespace lyx {
-
-using std::string;
 
 
 bool SpellBase::alive()

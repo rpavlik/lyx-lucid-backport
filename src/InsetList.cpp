@@ -10,19 +10,19 @@
  */
 
 #include <config.h>
+#include <algorithm>
 
 #include "InsetList.h"
 
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BranchList.h"
-#include "debug.h"
 
 #include "insets/InsetBranch.h"
 
-using std::endl;
-using std::lower_bound;
+#include "support/debug.h"
 
+using namespace std;
 
 namespace lyx {
 
@@ -31,8 +31,8 @@ namespace {
 
 typedef InsetList::InsetTable Table;
 
-class InsetTablePosLess : public std::binary_function<Table, Table, bool> {
-public:
+struct InsetTablePosLess
+{
 	bool operator()(Table const & t1, Table const & t2) const
 	{
 		return t1.pos < t2.pos;
@@ -42,16 +42,46 @@ public:
 } // namespace anon
 
 
+InsetList::InsetList(InsetList const & il)
+{
+	list_ = il.list_;
+	List::iterator it = list_.begin();
+	List::iterator end = list_.end();
+	for (; it != end; ++it)
+		it->inset = it->inset->clone();
+}
+
+
+InsetList::InsetList(InsetList const & il, pos_type beg, pos_type end)
+{
+	InsetList::const_iterator cit = il.begin();
+	InsetList::const_iterator cend = il.end();
+	for (; cit != cend; ++cit) {
+		if (cit->pos < beg)
+			continue;
+		if (cit->pos >= end)
+			break;
+		// Add a new entry in the insetlist_.
+		insert(cit->inset->clone(), cit->pos - beg);
+	}
+}
+
 
 InsetList::~InsetList()
 {
-	// If we begin storing a shared_ptr in the List
-	// this code can be removed. (Lgb)
 	List::iterator it = list_.begin();
 	List::iterator end = list_.end();
-	for (; it != end; ++it) {
+	for (; it != end; ++it)
 		delete it->inset;
-	}
+}
+
+
+void InsetList::setBuffer(Buffer & b)
+{
+	List::iterator it = list_.begin();
+	List::iterator end = list_.end();
+	for (; it != end; ++it)
+		it->inset->setBuffer(b);
 }
 
 
@@ -76,8 +106,8 @@ void InsetList::insert(Inset * inset, pos_type pos)
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
 	if (it != end && it->pos == pos) {
-		lyxerr << "ERROR (InsetList::insert): "
-		       << "There is an inset in position: " << pos << endl;
+		LYXERR0("ERROR (InsetList::insert): "
+		       << "There is an inset in position: " << pos);
 	} else {
 		list_.insert(it, InsetTable(pos, inset));
 	}
@@ -122,9 +152,8 @@ void InsetList::increasePosAfterPos(pos_type pos)
 {
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
-	for (; it != end; ++it) {
+	for (; it != end; ++it)
 		++it->pos;
-	}
 }
 
 
@@ -132,10 +161,33 @@ void InsetList::decreasePosAfterPos(pos_type pos)
 {
 	List::iterator end = list_.end();
 	List::iterator it = insetIterator(pos);
-	for (; it != end; ++it) {
+	for (; it != end; ++it)
 		--it->pos;
-	}
 }
 
+
+pos_type InsetList::find(InsetCode code, pos_type startpos) const
+{
+	List::const_iterator it = insetIterator(startpos);
+	List::const_iterator end = list_.end();
+	for (; it != end ; ++it) {
+		if (it->inset->lyxCode() == code)
+			return it->pos;
+	}
+	return -1;
+}
+
+
+int InsetList::count(InsetCode code, pos_type startpos) const
+{
+	int num = 0;
+	List::const_iterator it = insetIterator(startpos);
+	List::const_iterator end = list_.end();
+	for (; it != end ; ++it) {
+		if (it->inset->lyxCode() == code)
+			++num;
+	}
+	return num;
+}
 
 } // namespace lyx

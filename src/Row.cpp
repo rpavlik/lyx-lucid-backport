@@ -17,36 +17,39 @@
 #include <config.h>
 
 #include "Row.h"
-#include "debug.h"
+
+#include "DocIterator.h"
+
+#include "support/debug.h"
 
 
 namespace lyx {
 
 
-RowMetrics::RowMetrics()
-	: separator(0), hfill(0), label_hfill(0), x(0)
-{}
-
-
 Row::Row()
-	: pos_(0), end_(0), ascent_(0), descent_(0), width_(0)
+	: separator(0), label_hfill(0), x(0),
+	sel_beg(-1), sel_end(-1),
+	begin_margin_sel(false), end_margin_sel(false), 
+	changed_(false), crc_(0), pos_(0), end_(0)
 {}
 
 
-Row::Row(pos_type pos)
-	: pos_(pos), end_(0), ascent_(0), descent_(0), width_(0)
-{}
+void Row::setCrc(size_type crc) const
+{
+	changed_ = crc != crc_;
+	crc_ = crc;
+}
+
+
+void Row::setDimension(Dimension const & dim)
+{
+	dim_ = dim;
+}
 
 
 void Row::pos(pos_type p)
 {
 	pos_ = p;
-}
-
-
-pos_type Row::pos() const
-{
-	return pos_;
 }
 
 
@@ -56,43 +59,76 @@ void Row::endpos(pos_type p)
 }
 
 
-pos_type Row::endpos() const
+bool Row::isMarginSelected(bool left_margin, DocIterator const & beg,
+		DocIterator const & end) const
 {
-	return end_;
+	pos_type const sel_pos = left_margin ? sel_beg : sel_end;
+	pos_type const margin_pos = left_margin ? pos_ : end_;
+
+	// Is the chosen margin selected ?
+	if (sel_pos == margin_pos) {
+		if (beg.pos() == end.pos())
+			// This is a special case in which the space between after 
+			// pos i-1 and before pos i is selected, i.e. the margins
+			// (see DocIterator::boundary_).
+			return beg.boundary() && !end.boundary();
+		else if (end.pos() == margin_pos)
+			// If the selection ends around the margin, it is only
+			// drawn if the cursor is after the margin.
+			return !end.boundary();
+		else if (beg.pos() == margin_pos)
+			// If the selection begins around the margin, it is 
+			// only drawn if the cursor is before the margin.
+			return beg.boundary();
+		else 
+			return true;
+	}
+	return false;
 }
 
 
-void Row::width(int w)
+void Row::setSelectionAndMargins(DocIterator const & beg, 
+		DocIterator const & end) const
 {
-	width_ = w;
+	setSelection(beg.pos(), end.pos());
+	
+	if (selection()) {
+		end_margin_sel = isMarginSelected(false, beg, end);
+		begin_margin_sel = isMarginSelected(true, beg, end);
+	}
 }
 
 
-int Row::width() const
+void Row::setSelection(pos_type beg, pos_type end) const
 {
-	return width_;
+	if (pos_ >= beg && pos_ <= end)
+		sel_beg = pos_;
+	else if (beg > pos_ && beg <= end_)
+		sel_beg = beg;
+	else
+		sel_beg = -1;
+
+	if (end_ >= beg && end_ <= end)
+		sel_end = end_;
+	else if (end < end_ && end >= pos_)
+		sel_end = end;
+	else
+		sel_end = -1;
 }
 
 
-void Row::ascent(int b)
+bool Row::selection() const
 {
-	ascent_ = b;
+	return sel_beg != -1 && sel_end != -1;
 }
 
 
-int Row::ascent() const
+void Row::dump(char const * s) const
 {
-	return ascent_;
-}
-
-
-void Row::dump(const char * s) const
-{
-	lyxerr << s << " pos: " << pos_ << " end: " << end_
-		<< " width: " << width_
-		<< " ascent: " << ascent_
-		<< " descent: " << descent_
-		<< std::endl;
+	LYXERR0(s << " pos: " << pos_ << " end: " << end_
+		<< " width: " << dim_.wid
+		<< " ascent: " << dim_.asc
+		<< " descent: " << dim_.des);
 }
 
 

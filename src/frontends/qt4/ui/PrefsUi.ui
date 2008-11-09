@@ -1,9 +1,6 @@
 <ui version="4.0" >
- <author></author>
- <comment></comment>
- <exportmacro></exportmacro>
- <class>QPrefsUi</class>
- <widget class="QDialog" name="QPrefsUi" >
+ <class>PrefsUi</class>
+ <widget class="QDialog" name="PrefsUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -106,7 +103,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <customwidgets>
   <customwidget>

@@ -2,8 +2,10 @@
 # Author : José Abílio Oliveira Matos <jamatos@lyx.org>
 # Character Styles definition
 
-Format 4
-CharStyle Filename
+Format 11
+InsetLayout Element:Filename
+	LyXType element
+	LabelString Filename
 	LatexType             Command
 	LatexName             filename
 	Font
@@ -15,7 +17,9 @@ CharStyle Filename
 	EndFont
 End
 
-CharStyle Directory
+InsetLayout Element:Directory
+	LyXType element
+	LabelString Directory
 	LatexType             Command
 	LatexName             filename
 	LatexParam            "class=<directory>"
@@ -28,7 +32,9 @@ CharStyle Directory
 	EndFont
 End
 
-CharStyle Firstname
+InsetLayout Element:Firstname
+	LyXType element
+	LabelString Firstname
 	LatexType             Command
 	LatexName             firstname
 	LabelFont
@@ -37,7 +43,9 @@ CharStyle Firstname
 	EndFont
 End
 
-CharStyle Surname
+InsetLayout Element:Surname
+	LyXType element
+	LabelString Surname
 	LatexType             Command
 	LatexName             surname
 	LabelFont
@@ -46,7 +54,9 @@ CharStyle Surname
 	EndFont
 End
 
-CharStyle Literal
+InsetLayout Element:Literal
+	LyXType element
+	LabelString Literal
 	LatexType             Command
 	LatexName             literal
 	Font
@@ -58,7 +68,9 @@ CharStyle Literal
 	EndFont
 End
 
-CharStyle Email
+InsetLayout Element:Email
+	LyXType element
+	LabelString Email
         LatexType             Command
         LatexName             email
         Font
@@ -70,7 +82,9 @@ CharStyle Email
         EndFont
 End
 
-CharStyle KeyCombo
+InsetLayout Element:KeyCombo
+	LyXType element
+	LabelString KeyCombo
         LatexType             Command
         LatexName             keycombo
         Font
@@ -82,7 +96,9 @@ CharStyle KeyCombo
         EndFont
 End
 
-CharStyle KeyCap
+InsetLayout Element:KeyCap
+	LyXType element
+	LabelString KeyCap
         LatexType             Command
         LatexName             keycap
         Font
@@ -94,7 +110,9 @@ CharStyle KeyCap
         EndFont
 End
 
-CharStyle GuiMenu
+InsetLayout Element:GuiMenu
+	LyXType element
+	LabelString GuiMenu
         LatexType             Command
         LatexName             guimenu
         Font
@@ -106,7 +124,9 @@ CharStyle GuiMenu
         EndFont
 End
 
-CharStyle GuiMenuItem
+InsetLayout Element:GuiMenuItem
+	LyXType element
+	LabelString GuiMenuItem
         LatexType             Command
         LatexName             guimenuitem
         Font
@@ -118,7 +138,9 @@ CharStyle GuiMenuItem
         EndFont
 End
 
-CharStyle GuiButton
+InsetLayout Element:GuiButton
+	LyXType element
+	LabelString GuiButton
         LatexType             Command
         LatexName             guibutton
         Font
@@ -130,7 +152,9 @@ CharStyle GuiButton
         EndFont
 End
 
-CharStyle MenuChoice
+InsetLayout Element:MenuChoice
+	LyXType element
+	LabelString MenuChoice
         LatexType             Command
         LatexName             menuchoice
         Font

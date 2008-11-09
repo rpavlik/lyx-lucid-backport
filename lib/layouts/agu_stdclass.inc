@@ -6,7 +6,7 @@
 # It is desirable, as far as possible, to have the same look and feel for
 # related layouts in latex and docbook.
 
-Format 4
+Format 11
 OutputType              docbook
 
 Columns                 1
@@ -26,13 +26,14 @@ Style Standard
 	ParIndent             MM
 	ParSkip               0.4
 	Align                 Block
-	AlignPossible         Block
 	LabelType             No_Label
 	LatexParam            "id=<para#>"
 End
 
 
-CharStyle Firstname
+InsetLayout Element:Firstname
+	LyXType element
+	LabelString Firstname
 	LatexType             Command
 	LatexName             firstname
 	Font
@@ -44,7 +45,9 @@ CharStyle Firstname
 	EndFont
 End
 
-CharStyle Fname
+InsetLayout Element:Fname
+	LyXType element
+	LabelString Fname
 	LatexType             Command
 	LatexName             fname
 	Font
@@ -57,7 +60,9 @@ CharStyle Fname
 End
 
 
-CharStyle Surname
+InsetLayout Element:Surname
+	LyXType element
+	LabelString Surname
 	LatexType             Command
 	LatexName             surname
 	Font
@@ -70,7 +75,9 @@ CharStyle Surname
 End
 
 
-CharStyle Filename
+InsetLayout Element:Filename
+	LyXType element
+	LabelString Filename
 	LatexType             Command
 	LatexName             filename
 	Font
@@ -83,7 +90,9 @@ CharStyle Filename
 End
 
 
-CharStyle Literal
+InsetLayout Element:Literal
+	LyXType element
+	LabelString Literal
 	LatexType             Command
 	LatexName             literal
 	Font
@@ -96,7 +105,9 @@ CharStyle Literal
 End
 
 
-CharStyle Emph
+InsetLayout Element:Emph
+	LyXType element
+	LabelString Emph
 	LatexType             Command
 	LatexName             emph
 	LatexParam            "type=<italic>"
@@ -110,7 +121,9 @@ CharStyle Emph
 End
 
 
-CharStyle Abbrev
+InsetLayout Element:Abbrev
+	LyXType element
+	LabelString Abbrev
 	LatexType             Command
 	LatexName             abbrev
 	LabelFont
@@ -119,7 +132,9 @@ CharStyle Abbrev
 End
 
 
-CharStyle Citation-number
+InsetLayout Element:Citation-number
+	LyXType element
+	LabelString Citation-number
 	LatexType             Command
 	LatexName             citation-number
 	LabelFont
@@ -128,7 +143,9 @@ CharStyle Citation-number
 End
 
 
-CharStyle Volume
+InsetLayout Element:Volume
+	LyXType element
+	LabelString Volume
 	LatexType             Command
 	LatexName             volume
 	LabelFont
@@ -137,7 +154,9 @@ CharStyle Volume
 End
 
 
-CharStyle Day
+InsetLayout Element:Day
+	LyXType element
+	LabelString Day
 	LatexType             Command
 	LatexName             day
 	LabelFont
@@ -146,7 +165,9 @@ CharStyle Day
 End
 
 
-CharStyle Month
+InsetLayout Element:Month
+	LyXType element
+	LabelString Month
 	LatexType             Command
 	LatexName             month
 	LabelFont
@@ -155,7 +176,9 @@ CharStyle Month
 End
 
 
-CharStyle Year
+InsetLayout Element:Year
+	LyXType element
+	LabelString Year
 	LatexType             Command
 	LatexName             year
 	LabelFont
@@ -164,7 +187,9 @@ CharStyle Year
 End
 
 
-CharStyle Issue-number
+InsetLayout Element:Issue-number
+	LyXType element
+	LabelString Issue-number
 	LatexType             Command
 	LatexName             issue-number
 	LabelFont
@@ -173,7 +198,9 @@ CharStyle Issue-number
 End
 
 
-CharStyle Issue-day
+InsetLayout Element:Issue-day
+	LyXType element
+	LabelString Issue-day
 	LatexType             Command
 	LatexName             issue-day
 	LabelFont
@@ -182,7 +209,9 @@ CharStyle Issue-day
 End
 
 
-CharStyle Issue-months
+InsetLayout Element:Issue-months
+	LyXType element
+	LabelString Issue-months
 	LatexType             Command
 	LatexName             issue-months
 	LabelFont
@@ -191,6 +220,7 @@ CharStyle Issue-months
 End
 
 
+Input stdinsets.inc
 Input agu_stdlists.inc
 Input agu_stdsections.inc
 Input db_stdstarsections.inc

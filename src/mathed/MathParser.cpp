@@ -24,7 +24,6 @@ following hack as starting point to write some macros:
   \else
     \def\b{}\def\e{}
   \fi
-
   ...
 
   \[\begin{array}{ccc}
@@ -48,6 +47,7 @@ following hack as starting point to write some macros:
 #include "InsetMathComment.h"
 #include "InsetMathDelim.h"
 #include "InsetMathEnv.h"
+#include "InsetMathFrac.h"
 #include "InsetMathKern.h"
 #include "MathMacro.h"
 #include "InsetMathPar.h"
@@ -62,28 +62,23 @@ following hack as starting point to write some macros:
 #include "MathMacroArgument.h"
 #include "MathSupport.h"
 
+#include "Encoding.h"
 #include "Lexer.h"
-#include "debug.h"
 
+#include "support/debug.h"
 #include "support/convert.h"
+#include "support/docstream.h"
+#include "support/lstrings.h"
 
 #include <sstream>
 
+//#define FILEDEBUG
+
+using namespace std;
 
 namespace lyx {
 
-using std::endl;
-using std::fill;
-
-using std::string;
-using std::ios;
-using std::istream;
-using std::ostream;
-using std::vector;
-
-
-//#define FILEDEBUG
-
+using support::subst;
 
 namespace {
 
@@ -105,13 +100,33 @@ bool stared(docstring const & s)
 }
 
 
+docstring escapeSpecialChars(docstring const & str, bool textmode)
+{
+	docstring const backslash = textmode ? from_ascii("\\textbackslash ")
+					     : from_ascii("\\backslash ");
+	docstring const caret = textmode ? from_ascii("\\textasciicircum ")
+					 : from_ascii("\\mathcircumflex ");
+
+	return subst(subst(subst(subst(subst(subst(subst(subst(subst(str,
+			from_ascii("\\"), backslash),
+			from_ascii("^"), caret),
+			from_ascii("_"), from_ascii("\\_")),
+			from_ascii("$"), from_ascii("\\$")),
+			from_ascii("#"), from_ascii("\\#")),
+			from_ascii("&"), from_ascii("\\&")),
+			from_ascii("%"), from_ascii("\\%")),
+			from_ascii("{"), from_ascii("\\{")),
+			from_ascii("}"), from_ascii("\\}"));
+}
+
+
 /*!
  * Add the row \p cellrow to \p grid.
  * \returns wether the row could be added. Adding a row can fail for
  * environments like "equation" that have a fixed number of rows.
  */
 bool addRow(InsetMathGrid & grid, InsetMathGrid::row_type & cellrow,
-	    docstring const & vskip, bool allow_pagebreak = true)
+	    docstring const & vskip, bool allow_newpage_ = true)
 {
 	++cellrow;
 	if (cellrow == grid.nrows()) {
@@ -128,14 +143,14 @@ bool addRow(InsetMathGrid & grid, InsetMathGrid::row_type & cellrow,
 			lyxerr << "ignoring extra row";
 			if (!vskip.empty())
 				lyxerr << " with extra space " << to_utf8(vskip);
-			if (!allow_pagebreak)
+			if (!allow_newpage_)
 				lyxerr << " with no page break allowed";
 			lyxerr << '.' << endl;
 			return false;
 		}
 	}
 	grid.vcrskip(Length(to_utf8(vskip)), cellrow - 1);
-	grid.rowinfo(cellrow - 1).allow_pagebreak_ = allow_pagebreak;
+	grid.rowinfo(cellrow - 1).allow_newpage_ = allow_newpage_;
 	return true;
 }
 
@@ -242,7 +257,7 @@ enum {
 	FLAG_END        = 1 << 3,  //  next \\end ends the parsing process
 	FLAG_BRACK_LAST = 1 << 4,  //  next closing bracket ends the parsing
 	FLAG_TEXTMODE   = 1 << 5,  //  we are in a box
-	FLAG_ITEM       = 1 << 6,  //  read a (possibly braced token)
+	FLAG_ITEM       = 1 << 6,  //  read a (possibly braced) token
 	FLAG_LEAVE      = 1 << 7,  //  leave the loop at the end
 	FLAG_SIMPLE     = 1 << 8,  //  next $ leaves the loop
 	FLAG_EQUATION   = 1 << 9,  //  next \] leaves the loop
@@ -312,21 +327,23 @@ class Parser {
 public:
 	///
 	typedef  InsetMath::mode_type mode_type;
+	///
+	typedef  Parse::flags parse_mode;
 
 	///
-	Parser(Lexer & lex);
+	Parser(Lexer & lex, parse_mode mode);
 	/// Only use this for reading from .lyx file format, for the reason
-	/// see Parser::tokenize(std::istream &).
-	Parser(istream & is);
+	/// see Parser::tokenize(istream &).
+	Parser(istream & is, parse_mode mode);
 	///
-	Parser(docstring const & str);
+	Parser(docstring const & str, parse_mode mode);
 
 	///
 	bool parse(MathAtom & at);
 	///
-	void parse(MathData & array, unsigned flags, mode_type mode);
+	bool parse(MathData & array, unsigned flags, mode_type mode);
 	///
-	void parse1(InsetMathGrid & grid, unsigned flags, mode_type mode,
+	bool parse1(InsetMathGrid & grid, unsigned flags, mode_type mode,
 		bool numbered);
 	///
 	MathData parse(unsigned flags, mode_type mode);
@@ -383,26 +400,30 @@ private:
 	unsigned pos_;
 	/// Stack of active environments
 	vector<docstring> environments_;
+	///
+	parse_mode mode_;
+	///
+	bool success_;
 };
 
 
-Parser::Parser(Lexer & lexer)
-	: lineno_(lexer.getLineNo()), pos_(0)
+Parser::Parser(Lexer & lexer, parse_mode mode)
+	: lineno_(lexer.lineNumber()), pos_(0), mode_(mode), success_(true)
 {
 	tokenize(lexer.getStream());
 	lexer.eatLine();
 }
 
 
-Parser::Parser(istream & is)
-	: lineno_(0), pos_(0)
+Parser::Parser(istream & is, parse_mode mode)
+	: lineno_(0), pos_(0), mode_(mode), success_(true)
 {
 	tokenize(is);
 }
 
 
-Parser::Parser(docstring const & str)
-	: lineno_(0), pos_(0)
+Parser::Parser(docstring const & str, parse_mode mode)
+	: lineno_(0), pos_(0), mode_(mode), success_(true)
 {
 	tokenize(str);
 }
@@ -524,7 +545,9 @@ void Parser::tokenize(istream & is)
 
 void Parser::tokenize(docstring const & buffer)
 {
-	idocstringstream is(buffer, ios::in | ios::binary);
+	idocstringstream is(mode_ & Parse::VERBATIM
+			? escapeSpecialChars(buffer, mode_ & Parse::TEXTMODE)
+			: buffer, ios::in | ios::binary);
 
 	char_type c;
 	while (is.get(c)) {
@@ -578,7 +601,8 @@ void Parser::tokenize(docstring const & buffer)
 			}
 
 			case catIgnore: {
-				lyxerr << "ignoring a char: " << int(c) << endl;
+				if (!(mode_ & Parse::QUIET))
+					lyxerr << "ignoring a char: " << int(c) << endl;
 				break;
 			}
 
@@ -607,9 +631,12 @@ void Parser::dump() const
 
 void Parser::error(string const & msg)
 {
-	lyxerr << "Line ~" << lineno_ << ": Math parse error: " << msg << endl;
-	dump();
-	//exit(1);
+	success_ = false;
+	if (!(mode_ & Parse::QUIET)) {
+		lyxerr << "Line ~" << lineno_ << ": Math parse error: "
+		       << msg << endl;
+		dump();
+	}
 }
 
 
@@ -619,16 +646,17 @@ bool Parser::parse(MathAtom & at)
 	MathData ar;
 	parse(ar, false, InsetMath::UNDECIDED_MODE);
 	if (ar.size() != 1 || ar.front()->getType() == hullNone) {
-		lyxerr << "unusual contents found: " << ar << endl;
+		if (!(mode_ & Parse::QUIET))
+			lyxerr << "unusual contents found: " << ar << endl;
 		at = MathAtom(new InsetMathPar(ar));
 		//if (at->nargs() > 0)
 		//	at.nucleus()->cell(0) = ar;
 		//else
 		//	lyxerr << "unusual contents found: " << ar << endl;
-		return true;
-	}
-	at = ar[0];
-	return true;
+		success_ = false;
+	} else
+		at = ar[0];
+	return success_;
 }
 
 
@@ -677,11 +705,12 @@ MathData Parser::parse(unsigned flags, mode_type mode)
 }
 
 
-void Parser::parse(MathData & array, unsigned flags, mode_type mode)
+bool Parser::parse(MathData & array, unsigned flags, mode_type mode)
 {
 	InsetMathGrid grid(1, 1);
 	parse1(grid, flags, mode, false);
 	array = grid.cell(0);
+	return success_;
 }
 
 
@@ -692,7 +721,7 @@ void Parser::parse2(MathAtom & at, const unsigned flags, const mode_type mode,
 }
 
 
-void Parser::parse1(InsetMathGrid & grid, unsigned flags,
+bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 	const mode_type mode, const bool numbered)
 {
 	int limits = 0;
@@ -724,7 +753,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				// skip the brace and collect everything to the next matching
 				// closing brace
 				parse1(grid, FLAG_BRACE_LAST, mode, numbered);
-				return;
+				return success_;
 			}
 
 			// handle only this single token, leave the loop if done
@@ -738,7 +767,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 			if (t.cat() != catBegin) {
 				error("opening brace expected");
-				return;
+				return success_;
 			}
 
 			// skip the brace and collect everything to the next matching
@@ -756,7 +785,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				// no option found, put back token and we are done
 				putback();
 			}
-			return;
+			return success_;
 		}
 
 		//
@@ -781,7 +810,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 			else if (flags & FLAG_SIMPLE) {
 				// this is the end of the formula
-				return;
+				return success_;
 			}
 
 			else {
@@ -824,9 +853,9 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 		else if (t.cat() == catEnd) {
 			if (flags & FLAG_BRACE_LAST)
-				return;
+				return success_;
 			error("found '}' unexpectedly");
-			//BOOST_ASSERT(false);
+			//LASSERT(false, /**/);
 			//add(cell, '}', LM_TC_TEX);
 		}
 
@@ -834,7 +863,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			//lyxerr << " column now " << (cellcol + 1)
 			//       << " max: " << grid.ncols() << endl;
 			if (flags & FLAG_ALIGN)
-				return;
+				return success_;
 			if (addCol(grid, cellcol))
 				cell = &grid.cell(grid.index(cellrow, cellcol));
 		}
@@ -874,7 +903,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 		else if (t.character() == ']' && (flags & FLAG_BRACK_LAST)) {
 			//lyxerr << "finished reading option" << endl;
-			return;
+			return success_;
 		}
 
 		else if (t.cat() == catOther)
@@ -901,73 +930,214 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				cell->back().nucleus()->lock(true);
 		}
 
-		else if (t.cs() == "def" ||
-			t.cs() == "newcommand" ||
-			t.cs() == "renewcommand")
-		{
-			docstring const type = t.cs();
-			docstring name;
+		else if ((t.cs() == "global" && nextToken().cs() == "def") ||
+			 t.cs() == "def") {
+			if (t.cs() == "global")
+				getToken();
+			
+			// get name
+			docstring name = getToken().cs();
+			
+			// read parameters
 			int nargs = 0;
-			if (t.cs() == "def") {
-				// get name
+			docstring pars;
+			while (good() && nextToken().cat() != catBegin) {
+				pars += getToken().cs();
+				++nargs;
+			}
+			nargs /= 2;
+			
+			// read definition
+			MathData def;
+			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
+			
+			// is a version for display attached?
+			skipSpaces();
+			MathData display;
+			if (nextToken().cat() == catBegin)
+				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
+			
+			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
+			       0, MacroTypeDef, vector<MathData>(), def, display)));
+		}
+		
+		else if (t.cs() == "newcommand" ||
+			 t.cs() == "renewcommand" ||
+			 t.cs() == "newlyxcommand") {
+			// get name
+			if (getToken().cat() != catBegin) {
+				error("'{' in \\newcommand expected (1) ");
+				return success_;
+			}
+			docstring name = getToken().cs();
+			if (getToken().cat() != catEnd) {
+				error("'}' in \\newcommand expected");
+				return success_;
+			}
+				
+			// get arity
+			docstring const arg = getArg('[', ']');
+			int nargs = 0;
+			if (!arg.empty())
+				nargs = convert<int>(arg);
+				
+			// optional argument given?
+			skipSpaces();
+			int optionals = 0;
+			vector<MathData> optionalValues;
+			while (nextToken().character() == '[') {
+				getToken();
+				optionalValues.push_back(MathData());
+				parse(optionalValues[optionals], FLAG_BRACK_LAST, mode);
+				++optionals;
+			}
+			
+			MathData def;
+			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
+			
+			// is a version for display attached?
+			skipSpaces();
+			MathData display;
+			if (nextToken().cat() == catBegin)
+				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
+			
+			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
+				optionals, MacroTypeNewcommand, optionalValues, def, display)));
+			
+		}
+		
+		else if (t.cs() == "newcommandx" ||
+			 t.cs() == "renewcommandx") {
+			// \newcommandx{\foo}[2][usedefault, addprefix=\global,1=default]{#1,#2}
+			// get name
+			docstring name;
+			if (nextToken().cat() == catBegin) {
+				getToken();
 				name = getToken().cs();
-
-				// read parameter
-				docstring pars;
-				while (good() && nextToken().cat() != catBegin) {
-					pars += getToken().cs();
-					++nargs;
-				}
-				nargs /= 2;
-				//lyxerr << "read \\def parameter list '" << pars << "'" << endl;
-
-			} else { // t.cs() == "newcommand" || t.cs() == "renewcommand"
-
-				if (getToken().cat() != catBegin) {
-					error("'{' in \\newcommand expected (1) ");
-					return;
-				}
-
-				name = getToken().cs();
-
 				if (getToken().cat() != catEnd) {
-					error("'}' in \\newcommand expected");
-					return;
+					error("'}' in \\newcommandx expected");
+					return success_;
 				}
-
-				docstring const arg = getArg('[', ']');
-				if (!arg.empty())
-					nargs = convert<int>(arg);
-
+			} else
+				name = getToken().cs();
+				
+			// get arity
+			docstring const arg = getArg('[', ']');
+			if (arg.empty()) {
+				error("[num] in \\newcommandx expected");
+				return success_;
+			}
+			int nargs = convert<int>(arg);
+			
+			// get options
+			int optionals = 0;
+			vector<MathData> optionalValues;
+			if (nextToken().character() == '[') {
+				// skip '['
+				getToken();
+					
+				// handle 'opt=value' options, separated by ','.
+				skipSpaces();
+				while (nextToken().character() != ']' && good()) {
+					if (nextToken().character() >= '1'
+					    && nextToken().character() <= '9') {
+						// optional value -> get parameter number
+						int n = getChar() - '0';
+						if (n > nargs) {
+							error("Arity of \\newcommandx too low "
+							      "for given optional parameter.");
+							return success_;
+						}
+						
+						// skip '='
+						if (getToken().character() != '=') {
+							error("'=' and optional parameter value "
+							      "expected for \\newcommandx");
+							return success_;
+						}
+						
+						// get value
+						int optNum = max(size_t(n), optionalValues.size());
+						optionalValues.resize(optNum);
+						optionalValues[n - 1].clear();
+						while (nextToken().character() != ']'
+						       && nextToken().character() != ',') {
+							MathData data;
+							parse(data, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
+							optionalValues[n - 1].append(data);
+						}
+						optionals = max(n, optionals);
+					} else if (nextToken().cat() == catLetter) {
+						// we in fact ignore every non-optional
+						// parameter
+						
+						// get option name
+						docstring opt;
+						while (nextToken().cat() == catLetter)
+							opt += getChar();
+					
+						// value?
+						skipSpaces();
+						MathData value;
+						if (nextToken().character() == '=') {
+							getToken();
+							while (nextToken().character() != ']'
+								&& nextToken().character() != ',')
+								parse(value, FLAG_ITEM, 
+								      InsetMath::UNDECIDED_MODE);
+						}
+					} else {
+						error("option for \\newcommandx expected");
+						return success_;
+					}
+					
+					// skip komma
+					skipSpaces();
+					if (nextToken().character() == ',') {
+						getChar();
+						skipSpaces();
+					} else if (nextToken().character() != ']') {
+						error("Expecting ',' or ']' in options "
+						      "of \\newcommandx");
+						return success_;
+					}
+				}
+				
+				// skip ']'
+				if (!good())
+					return success_;
+				getToken();
 			}
 
-			MathData ar1;
-			parse(ar1, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
-
-			// we cannot handle recursive stuff at all
-			//MathData test;
-			//test.push_back(createInsetMath(name));
-			//if (ar1.contains(test)) {
-			//	error("we cannot handle recursive macros at all.");
-			//	return;
-			//}
+			// get definition
+			MathData def;
+			parse(def, FLAG_ITEM, InsetMath::UNDECIDED_MODE);
 
 			// is a version for display attached?
 			skipSpaces();
-			MathData ar2;
+			MathData display;
 			if (nextToken().cat() == catBegin)
-				parse(ar2, FLAG_ITEM, InsetMath::MATH_MODE);
+				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
 
-			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs, type,
-				ar1, ar2)));
+			cell->push_back(MathAtom(new MathMacroTemplate(name, nargs,
+				optionals, MacroTypeNewcommandx, optionalValues, def, 
+				display)));
 		}
 
 		else if (t.cs() == "(") {
+			if (mode == InsetMath::MATH_MODE) {
+				error("bad math environment");
+				break;
+			}
 			cell->push_back(MathAtom(new InsetMathHull(hullSimple)));
 			parse2(cell->back(), FLAG_SIMPLE2, InsetMath::MATH_MODE, false);
 		}
 
 		else if (t.cs() == "[") {
+			if (mode != InsetMath::UNDECIDED_MODE) {
+				error("bad math environment");
+				break;
+			}
 			cell->push_back(MathAtom(new InsetMathHull(hullEquation)));
 			parse2(cell->back(), FLAG_EQUATION, InsetMath::MATH_MODE, false);
 		}
@@ -999,7 +1169,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 					// single line hull insets.
 					if (grid.nrows() > 1)
 						delEmptyLastRow(grid);
-					return;
+					return success_;
 				}
 			} else
 				error("found 'end' unexpectedly");
@@ -1007,19 +1177,19 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 		else if (t.cs() == ")") {
 			if (flags & FLAG_SIMPLE2)
-				return;
+				return success_;
 			error("found '\\)' unexpectedly");
 		}
 
 		else if (t.cs() == "]") {
 			if (flags & FLAG_EQUATION)
-				return;
+				return success_;
 			error("found '\\]' unexpectedly");
 		}
 
 		else if (t.cs() == "\\") {
 			if (flags & FLAG_ALIGN)
-				return;
+				return success_;
 			bool added = false;
 			if (nextToken().asInput() == "*") {
 				getToken();
@@ -1045,6 +1215,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			parse(count, FLAG_ITEM, mode);
 			int cols = 1;
 			if (!extractNumber(count, cols)) {
+				success_ = false;
 				lyxerr << " can't extract number of cells from " << count << endl;
 			}
 			// resize the table if necessary
@@ -1103,6 +1274,33 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 		}
 
+		else if (t.cs() == "unit") {
+			// Allowed formats \unit[val]{unit}
+			MathData ar;
+			parse(ar, FLAG_OPTION, mode);
+			if (ar.size()) {
+				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNIT)));
+				cell->back().nucleus()->cell(0) = ar;
+				parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
+			} else {
+				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNIT, 1)));
+				parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+			}
+		}
+		else if (t.cs() == "unitfrac") {
+			// Here allowed formats are \unitfrac[val]{num}{denom}
+			MathData ar;
+			parse(ar, FLAG_OPTION, mode);
+			if (ar.size()) {
+				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC, 3)));
+				cell->back().nucleus()->cell(2) = ar;
+			} else {
+				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC)));
+			}
+			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+			parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
+		}
+
 		else if (t.cs() == "xrightarrow" || t.cs() == "xleftarrow") {
 			cell->push_back(createInsetMath(t.cs()));
 			parse(cell->back().nucleus()->cell(1), FLAG_OPTION, mode);
@@ -1135,10 +1333,10 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 
 		else if (t.cs() == "right") {
 			if (flags & FLAG_RIGHT)
-				return;
+				return success_;
 			//lyxerr << "got so far: '" << cell << "'" << endl;
 			error("Unmatched right delimiter");
-			return;
+			return success_;
 		}
 
 		else if (t.cs() == "begin") {
@@ -1148,14 +1346,16 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (name == "array" || name == "subarray") {
 				docstring const valign = parse_verbatim_option() + 'c';
 				docstring const halign = parse_verbatim_item();
-				cell->push_back(MathAtom(new InsetMathArray(name, (char)valign[0], halign)));
+				cell->push_back(MathAtom(new InsetMathArray(name,
+					InsetMathGrid::guessColumns(halign), 1, (char)valign[0], halign)));
 				parse2(cell->back(), FLAG_END, mode, false);
 			}
 
 			else if (name == "tabular") {
 				docstring const valign = parse_verbatim_option() + 'c';
 				docstring const halign = parse_verbatim_item();
-				cell->push_back(MathAtom(new InsetMathTabular(name, (char)valign[0], halign)));
+				cell->push_back(MathAtom(new InsetMathTabular(name,
+					InsetMathGrid::guessColumns(halign), 1, (char)valign[0], halign)));
 				parse2(cell->back(), FLAG_END, InsetMath::TEXT_MODE, false);
 			}
 
@@ -1173,32 +1373,56 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else if (name == "math") {
+				if (mode == InsetMath::MATH_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullSimple)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, true);
 			}
 
 			else if (name == "equation" || name == "equation*"
 					|| name == "displaymath") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullEquation)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, (name == "equation"));
 			}
 
 			else if (name == "eqnarray" || name == "eqnarray*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullEqnArray)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, !stared(name));
 			}
 
 			else if (name == "align" || name == "align*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullAlign)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, !stared(name));
 			}
 
 			else if (name == "flalign" || name == "flalign*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullFlAlign)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, !stared(name));
 			}
 
 			else if (name == "alignat" || name == "alignat*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				// ignore this for a while
 				getArg('{', '}');
 				cell->push_back(MathAtom(new InsetMathHull(hullAlignAt)));
@@ -1206,6 +1430,10 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else if (name == "xalignat" || name == "xalignat*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				// ignore this for a while
 				getArg('{', '}');
 				cell->push_back(MathAtom(new InsetMathHull(hullXAlignAt)));
@@ -1213,6 +1441,10 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else if (name == "xxalignat") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				// ignore this for a while
 				getArg('{', '}');
 				cell->push_back(MathAtom(new InsetMathHull(hullXXAlignAt)));
@@ -1220,11 +1452,19 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else if (name == "multline" || name == "multline*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullMultline)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, !stared(name));
 			}
 
 			else if (name == "gather" || name == "gather*") {
+				if (mode != InsetMath::UNDECIDED_MODE) {
+					error("bad math environment");
+					break;
+				}
 				cell->push_back(MathAtom(new InsetMathHull(hullGather)));
 				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, !stared(name));
 			}
@@ -1238,30 +1478,36 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 					cell->push_back(MathAtom(new InsetMathSplit(name, (char)valign[0])));
 					parse2(cell->back(), FLAG_END, mode, false);
 				} else {
-					dump();
-					lyxerr << "found math environment `" << to_utf8(name)
-					       << "' in symbols file with unsupported inset `"
-					       << to_utf8(l->inset) << "'." << endl;
+					success_ = false;
+					if (!(mode_ & Parse::QUIET)) {
+						dump();
+						lyxerr << "found math environment `"
+						       << to_utf8(name)
+						       << "' in symbols file with unsupported inset `"
+						       << to_utf8(l->inset)
+						       << "'." << endl;
+					}
 					// create generic environment inset
 					cell->push_back(MathAtom(new InsetMathEnv(name)));
-					parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+					parse(cell->back().nucleus()->cell(0), FLAG_END, mode);
 				}
 			}
 
 			else {
-				dump();
-				lyxerr << "found unknown math environment '" << to_utf8(name)
-					<< "'" << endl;
+				success_ = false;
+				if (!(mode_ & Parse::QUIET)) {
+					dump();
+					lyxerr << "found unknown math environment '"
+					       << to_utf8(name) << "'" << endl;
+				}
 				// create generic environment inset
 				cell->push_back(MathAtom(new InsetMathEnv(name)));
-				parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+				parse(cell->back().nucleus()->cell(0), FLAG_END, mode);
 			}
 		}
 
 		else if (t.cs() == "kern") {
-#ifdef WITH_WARNINGS
-#warning A hack...
-#endif
+			// FIXME: A hack...
 			docstring s;
 			while (true) {
 				Token const & t = getToken();
@@ -1297,14 +1543,14 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			cell->clear();
 			parse(at.nucleus()->cell(1), flags, mode);
 			cell->push_back(at);
-			return;
+			return success_;
 		}
 
 		else if (t.cs() == "color") {
 			docstring const color = parse_verbatim_item();
 			cell->push_back(MathAtom(new InsetMathColor(true, color)));
 			parse(cell->back().nucleus()->cell(0), flags, mode);
-			return;
+			return success_;
 		}
 
 		else if (t.cs() == "textcolor") {
@@ -1316,7 +1562,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		else if (t.cs() == "normalcolor") {
 			cell->push_back(createInsetMath(t.cs()));
 			parse(cell->back().nucleus()->cell(0), flags, mode);
-			return;
+			return success_;
 		}
 
 		else if (t.cs() == "substack") {
@@ -1374,6 +1620,41 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		}
 #endif
 
+		else if (t.cs() == "lyxmathsym") {
+			skipSpaces();
+			if (getToken().cat() != catBegin) {
+				error("'{' expected in \\" + t.cs());
+				return success_;
+			}
+			int count = 0;
+			docstring cmd;
+			CatCode cat = nextToken().cat();
+			while (good() && (count || cat != catEnd)) {
+				if (cat == catBegin)
+					++count;
+				else if (cat == catEnd)
+					--count;
+				cmd += getToken().asInput();
+				cat = nextToken().cat();
+			}
+			if (getToken().cat() != catEnd) {
+				error("'}' expected in \\" + t.cs());
+				return success_;
+			}
+			docstring rem;
+			cmd = Encodings::fromLaTeXCommand(cmd, rem);
+			for (size_t i = 0; i < cmd.size(); ++i)
+				cell->push_back(MathAtom(new InsetMathChar(cmd[i])));
+			if (rem.size()) {
+				MathAtom at = createInsetMath(t.cs());
+				cell->push_back(at);
+				MathData ar;
+				if (!mathed_parse_cell(ar, '{' + rem + '}', mode_))
+					success_ = false;;
+				cell->append(ar);
+			}
+		}
+
 		else if (t.cs().size()) {
 			latexkeys const * l = in_word_set(t.cs());
 			if (l) {
@@ -1401,7 +1682,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 						flags | FLAG_ALIGN, asMode(mode, l->extra));
 					if (prevToken().cat() != catAlign &&
 					    prevToken().cs() != "\\")
-						return;
+						return success_;
 					putback();
 				}
 
@@ -1411,7 +1692,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 						flags | FLAG_ALIGN, mode);
 					if (prevToken().cat() != catAlign &&
 					    prevToken().cs() != "\\")
-						return;
+						return success_;
 					putback();
 				}
 
@@ -1425,26 +1706,66 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else {
-				MathAtom at = createInsetMath(t.cs());
-				InsetMath::mode_type m = mode;
-				//if (m == InsetMath::UNDECIDED_MODE)
-				//lyxerr << "default creation: m1: " << m << endl;
-				if (at->currentMode() != InsetMath::UNDECIDED_MODE)
-					m = at->currentMode();
-				//lyxerr << "default creation: m2: " << m << endl;
-				InsetMath::idx_type start = 0;
-				// this fails on \bigg[...\bigg]
-				//MathData opt;
-				//parse(opt, FLAG_OPTION, InsetMath::VERBATIM_MODE);
-				//if (opt.size()) {
-				//	start = 1;
-				//	at.nucleus()->cell(0) = opt;
-				//}
-				for (InsetMath::idx_type i = start; i < at->nargs(); ++i) {
-					parse(at.nucleus()->cell(i), FLAG_ITEM, m);
+				bool is_unicode_symbol = false;
+				if (mode == InsetMath::TEXT_MODE) {
+					int num_tokens = 0;
+					docstring cmd = prevToken().asInput();
 					skipSpaces();
+					CatCode cat = nextToken().cat();
+					if (cat == catBegin) {
+						int count = 0;
+						while (good() && (count || cat != catEnd)) {
+							cat = nextToken().cat();
+							cmd += getToken().asInput();
+							++num_tokens;
+							if (cat == catBegin)
+								++count;
+							else if (cat == catEnd)
+								--count;
+						}
+					}
+					bool is_combining;
+					char_type c =
+						Encodings::fromLaTeXCommand(cmd, is_combining);
+					if (is_combining) {
+						if (cat == catLetter)
+							cmd += '{';
+						cmd += getToken().asInput();
+						++num_tokens;
+						if (cat == catLetter)
+							cmd += '}';
+						c = Encodings::fromLaTeXCommand(cmd, is_combining);
+					}
+					if (c) {
+						is_unicode_symbol = true;
+						cell->push_back(MathAtom(new InsetMathChar(c)));
+					} else {
+						while (num_tokens--)
+							putback();
+					}
 				}
-				cell->push_back(at);
+				if (!is_unicode_symbol) {
+					MathAtom at = createInsetMath(t.cs());
+					InsetMath::mode_type m = mode;
+					//if (m == InsetMath::UNDECIDED_MODE)
+					//lyxerr << "default creation: m1: " << m << endl;
+					if (at->currentMode() != InsetMath::UNDECIDED_MODE)
+						m = at->currentMode();
+					//lyxerr << "default creation: m2: " << m << endl;
+					InsetMath::idx_type start = 0;
+					// this fails on \bigg[...\bigg]
+					//MathData opt;
+					//parse(opt, FLAG_OPTION, InsetMath::VERBATIM_MODE);
+					//if (opt.size()) {
+					//	start = 1;
+					//	at.nucleus()->cell(0) = opt;
+					//}
+					for (InsetMath::idx_type i = start; i < at->nargs(); ++i) {
+						parse(at.nucleus()->cell(i), FLAG_ITEM, m);
+						skipSpaces();
+					}
+					cell->push_back(at);
+				}
 			}
 		}
 
@@ -1454,6 +1775,7 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			break;
 		}
 	}
+	return success_;
 }
 
 
@@ -1461,33 +1783,36 @@ void Parser::parse1(InsetMathGrid & grid, unsigned flags,
 } // anonymous namespace
 
 
-void mathed_parse_cell(MathData & ar, docstring const & str)
+bool mathed_parse_cell(MathData & ar, docstring const & str, Parse::flags f)
 {
-	Parser(str).parse(ar, 0, InsetMath::MATH_MODE);
+	return Parser(str, f).parse(ar, 0, f & Parse::TEXTMODE ?
+				InsetMath::TEXT_MODE : InsetMath::MATH_MODE);
 }
 
 
-void mathed_parse_cell(MathData & ar, istream & is)
+bool mathed_parse_cell(MathData & ar, istream & is, Parse::flags f)
 {
-	Parser(is).parse(ar, 0, InsetMath::MATH_MODE);
+	return Parser(is, f).parse(ar, 0, f & Parse::TEXTMODE ?
+				InsetMath::TEXT_MODE : InsetMath::MATH_MODE);
 }
 
 
-bool mathed_parse_normal(MathAtom & t, docstring const & str)
+bool mathed_parse_normal(MathAtom & t, docstring const & str, Parse::flags f)
 {
-	return Parser(str).parse(t);
+	return Parser(str, f).parse(t);
 }
 
 
-bool mathed_parse_normal(MathAtom & t, Lexer & lex)
+bool mathed_parse_normal(MathAtom & t, Lexer & lex, Parse::flags f)
 {
-	return Parser(lex).parse(t);
+	return Parser(lex, f).parse(t);
 }
 
 
-void mathed_parse_normal(InsetMathGrid & grid, docstring const & str)
+bool mathed_parse_normal(InsetMathGrid & grid, docstring const & str, Parse::flags f)
 {
-	Parser(str).parse1(grid, 0, InsetMath::MATH_MODE, false);
+	return Parser(str, f).parse1(grid, 0, f & Parse::TEXTMODE ?
+			InsetMath::TEXT_MODE : InsetMath::MATH_MODE, false);
 }
 
 

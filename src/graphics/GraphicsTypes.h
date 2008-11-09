@@ -16,8 +16,7 @@
 #define GRAPHICSTYPES_H
 
 #include "support/Translator.h"
-
-#include <string>
+#include "support/strfwd.h"
 
 
 namespace lyx {
@@ -50,24 +49,6 @@ enum ImageStatus {
 	/// The data is not in the cache at all!
 	ErrorUnknown
 };
-
-/// How is the image to be displayed on the LyX screen?
-enum DisplayType {
-	///
-	DefaultDisplay,
-	///
-	MonochromeDisplay,
-	///
-	GrayscaleDisplay,
-	///
-	ColorDisplay,
-	///
-	NoDisplay
-};
-
-
-/// The translator between the Display enum and corresponding lyx string.
-Translator<DisplayType, std::string> const & displayTranslator();
 
 } // namespace graphics
 } // namespace lyx

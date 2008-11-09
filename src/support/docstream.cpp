@@ -10,19 +10,18 @@
 
 #include <config.h>
 
-#include "docstream.h"
-#include "unicode.h"
+#include "support/docstream.h"
+#include "support/unicode.h"
 
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <iconv.h>
 #include <locale>
 
+using namespace std;
 
 using lyx::ucs4_codeset;
-
-using std::string;
-
 
 namespace {
 
@@ -32,18 +31,18 @@ namespace {
 
 /// codecvt facet for conversion of UCS4 (internal representation) to UTF8
 /// (external representation) or vice versa
-class iconv_codecvt_facet : public std::codecvt<lyx::char_type, char, std::mbstate_t>
+class iconv_codecvt_facet : public codecvt<lyx::char_type, char, mbstate_t>
 {
-	typedef std::codecvt<lyx::char_type, char, std::mbstate_t> base;
+	typedef codecvt<lyx::char_type, char, mbstate_t> base;
 public:
 	/// Constructor. You have to specify with \p inout whether you want
 	/// to use this facet only for input, only for output or for both.
 	explicit iconv_codecvt_facet(string const & encoding = "UTF-8",
-			std::ios_base::openmode inout = std::ios_base::in | std::ios_base::out,
+			ios_base::openmode inout = ios_base::in | ios_base::out,
 			size_t refs = 0)
 		: base(refs), encoding_(encoding)
 	{
-		if (inout & std::ios_base::in) {
+		if (inout & ios_base::in) {
 			in_cd_ = iconv_open(ucs4_codeset, encoding.c_str());
 			if (in_cd_ == (iconv_t)(-1)) {
 				fprintf(stderr, "Error %d returned from iconv_open(in_cd_): %s\n",
@@ -53,7 +52,7 @@ public:
 			}
 		} else
 			in_cd_ = (iconv_t)(-1);
-		if (inout & std::ios_base::out) {
+		if (inout & ios_base::out) {
 			out_cd_ = iconv_open(encoding.c_str(), ucs4_codeset);
 			if (out_cd_ == (iconv_t)(-1)) {
 				fprintf(stderr, "Error %d returned from iconv_open(out_cd_): %s\n",
@@ -201,7 +200,7 @@ protected:
 		return to_next - to;
 #else
 		size_t const length = end - from;
-		return std::min(length, max);
+		return min(length, max);
 #endif
 	}
 	virtual int do_max_length() const throw()
@@ -221,14 +220,14 @@ protected:
 		    encoding_ == "GB" ||
 		    encoding_ == "EUC-TW")
 			return 4;
-		else if (encoding_ == "EUC-JP")
+		else if (encoding_ == "EUC-JP" ||
+			 encoding_ == "ISO-2022-JP")
 			return 3;
 		else if (encoding_ == "BIG5" ||
 			 encoding_ == "EUC-KR" ||
 			 encoding_ == "EUC-CN" ||
 			 encoding_ == "SJIS" ||
-			 encoding_ == "GBK" ||
-			 encoding_ == "JIS" )
+			 encoding_ == "GBK")
 			return 2;
 		else
 			return 1;
@@ -259,7 +258,7 @@ private:
 	iconv_t in_cd_;
 	iconv_t out_cd_;
 	/// The narrow encoding
-	std::string encoding_;
+	string encoding_;
 };
 
 } // namespace anon
@@ -268,11 +267,11 @@ private:
 namespace lyx {
 
 template<class Ios>
-void setEncoding(Ios & ios, string const & encoding, std::ios_base::openmode mode)
+void setEncoding(Ios & ios, string const & encoding, ios_base::openmode mode)
 {
 	// We must imbue the stream before openening the file
-	std::locale global;
-	std::locale locale(global, new iconv_codecvt_facet(encoding, mode));
+	locale global;
+	locale locale(global, new iconv_codecvt_facet(encoding, mode));
 	ios.imbue(locale);
 }
 
@@ -289,7 +288,7 @@ idocfstream::idocfstream(string const & encoding) : base()
 }
 
 
-idocfstream::idocfstream(const char* s, std::ios_base::openmode mode,
+idocfstream::idocfstream(const char* s, ios_base::openmode mode,
 			 string const & encoding)
 	: base()
 {
@@ -304,7 +303,7 @@ odocfstream::odocfstream(): base()
 }
 
 
-odocfstream::odocfstream(const char* s, std::ios_base::openmode mode,
+odocfstream::odocfstream(const char* s, ios_base::openmode mode,
 			 string const & encoding)
 	: base()
 {
@@ -328,14 +327,14 @@ SetEnc setEncoding(string const & encoding)
 
 odocstream & operator<<(odocstream & os, SetEnc e)
 {
-	if (std::has_facet<iconv_codecvt_facet>(os.rdbuf()->getloc())) {
+	if (has_facet<iconv_codecvt_facet>(os.rdbuf()->getloc())) {
 		// This stream must be a file stream, since we never imbue
 		// any other stream with a locale having a iconv_codecvt_facet.
 		// Flush the stream so that all pending output is written
 		// with the old encoding.
 		os.flush();
-		std::locale locale(os.rdbuf()->getloc(),
-			new iconv_codecvt_facet(e.encoding, std::ios_base::out));
+		locale locale(os.rdbuf()->getloc(),
+			new iconv_codecvt_facet(e.encoding, ios_base::out));
 		// FIXME Does changing the codecvt facet of an open file
 		// stream always work? It does with gcc 4.1, but I have read
 		// somewhere that it does not with MSVC.
@@ -345,6 +344,15 @@ odocstream & operator<<(odocstream & os, SetEnc e)
 	return os;
 }
 
+
+#if ! defined(USE_WCHAR_T)
+odocstream & operator<<(odocstream & os, char c)
+{
+	os.put(c);
+	return os;
+}
+#endif
+
 }
 
 #if ! defined(USE_WCHAR_T) && defined(__GNUC__)
@@ -352,21 +360,71 @@ odocstream & operator<<(odocstream & os, SetEnc e)
 // a bug in gcc. The implementation here does not do anything useful, since
 // it is overriden in iconv_codecvt_facet.
 namespace std {
+
 template<> codecvt<lyx::char_type, char, mbstate_t>::result
-codecvt<lyx::char_type, char, mbstate_t>::do_out(mbstate_t &, const lyx::char_type *, const lyx::char_type *, const lyx::char_type *&,
-		char *, char *, char *&) const { return error; }
-template<> codecvt<lyx::char_type, char, mbstate_t>::result
-codecvt<lyx::char_type, char, mbstate_t>::do_unshift(mbstate_t &, char *, char *, char *&) const { return error; }
-template<> codecvt<lyx::char_type, char, mbstate_t>::result
-codecvt<lyx::char_type, char, mbstate_t>::do_in(mbstate_t &, const char *, const char *, const char *&,
-		lyx::char_type *, lyx::char_type *, lyx::char_type *&) const { return error; }
-template<> int codecvt<lyx::char_type, char, mbstate_t>::do_encoding() const throw() { return 0; }
-template<> bool codecvt<lyx::char_type, char, mbstate_t>::do_always_noconv() const throw() { return true; }
-#if __GNUC__ == 3 && __GNUC_MINOR__ < 4
-template<> int codecvt<lyx::char_type, char, mbstate_t>::do_length(mbstate_t const &, const char *, const char *, size_t) const { return 1; }
-#else
-template<> int codecvt<lyx::char_type, char, mbstate_t>::do_length(mbstate_t &, const char *, const char *, size_t) const { return 1; }
-#endif
-template<> int codecvt<lyx::char_type, char, mbstate_t>::do_max_length() const throw() { return 4; }
+codecvt<lyx::char_type, char, mbstate_t>::do_out(
+	mbstate_t &, const lyx::char_type *, const lyx::char_type *,
+	const lyx::char_type *&, char *, char *, char *&) const
+{
+	return error;
 }
+
+
+template<> codecvt<lyx::char_type, char, mbstate_t>::result
+codecvt<lyx::char_type, char, mbstate_t>::do_unshift(
+	mbstate_t &, char *, char *, char *&) const
+{
+	return error;
+}
+
+
+template<> codecvt<lyx::char_type, char, mbstate_t>::result
+codecvt<lyx::char_type, char, mbstate_t>::do_in(
+	mbstate_t &, const char *, const char *, const char *&,
+	lyx::char_type *, lyx::char_type *, lyx::char_type *&) const
+{
+	return error;
+}
+
+
+template<>
+int codecvt<lyx::char_type, char, mbstate_t>::do_encoding() const throw()
+{
+	return 0;
+}
+
+
+template<>
+bool codecvt<lyx::char_type, char, mbstate_t>::do_always_noconv() const throw()
+{
+	return true;
+}
+
+#if __GNUC__ == 3 && __GNUC_MINOR__ < 4
+
+template<>
+int codecvt<lyx::char_type, char, mbstate_t>::do_length(
+	mbstate_t const &, const char *, const char *, size_t) const
+{
+	return 1;
+}
+
+#else
+
+template<>
+int codecvt<lyx::char_type, char, mbstate_t>::do_length(
+	mbstate_t &, const char *, const char *, size_t) const
+{
+	return 1;
+}
+
+#endif
+
+template<>
+int codecvt<lyx::char_type, char, mbstate_t>::do_max_length() const throw()
+{
+	return 4;
+}
+
+} // namespace std
 #endif

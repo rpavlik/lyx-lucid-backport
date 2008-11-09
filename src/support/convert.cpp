@@ -1,5 +1,5 @@
 /**
- * \file tostr.C
+ * \file convert.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
@@ -11,23 +11,19 @@
 
 #include <config.h>
 
-#include "convert.h"
-
+#include "support/convert.h"
 #include "support/docstring.h"
 
 #include <boost/lexical_cast.hpp>
 
 #include <string>
+#include <cstdlib>
 
+using namespace std;
 
 namespace lyx {
 
-using lyx::docstring;
-
 using boost::lexical_cast;
-
-using std::string;
-
 
 template<>
 string convert<string>(bool b)
@@ -60,7 +56,7 @@ string convert<string>(int i)
 template<>
 docstring convert<docstring>(int i)
 {
-	return lyx::from_ascii(lexical_cast<string>(i));
+	return from_ascii(lexical_cast<string>(i));
 }
 
 
@@ -74,7 +70,7 @@ string convert<string>(unsigned int ui)
 template<>
 docstring convert<docstring>(unsigned int ui)
 {
-	return lyx::from_ascii(lexical_cast<string>(ui));
+	return from_ascii(lexical_cast<string>(ui));
 }
 
 
@@ -88,7 +84,7 @@ string convert<string>(unsigned long ul)
 template<>
 docstring convert<docstring>(unsigned long ul)
 {
-	return lyx::from_ascii(lexical_cast<string>(ul));
+	return from_ascii(lexical_cast<string>(ul));
 }
 
 
@@ -102,7 +98,7 @@ string convert<string>(long l)
 template<>
 docstring convert<docstring>(long l)
 {
-	return lyx::from_ascii(lexical_cast<string>(l));
+	return from_ascii(lexical_cast<string>(l));
 }
 
 
@@ -130,7 +126,7 @@ int convert<int>(string const s)
 template<>
 int convert<int>(docstring const s)
 {
-	return strtol(lyx::to_ascii(s).c_str(), 0, 10);
+	return strtol(to_ascii(s).c_str(), 0, 10);
 }
 
 

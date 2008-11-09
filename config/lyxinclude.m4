@@ -13,8 +13,8 @@ lyx_prerelease=no
 build_type=release
 AC_MSG_CHECKING([for build type])
 AC_ARG_ENABLE(build-type,
-  AC_HELP_STRING([--enable-build-type=TYPE],[set build options according to TYPE=dev(elopment), rel(ease) or pre(release)]),
-  [case $enableval in 
+  AC_HELP_STRING([--enable-build-type=TYPE],[set build setting according to TYPE=dev(elopment), rel(ease) or pre(release)]),
+  [case $enableval in
     dev*) lyx_devel_version=yes
           build_type=development;;
     pre*) lyx_prerelease=yes
@@ -48,7 +48,7 @@ AC_ARG_WITH(version-suffix,
   [if test "x$withval" = "xyes";
    then
      withval="-"AC_PACKAGE_VERSION
-     ac_configure_args=`echo $ac_configure_args | sed "s,--with-version-suffix,--with-version-suffix=$withval,"`
+     ac_configure_args=`echo "$ac_configure_args" | sed "s,--with-version-suffix,--with-version-suffix=$withval,"`
    fi
    AC_SUBST(version_suffix,$withval)
    RPM_VERSION_SUFFIX="--with-version-suffix=$withval"])
@@ -171,6 +171,7 @@ fi
 AC_MSG_RESULT($CXX)
 
 AC_PROG_CXX
+AC_PROG_CXXCPP
 
 ### We might want to get or shut warnings.
 AC_ARG_ENABLE(warnings,
@@ -182,9 +183,6 @@ AC_ARG_ENABLE(warnings,
     fi;])
 if test x$enable_warnings = xyes ; then
   lyx_flags="warnings $lyx_flags"
-  AC_DEFINE(WITH_WARNINGS, 1,
-  [Define this if you want to see the warning directives put here and
-   there by the developpers to get attention])
 fi
 
 ### We might want to disable debug
@@ -233,7 +231,7 @@ esac
 
 AC_ARG_ENABLE(pch,
   AC_HELP_STRING([--enable-pch],[enable precompiled headers]),,
-	enable_pch=yes;)
+	enable_pch=no;)
 lyx_pch_comp=no
 
 # set the compiler options correctly.
@@ -425,12 +423,13 @@ fi])
 dnl Usage: LYX_USE_INCLUDED_BOOST : select if the included boost should
 dnl        be used.
 AC_DEFUN([LYX_USE_INCLUDED_BOOST],[
+	AC_MSG_CHECKING([whether to use boost included library])
 	AC_ARG_WITH(included-boost,
 	    [  --without-included-boost  do not use the boost lib supplied with LyX, try to find one in the system directories - compilation will abort if nothing suitable is found],
-	    [lyx_cv_with_included_boost=$withval
-		AC_MSG_RESULT([$with_included_boost])],
+	    [lyx_cv_with_included_boost=$withval],
 	    [lyx_cv_with_included_boost=yes])
 	AM_CONDITIONAL(USE_INCLUDED_BOOST, test x$lyx_cv_with_included_boost = xyes)
+	AC_MSG_RESULT([$lyx_cv_with_included_boost])
 ])
 
 
@@ -603,16 +602,16 @@ case $lyx_use_packaging in
 	   default_prefix="/Applications/${PACKAGE}.app"
 	   bindir='${prefix}/Contents/MacOS'
 	   libdir='${prefix}/Contents/Resources'
-	   datadir='${prefix}/Contents/Resources'
+	   datarootdir='${prefix}/Contents/Resources'
 	   pkgdatadir='${datadir}'
-	   mandir='${datadir}/man' 
+	   mandir='${datadir}/man'
 	   lyx_install_macosx=true ;;
   windows) AC_DEFINE(USE_WINDOWS_PACKAGING, 1, [Define to 1 if LyX should use a Windows-style file layout])
 	   PACKAGE=LyX${version_suffix}
 	   default_prefix="C:/Program Files/${PACKAGE}"
 	   bindir='${prefix}/bin'
 	   libdir='${prefix}/Resources'
-	   datadir='${prefix}/Resources'
+	   datarootdir='${prefix}/Resources'
 	   pkgdatadir='${datadir}'
 	   mandir='${prefix}/Resources/man' ;;
     posix) AC_DEFINE(USE_POSIX_PACKAGING, 1, [Define to 1 if LyX should use a POSIX-style file layout])
@@ -623,6 +622,9 @@ case $lyx_use_packaging in
     *) LYX_ERROR([Unknown packaging type $lyx_use_packaging]) ;;
 esac
 AM_CONDITIONAL(INSTALL_MACOSX, $lyx_install_macosx)
+dnl Next two lines are only for autoconf <= 2.59
+datadir='${datarootdir}'
+AC_SUBST(datarootdir)
 AC_SUBST(pkgdatadir)
 AC_SUBST(program_suffix)
 ])
@@ -690,7 +692,7 @@ fi
 
 
 dnl Set VAR to the canonically resolved absolute equivalent of PATHNAME,
-dnl (which may be a relative path, and need not refer to any existing 
+dnl (which may be a relative path, and need not refer to any existing
 dnl entity).
 
 dnl On Win32-MSYS build hosts, the returned path is resolved to its true
@@ -734,8 +736,8 @@ do
 done])
 
 dnl Extract the single digits from PACKAGE_VERSION and make them available.
-dnl Defines LYX_MAJOR_VERSION, LYX_MINOR_VERSION, LYX_RELEASE_LEVEL, and
-dnl LYX_RELEASE_PATCH, the latter being possibly equal to 0.
+dnl Defines LYX_MAJOR_VERSION, LYX_MINOR_VERSION, LYX_RELEASE_LEVEL,
+dnl LYX_RELEASE_PATCH (possibly equal to 0), LYX_DIR_VER, and LYX_USERDIR_VER.
 AC_DEFUN([LYX_SET_VERSION_INFO],
 [lyx_major=`echo $PACKAGE_VERSION | sed -e 's/[[.]].*//'`
  lyx_patch=`echo $PACKAGE_VERSION | sed -e "s/^$lyx_major//" -e 's/^.//'`
@@ -744,8 +746,12 @@ AC_DEFUN([LYX_SET_VERSION_INFO],
  lyx_release=`echo $lyx_patch | sed -e 's/[[^0-9]].*//'`
  lyx_patch=`echo $lyx_patch | sed -e "s/^$lyx_release//" -e 's/^[[.]]//' -e 's/[[^0-9]].*//'`
  test "x$lyx_patch" = "x" && lyx_patch=0
+ lyx_dir_ver=LYX_DIR_${lyx_major}${lyx_minor}x
+ lyx_userdir_ver=LYX_USERDIR_${lyx_major}${lyx_minor}x
  AC_SUBST(LYX_MAJOR_VERSION,$lyx_major)
  AC_SUBST(LYX_MINOR_VERSION,$lyx_minor)
  AC_SUBST(LYX_RELEASE_LEVEL,$lyx_release)
  AC_SUBST(LYX_RELEASE_PATCH,$lyx_patch)
+ AC_SUBST(LYX_DIR_VER,"$lyx_dir_ver")
+ AC_SUBST(LYX_USERDIR_VER,"$lyx_userdir_ver")
 ])

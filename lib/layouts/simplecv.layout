@@ -4,13 +4,14 @@
 # Author : Jean-Marc Lasgouttes (Jean-Marc.Lasgouttes@inria.fr)
 
 
-Format 2
+Format 11
 Columns                 1
 Sides                   1
 SecNumDepth             -1
 TocDepth                -1
 
 Input stdcounters.inc
+Input stdinsets.inc
 
 Style Standard
 	Margin                Static
@@ -36,7 +37,6 @@ Style Section
 	BottomSep             0.7
 	ParSep                0.7
 	Align                 Block
-	AlignPossible         Block, Left
 	LabelType             No_Label
 	Font
 	  Family              Sans
@@ -127,7 +127,6 @@ Style Title
 	BottomSep             1
 	ParSep                1
 	Align                 Center
-	AlignPossible         Center
 	LabelType             No_Label
 	Font
 	  Family              Sans

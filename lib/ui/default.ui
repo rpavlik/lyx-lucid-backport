@@ -16,6 +16,8 @@
 
 Include "stdmenus.inc"
 
+Include "stdcontext.inc"
+
 Include "stdtoolbars.inc"
 
 # Which toolbars to use.
@@ -24,8 +26,14 @@ Include "stdtoolbars.inc"
 #
 # on: the toolbar is visible
 # off: the toolbar is not visible
+# auto: the toolbar is automatically shown and hidden depending on the
+#       next 3 flags.
+#
 # math: the toolbar is visible only when in math
+# mathmacrotemplate: the toolbar is visible only when in a macro definition
 # table: the toolbar is visible only when in a table
+# review: the toolbar is visible only when inside a tracked change
+#
 # top: the toolbar should be at the top of the window
 # bottom: the toolbar should be at the bottom of the window
 # left: the toolbar should be at the left of the window
@@ -35,9 +43,11 @@ Toolbars
 	"standard" "on,top"
 	"view/update" "on,top"
 	"extra" "on,top"
-	"review" "review,top"
-	"table" "table,bottom"
-	"math_panels" "math,bottom"
-	"math" "math,bottom"
+	"review" "auto,review,top"
+	"vcs" "off,top"
+	"table" "auto,table,bottom"
+	"math_panels" "auto,math,bottom"
+	"math" "auto,math,bottom"
+	"mathmacrotemplate" "auto,mathmacrotemplate,bottom"
 	"minibuffer" "off,bottom"
 End

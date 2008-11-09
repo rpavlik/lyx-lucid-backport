@@ -5,7 +5,7 @@
 # It is desirable, as far as possible, to have the same look and feel for
 # related layouts in latex and docbook.
 
-Format 4
+Format 11
 OutputType              docbook
 
 Columns                 1
@@ -26,10 +26,10 @@ Style Standard
 	ParIndent             MM
 	ParSkip               0.4
 	Align                 Block
-	AlignPossible         Block
 	LabelType             No_Label
 End
 
+Input stdinsets.inc
 Input db_stdcharstyles.inc
 Input db_stdlists.inc
 Input db_stdsections.inc

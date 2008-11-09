@@ -18,6 +18,7 @@
 
 #include "support/docstring.h"
 
+#include <string>
 #include <vector>
 
 
@@ -35,28 +36,6 @@ int compare_ascii_no_case(std::string const & s, std::string const & s2);
 int compare_ascii_no_case(docstring const & s, docstring const & s2);
 
 ///
-inline
-int compare(char const * a, char const * b)
-{
-#ifndef CXX_GLOBAL_CSTD
-	return std::strcmp(a, b);
-#else
-	return strcmp(a, b);
-#endif
-}
-
-///
-inline
-int compare(char const * a, char const * b, unsigned int len)
-{
-#ifndef CXX_GLOBAL_CSTD
-	return std::strncmp(a, b, len);
-#else
-	return strncmp(a, b, len);
-#endif
-}
-
-///
 bool isStrInt(std::string const & str);
 
 /// does the std::string represent an unsigned integer value ?
@@ -65,9 +44,9 @@ bool isStrUnsignedInt(std::string const & str);
 ///
 bool isStrDbl(std::string const & str);
 
-bool isHex(lyx::docstring const & str);
+bool isHex(docstring const & str);
 
-int hexToInt(lyx::docstring const & str);
+int hexToInt(docstring const & str);
 
 /// is \p str pure ascii?
 bool isAscii(docstring const & str);
@@ -113,19 +92,20 @@ docstring const lowercase(docstring const & s);
 /// Does not depend on the locale.
 docstring const uppercase(docstring const & s);
 
-/// Does the string start with this prefix?
-bool prefixIs(docstring const &, char_type);
+/// Does str start with c?
+bool prefixIs(docstring const & str, char_type c);
 
-/// Does the std::string start with this prefix?
-bool prefixIs(std::string const &, std::string const &);
-bool prefixIs(docstring const &, docstring const &);
+/// Does str start with pre?
+bool prefixIs(std::string const & str, std::string const & pre);
+bool prefixIs(docstring const & str, docstring const & pre);
 
 /// Does the string end with this char?
 bool suffixIs(std::string const &, char);
 bool suffixIs(docstring const &, char_type);
 
-/// Does the std::string end with this suffix?
+/// Does the string end with this suffix?
 bool suffixIs(std::string const &, std::string const &);
+bool suffixIs(docstring const &, docstring const &);
 
 ///
 inline bool contains(std::string const & a, std::string const & b)
@@ -173,6 +153,7 @@ docstring const token(docstring const & a, char_type delim, int n);
     \endcode
 */
 int tokenPos(std::string const & a, char delim, std::string const & tok);
+int tokenPos(docstring const & a, char_type delim, docstring const & tok);
 
 
 /// Substitute all \a oldchar with \a newchar
@@ -203,9 +184,10 @@ docstring const trim(docstring const & a, char const * p = " ");
 */
 std::string const trim(std::string const & a, char const * p = " ");
 
-/** Trims characters off the end of a string.
+/** Trims characters off the end of a string, removing any character
+    in p.
     \code
-    rtrim("abccc", "c") == "ab".
+    rtrim("abcde", "dec") == "ab".
     \endcode
 */
 std::string const rtrim(std::string const & a, char const * p = " ");
@@ -213,21 +195,24 @@ docstring const rtrim(docstring const & a, char const * p = " ");
 
 /** Trims characters off the beginning of a string.
     \code
-   ("ababcdef", "ab") = "cdef"
+   ("abbabcdef", "ab") = "cdef"
     \endcode
 */
 std::string const ltrim(std::string const & a, char const * p = " ");
 docstring const ltrim(docstring const & a, char const * p = " ");
 
-/** Splits the string by the first delim.
-    Splits the string by the first appearance of delim.
-    The leading string up to delim is returned in piece (not including
-    delim), while the original string is cut from after the delimiter.
-    Example:
+/** Splits the string given in the first argument at the first occurence 
+    of the third argumnent, delim.
+    What precedes delim is returned in the second argument, piece; this
+    will be the whole of the string if no delimiter is found.
+    The return value is what follows delim, if anything. So the return
+    value is the null string if no delimiter is found.
+    Examples:
     \code
-    s1= ""; s2= "a;bc".split(s1, ';') -> s1 == "a"; s2 == "bc";
+    s1= "a;bc"; s2= ""
+    ret = split(s1, s2, ';') -> ret = "bc", s2 == "a"
     \endcode
-*/
+ */
 std::string const split(std::string const & a, std::string & piece, char delim);
 docstring const split(docstring const & a, docstring & piece, char_type delim);
 
@@ -242,10 +227,12 @@ std::string const rsplit(std::string const & a, std::string & piece, char delim)
 docstring const escape(docstring const & lab);
 
 /// gives a vector of stringparts which have the delimiter delim
+/// If \p keepempty is true, empty strings will be pushed to the vector as well
 std::vector<std::string> const getVectorFromString(std::string const & str,
-					      std::string const & delim = std::string(","));
+					      std::string const & delim = std::string(","),
+					      bool keepempty = false);
 std::vector<docstring> const getVectorFromString(docstring const & str,
-		docstring const & delim = from_ascii(","));
+		docstring const & delim = from_ascii(","), bool keepempty = false);
 
 // the same vice versa
 std::string const getStringFromVector(std::vector<std::string> const & vec,
@@ -254,46 +241,6 @@ std::string const getStringFromVector(std::vector<std::string> const & vec,
 /// Search \p search_token in \p str and return the position if it is
 /// found, else -1. The last item in \p str must be "".
 int findToken(char const * const str[], std::string const & search_token);
-
-/// Convert internal line endings to line endings as expected by the OS
-docstring const externalLineEnding(docstring const & str);
-
-/// Convert line endings in any formnat to internal line endings
-docstring const internalLineEnding(docstring const & str);
-
-
-#ifdef I_AM_NOT_AFRAID_OF_HEADER_LIBRARIES
-
-#include <boost/format.hpp>
-
-template<class Arg1>
-docstring bformat(docstring const & fmt, Arg1 arg1)
-{
-	return (boost::basic_format<char_type>(fmt) % arg1).str();
-}
-
-
-template<class Arg1, class Arg2>
-docstring bformat(docstring const & fmt, Arg1 arg1, Arg2 arg2)
-{
-	return (boost::basic_format<char_type>(fmt) % arg1 % arg2).str();
-}
-
-
-template<class Arg1, class Arg2, class Arg3>
-docstring bformat(docstring const & fmt, Arg1 arg1, Arg2 arg2, Arg3 arg3)
-{
-	return (boost::basic_format<char_type>(fmt) % arg1 % arg2 % arg3).str();
-}
-
-
-template<class Arg1, class Arg2, class Arg3, class Arg4>
-docstring bformat(docstring const & fmt, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4)
-{
-	return (boost::basic_format<char_type>(fmt) % arg1 % arg2 % arg3 % arg4).str();
-}
-
-#else
 
 template <class Arg1>
 docstring bformat(docstring const & fmt, Arg1);
@@ -307,7 +254,18 @@ docstring bformat(docstring const & fmt, Arg1, Arg2, Arg3);
 template <class Arg1, class Arg2, class Arg3, class Arg4>
 docstring bformat(docstring const & fmt, Arg1, Arg2, Arg3, Arg4);
 
-#endif
+
+template<> docstring bformat(docstring const & fmt, int arg1);
+template<> docstring bformat(docstring const & fmt, long arg1);
+template<> docstring bformat(docstring const & fmt, unsigned int arg1);
+template<> docstring bformat(docstring const & fmt, docstring arg1);
+template<> docstring bformat(docstring const & fmt, char * arg1);
+template<> docstring bformat(docstring const & fmt, docstring arg1, docstring arg2);
+template<> docstring bformat(docstring const & fmt, char const * arg1, docstring arg2);
+template<> docstring bformat(docstring const & fmt, int arg1, int arg2);
+template<> docstring bformat(docstring const & fmt, docstring arg1, docstring arg2, docstring arg3);
+template<> docstring bformat(docstring const & fmt, docstring arg1, docstring arg2, docstring arg3, docstring arg4);
+
 
 } // namespace support
 } // namespace lyx

@@ -14,8 +14,6 @@
 
 #include "insets/Inset.h"
 
-#include "gettext.h"
-#include "Color.h"
 #include "LyX.h"
 #include "LyXRC.h"
 #include "MetricsInfo.h"
@@ -25,40 +23,33 @@
 
 #include "graphics/GraphicsImage.h"
 
+#include "support/FileName.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 
 #include <boost/bind.hpp>
 
+using namespace std;
 
 namespace lyx {
-
-using support::onlyFilename;
-
-using std::string;
-using std::auto_ptr;
 
 
 RenderGraphic::RenderGraphic(Inset const * inset)
 {
-	loader_.connect(boost::bind(&LyX::updateInset,
-				    boost::cref(LyX::cref()), inset));
+	loader_.connect(boost::bind(&Inset::updateFrontend, inset));
 }
 
 
-RenderGraphic::RenderGraphic(RenderGraphic const & other,
-			     Inset const * inset)
-	: RenderBase(other),
-	  loader_(other.loader_),
-	  params_(other.params_)
+RenderGraphic::RenderGraphic(RenderGraphic const & other, Inset const * inset)
+	: RenderBase(other), loader_(other.loader_), params_(other.params_)
 {
-	loader_.connect(boost::bind(&LyX::updateInset,
-				    boost::cref(LyX::cref()), inset));
+	loader_.connect(boost::bind(&Inset::updateFrontend, inset));
 }
 
 
-auto_ptr<RenderBase> RenderGraphic::clone(Inset const * inset) const
+RenderBase * RenderGraphic::clone(Inset const * inset) const
 {
-	return auto_ptr<RenderBase>(new RenderGraphic(*this, inset));
+	return new RenderGraphic(*this, inset);
 }
 
 
@@ -66,9 +57,8 @@ void RenderGraphic::update(graphics::Params const & params)
 {
 	params_ = params;
 
-	if (!params_.filename.empty()) {
+	if (!params_.filename.empty())
 		loader_.reset(params_.filename, params_);
-	}
 }
 
 
@@ -76,8 +66,7 @@ namespace {
 
 bool displayGraphic(graphics::Params const & params)
 {
-	return params.display != graphics::NoDisplay &&
-		lyxrc.display_graphics != graphics::NoDisplay;
+	return params.display && lyxrc.display_graphics;
 }
 
 
@@ -140,48 +129,7 @@ bool readyToDisplay(graphics::Loader const & loader)
 } // namespace anon
 
 
-bool RenderGraphic::metrics(MetricsInfo & mi, Dimension & dim) const
-{
-	bool image_ready = displayGraphic(params_) && readyToDisplay(loader_);
-
-	dim.asc = image_ready ? loader_.image()->getHeight() : 50;
-	dim.des = 0;
-
-	if (image_ready) {
-		dim.wid = loader_.image()->getWidth() +
-			2 * Inset::TEXT_TO_INSET_OFFSET;
-	} else {
-		int font_width = 0;
-
-		Font msgFont(mi.base.font);
-		msgFont.setFamily(Font::SANS_FAMILY);
-
-		// FIXME UNICODE
-		docstring const justname =
-			from_utf8(onlyFilename(params_.filename.absFilename()));
-		if (!justname.empty()) {
-			msgFont.setSize(Font::SIZE_FOOTNOTE);
-			font_width = theFontMetrics(msgFont)
-				.width(justname);
-		}
-
-		docstring const msg = statusMessage(params_, loader_.status());
-		if (!msg.empty()) {
-			msgFont.setSize(Font::SIZE_TINY);
-			font_width = std::max(font_width,
-				theFontMetrics(msgFont).width(msg));
-		}
-
-		dim.wid = std::max(50, font_width + 15);
-	}
-
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
-}
-
-
-void RenderGraphic::draw(PainterInfo & pi, int x, int y) const
+void RenderGraphic::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	if (displayGraphic(params_)) {
 		if (loader_.status() == graphics::WaitingToLoad)
@@ -190,6 +138,44 @@ void RenderGraphic::draw(PainterInfo & pi, int x, int y) const
 			loader_.startMonitoring();
 	}
 
+	bool image_ready = displayGraphic(params_) && readyToDisplay(loader_);
+	if (image_ready) {
+		dim.wid = loader_.image()->width() + 2 * Inset::TEXT_TO_INSET_OFFSET;
+		dim.asc = loader_.image()->height();
+		dim_ = dim;
+		return;
+	}
+
+	dim.asc = image_ready ? loader_.image()->height() : 50;
+	dim.des = 0;
+
+	int font_width = 0;
+
+	FontInfo msgFont(mi.base.font);
+	msgFont.setFamily(SANS_FAMILY);
+
+	// FIXME UNICODE
+	docstring const justname = from_utf8(params_.filename.onlyFileName());
+	if (!justname.empty()) {
+		msgFont.setSize(FONT_SIZE_FOOTNOTE);
+		font_width = theFontMetrics(msgFont).width(justname);
+	}
+
+	docstring const msg = statusMessage(params_, loader_.status());
+	if (!msg.empty()) {
+		msgFont.setSize(FONT_SIZE_TINY);
+		font_width = max(font_width,
+			theFontMetrics(msgFont).width(msg));
+	}
+
+	dim.wid = max(50, font_width + 15);
+
+	dim_ = dim;
+}
+
+
+void RenderGraphic::draw(PainterInfo & pi, int x, int y) const
+{
 	// This will draw the graphics. If the graphics has not been
 	// loaded yet, we draw just a rectangle.
 
@@ -205,15 +191,15 @@ void RenderGraphic::draw(PainterInfo & pi, int x, int y) const
 				  y - dim_.asc,
 				  dim_.wid - 2 * Inset::TEXT_TO_INSET_OFFSET,
 				  dim_.asc + dim_.des,
-				  Color::foreground);
+				  Color_foreground);
 
 		// Print the file name.
-		Font msgFont = pi.base.font;
-		msgFont.setFamily(Font::SANS_FAMILY);
-		string const justname = onlyFilename(params_.filename.absFilename());
+		FontInfo msgFont = pi.base.font;
+		msgFont.setFamily(SANS_FAMILY);
+		string const justname = params_.filename.onlyFileName();
 
 		if (!justname.empty()) {
-			msgFont.setSize(Font::SIZE_FOOTNOTE);
+			msgFont.setSize(FONT_SIZE_FOOTNOTE);
 			pi.pain.text(x + Inset::TEXT_TO_INSET_OFFSET + 6,
 				   y - theFontMetrics(msgFont).maxAscent() - 4,
 				   from_utf8(justname), msgFont);
@@ -222,7 +208,7 @@ void RenderGraphic::draw(PainterInfo & pi, int x, int y) const
 		// Print the message.
 		docstring const msg = statusMessage(params_, loader_.status());
 		if (!msg.empty()) {
-			msgFont.setSize(Font::SIZE_TINY);
+			msgFont.setSize(FONT_SIZE_TINY);
 			pi.pain.text(x + Inset::TEXT_TO_INSET_OFFSET + 6,
 				     y - 4, msg, msgFont);
 		}

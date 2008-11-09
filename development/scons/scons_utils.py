@@ -17,7 +17,10 @@ from SCons.Util import *
 
 
 def getVerFromConfigure(path):
-    " get lyx version from the AC_INIT line of configure.ac "
+    ''' get lyx version from the AC_INIT line of configure.ac,
+        packed major and minor version numbers from the lyx version,
+        and LYX_DATE from an AC_SUBST line.
+    '''
     try:
         config = open(os.path.join(path, 'configure.ac'))
     except:
@@ -25,12 +28,22 @@ def getVerFromConfigure(path):
         return 'x.x.x'
     # find a line like follows
     # AC_INIT(LyX,1.4.4svn,[lyx-devel@lists.lyx.org],[lyx])
-    pat = re.compile('AC_INIT\([^,]+,([^,]+),')
+    ver_pat = re.compile('AC_INIT\([^,]+,([^,]+),')
+    date_pat = re.compile('AC_SUBST\(LYX_DATE, \["(.*)"\]\)')
+    majmin_pat = re.compile('(\d+)\.(\d+)\..*')
+    version = 'x.x.x'
+    majmin = 'xx'
+    date = 'Not released'
     for line in config.readlines():
-        if pat.match(line):
-            (version,) = pat.match(line).groups()
-            return version.strip()
-    return 'x.x.x'
+        if ver_pat.match(line):
+            (version,) = ver_pat.match(line).groups()
+            majmin_match = majmin_pat.match(version)
+            majmin = majmin_match.group(1) + majmin_match.group(2)
+        if date_pat.match(line):
+            (date,) = date_pat.match(line).groups()
+        if version != 'x.x.x' and date != 'Not released':
+            break
+    return version.strip(), majmin.strip(), date.strip()
 
 
 def relativePath(path, base):
@@ -178,6 +191,17 @@ def createResFromIcon(env, icon_file, rc_file):
         return []
 
 
+def env_qtResource(target, source, env):
+    '''Create resource.qrc'''
+    qrc = open(str(target[0]), 'w')
+    print >> qrc, "<!DOCTYPE RCC><RCC version='1.0'><qresource>"
+    for file in source:
+        rel_file = relativePath(str(file), env.subst('$TOP_SRCDIR/lib'))
+        abs_file = str(file.abspath)
+        print >> qrc, '<file alias="%s">%s</file>' % (rel_file, abs_file)
+    print >> qrc, '</qresource></RCC>'
+    qrc.close()
+
 #
 # autoconf tests
 #
@@ -228,6 +252,7 @@ int main()
 }
 '''
     conf.Message('Checking for the use of global cstd... ')
+    # if can not compile, define CXX_GLOBAL_CSTD
     ret = conf.TryLink(check_global_cstd_source, '.cpp')
     conf.Result(ret)
     return ret
