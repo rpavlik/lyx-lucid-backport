@@ -5,6 +5,8 @@ lyx (1.6.0-1) UNRELEASED; urgency=low
     +Fix for 'word-delete' deletes following non-word items. Closes: #492841
   * Change the name of the license file on Debian system from GPL to GPL-2.
   * Refresh /patches/prefer-xdg-open.
+  * Replace the old LyX logo with the new one. Converted from the
+    lib/images/lyx.png file to 32x32 XPM file.
   
   [ Per Olofsson ]
   * Remove texlive-latex-base dependency from lyx-common, as it already
