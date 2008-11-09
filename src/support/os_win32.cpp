@@ -16,14 +16,15 @@
 
 #include "support/os.h"
 #include "support/os_win32.h"
-#include "support/lstrings.h"
+
+#include "support/debug.h"
+#include "support/FileName.h"
+#include "support/gettext.h"
 #include "support/filetools.h"
+#include "support/lstrings.h"
 #include "support/ExceptionMessage.h"
 
-#include "debug.h"
-#include "gettext.h"
-
-#include <boost/assert.hpp>
+#include "support/lassert.h"
 
 #include <cstdlib>
 #include <vector>
@@ -63,12 +64,7 @@
 # endif
 #endif
 
-using std::endl;
-using std::string;
-
-using lyx::support::runCommand;
-using lyx::support::split;
-
+using namespace std;
 
 namespace lyx {
 namespace support {
@@ -159,7 +155,7 @@ void init(int /* argc */, char * argv[])
 				(LPBYTE) buf, &bufSize);
 		RegCloseKey(regKey);
 		if ((retVal == ERROR_SUCCESS) && (bufSize <= MAX_PATH))
-			cygdrive = buf;
+			cygdrive = rtrim(string(buf), "/");
 	}
 }
 
@@ -174,9 +170,9 @@ string current_root()
 
 docstring::size_type common_path(docstring const & p1, docstring const & p2)
 {
-	docstring::size_type i = 0;
-	docstring::size_type const p1_len = p1.length();
-	docstring::size_type const p2_len = p2.length();
+	size_t i = 0;
+	size_t const p1_len = p1.length();
+	size_t const p2_len = p2.length();
 	while (i < p1_len && i < p2_len && uppercase(p1[i]) == uppercase(p2[i]))
 		++i;
 	if ((i < p1_len && i < p2_len)
@@ -196,22 +192,18 @@ string external_path(string const & p)
 {
 	string const dos_path = subst(p, "/", "\\");
 
-	LYXERR(Debug::LATEX)
-		<< "<Win32 path correction> ["
-		<< p << "]->>["
-		<< dos_path << ']' << endl;
+	LYXERR(Debug::LATEX, "<Win32 path correction> ["
+		<< p << "]->>[" << dos_path << ']');
 	return dos_path;
 }
 
 
-namespace {
-
-string const get_long_path(string const & short_path)
+static string const get_long_path(string const & short_path)
 {
 	// GetLongPathName needs the path in file system encoding.
 	// We can use to_local8bit, since file system encoding and the
 	// local 8 bit encoding are identical on windows.
-	std::vector<char> long_path(MAX_PATH);
+	vector<char> long_path(MAX_PATH);
 	DWORD result = GetLongPathName(to_local8bit(from_utf8(short_path)).c_str(),
 				       &long_path[0], long_path.size());
 
@@ -219,13 +211,11 @@ string const get_long_path(string const & short_path)
 		long_path.resize(result);
 		result = GetLongPathName(short_path.c_str(),
 					 &long_path[0], long_path.size());
-		BOOST_ASSERT(result <= long_path.size());
+		LASSERT(result <= long_path.size(), /**/);
 	}
 
 	return (result == 0) ? short_path : to_utf8(from_filesystem8bit(&long_path[0]));
 }
-
-} // namespace anon
 
 
 string internal_path(string const & p)
@@ -252,48 +242,16 @@ string latex_path(string const & p)
 	// on windows_style_tex_paths_), but we use always forward slashes,
 	// since it gets written into a .tex file.
 
-	if (!windows_style_tex_paths_ && is_absolute_path(p)) {
+	FileName path(p);
+	if (!windows_style_tex_paths_ && path.isAbsolute()) {
 		string const drive = p.substr(0, 2);
 		string const cygprefix = cygdrive + "/" + drive.substr(0, 1);
 		string const cygpath = subst(subst(p, '\\', '/'), drive, cygprefix);
-		LYXERR(Debug::LATEX)
-			<< "<Path correction for LaTeX> ["
-			<< p << "]->>["
-			<< cygpath << ']' << endl;
+		LYXERR(Debug::LATEX, "<Path correction for LaTeX> ["
+			<< p << "]->>[" << cygpath << ']');
 		return cygpath;
 	}
 	return subst(p, '\\', '/');
-}
-
-
-// (Claus H.) On Win32 both Unix and Win32/DOS pathnames are used.
-// Therefore an absolute path could be either a pathname starting
-// with a slash (Unix) or a pathname starting with a drive letter
-// followed by a colon. Because a colon is not valid in pathes in Unix
-// and at another location in Win32 testing just for the existance
-// of the colon in the 2nd position seems to be enough!
-// FIXME: Port to FileName!
-bool is_absolute_path(string const & p)
-{
-	if (p.empty())
-		return false;
-
-	if (p[0] == '/')
-		// Unix style.
-		return true;
-
-	if (p.length() <= 1)
-		return false;
- 
-	if (p[1] == ':')
-		// 'X:\' style.
-		return true;
- 
-	if (p[0] == '\\' && p[1] == '\\')
-		// Network folder style: '\\server\share'
-		return true;
- 
-	return false;
 }
 
 
@@ -371,7 +329,7 @@ string const GetFolderPath::operator()(folder_id _id) const
 		id = CSIDL_APPDATA;
 		break;
 	default:
-		BOOST_ASSERT(false);
+		LASSERT(false, /**/);
 	}
 	HRESULT const result = (folder_path_func_)(0, id, 0,
 						   SHGFP_TYPE_CURRENT,
@@ -399,8 +357,9 @@ bool canAutoOpenFile(string const & ext, auto_open_mode const mode)
 
 bool autoOpenFile(string const & filename, auto_open_mode const mode)
 {
-	// reference: http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc
-	//                 /platform/shell/reference/functions/shellexecute.asp
+	// reference: http://msdn.microsoft.com/library/default.asp
+	// ?url=/library/en-us/shellcc/platform/shell/reference/functions/
+	// shellexecute.asp
 	char const * action = (mode == VIEW) ? "open" : "edit";
 	return reinterpret_cast<int>(ShellExecute(NULL, action,
 		to_local8bit(from_utf8(filename)).c_str(), NULL, NULL, 1)) > 32;

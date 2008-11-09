@@ -25,7 +25,7 @@ public:
 	///
 	InsetMathAMSArray(docstring const & name);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pain, int x, int y) const;
 	///
@@ -45,7 +45,7 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	char const * name_left() const;
 	///

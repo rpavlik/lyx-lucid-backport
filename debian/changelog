@@ -1,16 +1,42 @@
-lyx (1.5.6-1) UNRELEASED; urgency=low
+lyx (1.6.0~beta4-2) UNRELEASED; urgency=low
+
+  [ Per Olofsson ]
+  * Remove texlive-latex-base dependency from lyx-common, as it already
+    depends on tex-common via ${misc:Depends}, and that's all that's
+    really necessary.
+  * Remove debian/lyx-common.postrm. It was only deleting /etc/lyxrc,
+    which is not necessary since the file is deleted in preinst.
+  * Don't remove profiling.py, there's no reason.
 
   [ Sven Hoexter ]
-  * (NOT RELEASED YET) New upstream release resolves the following bugs:
-    + lyx invokes xdvi without landscape options for landscape docs.
-    Closes: #269968
-    + Fix for 'word-delete' deletes following non-word items. Closes: #492841
-  * Don't install the top-level ChangeLog as changelog.gz because it only
-    contains changes about the files in the top-level source directory of LyX.
-  * Change suggest for cupsys-client to cups-client.
   * Change the name of the license file on Debian system from GPL to GPL-2.
+  * //Fix for 'word-delete' deletes following non-word items. Closes: #492841
 
- -- Sven Hoexter <sven@timegate.de>  Thu, 28 Aug 2008 17:00:11 +0200
+ -- Sven Hoexter <sven@timegate.de>  Mon, 08 Sep 2008 14:19:48 +0200
+
+lyx (1.6.0~beta4-1) experimental; urgency=low
+
+  [ Sven Hoexter ]
+  * New upstream release resolves the following bugs:
+    + lyx invokes xdvi without landscape options for landscape docs
+      Closes: #269968
+  * Don't try to install the top-level ChangeLog as changelog.gz.
+  
+  [ Per Olofsson ]
+  * Use new features in debhelper v7 to shorten debian/rules.
+  * Misc improvements to debian/rules.
+  * Point to new lyx icon in png format from /usr/share/icons.
+  * Use dh_installtex to update ls-R files from maintainer scripts. Will do
+    it faster than plain texhash.
+  * Remove now-useless versioned build-deps.
+  * Suggest cups-client instead of cupsys-client.
+  * Add debian/README.source.
+  * Bump Standards-Version to 3.8.0.
+  * Remove the -ffunction-sections workaround on hppa and let's hope it
+    works. I can't test because there are no DD-accessible hppa machines
+    at the moment.
+
+ -- Per Olofsson <pelle@debian.org>  Thu, 24 Jul 2008 00:37:14 +0200
 
 lyx (1.5.5-1) unstable; urgency=low
 

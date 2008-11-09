@@ -15,18 +15,17 @@
 #include "Buffer.h"
 #include "DispatchResult.h"
 #include "FuncRequest.h"
-#include "gettext.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
 #include "TocBackend.h"
 
-#include "support/std_ostream.h"
+#include "support/gettext.h"
 
+#include <ostream>
+
+using namespace std;
 
 namespace lyx {
-
-using std::string;
-using std::ostream;
 
 
 InsetTOC::InsetTOC(InsetCommandParams const & p)
@@ -34,41 +33,33 @@ InsetTOC::InsetTOC(InsetCommandParams const & p)
 {}
 
 
-std::auto_ptr<Inset> InsetTOC::doClone() const
+ParamInfo const & InsetTOC::findInfo(string const & /* cmdName */)
 {
-	return std::auto_ptr<Inset>(new InsetTOC(*this));
+	static ParamInfo param_info_;
+	if (param_info_.empty()) {
+		param_info_.add("type", ParamInfo::LATEX_REQUIRED);
+	}
+	return param_info_;
 }
 
 
-docstring const InsetTOC::getScreenLabel(Buffer const & buf) const
+docstring InsetTOC::screenLabel() const
 {
 	if (getCmdName() == "tableofcontents")
-		return buf.B_("Table of Contents");
+		return buffer().B_("Table of Contents");
 	return _("Unknown TOC type");
 }
 
 
-Inset::Code InsetTOC::lyxCode() const
+int InsetTOC::plaintext(odocstream & os, OutputParams const &) const
 {
-	if (getCmdName() == "tableofcontents")
-		return Inset::TOC_CODE;
-	return Inset::NO_CODE;
-}
-
-
-int InsetTOC::plaintext(Buffer const & buffer, odocstream & os,
-			OutputParams const &) const
-{
-	os << getScreenLabel(buffer) << "\n\n";
-
-	buffer.tocBackend().writePlaintextTocList(getCmdName(), os);
-
+	os << screenLabel() << "\n\n";
+	buffer().tocBackend().writePlaintextTocList(getCmdName(), os);
 	return PLAINTEXT_NEWLINE;
 }
 
 
-int InsetTOC::docbook(Buffer const &, odocstream & os,
-		      OutputParams const &) const
+int InsetTOC::docbook(odocstream & os, OutputParams const &) const
 {
 	if (getCmdName() == "tableofcontents")
 		os << "<toc></toc>";

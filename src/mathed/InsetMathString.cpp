@@ -12,34 +12,31 @@
 
 #include "InsetMathString.h"
 #include "MathStream.h"
-#include "MathStream.h"
 #include "MathSupport.h"
+
+#include "Encoding.h"
+
+#include "support/gettext.h"
+#include "support/lstrings.h"
+#include "support/textutils.h"
 
 
 namespace lyx {
-
-using std::auto_ptr;
-using std::vector;
-
 
 InsetMathString::InsetMathString(docstring const & s)
 	: str_(s)
 {}
 
 
-auto_ptr<Inset> InsetMathString::doClone() const
+Inset * InsetMathString::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathString(*this));
+	return new InsetMathString(*this);
 }
 
 
-bool InsetMathString::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathString::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	mathed_string_dim(mi.base.font, str_, dim);
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
@@ -106,7 +103,83 @@ void InsetMathString::mathmlize(MathStream & os) const
 
 void InsetMathString::write(WriteStream & os) const
 {
-	os << str_;
+	if (!os.latex()) {
+		os << str_;
+		return;
+	}
+
+	docstring::const_iterator cit = str_.begin();
+	docstring::const_iterator end = str_.end();
+
+	// We may already be inside an \ensuremath command.
+	bool in_forced_mode = os.pendingBrace();
+
+	// We will take care of matching braces.
+	os.pendingBrace(false);
+
+	while (cit != end) {
+		char_type const c = *cit;
+		try {
+			docstring command(1, c);
+			if (c < 0x80 || Encodings::latexMathChar(c, command)) {
+				if (os.textMode()) {
+					if (in_forced_mode) {
+						// we were inside \lyxmathsym
+						os << '}';
+						os.textMode(false);
+						in_forced_mode = false;
+					}
+					if (c >= 0x80) {
+						os << "\\ensuremath{";
+						os.textMode(false);
+						in_forced_mode = true;
+					}
+				} else if (c < 0x80 && in_forced_mode) {
+					// we were inside \ensuremath
+					os << '}';
+					os.textMode(true);
+					in_forced_mode = false;
+				}
+			} else if (!os.textMode()) {
+					if (in_forced_mode) {
+						// we were inside \ensuremath
+						os << '}';
+						in_forced_mode = false;
+					} else {
+						os << "\\lyxmathsym{";
+						in_forced_mode = true;
+					}
+					os.textMode(true);
+			}
+			os << command;
+			// We may need a space if the command contains a macro
+			// and the last char is ASCII.
+			if (lyx::support::contains(command, '\\')
+			    && isAlphaASCII(command[command.size() - 1]))
+				os.pendingSpace(true);
+		} catch (EncodingException & e) {
+			if (os.dryrun()) {
+				// FIXME: this is OK for View->Source
+				// but math preview will likely fail.
+				os << "<" << _("LyX Warning: ")
+				   << _("uncodable character") << " '";
+				os << docstring(1, e.failed_char);
+				os << "'>";
+			} else {
+				// throw again
+				throw(e);
+			}
+		}
+		++cit;
+	}
+
+	if (in_forced_mode && os.textMode()) {
+		// We have to care for closing \lyxmathsym
+		os << '}';
+		os.textMode(false);
+	} else {
+		os.pendingBrace(in_forced_mode);
+	}
 }
 
 

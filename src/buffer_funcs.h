@@ -12,11 +12,7 @@
 #ifndef BUFFER_FUNCS_H
 #define BUFFER_FUNCS_H
 
-#include "lyxlayout_ptr_fwd.h"
-#include "support/docstring.h"
-
 #include <string>
-
 
 namespace lyx {
 
@@ -24,15 +20,7 @@ namespace support { class FileName; }
 
 class Buffer;
 class DocIterator;
-class ErrorList;
-class TeXErrors;
 class ParIterator;
-
-/**
- *  Loads a LyX file \c filename into \c Buffer
- *  and \return success status.
- */
-bool loadLyXFile(Buffer *, support::FileName const & filename);
 
 /**
  *  Checks and loads a LyX file \param filename.
@@ -41,17 +29,17 @@ bool loadLyXFile(Buffer *, support::FileName const & filename);
  */
 Buffer * checkAndLoadLyXFile(support::FileName const & filename);
 
-/* Make a new file (buffer) with name \c filename based on a template
- * named \c templatename
+/** Make a new file (buffer) with name \c filename based on a template
+ *  named \c templatename
  */
 Buffer * newFile(std::string const & filename, std::string const & templatename,
 		 bool isNamed = false);
 
-///return the format of the buffer on a string
-std::string const bufferFormat(Buffer const & buffer);
-
-/// Fill in the ErrorList with the TeXErrors
-void bufferErrors(Buffer const &, TeXErrors const &, ErrorList &);
+/** Make a new unnamed file (buffer) based on a template
+ *  named \c templatename
+ */
+Buffer * newUnnamedFile(std::string const & templatename,
+	support::FileName const & path);
 
 /// Count the number of words in the text between these two iterators
 int countWords(DocIterator const & from, DocIterator const & to);
@@ -63,7 +51,7 @@ int countChars(DocIterator const & from, DocIterator const & to, bool with_blank
 void updateLabels(Buffer const &, bool childonly = false);
 
 ///
-void checkBufferStructure(Buffer &, ParIterator const &);
+void updateLabels(Buffer const &, ParIterator &);
 
 } // namespace lyx
 

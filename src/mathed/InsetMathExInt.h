@@ -29,7 +29,7 @@ public:
 	///
 	void symbol(docstring const &);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo &, int x, int y) const;
 
@@ -46,7 +46,7 @@ public:
 	///
 	void write(WriteStream & os) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	bool hasScripts() const;
 

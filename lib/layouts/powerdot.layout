@@ -8,10 +8,11 @@
 ###
 # General textclass parameters
 ###
-Format 4
-Columns         1
-Sides           1
-Provides url     1
+Format 7
+Columns             1
+Sides               1
+Provides url        1
+Provides hyperref   1
 DefaultStyle        Standard
 
 DefaultFont
@@ -30,6 +31,8 @@ ClassOptions
   PageStyle  ""
 End
 
+Input stdinsets.inc
+
 ###
 # Title style definition
 ###
@@ -44,7 +47,6 @@ Style Title
   BottomSep     1
   ParSep        1
   Align         Center
-  AlignPossible     Center
   LabelType     No_Label
 
   Font
@@ -68,7 +70,6 @@ Style Author
   BottomSep     0.7
   ParSep        0.7
   Align         Center
-  AlignPossible     Center
   LabelType     No_Label
 
   Font
@@ -91,7 +92,6 @@ Style Date
   BottomSep     0.5
   ParSep        1
   Align         Center
-  AlignPossible     Center
   LabelType     No_Label
 
   Font
@@ -127,7 +127,6 @@ Style Slide
   BottomSep     0.7
   ParSep        0.7
   Align         Center
-  AlignPossible     Center
   LabelType     Counter
   LabelCounter subsection
   LabelString       "    "

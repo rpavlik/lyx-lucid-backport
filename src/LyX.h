@@ -14,38 +14,32 @@
 #ifndef LYX_H
 #define LYX_H
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/utility.hpp>
-
-#include <string>
+#include "support/strfwd.h"
 
 namespace lyx {
 
-namespace support {
-class FileName;
-}
-
-class Buffer;
 class BufferList;
+class CmdDef;
 class Converters;
 class ErrorItem;
-class Inset;
+class KeyMap;
 class LyXFunc;
-class Server;
-class ServerSocket;
-class LyXView;
 class Messages;
 class Mover;
 class Movers;
+class Server;
+class ServerSocket;
 class Session;
-class KeyMap;
 
 extern bool use_gui;
 
-namespace frontend { class Application; }
+namespace frontend {
+class Application;
+class LyXView;
+}
 
 /// initial startup
-class LyX : boost::noncopyable {
+class LyX {
 public:
 
 	LyX();
@@ -53,6 +47,11 @@ public:
 
 	/// Execute LyX.
 	int exec(int & argc, char * argv[]);
+
+	/// Try to exit LyX properly.
+	/// \p exit_code is 0 by default, if a non zero value is passed,
+	/// emergencyCleanup() will be called before exiting.
+	void exit(int exit_code = 0) const;
 
 	static LyX & ref();
 	static LyX const & cref();
@@ -81,8 +80,7 @@ public:
 	frontend::Application const & application() const;
 
 	///
-	KeyMap & topLevelKeymap();
-	KeyMap const & topLevelKeymap() const;
+	CmdDef & topLevelCmdDef();
 
 	///
 	Converters & converters();
@@ -93,25 +91,19 @@ public:
 	///
 	Messages & getGuiMessages();
 	///
-	void setGuiLanguage(std::string const & language);
+	void setRcGuiLanguage();
 
 	///
-	LyXView * newLyXView();
-
-	/** redraw \c inset in all the BufferViews in which it is currently
-	 *  visible. If successful return a pointer to the owning Buffer.
-	 */
-	Buffer const * const updateInset(Inset const *) const;
-
-	void hideDialogs(std::string const & name, Inset * inset) const;
+	frontend::LyXView * newLyXView();
 
 	/// Execute batch commands if available.
 	void execBatchCommands();
 
-	///
-	void addFileToLoad(support::FileName const &);
-
 private:
+	/// noncopyable
+	LyX(LyX const &);
+	void operator=(LyX const &);
+
 	/// Do some cleanup in preparation of an exit.
 	void prepareExit();
 
@@ -125,23 +117,14 @@ private:
 	int init(int & argc, char * argv[]);
 
 	/// Load files passed at command-line.
+	/// return true on success false if we encounter an error
 	/**
 	This method is used only in non-GUI mode.
 	*/
-	void loadFiles();
-
-	/// Create a View, load files and restore GUI Session.
-	void restoreGuiSession();
-
-	/// Initialize RC font for the GUI.
-	void initGuiFont();
+	bool loadFiles();
 
 	/// initial LyX set up
 	bool init();
-	/// set up the default key bindings
-	void defaultKeyBindings(KeyMap * kbmap);
-	/// set up the default dead key bindings if requested
-	void deadKeyBindings(KeyMap * kbmap);
 	/** Check for the existence of the user's support directory and,
 	 *  if not present, create it. Exits the program if the directory
 	 *  cannot be created.
@@ -151,8 +134,6 @@ private:
 	bool queryUserLyXDir(bool explicit_userdir);
 	/// read lyxrc/preferences
 	bool readRcFile(std::string const & name);
-	/// read the given ui (menu/toolbar) file
-	bool readUIFile(std::string const & name, bool include = false);
 	/// read the given languages file
 	bool readLanguagesFile(std::string const & name);
 	/// read the encodings.
@@ -165,20 +146,20 @@ private:
 	/// shows up a parsing error on screen
 	void printError(ErrorItem const &);
 
+	/// Use the Pimpl idiom to hide the internals.
+	// Mostly used for singletons.
+	struct Impl;
+	Impl * pimpl_;
+
 	/// has this user started lyx for the first time?
 	bool first_start;
-	/// the parsed command line batch command if any
-	std::string batch_command;
-
-	/// Use the Pimpl idiom to hide the internals.
-	struct Singletons;
-	boost::scoped_ptr<Singletons> pimpl_;
 
 	friend Movers & theMovers();
 	friend Mover const & getMover(std::string  const & fmt);
 	friend void setMover(std::string const & fmt, std::string const & command);
 	friend Movers & theSystemMovers();
 	friend frontend::Application * theApp();
+	friend KeyMap & theTopLevelKeymap();
 };
 
 } // namespace lyx

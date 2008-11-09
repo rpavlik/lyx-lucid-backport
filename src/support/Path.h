@@ -14,9 +14,6 @@
 
 #include "support/FileName.h"
 
-#include <boost/utility.hpp>
-
-#include <string>
 
 namespace lyx {
 namespace support {
@@ -34,17 +31,21 @@ namespace support {
  *
  * At the end of p's scope the cwd is reset to its previous value.
  */
-class Path : boost::noncopyable {
+class PathChanger {
 public:
 	/// change to the given directory
-	explicit Path(FileName const & path);
+	explicit PathChanger(FileName const & path);
 
 	/// set cwd to the previous value if needed
-	~Path();
+	~PathChanger();
 
 	/// set cwd to the previous value if needed
 	int pop();
 private:
+	/// noncopyable
+	PathChanger(PathChanger const &);
+	void operator=(PathChanger const &);
+
 	/// whether we are in the new cwd or not
 	bool popped_;
 	/// the previous cwd
@@ -52,14 +53,10 @@ private:
 };
 
 // To avoid the wrong usage:
-// Path("/tmp");   // wrong
-// Path p("/tmp");  // right
+// PathChanger("/tmp");   // wrong
+// PathChanger p("/tmp");  // right
 // we add this macro:
-///
-// With boost 1.34 this is not usable anymore
-//#ifndef PATH_C
-//#define Path(x) unnamed_Path;
-//#endif
+#define PathChanger(x) unnamed_PathChanger;
 // Tip gotten from Bobby Schmidt's column in C/C++ Users Journal
 
 } // namespace support

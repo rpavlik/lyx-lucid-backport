@@ -17,9 +17,8 @@
 
 #include "BufferView.h"
 #include "Cursor.h"
-#include "debug.h"
-#include "gettext.h"
-#include "Color.h"
+#include "support/debug.h"
+#include "support/gettext.h"
 #include "Lexer.h"
 #include "OutputParams.h"
 
@@ -30,14 +29,10 @@
 
 #include <sstream>
 
-using std::string;
-using std::auto_ptr;
-using std::ostream;
-using std::endl;
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::bformat;
 
 
 InsetFormulaMacro::InsetFormulaMacro()
@@ -56,40 +51,39 @@ InsetFormulaMacro::InsetFormulaMacro
 InsetFormulaMacro::InsetFormulaMacro(string const & s)
 	: InsetMathNest(2), name_("unknownB")
 {
-	std::istringstream is(s);
+	istringstream is(s);
 	read(is);
 }
 
 
-auto_ptr<Inset> InsetFormulaMacro::clone() const
+Inset * InsetFormulaMacro::clone() const
 {
-	return auto_ptr<Inset>(new InsetFormulaMacro(*this));
+	return new InsetFormulaMacro(*this);
 }
 
 
-void InsetFormulaMacro::write(Buffer const &, ostream & os) const
+void InsetFormulaMacro::write(ostream & os) const
 {
 	os << "FormulaMacro\n";
-	WriteStream wi(os, false, false);
+	WriteStream wi(os, false, false, false);
 	tmpl()->write(wi);
 }
 
 
-int InsetFormulaMacro::latex(Buffer const &, odocstream & os,
+int InsetFormulaMacro::latex(odocstream & os,
 			     OutputParams const & runparams) const
 {
 	//lyxerr << "InsetFormulaMacro::latex" << endl;
-	WriteStream wi(os, runparams.moving_arg, true);
+	WriteStream wi(os, runparams.moving_arg, true, runparams.dryrun);
 	tmpl()->write(wi);
 	return 2;
 }
 
 
-int InsetFormulaMacro::plaintext(Buffer const &, odocstream & os,
-				 OutputParams const &) const
+int InsetFormulaMacro::plaintext(odocstream & os, OutputParams const &) const
 {
 	odocstringstream oss;
-	WriteStream wi(oss, false, true);
+	WriteStream wi(oss, false, true, false);
 	tmpl()->write(wi);
 
 	docstring const str = oss.str();
@@ -98,20 +92,20 @@ int InsetFormulaMacro::plaintext(Buffer const &, odocstream & os,
 }
 
 
-int InsetFormulaMacro::docbook(Buffer const & buf, ostream & os,
+int InsetFormulaMacro::docbook(ostream & os,
 			       OutputParams const & runparams) const
 {
-	return plaintext(buf, os, runparams);
+	return plaintext(os, runparams);
 }
 
 
-void InsetFormulaMacro::read(Buffer const &, Lexer & lex)
+void InsetFormulaMacro::read(Lexer & lex)
 {
 	read(lex.getStream());
 }
 
 
-void InsetFormulaMacro::read(std::istream & is)
+void InsetFormulaMacro::read(istream & is)
 {
 	auto_ptr<MathMacroTemplate> p(new MathMacroTemplate(is));
 	name_ = p->name();
@@ -125,16 +119,14 @@ string InsetFormulaMacro::prefix() const
 }
 
 
-bool InsetFormulaMacro::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetFormulaMacro::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	//lyxerr << "InsetFormulaMacro: " << this << " -- " << &tmpl() << endl;
 	tmpl()->metrics(mi, dim);
 	dim.asc += 5;
 	dim.des += 5;
 	dim.wid += 10 + theFontMetrics(mi.base.font).width(prefix());
-	bool const changed = dim_ != dim;
 	dim_ = dim;
-	return changed;
 }
 
 
@@ -142,7 +134,7 @@ void InsetFormulaMacro::draw(PainterInfo & p, int x, int y) const
 {
 	// label
 	Font font = p.base.font;
-	font.setColor(Color::math);
+	font.setColor(Color_math);
 
 	PainterInfo pi(p.base.bv, p.pain);
 	pi.base.style = LM_ST_TEXT;
@@ -152,13 +144,11 @@ void InsetFormulaMacro::draw(PainterInfo & p, int x, int y) const
 	int const w = dim_.wid - 2;
 	int const h = dim_.height() - 2;
 
-	// Color::mathbg used to be "AntiqueWhite" but is "linen" now, too
-	pi.pain.fillRectangle(x, a, w, h, Color::mathmacrobg);
-	pi.pain.rectangle(x, a, w, h, Color::mathframe);
+	// Color_mathbg used to be "AntiqueWhite" but is "linen" now, too
+	pi.pain.fillRectangle(x, a, w, h, Color_mathmacrobg);
+	pi.pain.rectangle(x, a, w, h, Color_mathframe);
 
-#ifdef WITH_WARNINGS
-#warning FIXME
-#endif
+	// FIXME
 #if 0
 	Cursor & cur = p.base.bv->cursor();
 	if (cur.isInside(this))

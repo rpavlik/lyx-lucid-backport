@@ -11,93 +11,80 @@
 #include <config.h>
 
 #include "InsetText.h"
-#include "InsetNewline.h"
 
+#include "insets/InsetOptArg.h"
+
+#include "buffer_funcs.h"
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "CompletionList.h"
 #include "CoordCache.h"
-#include "CutAndPaste.h"
 #include "Cursor.h"
-#include "debug.h"
+#include "CutAndPaste.h"
 #include "DispatchResult.h"
 #include "ErrorList.h"
 #include "FuncRequest.h"
-#include "gettext.h"
+#include "InsetList.h"
 #include "Intl.h"
-#include "Color.h"
-#include "lyxfind.h"
 #include "Lexer.h"
+#include "lyxfind.h"
 #include "LyXRC.h"
-#include "Text.h"
 #include "MetricsInfo.h"
-#include "OutputParams.h"
 #include "output_docbook.h"
 #include "output_latex.h"
+#include "OutputParams.h"
 #include "output_plaintext.h"
-#include "Paragraph.h"
 #include "paragraph_funcs.h"
+#include "Paragraph.h"
 #include "ParagraphParameters.h"
-#include "rowpainter.h"
+#include "ParIterator.h"
 #include "Row.h"
 #include "sgml.h"
 #include "TexRow.h"
-#include "Undo.h"
+#include "TextClass.h"
+#include "Text.h"
+#include "TextMetrics.h"
+#include "TocBackend.h"
 
 #include "frontends/alert.h"
 #include "frontends/Painter.h"
 
-#include "support/lyxalgo.h" // count
+#include "support/debug.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
 
 #include <boost/bind.hpp>
-#include <boost/current_function.hpp>
-#include <boost/signal.hpp>
+#include "support/lassert.h"
 
-#include <sstream>
+using namespace std;
+using namespace lyx::support;
 
+using boost::bind;
+using boost::ref;
 
 namespace lyx {
 
 using graphics::PreviewLoader;
 
-using support::isStrUnsignedInt;
 
-using boost::bind;
-using boost::ref;
+/////////////////////////////////////////////////////////////////////
 
-using std::endl;
-using std::for_each;
-using std::max;
-using std::string;
-using std::auto_ptr;
-using std::ostream;
-using std::vector;
-
-
-InsetText::InsetText(BufferParams const & bp)
-	: drawFrame_(false), frame_color_(Color::insetframe), fixed_width_(false)
+InsetText::InsetText(Buffer const & buf)
+	: drawFrame_(false), frame_color_(Color_insetframe)
 {
-	paragraphs().push_back(Paragraph());
-	paragraphs().back().layout(bp.getTextClass().defaultLayout());
-	// Dispose of the infamous L-shaped cursor.
-	text_.current_font.setLanguage(bp.language);
-	text_.real_current_font.setLanguage(bp.language);
-	init();
+	initParagraphs(buf);
 }
 
 
 InsetText::InsetText(InsetText const & in)
-	: Inset(in), fixed_width_(fixed_width_), text_()
+	: Inset(in), text_()
 {
 	text_.autoBreakRows_ = in.text_.autoBreakRows_;
 	drawFrame_ = in.drawFrame_;
 	frame_color_ = in.frame_color_;
 	text_.paragraphs() = in.text_.paragraphs();
-	// Hand current buffer language down to "cloned" textinsets
-	// e.g. tabular cells
-	text_.current_font = in.text_.current_font;
-	text_.real_current_font = in.text_.real_current_font;
-	init();
+	setParagraphOwner();
 }
 
 
@@ -105,7 +92,17 @@ InsetText::InsetText()
 {}
 
 
-void InsetText::init()
+void InsetText::initParagraphs(Buffer const & buf)
+{
+	LASSERT(paragraphs().empty(), /**/);
+	buffer_ = const_cast<Buffer *>(&buf);
+	paragraphs().push_back(Paragraph());
+	Paragraph & ourpar = paragraphs().back();
+	ourpar.setPlainOrDefaultLayout(buf.params().documentClass());
+	ourpar.setInsetOwner(this);
+}
+
+void InsetText::setParagraphOwner()
 {
 	for_each(paragraphs().begin(), paragraphs().end(),
 		 bind(&Paragraph::setInsetOwner, _1, this));
@@ -115,31 +112,37 @@ void InsetText::init()
 void InsetText::clear()
 {
 	ParagraphList & pars = paragraphs();
+	LASSERT(!pars.empty(), /**/);
 
 	// This is a gross hack...
-	Layout_ptr old_layout = pars.begin()->layout();
+	Layout const & old_layout = pars.begin()->layout();
 
 	pars.clear();
 	pars.push_back(Paragraph());
 	pars.begin()->setInsetOwner(this);
-	pars.begin()->layout(old_layout);
+	pars.begin()->setLayout(old_layout);
 }
 
 
-auto_ptr<Inset> InsetText::doClone() const
+Dimension const InsetText::dimension(BufferView const & bv) const
 {
-	return auto_ptr<Inset>(new InsetText(*this));
+	TextMetrics const & tm = bv.textMetrics(&text_);
+	Dimension dim = tm.dimension();
+	dim.wid += 2 * TEXT_TO_INSET_OFFSET;
+	dim.des += TEXT_TO_INSET_OFFSET;
+	dim.asc += TEXT_TO_INSET_OFFSET;
+	return dim;
 }
 
 
-void InsetText::write(Buffer const & buf, ostream & os) const
+void InsetText::write(ostream & os) const
 {
 	os << "Text\n";
-	text_.write(buf, os);
+	text_.write(buffer(), os);
 }
 
 
-void InsetText::read(Buffer const & buf, Lexer & lex)
+void InsetText::read(Lexer & lex)
 {
 	clear();
 
@@ -147,13 +150,11 @@ void InsetText::read(Buffer const & buf, Lexer & lex)
 	Paragraph oldpar = *paragraphs().begin();
 	paragraphs().clear();
 	ErrorList errorList;
-	bool res = text_.read(buf, lex, errorList);
-	init();
+	lex.setContext("InsetText::read");
+	bool res = text_.read(buffer(), lex, errorList, this);
 
-	if (!res) {
-		lex.printError("Missing \\end_inset at this point. "
-					   "Read: `$$Token'");
-	}
+	if (!res)
+		lex.printError("Missing \\end_inset at this point. ");
 
 	// sanity check
 	// ensure we have at least one paragraph.
@@ -162,94 +163,80 @@ void InsetText::read(Buffer const & buf, Lexer & lex)
 }
 
 
-bool InsetText::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetText::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	TextMetrics & tm = mi.base.bv->textMetrics(&text_);
 
 	//lyxerr << "InsetText::metrics: width: " << mi.base.textwidth << endl;
-	mi.base.textwidth -= 2 * TEXT_TO_INSET_OFFSET;
-	font_ = mi.base.font;
+
 	// Hand font through to contained lyxtext:
-	text_.font_ = mi.base.font;
-	// Expand the inset if
-	fixed_width_ = text_.paragraphs().size() > 1;
+	tm.font_.fontInfo() = mi.base.font;
+	mi.base.textwidth -= 2 * TEXT_TO_INSET_OFFSET;
 	if (hasFixedWidth())
 		tm.metrics(mi, dim, mi.base.textwidth);
 	else
 		tm.metrics(mi, dim);
-	fixed_width_ |= tm.parMetrics(0).rows().size() > 1;
+	mi.base.textwidth += 2 * TEXT_TO_INSET_OFFSET;
 	dim.asc += TEXT_TO_INSET_OFFSET;
 	dim.des += TEXT_TO_INSET_OFFSET;
 	dim.wid += 2 * TEXT_TO_INSET_OFFSET;
-	mi.base.textwidth += 2 * TEXT_TO_INSET_OFFSET;
-	bool const changed = dim_ != dim;
-	dim_ = dim;
-	return changed;
 }
 
 
 void InsetText::draw(PainterInfo & pi, int x, int y) const
 {
-	// update our idea of where we are
-	setPosCache(pi, x, y);
-
 	TextMetrics & tm = pi.base.bv->textMetrics(&text_);
 
-	text_.background_color_ = backgroundColor();
-	text_.draw(pi, x + TEXT_TO_INSET_OFFSET, y);
-
-	if (drawFrame_) {
-		int w = hasFixedWidth() ? tm.maxWidth() : tm.width();
-		w += 2 * TEXT_TO_INSET_OFFSET;
-		int const a = tm.ascent() + TEXT_TO_INSET_OFFSET;
-		int const h = a + tm.descent() + TEXT_TO_INSET_OFFSET;
-		pi.pain.rectangle(x, y - a, w, h, frameColor());
+	if (drawFrame_ || pi.full_repaint) {
+		int const w = tm.width() + TEXT_TO_INSET_OFFSET;
+		int const yframe = y - TEXT_TO_INSET_OFFSET - tm.ascent();
+		int const h = tm.height() + 2 * TEXT_TO_INSET_OFFSET;
+		int const xframe = x + TEXT_TO_INSET_OFFSET / 2;
+		if (pi.full_repaint)
+			pi.pain.fillRectangle(xframe, yframe, w, h, backgroundColor());
+		if (drawFrame_)
+			pi.pain.rectangle(xframe, yframe, w, h, frameColor());
 	}
+	tm.draw(pi, x + TEXT_TO_INSET_OFFSET, y);
 }
 
 
-void InsetText::drawSelection(PainterInfo & pi, int x, int y) const
-{
-	TextMetrics & tm = pi.base.bv->textMetrics(&text_);
-
-	int w = hasFixedWidth() ? tm.maxWidth() : tm.width();
-	w += 2 * TEXT_TO_INSET_OFFSET;
-
-	int const a = tm.ascent() + TEXT_TO_INSET_OFFSET;
-	int const h = a + tm.descent() + TEXT_TO_INSET_OFFSET;
-	pi.pain.fillRectangle(x, y - a, w, h, backgroundColor());
-	text_.drawSelection(pi, x + TEXT_TO_INSET_OFFSET, y);
-}
-
-
-docstring const InsetText::editMessage() const
+docstring InsetText::editMessage() const
 {
 	return _("Opened Text Inset");
 }
 
 
-void InsetText::edit(Cursor & cur, bool left)
+void InsetText::edit(Cursor & cur, bool front, EntryDirection entry_from)
 {
-	//lyxerr << "InsetText: edit left/right" << endl;
-	int const pit = left ? 0 : paragraphs().size() - 1;
-	int const pos = left ? 0 : paragraphs().back().size();
+	pit_type const pit = front ? 0 : paragraphs().size() - 1;
+	pos_type pos = front ? 0 : paragraphs().back().size();
+
+	// if visual information is not to be ignored, move to extreme right/left
+	if (entry_from != ENTRY_DIRECTION_IGNORE) {
+		Cursor temp_cur = cur;
+		temp_cur.pit() = pit;
+		temp_cur.pos() = pos;
+		temp_cur.posVisToRowExtremity(entry_from == ENTRY_DIRECTION_LEFT);
+		pos = temp_cur.pos();
+	}
+
 	text_.setCursor(cur.top(), pit, pos);
 	cur.clearSelection();
-	finishUndo();
+	cur.finishUndo();
 }
 
 
 Inset * InsetText::editXY(Cursor & cur, int x, int y)
 {
-	return text_.editXY(cur, x, y);
+	return cur.bv().textMetrics(&text_).editXY(cur, x, y);
 }
 
 
 void InsetText::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	LYXERR(Debug::ACTION) << BOOST_CURRENT_FUNCTION
-			     << " [ cmd.action = "
-			     << cmd.action << ']' << endl;
+	LYXERR(Debug::ACTION, "InsetText::doDispatch()"
+		<< " [ cmd.action = " << cmd.action << ']');
 	text_.dispatch(cur, cmd);
 }
 
@@ -283,17 +270,15 @@ void InsetText::rejectChanges(BufferParams const & bparams)
 }
 
 
-int InsetText::latex(Buffer const & buf, odocstream & os,
-		     OutputParams const & runparams) const
+int InsetText::latex(odocstream & os, OutputParams const & runparams) const
 {
 	TexRow texrow;
-	latexParagraphs(buf, text_, os, texrow, runparams);
+	latexParagraphs(buffer(), text_, os, texrow, runparams);
 	return texrow.rows();
 }
 
 
-int InsetText::plaintext(Buffer const & buf, odocstream & os,
-			 OutputParams const & runparams) const
+int InsetText::plaintext(odocstream & os, OutputParams const & runparams) const
 {
 	ParagraphList::const_iterator beg = paragraphs().begin();
 	ParagraphList::const_iterator end = paragraphs().end();
@@ -307,7 +292,7 @@ int InsetText::plaintext(Buffer const & buf, odocstream & os,
 				os << '\n';
 		}
 		odocstringstream oss;
-		writePlaintextParagraph(buf, *it, oss, runparams, ref_printed);
+		writePlaintextParagraph(buffer(), *it, oss, runparams, ref_printed);
 		docstring const str = oss.str();
 		os << str;
 		// FIXME: len is not computed fully correctly; in principle,
@@ -319,10 +304,9 @@ int InsetText::plaintext(Buffer const & buf, odocstream & os,
 }
 
 
-int InsetText::docbook(Buffer const & buf, odocstream & os,
-		       OutputParams const & runparams) const
+int InsetText::docbook(odocstream & os, OutputParams const & runparams) const
 {
-	docbookParagraphs(paragraphs(), buf, os, runparams);
+	docbookParagraphs(paragraphs(), buffer(), os, runparams);
 	return 0;
 }
 
@@ -337,8 +321,8 @@ void InsetText::validate(LaTeXFeatures & features) const
 void InsetText::cursorPos(BufferView const & bv,
 		CursorSlice const & sl, bool boundary, int & x, int & y) const
 {
-	x = text_.cursorX(bv, sl, boundary) + TEXT_TO_INSET_OFFSET;
-	y = text_.cursorY(bv, sl, boundary);
+	x = bv.textMetrics(&text_).cursorX(sl, boundary) + TEXT_TO_INSET_OFFSET;
+	y = bv.textMetrics(&text_).cursorY(sl, boundary);
 }
 
 
@@ -384,19 +368,19 @@ void InsetText::setDrawFrame(bool flag)
 }
 
 
-Color_color InsetText::frameColor() const
+ColorCode InsetText::frameColor() const
 {
-	return Color::color(frame_color_);
+	return frame_color_;
 }
 
 
-void InsetText::setFrameColor(Color_color col)
+void InsetText::setFrameColor(ColorCode col)
 {
 	frame_color_ = col;
 }
 
 
-void InsetText::appendParagraphs(Buffer * buffer, ParagraphList & plist)
+void InsetText::appendParagraphs(ParagraphList & plist)
 {
 	// There is little we can do here to keep track of changes.
 	// As of 2006/10/20, appendParagraphs is used exclusively by
@@ -408,8 +392,8 @@ void InsetText::appendParagraphs(Buffer * buffer, ParagraphList & plist)
 	ParagraphList::iterator pit = plist.begin();
 	ParagraphList::iterator ins = pl.insert(pl.end(), *pit);
 	++pit;
-	mergeParagraph(buffer->params(), pl,
-		       std::distance(pl.begin(), ins) - 1);
+	mergeParagraph(buffer().params(), pl,
+		       distance(pl.begin(), ins) - 1);
 
 	for_each(pit, plist.end(),
 		 bind(&ParagraphList::push_back, ref(pl), _1));
@@ -422,20 +406,11 @@ void InsetText::addPreview(PreviewLoader & loader) const
 	ParagraphList::const_iterator pend = paragraphs().end();
 
 	for (; pit != pend; ++pit) {
-		InsetList::const_iterator it  = pit->insetlist.begin();
-		InsetList::const_iterator end = pit->insetlist.end();
+		InsetList::const_iterator it  = pit->insetList().begin();
+		InsetList::const_iterator end = pit->insetList().end();
 		for (; it != end; ++it)
 			it->inset->addPreview(loader);
 	}
-}
-
-
-//FIXME: instead of this hack, which only works by chance,
-// cells should have their own insetcell type, which returns CELL_CODE!
-bool InsetText::neverIndent(Buffer const & buffer) const
-{
-	// this is only true for tabular cells
-	return !text_.isMainText(buffer) && lyxCode() == TEXT_CODE;
 }
 
 
@@ -448,6 +423,166 @@ ParagraphList const & InsetText::paragraphs() const
 ParagraphList & InsetText::paragraphs()
 {
 	return text_.paragraphs();
+}
+
+
+void InsetText::updateLabels(ParIterator const & it)
+{
+	ParIterator it2 = it;
+	it2.forwardPos();
+	LASSERT(&it2.inset() == this && it2.pit() == 0, /**/);
+	if (producesOutput())
+		lyx::updateLabels(buffer(), it2);
+	else {
+		DocumentClass const & tclass = buffer().params().documentClass();
+		Counters const savecnt = tclass.counters();
+		lyx::updateLabels(buffer(), it2);
+		tclass.counters() = savecnt;
+	}
+}
+
+
+void InsetText::addToToc(DocIterator const & cdit)
+{
+	DocIterator dit = cdit;
+	dit.push_back(CursorSlice(*this));
+	Toc & toc = buffer().tocBackend().toc("tableofcontents");
+
+	BufferParams const & bufparams = buffer_->params();
+	const int min_toclevel = bufparams.documentClass().min_toclevel();
+
+	// For each paragraph, traverse its insets and let them add
+	// their toc items
+	ParagraphList & pars = paragraphs();
+	pit_type pend = paragraphs().size();
+	for (pit_type pit = 0; pit != pend; ++pit) {
+		Paragraph const & par = pars[pit];
+		dit.pit() = pit;
+		// the string that goes to the toc (could be the optarg)
+		docstring tocstring;
+		InsetList::const_iterator it  = par.insetList().begin();
+		InsetList::const_iterator end = par.insetList().end();
+		for (; it != end; ++it) {
+			Inset & inset = *it->inset;
+			dit.pos() = it->pos;
+			//lyxerr << (void*)&inset << " code: " << inset.lyxCode() << std::endl;
+			inset.addToToc(dit);
+			switch (inset.lyxCode()) {
+			case OPTARG_CODE: {
+				if (!tocstring.empty())
+					break;
+				dit.pos() = 0;
+				Paragraph const & insetpar =
+					*static_cast<InsetOptArg&>(inset).paragraphs().begin();
+				if (!par.labelString().empty())
+					tocstring = par.labelString() + ' ';
+				tocstring += insetpar.asString();
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		/// now the toc entry for the paragraph
+		int const toclevel = par.layout().toclevel;
+		if (toclevel != Layout::NOT_IN_TOC && toclevel >= min_toclevel) {
+			dit.pos() = 0;
+			// insert this into the table of contents
+			if (tocstring.empty())
+				tocstring = par.asString(AS_STR_LABEL);
+			toc.push_back(TocItem(dit, toclevel - min_toclevel, tocstring));
+		}
+	}
+}
+
+
+bool InsetText::notifyCursorLeaves(Cursor const & old, Cursor & cur)
+{
+	if (cur.buffer().isClean())
+		return Inset::notifyCursorLeaves(old, cur);
+	
+	// find text inset in old cursor
+	Cursor insetCur = old;
+	int scriptSlice	= insetCur.find(this);
+	LASSERT(scriptSlice != -1, /**/);
+	insetCur.cutOff(scriptSlice);
+	LASSERT(&insetCur.inset() == this, /**/);
+	
+	// update the old paragraph's words
+	insetCur.paragraph().updateWords(insetCur.top());
+	
+	return Inset::notifyCursorLeaves(old, cur);
+}
+
+
+bool InsetText::completionSupported(Cursor const & cur) const
+{
+	Cursor const & bvCur = cur.bv().cursor();
+	if (&bvCur.inset() != this)
+		return false;
+	return text_.completionSupported(cur);
+}
+
+
+bool InsetText::inlineCompletionSupported(Cursor const & cur) const
+{
+	return completionSupported(cur);
+}
+
+
+bool InsetText::automaticInlineCompletion() const
+{
+	return lyxrc.completion_inline_text;
+}
+
+
+bool InsetText::automaticPopupCompletion() const
+{
+	return lyxrc.completion_popup_text;
+}
+
+
+bool InsetText::showCompletionCursor() const
+{
+	return lyxrc.completion_cursor_text;
+}
+
+
+CompletionList const * InsetText::createCompletionList(Cursor const & cur) const
+{
+	return completionSupported(cur) ? text_.createCompletionList(cur) : 0;
+}
+
+
+docstring InsetText::completionPrefix(Cursor const & cur) const
+{
+	if (!completionSupported(cur))
+		return docstring();
+	return text_.completionPrefix(cur);
+}
+
+
+bool InsetText::insertCompletion(Cursor & cur, docstring const & s,
+	bool finished)
+{
+	if (!completionSupported(cur))
+		return false;
+
+	return text_.insertCompletion(cur, s, finished);
+}
+
+
+void InsetText::completionPosAndDim(Cursor const & cur, int & x, int & y, 
+	Dimension & dim) const
+{
+	TextMetrics const & tm = cur.bv().textMetrics(&text_);
+	tm.completionPosAndDim(cur, x, y, dim);
+}
+
+
+docstring InsetText::contextMenu(BufferView const &, int, int) const
+{
+	return from_ascii("context-edit");
 }
 
 

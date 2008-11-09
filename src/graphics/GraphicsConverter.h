@@ -17,9 +17,7 @@
 #ifndef GRAPHICSCONVERTER_H
 #define GRAPHICSCONVERTER_H
 
-#include <boost/scoped_ptr.hpp>
 #include <boost/signal.hpp>
-#include <boost/utility.hpp>
 
 namespace lyx {
 
@@ -27,7 +25,7 @@ namespace support { class FileName; }
 
 namespace graphics {
 
-class Converter : boost::noncopyable {
+class Converter {
 public:
 	/// Can the conversion be performed?
 	static bool isReachable(std::string const & from_format_name,
@@ -39,7 +37,7 @@ public:
 	Converter(support::FileName const & from_file, std::string const & to_file_base,
 		  std::string const & from_format, std::string const & to_format);
 
-	/// Define an empty d-tor out-of-line to keep boost::scoped_ptr happy.
+	/// Needed for the pimpl
 	~Converter();
 
 	/// We are explicit about when we begin the conversion process.
@@ -62,11 +60,14 @@ public:
 	support::FileName const & convertedFile() const;
 
 private:
+	/// noncopyable
+	Converter(Converter const &);
+	void operator=(Converter const &);
+
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
-
 	/// The pointer never changes although *pimpl_'s contents may.
-	boost::scoped_ptr<Impl> const pimpl_;
+	Impl * const pimpl_;
 };
 
 } // namespace graphics

@@ -30,7 +30,7 @@ public:
 	///
 	InsetMathExFunc(docstring const & name, MathData const & ar);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -48,7 +48,7 @@ public:
 	void octave(OctaveStream &) const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	docstring const name_;
 };

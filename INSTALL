@@ -14,6 +14,7 @@ These four steps will compile, test and install LyX:
 	   When compiling for Qt, you may have to set
              --with-qt4-dir=<path-to-your-qt4-installation>
            if the environment variable QTDIR is not set. 
+	   See Note below if ./configure script is not present.
 
 	2) make
 	   compiles the program.
@@ -26,7 +27,7 @@ These four steps will compile, test and install LyX:
            if you want a smaller binary.
 
 
-Note for Subversion checkouts
+Note for Subversion (SVN) checkouts
 -----------------------------
 
 If you have checked this out from Subversion, you need to have:
@@ -44,13 +45,13 @@ Requirements
 First of all, you will also need a recent C++ compiler, where recent
 means that the compilers are close to C++ standard conforming (gcc 3.x).
 
-LyX makes great use of C++ Standard Template Library (STL). This means
-that gcc users will have to install the relevant libstdc++ library to
-be able to compile this version of LyX.
+LyX 1.6.x makes great use of C++ Standard Template Library (STL).
+This means that gcc users will have to install the relevant libstdc++
+library to be able to compile this version of LyX. 
 
-LyX should be compatible with Qt version 4.1.x to 4.3.x. The only
-special point to make is that you must ensure that both LyX and the Qt
-libraries are compiled with the same C++ compiler.
+LyX has been tested with Qt 4.2.x and Qt 4.3.x. The only special point
+to make is that you must ensure that both LyX and the Qt libraries are
+compiled with the same C++ compiler.
 
 Note that if Qt is using Xft2/fontconfig, you may need to install the
 latex-xft-fonts package (at ftp://ftp.lyx.org/pub/lyx/contrib/) to get
@@ -62,7 +63,6 @@ at the console. Most recent distributions are known to use fontconfig.
 
 If, however, your version of Qt does not use fontconfig, then TeX
 fonts should be added to the font path. 'man xset' is your friend.
-
 
 * Other things to note
 
@@ -131,9 +131,9 @@ flags:
     If DIRECTORY is not specified, the current prefix is used.
 
   o --with-version-suffix[=VERSION] will install LyX as lyx-VERSION,
-    e.g. lyx-1.5.1. The LyX data directory will be something like 
-    <whatever>/lyx-1.5.1/. Additionally your user configuration files 
-    will be found in e.g. $HOME/.lyx-1.5.1
+    e.g. lyx-1.6.1. The LyX data directory will be something like 
+    <whatever>/lyx-1.6.1/. Additionally your user configuration files 
+    will be found in e.g. $HOME/.lyx-1.6.1
 
     You can use this feature to install more than one version of LyX
     on the same system. You can optionally specify a "version" of your
@@ -247,6 +247,11 @@ The following options allow to tweak more precisely the generated code:
     want to use. The default value is qt4, which is the only available
     frontend for now.
 
+  o --enable-monolithic-[boost,client,insets,mathed,core,tex2lyx,frontend-qt4]
+    that enable monolithic build of the given part of the source code. This
+    should reduce the compilation time provided you have enough memory
+    (>500MB).
+
 
 Compiling and installing LyX
 ----------------------------
@@ -264,7 +269,7 @@ to strip the lyx binary. In this case replace "make install" with
 
   make install-strip
 
-BTW: in the images subdirectory there is also a small icon "lyx.xpm",
+BTW: in the images subdirectory there is also a small icon "lyx.png",
 that can be used to display lyx-documents in filemanagers.
 
 If configure fails for some strange reason
@@ -289,32 +294,6 @@ variable, you have to compile LyX for one architecture at a time in
 the source code directory.  After you have installed LyX for one
 architecture, use `make distclean' before reconfiguring for another
 architecture.
-
-
-Preparing a binary distribution for the use of others
-------------------------------------------------------
-
-  o Compile LyX with the right compiler switches for your
-    architecture. Make sure you use the --without-latex-config switch
-    of configure, since others might not be interested by your
-    configuration :-)
-
-  o Create a file README.bin describing your distribution and
-    referring to *you* if problems arise. As a model, you can use the
-    file development/tools/README.bin.example, which can be a good
-    starting point.
-
-  o Type `make bindist'. This will create a file
-    lyx-1.xx.yy-bin.tar.gz. Rename it to reflect you architecture
-    and the peculiarities of your build (e.g. static vs. dynamic).
-
-  o Check that everything is correct by unpacking the distribution
-    in some private place and running it. In particular, check the
-    output of `ldd lyx' to know which libraries are really needed.
-
-  o Upload your binary file to ftp.devel.lyx.org:/pub/incoming, and
-    notify lyx-devel@lists.lyx.org.
-
 
 Problems
 --------

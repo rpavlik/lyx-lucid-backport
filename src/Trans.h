@@ -14,10 +14,9 @@
 #ifndef TRANS_H
 #define TRANS_H
 
-#include "lfuns.h"
-#include "support/docstring.h"
+#include "FuncCode.h"
 
-#include <boost/scoped_ptr.hpp>
+#include "support/docstring.h"
 
 #include <list>
 #include <map>
@@ -72,7 +71,7 @@ enum tex_accent {
 };
 
 
-struct tex_accent_struct {
+struct TeXAccent {
 	///
 	tex_accent accent;
 	/// UCS4 code point of this accent
@@ -80,11 +79,11 @@ struct tex_accent_struct {
 	///
 	char const * name;
 	///
-	kb_action action;
+	FuncCode action;
 };
 
 ///
-extern tex_accent_struct get_accent(kb_action action);
+extern TeXAccent get_accent(FuncCode action);
 
 
 ///
@@ -164,8 +163,7 @@ private:
 
 
 ///
-inline
-docstring const & Trans::match(char_type c)
+inline docstring const & Trans::match(char_type c)
 {
 	std::map<char_type, docstring>::iterator it = keymap_.find(c);
 	if (it != keymap_.end()) {
@@ -305,9 +303,9 @@ private:
 	///
 	Trans * active_;
 	///
-	boost::scoped_ptr<Trans> t1_;
+	Trans t1_;
 	///
-	boost::scoped_ptr<Trans> t2_;
+	Trans t2_;
 	///
 	static Trans default_;
 	///
@@ -315,8 +313,6 @@ private:
 public:
 	///
 	TransManager();
-	///
-	~TransManager();
 	///
 	int setPrimary(std::string const &);
 	///

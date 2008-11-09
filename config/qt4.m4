@@ -124,7 +124,7 @@ AC_DEFUN([QT4_DO_IT_ALL],
 	fi
 
 	dnl Preprocessor flags
-	QT4_CPPFLAGS="-DQT_CLEAN_NAMESPACE -DQT_GENUINE_STR -DQT_NO_STL -DQT_NO_KEYWORDS"
+	QT4_CPPFLAGS="-DQT_NO_STL -DQT_NO_KEYWORDS"
 	case ${host} in
 	*mingw*) QT4_CPPFLAGS="-DQT_DLL $QT4_CPPFLAGS";;
 	*cygwin*)
@@ -144,6 +144,7 @@ AC_DEFUN([QT4_DO_IT_ALL],
 	fi
 	AC_PATH_PROGS(MOC4, [moc-qt4 moc],[],$qt4_cv_bin:$PATH)
 	AC_PATH_PROGS(UIC4, [uic-qt4 uic],[],$qt4_cv_bin:$PATH)
+	AC_PATH_PROGS(RCC4, [rcc-qt4 rcc],[],$qt4_cv_bin:$PATH)
 ])
 
 AC_DEFUN([QT4_DO_PKG_CONFIG],

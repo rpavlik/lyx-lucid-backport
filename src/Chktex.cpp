@@ -11,30 +11,22 @@
 #include <config.h>
 
 #include "Chktex.h"
-#include "gettext.h"
 
 #include "LaTeX.h" // TeXErrors
 
 #include "support/convert.h"
 #include "support/docstream.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/Systemcall.h"
 
 #include <boost/format.hpp>
 
-using std::getline;
-using std::string;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::changeExtension;
-using support::FileName;
-using support::makeAbsPath;
-using support::onlyFilename;
-using support::split;
-using support::Systemcall;
 
 
 Chktex::Chktex(string const & chktex, string const & f, string const & p)

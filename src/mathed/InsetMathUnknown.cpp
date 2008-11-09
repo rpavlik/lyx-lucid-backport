@@ -16,23 +16,15 @@
 #include "MathStream.h"
 #include "MathStream.h"
 
+#include "frontends/Painter.h"
+
 
 namespace lyx {
 
-using std::string;
-using std::auto_ptr;
-using std::vector;
-
-
-InsetMathUnknown::InsetMathUnknown(docstring const & nm, bool final, bool black)
-	: name_(nm), final_(final), black_(black)
+InsetMathUnknown::InsetMathUnknown(docstring const & nm,
+	docstring const & selection, bool final, bool black)
+	: name_(nm), final_(final), black_(black), selection_(selection)
 {}
-
-
-auto_ptr<Inset> InsetMathUnknown::doClone() const
-{
-	return auto_ptr<Inset>(new InsetMathUnknown(*this));
-}
 
 
 docstring InsetMathUnknown::name() const
@@ -53,35 +45,20 @@ void InsetMathUnknown::normalize(NormalStream & os) const
 }
 
 
-bool InsetMathUnknown::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathUnknown::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	Font tmpfont = mi.base.font;
-	mi.base.font = Font(Font::ALL_INHERIT);
-	mi.base.font.setShape(Font::UP_SHAPE);
-	mi.base.font.realize(tmpfont);
 	mathed_string_dim(mi.base.font, name_, dim);
 	docstring::const_reverse_iterator rit = name_.rbegin();
 	kerning_ = mathed_char_kerning(mi.base.font, *rit);
-	mi.base.font = tmpfont;
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
 void InsetMathUnknown::draw(PainterInfo & pi, int x, int y) const
 {
-	Font tmpfont = pi.base.font;
-	pi.base.font = Font(Font::ALL_INHERIT);
-	pi.base.font.setShape(Font::UP_SHAPE);
-	pi.base.font.realize(tmpfont);
 	if (black_)
 		drawStrBlack(pi, x, y, name_);
 	else
 		drawStrRed(pi, x, y, name_);
-	setPosCache(pi, x, y);
-	pi.base.font = tmpfont;
 }
 
 

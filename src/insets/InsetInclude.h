@@ -5,6 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Lars Gullik Bjønnes
+ * \author Richard Heck (conversion to InsetCommand)
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,13 +13,14 @@
 #ifndef INSET_INCLUDE_H
 #define INSET_INCLUDE_H
 
-#include "Inset.h"
+#include "InsetCommand.h"
+
+#include "BiblioInfo.h"
+#include "Counters.h"
 #include "InsetCommandParams.h"
 #include "RenderButton.h"
-#include "MailInset.h"
-#include "Counters.h"
 
-#include "support/FileName.h"
+#include "support/FileNameList.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -26,108 +28,93 @@ namespace lyx {
 
 class Buffer;
 class Dimension;
+class InsetLabel;
 class LaTeXFeatures;
 class RenderMonitoredPreview;
 
-
 /// for including tex/lyx files
-class InsetInclude : public Inset {
+class InsetInclude : public InsetCommand {
 public:
 	///
 	InsetInclude(InsetCommandParams const &);
 	~InsetInclude();
 
+	void setBuffer(Buffer & buffer);
+	bool isLabeled() const { return true; }
+
 	/// Override these InsetButton methods if Previewing
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
-	virtual DisplayType display() const;
-
-	/// get the parameters
-	InsetCommandParams const & params() const;
-
+	DisplayType display() const;
 	///
-	Inset::Code lyxCode() const { return Inset::INCLUDE_CODE; }
-	/** Fills \c list
-	 *  \param buffer the Buffer containing this inset.
-	 *  \param list the list of labels in the child buffer.
-	 */
-	void getLabelList(Buffer const & buffer,
-			  std::vector<docstring> & list) const;
+	InsetCode lyxCode() const { return INCLUDE_CODE; }
 	/** Fills \c keys
 	 *  \param buffer the Buffer containing this inset.
 	 *  \param keys the list of bibkeys in the child buffer.
+	 *  \param it not used here
 	 */
-	void fillWithBibKeys(Buffer const & buffer,
-		std::vector<std::pair<std::string, docstring> > & keys) const;
+	void fillWithBibKeys(BiblioInfo & keys, InsetIterator const & it) const;
+	
 	/** Update the cache with all bibfiles in use of the child buffer
 	 *  (including bibfiles of grandchild documents).
 	 *  Does nothing if the child document is not loaded to prevent
 	 *  automatic loading of all child documents upon loading the master.
 	 *  \param buffer the Buffer containing this inset.
 	 */
-	void updateBibfilesCache(Buffer const & buffer);
+	void updateBibfilesCache();
 	/** Return the cache with all bibfiles in use of the child buffer
 	 *  (including bibfiles of grandchild documents).
 	 *  Return an empty vector if the child doc is not loaded.
 	 *  \param buffer the Buffer containing this inset.
 	 */
-	std::vector<support::FileName> const &
-	getBibfilesCache(Buffer const & buffer) const;
+	support::FileNameList const &
+		getBibfilesCache(Buffer const & buffer) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	void write(Buffer const &, std::ostream &) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	void read(Buffer const &, Lexer &);
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int latex(Buffer const &, odocstream &,
-		  OutputParams const &) const;
-	///
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
-	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
 	void addPreview(graphics::PreviewLoader &) const;
 	///
-	void addToToc(TocList &, Buffer const &, ParConstIterator const &) const;
+	void addToToc(DocIterator const &);
 	///
-	void updateLabels(Buffer const & buffer) const;
+	void updateLabels(ParIterator const &);
 	///
-	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-	/// if this inset contains lstinputlisting and has a caption,
-	/// update internal counter and passed counter
-	void updateCounter(Counters & counters);
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "include"; }
+	///
+	static bool isCompatibleCommand(std::string const & s);
+	///
+	docstring contextMenu(BufferView const & bv, int x, int y) const;
 protected:
 	InsetInclude(InsetInclude const &);
 	///
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	Inset * clone() const { return new InsetInclude(*this); }
 
 	/** Slot receiving a signal that the external file has changed
 	 *  and the preview should be regenerated.
 	 */
 	void fileChanged() const;
 
-	friend class InsetIncludeMailer;
-
+	/// launch external application
+	void editIncluded(std::string const & file);
 	/// set the parameters
-	void set(InsetCommandParams const & params, Buffer const &);
+	void setParams(InsetCommandParams const & params);
 	/// get the text displayed on the button
-	docstring const getScreenLabel(Buffer const &) const;
-	///
-	void write(std::ostream &) const;
-	///
-	void read(Lexer &);
-
-	/// the parameters
-	InsetCommandParams params_;
+	docstring screenLabel() const;
 	/// holds the entity name that defines the file location (SGML)
 	docstring const include_label;
 
@@ -137,32 +124,13 @@ private:
 	/// cache
 	mutable bool set_label_;
 	mutable RenderButton button_;
-	int counter_;
+	mutable docstring listings_label_;
+	InsetLabel * label_;
 };
 
-
-class InsetIncludeMailer : public MailInset {
-public:
-	///
-	InsetIncludeMailer(InsetInclude & inset);
-	///
-	virtual Inset & inset() const { return inset_; }
-	///
-	virtual std::string const & name() const { return name_; }
-	///
-	virtual std::string const inset2string(Buffer const &) const;
-	///
-	static void string2params(std::string const &, InsetCommandParams &);
-	///
-	static std::string const params2string(InsetCommandParams const &);
-private:
-	///
-	static std::string const name_;
-	///
-	InsetInclude & inset_;
-};
-
+/// return loaded Buffer or zero if the file loading did not proceed.
+Buffer * loadIfNeeded(Buffer const & parent, InsetCommandParams const & params);
 
 } // namespace lyx
 
-#endif // INSETINCLUDE_H
+#endif // INSET_INCLUDE_H

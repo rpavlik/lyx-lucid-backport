@@ -12,20 +12,19 @@
 #include <config.h>
 
 #include "InsetMathDelim.h"
+
 #include "MathData.h"
 #include "MathStream.h"
-#include "MathStream.h"
 #include "MathSupport.h"
+#include "MetricsInfo.h"
+
+#include "support/docstring.h"
 
 #include "frontends/FontMetrics.h"
 
+using namespace std;
+
 namespace lyx {
-
-
-using std::string;
-using std::max;
-using std::auto_ptr;
-
 
 static docstring convertDelimToLatexName(docstring const & name)
 {
@@ -52,14 +51,15 @@ InsetMathDelim::InsetMathDelim
 }
 
 
-auto_ptr<Inset> InsetMathDelim::doClone() const
+Inset * InsetMathDelim::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathDelim(*this));
+	return new InsetMathDelim(*this);
 }
 
 
 void InsetMathDelim::write(WriteStream & os) const
 {
+	MathEnsurer ensurer(os);
 	os << "\\left" << convertDelimToLatexName(left_) << cell(0)
 	   << "\\right" << convertDelimToLatexName(right_);
 }
@@ -72,35 +72,33 @@ void InsetMathDelim::normalize(NormalStream & os) const
 }
 
 
-bool InsetMathDelim::metrics(MetricsInfo & mi, Dimension & dim) const
+void InsetMathDelim::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	cell(0).metrics(mi);
+	Dimension dim0;
+	cell(0).metrics(mi, dim0);
 	Dimension t = theFontMetrics(mi.base.font).dimension('I');
 	int h0 = (t.asc + t.des) / 2;
-	int a0 = max(cell(0).ascent(), t.asc)   - h0;
-	int d0 = max(cell(0).descent(), t.des)  + h0;
-	dw_ = cell(0).height() / 5;
+	int a0 = max(dim0.asc, t.asc)   - h0;
+	int d0 = max(dim0.des, t.des)  + h0;
+	dw_ = dim0.height() / 5;
 	if (dw_ > 8)
 		dw_ = 8;
 	if (dw_ < 4)
 		dw_ = 4;
-	dim.wid = cell(0).width() + 2 * dw_ + 8;
+	dim.wid = dim0.width() + 2 * dw_ + 8;
 	dim.asc = max(a0, d0) + h0;
 	dim.des = max(a0, d0) - h0;
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
 }
 
 
 void InsetMathDelim::draw(PainterInfo & pi, int x, int y) const
 {
-	int const b = y - dim_.asc;
+	Dimension const dim = dimension(*pi.base.bv);
+	int const b = y - dim.asc;
 	cell(0).draw(pi, x + dw_ + 4, y);
-	mathed_draw_deco(pi, x + 4, b, dw_, dim_.height(), left_);
-	mathed_draw_deco(pi, x + dim_.width() - dw_ - 4,
-		b, dw_, dim_.height(), right_);
+	mathed_draw_deco(pi, x + 4, b, dw_, dim.height(), left_);
+	mathed_draw_deco(pi, x + dim.width() - dw_ - 4,
+		b, dw_, dim.height(), right_);
 	setPosCache(pi, x, y);
 }
 

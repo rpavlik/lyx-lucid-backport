@@ -38,36 +38,36 @@ public:
 		END_OF_SENTENCE,
 		/// Menu separator
 		MENU_SEPARATOR,
+		/// breakable slash
+		SLASH,
+		/// protected dash
+		NOBREAKDASH,
 	};
 
 	///
 	InsetSpecialChar() {}
 	///
-	explicit
-	InsetSpecialChar(Kind k);
+	explicit InsetSpecialChar(Kind k);
 	///
 	Kind kind() const;
 	///
-	bool metrics(MetricsInfo &, Dimension &) const;
+	void metrics(MetricsInfo &, Dimension &) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
-	void write(Buffer const &, std::ostream &) const;
+	void write(std::ostream &) const;
 	/// Will not be used when lyxf3
-	void read(Buffer const &, Lexer & lex);
+	void read(Lexer & lex);
 	///
-	int latex(Buffer const &, odocstream &,
-		  OutputParams const &) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	int plaintext(Buffer const &, odocstream &,
-		      OutputParams const &) const;
+	int plaintext(odocstream &, OutputParams const &) const;
 	///
-	int docbook(Buffer const &, odocstream &,
-		    OutputParams const &) const;
+	int docbook(odocstream &, OutputParams const &) const;
 	/// the string that is passed to the TOC
-	void textString(Buffer const &, odocstream &) const;
+	void textString(odocstream &) const;
 	///
-	Inset::Code lyxCode() const { return Inset::SPECIALCHAR_CODE; }
+	InsetCode lyxCode() const { return SPECIALCHAR_CODE; }
 	/// We don't need \begin_inset and \end_inset
 	bool directWrite() const { return true; }
 	///
@@ -80,7 +80,7 @@ public:
 	// should we break lines after this inset?
 	bool isLineSeparator() const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	Inset * clone() const { return new InsetSpecialChar(*this); };
 
 	/// And which kind is this?
 	Kind kind_;

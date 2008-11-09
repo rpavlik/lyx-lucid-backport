@@ -12,14 +12,11 @@
 #ifndef MATH_MATHMLSTREAM_H
 #define MATH_MATHMLSTREAM_H
 
+#include "support/strfwd.h"
 
-// Please keep all four streams in one file until the interface has
-// settled.
-
-
+#include "InsetMath.h"
+// FIXME: Move to individual insets
 #include "MetricsInfo.h"
-#include "support/docstream.h"
-#include "support/docstring.h"
 
 
 namespace lyx {
@@ -35,7 +32,7 @@ class MathAtom;
 class WriteStream {
 public:
 	///
-	WriteStream(odocstream & os, bool fragile, bool latex);
+	WriteStream(odocstream & os, bool fragile, bool latex, bool dryrun);
 	///
 	explicit WriteStream(odocstream & os);
 	///
@@ -47,6 +44,8 @@ public:
 	///
 	bool latex() const { return latex_; }
 	///
+	bool dryrun() const { return dryrun_; }
+	///
 	odocstream & os() { return os_; }
 	///
 	bool & firstitem() { return firstitem_; }
@@ -56,6 +55,14 @@ public:
 	void pendingSpace(bool how);
 	/// writes space if next thing is isalpha()
 	bool pendingSpace() const { return pendingspace_; }
+	/// tell whether to write the closing brace of \ensuremath
+	void pendingBrace(bool brace);
+	/// tell whether to write the closing brace of \ensuremath
+	bool pendingBrace() const { return pendingbrace_; }
+	/// tell whether we are in text mode or not when producing latex code
+	void textMode(bool textmode);
+	/// tell whether we are in text mode or not when producing latex code
+	bool textMode() const { return textmode_; }
 private:
 	///
 	odocstream & os_;
@@ -65,8 +72,14 @@ private:
 	bool firstitem_;
 	/// are we writing to .tex?
 	int latex_;
+	/// is it for preview?
+	bool dryrun_;
 	/// do we have a space pending?
 	bool pendingspace_;
+	/// do we have a brace pending?
+	bool pendingbrace_;
+	/// are we in text mode when producing latex code?
+	bool textmode_;
 	///
 	int line_;
 };
@@ -86,6 +99,94 @@ WriteStream & operator<<(WriteStream &, int);
 ///
 WriteStream & operator<<(WriteStream &, unsigned int);
 
+/// ensure math mode, possibly by opening \ensuremath
+bool ensureMath(WriteStream & os, bool needs_math_mode = true, bool macro = false);
+
+/// ensure the requested mode, possibly by closing \ensuremath
+bool ensureMode(WriteStream & os, InsetMath::mode_type mode);
+
+
+/**
+ * MathEnsurer - utility class for ensuring math mode
+ *
+ * A local variable of this type can be used to either ensure math mode
+ * or delay the writing of a pending brace when outputting LaTeX.
+ *
+ * Example 1:
+ *
+ *      MathEnsurer ensurer(os);
+ *
+ * If not already in math mode, inserts an \ensuremath command followed
+ * by an open brace. This brace will be automatically closed when exiting
+ * math mode. Math mode is automatically exited when writing something
+ * that doesn't explicitly require math mode.
+ *
+ * Example 2:
+ *
+ *      MathEnsurer ensurer(os, false);
+ *
+ * Simply suspend writing a closing brace until the end of ensurer's scope.
+ *
+ * Example 3:
+ *
+ *      MathEnsurer ensurer(os, needs_math_mode, true);
+ *
+ * The third parameter is set to true only for a user defined macro, which
+ * needs special handling. When it is a MathMacro, the needs_math_mode
+ * parameter is true and the behavior is as in Example 1. When the
+ * needs_math_mode parameter is false (not a MathMacro) and the macro
+ * was entered in a text box and we are in math mode, the mode is reset
+ * to text. This is because the macro was probably designed for text mode
+ * (given that it was entered in text mode and we have no way to tell the
+ * contrary).
+ */
+class MathEnsurer
+{
+public:
+	///
+	explicit MathEnsurer(WriteStream & os, bool needs_math_mode = true, bool macro = false)
+		: os_(os), brace_(ensureMath(os, needs_math_mode, macro)) {}
+	///
+	~MathEnsurer() { os_.pendingBrace(brace_); }
+private:
+	///
+	WriteStream & os_;
+	///
+	bool brace_;
+};
+
+
+/**
+ * ModeSpecifier - utility class for specifying a given mode (math or text)
+ *
+ * A local variable of this type can be used to specify that a command or
+ * environment works in a given mode. For example, \mbox works in text
+ * mode, but \boxed works in math mode. Note that no mode changing commands
+ * are needed, but we have to track the current mode, hence this class.
+ *
+ * Example:
+ *
+ *      ModeSpecifier specifier(os, TEXT_MODE);
+ *
+ * Sets the current mode to text mode.
+ *
+ * At the end of specifier's scope the mode is reset to its previous value.
+ */
+class ModeSpecifier
+{
+public:
+	///
+	explicit ModeSpecifier(WriteStream & os, InsetMath::mode_type mode)
+		: os_(os), textmode_(ensureMode(os, mode)) {}
+	///
+	~ModeSpecifier() { os_.textMode(textmode_); }
+private:
+	///
+	WriteStream & os_;
+	///
+	bool textmode_;
+};
+
 
 
 //
@@ -95,21 +196,17 @@ WriteStream & operator<<(WriteStream &, unsigned int);
 class MTag {
 public:
 	///
-	MTag(docstring const tag) : tag_(tag) {}
+	MTag(char const * const tag) : tag_(tag) {}
 	///
-	MTag(char const * const tag) : tag_(from_ascii(tag)) {}
-	///
-	docstring const tag_;
+	char const * const tag_;
 };
 
 class ETag {
 public:
 	///
-	ETag(docstring const tag) : tag_(tag) {}
+	ETag(char const * const tag) : tag_(tag) {}
 	///
-	ETag(char const * const tag) : tag_(from_ascii(tag)) {}
-	///
-	docstring const tag_;
+	char const * const tag_;
 };
 
 class MathStream {

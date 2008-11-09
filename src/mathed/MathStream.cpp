@@ -10,20 +10,21 @@
 
 #include <config.h>
 
-#include "InsetMath.h"
-#include "MathData.h"
-#include "MathExtern.h"
 #include "MathStream.h"
 
-#include "support/lyxalgo.h"
-#include "support/textutils.h"
+#include "MathData.h"
+#include "MathExtern.h"
 
+#include "support/textutils.h"
+#include "support/docstring.h"
+
+#include <algorithm>
+#include <cstring>
+#include <ostream>
+
+using namespace std;
 
 namespace lyx {
-
-using std::strlen;
-
-
 
 
 //////////////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@ NormalStream & operator<<(NormalStream & ns, docstring const & s)
 }
 
 
-NormalStream & operator<<(NormalStream & ns, const std::string & s)
+NormalStream & operator<<(NormalStream & ns, const string & s)
 {
 	ns.os() << from_utf8(s);
 	return ns;
@@ -84,7 +85,12 @@ NormalStream & operator<<(NormalStream & ns, int i)
 
 WriteStream & operator<<(WriteStream & ws, docstring const & s)
 {
-	if (ws.pendingSpace() && s.length() > 0) {
+	if (ws.pendingBrace()) {
+		ws.os() << '}';
+		ws.pendingBrace(false);
+		ws.pendingSpace(false);
+		ws.textMode(true);
+	} else if (ws.pendingSpace() && s.length() > 0) {
 		if (isAlphaASCII(s[0]))
 			ws.os() << ' ';
 		ws.pendingSpace(false);
@@ -101,21 +107,25 @@ WriteStream & operator<<(WriteStream & ws, docstring const & s)
 }
 
 
-WriteStream::WriteStream(odocstream & os, bool fragile, bool latex)
+WriteStream::WriteStream(odocstream & os, bool fragile, bool latex, bool dryrun)
 	: os_(os), fragile_(fragile), firstitem_(false), latex_(latex),
-	  pendingspace_(false), line_(0)
+	  dryrun_(dryrun), pendingspace_(false), pendingbrace_(false),
+	  textmode_(false), line_(0)
 {}
 
 
 WriteStream::WriteStream(odocstream & os)
 	: os_(os), fragile_(false), firstitem_(false), latex_(false),
-	  pendingspace_(false), line_(0)
+	  dryrun_(false), pendingspace_(false), pendingbrace_(false),
+	  textmode_(false), line_(0)
 {}
 
 
 WriteStream::~WriteStream()
 {
-	if (pendingspace_)
+	if (pendingbrace_)
+		os_ << '}';
+	else if (pendingspace_)
 		os_ << ' ';
 }
 
@@ -129,6 +139,18 @@ void WriteStream::addlines(unsigned int n)
 void WriteStream::pendingSpace(bool how)
 {
 	pendingspace_ = how;
+}
+
+
+void WriteStream::pendingBrace(bool brace)
+{
+	pendingbrace_ = brace;
+}
+
+
+void WriteStream::textMode(bool textmode)
+{
+	textmode_ = textmode;
 }
 
 
@@ -148,7 +170,12 @@ WriteStream & operator<<(WriteStream & ws, MathData const & ar)
 
 WriteStream & operator<<(WriteStream & ws, char const * s)
 {
-	if (ws.pendingSpace() && strlen(s) > 0) {
+	if (ws.pendingBrace()) {
+		ws.os() << '}';
+		ws.pendingBrace(false);
+		ws.pendingSpace(false);
+		ws.textMode(true);
+	} else if (ws.pendingSpace() && strlen(s) > 0) {
 		if (isAlphaASCII(s[0]))
 			ws.os() << ' ';
 		ws.pendingSpace(false);
@@ -161,7 +188,12 @@ WriteStream & operator<<(WriteStream & ws, char const * s)
 
 WriteStream & operator<<(WriteStream & ws, char c)
 {
-	if (ws.pendingSpace()) {
+	if (ws.pendingBrace()) {
+		ws.os() << '}';
+		ws.pendingBrace(false);
+		ws.pendingSpace(false);
+		ws.textMode(true);
+	} else if (ws.pendingSpace()) {
 		if (isAlphaASCII(c))
 			ws.os() << ' ';
 		ws.pendingSpace(false);
@@ -175,6 +207,11 @@ WriteStream & operator<<(WriteStream & ws, char c)
 
 WriteStream & operator<<(WriteStream & ws, int i)
 {
+	if (ws.pendingBrace()) {
+		ws.os() << '}';
+		ws.pendingBrace(false);
+		ws.textMode(true);
+	}
 	ws.os() << i;
 	return ws;
 }
@@ -182,6 +219,11 @@ WriteStream & operator<<(WriteStream & ws, int i)
 
 WriteStream & operator<<(WriteStream & ws, unsigned int i)
 {
+	if (ws.pendingBrace()) {
+		ws.os() << '}';
+		ws.pendingBrace(false);
+		ws.textMode(true);
+	}
 	ws.os() << i;
 	return ws;
 }
@@ -227,7 +269,7 @@ MathStream & operator<<(MathStream & ms, MTag const & t)
 {
 	++ms.tab();
 	ms.cr();
-	ms.os() << '<' << t.tag_ << '>';
+	ms.os() << '<' << from_ascii(t.tag_) << '>';
 	return ms;
 }
 
@@ -237,7 +279,7 @@ MathStream & operator<<(MathStream & ms, ETag const & t)
 	ms.cr();
 	if (ms.tab() > 0)
 		--ms.tab();
-	ms.os() << "</" << t.tag_ << '>';
+	ms.os() << "</" << from_ascii(t.tag_) << '>';
 	return ms;
 }
 
@@ -464,7 +506,7 @@ OctaveStream & operator<<(OctaveStream & ns, char_type c)
 }
 
 
-OctaveStream & operator<<(OctaveStream & os, std::string const & s)
+OctaveStream & operator<<(OctaveStream & os, string const & s)
 {
 	os.os() << from_utf8(s);
 	return os;

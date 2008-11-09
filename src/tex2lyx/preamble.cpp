@@ -15,10 +15,13 @@
 
 #include "tex2lyx.h"
 
+#include "LayoutFile.h"
 #include "Layout.h"
 #include "Lexer.h"
 #include "TextClass.h"
+
 #include "support/convert.h"
+#include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/lstrings.h"
 
@@ -29,26 +32,15 @@
 #include <vector>
 #include <map>
 
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
-using std::istringstream;
-using std::ostream;
-using std::ostringstream;
-using std::string;
-using std::vector;
-using std::cerr;
-using std::endl;
-using std::find;
-
-using support::FileName;
-using support::libFileSearch;
-using support::isStrDbl;
-
 // special columntypes
-extern std::map<char, int> special_columns;
+extern map<char, int> special_columns;
 
-std::map<string, vector<string> > used_packages;
+map<string, vector<string> > used_packages;
 
 // needed to handle encodings with babel
 bool one_language = true;
@@ -58,19 +50,19 @@ bool documentclass_language;
 
 namespace {
 
-const char * const known_languages[] = { "afrikaans", "american", "austrian",
-"babel", "bahasa", "basque", "belarusian", "brazil", "breton", "british",
-"bulgarian", "catalan", "croatian", "czech", "danish", "dutch", "english",
-"esperanto", "estonian", "finnish", "francais", "french", "frenchb",
-"frenchle", "frenchpro", "galician", "german", "germanb", "greek", "hebcal",
-"hebfont", "hebrew", "hebrew_newcode", "hebrew_oldcode", "hebrew_p", "hyphen",
-"icelandic", "irish", "italian", "latin", "lgrcmr", "lgrcmro", "lgrcmss",
-"lgrcmtt", "lgrenc", "lgrlcmss", "lgrlcmtt", "lheclas", "lhecmr", "lhecmss",
-"lhecmtt", "lhecrml", "lheenc", "lhefr", "lheredis", "lheshold", "lheshscr",
-"lheshstk", "lsorbian", "magyar", "naustrian", "ngermanb", "ngerman", "norsk",
-"nynorsk", "polish", "portuges", "rlbabel", "romanian",	"russian", "russianb",
-"samin", "scottish", "serbian", "slovak", "slovene", "spanish", "swedish",
-"thai", "turkish", "ukraineb", "ukrainian", "usorbian", "welsh", 0};
+const char * const known_languages[] = { "afrikaans", "american", "arabic",
+"austrian", "bahasa", "basque", "belarusian", "brazil", "breton", "british",
+"bulgarian", "canadian", "canadien", "catalan", "croatian", "czech", "danish",
+"dutch", "english", "esperanto", "estonian", "finnish", "francais", "french",
+"frenchb", "frenchle", "frenchpro", "galician", "german", "germanb", "greek",
+"hebrew", "icelandic", "irish", "italian", "lsorbian", "magyar", "naustrian",
+"ngerman", "ngermanb", "norsk", "nynorsk", "polish", "portuges", "romanian",
+"russian", "russianb", "scottish", "serbian", "slovak", "slovene", "spanish",
+"swedish", "thai", "turkish", "ukraineb", "ukrainian", "usorbian", "welsh", 0};
+
+//note this when updating to lyxformat 305:
+//bahasai, indonesian, and indon = equal to bahasa
+//malay, and meyalu = equal to bahasam
 
 const char * const known_french_languages[] = {"french", "frenchb", "francais",
 						"frenchle", "frenchpro", 0};
@@ -91,7 +83,21 @@ const char * const known_typewriter_fonts[] = { "beramono", "cmtl", "cmtt",
 "courier", "lmtt", "luximono", "fourier", "lmodern", "mathpazo", "mathptmx",
 "newcent", 0};
 
-// some ugly stuff
+const char * const known_paper_sizes[] = { "a3paper", "b3paper", "a4paper",
+"b4paper", "a5paper", "b5paper", "executivepaper", "legalpaper",
+"letterpaper", 0};
+
+const char * const known_class_paper_sizes[] = { "a4paper", "a5paper",
+"executivepaper", "legalpaper", "letterpaper", 0};
+
+const char * const known_paper_margins[] = { "lmargin", "tmargin", "rmargin", 
+"bmargin", "headheight", "headsep", "footskip", "columnsep", 0};
+
+const char * const known_coded_paper_margins[] = { "leftmargin", "topmargin",
+"rightmargin", "bottommargin", "headheight", "headsep", "footskip",
+"columnsep", 0};
+
+// default settings
 ostringstream h_preamble;
 string h_textclass               = "article";
 string h_options                 = string();
@@ -124,6 +130,7 @@ string h_papersides              = string();
 string h_paperpagestyle          = "default";
 string h_tracking_changes        = "false";
 string h_output_changes          = "false";
+string h_margins                 = "";
 
 
 void handle_opt(vector<string> & opts, char const * const * what, string & target)
@@ -343,9 +350,9 @@ void handle_package(string const & name, string const & opts)
 	else if (name == "setspace")
 		; // ignore this
 
-	// activate this first when bug 20 is fixed, otherwise we have a regression
-	//else if (name == "setspace")
-	//	; // ignore this
+	else if (name == "geometry")
+		; // Ignore this, the geometry settings are made by the \geometry
+		  // command. This command is handled below.
 
 	else if (is_known(name, known_languages)) {
 		if (is_known(name, known_french_languages))
@@ -423,6 +430,7 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 	   << "\\cite_engine " << h_cite_engine << "\n"
 	   << "\\use_bibtopic " << h_use_bibtopic << "\n"
 	   << "\\paperorientation " << h_paperorientation << "\n"
+	   << h_margins
 	   << "\\secnumdepth " << h_secnumdepth << "\n"
 	   << "\\tocdepth " << h_tocdepth << "\n"
 	   << "\\paragraph_separation " << h_paragraph_separation << "\n"
@@ -441,7 +449,8 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 
 } // anonymous namespace
 
-TextClass const parse_preamble(Parser & p, ostream & os, string const & forceclass)
+void parse_preamble(Parser & p, ostream & os, 
+	string const & forceclass, TeX2LyXDocClass & tc)
 {
 	// initialize fixed types
 	special_columns['D'] = 3;
@@ -491,12 +500,10 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 
 		else if (t.cs() == "makeatletter") {
 			p.setCatCode('@', catLetter);
-			h_preamble << "\\makeatletter";
 		}
 
 		else if (t.cs() == "makeatother") {
 			p.setCatCode('@', catOther);
-			h_preamble << "\\makeatother";
 		}
 
 		else if (t.cs() == "newcommand" || t.cs() == "renewcommand"
@@ -611,6 +618,12 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 				h_papercolumns = "2";
 				opts.erase(it);
 			}
+			// paper sizes
+			// some size options are know to any document classes, other sizes
+			// are handled by the \geometry command of the geometry package
+			handle_opt(opts, known_class_paper_sizes, h_papersize);
+			delete_opt(opts, known_class_paper_sizes);
+			// the remaining options
 			h_options = join(opts, ",");
 			h_textclass = p.getArg('{', '}');
 		}
@@ -715,6 +728,35 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 			h_preamble << "\\begin{" << name << "}";
 		}
 
+		else if (t.cs() == "geometry") {
+			h_use_geometry = "true";
+			vector<string> opts = split_options(p.getArg('{', '}'));
+			vector<string>::iterator it;
+			// paper orientation
+			if ((it = find(opts.begin(), opts.end(), "landscape")) != opts.end()) {
+				h_paperorientation = "landscape";
+				opts.erase(it);
+			}
+			// paper size
+			handle_opt(opts, known_paper_sizes, h_papersize);
+			delete_opt(opts, known_paper_sizes);
+			// page margins
+			char const * const * margin = known_paper_margins;
+			int k = -1;
+			for (; *margin; ++margin) {
+				k += 1;
+				// search for the "=" in e.g. "lmargin=2cm" to get the value
+				for(size_t i = 0; i != opts.size(); i++) {
+					if (opts.at(i).find(*margin) != string::npos) {
+						string::size_type pos = opts.at(i).find("=");
+						string value = opts.at(i).substr(pos + 1);
+						string name = known_coded_paper_margins[k];
+						h_margins += "\\" + name + " " + value + "\n";
+					}
+				}
+			}
+		}
+
 		else if (t.cs() == "jurabibsetup") {
 			vector<string> jurabibsetup =
 				split_options(p.getArg('{', '}'));
@@ -734,22 +776,20 @@ TextClass const parse_preamble(Parser & p, ostream & os, string const & forcecla
 	// Force textclass if the user wanted it
 	if (!forceclass.empty())
 		h_textclass = forceclass;
-	if (noweb_mode && !lyx::support::prefixIs(h_textclass, "literate-"))
+	if (noweb_mode && !prefixIs(h_textclass, "literate-"))
 		h_textclass.insert(0, "literate-");
 	FileName layoutfilename = libFileSearch("layouts", h_textclass, "layout");
 	if (layoutfilename.empty()) {
 		cerr << "Error: Could not find layout file for textclass \"" << h_textclass << "\"." << endl;
 		exit(1);
 	}
-	TextClass textclass;
-	textclass.read(layoutfilename);
+	tc.read(layoutfilename);
 	if (h_papersides.empty()) {
 		ostringstream ss;
-		ss << textclass.sides();
+		ss << tc.sides();
 		h_papersides = ss.str();
 	}
-	end_preamble(os, textclass);
-	return textclass;
+	end_preamble(os, tc);
 }
 
 // }])

@@ -33,7 +33,7 @@ public:
 	///
 	mode_type currentMode() const { return MATH_MODE; }
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -41,15 +41,15 @@ public:
 	///
 	void drawT(TextPainter & pi, int x, int y) const;
 
-	/// move cursor left
-	bool idxLeft(Cursor & cur) const;
-	/// move cursor right
-	bool idxRight(Cursor & cur) const;
+	/// move cursor backwards
+	bool idxBackward(Cursor & cur) const;
+	/// move cursor forward
+	bool idxForward(Cursor & cur) const;
 	/// move cursor up or down
 	bool idxUpDown(Cursor & cur, bool up) const;
-	/// Target pos when we enter the inset from the left by pressing "Right"
+	/// Target pos when we enter the inset while moving forward
 	bool idxFirst(Cursor & cur) const;
-	/// Target pos when we enter the inset from the right by pressing "Left"
+	/// Target pos when we enter the inset while moving backwards
 	bool idxLast(Cursor & cur) const;
 
 	/// write LaTeX and Lyx code
@@ -105,31 +105,31 @@ public:
 protected:
 	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	/// returns x offset for main part
-	int dxx() const;
+	int dxx(BufferView const & bv) const;
 	/// returns width of nucleus if any
-	int nwid() const;
+	int nwid(BufferView const &) const;
 	/// returns y offset for either superscript or subscript
-	int dy01(int asc, int des, int what) const;
+	int dy01(BufferView const &, int asc, int des, int what) const;
 	/// returns y offset for superscript
-	int dy0() const;
+	int dy0(BufferView const &) const;
 	/// returns y offset for subscript
-	int dy1() const;
+	int dy1(BufferView const &) const;
 	/// returns x offset for superscript
-	int dx0() const;
+	int dx0(BufferView const & bv) const;
 	/// returns x offset for subscript
-	int dx1() const;
+	int dx1(BufferView const & bv) const;
 	/// returns ascent of nucleus if any
-	int nasc() const;
+	int nasc(BufferView const &) const;
 	/// returns descent of nucleus if any
-	int ndes() const;
+	int ndes(BufferView const &) const;
 	/// returns superscript kerning of nucleus if any
-	int nker() const;
+	int nker(BufferView const * bv) const;
 	/// where do we have to draw the scripts?
 	bool hasLimits() const;
 	/// clean up empty cells and return true if a cell has been deleted.
-	bool notifyCursorLeaves(Cursor & cur);
+	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
 
 	/// possible subscript (index 0) and superscript (index 1)
 	bool cell_1_is_up_;

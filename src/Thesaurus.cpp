@@ -12,7 +12,7 @@
 
 #include "Thesaurus.h"
 
-#include "gettext.h"
+#include "support/gettext.h"
 
 #include "support/lstrings.h"
 
@@ -20,14 +20,12 @@
 
 #include <algorithm>
 
+using namespace std;
 
 namespace lyx {
 
 #ifdef HAVE_LIBAIKSAURUS
 using support::bformat;
-
-using std::sort;
-using std::string;
 
 
 Thesaurus::Thesaurus()

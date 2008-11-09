@@ -15,27 +15,29 @@
 #define CUTANDPASTE_H
 
 #include "support/docstring.h"
-#include "insets/InsetTabular.h"
+
+#include "frontends/Clipboard.h"
 
 #include <vector>
 
+using lyx::frontend::Clipboard;
+
 namespace lyx {
 
-class Buffer;
+class DocumentClass;
 class ErrorList;
 class InsetText;
-class TextClass;
 class Cursor;
 class ParagraphList;
 
 namespace cap {
 
 /// Get all elements of the cut buffer in plain text format.
-std::vector<docstring> const availableSelections(Buffer const & buffer);
+std::vector<docstring> availableSelections();
 /// Get the number of available elements in the cut buffer.
 size_type numberOfSelections();
 /// Get the sel_index-th element of the cut buffer in plain text format.
-docstring getSelection(Buffer const & buffer, size_t sel_index);
+docstring selection(size_t sel_index);
 
 /**
  * Replace using the font of the first selected character and select
@@ -81,10 +83,15 @@ void clearCutStack();
 /// Paste the current selection at \p cur
 /// Does handle undo. Does only work in text, not mathed.
 void pasteSelection(Cursor & cur, ErrorList &);
-/// Replace the current selection with the clipboard contents (internal or
-/// external: which is newer)
+/// Replace the current selection with the clipboard contents as text
+/// (internal or external: which is newer).
 /// Does handle undo. Does only work in text, not mathed.
-void pasteClipboard(Cursor & cur, ErrorList & errorList, bool asParagraphs = true);
+void pasteClipboardText(Cursor & cur, ErrorList & errorList,
+	bool asParagraphs = true);
+/// Replace the current selection with the clipboard contents as graphic.
+/// Does handle undo. Does only work in text, not mathed.
+void pasteClipboardGraphics(Cursor & cur, ErrorList & errorList,
+	Clipboard::GraphicsType preferedType = Clipboard::AnyGraphicsType);
 /// Replace the current selection with cut buffer \c sel_index
 /// Does handle undo. Does only work in text, not mathed.
 void pasteFromStack(Cursor & cur, ErrorList & errorList, size_t sel_index);
@@ -92,22 +99,16 @@ void pasteFromStack(Cursor & cur, ErrorList & errorList, size_t sel_index);
 /// Paste the paragraph list \p parlist at the position given by \p cur.
 /// Does not handle undo. Does only work in text, not mathed.
 void pasteParagraphList(Cursor & cur, ParagraphList const & parlist,
-			textclass_type textclass, ErrorList & errorList);
+			DocumentClass const * const textclass, ErrorList & errorList);
 
 
 /** Needed to switch between different classes. This works
  *  for a list of paragraphs beginning with the specified par.
  *  It changes layouts and character styles.
  */
-void switchBetweenClasses(textclass_type c1, textclass_type c2,
-			  InsetText & in, ErrorList &);
+void switchBetweenClasses(DocumentClass const * const c1, 
+			DocumentClass const * const c2, InsetText & in, ErrorList &);
 
-/// Calculate rectangular region of cell between \c i1 and \c i2.
-void region(CursorSlice const & i1, CursorSlice const & i2,
-	Inset::row_type & r1, Inset::row_type & r2,
-	Inset::col_type & c1, Inset::col_type & c2);
-/// Returns true if multiple cells are selected in mathed.
-bool multipleCellsSelected(Cursor const & cur);
 /// Get the current selection as a string. Does not change the selection.
 /// Does only work if the whole selection is in mathed.
 docstring grabSelection(Cursor const & cur);
@@ -115,6 +116,13 @@ docstring grabSelection(Cursor const & cur);
 /// Does not handle undo. Does only work if the whole selection is in mathed.
 /// Calls saveSelection.
 void eraseSelection(Cursor & cur);
+/// Reduce the selected text in mathed to only one cell. If it spans multiple
+/// cells, the cursor is moved the end of the current cell and the anchor to the
+/// start. If the selection is inside only one cell, nothing is done. Return
+/// true if the selection now does not span multiple cells anymore.
+bool reduceSelectionToOneCell(Cursor & cur);
+/// Returns true if multiple cells are selected in mathed.
+bool multipleCellsSelected(Cursor const & cur);
 /// Erase the selection and return it as a string.
 /// Does not handle undo. Does only work if the whole selection is in mathed.
 docstring grabAndEraseSelection(Cursor & cur);
@@ -125,13 +133,16 @@ void selDel(Cursor & cur);
 /// Clear or delete the selection if one exists, depending on lyxrc setting.
 /// Does not handle undo. Does only work if the whole selection is in mathed.
 void selClearOrDel(Cursor & cur);
-
+/// Calculate rectangular region of cell between \c i1 and \c i2.
+void region(CursorSlice const & i1, CursorSlice const & i2,
+    Inset::row_type & r1, Inset::row_type & r2,
+    Inset::col_type & c1, Inset::col_type & c2);
 /** Tabular has its own paste stack for multiple cells
  *  but it needs to know whether there is a more recent
  *  ordinary paste. Therefore which one is newer.
  */
 //FIXME: this is a workaround for bug 1919. Replace this by
-//an all-for-one-paste mechanism in 1.5
+//an all-for-one-paste mechanism in 1.7
 /// store whether tabular or ordinary paste stack is newer
 void dirtyTabularStack(bool b);
 /// is the tabular paste stack newer than the ordinary one?

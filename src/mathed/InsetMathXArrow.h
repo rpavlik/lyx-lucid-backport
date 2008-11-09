@@ -12,7 +12,7 @@
 #ifndef MATH_XARROWINSET_H
 #define MATH_XARROWINSET_H
 
-#include "InsetMathFracBase.h"
+#include "InsetMathFrac.h"
 
 
 namespace lyx {
@@ -28,14 +28,14 @@ public:
 	///
 	void write(WriteStream & os) const;
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void normalize(NormalStream & os) const;
 	///
 	void validate(LaTeXFeatures & features) const;
 
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	virtual Inset * clone() const;
 	///
 	bool upper() const;
 	///

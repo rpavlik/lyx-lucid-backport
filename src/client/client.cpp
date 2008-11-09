@@ -12,13 +12,12 @@
 
 #include <config.h>
 
-#include "debug.h"
+#include "support/debug.h"
 #include "support/FileName.h"
-#include "support/unicode.h"
+#include "support/FileNameList.h"
 #include "support/lstrings.h"
+#include "support/unicode.h"
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/scoped_ptr.hpp>
 
 // getpid(), getppid()
@@ -55,75 +54,52 @@
 #include <map>
 #include <iostream>
 
+using namespace std;
+using namespace lyx::support;
+
+using ::boost::scoped_ptr;
 
 namespace lyx {
-
-using support::FileName;
-using support::prefixIs;
-
-using boost::scoped_ptr;
-namespace fs = boost::filesystem;
-
-using std::string;
-using std::vector;
-using std::cout;
-using std::cerr;
-using std::cin;
-using std::endl;
-
 
 namespace support {
 
 string itoa(unsigned int i)
 {
-	return boost::lexical_cast<string>(i);
+	char buf[20];
+	sprintf(buf, "%d", i);
+	return buf;
 }
-
-
-namespace {
-
-bool fileExists(fs::path path)
-{
-	try {
-		// fs::exists can throw an exception
-		// f.ex. if the drive was unmounted.
-		return fs::exists(path);
-	} catch (fs::filesystem_error const & fe){
-		lyxerr << "error while checking file existence: "
-			<< path << endl;
-		lyxerr << fe.what() << endl;
-		return false;
-	}
-}
-
-} // namespace anon
 
 
 /// Returns the absolute pathnames of all lyx local sockets in
 /// file system encoding.
 /// Parts stolen from lyx::support::DirList().
-vector<fs::path> lyxSockets(string const & dir, string const & pid)
+FileNameList lyxSockets(string const & dir, string const & pid)
 {
-	vector<fs::path> dirlist;
+	FileNameList dirlist;
 
-	fs::path dirpath(dir);
+	FileName dirpath(dir + "/");
 
-	if (!fileExists(dirpath) || !fs::is_directory(dirpath)) {
+	if (!dirpath.exists() || !dirpath.isDirectory()) {
 		lyxerr << dir << " does not exist or is not a directory."
 		       << endl;
 		return dirlist;
 	}
 
-	fs::directory_iterator beg((fs::path(dir)));
-	fs::directory_iterator end;
+	FileNameList dirs = dirpath.dirList("");
+	FileNameList::const_iterator it = dirs.begin();
+	FileNameList::const_iterator end = dirs.end();
 
-	for (; beg != end; ++beg) {
-		if (prefixIs(beg->leaf(), "lyx_tmpdir" + pid)) {
-			fs::path lyxsocket = beg->path() / "lyxsocket";
-			if (fileExists(lyxsocket)) {
-				dirlist.push_back(lyxsocket);
-			}
-		}
+	for (; it != end; ++it) {
+		if (!it->isDirectory())
+			continue;
+		string const tmpdir = it->absFilename();
+		if (!contains(tmpdir, "lyx_tmpdir" + pid))
+			continue;
+
+		FileName lyxsocket(tmpdir + "/lyxsocket");
+		if (lyxsocket.exists())
+			dirlist.push_back(lyxsocket);
 	}
 
 	return dirlist;
@@ -180,7 +156,12 @@ int connect(FileName const & name)
 
 
 
-// Class IOWatch ------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////
+//
+// IOWatch
+//
+/////////////////////////////////////////////////////////////////////
+
 class IOWatch {
 public:
 	IOWatch();
@@ -232,13 +213,19 @@ bool IOWatch::wait()
 }
 
 
-bool IOWatch::isset(int fd) {
+bool IOWatch::isset(int fd)
+{
 	return FD_ISSET(fd, &act);
 }
-// ~Class IOWatch ------------------------------------------------------------
 
 
-// Class LyXDataSocket -------------------------------------------------------
+
+/////////////////////////////////////////////////////////////////////
+//
+// LyXDataSocket
+//
+/////////////////////////////////////////////////////////////////////
+
 // Modified LyXDataSocket class for use with the client
 class LyXDataSocket {
 public:
@@ -264,7 +251,7 @@ private:
 
 LyXDataSocket::LyXDataSocket(FileName const & address)
 {
-	if ((fd_ = support::socktools::connect(address)) == -1) {
+	if ((fd_ = socktools::connect(address)) == -1) {
 		connected_ = false;
 	} else {
 		connected_ = true;
@@ -346,15 +333,19 @@ void LyXDataSocket::writeln(string const & line)
 		connected_ = false;
 	}
 }
-// ~Class LyXDataSocket -------------------------------------------------------
 
 
-// Class CmdLineParser -------------------------------------------------------
+/////////////////////////////////////////////////////////////////////
+//
+// CmdLineParser
+//
+/////////////////////////////////////////////////////////////////////
+
 class CmdLineParser {
 public:
 	typedef int (*optfunc)(vector<docstring> const & args);
-	std::map<string, optfunc> helper;
-	std::map<string, bool> isset;
+	map<string, optfunc> helper;
+	map<string, bool> isset;
 	bool parse(int, char * []);
 	vector<char *> nonopt;
 };
@@ -406,21 +397,22 @@ namespace cmdline {
 
 void usage()
 {
-	cerr << "Usage: lyxclient [options]" << endl
-	     << "Options are:" << endl
-	     << "  -a address    set address of the lyx socket" << endl
-	     << "  -t directory  set system temporary directory" << endl
-	     << "  -p pid        select a running lyx by pid" << endl
-	     << "  -c command    send a single command and quit" << endl
-	     << "  -g file row   send a command to go to file and row" << endl
-	     << "  -n name       set client name" << endl
-	     << "  -h name       display this help end exit" << endl
-	     << "If -a is not used, lyxclient will use the arguments of -t and -p to look for" << endl
-	     << "a running lyx. If -t is not set, 'directory' defaults to /tmp. If -p is set," << endl
-	     << "lyxclient will connect only to a lyx with the specified pid. Options -c and -g" << endl
-	     << "cannot be set simultaneoulsly. If no -c or -g options are given, lyxclient" << endl
-	     << "will read commands from standard input and disconnect when command read is BYE:"
-	     << endl;
+	cerr <<
+		"Usage: lyxclient [options]\n"
+	  "Options are:\n"
+	  "  -a address    set address of the lyx socket\n"
+	  "  -t directory  set system temporary directory\n"
+	  "  -p pid        select a running lyx by pidi\n"
+	  "  -c command    send a single command and quit\n"
+	  "  -g file row   send a command to go to file and row\n"
+	  "  -n name       set client name\n"
+	  "  -h name       display this help end exit\n"
+	  "If -a is not used, lyxclient will use the arguments of -t and -p to look for\n"
+	  "a running lyx. If -t is not set, 'directory' defaults to /tmp. If -p is set,\n"
+	  "lyxclient will connect only to a lyx with the specified pid. Options -c and -g\n"
+	  "cannot be set simultaneoulsly. If no -c or -g options are given, lyxclient\n"
+	  "will read commands from standard input and disconnect when command read is BYE:"
+	   << endl;
 }
 
 
@@ -431,7 +423,8 @@ int h(vector<docstring> const &)
 }
 
 
-docstring clientName(from_ascii(support::itoa(::getppid()) + ">" + support::itoa(::getpid())));
+docstring clientName =
+	from_ascii(itoa(::getppid()) + ">" + itoa(::getpid()));
 
 int n(vector<docstring> const & arg)
 {
@@ -522,14 +515,13 @@ int p(vector<docstring> const & arg)
 
 
 } // namespace cmdline
-
 } // namespace lyx
 
 
 int main(int argc, char * argv[])
 {
 	using namespace lyx;
-	lyxerr.rdbuf(cerr.rdbuf());
+	lyxerr.setStream(cerr);
 
 	char const * const lyxsocket = getenv("LYXSOCKET");
 	if (lyxsocket)
@@ -564,23 +556,23 @@ int main(int argc, char * argv[])
 	} else {
 		// We have to look for an address.
 		// serverPid can be empty.
-		vector<fs::path> addrs = support::lyxSockets(to_filesystem8bit(cmdline::mainTmp), cmdline::serverPid);
-		vector<fs::path>::const_iterator addr = addrs.begin();
-		vector<fs::path>::const_iterator end = addrs.end();
+		FileNameList addrs = lyxSockets(to_filesystem8bit(cmdline::mainTmp), cmdline::serverPid);
+		FileNameList::const_iterator addr = addrs.begin();
+		FileNameList::const_iterator end = addrs.end();
 		for (; addr != end; ++addr) {
 			// Caution: addr->string() is in filesystem encoding
-			server.reset(new LyXDataSocket(FileName(to_utf8(from_filesystem8bit(addr->string())))));
+			server.reset(new LyXDataSocket(*addr));
 			if (server->connected())
 				break;
 			lyxerr << "lyxclient: " << "Could not connect to "
-			     << addr->string() << endl;
+			     << addr->absFilename() << endl;
 		}
 		if (addr == end) {
 			lyxerr << "lyxclient: No suitable server found."
 			       << endl;
 			return EXIT_FAILURE;
 		}
-		cerr << "lyxclient: " << "Connected to " << addr->string() << endl;
+		cerr << "lyxclient: " << "Connected to " << addr->absFilename() << endl;
 	}
 
 	int const serverfd = server->fd();

@@ -17,6 +17,8 @@
 
 #include "support/types.h"
 
+#include "Dimension.h"
+
 
 namespace lyx {
 
@@ -32,57 +34,64 @@ public:
 	///
 	Row(pos_type pos);
 	///
+	bool changed() const { return changed_; }
+	///
+	void setChanged(bool c) { changed_ = c; }
+	///
+	void setCrc(size_type crc) const;
+	/// Set the selection begin and end.
+	/**
+	  * This is const because we update the selection status only at draw()
+	  * time.
+	  */
+	void setSelection(pos_type sel_beg, pos_type sel_end) const;
+
+	///
 	void pos(pos_type p);
 	///
-	pos_type pos() const;
+	pos_type pos() const { return pos_; }
 	///
 	void endpos(pos_type p);
 	///
-	pos_type endpos() const;
+	pos_type endpos() const { return end_; }
 	///
-	int height() const { return ascent_ + descent_; }
+	void setDimension(Dimension const & dim);
 	///
-	void width(int w);
+	Dimension const & dimension() const { return dim_; }
 	///
-	int width() const;
+	int height() const { return dim_.height(); }
 	///
-	void ascent(int b);
+	int width() const { return dim_.wid; }
 	///
-	int ascent() const;
+	int ascent() const { return dim_.asc; }
 	///
-	void descent(int b) { descent_ = b; }
-	///
-	int descent() const { return descent_; }
+	int descent() const { return dim_.des; }
+
 	/// current debugging only
-	void dump(const char * = "") const;
+	void dump(char const * = "") const;
 
-private:
-	/// first pos covered by this row
-	pos_type pos_;
-	/// one behind last pos covered by this row
-	pos_type end_;
-	///
-	int ascent_;
-	///
-	int descent_;
-	///
-	int width_;
-};
-
-
-class RowMetrics {
-public:
-	RowMetrics();
 	/// width of a separator (i.e. space)
 	double separator;
-	/// width of hfills in the body
-	double hfill;
 	/// width of hfills in the label
 	double label_hfill;
 	/// the x position of the row
 	double x;
+	///
+	mutable pos_type sel_beg;
+	///
+	mutable pos_type sel_end;
+private:
+	/// has the Row appearance changed since last drawing?
+	mutable bool changed_;
+	/// CRC of row contents.
+	mutable size_type crc_;
+	/// first pos covered by this row
+	pos_type pos_;
+	/// one behind last pos covered by this row
+	pos_type end_;
+	/// Row dimension.
+	Dimension dim_;
 };
-
 
 
 } // namespace lyx

@@ -5,6 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author André Pönitz
+ * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,8 +13,12 @@
 #ifndef METRICSINFO_H
 #define METRICSINFO_H
 
-#include "Font.h"
-#include "support/docstring.h"
+#include "ColorCode.h"
+#include "FontInfo.h"
+
+#include "support/strfwd.h"
+#include "support/types.h"
+
 #include <string>
 
 class BufferView;
@@ -21,6 +26,7 @@ class BufferView;
 namespace lyx {
 
 namespace frontend { class Painter; }
+class MacroContext;
 
 
 /// Standard Sizes (mode styles)
@@ -44,12 +50,12 @@ public:
 	///
 	MetricsBase();
 	///
-	MetricsBase(BufferView * bv, Font const & font, int textwidth);
+	MetricsBase(BufferView * bv, FontInfo const & font, int textwidth);
 
 	/// the current view
 	BufferView * bv;
 	/// current font
-	Font font;
+	FontInfo font;
 	/// current math style (display/text/script/..)
 	Styles style;
 	/// name of current font - mathed specific
@@ -68,10 +74,12 @@ public:
 	///
 	MetricsInfo();
 	///
-	MetricsInfo(BufferView * bv, Font const & font, int textwidth);
+	MetricsInfo(BufferView * bv, FontInfo const & font, int textwidth, MacroContext const & mc);
 
 	///
 	MetricsBase base;
+	/// The context to resolve macros
+	MacroContext const & macrocontext;
 };
 
 
@@ -96,42 +104,17 @@ public:
 	bool ltr_pos;
 	/// Whether the parent is deleted (change tracking)
 	bool erased_;
+	///
+	bool full_repaint;
+	///
+	ColorCode background_color;
 };
 
 class TextMetricsInfo {};
 
-enum ScreenUpdateStrategy {
-	NoScreenUpdate,
-	SingleParUpdate,
-	FullScreenUpdate,
-	DecorationUpdate
-};
 
-class ViewMetricsInfo
-{
-public:
-	ViewMetricsInfo()
-			: p1(0), p2(0), y1(0), y2(0),
-			update_strategy(FullScreenUpdate), size(0)
-		{}
-	ViewMetricsInfo(pit_type p1, pit_type p2, int y1, int y2,
-			ScreenUpdateStrategy updatestrategy, pit_type size)
-			: p1(p1), p2(p2), y1(y1), y2(y2),
-			update_strategy(updatestrategy), size(size)
-		{}
-
-	pit_type p1;
-	pit_type p2;
-	int y1;
-	int y2;
-	ScreenUpdateStrategy update_strategy;
-	pit_type size;
-};
-
-
-// Generic base for temporarily changing things.
-// The original state gets restored when the Changer is destructed.
-
+/// Generic base for temporarily changing things.
+/// The original state gets restored when the Changer is destructed.
 template <class Struct, class Temp = Struct>
 class Changer {
 public:
@@ -147,10 +130,10 @@ protected:
 
 
 // temporarily change some aspect of a font
-class FontChanger : public Changer<Font> {
+class FontChanger : public Changer<FontInfo> {
 public:
 	///
-	FontChanger(Font & orig, docstring const & font);
+	FontChanger(FontInfo & orig, docstring const & font);
 	FontChanger(MetricsBase & mb, char const * const font);
 	///
 	~FontChanger();
@@ -204,10 +187,10 @@ public:
 
 
 // temporarily change the shape of a font
-class ShapeChanger : public Changer<Font, Font::FONT_SHAPE> {
+class ShapeChanger : public Changer<FontInfo, FontShape> {
 public:
 	///
-	ShapeChanger(Font & font, Font::FONT_SHAPE shape);
+	ShapeChanger(FontInfo & font, FontShape shape);
 	///
 	~ShapeChanger();
 };
@@ -225,10 +208,10 @@ public:
 
 
 // temporarily change the used color
-class ColorChanger : public Changer<Font, std::string> {
+class ColorChanger : public Changer<FontInfo, std::string> {
 public:
 	///
-	ColorChanger(Font & font, std::string const & color);
+	ColorChanger(FontInfo & font, std::string const & color);
 	///
 	~ColorChanger();
 };

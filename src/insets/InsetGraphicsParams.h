@@ -16,13 +16,17 @@
 
 #include "graphics/GraphicsTypes.h"
 #include "Length.h"
+
 #include "support/FileName.h"
+
+#include <string>
 
 namespace lyx {
 
 namespace graphics { class Params; }
 
 class Lexer;
+class Buffer;
 
 
 /// This class holds all the parameters needed by insetGraphics.
@@ -33,8 +37,8 @@ public:
 	support::DocFileName filename;
 	/// Scaling the Screen inside Lyx
 	unsigned int lyxscale;
-	/// How to display the image inside LyX
-	graphics::DisplayType display;
+	/// If to display the image inside LyX
+	bool display;
 	/// Scaling for output (LaTeX)
 	std::string scale;
 	/// sizes for output (LaTeX)
@@ -59,10 +63,6 @@ public:
 	std::string rotateAngle;
 	/// Origin point of rotation
 	std::string rotateOrigin;
-	/// Do we have a subcaption?
-	bool subcaption;
-	/// The text of the subcaption.
-	std::string subcaptionText;
 	/// any userdefined special command
 	std::string special;
 
@@ -71,17 +71,21 @@ public:
 	///
 	InsetGraphicsParams(InsetGraphicsParams const &);
 	///
-	InsetGraphicsParams & operator=(InsetGraphicsParams const &);
+	void operator=(InsetGraphicsParams const &);
 	/// Save the parameters in the LyX format stream.
-	void Write(std::ostream & os, std::string const & bufpath) const;
+	/// Buffer is needed to figure out if a figure is embedded.
+	void Write(std::ostream & os, Buffer const & buf) const;
 	/// If the token belongs to our parameters, read it.
 	bool Read(Lexer & lex, std::string const & token, std::string const & bufpath);
 	/// convert
-  // Only a subset of InsetGraphicsParams is needed for display purposes.
-  // This function also interrogates lyxrc to ascertain whether
-  // to display or not.
+	// Only a subset of InsetGraphicsParams is needed for display purposes.
+	// This function also interrogates lyxrc to ascertain whether
+	// to display or not.
 	graphics::Params as_grfxParams() const;
 
+	// FIXME UNICODE. Write functions need to use odostream instead of ostream firstly.
+	/// Identification of the graphics template. No template equals empty string.
+	std::string groupId;
 private:
 	/// Initialize the object to a default status.
 	void init();

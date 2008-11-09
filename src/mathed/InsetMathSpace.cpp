@@ -15,13 +15,10 @@
 #include "MathStream.h"
 
 #include "LaTeXFeatures.h"
-#include "Color.h"
 
 #include "frontends/Painter.h"
 
-using std::string;
-using std::auto_ptr;
-
+using namespace std;
 
 namespace lyx {
 
@@ -75,21 +72,15 @@ InsetMathSpace::InsetMathSpace(docstring const & name)
 }
 
 
-auto_ptr<Inset> InsetMathSpace::doClone() const
+Inset * InsetMathSpace::clone() const
 {
-	return auto_ptr<Inset>(new InsetMathSpace(*this));
+	return new InsetMathSpace(*this);
 }
 
 
-bool InsetMathSpace::metrics(MetricsInfo &, Dimension & dim) const
+void InsetMathSpace::metrics(MetricsInfo &, Dimension & dim) const
 {
-	dim.wid = width();
-	dim.asc = ascent();
-	dim.des = descent();
-	if (dim_ == dim)
-		return false;
-	dim_ = dim;
-	return true;
+	dim = dim_;
 }
 
 
@@ -102,14 +93,14 @@ void InsetMathSpace::draw(PainterInfo & pi, int x, int y) const
 
 	int xp[4];
 	int yp[4];
-	int w = width();
+	int w = dim_.wid;
 
 	xp[0] = ++x;        yp[0] = y - 3;
 	xp[1] = x;          yp[1] = y;
 	xp[2] = x + w - 2;  yp[2] = y;
 	xp[3] = x + w - 2;  yp[3] = y - 3;
 
-	pi.pain.lines(xp, yp, 4, (space_ < 3) ? Color::latex : Color::math);
+	pi.pain.lines(xp, yp, 4, (space_ < 3) ? Color_latex : Color_math);
 }
 
 
@@ -156,6 +147,7 @@ void InsetMathSpace::normalize(NormalStream & os) const
 void InsetMathSpace::write(WriteStream & os) const
 {
 	if (space_ >= 0 && space_ < nSpace) {
+		MathEnsurer ensurer(os);
 		os << '\\' << latex_mathspace[space_];
 		os.pendingSpace(true);
 	}

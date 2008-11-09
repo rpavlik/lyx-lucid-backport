@@ -12,7 +12,6 @@
 
 #include "IconPalette.h"
 #include "qt_helpers.h"
-#include "controllers/ControlMath.h" // for find_xpm
 
 #include <QPixmap>
 #include <QGridLayout>
@@ -43,11 +42,10 @@ TearOff::TearOff(QWidget * parent)
 }
 
 
-void TearOff::mouseReleaseEvent(QMouseEvent * event)
+void TearOff::mouseReleaseEvent(QMouseEvent * /*event*/)
 {
 	// signal
 	tearOff();
-	event->accept();
 }
 
 
@@ -67,7 +65,7 @@ void TearOff::leaveEvent(QEvent * event)
 }
 
 
-void TearOff::paintEvent(QPaintEvent * event)
+void TearOff::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter p(this);
 	const int fw = style()->pixelMetric(QStyle::PM_MenuPanelWidth, 0, this);
@@ -87,7 +85,6 @@ void TearOff::paintEvent(QPaintEvent * event)
 	if (highlighted_)
 		menuOpt.state |= QStyle::State_Selected;
 	style()->drawControl(QStyle::CE_MenuTearoff, &menuOpt, &p, this);
-	event->accept();
 }
 
 
@@ -114,6 +111,8 @@ void IconPalette::addButton(QAction * action)
 	QToolButton * tb = new QToolButton;
 	tb->setAutoRaise(true);
 	tb->setDefaultAction(action);
+	QToolButton * pb = qobject_cast<QToolButton *>(parentWidget());
+	tb->setIconSize(pb->iconSize());
 	// trigger tooltip (children of popups do not receive mousemove events)
 	tb->setMouseTracking(true);
 
@@ -151,7 +150,7 @@ void IconPalette::clicked(QAction * action)
 }
 
 
-void IconPalette::showEvent(QShowEvent * event)
+void IconPalette::showEvent(QShowEvent * /*event*/)
 {
 	resize(sizeHint());
 	setMaximumSize(sizeHint());
@@ -192,7 +191,6 @@ void IconPalette::showEvent(QShowEvent * event)
 	QRect r = rect();
 	r.moveTo(gpos.x() + hoffset, gpos.y() + voffset);
 	setGeometry(r);	
-	event->accept();
 }
 
 
@@ -208,29 +206,7 @@ void IconPalette::hideEvent(QHideEvent * event )
 }
 
 
-void IconPalette::updateParent()
-{
-	bool enable = false;
-
-	// FIXME: so this is commented out for speed considerations
-	// true fix is to repair the updating mechanism of the toolbar
-#if 0
-	for (int i = 0; i < actions_.size(); ++i)
-		if (actions_.at(i)->isEnabled()) {
-			enable = true;
-			break;
-		}
-#else
-	// we check only the first action to enable/disable the panel
-	if (!actions_.isEmpty())
-		enable = actions_.at(0)->isEnabled();
-#endif
-
-	parentWidget()->setEnabled(enable);
-}
-
-
-void IconPalette::paintEvent(QPaintEvent * event)
+void IconPalette::paintEvent(QPaintEvent * /*event*/)
 {
 	// draw border
 	const int fw = style()->pixelMetric(QStyle::PM_MenuPanelWidth, 0, this);
@@ -250,7 +226,6 @@ void IconPalette::paintEvent(QPaintEvent * event)
 		frame.midLineWidth = 0;
 		style()->drawPrimitive(QStyle::PE_FrameMenu, &frame, &p, this);
 	}
-	event->accept();
 }
 
 

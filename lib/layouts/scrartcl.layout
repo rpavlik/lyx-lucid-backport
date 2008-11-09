@@ -3,7 +3,7 @@
 # KOMA scrartcl textclass definition file.
 # Bernd Rellermeyer <100.41728@germanynet.de>, 1998/7/11.
 
-Format 4
+Format 7
 Input scrclass.inc
 
 SecNumDepth             3
@@ -19,7 +19,6 @@ NoStyle Dictum
 
 Style Part
 	Align                 Left
-	AlignPossible         Left
 	TopSep                2
 	BottomSep             1.5
 	Font
@@ -29,7 +28,6 @@ End
 
 Style Part*
 	Align                 Left
-	AlignPossible         Left
 	TopSep                2
 	BottomSep             1.5
 	Font

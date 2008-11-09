@@ -16,18 +16,16 @@
 #include <config.h>
 
 #include "Length.h"
-#include "lengthcommon.h"
 #include "LyXRC.h"
 
 #include "support/docstream.h"
+
 #include <sstream>
 #include <iomanip>
 
+using namespace std;
 
 namespace lyx {
-
-using std::ostringstream;
-using std::string;
 
 
 /////////////////////////////////////////////////////////////////////
@@ -56,6 +54,13 @@ Length::Length(string const & data)
 
 	val_  = tmp.val_;
 	unit_ = tmp.unit_;
+}
+
+
+void Length::swap(Length & rhs)
+{
+	std::swap(val_, rhs.val_);
+	std::swap(unit_, rhs.unit_);
 }
 
 
@@ -153,7 +158,7 @@ int Length::inPixels(int text_width, int em_width_base) const
 		? em_width_base
 		: 10*(dpi/72.27)*zoom;
 	// A different estimate for em_width is
-	// theFontMetrics(Font(Font::ALL_SANE)).width('M')
+	// theFontMetrics(FontInfo(sane_font)).width('M')
 	// but this estimate might not be more accurate as the screen font
 	// is different then the latex font.
 

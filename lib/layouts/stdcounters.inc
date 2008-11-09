@@ -4,9 +4,10 @@
 # in most LyX layouts.
 
 
-Format 4
-Counter
-	Name                 part
+Format 7
+Counter 
+	Name                  part
+	LabelString	      "\Roman{part}"
 End
 
 Counter
@@ -62,15 +63,7 @@ Counter
 End
 
 Counter
-	Name                 figure
-End
-
-Counter
-	Name                 table
-End
-
-Counter
-	Name                 algorithm
+	Name                 listing
 End
 
 Counter
@@ -78,5 +71,5 @@ Counter
 End
 
 Counter
-	Name                 listing
+	Name                 footnote
 End

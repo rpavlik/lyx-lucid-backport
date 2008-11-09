@@ -2,8 +2,9 @@
 #  \DeclareLaTeXClass[scrlttr2]{letter (KOMA-Script v.2)}
 # KOMA scrlettr2 textclass definition file.
 # Juergen Spitzmueller <j.spitzmueller@gmx.de>, 2003/2/17.
+# Uwe Stöhr <uwestoehr@web.de>, 2008/2/03.
 
-Format 4
+Format 7
 Style Standard
 	LatexName             dummy
 	ParSep                0.4
@@ -13,7 +14,7 @@ End
 Input stdlists.inc
 Input stdlayouts.inc
 Input stdcounters.inc
-
+Input stdinsets.inc
 
 Style Description
 	LabelFont
@@ -55,10 +56,8 @@ Style Address
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Address:"
-
 	LabelFont
 	  Series              Bold
 	  Shape               Italic
@@ -79,10 +78,8 @@ Style NextAddress
 	BottomSep             1.5
 	ParSep                1.5
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Next Address:"
-
 	LabelFont
 	  Series              Bold
 	  Shape               Italic
@@ -102,10 +99,8 @@ Style Opening
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Opening:"
-
 	LabelFont
 	  Series              Bold
 	  Shape               Italic
@@ -156,7 +151,6 @@ Style Name
 	BottomSep             0.4
 	ParSep                0.4
 	Align                 Left
-	AlignPossible         Left
 	LabelType             Static
 	LabelString           "Sender Name:"
 

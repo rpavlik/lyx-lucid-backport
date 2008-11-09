@@ -15,7 +15,8 @@
 #ifndef CHANGES_H
 #define CHANGES_H
 
-#include "support/docstream.h"
+#include "support/strfwd.h"
+#include "support/types.h"
 #include "support/lyxtime.h"
 
 #include <vector>
@@ -34,7 +35,7 @@ public:
 		DELETED // deleted text
 	};
 
-	explicit Change(Type t, int a = 0, time_type ct = current_time())
+	explicit Change(Type t, int a = 0, time_t ct = current_time())
 		: type(t), author(a), changetime(ct) {}
 
 	/// is the change similar to the given change such that both can be merged?
@@ -44,7 +45,7 @@ public:
 
 	int author;
 
-	time_type changetime;
+	time_t changetime;
 };
 
 bool operator==(Change const & l, Change const & r);

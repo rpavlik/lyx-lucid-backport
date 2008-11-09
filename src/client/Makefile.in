@@ -33,8 +33,11 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/common.am ChangeLog
+	$(top_srcdir)/config/common.am
 bin_PROGRAMS = lyxclient$(EXEEXT)
+@MONOLITHIC_CLIENT_TRUE@am__append_1 = -I$(srcdir)/.. $(BOOST_INCLUDES)
+@MONOLITHIC_CLIENT_FALSE@am__append_2 = pch.h
+@MONOLITHIC_CLIENT_FALSE@am__append_3 = $(PCH_FLAGS)
 subdir = src/client
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
@@ -43,37 +46,48 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/m4/codeset.m4 $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/glibc2.m4 $(top_srcdir)/m4/glibc21.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intdiv0.m4 \
-	$(top_srcdir)/m4/intmax.m4 $(top_srcdir)/m4/inttypes-pri.m4 \
-	$(top_srcdir)/m4/inttypes.m4 $(top_srcdir)/m4/inttypes_h.m4 \
-	$(top_srcdir)/m4/isc-posix.m4 $(top_srcdir)/m4/lcmessage.m4 \
-	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
-	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/longdouble.m4 \
+	$(top_srcdir)/m4/intl.m4 $(top_srcdir)/m4/intmax.m4 \
+	$(top_srcdir)/m4/inttypes-pri.m4 \
+	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/isc-posix.m4 \
+	$(top_srcdir)/m4/lcmessage.m4 $(top_srcdir)/m4/lib-ld.m4 \
+	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
+	$(top_srcdir)/m4/lock.m4 $(top_srcdir)/m4/longdouble.m4 \
 	$(top_srcdir)/m4/longlong.m4 $(top_srcdir)/m4/nls.m4 \
 	$(top_srcdir)/m4/po.m4 $(top_srcdir)/m4/printf-posix.m4 \
-	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/signed.m4 \
-	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/stdint_h.m4 \
-	$(top_srcdir)/m4/uintmax_t.m4 $(top_srcdir)/m4/ulonglong.m4 \
+	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/m4/size_max.m4 \
+	$(top_srcdir)/m4/stdint_h.m4 $(top_srcdir)/m4/uintmax_t.m4 \
+	$(top_srcdir)/m4/ulonglong.m4 $(top_srcdir)/m4/visibility.m4 \
 	$(top_srcdir)/m4/wchar_t.m4 $(top_srcdir)/m4/wint_t.m4 \
 	$(top_srcdir)/m4/xsize.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/config.h
+CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_lyxclient_OBJECTS = boost.$(OBJEXT) client.$(OBJEXT) \
-	debug.$(OBJEXT) gettext.$(OBJEXT) Messages.$(OBJEXT)
+am__lyxclient_SOURCES_DIST = boost.cpp client.cpp gettext.cpp \
+	Messages.cpp Messages.h lyxclient.cpp
+am__objects_1 = boost.$(OBJEXT) client.$(OBJEXT) gettext.$(OBJEXT) \
+	Messages.$(OBJEXT)
+am__objects_2 =
+@MONOLITHIC_CLIENT_FALSE@am_lyxclient_OBJECTS = $(am__objects_1) \
+@MONOLITHIC_CLIENT_FALSE@	$(am__objects_2)
+@MONOLITHIC_CLIENT_TRUE@am_lyxclient_OBJECTS = lyxclient.$(OBJEXT) \
+@MONOLITHIC_CLIENT_TRUE@	$(am__objects_2)
 lyxclient_OBJECTS = $(am_lyxclient_OBJECTS)
-@USE_INCLUDED_BOOST_TRUE@am__DEPENDENCIES_1 = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
-@USE_INCLUDED_BOOST_TRUE@am__DEPENDENCIES_2 = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
-am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
-am__DEPENDENCIES_4 =
-lyxclient_DEPENDENCIES = $(top_builddir)/src/support/libsupport.la \
-	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4) \
-	$(am__DEPENDENCIES_4)
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
+am__DEPENDENCIES_1 =
+@USE_INCLUDED_BOOST_FALSE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
+@USE_INCLUDED_BOOST_FALSE@	$(am__DEPENDENCIES_1) \
+@USE_INCLUDED_BOOST_FALSE@	$(am__DEPENDENCIES_1) \
+@USE_INCLUDED_BOOST_FALSE@	$(am__DEPENDENCIES_1)
+@USE_INCLUDED_BOOST_TRUE@am__DEPENDENCIES_2 =  \
+@USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
+lyxclient_DEPENDENCIES = $(top_builddir)/src/support/liblyxsupport.la \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -95,7 +109,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(lyxclient_SOURCES)
-DIST_SOURCES = $(lyxclient_SOURCES)
+DIST_SOURCES = $(am__lyxclient_SOURCES_DIST)
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man_MANS)
@@ -108,8 +122,8 @@ AIKSAURUS_LIBS = @AIKSAURUS_LIBS@
 ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_CFLAGS = @AM_CFLAGS@
-AM_CPPFLAGS = @AM_CPPFLAGS@ $(PCH_FLAGS) -I$(srcdir)/.. \
-	$(BOOST_INCLUDES)
+AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(srcdir)/.. $(BOOST_INCLUDES) \
+	$(am__append_1) $(am__append_3)
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
@@ -123,6 +137,7 @@ CATOBJEXT = @CATOBJEXT@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -147,10 +162,12 @@ GENCAT = @GENCAT@
 GLIBC2 = @GLIBC2@
 GLIBC21 = @GLIBC21@
 GMSGFMT = @GMSGFMT@
+GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
 HAVE_ASPRINTF = @HAVE_ASPRINTF@
 HAVE_POSIX_PRINTF = @HAVE_POSIX_PRINTF@
 HAVE_SNPRINTF = @HAVE_SNPRINTF@
+HAVE_VISIBILITY = @HAVE_VISIBILITY@
 HAVE_WPRINTF = @HAVE_WPRINTF@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -163,34 +180,38 @@ INTLLIBS = @INTLLIBS@
 INTLOBJS = @INTLOBJS@
 INTL_LIBTOOL_SUFFIX_PREFIX = @INTL_LIBTOOL_SUFFIX_PREFIX@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-KPSEWHICH = @KPSEWHICH@
 LDFLAGS = @LDFLAGS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
+LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
+LIBTHREAD = @LIBTHREAD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
+LTLIBMULTITHREAD = @LTLIBMULTITHREAD@
 LTLIBOBJS = @LTLIBOBJS@
-LYX_ABS_INSTALLED_DATADIR = @LYX_ABS_INSTALLED_DATADIR@
-LYX_ABS_INSTALLED_LOCALEDIR = @LYX_ABS_INSTALLED_LOCALEDIR@
-LYX_ABS_TOP_SRCDIR = @LYX_ABS_TOP_SRCDIR@
+LTLIBPTH = @LTLIBPTH@
+LTLIBTHREAD = @LTLIBTHREAD@
 LYX_DATE = @LYX_DATE@
 LYX_MAJOR_VERSION = @LYX_MAJOR_VERSION@
 LYX_MINOR_VERSION = @LYX_MINOR_VERSION@
 LYX_RELEASE_LEVEL = @LYX_RELEASE_LEVEL@
 LYX_RELEASE_PATCH = @LYX_RELEASE_PATCH@
-M4 = @M4@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-MKINSTALLDIRS = @MKINSTALLDIRS@
 MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
+MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+OBJC = @OBJC@
+OBJCDEPMODE = @OBJCDEPMODE@
+OBJCFLAGS = @OBJCFLAGS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -202,6 +223,7 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 POSUB = @POSUB@
+PRI_MACROS_BROKEN = @PRI_MACROS_BROKEN@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
@@ -221,6 +243,7 @@ QT4_LDFLAGS = @QT4_LDFLAGS@
 QT4_LIB = @QT4_LIB@
 QT4_VERSION = @QT4_VERSION@
 RANLIB = @RANLIB@
+RCC4 = @RCC4@
 RPM_FRONTEND = @RPM_FRONTEND@
 RPM_VERSION_SUFFIX = @RPM_VERSION_SUFFIX@
 SET_MAKE = @SET_MAKE@
@@ -232,7 +255,9 @@ USE_INCLUDED_LIBINTL = @USE_INCLUDED_LIBINTL@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 VERSION_INFO = @VERSION_INFO@
+WOE32DLL = @WOE32DLL@
 XGETTEXT = @XGETTEXT@
+XGETTEXT_015 = @XGETTEXT_015@
 XMKMF = @XMKMF@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -244,6 +269,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
+ac_ct_OBJC = @ac_ct_OBJC@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -310,31 +336,39 @@ AM_ETAGSFLAGS = --lang=c++
 SUFFIXES = .gch
 @USE_INCLUDED_BOOST_FALSE@BOOST_INCLUDES = 
 @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
+@USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
+@USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
-@USE_INCLUDED_BOOST_TRUE@BOOST_FILESYSTEM = $(top_builddir)/boost/libs/filesystem/src/libboost_filesystem.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
-@USE_INCLUDED_BOOST_TRUE@BOOST_REGEX = $(top_builddir)/boost/libs/regex/src/libboost_regex.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
-@USE_INCLUDED_BOOST_TRUE@BOOST_SIGNALS = $(top_builddir)/boost/libs/signals/src/libboost_signals.la
 @USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
-@USE_INCLUDED_BOOST_TRUE@BOOST_IOSTREAMS = $(top_builddir)/boost/libs/iostreams/src/libboost_iostreams.la
-EXTRA_DIST = pch.h lyxclient.man
-BUILT_SOURCES = $(PCH_FILE)
 man_MANS = lyxclient.1
-BOOST_LIBS = $(BOOST_REGEX) $(BOOST_FILESYSTEM)
+EXTRA_DIST = lyxclient.man $(am__append_2)
 lyxclient_LDADD = \
-	$(top_builddir)/src/support/libsupport.la \
+	$(top_builddir)/src/support/liblyxsupport.la \
 	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS)
 
-lyxclient_SOURCES = \
-	boost.cpp \
-	client.cpp \
-	debug.cpp \
-	debug.h \
-	gettext.cpp \
-	Messages.cpp \
-	Messages.h
 
+# everything below the line containing the single backslashs
+# an ugly hack and needed because of the
+# linking problems described in ../Makefile.am
+# These four objects are linked as object files as they are not
+# referenced within the core and therefore are not picked up
+# by the linker without looping over libs. We do not want that,
+# and in fact libtools seems not able to do that.
+SOURCEFILES = \
+  boost.cpp \
+  client.cpp \
+  gettext.cpp \
+  Messages.cpp
+
+HEADERFILES = \
+  Messages.h
+
+@MONOLITHIC_CLIENT_FALSE@BUILT_SOURCES = $(PCH_FILE)
+@MONOLITHIC_CLIENT_TRUE@BUILT_SOURCES = lyxclient.cpp
+@MONOLITHIC_CLIENT_FALSE@lyxclient_SOURCES = $(SOURCEFILES) $(HEADERFILES)
+@MONOLITHIC_CLIENT_TRUE@lyxclient_SOURCES = lyxclient.cpp $(HEADERFILES)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -410,8 +444,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Messages.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boost.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gettext.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyxclient.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -680,13 +714,16 @@ uninstall-man: uninstall-man1
 @LYX_BUILD_PCH_TRUE@	$(MAKE) PCH_FLAGS= pch-file
 
 @LYX_BUILD_PCH_TRUE@pch-file:
-@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header $(PCH_SOURCE) -o $(PCH_FILE) \
+@LYX_BUILD_PCH_TRUE@	$(CXXCOMPILE) -x c++-header -fPIC -DPIC $(PCH_SOURCE) -o $(PCH_FILE) \
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"
 
 lyxclient.1:
 	cp -p $(srcdir)/lyxclient.man lyxclient.1
+
+lyxclient.cpp:
+	@echo -e '$(SOURCEFILES:%=\n#include "%")\n' > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

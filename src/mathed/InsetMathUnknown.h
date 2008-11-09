@@ -14,24 +14,30 @@
 
 #include "InsetMath.h"
 
+#include "support/docstring.h"
+
 
 namespace lyx {
-
 
 /// LaTeX names for objects that we really don't know
 class InsetMathUnknown : public InsetMath {
 public:
 	///
 	explicit InsetMathUnknown(docstring const & name,
+		docstring const & selection = docstring(),
 		bool final = true, bool black = false);
 	///
-	bool metrics(MetricsInfo & mi, Dimension & dim) const;
+	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
 	void setName(docstring const & name);
 	///
 	docstring name() const;
+
+	///
+	docstring const & selection() const { return selection_; }
+	
 	/// identifies UnknownInsets
 	InsetMathUnknown const * asUnknownInset() const { return this; }
 	/// identifies UnknownInsets
@@ -52,9 +58,12 @@ public:
 	///
 	bool final() const;
 	///
-	int kerning() const { return kerning_; }
+	int kerning(BufferView const *) const { return kerning_; }
+
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
+	///
+	Inset * clone() const { return new InsetMathUnknown(*this); }
+
 	///
 	docstring name_;
 	/// are we finished creating the name?
@@ -63,8 +72,10 @@ private:
 	bool black_;
 	///
 	mutable int kerning_;
+	/// the selection which was replaced by this
+	docstring selection_;
 };
 
-
 } // namespace lyx
+
 #endif

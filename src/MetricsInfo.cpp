@@ -18,12 +18,13 @@
 
 #include "frontends/Painter.h"
 
-#include <boost/assert.hpp>
+#include "support/docstring.h"
 
+#include "support/lassert.h"
+
+using namespace std;
 
 namespace lyx {
-
-using std::string;
 
 
 MetricsBase::MetricsBase()
@@ -32,25 +33,21 @@ MetricsBase::MetricsBase()
 {}
 
 
-MetricsBase::MetricsBase(BufferView * b, Font const & f, int w)
+MetricsBase::MetricsBase(BufferView * b, FontInfo const & f, int w)
 	: bv(b), font(f), style(LM_ST_TEXT), fontname("mathnormal"),
 	  textwidth(w)
 {}
 
 
-
-MetricsInfo::MetricsInfo()
+MetricsInfo::MetricsInfo(BufferView * bv, FontInfo const & font, int textwidth, 
+	MacroContext const & mc)
+	: base(bv, font, textwidth), macrocontext(mc)
 {}
-
-
-MetricsInfo::MetricsInfo(BufferView * bv, Font const & font, int textwidth)
-	: base(bv, font, textwidth)
-{}
-
 
 
 PainterInfo::PainterInfo(BufferView * bv, lyx::frontend::Painter & painter)
-	: pain(painter), ltr_pos(false), erased_(false)
+	: pain(painter), ltr_pos(false), erased_(false), full_repaint(true),
+	background_color(Color_background)
 {
 	base.bv = bv;
 }
@@ -113,9 +110,8 @@ ArrayChanger::ArrayChanger(MetricsBase & mb)
 {}
 
 
-
-ShapeChanger::ShapeChanger(Font & font, Font::FONT_SHAPE shape)
-	: Changer<Font, Font::FONT_SHAPE>(font)
+ShapeChanger::ShapeChanger(FontInfo & font, FontShape shape)
+	: Changer<FontInfo, FontShape>(font)
 {
 	save_ = orig_.shape();
 	orig_.setShape(shape);
@@ -160,9 +156,9 @@ FontSetChanger::FontSetChanger(MetricsBase & mb, char const * name)
 	:	Changer<MetricsBase>(mb)
 {
 	save_ = mb;
-	Font::FONT_SIZE oldsize = save_.font.size();
+	FontSize oldsize = save_.font.size();
 	mb.fontname = name;
-	mb.font = Font();
+	mb.font = sane_font;
 	augmentFont(mb.font, from_ascii(name));
 	mb.font.setSize(oldsize);
 }
@@ -172,9 +168,9 @@ FontSetChanger::FontSetChanger(MetricsBase & mb, docstring const & name)
 	:	Changer<MetricsBase>(mb)
 {
 	save_ = mb;
-	Font::FONT_SIZE oldsize = save_.font.size();
+	FontSize oldsize = save_.font.size();
 	mb.fontname = to_utf8(name);
-	mb.font = Font();
+	mb.font = sane_font;
 	augmentFont(mb.font, name);
 	mb.font.setSize(oldsize);
 }
@@ -202,8 +198,8 @@ WidthChanger::~WidthChanger()
 
 
 
-ColorChanger::ColorChanger(Font & font, string const & color)
-	: Changer<Font, string>(font)
+ColorChanger::ColorChanger(FontInfo & font, string const & color)
+	: Changer<FontInfo, string>(font)
 {
 	save_ = lcolor.getFromLyXName(color);
 	font.setColor(lcolor.getFromLyXName(color));

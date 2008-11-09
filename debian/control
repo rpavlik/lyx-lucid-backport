@@ -3,17 +3,17 @@ Maintainer: Debian LyX Maintainers <pkg-lyx-devel@lists.alioth.debian.org>
 Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 Vcs-Svn: svn://svn.debian.org/svn/pkg-lyx/lyx/trunk
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-lyx/lyx/trunk
 Homepage: http://www.lyx.org/
 Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
- debhelper (>= 5.0.51), quilt (>= 0.40), g++ (>= 4:4.0.1-8),
- libz-dev, libx11-dev, libaspell-dev, dpkg-dev (>= 1.13.19),
+ debhelper (>= 7), quilt,
+ libz-dev, libx11-dev, libaspell-dev,
  autotools-dev, libqt4-dev, libboost-dev (>= 1.34.1),
  libboost-filesystem-dev, libboost-signals-dev,
  libboost-iostreams-dev, libboost-regex-dev, libboost-test-dev,
- pkg-config
+ pkg-config, tex-common
 
 Package: lyx
 Architecture: any
@@ -46,7 +46,7 @@ Description: Document Processor
 
 Package: lyx-common
 Architecture: all
-Depends: ${python:Depends}, texlive-latex-base
+Depends: ${misc:Depends}, ${python:Depends}
 Recommends: lyx
 Conflicts: latex-beamer (<= 3.06.dfsg.1-0.1)
 Description: Architecture-independent files for LyX

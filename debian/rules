@@ -4,7 +4,6 @@ include /usr/share/quilt/quilt.make
 
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_HOST_ARCH       ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
 	CONFIGURE_OPTIONS += --build $(DEB_HOST_GNU_TYPE)
@@ -15,7 +14,6 @@ endif
 
 CONFIGURE_OPTIONS += \
 	--prefix=/usr \
-	--infodir=/usr/share/info \
 	--mandir=/usr/share/man \
 	--disable-dependency-tracking \
 	--disable-rpath \
@@ -29,12 +27,6 @@ CONFIGURE_OPTIONS += \
 	--without-included-gettext \
 	--without-included-boost \
 
-CXXFLAGS ?= -g -O2
-
-ifeq ($(DEB_HOST_ARCH),hppa)
-	CXXFLAGS += -ffunction-sections
-endif
-
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 configure: patch configure-stamp
@@ -47,8 +39,7 @@ configure-stamp:
 	fi
 
 	test -d build-tree || mkdir build-tree
-	cd build-tree && CXXFLAGS="$(CXXFLAGS)" \
-		LDFLAGS="$(LDFLAGS)" ../configure $(CONFIGURE_OPTIONS)
+	cd build-tree && ../configure $(CONFIGURE_OPTIONS)
 
 	touch configure-stamp
 
@@ -58,91 +49,56 @@ build-stamp:
 	cd build-tree && $(MAKE)
 	touch build-stamp
 
-clean: clean1 unpatch
-clean1:
+clean: unpatch
 	dh_testdir
 	dh_testroot
 
-	rm -f build-stamp configure-stamp
-	rm -rf build-tree
-	! [ -f config/config.sub.backup ] || \
+	! test -e build-tree || rm -r build-tree
+	! test -f config/config.sub.backup || \
 		mv config/config.sub.backup config/config.sub
 
 # clean out compiled python code left around after building
-	find lib -name '*.pyc' -exec rm {} \;
+	find lib -name '*.pyc' -exec rm -v {} \;
 
 	dh_clean
 
 install: build
+# hack: remove debhelper logs so that install target is idempotent
+	rm -f debian/*.log
+
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 
-	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common/
+	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common
 
 	dh_installdirs
 	dh_install
 
+# move binaries to arch package
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
-	mkdir -p debian/lyx-common/etc/bash_completion.d
-	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx
-
-	rm debian/lyx-common/usr/share/lyx/lyx2lyx/profiling.py*
+# remove font directory as fonts are in the package latex-xft-fonts
 	rm -r debian/lyx-common/usr/share/lyx/fonts
 
-	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex/lyx
-	mv debian/lyx-common/usr/share/lyx/tex/* \
-		debian/lyx-common/usr/share/texmf/tex/latex/lyx/
-	rmdir debian/lyx-common/usr/share/lyx/tex/
+	mv debian/lyx-common/usr/share/lyx/tex \
+		debian/lyx-common/usr/share/texmf/tex/latex/lyx
+	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx
 
-	ln -s ../../../../lyx/images/lyx.xpm \
-		debian/lyx/usr/share/icons/hicolor/48x48/apps/lyx.xpm
-	cp debian/lyx-32x32.xpm \
-		debian/lyx/usr/share/icons/hicolor/32x32/apps/lyx.xpm
+	dh_link
+	dh_pysupport /usr/share/lyx
+	dh_installtex -plyx-common
 
-	chmod +x debian/lyx-common/usr/share/lyx/scripts/*
-	chmod +x debian/lyx-common/usr/share/lyx/lyx2lyx/lyx2lyx
-
-# remove compiled python files, if any
-	find debian/lyx-common -name '*.pyc' -exec rm {} \;
+# now run the rest of the debhelper commands
+	dh install --after dh_install
 
 binary-indep: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs -i
-	dh_installdocs -i
-	dh_pysupport -i /usr/share/lyx
-	dh_link -i
-	dh_compress -i
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
+	dh binary-indep --before builddeb
 	dh_builddeb -i -- -Z bzip2
 
 binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installmenu -a
-	dh_installmime -a
-	dh_desktop -a
-	dh_icons -a
-	dh_link -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
+	dh binary-arch --before builddeb
 	dh_builddeb -a -- -Z bzip2
 
 binary: binary-indep binary-arch
-
-build-arch: build
-build-indep: build
-
-.PHONY: build build-arch build-indep clean clean1 \
-	binary-indep binary-arch binary install configure

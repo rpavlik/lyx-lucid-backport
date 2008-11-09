@@ -16,90 +16,79 @@
 
 #include "BufferView.h"
 
+#include "BranchList.h"
 #include "Buffer.h"
 #include "buffer_funcs.h"
 #include "BufferList.h"
 #include "BufferParams.h"
-#include "bufferview_funcs.h"
 #include "CoordCache.h"
+#include "Cursor.h"
 #include "CutAndPaste.h"
-#include "debug.h"
 #include "DispatchResult.h"
 #include "ErrorList.h"
 #include "factory.h"
 #include "FloatList.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "gettext.h"
 #include "Intl.h"
 #include "InsetIterator.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
-#include "callback.h" // added for Dispatch functions
 #include "LyX.h"
 #include "lyxfind.h"
 #include "LyXFunc.h"
 #include "Layout.h"
-#include "Text.h"
-#include "TextClass.h"
 #include "LyXRC.h"
-#include "Session.h"
+#include "MetricsInfo.h"
 #include "Paragraph.h"
 #include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
 #include "ParIterator.h"
+#include "Session.h"
+#include "Text.h"
+#include "TextClass.h"
+#include "TextMetrics.h"
 #include "TexRow.h"
-#include "Undo.h"
+#include "TocBackend.h"
 #include "VSpace.h"
 #include "WordLangTuple.h"
-#include "MetricsInfo.h"
 
 #include "insets/InsetBibtex.h"
 #include "insets/InsetCommand.h" // ChangeRefs
+#include "insets/InsetExternal.h"
+#include "insets/InsetGraphics.h"
 #include "insets/InsetRef.h"
 #include "insets/InsetText.h"
+#include "insets/InsetNote.h"
 
 #include "frontends/alert.h"
-#include "frontends/FileDialog.h"
+#include "frontends/Application.h"
+#include "frontends/Delegates.h"
 #include "frontends/FontMetrics.h"
+#include "frontends/Painter.h"
 #include "frontends/Selection.h"
 
 #include "graphics/Previews.h"
 
 #include "support/convert.h"
-#include "support/FileFilterList.h"
+#include "support/debug.h"
+#include "support/ExceptionMessage.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
 #include "support/Package.h"
 #include "support/types.h"
 
-#include <boost/bind.hpp>
-#include <boost/current_function.hpp>
-
+#include <cerrno>
+#include <fstream>
 #include <functional>
+#include <iterator>
 #include <vector>
 
-using std::distance;
-using std::endl;
-using std::istringstream;
-using std::make_pair;
-using std::min;
-using std::max;
-using std::mem_fun_ref;
-using std::string;
-using std::vector;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::addPath;
-using support::bformat;
-using support::FileFilterList;
-using support::FileName;
-using support::fileSearch;
-using support::isDirWriteable;
-using support::isFileReadable;
-using support::makeDisplayPath;
-using support::package;
 
 namespace Alert = frontend::Alert;
 
@@ -107,207 +96,307 @@ namespace {
 
 /// Return an inset of this class if it exists at the current cursor position
 template <class T>
-T * getInsetByCode(Cursor & cur, Inset::Code code)
+T * getInsetByCode(Cursor const & cur, InsetCode code)
 {
-	T * inset = 0;
 	DocIterator it = cur;
-	if (it.nextInset() &&
-	    it.nextInset()->lyxCode() == code) {
-		inset = static_cast<T*>(it.nextInset());
-	}
-	return inset;
+	Inset * inset = it.nextInset();
+	if (inset && inset->lyxCode() == code)
+		return static_cast<T*>(inset);
+	return 0;
 }
+
+
+bool findInset(DocIterator & dit, vector<InsetCode> const & codes,
+	bool same_content);
+
+bool findNextInset(DocIterator & dit, vector<InsetCode> const & codes,
+	docstring const & contents)
+{
+	DocIterator tmpdit = dit;
+
+	while (tmpdit) {
+		Inset const * inset = tmpdit.nextInset();
+		if (inset
+		    && std::find(codes.begin(), codes.end(), inset->lyxCode()) != codes.end()
+		    && (contents.empty() ||
+		    static_cast<InsetCommand const *>(inset)->getFirstNonOptParam() == contents)) {
+			dit = tmpdit;
+			return true;
+		}
+		tmpdit.forwardInset();
+	}
+
+	return false;
+}
+
+
+/// Looks for next inset with one of the given codes.
+bool findInset(DocIterator & dit, vector<InsetCode> const & codes,
+	bool same_content)
+{
+	docstring contents;
+	DocIterator tmpdit = dit;
+	tmpdit.forwardInset();
+	if (!tmpdit)
+		return false;
+
+	if (same_content) {
+		Inset const * inset = tmpdit.nextInset();
+		if (inset
+		    && std::find(codes.begin(), codes.end(), inset->lyxCode()) != codes.end()) {
+			contents = static_cast<InsetCommand const *>(inset)->getFirstNonOptParam();
+		}
+	}
+
+	if (!findNextInset(tmpdit, codes, contents)) {
+		if (dit.depth() != 1 || dit.pit() != 0 || dit.pos() != 0) {
+			tmpdit  = doc_iterator_begin(tmpdit.bottom().inset());
+			if (!findNextInset(tmpdit, codes, contents))
+				return false;
+		} else
+			return false;
+	}
+
+	dit = tmpdit;
+	return true;
+}
+
+
+/// Looks for next inset with the given code
+void findInset(DocIterator & dit, InsetCode code, bool same_content)
+{
+	findInset(dit, vector<InsetCode>(1, code), same_content);
+}
+
+
+/// Moves cursor to the next inset with one of the given codes.
+void gotoInset(BufferView * bv, vector<InsetCode> const & codes,
+	       bool same_content)
+{
+	Cursor tmpcur = bv->cursor();
+	if (!findInset(tmpcur, codes, same_content)) {
+		bv->cursor().message(_("No more insets"));
+		return;
+	}
+
+	tmpcur.clearSelection();
+	bv->setCursor(tmpcur);
+	bv->showCursor();
+}
+
+
+/// Moves cursor to the next inset with given code.
+void gotoInset(BufferView * bv, InsetCode code, bool same_content)
+{
+	gotoInset(bv, vector<InsetCode>(1, code), same_content);
+}
+
+
+/// A map from a Text to the associated text metrics
+typedef map<Text const *, TextMetrics> TextMetricsCache;
+
+enum ScreenUpdateStrategy {
+	NoScreenUpdate,
+	SingleParUpdate,
+	FullScreenUpdate,
+	DecorationUpdate
+};
 
 } // anon namespace
 
 
-BufferView::BufferView()
-	: width_(0), height_(0), buffer_(0), wh_(0),
-	  cursor_(*this),
-	  multiparsel_cache_(false), anchor_ref_(0), offset_ref_(0),
-	  need_centering_(false), intl_(new Intl), last_inset_(0)
+/////////////////////////////////////////////////////////////////////
+//
+// BufferView
+//
+/////////////////////////////////////////////////////////////////////
+
+struct BufferView::Private
 {
-	xsel_cache_.set = false;
-	intl_->initKeyMapper(lyxrc.use_kbmap);
+	Private(BufferView & bv): wh_(0), cursor_(bv),
+		anchor_pit_(0), anchor_ypos_(0),
+		inlineCompletionUniqueChars_(0),
+		last_inset_(0), gui_(0)
+	{}
+
+	///
+	ScrollbarParameters scrollbarParameters_;
+	///
+	ScreenUpdateStrategy update_strategy_;
+	///
+	CoordCache coord_cache_;
+
+	/// Estimated average par height for scrollbar.
+	int wh_;
+	/// this is used to handle XSelection events in the right manner.
+	struct {
+		CursorSlice cursor;
+		CursorSlice anchor;
+		bool set;
+	} xsel_cache_;
+	///
+	Cursor cursor_;
+	///
+	pit_type anchor_pit_;
+	///
+	int anchor_ypos_;
+	///
+	vector<int> par_height_;
+
+	///
+	DocIterator inlineCompletionPos_;
+	///
+	docstring inlineCompletion_;
+	///
+	size_t inlineCompletionUniqueChars_;
+
+	/// keyboard mapping object.
+	Intl intl_;
+
+	/// last visited inset.
+	/** kept to send setMouseHover(false).
+	  * Not owned, so don't delete.
+	  */
+	Inset * last_inset_;
+
+	mutable TextMetricsCache text_metrics_;
+
+	/// Whom to notify.
+	/** Not owned, so don't delete.
+	  */
+	frontend::GuiBufferViewDelegate * gui_;
+
+	/// Cache for Find Next
+	FuncRequest search_request_cache_;
+};
+
+
+BufferView::BufferView(Buffer & buf)
+	: width_(0), height_(0), full_screen_(false), buffer_(buf), d(new Private(*this))
+{
+	d->xsel_cache_.set = false;
+	d->intl_.initKeyMapper(lyxrc.use_kbmap);
+
+	d->cursor_.push(buffer_.inset());
+	d->cursor_.resetAnchor();
+	d->cursor_.setCurrentFont();
+
+	if (graphics::Previews::status() != LyXRC::PREVIEW_OFF)
+		graphics::Previews::get().generateBufferPreviews(buffer_);
 }
 
 
 BufferView::~BufferView()
 {
+	// current buffer is going to be switched-off, save cursor pos
+	// Ideally, the whole cursor stack should be saved, but session
+	// currently can only handle bottom (whole document) level pit and pos.
+	// That is to say, if a cursor is in a nested inset, it will be
+	// restore to the left of the top level inset.
+	LastFilePosSection::FilePos fp;
+	fp.pit = d->cursor_.bottom().pit();
+	fp.pos = d->cursor_.bottom().pos();
+	LyX::ref().session().lastFilePos().save(buffer_.fileName(), fp);
+
+	delete d;
 }
 
 
-Buffer * BufferView::buffer() const
+int BufferView::rightMargin() const
+{
+	// The additional test for the case the outliner is opened.
+	if (!full_screen_ ||
+		!lyxrc.full_screen_limit ||
+		width_ < lyxrc.full_screen_width + 20)
+			return 10;
+
+	return (width_ - lyxrc.full_screen_width) / 2;
+}
+
+
+int BufferView::leftMargin() const
+{
+	return rightMargin();
+}
+
+
+bool BufferView::isTopScreen() const
+{
+	return d->scrollbarParameters_.position == d->scrollbarParameters_.min;
+}
+
+
+bool BufferView::isBottomScreen() const
+{
+	return d->scrollbarParameters_.position == d->scrollbarParameters_.max;
+}
+
+
+Intl & BufferView::getIntl()
+{
+	return d->intl_;
+}
+
+
+Intl const & BufferView::getIntl() const
+{
+	return d->intl_;
+}
+
+
+CoordCache & BufferView::coordCache()
+{
+	return d->coord_cache_;
+}
+
+
+CoordCache const & BufferView::coordCache() const
+{
+	return d->coord_cache_;
+}
+
+
+Buffer & BufferView::buffer()
 {
 	return buffer_;
 }
 
 
-Buffer * BufferView::setBuffer(Buffer * b)
+Buffer const & BufferView::buffer() const
 {
-	LYXERR(Debug::INFO) << BOOST_CURRENT_FUNCTION
-			    << "[ b = " << b << "]" << endl;
-
-	if (buffer_) {
-		// Save the current selection if any
-		cap::saveSelection(cursor_);
-		// Save the actual cursor position and anchor inside the
-		// buffer so that it can be restored in case we rechange
-		// to this buffer later on.
-		buffer_->saveCursor(cursor_.selectionBegin(),
-				    cursor_.selectionEnd());
-		// update bookmark pit of the current buffer before switch
-		for (size_t i = 0; i < LyX::ref().session().bookmarks().size(); ++i) {
-			BookmarksSection::Bookmark const & bm = LyX::ref().session().bookmarks().bookmark(i);
-			if (buffer()->fileName() != bm.filename.absFilename())
-				continue;
-			// if top_id or bottom_pit, bottom_pos has been changed, update bookmark
-			// see http://bugzilla.lyx.org/show_bug.cgi?id=3092
-			pit_type new_pit;
-			pos_type new_pos;
-			int new_id;
-			boost::tie(new_pit, new_pos, new_id) = moveToPosition(bm.bottom_pit, bm.bottom_pos, bm.top_id, bm.top_pos);
-			if (bm.bottom_pit != new_pit || bm.bottom_pos != new_pos || bm.top_id != new_id )
-				const_cast<BookmarksSection::Bookmark &>(bm).updatePos(new_pit, new_pos, new_id);
-		}
-		// current buffer is going to be switched-off, save cursor pos
-		// Ideally, the whole cursor stack should be saved, but session
-		// currently can only handle bottom (whole document) level pit and pos.
-		// That is to say, if a cursor is in a nested inset, it will be
-		// restore to the left of the top level inset.
-		LyX::ref().session().lastFilePos().save(FileName(buffer_->fileName()),
-			boost::tie(cursor_.bottom().pit(), cursor_.bottom().pos()) );
-	}
-
-	// If we're quitting lyx, don't bother updating stuff
-	if (quitting) {
-		buffer_ = 0;
-		return 0;
-	}
-
-	//FIXME Fix for bug 3440 is here.
-	// If we are closing current buffer, switch to the first in
-	// buffer list.
-	if (!b) {
-		LYXERR(Debug::INFO) << BOOST_CURRENT_FUNCTION
-				    << " No Buffer!" << endl;
-		// We are closing the buffer, use the first buffer as current
-		//FIXME 3440
-		// if (last_buffer_) buffer_ = last_buffer_;
-		// also check that this is in theBufferList()?
-		buffer_ = theBufferList().first();
-	} else {
-		//FIXME 3440
-		// last_buffer = buffer_;
-		// Set current buffer
-		buffer_ = b;
-	}
-
-	// Reset old cursor
-	cursor_ = Cursor(*this);
-	anchor_ref_ = 0;
-	offset_ref_ = 0;
-
-	if (!buffer_)
-		return 0;
-
-	LYXERR(Debug::INFO) << BOOST_CURRENT_FUNCTION
-					<< "Buffer addr: " << buffer_ << endl;
-	cursor_.push(buffer_->inset());
-	cursor_.resetAnchor();
-	buffer_->text().setCurrentFont(cursor_);
-
-	// Update the metrics now that we have a proper Cursor.
-	updateMetrics(false);
-
-	// FIXME: This code won't be needed once we switch to
-	// "one Buffer" / "one BufferView".
-	if (buffer_->getCursor().size() > 0 &&
-			buffer_->getAnchor().size() > 0)
-	{
-		cursor_.setCursor(buffer_->getAnchor().asDocIterator(&(buffer_->inset())));
-		cursor_.resetAnchor();
-		cursor_.setCursor(buffer_->getCursor().asDocIterator(&(buffer_->inset())));
-		cursor_.setSelection();
-		// do not set selection to the new buffer because we
-		// only paste recent selection.
-
-		// Make sure that the restored cursor is not broken. This can happen for
-		// example if this Buffer has been modified by another view.
-		cursor_.fixIfBroken();
-
-		if (fitCursor())
-			// Update the metrics if the cursor new position was off screen.
-			updateMetrics(false);
-	}
-
-	if (graphics::Previews::status() != LyXRC::PREVIEW_OFF)
-		graphics::Previews::get().generateBufferPreviews(*buffer_);
 	return buffer_;
-}
-
-
-void BufferView::resize()
-{
-	if (!buffer_)
-		return;
-
-	LYXERR(Debug::DEBUG) << BOOST_CURRENT_FUNCTION << endl;
-
-	updateMetrics(false);
 }
 
 
 bool BufferView::fitCursor()
 {
-	if (bv_funcs::status(this, cursor_) == bv_funcs::CUR_INSIDE) {
+	if (cursorStatus(d->cursor_) == CUR_INSIDE) {
 		frontend::FontMetrics const & fm =
-			theFontMetrics(cursor_.getFont());
+			theFontMetrics(d->cursor_.getFont().fontInfo());
 		int const asc = fm.maxAscent();
 		int const des = fm.maxDescent();
-		Point const p = bv_funcs::getPos(*this, cursor_, cursor_.boundary());
+		Point const p = getPos(d->cursor_, d->cursor_.boundary());
 		if (p.y_ - asc >= 0 && p.y_ + des < height_)
 			return false;
 	}
-	center();
 	return true;
 }
 
 
-bool BufferView::multiParSel()
-{
-	if (!cursor_.selection())
-		return false;
-	bool ret = multiparsel_cache_;
-	multiparsel_cache_ = cursor_.selBegin().pit() != cursor_.selEnd().pit();
-	// Either this, or previous selection spans paragraphs
-	return ret || multiparsel_cache_;
-}
-
-
-bool BufferView::update(Update::flags flags)
+void BufferView::processUpdateFlags(Update::flags flags)
 {
 	// last_inset_ points to the last visited inset. This pointer may become
 	// invalid because of keyboard editing. Since all such operations
 	// causes screen update(), I reset last_inset_ to avoid such a problem.
-	last_inset_ = 0;
+	d->last_inset_ = 0;
 	// This is close to a hot-path.
-	LYXERR(Debug::DEBUG)
-		<< BOOST_CURRENT_FUNCTION
+	LYXERR(Debug::DEBUG, "BufferView::processUpdateFlags()"
 		<< "[fitcursor = " << (flags & Update::FitCursor)
 		<< ", forceupdate = " << (flags & Update::Force)
 		<< ", singlepar = " << (flags & Update::SinglePar)
-		<< "]  buffer: " << buffer_ << endl;
+		<< "]  buffer: " << &buffer_);
 
-	// Check needed to survive LyX startup
-	if (!buffer_)
-		return false;
-
-	LYXERR(Debug::WORKAREA) << "BufferView::update" << std::endl;
-
-	// Update macro store
-	if (!(cursor().inMathed() && cursor().inMacroMode()))
-		buffer_->buildMacros();
+	buffer_.updateMacros();
 
 	// Now do the first drawing step if needed. This consists on updating
 	// the CoordCache in updateMetrics().
@@ -316,175 +405,226 @@ bool BufferView::update(Update::flags flags)
 	// Case when no explicit update is requested.
 	if (!flags) {
 		// no need to redraw anything.
-		metrics_info_.update_strategy = NoScreenUpdate;
-		return false;
+		d->update_strategy_ = NoScreenUpdate;
+		return;
 	}
 
 	if (flags == Update::Decoration) {
-		metrics_info_.update_strategy = DecorationUpdate;
-		return true;
+		d->update_strategy_ = DecorationUpdate;
+		buffer_.changed();
+		return;
 	}
 
 	if (flags == Update::FitCursor
 		|| flags == (Update::Decoration | Update::FitCursor)) {
-		bool const fit_cursor = fitCursor();
 		// tell the frontend to update the screen if needed.
-		if (fit_cursor) {
-			updateMetrics(false);
-			return true;
+		if (fitCursor()) {
+			showCursor();
+			return;
 		}
 		if (flags & Update::Decoration) {
-			metrics_info_.update_strategy = DecorationUpdate;
-			return true;
+			d->update_strategy_ = DecorationUpdate;
+			buffer_.changed();
+			return;
 		}
 		// no screen update is needed.
-		metrics_info_.update_strategy = NoScreenUpdate;
-		return false;
+		d->update_strategy_ = NoScreenUpdate;
+		return;
 	}
 
-	bool full_metrics = flags & Update::Force;
-	if (flags & Update::MultiParSel)
-		full_metrics |= multiParSel();
+	bool const full_metrics = flags & Update::Force || !singleParUpdate();
 
-	bool const single_par = !full_metrics;
-	updateMetrics(single_par);
+	if (full_metrics)
+		// We have to update the full screen metrics.
+		updateMetrics();
 
-	if (flags & Update::FitCursor && fitCursor())
-		updateMetrics(false);
+	if (!(flags & Update::FitCursor)) {
+		// Nothing to do anymore. Trigger a redraw and return
+		buffer_.changed();
+		return;
+	}
 
-	// tell the frontend to update the screen.
-	return true;
+	// updateMetrics() does not update paragraph position
+	// This is done at draw() time. So we need a redraw!
+	buffer_.changed();
+
+	if (fitCursor()) {
+		// The cursor is off screen so ensure it is visible.
+		// refresh it:
+		showCursor();
+	}
 }
 
 
 void BufferView::updateScrollbar()
 {
-	if (!buffer_) {
-		LYXERR(Debug::DEBUG) << BOOST_CURRENT_FUNCTION
-				     << " no text in updateScrollbar" << endl;
-		scrollbarParameters_.reset();
+	if (height_ == 0 && width_ == 0)
+		return;
+
+	// We prefer fixed size line scrolling.
+	d->scrollbarParameters_.single_step = defaultRowHeight();
+	// We prefer full screen page scrolling.
+	d->scrollbarParameters_.page_step = height_;
+
+	Text & t = buffer_.text();
+	TextMetrics & tm = d->text_metrics_[&t];		
+
+	LYXERR(Debug::GUI, " Updating scrollbar: height: "
+		<< t.paragraphs().size()
+		<< " curr par: " << d->cursor_.bottom().pit()
+		<< " default height " << defaultRowHeight());
+
+	size_t const parsize = t.paragraphs().size();
+	if (d->par_height_.size() != parsize) {
+		d->par_height_.clear();
+		// FIXME: We assume a default paragraph height of 2 rows. This
+		// should probably be pondered with the screen width.
+		d->par_height_.resize(parsize, defaultRowHeight() * 2);
+	}
+
+	// Look at paragraph heights on-screen
+	pair<pit_type, ParagraphMetrics const *> first = tm.first();
+	pair<pit_type, ParagraphMetrics const *> last = tm.last();
+	for (pit_type pit = first.first; pit <= last.first; ++pit) {
+		d->par_height_[pit] = tm.parMetrics(pit).height();
+		LYXERR(Debug::SCROLLING, "storing height for pit " << pit << " : "
+			<< d->par_height_[pit]);
+	}
+
+	int top_pos = first.second->position() - first.second->ascent();
+	int bottom_pos = last.second->position() + last.second->descent();
+	bool first_visible = first.first == 0 && top_pos >= 0;
+	bool last_visible = last.first + 1 == int(parsize) && bottom_pos <= height_;
+	if (first_visible && last_visible) {
+		d->scrollbarParameters_.min = 0;
+		d->scrollbarParameters_.max = 0;
 		return;
 	}
 
-	Text & t = buffer_->text();
-	TextMetrics & tm = text_metrics_[&t];
+	d->scrollbarParameters_.min = top_pos;
+	for (size_t i = 0; i != size_t(first.first); ++i)
+		d->scrollbarParameters_.min -= d->par_height_[i];
+	d->scrollbarParameters_.max = bottom_pos;
+	for (size_t i = last.first + 1; i != parsize; ++i)
+		d->scrollbarParameters_.max += d->par_height_[i];
 
-	int const parsize = int(t.paragraphs().size() - 1);
-	if (anchor_ref_ >  parsize)  {
-		anchor_ref_ = parsize;
-		offset_ref_ = 0;
-	}
-
-	LYXERR(Debug::GUI)
-		<< BOOST_CURRENT_FUNCTION
-		<< " Updating scrollbar: height: " << t.paragraphs().size()
-		<< " curr par: " << cursor_.bottom().pit()
-		<< " default height " << defaultRowHeight() << endl;
-
-	// It would be better to fix the scrollbar to understand
-	// values in [0..1] and divide everything by wh
-
-	// estimated average paragraph height:
-	if (wh_ == 0)
-		wh_ = height_ / 4;
-
-	int h = tm.parMetrics(anchor_ref_).height();
-
-	// Normalize anchor/offset (MV):
-	while (offset_ref_ > h && anchor_ref_ < parsize) {
-		anchor_ref_++;
-		offset_ref_ -= h;
-		h = tm.parMetrics(anchor_ref_).height();
-	}
-	// Look at paragraph heights on-screen
-	int sumh = 0;
-	int nh = 0;
-	for (pit_type pit = anchor_ref_; pit <= parsize; ++pit) {
-		if (sumh > height_)
-			break;
-		int const h2 = tm.parMetrics(pit).height();
-		sumh += h2;
-		nh++;
-	}
-
-	BOOST_ASSERT(nh);
-	int const hav = sumh / nh;
-	// More realistic average paragraph height
-	if (hav > wh_)
-		wh_ = hav;
-
-	BOOST_ASSERT(h);
-	scrollbarParameters_.height = (parsize + 1) * wh_;
-	scrollbarParameters_.position = anchor_ref_ * wh_ + int(offset_ref_ * wh_ / float(h));
-	scrollbarParameters_.lineScrollHeight = int(wh_ * defaultRowHeight() / float(h));
+	d->scrollbarParameters_.position = 0;
+	// The reference is the top position so we remove one page.
+	d->scrollbarParameters_.max -= d->scrollbarParameters_.page_step;
 }
 
 
 ScrollbarParameters const & BufferView::scrollbarParameters() const
 {
-	return scrollbarParameters_;
+	return d->scrollbarParameters_;
+}
+
+
+docstring BufferView::toolTip(int x, int y) const
+{
+	// Get inset under mouse, if there is one.
+	Inset const * covering_inset = getCoveringInset(buffer_.text(), x, y);
+	if (!covering_inset)
+		// No inset, no tooltip...
+		return docstring();
+	return covering_inset->toolTip(*this, x, y);
+}
+
+
+docstring BufferView::contextMenu(int x, int y) const
+{
+	// Get inset under mouse, if there is one.
+	Inset const * covering_inset = getCoveringInset(buffer_.text(), x, y);
+	if (covering_inset)
+		return covering_inset->contextMenu(*this, x, y);
+
+	return buffer_.inset().contextMenu(*this, x, y);
 }
 
 
 void BufferView::scrollDocView(int value)
 {
-	LYXERR(Debug::GUI) << BOOST_CURRENT_FUNCTION
-			   << "[ value = " << value << "]" << endl;
-
-	if (!buffer_)
+	int const offset = value - d->scrollbarParameters_.position;
+	// If the offset is less than 2 screen height, prefer to scroll instead.
+	if (abs(offset) <= 2 * height_) {
+		scroll(offset);
+		updateMetrics();
+		buffer_.changed();
 		return;
+	}
 
-	Text & t = buffer_->text();
-	TextMetrics & tm = text_metrics_[&t];
+	// cut off at the top
+	if (value <= d->scrollbarParameters_.min) {
+		DocIterator dit = doc_iterator_begin(buffer_.inset());
+		showCursor(dit);
+		LYXERR(Debug::SCROLLING, "scroll to top");
+		return;
+	}
 
-	float const bar = value / float(wh_ * t.paragraphs().size());
+	// cut off at the bottom
+	if (value >= d->scrollbarParameters_.max) {
+		DocIterator dit = doc_iterator_end(buffer_.inset());
+		dit.backwardPos();
+		showCursor(dit);
+		LYXERR(Debug::SCROLLING, "scroll to bottom");
+		return;
+	}
 
-	anchor_ref_ = int(bar * t.paragraphs().size());
-	if (anchor_ref_ >  int(t.paragraphs().size()) - 1)
-		anchor_ref_ = int(t.paragraphs().size()) - 1;
+	// find paragraph at target position
+	int par_pos = d->scrollbarParameters_.min;
+	pit_type i = 0;
+	for (; i != int(d->par_height_.size()); ++i) {
+		par_pos += d->par_height_[i];
+		if (par_pos >= value)
+			break;
+	}
 
-	tm.redoParagraph(anchor_ref_);
-	int const h = tm.parMetrics(anchor_ref_).height();
-	offset_ref_ = int((bar * t.paragraphs().size() - anchor_ref_) * h);
-	updateMetrics(false);
+	if (par_pos < value) {
+		// It seems we didn't find the correct pit so stay on the safe side and
+		// scroll to bottom.
+		LYXERR0("scrolling position not found!");
+		scrollDocView(d->scrollbarParameters_.max);
+		return;
+	}
+
+	DocIterator dit = doc_iterator_begin(buffer_.inset());
+	dit.pit() = i;
+	LYXERR(Debug::SCROLLING, "value = " << value << " -> scroll to pit " << i);
+	showCursor(dit);
 }
 
 
+// FIXME: this method is not working well.
 void BufferView::setCursorFromScrollbar()
 {
-	if (!buffer_)
-		return;
-
-	Text & t = buffer_->text();
+	TextMetrics & tm = d->text_metrics_[&buffer_.text()];
 
 	int const height = 2 * defaultRowHeight();
 	int const first = height;
 	int const last = height_ - height;
-	Cursor & cur = cursor_;
+	Cursor & cur = d->cursor_;
 
-	bv_funcs::CurStatus st = bv_funcs::status(this, cur);
-
-	switch (st) {
-	case bv_funcs::CUR_ABOVE:
-		// We reset the cursor because bv_funcs::status() does not
+	switch (cursorStatus(cur)) {
+	case CUR_ABOVE:
+		// We reset the cursor because cursorStatus() does not
 		// work when the cursor is within mathed.
-		cur.reset(buffer_->inset());
-		t.setCursorFromCoordinates(cur, 0, first);
+		cur.reset(buffer_.inset());
+		tm.setCursorFromCoordinates(cur, 0, first);
 		cur.clearSelection();
 		break;
-	case bv_funcs::CUR_BELOW:
-		// We reset the cursor because bv_funcs::status() does not
+	case CUR_BELOW:
+		// We reset the cursor because cursorStatus() does not
 		// work when the cursor is within mathed.
-		cur.reset(buffer_->inset());
-		t.setCursorFromCoordinates(cur, 0, last);
+		cur.reset(buffer_.inset());
+		tm.setCursorFromCoordinates(cur, 0, last);
 		cur.clearSelection();
 		break;
-	case bv_funcs::CUR_INSIDE:
-		int const y = bv_funcs::getPos(*this, cur, cur.boundary()).y_;
+	case CUR_INSIDE:
+		int const y = getPos(cur, cur.boundary()).y_;
 		int const newy = min(last, max(y, first));
 		if (y != newy) {
-			cur.reset(buffer_->inset());
-			t.setCursorFromCoordinates(cur, 0, newy);
+			cur.reset(buffer_.inset());
+			tm.setCursorFromCoordinates(cur, 0, newy);
 		}
 	}
 }
@@ -492,11 +632,24 @@ void BufferView::setCursorFromScrollbar()
 
 Change const BufferView::getCurrentChange() const
 {
-	if (!cursor_.selection())
+	if (!d->cursor_.selection())
 		return Change(Change::UNCHANGED);
 
-	DocIterator dit = cursor_.selectionBegin();
+	DocIterator dit = d->cursor_.selectionBegin();
 	return dit.paragraph().lookupChange(dit.pos());
+}
+
+
+// this could be used elsewhere as well?
+// FIXME: This does not work within mathed!
+CursorStatus BufferView::cursorStatus(DocIterator const & dit) const
+{
+	Point const p = getPos(dit, dit.boundary());
+	if (p.y_ < 0)
+		return CUR_ABOVE;
+	if (p.y_ > workHeight())
+		return CUR_BELOW;
+	return CUR_INSIDE;
 }
 
 
@@ -507,11 +660,11 @@ void BufferView::saveBookmark(unsigned int idx)
 	// pit and pos will be updated with bottom level pit/pos
 	// when lyx exits.
 	LyX::ref().session().bookmarks().save(
-		FileName(buffer_->fileName()),
-		cursor_.bottom().pit(),
-		cursor_.bottom().pos(),
-		cursor_.paragraph().id(),
-		cursor_.pos(),
+		buffer_.fileName(),
+		d->cursor_.bottom().pit(),
+		d->cursor_.bottom().pos(),
+		d->cursor_.paragraph().id(),
+		d->cursor_.pos(),
 		idx
 	);
 	if (idx)
@@ -520,18 +673,21 @@ void BufferView::saveBookmark(unsigned int idx)
 }
 
 
-boost::tuple<pit_type, pos_type, int> BufferView::moveToPosition(pit_type bottom_pit, pos_type bottom_pos,
+bool BufferView::moveToPosition(pit_type bottom_pit, pos_type bottom_pos,
 	int top_id, pos_type top_pos)
 {
-	cursor_.clearSelection();
+	bool success = false;
+	DocIterator dit;
+
+	d->cursor_.clearSelection();
 
 	// if a valid par_id is given, try it first
 	// This is the case for a 'live' bookmark when unique paragraph ID
 	// is used to track bookmarks.
 	if (top_id > 0) {
-		ParIterator par = buffer_->getParFromID(top_id);
-		if (par != buffer_->par_iterator_end()) {
-			DocIterator dit = makeDocIterator(par, min(par->size(), top_pos));
+		dit = buffer_.getParFromID(top_id);
+		if (!dit.atEnd()) {
+			dit.pos() = min(dit.paragraph().size(), top_pos);
 			// Some slices of the iterator may not be
 			// reachable (e.g. closed collapsable inset)
 			// so the dociterator may need to be
@@ -544,45 +700,54 @@ boost::tuple<pit_type, pos_type, int> BufferView::moveToPosition(pit_type bottom
 					dit.resize(i);
 					break;
 				}
-			setCursor(dit);
-			cursor_.text()->setCurrentFont(cursor_);
-			// Note: return bottom (document) level pit.
-			return boost::make_tuple(cursor_.bottom().pit(), cursor_.bottom().pos(), top_id);
+			success = true;
 		}
 	}
+
 	// if top_id == 0, or searching through top_id failed
 	// This is the case for a 'restored' bookmark when only bottom
 	// (document level) pit was saved. Because of this, bookmark
 	// restoration is inaccurate. If a bookmark was within an inset,
 	// it will be restored to the left of the outmost inset that contains
 	// the bookmark.
-	if (static_cast<size_t>(bottom_pit) < buffer_->paragraphs().size()) {
-		DocIterator it = doc_iterator_begin(buffer_->inset());
-		it.pit() = bottom_pit;
-		it.pos() = min(bottom_pos, it.paragraph().size());
-		setCursor(it);
-		cursor_.text()->setCurrentFont(cursor_);
-		return boost::make_tuple(it.pit(), it.pos(),
-					 it.paragraph().id());
+	if (bottom_pit < int(buffer_.paragraphs().size())) {
+		dit = doc_iterator_begin(buffer_.inset());
+				
+		dit.pit() = bottom_pit;
+		dit.pos() = min(bottom_pos, dit.paragraph().size());
+		success = true;
 	}
-	// both methods fail
-	return boost::make_tuple(pit_type(0), pos_type(0), 0);
+
+	if (success) {
+		// Note: only bottom (document) level pit is set.
+		setCursor(dit);
+		// set the current font.
+		d->cursor_.setCurrentFont();
+		// To center the screen on this new position we need the
+		// paragraph position which is computed at draw() time.
+		// So we need a redraw!
+		buffer_.changed();
+		if (fitCursor())
+			showCursor();
+	}
+
+	return success;
 }
 
 
 void BufferView::translateAndInsert(char_type c, Text * t, Cursor & cur)
 {
 	if (lyxrc.rtl_support) {
-		if (cursor_.innerText()->real_current_font.isRightToLeft()) {
-			if (intl_->keymap == Intl::PRIMARY)
-				intl_->keyMapSec();
+		if (d->cursor_.real_current_font.isRightToLeft()) {
+			if (d->intl_.keymap == Intl::PRIMARY)
+				d->intl_.keyMapSec();
 		} else {
-			if (intl_->keymap == Intl::SECONDARY)
-				intl_->keyMapPrim();
+			if (d->intl_.keymap == Intl::SECONDARY)
+				d->intl_.keyMapPrim();
 		}
 	}
-	
-	intl_->getTransManager().translateAndInsert(c, t, cur);
+
+	d->intl_.getTransManager().translateAndInsert(c, t, cur);
 }
 
 
@@ -592,31 +757,82 @@ int BufferView::workWidth() const
 }
 
 
-void BufferView::updateOffsetRef()
+void BufferView::showCursor()
 {
-	// No need to update offset_ref_ in this case.
-	if (!need_centering_)
-		return;
+	showCursor(d->cursor_);
+}
 
+
+void BufferView::showCursor(DocIterator const & dit)
+{
 	// We are not properly started yet, delay until resizing is
 	// done.
 	if (height_ == 0)
 		return;
 
-	CursorSlice & bot = cursor_.bottom();
-	TextMetrics & tm = text_metrics_[bot.text()];
-	ParagraphMetrics const & pm = tm.parMetrics(bot.pit());
-	Point p = bv_funcs::coordOffset(*this, cursor_, cursor_.boundary());
-	offset_ref_ = p.y_ + pm.ascent() - height_ / 2;
+	LYXERR(Debug::SCROLLING, "recentering!");
 
-	need_centering_ = false;
-}
+	CursorSlice const & bot = dit.bottom();
+	TextMetrics & tm = d->text_metrics_[bot.text()];
 
+	pos_type const max_pit = pos_type(bot.text()->paragraphs().size() - 1);
+	int bot_pit = bot.pit();
+	if (bot_pit > max_pit) {
+		// FIXME: Why does this happen?
+		LYXERR0("bottom pit is greater that max pit: "
+			<< bot_pit << " > " << max_pit);
+		bot_pit = max_pit;
+	}
 
-void BufferView::center()
-{
-	anchor_ref_ = cursor_.bottom().pit();
-	need_centering_ = true;
+	if (bot_pit == tm.first().first - 1)
+		tm.newParMetricsUp();
+	else if (bot_pit == tm.last().first + 1)
+		tm.newParMetricsDown();
+
+	if (tm.contains(bot_pit)) {
+		ParagraphMetrics const & pm = tm.parMetrics(bot_pit);
+		LASSERT(!pm.rows().empty(), /**/);
+		// FIXME: smooth scrolling doesn't work in mathed.
+		CursorSlice const & cs = dit.innerTextSlice();
+		int offset = coordOffset(dit, dit.boundary()).y_;
+		int ypos = pm.position() + offset;
+		Dimension const & row_dim =
+			pm.getRow(cs.pos(), dit.boundary()).dimension();
+		int scrolled = 0;
+		if (ypos - row_dim.ascent() < 0)
+			scrolled = scrollUp(- ypos + row_dim.ascent());
+		else if (ypos + row_dim.descent() > height_)
+			scrolled = scrollDown(ypos - height_ + row_dim.descent());
+		// else, nothing to do, the cursor is already visible so we just return.
+		if (scrolled != 0) {
+			updateMetrics();
+			buffer_.changed();
+		}
+		return;
+	}
+
+	// fix inline completion position
+	if (d->inlineCompletionPos_.fixIfBroken())
+		d->inlineCompletionPos_ = DocIterator();
+
+	tm.redoParagraph(bot_pit);
+	ParagraphMetrics const & pm = tm.parMetrics(bot_pit);
+	int offset = coordOffset(dit, dit.boundary()).y_;
+
+	d->anchor_pit_ = bot_pit;
+	CursorSlice const & cs = dit.innerTextSlice();
+	Dimension const & row_dim =
+		pm.getRow(cs.pos(), dit.boundary()).dimension();
+
+	if (d->anchor_pit_ == 0)
+		d->anchor_ypos_ = offset + pm.ascent();
+	else if (d->anchor_pit_ == max_pit)
+		d->anchor_ypos_ = height_ - offset - row_dim.descent();
+	else
+		d->anchor_ypos_ = defaultRowHeight() * 2 - offset - row_dim.descent();
+
+	updateMetrics();
+	buffer_.changed();
 }
 
 
@@ -624,25 +840,27 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 {
 	FuncStatus flag;
 
-	Cursor & cur = cursor_;
+	Cursor & cur = d->cursor_;
 
 	switch (cmd.action) {
 
 	case LFUN_UNDO:
-		flag.enabled(!buffer_->undostack().empty());
+		flag.setEnabled(buffer_.undo().hasUndoStack());
 		break;
 	case LFUN_REDO:
-		flag.enabled(!buffer_->redostack().empty());
+		flag.setEnabled(buffer_.undo().hasRedoStack());
 		break;
 	case LFUN_FILE_INSERT:
 	case LFUN_FILE_INSERT_PLAINTEXT_PARA:
 	case LFUN_FILE_INSERT_PLAINTEXT:
 	case LFUN_BOOKMARK_SAVE:
 		// FIXME: Actually, these LFUNS should be moved to Text
-		flag.enabled(cur.inTexted());
+		flag.setEnabled(cur.inTexted());
 		break;
 	case LFUN_FONT_STATE:
 	case LFUN_LABEL_INSERT:
+	case LFUN_INFO_INSERT:
+	case LFUN_INSET_EDIT:
 	case LFUN_PARAGRAPH_GOTO:
 	case LFUN_NOTE_NEXT:
 	case LFUN_REFERENCE_NEXT:
@@ -654,25 +872,41 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 	case LFUN_SCREEN_RECENTER:
 	case LFUN_BIBTEX_DATABASE_ADD:
 	case LFUN_BIBTEX_DATABASE_DEL:
-	case LFUN_WORDS_COUNT:
-	case LFUN_NEXT_INSET_TOGGLE:
-		flag.enabled(true);
+	case LFUN_GRAPHICS_GROUPS_UNIFY:
+	case LFUN_NOTES_MUTATE:
+	case LFUN_ALL_INSETS_TOGGLE:
+	case LFUN_STATISTICS:
+		flag.setEnabled(true);
 		break;
 
+	case LFUN_NEXT_INSET_TOGGLE: 
+	case LFUN_NEXT_INSET_MODIFY: {
+		// this is the real function we want to invoke
+		FuncRequest tmpcmd = cmd;
+		tmpcmd.action = (cmd.action == LFUN_NEXT_INSET_TOGGLE) 
+			? LFUN_INSET_TOGGLE : LFUN_INSET_MODIFY;
+		// if there is an inset at cursor, see whether it
+		// handles the lfun, other start from scratch
+		Inset * inset = cur.nextInset();
+		if (!inset || !inset->getStatus(cur, tmpcmd, flag))
+			flag = lyx::getStatus(tmpcmd);
+		break;
+	}
+
 	case LFUN_LABEL_GOTO: {
-		flag.enabled(!cmd.argument().empty()
-		    || getInsetByCode<InsetRef>(cur, Inset::REF_CODE));
+		flag.setEnabled(!cmd.argument().empty()
+		    || getInsetByCode<InsetRef>(cur, REF_CODE));
 		break;
 	}
 
 	case LFUN_CHANGES_TRACK:
-		flag.enabled(true);
-		flag.setOnOff(buffer_->params().trackChanges);
+		flag.setEnabled(true);
+		flag.setOnOff(buffer_.params().trackChanges);
 		break;
 
 	case LFUN_CHANGES_OUTPUT:
-		flag.enabled(buffer_);
-		flag.setOnOff(buffer_->params().outputChanges);
+		flag.setEnabled(true);
+		flag.setOnOff(buffer_.params().outputChanges);
 		break;
 
 	case LFUN_CHANGES_MERGE:
@@ -683,77 +917,122 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 		// In principle, these command should only be enabled if there
 		// is a change in the document. However, without proper
 		// optimizations, this will inevitably result in poor performance.
-		flag.enabled(buffer_);
+		flag.setEnabled(true);
 		break;
 
 	case LFUN_BUFFER_TOGGLE_COMPRESSION: {
-		flag.setOnOff(buffer_->params().compressed);
+		flag.setOnOff(buffer_.params().compressed);
+		break;
+	}
+	
+	case LFUN_SCREEN_UP:
+	case LFUN_SCREEN_DOWN:
+	case LFUN_SCROLL:
+	case LFUN_SCREEN_UP_SELECT:
+	case LFUN_SCREEN_DOWN_SELECT:
+		flag.setEnabled(true);
+		break;
+
+	case LFUN_LAYOUT_TABULAR:
+		flag.setEnabled(cur.innerInsetOfType(TABULAR_CODE));
+		break;
+
+	case LFUN_LAYOUT:
+		flag.setEnabled(!cur.inset().forcePlainLayout(cur.idx()));
+		break;
+
+	case LFUN_LAYOUT_PARAGRAPH:
+		flag.setEnabled(cur.inset().allowParagraphCustomization(cur.idx()));
+		break;
+
+	case LFUN_INSET_SETTINGS: {
+		InsetCode code = cur.inset().lyxCode();
+		if (cmd.getArg(0) == insetName(code)) {
+			flag.setEnabled(true);
+			break;
+		}
+		bool enable = false;
+		InsetCode next_code = cur.nextInset()
+			? cur.nextInset()->lyxCode() : NO_CODE;
+		//FIXME: remove these special cases:
+		switch (next_code) {
+			case TABULAR_CODE:
+			case ERT_CODE:
+			case FLOAT_CODE:
+			case WRAP_CODE:
+			case NOTE_CODE:
+			case BRANCH_CODE:
+			case BOX_CODE:
+			case LISTINGS_CODE:
+				enable = (cmd.argument().empty() ||
+					  cmd.getArg(0) == insetName(next_code));
+				break;
+			default:
+				break;
+		}
+		flag.setEnabled(enable);
+		break;
+	}
+
+	case LFUN_DIALOG_SHOW_NEW_INSET:
+		flag.setEnabled(cur.inset().lyxCode() != ERT_CODE &&
+			cur.inset().lyxCode() != LISTINGS_CODE);
+		if (cur.inset().lyxCode() == CAPTION_CODE) {
+			FuncStatus flag;
+			if (cur.inset().getStatus(cur, cmd, flag))
+				return flag;
+		}
+		break;
+
+	case LFUN_BRANCH_ACTIVATE: 
+	case LFUN_BRANCH_DEACTIVATE: {
+		bool enable = false;
+		docstring const branchName = cmd.argument();
+		if (!branchName.empty())
+			enable = buffer_.params().branchlist().find(branchName);
+		flag.setEnabled(enable);
 		break;
 	}
 
 	default:
-		flag.enabled(false);
+		flag.setEnabled(false);
 	}
 
 	return flag;
 }
 
 
-Update::flags BufferView::dispatch(FuncRequest const & cmd)
+bool BufferView::dispatch(FuncRequest const & cmd)
 {
-	//lyxerr << BOOST_CURRENT_FUNCTION
-	//       << [ cmd = " << cmd << "]" << endl;
+	//lyxerr << [ cmd = " << cmd << "]" << endl;
 
 	// Make sure that the cached BufferView is correct.
-	LYXERR(Debug::ACTION) << BOOST_CURRENT_FUNCTION
-		<< " action[" << cmd.action << ']'
+	LYXERR(Debug::ACTION, " action[" << cmd.action << ']'
 		<< " arg[" << to_utf8(cmd.argument()) << ']'
 		<< " x[" << cmd.x << ']'
 		<< " y[" << cmd.y << ']'
-		<< " button[" << cmd.button() << ']'
-		<< endl;
+		<< " button[" << cmd.button() << ']');
 
-	// FIXME: this should not be possible.
-	if (!buffer_)
-		return Update::None;
-
-	Cursor & cur = cursor_;
-	// Default Update flags.
-	Update::flags updateFlags = Update::Force | Update::FitCursor;
+	Cursor & cur = d->cursor_;
 
 	switch (cmd.action) {
 
 	case LFUN_UNDO:
 		cur.message(_("Undo"));
 		cur.clearSelection();
-		if (!textUndo(*this)) {
+		if (!cur.textUndo())
 			cur.message(_("No further undo information"));
-			updateFlags = Update::None;
-		}
+		else
+			processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
 	case LFUN_REDO:
 		cur.message(_("Redo"));
 		cur.clearSelection();
-		if (!textRedo(*this)) {
+		if (!cur.textRedo())
 			cur.message(_("No further redo information"));
-			updateFlags = Update::None;
-		}
-		break;
-
-	case LFUN_FILE_INSERT:
-		// FIXME UNICODE
-		menuInsertLyXFile(to_utf8(cmd.argument()));
-		break;
-
-	case LFUN_FILE_INSERT_PLAINTEXT_PARA:
-		// FIXME UNICODE
-		insertPlaintextFile(this, to_utf8(cmd.argument()), true);
-		break;
-
-	case LFUN_FILE_INSERT_PLAINTEXT:
-		// FIXME UNICODE
-		insertPlaintextFile(this, to_utf8(cmd.argument()), false);
+		else
+			processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
 	case LFUN_FONT_STATE:
@@ -768,8 +1047,8 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 		docstring label = cmd.argument();
 		if (label.empty()) {
 			InsetRef * inset =
-				getInsetByCode<InsetRef>(cursor_,
-							 Inset::REF_CODE);
+				getInsetByCode<InsetRef>(d->cursor_,
+							 REF_CODE);
 			if (inset) {
 				label = inset->getParam("reference");
 				// persistent=false: use temp_bookmark
@@ -781,58 +1060,75 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 			gotoLabel(label);
 		break;
 	}
+	
+	case LFUN_INSET_EDIT: {
+		FuncRequest fr(cmd);
+		// if there is an inset at cursor, see whether it
+		// can be modified.
+		Inset * inset = cur.nextInset();
+		if (inset)
+			inset->dispatch(cur, fr);
+		// if it did not work, try the underlying inset.
+		if (!inset || !cur.result().dispatched())
+			cur.dispatch(cmd);
+
+		if (!cur.result().dispatched())
+			// It did not work too; no action needed.
+			break;
+	}
 
 	case LFUN_PARAGRAPH_GOTO: {
-		int const id = convert<int>(to_utf8(cmd.argument()));
+		int const id = convert<int>(cmd.getArg(0));
+		int const pos = convert<int>(cmd.getArg(1));
 		int i = 0;
-		for (Buffer * b = buffer_; i == 0 || b != buffer_; b = theBufferList().next(b)) {
-			ParIterator par = b->getParFromID(id);
-			if (par == b->par_iterator_end()) {
-				LYXERR(Debug::INFO)
-					<< "No matching paragraph found! ["
-					<< id << "]." << endl;
-			} else {
-				LYXERR(Debug::INFO)
-					<< "Paragraph " << par->id()
-					<< " found in buffer `"
-					<< b->fileName() << "'." << endl;
+		for (Buffer * b = &buffer_; i == 0 || b != &buffer_;
+			b = theBufferList().next(b)) {
 
-				if (b == buffer_) {
-					// Set the cursor
-					setCursor(makeDocIterator(par, 0));
-				} else {
-					// Switch to other buffer view and resend cmd
-					theLyXFunc().dispatch(FuncRequest(
-						LFUN_BUFFER_SWITCH, b->fileName()));
-					theLyXFunc().dispatch(cmd);
-					updateFlags = Update::None;
-				}
-				break;
+			DocIterator dit = b->getParFromID(id);
+			if (dit.atEnd()) {
+				LYXERR(Debug::INFO, "No matching paragraph found! [" << id << "].");
+				++i;
+				continue;
 			}
-			++i;
+			LYXERR(Debug::INFO, "Paragraph " << dit.paragraph().id()
+				<< " found in buffer `"
+				<< b->absFileName() << "'.");
+
+			if (b == &buffer_) {
+				// Set the cursor
+				dit.pos() = pos;
+				setCursor(dit);
+				processUpdateFlags(Update::Force | Update::FitCursor);
+			} else {
+				// Switch to other buffer view and resend cmd
+				theLyXFunc().dispatch(FuncRequest(
+					LFUN_BUFFER_SWITCH, b->absFileName()));
+				theLyXFunc().dispatch(cmd);
+			}
+			break;
 		}
 		break;
 	}
 
 	case LFUN_NOTE_NEXT:
-		bv_funcs::gotoInset(this, Inset::NOTE_CODE, false);
+		gotoInset(this, NOTE_CODE, false);
 		break;
 
 	case LFUN_REFERENCE_NEXT: {
-		vector<Inset_code> tmp;
-		tmp.push_back(Inset::LABEL_CODE);
-		tmp.push_back(Inset::REF_CODE);
-		bv_funcs::gotoInset(this, tmp, true);
+		vector<InsetCode> tmp;
+		tmp.push_back(LABEL_CODE);
+		tmp.push_back(REF_CODE);
+		gotoInset(this, tmp, true);
 		break;
 	}
 
 	case LFUN_CHANGES_TRACK:
-		buffer_->params().trackChanges = !buffer_->params().trackChanges;
+		buffer_.params().trackChanges = !buffer_.params().trackChanges;
 		break;
 
 	case LFUN_CHANGES_OUTPUT:
-		buffer_->params().outputChanges = !buffer_->params().outputChanges;
-		if (buffer_->params().outputChanges) {
+		buffer_.params().outputChanges = !buffer_.params().outputChanges;
+		if (buffer_.params().outputChanges) {
 			bool dvipost    = LaTeXFeatures::isAvailable("dvipost");
 			bool xcolorsoul = LaTeXFeatures::isAvailable("soul") &&
 					  LaTeXFeatures::isAvailable("xcolor");
@@ -864,26 +1160,38 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 
 	case LFUN_ALL_CHANGES_ACCEPT:
 		// select complete document
-		cursor_.reset(buffer_->inset());
-		cursor_.selHandle(true);
-		buffer_->text().cursorBottom(cursor_);
+		d->cursor_.reset(buffer_.inset());
+		d->cursor_.selHandle(true);
+		buffer_.text().cursorBottom(d->cursor_);
 		// accept everything in a single step to support atomic undo
-		buffer_->text().acceptOrRejectChanges(cursor_, Text::ACCEPT);
+		buffer_.text().acceptOrRejectChanges(d->cursor_, Text::ACCEPT);
+		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
+		processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
 	case LFUN_ALL_CHANGES_REJECT:
 		// select complete document
-		cursor_.reset(buffer_->inset());
-		cursor_.selHandle(true);
-		buffer_->text().cursorBottom(cursor_);
+		d->cursor_.reset(buffer_.inset());
+		d->cursor_.selHandle(true);
+		buffer_.text().cursorBottom(d->cursor_);
 		// reject everything in a single step to support atomic undo
 		// Note: reject does not work recursively; the user may have to repeat the operation
-		buffer_->text().acceptOrRejectChanges(cursor_, Text::REJECT);
+		buffer_.text().acceptOrRejectChanges(d->cursor_, Text::REJECT);
+		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
+		processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
-	case LFUN_WORD_FIND:
-		find(this, cmd);
+	case LFUN_WORD_FIND: {
+		FuncRequest req = cmd;
+		if (cmd.argument().empty() && !d->search_request_cache_.argument().empty())
+			req = d->search_request_cache_;
+		if (find(this, req))
+			showCursor();
+		else
+			message(_("String not found!"));
+		d->search_request_cache_ = req;
 		break;
+	}
 
 	case LFUN_WORD_REPLACE: {
 		bool has_deleted = false;
@@ -927,41 +1235,41 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 		break;
 
 	case LFUN_SCREEN_RECENTER:
-		center();
+		showCursor();
 		break;
 
 	case LFUN_BIBTEX_DATABASE_ADD: {
-		Cursor tmpcur = cursor_;
-		bv_funcs::findInset(tmpcur, Inset::BIBTEX_CODE, false);
+		Cursor tmpcur = d->cursor_;
+		findInset(tmpcur, BIBTEX_CODE, false);
 		InsetBibtex * inset = getInsetByCode<InsetBibtex>(tmpcur,
-						Inset::BIBTEX_CODE);
+						BIBTEX_CODE);
 		if (inset) {
-			if (inset->addDatabase(to_utf8(cmd.argument())))
-				buffer_->updateBibfilesCache();
+			if (inset->addDatabase(cmd.argument()))
+				buffer_.updateBibfilesCache();
 		}
 		break;
 	}
 
 	case LFUN_BIBTEX_DATABASE_DEL: {
-		Cursor tmpcur = cursor_;
-		bv_funcs::findInset(tmpcur, Inset::BIBTEX_CODE, false);
+		Cursor tmpcur = d->cursor_;
+		findInset(tmpcur, BIBTEX_CODE, false);
 		InsetBibtex * inset = getInsetByCode<InsetBibtex>(tmpcur,
-						Inset::BIBTEX_CODE);
+						BIBTEX_CODE);
 		if (inset) {
-			if (inset->delDatabase(to_utf8(cmd.argument())))
-				buffer_->updateBibfilesCache();
+			if (inset->delDatabase(cmd.argument()))
+				buffer_.updateBibfilesCache();
 		}
 		break;
 	}
 
-	case LFUN_WORDS_COUNT: {
+	case LFUN_STATISTICS: {
 		DocIterator from, to;
 		if (cur.selection()) {
 			from = cur.selectionBegin();
 			to = cur.selectionEnd();
 		} else {
-			from = doc_iterator_begin(buffer_->inset());
-			to = doc_iterator_end(buffer_->inset());
+			from = doc_iterator_begin(buffer_.inset());
+			to = doc_iterator_end(buffer_.inset());
 		}
 		int const words = countWords(from, to);
 		int const chars = countChars(from, to, false);
@@ -995,64 +1303,198 @@ Update::flags BufferView::dispatch(FuncRequest const & cmd)
 
 	case LFUN_BUFFER_TOGGLE_COMPRESSION:
 		// turn compression on/off
-		buffer_->params().compressed = !buffer_->params().compressed;
+		buffer_.params().compressed = !buffer_.params().compressed;
 		break;
-
+	
 	case LFUN_NEXT_INSET_TOGGLE: {
-		// this is the real function we want to invoke
-		FuncRequest tmpcmd = FuncRequest(LFUN_INSET_TOGGLE, cmd.origin);
+		// create the the real function we want to invoke
+		FuncRequest tmpcmd = cmd;
+		tmpcmd.action = LFUN_INSET_TOGGLE;
 		// if there is an inset at cursor, see whether it
 		// wants to toggle.
 		Inset * inset = cur.nextInset();
 		if (inset) {
 			if (inset->isActive()) {
 				Cursor tmpcur = cur;
-				tmpcur.pushLeft(*inset);
+				tmpcur.pushBackward(*inset);
 				inset->dispatch(tmpcur, tmpcmd);
-				if (tmpcur.result().dispatched()) {
+				if (tmpcur.result().dispatched())
 					cur.dispatched();
-				}
-			} else if (inset->editable() == Inset::IS_EDITABLE) {
-				inset->edit(cur, true);
-			}
+			} else 
+				inset->dispatch(cur, tmpcmd);
 		}
 		// if it did not work, try the underlying inset.
-		if (!cur.result().dispatched())
+		if (!inset || !cur.result().dispatched())
 			cur.dispatch(tmpcmd);
 
-		if (cur.result().dispatched())
-			cur.clearSelection();
+		if (!cur.result().dispatched())
+			// It did not work too; no action needed.
+			break;
+		cur.clearSelection();
+		processUpdateFlags(Update::SinglePar | Update::FitCursor);
+		break;
+	}
 
+	case LFUN_NEXT_INSET_MODIFY: {
+		// create the the real function we want to invoke
+		FuncRequest tmpcmd = cmd;
+		tmpcmd.action = LFUN_INSET_MODIFY;
+		// if there is an inset at cursor, see whether it
+		// can be modified.
+		Inset * inset = cur.nextInset();
+		if (inset)
+			inset->dispatch(cur, tmpcmd);
+		// if it did not work, try the underlying inset.
+		if (!inset || !cur.result().dispatched())
+			cur.dispatch(tmpcmd);
+
+		if (!cur.result().dispatched())
+			// It did not work too; no action needed.
+			break;
+		cur.clearSelection();
+		processUpdateFlags(Update::Force | Update::FitCursor);
+		break;
+	}
+
+	case LFUN_SCREEN_UP:
+	case LFUN_SCREEN_DOWN: {
+		Point p = getPos(cur, cur.boundary());
+		if (p.y_ < 0 || p.y_ > height_) {
+			// The cursor is off-screen so recenter before proceeding.
+			showCursor();
+			p = getPos(cur, cur.boundary());
+		}
+		int const scrolled = scroll(cmd.action == LFUN_SCREEN_UP
+			? - height_ : height_);
+		if (cmd.action == LFUN_SCREEN_UP && scrolled > - height_)
+			p = Point(0, 0);
+		if (cmd.action == LFUN_SCREEN_DOWN && scrolled < height_)
+			p = Point(width_, height_);
+		cur.reset(buffer_.inset());
+		updateMetrics();
+		buffer_.changed();
+		d->text_metrics_[&buffer_.text()].editXY(cur, p.x_, p.y_);
+		//FIXME: what to do with cur.x_target()?
+		cur.finishUndo();
+		break;
+	}
+
+	case LFUN_SCROLL:
+		lfunScroll(cmd);
+		break;
+
+	case LFUN_SCREEN_UP_SELECT: {
+		cur.selHandle(true);
+		if (isTopScreen()) {
+			lyx::dispatch(FuncRequest(LFUN_BUFFER_BEGIN_SELECT));
+			cur.finishUndo();
+			break;
+		}
+		int y = getPos(cur, cur.boundary()).y_;
+		int const ymin = y - height_ + defaultRowHeight();
+		while (y > ymin && cur.up())
+			y = getPos(cur, cur.boundary()).y_;
+
+		cur.finishUndo();
+		processUpdateFlags(Update::SinglePar | Update::FitCursor);
+		break;
+	}
+
+	case LFUN_SCREEN_DOWN_SELECT: {
+		cur.selHandle(true);
+		if (isBottomScreen()) {
+			lyx::dispatch(FuncRequest(LFUN_BUFFER_END_SELECT));
+			cur.finishUndo();
+			break;
+		}
+		int y = getPos(cur, cur.boundary()).y_;
+		int const ymax = y + height_ - defaultRowHeight();
+		while (y < ymax && cur.down())
+			y = getPos(cur, cur.boundary()).y_;
+
+		cur.finishUndo();
+		processUpdateFlags(Update::SinglePar | Update::FitCursor);
+		break;
+	}
+
+	case LFUN_BRANCH_ACTIVATE:
+	case LFUN_BRANCH_DEACTIVATE:
+		buffer_.dispatch(cmd);
+		processUpdateFlags(Update::Force);
+		break;
+
+	// These two could be rewriten using some command like forall <insetname> <command>
+	// once the insets refactoring is done.
+	case LFUN_GRAPHICS_GROUPS_UNIFY: {
+		if (cmd.argument().empty())
+			break;
+		//view()->cursor().recordUndoFullDocument(); let inset-apply do that job
+		graphics::unifyGraphicsGroups(cur.buffer(), to_utf8(cmd.argument()));
+		processUpdateFlags(Update::Force | Update::FitCursor);
+		break;
+	}
+
+	case LFUN_NOTES_MUTATE: {
+		if (cmd.argument().empty())
+			break;
+		cur.recordUndoFullDocument();
+
+		if (mutateNotes(cur, cmd.getArg(0), cmd.getArg(1))) {
+			processUpdateFlags(Update::Force);
+		}
+		break;
+	}
+
+	case LFUN_ALL_INSETS_TOGGLE: {
+		string action;
+		string const name = split(to_utf8(cmd.argument()), action, ' ');
+		InsetCode const inset_code = insetCode(name);
+
+		FuncRequest fr(LFUN_INSET_TOGGLE, action);
+
+		Inset & inset = cur.buffer().inset();
+		InsetIterator it  = inset_iterator_begin(inset);
+		InsetIterator const end = inset_iterator_end(inset);
+		for (; it != end; ++it) {
+			if (!it->asInsetMath()
+			    && (inset_code == NO_CODE
+			    || inset_code == it->lyxCode())) {
+				Cursor tmpcur = cur;
+				tmpcur.pushBackward(*it);
+				FuncStatus flag;
+				it->getStatus(tmpcur, fr, flag);
+				if (flag.enabled())
+					it->dispatch(tmpcur, fr);
+			}
+		}
+		processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 	}
 
 	default:
-		updateFlags = Update::None;
+		return false;
 	}
 
-	return updateFlags;
+	return true;
 }
 
 
 docstring const BufferView::requestSelection()
 {
-	if (!buffer_)
-		return docstring();
-
-	Cursor & cur = cursor_;
+	Cursor & cur = d->cursor_;
 
 	if (!cur.selection()) {
-		xsel_cache_.set = false;
+		d->xsel_cache_.set = false;
 		return docstring();
 	}
 
-	if (!xsel_cache_.set ||
-	    cur.top() != xsel_cache_.cursor ||
-	    cur.anchor_.top() != xsel_cache_.anchor)
+	if (!d->xsel_cache_.set ||
+	    cur.top() != d->xsel_cache_.cursor ||
+	    cur.anchor_.top() != d->xsel_cache_.anchor)
 	{
-		xsel_cache_.cursor = cur.top();
-		xsel_cache_.anchor = cur.anchor_.top();
-		xsel_cache_.set = cur.selection();
+		d->xsel_cache_.cursor = cur.top();
+		d->xsel_cache_.anchor = cur.anchor_.top();
+		d->xsel_cache_.set = cur.selection();
 		return cur.selectionAsString(false);
 	}
 	return docstring();
@@ -1061,94 +1503,73 @@ docstring const BufferView::requestSelection()
 
 void BufferView::clearSelection()
 {
-	if (buffer_) {
-		cursor_.clearSelection();
-		// Clear the selection buffer. Otherwise a subsequent
-		// middle-mouse-button paste would use the selection buffer,
-		// not the more current external selection.
-		cap::clearSelection();
-		xsel_cache_.set = false;
-		// The buffer did not really change, but this causes the
-		// redraw we need because we cleared the selection above.
-		buffer_->changed();
-	}
+	d->cursor_.clearSelection();
+	// Clear the selection buffer. Otherwise a subsequent
+	// middle-mouse-button paste would use the selection buffer,
+	// not the more current external selection.
+	cap::clearSelection();
+	d->xsel_cache_.set = false;
+	// The buffer did not really change, but this causes the
+	// redraw we need because we cleared the selection above.
+	buffer_.changed();
 }
 
 
-void BufferView::workAreaResize(int width, int height)
+void BufferView::resize(int width, int height)
 {
 	// Update from work area
 	width_ = width;
 	height_ = height;
 
-	if (buffer_)
-		resize();
+	// Clear the paragraph height cache.
+	d->par_height_.clear();
+	// Redo the metrics.
+	updateMetrics();
 }
 
 
-Inset const * BufferView::getCoveringInset(Text const & text, int x, int y)
+Inset const * BufferView::getCoveringInset(Text const & text,
+		int x, int y) const
 {
-	pit_type pit = text.getPitNearY(*this, y);
-	BOOST_ASSERT(pit != -1);
-	Paragraph const & par = text.getPar(pit);
+	TextMetrics & tm = d->text_metrics_[&text];
+	Inset * inset = tm.checkInsetHit(x, y);
+	if (!inset)
+		return 0;
 
-	LYXERR(Debug::DEBUG)
-		<< BOOST_CURRENT_FUNCTION
-		<< ": x: " << x
-		<< " y: " << y
-		<< "  pit: " << pit
-		<< endl;
-	InsetList::const_iterator iit = par.insetlist.begin();
-	InsetList::const_iterator iend = par.insetlist.end();
-	for (; iit != iend; ++iit) {
-		Inset * const inset = iit->inset;
-		if (inset->covers(*this, x, y)) {
-			if (!inset->descendable())
-				// No need to go further down if the inset is not
-				// descendable.
-				return inset;
+	if (!inset->descendable())
+		// No need to go further down if the inset is not
+		// descendable.
+		return inset;
 
-			size_t cell_number = inset->nargs();
-			// Check all the inner cell.
-			for (size_t i = 0; i != cell_number; ++i) {
-				Text const * inner_text = inset->getText(i);
-				if (inner_text) {
-					// Try deeper.
-					Inset const * inset_deeper =
-						getCoveringInset(*inner_text, x, y);
-					if (inset_deeper)
-						return inset_deeper;
-				}
-			}
-
-			LYXERR(Debug::DEBUG)
-				<< BOOST_CURRENT_FUNCTION
-				<< ": Hit inset: " << inset << endl;
-			return inset;
+	size_t cell_number = inset->nargs();
+	// Check all the inner cell.
+	for (size_t i = 0; i != cell_number; ++i) {
+		Text const * inner_text = inset->getText(i);
+		if (inner_text) {
+			// Try deeper.
+			Inset const * inset_deeper =
+				getCoveringInset(*inner_text, x, y);
+			if (inset_deeper)
+				return inset_deeper;
 		}
 	}
-	LYXERR(Debug::DEBUG)
-		<< BOOST_CURRENT_FUNCTION
-		<< ": No inset hit. " << endl;
-	return 0;
+
+	return inset;
 }
 
 
-bool BufferView::workAreaDispatch(FuncRequest const & cmd0)
+void BufferView::mouseEventDispatch(FuncRequest const & cmd0)
 {
-	//lyxerr << BOOST_CURRENT_FUNCTION << "[ cmd0 " << cmd0 << "]" << endl;
+	//lyxerr << "[ cmd0 " << cmd0 << "]" << endl;
 
 	// This is only called for mouse related events including
 	// LFUN_FILE_OPEN generated by drag-and-drop.
 	FuncRequest cmd = cmd0;
 
-	// E.g. Qt mouse press when no buffer
-	if (!buffer_)
-		return false;
-
+	Cursor old = cursor();
 	Cursor cur(*this);
-	cur.push(buffer_->inset());
-	cur.selection() = cursor_.selection();
+	cur.push(buffer_.inset());
+	cur.selection() = d->cursor_.selection();
 
 	// Either the inset under the cursor or the
 	// surrounding Text will handle this event.
@@ -1160,57 +1581,37 @@ bool BufferView::workAreaDispatch(FuncRequest const & cmd0)
 
 		// Get inset under mouse, if there is one.
 		Inset const * covering_inset =
-			getCoveringInset(buffer_->text(), cmd.x, cmd.y);
-		if (covering_inset == last_inset_)
+			getCoveringInset(buffer_.text(), cmd.x, cmd.y);
+		if (covering_inset == d->last_inset_)
 			// Same inset, no need to do anything...
-			return false;
+			return;
 
 		bool need_redraw = false;
 		// const_cast because of setMouseHover().
 		Inset * inset = const_cast<Inset *>(covering_inset);
-		if (last_inset_)
+		if (d->last_inset_)
 			// Remove the hint on the last hovered inset (if any).
-			need_redraw |= last_inset_->setMouseHover(false);
+			need_redraw |= d->last_inset_->setMouseHover(false);
 		if (inset)
 			// Highlighted the newly hovered inset (if any).
 			need_redraw |= inset->setMouseHover(true);
-		last_inset_ = inset;
+		d->last_inset_ = inset;
+		if (!need_redraw)
+			return;
 
-		// if last metrics update was in singlepar mode, WorkArea::redraw() will
-		// not expose the button for redraw. We adjust here the metrics dimension
-		// to enable a full redraw.
-		// FIXME: It is possible to redraw only the area around the button!
-		if (need_redraw
-			&& metrics_info_.update_strategy == SingleParUpdate) {
-			// FIXME: It should be possible to redraw only the area around
-			// the button by doing this:
-			//
-			//metrics_info_.singlepar = false;
-			//metrics_info_.y1 = ymin of button;
-			//metrics_info_.y2 = ymax of button;
-			//
-			// Unfortunately, rowpainter.cpp:paintText() does not distinguish
-			// between background updates and text updates. So we use the hammer
-			// solution for now. We could also avoid the updateMetrics() below
-			// by using the first and last pit of the CoordCache. Have a look
-			// at Text::getPitNearY() to see what I mean.
-			//
-			//metrics_info_.pit1 = first pit of CoordCache;
-			//metrics_info_.pit2 = last pit of CoordCache;
-			//metrics_info_.singlepar = false;
-			//metrics_info_.y1 = 0;
-			//metrics_info_.y2 = height_;
-			//
-			updateMetrics(false);
-		}
+		LYXERR(Debug::PAINTING, "Mouse hover detected at: ("
+			<< cmd.x << ", " << cmd.y << ")");
+
+		d->update_strategy_ = DecorationUpdate;
 
 		// This event (moving without mouse click) is not passed further.
 		// This should be changed if it is further utilized.
-		return need_redraw;
+		buffer_.changed();
+		return;
 	}
 
 	// Build temporary cursor.
-	Inset * inset = buffer_->text().editXY(cur, cmd.x, cmd.y);
+	Inset * inset = d->text_metrics_[&buffer_.text()].editXY(cur, cmd.x, cmd.y);
 
 	// Put anchor at the same position.
 	cur.resetAnchor();
@@ -1219,43 +1620,107 @@ bool BufferView::workAreaDispatch(FuncRequest const & cmd0)
 	// via the temp cursor. If the inset wishes to change the real
 	// cursor it has to do so explicitly by using
 	//  cur.bv().cursor() = cur;  (or similar)
-	if (inset) {
+	if (inset)
 		inset->dispatch(cur, cmd);
-	}
 
 	// Now dispatch to the temporary cursor. If the real cursor should
 	// be modified, the inset's dispatch has to do so explicitly.
-	if (!cur.result().dispatched())
+	if (!inset || !cur.result().dispatched())
 		cur.dispatch(cmd);
 
-	//Do we have a selection?
+	// Notify left insets
+	if (cur != old) {
+		old.fixIfBroken();
+		bool badcursor = notifyCursorLeaves(old, cur);
+		if (badcursor)
+			cursor().fixIfBroken();
+	}
+	
+	// Do we have a selection?
 	theSelection().haveSelection(cursor().selection());
 
-	// Redraw if requested and necessary.
-	if (cur.result().dispatched() && cur.result().update())
-		return update(cur.result().update());
-
-	return false;
+	// If the command has been dispatched,
+	if (cur.result().dispatched() || cur.result().update())
+		processUpdateFlags(cur.result().update());
 }
 
 
-void BufferView::scroll(int /*lines*/)
+void BufferView::lfunScroll(FuncRequest const & cmd)
 {
-//	if (!buffer_)
-//		return;
-//
-//	Text const * t = &buffer_->text();
-//	int const line_height = defaultRowHeight();
-//
-//	// The new absolute coordinate
-//	int new_top_y = top_y() + lines * line_height;
-//
-//	// Restrict to a valid value
-//	new_top_y = std::min(t->height() - 4 * line_height, new_top_y);
-//	new_top_y = std::max(0, new_top_y);
-//
-//	scrollDocView(new_top_y);
-//
+	string const scroll_type = cmd.getArg(0);
+	int const scroll_step = 
+		(scroll_type == "line") ? d->scrollbarParameters_.single_step
+		: (scroll_type == "page") ? d->scrollbarParameters_.page_step : 0;
+	if (scroll_step == 0)
+		return;
+	string const scroll_quantity = cmd.getArg(1);
+	if (scroll_quantity == "up")
+		scrollUp(scroll_step);
+	else if (scroll_quantity == "down")
+		scrollDown(scroll_step);
+	else {
+		int const scroll_value = convert<int>(scroll_quantity);
+		if (scroll_value)
+			scroll(scroll_step * scroll_value);
+	}
+	updateMetrics();
+	buffer_.changed();
+}
+
+
+int BufferView::scroll(int y)
+{
+	if (y > 0)
+		return scrollDown(y);
+	if (y < 0)
+		return scrollUp(-y);
+	return 0;
+}
+
+
+int BufferView::scrollDown(int offset)
+{
+	Text * text = &buffer_.text();
+	TextMetrics & tm = d->text_metrics_[text];
+	int ymax = height_ + offset;
+	while (true) {
+		pair<pit_type, ParagraphMetrics const *> last = tm.last();
+		int bottom_pos = last.second->position() + last.second->descent();
+		if (last.first + 1 == int(text->paragraphs().size())) {
+			if (bottom_pos <= height_)
+				return 0;
+			offset = min(offset, bottom_pos - height_);
+			break;
+		}
+		if (bottom_pos > ymax)
+			break;
+		tm.newParMetricsDown();
+	}
+	d->anchor_ypos_ -= offset;
+	return -offset;
+}
+
+
+int BufferView::scrollUp(int offset)
+{
+	Text * text = &buffer_.text();
+	TextMetrics & tm = d->text_metrics_[text];
+	int ymin = - offset;
+	while (true) {
+		pair<pit_type, ParagraphMetrics const *> first = tm.first();
+		int top_pos = first.second->position() - first.second->ascent();
+		if (first.first == 0) {
+			if (top_pos >= 0)
+				return 0;
+			offset = min(offset, - top_pos);
+			break;
+		}
+		if (top_pos < ymin)
+			break;
+		tm.newParMetricsUp();
+	}
+	d->anchor_ypos_ += offset;
+	return offset;
 }
 
 
@@ -1264,27 +1729,27 @@ void BufferView::setCursorFromRow(int row)
 	int tmpid = -1;
 	int tmppos = -1;
 
-	buffer_->texrow().getIdFromRow(row, tmpid, tmppos);
+	buffer_.texrow().getIdFromRow(row, tmpid, tmppos);
 
-	cursor_.reset(buffer_->inset());
+	d->cursor_.reset(buffer_.inset());
 	if (tmpid == -1)
-		buffer_->text().setCursor(cursor_, 0, 0);
+		buffer_.text().setCursor(d->cursor_, 0, 0);
 	else
-		buffer_->text().setCursor(cursor_, buffer_->getParFromID(tmpid).pit(), tmppos);
+		buffer_.text().setCursor(d->cursor_, buffer_.getParFromID(tmpid).pit(), tmppos);
 }
 
 
 void BufferView::gotoLabel(docstring const & label)
 {
-	for (InsetIterator it = inset_iterator_begin(buffer_->inset()); it; ++it) {
-		vector<docstring> labels;
-		it->getLabelList(*buffer_, labels);
-		if (std::find(labels.begin(), labels.end(), label) != labels.end()) {
-			setCursor(it);
-			update();
-			return;
-		}
+	Toc & toc = buffer().tocBackend().toc("label");
+	TocIterator toc_it = toc.begin();
+	TocIterator end = toc.end();
+	for (; toc_it != end; ++toc_it) {
+		if (label == toc_it->str())
+			dispatch(toc_it->action());
 	}
+	//FIXME: We could do a bit more searching thanks to this:
+	//InsetLabel const * inset = buffer_.insetLabel(label);
 }
 
 
@@ -1296,9 +1761,9 @@ TextMetrics const & BufferView::textMetrics(Text const * t) const
 
 TextMetrics & BufferView::textMetrics(Text const * t)
 {
-	TextMetricsCache::iterator tmc_it  = text_metrics_.find(t);
-	if (tmc_it == text_metrics_.end()) {
-		tmc_it = text_metrics_.insert(
+	TextMetricsCache::iterator tmc_it  = d->text_metrics_.find(t);
+	if (tmc_it == d->text_metrics_.end()) {
+		tmc_it = d->text_metrics_.insert(
 			make_pair(t, TextMetrics(this, const_cast<Text *>(t)))).first;
 	}
 	return tmc_it->second;
@@ -1322,10 +1787,10 @@ void BufferView::setCursor(DocIterator const & dit)
 {
 	size_t const n = dit.depth();
 	for (size_t i = 0; i < n; ++i)
-		dit[i].inset().edit(cursor_, true);
+		dit[i].inset().edit(d->cursor_, true);
 
-	cursor_.setCursor(dit);
-	cursor_.selection() = false;
+	d->cursor_.setCursor(dit);
+	d->cursor_.selection() = false;
 }
 
 
@@ -1336,7 +1801,7 @@ bool BufferView::checkDepm(Cursor & cur, Cursor & old)
 		return false;
 
 	bool need_anchor_change = false;
-	bool changed = cursor_.text()->deleteEmptyParagraphMechanism(cur, old,
+	bool changed = d->cursor_.text()->deleteEmptyParagraphMechanism(cur, old,
 		need_anchor_change);
 
 	if (need_anchor_change)
@@ -1345,17 +1810,19 @@ bool BufferView::checkDepm(Cursor & cur, Cursor & old)
 	if (!changed)
 		return false;
 
-	updateLabels(*buffer_);
+	d->cursor_ = cur;
 
-	updateMetrics(false);
-	buffer_->changed();
+	updateLabels(buffer_);
+
+	updateMetrics();
+	buffer_.changed();
 	return true;
 }
 
 
 bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 {
-	BOOST_ASSERT(&cur.bv() == this);
+	LASSERT(&cur.bv() == this, /**/);
 
 	if (!select)
 		// this event will clear selection so we save selection for
@@ -1364,45 +1831,34 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 
 	// Has the cursor just left the inset?
 	bool badcursor = false;
-	bool leftinset = (&cursor_.inset() != &cur.inset());
-	if (leftinset)
-		badcursor = notifyCursorLeaves(cursor_, cur);
+	bool leftinset = (&d->cursor_.inset() != &cur.inset());
+	if (leftinset) {
+		d->cursor_.fixIfBroken();
+		badcursor = notifyCursorLeaves(d->cursor_, cur);
+		if (badcursor)
+			cur.fixIfBroken();
+	}
 
 	// FIXME: shift-mouse selection doesn't work well across insets.
-	bool do_selection = select && &cursor_.anchor().inset() == &cur.inset();
+	bool do_selection = select && &d->cursor_.anchor().inset() == &cur.inset();
 
 	// do the dEPM magic if needed
 	// FIXME: (1) move this to InsetText::notifyCursorLeaves?
 	// FIXME: (2) if we had a working InsetText::notifyCursorLeaves,
 	// the leftinset bool would not be necessary (badcursor instead).
 	bool update = leftinset;
-	if (!do_selection && !badcursor && cursor_.inTexted())
-		update |= checkDepm(cur, cursor_);
+	if (!do_selection && !badcursor && d->cursor_.inTexted())
+		update |= checkDepm(cur, d->cursor_);
 
-	// if the cursor was in an empty script inset and the new
-	// position is in the nucleus of the inset, notifyCursorLeaves
-	// will kill the script inset itself. So we check all the
-	// elements of the cursor to make sure that they are correct.
-	// For an example, see bug 2933:
-	// http://bugzilla.lyx.org/show_bug.cgi?id=2933
-	// The code below could maybe be moved to a DocIterator method.
-	//lyxerr << "cur before " << cur <<std::endl;
-	DocIterator dit(cur.inset());
-	dit.push_back(cur.bottom());
-	size_t i = 1;
-	while (i < cur.depth() && dit.nextInset() == &cur[i].inset()) {
-		dit.push_back(cur[i]);
-		++i;
-	}
-	//lyxerr << "5 cur after" << dit <<std::endl;
-
-	cursor_.setCursor(dit);
-	cursor_.boundary(cur.boundary());
+	d->cursor_.setCursor(cur);
+	d->cursor_.boundary(cur.boundary());
 	if (do_selection)
-		cursor_.setSelection();
+		d->cursor_.setSelection();
 	else
-		cursor_.clearSelection();
-	finishUndo();
+		d->cursor_.clearSelection();
+
+	d->cursor_.finishUndo();
+	d->cursor_.setCurrentFont();
 	return update;
 }
 
@@ -1410,246 +1866,525 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 void BufferView::putSelectionAt(DocIterator const & cur,
 				int length, bool backwards)
 {
-	cursor_.clearSelection();
+	d->cursor_.clearSelection();
 
 	setCursor(cur);
 
 	if (length) {
 		if (backwards) {
-			cursor_.pos() += length;
-			cursor_.setSelection(cursor_, -length);
+			d->cursor_.pos() += length;
+			d->cursor_.setSelection(d->cursor_, -length);
 		} else
-			cursor_.setSelection(cursor_, length);
+			d->cursor_.setSelection(d->cursor_, length);
 	}
+	// Ensure a redraw happens in any case because the new selection could 
+	// possibly be on the same screen as the previous selection.
+	processUpdateFlags(Update::Force | Update::FitCursor);
 }
 
 
 Cursor & BufferView::cursor()
 {
-	return cursor_;
+	return d->cursor_;
 }
 
 
 Cursor const & BufferView::cursor() const
 {
-	return cursor_;
+	return d->cursor_;
 }
 
 
 pit_type BufferView::anchor_ref() const
 {
-	return anchor_ref_;
+	return d->anchor_pit_;
 }
 
 
-ViewMetricsInfo const & BufferView::viewMetricsInfo()
+bool BufferView::singleParUpdate()
 {
-	return metrics_info_;
+	Text & buftext = buffer_.text();
+	pit_type const bottom_pit = d->cursor_.bottom().pit();
+	TextMetrics & tm = textMetrics(&buftext);
+	int old_height = tm.parMetrics(bottom_pit).height();
+
+	// make sure inline completion pointer is ok
+	if (d->inlineCompletionPos_.fixIfBroken())
+		d->inlineCompletionPos_ = DocIterator();
+
+	// In Single Paragraph mode, rebreak only
+	// the (main text, not inset!) paragraph containing the cursor.
+	// (if this paragraph contains insets etc., rebreaking will
+	// recursively descend)
+	tm.redoParagraph(bottom_pit);
+	ParagraphMetrics const & pm = tm.parMetrics(bottom_pit);		
+	if (pm.height() != old_height)
+		// Paragraph height has changed so we cannot proceed to
+		// the singlePar optimisation.
+		return false;
+
+	d->update_strategy_ = SingleParUpdate;
+
+	LYXERR(Debug::PAINTING, "\ny1: " << pm.position() - pm.ascent()
+		<< " y2: " << pm.position() + pm.descent()
+		<< " pit: " << bottom_pit
+		<< " singlepar: 1");
+	return true;
 }
 
 
-// FIXME: We should split-up updateMetrics() for the singlepar case.
-void BufferView::updateMetrics(bool singlepar)
+void BufferView::updateMetrics()
 {
-	Text & buftext = buffer_->text();
-	pit_type size = int(buftext.paragraphs().size());
+	if (height_ == 0 || width_ == 0)
+		return;
 
-	if (anchor_ref_ > int(buftext.paragraphs().size() - 1)) {
-		anchor_ref_ = int(buftext.paragraphs().size() - 1);
-		offset_ref_ = 0;
-	}
+	Text & buftext = buffer_.text();
+	pit_type const npit = int(buftext.paragraphs().size());
 
-	if (!singlepar) {
-		// Clear out the position cache in case of full screen redraw,
-		coord_cache_.clear();
-	
-		// Clear out paragraph metrics to avoid having invalid metrics
-		// in the cache from paragraphs not relayouted below
-		// The complete text metrics will be redone.
-		text_metrics_.clear();
-	}
+	// Clear out the position cache in case of full screen redraw,
+	d->coord_cache_.clear();
+
+	// Clear out paragraph metrics to avoid having invalid metrics
+	// in the cache from paragraphs not relayouted below
+	// The complete text metrics will be redone.
+	d->text_metrics_.clear();
 
 	TextMetrics & tm = textMetrics(&buftext);
 
-	// If the paragraph metrics has changed, we can not
-	// use the singlepar optimisation.
-	if (singlepar) {
-		pit_type const bottom_pit = cursor_.bottom().pit();
-		int old_height = tm.parMetrics(bottom_pit).height();
-		// In Single Paragraph mode, rebreak only
-		// the (main text, not inset!) paragraph containing the cursor.
-		// (if this paragraph contains insets etc., rebreaking will
-		// recursively descend)
-		tm.redoParagraph(bottom_pit);
-		// Paragraph height has changed so we cannot proceed to
-		// the singlePar optimisation.
-		if (tm.parMetrics(bottom_pit).height() != old_height)
-			singlepar = false;
-	}
-
-	pit_type const pit = anchor_ref_;
-	int pit1 = pit;
-	int pit2 = pit;
-	size_t const npit = buftext.paragraphs().size();
+	// make sure inline completion pointer is ok
+	if (d->inlineCompletionPos_.fixIfBroken())
+		d->inlineCompletionPos_ = DocIterator();
+	
+	if (d->anchor_pit_ >= npit)
+		// The anchor pit must have been deleted...
+		d->anchor_pit_ = npit - 1;
 
 	// Rebreak anchor paragraph.
-	if (!singlepar)
-		tm.redoParagraph(pit);
+	tm.redoParagraph(d->anchor_pit_);
+	ParagraphMetrics & anchor_pm = tm.par_metrics_[d->anchor_pit_];
+	
+	// position anchor
+	if (d->anchor_pit_ == 0) {
+		int scrollRange = d->scrollbarParameters_.max - d->scrollbarParameters_.min;
+		
+		// Complete buffer visible? Then it's easy.
+		if (scrollRange == 0)
+			d->anchor_ypos_ = anchor_pm.ascent();
+	
+		// FIXME: Some clever handling needed to show
+		// the _first_ paragraph up to the top if the cursor is
+		// in the first line.
+	}		
+	anchor_pm.setPosition(d->anchor_ypos_);
 
-	updateOffsetRef();
-
-	int y0 = tm.parMetrics(pit).ascent() - offset_ref_;
+	LYXERR(Debug::PAINTING, "metrics: "
+		<< " anchor pit = " << d->anchor_pit_
+		<< " anchor ypos = " << d->anchor_ypos_);
 
 	// Redo paragraphs above anchor if necessary.
-	int y1 = y0;
-	while (y1 > 0 && pit1 > 0) {
-		y1 -= tm.parMetrics(pit1).ascent();
-		--pit1;
-		if (!singlepar)
-			tm.redoParagraph(pit1);
-		y1 -= tm.parMetrics(pit1).descent();
-	}
-
-
-	// Take care of ascent of first line
-	y1 -= tm.parMetrics(pit1).ascent();
-
-	// Normalize anchor for next time
-	anchor_ref_ = pit1;
-	offset_ref_ = -y1;
-
-	// Grey at the beginning is ugly
-	if (pit1 == 0 && y1 > 0) {
-		y0 -= y1;
-		y1 = 0;
-		anchor_ref_ = 0;
+	int y1 = d->anchor_ypos_ - anchor_pm.ascent();
+	// We are now just above the anchor paragraph.
+	pit_type pit1 = d->anchor_pit_ - 1;
+	for (; pit1 >= 0 && y1 >= 0; --pit1) {
+		tm.redoParagraph(pit1);
+		ParagraphMetrics & pm = tm.par_metrics_[pit1];
+		y1 -= pm.descent();
+		// Save the paragraph position in the cache.
+		pm.setPosition(y1);
+		y1 -= pm.ascent();
 	}
 
 	// Redo paragraphs below the anchor if necessary.
-	int y2 = y0;
-	while (y2 < height_ && pit2 < int(npit) - 1) {
-		y2 += tm.parMetrics(pit2).descent();
-		++pit2;
-		if (!singlepar)
-			tm.redoParagraph(pit2);
-		y2 += tm.parMetrics(pit2).ascent();
+	int y2 = d->anchor_ypos_ + anchor_pm.descent();
+	// We are now just below the anchor paragraph.
+	pit_type pit2 = d->anchor_pit_ + 1;
+	for (; pit2 < npit && y2 <= height_; ++pit2) {
+		tm.redoParagraph(pit2);
+		ParagraphMetrics & pm = tm.par_metrics_[pit2];
+		y2 += pm.ascent();
+		// Save the paragraph position in the cache.
+		pm.setPosition(y2);
+		y2 += pm.descent();
 	}
 
-	// Take care of descent of last line
-	y2 += tm.parMetrics(pit2).descent();
+	LYXERR(Debug::PAINTING, "Metrics: "
+		<< " anchor pit = " << d->anchor_pit_
+		<< " anchor ypos = " << d->anchor_ypos_
+		<< " y1 = " << y1
+		<< " y2 = " << y2
+		<< " pit1 = " << pit1
+		<< " pit2 = " << pit2);
 
-	// The coordinates of all these paragraphs are correct, cache them
-	int y = y1;
-	CoordCache::InnerParPosCache & parPos = coord_cache_.parPos()[&buftext];
-	for (pit_type pit = pit1; pit <= pit2; ++pit) {
-		ParagraphMetrics const & pm = tm.parMetrics(pit);
-		y += pm.ascent();
-		parPos[pit] = Point(0, y);
-		if (singlepar && pit == cursor_.bottom().pit()) {
-			// In Single Paragraph mode, collect here the
-			// y1 and y2 of the (one) paragraph the cursor is in
-			y1 = y - pm.ascent();
-			y2 = y + pm.descent();
-		}
-		y += pm.descent();
-	}
-
-	if (singlepar) {
-		// collect cursor paragraph iter bounds
-		pit1 = cursor_.bottom().pit();
-		pit2 = cursor_.bottom().pit();
-	}
-
-	LYXERR(Debug::DEBUG)
-		<< BOOST_CURRENT_FUNCTION
-		<< " y1: " << y1
-		<< " y2: " << y2
-		<< " pit1: " << pit1
-		<< " pit2: " << pit2
-		<< " npit: " << npit
-		<< " singlepar: " << singlepar
-		<< "size: " << size
-		<< endl;
-
-	metrics_info_ = ViewMetricsInfo(pit1, pit2, y1, y2,
-		singlepar? SingleParUpdate: FullScreenUpdate, size);
+	d->update_strategy_ = FullScreenUpdate;
 
 	if (lyxerr.debugging(Debug::WORKAREA)) {
-		LYXERR(Debug::WORKAREA) << "BufferView::updateMetrics" << endl;
-		coord_cache_.dump();
+		LYXERR(Debug::WORKAREA, "BufferView::updateMetrics");
+		d->coord_cache_.dump();
 	}
 }
 
 
-void BufferView::menuInsertLyXFile(string const & filenm)
+void BufferView::insertLyXFile(FileName const & fname)
 {
-	BOOST_ASSERT(cursor_.inTexted());
-	string filename = filenm;
-
-	if (filename.empty()) {
-		// Launch a file browser
-		// FIXME UNICODE
-		string initpath = lyxrc.document_path;
-
-		if (buffer_) {
-			string const trypath = buffer_->filePath();
-			// If directory is writeable, use this as default.
-			if (isDirWriteable(FileName(trypath)))
-				initpath = trypath;
-		}
-
-		// FIXME UNICODE
-		FileDialog fileDlg(_("Select LyX document to insert"),
-			LFUN_FILE_INSERT,
-			make_pair(_("Documents|#o#O"), from_utf8(lyxrc.document_path)),
-			make_pair(_("Examples|#E#e"),
-				    from_utf8(addPath(package().system_support().absFilename(),
-				    "examples"))));
-
-		FileDialog::Result result =
-			fileDlg.open(from_utf8(initpath),
-				     FileFilterList(_("LyX Documents (*.lyx)")),
-				     docstring());
-
-		if (result.first == FileDialog::Later)
-			return;
-
-		// FIXME UNICODE
-		filename = to_utf8(result.second);
-
-		// check selected filename
-		if (filename.empty()) {
-			// emit message signal.
-			message(_("Canceled."));
-			return;
-		}
-	}
+	LASSERT(d->cursor_.inTexted(), /**/);
 
 	// Get absolute path of file and add ".lyx"
 	// to the filename if necessary
-	filename = fileSearch(string(), filename, "lyx").absFilename();
+	FileName filename = fileSearch(string(), fname.absFilename(), "lyx");
 
-	docstring const disp_fn = makeDisplayPath(filename);
+	docstring const disp_fn = makeDisplayPath(filename.absFilename());
 	// emit message signal.
 	message(bformat(_("Inserting document %1$s..."), disp_fn));
 
 	docstring res;
 	Buffer buf("", false);
-	if (lyx::loadLyXFile(&buf, FileName(filename))) {
-		ErrorList & el = buffer_->errorList("Parse");
+	if (buf.loadLyXFile(filename)) {
+		ErrorList & el = buffer_.errorList("Parse");
 		// Copy the inserted document error list into the current buffer one.
 		el = buf.errorList("Parse");
-		recordUndo(cursor_);
-		cap::pasteParagraphList(cursor_, buf.paragraphs(),
-					     buf.params().textclass, el);
+		buffer_.undo().recordUndo(d->cursor_);
+		cap::pasteParagraphList(d->cursor_, buf.paragraphs(),
+					     buf.params().documentClassPtr(), el);
 		res = _("Document %1$s inserted.");
-	} else
+	} else {
 		res = _("Could not insert document %1$s");
+	}
 
+	updateMetrics();
+	buffer_.changed();
 	// emit message signal.
 	message(bformat(res, disp_fn));
-	buffer_->errors("Parse");
-	resize();
+	buffer_.errors("Parse");
+}
+
+
+Point BufferView::coordOffset(DocIterator const & dit, bool boundary) const
+{
+	int x = 0;
+	int y = 0;
+	int lastw = 0;
+
+	// Addup contribution of nested insets, from inside to outside,
+ 	// keeping the outer paragraph for a special handling below
+	for (size_t i = dit.depth() - 1; i >= 1; --i) {
+		CursorSlice const & sl = dit[i];
+		int xx = 0;
+		int yy = 0;
+		
+		// get relative position inside sl.inset()
+		sl.inset().cursorPos(*this, sl, boundary && (i + 1 == dit.depth()), xx, yy);
+		
+		// Make relative position inside of the edited inset relative to sl.inset()
+		x += xx;
+		y += yy;
+		
+		// In case of an RTL inset, the edited inset will be positioned to the left
+		// of xx:yy
+		if (sl.text()) {
+			bool boundary_i = boundary && i + 1 == dit.depth();
+			bool rtl = textMetrics(sl.text()).isRTL(sl, boundary_i);
+			if (rtl)
+				x -= lastw;
+		}
+
+		// remember width for the case that sl.inset() is positioned in an RTL inset
+		if (i && dit[i - 1].text()) {
+			// If this Inset is inside a Text Inset, retrieve the Dimension
+			// from the containing text instead of using Inset::dimension() which
+			// might not be implemented.
+			// FIXME (Abdel 23/09/2007): this is a bit messy because of the
+			// elimination of Inset::dim_ cache. This coordOffset() method needs
+			// to be rewritten in light of the new design.
+			Dimension const & dim = parMetrics(dit[i - 1].text(),
+				dit[i - 1].pit()).insetDimension(&sl.inset());
+			lastw = dim.wid;
+		} else {
+			Dimension const dim = sl.inset().dimension(*this);
+			lastw = dim.wid;
+		}
+		
+		//lyxerr << "Cursor::getPos, i: "
+		// << i << " x: " << xx << " y: " << y << endl;
+	}
+
+	// Add contribution of initial rows of outermost paragraph
+	CursorSlice const & sl = dit[0];
+	TextMetrics const & tm = textMetrics(sl.text());
+	ParagraphMetrics const & pm = tm.parMetrics(sl.pit());
+	LASSERT(!pm.rows().empty(), /**/);
+	y -= pm.rows()[0].ascent();
+#if 1
+	// FIXME: document this mess
+	size_t rend;
+	if (sl.pos() > 0 && dit.depth() == 1) {
+		int pos = sl.pos();
+		if (pos && boundary)
+			--pos;
+//		lyxerr << "coordOffset: boundary:" << boundary << " depth:" << dit.depth() << " pos:" << pos << " sl.pos:" << sl.pos() << endl;
+		rend = pm.pos2row(pos);
+	} else
+		rend = pm.pos2row(sl.pos());
+#else
+	size_t rend = pm.pos2row(sl.pos());
+#endif
+	for (size_t rit = 0; rit != rend; ++rit)
+		y += pm.rows()[rit].height();
+	y += pm.rows()[rend].ascent();
+	
+	TextMetrics const & bottom_tm = textMetrics(dit.bottom().text());
+	
+	// Make relative position from the nested inset now bufferview absolute.
+	int xx = bottom_tm.cursorX(dit.bottom(), boundary && dit.depth() == 1);
+	x += xx;
+	
+	// In the RTL case place the nested inset at the left of the cursor in 
+	// the outer paragraph
+	bool boundary_1 = boundary && 1 == dit.depth();
+	bool rtl = bottom_tm.isRTL(dit.bottom(), boundary_1);
+	if (rtl)
+		x -= lastw;
+	
+	return Point(x, y);
+}
+
+
+Point BufferView::getPos(DocIterator const & dit, bool boundary) const
+{
+	CursorSlice const & bot = dit.bottom();
+	TextMetrics const & tm = textMetrics(bot.text());
+	if (!tm.contains(bot.pit()))
+		return Point(-1, -1);
+
+	Point p = coordOffset(dit, boundary); // offset from outer paragraph
+	p.y_ += tm.parMetrics(bot.pit()).position();
+	return p;
+}
+
+
+void BufferView::draw(frontend::Painter & pain)
+{
+	if (height_ == 0 || width_ == 0)
+		return;
+	LYXERR(Debug::PAINTING, "\t\t*** START DRAWING ***");
+	Text & text = buffer_.text();
+	TextMetrics const & tm = d->text_metrics_[&text];
+	int const y = tm.first().second->position();
+	PainterInfo pi(this, pain);
+
+	switch (d->update_strategy_) {
+
+	case NoScreenUpdate:
+		// If no screen painting is actually needed, only some the different
+		// coordinates of insets and paragraphs needs to be updated.
+		pi.full_repaint = true;
+		pi.pain.setDrawingEnabled(false);
+ 		tm.draw(pi, 0, y);
+		break;
+
+	case SingleParUpdate:
+		pi.full_repaint = false;
+		// In general, only the current row of the outermost paragraph
+		// will be redrawn. Particular cases where selection spans
+		// multiple paragraph are correctly detected in TextMetrics.
+ 		tm.draw(pi, 0, y);
+		break;
+
+	case DecorationUpdate:
+		// FIXME: We should also distinguish DecorationUpdate to avoid text
+		// drawing if possible. This is not possible to do easily right now
+		// because of the single backing pixmap.
+
+	case FullScreenUpdate:
+		// The whole screen, including insets, will be refreshed.
+		pi.full_repaint = true;
+
+		// Clear background.
+		pain.fillRectangle(0, 0, width_, height_,
+			buffer_.inset().backgroundColor());
+
+		// Draw everything.
+		tm.draw(pi, 0, y);
+
+		// and possibly grey out below
+		pair<pit_type, ParagraphMetrics const *> lastpm = tm.last();
+		int const y2 = lastpm.second->position() + lastpm.second->descent();
+		if (y2 < height_)
+			pain.fillRectangle(0, y2, width_, height_ - y2, Color_bottomarea);
+		break;
+	}
+	LYXERR(Debug::PAINTING, "\n\t\t*** END DRAWING  ***");
+
+	// The scrollbar needs an update.
+	updateScrollbar();
+
+	// Normalize anchor for next time
+	pair<pit_type, ParagraphMetrics const *> firstpm = tm.first();
+	pair<pit_type, ParagraphMetrics const *> lastpm = tm.last();
+	for (pit_type pit = firstpm.first; pit <= lastpm.first; ++pit) {
+		ParagraphMetrics const & pm = tm.parMetrics(pit);
+		if (pm.position() + pm.descent() > 0) {
+			d->anchor_pit_ = pit;
+			d->anchor_ypos_ = pm.position();
+			break;
+		}
+	}
+	LYXERR(Debug::PAINTING, "Found new anchor pit = " << d->anchor_pit_
+		<< "  anchor ypos = " << d->anchor_ypos_);
+}
+
+
+void BufferView::message(docstring const & msg)
+{
+	if (d->gui_)
+		d->gui_->message(msg);
+}
+
+
+void BufferView::showDialog(string const & name)
+{
+	if (d->gui_)
+		d->gui_->showDialog(name, string());
+}
+
+
+void BufferView::showDialog(string const & name,
+	string const & data, Inset * inset)
+{
+	if (d->gui_)
+		d->gui_->showDialog(name, data, inset);
+}
+
+
+void BufferView::updateDialog(string const & name, string const & data)
+{
+	if (d->gui_)
+		d->gui_->updateDialog(name, data);
+}
+
+
+void BufferView::setGuiDelegate(frontend::GuiBufferViewDelegate * gui)
+{
+	d->gui_ = gui;
+}
+
+
+// FIXME: Move this out of BufferView again
+docstring BufferView::contentsOfPlaintextFile(FileName const & fname)
+{
+	if (!fname.isReadableFile()) {
+		docstring const error = from_ascii(strerror(errno));
+		docstring const file = makeDisplayPath(fname.absFilename(), 50);
+		docstring const text =
+		  bformat(_("Could not read the specified document\n"
+			    "%1$s\ndue to the error: %2$s"), file, error);
+		Alert::error(_("Could not read file"), text);
+		return docstring();
+	}
+
+	if (!fname.isReadableFile()) {
+		docstring const file = makeDisplayPath(fname.absFilename(), 50);
+		docstring const text =
+		  bformat(_("%1$s\n is not readable."), file);
+		Alert::error(_("Could not open file"), text);
+		return docstring();
+	}
+
+	// FIXME UNICODE: We don't know the encoding of the file
+	docstring file_content = fname.fileContents("UTF-8");
+	if (file_content.empty()) {
+		Alert::error(_("Reading not UTF-8 encoded file"),
+			     _("The file is not UTF-8 encoded.\n"
+			       "It will be read as local 8Bit-encoded.\n"
+			       "If this does not give the correct result\n"
+			       "then please change the encoding of the file\n"
+			       "to UTF-8 with a program other than LyX.\n"));
+		file_content = fname.fileContents("local8bit");
+	}
+
+	return normalize_c(file_content);
+}
+
+
+void BufferView::insertPlaintextFile(FileName const & f, bool asParagraph)
+{
+	docstring const tmpstr = contentsOfPlaintextFile(f);
+
+	if (tmpstr.empty())
+		return;
+
+	Cursor & cur = cursor();
+	cap::replaceSelection(cur);
+	buffer_.undo().recordUndo(cur);
+	if (asParagraph)
+		cur.innerText()->insertStringAsParagraphs(cur, tmpstr);
+	else
+		cur.innerText()->insertStringAsLines(cur, tmpstr);
+
+	updateMetrics();
+	buffer_.changed();
+}
+
+
+docstring const & BufferView::inlineCompletion() const
+{
+	return d->inlineCompletion_;
+}
+
+
+size_t const & BufferView::inlineCompletionUniqueChars() const
+{
+	return d->inlineCompletionUniqueChars_;
+}
+
+
+DocIterator const & BufferView::inlineCompletionPos() const
+{
+	return d->inlineCompletionPos_;
+}
+
+
+bool samePar(DocIterator const & a, DocIterator const & b)
+{
+	if (a.empty() && b.empty())
+		return true;
+	if (a.empty() || b.empty())
+		return false;
+	return &a.innerParagraph() == &b.innerParagraph();
+}
+
+
+void BufferView::setInlineCompletion(Cursor & cur, DocIterator const & pos, 
+	docstring const & completion, size_t uniqueChars)
+{
+	uniqueChars = min(completion.size(), uniqueChars);
+	bool changed = d->inlineCompletion_ != completion
+		|| d->inlineCompletionUniqueChars_ != uniqueChars;
+	bool singlePar = true;
+	d->inlineCompletion_ = completion;
+	d->inlineCompletionUniqueChars_ = min(completion.size(), uniqueChars);
+	
+	//lyxerr << "setInlineCompletion pos=" << pos << " completion=" << completion << " uniqueChars=" << uniqueChars << std::endl;
+	
+	// at new position?
+	DocIterator const & old = d->inlineCompletionPos_;
+	if (old != pos) {
+		//lyxerr << "inlineCompletionPos changed" << std::endl;
+		// old or pos are in another paragraph?
+		if ((!samePar(cur, pos) && !pos.empty())
+		    || (!samePar(cur, old) && !old.empty())) {
+			singlePar = false;
+			//lyxerr << "different paragraph" << std::endl;
+		}
+		d->inlineCompletionPos_ = pos;
+	}
+	
+	// set update flags
+	if (changed) {
+		if (singlePar && !(cur.disp_.update() & Update::Force))
+			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+		else
+			cur.updateFlags(cur.disp_.update() | Update::Force);
+	}
 }
 
 } // namespace lyx

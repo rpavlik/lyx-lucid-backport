@@ -16,54 +16,28 @@
 #include "Buffer.h"
 #include "buffer_funcs.h"
 #include "BufferParams.h"
-#include "debug.h"
 #include "ErrorList.h"
 #include "Format.h"
-#include "gettext.h"
 #include "Language.h"
 #include "LaTeX.h"
 #include "Mover.h"
 
 #include "frontends/alert.h"
 
+#include "support/debug.h"
+#include "support/FileNameList.h"
 #include "support/filetools.h"
-#include "support/lyxlib.h"
+#include "support/gettext.h"
+#include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Package.h"
 #include "support/Path.h"
 #include "support/Systemcall.h"
 
-using std::endl;
-using std::find_if;
-using std::string;
-using std::vector;
-using std::distance;
-
+using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
-
-using support::addName;
-using support::bformat;
-using support::changeExtension;
-using support::compare_ascii_no_case;
-using support::contains;
-using support::dirList;
-using support::FileName;
-using support::getExtension;
-using support::isFileReadable;
-using support::libFileSearch;
-using support::libScriptSearch;
-using support::makeAbsPath;
-using support::makeRelPath;
-using support::onlyFilename;
-using support::onlyPath;
-using support::package;
-using support::prefixIs;
-using support::quoteName;
-using support::removeExtension;
-using support::split;
-using support::subst;
-using support::Systemcall;
 
 namespace Alert = lyx::frontend::Alert;
 
@@ -102,7 +76,7 @@ string const dvipdfm_options(BufferParams const & bp)
 }
 
 
-class ConverterEqual : public std::binary_function<string, string, bool> {
+class ConverterEqual {
 public:
 	ConverterEqual(string const & from, string const & to)
 		: from_(from), to_(to) {}
@@ -311,19 +285,17 @@ bool Converters::convert(Buffer const * buffer,
 				formats.extension(from_format);
 			string const to_ext = formats.extension(to_format);
 			string const command =
-				support::os::python() + ' ' +
+				os::python() + ' ' +
 				quoteName(libFileSearch("scripts", "convertDefault.py").toFilesystemEncoding()) +
 				' ' +
 				quoteName(from_ext + ':' + from_file.toFilesystemEncoding()) +
 				' ' +
 				quoteName(to_ext + ':' + to_file.toFilesystemEncoding());
-			LYXERR(Debug::FILES)
-				<< "No converter defined! "
-				   "I use convertDefault.py:\n\t"
-				<< command << endl;
+			LYXERR(Debug::FILES, "No converter defined! "
+				   "I use convertDefault.py:\n\t" << command);
 			Systemcall one;
 			one.startscript(Systemcall::Wait, command);
-			if (isFileReadable(to_file)) {
+			if (to_file.isReadableFile()) {
 				if (conversionflags & try_cache)
 					ConverterCache::get().add(orig_from,
 							to_format, to_file);
@@ -351,7 +323,7 @@ bool Converters::convert(Buffer const * buffer,
 	string const path(onlyPath(from_file.absFilename()));
 	// Prevent the compiler from optimizing away p
 	FileName pp(path);
-	support::Path p(pp);
+	PathChanger p(pp);
 
 	// empty the error list before any new conversion takes place.
 	errorList.clear();
@@ -365,9 +337,10 @@ bool Converters::convert(Buffer const * buffer,
 	     cit != edgepath.end(); ++cit) {
 		Converter const & conv = converterlist_[*cit];
 		bool dummy = conv.To->dummy() && conv.to != "program";
-		if (!dummy)
-			LYXERR(Debug::FILES) << "Converting from  "
-			       << conv.from << " to " << conv.to << endl;
+		if (!dummy) {
+			LYXERR(Debug::FILES, "Converting from  "
+			       << conv.from << " to " << conv.to);
+		}
 		infile = outfile;
 		outfile = FileName(conv.result_dir.empty()
 			? changeExtension(from_file.absFilename(), conv.To->extension())
@@ -392,15 +365,14 @@ bool Converters::convert(Buffer const * buffer,
 		if (conv.latex) {
 			run_latex = true;
 			string const command = subst(conv.command, token_from, "");
-			LYXERR(Debug::FILES) << "Running " << command << endl;
+			LYXERR(Debug::FILES, "Running " << command);
 			if (!runLaTeX(*buffer, command, runparams, errorList))
 				return false;
 		} else {
 			if (conv.need_aux && !run_latex
 			    && !latex_command_.empty()) {
-				LYXERR(Debug::FILES)
-					<< "Running " << latex_command_
-					<< " to update aux file"<<  endl;
+				LYXERR(Debug::FILES, "Running " << latex_command_
+					<< " to update aux file");
 				runLaTeX(*buffer, latex_command_, runparams, errorList);
 			}
 
@@ -426,7 +398,7 @@ bool Converters::convert(Buffer const * buffer,
 				command = add_options(command,
 						      dvipdfm_options(buffer->params()));
 
-			LYXERR(Debug::FILES) << "Calling " << command << endl;
+			LYXERR(Debug::FILES, "Calling " << command);
 			if (buffer)
 				buffer->message(_("Executing command: ")
 				+ from_utf8(command));
@@ -446,10 +418,8 @@ bool Converters::convert(Buffer const * buffer,
 					if (!mover.rename(outfile, real_outfile))
 						res = -1;
 					else
-						LYXERR(Debug::FILES)
-							<< "renaming file " << outfile
-							<< " to " << real_outfile
-							<< endl;
+						LYXERR(Debug::FILES, "renaming file " << outfile
+							<< " to " << real_outfile);
 					// Finally, don't forget to tell any future
 					// converters to use the renamed file...
 					outfile = real_outfile;
@@ -525,9 +495,8 @@ bool Converters::move(string const & fmt,
 	string const to_base = removeExtension(to.absFilename());
 	string const to_extension = getExtension(to.absFilename());
 
-	vector<FileName> const files = dirList(FileName(path),
-			getExtension(from.absFilename()));
-	for (vector<FileName>::const_iterator it = files.begin();
+	support::FileNameList const files = FileName(path).dirList(getExtension(from.absFilename()));
+	for (support::FileNameList::const_iterator it = files.begin();
 	     it != files.end(); ++it) {
 		string const from2 = it->absFilename();
 		string const file2 = onlyFilename(from2);
@@ -535,8 +504,7 @@ bool Converters::move(string const & fmt,
 			string const to2 = changeExtension(
 				to_base + file2.substr(base.length()),
 				to_extension);
-			LYXERR(Debug::FILES) << "moving " << from2
-					     << " to " << to2 << endl;
+			LYXERR(Debug::FILES, "moving " << from2 << " to " << to2);
 
 			Mover const & mover = getMover(fmt);
 			bool const moved = copy
@@ -578,7 +546,7 @@ bool Converters::scanLog(Buffer const & buffer, string const & /*command*/,
 	int const result = latex.scanLogFile(terr);
 
 	if (result & LaTeX::ERRORS)
-		bufferErrors(buffer, terr, errorList);
+		buffer.bufferErrors(terr, errorList);
 
 	return true;
 }
@@ -586,13 +554,11 @@ bool Converters::scanLog(Buffer const & buffer, string const & /*command*/,
 
 namespace {
 
-class showMessage : public std::unary_function<docstring, void>, public boost::signals::trackable {
+class ShowMessage
+	: public boost::signals::trackable {
 public:
-	showMessage(Buffer const & b) : buffer_(b) {};
-	void operator()(docstring const & m) const
-	{
-		buffer_.message(m);
-	}
+	ShowMessage(Buffer const & b) : buffer_(b) {}
+	void operator()(docstring const & msg) const { buffer_.message(msg); }
 private:
 	Buffer const & buffer_;
 };
@@ -603,21 +569,21 @@ private:
 bool Converters::runLaTeX(Buffer const & buffer, string const & command,
 			  OutputParams const & runparams, ErrorList & errorList)
 {
-	buffer.busy(true);
+	buffer.setBusy(true);
 	buffer.message(_("Running LaTeX..."));
 
 	runparams.document_language = buffer.params().language->babel();
 
 	// do the LaTeX run(s)
-	string const name = buffer.getLatexName();
+	string const name = buffer.latexName();
 	LaTeX latex(command, runparams, FileName(makeAbsPath(name)));
 	TeXErrors terr;
-	showMessage show(buffer);
+	ShowMessage show(buffer);
 	latex.message.connect(show);
 	int const result = latex.run(terr);
 
 	if (result & LaTeX::ERRORS)
-		bufferErrors(buffer, terr, errorList);
+		buffer.bufferErrors(terr, errorList);
 
 	// check return value from latex.run().
 	if ((result & LaTeX::NO_LOGFILE)) {
@@ -632,7 +598,7 @@ bool Converters::runLaTeX(Buffer const & buffer, string const & command,
 	}
 
 
-	buffer.busy(false);
+	buffer.setBusy(false);
 
 	int const ERROR_MASK =
 			LaTeX::NO_LOGFILE |
@@ -658,8 +624,8 @@ void Converters::buildGraph()
 }
 
 
-std::vector<Format const *> const
-Converters::intToFormat(std::vector<int> const & input)
+vector<Format const *> const
+Converters::intToFormat(vector<int> const & input)
 {
 	vector<Format const *> result(input.size());
 
@@ -703,11 +669,34 @@ bool Converters::isReachable(string const & from, string const & to)
 }
 
 
-Graph::EdgePath const
-Converters::getPath(string const & from, string const & to)
+Graph::EdgePath Converters::getPath(string const & from, string const & to)
 {
 	return G_.getPath(formats.getNumber(from),
 			  formats.getNumber(to));
 }
+
+
+vector<Format const *> Converters::importableFormats()
+{
+	vector<string> l = loaders();
+	vector<Format const *> result = getReachableTo(l[0], true);
+	for (vector<string>::const_iterator it = l.begin() + 1;
+	     it != l.end(); ++it) {
+		vector<Format const *> r = getReachableTo(*it, false);
+		result.insert(result.end(), r.begin(), r.end());
+	}
+	return result;
+}
+
+
+vector<string> Converters::loaders() const
+{
+	vector<string> v;
+	v.push_back("lyx");
+	v.push_back("text");
+	v.push_back("textparagraph");
+	return v;
+}
+
 
 } // namespace lyx

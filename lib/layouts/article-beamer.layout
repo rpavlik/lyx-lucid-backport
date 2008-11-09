@@ -2,7 +2,7 @@
 #  \DeclareLaTeXClass[article]{article (beamer)}
 # Author: Jürgen Spitzmüller <j.spitzmueller@gmx.de>
 
-Format 4
+Format 7
 
 # Includes
 Input beamer.layout

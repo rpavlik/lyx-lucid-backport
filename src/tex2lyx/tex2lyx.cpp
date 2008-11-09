@@ -13,25 +13,21 @@
 #include <config.h>
 
 #include "tex2lyx.h"
+
 #include "Context.h"
-
-#include "debug.h"
 #include "TextClass.h"
+#include "Layout.h"
 
+#include "support/lassert.h"
 #include "support/convert.h"
-#include "support/filetools.h"
-#include "support/fs_extras.h"
-#include "support/lstrings.h"
-#include "support/lyxlib.h"
+#include "support/debug.h"
 #include "support/ExceptionMessage.h"
+#include "support/filetools.h"
+#include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Package.h"
-#include "support/unicode.h"
 
-#include <boost/function.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -39,50 +35,21 @@
 #include <vector>
 #include <map>
 
+using namespace std;
+using namespace lyx::support;
+using namespace lyx::support::os;
 
 namespace lyx {
 
-using std::endl;
-using std::cout;
-using std::cerr;
-using std::getline;
-
-using std::ifstream;
-using std::ofstream;
-using std::istringstream;
-using std::ostringstream;
-using std::stringstream;
-using std::string;
-using std::vector;
-using std::map;
-
-using support::changeExtension;
-using support::FileName;
-using support::isStrUnsignedInt;
-using support::ltrim;
-using support::makeAbsPath;
-using support::onlyPath;
-using support::os::internal_path;
-using support::rtrim;
-using support::isFileReadable;
-
-namespace fs = boost::filesystem;
-
-Layout_ptr captionlayout;
-
-// Hacks to allow the thing to link in the lyxlayout stuff
-LyXErr lyxerr(std::cerr.rdbuf());
-
-
 string const trim(string const & a, char const * p)
 {
-	// BOOST_ASSERT(p);
+	// LASSERT(p, /**/);
 
 	if (a.empty() || !*p)
 		return a;
 
-	string::size_type r = a.find_last_not_of(p);
-	string::size_type l = a.find_first_not_of(p);
+	size_t r = a.find_last_not_of(p);
+	size_t l = a.find_first_not_of(p);
 
 	// Is this the minimal test? (lgb)
 	if (r == string::npos && l == string::npos)
@@ -106,7 +73,7 @@ void split(string const & s, vector<string> & result, char delim)
 string join(vector<string> const & input, char const * delim)
 {
 	ostringstream os;
-	for (size_t i = 0; i < input.size(); ++i) {
+	for (size_t i = 0; i != input.size(); ++i) {
 		if (i)
 			os << delim;
 		os << input[i];
@@ -177,7 +144,8 @@ namespace {
 /*!
  * Read one command definition from the syntax file
  */
-void read_command(Parser & p, string command, CommandMap & commands) {
+void read_command(Parser & p, string command, CommandMap & commands)
+{
 	if (p.next_token().asInput() == "*") {
 		p.get_token();
 		command += '*';
@@ -273,7 +241,7 @@ bool overwrite_files = false;
 
 
 /// return the number of arguments consumed
-typedef boost::function<int(string const &, string const &)> cmd_helper;
+typedef int (*cmd_helper)(string const &, string const &);
 
 
 int parse_help(string const &, string const &)
@@ -369,7 +337,7 @@ void easyParse(int & argc, char * argv[])
 	cmdmap["-userdir"] = parse_userdir;
 
 	for (int i = 1; i < argc; ++i) {
-		std::map<string, cmd_helper>::const_iterator it
+		map<string, cmd_helper>::const_iterator it
 			= cmdmap.find(argv[i]);
 
 		// don't complain if not found - may be parsed later
@@ -421,14 +389,14 @@ namespace {
  *  You must ensure that \p parentFilePath is properly set before calling
  *  this function!
  */
-void tex2lyx(std::istream &is, std::ostream &os)
+void tex2lyx(istream & is, ostream & os)
 {
 	Parser p(is);
 	//p.dump();
 
 	stringstream ss;
-	TextClass textclass = parse_preamble(p, ss, documentclass);
-	captionlayout = Layout_ptr(Layout::forCaption());
+	TeX2LyXDocClass textclass;
+	parse_preamble(p, ss, documentclass, textclass);
 
 	active_environments.push_back("document");
 	Context context(true, textclass);
@@ -452,7 +420,7 @@ void tex2lyx(std::istream &is, std::ostream &os)
 
 
 /// convert TeX from \p infilename to LyX and write it to \p os
-bool tex2lyx(FileName const & infilename, std::ostream &os)
+bool tex2lyx(FileName const & infilename, ostream & os)
 {
 	ifstream is(infilename.toFilesystemEncoding().c_str());
 	if (!is.good()) {
@@ -470,9 +438,9 @@ bool tex2lyx(FileName const & infilename, std::ostream &os)
 } // anonymous namespace
 
 
-bool tex2lyx(string const &infilename, FileName const &outfilename)
+bool tex2lyx(string const & infilename, FileName const & outfilename)
 {
-	if (isFileReadable(outfilename)) {
+	if (outfilename.isReadableFile()) {
 		if (overwrite_files) {
 			cerr << "Overwriting existing file "
 			     << outfilename << endl;
@@ -503,7 +471,8 @@ bool tex2lyx(string const &infilename, FileName const &outfilename)
 int main(int argc, char * argv[])
 {
 	using namespace lyx;
-	fs::path::default_name_check(fs::no_check);
+
+	lyxerr.setStream(cerr);
 
 	easyParse(argc, argv);
 
@@ -513,23 +482,23 @@ int main(int argc, char * argv[])
 		return 2;
 	}
 
-	lyx::support::os::init(argc, argv);
+	os::init(argc, argv);
 
-	try { support::init_package(internal_path(to_utf8(from_local8bit(argv[0]))),
+	try { init_package(internal_path(to_utf8(from_local8bit(argv[0]))),
 		cl_system_support, cl_user_support,
-		support::top_build_dir_is_two_levels_up);
-	} catch (support::ExceptionMessage const & message) {
+		top_build_dir_is_two_levels_up);
+	} catch (ExceptionMessage const & message) {
 		cerr << to_utf8(message.title_) << ":\n"
 			<< to_utf8(message.details_) << endl;
-		if (message.type_ == support::ErrorException)
+		if (message.type_ == ErrorException)
 			exit(1);
 	}
-	
+
 	// Now every known option is parsed. Look for input and output
 	// file name (the latter is optional).
 	string infilename = internal_path(to_utf8(from_local8bit(argv[1])));
 	infilename = makeAbsPath(infilename).absFilename();
-	
+
 	string outfilename;
 	if (argc > 2) {
 		outfilename = internal_path(to_utf8(from_local8bit(argv[2])));
@@ -538,7 +507,7 @@ int main(int argc, char * argv[])
 	} else
 		outfilename = changeExtension(infilename, ".lyx");
 
-	FileName const system_syntaxfile = lyx::support::libFileSearch("", "syntax.default");
+	FileName const system_syntaxfile = libFileSearch("", "syntax.default");
 	if (system_syntaxfile.empty()) {
 		cerr << "Error: Could not find syntax file \"syntax.default\"." << endl;
 		exit(1);

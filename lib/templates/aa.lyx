@@ -1,5 +1,5 @@
-#LyX 1.5.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 336
 \begin_document
 \begin_header
 \textclass aa
@@ -13,9 +13,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -49,11 +51,10 @@ your subtitle
 
 \begin_layout Author
 Me
-\begin_inset CharStyle Institute
-show_label false
-status inlined
+\begin_inset Flex CharStyle:Institute
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 1
 \end_layout
 
@@ -63,7 +64,7 @@ status inlined
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -73,11 +74,10 @@ and
 \end_inset
 
 You
-\begin_inset CharStyle Institute
-show_label false
-status inlined
+\begin_inset Flex CharStyle:Institute
+status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 2
 \end_layout
 
@@ -88,13 +88,14 @@ status inlined
 
 \begin_layout Address
 Here 
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset CharStyle E-Mail
-show_label false
-status inlined
 
-\begin_layout Standard
+\begin_inset Flex CharStyle:E-Mail
+status collapsed
+
+\begin_layout Plain Layout
 myaddress
 \end_layout
 
@@ -104,7 +105,7 @@ myaddress
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 
 \backslash
@@ -114,13 +115,14 @@ and
 \end_inset
 
  There
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset CharStyle E-Mail
-show_label false
-status inlined
 
-\begin_layout Standard
+\begin_inset Flex CharStyle:E-Mail
+status collapsed
+
+\begin_layout Plain Layout
 youraddress
 \end_layout
 
@@ -141,7 +143,7 @@ Received ...; Accepted...
 \begin_inset Note Note
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 This template uses the new 
 \begin_inset Quotes eld
 \end_inset
@@ -171,7 +173,7 @@ Document Class\SpecialChar \menuseparator
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }{
 \end_layout
@@ -191,7 +193,7 @@ context (optional: leave void)
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -202,7 +204,7 @@ aims
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -213,7 +215,7 @@ methods
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout
@@ -224,7 +226,7 @@ results
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 } {
 \end_layout

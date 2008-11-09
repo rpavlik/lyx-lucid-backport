@@ -13,54 +13,37 @@
 
 #include "TocWidget.h"
 
-#include "QToc.h"
+#include "GuiView.h"
 #include "qt_helpers.h"
-#include "support/filetools.h"
-#include "support/lstrings.h"
+#include "TocModel.h"
 
-#include "debug.h"
+#include "Buffer.h"
+#include "FuncRequest.h"
+#include "LyXFunc.h"
+
+#include "support/debug.h"
+#include "support/lassert.h"
 
 #include <QHeaderView>
-#include <QPushButton>
-#include <QTreeWidgetItem>
 #include <QTimer>
 
 #include <vector>
-#include <string>
-#include <stack>
 
-using std::endl;
-using std::pair;
-using std::stack;
-using std::vector;
-using std::string;
-
+using namespace std;
 
 namespace lyx {
-
-using support::FileName;
-using support::libFileSearch;
-
 namespace frontend {
 
-TocWidget::TocWidget(QToc * form, QWidget * parent)
-	: QWidget(parent), form_(form), depth_(0)
+TocWidget::TocWidget(GuiView & gui_view, QWidget * parent)
+	: QWidget(parent), depth_(0), gui_view_(gui_view)
 {
 	setupUi(this);
 
-	connect(form, SIGNAL(modelReset()),
-		SLOT(updateGui()));
-
-	FileName icon_path = libFileSearch("images", "promote.xpm");
-	moveOutTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
-	icon_path = libFileSearch("images", "demote.xpm");
-	moveInTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
-	icon_path = libFileSearch("images", "up.xpm");
-	moveUpTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
-	icon_path = libFileSearch("images", "down.xpm");
-	moveDownTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
-	icon_path = libFileSearch("images", "reload.xpm");
-	updateTB->setIcon(QIcon(toqstr(icon_path.absFilename())));
+	moveOutTB->setIcon(QIcon(":/images/promote.png"));
+	moveInTB->setIcon(QIcon(":/images/demote.png"));
+	moveUpTB->setIcon(QIcon(":/images/up.png"));
+	moveDownTB->setIcon(QIcon(":/images/down.png"));
+	updateTB->setIcon(QIcon(":/images/reload.png"));
 
 	// avoid flickering
 	tocTV->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -75,18 +58,31 @@ TocWidget::TocWidget(QToc * form, QWidget * parent)
 
 	// Only one item selected at a time.
 	tocTV->setSelectionMode(QAbstractItemView::SingleSelection);
+
+	// The toc types combo won't change its model.
+	typeCO->setModel(gui_view_.tocModels().nameModel());
 }
 
 
-void TocWidget::selectionChanged(const QModelIndex & current,
-				  const QModelIndex & /*previous*/)
+void TocWidget::on_tocTV_activated(QModelIndex const & index)
 {
-	LYXERR(Debug::GUI)
-		<< "selectionChanged index " << current.row()
-		<< ", " << current.column()
-		<< endl;
+	goTo(index);
+}
 
-	form_->goTo(typeCO->currentIndex(), current);
+
+void TocWidget::on_tocTV_clicked(QModelIndex const & index)
+{
+	goTo(index);
+	gui_view_.setFocus();
+}
+
+
+void TocWidget::goTo(QModelIndex const & index)
+{
+	LYXERR(Debug::GUI, "goto " << index.row()
+		<< ", " << index.column());
+
+	gui_view_.tocModels().goTo(current_type_, index);
 }
 
 
@@ -95,20 +91,21 @@ void TocWidget::on_updateTB_clicked()
 	// The backend update can take some time so we disable
 	// the controls while waiting.
 	enableControls(false);
-	form_->updateBackend();
+	gui_view_.tocModels().updateBackend();
 }
 
+
 /* FIXME (Ugras 17/11/06):
-I have implemented a getIndexDepth function to get the model indices. In my
+I have implemented a indexDepth function to get the model indices. In my
 opinion, somebody should derive a new qvariant class for tocModelItem
-which saves the string data and depth information. that will save the
-depth calculation.
-*/
-int TocWidget::getIndexDepth(QModelIndex const & index, int depth)
+which saves the string data and depth information. That will save the
+depth calculation.  */
+
+static int indexDepth(QModelIndex const & index, int depth = -1)
 {
 	++depth;
-	return (index.parent() ==
-		QModelIndex())? depth : getIndexDepth(index.parent(),depth);
+	return index.parent() == QModelIndex()
+		? depth : indexDepth(index.parent(), depth);
 }
 
 
@@ -117,12 +114,15 @@ void TocWidget::on_depthSL_valueChanged(int depth)
 	if (depth == depth_)
 		return;
 	setTreeDepth(depth);
+	gui_view_.setFocus();
 }
 
 
 void TocWidget::setTreeDepth(int depth)
 {
 	depth_ = depth;
+	if (!tocTV->model())
+		return;
 
 	// expanding and then collapsing is probably better,
 	// but my qt 4.1.2 doesn't have expandAll()..
@@ -130,87 +130,79 @@ void TocWidget::setTreeDepth(int depth)
 	QModelIndexList indices = tocTV->model()->match(
 		tocTV->model()->index(0,0),
 		Qt::DisplayRole, "*", -1,
-		Qt::MatchWildcard|Qt::MatchRecursive);
+		Qt::MatchFlags(Qt::MatchWildcard|Qt::MatchRecursive));
 
 	int size = indices.size();
 	for (int i = 0; i < size; i++) {
 		QModelIndex index = indices[i];
-		if (getIndexDepth(index) < depth_)
-			tocTV->expand(index);
-		else
-			tocTV->collapse(index);
+		tocTV->setExpanded(index, indexDepth(index) < depth_);
 	}
 }
 
-void TocWidget::on_typeCO_currentIndexChanged(int value)
+
+void TocWidget::on_typeCO_currentIndexChanged(int index)
 {
-	setTocModel(value);
+	current_type_ = typeCO->itemData(index).toString();
+	updateView();
+	gui_view_.setFocus();
+}
+
+
+void TocWidget::outline(int func_code)
+{
+	enableControls(false);
+	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
+	if (list.isEmpty())
+		return;
+	enableControls(false);
+	goTo(list[0]);
+	dispatch(FuncRequest(static_cast<FuncCode>(func_code)));
+	enableControls(true);
+	gui_view_.setFocus();
 }
 
 
 void TocWidget::on_moveUpTB_clicked()
 {
-	enableControls(false);
-	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		enableControls(false);
-		form_->goTo(typeCO->currentIndex(), list[0]);
-		form_->outlineUp();
-		enableControls(true);
-	}
+	outline(LFUN_OUTLINE_UP);
 }
 
 
 void TocWidget::on_moveDownTB_clicked()
 {
-	enableControls(false);
-	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		enableControls(false);
-		form_->goTo(typeCO->currentIndex(), list[0]);
-		form_->outlineDown();
-		enableControls(true);
-	}
+	outline(LFUN_OUTLINE_DOWN);
 }
 
 
 void TocWidget::on_moveInTB_clicked()
 {
-	enableControls(false);
-	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		enableControls(false);
-		form_->goTo(typeCO->currentIndex(), list[0]);
-		form_->outlineIn();
-		enableControls(true);
-	}
+	outline(LFUN_OUTLINE_IN);
 }
 
 
 void TocWidget::on_moveOutTB_clicked()
 {
-	QModelIndexList const & list = tocTV->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		enableControls(false);
-		form_->goTo(typeCO->currentIndex(), list[0]);
-		form_->outlineOut();
-		enableControls(true);
-	}
+	outline(LFUN_OUTLINE_OUT);
 }
 
 
 void TocWidget::select(QModelIndex const & index)
 {
 	if (!index.isValid()) {
-		LYXERR(Debug::GUI)
-			<< "TocWidget::select(): QModelIndex is invalid!" << endl;
+		LYXERR(Debug::GUI, "TocWidget::select(): QModelIndex is invalid!");
 		return;
 	}
 
-	disconnectSelectionModel();
-	tocTV->setCurrentIndex(index);
 	tocTV->scrollTo(index);
-	reconnectSelectionModel();
+	tocTV->clearSelection();
+	tocTV->setCurrentIndex(index);
+}
+
+
+/// Test if outlining operation is possible
+static bool canOutline(QString const & type)
+{
+	return type == "tableofcontents";
 }
 
 
@@ -218,107 +210,91 @@ void TocWidget::enableControls(bool enable)
 {
 	updateTB->setEnabled(enable);
 
-	if (!form_->canOutline(typeCO->currentIndex()))
+	if (!canOutline(current_type_))
 		enable = false;
 
 	moveUpTB->setEnabled(enable);
 	moveDownTB->setEnabled(enable);
 	moveInTB->setEnabled(enable);
 	moveOutTB->setEnabled(enable);
-
-	depthSL->setEnabled(enable);
 }
 
 
-void TocWidget::update()
+/// Test if synchronized navigation is possible
+static bool canNavigate(QString const & type)
 {
-	LYXERR(Debug::GUI) << "In TocWidget::update()" << endl;
-	select(form_->getCurrentIndex(typeCO->currentIndex()));
-	QWidget::update();
+	// It is not possible to have synchronous navigation in a correctl
+	// and efficient way with the label type because Toc::item() do a linear
+	// seatch. Even if fixed, it might even not be desirable to do so if we 
+	// want to support drag&drop of labels and references.
+	return type != "label";
 }
 
 
-void TocWidget::updateGui()
+void TocWidget::updateView()
 {
-	vector<docstring> const & type_names = form_->typeNames();
-	if (type_names.empty()) {
+	if (!gui_view_.view()) {
 		enableControls(false);
-		typeCO->clear();
-		tocTV->setModel(new QStandardItemModel);
-		tocTV->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		typeCO->setEnabled(false);
+		tocTV->setModel(0);
+		tocTV->setEnabled(false);
 		return;
 	}
+	typeCO->setEnabled(true);
+	tocTV->setEnabled(true);
 
-	typeCO->blockSignals(true);
-	typeCO->clear();
-	for (size_t i = 0; i != type_names.size(); ++i) {
-		QString item = toqstr(type_names[i]);
-		typeCO->addItem(item);
-	}
-	if (form_->selectedType() != -1)
-		typeCO->setCurrentIndex(form_->selectedType());
-	typeCO->blockSignals(false);
-
-	setTocModel(typeCO->currentIndex());
-
-	// setTocModel produce QTreeView reset and setting depth again
-	// is needed. That must be done after all Qt updates are processed.
-	QTimer::singleShot(0, this, SLOT(setTreeDepth()));
-}
-
-
-void TocWidget::setTocModel(size_t type)
-{
-	bool controls_enabled = false;
-	QStandardItemModel * toc_model = form_->tocModel(type);
-	if (toc_model) {
-		controls_enabled = toc_model->rowCount() > 0;
+	QStandardItemModel * toc_model = gui_view_.tocModels().model(current_type_);	
+	if (tocTV->model() != toc_model) {
 		tocTV->setModel(toc_model);
 		tocTV->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	}
-
+	bool controls_enabled = toc_model && toc_model->rowCount() > 0
+		&& !gui_view_.buffer()->isReadonly();
 	enableControls(controls_enabled);
 
-	reconnectSelectionModel();
-
-	if (controls_enabled) {
-		depthSL->setMaximum(form_->getTocDepth(type));
-		depthSL->setValue(depth_);
-	}
-
-	LYXERR(Debug::GUI) << "In TocWidget::updateGui()" << endl;
-
-	select(form_->getCurrentIndex(typeCO->currentIndex()));
-
-	if (toc_model) {
-		LYXERR(Debug::GUI)
-		<< "form_->tocModel()->rowCount "
-			<< toc_model->rowCount()
-			<< "\nform_->tocModel()->columnCount "
-			<< toc_model->columnCount()
-			<< endl;
-	}
+	depthSL->setMaximum(gui_view_.tocModels().depth(current_type_));
+	depthSL->setValue(depth_);
+	setTreeDepth(depth_);
+	if (canNavigate(current_type_))
+		select(gui_view_.tocModels().currentIndex(current_type_));
 }
 
 
-void TocWidget::reconnectSelectionModel()
+static QString decodeType(QString const & str)
 {
-	connect(tocTV->selectionModel(),
-		SIGNAL(currentChanged(const QModelIndex &,
-		       const QModelIndex &)),
-		this,
-		SLOT(selectionChanged(const QModelIndex &,
-		     const QModelIndex &)));
+	QString type = str;
+	if (type.contains("tableofcontents")) {
+		type = "tableofcontents";
+	} else if (type.contains("floatlist")) {
+		if (type.contains("\"figure"))
+			type = "figure";
+		else if (type.contains("\"table"))
+			type = "table";
+		else if (type.contains("\"algorithm"))
+			type = "algorithm";
+	}
+	return type;
 }
 
-void TocWidget::disconnectSelectionModel()
+
+void TocWidget::init(QString const & str)
 {
-	disconnect(tocTV->selectionModel(),
-		   SIGNAL(currentChanged(const QModelIndex &,
-			  const QModelIndex &)),
-		   this,
-		   SLOT(selectionChanged(const QModelIndex &,
-			const QModelIndex &)));
+	int new_index;
+	if (str.isEmpty())
+		new_index = typeCO->findData(current_type_);
+	else
+		new_index = typeCO->findData(decodeType(str));
+
+	// If everything else fails, settle on the table of contents which is
+	// guaranted to exist.
+	if (new_index == -1) {
+		current_type_ = "tableofcontents";
+		new_index = typeCO->findData(current_type_);
+	}
+
+	typeCO->blockSignals(true);
+	typeCO->setCurrentIndex(new_index);
+	typeCO->blockSignals(false);
 }
 
 } // namespace frontend

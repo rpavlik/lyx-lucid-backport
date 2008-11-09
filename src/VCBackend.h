@@ -50,9 +50,7 @@ public:
 	/// return the current version description
 	virtual std::string const versionString() const = 0;
 	/// return the current version
-	std::string const & version() const {
-		return version_;
-	}
+	std::string const & version() const { return version_; }
 	/// return the user who has locked the file
 	std::string const & locker() const { return locker_; }
 	/// set the owning buffer
@@ -103,7 +101,7 @@ public:
 	RCS(support::FileName const & m);
 
 	/// return the revision file for the given file, if found
-	static support::FileName const find_file(support::FileName const & file);
+	static support::FileName const findFile(support::FileName const & file);
 
 	static void retrieve(support::FileName const & file);
 
@@ -136,7 +134,7 @@ public:
 	CVS(support::FileName const & m, support::FileName const & f);
 
 	/// return the revision file for the given file, if found
-	static support::FileName const find_file(support::FileName const & file);
+	static support::FileName const findFile(support::FileName const & file);
 
 	virtual void registrer(std::string const & msg);
 

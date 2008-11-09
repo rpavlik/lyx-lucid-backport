@@ -30,7 +30,7 @@ Invocation:
 # modify this when you change branch
 # Note that an empty lyx_branch variable (ie svn trunk)
 # will "do the right thing".
-lyx_branch="BRANCH_1_5_X"
+lyx_branch=""
 
 import os
 import sys

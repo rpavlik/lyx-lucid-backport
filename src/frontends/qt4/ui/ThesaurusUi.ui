@@ -1,9 +1,6 @@
 <ui version="4.0" >
- <author></author>
- <comment></comment>
- <exportmacro></exportmacro>
- <class>QThesaurusUi</class>
- <widget class="QDialog" name="QThesaurusUi" >
+ <class>ThesaurusUi</class>
+ <widget class="QDialog" name="ThesaurusUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -151,7 +148,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <tabstops>
   <tabstop>entryED</tabstop>

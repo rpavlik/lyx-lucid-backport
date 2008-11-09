@@ -20,8 +20,6 @@
 #ifndef GRAPHICSCACHE_H
 #define GRAPHICSCACHE_H
 
-#include <boost/utility.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <vector>
@@ -36,7 +34,7 @@ namespace graphics {
 
 class CacheItem;
 
-class Cache : boost::noncopyable {
+class Cache {
 public:
 
 	/// This is a singleton class. Get the instance.
@@ -46,7 +44,7 @@ public:
 	 *  Other formats can be loaded if a converter to a loadable format
 	 *  can be defined.
 	 */
-	std::vector<std::string> loadableFormats() const;
+	std::vector<std::string> const & loadableFormats() const;
 
 	/// Add a graphics file to the cache.
 	void add(support::FileName const & file) const;
@@ -72,6 +70,10 @@ public:
 	ItemPtr const item(support::FileName const & file) const;
 
 private:
+	/// noncopyable
+	Cache(Cache const &);
+	void operator=(Cache const &);
+
 	/** Make the c-tor, d-tor private so we can control how many objects
 	 *  are instantiated.
 	 */
@@ -82,7 +84,7 @@ private:
 	/// Use the Pimpl idiom to hide the internals.
 	class Impl;
 	/// The pointer never changes although *pimpl_'s contents may.
-	boost::scoped_ptr<Impl> const pimpl_;
+	Impl * const pimpl_;
 };
 
 } // namespace graphics

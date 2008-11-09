@@ -2,14 +2,14 @@
  <author></author>
  <comment></comment>
  <exportmacro></exportmacro>
- <class>QERTUi</class>
- <widget class="QDialog" name="QERTUi" >
+ <class>ERTUi</class>
+ <widget class="QDialog" name="ERTUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
     <width>197</width>
-    <height>194</height>
+    <height>135</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -37,17 +37,7 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <item>
-       <widget class="QRadioButton" name="inlineRB" >
-        <property name="toolTip" >
-         <string>Show ERT inline</string>
-        </property>
-        <property name="text" >
-         <string>&amp;Inline</string>
-        </property>
-       </widget>
-      </item>
-      <item>
+     <item>
        <widget class="QRadioButton" name="collapsedRB" >
         <property name="toolTip" >
          <string>Show ERT button only</string>
@@ -120,7 +110,7 @@
  </widget>
  <pixmapfunction></pixmapfunction>
  <includes>
-  <include location="local" >qt_helpers.h</include>
+  <include location="local" >qt_i18n.h</include>
  </includes>
  <resources/>
  <connections/>

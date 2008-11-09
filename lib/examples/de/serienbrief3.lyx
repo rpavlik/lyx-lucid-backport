@@ -1,5 +1,5 @@
-#LyX 1.5.4svn created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 314
 \begin_document
 \begin_header
 \textclass scrlttr2
@@ -73,6 +73,17 @@ fromurl=true%               print sender URL
 \graphics default
 \paperfontsize 11
 \spacing other 1.15
+\use_hyperref true
+\pdf_bookmarks false
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pagebackref false
+\pdf_pdfusetitle false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -177,7 +188,7 @@ adrentry}[8]{
 
 \begin_layout Standard
 \begin_inset ERT
-status inlined
+status open
 
 \begin_layout Standard
 
@@ -204,7 +215,7 @@ wenn Person weiblich ist
 \begin_layout Address
 Frau 
 \begin_inset ERT
-status inlined
+status collapsed
 
 \begin_layout Standard
 
@@ -212,6 +223,11 @@ status inlined
 \backslash
 
 \backslash
+
+\end_layout
+
+\begin_layout Standard
+
 #3
 \end_layout
 
@@ -260,7 +276,7 @@ LaTeX-Vorspann
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout PlainLayout
 
 "=
 \end_layout
@@ -271,7 +287,7 @@ Script
 \begin_inset ERT
 status collapsed
 
-\begin_layout Standard
+\begin_layout PlainLayout
 
 "=
 \end_layout
@@ -283,7 +299,8 @@ Dokumentation
 status collapsed
 
 \begin_layout Standard
-\begin_inset LatexCommand url
+\begin_inset CommandInset href
+LatexCommand href
 target "ftp://ftp.dante.de/tex-archive/macros/latex/contrib/koma-script/scrguide.pdf"
 
 \end_inset
@@ -312,10 +329,10 @@ Die LyX-User
 
 \begin_layout EndLetter
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Standard
-Diese Umgebung muss leer sein.
+keep this environment empty
 \end_layout
 
 \end_inset
@@ -325,7 +342,7 @@ Diese Umgebung muss leer sein.
 
 \begin_layout Standard
 \begin_inset ERT
-status inlined
+status open
 
 \begin_layout Standard
 
@@ -386,8 +403,9 @@ renewcommand*
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{../addressExample.adr}
-preview false
+\begin_inset CommandInset include
+LatexCommand input
+filename "../addressExample.adr"
 
 \end_inset
 

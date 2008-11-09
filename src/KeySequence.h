@@ -10,10 +10,10 @@
  * Full author contact details are available in file CREDITS.
  */
 
-#ifndef KB_SEQUENCE_H
-#define KB_SEQUENCE_H
+#ifndef KEYSEQUENCE_H
+#define KEYSEQUENCE_H
 
-#include "frontends/key_state.h"
+#include "frontends/KeyModifier.h"
 #include "frontends/KeySymbol.h"
 
 #include <string>
@@ -28,10 +28,11 @@ class FuncRequest;
 /// Holds a key sequence and the current and standard keymaps
 class KeySequence {
 public:
-	typedef std::vector<KeySymbolPtr> Sequence;
+	typedef std::vector<KeySymbol> Sequence;
 
 	friend class KeyMap;
 
+	KeySequence() : stdmap(0), curmap(0), deleted_(true) {}
 	///
 	KeySequence(KeyMap * std, KeyMap * cur)
 		: stdmap(std), curmap(cur), deleted_(false) {}
@@ -44,9 +45,8 @@ public:
 	 * @param nmod which modifiers to mask out for equality test
 	 * @return the action matching this key sequence or LFUN_UNKNOWN_ACTION
 	 */
-	FuncRequest const &
-	addkey(KeySymbolPtr keysym, key_modifier::state mod,
-	       key_modifier::state nmod = key_modifier::none);
+	FuncRequest const & addkey(KeySymbol const & keysym, KeyModifier mod,
+	       KeyModifier nmod = NoModifier);
 
 	/**
 	 * Add a sequence of keys from a string to the sequence
@@ -61,13 +61,18 @@ public:
 	 */
 	size_t parse(std::string const & s);
 
+	enum outputFormat {
+		Portable,	//< use a more portable format
+		ForGui,		//< use platform specific translations and special characters
+		BindFile	//< the format used in lyx bind files
+	};
+	
 	/**
 	 * Return the current sequence as a string.
-	 * @param forgui true if the string should use translations and
-	 *   special characters.
+	 * @param format output format
 	 * @see parse()
 	 */
-	docstring const print(bool forgui) const;
+	docstring const print(outputFormat format) const;
 
 	/**
 	 * Return the current sequence and available options as
@@ -104,11 +109,10 @@ private:
 	 */
 	Sequence sequence;
 
-	typedef std::pair<key_modifier::state, key_modifier::state>
-		modifier_pair;
+	typedef std::pair<KeyModifier, KeyModifier> ModifierPair;
 
 	/// modifiers for keys in the sequence
-	std::vector<modifier_pair> modifiers;
+	std::vector<ModifierPair> modifiers;
 
 	/// is keysequence deleted ?
 	bool deleted_;

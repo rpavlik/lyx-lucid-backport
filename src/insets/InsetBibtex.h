@@ -12,12 +12,12 @@
 #ifndef INSET_BIBTEX_H
 #define INSET_BIBTEX_H
 
-
-#include <vector>
+#include "BiblioInfo.h"
 #include "InsetCommand.h"
 
-#include "support/FileName.h"
+#include "support/FileNameList.h"
 
+#include <map>
 
 namespace lyx {
 
@@ -26,33 +26,53 @@ namespace lyx {
 class InsetBibtex : public InsetCommand {
 public:
 	///
-	InsetBibtex(InsetCommandParams const &);
+	InsetBibtex(Buffer const &, InsetCommandParams const &);
 	///
-	docstring const getScreenLabel(Buffer const &) const;
+	virtual ~InsetBibtex();
+	///
+	docstring screenLabel() const;
+	///
+	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
 	EDITABLE editable() const { return IS_EDITABLE; }
 	///
-	Inset::Code lyxCode() const { return Inset::BIBTEX_CODE; }
+	InsetCode lyxCode() const { return BIBTEX_CODE; }
 	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	int latex(Buffer const &, odocstream &, OutputParams const &) const;
+	int latex(odocstream &, OutputParams const &) const;
 	///
-	void fillWithBibKeys(Buffer const & buffer,
-		std::vector<std::pair<std::string, docstring> > & keys) const;
+	void fillWithBibKeys(BiblioInfo &, InsetIterator const &) const;
 	///
-	std::vector<support::FileName> const getFiles(Buffer const &) const;
+	support::FileNameList getBibFiles() const;
 	///
-	bool addDatabase(std::string const &);
+	bool addDatabase(docstring const &);
 	///
-	bool delDatabase(std::string const &);
+	bool delDatabase(docstring const &);
 	///
 	void validate(LaTeXFeatures &) const;
-protected:
-	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "bibtex"; };
+	///
+	static bool isCompatibleCommand(std::string const & s) 
+		{ return s == "bibtex"; }
+	/// look up the path to the file using TeX
+	static support::FileName 
+		getBibTeXPath(docstring const & filename, Buffer const & buf);
+	///
+	docstring contextMenu(BufferView const &, int, int) const;
 private:
-	virtual std::auto_ptr<Inset> doClone() const;
-
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus & flag) const;
+	///
+	void editDatabases() const;
+	///
+	Inset * clone() const { return new InsetBibtex(*this); }
 };
 
 

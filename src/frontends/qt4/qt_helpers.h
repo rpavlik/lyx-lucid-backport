@@ -14,23 +14,30 @@
 #define QTHELPERS_H
 
 #include "Length.h"
-#include "support/docstring.h"
 #include "support/qstring_helpers.h"
+#include "qt_i18n.h"
 
 #include <QString>
-#include <utility>
 
 class QComboBox;
 class QLineEdit;
 class QCheckBox;
+class QString;
+class QWidget;
+template <class T> class QList;
 
 class LengthCombo;
 
 namespace lyx {
 
-std::string makeFontName(std::string const & family, std::string const & foundry);
+namespace support { class FileName; }
 
-std::pair<std::string,std::string> parseFontName(std::string const & name);
+class BufferParams;
+class LyXErr;
+
+LyXErr & operator<<(LyXErr &, QString const &);
+
+namespace frontend {
 
 /// method to get a Length from widgets (LengthCombo)
 std::string widgetsToLength(QLineEdit const * input, LengthCombo const * combo);
@@ -40,43 +47,18 @@ Length widgetsToLength(QLineEdit const * input, QComboBox const * combo);
 //FIXME It would be nice if defaultUnit were a default argument
 /// method to set widgets from a Length
 void lengthToWidgets(QLineEdit * input, LengthCombo * combo,
-	Length const & len, Length::UNIT default_unit);
+Length const & len, Length::UNIT default_unit);
 /// method to set widgets from a string
 void lengthToWidgets(QLineEdit * input, LengthCombo * combo,
-	std::string const & len, Length::UNIT default_unit);
+std::string const & len, Length::UNIT default_unit);
 /// method to set widgets from a Length with optional "auto" if zero
 void lengthAutoToWidgets(QLineEdit * input, LengthCombo * combo,
-	Length const & len, Length::UNIT defaultUnit);
+Length const & len, Length::UNIT defaultUnit);
 
-//FIXME setAutoTextCB should really take an argument, as indicated, that
-//determines what text is to be written for "auto". But making
-//that work involves more extensive revisions than we now want
-//to make, since "auto" also appears in update_contents() (see
-//QGraphics.cpp).
-//The right way to do this, I think, would be to define a class
-//checkedLengthSet (and a partnering labeledLengthSete) that encapsulated
-//the checkbox, line edit, and length combo together, and then made e.g.
-//lengthToWidgets, widgetsToLength, etc, all public methods of that class.
-//Perhaps even the validator could be exposed through it.
-/**
- * sets a checkbox-line edit-length combo group, using "text" if the
- * checkbox is unchecked and clearing the line edit if it previously
- * said "text".
-*/
-void setAutoTextCB(QCheckBox * checkBox, QLineEdit * lineEdit,
-	LengthCombo * lengthCombo/*, string text = "auto"*/);
+/// colors a widget red if invalid
+void setValid(QWidget * widget, bool valid);
 
-
-/// format a string to the given width
-docstring const formatted(docstring const & text, int w = 80);
-
-
-/**
- * qt_ - i18nize string and convert to QString
- *
- * Use this in qt4/ instead of _()
- */
-QString const qt_(char const * str, const char * comment = 0);
+} // namespace frontend
 
 
 /**
@@ -85,6 +67,64 @@ QString const qt_(char const * str, const char * comment = 0);
  * Use this in qt4/ instead of _()
  */
 QString const qt_(std::string const & str);
+
+///
+support::FileName libFileSearch(QString const & dir, QString const & name,
+				QString const & ext = QString());
+
+/** Wrapper around browseFile which tries to provide a filename
+	relative to relpath.  If the relative path is of the form "foo.txt"
+	or "bar/foo.txt", then it is returned as relative. OTOH, if it is
+	of the form "../baz/foo.txt", an absolute path is returned. This is
+	intended to be useful for insets which encapsulate files/
+*/
+QString browseRelFile(QString const & filename,
+	QString const & refpath,
+	QString const & title,
+	QStringList const & filters,
+	bool save = false,
+	QString const & label1 = QString(),
+	QString const & dir1 = QString(),
+	QString const & label2 = QString(),
+	QString const & dir2 = QString());
+
+
+/** Build filelists of all availabe bst/cls/sty-files. Done through
+*  kpsewhich and an external script, saved in *Files.lst.
+*/
+void rescanTexStyles();
+
+/** Fill \c contents from one of the three texfiles.
+ *  Each entry in the file list is returned as a name_with_path
+ */
+QStringList texFileList(QString const & filename);
+
+// wrapper around the docstring versions
+QString internalPath(QString const &);
+QString onlyFilename(QString const & str);
+QString onlyPath(QString const & str);
+QStringList fileFilters(QString const & description);
+
+QString changeExtension(QString const & oldname, QString const & extension);
+
+/// Remove the extension from \p name
+QString removeExtension(QString const & name);
+
+/** Add the extension \p ext to \p name.
+ Use this instead of changeExtension if you know that \p name is without
+ extension, because changeExtension would wrongly interpret \p name if it
+ contains a dot.
+ */
+QString addExtension(QString const & name, QString const & extension);
+
+/// Return the extension of the file (not including the .)
+QString getExtension(QString const & name);
+QString makeAbsPath(QString const & relpath, QString const & base);
+QString changeExtension(QString const & oldname, QString const & ext);
+
+/// \return the display string associated with given type and buffer
+/// parameter.
+QString guiName(std::string const & type, BufferParams const & bp);
 
 } // namespace lyx
 
