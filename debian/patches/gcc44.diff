@@ -1,0 +1,31 @@
+--- a/src/client/client.cpp
++++ b/src/client/client.cpp
+@@ -48,6 +48,7 @@
+ #include <fcntl.h>
+ 
+ #include <cerrno>
++#include <cstdio>
+ #include <cstdlib>
+ #include <string>
+ #include <vector>
+--- a/src/frontends/qt4/GuiSymbols.cpp
++++ b/src/frontends/qt4/GuiSymbols.cpp
+@@ -31,6 +31,8 @@
+ #include <QListWidgetItem>
+ #include <QString>
+ 
++#include <cstdio>
++
+ using namespace std;
+ 
+ namespace lyx {
+--- a/src/support/lstrings.cpp
++++ b/src/support/lstrings.cpp
+@@ -25,6 +25,7 @@
+ #include <QVector>
+ 
+ #include <algorithm>
++#include <cstdio>
+ 
+ using namespace std;
+ 

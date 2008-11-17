@@ -1,3 +1,11 @@
+lyx (1.6.0-2) UNRELEASED; urgency=low
+
+  * Add debian/patches/gcc44.diff: Add missing includes for cstdio as it
+    won't be included indirectly in gcc 4.4. Thanks to
+    Martin Michlmayr. Closes: #505958
+
+ -- Per Olofsson <pelle@debian.org>  Mon, 17 Nov 2008 09:29:13 +0100
+
 lyx (1.6.0-1) unstable; urgency=low
 
   [ Sven Hoexter ]
