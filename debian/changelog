@@ -1,12 +1,17 @@
 lyx (1.6.0-2) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * Add debian/patches/gcc44.diff: Add missing includes for cstdio as it
     won't be included indirectly in gcc 4.4. Thanks to
     Martin Michlmayr. Closes: #505958
   * Don't recommend postscript-viewer, only suggest it. A PDF reader is
     enough for most people.
 
- -- Per Olofsson <pelle@debian.org>  Mon, 17 Nov 2008 09:29:13 +0100
+  [ Sven Hoexter ]
+  * Add ${misc:Depends} to the Depends field for the lyx binary package.
+    This seems to be a required thing nowdays (according to lintian).
+
+ -- Sven Hoexter <sven@timegate.de>  Sat, 06 Dec 2008 22:01:17 +0100
 
 lyx (1.6.0-1) unstable; urgency=low
 
