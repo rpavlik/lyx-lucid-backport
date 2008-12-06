@@ -1,7 +1,8 @@
+Add xdg-open as the first choice whenever this seems to be usefull.
 Index: lyx-1.6.0/lib/configure.py
 ===================================================================
---- lyx-1.6.0.orig/lib/configure.py	2008-11-09 15:55:42.000000000 +0100
-+++ lyx-1.6.0/lib/configure.py	2008-11-09 15:58:18.000000000 +0100
+--- lyx-1.6.0.orig/lib/configure.py	2008-12-06 22:06:05.000000000 +0100
++++ lyx-1.6.0/lib/configure.py	2008-12-06 22:07:42.000000000 +0100
 @@ -260,7 +260,7 @@
      checkViewer('a FEN viewer and editor', ['xboard -lpf $$i -mode EditPosition'],
          rc_entry = [r'\Format fen        fen     FEN                    "" "%%"	"%%"	""'])
