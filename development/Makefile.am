@@ -85,7 +85,7 @@ Win32/packaging/AltInstaller/icons/lyx.svg \
 Win32/packaging/AltInstaller/icons/lyx_32x32.ico \
 Win32/packaging/AltInstaller/icons/lyx_doc.svg \
 Win32/packaging/AltInstaller/icons/lyx_logo_hi.bmp \
-Win32/packaging/AltInstaller/icons/lyx_logo_vert16rc4.bmp \
+Win32/packaging/AltInstaller/icons/lyx_logo_vert161.bmp \
 Win32/packaging/AltInstaller/informations/InstallerStructure.odg \
 Win32/packaging/AltInstaller/informations/InstallerStructure.pdf \
 Win32/packaging/AltInstaller/informations/ISO_3166.html \
@@ -167,6 +167,8 @@ cmake/modules/LyXPaths.cmake \
 cmake/modules/FindGNUWIN32.cmake \
 cmake/modules/LyXuic.cmake \
 cmake/modules/FindICONV.cmake \
+cmake/modules/MacroBoolTo01.cmake \
+cmake/modules/FindLibintl.cmake \
 cmake/ConfigureChecks.cmake \
 cmake/pcheaders.h \
 cmake/Install.cmake \
@@ -174,4 +176,7 @@ cmake/config.cpp.cmake \
 cmake/config.h.cmake \
 cmake/CMakeLists.txt \
 cmake/build.bat \
-cmake/build-debug.bat
+cmake/build-debug.bat \
+cmake/configCompiler.h.msvc \
+cmake/configCompiler.h.cmake
+

@@ -52,7 +52,7 @@ int VCS::doVCCommand(string const & cmd, FileName const & path)
 		frontend::Alert::error(_("Revision control error."),
 			bformat(_("Some problem occured while running the command:\n"
 				  "'%1$s'."),
-			from_ascii(cmd)));
+			from_utf8(cmd)));
 	return ret;
 }
 
@@ -229,7 +229,7 @@ bool RCS::undoLastEnabled()
 void RCS::getLog(FileName const & tmpf)
 {
 	doVCCommand("rlog " + quoteName(onlyFilename(owner_->absFileName()))
-		    + " > " + tmpf.toFilesystemEncoding(),
+		    + " > " + quoteName(tmpf.toFilesystemEncoding()),
 		    FileName(owner_->filePath()));
 }
 
@@ -398,7 +398,7 @@ bool CVS::undoLastEnabled()
 void CVS::getLog(FileName const & tmpf)
 {
 	doVCCommand("cvs log " + quoteName(onlyFilename(owner_->absFileName()))
-		    + " > " + tmpf.toFilesystemEncoding(),
+		    + " > " + quoteName(tmpf.toFilesystemEncoding()),
 		    FileName(owner_->filePath()));
 }
 
@@ -473,7 +473,7 @@ string SVN::checkIn(string const & msg)
 
 	doVCCommand("svn commit -m \"" + msg + "\" "
 		    + quoteName(onlyFilename(owner_->absFileName()))
-		    + " > " + tmpf.toFilesystemEncoding(),
+		    + " > " + quoteName(tmpf.toFilesystemEncoding()),
 		    FileName(owner_->filePath()));
 
 	string log;
@@ -524,7 +524,7 @@ string SVN::checkOut()
 	}
 
 	doVCCommand("svn update " + quoteName(onlyFilename(owner_->absFileName()))
-		    + " > " + tmpf.toFilesystemEncoding(),
+		    + " > " + quoteName(tmpf.toFilesystemEncoding()),
 		    FileName(owner_->filePath()));
 
 	string log;
@@ -534,7 +534,7 @@ string SVN::checkOut()
 			bformat(_("Error when updating from repository.\n"
 				"You have to manually resolve the conflicts NOW!\n'%1$s'.\n\n"
 				"After pressing OK, LyX will try to reopen resolved document."),
-			from_ascii(res)));
+			from_local8bit(res)));
 	tmpf.erase();
 	return "SVN: " + log;
 }
@@ -576,7 +576,7 @@ bool SVN::undoLastEnabled()
 void SVN::getLog(FileName const & tmpf)
 {
 	doVCCommand("svn log " + quoteName(onlyFilename(owner_->absFileName()))
-		    + " > " + tmpf.toFilesystemEncoding(),
+		    + " > " + quoteName(tmpf.toFilesystemEncoding()),
 		    FileName(owner_->filePath()));
 }
 

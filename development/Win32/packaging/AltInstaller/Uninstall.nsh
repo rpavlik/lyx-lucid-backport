@@ -34,6 +34,9 @@ Function un.onInit
      MessageBox MB_OK|MB_ICONEXCLAMATION "$(UnNotInRegistryLabel)"
    ${endif}
   ${endif}
+  
+  # printer settings, needed to uninstall the Metafile2eps printer
+  !insertmacro PrinterInit
 
   # Macro to investigate name of LyX's preferences folders to be able remove them
   !insertmacro UnAppPreSuff $AppPre $AppSuff # macro from LyXUtils.nsh
@@ -134,6 +137,9 @@ Section "un.LyX" un.SecUnProgramFiles
   ${if} $0 == "Yes${PRODUCT_VERSION_SHORT}"
    ReadRegStr $R0 SHCTX "Software\Classes\${PRODUCT_EXT}" ""
    ${if} $R0 == "${PRODUCT_REGNAME}"
+    DeleteRegKey SHCTX "Software\Classes\${PRODUCT_EXT}13"
+    DeleteRegKey SHCTX "Software\Classes\${PRODUCT_EXT}14"
+    DeleteRegKey SHCTX "Software\Classes\${PRODUCT_EXT}15"
     DeleteRegKey SHCTX "Software\Classes\${PRODUCT_EXT}"
     DeleteRegKey SHCTX "Software\Classes\${PRODUCT_REGNAME}"
    ${endif}
@@ -156,6 +162,16 @@ Section "un.LyX" un.SecUnProgramFiles
     # unregister ImageMagick
     DeleteRegValue SHCTX "SOFTWARE\Classes\Applications" "AutoRun"
     DeleteRegKey SHCTX "SOFTWARE\ImageMagick"
+   ${endif}
+   
+   # Metafile2eps
+   ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Metafile to EPS Converter" "OnlyWithLyX" # special entry to test if it was installed with LyX
+   ${if} $0 == "Yes${PRODUCT_VERSION_SHORT}"
+    # Delete printer
+    ExecWait '$PrinterConf /q /dl /n "Metafile to EPS Converter"'
+    # unregister Metafile2eps
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Metafile to EPS Converter"
+    DeleteRegKey HKLM "Software\InkNote Selector"
    ${endif}
   
    # Ghostscript and GSview

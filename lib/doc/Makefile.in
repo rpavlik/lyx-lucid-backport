@@ -352,7 +352,6 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 version_suffix = @version_suffix@
@@ -417,6 +416,7 @@ dist_clipartdoc_DATA = \
 	clipart/LaTeX.png \
 	clipart/LyXNoteImageQt4.png \
 	clipart/macrobox.png \
+	clipart/MacroToolbar.png \
 	clipart/macrouse.png \
 	clipart/mbox.png \
 	clipart/referenceQt4.png \
