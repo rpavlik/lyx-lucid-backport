@@ -7,7 +7,7 @@ lyx (1.6.1-1) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * New upstream release
     + Add missing includes for cstdio as it won't be included indirectly
-      in gcc 4.4. Thanks to Martin Michlmayr. Closes: #50595
+      in gcc 4.4. Thanks to Martin Michlmayr. Closes: #505958
   * Add ${misc:Depends} to the Depends field for the lyx binary package.
     This seems to be a required thing nowdays (according to lintian).
   * Move texlive-latex-extra from Suggests to Recommends. Closes: #499629
