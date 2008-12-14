@@ -1,4 +1,4 @@
-#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -51,6 +51,7 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize 12
 \spacing single
@@ -94,8 +95,8 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author ""
-\author ""
+\author "" 
+\author "" 
 \end_header
 
 \begin_body
@@ -160,8 +161,8 @@ type "mailto:"
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 3.
- November 2008
+letzte Änderung: 7.
+ Dezember 2008
 \end_layout
 
 \begin_layout Standard
@@ -4283,6 +4284,19 @@ Standard-Familie: Hier legen Sie die Schriftart fest, die im Dokument als
 \begin_deeper
 \begin_layout Description
 Grundgröße: Hier legen Sie die Standardgröße der verwendeten Schrift fest.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Wenn Sie nicht überall Standard verwenden, werden die Zeichen nicht immer
+ gleich groß gedruckt, weil (fast) jeder Font etwas Anderes unter Schriftgröße
+ versteht.
+ Zur Korrektur gibt es die Skalierung.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_deeper
@@ -4300,9 +4314,17 @@ Skalierung
 \begin_inset space ~
 \end_inset
 
-(%) Wenn Sie zum Beispiel den benutzten 11pt-Palatino-Font durch Helvetica
- ersetzen, sieht das Ergebnis wahrscheinlich zu groß aus.
- Wenn Sie es dann auf 95% herunterskalieren, wird es richtig aussehen.
+(%) Wenn Sie zum Beispiel den benutzten 11
+\begin_inset space \thinspace{}
+\end_inset
+
+pt-Palatino-Font durch Helvetica ersetzen, sieht das Ergebnis wahrscheinlich
+ zu groß aus.
+ Wenn Sie es dann auf 95
+\begin_inset space \thinspace{}
+\end_inset
+
+% herunterskalieren, wird es richtig aussehen.
 \end_layout
 
 \end_deeper
@@ -4340,10 +4362,25 @@ Kapitälchen
 \begin_inset space ~
 \end_inset
 
-verwenden Manche Fonts erlauben auch, echte Kapitälchen (was auch der Unterschie
-d sein mag) zu verwenden.
- Sonst werden Kapitälchen durch Herunterskalieren von Großbuchstaben zu
- simuliert.
+verwenden Manche Fonts wie zum Beispiel 
+\family sans
+Palatino
+\family default
+ erlauben auch, echte Kapitälchen zu verwenden.
+ Das bedeutet, dass die 
+\emph on
+Kleinbuchstaben
+\emph default
+ eigene Zeichen sind.
+ Sonst werden die 
+\emph on
+Kleinbuchstaben
+\emph default
+ durch Herunterskalieren von Großbuchstaben simuliert, wodurch die sie
+\emph on
+ 
+\emph default
+dünner gedruckt werden.
 \end_layout
 
 \begin_layout Description
@@ -11929,7 +11966,7 @@ HFills können sichtbar gemacht werden, wenn Sie ein
 \family sans
 Füllmuster
 \family default
- in den Abstand Einstellungen wählen.
+ in den Abstand-Einstellungen wählen.
  Folgende Füllmuster sind verfügbar:
 \end_layout
 
@@ -19703,9 +19740,11 @@ abgetrennt
 \end_layout
 
 \begin_layout Standard
+\noindent
+\align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
-<features islongtable="true">
+<features>
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -19870,6 +19909,7 @@ C
 \end_layout
 
 \begin_layout Standard
+\noindent
 Die Tabelle wird dort eingefügt, wo der Cursor gerade ist.
  Wenn sie in einen neuen Absatz soll, müssen Sie vor der Tabelle auf 
 \family sans
@@ -20202,7 +20242,7 @@ Rahmenlinien
 
 \begin_deeper
 \begin_layout Itemize
-Rahmen in einer Zeile oder Spalte ein- und ausschalten (
+Rahmen für eine Zelle ein- und ausschalten (
 \family sans
 
 \begin_inset Graphics
@@ -20308,8 +20348,6 @@ Rahmenlinien
 ein
 \family default
  die Rahmen dieser Zelle.
- Wenn Sie dann auf eine waagerecht Linie klicken, gilt das für die ganze
- Zeile, bei einer senkrechten für die Spalte.
  In 
 \family sans
 Alle
@@ -20328,6 +20366,15 @@ Festlegen
 Löschen
 \family default
 .
+\end_layout
+
+\begin_layout Standard
+Wenn Sie eine Linie für die ganze Zeile haben wollen, klicken Sie an den
+ Anfang der Zeile.
+ Damit wird die gesamte Zeile ausgewählt, und die Linie wird für die gesamte
+ Zeile gesetzt oder gelöscht.
+ Entsprechend klicken Sie für eine Spalte auf den oberen Rand der Spalte
+ und (de)aktivieren die Linie.
 \end_layout
 
 \begin_layout Standard
@@ -23442,6 +23489,36 @@ Margit
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+addtocounter{table}{-1}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+siehe 
+\series bold
+Beschriftungen langer Tabellen
+\series default
+ im Handbuch Eingebettete Objekte.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Tabellen in 
 \family sans
@@ -23529,7 +23606,7 @@ reference "Tab:Gleitende-Tabelle"
 placement htbp
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Caption
@@ -23742,7 +23819,7 @@ reference "Tab:Gleitende-Tabelle"
 placement htbp
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -27370,428 +27447,32 @@ reference "eq:fifth-eqn"
 \end_layout
 
 \begin_layout Section
-Benutzerdefinierte Makros
+Benutzerdefinierte Mathe-Makros
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Makro
+Makros
 \end_layout
 
 \end_inset
 
- im 
-\family typewriter
-Mathe-Modus
+
 \end_layout
 
 \begin_layout Standard
 LyX erlaubt dem Benutzer, Makros zu definieren.
- Wenn Sie wie in Abschnitt 
-\begin_inset CommandInset ref
-LatexCommand vref
-reference "Makro-erzeugen"
-
-\end_inset
-
- ein Makro erzeugt haben, erscheint an der Cursorposition ein Makro-Definitionsk
-ästchen, das in etwa so aussieht:
-\end_layout
-
-\begin_layout Standard
-\begin_inset space \hfill{}
-\end_inset
-
-
-\begin_inset Tabular
-<lyxtabular version="3" rows="1" columns="1">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Makro: Makroname: 
-\begin_inset Formula $\Box$
-\end_inset
-
-
-\begin_inset Formula $\Box$
-\end_inset
-
- 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-.
-\begin_inset space \hfill{}
-\end_inset
-
-
-\begin_inset FormulaMacro
-\newcommand{\Makroname}{}
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-Dabei ist die die Umrandung rot, und die beiden 
-\begin_inset Formula $\Box$
-\end_inset
-
- sind doppelte blaue Rechtecke, die wie im Mathed editiert werden können.
- Wenn Sie dies in LyX lesen, probieren Sie es.
- Der Inhalt des ersten Rechtecks wird während des Exports nach LaTeX benutzt,
- der Inhalt des zweiten zur Makro-Expansion auf dem Bildschirm.
- Normalerweise sind beide Inhalte gleich, so dass man das zweite Rechteck
- leer lassen kann.
- LyX wird dann den Inhalt des ersten Rechtecks automatisch für Export und
- Expansion benutzen.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset FormulaMacro
-\newcommand{\macro}{a+b}
-\end_inset
-
-Wollen Sie das Makro 
-\begin_inset Tabular
-<lyxtabular version="3" rows="1" columns="1">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Makro: macro: a + b 
-\begin_inset Formula $\Box$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
- in anderen Mathed-Kästchen benutzen, müssen Sie nur seinen Namen im LaTeX-Modus
- schreiben, in diesem Fall 
-\family typewriter
-
-\backslash
-macro
-\family default
-, und er wird automatisch umgewandelt wie hier: 
-\begin_inset Formula $c=\macro$
-\end_inset
-
-.
- Wie Sie bemerken werden, können Sie den Cursor nicht ins Makro stellen,
- denn es wird als einzelnes Zeichen behandelt.
-\end_layout
-
-\begin_layout Standard
-Bei Makros mit 
+ Dies ist von großem Nutzen wenn man in einem Dokument mehrfach denselben
+ Formeltyp hat.
+ Mathe-Makros sind im Abschnitt 
 \emph on
-Argumenten
+Mathe-Makro
 \emph default
- aber kann man den Cursor in das Makro stellen.
- In einer Makrodefinition sieht ein Argument aus wie ein # mit einer Nummer
- dahinter: 
-\end_layout
-
-\begin_layout Standard
-\begin_inset space \hfill{}
-\end_inset
-
-
-\begin_inset Tabular
-<lyxtabular version="3" rows="1" columns="1">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Makro: macrowarg: 2 + 
-\begin_inset Formula $\sqrt{\#1}$
-\end_inset
-
- 
-\begin_inset Formula $\Box$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-.
-\begin_inset space \hfill{}
-\end_inset
-
-
-\begin_inset FormulaMacro
-\newcommand{\macrowarg}[1]{2+\sqrt{#1}}
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-Benutzt man das Makro, wird das bekannte blaue Rechteck erscheinen, in das
- Sie dann als Argument schreiben können, was immer Sie wollen: 
-\family typewriter
-
-\backslash
-macrowarg = 
-\begin_inset Formula $\macrowarg{\Box}$
-\end_inset
-
-
-\family default
-.
- Beispiel: 
-\begin_inset Formula $b=\macrowarg{x-2}$
-\end_inset
-
-.
- 
-\end_layout
-
-\begin_layout Standard
-Wenn man das Dokument als LaTeX exportiert, wird eine Makrodefinition in
- den Befehl 
-\family typewriter
-
-\backslash
-newcommand
-\family default
- umgesetzt, im letzten Beispiel also 
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-newcommand{
-\backslash
-macrowarg}[1]{2+
-\backslash
-sqrt{#1}}.
-\end_layout
-
-\begin_layout Subsection
-Wie man Makros
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Makro!erzeugen
-\end_layout
-
-\end_inset
-
- erzeugt
-\begin_inset CommandInset label
-LatexCommand label
-name "Makro-erzeugen"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Um ein Makro zu definieren, schreiben Sie in as Befehlseingabefenster (
-\family sans
-Alt+X
-\family default
- oder 
-\family sans
-Ansicht\SpecialChar \menuseparator
-Werkzeugleisten\SpecialChar \menuseparator
-Befehlseingabefenster
-\family default
-) folgendes:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\noun on
-HHa
-\noun default
-: Makros dürfen nicht in Überschriften definiert werden!
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-math-macro <Makroname> [Zahl der Argumente]
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-
-\backslash
-macro
-\family default
- zum Beispiel wurde mit 
-\begin_inset Quotes pld
-\end_inset
-
-
-\family typewriter
-math-macro macro
-\family default
-
-\begin_inset Quotes grd
-\end_inset
-
- erzeugt und 
-\family typewriter
-
-\backslash
-macrowarg
-\family default
- mit 
-\begin_inset Quotes pld
-\end_inset
-
-
-\family typewriter
-math-macro macrowarg 1
-\family default
-
-\begin_inset Quotes grd
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-Wenn Sie den Cursor in das Makrokästchen stellen, können Sie eine Argumentmarke
- setzen, indem Sie 
-\family typewriter
-#<Zahl>
-\family default
- eingeben oder im Befehlspuffer folgendes schreiben:
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-math-macro-arg <Zahl>
-\end_layout
-
-\begin_layout Standard
-Die Argumentmarke in 
-\family typewriter
-
-\backslash
-macrowarg
-\family default
- wurde mit 
-\begin_inset Quotes pld
-\end_inset
-
-
-\family typewriter
-math-macro-arg 1
-\family default
-
-\begin_inset Quotes grd
-\end_inset
-
- eingefügt.
-\end_layout
-
-\begin_layout Standard
-Sie dürfen höchstens 9 Argumente benutzen, nummeriert von 1 bis 9.
- Eine Argumentmarke kann mehrfach benutzt werden, aber natürlich nur einmal
- mit einem Argument versorgt werden.
- Eine Argumentnummer darf nicht größer sein als die bei der Makrodefinition
- festgelegte.
- 
-\end_layout
-
-\begin_layout Subsection
-Wie man sich im Makro
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Makro!sich darin bewegen
-\end_layout
-
-\end_inset
-
- bewegt
-\end_layout
-
-\begin_layout Description
-Mit
-\begin_inset space ~
-\end_inset
-
-den
-\begin_inset space ~
-\end_inset
-
-Pfeiltasten: Wenn man in ein Makro von links hineingeht, wird der Cursor
- im ersten Argument stehen.
- Mit der 
-\family sans
-Tab
-\family default
--Taste gelangt man zum nächsten.
- Mit der 
-\family sans
-Leertaste
-\family default
- verlässt man das Makro, und der Cursor steht dann rechts neben ihm.
-\end_layout
-
-\begin_layout Description
-Mit
-\begin_inset space ~
-\end_inset
-
-der
-\begin_inset space ~
-\end_inset
-
-Maus: Wie gewöhnlich klicken Sie auf das gewünschte Argumentkästchen.
- Manchmal, wenn das Kästchen leer oder zu klein ist, schlägt das fehl.
-\end_layout
-
-\begin_layout Standard
-Zur Zeit kann man nur Befehlsmakros schreiben, aber keine Umgebungsmakros.
+s des 
+\emph on
+Mathe
+\emph default
+ Handbuchs beschrieben.
 \end_layout
 
 \begin_layout Section
@@ -42750,6 +42431,105 @@ status collapsed
 \begin_layout Plain Layout
 
 http://wiki.lyx.org/Windows/Japanese
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "Latvian"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Wiki-Seite"
+target "http://wiki.lyx.org/Windows/Latvian"
+
+\end_inset
+
+ wie man LyX für Lettisch konfiguriert
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/Windows/Latvian
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "Lithuanian"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Wiki-Seite"
+target "http://wiki.lyx.org/Windows/Lithuanian"
+
+\end_inset
+
+ wie man LyX für Litauisch konfiguriert
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/Windows/Lithuanian
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "Mongolian"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Wiki-Seite"
+target "http://wiki.lyx.org/Windows/Mongolian"
+
+\end_inset
+
+ wie man LyX für Mongolisch konfiguriert:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/Windows/Mongolian
 \end_layout
 
 \end_inset

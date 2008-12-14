@@ -213,17 +213,17 @@ Menuset
 	End
 
 	Menu "edit_math_macro_definition"
-		Item "Append Parameter" "math-macro-add-param"
-		Item "Remove Last Parameter" "math-macro-remove-param"
+		Item "Append Argument" "math-macro-add-param"
+		Item "Remove Last Argument" "math-macro-remove-param"
                 Separator
-		Item "Make First Non-Optional into Optional Parameter" "math-macro-make-optional"
-		Item "Make Last Optional into Non-Optional Parameter" "math-macro-make-nonoptional"
-                Item "Insert Optional Parameter" "math-macro-add-optional-param"
-                Item "Remove Optional Parameter" "math-macro-remove-optional-param"
+		Item "Make First Non-Optional into Optional Argument" "math-macro-make-optional"
+		Item "Make Last Optional into Non-Optional Argument" "math-macro-make-nonoptional"
+                Item "Insert Optional Argument" "math-macro-add-optional-param"
+                Item "Remove Optional Argument" "math-macro-remove-optional-param"
 		Separator
-		Item "Append Parameter Eating From The Right" "math-macro-append-greedy-param"
-                Item "Append Optional Parameter Eating From The Right" "math-macro-add-greedy-optional-param"
-		Item "Remove Last Parameter Spitting Out To The Right" "math-macro-remove-greedy-param"
+		Item "Append Argument Eating From The Right" "math-macro-append-greedy-param"
+                Item "Append Optional Argument Eating From The Right" "math-macro-add-greedy-optional-param"
+		Item "Remove Last Argument Spitting Out To The Right" "math-macro-remove-greedy-param"
 	End
 
 	Menu "edit_math_limits"
@@ -530,10 +530,10 @@ Menuset
 	End
 
 	Menu "examples"
-		Item "Linguistics Manual|L" "help-open ../examples/linguistics.lyx"
-		Item "Braille Manual|B" "help-open ../examples/Braille.lyx"
-		Item "XY-pic Manual|X" "help-open ../examples/xypic.lyx"
-		Item "Multicolumn Manual|M" "help-open ../examples/multicol.lyx"
+		Item "Linguistics Manual|L" "help-open linguistics"
+		Item "Braille Manual|B" "help-open Braille"
+		Item "XY-pic Manual|X" "help-open xypic"
+		Item "Multicolumn Manual|M" "help-open multicol"
 	End
 
 

@@ -757,16 +757,16 @@ void Paragraph::Private::latexInset(
 	}
 
 	bool close = false;
-	odocstringstream ods;
+	odocstream::pos_type const len = os.tellp();
 
 	if (inset->forceLTR() 
 	    && running_font.isRightToLeft()
 		// ERT is an exception, it should be output with no decorations at all
 		&& inset->lyxCode() != ERT_CODE) {
 	    	if (running_font.language()->lang() == "farsi")
-			ods << "\\beginL{}";
+			os << "\\beginL{}";
 		else
-			ods << "\\L{";
+			os << "\\L{";
 		close = true;
 	}
 
@@ -785,7 +785,7 @@ void Paragraph::Private::latexInset(
 	if (open_font && inset->noFontChange()) {
 		bool closeLanguage = arabtex
 			|| basefont.isRightToLeft() == running_font.isRightToLeft();
-		unsigned int count = running_font.latexWriteEndChanges(ods,
+		unsigned int count = running_font.latexWriteEndChanges(os,
 			bparams, runparams, basefont, basefont, closeLanguage);
 		column += count;
 		// if any font properties were closed, update the running_font, 
@@ -808,7 +808,7 @@ void Paragraph::Private::latexInset(
 	int tmp;
 
 	try {
-		tmp = inset->latex(ods, runparams);
+		tmp = inset->latex(os, runparams);
 	} catch (EncodingException & e) {
 		// add location information and throw again.
 		e.par_id = id_;
@@ -818,12 +818,10 @@ void Paragraph::Private::latexInset(
 
 	if (close) {
 		if (running_font.language()->lang() == "farsi")
-				ods << "\\endL{}";
+				os << "\\endL{}";
 			else
-				ods << '}';
+				os << '}';
 	}
-
-	os << ods.str();
 
 	if (tmp) {
 		for (int j = 0; j < tmp; ++j)
@@ -832,7 +830,7 @@ void Paragraph::Private::latexInset(
 		texrow.start(owner_->id(), i + 1);
 		column = 0;
 	} else {
-		column += ods.str().size();
+		column += os.tellp() - len;
 	}
 
 	if (owner_->lookupChange(i).type == Change::DELETED)
@@ -866,9 +864,15 @@ void Paragraph::Private::latexSpecialChar(
 		return;
 	}
 
-	if (lyxrc.fontenc == "T1" && latexSpecialT1(c, os, i, column))
+	// If T1 font encoding is used, use the special
+	// characters it provides.
+	// NOTE: some languages reset the font encoding
+	// internally
+	if (!running_font.language()->internalFontEncoding()
+	    && lyxrc.fontenc == "T1" && latexSpecialT1(c, os, i, column))
 		return;
 
+	// \tt font needs special treatment
 	if (running_font.fontInfo().family() == TYPEWRITER_FAMILY
 		&& latexSpecialTypewriter(c, os, i, column))
 		return;
@@ -917,7 +921,9 @@ void Paragraph::Private::latexSpecialChar(
 		column += 17;
 		break;
 
-	case '*': case '[':
+	case '*':
+	case '[':
+	case ']':
 		// avoid being mistaken for optional arguments
 		os << '{';
 		os.put(c);
@@ -2050,10 +2056,8 @@ bool Paragraph::latex(BufferParams const & bparams,
 		if (!runparams.verbatim && 
 		    runparams.encoding->package() != Encoding::none &&
 		    font.language()->encoding()->package() != Encoding::none) {
-			odocstringstream ods;
-			pair<bool, int> const enc_switch = switchEncoding(ods, bparams,
+			pair<bool, int> const enc_switch = switchEncoding(os, bparams,
 					runparams, *(font.language()->encoding()));
-			os << ods.str();
 			if (enc_switch.first) {
 				column += enc_switch.second;
 				runparams.encoding = font.language()->encoding();
@@ -2431,7 +2435,7 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 		    || (c == '\n' && options & AS_STR_NEWLINES))
 			os.put(c);
 		else if (c == META_INSET && options & AS_STR_INSETS)
-			getInset(i)->textString(os);
+			getInset(i)->tocString(os);
 	}
 
 	return os.str();
@@ -2486,7 +2490,7 @@ void Paragraph::setPlainOrDefaultLayout(DocumentClass const & tclass)
 Inset const & Paragraph::inInset() const
 {
 	LASSERT(d->inset_owner_, throw ExceptionMessage(BufferException,
-		_("Memory problem"), _("Paragraph not properly initiliazed")));
+		_("Memory problem"), _("Paragraph not properly initialized")));
 	return *d->inset_owner_;
 }
 

@@ -73,7 +73,7 @@ def setEnviron():
         NLS nuisances.
         Only set these to C if already set.  These must not be set unconditionally
         because not all systems understand e.g. LANG=C (notably SCO).
-        Fixing LC_MESSAGES prevents Solaris sh from translating var values in `set'!
+        Fixing LC_MESSAGES prevents Solaris sh from translating var values in set!
         Non-C LC_CTYPE values break the ctype check.
     '''
     os.environ['LANG'] = os.getenv('LANG', 'C')
@@ -202,19 +202,20 @@ def checkLatex(dtl_tools):
     path, PPLATEX = checkProg('a DVI postprocessing program', ['pplatex $$i'])
     #-----------------------------------------------------------------
     path, PLATEX = checkProg('pLaTeX, the Japanese LaTeX', ['platex $$i'])
-    # check if PLATEX is pLaTeX2e
-    writeToFile('chklatex.ltx', '''
+    if PLATEX != '':
+        # check if PLATEX is pLaTeX2e
+        writeToFile('chklatex.ltx', '''
 \\nonstopmode
 \\@@end
 ''')
-    # run platex on chklatex.ltx and check result
-    if cmdOutput(PLATEX + ' chklatex.ltx').find('pLaTeX2e') != -1:
-        # We have the Japanese pLaTeX2e
-        addToRC(r'\converter platex   dvi       "%s"   "latex"' % PLATEX)
-        LATEX = PLATEX
-    else:
-        PLATEX = ''
-    removeFiles(['chklatex.ltx', 'chklatex.log'])
+        # run platex on chklatex.ltx and check result
+        if cmdOutput(PLATEX + ' chklatex.ltx').find('pLaTeX2e') != -1:
+            # We have the Japanese pLaTeX2e
+            addToRC(r'\converter platex   dvi       "%s"   "latex"' % PLATEX)
+            LATEX = PLATEX
+        else:
+            PLATEX = ''
+            removeFiles(['chklatex.ltx', 'chklatex.log'])
     #-----------------------------------------------------------------
     # use LATEX to convert from latex to dvi if PPLATEX is not available    
     if PPLATEX == '':
@@ -550,12 +551,14 @@ def checkConverterEntries():
 
 def checkDocBook():
     ''' Check docbook '''
-    path, DOCBOOK = checkProg('SGML-tools 2.x (DocBook) or db2x scripts', ['sgmltools', 'db2dvi'],
+    path, DOCBOOK = checkProg('SGML-tools 2.x (DocBook), db2x scripts or xsltproc', ['sgmltools', 'db2dvi', 'xsltproc'],
         rc_entry = [
             r'''\converter docbook    dvi        "sgmltools -b dvi $$i"	""
 \converter docbook    html       "sgmltools -b html $$i"	""''',
             r'''\converter docbook    dvi        "db2dvi $$i"	""
 \converter docbook    html       "db2html $$i"	""''',
+            r'''\converter docbook    dvi        ""	""
+\converter docbook    html       "" ""''',
             r'''\converter docbook    dvi        ""	""
 \converter docbook    html       ""	""'''])
     #
@@ -686,8 +689,7 @@ def checkLatexConfig(check_config, bool_docbook):
         if not os.path.isfile( 'chkconfig.ltx' ):
             shutil.copyfile( os.path.join(srcdir, 'chkconfig.ltx'), 'chkconfig.ltx' )
             rmcopy = True
-        writeToFile('wrap_chkconfig.ltx', '%s\n%s\n\\input{chkconfig.ltx}\n',
-            docbook_cmd)
+        writeToFile('wrap_chkconfig.ltx', '%s\n\\input{chkconfig.ltx}\n' % docbook_cmd)
         # Construct the list of classes to test for.
         # build the list of available layout files and convert it to commands
         # for chkconfig.ltx

@@ -50,6 +50,8 @@ def wrap_into_ert(string, src, dst):
       + dst + '\n\\end_layout\n\\end_inset\n')
 
 def put_cmd_in_ert(string):
+    for rep in unicode_reps:
+        string = string.replace(rep[1], rep[0].replace('\\\\', '\\'))
     string = string.replace('\\', "\\backslash\n")
     string = "\\begin_inset ERT\nstatus collapsed\n\\begin_layout Standard\n" \
       + string + "\n\\end_layout\n\\end_inset"
@@ -135,7 +137,7 @@ def read_unicodesymbols():
     # Two backslashes, followed by some non-word character, and then a character
     # in brackets. The idea is to check for constructs like: \"{u}, which is how
     # they are written in the unicodesymbols file; but they can also be written
-    # as: \"u.
+    # as: \"u or even \" u.
     r = re.compile(r'\\\\(\W)\{(\w)\}')
     for line in fp.readlines():
         if line[0] != '#' and line.strip() != "":
@@ -156,8 +158,11 @@ def read_unicodesymbols():
                 # since it is done that way in the LyX file.
                 if m.group(1) == "\"":
                     command += "\\"
+                commandbl = command
                 command += m.group(1) + m.group(2)
+                commandbl += m.group(1) + ' ' + m.group(2)
                 spec_chars.append([command, unichr(eval(ucs4))])
+                spec_chars.append([commandbl, unichr(eval(ucs4))])
     fp.close()
     return spec_chars
 
@@ -238,6 +243,9 @@ def latex2ert(line):
         retval += "\n" + cmd + "\n"
         line = end
         m = labelre.match(line)
+    # put all remaining braces in ERT
+    line = wrap_into_ert(line, '}', '}')
+    line = wrap_into_ert(line, '{', '{')
     retval += line
     return retval
 
@@ -280,8 +288,11 @@ def latex2lyx(data):
         else:
             data = data.replace(rep[0], rep[1])
 
-    # Generic, \" -> ":
+    # Generic
+    # \" -> ":
     data = wrap_into_ert(data, r'\"', '"')
+    # \\ -> \:
+    data = data.replace('\\\\', '\\')
 
     # Math:
     mathre = re.compile('^(.*?)(\$.*?\$)(.*)')
@@ -996,6 +1007,7 @@ def revert_inset_command(document):
         m = r.match(nextline)
         if not m:
             document.warning("Malformed LyX document: Missing LatexCommand in " + document.body[i] + ".")
+            i += 1
             continue
         cmdName = m.group(1)
         insertion = ["\\begin_inset LatexCommand " + cmdName]
@@ -1220,7 +1232,14 @@ def revert_inset_info(document):
         arg = ''
         for k in range(i, j+1):
             if document.body[k].startswith("arg"):
-                arg = document.body[k][3:].strip().strip('"')
+                arg = document.body[k][3:].strip()
+                # remove embracing quotation marks
+                if arg[0] == '"':
+                    arg = arg[1:]
+                if arg[len(arg) - 1] == '"':
+                    arg = arg[:len(arg) - 1]
+                # \" to straight quote
+                arg = arg.replace(r'\"','"')
             if document.body[k].startswith("type"):
                 type = document.body[k][4:].strip().strip('"')
         # I think there is a newline after \\end_inset, which should be removed.
@@ -1796,40 +1815,45 @@ def revert_framed_notes(document):
 
 def revert_slash(document):
     'Revert \\SpecialChar \\slash{} to ERT'
-    r = re.compile(r'\\SpecialChar \\slash{}')
     i = 0
     while i < len(document.body):
-        m = r.match(document.body[i])
+        m = re.match(r'(.*)\\SpecialChar \\slash{}(.*)', document.body[i])
         if m:
-          subst = ['\\begin_inset ERT',
-                   'status collapsed', '',
-                   '\\begin_layout Standard',
-                   '', '', '\\backslash',
-                   'slash{}',
-                   '\\end_layout', '',
-                   '\\end_inset', '']
-          document.body[i: i+1] = subst
-          i = i + len(subst)
+            before = m.group(1)
+            after = m.group(2)
+            subst = [before,
+                     '\\begin_inset ERT',
+                     'status collapsed', '',
+                     '\\begin_layout Standard',
+                     '', '', '\\backslash',
+                     'slash{}',
+                     '\\end_layout', '',
+                     '\\end_inset', '',
+                     after]
+            document.body[i: i+1] = subst
+            i = i + len(subst)
         else:
-          i = i + 1
+            i = i + 1
 
 
 def revert_nobreakdash(document):
     'Revert \\SpecialChar \\nobreakdash- to ERT'
     i = 0
     while i < len(document.body):
-        line = document.body[i]
-        r = re.compile(r'\\SpecialChar \\nobreakdash-')
-        m = r.match(line)
+        m = re.match(r'(.*)\\SpecialChar \\nobreakdash-(.*)', document.body[i])
         if m:
-            subst = ['\\begin_inset ERT',
+            before = m.group(1)
+            after = m.group(2)
+            subst = [before,
+                     '\\begin_inset ERT',
                     'status collapsed', '',
                     '\\begin_layout Standard', '', '',
                     '\\backslash',
                     'nobreakdash-',
                     '\\end_layout', '',
-                    '\\end_inset', '']
-            document.body[i:i+1] = subst
+                    '\\end_inset', '',
+                     after]
+            document.body[i: i+1] = subst
             i = i + len(subst)
             j = find_token(document.header, "\\use_amsmath", 0)
             if j == -1:
@@ -2178,7 +2202,7 @@ def revert_subfig(document):
             if k == -1:
                 break
             # is the subfloat aligned?
-            al = find_token(document.body, '\\align ', k - 1)
+            al = find_token(document.body, '\\align ', k - 1, j)
             alignment_beg = ""
             alignment_end = ""
             if al != -1:

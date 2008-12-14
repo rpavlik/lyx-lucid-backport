@@ -192,6 +192,7 @@ dist_examples_DATA = \
 	examples/Literate.lyx \
 	examples/aa_sample.lyx \
 	examples/aas_sample.lyx \
+	examples/achemso.lyx \
 	examples/addressExample.adr \
 	examples/amsart-test.lyx \
 	examples/amsbook-test.lyx \
@@ -374,13 +375,14 @@ dist_images_DATA = \
 	images/tabular-feature_set-all-lines.png \
 	images/tabular-feature_set-longtabular.png \
 	images/tabular-feature_set-rotate-cell.png \
-	images/tabular-feature_toggle-rotate-cell.png \
+	images/tabular-feature_set-border-lines.png \
 	images/tabular-feature_set-rotate-tabular.png \
-	images/tabular-feature_toggle-rotate-tabular.png \
 	images/tabular-feature_toggle-line-bottom.png \
 	images/tabular-feature_toggle-line-left.png \
 	images/tabular-feature_toggle-line-right.png \
 	images/tabular-feature_toggle-line-top.png \
+	images/tabular-feature_toggle-rotate-cell.png \
+	images/tabular-feature_toggle-rotate-tabular.png \
 	images/tabular-feature_unset-all-lines.png \
 	images/tabular-feature_valign-bottom.png \
 	images/tabular-feature_valign-middle.png \
@@ -941,6 +943,7 @@ dist_layouts_DATA =\
 	layouts/aapaper.inc \
 	layouts/aapaper.layout \
 	layouts/aastex.layout \
+	layouts/achemso.layout \
 	layouts/agu-dtd.layout \
 	layouts/agu_stdclass.inc \
 	layouts/agu_stdcounters.inc \

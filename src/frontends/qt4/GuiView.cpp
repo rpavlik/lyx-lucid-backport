@@ -142,6 +142,7 @@ private:
 	QPixmap splash_;
 };
 
+
 /// Toolbar store providing access to individual toolbars by name.
 typedef std::map<std::string, GuiToolbar *> ToolbarMap;
 
@@ -597,7 +598,7 @@ void GuiView::dragEnterEvent(QDragEnterEvent * event)
 }
 
 
-void GuiView::dropEvent(QDropEvent* event)
+void GuiView::dropEvent(QDropEvent * event)
 {
 	QList<QUrl> files = event->mimeData()->urls();
 	if (files.isEmpty())
@@ -607,8 +608,13 @@ void GuiView::dropEvent(QDropEvent* event)
 	for (int i = 0; i != files.size(); ++i) {
 		string const file = os::internal_path(fromqstr(
 			files.at(i).toLocalFile()));
-		if (!file.empty())
-			lyx::dispatch(FuncRequest(LFUN_FILE_OPEN, file));
+		if (!file.empty()) {
+			// Asynchronously post the event. DropEvent usually come
+			// from the BufferView. But reloading a file might close
+			// the BufferView from within its own event handler.
+			guiApp->dispatchDelayed(FuncRequest(LFUN_FILE_OPEN, file));
+			event->accept();
+		}
 	}
 }
 
@@ -788,9 +794,10 @@ bool GuiView::event(QEvent * e)
 			// Alt-P and Alt-M. Right now there is a hack in
 			// GuiWorkArea::processKeySym() that hides again the menubar for
 			// those cases.
-			if (ke->modifiers() & Qt::AltModifier && ke->key() != Qt::Key_Alt)
+			if (ke->modifiers() & Qt::AltModifier && ke->key() != Qt::Key_Alt) {
 				menuBar()->show();
-			return QMainWindow::event(e);
+				return QMainWindow::event(e);
+			}
 		}
 #endif
 
@@ -1916,9 +1923,8 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				inset->dispatch(view()->cursor(), fr);
 			} else if (name == "paragraph") {
 				lyx::dispatch(FuncRequest(LFUN_PARAGRAPH_UPDATE));
-			} else if (name == "prefs") {
+			} else if (name == "prefs" || name == "document")
 				updateDialog(name, string());
-			}
 			break;
 		}
 
@@ -1968,6 +1974,11 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				data = bv->cursor().getEncoding()->name();
 				if (!data.empty())
 					showDialog("symbols", data);
+			// bug 5274
+			} else if (name == "prefs" && isFullScreen()) {
+				FuncRequest fr(LFUN_INSET_INSERT, "fullscreen");
+				lfunUiToggle(fr);
+				showDialog("prefs", data);
 			} else
 				showDialog(name, data);
 			break;
@@ -2136,6 +2147,8 @@ void GuiView::toggleFullScreen()
 		menuBar()->show();
 		statusBar()->show();
 	} else {
+		// bug 5274
+		hideDialogs("prefs", 0);
 		for (int i = 0; i != d.splitter_->count(); ++i)
 			d.tabWorkArea(i)->setFullScreen(true);
 #if QT_VERSION >= 0x040300

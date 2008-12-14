@@ -1448,15 +1448,16 @@ lib_images_files = Split('''
     tabular-feature_delete-row.png
     tabular-feature_multicolumn.png
     tabular-feature_set-all-lines.png
+    tabular-feature_set-border-lines.png
     tabular-feature_set-longtabular.png
     tabular-feature_set-rotate-cell.png
-    tabular-feature_toggle-rotate-cell.png
     tabular-feature_set-rotate-tabular.png
-    tabular-feature_toggle-rotate-tabular.png
     tabular-feature_toggle-line-bottom.png
     tabular-feature_toggle-line-left.png
     tabular-feature_toggle-line-right.png
     tabular-feature_toggle-line-top.png
+    tabular-feature_toggle-rotate-cell.png
+    tabular-feature_toggle-rotate-tabular.png
     tabular-feature_unset-all-lines.png
     tabular-feature_valign-bottom.png
     tabular-feature_valign-middle.png
@@ -2062,6 +2063,7 @@ lib_doc_clipart_files = Split('''
     footnoteQt4.png
     labelQt4.png
     macrobox.png
+    MacroToolbar.png
     macrouse.png
     mbox.png
     mobius.eps
@@ -2193,7 +2195,7 @@ lib_doc_fr_clipart_files = Split('''
 ''')
 
 
-lib_doc_gl_extra_files = Split('''
+lib_doc_gl_files = Split('''
     Intro.lyx
     Tutorial.lyx
 ''')
@@ -2308,14 +2310,9 @@ lib_doc_uk_clipart_files = Split('''
 
 
 lib_examples_files = Split('''
-    Braille.lyx
-    CV-image.eps
-    CV-image.png
-    Foils.lyx
-    ItemizeBullets.lyx
-    Literate.lyx
     aa_sample.lyx
     aas_sample.lyx
+    achemso.lyx
     addressExample.adr
     amsart-test.lyx
     amsbook-test.lyx
@@ -2333,18 +2330,24 @@ lib_examples_files = Split('''
     beamer-knight4.png
     beamerlyxexample1.lyx
     biblioExample.bib
+    Braille.lyx
     chess-article.lyx
     chessgame.lyx
+    CV-image.eps
+    CV-image.png
     docbook_article.lyx
     europeCV.lyx
     example_lyxified.lyx
     example_raw.lyx
+    Foils.lyx
     iecc05.fen
     iecc07.fen
     iecc12.fen
+    ItemizeBullets.lyx
     landslide.lyx
     linguistics.lyx
     listerrors.lyx
+    Literate.lyx
     modernCV.lyx
     multicol.lyx
     noweb2lyx.lyx
@@ -2425,7 +2428,7 @@ lib_examples_eu_files = Split('''
 ''')
 
 
-lib_examples_gl_extra_files = Split('''
+lib_examples_gl_files = Split('''
     exemplo_bruto.lyx
     exemplo_lyxificado.lyx
     splash.lyx
@@ -2528,6 +2531,7 @@ lib_layouts_files = Split('''
     aa.layout
     aapaper.layout
     aastex.layout
+    achemso.layout
     agu-dtd.layout
     agums.layout
     amsart.layout

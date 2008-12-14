@@ -3013,8 +3013,9 @@ bool InsetTabular::isCellSelected(Cursor & cur, row_type row, col_type col)
 			CursorSlice const & beg = cur.selBegin();
 			CursorSlice const & end = cur.selEnd();
 
-			if (end.lastpos() > 0 && end.pos() == end.lastpos() 
-				  && beg.pos() == 0)
+			if ((end.lastpos() > 0 || end.lastpit() > 0)
+				  && end.pos() == end.lastpos() && beg.pos() == 0
+				  && end.pit() == end.lastpit() && beg.pit() == 0)
 				return true;
 		}
 	}
@@ -3103,8 +3104,10 @@ void InsetTabular::drawSelection(PainterInfo & pi, int x, int y) const
 
 	//resetPos(cur);
 
+	bool const full_cell_selected = isCellSelected(cur,
+		tabular.cellRow(cur.idx()), tabular.cellColumn(cur.idx()));
 
-	if (cur.selIsMultiCell()) {
+	if (cur.selIsMultiCell() || full_cell_selected) {
 		y -= tabular.rowAscent(0);
 		for (row_type j = 0; j < tabular.row_info.size(); ++j) {
 			int const a = tabular.rowAscent(j);
@@ -3118,8 +3121,7 @@ void InsetTabular::drawSelection(PainterInfo & pi, int x, int y) const
 					tabular.cellIndex(j, i);
 				int const w = tabular.columnWidth(cell);
 				if (isCellSelected(cur, j, i))
-					pi.pain.fillRectangle(xx, y, w, h,
-							      Color_selection);
+					pi.pain.fillRectangle(xx, y, w, h, Color_selection);
 				xx += w;
 			}
 			y += h;
@@ -3211,7 +3213,7 @@ void InsetTabular::edit(Cursor & cur, bool front, EntryDirection)
 void InsetTabular::updateLabels(ParIterator const & it)
 {
 	// In a longtable, tell captions what the current float is
-	Counters & cnts = buffer().params().documentClass().counters();
+	Counters & cnts = buffer().masterBuffer()->params().documentClass().counters();
 	string const saveflt = cnts.current_float();
 	if (tabular.is_long_tabular)
 		cnts.current_float("table");
@@ -3416,12 +3418,15 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_DOWN_SELECT:
 	case LFUN_DOWN:
-		cell(cur.idx())->dispatch(cur, cmd);
+		if (!(cur.selection() && cur.selIsMultiCell()))
+			cell(cur.idx())->dispatch(cur, cmd);
+		
 		cur.dispatched(); // override the cell's decision
-		if (sl == cur.top())
+		if (sl == cur.top()) {
 			// if our Text didn't do anything to the cursor
 			// then we try to put the cursor into the cell below
 			// setting also the right targetX.
+			cur.selHandle(cmd.action == LFUN_DOWN_SELECT);
 			if (tabular.cellRow(cur.idx()) != tabular.row_info.size() - 1) {
 				cur.idx() = tabular.cellBelow(cur.idx());
 				cur.pit() = 0;
@@ -3429,6 +3434,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 					cur.bv().textMetrics(cell(cur.idx())->getText(0));
 				cur.pos() = tm.x2pos(cur.pit(), 0, cur.targetX());
 			}
+		}
 		if (sl == cur.top()) {
 			// we trick it to go to forward after leaving the
 			// tabular.
@@ -3444,12 +3450,14 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_UP_SELECT:
 	case LFUN_UP:
-		cell(cur.idx())->dispatch(cur, cmd);
+		if (!(cur.selection() && cur.selIsMultiCell()))
+			cell(cur.idx())->dispatch(cur, cmd);
 		cur.dispatched(); // override the cell's decision
-		if (sl == cur.top())
+		if (sl == cur.top()) {
 			// if our Text didn't do anything to the cursor
 			// then we try to put the cursor into the cell above
 			// setting also the right targetX.
+			cur.selHandle(cmd.action == LFUN_UP_SELECT);
 			if (tabular.cellRow(cur.idx()) != 0) {
 				cur.idx() = tabular.cellAbove(cur.idx());
 				cur.pit() = cur.lastpit();
@@ -3459,12 +3467,13 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 					tm.parMetrics(cur.lastpit());
 				cur.pos() = tm.x2pos(cur.pit(), pm.rows().size()-1, cur.targetX());
 			}
+		}
 		if (sl == cur.top()) {
 			cmd = FuncRequest(LFUN_UP);
 			cur.undispatched();
 		}
 		if (cur.selIsMultiCell()) {
-			cur.pit() = cur.lastpit();
+			cur.pit() = 0;
 			cur.pos() = cur.lastpos();
 			return;
 		}
