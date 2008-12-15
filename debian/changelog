@@ -1,4 +1,4 @@
-lyx (1.6.1-1) UNRELEASED; urgency=low
+lyx (1.6.1-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * Don't recommend postscript-viewer. Those who need one know how to get
@@ -12,7 +12,7 @@ lyx (1.6.1-1) UNRELEASED; urgency=low
     This seems to be a required thing nowdays (according to lintian).
   * Move texlive-latex-extra from Suggests to Recommends. Closes: #499629
 
- -- Sven Hoexter <sven@timegate.de>  Sun, 14 Dec 2008 13:58:22 +0100
+ -- Per Olofsson <pelle@debian.org>  Sun, 14 Dec 2008 17:31:32 +0100
 
 lyx (1.6.0-1) unstable; urgency=low
 
