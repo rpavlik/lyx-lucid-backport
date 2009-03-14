@@ -142,8 +142,15 @@ void TocWidget::setTreeDepth(int depth)
 	if (!tocTV->model())
 		return;
 
+#if QT_VERSION >= 0x040300
+	// this should be faster than our own code below
+	if (depth == 0)
+		tocTV->collapseAll();
+	else
+		tocTV->expandToDepth(depth - 1);
+#else
 	// expanding and then collapsing is probably better,
-	// but my qt 4.1.2 doesn't have expandAll()..
+	// but my qt 4.1.2 doesn't have expandAll().
 	//tocTV->expandAll();
 	QModelIndexList indices = tocTV->model()->match(
 		tocTV->model()->index(0, 0),
@@ -155,6 +162,7 @@ void TocWidget::setTreeDepth(int depth)
 		QModelIndex index = indices[i];
 		tocTV->setExpanded(index, indexDepth(index) < depth_);
 	}
+#endif
 }
 
 
@@ -227,7 +235,6 @@ static bool canOutline(QString const & type)
 void TocWidget::enableControls(bool enable)
 {
 	updateTB->setEnabled(enable);
-	sortCB->setEnabled(enable);
 
 	if (!canOutline(current_type_))
 		enable = false;
@@ -236,7 +243,6 @@ void TocWidget::enableControls(bool enable)
 	moveDownTB->setEnabled(enable);
 	moveInTB->setEnabled(enable);
 	moveOutTB->setEnabled(enable);
-	persistentCB->setEnabled(enable);
 	if (!enable) {
 		depthSL->setMaximum(0);
 		depthSL->setValue(0);
@@ -268,11 +274,13 @@ void TocWidget::updateView()
 	tocTV->setEnabled(false);
 	tocTV->setUpdatesEnabled(false);
 
-	QAbstractItemModel * toc_model = gui_view_.tocModels().model(current_type_);	
+	QAbstractItemModel * toc_model =
+		gui_view_.tocModels().model(current_type_);
 	if (tocTV->model() != toc_model) {
 		tocTV->setModel(toc_model);
 		tocTV->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		if (persistent_) setTreeDepth(depth_);
+		if (persistent_)
+			setTreeDepth(depth_);
 	}
 
 	sortCB->blockSignals(true);
@@ -287,7 +295,8 @@ void TocWidget::updateView()
 
 	depthSL->setMaximum(gui_view_.tocModels().depth(current_type_));
 	depthSL->setValue(depth_);
-	if (!persistent_) setTreeDepth(depth_);
+	if (!persistent_)
+		setTreeDepth(depth_);
 	if (canNavigate(current_type_))
 		select(gui_view_.tocModels().currentIndex(current_type_));
 	tocTV->setEnabled(true);

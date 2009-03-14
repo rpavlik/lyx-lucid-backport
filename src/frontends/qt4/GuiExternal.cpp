@@ -511,9 +511,13 @@ void GuiExternal::updateContents()
 	draftCB->setChecked(params_.draft);
 
 	displayGB->setChecked(params_.display);
-	displayscaleED->setEnabled(params_.display && !isBufferReadonly());
 	displayscaleED->setText(QString::number(params_.lyxscale));
+	bool scaled = params_.display && !isBufferReadonly() &&
+			(params_.preview_mode != PREVIEW_INSTANT);
+	displayscaleED->setEnabled(scaled);
+	scaleLA->setEnabled(scaled);
 	displayGB->setEnabled(lyxrc.display_graphics);
+
 
 	setRotation(*angleED, *originCO, params_.rotationdata);
 
@@ -555,6 +559,11 @@ void GuiExternal::updateTemplate()
 
 	found = std::find(tr_begin, tr_end, external::Extra) != tr_end;
 	optionsGB->setEnabled(found);
+
+	bool scaled = displayGB->isChecked() && displayGB->isEnabled() &&
+			!isBufferReadonly() && (templ.preview_mode != PREVIEW_INSTANT);
+	displayscaleED->setEnabled(scaled);
+	scaleLA->setEnabled(scaled);
 
 	if (!found)
 		return;

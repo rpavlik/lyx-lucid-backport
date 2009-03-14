@@ -479,6 +479,8 @@ void updateLabels(Buffer const & buf, ParIterator & parit)
 // the contents of the paragraphs.
 void updateLabels(Buffer const & buf, bool childonly)
 {
+	// Do this immediately, before something causes a crash.
+	buf.inset().setBuffer(const_cast<Buffer &>(buf));
 	// Use the master text class also for child documents
 	Buffer const * const master = buf.masterBuffer();
 	DocumentClass const & textclass = master->params().documentClass();
@@ -492,6 +494,11 @@ void updateLabels(Buffer const & buf, bool childonly)
 		if (master != &buf) {
 			bufToUpdate.insert(&buf);
 			updateLabels(*master);
+			
+			// Do this here in case the master has no gui associated with it. Then, 
+			// the TocModel is not updated and TocModel::toc_ is invalid (bug 5699).
+			if (!master->guiDelegate())
+				buf.structureChanged();
 
 			// was buf referenced from the master (i.e. not in bufToUpdate anymore)?
 			if (bufToUpdate.find(&buf) == bufToUpdate.end())
@@ -507,7 +514,6 @@ void updateLabels(Buffer const & buf, bool childonly)
 
 	// update all caches
 	buf.clearReferenceCache();
-	buf.inset().setBuffer(const_cast<Buffer &>(buf));
 	buf.updateMacros();
 
 	Buffer & cbuf = const_cast<Buffer &>(buf);

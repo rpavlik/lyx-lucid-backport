@@ -726,8 +726,7 @@ void Tabular::deleteColumn(col_type const column)
 	if (column_info.size() == 1)
 		return;
 
-	column_info.erase(column_info.begin() + column);
-	size_t row_count = row_info.size();
+	size_t const row_count = row_info.size();
 	for (row_type i = 0; i < row_count; ++i) {
 		// Care about multicolumn cells
 		if (column + 1 < column_info.size() &&
@@ -737,6 +736,7 @@ void Tabular::deleteColumn(col_type const column)
 		}
 		cell_info[i].erase(cell_info[i].begin() + column);
 	}
+	column_info.erase(column_info.begin() + column);
 	updateIndexes();
 }
 
@@ -1018,12 +1018,10 @@ void Tabular::setColumnPWidth(Cursor & cur, idx_type cell,
 bool Tabular::setFixedWidth(row_type r, col_type c)
 {
 	bool const multicol = cell_info[r][c].multicolumn != CELL_NORMAL;
-	if ((!column_info[c].p_width.zero() && !multicol)
-	    || (multicol && !cell_info[r][c].p_width.zero())) {
-		cell_info[r][c].inset->toggleFixedWidth(true);
-		return true;
-	}
-	return false;
+	bool const fixed_width = (!column_info[c].p_width.zero() && !multicol)
+	      || (multicol && !cell_info[r][c].p_width.zero());
+	cell_info[r][c].inset->toggleFixedWidth(fixed_width);
+	return fixed_width;
 }
 
 
@@ -1741,13 +1739,17 @@ Tabular::idx_type Tabular::setLTCaption(row_type row, bool what)
 {
 	idx_type i = getFirstCellInRow(row);
 	if (what) {
-		setMultiColumn(i, column_info.size());
+		setMultiColumn(i, numberOfCellsInRow(i));
 		setTopLine(i, false);
 		setBottomLine(i, false);
 		setLeftLine(i, false);
 		setRightLine(i, false);
-	} else
+	} else {
 		unsetMultiColumn(i);
+		// FIXME: when unsetting a caption row, also all existing captions
+		// in this row must be dissolved, see (bug 5754)
+		// dispatch(FuncRequest(LFUN_INSET_DISSOLVE, "caption-insert"));
+	}
 	row_info[row].caption = what;
 	return i;
 }
@@ -1756,6 +1758,15 @@ Tabular::idx_type Tabular::setLTCaption(row_type row, bool what)
 bool Tabular::ltCaption(row_type row) const
 {
 	return row_info[row].caption;
+}
+
+
+bool Tabular::haveLTCaption() const
+{
+	for (row_type i = 0; i < row_info.size(); ++i)
+		if (row_info[i].caption)
+			return true;
+	return false;
 }
 
 
@@ -2069,29 +2080,18 @@ int Tabular::TeXLongtableHeaderFooter(odocstream & os,
 		return 0;
 
 	int ret = 0;
-	// output header info
-	if (haveLTHead()) {
-		if (endhead.topDL) {
-			os << "\\hline\n";
-			++ret;
-		}
+	// caption handling
+	// the caption must be output befrore the headers
+	if (haveLTCaption()) {
 		for (row_type i = 0; i < row_info.size(); ++i) {
-			if (row_info[i].endhead) {
+			if (row_info[i].caption) {
 				ret += TeXRow(os, i, runparams);
 			}
 		}
-		if (endhead.bottomDL) {
-			os << "\\hline\n";
-			++ret;
-		}
-		os << "\\endhead\n";
-		++ret;
-		if (endfirsthead.empty) {
-			os << "\\endfirsthead\n";
-			++ret;
-		}
 	}
-	// output firstheader info
+	// output first header info
+	// first header must be output before the header, otherwise the
+	// correct caption placement becomes really wierd
 	if (haveLTFirstHead()) {
 		if (endfirsthead.topDL) {
 			os << "\\hline\n";
@@ -2107,6 +2107,28 @@ int Tabular::TeXLongtableHeaderFooter(odocstream & os,
 			++ret;
 		}
 		os << "\\endfirsthead\n";
+		++ret;
+	}
+	// output header info
+	if (haveLTHead()) {
+		if (endfirsthead.empty && !haveLTFirstHead()) {
+			os << "\\endfirsthead\n";
+			++ret;
+		}
+		if (endhead.topDL) {
+			os << "\\hline\n";
+			++ret;
+		}
+		for (row_type i = 0; i < row_info.size(); ++i) {
+			if (row_info[i].endhead) {
+				ret += TeXRow(os, i, runparams);
+			}
+		}
+		if (endhead.bottomDL) {
+			os << "\\hline\n";
+			++ret;
+		}
+		os << "\\endhead\n";
 		++ret;
 	}
 	// output footer info
@@ -2126,7 +2148,7 @@ int Tabular::TeXLongtableHeaderFooter(odocstream & os,
 		}
 		os << "\\endfoot\n";
 		++ret;
-		if (endlastfoot.empty) {
+		if (endlastfoot.empty && !haveLTLastFoot()) {
 			os << "\\endlastfoot\n";
 			++ret;
 		}
@@ -2157,8 +2179,9 @@ bool Tabular::isValidRow(row_type row) const
 {
 	if (!is_long_tabular)
 		return true;
-	return !row_info[row].endhead && !row_info[row].endfirsthead &&
-			!row_info[row].endfoot && !row_info[row].endlastfoot;
+	return !row_info[row].endhead && !row_info[row].endfirsthead
+		&& !row_info[row].endfoot && !row_info[row].endlastfoot
+		&& !row_info[row].caption;
 }
 
 
@@ -2878,7 +2901,8 @@ void InsetTabular::setBuffer(Buffer & buf)
 
 bool InsetTabular::insetAllowed(InsetCode code) const
 {
-	if (code == MATHMACRO_CODE)
+	if (code == MATHMACRO_CODE
+		|| (code == CAPTION_CODE && !tabular.is_long_tabular))
 		return false;
 
 	return true;
@@ -3085,6 +3109,7 @@ void InsetTabular::draw(PainterInfo & pi, int x, int y) const
 void InsetTabular::drawSelection(PainterInfo & pi, int x, int y) const
 {
 	Cursor & cur = pi.base.bv->cursor();
+	resetPos(cur);
 
 	x += scx_ + ADD_TO_TABULAR_WIDTH;
 
@@ -3726,7 +3751,10 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			return true;
 
 		case Tabular::MULTICOLUMN:
-			status.setEnabled(sel_row_start == sel_row_end);
+			// When a row is set as longtable caption, it must not be allowed
+			// to unset that this row is a multicolumn.
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.ltCaption(tabular.cellRow(cur.idx())));
 			status.setOnOff(tabular.isMultiColumn(cur.idx()));
 			break;
 
@@ -3832,15 +3860,27 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.setOnOff(convert<int>(argument) == tabular.getUsebox(cur.idx()));
 			break;
 
-		case Tabular::SET_LTFIRSTHEAD:
-			status.setOnOff(tabular.getRowOfLTHead(sel_row_start, dummyltt));
+		// every row can only be one thing:
+		// either a footer or header or caption
+		case Tabular::SET_LTFIRSTHEAD:			
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
+				&& !tabular.ltCaption(sel_row_start));
+			status.setOnOff(tabular.getRowOfLTFirstHead(sel_row_start, dummyltt));
 			break;
 
 		case Tabular::UNSET_LTFIRSTHEAD:
-			status.setOnOff(!tabular.getRowOfLTHead(sel_row_start, dummyltt));
+			status.setOnOff(!tabular.getRowOfLTFirstHead(sel_row_start, dummyltt));
 			break;
 
 		case Tabular::SET_LTHEAD:
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
+				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTHead(sel_row_start, dummyltt));
 			break;
 
@@ -3849,6 +3889,11 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			break;
 
 		case Tabular::SET_LTFOOT:
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
+				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTFoot(sel_row_start, dummyltt));
 			break;
 
@@ -3857,19 +3902,31 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			break;
 
 		case Tabular::SET_LTLASTFOOT:
-			status.setOnOff(tabular.getRowOfLTFoot(sel_row_start, dummyltt));
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
+				&& !tabular.ltCaption(sel_row_start));
+			status.setOnOff(tabular.getRowOfLTLastFoot(sel_row_start, dummyltt));
 			break;
 
 		case Tabular::UNSET_LTLASTFOOT:
-			status.setOnOff(!tabular.getRowOfLTFoot(sel_row_start, dummyltt));
+			status.setOnOff(!tabular.getRowOfLTLastFoot(sel_row_start, dummyltt));
 			break;
 
 		case Tabular::SET_LTNEWPAGE:
 			status.setOnOff(tabular.getLTNewPage(sel_row_start));
 			break;
 
+		// only one row can be the caption
 		case Tabular::TOGGLE_LTCAPTION:
-			status.setEnabled(sel_row_start == sel_row_end);
+			status.setEnabled(sel_row_start == sel_row_end
+				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
+				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
+				&& (!tabular.haveLTCaption()
+					|| tabular.ltCaption(sel_row_start)));
 			status.setOnOff(tabular.ltCaption(sel_row_start));
 			break;
 
@@ -4631,12 +4688,18 @@ void InsetTabular::tabularFeatures(Cursor & cur,
 		tabular.setLTNewPage(row, !tabular.getLTNewPage(row));
 		break;
 
-	case Tabular::TOGGLE_LTCAPTION:
-		cur.idx() = tabular.setLTCaption(row, !tabular.ltCaption(row));
+	case Tabular::TOGGLE_LTCAPTION: {
+		bool set = !tabular.ltCaption(row);
+		cur.idx() = tabular.setLTCaption(row, set);
 		cur.pit() = 0;
 		cur.pos() = 0;
 		cur.setSelection(false);
+		// When a row is set as caption, then also insert a caption. Otherwise
+		// the LaTeX output is broken, when the user doesn't add a caption.
+		if (set)
+			lyx::dispatch(FuncRequest(LFUN_CAPTION_INSERT));
 		break;
+	}
 
 	case Tabular::SET_BOOKTABS:
 		tabular.use_booktabs = true;

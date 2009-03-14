@@ -533,7 +533,8 @@ bool Cursor::posVisRight(bool skip_inset)
 
 	bool moved = (new_cur.pos() != pos()
 				  || new_cur.pit() != pit()
-				  || new_cur.boundary() != boundary());
+				  || new_cur.boundary() != boundary()
+				  || &new_cur.inset() != &inset());
 	
 	if (moved) {
 		LYXERR(Debug::RTL, "moving to: " << new_cur.pos() 
@@ -651,7 +652,7 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 	// The cursor is painted *before* the character at pos(), or, if 'boundary'
 	// is true, *after* the character at (pos() - 1). So we already have one
 	// known position around the cursor:
-	pos_type known_pos = boundary() ? pos() - 1 : pos();
+	pos_type known_pos = boundary() && pos() > 0 ? pos() - 1 : pos();
 	
 	// edge case: if we're at the end of the paragraph, things are a little 
 	// different (because lastpos is a position which does not really "exist" 
@@ -841,11 +842,13 @@ void Cursor::posVisToRowExtremity(bool left)
 			// this non-separator-but-last-position-in-row is an inset, then
 			// we *do* want to stay to the left of it anyway: this is the 
 			// "boundary" which we simulate at insets.
+			// Another exception is when row.endpos() is 0.
 			
 			bool right_of_pos = false; // do we want to be to the right of pos?
 
 			// as explained above, if at last pos in row, stay to the right
-			if ((pos() == row.endpos() - 1) && !par.isInset(pos()))
+			if (row.endpos() > 0 && pos() == row.endpos() - 1
+				  && !par.isInset(pos()))
 				right_of_pos = true;
 
 			// Now we know if we want to be to the left or to the right of pos,
@@ -866,7 +869,10 @@ void Cursor::posVisToRowExtremity(bool left)
 		if (!par.isRTL(buf.params()) && row.endpos() == lastpos())
 			pos() = lastpos();
 		else {
-			pos() = bidi.vis2log(row.endpos() - 1);
+			if (row.endpos() > 0)
+				pos() = bidi.vis2log(row.endpos() - 1);
+			else
+				pos() = 0;
 
 			// Moving to the rightmost position in the row, the cursor should
 			// normally be placed to the *right* of the rightmost position.
@@ -891,11 +897,14 @@ void Cursor::posVisToRowExtremity(bool left)
 			// this non-separator-but-last-position-in-row is an inset, then
 			// we *do* want to stay to the right of it anyway: this is the 
 			// "boundary" which we simulate at insets.
+			// Another exception is when row.endpos() is 0.
 			
 			bool left_of_pos = false; // do we want to be to the left of pos?
 
-			// as explained above, if at last pos in row, stay to the left
-			if ((pos() == row.endpos() - 1) && !par.isInset(pos()))
+			// as explained above, if at last pos in row, stay to the left,
+			// unless the last position is the same as the first.
+			if (row.endpos() > 0 && pos() == row.endpos() - 1 
+				  && !par.isInset(pos()))
 				left_of_pos = true;
 
 			// Now we know if we want to be to the left or to the right of pos,
@@ -2211,6 +2220,11 @@ void Cursor::checkBufferStructure()
 {
 	Buffer const * master = buffer().masterBuffer();
 	master->tocBackend().updateItem(*this);
+	if (master != &buffer() && !master->guiDelegate())
+		// If the master is not open and thus has no gui
+		// associated with it, the TocItem is not updated
+		// (part of bug 5699).
+		buffer().tocBackend().updateItem(*this);
 }
 
 

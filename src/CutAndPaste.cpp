@@ -222,7 +222,10 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	InsetIterator const i_end = inset_iterator_end(in);
 
 	for (InsetIterator it = inset_iterator_begin(in); it != i_end; ++it) {
-
+		// Insets store buffer references so need updating.
+		// FIXME This code can probably be deleted. The insets
+		// will get copied when they are pasted, at which point
+		// their buffer_ members will get set back to zero.
 		it->setBuffer(const_cast<Buffer &>(buffer));
 
 		switch (it->lyxCode()) {
@@ -292,15 +295,18 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		// merge the first par of the insertion with the current par
 		mergeParagraph(buffer.params(), pars, pit);
 	}
-	//FIXME: We should call setBuffer() on each inserted paragraph.
-	// instead, we call setBuffer() for the main inset at the beginning
-	// of updateLabels()
-
-	pit_type last_paste = pit + insertion.size() - 1;
 
 	// Store the new cursor position.
+	pit_type last_paste = pit + insertion.size() - 1;
+	pit_type startpit = pit;
 	pit = last_paste;
 	pos = pars[last_paste].size();
+
+	// Set paragraph buffers. It's important to do this right away
+	// before something calls Inset::buffer() and causes a crash.
+	for (pit_type p = startpit; p <= pit; ++p)
+		pars[p].setBuffer(const_cast<Buffer &>(buffer));
+
 
 	// Join (conditionally) last pasted paragraph with next one, i.e.,
 	// the tail of the spliced document paragraph
@@ -686,6 +692,20 @@ void copySelection(Cursor const & cur)
 	copySelection(cur, cur.selectionAsString(true));
 }
 
+
+void copyInset(Cursor const & cur, Inset * inset, docstring const & plaintext)
+{
+	ParagraphList pars;
+	Paragraph par;
+	BufferParams const & bp = cur.buffer().params();
+	par.setLayout(bp.documentClass().plainLayout());
+	par.insertInset(0, inset, Change(Change::UNCHANGED));
+	pars.push_back(par);
+	theCuts.push(make_pair(pars, bp.documentClassPtr()));
+
+	// stuff the selection onto the X clipboard, from an explicit copy request
+	putClipboard(theCuts[0].first, theCuts[0].second, plaintext);
+}
 
 namespace {
 

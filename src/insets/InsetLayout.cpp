@@ -70,14 +70,8 @@ InsetLayout::InsetLaTeXType translateLaTeXType(std::string const & str)
 }
 
 
-bool InsetLayout::read(Lexer & lex, TextClass & tclass)
+bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 {
-	name_ = support::subst(lex.getDocString(), '_', ' ');
-	// FIXME We need to check for name_.empty() here, and
-	// take the same sort of action as in TextClass::read()
-	// if it is empty. Or, better, we could read name_ there,
-	// take action there, etc.
-
 	enum {
 		IL_BGCOLOR,
 		IL_COPYSTYLE,
@@ -149,7 +143,7 @@ bool InsetLayout::read(Lexer & lex, TextClass & tclass)
 		}
 		switch (le) {
 		// FIXME
-		// Perhaps a mroe elegant way to deal with the next two would be the
+		// Perhaps a more elegant way to deal with the next two would be the
 		// way this sort of thing is handled in Layout::read(), namely, by
 		// using the Lexer.
 		case IL_LYXTYPE: {

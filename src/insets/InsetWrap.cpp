@@ -62,7 +62,7 @@ InsetWrap::~InsetWrap()
 
 docstring InsetWrap::name() const
 {
-	return from_utf8(params_.type);
+	return "Wrap:" + from_utf8(params_.type);
 }
 
 
@@ -71,7 +71,7 @@ docstring InsetWrap::toolTip(BufferView const & bv, int x, int y) const
 	OutputParams rp(&buffer().params().encoding());
 	docstring default_tip = InsetCollapsable::toolTip(bv, x, y);
 	docstring caption_tip = getCaptionText(rp);
-	if (!isOpen() && !caption_tip.empty())
+	if (!isOpen(bv) && !caption_tip.empty())
 		return caption_tip + '\n' + default_tip;
 	return default_tip;
 }
@@ -170,7 +170,9 @@ void InsetWrap::read(Lexer & lex)
 void InsetWrap::validate(LaTeXFeatures & features) const
 {
 	features.require("wrapfig");
+	features.inFloat(true);
 	InsetCollapsable::validate(features);
+	features.inFloat(false);
 }
 
 
@@ -180,8 +182,10 @@ docstring InsetWrap::editMessage() const
 }
 
 
-int InsetWrap::latex(odocstream & os, OutputParams const & runparams) const
+int InsetWrap::latex(odocstream & os, OutputParams const & runparams_in) const
 {
+	OutputParams runparams(runparams_in);
+	runparams.inFloat = OutputParams::MAINFLOAT;
 	os << "\\begin{wrap" << from_ascii(params_.type) << '}';
 	// no optional argument when lines are zero
 	if (params_.lines != 0)

@@ -624,7 +624,14 @@ src_tex2lyx_extra_files = Split('''
     test-insets.tex
     test-structure.tex
     test.ltx
-    tex2lyx.man
+    tex2lyx.1
+    test/box-color-size-space-align.tex
+    test/DummyDocument.tex
+    test/foo.eps
+    test/foo.png
+    test/test-insets.tex
+    test/test.ltx
+    test/test-structure.tex
 ''')
 
 
@@ -1273,6 +1280,7 @@ lib_kbd_files = Split('''
 lib_templates_files = Split('''
     aa.lyx
     aastex.lyx
+    ACM-siggraph.lyx
     ACM-sigplan.lyx
     agu_article.lyx
     apa.lyx
@@ -2128,6 +2136,7 @@ lib_doc_da_files = Split('''
 
 
 lib_doc_es_files = Split('''
+    Customization.lyx
     DocumentoPostizo1.lyx
     DocumentoPostizo2.lyx
     DocumentoTextoPostizo.txt
@@ -2352,6 +2361,7 @@ lib_examples_files = Split('''
     multicol.lyx
     noweb2lyx.lyx
     powerdot-example.lyx
+    recipebook.lyx
     script_form.lyx
     seminar.lyx
     serial_letter1.lyx
@@ -2382,11 +2392,13 @@ lib_examples_da_files = Split('''
 
 
 lib_examples_de_files = Split('''
+    beispiel_gelyxt.lyx
+    beispiel_roh.lyx
+    Braille.lyx
     Dezimal.lyx
     ItemizeBullets.lyx
     Lebenslauf.lyx
-    beispiel_gelyxt.lyx
-    beispiel_roh.lyx
+    linguistics.lyx
     multicol.lyx
     serienbrief1.lyx
     serienbrief2.lyx
@@ -2413,9 +2425,11 @@ lib_examples_fr_files = Split('''
 
 
 lib_examples_es_files = Split('''
+    Braille.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
     ItemizeBullets.lyx
+    linguistics.lyx
     multicol.lyx
     splash.lyx
 ''')
@@ -2445,6 +2459,11 @@ lib_examples_he_files = Split('''
 lib_examples_hu_files = Split('''
     example_lyxified.lyx
     example_raw.lyx
+    splash.lyx
+''')
+
+
+lib_examples_id_files = Split('''
     splash.lyx
 ''')
 
@@ -2496,6 +2515,11 @@ lib_examples_sl_files = Split('''
 ''')
 
 
+lib_examples_uk_files = Split('''
+    splash.lyx
+''')
+
+
 lib_lyx2lyx_files = Split('''
     LyX.py
     generate_encoding_info.py
@@ -2532,6 +2556,7 @@ lib_layouts_files = Split('''
     aapaper.layout
     aastex.layout
     achemso.layout
+    acmsiggraph.layout
     agu-dtd.layout
     agums.layout
     amsart.layout
@@ -2596,6 +2621,7 @@ lib_layouts_files = Split('''
     mwrep.layout
     paper.layout
     powerdot.layout
+    recipebook.layout
     report.layout
     revtex.layout
     revtex4.layout

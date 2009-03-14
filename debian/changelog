@@ -1,8 +1,12 @@
-lyx (1.6.1-2) UNRELEASED; urgency=low
+lyx (1.6.2-1) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * Add ghostscript and poppler-utils to Recommends. Closes: #515914
 
- -- Per Olofsson <pelle@debian.org>  Wed, 18 Feb 2009 12:48:55 +0100
+  [ Sven Hoexter ]
+  * (NOT RELEASED YET) New upstream release
+
+ -- Sven Hoexter <sven@timegate.de>  Sat, 14 Mar 2009 18:48:20 +0100
 
 lyx (1.6.1-1) unstable; urgency=low
 

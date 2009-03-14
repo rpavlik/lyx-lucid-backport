@@ -372,40 +372,40 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			}
 			break;
 
-		case TC_STYLE:
-			if (lexrc.next()) {
-				docstring const name = from_utf8(subst(lexrc.getString(),
-						    '_', ' '));
-				if (name.empty()) {
-					string s = "Could not read name for style: `$$Token' "
-						+ lexrc.getString() + " is probably not valid UTF-8!";
-					lexrc.printError(s.c_str());
-					Layout lay;
-					// Since we couldn't read the name, we just scan the rest
-					// of the style and discard it.
-					error = !readStyle(lexrc, lay);
-				} else if (hasLayout(name)) {
-					Layout & lay = operator[](name);
-					error = !readStyle(lexrc, lay);
-				} else {
-					Layout layout;
-					layout.setName(name);
-					error = !readStyle(lexrc, layout);
-					if (!error)
-						layoutlist_.push_back(layout);
-
-					if (defaultlayout_.empty()) {
-						// We do not have a default layout yet, so we choose
-						// the first layout we encounter.
-						defaultlayout_ = name;
-					}
-				}
-			}
-			else {
+		case TC_STYLE: {
+			if (!lexrc.next()) {
 				lexrc.printError("No name given for style: `$$Token'.");
 				error = true;
+				break;
+			}
+			docstring const name = from_utf8(subst(lexrc.getString(),
+							'_', ' '));
+			if (name.empty()) {
+				string s = "Could not read name for style: `$$Token' "
+					+ lexrc.getString() + " is probably not valid UTF-8!";
+				lexrc.printError(s.c_str());
+				Layout lay;
+				// Since we couldn't read the name, we just scan the rest
+				// of the style and discard it.
+				error = !readStyle(lexrc, lay);
+			} else if (hasLayout(name)) {
+				Layout & lay = operator[](name);
+				error = !readStyle(lexrc, lay);
+			} else {
+				Layout layout;
+				layout.setName(name);
+				error = !readStyle(lexrc, layout);
+				if (!error)
+					layoutlist_.push_back(layout);
+
+				if (defaultlayout_.empty()) {
+					// We do not have a default layout yet, so we choose
+					// the first layout we encounter.
+					defaultlayout_ = name;
+				}
 			}
 			break;
+		}
 
 		case TC_NOSTYLE:
 			if (lexrc.next()) {
@@ -532,14 +532,34 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 				rightmargin_ = lexrc.getDocString();
 			break;
 
-		case TC_INSETLAYOUT:
-			if (lexrc.next()) {
+		case TC_INSETLAYOUT: {
+			if (!lexrc.next()) {
+				lexrc.printError("No name given for InsetLayout: `$$Token'.");
+				error = true;
+				break;
+			}
+			docstring const name = subst(lexrc.getDocString(), '_', ' ');
+			if (name.empty()) {
+				string s = "Could not read name for InsetLayout: `$$Token' "
+					+ lexrc.getString() + " is probably not valid UTF-8!";
+				lexrc.printError(s.c_str());
 				InsetLayout il;
-				if (il.read(lexrc, *this))
-					insetlayoutlist_[il.name()] = il;
-				// else there was an error, so forget it
+				// Since we couldn't read the name, we just scan the rest
+				// of the style and discard it.
+				il.read(lexrc, *this);
+				error = true;
+			} else if (hasInsetLayout(name)) {
+				InsetLayout & il = insetlayoutlist_[name];
+				error = !il.read(lexrc, *this);
+			} else {
+				InsetLayout il;
+				il.setName(name);
+				error = !il.read(lexrc, *this);
+				if (!error)
+					insetlayoutlist_[name] = il;
 			}
 			break;
+		}
 
 		case TC_FLOAT:
 			readFloat(lexrc);
@@ -874,6 +894,19 @@ bool TextClass::hasLayout(docstring const & n) const
 	return find_if(layoutlist_.begin(), layoutlist_.end(),
 		       LayoutNamesEqual(name))
 		!= layoutlist_.end();
+}
+
+
+bool TextClass::hasInsetLayout(docstring const & n) const
+{
+	if (n.empty()) 
+		return false;
+	InsetLayouts::const_iterator it = insetlayoutlist_.begin();
+	InsetLayouts::const_iterator en = insetlayoutlist_.end();
+	for (; it != en; ++it)
+		if (n == it->first)
+			return true;
+	return false;
 }
 
 

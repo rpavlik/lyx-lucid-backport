@@ -53,9 +53,11 @@ public:
 		ILT_ERROR
 	};
 	///
-	bool read(Lexer & lexrc, TextClass & tclass);
+	bool read(Lexer & lexrc, TextClass const & tclass);
 	///
 	docstring name() const { return name_; };
+	///
+	void setName(docstring const & n) { name_ = n; }
 	///
 	InsetLyXType lyxtype() const { return lyxtype_; };
 	///

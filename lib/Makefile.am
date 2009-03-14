@@ -87,9 +87,11 @@ deexamplesdir = $(pkgdatadir)/examples/de
 dist_deexamples_DATA = \
 	examples/de/beispiel_gelyxt.lyx \
 	examples/de/beispiel_roh.lyx \
+	examples/de/Braille.lyx \
 	examples/de/Dezimal.lyx \
 	examples/de/ItemizeBullets.lyx \
 	examples/de/Lebenslauf.lyx \
+	examples/de/linguistics.lyx \
 	examples/de/multicol.lyx \
 	examples/de/serienbrief1.lyx \
 	examples/de/serienbrief2.lyx \
@@ -98,9 +100,11 @@ dist_deexamples_DATA = \
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
+	examples/es/Braille.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
 	examples/es/ItemizeBullets.lyx \
+	examples/es/linguistics.lyx \
 	examples/es/multicol.lyx \
 	examples/es/splash.lyx
 
@@ -143,6 +147,10 @@ dist_huexamples_DATA = \
 	examples/hu/example_raw.lyx \
 	examples/hu/splash.lyx
 
+idexamplesdir = $(pkgdatadir)/examples/id
+dist_idexamples_DATA = \
+	examples/id/splash.lyx
+
 itexamplesdir = $(pkgdatadir)/examples/it
 dist_itexamples_DATA = \
 	examples/it/ItemizeBullets.lyx \
@@ -181,6 +189,10 @@ dist_slexamples_DATA = \
 	examples/sl/primer_lyxan.lyx \
 	examples/sl/primer_surov.lyx \
 	examples/sl/splash.lyx
+
+ukexamplesdir = $(pkgdatadir)/examples/uk
+dist_ukexamples_DATA = \
+	examples/uk/splash.lyx
 
 examplesdir = $(pkgdatadir)/examples
 dist_examples_DATA = \
@@ -226,6 +238,7 @@ dist_examples_DATA = \
 	examples/multicol.lyx \
 	examples/noweb2lyx.lyx \
 	examples/powerdot-example.lyx \
+	examples/recipebook.lyx \
 	examples/script_form.lyx \
 	examples/seminar.lyx \
 	examples/serial_letter1.lyx \
@@ -944,6 +957,7 @@ dist_layouts_DATA =\
 	layouts/aapaper.layout \
 	layouts/aastex.layout \
 	layouts/achemso.layout \
+	layouts/acmsiggraph.layout \
 	layouts/agu-dtd.layout \
 	layouts/agu_stdclass.inc \
 	layouts/agu_stdcounters.inc \
@@ -1037,6 +1051,7 @@ dist_layouts_DATA =\
 	layouts/numrevtex.inc \
 	layouts/paper.layout \
 	layouts/powerdot.layout \
+	layouts/recipebook.layout \
 	layouts/report.layout \
 	layouts/revtex.layout \
 	layouts/revtex4.layout \
@@ -1113,6 +1128,7 @@ templatesdir = $(pkgdatadir)/templates
 dist_templates_DATA = \
 	templates/aa.lyx \
 	templates/aastex.lyx \
+	templates/ACM-siggraph.lyx \
 	templates/ACM-sigplan.lyx \
 	templates/agu_article.lyx \
 	templates/apa.lyx \

@@ -286,8 +286,12 @@ Buffer::~Buffer()
 	// loop over children
 	Impl::BufferPositionMap::iterator it = d->children_positions.begin();
 	Impl::BufferPositionMap::iterator end = d->children_positions.end();
-	for (; it != end; ++it)
-		theBufferList().releaseChild(this, const_cast<Buffer *>(it->first));
+	for (; it != end; ++it) {
+		Buffer * child = const_cast<Buffer *>(it->first);
+		// The child buffer might have been closed already.
+		if (theBufferList().isLoaded(child))
+			theBufferList().releaseChild(this, child);
+	}
 
 	// clear references to children in macro tables
 	d->children_positions.clear();
@@ -538,7 +542,7 @@ int Buffer::readHeader(Lexer & lex)
 
 // Uwe C. Schroeder
 // changed to be public and have one parameter
-// Returns false if "\end_document" is not read (Asger)
+// Returns true if "\end_document" is not read (Asger)
 bool Buffer::readDocument(Lexer & lex)
 {
 	ErrorList & errorList = d->errorLists["Parse"];
@@ -557,19 +561,19 @@ bool Buffer::readDocument(Lexer & lex)
 
 	if (params().outputChanges) {
 		bool dvipost    = LaTeXFeatures::isAvailable("dvipost");
-		bool xcolorsoul = LaTeXFeatures::isAvailable("soul") &&
+		bool xcolorulem = LaTeXFeatures::isAvailable("ulem") &&
 				  LaTeXFeatures::isAvailable("xcolor");
 
-		if (!dvipost && !xcolorsoul) {
+		if (!dvipost && !xcolorulem) {
 			Alert::warning(_("Changes not shown in LaTeX output"),
 				       _("Changes will not be highlighted in LaTeX output, "
-					 "because neither dvipost nor xcolor/soul are installed.\n"
+					 "because neither dvipost nor xcolor/ulem are installed.\n"
 					 "Please install these packages or redefine "
 					 "\\lyxadded and \\lyxdeleted in the LaTeX preamble."));
-		} else if (!xcolorsoul) {
+		} else if (!xcolorulem) {
 			Alert::warning(_("Changes not shown in LaTeX output"),
 				       _("Changes will not be highlighted in LaTeX output "
-					 "when using pdflatex, because xcolor and soul are not installed.\n"
+					 "when using pdflatex, because xcolor and ulem are not installed.\n"
 					 "Please install both packages or redefine "
 					 "\\lyxadded and \\lyxdeleted in the LaTeX preamble."));
 		}
@@ -579,8 +583,24 @@ bool Buffer::readDocument(Lexer & lex)
 		FileName const master_file = makeAbsPath(params().master,
 			   onlyPath(absFileName()));
 		if (isLyXFilename(master_file.absFilename())) {
-			Buffer * master = checkAndLoadLyXFile(master_file, true);
-			d->parent_buffer = master;
+			Buffer * master =
+				checkAndLoadLyXFile(master_file, true);
+			if (master) {
+				// set master as master buffer, but only
+				// if we are a real child
+				if (master->isChild(this))
+					setParent(master);
+				// if the master is not fully loaded
+				// it is probably just loading this
+				// child. No warning needed then.
+				else if (master->isFullyLoaded())
+					LYXERR0("The master '"
+						<< params().master
+						<< "' assigned to this document '"
+						<< absFileName()
+						<< "' does not include "
+						"this document. Ignoring the master assignment.");
+			}
 		}
 	}
 
@@ -958,7 +978,7 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 	string const encoding = runparams.encoding->iconvName();
 	LYXERR(Debug::LATEX, "makeLaTeXFile encoding: " << encoding << "...");
 
-	odocfstream ofs;
+	ofdocstream ofs;
 	try { ofs.reset(encoding); }
 	catch (iconv_codecvt_facet_exception & e) {
 		lyxerr << "Caught iconv exception: " << e.what() << endl;
@@ -1177,7 +1197,7 @@ void Buffer::makeDocBookFile(FileName const & fname,
 {
 	LYXERR(Debug::LATEX, "makeDocBookFile...");
 
-	odocfstream ofs;
+	ofdocstream ofs;
 	if (!openFileWrite(ofs, fname))
 		return;
 
@@ -1696,6 +1716,25 @@ Buffer const * Buffer::masterBuffer() const
 bool Buffer::isChild(Buffer * child) const
 {
 	return d->children_positions.find(child) != d->children_positions.end();
+}
+
+
+std::vector<Buffer *> Buffer::getChildren() const
+{
+	std::vector<Buffer *> clist;
+	// loop over children
+	Impl::BufferPositionMap::iterator it = d->children_positions.begin();
+	Impl::BufferPositionMap::iterator end = d->children_positions.end();
+	for (; it != end; ++it) {
+		Buffer * child = const_cast<Buffer *>(it->first);
+		clist.push_back(child);
+		// there might be grandchildren
+		std::vector<Buffer *> glist = child->getChildren();
+		for (vector<Buffer *>::const_iterator git = glist.begin();
+		     git != glist.end(); ++git)
+			clist.push_back(*git);
+	}
+	return clist;
 }
 
 

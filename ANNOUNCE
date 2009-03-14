@@ -1,12 +1,16 @@
-Public release of LyX version 1.6.1
+Public release of LyX version 1.6.2
 ===================================
 
-We are pleased to announce the release of LyX 1.6.1. This is the first
-maintenance release in the brand-new 1.6.x series, and as such, it mainly
-focuses on bug fixes. We have ironed out some major problems that slipped
-into the application in the wake of the new features.
+We are pleased to announce the release of LyX 1.6.2. This is the second
+maintenance release in the 1.6.x series. The release fixes a large number
+of major and critical bugs that were reported by users of LyX 1.6.0 and 
+1.6.1. Most notably, three bugs that might lead to dataloss were detected
+and resolved. Furthermore, a number of crashes, file conversion and LaTeX 
+output problems are fixed. As a bonus, the performance of the application
+has been improved, and the release also introduces some new features and
+user interface improvements.
 
-All users of LyX 1.6.0 are encouraged to upgrade to this version.
+All users of LyX 1.6.0 and LyX 1.6.1 are urged to upgrade to this version.
 
 A detailed list of changes is appended below, remaining known problems
 are listed in the file RELEASE-NOTES.
@@ -35,34 +39,34 @@ http://www.lyx.org/ has to say on the subject:
    internationalized application running natively on Unix/Linux, the
    Macintosh and modern Windows platforms.
 
-You can download LyX 1.6.1 here (the .bz2 are compressed with bzip2,
+You can download LyX 1.6.2 here (the .bz2 are compressed with bzip2,
 which yields smaller files):
 
-	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/lyx-1.6.1.tar.gz
-	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/lyx-1.6.1.tar.bz2
-	ftp://ftp.devel.lyx.org/pub/lyx/lyx-1.6.1.tar.gz
-	ftp://ftp.devel.lyx.org/pub/lyx/lyx-1.6.1.tar.bz2
+	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/lyx-1.6.2.tar.gz
+	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/lyx-1.6.2.tar.bz2
+	ftp://ftp.devel.lyx.org/pub/lyx/lyx-1.6.2.tar.gz
+	ftp://ftp.devel.lyx.org/pub/lyx/lyx-1.6.2.tar.bz2
 
 and it should propagate shortly to the following mirrors (which will
 also host the .bz2 versions):
 
-        ftp://ftp.lip6.fr/pub/lyx/stable/1.6.x/lyx-1.6.1.tar.gz
-	http://lyx.cybermirror.org/stable/1.6.x/lyx-1.6.1.tar.gz
-        ftp://gd.tuwien.ac.at/publishing/tex/lyx/stable/1.6.x/lyx-1.6.1.tar.gz
-        ftp://ftp.ntua.gr/pub/X11/LyX/stable/1.6.x/lyx-1.6.1.tar.gz
-	http://sunsite.icm.edu.pl/pub/unix/editors/lyx/stable/1.6.x/lyx-1.6.1.tar.gz
-        http://lyx.mirror.fr/stable/1.6.x/lyx-1.6.1.tar.gz
+        ftp://ftp.lip6.fr/pub/lyx/stable/1.6.x/lyx-1.6.2.tar.gz
+	http://lyx.cybermirror.org/stable/1.6.x/lyx-1.6.2.tar.gz
+        ftp://gd.tuwien.ac.at/publishing/tex/lyx/stable/1.6.x/lyx-1.6.2.tar.gz
+        ftp://ftp.ntua.gr/pub/X11/LyX/stable/1.6.x/lyx-1.6.2.tar.gz
+	http://sunsite.icm.edu.pl/pub/unix/editors/lyx/stable/1.6.x/lyx-1.6.2.tar.gz
+        http://lyx.mirror.fr/stable/1.6.x/lyx-1.6.2.tar.gz
 
 Prebuilt binaries (rpms for Linux distributions, Mac OS X and Windows
 installers) should soon be available at
-	ftp://ftp.lyx.org/pub/lyx/bin/1.6.1/
+	ftp://ftp.lyx.org/pub/lyx/bin/1.6.2/
 
 If you already have the sources of the previous release, you may want to apply
 one of the following patches instead
-	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/patch-1.6.1.gz
-	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/patch-1.6.1.bz2
+	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/patch-1.6.2.gz
+	ftp://ftp.lyx.org/pub/lyx/stable/1.6.x/patch-1.6.2.bz2
 
-If you find what you think is a bug in LyX 1.6.1, you may either
+If you find what you think is a bug in LyX 1.6.2, you may either
 e-mail the LyX developers' mailing list (lyx-devel <at> lists.lyx.org),
 or open a bug report at http://bugzilla.lyx.org
 
@@ -75,7 +79,7 @@ Enjoy!
 The LyX team.
 
 
-What's new in version 1.6.1?
+What's new in version 1.6.2?
 ----------------------------
 
 
@@ -84,27 +88,69 @@ What's new in version 1.6.1?
 
 * DOCUMENTATION AND LOCALIZATION
 
-- Updated localization of the user interface for Czech, French, German,
-  Italian, Japanese, Romanian, Spanish, and Turkish.
+- New German and Spanish translations of the specific manual "How to write
+  Braille with LyX".
 
-- Updated English, French, German, and Spanish User's Guide, Math,
-  and Embedded Objects manual.
+- New German and Spanish translations of the specific manual "Writing
+  linguistic papers with LyX".
+  
+- New Indonesian and Ukrainian translations of the Splash document.
 
-- Updated English and German Embedded Objects manual.
+- Update localization of the user interface for Czech, French, German,
+  Italian, Norwegian, Polish, Spanish, Turkish, and Ukrainian.
 
-- Updated English Customization manual.
+- Updated English and Spanish Customization manuals.
+
+- Updated English and Spanish LyX Tutorials.
+
+- Updated English, French, German, and Spanish Embedded Objects, Math,
+  XY-pic and Tutorial manuals.
+
+- Updated English, French, German, Japanese, and Spanish User's guide
+  manuals.
+
+- Updated English specific manual "How to write Braille with LyX".
+
+- Updated English specific manual "Writing linguistic papers with LyX".
+
+- Updated German specific multicolumn manual.
+
+- Updated Extended and LyX functions manual.
+
+- Add a check for the japanese babel option in the LaTeX configuration
+  manual (bug 5677).
 
 
 * DOCUMENT INPUT/OUTPUT
 
-- New layout file for journal articles published by the American Chemical
-  Society.
+- New external material template for Dia.
+
+- New layout file for submissions to ACM SIGGRAPH conferences and
+  publications.
+
+- New layout file to typeset recipes.
+
+- The menu separator special symbol is now direction aware, i.e., it
+  points to the left in RTL-text (LaTeX output only) (bug 3560).
 
 
 * USER INTERFACE
 
-- The BibTeX dialog now has a button for rescanning *.bib and *.bst files
-  in the TEXMF tree.
+- Support for customized horizontal space in math/formulas (bug 2558).
+
+- Improved the display of BibTeX information in the citation dialog.
+  LaTeX constructs such as: \"u, should now be displayed as unicode,
+  and we should now see "(Doe, 1998)" instead of "(John Doe, 1998)"
+  even when the name in the BibTeX file is "John Doe" rather than 
+  "Doe, John".
+
+- Added LFUN_VC_COMMAND to support customizable user commands
+  for version control.
+  
+- Improved the user interface of the graphics group feature.
+
+- Added "Copy as Reference" to the context menu of labels to
+  ease the insertion of references.
 
 
 ** Bug fixes:
@@ -112,146 +158,248 @@ What's new in version 1.6.1?
 
 * DOCUMENT INPUT/OUTPUT
 
-- Fix a crash and generally improve the behaviour while loading an
-  emergency save of a master document from within a child (bug 5514).
+- Fix a crash when reading a document containing specific numbered
+  equations produced with tex2lyx (bug 5688).
 
-- Fix freeze when child document fails to load due to a conversion error
-  or similar problem (bug 5539). Note that LyX will not try to reload the
-  file. If the problem should with the child be fixed, the master document
-  will need to be closed and reopened for the child to be loaded.
+- Fix a crash when reading files created by tex2lyx in the presence of an
+  empty child document (bug 4859).
 
-- Removed "NoStyle Abstract" from AMS book class, which does have an
-  abstract.
+- Fix an assertion when an inset is hidden at the right of the edit
+  window, for example in Description or Right Address layout (bug
+  5666 and 5068).
 
-- Fix conversion of some more complex index insets from version 1.5.x
-  (bug 5579 a.o.).
+- Fix the conversion of documents from previous LyX versions that have
+  index insets following an index list inset (bug 5713).
+  Affected files that have already been mis-converted can be repaired by
+  manually setting back the file format to 288 in a text editor before 
+  re-opening the document with LyX 1.6.x.
 
-- Fix reversion of info insets to LyX format 1.5.x. This bug blocked the
-  reversion of the User Guide to LyX 1.5.
+- Fix the LaTeX export of subfigures via the command line (bug 5562).
 
-- Fix reversion of subfloats to version 1.5.x.
+- Fix the LaTeX import of preamble code (bug 5788).
 
-- Fix reversion of \slash and \nobreakdash to version 1.5.x.
+- Fix the reversion of floating wrap floats to LyX 1.5.x (bug 5618).
 
-- Fix possible endless loop while running lyx2lyx.
+- Make the PDF output of change tracking markup more robust by using the
+  ulem package for struck out text instead of the package soul
+  (fixes bug 5480, 5647 and the remainders of bug 5091).
 
-- Fix redirection to temporary files with spaces in path (RCS support).
+- Fix hanging module.
 
-- Fix export to latex in the presence of an encoding switch (bug 5489).
+- Pass graphics driver to the geometry package (bug 5613).
 
-- Fix nesting of \begin{CJK} and \end{CJK} with other environments.
+- Fix LaTeX error with custom margins and the revtex4 class (bug 3838).
 
-- Fix export of straight quotes in Hebrew and Greek context (bug 5571).
+- siamltex class: do not load amsthm package, since the SIAM class 
+  provides its own theorem-like environments.
 
-- Fix import of CVS data on Windows.
+- Fix LaTeX export when using unicode symbols in math only in child
+  documents (bug 5665).
+  
+- Fix bug when coloring section headings in RevTeX4 documents (bug 4625).
 
-- Perform an additional bibtex cycle if requested, e.g. by biblatex
-  (bug 5583).
+- Fix the output of telephone number and location in letters (bug 5684).
 
-- Correctly set compressed status (bug 5589).
+- Fix a LaTeX export error that prevents the inclusion of two program
+  listings that differ only by file extension (bug 5681).
 
-- Correct the LaTeX output of some letterlike symbols (bug 5456).
+- Fix hyphenation and punctuation rules for Mexican Spanish (bug 4736).
 
-- Correct the LaTeX output of ']' inside list items (bug 5610).
+- For CJK documents using utf8 encoding, load the CJKutf8 package, if
+  available (part of bug 5386).
 
-- Fix option clash when selecting natbib with the new elsarticle
-  class (bug 5617). Note that style changes (e.g. author-year)
-  need to be done via class options with this class.
+- Fix bugs when entering hyperlink paths containing special characters
+  (bug 5686).
+  
+- Fix the output of some Greek characters (rest of bug 5239).
+
+- Fix the address numbering in the elsarticle template file.
+
+- Fix update of single-char math macro names after their editing
+  (bug 5541).
+
+- Fixed import of older files with empty index insets.
 
 
 * USER INTERFACE
 
-- Fix crash when undoing a math operation while the outline pane was open
-  (bug 5491).
+- Fix a crash when pasting a branch in a child document. This crash could
+  destroy the emergency backup (bug 5813).
 
-- Fix crash on Mac when dropping a file on its own buffer (bug 5447).
+- Fix a crash when restoring a dissolved branch in a child document via
+  UNDO. This crash could destroy the emergency backup.
 
-- Fix crash on display of message string with utf8 encoding
-  (bug 5389 related).
+- Fix a bug where changes in child documents were dropped or saved without
+  asking when closing LyX (bug 5833).
 
-- Fix crash when trying to access the replacements combo box in the spell
-  checker dialog.
+- Fix a crash when no file is open and the creation of a new document
+  fails.
 
-- Fix a crash when reloading a buffer on the Mac (bug 5389).
+- Fix a crash when using a math related function in an ERT inset
+  (bug 5703).
 
-- Fix the registration of mimetypes, which cures a crash when using
-  the clipboard and launching other applications on Windows (bug 5472).
+- Fix a crash when copying a matrix column (bug 5731).
 
-- Fix assertion when issuing a translated error message to help-open.
+- Fix a crash when pressing the Home or End key while the cursor is not in
+  the current view (bug 5736).
+  
+- Fix a crash when quitting with the Tabular dialog opened.
 
-- Fix freeze when selecting after a large amount of text already was
-  selected (bug 5504).
+- Fix a crash when deleting columns in a table with multicolumns
+  (bug 5766).
+  
+- Fix a crash when setting a multicolumn row as the caption of a longtable
+  (bug 5753).
+  
+- Fix a crash when using the outliner in a child document, the master of
+  which is not opened (bug 5699).
+  
+- Fix a crash on exit when the child documents are already unloaded.
 
-- Fix false duplicate warning for labels when just applying without
-  changing (bug 5496).
+- Fix a crash when pressing the Update button of the Citation dialog
+  for read-only documents (bug 5785).
+  
+- Fix a crash when removing the label of an included Program Listing. 
 
-- Scrolling speed increased by a factor of 2.
+- Fix a few crashes that could occur with a 'visual' cursor (bugs 5762 
+  and 5765).
 
-- Implement undo grouping for command sequences (part of bug 5531).
+- Fix a crash when an unfinished macro is edited and deleted in math 
+  mode (bug 5744).
 
-- Fix wrong size of the view source window (bug 4430).
+- Fix the use of regular expressions to avoid crashes with Qt4.5.
 
-- Fix the -geometry command line option on Windows (bug 5467).
+- Fix an infinite loop when creating multiple unnamed files with Qt4.5.
 
-- Fix problem with display of footnote numbers, etc., in child documents.
+- Ignore the master_buffer setting in Document>Settings if the current
+  document is no real child. This fixes a crash when using the outliner
+  in such files (bug 5653).
+  
+- Set a proper file filter in the file dialog for inserting plain text.
+  This fixes a crash when attempting to insert plain text (bug 5671).
+  
+- Fix the synchronisation of insets when they are shown in two different
+  views. This could also have lead to an assertion (bug 4346).
+  
+- Fix an assertion when the status of a command in the context menu of
+  an InsetCollapsable is requested which is not handled by the inset.
+  This might happen when the user modifies the ui or when the right
+  mouse button is dragged (bug 5797).
+  
+- Speed up editing with Outliner open with Qt >= 4.3. This should 
+  especially pay off on the Mac, if the Outliner shows as a drawer
+  (part of bug 4443).
 
-- Fix painting update rules after LFUN_UP or LFUN_DOWN in an inset or
-  tabular.
+- Speed up editing when the document contains paragraphs with many (>1000)
+  insets (part of bug 4443).
 
-- Fix some UI glitches in the table cell settings dialog.
+- Fix the output of longtables if they have a caption (bug 5772).
 
-- Prevent the painting of an invisible cursor.
+- Fix the longtable dialog: Now only only one attribute can be set per
+  table row (bug 5752).
 
-- Fix and improve the selection painting in a tabular (bug 5536).
+- Set buffer status to changed and record UNDO after modifying insets such
+  as pagebreaks or citations via context menu.
+  
+- Fix on-screen layout of wrap floats.
 
-- Fix error dialog, which didn't display some messages.
+- Improve debug output when tracing what actions are triggered.
 
-- Fix enabling and functioning of buttons of document settings and
-  preferences dialogs (bug 5295).
+- A re-declaration of an InsetLayout will now update the existing 
+  declaration rather than completely over-writing it -- agreeing with the
+  behavior of our normal Style declarations.
 
-- Enable the button up in the command buffer widget (bug 5567).
+- Reflect external material template using Instant Preview in the dialog
+  for scaling property (bug 5628).
+  
+- Enable "dissolve" item in context menus of collapsable insets (bug 4985).
 
-- Make the character style and custom inset menus quote the arguments 
-  to flex-insert so that CharStyles, etc, with spaces in their names 
-  will work properly.
+- Fix unbinding/binding behaviour of shortcuts (bug 4544).
 
-- Detect and remove stale lyxpipes on startup (bug 641).
+- Fix instant preview of external material for the first insert in the
+  document (bug 5626).
 
-- Fix Preferences dialog in fullscreen mode (bug 5274).
+- Allow pasting of text from applications that set the clipboard mimetype
+  to both graphics and text (bug 5560).
 
-- Act on keys pressed in fullscreen mode with no buffer open (bug 5507).
+- Disable pasting with middle mouse button when the document is read-only
+  (bug 4741).
 
-- Correctly set the paragraph style combo for obsoleted styles (part of
-  bug 2607).
+- Fix setting shortcuts with a Return key in the shortcuts dialog 
+  (bug 5648).
 
-- beamer.layout: remove obsolete counter that triggered and error message
-  in the console.
+- Fix layout of the View Source window when using Qt 4.2.
+
+- Fix numbering symbol direction in Hebrew and Arabic documents.
+
+- Remove the non-functional unit "mu" from the unit comboboxes (bug 5682).
+
+- Remove the bogus unit "None" from the Box dialog's unit comboboxes.
+
+- Fix enabling of height widgets in the Box dialog.
+
+- Fix a locale debug message.
+
+- Fix reloading bug for RCS revision control introduced in 1.6.1, backport
+  trunk fix for bug 5389 (bug 5697)
+
+- Fix RCS check-in when more windows are opened, wrong file could be saved
+  before commit.
+
+- Fix handling of $$p variable in converters configuration. Introduce $$r
+  variable for the original input file.
+ 
+- Enable view-source widget for read-only documents.
+
+- Fix painting problems after load of instant preview image (bug 5627).
+
+- Limit workaround for Qt bug (bug 4513) that was fixed in Qt 4.3.4 to
+  older Qt versions. The workaround resulted in unwanted display of hidden
+  directories on UNIX.
+  
+- Add the LyX 1.6 file format (*.lyx16) to the file filter of the file
+  open dialog.
+  
+- Fix the navigation to large floats from within the outline pane
+  (bug 5573).
+
+- Enable Keep and Sort buttons in ToC when in readonly mode (bug 5767).
+
+- Fix the incorrect painting so that a table could hide other parts of
+  the document after changing the width of a table column (bug 5604).
+  
+- Enable the cursor to enter an inset at the very beginning of a document
+  with visual cursor movement (bug 5764).
+  
+- Fix the painting of tables when a multicolumn is created of which the
+  the first column was a fixed width column (bug 5750).
+
+- Fix some problems of panel(s) initialization (bug 5082).
+
+- Enable the Add button in the Citation dialog for citations whose key
+  is equal to part of an already selected key (bug 5711).
+
+- The table dialog no longer allows to set the multicolumn property of
+  longtable caption rows (bug 5573).
+
+- It is no longer possible to accidentally insert a caption to a table
+  that is not a longtable (part of bug 5777).
+
+- It is now possible to include spaces in the name of a branch (bug 5806).
 
 
 * DOCUMENTATION AND LOCALIZATION
 
-- LyX is now able to find the translated versions of the manuals in
-  Help>Specific Manuals.
+- Fix compilation of the modernCV example file.
 
-- LyX man page: Small formatting fix.
-
-- Updated description of math macros (bug 3699).
+- Localize the release date information in Help>About LyX.
 
 
 * BUILD/INSTALLATION
 
-- Fix configuration for docbook backend and add detection of xlstproc.
+- lyx.spec: remove "Icon" tag that triggered a build error (bug 5795); 
+  general update.
 
-- Fix bogus error message when reconfiguring with platex not installed.
+- Fix compilation on OpenBSD (bug 5650).
 
-- Add missing Galician documentation and example files to the Windows build.
-
-- Add compilation fix for gcc 4.4.
-
-- cmake: add some missing files.
-
-- cmake: improve install rules.
-
-- Fix version number in Mac OS application bundle.
-
-- Add missing tabular icon.
+- Fix make check.

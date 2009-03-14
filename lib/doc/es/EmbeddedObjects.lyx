@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -18,6 +18,15 @@
 % to the beginning of the float and 
 % not to its caption
 \usepackage[figure]{hypcap}
+
+% the pages of the TOC are numbered roman
+% and a PDF-bookmark for the TOC is added
+\let\myTOC\tableofcontents
+\renewcommand\tableofcontents{%
+  \frontmatter
+  \pdfbookmark[1]{\contentsname}{}
+  \myTOC
+  \mainmatter }
 
 % provides caption formatting
 \usepackage[labelfont={bf,sf}, tableposition=top]{caption}[2004/07/16]
@@ -105,14 +114,6 @@
 \newcolumntype{W}{!{\color{green}\vline}}
 % ---
 
-% the pages of the TOC are numbered roman
-% and a PDF-bookmark for the TOC is added
-\let\myTOC\tableofcontents
-\renewcommand\tableofcontents{%
-  \frontmatter
-  \pdfbookmark[1]{\contentsname}{}
-  \myTOC
-  \mainmatter }
 
 % insert additional vertical space of
 % 1.5 mm between footnotes
@@ -162,7 +163,7 @@
 % redefine the \LyX macro for PDF bookmarks
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX }}
+  {LyX}}
 
 % to translate the listing label
 % para traducir la etiqueta listing
@@ -257,7 +258,7 @@ type "mailto:"
 status collapsed
 
 \begin_layout Plain Layout
-Autor original: Uwe Stöhr
+Autor: Uwe Stöhr
 \end_layout
 
 \end_inset
@@ -282,7 +283,7 @@ Traducción de: Ignacio García
 
 
 \family sans
-Versión 1.6svn
+Versión 1.6.x
 \end_layout
 
 \begin_layout Standard
@@ -296,7 +297,7 @@ LatexCommand tableofcontents
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Para exportar todas las partes de este documento a PDF, PS, o DVI, deben
@@ -424,7 +425,7 @@ Imagen
 \end_layout
 
 \begin_layout Standard
-El diálogo Gráficos puede lanzarse en cualquier momento haciendo clic sobre
+El diálogo Gráficos puede abrirse en cualquier momento haciendo clic sobre
  una imagen.
  Este diálogo tiene tres pestañas:
 \end_layout
@@ -439,7 +440,7 @@ Gráficos Aquí puedes elegir tu archivo gráfico y ajustar separadamente su
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Unidades-disponibles-en"
+reference "cap:Unidades-disponibles-en"
 
 \end_inset
 
@@ -496,14 +497,18 @@ proporción
 \begin_inset Newline newline
 \end_inset
 
-Las imágenes se pueden abrir con un programa de tu elección pulsando el
- botón 
+Las imágenes se pueden abrir en el programa de tu elección con la entrada
+ 
 \family sans
-Editar
+ Editar
+\begin_inset space ~
+\end_inset
+
+ externamente
 \family default
-.
+ del menú contextual que aparece al hacer clic derecho sobre la imagen.
  Los programas visor y editor para cada formato de imagen se pueden establecer
- en la configuración de los formatos de archivo de las preferencias de LyX.
+ en la configuración de formatos de archivo de las preferencias de LyX.
 \end_layout
 
 \begin_layout Description
@@ -561,24 +566,8 @@ y
 \begin_inset space ~
 \end_inset
 
-LyX En esta solapa puedes modificar la apariencia de la imagen en LyX, y
- poner la imagen como subfigura de una figura flotante con su propio título.
- Las subfiguras se explican en la sección
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Figuras-Flotantes"
-
-\end_inset
-
-.
-\begin_inset Newline newline
-\end_inset
-
-Los expertos en LaTeX pueden especificar aquí opciones LaTeX adicionales.
+LyX En esta solapa puedes modificar la apariencia de la imagen en LyX y,
+ si eres experto en LaTeX, especificar opciones LaTeX adicionales.
 \begin_inset Newline newline
 \end_inset
 
@@ -669,11 +658,7 @@ El segundo comando crea un archivo de cuadro delimitador «x.eps.bb» que necesi
 
 El campo 
 \family sans
-Iniciar
-\begin_inset space ~
-\end_inset
-
-nombre
+Nombre
 \begin_inset space ~
 \end_inset
 
@@ -683,10 +668,9 @@ de
 
 grupo
 \family default
- permite definir o unir un conjunto de ajustes de imagen.
- 
+ permite definir un conjunto de ajustes de imagen.
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Figuras ! Agrupación de ajustes
@@ -699,8 +683,8 @@ Figuras ! Agrupación de ajustes
  de las demás imágenes del grupo.
  Así, por ejemplo, puedes cambiar el tamaño de un grupo de imágenes sin
  necesidad de hacerlo individualmente para cada una de ellas.
- También se pude unir un grupo existente usando el menú contextual de la
- imagen marcando el nombre del grupo.
+ Además se puede integrar una imagen en un grupo existente marcando el nombre
+ del mismo en el menú contextual de la imagen.
  
 \end_layout
 
@@ -717,7 +701,7 @@ Esto es un ejemplo de imagen en formato EPS
 status collapsed
 
 \begin_layout Plain Layout
-Los formatos de imagen se explica en el sección
+Los formatos de imagen se explican en el sección
 \begin_inset space ~
 \end_inset
 
@@ -896,7 +880,7 @@ name "fig:kill-plat"
 
 \end_inset
 
-Un platypus muy distorsionado en un flotante.
+Un ornitorrinco muy distorsionado en un flotante.
 \end_layout
 
 \end_inset
@@ -1068,7 +1052,7 @@ reference "fig:Estructura-indefinible"
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "fig:Platypus"
+reference "fig:Ornitorrinco"
 
 \end_inset
 
@@ -1138,11 +1122,11 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset label
 LatexCommand label
-name "fig:Platypus"
+name "fig:Ornitorrinco"
 
 \end_inset
 
-Platypus
+Ornitorrinco
 \end_layout
 
 \end_inset
@@ -1238,14 +1222,14 @@ Puedes insertar imágenes en cualquier formato.
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Formatos-de-Archivos-de-Salida"
+reference "cap:Formatos-de-Archivos-de-Salida"
 
 \end_inset
 
 , cada formato de archivo del documento de salida permite sólo ciertos formatos
  de archivo de imagen.
  Por eso LyX usa el programa 
-\family sans
+\family typewriter
 Imagemagick
 \family default
  en segundo plano para convertir imágenes al formato adecuado.
@@ -1258,7 +1242,7 @@ Imagemagick
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Formatos-de-Archivos-de-Salida"
+reference "cap:Formatos-de-Archivos-de-Salida"
 
 \end_inset
 
@@ -1290,7 +1274,11 @@ bits
  Por tanto no son totalmente escalables y se ven pixeladas a valores altos
  de zoom.
  Formatos de imágenes en bitmap bien conocidos son «Graphics Interchange
- Format» (GIF, extensión «.gif»)
+ Format» (GIF, extensión «
+\family typewriter
+.gif
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1322,7 +1310,11 @@ status collapsed
 
 \end_inset
 
-, «Portable Network Graphics» (PNG, extensión «.png»)
+, «Portable Network Graphics» (PNG, extensión «
+\family typewriter
+.png
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1354,7 +1346,15 @@ status collapsed
 
 \end_inset
 
-, y «Joint Photographic Experts Group» (JPG, extensión «.jpg» o «.jpeg»)
+, y «Joint Photographic Experts Group» (JPG, extensión «
+\family typewriter
+.jpg
+\family default
+» o «
+\family typewriter
+.jpeg
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1404,7 +1404,11 @@ vectoriales se generan mediante una descripción de una serie de trazos (vectore
 \end_inset
 
 Formatos de imagen escalables pueden ser «Scalable Vector Graphics» (SVG,
- extensión «.svg»)
+ extensión «
+\family typewriter
+.svg
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1436,7 +1440,11 @@ status collapsed
 
 \end_inset
 
-, «Encapsulated PostScript» (EPS, extensión «.eps»)
+, «Encapsulated PostScript» (EPS, extensión «
+\family typewriter
+.eps
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1468,7 +1476,11 @@ status collapsed
 
 \end_inset
 
-, «Portable Document Format» (PDF, extensión «.pdf»)
+, «Portable Document Format» (PDF, extensión «
+\family typewriter
+.pdf
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1500,7 +1512,11 @@ status collapsed
 
 \end_inset
 
-, y «Windows Metafile» (WMF, extensión «.wmf»)
+, y «Windows Metafile» (WMF, extensión «
+\family typewriter
+.wmf
+\family default
+»)
 \begin_inset Index
 status collapsed
 
@@ -1547,7 +1563,7 @@ En el caso de PDF, además se comprime la imagen original.
 \end_inset
 
  Por ejemplo, los archivos PDF generados por 
-\family sans
+\family typewriter
 Adobe Photoshop
 \family default
  son imágenes bitmap.
@@ -1970,6 +1986,38 @@ reference "sec:Tablas-Coloreadas"
 Bordes
 \family default
  En esta solapa puedes añadir y quitar bordes para la fila/columna actual.
+ Puedes elegir para la tabla un estilo 
+\family sans
+Formal
+\family default
+, como se describe en la sección
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Tablas-Formales"
+
+\end_inset
+
+.
+\begin_inset Newline newline
+\end_inset
+
+Además, aquí puedes añadir espacio adicional en las filas de la tabla, como
+ se describe en la sección
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Espacio-adicional"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -1986,7 +2034,7 @@ larga
 tablas largas
 \emph default
  que pueden extenderse por varias páginas.
- La sección
+ Las secciones
 \begin_inset space ~
 \end_inset
 
@@ -1997,7 +2045,14 @@ reference "sec:Tablas-Largas"
 
 \end_inset
 
- describe su uso en detalle.
+ y 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Particularidades-tablas-largas"
+
+\end_inset
+
+ describen sus características en detalle.
 \end_layout
 
 \begin_layout Standard
@@ -2652,8 +2707,7 @@ tableposition=top
 \end_layout
 
 \begin_layout Standard
-El formato de la leyenda se puede controlar mediante el paquete de LaTeX
- 
+El formato de la leyenda se puede controlar mediante el paquete LaTeX 
 \series bold
 caption
 \series default
@@ -2754,7 +2808,29 @@ Tablas largas
 status collapsed
 
 \begin_layout Plain Layout
-Tablas ! Largas
+Tablas ! Largas|see
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+Tablas largas
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -2789,13 +2865,8 @@ larga
 \end_layout
 
 \begin_layout Description
-
-\family sans
-Encabezado:
-\family default
- La fila actual y todas las de arriba, que no tienen ninguna opción especial
- definida, se definen como filas de encabezado para todas las páginas de
- la tabla, excepto para la primera página si 
+Encabezado: La fila actual se define como encabezado que aparecerá en todas
+ las páginas de la tabla, excepto para la primera página si 
 \family sans
 Primer
 \begin_inset space ~
@@ -2808,26 +2879,17 @@ encabezado
 \end_layout
 
 \begin_layout Description
-
-\family sans
 Primer
 \begin_inset space ~
 \end_inset
 
-encabezado:
-\family default
- La fila actual y superiores, que no tienen ninguna opción especial definida,
- se definen como filas cabeceras de la primera página de la tabla.
+encabezado: La fila actual se define como encabezado de la primera página
+ de la tabla.
 \end_layout
 
 \begin_layout Description
-
-\family sans
-Pie:
-\family default
- La fila actual y todas las siguientes, que no tienen ninguna opción especial
- definida, se definen como filas de pie de todas las páginas de la tabla,
- excepto para la última página si se define 
+Pie: La fila actual se define como pie que aparecerá en todas las páginas
+ de la tabla, excepto para la última página si se define 
 \family sans
 Último
 \begin_inset space ~
@@ -2837,26 +2899,20 @@ pie.
 \end_layout
 
 \begin_layout Description
-
-\family sans
 Último
 \begin_inset space ~
 \end_inset
 
-pie: L
+pie:
+\family sans
+ 
 \family default
-a fila actual y siguientes, que no tienen ninguna opción especial definida,
- se definen como filas de pie de la última página de la tabla.
+La fila actual se define como pie de la última página de la tabla.
 \end_layout
 
 \begin_layout Description
-Leyenda: La primera fila se reajusta como columna simple.
- Ahora puedes insertar ahí la leyenda de la tabla con el menú 
-\family sans
-Insertar\SpecialChar \menuseparator
-Leyenda
-\family default
-.
+Leyenda: La fila actual contiene la leyenda de la tabla.
+ La primera fila se reajusta como columna única y se inserta una leyenda.
  Más detalles sobre leyendas en tablas largas en la sec.
 \begin_inset space \thinspace{}
 \end_inset
@@ -2872,31 +2928,8 @@ reference "sub:Leyendas-en-Tablas"
 \end_layout
 
 \begin_layout Standard
-También se puede especificar en qué fila se ha de cortar la tabla.
- Si se establece más de una opción en la misma fila, habría que tener en
- cuenta que sólo la primera de ellas se usa en la fila dada.
- Las otras quedarán definidas como 
-\emph on
-vacías
-\emph default
-.
- En este contexto, primera significa primero en este orden: 
-\family sans
-Encabezado, Primer
-\begin_inset space ~
-\end_inset
-
-encabezado
-\family default
-, 
-\family sans
-Pie, Último
-\begin_inset space ~
-\end_inset
-
-pie
-\family default
-.
+También se puede especificar en el diálogo en qué fila se ha de cortar la
+ tabla.
  La siguiente tabla muestra cómo funciona:
 \end_layout
 
@@ -3041,7 +3074,7 @@ TEL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -5537,10 +5570,6 @@ reference "sub:Leyendas-en-Tablas"
 \end_inset
 
 
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -5566,10 +5595,13 @@ name "sub:Leyendas-en-Tablas"
 
 \begin_layout Standard
 Una tabla larga no se puede poner flotante porque los flotantes sólo pueden
- estar en una página, aunque el entorno leyenda de flotantes sí puede usarse
- para tablas largas.
- Por tanto la leyenda se inserta como primera fila de la tabla, como se
- explica en la sec.
+ estar en una página.
+ Pero el entorno leyenda de flotantes sí puede usarse para tablas largas
+ utilizando para una fila de una tabla larga la opción 
+\family sans
+Leyenda
+\family default
+, como se explica en la sec.
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -5581,8 +5613,7 @@ reference "sec:Tablas-Largas"
 \end_inset
 
 .
- En este caso la primera fila de la tabla es sólo una fila postiza para
- la leyenda, la tabla se inicia realmente en la segunda fila.
+ Sólo una fila puede contener la leyenda.
 \end_layout
 
 \begin_layout Standard
@@ -5608,7 +5639,7 @@ He aquí una pequeña tabla larga para mostrar cómo funciona:
 \begin_layout Plain Layout
 Tabla larga con leyenda
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tabla larga
@@ -6419,14 +6450,14 @@ Tablas largas ! Anchura de la leyenda
 \end_layout
 
 \begin_layout Standard
-La anchura máxima se define por la longitud 
+La anchura máxima de la leyenda se define por la longitud 
 \series bold
 
 \backslash
 LTcapwidth
 \series default
 .
- Por omisión es 4
+ Por omisión, su valor es 4
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -6435,8 +6466,8 @@ in (4
 \end_inset
 
 pulgadas).
- Para cambiarla añade el siguiente comando al preámbulo o en código TeX
- en el documento antes de la tabla larga a la que afecta
+ Para cambiarla añade el siguiente comando en el preámbulo o en código TeX
+ en el propio documento antes de la tabla larga a la que deba afectar
 \end_layout
 
 \begin_layout Standard
@@ -6457,7 +6488,7 @@ donde la anchura puede ser una de las unidades listadas en el apéndice
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Unidades-disponibles-en"
+reference "cap:Unidades-disponibles-en"
 
 \end_inset
 
@@ -6488,7 +6519,7 @@ Las tablas siguientes muestran la diferencia:
 Leyenda larga completa con anchura predeterminada leyenda larga completa
  con anchura predeterminada
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Leyenda con anchura predeterminada
@@ -6817,21 +6848,17 @@ LTcapwidth}{5cm}
 \begin_inset Caption
 
 \begin_layout Plain Layout
-Leyenda larga completa con anchura de 5
+Leyenda larga completa con una anchura de 5
 \begin_inset space \thinspace{}
 \end_inset
 
-cm leyenda larga completa con anchura de 5
+cm leyenda larga completa con una anchura de 5
 \begin_inset space \thinspace{}
 \end_inset
 
-cm leyenda larga completa con anchura de 5
-\begin_inset space \thinspace{}
-\end_inset
-
-cm
+cm 
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Leyenda con anchura
@@ -7178,8 +7205,8 @@ LaTeX-paquetes ! caption
 
 \end_inset
 
-, como en este documento, se usa la anchura de toda la página para el pie
- si utilizas el valor por omisión de 4
+, como en este documento, para la leyenda se utiliza toda la anchura de
+ la página cuando se deja el valor por omisión de 4
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -7190,11 +7217,11 @@ in para
 LTcapwidth
 \series default
 .
- En este caso, para conseguir exactamente un pie de 4
+ En este caso, para conseguir una leyenda de 4
 \begin_inset space \thinspace{}
 \end_inset
 
-in, puedes poner un valor ligeramente diferente de 4.0
+in exactamente, puedes poner un valor ligeramente diferente de 4.0
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -7207,7 +7234,7 @@ e.
 \begin_inset space \thinspace{}
 \end_inset
 
-in, o el comando de LaTeX 
+in, o bien emplear el comando LaTeX 
 \series bold
 
 \backslash
@@ -7240,12 +7267,9 @@ Tablas largas ! Leyendas distintas para cada página
 \end_layout
 
 \begin_layout Standard
-Si otras leyendas debieran ser diferentes de la leyenda de la primera página,
- inserta una leyenda con un título breve no vacío en una fila postiza marcada
- como primer encabezado.
- La leyenda para las restantes páginas se inserta sin título breve en una
- fila postiza de leyenda marcada como primer encabezado.
- Si este encabezado no ha de incluir el número de tabla, usa el comando
+Cuando las leyendas para las páginas siguientes hayan de ser diferentes
+ de la leyenda de la primera página de la tabla, se insertan con el comando
+ en código TeX
 \end_layout
 
 \begin_layout Standard
@@ -7254,11 +7278,14 @@ Si otras leyendas debieran ser diferentes de la leyenda de la primera página,
 
 \backslash
 caption*{texto de la leyenda}
+\backslash
+
+\backslash
+%
 \end_layout
 
 \begin_layout Standard
-en vez del recuadro de leyenda de LyX.
- La etiqueta para referenciar la tabla se inserta en el primer encabezado.
+en una fila postiza que se marca como encabezado.
  La tabla
 \begin_inset space ~
 \end_inset
@@ -7277,13 +7304,13 @@ reference "tab:DifLeyendas"
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="60" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="59" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="right" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7317,7 +7344,7 @@ Ejemplo de lista telefónica
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7326,7 +7353,7 @@ Ejemplo de lista telefónica
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7348,7 +7375,7 @@ Ejemplo de lista telefónica (ignore los nombres)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7357,7 +7384,7 @@ Ejemplo de lista telefónica (ignore los nombres)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7400,8 +7427,8 @@ TEL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7426,7 +7453,7 @@ caption*{continúa Ejemplo de lista telefónica}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7435,7 +7462,7 @@ caption*{continúa Ejemplo de lista telefónica}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7446,7 +7473,7 @@ caption*{continúa Ejemplo de lista telefónica}
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7510,7 +7537,7 @@ TEL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7983,10 +8010,10 @@ Rizzardi
 \series default
 
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
-Ejemplo de nota al pie
+Ejemplo de nota a pie de página
 \end_layout
 
 \end_inset
@@ -9160,35 +9187,6 @@ Roberto
 \end_inset
 </cell>
 </row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
 </lyxtabular>
 
 \end_inset
@@ -9198,6 +9196,13 @@ Roberto
 
 \begin_layout Section
 Particularidades de las tablas largas
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Particularidades-tablas-largas"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -9416,13 +9421,13 @@ debe insertarse en código TeX al principio de la celda.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="39" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="38" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="3cm">
 <column alignment="right" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9456,7 +9461,7 @@ Tabla con salto de página forzado en celda
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9465,7 +9470,7 @@ Tabla con salto de página forzado en celda
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9487,7 +9492,7 @@ Ejemplo de lista telefónica (ignore los nombres)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9496,7 +9501,7 @@ Ejemplo de lista telefónica (ignore los nombres)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9539,8 +9544,8 @@ TEL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9551,7 +9556,7 @@ status collapsed
 
 
 \backslash
-caption*{continúa Tabla con salto de página forzado en celda}
+caption*{continúa Ejemplo de lista telefónica}
 \backslash
 
 \backslash
@@ -9565,7 +9570,7 @@ caption*{continúa Tabla con salto de página forzado en celda}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9574,7 +9579,7 @@ caption*{continúa Tabla con salto de página forzado en celda}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9585,7 +9590,7 @@ caption*{continúa Tabla con salto de página forzado en celda}
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9649,7 +9654,7 @@ TEL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -10127,40 +10132,7 @@ Lassini
 \begin_inset Text
 
 \begin_layout Plain Layout
-Giancarlo, 11.
- Fürst von Montecompatri, 11.
- Fürst von Sulmona und Vivaro, 10.
- Fürst von Rossano, 5.
- Herzog von Canemorte, 11.
- Herzog von Palombara, 5.
- Herzog von Castelchiodato,
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-& 111
-\backslash
-
-\backslash
- 
-\backslash
-newpage
-\end_layout
-
-\begin_layout Plain Layout
-
-&
-\end_layout
-
-\end_inset
-
- 11.
- Herzog von Poggionativo, 11.
- Markis von Mentana, Norma, Civitella, Pratica, Moricone und Percille, 11.
- Graf von Valinfreda, 11.
- Baron von Cropalati, 11.
- Herr von Scarpa, Edelmann von Rom, Patrizier von Venedig, Neapel und Genua
+Giancarlo
 \end_layout
 
 \end_inset
@@ -10408,7 +10380,40 @@ Rizzardi
 \begin_inset Text
 
 \begin_layout Plain Layout
-Paolo
+Paolo, 11.
+ Fürst von Montecompatri, 11.
+ Fürst von Sulmona und Vivaro, 10.
+ Fürst von Rossano, 5.
+ Herzog von Canemorte, 11.
+ Herzog von Palombara, 5.
+ Herzog von Castelchiodato,
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+& 111
+\backslash
+
+\backslash
+ 
+\backslash
+newpage
+\end_layout
+
+\begin_layout Plain Layout
+
+&
+\end_layout
+
+\end_inset
+
+ 11.
+ Herzog von Poggionativo, 11.
+ Markis von Mentana, Norma, Civitella, Pratica, Moricone und Percille, 11.
+ Graf von Valinfreda, 11.
+ Baron von Cropalati, 11.
+ Herr von Scarpa, Edelmann von Rom, Patrizier von Venedig, Neapel und Genua
 \end_layout
 
 \end_inset
@@ -10671,35 +10676,6 @@ Franz
 \end_inset
 </cell>
 </row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
 </lyxtabular>
 
 \end_inset
@@ -10896,7 +10872,7 @@ reference "tab:Tabla-con-múltiples"
 
 \end_inset
 
-, crea una tabla 3×3, marca la primera celda y clic-derecha sobre ella.
+, crea una tabla 3×3, marca la primera celda y haz clic derecho sobre ella.
  En el diálogo que surge establece una anchura de 2.5
 \begin_inset space \thinspace{}
 \end_inset
@@ -10910,7 +10886,7 @@ cm y escoge centro en alineación vertical y horizontal.
 cm, sólo aparece una línea.
  Para poner dos añadimos un salto de línea justificado, (atajo 
 \family sans
-Ctrl-Mayúsculas-Retorno
+Ctrl+Mayúsculas+Retorno
 \family default
 ).
  Si el texto es más ancho que la celda será automáticamente dividido en
@@ -11236,7 +11212,7 @@ Editar\SpecialChar \menuseparator
 Tabla\SpecialChar \menuseparator
 Multicolumna
 \family default
-, o clic-derecha sobre las celdas marcadas y se selecciona en el diálogo,
+, o clic derecho sobre las celdas marcadas y se selecciona en el diálogo,
  bajo la solapa 
 \family sans
 Configuración
@@ -11573,7 +11549,7 @@ reference "tab:Tabla-con-centrado"
 \end_inset
 
 , marca las dos primeras celdas en la primera fila de una tabla 3×3 y haz
- clic-derecha.
+ clic derecho.
  En el diálogo marca 
 \emph on
 multicolumna
@@ -11631,7 +11607,7 @@ name "tab:Tabla-sin-mitad"
 Tabla en la que las columnas combinadas no tienen exactamente la mitad de
  anchura que la celda multicolumna
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tabla multicolumna imperfecta
@@ -11773,7 +11749,7 @@ a, es un poco mayor.
 
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "cha:Explicación-de-la-Ecuación"
+reference "cap:Explicación-de-la-Ecuación"
 
 \end_inset
 
@@ -12287,17 +12263,7 @@ name "sec:Tablas-Formales"
 status collapsed
 
 \begin_layout Plain Layout
-Tablas Formales
-\end_layout
-
-\end_inset
-
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Tablas ! Estilo formal
+Tablas ! Formales
 \end_layout
 
 \end_inset
@@ -12858,7 +12824,7 @@ midrule
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Unidades-disponibles-en"
+reference "cap:Unidades-disponibles-en"
 
 \end_inset
 
@@ -13624,7 +13590,7 @@ reference "sec:Diálogo-Cuadros"
 \end_layout
 
 \begin_layout Standard
-En el ejemplo siguiente las tablas están en un cuadro de minipágina
+En el ejemplo siguiente las tablas están en un cuadro tipo minipágina
 \begin_inset Foot
 status collapsed
 
@@ -14397,16 +14363,6 @@ name "sec:Tablas-Coloreadas"
 \end_inset
 
 
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Tablas ! Coloreadas
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -14415,7 +14371,7 @@ Celdas coloreadas
 status collapsed
 
 \begin_layout Plain Layout
-Tablas coloreadas ! Celdas
+Tablas ! Coloreadas ! Celdas
 \end_layout
 
 \end_inset
@@ -14657,7 +14613,7 @@ ifcolortbl
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 La siguiente sección sólo se mostrará en pantalla si está instalado el paquete
@@ -14892,6 +14848,23 @@ Texto
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Nota:
+\series default
+ No todos los visores DVI pueden mostrar colores definidos por el usuario.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset VSpace bigskip
 \end_inset
 
@@ -14995,7 +14968,7 @@ colortbl
 \series default
 
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tabla con 
@@ -15177,7 +15150,7 @@ else
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Lo siguiente se mostrará en pantalla si no está instalado el paquete LaTeX
@@ -15223,7 +15196,7 @@ Líneas coloreadas
 status collapsed
 
 \begin_layout Plain Layout
-Tablas coloreadas ! Líneas
+Tablas ! Coloreadas ! Líneas
 \end_layout
 
 \end_inset
@@ -16292,6 +16265,358 @@ array
 \end_layout
 
 \begin_layout Standard
+En el caso de usar fuentes de mayor tamaño que el normal, los bordes de
+ la tabla están a veces demasiado cerca de las letras.
+ Esto se puede corregir insertando el comando 
+\series bold
+
+\backslash
+strut
+\series default
+ en código TeX al principio de la fila de la tabla.
+ La tabla
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Alineación-vertical"
+
+\end_inset
+
+ muestra el efecto:
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Alineación-vertical"
+
+\end_inset
+
+Alineación vertical de texto con fuentes grandes
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Tabla normal
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="1">
+<features>
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Normal, g
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size large
+Grande
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size larger
+Más grande
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size largest
+Grandísima
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size huge
+Enorme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size huge
+Más enorme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Tabla con comando 
+\series bold
+
+\backslash
+strut
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="1">
+<features>
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Normal, g
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size large
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+strut 
+\end_layout
+
+\end_inset
+
+Grande
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size larger
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+strut 
+\end_layout
+
+\end_inset
+
+Más grande
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size largest
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+strut 
+\end_layout
+
+\end_inset
+
+Grandísima
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size huge
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+strut 
+\end_layout
+
+\end_inset
+
+Enorme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size giant
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+strut 
+\end_layout
+
+\end_inset
+
+
+\size huge
+Más enorme
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
@@ -16778,7 +17103,7 @@ cm
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\sin(\alpha)\ge$
+\begin_inset Formula $\sen(\alpha)\ge$
 \end_inset
 
 
@@ -16790,7 +17115,7 @@ cm
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\:\sin(\beta)$
+\begin_inset Formula $\:\sen(\beta)$
 \end_inset
 
 
@@ -16895,7 +17220,7 @@ name "tab:Alineaciones-con-el"
 
 
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tabla alineada con 
@@ -16910,8 +17235,7 @@ Alineaciones con el paquete LaTeX
 dcolumn
 \series default
 .
- Se han tenido que usar unos trucos para la alineación de las columnas en
- la salida.
+ Hay que usar algunos trucos para la alineación de las columnas en la salida.
 \end_layout
 
 \end_inset
@@ -18346,7 +18670,7 @@ ifarydshln
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 La siguiente sección sólo se mostrará en pantalla si está instalado el paquete
@@ -18670,7 +18994,7 @@ x
 
 \begin_layout Standard
 En principio LyX no soporta líneas de trazos, hay que usar código TeX.
- Hay que cargar antes en el preámbulo del documento el paquete LaTeX 
+ Antes hay que cargar en el preámbulo del documento el paquete LaTeX 
 \series bold
 arydshln
 \series default
@@ -18684,7 +19008,7 @@ LaTeX-paquetes ! arydshln
 
 \end_inset
 
- 
+ con el comando 
 \end_layout
 
 \begin_layout Standard
@@ -18856,7 +19180,7 @@ else
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Lo siguiente se mostrará en pantalla si no está instalado el paquete LaTeX
@@ -19013,7 +19337,7 @@ reference "sec:Colocación-de-leyendas"
 
 .
  Para mantener legible el documento LyX, puedes abrir y cerrar el flotante
- con clic-izquierdo sobre él.
+ con clic izquierdo sobre él.
  Un cuadro cerrado se muestra así: 
 \begin_inset Graphics
 	filename clipart/flotanteQt4.png
@@ -19021,7 +19345,7 @@ reference "sec:Colocación-de-leyendas"
 
 \end_inset
 
- ---un cuadro gris con etiqueta en rojo---.
+ —un cuadro gris con etiqueta en rojo—.
 \end_layout
 
 \begin_layout Standard
@@ -19144,7 +19468,20 @@ Flotante\SpecialChar \menuseparator
 Algoritmo
 \family default
 .
- Se usa para códigos y descripciones de algoritmos.
+ Se usa para códigos y descripciones de algoritmos y se puede considerar
+ una alternativa al listado de código de programa, que se explica en el
+ capítulo
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cap:Listado-de-programa"
+
+\end_inset
+
+.
  Un posible entorno para algoritmos es 
 \family sans
 Código-LyX
@@ -19194,20 +19531,27 @@ nombre
 \family default
  es la palabra «
 \emph on
-algorithm
+algoritmo
 \emph default
-» en el lenguaje deseado.
+» en el idioma deseado.
 \end_layout
 
 \begin_layout Standard
-En estos casos, para insertar la lista de algoritmos no puedes usar el menú
- 
+Para insertar el índice de algoritmos puedes usar el menú 
 \family sans
 Insertar\SpecialChar \menuseparator
-Lista/IG\SpecialChar \menuseparator
-Lista de algoritmos
+Lista
+\begin_inset space \thinspace{}
+\end_inset
+
+/
+\begin_inset space \thinspace{}
+\end_inset
+
+Índice\SpecialChar \menuseparator
+Índice de algoritmos
 \family default
- como en documentos en inglés.
+, si el documento está en el mismo idioma que los menús de LyX.
  Para documentos en otro idioma usa en su lugar el comando en código TeX:
 \end_layout
 
@@ -19226,9 +19570,9 @@ nombre
 \family default
  es «
 \emph on
-List of algorithms
+Lista de algoritmos
 \emph default
-» en tu idioma.
+» en el idioma del documento.
 \end_layout
 
 \begin_layout Standard
@@ -19274,7 +19618,7 @@ AMS
 \family sans
 Documento\SpecialChar \menuseparator
 Configuración\SpecialChar \menuseparator
-Ecuaciones
+Opciones para ecuaciones
 \family default
 .
 \end_layout
@@ -19344,7 +19688,15 @@ Figura
 
 envuelta
 \family default
- o 
+
+\begin_inset space \thinspace{}
+\end_inset
+
+/
+\begin_inset space \thinspace{}
+\end_inset
+
+
 \family sans
 Tabla
 \begin_inset space ~
@@ -19394,8 +19746,8 @@ Configuración de LaTeX
 \end_inset
 
  Los parámetros del flotante se pueden modificar en el diálogo que se muestra
- con clic-derecha sobre el cuadro del flotante.
- Son obligatorios la 
+ con clic derecho sobre el cuadro del flotante.
+ Son obligatorias la 
 \family sans
 Ubicación
 \family default
@@ -19456,7 +19808,7 @@ Consulta las unidades disponibles en el apéndice
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Unidades-disponibles-en"
+reference "cap:Unidades-disponibles-en"
 
 \end_inset
 
@@ -19513,7 +19865,7 @@ Los flotantes envueltos deberían situarse, bien en un párrafo propio antes
 
 \begin_layout Itemize
 Los flotantes envueltos en párrafos consecutivos pueden dar problemas, así
- que asegura que hay un párrafo de texto entre ellos.
+ que procura que haya un párrafo de texto entre ellos.
 \end_layout
 
 \begin_layout Itemize
@@ -19619,7 +19971,7 @@ AMS
 \family default
 en el apartado 
 \family sans
-Ecuaciones 
+Opciones para ecuaciones 
 \family default
 de las preferencias del documento.
 \end_layout
@@ -19785,8 +20137,8 @@ etiqueta
 Volver
 \family default
 , con el que se puede retornar a la referencia.
- Clic-derecho sobre el cuadro de la referencia también lleva el cursor hasta
- la etiqueta pero sin opción de volver.
+ Un clic derecho sobre el cuadro de la referencia también lleva el cursor
+ hasta la etiqueta pero sin opción de volver.
 \end_layout
 
 \begin_layout Subsection
@@ -20834,7 +21186,7 @@ usepackage[options]{endfloat}
 
 \begin_layout Standard
 Hay varias opciones para diseñar las secciones figura/tabla creadas.
- Para más información véase la documentación de 
+ Para más información véase la documentación 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "endfloat"
@@ -21676,7 +22028,7 @@ key "koma-script"
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -21690,7 +22042,7 @@ captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm, labelsep=period
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 El formato de la leyenda se ha cambiado sólo para este ejemplo.
@@ -21757,7 +22109,7 @@ Este es un ejemplo de figura con una leyenda que es mayor de una línea para
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -22058,8 +22410,7 @@ usepackage[option]{sidecap}
 
 \begin_layout Standard
 Si no se especifica opción, la leyenda se ubica del lado del margen externo
- de la página ---a la derecha en páginas impares, a la izquierda en las
- pares---.
+ de la página —a la derecha en páginas impares, a la izquierda en las pares—.
  Puedes cambiar la colocación al margen interno con la opción 
 \series bold
 innercaption
@@ -22092,7 +22443,7 @@ ifsidecap
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 La siguiente sección sólo se mostrará en pantalla si está instalado el paquete
@@ -22997,7 +23348,7 @@ else
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Lo siguiente se mostrará en pantalla si no está instalado el paquete LaTeX
@@ -23038,12 +23389,12 @@ fi
 \end_layout
 
 \begin_layout Section
-Lista de flotantes
+Índice de flotantes
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Flotantes ! Lista de
+Flotantes ! Índice de
 \end_layout
 
 \end_inset
@@ -23053,23 +23404,31 @@ Flotantes ! Lista de
 
 \begin_layout Standard
 Igual que en el índice general se listan las secciones del documento, hay
- listas para todos los tipos de flotantes, como las figuras.
+ índices para todos los tipos de flotantes, como las figuras.
  Se pueden insertar mediante los submenús 
 \family sans
 Insertar\SpecialChar \menuseparator
-Lista / IG
+Lista
+\begin_inset space \thinspace{}
+\end_inset
+
+/
+\begin_inset space \thinspace{}
+\end_inset
+
+Índice
 \family default
 .
 \end_layout
 
 \begin_layout Standard
-Las entradas de la lista son los títulos del flotante o su título corto,
- el número de flotante, y el número de la página del documento en la que
+Las entradas de los índices son las leyendas del flotante o su título breve,
+ el número de flotante y el número de la página del documento en la que
  aparecen.
 \end_layout
 
 \begin_layout Standard
-Puedes encontrar las listas de figuras y tablas al final de este documento.
+Puedes encontrar los índices de figuras y tablas al final de este documento.
 \end_layout
 
 \begin_layout Chapter
@@ -23241,7 +23600,7 @@ status open
 \begin_layout Plain Layout
 Este es el texto
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Esto es un ejemplo de nota al pie en una nota resaltada en gris.
@@ -23322,7 +23681,7 @@ Nota
 LyX
 \family default
 .
- Puedes cambiar entre los cinco tipos de nota con clic-derecho sobre el
+ Puedes cambiar entre los cinco tipos de nota con clic derecho sobre el
  recuadro.
  
 \family roman
@@ -23519,7 +23878,7 @@ Aquí hay un ejemplo de nota al pie:
 \bar no
 
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset CommandInset label
@@ -23600,49 +23959,6 @@ reference "pie:Esto-es-una"
 \end_inset
 
 .
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-Nota:
-\series default
- LyX no suministra prefijos para etiquetas en notas al pie, así que has
- de insertar un prefijo, p.
-\begin_inset space \thinspace{}
-\end_inset
-
-e.
-\begin_inset space ~
-\end_inset
-
-«
-\family sans
-pie:
-\family default
-» manualmente cuando quieras usar el estilo 
-\family sans
-Referencia
-\begin_inset space ~
-\end_inset
-
-con
-\begin_inset space ~
-\end_inset
-
-formato
-\family default
-.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -23843,7 +24159,7 @@ roman{footnote}}
 
  Nota al pie en números romanos:
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Ejemplo de nota al pie en números romanos.
@@ -24033,9 +24349,9 @@ paquete
 \family sans
 AMS
 \family default
- en la solapa 
+ en la sección 
 \family sans
-Ecuaciones
+Opciones para ecuaciones
 \family default
  de la configuración del documento.
 \end_layout
@@ -24057,7 +24373,7 @@ Esto es otro ejemplo de nota al pie:
 \series bold
 
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Nota al pie numerada en el esquema 
@@ -24730,10 +25046,10 @@ Esto es una nota al margen.
 
 \begin_layout Standard
 Estas notas salen en el margen derecho en documentos a una cara.
- En documentos a doble cara se muestran en el margen externo ---margen izquierdo
- en páginas pares, derecho en páginas impares---.
- El texto de las notas se ajusta a la parte opuesta al margen ---se ajusta
- a la derecha si la nota aparece en el margen izquierdo---.
+ En documentos a doble cara se muestran en el margen externo —margen izquierdo
+ en páginas pares, derecho en páginas impares—.
+ El texto de las notas se ajusta a la parte opuesta al margen —se ajusta
+ a la derecha si la nota aparece en el margen izquierdo—.
  La primera línea de la nota se sitúa en la posición de la línea del texto
  en la que se inserta en el documento.
 \end_layout
@@ -24967,7 +25283,7 @@ ifmarginnote
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 La siguiente sección sólo se mostrará en pantalla si está instalado el paquete
@@ -25497,7 +25813,7 @@ else
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Lo siguiente se mostrará en pantalla si no está instalado el paquete LaTeX
@@ -25557,7 +25873,7 @@ Cuadros ! Introducción
 
 \begin_layout Standard
 Los cuadros se emplean para dar formato a bloques de texto.
- Se pueden usar para escribir documentos con varios lenguajes, véase sección
+ Se pueden usar para escribir documentos con varios idiomas, véase sección
 \begin_inset space ~
 \end_inset
 
@@ -25575,7 +25891,7 @@ reference "sec:Minipáginas"
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Cuadros-Enmarcados"
+reference "sec:Decoración"
 
 \end_inset
 
@@ -25642,7 +25958,7 @@ Cuadro (Minipágina)
 \end_inset
 
 .
- El tipo de cuadro se puede elegir al hacer clic-derecho sobre él.
+ El tipo de cuadro se puede elegir al hacer clic derecho sobre él.
  Sale un diálogo en el que 
 \family sans
 Cuadro
@@ -26346,10 +26662,10 @@ Texto estirado horizontalmente.
 \end_layout
 
 \begin_layout Subsection
-Cuadros enmarcados
+Decoración
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:Cuadros-Enmarcados"
+name "sec:Decoración"
 
 \end_inset
 
@@ -26358,7 +26674,7 @@ name "sec:Cuadros-Enmarcados"
 status collapsed
 
 \begin_layout Plain Layout
-Cuadros ! Marcos
+Cuadros ! Decoración
 \end_layout
 
 \end_inset
@@ -26560,7 +26876,7 @@ Marco
 \begin_inset space ~
 \end_inset
 
-sombreado Dibuja un cuadro rectangular con sombra alrededor del cuadro.
+sombreado Dibuja un marco rectangular de sombra alrededor del cuadro.
  El grosor de la línea tiene el tamaño dado por 
 \series bold
 
@@ -26603,7 +26919,7 @@ Fondo
 sombreado Dibuja un cuadro con fondo de color rojo.
  A diferencia de los cuadros coloreados,
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 véase sec.
@@ -26740,7 +27056,7 @@ LaTeX-paquetes ! fancybox
 \begin_layout Section
 Personalización de cuadros
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Cuadros ! Personalizar
@@ -27481,7 +27797,7 @@ definecolor{shadecolor}{cmyk}{0.5,0,1,0.5}
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -27528,7 +27844,7 @@ fondo sombreado
 
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -27586,7 +27902,7 @@ Las minipáginas son tratadas por LaTeX como páginas dentro de páginas y
 \end_layout
 
 \begin_layout Standard
-Las minipáginas son útiles para escribir documentos con distintos lenguajes.
+Las minipáginas son útiles para escribir documentos en distintas lenguas.
 \end_layout
 
 \begin_layout Standard
@@ -27673,6 +27989,8 @@ height_special "totalheight"
 status open
 
 \begin_layout Plain Layout
+
+\lang english
 This is an English Text.
  This is an English Text.
  This is an English Text.
@@ -27693,6 +28011,8 @@ This is an English Text.
 status collapsed
 
 \begin_layout Plain Layout
+
+\lang english
 This is an English footnote.
 \end_layout
 
@@ -27711,8 +28031,8 @@ This is an English footnote.
 \begin_inset VSpace bigskip
 \end_inset
 
-Otra aplicación de los cuadros son las notas a pie en tablas.
- Debido a una restricción de LaTeX las notas a pie en tablas no aparecen
+Otra aplicación de los cuadros son las notas al pie en tablas.
+ Debido a una restricción de LaTeX las notas al pie en tablas no aparecen
  al final de la página actual.
  Pero si pones la tabla con notas al pie en una minipágina, las notas aparecen
  en la parte inferior, ordenadas con letras.
@@ -27754,7 +28074,7 @@ La nota al pie en esta tabla no aparece:
 \begin_layout Plain Layout
 3
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Nota al pie en una tabla.
@@ -27908,7 +28228,7 @@ status open
 \begin_layout Plain Layout
 3
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Nota al pie en una tabla..
@@ -28125,7 +28445,7 @@ Texto en un cuadro de párrafo.
  Texto en un cuadro de párrafo.
  Esta nota no aparece:
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Esta es una nota en cuadro de párrafo y por eso no aparecerá.
@@ -28216,7 +28536,7 @@ Este es el resultado:
 \end_layout
 
 \begin_layout Standard
-Esta línea es un ejemplo para mostrar cómo prevenir la división de 
+Esta línea es un ejemplo para mostrar cómo evitar la división de 
 \begin_inset ERT
 status collapsed
 
@@ -28254,7 +28574,7 @@ Como alternativa puedes poner el comando «
 \end_layout
 
 \begin_layout Standard
-Esta línea es un ejemplo para mostrar cómo prevenir la división de «
+Esta línea es un ejemplo para mostrar cómo evitar la división de «
 \begin_inset ERT
 status collapsed
 
@@ -28288,7 +28608,7 @@ de
 \family default
 línea (atajo 
 \family sans
-Ctrl-Retorno
+Ctrl+Retorno
 \family default
 ), un salto de línea antes de la palabra:
 \end_layout
@@ -28476,7 +28796,7 @@ status collapsed
 
 \end_inset
 
- como palabra más baja.
+ bajada.
 \begin_inset Newline newline
 \end_inset
 
@@ -28504,7 +28824,7 @@ status collapsed
 
 \end_inset
 
- como palabra más alta.
+ elevada.
 \end_layout
 
 \begin_layout Standard
@@ -28549,7 +28869,7 @@ status collapsed
 
 \end_inset
 
- como palabra más baja.
+ bajada.
 \begin_inset Newline newline
 \end_inset
 
@@ -28577,7 +28897,7 @@ status collapsed
 
 \end_inset
 
- como palabra más alta.
+ elevada.
 \end_layout
 
 \begin_layout Section
@@ -28871,7 +29191,7 @@ fboxsep
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Cuadros-Enmarcados"
+reference "sec:Decoración"
 
 \end_inset
 
@@ -29051,6 +29371,8 @@ Para poner color de fondo en más de una línea, pon el texto en una minipágina
 
 \backslash
 colorbox
+\series default
+ en código TeX
 \end_layout
 
 \begin_layout Standard
@@ -29062,12 +29384,11 @@ colorbox{color}{
 \end_layout
 
 \begin_layout Standard
-en código TeX.
  Detrás de la minipágina inserta una llave de cierre «
 \series bold
 }
 \series default
-» en código TeX.
+», también en código TeX.
 \end_layout
 
 \begin_layout Standard
@@ -29107,7 +29428,7 @@ Texto con color de fondo.
 
 El texto puede tener notas al pie
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Otro ejemplo de nota
@@ -30280,12 +30601,12 @@ Si «fleqn» se añade a las opciones de clase del documento.
 \end_layout
 
 \begin_layout Chapter
-Archivo
+Archivos externos
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Archivo, insertar
+Archivos externos
 \end_layout
 
 \end_inset
@@ -30316,16 +30637,8 @@ Texto
 \begin_inset space ~
 \end_inset
 
-simple
-\begin_inset space ~
-\end_inset
-
-como
-\begin_inset space ~
-\end_inset
-
-líneas Un documento de texto; cada línea del mismo se inserta en tu documento
- como un nuevo párrafo.
+simple Un documento de texto; cada línea del mismo se inserta en tu documento
+ como párrafo propio.
 \end_layout
 
 \begin_layout Description
@@ -30333,16 +30646,15 @@ Texto
 \begin_inset space ~
 \end_inset
 
-simple
+simple,
 \begin_inset space ~
 \end_inset
 
-como
+unir
 \begin_inset space ~
 \end_inset
 
-párrafos Un documento de texto; cada línea del texto se inserta tal como
- está, formando un solo párrafo.
+líneas Un documento de texto; sus líneas de texto se insertan tal como son.
  Las líneas vacías generan un nuevo párrafo en tu documento.
 \end_layout
 
@@ -30382,6 +30694,14 @@ s previamente a un formato legible en la salida, ya que LyX se ocupa de
  las necesarias conversiones.
  Esto es parecido a la inserción de imágenes en diversos formatos en los
  documentos LyX.
+ Si has activado la Vista preliminar inmediata en las preferencias de LyX,
+ en 
+\family sans
+Apariencia
+\family default
+\SpecialChar \menuseparator
+Gráficos, los tipos de material externo Dia y Xfig se muestran directamente
+ en LyX.
 \end_layout
 
 \begin_layout Standard
@@ -30430,6 +30750,22 @@ target "http://en.wikipedia.org/wiki/XBoard"
 \end_layout
 
 \begin_layout Description
+Dia Esta plantilla soporta diagramas creados con el programa 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Dia"
+target "http://en.wikipedia.org/wiki/Dia_(software)"
+
+\end_inset
+
+
+\series default
+.
+\end_layout
+
+\begin_layout Description
 Fecha Esta inserta la fecha en el formato 
 \emph on
 Día-Mes-Año.
@@ -30443,25 +30779,19 @@ Día-Mes-Año.
 \end_inset
 
 
-\lang english
-
 \begin_inset space ~
 \end_inset
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-
-\lang english
-Remove the protected space when bug 4398 is fixed!
+¡Quitar el espacio protegido cuando se arregle el fallo 4398!
 \end_layout
 
 \end_inset
 
-
-\lang spanish
 
 \begin_inset Newline newline
 \end_inset
@@ -30868,7 +31198,21 @@ Los documentos hijos se emplean en el caso de tener un documento extenso
  en varios archivos que pueden ser revisados por separado.
  Estos archivos se conocen como documentos hijos, y el llamado documento
  maestro los conecta con el fin de imprimirlos como un todo o por partes.
- 
+ Un documento hijo hereda contenidos de su maestro, por ejemplo la bibliografía
+ y las etiquetas de las referencias cruzadas.
+\end_layout
+
+\begin_layout Standard
+Para poder trabajar en documentos hijos sin necesidad de abrir el maestro,
+ en el menú 
+\family sans
+Documento\SpecialChar \menuseparator
+Configuración\SpecialChar \menuseparator
+Clase del documento
+\family default
+ del documento hijo especifica el documento maestro predeterminado.
+ Este maestro será usado entonces por LyX en un segundo plano cuando edites
+ el documento hijo.
 \end_layout
 
 \begin_layout Standard
@@ -31210,7 +31554,7 @@ programa Este tipo se describe en el capítulo
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:Listado-de-programa"
+reference "cap:Listado-de-programa"
 
 \end_inset
 
@@ -31239,7 +31583,7 @@ Nota:
 Listado de programa
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Listado-de-programa"
+name "cap:Listado-de-programa"
 
 \end_inset
 
@@ -31311,8 +31655,8 @@ LaTeX-paquetes ! listings
 \end_layout
 
 \begin_layout Standard
-Al hacer clic-derecho sobre un recuadro de listado surge una ventana de
- diálogo en la que puedes establecer el formato del mismo.
+Al hacer clic derecho sobre un recuadro de listado se abre el menú contextual
+ incorporado en el que puedes configurar su formato.
 \end_layout
 
 \begin_layout Standard
@@ -31856,7 +32200,7 @@ Unidades
 
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Unidades-disponibles-en"
+name "cap:Unidades-disponibles-en"
 
 \end_inset
 
@@ -32174,7 +32518,11 @@ dd)
 \begin_inset Text
 
 \begin_layout Plain Layout
-Scale%
+escala
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32183,7 +32531,7 @@ Scale%
 \begin_inset Text
 
 \begin_layout Plain Layout
-% de anchura original de la imagen
+% del tamaño original de la imagen
 \end_layout
 
 \end_inset
@@ -32194,7 +32542,11 @@ Scale%
 \begin_inset Text
 
 \begin_layout Plain Layout
-text%
+texto
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32214,7 +32566,11 @@ text%
 \begin_inset Text
 
 \begin_layout Plain Layout
-col%
+columna
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32234,7 +32590,11 @@ col%
 \begin_inset Text
 
 \begin_layout Plain Layout
-page%
+página
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32254,7 +32614,11 @@ page%
 \begin_inset Text
 
 \begin_layout Plain Layout
-line%
+línea
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32274,7 +32638,12 @@ line%
 \begin_inset Text
 
 \begin_layout Plain Layout
-theight%
+alt.
+ texto
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32294,7 +32663,12 @@ theight%
 \begin_inset Text
 
 \begin_layout Plain Layout
-pheight%
+alt.
+ pág.
+\begin_inset space \thinspace{}
+\end_inset
+
+%
 \end_layout
 
 \end_inset
@@ -32401,7 +32775,7 @@ em)
 Formatos de archivos de salida con gráficos
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Formatos-de-Archivos-de-Salida"
+name "cap:Formatos-de-Archivos-de-Salida"
 
 \end_inset
 
@@ -32829,7 +33203,7 @@ reference "eq:Wgn"
 
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:Explicación-de-la-Ecuación"
+name "cap:Explicación-de-la-Ecuación"
 
 \end_inset
 
@@ -33453,36 +33827,7 @@ LatexCommand printindex
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-listof{algorithm}{Lista de algoritmos}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-Véase la sección
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Algoritmos-Flotantes"
-
-\end_inset
-
- para una descripción.
-\end_layout
+\begin_inset FloatList algorithm
 
 \end_inset
 

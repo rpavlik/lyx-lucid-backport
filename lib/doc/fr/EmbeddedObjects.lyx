@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -159,7 +159,7 @@
 % redefine the \LyX macro for PDF bookmarks
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX }}
+  {LyX}}
 
 % use normal list environments also in French documents
 \StandardLayout
@@ -276,7 +276,7 @@ version 1.5.2 - novembre 2007
 
 
 \family sans
-Version 1.6svn
+Version 1.6.x
 \end_layout
 
 \begin_layout Standard
@@ -513,7 +513,19 @@ proportions
 \end_inset
 
 Les images peuvent être modifiée en utilisant le programme de votre choix
- en cliquant sur le bouton Éditer.
+ 
+\lang english
+by right-clicking on it choosing the entry
+\lang french
+ 
+\family sans
+Éditer le fichier ailleurs
+\family default
+ 
+\lang english
+in the appearing context menu.
+
+\lang french
  Ce programme peut être sélectionné pour chaque format d'image dans la rubrique
  
 \family sans
@@ -3148,8 +3160,8 @@ En-tête: La ligne courante et toutes celles situées au-dessus et qui n'ont
 \begin_layout Description
 Pied: La ligne courante et toutes celles situées au-dessous et qui n'ont
  pas d'attributs particuliers, sont définies comme faisant partie des lignes
- constituant les pieds de toutes les pages du tableau long ; sauf de la
- dernière page si 
+ constituant les pieds de toutes les pages du tableau long; sauf de la dernière
+ page si 
 \family sans
 Dernier
 \begin_inset space ~
@@ -3171,12 +3183,16 @@ pied: La ligne courante et toutes celles situées au-dessous et qui n'ont
 \end_layout
 
 \begin_layout Description
-Légende La première ligne est transformée en une colonne unique.
- Vous pouvez y insérer la légende du tableau avec le menu 
-\family sans
-Insérer\SpecialChar \menuseparator
-Légende
-\family default
+Légende La ligne courante 
+\lang english
+contains the table caption
+\lang french
+.
+ La première ligne est transformée en une colonne unique et une légende
+ 
+\lang english
+is inserted
+\lang french
 .
  Vous trouverez d'autres explications sur les légendes pour les tableaux
  longs dans la section
@@ -3195,30 +3211,6 @@ reference "sub:Tableaux-longs-légende"
 
 \begin_layout Standard
 Vous pouvez aussi préciser une ligne où la table devra être coupée.
- Si vous activez plusieurs options pour une même ligne, vous devez être
- conscients que seule la première sera prise en compte.
- Les autres options seront alors définies comme 
-\emph on
-vides
-\emph default
-.
- Dans ce contexte, première veut dire première en suivant l'ordre 
-\family sans
-Pied, Dernier
-\begin_inset space ~
-\end_inset
-
-Pied, 
-\family default
-et
-\family sans
- En-tête, Premier
-\begin_inset space ~
-\end_inset
-
-En-tête
-\family default
-.
  Voyez le tableau long qui suit pour voir comment ça marche :
 \end_layout
 
@@ -3229,7 +3221,7 @@ En-tête
 <features islongtable="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
-<column alignment="right" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0pt">
 <row endfirsthead="true">
 <cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
@@ -3359,7 +3351,7 @@ TEL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -5891,8 +5883,15 @@ Vous ne pouvez pas placer un tableau long dans un flottant de tableau puisque
  les flottants ne peuvent pas être sur plusieurs pages, mais l'environnement
  de légende des flottants de tableau peut aussi être utilisé pour les Tableaux
  Longs.
- On insère donc la légende dans la première ligne du tableau, comme c'est
- expliqué dans la section
+ 
+\lang english
+But the caption environment of floats can also be used for longtables when
+ you use for a table row the longtable option 
+\family sans
+Caption
+\family default
+\lang french
+, comme c'est expliqué dans la section
 \begin_inset space ~
 \end_inset
 
@@ -5904,8 +5903,6 @@ reference "sec:Tableaux-longs"
 \end_inset
 
 .
- La première ligne du tableau est donc une ligne factice qui sert pour insérer
- la légende, le tableau commence réellement avec la deuxième ligne.
 \end_layout
 
 \begin_layout Standard
@@ -7580,15 +7577,12 @@ Tableaux longs ! Legendes@Légendes différentes par page
 \end_layout
 
 \begin_layout Standard
-Quand les légendes qui se trouvent sur les autres pages doivent être différentes
- de celle de la première page, insérez une légende avec un titre court non
- vide dans une fausse première ligne qui sera marquée comme étant le premier
- en-tête.
- La légende utilisée pour les autres pages est insérée comme une légende
- sans titre court dans une fausse ligne qui sera marquée comme étant l'entête
- principal.
- Si cet entête ne doit pas contenir le numéro du tableau, utilisez la commandes
- suivante à la place de la boîte de légende de LyX :
+
+\lang english
+When the table captions for the following pages should differ from the one
+ of the first table page, insert a caption with the TeX code
+\lang french
+ commande
 \end_layout
 
 \begin_layout Standard
@@ -7597,11 +7591,18 @@ Quand les légendes qui se trouvent sur les autres pages doivent être différen
 
 \backslash
 caption*{caption text}
+\backslash
+
+\backslash
+%
 \end_layout
 
 \begin_layout Standard
-L'étiquette utilisée pour faire référence à ce tableau est insérée dans
- la légende du premier en-tête.
+
+\lang english
+in a dummy caption row that is marked as header.
+
+\lang french
  Le tableau
 \begin_inset space ~
 \end_inset
@@ -7620,13 +7621,13 @@ reference "tab:Légendes-tableau-différentes"
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="60" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="59" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
-<column alignment="right" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7642,7 +7643,7 @@ name "tab:Légendes-tableau-différentes"
 
 
 \begin_inset OptArg
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Exemple Annuaire 
@@ -7660,7 +7661,7 @@ Exemple Annuaire
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7669,7 +7670,7 @@ Exemple Annuaire
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7691,7 +7692,7 @@ Exemple d'annuaire téléphonique (ne pas faire attention aux noms)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7700,7 +7701,7 @@ Exemple d'annuaire téléphonique (ne pas faire attention aux noms)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7743,8 +7744,8 @@ TÉL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7769,7 +7770,7 @@ caption*{Suite de l'exemple d'annuaire téléphonique}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7778,7 +7779,7 @@ caption*{Suite de l'exemple d'annuaire téléphonique}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7789,7 +7790,7 @@ caption*{Suite de l'exemple d'annuaire téléphonique}
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7853,7 +7854,7 @@ TÉL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9504,35 +9505,6 @@ Roberto
 \end_inset
 </cell>
 </row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
 </lyxtabular>
 
 \end_inset
@@ -9822,13 +9794,13 @@ au début de la cellule.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="39" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="38" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="3cm">
-<column alignment="right" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
+<column alignment="center" valignment="top" width="0pt">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9862,7 +9834,7 @@ Tableau avec un saut de page forcé dans une cellule
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9871,7 +9843,7 @@ Tableau avec un saut de page forcé dans une cellule
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9893,7 +9865,7 @@ Exemple d'annuaire téléphonique (ne faites pas attention aux noms)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9902,7 +9874,7 @@ Exemple d'annuaire téléphonique (ne faites pas attention aux noms)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9945,8 +9917,8 @@ TÉL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9971,7 +9943,7 @@ caption*{Tableau sur deux pages avec un saut de page dans une cellule}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9980,7 +9952,7 @@ caption*{Tableau sur deux pages avec un saut de page dans une cellule}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9991,7 +9963,7 @@ caption*{Tableau sur deux pages avec un saut de page dans une cellule}
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -10055,7 +10027,7 @@ TÉL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -11073,35 +11045,6 @@ Franz
 
 \begin_layout Plain Layout
 111
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset
@@ -19539,7 +19482,7 @@ reference "sec:Placement-légende"
 
 \end_inset
 
- -- une case grise avec un texte rouge.
+ – une case grise avec un texte rouge.
 \end_layout
 
 \begin_layout Standard
@@ -19659,7 +19602,23 @@ Algorithme
 \family default
 .
  Il peut être utilisé pour des morceaux de code source ou des descriptions
- d'algorithmes.
+ d'algorithmes et 
+\lang english
+can be seen as an alternative to program code listings that are explained
+ in chapter
+\lang french
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Program-Code-Listings"
+
+\end_inset
+
+.
  Vous pouvez par exemple utiliser l'environnement Code
 \begin_inset space ~
 \end_inset
@@ -19766,7 +19725,11 @@ des
 
 algorithmes
 \family default
- si votre document est en anglais.
+ si votre document est en la même langue 
+\lang english
+as LyX's menu names
+\lang french
+.
  Pour les documents qui ne sont pas en anglais, utilisez la commande suivante
  en code TeX à la place:
 \end_layout
@@ -22798,7 +22761,7 @@ usepackage[option]{sidecap}
 
 \begin_layout Standard
 Si vous ne mettez aucune option, la légende sera placée du côté de la marge
- extérieure -- à droite sur les pages impaires et à gauche sur les pages
+ extérieure – à droite sur les pages impaires et à gauche sur les pages
  paires.
  Vous pouvez mettre la légende dans la marge interne en utilisant l'option
  
@@ -25276,7 +25239,7 @@ name "fig:Notes-de-fin---notes-de-bas-de-page"
 
 \end_inset
 
-Les notes de fin -- notes de bas de page sont imprimées dans un paragraphe
+Les notes de fin – notes de bas de page sont imprimées dans un paragraphe
  séparé à la fin des sections ou des chapitres.
 \end_layout
 
@@ -25543,9 +25506,9 @@ extérieure
 \begin_inset Quotes erd
 \end_inset
 
- -- la gauche sur les pages paires et la droite sur les pages impaires.
+ – la gauche sur les pages paires et la droite sur les pages impaires.
  Le texte de la note en marge est aligné à l'opposé de la marge externe
- -- aligné à droite quand la note apparaît dans la marge de gauche.
+ – aligné à droite quand la note apparaît dans la marge de gauche.
  La première ligne de la note apparaît à la hauteur de la ligne de texte
  où la note a été insérée dans le document.
 \end_layout
@@ -31476,6 +31439,22 @@ La fonction d'insertion d'objets externes vous permet d'insérer le contenu
  qui va s'occuper des conversions.
  Ce mécanisme est semblable à celui qui permet d'insérer dans un document
  LyX des images dans des formats divers.
+ 
+\lang english
+When you have enabled Instant Preview in LyX's preferences under 
+\family sans
+Look
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+feel\SpecialChar \menuseparator
+Graphics
+\family default
+, the external material types Dia and Xfig is directly shown in LyX.
 \end_layout
 
 \begin_layout Standard
@@ -31583,6 +31562,24 @@ reference "tab:Comparaison-des-dates"
 
 \end_inset
 
+.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Dia This template supports diagrams created with the program 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Dia"
+target "http://en.wikipedia.org/wiki/Dia_(software)"
+
+\end_inset
+
+
+\series default
 .
 \end_layout
 

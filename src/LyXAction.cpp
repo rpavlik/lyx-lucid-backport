@@ -1066,6 +1066,13 @@ void LyXAction::init()
  */
 		{ LFUN_PRIMARY_SELECTION_PASTE, "primary-selection-paste", Noop, Edit },
 /*!
+ * \var lyx::FuncCode lyx::LFUN_SELECTION_PASTE
+ * \li Action: Pastes the text in permanent selection.
+ * \li Syntax: selection-paste
+ * \endvar
+ */
+		{ LFUN_SELECTION_PASTE, "selection-paste", Noop, Edit },
+/*!
  * \var lyx::FuncCode lyx::LFUN_UNDO
  * \li Action: Undoes the last edit.
  * \li Syntax: undo
@@ -1473,10 +1480,14 @@ void LyXAction::init()
  * \var lyx::FuncCode lyx::LFUN_MATH_SPACE
  * \li Action: Inserts space into math expression.
  * \li Notion: Use spacebar after entering this space to change type of space.
- * \li Syntax: math-space [<TYPE>]
- * \li Params: <TYPE>: negative spaces: !|negmedspace|negthickspace \n
-                       positive spaces: ,|:|;|quad|qquad \n
+ * \li Syntax: math-space [<TYPE>] [<LEN>]
+ * \li Params: <TYPE>: negative spaces: !|negthinspace|negmedspace|negthickspace \n
+                       positive spaces: ,|thinspace|:|medspace|;|thickspace|enskip|quad|qquad \n
+                       custom space: hspace \n
                        "," used by default.
+                       Note that ! is equivalent to negthinspace, , = thinspace,
+                       : = medspace, and ; = thickspace.
+               <LEN>: length for custom spaces (hspace)
  * \li Origin: Andre, 25 Jul 2001; sanda, 16 Jun 2008
  * \endvar
  */
@@ -1955,6 +1966,24 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_VC_UNDO_LAST, "vc-undo-last", ReadOnly, System },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_VC_COMMAND
+ * \li Action: Executes external command. This command is intended to support
+               additional VCS commands.
+ * \li Syntax: vc-command <FLAG> <PATH> <COMMAND>
+ * \li Params:  <FLAG>: Flags for the command can be combined together.\n
+			U - dUmmy - no flags \n
+			D - Doc - need document loaded to proceed \n
+			I - dIrty - mark document dirty \n
+			R - Reload - reload the document after command execution \n
+			M - Message - ask for input string (commit message)\n
+		<PATH>: path where to start. $$p will be replaced by the current document path.\n
+		<COMMAND>: command to execute. $$i/$$p/$$m will be replaced by the current document/path/message.
+ * \li Sample: vc-command DR $$p "svn up"
+ * \li Origin: sanda, 13 Jan 2009
+ * \endvar
+ */
+		{ LFUN_VC_COMMAND, "vc-command", NoBuffer | ReadOnly, System },
 
 /*!
  * \var lyx::FuncCode lyx::LFUN_CHANGES_TRACK
@@ -2091,7 +2120,7 @@ void LyXAction::init()
  * \li Origin: JSpitzm, 23 Mar 2008
  * \endvar
  */
-		{ LFUN_NEXT_INSET_MODIFY, "next-inset-modify", ReadOnly, Edit },
+		{ LFUN_NEXT_INSET_MODIFY, "next-inset-modify", Noop, Edit },
 /*!
  * \var lyx::FuncCode lyx::LFUN_INSET_DIALOG_UPDATE
  * \li Action: Updates the values inside the dialog from the inset.
@@ -3076,6 +3105,15 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_BRANCH_DEACTIVATE, "branch-deactivate", Argument, Buffer },
+
+/*!
+ * \var lyx::FuncCode lyx::LFUN_COPY_LABEL_AS_REF
+ * \li Action: Copies the label at the cursor as a cross-reference to be paster elsewhere.
+ * \li Syntax: copy-label-as-reference
+ * \li Origin: sts, 16 Nov 2008
+ * \endvar
+ */
+		{ LFUN_COPY_LABEL_AS_REF, "copy-label-as-reference", ReadOnly | NoUpdate, Edit },
 
 		{ LFUN_NOACTION, "", Noop, Hidden }
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

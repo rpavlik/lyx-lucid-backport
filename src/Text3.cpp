@@ -51,6 +51,7 @@
 
 #include "insets/InsetCollapsable.h"
 #include "insets/InsetCommand.h"
+#include "insets/InsetExternal.h"
 #include "insets/InsetFloatList.h"
 #include "insets/InsetNewline.h"
 #include "insets/InsetQuotes.h"
@@ -421,8 +422,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	BufferView * bv = &cur.bv();
 	TextMetrics & tm = bv->textMetrics(this);
-	if (!tm.contains(cur.pit()))
+	if (!tm.contains(cur.pit())) {
 		lyx::dispatch(FuncRequest(LFUN_SCREEN_RECENTER));
+		tm = bv->textMetrics(this);
+	}
 
 	// FIXME: We use the update flag to indicates wether a singlePar or a
 	// full screen update is needed. We reset it here but shall we restore it
@@ -827,7 +830,14 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_INSET_INSERT: {
 		cur.recordUndo();
+
+		// We have to avoid triggering InstantPreview loading
+		// before inserting into the document. See bug #5626.
+		bool loaded = bv->buffer().isFullyLoaded();
+		bv->buffer().setFullyLoaded(false);
 		Inset * inset = createInset(bv->buffer(), cmd);
+		bv->buffer().setFullyLoaded(loaded);
+
 		if (inset) {
 			// FIXME (Abdel 01/02/2006):
 			// What follows would be a partial fix for bug 2154:
@@ -855,13 +865,41 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				cutSelection(cur, true, false);
 			cur.insert(inset);
 			cur.posForward();
+
+			// trigger InstantPreview now
+			if (inset->lyxCode() == EXTERNAL_CODE) {
+				InsetExternal & ins =
+					static_cast<InsetExternal &>(*inset);
+				ins.updatePreview();
+			}
 		}
+
 		break;
 	}
 
-	case LFUN_INSET_DISSOLVE:
-		needsUpdate |= dissolveInset(cur);
+	case LFUN_INSET_DISSOLVE: {
+		// first, try if there's an inset at cursor
+		// FIXME: this first part should be moved to
+		// a LFUN_NEXT_INSET_DISSOLVE, or be called via
+		// some generic "next-inset inset-dissolve"
+		Inset * inset = cur.nextInset();
+		if (inset && inset->isActive()) {
+			Cursor tmpcur = cur;
+			tmpcur.pushBackward(*inset);
+			inset->dispatch(tmpcur, cmd);
+			if (tmpcur.result().dispatched()) {
+				cur.dispatched();
+				break;
+			}
+		}
+		// if it did not work, try the underlying inset
+		if (dissolveInset(cur)) {
+			needsUpdate = true;
+			break;
+		}
+		// if it did not work, do nothing.
 		break;
+	}
 
 	case LFUN_INSET_SETTINGS: {
 		Inset & inset = cur.inset();
@@ -962,7 +1000,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (arg.empty()) {
 			if (theClipboard().isInternal())
 				pasteFromStack(cur, bv->buffer().errorList("Paste"), 0);
-			else if (theClipboard().hasGraphicsContents())
+			else if (theClipboard().hasGraphicsContents() 
+				     && !theClipboard().hasTextContents())
 				pasteClipboardGraphics(cur, bv->buffer().errorList("Paste"));
 			else
 				pasteClipboardText(cur, bv->buffer().errorList("Paste"));
@@ -1098,6 +1137,15 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			    cmd.argument() == "paragraph");
 		break;
 
+	case LFUN_SELECTION_PASTE:
+		// Copy the selection buffer to the clipboard stack,
+		// because we want it to appear in the "Edit->Paste
+		// recent" menu.
+		cap::copySelectionToStack();
+		cap::pasteSelection(bv->cursor(), bv->buffer().errorList("Paste"));
+		bv->buffer().errors("Paste");
+		break;
+
 	case LFUN_UNICODE_INSERT: {
 		if (cmd.argument().empty())
 			break;
@@ -1182,23 +1230,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		case mouse_button::button2:
 			// Middle mouse pasting.
 			bv->mouseSetCursor(cur);
-			if (!cap::selection()) {
-				// There is no local selection in the current buffer, so try to
-				// paste primary selection instead.
-				lyx::dispatch(FuncRequest(LFUN_PRIMARY_SELECTION_PASTE,
-					"paragraph"));
-				// Nothing else to do.
-				cur.noUpdate();
-				return;
-			}
-			// Copy the selection buffer to the clipboard stack, because we want it
-			// to appear in the "Edit->Paste recent" menu.
-			cap::copySelectionToStack();
-			cap::pasteSelection(bv->cursor(), bv->buffer().errorList("Paste"));
-			cur.updateFlags(Update::Force | Update::FitCursor);
-			bv->buffer().errors("Paste");
-			bv->buffer().markDirty();
-			bv->cursor().finishUndo();
+			lyx::dispatch(
+				FuncRequest(LFUN_COMMAND_ALTERNATIVES,
+					    "selection-paste ; primary-selection-paste paragraph"));
+			cur.noUpdate();
 			break;
 
 		case mouse_button::button3: {
@@ -2142,6 +2177,10 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		enable = cur.selection() || !theSelection().empty();
 		break;
 
+	case LFUN_SELECTION_PASTE:
+		enable = cap::selection();
+		break;
+
 	case LFUN_PARAGRAPH_MOVE_UP:
 		enable = cur.pit() > 0 && !cur.selection();
 		break;
@@ -2158,8 +2197,10 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 			enable = cur.inset().lyxCode() == FLEX_CODE
 			         && il.lyxtype() == type;
 		} else {
-			enable = !isMainText(cur.bv().buffer())
-			         && cur.inset().nargs() == 1;
+			enable = ((!isMainText(cur.bv().buffer())
+			              && cur.inset().nargs() == 1)
+				  || (cur.nextInset()
+				      && cur.nextInset()->nargs() == 1));
 		}
 		break;
 
@@ -2200,6 +2241,14 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_NEWPAGE_INSERT:
 		// not allowed in description items
 		enable = !inDescriptionItem(cur);
+		break;
+
+	case LFUN_MATH_INSERT:
+	case LFUN_MATH_MATRIX:
+	case LFUN_MATH_DELIM:
+	case LFUN_MATH_BIGDELIM:
+		// not allowed in ERT, for example.
+		enable = cur.inset().insetAllowed(MATH_CODE);
 		break;
 
 	case LFUN_WORD_DELETE_FORWARD:
@@ -2253,10 +2302,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MATH_DISPLAY:
 	case LFUN_MATH_MODE:
 	case LFUN_MATH_MACRO:
-	case LFUN_MATH_MATRIX:
-	case LFUN_MATH_DELIM:
-	case LFUN_MATH_BIGDELIM:
-	case LFUN_MATH_INSERT:
 	case LFUN_MATH_SUBSCRIPT:
 	case LFUN_MATH_SUPERSCRIPT:
 	case LFUN_FONT_DEFAULT:
