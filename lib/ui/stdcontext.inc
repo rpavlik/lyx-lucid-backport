@@ -90,6 +90,8 @@ Menuset
 		Item "Next Cross-Reference|N" "reference-next"
 		Item "Go back to Reference|G" "bookmark-goto 0"
 		Separator
+		Item "Copy as Reference|C" "copy-label-as-reference"
+		Separator
 		Item "Settings...|S" "next-inset-toggle"
 	End
 
@@ -184,6 +186,24 @@ Menuset
 		Item "Horizontal Fill (Up Brace)|p" "next-inset-modify space \upbracefill{}"
 		Item "Horizontal Fill (Down Brace)|B" "next-inset-modify space \downbracefill{}"
 		Item "Custom Length|C" "command-sequence next-inset-modify space \hspace{} \length 1in; next-inset-toggle"
+		Separator
+		Item "Settings...|S" "next-inset-toggle"
+	End
+
+#
+# InsetMathSpace context menu
+#
+	Menu "context-mathspace"
+		Item "Thin Space|T" "next-inset-modify mathspace \thinspace{}"
+		Item "Medium Space|M" "next-inset-modify mathspace \medspace{}"
+		Item "Thick Space|h" "next-inset-modify mathspace \thickspace{}"
+		Item "Negative Thin Space|N" "next-inset-modify mathspace \negthinspace{}"
+		Item "Negative Medium Space|u" "next-inset-modify mathspace \negmedspace{}"
+		Item "Negative Thick Space|i" "next-inset-modify mathspace \negthickspace{}"
+		Item "Half Quad Space (Enskip)|k" "next-inset-modify mathspace \enskip{}"
+		Item "Quad Space|Q" "next-inset-modify mathspace \quad{}"
+		Item "Double Quad Space|u" "next-inset-modify mathspace \qquad{}"
+		Item "Custom Length|C" "command-sequence next-inset-modify mathspace \hspace{} \length 1in; next-inset-toggle"
 		Separator
 		Item "Settings...|S" "next-inset-toggle"
 	End

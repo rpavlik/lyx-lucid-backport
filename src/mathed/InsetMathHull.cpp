@@ -528,6 +528,11 @@ void InsetMathHull::numbered(row_type row, bool num)
 	if (nonum_[row] && label_[row]) {
 		delete label_[row];
 		label_[row] = 0;
+		if (!buffer_) {
+			// The buffer is set at the end of readInset.
+			// When parsing the inset, buffer_ is 0.
+			return;
+		}
 		// We need an update of the Buffer reference cache.
 		// This is achieved by updateLabels().
 		lyx::updateLabels(buffer());

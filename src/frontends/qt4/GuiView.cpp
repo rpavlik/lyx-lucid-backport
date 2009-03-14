@@ -386,8 +386,12 @@ bool GuiView::restoreLayout()
 	setLayoutDirection(qApp->layoutDirection());
 
 	// Allow the toc and view-source dock widget to be restored if needed.
-	findOrBuild("toc", true);
-	findOrBuild("view-source", true);
+	Dialog *d;
+	if (d = findOrBuild("toc", true))
+		// see bug 5082
+		d->showView();
+	if (d = findOrBuild("view-source", true))
+		d->showView();
 
 	if (!restoreState(settings.value("layout").toByteArray(), 0))
 		initToolbars();
@@ -521,15 +525,29 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 
 	while (Buffer * b = buffer()) {
 		if (b->parent()) {
-			// This is a child document, just close the tab after saving
-			// but keep the file loaded.
-			if (!saveBuffer(*b)) {
+			// This is a child document, just close the tab
+			// after saving but keep the file loaded.
+			if (!closeBuffer(*b, false)) {
 				closing_ = false;
 				close_event->ignore();
 				return;
 			}
-			removeWorkArea(d.current_work_area_);
 			continue;
+		}
+		
+		vector<Buffer *> clist = b->getChildren();
+		for (vector<Buffer *>::const_iterator it = clist.begin();
+		     it != clist.end(); ++it) {
+			if ((*it)->isClean())
+				continue;
+			Buffer * c = *it;
+			// If a child is dirty, do not close
+			// without user intervention
+			if (!closeBuffer(*c, false)) {
+				closing_ = false;
+				close_event->ignore();
+				return;
+			}
 		}
 
 		QList<int> const ids = guiApp->viewIds();
@@ -1320,7 +1338,8 @@ void GuiView::openDocument(string const & fname)
 		QStringList filter(qt_("LyX Documents (*.lyx)"));
 		filter << qt_("LyX-1.3.x Documents (*.lyx13)")
 			<< qt_("LyX-1.4.x Documents (*.lyx14)")
-			<< qt_("LyX-1.5.x Documents (*.lyx15)");
+			<< qt_("LyX-1.5.x Documents (*.lyx15)")
+			<< qt_("LyX-1.6.x Documents (*.lyx16)");
 		FileDialog::Result result =
 			dlg.open(toqstr(initpath), filter);
 
@@ -1549,8 +1568,12 @@ void GuiView::newDocument(string const & filename, bool from_template)
 
 	if (b)
 		setBuffer(b);
-	// Ensure the cursor is correctly positionned on screen.
-	view()->showCursor();
+
+	// If no new document could be created, it is unsure 
+	// whether there is a valid BufferView.
+	if (view())
+		// Ensure the cursor is correctly positioned on screen.
+		view()->showCursor();
 }
 
 
@@ -1622,7 +1645,7 @@ void GuiView::insertPlaintextFile(docstring const & fname,
 		LFUN_FILE_INSERT_PLAINTEXT_PARA : LFUN_FILE_INSERT_PLAINTEXT));
 
 	FileDialog::Result result = dlg.open(toqstr(bv->buffer().filePath()),
-		QStringList());
+		QStringList(qt_("All Files (*)")));
 
 	if (result.first == FileDialog::Later)
 		return;
@@ -1989,8 +2012,9 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			Inset * inset = getOpenInset(name);
 			if (inset) {
 				// put cursor in front of inset.
-				if (!view()->setCursorFromInset(inset))
+				if (!view()->setCursorFromInset(inset)) {
 					LASSERT(false, break);
+				}
 				
 				// useful if we are called from a dialog.
 				view()->cursor().beginUndoGroup();
@@ -2214,7 +2238,7 @@ char const * const dialognames[] = {
 "aboutlyx", "bibitem", "bibtex", "box", "branch", "changes", "character",
 "citation", "document", "errorlist", "ert", "external", "file",
 "findreplace", "float", "graphics", "include", "index", "info", "nomenclature", "label", "log",
-"mathdelimiter", "mathmatrix", "note", "paragraph", "prefs", "print", 
+"mathdelimiter", "mathmatrix", "mathspace", "note", "paragraph", "prefs", "print", 
 "ref", "sendto", "space", "spellchecker", "symbols", "tabular", "tabularcreate",
 
 #ifdef HAVE_LIBAIKSAURUS
@@ -2395,12 +2419,12 @@ Dialog * createGuiERT(GuiView & lv);
 Dialog * createGuiExternal(GuiView & lv);
 Dialog * createGuiFloat(GuiView & lv);
 Dialog * createGuiGraphics(GuiView & lv);
-Dialog * createGuiHSpace(GuiView & lv);
 Dialog * createGuiInclude(GuiView & lv);
 Dialog * createGuiInfo(GuiView & lv);
 Dialog * createGuiLabel(GuiView & lv);
 Dialog * createGuiListings(GuiView & lv);
 Dialog * createGuiLog(GuiView & lv);
+Dialog * createGuiMathHSpace(GuiView & lv);
 Dialog * createGuiMathMatrix(GuiView & lv);
 Dialog * createGuiNomenclature(GuiView & lv);
 Dialog * createGuiNote(GuiView & lv);
@@ -2416,6 +2440,7 @@ Dialog * createGuiSymbols(GuiView & lv);
 Dialog * createGuiTabularCreate(GuiView & lv);
 Dialog * createGuiTabular(GuiView & lv);
 Dialog * createGuiTexInfo(GuiView & lv);
+Dialog * createGuiTextHSpace(GuiView & lv);
 Dialog * createGuiToc(GuiView & lv);
 Dialog * createGuiThesaurus(GuiView & lv);
 Dialog * createGuiHyperlink(GuiView & lv);
@@ -2474,6 +2499,8 @@ Dialog * GuiView::build(string const & name)
 		return createGuiViewSource(*this);
 	if (name == "mathdelimiter")
 		return createGuiDelimiter(*this);
+	if (name == "mathspace")
+		return createGuiMathHSpace(*this);
 	if (name == "mathmatrix")
 		return createGuiMathMatrix(*this);
 	if (name == "note")
@@ -2489,7 +2516,7 @@ Dialog * GuiView::build(string const & name)
 	if (name == "sendto")
 		return createGuiSendTo(*this);
 	if (name == "space")
-		return createGuiHSpace(*this);
+		return createGuiTextHSpace(*this);
 	if (name == "spellchecker")
 		return createGuiSpellchecker(*this);
 	if (name == "symbols")

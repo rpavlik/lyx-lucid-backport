@@ -16,6 +16,7 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "buffer_funcs.h"
+#include "Encoding.h"
 #include "InsetIterator.h"
 #include "Paragraph.h"
 
@@ -28,6 +29,7 @@
 #include "support/gettext.h"
 #include "support/lassert.h"
 #include "support/lstrings.h"
+#include "support/textutils.h"
 
 #include "boost/regex.hpp"
 
@@ -44,7 +46,7 @@ namespace lyx {
 //////////////////////////////////////////////////////////////////////
 
 BibTeXInfo::BibTeXInfo(docstring const & key, docstring const & type)
-	: is_bibtex_(true), bib_key_(key), entry_type_(type)
+	: is_bibtex_(true), bib_key_(key), entry_type_(type), info_()
 {}
 
 
@@ -75,24 +77,45 @@ docstring familyName(docstring const & name)
 	if (name.empty())
 		return docstring();
 
-	// Very simple parser
-	docstring fname = name;
-
-	// possible authorname combinations are:
-	// "Surname, FirstName"
-	// "Surname, F."
-	// "FirstName Surname"
-	// "F. Surname"
-	docstring::size_type idx = fname.find(',');
+	// first we look for a comma, and take the last name to be everything
+	// preceding the right-most one, so that we also get the "jr" part.
+	docstring::size_type idx = name.rfind(',');
 	if (idx != docstring::npos)
-		return ltrim(fname.substr(0, idx));
-	idx = fname.rfind('.');
-	if (idx != docstring::npos && idx + 1 < fname.size())
-		fname = ltrim(fname.substr(idx + 1));
-	// test if we have a LaTeX Space in front
-	if (fname[0] == '\\')
-		return fname.substr(2);
-	return rtrim(fname);
+		return ltrim(name.substr(0, idx));
+
+	// OK, so now we want to look for the last name. We're going to
+	// include the "von" part. This isn't perfect.
+	// Split on spaces, to get various tokens.
+	vector<docstring> pieces = getVectorFromString(name, from_ascii(" "));
+	// If we only get two, assume the last one is the last name
+	if (pieces.size() <= 2)
+		return pieces.back();
+
+	// Now we look for the first token that begins with a lower case letter.
+	vector<docstring>::const_iterator it = pieces.begin();
+	vector<docstring>::const_iterator en = pieces.end();
+	for (; it != en; ++it) {
+		if ((*it).size() == 0)
+			continue;
+		char_type const c = (*it)[0];
+		if (isLower(c))
+			break;
+	}
+
+	if (it == en) // we never found a "von"
+		return pieces.back();
+
+	// reconstruct what we need to return
+	docstring retval;
+	bool first = true;
+	for (; it != en; ++it) {
+		if (!first)
+			retval += " ";
+		else 
+			first = false;
+		retval += *it;
+	}
+	return retval;
 }
 
 docstring const BibTeXInfo::getAbbreviatedAuthor() const
@@ -151,11 +174,115 @@ docstring const BibTeXInfo::getYear() const
 }
 
 
+namespace {
+
+	docstring convertLaTeXCommands(docstring const & str)
+	{
+		docstring val = str;
+		docstring ret;
+	
+		bool scanning_cmd = false;
+		bool scanning_math = false;
+		bool escaped = false; // used to catch \$, etc.
+		while (val.size()) {
+			char_type const ch = val[0];
+
+			// if we're scanning math, we output everything until we
+			// find an unescaped $, at which point we break out.
+			if (scanning_math) {
+				if (escaped)
+					escaped = false;
+				else if (ch == '\\')
+					escaped = true;
+				else if (ch == '$') 
+					scanning_math = false;
+				ret += ch;
+				val = val.substr(1);
+				continue;
+			}
+
+			// if we're scanning a command name, then we just
+			// discard characters until we hit something that
+			// isn't alpha.
+			if (scanning_cmd) {
+				if (isAlphaASCII(ch)) {
+					val = val.substr(1);
+					escaped = false;
+					continue;
+				}
+				// so we're done with this command.
+				// now we fall through and check this character.
+				scanning_cmd = false;
+			}
+
+			// was the last character a \? If so, then this is something like: \\,
+			// or \$, so we'll just output it. That's probably not always right...
+			if (escaped) {
+				ret += ch;
+				val = val.substr(1);
+				escaped = false;
+				continue;
+			}
+
+			if (ch == '$') {
+				ret += ch;
+				val = val.substr(1);
+				scanning_math = true;
+				continue;
+			}
+
+			// we just ignore braces
+			if (ch == '{' || ch == '}') {
+				val = val.substr(1);
+				continue;
+			}
+
+			// we're going to check things that look like commands, so if
+			// this doesn't, just output it.
+			if (ch != '\\') {
+				ret += ch;
+				val = val.substr(1);
+				continue;
+			}
+
+			// ok, could be a command of some sort
+			// let's see if it corresponds to some unicode
+			// unicodesymbols has things in the form: \"{u},
+			// whereas we may see things like: \"u. So we'll
+			// look for that and change it, if necessary.
+			static boost::regex const reg("^\\\\\\W\\w");
+			if (boost::regex_search(to_utf8(val), reg)) {
+				val.insert(3, from_ascii("}"));
+				val.insert(2, from_ascii("{"));
+			}
+			docstring rem;
+			docstring const cnvtd = Encodings::fromLaTeXCommand(val, rem);
+			if (!cnvtd.empty()) {
+				// it did, so we'll take that bit and proceed with what's left
+				ret += cnvtd;
+				val = rem;
+				continue;
+			}
+			// it's a command of some sort
+			scanning_cmd = true;
+			escaped = true;
+			val = val.substr(1);
+		}
+		return ret;
+	}
+
+} // anon namespace
+
+
 docstring const BibTeXInfo::getInfo() const
 {
+	if (!info_.empty())
+		return info_;
+
 	if (!is_bibtex_) {
 		BibTeXInfo::const_iterator it = find(from_ascii("ref"));
-		return it->second;
+		info_ = it->second;
+		return info_;
 	}
  
 	// FIXME
@@ -173,9 +300,9 @@ docstring const BibTeXInfo::getInfo() const
 	if (docLoc.empty()) {
 		docLoc = getValueForField("chapter");
 		if (!docLoc.empty())
-			docLoc = from_ascii("Ch. ") + docLoc;
+			docLoc = _("Ch. ") + docLoc;
 	}	else {
-		docLoc = from_ascii("pp. ") + docLoc;
+		docLoc = _("pp. ") + docLoc;
 	}
 
 	docstring media = getValueForField("journal");
@@ -202,8 +329,10 @@ docstring const BibTeXInfo::getInfo() const
 		result << ", " << docLoc;
 
 	docstring const result_str = rtrim(result.str());
-	if (!result_str.empty())
-		return result_str;
+	if (!result_str.empty()) {
+		info_ = convertLaTeXCommands(result_str);
+		return info_;
+	}
 
 	// This should never happen (or at least be very unusual!)
 	return docstring();

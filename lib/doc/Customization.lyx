@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -34,7 +34,7 @@
 % redefine the \LyX macro for PDF bookmarks
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX }}
+  {LyX}}
 
 % used for multi-column text
 \usepackage{multicol}
@@ -180,9 +180,9 @@ This manual covers the customization features present in LyX.
  In it, we discuss issues like keyboard shortcuts, screen previewing options,
  printer options, sending commands to LyX via the LyX Server, internationalizati
 on, installing new LaTeX classes and LyX layouts, etc.
- We can't possibly hope to touch on everything you can change---our developers
- add new features faster than we can document them---but we will explain
- the most common customizations and hopefully point you in the right direction
+ We can't possibly hope to touch on everything you can change—our developers
+ add new features faster than we can document them—but we will explain the
+ most common customizations and hopefully point you in the right direction
  for some of the more obscure ones.
 \end_layout
 
@@ -214,18 +214,12 @@ This chapter aims to help you to find your way through the LyX configuration
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
+Help\SpecialChar \menuseparator
 About
 \begin_inset space ~
 \end_inset
 
-Ly
-\bar under
-X
+LyX
 \end_layout
 
 \end_inset
@@ -282,7 +276,7 @@ LyXDir
 \end_inset
 
  and its sub-directories contain a number of files and that can be used
- to customise LyX's behaviour.
+ to customize LyX's behavior.
  You can change many of these files from within LyX itself through the 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
@@ -366,16 +360,8 @@ packages.lst
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
-L
-\bar under
-a
-\bar default
-TeX
+Help\SpecialChar \menuseparator
+LaTeX
 \begin_inset space ~
 \end_inset
 
@@ -587,19 +573,26 @@ LaTeXConfig.lyx
 \end_inset
 
  deserves special attention, as noted above.
- If there exists an internationalized version of the help-document with
- 
+ The internationalized help docs are in subdirectories 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
 \begin_layout Plain Layout
-$LANG_
+doc/xx
 \end_layout
 
 \end_inset
 
- prepended to the name, that will be used first.
- See Chapter
+ where 
+\begin_inset Quotes eld
+\end_inset
+
+xx
+\begin_inset Quotes erd
+\end_inset
+
+ is the ISO language code.
+ See chapter
 \begin_inset space ~
 \end_inset
 
@@ -847,11 +840,7 @@ CREDITS
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
+Help\SpecialChar \menuseparator
 About
 \begin_inset space ~
 \end_inset
@@ -910,7 +899,7 @@ encodings
 \end_inset
 
  this contains tables describing how different character encodings can be
- mapped to unicode
+ mapped to Unicode
 \end_layout
 
 \begin_layout Labeling
@@ -986,11 +975,7 @@ user directory
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
+Help\SpecialChar \menuseparator
 About
 \begin_inset space ~
 \end_inset
@@ -1047,16 +1032,8 @@ The preferences set in the
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-P
-\bar default
-references
+Tools\SpecialChar \menuseparator
+Preferences
 \end_layout
 
 \end_inset
@@ -1090,16 +1067,8 @@ When you reconfigure using
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \end_layout
 
 \end_inset
@@ -1159,11 +1128,7 @@ UserDir/doc/
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp
+Help
 \end_layout
 
 \end_inset
@@ -1259,22 +1224,14 @@ doc/
 
 \end_inset
 
- subirectory, however, since it contains a file written by the configuration
+ subdirectory, however, since it contains a file written by the configuration
  script (also accessible through 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \end_layout
 
 \end_inset
@@ -1496,7 +1453,7 @@ Short Name
 
 \end_inset
 
- is used to identify the format interally.
+ is used to identify the format internally.
  You will also need to enter a file extension.
  These are all required.
  The optional 
@@ -1811,7 +1768,7 @@ Since all conversions from one format to another take place in LyX's temporary
 status collapsed
 
 \begin_layout Plain Layout
-For example, the file may refer to other files---images, for example---using
+For example, the file may refer to other files—images, for example—using
  relative file names, and these may become invalid when the file is copied
  to the temporary directory.
 \end_layout
@@ -1955,7 +1912,7 @@ cp $FROMFILE /home/you/pdf/$TOFILE
 
 \end_inset
 
-Save that in your local LyX directory---say, 
+Save that in your local LyX directory—say, 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -1965,7 +1922,7 @@ status collapsed
 
 \end_inset
 
----and make it executable, if you need to do so on your platform.
+—and make it executable, if you need to do so on your platform.
  Then, in the 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
@@ -1998,7 +1955,7 @@ PDF(pdflatex)
 
 \end_inset
 
- format---or one of the other pdf formats---and enter 
+ format—or one of the other pdf formats—and enter 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -2137,8 +2094,7 @@ Converters
 \end_layout
 
 \begin_layout Standard
-You can define your own Converters to, uhh, convert files between different
- formats.
+You can define your own Converters to convert files between different formats.
  This is done in the 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
@@ -2271,6 +2227,21 @@ $$p
 \end_inset
 
  The path to the input file
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+$$r
+\end_layout
+
+\end_inset
+
+ The path to the original input file (this is different from $$p when chain
+ of converters is called).
 \end_layout
 
 \begin_layout Standard
@@ -2481,11 +2452,11 @@ None of these last three are presently used in any of the converters that
 \begin_layout Standard
 You do not have to define converters between all the formats between which
  you want to convert.
- For example, you will note that there is no `LyX to PostScript®' converter,
- but LyX will export PostScript®.
+ For example, you will note that there is no `LyX to PostScript' converter,
+ but LyX will export PostScript.
  It does so by first creating a LaTeX file (no converter needs to be defined
  for this) which is then converted to DVI using the `LaTeX to DVI' converter,
- and finally converting the resulting DVI file to PostScript®.
+ and finally converting the resulting DVI file to PostScript.
  LyX finds such `chains' of converters automatically, and it will always
  choose the shortest possible chain.
  You can, though, still define multiple conversion methods between file
@@ -2501,7 +2472,7 @@ pdflatex
 
 \end_inset
 
-; via (DVI and) PostScript®, using 
+; via (DVI and) PostScript, using 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -2939,7 +2910,7 @@ po
 \end_layout
 
 \begin_layout Subsubsection
-Ambigous messages
+Ambiguous messages
 \end_layout
 
 \begin_layout Standard
@@ -2982,7 +2953,7 @@ gettext
 
 \end_inset
 
- does not handle such ambigous translations.
+ does not handle such ambiguous translations.
  Therefore you have to add some context information to the message: Instead
  of 
 \begin_inset Flex CharStyle:Code
@@ -3014,7 +2985,7 @@ To[[as in 'From page x to page y']].
 
 \end_inset
 
- Now the two occurences of 
+ Now the two occurrences of 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -3064,11 +3035,7 @@ The online documentation (in the
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp
+Help
 \end_layout
 
 \end_inset
@@ -3092,7 +3059,7 @@ As of March 2008, at least some of the documents have been translated into
 status collapsed
 
 \begin_layout Plain Layout
-LyXDir/doc/xx_DocName.lyx
+LyXDir/doc/xx/DocName.lyx
 \end_layout
 
 \end_inset
@@ -3179,11 +3146,7 @@ Intro.lyx
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
+Help\SpecialChar \menuseparator
 
 \bar under
 I
@@ -3216,7 +3179,7 @@ Make a copy of the document.
 status collapsed
 
 \begin_layout Plain Layout
-UserDir/doc/
+UserDir/doc/xx/
 \end_layout
 
 \end_inset
@@ -4219,7 +4182,7 @@ char
 \emph default
  
 \family roman
-followed by the other, unallowed key, as output.
+followed by the other, not allowed key, as output.
 
 \family default
  Note that a 
@@ -5484,7 +5447,7 @@ text class
  can be used somewhat interchangeably, but it is better to refer to the
  file as the layout, and the thing living in LyX's memory as the text class.
  A template file is simply a LyX document that contains a set of predefined
- entries for a given document class---entries that are generally required
+ entries for a given document class—entries that are generally required
  for that class.
  Templates are especially useful for things like journal manuscripts that
  are to be submitted electronically.
@@ -5864,7 +5827,7 @@ Reconfigure
 \end_inset
 
 ) and then restart LyX.
- You should then see your new package---for example 
+ You should then see your new package—for example 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -5874,7 +5837,7 @@ slides (FoilTeX)
 
 \end_inset
 
----under 
+—under 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -6001,7 +5964,7 @@ emphasized
 \end_inset
 
 .
- If the argument has a datatype like 
+ If the argument has a data type like 
 \begin_inset Quotes eld
 \end_inset
 
@@ -6049,9 +6012,9 @@ modules
 \emph default
 .
  Modules are to LaTeX packages much as layouts are to LaTeX classes, and
- some modules---such as the Endnotes module---provide support for just such
+ some modules—such as the endnotes module—provide support for just such
  a package.
- In a sense, layout modules are similar to included files---files like 
+ In a sense, layout modules are similar to included files—files like 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -6061,7 +6024,7 @@ stdsections.inc
 
 \end_inset
 
----in that modules are not specific to a given document layout but may be
+—in that modules are not specific to a given document layout but may be
  used with many different layouts.
  The difference is that using a layout module does not require editing the
  layout file.
@@ -6130,7 +6093,7 @@ The module declaration should then be followed by lines like the following:
 \begin_layout LyX-Code
 #You will need to add  
 \backslash
-theendnotes in ERT where you 
+theendnotes in TeX code where you 
 \end_layout
 
 \begin_layout LyX-Code
@@ -6311,7 +6274,7 @@ sty
 
 \begin_layout Standard
 If your new document class is provided as a style file that is used in conjuncti
-on with an existing, supported document class---for the sake of the example,
+on with an existing, supported document class—for the sake of the example,
  we'll assume that the style file is called 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
@@ -6332,7 +6295,7 @@ report.cls
 
 \end_inset
 
-, which is a standard class---start by copying the existing class's layout
+, which is a standard class—start by copying the existing class's layout
  file into your local directory:
 \end_layout
 
@@ -6429,7 +6392,7 @@ Settings
 
  dialog.
  It is likely that some of the sectioning commands and such in your new
- class will work differently from how they worked in the base class---
+ class will work differently from how they worked in the base class—
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -6439,7 +6402,7 @@ report
 
 \end_inset
 
- in this example---so you can fiddle around with the settings for the different
+ in this example—so you can fiddle around with the settings for the different
  sections if you wish.
 \end_layout
 
@@ -6785,7 +6748,7 @@ DeclareLaTeXClass[class,package.sty]{layout description}
 
 \begin_layout Standard
 The class need only be specified if the name of the LaTeX class file and
- the name of the layout file are different; if the name of the classfile
+ the name of the layout file are different; if the name of the class file
  is not specified, then LyX will simply assume that it is the same as the
  name of the layout file.
 \end_layout
@@ -6817,16 +6780,8 @@ UserDir/layouts
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-T
-\bar default
-ools\SpecialChar \menuseparator
-
-\bar under
-R
-\bar default
-econfigure
+Tools\SpecialChar \menuseparator
+Reconfigure
 \end_layout
 
 \end_inset
@@ -6851,8 +6806,8 @@ layout-reload
 \end_inset
 
 .
- There is no default binding for this function---though, of course, you
- can bind it to a key yourself.
+ There is no default binding for this function—though, of course, you can
+ bind it to a key yourself.
  If you want to use this function, then, you should simply enter it in the
  mini-buffer.
  
@@ -7223,7 +7178,7 @@ string
 
 \end_inset
 
-] Indicates that the module in question---which should be specified by filename
+] Indicates that the module in question—which should be specified by filename
  without the 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -7234,7 +7189,7 @@ status collapsed
 
 \end_inset
 
- extension---cannot be used with this document class.
+ extension—cannot be used with this document class.
  This might be used in a journal-specific layout file to prevent, say, the
  use of the 
 \begin_inset Flex CharStyle:Code
@@ -7531,7 +7486,7 @@ Preamble
 status collapsed
 
 \begin_layout Plain Layout
-Premable
+Preamble
 \end_layout
 
 \end_inset
@@ -7664,7 +7619,7 @@ boldsymbol
 
 ,\SpecialChar \ldots{}
 ); the complete list of supported features is unfortunately not documented
- outside the LyX source code---but see 
+ outside the LyX source code—but see 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -7680,16 +7635,8 @@ LaTeXFeatures.cpp
 status collapsed
 
 \begin_layout Plain Layout
-
-\bar under
-H
-\bar default
-elp\SpecialChar \menuseparator
-
-\bar under
-L
-\bar default
-aTeX Configuration
+Help\SpecialChar \menuseparator
+LaTeX Configuration
 \end_layout
 
 \end_inset
@@ -7718,8 +7665,7 @@ string
 \end_inset
 
 ] Indicates that this layout provides the functionality of the module mentioned,
- which should be specified by filename, which should be specified by filename
- without the 
+ which should be specified by the filename without the 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -7742,7 +7688,7 @@ DefaultModule
 \end_inset
 
  tag to indicate that it ought to be used.
- It could be used in a module that that provided an alternate implementation
+ It could be used in a module that provided an alternate implementation
  of the same functionality.
 \end_layout
 
@@ -7766,12 +7712,12 @@ string
 
 \end_inset
 
-] Whether the class requires the feature
+] Whether the class requires the feature 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
 \begin_layout Plain Layout
- string
+string
 \end_layout
 
 \end_inset
@@ -8072,7 +8018,7 @@ TitleLatexName
 
 \begin_layout Description
 \begin_inset Flex CharStyle:Code
-status open
+status collapsed
 
 \begin_layout Plain Layout
 TocDepth
@@ -9927,7 +9873,7 @@ end{latexname}.
 \end_layout
 
 \begin_layout Standard
-depending upon the LaTex type.
+depending upon the LaTeX type.
 \end_layout
 
 \begin_layout Description
@@ -10617,7 +10563,7 @@ name "des:Preamble"
 
 \end_inset
 
-Information to be included in the LaTeX preamable when this style is used.
+Information to be included in the LaTeX preamble when this style is used.
  Used to define macros, load packages, etc., required by this particular
  style.
  Must end with 
@@ -11266,7 +11212,7 @@ H
 \end_inset
 
  specifier is special and, because of implementation details, cannot be
- used in non-builtin float types.
+ used in non-built in float types.
  If you do not understand what this means, just use 
 \begin_inset Quotes eld
 \end_inset
@@ -11505,8 +11451,8 @@ Custom
 
 \end_inset
 
-): These can be used to define custom collapsable insets, similar to ERT,
- footnote, and the like.
+): These can be used to define custom collapsible insets, similar to TeX
+ code, footnote, and the like.
  An obvious example is an endnote inset, which is defined in the 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -11572,8 +11518,9 @@ InsetLayout
 \end_inset
 
  can be used to customize the layout parameters for footnotes, marginal
- notes, note insets, ERT insets, branches, listings, indexes, boxes, tables,
- algorithms, URLs, and optional arguments, as well as to define Flex insets.
+ notes, note insets, TeX code (ERT) insets, branches, listings, indexes,
+ boxes, tables, algorithms, URLs, and optional arguments, as well as to
+ define Flex insets.
 \end_layout
 
 \begin_layout Standard
@@ -12112,7 +12059,7 @@ g.
 \begin_inset space \space{}
 \end_inset
 
-in ERT or URL.
+in TeX code or URL.
  A kludge.
 \end_layout
 
@@ -12239,7 +12186,7 @@ LabelString
 \end_inset
 
  What will be displayed on the button or elsewhere as the inset label.
- Some inset types (ERT and Branch) modify this label on the fly.
+ Some inset types (TeX code and Branch) modify this label on the fly.
 \end_layout
 
 \begin_layout Description
@@ -12774,7 +12721,7 @@ numbertype
 \emph off
 \bar no
 \noun off
- other than those descibed below will produce arabic numerals.
+ other than those described below will produce arabic numerals.
  It would not be surprising to see this change in the future.
 \end_layout
 
@@ -12952,7 +12899,7 @@ string
 \end_inset
 
 ] If this is set to the name of another counter, the present counter will
- be reset everytime the other one is increased.
+ be reset every time the other one is increased.
  For example, 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -13186,7 +13133,7 @@ string
 
 \end_inset
 
-] Valid argument sare: 
+] Valid argument are: 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -13627,7 +13574,7 @@ defaults.lyx
 \end_inset
 
 .
- This template is loaded everytime you create a new document with 
+ This template is loaded every time you create a new document with 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -13752,7 +13699,7 @@ status collapsed
 \end_inset
 
  extension.
- Within XFig, you create and change your figure, and when you are done,
+ Within Xfig, you create and change your figure, and when you are done,
  you save the 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -13795,21 +13742,21 @@ This distinction is important in order to allow updating of the material
  Furthermore, it provides us with the flexibility that is needed to support
  multiple export formats.
  For instance, in the case of a plain text file, it is not exactly an award-winn
-ing idea to include the figure as raw PostScript®.
+ing idea to include the figure as raw PostScript.
  Instead, you'd either prefer to just include a reference to the figure
- or try to invoke some graphics to Ascii converter to make the final result
+ or try to invoke some graphics to ASCII converter to make the final result
  look similar to the real graphics.
- The external material management allows you to do this, because it is parameter
-ized on the different export formats that LyX supports.
+ The external material management allows you to do this, because it is parametri
+zed on the different export formats that LyX supports.
 \end_layout
 
 \begin_layout Standard
 Besides supporting the production of different products according to the
  exported format, it supports tight integration with editing and viewing
  applications.
- In the case of an XFig figure, you are able to invoke Xfig on the original
+ In the case of an Xfig figure, you are able to invoke Xfig on the original
  file with a single click from within the external material dialog in LyX,
- and also preview the produced PostScript file with ghostview with another
+ and also preview the produced PostScript file with Ghostview with another
  click.
  No more fiddling around with the command line and/or file browsers to locate
  and manipulate the original or produced files.
@@ -15415,7 +15362,7 @@ The external material feature interfaces with a lot of external programs
  and/or parameter strings and those are expanded into a command, it seems
  that it would be possible to create a malicious document which executes
  arbitrary commands when a user views or prints the document.
- This is something we definately want to avoid.
+ This is something we definitely want to avoid.
 \end_layout
 
 \begin_layout Standard
@@ -15534,7 +15481,7 @@ Including external material provides a lot of power, and you have to be
  A subtle error in a single line in an innocent looking script can open
  the door to huge security problems.
  So if you do not fully understand the issues, we recommend that you consult
- a knowledgable security professional or the LyX development team if you
+ a knowledgeable security professional or the LyX development team if you
  have any questions about whether a given template is safe or not.
  And do this before you use it in an uncontrolled environment.
 \end_layout

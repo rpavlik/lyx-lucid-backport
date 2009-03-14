@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.2 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -12,7 +12,6 @@
 % have problems LaTeXing this file, please contact 
 % the documentation team
 % email: lyx-docs@lists.lyx.org
-
 
 % if pdflatex is used
 \usepackage{ifpdf}
@@ -255,7 +254,7 @@ Verfasser: Uwe Stöhr
 
 
 \family sans
-Version 1.6svn
+Version 1.6.x
 \end_layout
 
 \begin_layout Standard
@@ -10919,12 +10918,11 @@ Leerraum ! horizontaler ! vordefiniert
 \begin_layout Standard
 Ab und an ist es notwendig in einer Formel horizontalen Leerraum einzufügen.
  Dazu gibt man ein geschütztes Leerzeichen ein.
- Es erscheint ein blaues 
+ Es erscheint ein 
 \begin_inset Quotes gld
 \end_inset
 
 
-\series bold
 \color blue
 
 \begin_inset ERT
@@ -10940,7 +10938,6 @@ leer
 \end_inset
 
 
-\series default
 \color inherit
 
 \begin_inset Quotes grd
@@ -11760,11 +11757,11 @@ Leerraum ! horizontaler ! variabel
 \end_layout
 
 \begin_layout Standard
-Leerraum mit vorgegebener Länge lässt sich in LyX mit dem Befehl 
+Leerraum mit vorgegebener Länge lässt sich mit dem Befehl 
 \series bold
 
 \backslash
-hspace{Länge}
+hspace
 \series default
 
 \begin_inset Index
@@ -11779,22 +11776,59 @@ hspace
 \end_inset
 
  einfügen.
- Dabei können alle Längeneinheiten verwendet werden, die in 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "tab:Verfügbare-Einheiten"
-
-\end_inset
-
- aufgelistet sind, mit Ausnahme der Einheit 
+ Es erscheint ein langes 
 \begin_inset Quotes gld
 \end_inset
 
-mu
+
+\color blue
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+
+\color inherit
+
 \begin_inset Quotes grd
 \end_inset
 
 .
+ Die Länge kann eingestellt werden, indem man mit der linken Maustaste auf
+ das 
+\begin_inset Quotes gld
+\end_inset
+
+
+\color blue
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+
+\color inherit
+
+\begin_inset Quotes grd
+\end_inset
+
+ klickt.
  Die Länge darf auch negativ sein.
  Um so viel Leerraum einzufügen, dass die Formel allen verfügbaren Platz
  einnimmt, benutzt man den Befehl 
@@ -11837,7 +11871,9 @@ hfill
 \begin_inset Text
 
 \begin_layout Plain Layout
-Befehl
+Befehl (
+\backslash
+hspace Länge)
 \end_layout
 
 \end_inset
@@ -11865,7 +11901,11 @@ hspace{3cm
 
 A
 \backslash
-not=C
+not=C (3
+\begin_inset space \thinspace{}
+\end_inset
+
+cm)
 \end_layout
 
 \end_inset
@@ -11896,7 +11936,11 @@ hspace{-1mm
 
 A
 \backslash
-not=A
+not=A (-1
+\begin_inset space \thinspace{}
+\end_inset
+
+mm)
 \end_layout
 
 \end_inset
@@ -12032,7 +12076,7 @@ Horizontaler
 
 Abstand
 \family default
- eingefügt werden, was in Formeln nicht möglich ist:
+ eingefügt werden:
 \end_layout
 
 \begin_layout Standard
@@ -14809,7 +14853,7 @@ Mathe-Optionen
 
 
 \begin_inset Tabular
-<lyxtabular version="3" rows="11" columns="2">
+<lyxtabular version="3" rows="9" columns="2">
 <features>
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -14914,31 +14958,6 @@ int
 \begin_layout Plain Layout
 
 \backslash
-intop
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-\begin_inset Formula $\intop$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\backslash
 oint
 \end_layout
 
@@ -14949,31 +14968,6 @@ oint
 
 \begin_layout Plain Layout
 \begin_inset Formula $\oint$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\backslash
-ointop
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-\begin_inset Formula $\ointop$
 \end_inset
 
 
@@ -15408,32 +15402,34 @@ Die Operatoren werden als groß bezeichnet, da sie größer sind als die zum
 \end_layout
 
 \begin_layout Standard
-Die Operatoren 
+Für alle Integrale gibt es Befehle, die auf 
+\series bold
+op
+\series default
+ enden: 
 \series bold
 
 \backslash
 intop
 \series default
- und 
+, 
 \series bold
 
 \backslash
 ointop
 \series default
- unterscheiden sich von 
+ usw..
+ Diese unterscheiden sich von 
 \series bold
 
 \backslash
 int
 \series default
- bzw.
- 
-\series bold
+ usw.
+\begin_inset space \space{}
+\end_inset
 
-\backslash
-oint
-\series default
- in der Art wie die Operatorgrenzen dargestellt werden, siehe 
+in der Art wie die Operatorgrenzen dargestellt werden, siehe 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Operatorgrenzen"
@@ -15943,19 +15939,23 @@ So sieht die Formel aus, wenn man die Grenzen neben das Summenzeichen setzt:
 
 \end_inset
 
-Bei Integralen werden mit Ausnahme von 
+Bei Integralen werden mit Ausnahme von denen, die auf 
+\series bold
+op
+\series default
+ enden (
 \series bold
 
 \backslash
 intop
 \series default
- und 
+, 
 \series bold
 
 \backslash
 ointop
 \series default
- die Grenzen standardmäßig neben den Operator gesetzt.
+ usw.), die Grenzen standardmäßig neben den Operator gesetzt.
  Bei Mehrfachintegralen werden die Grenzen jedoch meistens unter den Operator
  gesetzt.
  Im folgenden Beispiel wurde die Grenze deswegen auf 
@@ -16087,7 +16087,7 @@ Strg-Enter
 
 
 \series bold
-0<k<1000 Strg-Enter
+0<k<1000 Strg+Enter
 \begin_inset Newline newline
 \end_inset
 
@@ -16276,7 +16276,7 @@ leer
 
 \end_inset
 
-0<k<1000 Strg-Enter
+0<k<1000 Strg+Enter
 \end_layout
 
 \begin_layout Standard
@@ -25239,13 +25239,7 @@ Ergebnis
 status collapsed
 
 \begin_layout Plain Layout
-
-\series bold
-
-\backslash
-hspace
-\series default
- und 
+Der Leerraum und 
 \series bold
 
 \backslash
@@ -25649,13 +25643,11 @@ Befehl
 status collapsed
 
 \begin_layout Plain Layout
+Der Leerraum von 0
+\begin_inset space \thinspace{}
+\end_inset
 
-\series bold
-
-\backslash
-hspace{0mm}
-\series default
- dient nur zur Trennung,da sonst im Ausdruck ¡ bzw.
+mm dient nur zur Trennung,da sonst im Ausdruck ¡ bzw.
  ¿ erscheinen würde.
 \end_layout
 
@@ -27983,40 +27975,10 @@ Lange Formeln kann man wie folgt setzen:
 \begin_layout Itemize
 Ist eine Seite der Gleichung deutlich kürzer als die Zeilenbreite, wählt
  man man diese als linke Seite und schreibt die rechte über zwei Zeilen:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
-\end_inset
-
- 
 \begin_inset Formula \begin{eqnarray}
 H & = & W_{SB}+W_{mv}+W_{D}-\frac{\hbar^{2}}{2m_{0}}\Delta-\frac{\hbar^{2}}{2m_{1}}\Delta_{1}-\frac{\hbar^{2}}{2m_{2}}\Delta_{2}-\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{1}|}\nonumber \\
  &  & -\hspace{3pt}\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{2}|}+\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{R}_{1}-\mathbf{R}_{2}|}\label{eq:kurzlang}\end{eqnarray}
 
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-smallskip
-\end_layout
-
-\end_inset
-
-
-\begin_inset Newline newline
 \end_inset
 
 Das Minuszeichen zu Beginn der zweiten Zeile erscheint eigentlich nicht
@@ -28027,9 +27989,13 @@ Das Minuszeichen zu Beginn der zweiten Zeile erscheint eigentlich nicht
 \series bold
 
 \backslash
-hspace{3pt}
+hspace
 \series default
+ 3
+\begin_inset space \thinspace{}
+\end_inset
 
+pt Leerraum hinter das Minuszeichen eingefügt.
 \begin_inset Foot
 status collapsed
 
@@ -28064,7 +28030,7 @@ hspace
 
 \end_inset
 
- Leerraum hinter das Minuszeichen eingefügt.
+
 \end_layout
 
 \begin_layout Itemize
@@ -28089,41 +28055,11 @@ lefteqn
 .
  Dieser wird in die erste Spalte der ersten Zeile eingegeben und bewirkt,
  dass alle weiteren Eingaben die folgenden Spalten überschreiben:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
-\end_inset
-
-
 \begin_inset Formula \begin{eqnarray}
 \lefteqn{4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right)+D^{2}}\nonumber \\
  &  & -\hspace{3pt}B^{2}-2B\sqrt{r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}}+r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}\nonumber \\
  &  & =B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}\label{eq:lefteqn}\end{eqnarray}
 
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-smallskip
-\end_layout
-
-\end_inset
-
-
-\begin_inset Newline newline
 \end_inset
 
 Nachdem man 
@@ -28135,19 +28071,6 @@ lefteqn
  eingegeben hat, befindet sich der Cursor in einem pinkfarbenen Kästchen,
  das gegenüber dem blauen leicht verschoben ist.
  In dieses wird die Formel eingegeben.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
-\end_inset
-
-
 \begin_inset Newline newline
 \end_inset
 
@@ -28155,16 +28078,7 @@ Der Inhalt der weiteren Zeilen wird in die zweite oder eine andere Formelspalte
  eingegeben.
  Je größer die Spaltennummer in die eingegeben wurde, desto größer ist die
  Einrückung.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
 
@@ -31274,24 +31188,15 @@ gr
 \series default
  definieren, lautet die LaTeX-Vor\SpecialChar \-
 spannzeile:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
+
+\series bold
 
 \backslash
 newcommand{
@@ -31317,24 +31222,15 @@ us
  zu definieren, muss das Argument (was unterstrichen werden soll) berücksichtigt
  werden.
  Dazu sieht die Vorspannzeile wie folgt aus:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
+
+\series bold
 
 \backslash
 newcommand{
@@ -31344,26 +31240,13 @@ us}[1]{
 underline{#1}}
 \series default
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
-
-\series default
 Das Zeichen 
 \series bold
 #
@@ -31394,24 +31277,15 @@ B.
 fb
 \series default
  definieren:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
+
+\series bold
 
 \backslash
 newcommand{
@@ -31421,26 +31295,13 @@ fb}[3]{
 framebox#1#2{$#3$}}
 \series default
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
-
-\series default
 Die beiden Dollarzeichen erstellen hierbei die für 
 \series bold
 
@@ -31466,24 +31327,15 @@ fcolorbox
 \series default
  zu erstellen, bei dem die Farbe der Box nicht mehr angegeben werden muss,
  definiert man das Argument für die Farbe als optional:
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
-
-\series bold
 
 \begin_inset Newline newline
 \end_inset
 
+
+\series bold
 
 \backslash
 newcommand{
@@ -31493,16 +31345,7 @@ cb}[3][white]{
 fcolorbox{#2}{#1}{$#3$}}
 \series default
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-medskip
-\end_layout
-
+\begin_inset VSpace medskip
 \end_inset
 
 
@@ -31994,8 +31837,6 @@ Makro
 
 \begin_inset Graphics
 	filename ../clipart/macrobox.png
-	lyxscale 90
-	scale 90
 
 \end_inset
 
@@ -32154,8 +31995,6 @@ qG
 
 \begin_inset Graphics
 	filename ../clipart/macrouse.png
-	lyxscale 75
-	scale 75
 
 \end_inset
 
@@ -32362,7 +32201,7 @@ Die Makro-Werkzeugleiste enthält von links nach rechts die folgenden Knöpfe:
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
-Argument hinzufügen
+Letztes Argument entfernen
 \end_layout
 
 \end_inset
@@ -32394,7 +32233,7 @@ Argument hinzufügen
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
-Letztes Argument entfernen
+Argument hinzufügen
 \end_layout
 
 \end_inset
@@ -32583,7 +32422,7 @@ einen nicht-optionales ändern
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
-Optionales Argument einfügen
+Optionales Argument entfernen
 \end_layout
 
 \end_inset
@@ -32615,7 +32454,7 @@ Optionales Argument einfügen
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
-Optionales Argument entfernen
+Optionales Argument einfügen
 \end_layout
 
 \end_inset
@@ -32838,7 +32677,7 @@ mbox{
 
 \family sans
 \series default
-Strg-Enter
+Strg+Enter
 \family default
 \series bold
 
@@ -32961,7 +32800,7 @@ leer
 
 \end_inset
 
-A@>j>>B@>>k>C@=F Strg-Enter
+A@>j>>B@>>k>C@=F Strg+Enter
 \begin_inset Newline newline
 \end_inset
 
@@ -33014,7 +32853,7 @@ status collapsed
 
 
 \series bold
-V@| Strg-Enter
+V@| Strg+Enter
 \begin_inset Newline newline
 \end_inset
 
@@ -34275,13 +34114,7 @@ Ergebnis
 status collapsed
 
 \begin_layout Plain Layout
-
-\series bold
-
-\backslash
-hspace
-\series default
- und 
+Der Leerraum und 
 \series bold
 
 \backslash

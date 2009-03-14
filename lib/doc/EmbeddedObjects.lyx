@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -159,7 +159,7 @@
 % redefine the \LyX macro for PDF bookmarks
 \def\LyX{\texorpdfstring{%
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX }}
+  {LyX}}
 \end_preamble
 \options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
 \use_default_options false
@@ -265,7 +265,7 @@ author: Uwe Stöhr
 
 
 \family sans
-Version 1.6.1
+Version 1.6.x
 \end_layout
 
 \begin_layout Standard
@@ -475,11 +475,16 @@ Maintain aspect ratio
 \begin_inset Newline newline
 \end_inset
 
-Images can be opened in a program of your choice when pressing the 
+Images can be opened in a program of your choice by right-clicking on it
+ choosing the entry 
 \family sans
 Edit
+\begin_inset space ~
+\end_inset
+
+externally
 \family default
- button.
+ in the appearing context menu.
  The program can be set for every image format in the file format settings
  in LyX's preferences.
 \end_layout
@@ -1673,7 +1678,7 @@ can be
  In this cases only a header with the image properties is added to the original
  image
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 In the case of PDF, the original image is additionally compressed.
@@ -2974,13 +2979,8 @@ Longtable
 \end_layout
 
 \begin_layout Description
-
-\family sans
-Header
-\family default
-: The current row and all rows above, that don't have any special options
- defined, are defined to be the header rows of all pages of the longtable;
- except for the first page, if 
+Header: The current row is defined to be a header row that appears on all
+ pages of the longtable; except for the first page, if 
 \family sans
 First
 \begin_inset space ~
@@ -2993,26 +2993,17 @@ header
 \end_layout
 
 \begin_layout Description
-
-\family sans
 First
 \begin_inset space ~
 \end_inset
 
-header
-\family default
-: The current row and all rows above, that don't have any special options
- defined, are defined to be the header rows of the first page of the longtable.
+header: The current row is defined to be a header row that appears on the
+ first page of the longtable.
 \end_layout
 
 \begin_layout Description
-
-\family sans
-Footer
-\family default
-: The current row and all rows below, that don't have any special options
- defined, are defined to be the footer rows of all pages of the longtable;
- except for the last page, if 
+Footer: The current row is defined to be a footer row that appears on all
+ pages of the longtable; except for the last page, if 
 \family sans
 Last
 \begin_inset space ~
@@ -3024,26 +3015,17 @@ footer
 \end_layout
 
 \begin_layout Description
-
-\family sans
 Last
 \begin_inset space ~
 \end_inset
 
-footer
-\family default
-: The current row and all rows below, that don't have any special options
- defined, are defined to be the footer rows of the last page of the longtable.
+footer: The current row is defined to be a footer row that appear on the
+ last page of the longtable.
 \end_layout
 
 \begin_layout Description
-Caption: The first row is reset as single column.
- You can now insert there the table caption via the menu 
-\family sans
-Insert\SpecialChar \menuseparator
-Caption
-\family default
-.
+Caption: The current row contains the table caption.
+ The row is reset as single column and a caption is inserted.
  More about longtable captions is explained in sec.
 \begin_inset space \thinspace{}
 \end_inset
@@ -3059,31 +3041,7 @@ reference "sub:Longtable-Captions"
 \end_layout
 
 \begin_layout Standard
-You can also specify a row where the table is splitted.
- If you set more than one option in the same table row, you should be aware
- of the fact that only the first one is used in the given table row.
- The others will then be defined as 
-\emph on
-empty
-\emph default
-.
- In this context, first means first in this order: 
-\family sans
-Header,
-\family default
- 
-\family sans
-First
-\begin_inset space ~
-\end_inset
-
-header, Footer, Last
-\begin_inset space ~
-\end_inset
-
-footer.
-
-\family default
+You can also specify a row where the table is split.
  See the following longtable to see how it works:
 \end_layout
 
@@ -3224,7 +3182,7 @@ TEL.
 </cell>
 </row>
 <row endfoot="true">
-<cell multicolumn="1" alignment="right" valignment="top" topline="true" usebox="none">
+<cell multicolumn="1" alignment="right" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -5746,10 +5704,13 @@ name "sub:Longtable-Captions"
 
 \begin_layout Standard
 A longtable cannot be put into a table float because floats can only be
- on one page but the caption environment of floats can also be used for
- longtables.
- Therefore the caption is inserted as first row of the table, as explained
- in sec.
+ on one page.
+ But the caption environment of floats can also be used for longtables when
+ you use for a table row the longtable option 
+\family sans
+Caption
+\family default
+ as described in sec.
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -5761,8 +5722,7 @@ reference "sec:Longtables"
 \end_inset
 
 .
- The first table row is then only a dummy row for the caption, the actual
- table starts with the second row.
+ Only one table row can contain the caption.
 \end_layout
 
 \begin_layout Standard
@@ -6206,13 +6166,6 @@ Document Settings
  point to the beginning of the document.
 \end_layout
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
 \end_inset
 
 
@@ -7432,12 +7385,8 @@ Longtables ! Different Captions for Pages
 \end_layout
 
 \begin_layout Standard
-When the other captions should differ from the one of the first table page,
- insert a caption with a non-empty short title in a dummy caption row marked
- as first header.
- The caption used for the other table pages is inserted as caption without
- a short title in a dummy caption row that is marked as main header.
- When this caption shouldn't include the table number, use the command
+When the table captions for the following pages should differ from the one
+ of the first table page, insert a caption with the TeX code command
 \end_layout
 
 \begin_layout Standard
@@ -7446,12 +7395,14 @@ When the other captions should differ from the one of the first table page,
 
 \backslash
 caption*{caption text}
+\backslash
+
+\backslash
+%
 \end_layout
 
 \begin_layout Standard
-instead of LyX's caption box.
- The label to reference the table is inserted into the caption of the first
- header.
+in a dummy caption row that is marked as header.
  Table
 \begin_inset space ~
 \end_inset
@@ -7470,13 +7421,13 @@ reference "tab:DiffCaptions"
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="60" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="59" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7510,7 +7461,7 @@ Example Phone List
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7519,7 +7470,7 @@ Example Phone List
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7541,7 +7492,7 @@ Example Phone List (ignore the names)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7550,7 +7501,7 @@ Example Phone List (ignore the names)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7593,8 +7544,8 @@ TEL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7619,7 +7570,7 @@ caption*{Continued Example Phone List}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7628,7 +7579,7 @@ caption*{Continued Example Phone List}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7670,7 +7621,7 @@ Example Phone List
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" leftline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -7690,7 +7641,7 @@ NAME
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9353,35 +9304,6 @@ Roberto
 \end_inset
 </cell>
 </row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
 </lyxtabular>
 
 \end_inset
@@ -9648,13 +9570,13 @@ must be inserted as TeX-Code at the beginning of the cell.
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="39" columns="3">
-<features islongtable="true">
+<lyxtabular version="3" rows="38" columns="3">
+<features islongtable="true" lastFootEmpty="true">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="3cm">
 <column alignment="center" valignment="top" width="0pt">
-<row endfirsthead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row caption="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9688,7 +9610,7 @@ Table with forced page break in table cell
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9697,7 +9619,7 @@ Table with forced page break in table cell
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9719,7 +9641,7 @@ Example Phone List (ignore the names)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9728,7 +9650,7 @@ Example Phone List (ignore the names)
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="right" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9771,8 +9693,8 @@ TEL.
 \end_inset
 </cell>
 </row>
-<row endhead="true" caption="true">
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<row endhead="true">
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9783,7 +9705,7 @@ status collapsed
 
 
 \backslash
-caption*{Continued table with forced page break in table cell}
+caption*{Continued Example Phone List}
 \backslash
 
 \backslash
@@ -9797,7 +9719,7 @@ caption*{Continued table with forced page break in table cell}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9806,7 +9728,7 @@ caption*{Continued table with forced page break in table cell}
 
 \end_inset
 </cell>
-<cell multicolumn="2" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -9817,11 +9739,11 @@ caption*{Continued table with forced page break in table cell}
 </cell>
 </row>
 <row endhead="true">
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
- 
+
 \series bold
 Example Phone List
 \end_layout
@@ -10898,35 +10820,6 @@ Franz
 
 \begin_layout Plain Layout
 111
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row endlastfoot="true">
-<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset
@@ -13286,7 +13179,7 @@ specialrule{width}{space above}{space below}
 \end_layout
 
 \begin_layout Standard
-For more informations about these specialties, we refer to the manual of
+For more information about these specialties, we refer to the manual of
  the LaTeX-package 
 \series bold
 booktabs
@@ -19538,7 +19431,7 @@ reference "sec:Caption-Placement"
 
 \end_inset
 
- -- a gray button with a red label.
+ – a gray button with a red label.
 \end_layout
 
 \begin_layout Standard
@@ -19653,7 +19546,19 @@ Floats\SpecialChar \menuseparator
 Algorithm
 \family default
 .
- It is used for program codes and descriptions of algorithms.
+ It is used for program codes and descriptions of algorithms and can be
+ seen as an alternative to program code listings that are explained in chapter
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Program-Code-Listings"
+
+\end_inset
+
+.
  A possible environment for algorithms is the 
 \family sans
 LyX-Code
@@ -19727,7 +19632,7 @@ algorithm
 \end_layout
 
 \begin_layout Standard
-To insert the list of algorithms you can not use the menu 
+To insert the list of algorithms you can use the menu 
 \family sans
 Insert\SpecialChar \menuseparator
 List
@@ -19741,8 +19646,8 @@ List
 TOC\SpecialChar \menuseparator
 List of Algorithms
 \family default
- when your document is a non-English one.
- In this case use this command in TeX-Code instead:
+ when your document has the same language as LyX's menu names.
+ In other cases use this command in TeX-Code instead:
 \end_layout
 
 \begin_layout Standard
@@ -20943,7 +20848,7 @@ You can also use
 hypcap
 \series default
  for all float types but this is not recommended for stability reasons.
- For more informations, have a look at 
+ For more information, have a look at 
 \series bold
 hypcap
 \series default
@@ -22680,7 +22585,7 @@ usepackage[option]{sidecap}
 
 \begin_layout Standard
 If you set no option, the caption is placed on the side of the outer page
- margin -- to the right on odd pages, to the left on even pages.
+ margin – to the right on odd pages, to the left on even pages.
  You can change the placement to inner margin with the option 
 \series bold
 innercaption
@@ -25139,8 +25044,8 @@ name "fig:Endnotes----footnotes"
 
 \end_inset
 
-Endnotes -- footnotes are printed in a separate paragraph at the end of
- sections or chapters.
+Endnotes – footnotes are printed in a separate paragraph at the end of sections
+ or chapters.
 \end_layout
 
 \end_inset
@@ -25387,10 +25292,10 @@ This is a margin note.
 
 \begin_layout Standard
 Margin notes appear at the right side in single-sided documents.
- In double-sided documents they appear in the outer margin -- left on even
+ In double-sided documents they appear in the outer margin – left on even
  pages, right on odd pages.
- The text of margin notes is aligned opposite to the outer margin -- right-align
-ed when the note appears in the left margin.
+ The text of margin notes is aligned opposite to the outer margin – right-aligne
+d when the note appears in the left margin.
  The first line of the margin note is placed at the position of the text
  line where it is inserted in the document.
 \end_layout
@@ -31201,6 +31106,20 @@ The external material feature allows you to insert files to your document
  document output format because LyX takes care of needed conversions.
  This is similar to images that can be inserted in various image formats
  to LyX documents.
+ When you have enabled Instant Preview in LyX's preferences under 
+\family sans
+Look
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+feel\SpecialChar \menuseparator
+Graphics
+\family default
+, the external material types Dia and Xfig is directly shown in LyX.
 \end_layout
 
 \begin_layout Standard
@@ -31298,6 +31217,22 @@ reference "tab:Comparison-of-the"
 
 \end_inset
 
+.
+\end_layout
+
+\begin_layout Description
+Dia This template supports diagrams created with the program 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Dia"
+target "http://en.wikipedia.org/wiki/Dia_(software)"
+
+\end_inset
+
+
+\series default
 .
 \end_layout
 

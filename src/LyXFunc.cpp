@@ -566,6 +566,15 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		break;
 	}
 
+	case LFUN_VC_COMMAND: {
+		if (cmd.argument().empty())
+			enable = false;
+
+		if (!buf && contains(cmd.getArg(0), 'D'))
+			enable = false;
+		break;
+	}
+
 	case LFUN_WORD_FIND_FORWARD:
 	case LFUN_WORD_FIND_BACKWARD:
 	case LFUN_COMMAND_PREFIX:
@@ -683,7 +692,7 @@ bool LyXFunc::ensureBufferClean(BufferView * bv)
 				      _("&Cancel"));
 
 	if (ret == 0)
-		dispatch(FuncRequest(LFUN_BUFFER_WRITE));
+		lyx_view_->dispatch(FuncRequest(LFUN_BUFFER_WRITE));
 
 	return buf.isClean();
 }
@@ -1589,6 +1598,48 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			theSession().bookmarks().clear();
 			break;
 
+		case LFUN_VC_COMMAND: {
+			string flag = cmd.getArg(0);
+			if (buffer && contains(flag, 'R') && !ensureBufferClean(view()))
+				break;
+			docstring message;
+			if (contains(flag, 'M'))
+				if (!Alert::askForText(message, _("LyX VC: Log Message")))
+					break;
+
+			string path = cmd.getArg(1);
+			if (contains(path, "$$p") && buffer)
+				path = subst(path, "$$p", buffer->filePath());
+			LYXERR(Debug::LYXVC, "Directory: " << path);
+			FileName pp(path);
+			if (!pp.isReadableDirectory()) {
+				lyxerr << _("Directory is not accessible.") << endl;
+				break;
+			}
+			support::PathChanger p(pp);
+
+			string command = cmd.getArg(2);
+			if (command.empty())
+				break;
+			if (buffer) {
+				command = subst(command, "$$i", buffer->absFileName());
+				command = subst(command, "$$p", buffer->filePath());
+			}
+			command = subst(command, "$$m", to_utf8(message));
+			LYXERR(Debug::LYXVC, "Command: " << command);
+			Systemcall one;
+			one.startscript(Systemcall::Wait, command);
+
+			if (!buffer)
+				break;
+			if (contains(flag, 'I'))
+				buffer->markDirty();
+			if (contains(flag, 'R'))
+				reloadBuffer();
+
+			break;
+		}
+
 		default:
 			LASSERT(theApp(), /**/);
 			// Let the frontend dispatch its own actions.
@@ -1733,14 +1784,17 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 
 void LyXFunc::reloadBuffer()
 {
-	Buffer * buf = lyx_view_->buffer();
-	FileName filename = buf->fileName();
+	FileName filename = lyx_view_->buffer()->fileName();
 	// The user has already confirmed that the changes, if any, should
-	// be discarded. So we just reread the file and don't call closeBuffer();
-	bool const success = buf->readFile(filename);
+	// be discarded. So we just release the Buffer and don't call closeBuffer();
+	theBufferList().release(lyx_view_->buffer());
+	// if the lyx_view_ has been destroyed, create a new one
+	if (!lyx_view_)
+		theApp()->dispatch(FuncRequest(LFUN_WINDOW_NEW));
+	Buffer * buf = lyx_view_->loadDocument(filename);
 	docstring const disp_fn = makeDisplayPath(filename.absFilename());
 	docstring str;
-	if (buf && success) {
+	if (buf) {
 		updateLabels(*buf);
 		lyx_view_->setBuffer(buf);
 		buf->errors("Parse");

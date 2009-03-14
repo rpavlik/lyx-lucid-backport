@@ -1076,10 +1076,11 @@ def convert_latexcommand_index(document):
         if i == -1:
             return
         if document.body[i + 1] != "LatexCommand index": # Might also be index_print
-            return
-        j = find_end_of_inset(document.body, i + 2)
+            i += 1
+            continue
+        j = find_end_of_inset(document.body, i + 1)
         if j == -1:
-            document.warning("Unable to find end of index inset at line " + i + "!")
+            document.warning("Unable to find end of index inset at line " + str(i) + "!")
             i += 2
             continue
         m = r1.match(document.body[i + 2])
@@ -2319,11 +2320,12 @@ def revert_wrapplacement(document):
             document.warning("Malformed LyX document: Couldn't find placement parameter of wrap float.")
             i += 1
             continue
-        r = re.compile("placement (o|i|l|r)")
+        r = re.compile("placement (o|i|l|r|O|I|L|R)")
         m = r.match(document.body[j])
         if m == None:
             document.warning("Malformed LyX document: Placement option isn't O|I|R|L!")
-        document.body[j] = "placement " + m.group(1).lower()
+        else:
+            document.body[j] = "placement " + m.group(1).lower()
         i = j
 
 

@@ -139,7 +139,7 @@ public:
 
 	/** Reads a file without header.
 	    \param par if != 0 insert the file.
-	    \return \c false if file is not completely read.
+	    \return \c true if file is not completely read.
 	*/
 	bool readDocument(Lexer &);
 
@@ -166,7 +166,7 @@ public:
 	/// Write file. Returns \c false if unsuccesful.
 	bool writeFile(support::FileName const &) const;
 
-  /// Loads LyX file \c filename into buffer, *  and \return success
+	/// Loads LyX file \c filename into buffer, *  and \return success
 	bool loadLyXFile(support::FileName const & s);
 
 	/// Fill in the ErrorList with the TeXErrors
@@ -185,14 +185,14 @@ public:
 	    encoding associated to \p os. Therefore you must not call this
 	    method with a string stream if the output is supposed to go to a
 	    file. \code
-	    odocfstream ofs;
+	    ofdocstream ofs;
 	    ofs.open("test.tex");
 	    writeLaTeXSource(ofs, ...);
 	    ofs.close();
 	    \endcode is NOT equivalent to \code
 	    odocstringstream oss;
 	    writeLaTeXSource(oss, ...);
-	    odocfstream ofs;
+	    ofdocstream ofs;
 	    ofs.open("test.tex");
 	    ofs << oss.str();
 	    ofs.close();
@@ -281,6 +281,9 @@ public:
 
 	/// \return true if \p child is a child of this \c Buffer.
 	bool isChild(Buffer * child) const;
+	
+	/// return a vector with all children and grandchildren
+	std::vector<Buffer *> getChildren() const;
 
 	/// Is buffer read-only?
 	bool isReadonly() const;
@@ -437,7 +440,10 @@ public:
 	///
 	void message(docstring const & msg) const;
 
+	///
 	void setGuiDelegate(frontend::GuiBufferDelegate * gui);
+	///
+	frontend::GuiBufferDelegate * guiDelegate() const { return gui_; }
 
 	///
 	void autoSave() const;

@@ -808,7 +808,7 @@ void BufferView::showCursor(DocIterator const & dit)
 		if (ypos - row_dim.ascent() < 0)
 			scrolled = scrollUp(- ypos + row_dim.ascent());
 		else if (ypos + row_dim.descent() > height_)
-			scrolled = scrollDown(ypos - height_ + row_dim.descent());
+			scrolled = scrollDown(ypos - height_ + defaultRowHeight());
 		// else, nothing to do, the cursor is already visible so we just return.
 		if (scrolled != 0) {
 			updateMetrics();
@@ -834,8 +834,10 @@ void BufferView::showCursor(DocIterator const & dit)
 		d->anchor_ypos_ = offset + pm.ascent();
 	else if (d->anchor_pit_ == max_pit)
 		d->anchor_ypos_ = height_ - offset - row_dim.descent();
+	else if (offset > height_ - defaultRowHeight() * 2)
+		d->anchor_ypos_ = height_ - offset - defaultRowHeight();
 	else
-		d->anchor_ypos_ = defaultRowHeight() * 2 - offset - row_dim.descent();
+		d->anchor_ypos_ = defaultRowHeight() * 2;
 
 	updateMetrics();
 	buffer_.changed();
@@ -883,6 +885,15 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 	case LFUN_STATISTICS:
 		flag.setEnabled(true);
 		break;
+
+	case LFUN_COPY_LABEL_AS_REF: {
+		// if there is an inset at cursor, see whether it
+		// handles the lfun
+		Inset * inset = cur.nextInset();
+		if (!inset || !inset->getStatus(cur, cmd, flag))
+			flag.setEnabled(false);
+		break;
+	}
 
 	case LFUN_NEXT_INSET_TOGGLE: 
 	case LFUN_NEXT_INSET_MODIFY: {
@@ -1138,19 +1149,19 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		buffer_.params().outputChanges = !buffer_.params().outputChanges;
 		if (buffer_.params().outputChanges) {
 			bool dvipost    = LaTeXFeatures::isAvailable("dvipost");
-			bool xcolorsoul = LaTeXFeatures::isAvailable("soul") &&
+			bool xcolorulem = LaTeXFeatures::isAvailable("ulem") &&
 					  LaTeXFeatures::isAvailable("xcolor");
 
-			if (!dvipost && !xcolorsoul) {
+			if (!dvipost && !xcolorulem) {
 				Alert::warning(_("Changes not shown in LaTeX output"),
 					       _("Changes will not be highlighted in LaTeX output, "
-						 "because neither dvipost nor xcolor/soul are installed.\n"
+						 "because neither dvipost nor xcolor/ulem are installed.\n"
 						 "Please install these packages or redefine "
 						 "\\lyxadded and \\lyxdeleted in the LaTeX preamble."));
-			} else if (!xcolorsoul) {
+			} else if (!xcolorulem) {
 				Alert::warning(_("Changes not shown in LaTeX output"),
 					       _("Changes will not be highlighted in LaTeX output "
-						 "when using pdflatex, because xcolor and soul are not installed.\n"
+						 "when using pdflatex, because xcolor and ulem are not installed.\n"
 						 "Please install both packages or redefine "
 						 "\\lyxadded and \\lyxdeleted in the LaTeX preamble."));
 			}
@@ -1321,7 +1332,20 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		// turn compression on/off
 		buffer_.params().compressed = !buffer_.params().compressed;
 		break;
-	
+	case LFUN_COPY_LABEL_AS_REF: {
+		// if there is an inset at cursor, try to copy it
+		Inset * inset = cur.nextInset();
+		if (inset) {
+			FuncRequest tmpcmd = cmd;
+			inset->dispatch(cur, tmpcmd);
+		}
+		if (!cur.result().dispatched())
+			// It did not work too; no action needed.
+			break;
+		cur.clearSelection();
+		processUpdateFlags(Update::SinglePar | Update::FitCursor);
+		break;
+	}
 	case LFUN_NEXT_INSET_TOGGLE: {
 		// create the the real function we want to invoke
 		FuncRequest tmpcmd = cmd;
@@ -1358,11 +1382,15 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		// if there is an inset at cursor, see whether it
 		// can be modified.
 		Inset * inset = cur.nextInset();
-		if (inset)
+		if (inset) {
+			cur.recordUndo();
 			inset->dispatch(cur, tmpcmd);
+		}
 		// if it did not work, try the underlying inset.
-		if (!inset || !cur.result().dispatched())
+		if (!inset || !cur.result().dispatched()) {
+			cur.recordUndo();
 			cur.dispatch(tmpcmd);
+		}
 
 		if (!cur.result().dispatched())
 			// It did not work too; no action needed.
@@ -2388,6 +2416,8 @@ bool samePar(DocIterator const & a, DocIterator const & b)
 	if (a.empty() && b.empty())
 		return true;
 	if (a.empty() || b.empty())
+		return false;
+	if (a.depth() != b.depth())
 		return false;
 	return &a.innerParagraph() == &b.innerParagraph();
 }

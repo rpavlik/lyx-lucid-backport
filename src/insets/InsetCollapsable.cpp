@@ -44,11 +44,35 @@ using namespace std;
 
 namespace lyx {
 
-InsetCollapsable::CollapseStatus InsetCollapsable::status() const
+InsetCollapsable::CollapseStatus InsetCollapsable::status(BufferView const & bv) const
 {
 	if (decoration() == InsetLayout::CONGLOMERATE)
 		return status_;
-	return autoOpen_ ? Open : status_;
+	return auto_open_[&bv] ? Open : status_;
+}
+
+
+InsetCollapsable::Geometry InsetCollapsable::geometry(BufferView const & bv) const
+{
+	switch (decoration()) {
+	case InsetLayout::CLASSIC:
+		if (status(bv) == Open)
+			return openinlined_ ? LeftButton : TopButton;
+		return ButtonOnly;
+
+	case InsetLayout::MINIMALISTIC:
+		return status(bv) == Open ? NoButton : ButtonOnly ;
+
+	case InsetLayout::CONGLOMERATE:
+		return status(bv) == Open ? SubLabel : Corners ;
+
+	case InsetLayout::DEFAULT:
+		break; // this shouldn't happen
+	}
+
+	// dummy return value to shut down a warning,
+	// this is dead code.
+	return NoButton;
 }
 
 
@@ -56,15 +80,15 @@ InsetCollapsable::Geometry InsetCollapsable::geometry() const
 {
 	switch (decoration()) {
 	case InsetLayout::CLASSIC:
-		if (status() == Open)
+		if (status_ == Open)
 			return openinlined_ ? LeftButton : TopButton;
 		return ButtonOnly;
 
 	case InsetLayout::MINIMALISTIC:
-		return status() == Open ? NoButton : ButtonOnly ;
+		return status_ == Open ? NoButton : ButtonOnly ;
 
 	case InsetLayout::CONGLOMERATE:
-		return status() == Open ? SubLabel : Corners ;
+		return status_ == Open ? SubLabel : Corners ;
 
 	case InsetLayout::DEFAULT:
 		break; // this shouldn't happen
@@ -78,7 +102,7 @@ InsetCollapsable::Geometry InsetCollapsable::geometry() const
 
 InsetCollapsable::InsetCollapsable(Buffer const & buf)
 	: InsetText(buf), status_(Inset::Open),
-	  openinlined_(false), autoOpen_(false), mouse_hover_(false)
+	  openinlined_(false), mouse_hover_(false)
 {
 	DocumentClass const & dc = buf.params().documentClass();
 	setLayout(&dc);
@@ -96,7 +120,7 @@ InsetCollapsable::InsetCollapsable(InsetCollapsable const & rhs)
 	  labelstring_(rhs.labelstring_),
 	  button_dim(rhs.button_dim),
 	  openinlined_(rhs.openinlined_),
-	  autoOpen_(rhs.autoOpen_),
+	  auto_open_(rhs.auto_open_),
 	  // the sole purpose of this copy constructor
 	  mouse_hover_(false)
 {
@@ -105,10 +129,10 @@ InsetCollapsable::InsetCollapsable(InsetCollapsable const & rhs)
 
 docstring InsetCollapsable::toolTip(BufferView const & bv, int x, int y) const
 {
-	Dimension dim = dimensionCollapsed();
-	if (geometry() == NoButton)
+	Dimension dim = dimensionCollapsed(bv);
+	if (geometry(bv) == NoButton)
 		return translateIfPossible(layout_->labelstring());
-	if (x > xo(bv) + dim.wid || y > yo(bv) + dim.des || isOpen())
+	if (x > xo(bv) + dim.wid || y > yo(bv) + dim.des || isOpen(bv))
 		return docstring();
 
 	OutputParams rp(&buffer().params().encoding());
@@ -185,12 +209,12 @@ void InsetCollapsable::read(Lexer & lex)
 }
 
 
-Dimension InsetCollapsable::dimensionCollapsed() const
+Dimension InsetCollapsable::dimensionCollapsed(BufferView const & bv) const
 {
 	LASSERT(layout_, /**/);
 	Dimension dim;
 	theFontMetrics(layout_->labelfont()).buttonText(
-		labelstring_, dim.wid, dim.asc, dim.des);
+		buttonLabel(bv), dim.wid, dim.asc, dim.des);
 	return dim;
 }
 
@@ -199,13 +223,15 @@ void InsetCollapsable::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	LASSERT(layout_, /**/);
 
-	autoOpen_ = mi.base.bv->cursor().isInside(this);
+	auto_open_[mi.base.bv] =  mi.base.bv->cursor().isInside(this);
 
 	FontInfo tmpfont = mi.base.font;
 	mi.base.font = layout_->font();
 	mi.base.font.realize(tmpfont);
 
-	switch (geometry()) {
+	BufferView const & bv = *mi.base.bv;
+
+	switch (geometry(bv)) {
 	case NoButton:
 		InsetText::metrics(mi, dim);
 		break;
@@ -224,15 +250,16 @@ void InsetCollapsable::metrics(MetricsInfo & mi, Dimension & dim) const
 		int w = 0;
 		int a = 0;
 		int d = 0;
-		theFontMetrics(font).rectText(labelstring_, w, a, d);
+		theFontMetrics(font).rectText(buttonLabel(bv), w, a, d);
 		dim.des += a + d;
 		break;
 		}
 	case TopButton:
 	case LeftButton:
 	case ButtonOnly:
-		dim = dimensionCollapsed();
-		if (geometry() == TopButton || geometry() == LeftButton) {
+		dim = dimensionCollapsed(bv);
+		if (geometry(bv) == TopButton 
+			  || geometry(bv) == LeftButton) {
 			Dimension textdim;
 			InsetText::metrics(mi, textdim);
 			openinlined_ = (textdim.wid + dim.wid) < mi.base.textwidth;
@@ -263,25 +290,26 @@ bool InsetCollapsable::setMouseHover(bool mouse_hover)
 void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 {
 	LASSERT(layout_, /**/);
+	BufferView const & bv = *pi.base.bv;
 
-	autoOpen_ = pi.base.bv->cursor().isInside(this);
+	auto_open_[&bv] =  bv.cursor().isInside(this);
 
 	FontInfo tmpfont = pi.base.font;
 	pi.base.font = layout_->font();
 	pi.base.font.realize(tmpfont);
 
 	// Draw button first -- top, left or only
-	Dimension dimc = dimensionCollapsed();
+	Dimension dimc = dimensionCollapsed(bv);
 
-	if (geometry() == TopButton ||
-	    geometry() == LeftButton ||
-	    geometry() == ButtonOnly) {
+	if (geometry(*pi.base.bv) == TopButton ||
+	    geometry(*pi.base.bv) == LeftButton ||
+	    geometry(*pi.base.bv) == ButtonOnly) {
 		button_dim.x1 = x + 0;
 		button_dim.x2 = x + dimc.width();
 		button_dim.y1 = y - dimc.asc;
 		button_dim.y2 = y + dimc.des;
 
-		pi.pain.buttonText(x, y, labelstring_, layout_->labelfont(),
+		pi.pain.buttonText(x, y, buttonLabel(bv), layout_->labelfont(),
 			mouse_hover_);
 	} else {
 		button_dim.x1 = 0;
@@ -290,10 +318,10 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 		button_dim.y2 = 0;
 	}
 
-	Dimension const textdim = InsetText::dimension(*pi.base.bv);
+	Dimension const textdim = InsetText::dimension(bv);
 	int const baseline = y;
 	int textx, texty;
-	switch (geometry()) {
+	switch (geometry(bv)) {
 	case LeftButton:
 		textx = x + dimc.width();
 		texty = baseline;
@@ -320,7 +348,7 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 		const_cast<InsetCollapsable *>(this)->setDrawFrame(true);
 
 		int desc = textdim.descent();
-		if (geometry() == Corners)
+		if (geometry(bv) == Corners)
 			desc -= 3;
 
 		const int xx1 = x + TEXT_TO_INSET_OFFSET - 1;
@@ -345,7 +373,7 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 			y + desc - 4, layout_->labelfont().color());
 
 		// the label below the text. Can be toggled.
-		if (geometry() == SubLabel) {
+		if (geometry(bv) == SubLabel) {
 			FontInfo font(layout_->labelfont());
 			font.realize(sane_font);
 			font.decSize();
@@ -353,15 +381,15 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 			int w = 0;
 			int a = 0;
 			int d = 0;
-			theFontMetrics(font).rectText(labelstring_, w, a, d);
+			theFontMetrics(font).rectText(buttonLabel(bv), w, a, d);
 			int const ww = max(textdim.wid, w);
 			pi.pain.rectText(x + (ww - w) / 2, y + desc + a,
-				labelstring_, font, Color_none, Color_none);
+				buttonLabel(bv), font, Color_none, Color_none);
 			desc += d;
 		}
 
 		// a visual cue when the cursor is inside the inset
-		Cursor & cur = pi.base.bv->cursor();
+		Cursor const & cur = bv.cursor();
 		if (cur.isInside(this)) {
 			y -= textdim.asc;
 			y += 3;
@@ -382,19 +410,19 @@ void InsetCollapsable::draw(PainterInfo & pi, int x, int y) const
 void InsetCollapsable::cursorPos(BufferView const & bv,
 		CursorSlice const & sl, bool boundary, int & x, int & y) const
 {
-	if (geometry() == ButtonOnly)
+	if (geometry(bv) == ButtonOnly)
 		status_ = Open;
-	LASSERT(geometry() != ButtonOnly, /**/);
+	LASSERT(geometry(bv) != ButtonOnly, /**/);
 
 	InsetText::cursorPos(bv, sl, boundary, x, y);
 	Dimension const textdim = InsetText::dimension(bv);
 
-	switch (geometry()) {
+	switch (geometry(bv)) {
 	case LeftButton:
-		x += dimensionCollapsed().wid;
+		x += dimensionCollapsed(bv).wid;
 		break;
 	case TopButton: {
-		y += dimensionCollapsed().des + textdim.asc;
+		y += dimensionCollapsed(bv).des + textdim.asc;
 		break;
 	}
 	case NoButton:
@@ -459,9 +487,9 @@ void InsetCollapsable::edit(Cursor & cur, bool front, EntryDirection entry_from)
 Inset * InsetCollapsable::editXY(Cursor & cur, int x, int y)
 {
 	//lyxerr << "InsetCollapsable: edit xy" << endl;
-	if (geometry() == ButtonOnly
+	if (geometry(cur.bv()) == ButtonOnly
 	 || (button_dim.contains(x, y) 
-	  && geometry() != NoButton))
+	  && geometry(cur.bv()) != NoButton))
 		return this;
 	cur.push(*this);
 	return InsetText::editXY(cur, x, y);
@@ -491,7 +519,7 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 				cur.noUpdate();
 				break;
 			}
-		} else if (geometry() != ButtonOnly)
+		} else if (geometry(cur.bv()) != ButtonOnly)
 			InsetText::doDispatch(cur, cmd);
 		else
 			cur.undispatched();
@@ -502,7 +530,7 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_TRIPLE:
 		if (hitButton(cmd)) 
 			cur.noUpdate();
-		else if (geometry() != ButtonOnly)
+		else if (geometry(cur.bv()) != ButtonOnly)
 			InsetText::doDispatch(cur, cmd);
 		else
 			cur.undispatched();
@@ -511,7 +539,7 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_RELEASE:
 		if (!hitButton(cmd)) {
 			// The mouse click has to be within the inset!
-			if (geometry() != ButtonOnly)
+			if (geometry(cur.bv()) != ButtonOnly)
 				InsetText::doDispatch(cur, cmd);
 			else
 				cur.undispatched();			
@@ -530,7 +558,7 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// toggle the inset visual state.
 		cur.dispatched();
 		cur.updateFlags(Update::Force | Update::FitCursor);
-		if (geometry() == ButtonOnly) {
+		if (geometry(cur.bv()) == ButtonOnly) {
 			setStatus(cur, Open);
 			edit(cur, true);
 		}
@@ -547,7 +575,7 @@ void InsetCollapsable::doDispatch(Cursor & cur, FuncRequest & cmd)
 		else if (cmd.argument() == "toggle" || cmd.argument().empty())
 			if (status_ == Open) {
 				setStatus(cur, Collapsed);
-				if (geometry() == ButtonOnly)
+				if (geometry(cur.bv()) == ButtonOnly)
 					cur.top().forwardPos();
 			} else
 				setStatus(cur, Open);
@@ -839,10 +867,10 @@ docstring InsetCollapsable::contextMenu(BufferView const & bv, int x,
 	if (decoration() == InsetLayout::CONGLOMERATE)
 		return from_ascii("context-conglomerate");
 
-	if (geometry() == NoButton)
+	if (geometry(bv) == NoButton)
 		return from_ascii("context-collapsable");
 
-	Dimension dim = dimensionCollapsed();
+	Dimension dim = dimensionCollapsed(bv);
 	if (x < xo(bv) + dim.wid && y < yo(bv) + dim.des)
 		return from_ascii("context-collapsable");
 

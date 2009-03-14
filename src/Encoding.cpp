@@ -15,6 +15,7 @@
 #include "Encoding.h"
 
 #include "Buffer.h"
+#include "BufferList.h"
 #include "InsetIterator.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
@@ -23,6 +24,7 @@
 #include "support/debug.h"
 #include "support/FileName.h"
 #include "support/lstrings.h"
+#include "support/textutils.h"
 #include "support/unicode.h"
 
 #include <boost/cstdint.hpp>
@@ -493,8 +495,23 @@ docstring Encodings::fromLaTeXCommand(docstring const & cmd, docstring & rem)
 				tmp.resize(tmp.size() - 1);
 
 			// If this is an exact match, we found a (longer)
-			// matching command in the unicodesymbols file
-			if (math == tmp || text == tmp) {
+			// matching entry in the unicodesymbols file.
+			// If the entry doesn't start with '\', we take note
+			// of the match and continue (this is not a ultimate
+			// acceptance, as some other entry may match a longer
+			// portion of the cmd string). However, if the entry
+			// does start with '\', we accept the match only if
+			// this is a valid macro, i.e., either it is a single
+			// (nonletter) char macro, or nothing else follows,
+			// or what follows is a nonletter char, or the last
+			// character is a }.
+			if ((math == tmp || text == tmp)
+			    && (tmp[0] != '\\'
+				   || (tmp.size() == 2 && !isAlphaASCII(tmp[1]))
+				   || k == cmdend 
+				   || !isAlphaASCII(cmd[k])
+				   || tmp[tmp.size() - 1] == '}')
+				 ) {
 				c = it->first;
 				j = k - 1;
 				i = j + 1;
@@ -511,18 +528,27 @@ docstring Encodings::fromLaTeXCommand(docstring const & cmd, docstring & rem)
 }
 
 
-void Encodings::initUnicodeMath(Buffer const & buffer)
+void Encodings::initUnicodeMath(Buffer const & buffer, bool clear_sets)
 {
-	mathcmd.clear();
-	textcmd.clear();
-	mathsym.clear();
+	if (clear_sets) {
+		mathcmd.clear();
+		textcmd.clear();
+		mathsym.clear();
+	}
 
+	// Check master
 	Inset & inset = buffer.inset();
 	InsetIterator it = inset_iterator_begin(inset);
 	InsetIterator const end = inset_iterator_end(inset);
-
 	for (; it != end; ++it)
 		it->initUnicodeMath();
+
+	// Check children
+	BufferList::iterator bit = theBufferList().begin();
+	BufferList::iterator const bend = theBufferList().end();
+	for (; bit != bend; ++bit)
+		if (buffer.isChild(*bit))
+			initUnicodeMath(**bit, false);
 }
 
 

@@ -69,8 +69,7 @@ public:
 
 	/// return x,y of given position relative to the inset's baseline
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
-	///
-	bool boundary, int & x, int & y) const;
+		bool boundary, int & x, int & y) const;
 	/// Returns true if (mouse) action is over the inset's button.
 	/// Always returns false when the inset does not have a
 	/// button.
@@ -86,9 +85,13 @@ public:
 	///
 	virtual void setButtonLabel() {}
 	///
-	bool isOpen() const { return geometry() != ButtonOnly; }
+	virtual docstring const buttonLabel(BufferView const &) const
+		{ return labelstring_; }
 	///
-	CollapseStatus status() const;
+	bool isOpen(BufferView const & bv) const 
+		{ return geometry(bv) != ButtonOnly; }
+	///
+	CollapseStatus status(BufferView const & bv) const;
 	/** Of the old CollapseStatus we only keep the values  
 	 *  Open and Collapsed.
 	 * We define a list of possible inset decoration
@@ -105,7 +108,7 @@ public:
 	 *   Conglomerate | SubLabel            Corners
 	 *   ---------------------------------------------
 	 *   *) toggled by openinlined_
-	 *   x) toggled by autoOpen_
+	 *   x) toggled by auto_open_
 	 */
 
 	/// Default looks
@@ -120,8 +123,10 @@ public:
 		Corners
 	};
 	/// Returns the geometry based on CollapseStatus
-	/// (status_), autoOpen_ and openinlined_, and of
-	/// course decoration().
+	/// (status_), auto_open_[BufferView] and openinlined_,
+	/// and of course decoration().
+	Geometry geometry(BufferView const & bv) const;
+	/// Returns the geometry disregarding auto_open_
 	Geometry geometry() const;
 	/// Allow spellchecking, except for insets with latex_language
 	bool allowSpellCheck() const { return !forceLTR(); }
@@ -173,15 +178,16 @@ private:
 	/// cache for the layout_. Make sure it is in sync with the document class!
 	InsetLayout const * layout_;
 	///
-	Dimension dimensionCollapsed() const;
+	Dimension dimensionCollapsed(BufferView const & bv) const;
 	///
 	docstring labelstring_;
 	///
 	mutable Box button_dim;
 	/// a substatus of the Open status, determined automatically in metrics
 	mutable bool openinlined_;
-	/// the inset will automatically open when the cursor is inside
-	mutable bool autoOpen_;
+	/// the inset will automatically open when the cursor is inside. This is
+	/// dependent on the bufferview, compare with MathMacro::editing_.
+	mutable std::map<BufferView const *, bool> auto_open_;
 	/// changes color when mouse enters/leaves this inset
 	bool mouse_hover_;
 };

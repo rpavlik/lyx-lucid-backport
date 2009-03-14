@@ -243,9 +243,10 @@ void InsetInclude::doDispatch(Cursor & cur, FuncRequest & cmd)
 				docstring old_label;
 				if (label_)
 					old_label = label_->getParam("name");
-				if (new_label.empty())
+				if (new_label.empty()) {
 					delete label_;
-				else if (label_ && old_label != new_label) {
+					label_ = 0;
+				} else if (label_ && old_label != new_label) {
 					label_->updateCommand(new_label);
 					// the label might have been adapted (duplicate)
 					if (new_label != label_->getParam("name")) {
@@ -447,10 +448,17 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 	}
 
 	// write it to a file (so far the complete file)
-	string const exportfile = changeExtension(incfile, ".tex");
-	string const mangled =
-		DocFileName(changeExtension(included_file.absFilename(),".tex")).
+	string exportfile;
+	string mangled;
+	if (type(params()) == LISTINGS) {
+		exportfile = incfile;
+		mangled = DocFileName(included_file).mangledFilename();
+	} else {
+		exportfile = changeExtension(incfile, ".tex");
+		mangled = DocFileName(changeExtension(included_file.absFilename(), ".tex")).
 			mangledFilename();
+	}
+
 	FileName const writefile(makeAbsPath(mangled, masterBuffer->temppath()));
 
 	if (!runparams.nice)

@@ -162,12 +162,12 @@ bool InsetERT::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetERT::setButtonLabel()
+docstring const InsetERT::buttonLabel(BufferView const & bv) const
 {
 	if (decoration() == InsetLayout::CLASSIC)
-		setLabel(isOpen() ? _("ERT") : getNewLabel(_("ERT")));
+		return isOpen(bv) ? _("ERT") : getNewLabel(_("ERT"));
 	else
-		setLabel(getNewLabel(_("ERT")));
+		return getNewLabel(_("ERT"));
 }
 
 
@@ -179,7 +179,7 @@ bool InsetERT::insetAllowed(InsetCode /* code */) const
 
 bool InsetERT::showInsetDialog(BufferView * bv) const
 {
-	bv->showDialog("ert", params2string(status()), 
+	bv->showDialog("ert", params2string(status(*bv)), 
 		const_cast<InsetERT *>(this));
 	return true;
 }

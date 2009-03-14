@@ -320,13 +320,13 @@ const char * iconv_codecvt_facet_exception::what() const throw()
 }
 
 
-idocfstream::idocfstream(string const & encoding) : base()
+ifdocstream::ifdocstream(string const & encoding) : base()
 {
 	setEncoding(*this, encoding, in);
 }
 
 
-idocfstream::idocfstream(const char* s, ios_base::openmode mode,
+ifdocstream::ifdocstream(const char* s, ios_base::openmode mode,
 			 string const & encoding)
 	: base()
 {
@@ -335,13 +335,13 @@ idocfstream::idocfstream(const char* s, ios_base::openmode mode,
 }
 
 
-odocfstream::odocfstream(): base()
+ofdocstream::ofdocstream(): base()
 {
 	setEncoding(*this, "UTF-8", out);
 }
 
 
-odocfstream::odocfstream(const char* s, ios_base::openmode mode,
+ofdocstream::ofdocstream(const char* s, ios_base::openmode mode,
 			 string const & encoding)
 	: base()
 {
@@ -350,7 +350,7 @@ odocfstream::odocfstream(const char* s, ios_base::openmode mode,
 }
 
 
-void odocfstream::reset(string const & encoding)
+void ofdocstream::reset(string const & encoding)
 {
 	setEncoding(*this, encoding, out);
 }
@@ -380,6 +380,28 @@ odocstream & operator<<(odocstream & os, SetEnc e)
 		os.imbue(locale);
 	}
 	return os;
+}
+
+
+//CHECKME: I just copied the code above, and have no idea whether it
+//is correct... (JMarc)
+idocstream & operator<<(idocstream & is, SetEnc e)
+{
+	if (has_facet<iconv_codecvt_facet>(is.rdbuf()->getloc())) {
+		// This stream must be a file stream, since we never imbue
+		// any other stream with a locale having a iconv_codecvt_facet.
+		// Flush the stream so that all pending output is written
+		// with the old encoding.
+		//is.flush();
+		locale locale(is.rdbuf()->getloc(),
+			new iconv_codecvt_facet(e.encoding, ios_base::in));
+		// FIXME Does changing the codecvt facet of an open file
+		// stream always work? It does with gcc 4.1, but I have read
+		// somewhere that it does not with MSVC.
+		// What does the standard say?
+		is.imbue(locale);
+	}
+	return is;
 }
 
 
