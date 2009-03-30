@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 rm -f /usr/share/lyx/lyxrc.defaults
 rm -f /usr/share/lyx/packages.lst

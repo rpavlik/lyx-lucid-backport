@@ -6,6 +6,9 @@ lyx (1.6.2-1) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * New upstream release Closes: #519936
   * Update Standards-Version to 3.8.1 without any changes.
+  * Move the -e flag in the (post|pre)inst scripts from the shebang
+    line to a separate 'set -e'. This is useful if you run the scripts
+    with a different shell for debugging purpose.
 
  -- Sven Hoexter <sven@timegate.de>  Mon, 30 Mar 2009 13:14:30 +0200
 

@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 # Remove a no-longer used conffile
 rm_conffile() {
