@@ -5,8 +5,9 @@ lyx (1.6.2-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * New upstream release Closes: #519936
+  * Update Standards-Version to 3.8.1 without any changes.
 
- -- Sven Hoexter <sven@timegate.de>  Sat, 14 Mar 2009 18:48:20 +0100
+ -- Sven Hoexter <sven@timegate.de>  Mon, 30 Mar 2009 13:14:30 +0200
 
 lyx (1.6.1-1) unstable; urgency=low
 
