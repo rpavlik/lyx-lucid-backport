@@ -1,4 +1,4 @@
-lyx (1.6.2-1) UNRELEASED; urgency=low
+lyx (1.6.2-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * Add ghostscript and poppler-utils to Recommends. Closes: #515914
@@ -10,7 +10,7 @@ lyx (1.6.2-1) UNRELEASED; urgency=low
     line to a separate 'set -e'. This is useful if you run the scripts
     with a different shell for debugging purpose.
 
- -- Sven Hoexter <sven@timegate.de>  Mon, 30 Mar 2009 13:14:30 +0200
+ -- Per Olofsson <pelle@debian.org>  Mon, 30 Mar 2009 23:32:31 +0200
 
 lyx (1.6.1-1) unstable; urgency=low
 
