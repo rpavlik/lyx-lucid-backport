@@ -1,3 +1,11 @@
+lyx (1.6.2-2) unstable; urgency=low
+
+  [ Sven Hoexter ]
+  * Add patches/boost-mt. Starting with boost 1.38.0 the -mt suffix in the
+    soname is back so we've to modify some makefiles to let it link again.
+
+ -- Sven Hoexter <sven@timegate.de>  Thu, 14 May 2009 22:52:40 +0200
+
 lyx (1.6.2-1) unstable; urgency=low
 
   [ Per Olofsson ]
