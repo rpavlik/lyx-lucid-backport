@@ -13,7 +13,7 @@ Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
  autotools-dev, libqt4-dev, libboost-dev (>= 1.34.1),
  libboost-filesystem-dev, libboost-signals-dev,
  libboost-iostreams-dev, libboost-regex-dev, libboost-test-dev,
- pkg-config, tex-common
+ pkg-config, tex-common, defoma
 
 Package: lyx
 Architecture: any
@@ -53,3 +53,12 @@ Description: Architecture-independent files for LyX
  This package contains LyX's common files which are not
  architecture-dependent. See the lyx package for a description of LyX
  itself.
+
+Package: ttf-lyx
+Architecture: all
+Depends: defoma
+Replaces: latex-xft-fonts
+Description: Xft-compatible versions of some LaTeX fonts
+ Some Xft-compatible versions of LaTeX fonts for use with visual math
+ symbol display in LyX. It is useful primarily for the LyX Qt frontend.
+ It is also useful for Mozilla Firefox with MathML documents.
