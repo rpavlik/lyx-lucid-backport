@@ -18,7 +18,7 @@ Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
 Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, lyx-common (= ${source:Version}), xdg-utils, mime-support
-Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, latex-xft-fonts, evince | pdf-viewer
+Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, ttf-lyx, evince | pdf-viewer
 Suggests: cups-client | lpr, iceweasel | www-browser, rcs, dvipost, tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf
 Replaces: lyx-common (<< 1.5.0~beta1-3)
 Conflicts: lyx-qt, lyx-xforms
