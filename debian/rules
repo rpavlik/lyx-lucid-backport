@@ -79,7 +79,7 @@ install: build
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
-# remove font directory as fonts are in the package latex-xft-fonts
+# remove font directory as fonts are in the package ttf-lyx
 	rm -r debian/lyx-common/usr/share/lyx/fonts
 
 # remove empty directory
@@ -92,6 +92,7 @@ install: build
 	dh_link
 	dh_pysupport /usr/share/lyx
 	dh_installtex -plyx-common
+	dh_installdefoma -pttf-lyx
 
 # now run the rest of the debhelper commands
 	dh install --after dh_install
