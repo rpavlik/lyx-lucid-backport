@@ -56,8 +56,7 @@ Description: Architecture-independent files for LyX
 
 Package: ttf-lyx
 Architecture: all
-Depends: defoma
-Replaces: latex-xft-fonts
+Depends: ${misc:Depends}, defoma
 Description: Xft-compatible versions of some LaTeX fonts
  Some Xft-compatible versions of LaTeX fonts for use with visual math
  symbol display in LyX. It is useful primarily for the LyX Qt frontend.
