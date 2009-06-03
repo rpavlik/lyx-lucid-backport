@@ -6,6 +6,8 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
   * Add patches/boost-mt. Starting with boost 1.38.0 the -mt suffix in the
     soname is back so we've to modify some makefiles to let it link again.
     Closes: #530469
+  * Lift Build-Depends on libboost-dev up to 1.38.0 - otherwise the
+    boost-mt patch will be harmful.
   * Add a ttf-lyx package as replacement for the latex-xft-package.
 
  -- Sven Hoexter <sven@timegate.de>  Wed, 03 Jun 2009 20:00:19 +0200

@@ -10,7 +10,7 @@ Homepage: http://www.lyx.org/
 Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
  debhelper (>= 7), quilt,
  libz-dev, libx11-dev, libaspell-dev,
- autotools-dev, libqt4-dev, libboost-dev (>= 1.34.1),
+ autotools-dev, libqt4-dev, libboost-dev (>= 1.38.0),
  libboost-filesystem-dev, libboost-signals-dev,
  libboost-iostreams-dev, libboost-regex-dev, libboost-test-dev,
  pkg-config, tex-common, defoma
