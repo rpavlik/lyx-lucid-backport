@@ -46,6 +46,7 @@ following hack as starting point to write some macros:
 #include "InsetMathColor.h"
 #include "InsetMathComment.h"
 #include "InsetMathDelim.h"
+#include "InsetMathEnsureMath.h"
 #include "InsetMathEnv.h"
 #include "InsetMathFrac.h"
 #include "InsetMathKern.h"
@@ -804,8 +805,14 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				} else {
 					// simple $...$  stuff
 					putback();
-					cell->push_back(MathAtom(new InsetMathHull(hullSimple)));
-					parse2(cell->back(), FLAG_SIMPLE, InsetMath::MATH_MODE, false);
+					if (mode == InsetMath::UNDECIDED_MODE) {
+						cell->push_back(MathAtom(new InsetMathHull(hullSimple)));
+						parse2(cell->back(), FLAG_SIMPLE, InsetMath::MATH_MODE, false);
+					} else {
+						// Don't create nested math hulls (bug #5392)
+						cell->push_back(MathAtom(new InsetMathEnsureMath));
+						parse(cell->back().nucleus()->cell(0), FLAG_SIMPLE, InsetMath::MATH_MODE);
+					}
 				}
 			}
 
@@ -907,8 +914,24 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			return success_;
 		}
 
-		else if (t.cat() == catOther)
-			cell->push_back(MathAtom(new InsetMathChar(t.character())));
+		else if (t.cat() == catOther) {
+			char_type c = t.character();
+			if (isAsciiOrMathAlpha(c)
+			    || mode_ & Parse::VERBATIM
+			    || !(mode_ & Parse::USETEXT)
+			    || mode == InsetMath::TEXT_MODE) {
+				cell->push_back(MathAtom(new InsetMathChar(c)));
+			} else {
+				MathAtom at = createInsetMath("text");
+				at.nucleus()->cell(0).push_back(MathAtom(new InsetMathChar(c)));
+				while (nextToken().cat() == catOther
+				       && !isAsciiOrMathAlpha(nextToken().character())) {
+					c = getToken().character();
+					at.nucleus()->cell(0).push_back(MathAtom(new InsetMathChar(c)));
+				}
+				cell->push_back(at);
+			}
+		}
 
 		else if (t.cat() == catComment) {
 			docstring s;
@@ -1288,6 +1311,7 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
 			}
 		}
+
 		else if (t.cs() == "unitfrac") {
 			// Here allowed formats are \unitfrac[val]{num}{denom}
 			MathData ar;
@@ -1298,6 +1322,24 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			} else {
 				cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::UNITFRAC)));
 			}
+			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+			parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
+		}
+
+		else if (t.cs() == "cfrac") {
+			// allowed formats are \cfrac[pos]{num}{denom}
+			docstring const arg = getArg('[', ']');
+			//lyxerr << "got so far: '" << arg << "'" << endl;				
+				if (arg == "l")
+					cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::CFRACLEFT)));
+				else if (arg == "r")
+					cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::CFRACRIGHT)));
+				else if (arg.empty() || arg == "c")
+					cell->push_back(MathAtom(new InsetMathFrac(InsetMathFrac::CFRAC)));
+				else {
+					error("found invalid optional argument");
+					break;
+				}
 			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
 			parse(cell->back().nucleus()->cell(1), FLAG_ITEM, mode);
 		}
@@ -1659,17 +1701,18 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				return success_;
 			}
 			docstring rem;
-			cmd = Encodings::fromLaTeXCommand(cmd, rem);
-			for (size_t i = 0; i < cmd.size(); ++i)
-				cell->push_back(MathAtom(new InsetMathChar(cmd[i])));
-			if (rem.size()) {
-				MathAtom at = createInsetMath(t.cs());
-				cell->push_back(at);
-				MathData ar;
-				if (!mathed_parse_cell(ar, '{' + rem + '}', mode_))
-					success_ = false;;
-				cell->append(ar);
-			}
+			do {
+				cmd = Encodings::fromLaTeXCommand(cmd, rem);
+				for (size_t i = 0; i < cmd.size(); ++i)
+					cell->push_back(MathAtom(new InsetMathChar(cmd[i])));
+				if (rem.size()) {
+					char_type c = rem[0];
+					cell->push_back(MathAtom(new InsetMathChar(c)));
+					cmd = rem.substr(1);
+					rem.clear();
+				} else
+					cmd.clear();
+			} while (cmd.size());
 		}
 
 		else if (t.cs().size()) {

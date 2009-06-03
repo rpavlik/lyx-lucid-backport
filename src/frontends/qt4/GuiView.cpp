@@ -17,6 +17,7 @@
 
 #include "Dialog.h"
 #include "FileDialog.h"
+#include "FontLoader.h"
 #include "GuiApplication.h"
 #include "GuiCommandBuffer.h"
 #include "GuiCompleter.h"
@@ -55,13 +56,14 @@
 #include "Toolbars.h"
 #include "version.h"
 
-#include "support/lassert.h"
+#include "support/convert.h"
 #include "support/debug.h"
 #include "support/ExceptionMessage.h"
 #include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/ForkedCalls.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Package.h"
@@ -79,6 +81,7 @@
 #include <QMenuBar>
 #include <QPainter>
 #include <QPixmap>
+#include <QPixmapCache>
 #include <QPoint>
 #include <QPushButton>
 #include <QSettings>
@@ -117,7 +120,7 @@ public:
 		/// The text to be written on top of the pixmap
 		QString const text = lyx_version ?
 			qt_("version ") + lyx_version : qt_("unknown version");
-		splash_ = QPixmap(":/images/banner.png");
+		splash_ = getPixmap("images/", "banner", "png");
 
 		QPainter pain(&splash_);
 		pain.setPen(QColor(0, 0, 0));
@@ -313,7 +316,7 @@ GuiView::GuiView(int id)
 #if (!defined(Q_WS_WIN) && !defined(Q_WS_MACX))
 	// assign an icon to main form. We do not do it under Qt/Win or Qt/Mac,
 	// since the icon is provided in the application bundle.
-	setWindowIcon(QPixmap(":/images/lyx.png"));
+	setWindowIcon(getPixmap("images/", "lyx", "png"));
 #endif
 
 	// For Drag&Drop.
@@ -387,10 +390,10 @@ bool GuiView::restoreLayout()
 
 	// Allow the toc and view-source dock widget to be restored if needed.
 	Dialog *d;
-	if (d = findOrBuild("toc", true))
+	if ((d = findOrBuild("toc", true)))
 		// see bug 5082
 		d->showView();
-	if (d = findOrBuild("view-source", true))
+	if ((d = findOrBuild("view-source", true)))
 		d->showView();
 
 	if (!restoreState(settings.value("layout").toByteArray(), 0))
@@ -522,59 +525,71 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 	// it can happen that this event arrives without selecting the view,
 	// e.g. when clicking the close button on a background window.
 	setFocus();
+	GuiWorkArea const * active_wa = currentWorkArea();
 
-	while (Buffer * b = buffer()) {
-		if (b->parent()) {
-			// This is a child document, just close the tab
-			// after saving but keep the file loaded.
-			if (!closeBuffer(*b, false)) {
+	int splitter_count = d.splitter_->count();
+	for (; splitter_count > 0; --splitter_count) {
+		TabWorkArea * twa = d.tabWorkArea(0);
+				
+		int twa_count = twa->count();
+		for (; twa_count > 0; --twa_count) {
+			twa->setCurrentIndex(twa_count-1);
+
+			GuiWorkArea * wa = twa->currentWorkArea();
+			bool const is_active_wa = active_wa == wa;
+			Buffer * b = &wa->bufferView().buffer();
+
+			if (b->parent()) {
+				// This is a child document, just close the tab
+				// after saving but keep the file loaded.
+				if (!closeBuffer(*b, true, is_active_wa)) {
+					closing_ = false;
+					close_event->ignore();
+					return;
+				}
+				continue;
+			}
+			
+			vector<Buffer *> clist = b->getChildren();
+			for (vector<Buffer *>::const_iterator it = clist.begin();
+				 it != clist.end(); ++it) {
+				if ((*it)->isClean())
+					continue;
+				Buffer * c = *it;
+				// If a child is dirty, do not close
+				// without user intervention
+				if (!closeBuffer(*c, false)) {
+					closing_ = false;
+					close_event->ignore();
+					return;
+				}
+			}
+
+			QList<int> const ids = guiApp->viewIds();
+			for (int i = 0; i != ids.size(); ++i) {
+				if (id_ == ids[i])
+					continue;
+				if (guiApp->view(ids[i]).workArea(*b)) {
+					// FIXME 1: should we put an alert box here that the buffer
+					// is viewed elsewhere?
+					// FIXME 2: should we try to save this buffer in any case?
+					//saveBuffer(b);
+
+					// This buffer is also opened in another view, so
+					// close the associated work area...
+					removeWorkArea(d.current_work_area_);
+					// ... but don't close the buffer.
+					b = 0;
+					break;
+				}
+			}
+			if (b && !closeBuffer(*b, true, is_active_wa)) {
 				closing_ = false;
 				close_event->ignore();
 				return;
 			}
-			continue;
-		}
-		
-		vector<Buffer *> clist = b->getChildren();
-		for (vector<Buffer *>::const_iterator it = clist.begin();
-		     it != clist.end(); ++it) {
-			if ((*it)->isClean())
-				continue;
-			Buffer * c = *it;
-			// If a child is dirty, do not close
-			// without user intervention
-			if (!closeBuffer(*c, false)) {
-				closing_ = false;
-				close_event->ignore();
-				return;
-			}
-		}
-
-		QList<int> const ids = guiApp->viewIds();
-		for (int i = 0; i != ids.size(); ++i) {
-			if (id_ == ids[i])
-				continue;
-			if (guiApp->view(ids[i]).workArea(*b)) {
-				// FIXME 1: should we put an alert box here that the buffer
-				// is viewed elsewhere?
-				// FIXME 2: should we try to save this buffer in any case?
-				//saveBuffer(b);
-
-				// This buffer is also opened in another view, so
-				// close the associated work area...
-				removeWorkArea(d.current_work_area_);
-				// ... but don't close the buffer.
-				b = 0;
-				break;
-			}
-		}
-		if (b && !closeBuffer(*b, true)) {
-			closing_ = false;
-			close_event->ignore();
-			return;
 		}
 	}
-
 	// Make sure that nothing will use this close to be closed View.
 	guiApp->unregisterView(this);
 
@@ -804,8 +819,8 @@ bool GuiView::event(QEvent * e)
 
 	case QEvent::ShortcutOverride: {
 
-#ifndef Q_WS_X11
-		// FIXME bug 4888
+// See bug 4888
+#if (!defined Q_WS_X11) || (QT_VERSION >= 0x040500)
 		if (isFullScreen() && menuBar()->isHidden()) {
 			QKeyEvent * ke = static_cast<QKeyEvent*>(e);
 			// FIXME: we should also try to detect special LyX shortcut such as
@@ -1259,6 +1274,14 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 			enable = false;
 		break;
 
+	case LFUN_BUFFER_ZOOM_OUT:
+		enable = buf && lyxrc.zoom > 10;
+		break;
+
+	case LFUN_BUFFER_ZOOM_IN:
+		enable = buf;
+		break;
+
 	default:
 		return false;
 	}
@@ -1365,7 +1388,7 @@ void GuiView::openDocument(string const & fname)
 
 	if (!fullname.onlyPath().isDirectory()) {
 		Alert::warning(_("Invalid filename"),
-				bformat(_("The directory in the given path\n%1$s\ndoes not exists."),
+				bformat(_("The directory in the given path\n%1$s\ndoes not exist."),
 				from_utf8(fullname.absFilename())));
 		return;
 	}
@@ -1558,8 +1581,13 @@ void GuiView::newDocument(string const & filename, bool from_template)
 			initpath = trypath;
 	}
 
-	string templatefile = from_template ?
-		selectTemplateFile().absFilename() : string();
+	string templatefile;
+	if (from_template) {
+		templatefile = selectTemplateFile().absFilename();
+		if (templatefile.empty())
+			return;
+	}
+	
 	Buffer * b;
 	if (filename.empty())
 		b = newUnnamedFile(templatefile, initpath);
@@ -1632,6 +1660,11 @@ void GuiView::insertPlaintextFile(docstring const & fname,
 	BufferView * bv = view();
 	if (!bv)
 		return;
+
+	if (!fname.empty() && !FileName::isAbsolute(to_utf8(fname))) {
+		message(_("Absolute filename expected."));
+		return;
+	}
 
 	// FIXME UNICODE
 	FileName filename(to_utf8(fname));
@@ -1718,6 +1751,8 @@ bool GuiView::renameBuffer(Buffer & b, docstring const & newname)
 		}
 	}
 
+	FileName oldauto = b.getAutosaveFilename();
+
 	// Ok, change the name of the buffer
 	b.setFileName(fname.absFilename());
 	b.markDirty();
@@ -1725,10 +1760,15 @@ bool GuiView::renameBuffer(Buffer & b, docstring const & newname)
 	b.setUnnamed(false);
 	b.saveCheckSum(fname);
 
+	// bring the autosave file with us, just in case.
+	b.moveAutosaveFile(oldauto);
+	
 	if (!saveBuffer(b)) {
+		oldauto = b.getAutosaveFilename();
 		b.setFileName(oldname.absFilename());
 		b.setUnnamed(unnamed);
 		b.saveCheckSum(oldname);
+		b.moveAutosaveFile(oldauto);
 		return false;
 	}
 
@@ -1778,7 +1818,7 @@ bool GuiView::closeBuffer()
 }
 
 
-bool GuiView::closeBuffer(Buffer & buf, bool tolastopened)
+bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 {
 	// goto bookmark to update bookmark pit.
 	//FIXME: we should update only the bookmarks related to this buffer!
@@ -1786,8 +1826,11 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened)
 		theLyXFunc().gotoBookmark(i+1, false, false);
 
 	if (buf.isClean() || buf.paragraphs().empty()) {
-		if (buf.masterBuffer() == &buf && tolastopened)
-			theSession().lastOpened().add(buf.fileName());
+		// save in sessions if requested
+		// do not save childs if their master
+		// is opened as well
+		if (tolastopened)
+			theSession().lastOpened().add(buf.fileName(), mark_active);
 		if (buf.parent())
 			// Don't close child documents.
 			removeWorkArea(d.current_work_area_);
@@ -1823,17 +1866,15 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened)
 		// if we crash after this we could
 		// have no autosave file but I guess
 		// this is really improbable (Jug)
-		removeAutosaveFile(buf.absFileName());
+		buf.removeAutosaveFile();
 		break;
 	case 2:
 		return false;
 	}
 
 	// save file names to .lyx/session
-	// if master/slave are both open, do not save slave since it
-	// will be automatically loaded when the master is loaded
-	if (buf.masterBuffer() == &buf && tolastopened)
-		theSession().lastOpened().add(buf.fileName());
+	if (tolastopened)
+		theSession().lastOpened().add(buf.fileName(), mark_active);
 
 	if (buf.parent())
 		// Don't close child documents.
@@ -1842,6 +1883,28 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened)
 		theBufferList().release(&buf);
 
 	return true;
+}
+
+
+void GuiView::gotoNextOrPreviousBuffer(NextOrPrevious np)
+{
+	Buffer * const curbuf = buffer();
+	Buffer * nextbuf = curbuf;
+	while (true) {
+		if (np == NEXTBUFFER)
+			nextbuf = theBufferList().next(nextbuf);
+		else
+			nextbuf = theBufferList().previous(nextbuf);
+		if (nextbuf == curbuf)
+			break;
+		if (nextbuf == 0) {
+			nextbuf = curbuf;
+			break;
+		}
+		if (workArea(*nextbuf))
+			break;
+	}
+	setBuffer(nextbuf);
 }
 
 
@@ -1859,15 +1922,22 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			break;
 
 		case LFUN_BUFFER_SWITCH:
-			setBuffer(theBufferList().getBuffer(FileName(to_utf8(cmd.argument()))));
+			if (FileName::isAbsolute(to_utf8(cmd.argument()))) {
+				Buffer * buffer = 
+					theBufferList().getBuffer(FileName(to_utf8(cmd.argument())));
+				if (buffer)
+					setBuffer(buffer);
+				else
+					bv->cursor().message(_("Document not loaded"));
+			}
 			break;
 
 		case LFUN_BUFFER_NEXT:
-			setBuffer(theBufferList().next(buffer()));
+			gotoNextOrPreviousBuffer(NEXTBUFFER);
 			break;
 
 		case LFUN_BUFFER_PREVIOUS:
-			setBuffer(theBufferList().previous(buffer()));
+			gotoNextOrPreviousBuffer(PREVBUFFER);
 			break;
 
 		case LFUN_COMMAND_EXECUTE: {
@@ -2094,6 +2164,25 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				d.current_work_area_->completer().activate();
 			break;
 
+		case LFUN_BUFFER_ZOOM_IN:
+		case LFUN_BUFFER_ZOOM_OUT:
+			if (cmd.argument().empty()) {
+				if (cmd.action == LFUN_BUFFER_ZOOM_IN)
+					lyxrc.zoom += 20;
+				else
+					lyxrc.zoom -= 20;
+			} else
+				lyxrc.zoom += convert<int>(cmd.argument());
+
+			if (lyxrc.zoom < 10)
+				lyxrc.zoom = 10;
+				
+			// The global QPixmapCache is used in GuiPainter to cache text
+			// painting so we must reset it.
+			QPixmapCache::clear();
+			guiApp->fontLoader().update();
+			lyx::dispatch(FuncRequest(LFUN_SCREEN_FONT_UPDATE));
+			break;
 
 		default:
 			dispatched = false;

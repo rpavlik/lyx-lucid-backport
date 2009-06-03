@@ -146,3 +146,4 @@ src/support/filetools.cpp
 src/support/gettext.h
 src/support/os_win32.cpp
 src/support/userinfo.cpp
+src/tex2lyx/Parser.cpp

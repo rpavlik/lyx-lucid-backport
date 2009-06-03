@@ -25,6 +25,8 @@
 #include <windef.h>
 #include <shellapi.h>
 #include <shlwapi.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #include <sys/cygwin.h>
 
@@ -122,7 +124,7 @@ string convert_path_list(string const & p, PathStyle const & target)
 
 } // namespace anon
 
-void os::init(int, char *[])
+void init(int, char *[])
 {
 	// Make sure that the TEMP variable is set
 	// and sync the Windows environment.
@@ -194,7 +196,7 @@ string latex_path(string const & p)
 	// on windows_style_tex_paths_), but we use always forward slashes,
 	// since it gets written into a .tex file.
 
-	if (windows_style_tex_paths_ && FileName(p).isAbsolute()) {
+	if (windows_style_tex_paths_ && FileName::isAbsolute(p)) {
 		string dos_path = convert_path(p, PathStyle(windows));
 		LYXERR(Debug::LATEX, "<Path correction for LaTeX> ["
 			<< p << "]->>[" << dos_path << ']');
@@ -202,6 +204,23 @@ string latex_path(string const & p)
 	}
 
 	return convert_path(p, PathStyle(posix));
+}
+
+
+bool is_valid_strftime(string const & p)
+{
+	string::size_type pos = p.find_first_of('%');
+	while (pos != string::npos) {
+		if (pos + 1 == string::npos)
+			break;
+		if (!containsOnly(p.substr(pos + 1, 1),
+			"aAbBcCdDeEFgGhHIjklmMnOpPrRsStTuUVwWxXyYzZ%+"))
+			return false;
+		if (pos + 2 == string::npos)
+		      break;
+		pos = p.find_first_of('%', pos + 2);
+	}
+	return true;
 }
 
 
@@ -261,6 +280,14 @@ bool autoOpenFile(string const & filename, auto_open_mode const mode)
 	char const * action = (mode == VIEW) ? "open" : "edit";
 	return reinterpret_cast<int>(ShellExecute(NULL, action,
 		win_path.c_str(), NULL, NULL, 1)) > 32;
+}
+
+
+string real_path(string const & path)
+{
+	char rpath[PATH_MAX + 1];
+	char * result = realpath(path.c_str(), rpath);
+	return FileName::fromFilesystemEncoding(result ? rpath : path).absFilename();
 }
 
 } // namespace os

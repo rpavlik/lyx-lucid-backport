@@ -16,7 +16,7 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "BranchList.h"
-#include "Color.h"
+#include "ColorSet.h"
 #include "Counters.h"
 #include "Cursor.h"
 #include "DispatchResult.h"
@@ -29,6 +29,7 @@
 
 #include "support/debug.h"
 #include "support/gettext.h"
+#include "support/lstrings.h"
 
 #include "frontends/Application.h"
 
@@ -77,19 +78,28 @@ void InsetBranch::read(Lexer & lex)
 
 docstring InsetBranch::toolTip(BufferView const &, int, int) const
 {
-	return _("Branch: ") + params_.branch;
+	docstring const status = isBranchSelected() ? 
+		_("active") : _("non-active");
+	return support::bformat(_("Branch (%1$s): %2$s"),
+				  status,
+				  params_.branch);
 }
 
 
 docstring const InsetBranch::buttonLabel(BufferView const & bv) const
 {
 	docstring s = _("Branch: ") + params_.branch;
+	Buffer const & realbuffer = *buffer().masterBuffer();
+	BranchList const & branchlist = realbuffer.params().branchlist();
+	if (!branchlist.find(params_.branch))
+		s = _("Branch (child only): ") + params_.branch;
 	if (!params_.branch.empty()) {
 		// FIXME UNICODE
 		ColorCode c = lcolor.getFromLyXName(to_utf8(params_.branch));
 		if (c == Color_none)
 			s = _("Undef: ") + s;
 	}
+	s = char_type(isBranchSelected() ? 0x2714 : 0x2716) + s;
 	if (decoration() == InsetLayout::CLASSIC)
 		return isOpen(bv) ? s : getNewLabel(s);
 	else

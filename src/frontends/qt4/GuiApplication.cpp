@@ -15,6 +15,7 @@
 #include "GuiApplication.h"
 
 #include "ColorCache.h"
+#include "ColorSet.h"
 #include "GuiClipboard.h"
 #include "GuiImage.h"
 #include "GuiKeySymbol.h"
@@ -310,6 +311,14 @@ QString iconName(FuncRequest const & f, bool unknown)
 		path = "commands/";
 		name1 = toqstr(f.argument());
 		break;
+	case LFUN_COMMAND_ALTERNATIVES: {
+		// use the first of the alternative commands
+		docstring firstcom;
+		docstring dummy = split(f.argument(), firstcom, ';');
+		name1 = toqstr(firstcom);
+		name1.replace(' ', '_');
+		break;
+	}
 	default:
 		name2 = toqstr(lyxaction.getActionName(f.action));
 		name1 = name2;
@@ -317,6 +326,7 @@ QString iconName(FuncRequest const & f, bool unknown)
 		if (!f.argument().empty()) {
 			name1 = name2 + ' ' + toqstr(f.argument());
 			name1.replace(' ', '_');
+			name1.replace('\\', "backslash");
 		}
 	}
 
@@ -346,12 +356,36 @@ QString iconName(FuncRequest const & f, bool unknown)
 			   << lyxaction.getActionName(f.action)
 			   << '(' << to_utf8(f.argument()) << ")\"");
 
-	if (unknown)
+	if (unknown) {
+		fname = libFileSearch(QString("images/"), "unknown", "png");
+		if (fname.exists())
+			return toqstr(fname.absFilename());
 		return QString(":/images/unknown.png");
+	}
 
 	return QString();
 }
 
+QPixmap getPixmap(QString const & path, QString const & name, QString const & ext)
+{
+	QPixmap pixmap;
+	FileName fname = libFileSearch(path, name, ext);
+	QString path1 = toqstr(fname.absFilename());
+	QString path2 = ":/" + path + name + "." + ext;
+
+	if (pixmap.load(path1)) {
+		return pixmap;
+	}
+	else if (pixmap.load(path2)) {
+		return pixmap;
+	}
+
+	LYXERR0("Cannot load pixmap \""
+		<< path << name << '.' << ext
+		<< "\", please verify resource system!");
+
+	return QPixmap();
+}
 
 QIcon getIcon(FuncRequest const & f, bool unknown)
 {
@@ -597,7 +631,13 @@ public:
 
 struct GuiApplication::Private
 {
-	Private(): language_model_(0), global_menubar_(0) {}
+	Private(): language_model_(0), global_menubar_(0) 
+	{
+	#ifdef Q_WS_WIN
+		/// WMF Mime handler for Windows clipboard.
+		wmf_mime_ = new QWindowsMimeMetafile();
+	#endif
+	}
 
 	///
 	QSortFilterProxyModel * language_model_;
@@ -645,8 +685,7 @@ struct GuiApplication::Private
 
 #ifdef Q_WS_WIN
 	/// WMF Mime handler for Windows clipboard.
-	/// \warning: see comment in ~GuiApplication and in bug 4846.
-	QWindowsMimeMetafile wmf_mime_;
+	QWindowsMimeMetafile * wmf_mime_;
 #endif
 };
 
@@ -658,13 +697,6 @@ GuiApplication::~GuiApplication()
 #ifdef Q_WS_MACX
 	closeAllLinkBackLinks();
 #endif
-	// FIXME: Work around bug 4846 for Windows Vista and Qt4
-	// (see http://bugzilla.lyx.org/show_bug.cgi?id=4846)
-	// If the clipboard is not cleared, LyX crashes on exit when it is
-	// compiled in release mode and if there is something in the clipboard.
-	// This is related to QWindowsMimeMetafile which is apparently not 
-	// properly destroyed.
-	qApp->clipboard()->clear(QClipboard::Clipboard);
 	delete d;
 }
 
@@ -1153,12 +1185,25 @@ void GuiApplication::restoreGuiSession()
 		return;
 
 	Session & session = theSession();
-	vector<FileName> const & lastopened = session.lastOpened().getfiles();
+	LastOpenedSection::LastOpened const & lastopened = 
+		session.lastOpened().getfiles();
+
+	FileName active_file;
 	// do not add to the lastfile list since these files are restored from
 	// last session, and should be already there (regular files), or should
 	// not be added at all (help files).
-	for_each(lastopened.begin(), lastopened.end(),
-		bind(&GuiView::loadDocument, current_view_, _1, false));
+	// Note that we open them in reverse order. This is because we close
+	// buffers also in reverse order (aesthetically motivated).
+	for (size_t i = lastopened.size(); i > 0; --i) {
+		current_view_->loadDocument(lastopened[i - 1].file_name, false);
+		if (lastopened[i - 1].active)
+			active_file = lastopened[i - 1].file_name;
+	}
+
+	// Restore last active buffer
+	Buffer * buffer = theBufferList().getBuffer(active_file);
+	if (buffer)
+		current_view_->setBuffer(buffer);
 
 	// clear this list to save a few bytes of RAM
 	session.lastOpened().clear();

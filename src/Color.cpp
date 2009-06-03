@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "Color.h"
+#include "ColorSet.h"
 
 #include "support/debug.h"
 #include "support/gettext.h"
@@ -81,6 +82,45 @@ RGBColor rgbFromHexName(string const & x11hexname)
 	c.g = hexstrToInt(x11hexname.substr(3, 2));
 	c.b = hexstrToInt(x11hexname.substr(5, 2));
 	return c;
+}
+
+
+Color::Color(ColorCode base_color) : baseColor(base_color), 
+	mergeColor(Color_ignore)
+{}
+
+
+bool Color::operator==(Color const & color) const
+{
+	return baseColor == color.baseColor;
+}
+
+
+bool Color::operator!=(Color const & color) const	
+{
+	return baseColor != color.baseColor;
+}
+
+
+bool Color::operator<(Color const & color) const
+{
+	return baseColor < color.baseColor;
+}
+
+
+bool Color::operator<=(Color const & color) const
+{
+	return baseColor <= color.baseColor;
+}
+
+
+std::ostream & operator<<(std::ostream & os, Color color)
+{
+	os << to_ascii(lcolor.getGUIName(color.baseColor));
+	if (color.mergeColor != Color_ignore)
+		os << "[merged with:"
+			<< to_ascii(lcolor.getGUIName(color.mergeColor)) << "]";
+	return os;
 }
 
 
@@ -163,6 +203,7 @@ ColorSet::ColorSet()
 	{ Color_changedtextauthor3, N_("changed text 3rd author"), "changedtextauthor3", "#ff0000", "changedtextauthor3" },
 	{ Color_changedtextauthor4, N_("changed text 4th author"), "changedtextauthor4", "#aa00ff", "changedtextauthor4" },
 	{ Color_changedtextauthor5, N_("changed text 5th author"), "changedtextauthor5", "#55aa00", "changedtextauthor5" },
+	{ Color_deletedtextmodifier, N_("deleted text modifier"), "deletedtextmodifier", "white", "deletedtextmodifier" },
 	{ Color_added_space, N_("added space markers"), "added_space", "Brown", "added_space" },
 	{ Color_topline, N_("top/bottom line"), "topline", "Brown", "topline" },
 	{ Color_tabularline, N_("table line"), "tabularline", "black", "tabularline" },

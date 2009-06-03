@@ -33,7 +33,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/common.am
+	$(srcdir)/tex2lyx.1in $(top_srcdir)/config/common.am
 bin_PROGRAMS = tex2lyx$(EXEEXT)
 subdir = src/tex2lyx
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -60,14 +60,14 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = tex2lyx.1
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = FloatList.$(OBJEXT) Floating.$(OBJEXT) \
 	Counters.$(OBJEXT) InsetLayout.$(OBJEXT) Layout.$(OBJEXT) \
 	TextClass.$(OBJEXT) Lexer.$(OBJEXT) lengthcommon.$(OBJEXT) \
-	Color.$(OBJEXT)
+	Color.$(OBJEXT) Encoding.$(OBJEXT)
 am_tex2lyx_OBJECTS = $(am__objects_1) boost.$(OBJEXT) \
 	Context.$(OBJEXT) Font.$(OBJEXT) gettext.$(OBJEXT) \
 	Parser.$(OBJEXT) tex2lyx.$(OBJEXT) preamble.$(OBJEXT) \
@@ -81,7 +81,8 @@ am__DEPENDENCIES_1 =
 @USE_INCLUDED_BOOST_TRUE@am__DEPENDENCIES_2 =  \
 @USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
 tex2lyx_DEPENDENCIES = $(top_builddir)/src/support/liblyxsupport.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
+	$(am__DEPENDENCIES_1)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -181,6 +182,7 @@ LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPSAPI = @LIBPSAPI@
 LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
@@ -344,7 +346,7 @@ SUFFIXES = .gch
 @USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
 @USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
-EXTRA_DIST = tex2lyx.1 $(TEST_FILES) pch.h
+EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
 
 #noinst_LTLIBRARIES = libtexparser.la
 #
@@ -377,7 +379,8 @@ LINKED_FILES = \
 	../Lexer.cpp \
 	../lengthcommon.cpp \
 	../Color.cpp \
-	../Color.h
+	../Color.h \
+	../Encoding.cpp
 
 BUILT_SOURCES = $(PCH_FILE)
 tex2lyx_SOURCES = \
@@ -400,7 +403,7 @@ tex2lyx_SOURCES = \
 
 tex2lyx_LDADD = \
 	$(top_builddir)/src/support/liblyxsupport.la \
-	$(LIBICONV) $(BOOST_LIBS) @LIBS@
+	$(LIBICONV) $(BOOST_LIBS) @LIBS@ $(LIBPSAPI)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -436,6 +439,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+tex2lyx.1: $(top_builddir)/config.status $(srcdir)/tex2lyx.1in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -477,6 +482,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Color.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Counters.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Encoding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FloatList.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Floating.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Font.Po@am__quote@
@@ -640,6 +646,20 @@ Color.obj: ../Color.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../Color.cpp' object='Color.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Color.obj `if test -f '../Color.cpp'; then $(CYGPATH_W) '../Color.cpp'; else $(CYGPATH_W) '$(srcdir)/../Color.cpp'; fi`
+
+Encoding.o: ../Encoding.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Encoding.o -MD -MP -MF $(DEPDIR)/Encoding.Tpo -c -o Encoding.o `test -f '../Encoding.cpp' || echo '$(srcdir)/'`../Encoding.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Encoding.Tpo $(DEPDIR)/Encoding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../Encoding.cpp' object='Encoding.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Encoding.o `test -f '../Encoding.cpp' || echo '$(srcdir)/'`../Encoding.cpp
+
+Encoding.obj: ../Encoding.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Encoding.obj -MD -MP -MF $(DEPDIR)/Encoding.Tpo -c -o Encoding.obj `if test -f '../Encoding.cpp'; then $(CYGPATH_W) '../Encoding.cpp'; else $(CYGPATH_W) '$(srcdir)/../Encoding.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Encoding.Tpo $(DEPDIR)/Encoding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../Encoding.cpp' object='Encoding.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Encoding.obj `if test -f '../Encoding.cpp'; then $(CYGPATH_W) '../Encoding.cpp'; else $(CYGPATH_W) '$(srcdir)/../Encoding.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

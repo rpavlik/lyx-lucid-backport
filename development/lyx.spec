@@ -2,7 +2,7 @@
 
 Summary: A WYSIWYM (What You See Is What You Mean) document processor
 Name: lyx
-Version: 1.6.2
+Version: 1.6.3
 Release: 1
 License: GPL
 Group: Applications/Publishing

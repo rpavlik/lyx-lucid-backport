@@ -44,6 +44,7 @@ src_header_files = Split('''
     Citation.h
     CmdDef.h
     Color.h
+    ColorSet.h
     ColorCode.h
     CompletionList.h
     Converter.h
@@ -272,7 +273,7 @@ src_client_files = Split('''
 
 src_client_extra_files = Split('''
     Makefile.am
-    lyxclient.man
+    lyxclient.1in
     pch.h
 ''')
 
@@ -587,12 +588,12 @@ src_tex2lyx_header_files = Split('''
 
 
 src_tex2lyx_files = Split('''
+    boost.cpp
     Context.cpp
     Font.cpp
-    Parser.cpp
-    boost.cpp
     gettext.cpp
     math.cpp
+    Parser.cpp
     preamble.cpp
     table.cpp
     tex2lyx.cpp
@@ -608,13 +609,14 @@ src_tex2lyx_copied_header_files = Split('''
 src_tex2lyx_copied_files = Split('''
     Color.cpp
     Counters.cpp
+    Encoding.cpp
     FloatList.cpp
     Floating.cpp
     Layout.cpp
+    lengthcommon.cpp
     Lexer.cpp
     TextClass.cpp
     insets/InsetLayout.cpp
-    lengthcommon.cpp
 ''')
 
 
@@ -624,7 +626,7 @@ src_tex2lyx_extra_files = Split('''
     test-insets.tex
     test-structure.tex
     test.ltx
-    tex2lyx.1
+    tex2lyx.1in
     test/box-color-size-space-align.tex
     test/DummyDocument.tex
     test/foo.eps
@@ -636,6 +638,7 @@ src_tex2lyx_extra_files = Split('''
 
 
 src_frontends_header_files = Split('''
+    alert.h
     Application.h
     Clipboard.h
     FontLoader.h
@@ -643,12 +646,11 @@ src_frontends_header_files = Split('''
     KeyModifier.h
     KeySymbol.h
     LyXView.h
+    mouse_state.h
     Painter.h
     Selection.h
     WorkArea.h
     WorkAreaManager.h
-    alert.h
-    mouse_state.h
 ''')
 
 
@@ -1187,6 +1189,7 @@ po_extra_files = Split('''
     he.po
     hu.po
     insert-header.sin
+    id.po
     it.po
     ja.po
     ko.po
@@ -1340,6 +1343,7 @@ lib_images_files = Split('''
     amssymb.png
     banner.png
     bookmark-goto.png
+    bookmark-goto_0.png
     bookmark-save.png
     box-insert.png
     break-line.png
@@ -1447,9 +1451,9 @@ lib_images_files = Split('''
     split-view_horizontal.png
     split-view_vertical.png
     standard.png
-    tabular-feature_align-center.png
-    tabular-feature_align-left.png
-    tabular-feature_align-right.png
+    tabular-feature_m-align-center.png
+    tabular-feature_m-align-left.png
+    tabular-feature_m-align-right.png
     tabular-feature_append-column.png
     tabular-feature_append-row.png
     tabular-feature_delete-column.png
@@ -1467,9 +1471,9 @@ lib_images_files = Split('''
     tabular-feature_toggle-rotate-cell.png
     tabular-feature_toggle-rotate-tabular.png
     tabular-feature_unset-all-lines.png
-    tabular-feature_valign-bottom.png
-    tabular-feature_valign-middle.png
-    tabular-feature_valign-top.png
+    tabular-feature_m-valign-bottom.png
+    tabular-feature_m-valign-middle.png
+    tabular-feature_m-valign-top.png
     tabular-insert.png
     thesaurus-entry.png
     toolbar-toggle_math.png
@@ -2187,6 +2191,7 @@ lib_doc_fr_files = Split('''
     Formula-numbering.lyx
     Intro.lyx
     Math.lyx
+    Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
 ''')
@@ -2222,6 +2227,19 @@ lib_doc_hu_files = Split('''
 ''')
 
 
+lib_doc_id_files = Split('''
+    Intro.lyx
+    Tutorial.lyx
+''')
+
+
+lib_doc_id_clipart_files = Split('''
+    id-contrib.png
+    id-footnote.png
+    id-lingkungan.png
+''')
+
+
 lib_doc_it_files = Split('''
     Customization.lyx
     Intro.lyx
@@ -2240,6 +2258,7 @@ lib_doc_ja_files = Split('''
     Extended.lyx
     Intro.lyx
     LaTeXConfig.lyx
+    Math.lyx
     Shortcuts.lyx
     Tutorial.lyx
     UserGuide.lyx
@@ -2475,6 +2494,7 @@ lib_examples_it_files = Split('''
 
 
 lib_examples_ja_files = Split('''
+    Braille.lyx
     splash.lyx
 ''')
 
@@ -2613,7 +2633,6 @@ lib_layouts_files = Split('''
     literate-report.layout
     llncs.layout
     ltugboat.layout
-    manpage.layout
     memoir.layout
     moderncv.layout
     mwart.layout

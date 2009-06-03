@@ -339,8 +339,8 @@ void MenuDefinition::addWithStatusCheck(MenuItem const & i)
 	}
 
 	case MenuItem::Submenu: {
+		bool enabled = false;
 		if (i.hasSubmenu()) {
-			bool enabled = false;
 			for (const_iterator cit = i.submenu().begin();
 			     cit != i.submenu().end(); ++cit) {
 				if ((cit->kind() == MenuItem::Command
@@ -350,13 +350,11 @@ void MenuDefinition::addWithStatusCheck(MenuItem const & i)
 					break;
 				}
 			}
-			if (enabled || !i.optional()) {
-				items_.push_back(i);
-				items_.back().status().setEnabled(enabled);
-			}
 		}
-		else
+		if (enabled || !i.optional()) {
 			items_.push_back(i);
+			items_.back().status().setEnabled(enabled);
+		}
 		break;
 	}
 
@@ -1037,16 +1035,17 @@ void MenuDefinition::expandBranches(Buffer const * buf)
 		return;
 	}
 
-	BufferParams const & params = buf->masterBuffer()->params();
-	if (params.branchlist().empty()) {
+	BufferParams const & master_params = buf->masterBuffer()->params();
+	BufferParams const & params = buf->params();
+	if (params.branchlist().empty() && master_params.branchlist().empty() ) {
 		add(MenuItem(MenuItem::Command,
 				    qt_("No Branch in Document!"),
 				    FuncRequest(LFUN_NOACTION)));
 		return;
 	}
 
-	BranchList::const_iterator cit = params.branchlist().begin();
-	BranchList::const_iterator end = params.branchlist().end();
+	BranchList::const_iterator cit = master_params.branchlist().begin();
+	BranchList::const_iterator end = master_params.branchlist().end();
 
 	for (int ii = 1; cit != end; ++cit, ++ii) {
 		docstring label = cit->branch();
@@ -1057,6 +1056,32 @@ void MenuDefinition::expandBranches(Buffer const * buf)
 		addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
 				    FuncRequest(LFUN_BRANCH_INSERT,
 						cit->branch())));
+	}
+	
+	if (buf == buf->masterBuffer())
+		return;
+	
+	MenuDefinition child_branches;
+	
+	BranchList::const_iterator ccit = params.branchlist().begin();
+	BranchList::const_iterator cend = params.branchlist().end();
+
+	for (int ii = 1; ccit != cend; ++ccit, ++ii) {
+		docstring label = ccit->branch();
+		if (ii < 10) {
+			label = convert<docstring>(ii) + ". " + label
+				+ char_type('|') + convert<docstring>(ii);
+		}
+		child_branches.addWithStatusCheck(MenuItem(MenuItem::Command,
+				    toqstr(label),
+				    FuncRequest(LFUN_BRANCH_INSERT,
+						ccit->branch())));
+	}
+	
+	if (!child_branches.empty()) {
+		MenuItem item(MenuItem::Submenu, qt_("Child Document"));
+		item.setSubmenu(child_branches);
+		add(item);
 	}
 }
 
@@ -1164,6 +1189,7 @@ void Menu::Impl::populate(QMenu & qMenu, MenuDefinition const & menu)
 		else if (m->kind() == MenuItem::Submenu) {
 			QMenu * subMenu = qMenu.addMenu(label(*m));
 			populate(*subMenu, m->submenu());
+			subMenu->setEnabled(m->status().enabled());
 		} else {
 			// we have a MenuItem::Command
 			qMenu.addAction(new Action(view, QIcon(), label(*m), 

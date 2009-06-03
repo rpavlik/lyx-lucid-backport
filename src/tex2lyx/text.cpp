@@ -17,6 +17,7 @@
 #include "tex2lyx.h"
 
 #include "Context.h"
+#include "Encoding.h"
 #include "FloatList.h"
 #include "Layout.h"
 #include "Length.h"
@@ -344,8 +345,6 @@ void translate_box_len(string const & length, string & value, string & unit, str
 string find_file(string const & name, string const & path,
 		 char const * const * extensions)
 {
-	// FIXME UNICODE encoding of name and path may be wrong (makeAbsPath
-	// expects utf8)
 	for (char const * const * what = extensions; *what; ++what) {
 		string const trial = addExtension(name, *what);
 		if (makeAbsPath(trial, path).exists())
@@ -509,7 +508,7 @@ void output_command_layout(ostream & os, Parser & p, bool outer,
  * The drawback is that the logic inside the function becomes
  * complicated, and that is the reason why it is not implemented.
  */
-void check_space(Parser const & p, ostream & os, Context & context)
+void check_space(Parser & p, ostream & os, Context & context)
 {
 	Token const next = p.next_token();
 	Token const curr = p.curr_token();
@@ -1050,12 +1049,9 @@ string const normalize_filename(string const & name)
 /// convention (relative to .lyx file) if it is relative
 void fix_relative_filename(string & name)
 {
-	FileName fname(name);
-	if (fname.isAbsolute())
+	if (FileName::isAbsolute(name))
 		return;
 
-	// FIXME UNICODE encoding of name may be wrong (makeAbsPath expects
-	// utf8)
 	name = to_utf8(makeRelPath(from_utf8(makeAbsPath(name, getMasterFilePath()).absFilename()),
 				   from_utf8(getParentFilePath())));
 }
@@ -1262,7 +1258,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			       t.cat() == catParameter) {
 			// This translates "&" to "\\&" which may be wrong...
 			context.check_layout(os);
-			os << t.character();
+			os << t.cs();
 		}
 
 		else if (p.isParagraph()) {
@@ -1281,7 +1277,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				else
 					os << "\\InsetSpace ~\n";
 			} else
-				os << t.character();
+				os << t.cs();
 		}
 
 		else if (t.cat() == catBegin &&
@@ -1309,7 +1305,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			    next.character() == '*') {
 				p.get_token();
 				if (p.next_token().cat() == catEnd) {
-					os << next.character();
+					os << next.cs();
 					p.get_token();
 				} else {
 					p.putback();
@@ -1552,8 +1548,9 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			TeXFont const oldFont = context.font;
 			// save the current font size
 			string const size = oldFont.size;
-			// reset the font size to default, because the font size switches don't
-			// affect section headings and the like
+			// reset the font size to default, because the
+			// font size switches don't affect section
+			// headings and the like
 			context.font.size = known_coded_sizes[0];
 			output_font_change(os, oldFont, context.font);
 			// write the layout
@@ -1605,8 +1602,6 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			string const path = getMasterFilePath();
 			// We want to preserve relative / absolute filenames,
 			// therefore path is only used for testing
-			// FIXME UNICODE encoding of name and path may be
-			// wrong (makeAbsPath expects utf8)
 			if (!makeAbsPath(name, path).exists()) {
 				// The file extension is probably missing.
 				// Now try to find it out.
@@ -1637,8 +1632,6 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					name = pdftex_name;
 			}
 
-			// FIXME UNICODE encoding of name and path may be
-			// wrong (makeAbsPath expects utf8)
 			if (makeAbsPath(name, path).exists())
 				fix_relative_filename(name);
 			else
@@ -1763,6 +1756,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			p.skip_spaces();
 			context.check_layout(os);
 			string const s = p.verbatim_item();
+			//FIXME: this never triggers in UTF8
 			if (s == "\xb1" || s == "\xb3" || s == "\xb2" || s == "\xb5")
 				os << s;
 			else
@@ -2127,25 +2121,31 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "selectlanguage") {
 			context.check_layout(os);
-			// save the language for the case that a \foreignlanguage is used 
+			// save the language for the case that a
+			// \foreignlanguage is used 
+
+			//FIXME: this is wrong, the language should
+			// be saved in the context. (JMarc)
 			selectlang = subst(p.verbatim_item(), "\n", " ");
 			os << "\\lang " << selectlang << "\n";
-			
 		}
 
 		else if (t.cs() == "foreignlanguage") {
 			context.check_layout(os);
 			os << "\n\\lang " << subst(p.verbatim_item(), "\n", " ") << "\n";
 			os << subst(p.verbatim_item(), "\n", " ");
+			// FIXME: the second argument of selectlanguage
+			// has to be parsed (like for \textsf, for
+			// example). 
 			// set back to last selectlanguage
 			os << "\n\\lang " << selectlang << "\n";
 		}
 
-		else if (t.cs() == "inputencoding")
-			// write nothing because this is done by LyX using the "\lang"
-			// information given by selectlanguage and foreignlanguage
-			subst(p.verbatim_item(), "\n", " ");
-		
+		else if (t.cs() == "inputencoding") {
+			// nothing to write here
+			string const enc = subst(p.verbatim_item(), "\n", " ");
+			p.setEncoding(enc);
+		}
 		else if (t.cs() == "LyX" || t.cs() == "TeX"
 			 || t.cs() == "LaTeX") {
 			context.check_layout(os);
@@ -2238,52 +2238,31 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			handle_ert(os, oss.str(), context);
 		}
 
-		else if (t.cs() == "\"") {
-			context.check_layout(os);
-			string const name = p.verbatim_item();
-			     if (name == "a") os << '\xe4';
-			else if (name == "o") os << '\xf6';
-			else if (name == "u") os << '\xfc';
-			else if (name == "A") os << '\xc4';
-			else if (name == "O") os << '\xd6';
-			else if (name == "U") os << '\xdc';
-			else handle_ert(os, "\"{" + name + "}", context);
-		}
-
 		// Problem: \= creates a tabstop inside the tabbing environment
 		// and else an accent. In the latter case we really would want
 		// \={o} instead of \= o.
 		else if (t.cs() == "=" && (flags & FLAG_TABBING))
 			handle_ert(os, t.asInput(), context);
 
-		else if (t.cs() == "H" || t.cs() == "c" || t.cs() == "^"
-			 || t.cs() == "'" || t.cs() == "`"
-			 || t.cs() == "~" || t.cs() == "." || t.cs() == "=") {
-			// we need the trim as the LyX parser chokes on such spaces
-			// The argument of InsetLatexAccent is parsed as a
-			// subset of LaTeX, so don't parse anything here,
-			// but use the raw argument.
-			// Otherwise we would convert \~{\i} wrongly.
-			// This will of course not translate \~{\ss} to \~{ß},
-			// but that does at least compile and does only look
-			// strange on screen.
+		// accents (see Table 6 in Comprehensive LaTeX Symbol List)
+		else if (t.cs().size() == 1 
+			 && contains("\"'.=^`bcdHkrtuv~", t.cs())) {
 			context.check_layout(os);
-			os << "\\i \\" << t.cs() << "{"
-			   << trim(p.verbatim_item(), " ")
-			   << "}\n";
-		}
-
-		else if (t.cs() == "ss") {
-			context.check_layout(os);
-			os << "\xdf";
-			skip_braces(p); // eat {}
-		}
-
-		else if (t.cs() == "i" || t.cs() == "j" || t.cs() == "l" ||
-			 t.cs() == "L") {
-			context.check_layout(os);
-			os << "\\i \\" << t.cs() << "{}\n";
-			skip_braces(p); // eat {}
+			// try to see whether the string is in unicodesymbols
+			docstring rem;
+			string command = t.asInput() + "{" 
+				+ trim(p.verbatim_item())
+				+ "}";
+			docstring s = encodings.fromLaTeXCommand(from_utf8(command), rem);
+			if (!s.empty()) {
+				if (!rem.empty())
+					cerr << "When parsing " << command 
+					     << ", result is " << to_utf8(s)
+					     << "+" << to_utf8(rem) << endl;
+				os << to_utf8(s);
+			} else
+				// we did not find a non-ert version
+				handle_ert(os, command, context);
 		}
 
 		else if (t.cs() == "\\") {
@@ -2319,8 +2298,6 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			string const path = getMasterFilePath();
 			// We want to preserve relative / absolute filenames,
 			// therefore path is only used for testing
-			// FIXME UNICODE encoding of filename and path may be
-			// wrong (makeAbsPath expects utf8)
 			if ((t.cs() == "include" || t.cs() == "input") &&
 			    !makeAbsPath(filename, path).exists()) {
 				// The file extension is probably missing.
@@ -2331,8 +2308,6 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				if (!tex_name.empty())
 					filename = tex_name;
 			}
-			// FIXME UNICODE encoding of filename and path may be
-			// wrong (makeAbsPath expects utf8)
 			if (makeAbsPath(filename, path).exists()) {
 				string const abstexname =
 					makeAbsPath(filename, path).absFilename();
@@ -2342,7 +2317,8 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				string const lyxname =
 					changeExtension(filename, ".lyx");
 				if (t.cs() != "verbatiminput" &&
-				    tex2lyx(abstexname, FileName(abslyxname))) {
+				    tex2lyx(abstexname, FileName(abslyxname),
+					    p.getEncoding())) {
 					os << name << '{' << lyxname << "}\n";
 				} else {
 					os << name << '{' << filename << "}\n";
@@ -2537,6 +2513,19 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		}
 
 		else {
+			// try to see whether the string is in unicodesymbols
+			docstring rem;
+			docstring s = encodings.fromLaTeXCommand(from_utf8(t.asInput()), rem);
+			if (!s.empty()) {
+				if (!rem.empty())
+					cerr << "When parsing " << t.cs() 
+					     << ", result is " << to_utf8(s)
+					     << "+" << to_utf8(rem) << endl;
+				context.check_layout(os);
+				os << to_utf8(s);
+				p.skip_spaces();
+				skip_braces(p); // eat {}
+			}
 			//cerr << "#: " << t << " mode: " << mode << endl;
 			// heuristic: read up to next non-nested space
 			/*
@@ -2550,14 +2539,16 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			cerr << "found ERT: " << s << endl;
 			handle_ert(os, s + ' ', context);
 			*/
-			string name = t.asInput();
-			if (p.next_token().asInput() == "*") {
-				// Starred commands like \vspace*{}
-				p.get_token();				// Eat '*'
-				name += '*';
+			else {
+				string name = t.asInput();
+				if (p.next_token().asInput() == "*") {
+					// Starred commands like \vspace*{}
+					p.get_token();	// Eat '*'
+					name += '*';
+				}
+				if (!parse_command(name, p, os, outer, context))
+					handle_ert(os, name, context);
 			}
-			if (! parse_command(name, p, os, outer, context))
-				handle_ert(os, name, context);
 		}
 
 		if (flags & FLAG_LEAVE) {

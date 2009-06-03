@@ -1095,6 +1095,14 @@ void GuiDocument::portraitChanged()
 
 void GuiDocument::setMargins(bool custom)
 {
+	bool const extern_geometry =
+		documentClass().provides("geometry");
+	marginsModule->marginCB->setEnabled(!extern_geometry);
+	if (extern_geometry) {
+		marginsModule->marginCB->setChecked(false);
+		setCustomMargins(true);
+		return;
+	}
 	marginsModule->marginCB->setChecked(custom);
 	setCustomMargins(custom);
 }
@@ -2089,14 +2097,19 @@ void GuiDocument::paramsToDialog()
 		fontModule->fontsDefaultCO->setCurrentIndex(n);
 
 	// paper
+	bool const extern_geometry =
+		documentClass().provides("geometry");
 	int const psize = bp_.papersize;
 	pageLayoutModule->papersizeCO->setCurrentIndex(psize);
-	setCustomPapersize(psize);
+	setCustomPapersize(!extern_geometry && psize);
+	pageLayoutModule->papersizeCO->setEnabled(!extern_geometry);
 
 	bool const landscape =
 		bp_.orientation == ORIENTATION_LANDSCAPE;
 	pageLayoutModule->landscapeRB->setChecked(landscape);
 	pageLayoutModule->portraitRB->setChecked(!landscape);
+	pageLayoutModule->landscapeRB->setEnabled(!extern_geometry);
+	pageLayoutModule->portraitRB->setEnabled(!extern_geometry);
 
 	pageLayoutModule->facingPagesCB->setChecked(
 		bp_.sides == TwoSides);
@@ -2167,8 +2180,10 @@ void GuiDocument::paramsToDialog()
 
 	pdfSupportModule->optionsLE->setText(
 		toqstr(pdf.quoted_options));
-	
-	bc().restore();
+
+	// Make sure that the bc is in the INITIAL state
+	if (bc().policy().buttonStatus(ButtonPolicy::RESTORE))
+		bc().restore();
 }
 
 

@@ -33,7 +33,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/common.am
+	$(srcdir)/lyxclient.1in $(top_srcdir)/config/common.am
 bin_PROGRAMS = lyxclient$(EXEEXT)
 @MONOLITHIC_CLIENT_TRUE@am__append_1 = -I$(srcdir)/.. $(BOOST_INCLUDES)
 @MONOLITHIC_CLIENT_FALSE@am__append_2 = pch.h
@@ -63,7 +63,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = lyxclient.1
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -86,7 +86,7 @@ am__DEPENDENCIES_1 =
 @USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
 lyxclient_DEPENDENCIES = $(top_builddir)/src/support/liblyxsupport.la \
 	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -186,6 +186,7 @@ LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPSAPI = @LIBPSAPI@
 LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
@@ -350,10 +351,10 @@ SUFFIXES = .gch
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
 @USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
 man_MANS = lyxclient.1
-EXTRA_DIST = lyxclient.man $(am__append_2)
+EXTRA_DIST = lyxclient.1in $(am__append_2)
 lyxclient_LDADD = \
 	$(top_builddir)/src/support/liblyxsupport.la \
-	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS)
+	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
 
 
 # everything below the line containing the single backslashs
@@ -410,6 +411,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+lyxclient.1: $(top_builddir)/config.status $(srcdir)/lyxclient.1in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -725,9 +728,6 @@ uninstall-man: uninstall-man1
 @LYX_BUILD_PCH_TRUE@	-MT $(PCH_FILE)  -MD -MP -MF "./$(PCH_FILE).Tdep" \
 @LYX_BUILD_PCH_TRUE@	&& mv "./$(PCH_FILE).Tdep" "./$(PCH_FILE).dep" \
 @LYX_BUILD_PCH_TRUE@	|| rm "./$(PCH_FILE).Tdep"
-
-lyxclient.1:
-	cp -p $(srcdir)/lyxclient.man lyxclient.1
 
 lyxclient.cpp:
 	@echo -e '$(SOURCEFILES:%=\n#include "%")\n' > $@

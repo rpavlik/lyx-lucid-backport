@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -118,7 +118,7 @@ LyXに欲しい機能であり、LaTeX装備にも追加したいと思うよう
 とを教えなくてはなりません。インストールし終えたら、メニュー項目
 \family sans
 ツール\SpecialChar \menuseparator
-システム再検出
+再初期設定
 \family default
 
 \begin_inset Foot
@@ -3216,39 +3216,6 @@ hyperref
 \end_layout
 
 \begin_layout Subsection
-japanese
-\end_layout
-
-\begin_layout Description
-検出： 
-\begin_inset Info
-type  "package"
-arg   "japanese"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN： 
-\family typewriter
-language/japanese/japanese/
-\end_layout
-
-\begin_layout Description
-備考： 
-\family sans
-babel japanese
-\family default
-オプションは、文書言語が日本語のときに、節見出し等を日本語で出力するために必要です。本オプションを使用するためには、日本語TeXシステムpTeX（CTAN:
- 
-\family typewriter
-language/japanese/ptex/
-\family default
-）が必要です。
-\end_layout
-
-\begin_layout Subsection
 longtable
 \end_layout
 
@@ -3276,15 +3243,19 @@ longtable
 パッケージは、 LyXが複数ページにわたる表を正しく出力することができるようになるために必要です。
 \end_layout
 
+\begin_layout Description
+
+\end_layout
+
 \begin_layout Subsection
-relsize
+amstext
 \end_layout
 
 \begin_layout Description
 検出: 
 \begin_inset Info
 type  "package"
-arg   "relsize"
+arg   "amstext"
 \end_inset
 
 
@@ -3293,13 +3264,13 @@ arg   "relsize"
 \begin_layout Description
 CTAN: 
 \family typewriter
-macros/latex/contrib/misc/
+macros/latex/required/amslatex/math/
 \end_layout
 
 \begin_layout Description
 備考: 
 \family sans
-relsize
+amstext
 \family default
 パッケージは、unicodeシンボルを数式内で上付きや下付き文字にする際、LyXが正しい寸法に調整するのに必要とします。
 \end_layout
@@ -4129,7 +4100,7 @@ subfig
 検出： 
 \begin_inset Info
 type  "package"
-arg   "subfigure"
+arg   "subfig"
 \end_inset
 
 

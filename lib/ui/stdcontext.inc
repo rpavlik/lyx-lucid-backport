@@ -88,7 +88,7 @@ Menuset
 #
 	Menu "context-label"
 		Item "Next Cross-Reference|N" "reference-next"
-		Item "Go back to Reference|G" "bookmark-goto 0"
+		Item "Go back|G" "bookmark-goto 0"
 		Separator
 		Item "Copy as Reference|C" "copy-label-as-reference"
 		Separator
@@ -142,11 +142,14 @@ Menuset
 		Item "Frameless|l" "next-inset-modify changetype Frameless"
 		Item "Simple frame|f" "next-inset-modify changetype Boxed"
 		Item "Simple frame, page breaks|p" "next-inset-modify changetype Framed"
-		Item "Oval, thin|O" "next-inset-modify changetype ovalbox"
+		Item "Oval, thin|a" "next-inset-modify changetype ovalbox"
 		Item "Oval, thick|v" "next-inset-modify changetype Ovalbox"
 		Item "Drop Shadow|w" "next-inset-modify changetype Shadowbox"
 		Item "Shaded background|b" "next-inset-modify changetype Shaded"
-		Item "Double frame|D" "next-inset-modify changetype Doublebox"
+		Item "Double frame|u" "next-inset-modify changetype Doublebox"
+		Separator
+		OptItem "Open Inset|O" "next-inset-toggle open"
+		OptItem "Close Inset|C" "next-inset-toggle close"
 		Separator
 		Item "Dissolve Inset|D" "inset-dissolve"
 		Item "Settings...|S" "inset-settings box"
@@ -158,8 +161,11 @@ Menuset
 
 	Menu "context-note"
 		Item "LyX Note|N" "next-inset-modify note Note Note"
-		Item "Comment|C" "next-inset-modify note Note Comment"
+		Item "Comment|m" "next-inset-modify note Note Comment"
 		Item "Greyed Out|G" "next-inset-modify note Note Greyedout"
+		Separator
+		OptItem "Open Inset|O" "next-inset-toggle open"
+		OptItem "Close Inset|C" "next-inset-toggle close"
 		Separator
 		Item "Dissolve Inset|D" "inset-dissolve"
 	End
@@ -264,7 +270,7 @@ Menuset
 		Item "Paste" "paste"
 		Submenu "Paste Recent|e" "edit_pasterecent"
 		Separator
-		Item "Jump to Saved Bookmark|B" "bookmark-goto 0"
+		Item "Jump Back to Saved Bookmark|B" "bookmark-goto 0"
 		Separator
 		Item "Move Paragraph Up|o" "paragraph-move-up"
 		Item "Move Paragraph Down|v" "paragraph-move-down"

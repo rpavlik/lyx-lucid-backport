@@ -52,7 +52,7 @@ namespace lyx {
  * The documentation below is primarily description of purpose and syntax
  * relating to the different LFUNs.
  *
- * Try to find an appropriate (thematical) place when adding the new LFUN
+   Try to find an appropriate (thematical) place when adding the new LFUN
  * and don't forget to add doxygen commentary.
  *
  * Doxygen template below. Some notes: Parameters should be set in uppercase
@@ -389,7 +389,7 @@ void LyXAction::init()
 /*!
  * \var lyx::FuncCode lyx::LFUN_QUOTE_INSERT
  * \li Action: Inserts quotes according to the type and quote-language preference.
- * \li Action: Currently  English, Swedish, German, Polish, French, Danish quotes
+ * \li Notion: Currently English, Swedish, German, Polish, French, Danish quotes
                are distinguished.
  * \li Syntax: quote-insert [<TYPE>]
  * \li Params: <TYPE>: 'single' for single quotes, otherwise double quotes will be used.
@@ -621,7 +621,7 @@ void LyXAction::init()
  */
 		{ LFUN_UP_SELECT, "up-select", ReadOnly | SingleParUpdate, Edit },
 /*!
- * \var lyx::FuncCode lyx::SCREEN_DOWN
+ * \var lyx::FuncCode lyx::LFUN_SCREEN_DOWN
  * \li Action: Moves the cursor one page in downward direction.
  * \li Syntax: screen-down
  * \endvar
@@ -668,6 +668,14 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_SCREEN_RECENTER, "screen-recenter", ReadOnly, Edit },
+
+/*!
+ * \var lyx::FuncCode lyx::LFUN_SCREEN_SHOW_CURSOR
+ * \li Action: Repositions the screen such that the cursor is visible.
+ * \li Syntax: screen-show-cursor
+ * \endvar
+ */
+		{ LFUN_SCREEN_SHOW_CURSOR, "screen-show-cursor", ReadOnly, Edit },
 
 /*!
  * \var lyx::FuncCode lyx::LFUN_CHAR_BACKWARD
@@ -1558,6 +1566,17 @@ void LyXAction::init()
  */
 		{ LFUN_MATH_SIZE, "math-size", Noop, Math },
 /*!
+ * \var lyx::FuncCode lyx::LFUN_MATH_FONT_STYLE
+ * \li Action: Changes the text style used in math.
+ * \li Syntax: math-font-style <STYLE>
+ * \li Params: <STYLE>: mathnormal|mathcal|mathfrak|mathrm|mathsf|mathbf
+               |textnormal|textrm|textsf|texttt|textbf|textmd|textit
+               |textsc|textsl|textup
+ * \li Origin: vfr, 9 jan 2009
+ * \endvar
+ */
+		{ LFUN_MATH_FONT_STYLE, "math-font-style", Noop, Math },
+/*!
  * \var lyx::FuncCode lyx::LFUN_MATH_MACRO_UNFOLD
  * \li Action: Unfold a Math Macro.
  * \li Notion: Unfold the Math Macro the cursor is in, i.e.
@@ -1854,7 +1873,7 @@ void LyXAction::init()
 /*!
  * \var lyx::FuncCode lyx::LFUN_INSET_EDIT
  * \li Action: Edit the inset at cursor with an external application,
- *             if one is attributed.
+               if one is attributed.
  * \li Syntax: inset-edit [<INSET_PARAMS>]
  * \li Params: <INSET_PARAMS>: Parameters for the inset. \n
                                Currently only the filename will be considered.
@@ -1876,7 +1895,7 @@ void LyXAction::init()
  * \var lyx::FuncCode lyx::LFUN_TABULAR_FEATURE
  * \li Action: Sets various features to the table/cell on the current cursor position.
  * \li Notion: Various math-environment features are handled here as well, e.g.
-               add-vline-left/right for Grid/Cases environment
+               add-vline-left/right for the Grid/Array environment
  * \li Syntax: tabular-feature <FEATURE> [<ARG>]
  * \li Params: <FEATURE>: append-row|append-column|delete-row|delete-column|copy-row|copy-column|
                        toggle-line-top|toggle-line-bottom|toggle-line-left|toggle-line-right|
@@ -2161,7 +2180,8 @@ void LyXAction::init()
  * \li Params: <ARG>: <open|close|toggle|assign>. \n
                open/close/toggle are for collapsable insets. close can be currently used
                by #LFUN_NEXT_INSET_TOGGLE. toggle is used when no argument is given.\n
-               assign is for branch inset.
+               assign synchronize the branch-inset with activation status of the branch.
+	       Used for global toggling when changed activation.
  * \li Origin: lasgouttes, 19 Jul 2001
  * \endvar
  */
@@ -2237,7 +2257,7 @@ void LyXAction::init()
  * \var lyx::FuncCode lyx::LFUN_LABEL_GOTO
  * \li Action: Goto a label.
  * \li Syntax: label-goto [<LABEL>]
- * \li Params: <LABEL>: Requested label. If no label is given and refernce
+ * \li Params: <LABEL>: Requested label. If no label is given and reference
 			is on cursor position, Bookmark 0 is saved and
 			cursor moves to the position of referenced label.
  * \li Origin: Ale, 6 Aug 1997
@@ -2264,10 +2284,15 @@ void LyXAction::init()
 
 /*!
  * \var lyx::FuncCode lyx::LFUN_BOOKMARK_GOTO
- * \li Action: Goto a bookmark.
- * \li Notion: Moves the cursor to the numbered bookmark, opening the file
+ * \li Action: Moves the cursor to the numbered bookmark, opening the file
                if necessary. Note that bookmarsk are saved per-session, not
                per file.
+ * \li Notion: Bookmark 0 has a special purpose. It is automatically set \n
+               1. to the paragraph you are currently editing \n
+	       2. to the paragraph from where you are jumping to the last-edited
+	          position (jump-back feature) \n
+	       3. when jumping from crossreference to the requested label by
+	          #LFUN_LABEL_GOTO.
  * \li Syntax: bookmark-goto <NUMBER>
  * \li Params: <NUMBER>: the number of the bookmark to restore.
  * \li Origin: Dekel, 27 January 2001
@@ -2554,7 +2579,17 @@ void LyXAction::init()
 /*!
  * \var lyx::FuncCode lyx::LFUN_SERVER_GOTO_FILE_ROW
  * \li Action: Sets the cursor position based on the row number of generated TeX file.
- * \li Syntax: server-goto-file-row <LYX_FILE_NAME> <ROW_NUMBER>
+ * \li Notion: This can be useful for DVI inverse-search or detection of the problematic
+               line from LaTeX compilation. Note that before this function can be used
+	       export to LaTeX output must occur (in order to map the row numbers).
+ * \li Syntax: server-goto-file-row <FILE[.ext]> <ROW_NUMBER>
+ * \li Params: <FILE>: the filename. Environment variables are expaned in the path.
+                       In case this LFUN does not work make sure you are giving correct
+		       path to the file.\n
+                       If the file is located inside LyX temporary directory it will be
+		       mapped back into the appropriate opened buffer (e.g. for the case
+		       of generated .tex file).
+                 .ext: extensions will be automatically replaced by .lyx.
  * \li Origin: Edmar, 23 Dec 1998
  * \endvar
  */
@@ -3097,7 +3132,7 @@ void LyXAction::init()
  */
 		{ LFUN_BRANCH_ACTIVATE, "branch-activate", Argument, Buffer },
 /*!
- * \var lyx::FuncCode lyx::LFUN_BRANCH_ACTIVATE
+ * \var lyx::FuncCode lyx::LFUN_BRANCH_DEACTIVATE
  * \li Action: De-activate the branch
  * \li Syntax: branch-deactivate <BRANCH>
  * \li Params: <BRANCH>: The branch to deactivate
@@ -3114,6 +3149,26 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_COPY_LABEL_AS_REF, "copy-label-as-reference", ReadOnly | NoUpdate, Edit },
+
+/*!
+ * \var lyx::FuncCode lyx::LFUN_BUFFER_ZOOM_IN
+ * \li Action: Increases the zoom of the screen fonts.
+ * \li Syntax: buffer-zoom-in [<ZOOM>]
+ * \li Params: <ZOOM>: The zoom in %, the default is 20.
+ * \li Origin: vfr, 30 Mar 2009
+ * \endvar
+ */
+		{ LFUN_BUFFER_ZOOM_IN, "buffer-zoom-in", ReadOnly, Buffer },
+
+/*!
+ * \var lyx::FuncCode lyx::LFUN_BUFFER_ZOOM_OUT
+ * \li Action: Decreases the zoom of the screen fonts.
+ * \li Syntax: buffer-zoom-out [<ZOOM>]
+ * \li Params: <ZOOM>: The zoom in %, the default is 20.
+ * \li Origin: vfr, 30 Mar 2009
+ * \endvar
+ */
+		{ LFUN_BUFFER_ZOOM_OUT, "buffer-zoom-out", ReadOnly, Buffer },
 
 		{ LFUN_NOACTION, "", Noop, Hidden }
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

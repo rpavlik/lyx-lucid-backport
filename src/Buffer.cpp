@@ -142,7 +142,6 @@ public:
 	LyXVC lyxvc;
 	FileName temppath;
 	mutable TexRow texrow;
-	Buffer const * parent_buffer;
 
 	/// need to regenerate .tex?
 	DepClean dep_clean;
@@ -222,6 +221,22 @@ public:
 
 	/// our Text that should be wrapped in an InsetText
 	InsetText * inset;
+
+	/// This is here to force the test to be done whenever parent_buffer
+	/// is accessed.
+	Buffer const * parent() const { 
+		// if parent_buffer is not loaded, then it has been unloaded,
+		// which means that parent_buffer is an invalid pointer. So we
+		// set it to null in that case.
+		if (!theBufferList().isLoaded(parent_buffer))
+			parent_buffer = 0;
+		return parent_buffer; 
+	}
+	///
+	void setParent(Buffer const * pb) { parent_buffer = pb; }
+private:
+	/// So we can force access via the accessors.
+	mutable Buffer const * parent_buffer;
 };
 
 
@@ -245,10 +260,11 @@ static FileName createBufferTmpDir()
 
 
 Buffer::Impl::Impl(Buffer & parent, FileName const & file, bool readonly_)
-	: parent_buffer(0), lyx_clean(true), bak_clean(true), unnamed(false),
+	: lyx_clean(true), bak_clean(true), unnamed(false),
 	  read_only(readonly_), filename(file), file_fully_loaded(false),
 	  toc_backend(&parent), macro_lock(false), timestamp_(0),
-	  checksum_(0), wa_(0), undo_(parent), bibinfoCacheValid_(false)
+	  checksum_(0), wa_(0), undo_(parent), bibinfoCacheValid_(false),
+	  parent_buffer(0)
 {
 	temppath = createBufferTmpDir();
 	lyxvc.setBuffer(&parent);
@@ -586,6 +602,11 @@ bool Buffer::readDocument(Lexer & lex)
 			Buffer * master =
 				checkAndLoadLyXFile(master_file, true);
 			if (master) {
+				// necessary e.g. after a reload
+				// to re-register the child (bug 5873)
+				// FIXME: clean up updateMacros (here, only
+				// child registering is needed).
+				master->updateMacros();
 				// set master as master buffer, but only
 				// if we are a real child
 				if (master->isChild(this))
@@ -596,9 +617,9 @@ bool Buffer::readDocument(Lexer & lex)
 				else if (master->isFullyLoaded())
 					LYXERR0("The master '"
 						<< params().master
-						<< "' assigned to this document '"
+						<< "' assigned to this document ("
 						<< absFileName()
-						<< "' does not include "
+						<< ") does not include "
 						"this document. Ignoring the master assignment.");
 			}
 		}
@@ -900,7 +921,7 @@ bool Buffer::writeFile(FileName const & fname) const
 		return false;
 	}
 
-	removeAutosaveFile(d->filename.absFilename());
+	removeAutosaveFile();
 
 	saveCheckSum(d->filename);
 	message(str + _(" done."));
@@ -1141,8 +1162,8 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	// This happens for example if only a child document is printed.
 	Buffer const * save_parent = 0;
 	if (output_preamble) {
-		save_parent = d->parent_buffer;
-		d->parent_buffer = 0;
+		save_parent = d->parent();
+		d->setParent(0);
 	}
 
 	// the real stuff
@@ -1150,7 +1171,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 
 	// Restore the parenthood if needed
 	if (output_preamble)
-		d->parent_buffer = save_parent;
+		d->setParent(save_parent);
 
 	// add this just in case after all the paragraphs
 	os << endl;
@@ -1343,8 +1364,9 @@ void Buffer::validate(LaTeXFeatures & features) const
 void Buffer::getLabelList(vector<docstring> & list) const
 {
 	// If this is a child document, use the parent's list instead.
-	if (d->parent_buffer) {
-		d->parent_buffer->getLabelList(list);
+	Buffer const * const pbuf = d->parent();
+	if (pbuf) {
+		pbuf->getLabelList(list);
 		return;
 	}
 
@@ -1362,8 +1384,9 @@ void Buffer::getLabelList(vector<docstring> & list) const
 void Buffer::updateBibfilesCache() const
 {
 	// If this is a child document, use the parent's cache instead.
-	if (d->parent_buffer) {
-		d->parent_buffer->updateBibfilesCache();
+	Buffer const * const pbuf = d->parent();
+	if (pbuf) {
+		pbuf->updateBibfilesCache();
 		return;
 	}
 
@@ -1401,8 +1424,9 @@ void Buffer::invalidateBibinfoCache()
 support::FileNameList const & Buffer::getBibfilesCache() const
 {
 	// If this is a child document, use the parent's cache instead.
-	if (d->parent_buffer)
-		return d->parent_buffer->getBibfilesCache();
+	Buffer const * const pbuf = d->parent();
+	if (pbuf)
+		return pbuf->getBibfilesCache();
 
 	// We update the cache when first used instead of at loading time.
 	if (d->bibfilesCache_.empty())
@@ -1693,23 +1717,24 @@ bool Buffer::isReadonly() const
 void Buffer::setParent(Buffer const * buffer)
 {
 	// Avoids recursive include.
-	d->parent_buffer = buffer == this ? 0 : buffer;
+	d->setParent(buffer == this ? 0 : buffer);
 	updateMacros();
 }
 
 
 Buffer const * Buffer::parent()
 {
-	return d->parent_buffer;
+	return d->parent();
 }
 
 
 Buffer const * Buffer::masterBuffer() const
 {
-	if (!d->parent_buffer)
+	Buffer const * const pbuf = d->parent();
+	if (!pbuf)
 		return this;
 
-	return d->parent_buffer->masterBuffer();
+	return pbuf->masterBuffer();
 }
 
 
@@ -1842,9 +1867,10 @@ MacroData const * Buffer::getMacro(docstring const & name,
 		return data;
 
 	// If there is a master buffer, query that
-	if (d->parent_buffer) {
+	Buffer const * const pbuf = d->parent();
+	if (pbuf) {
 		d->macro_lock = true;
-		MacroData const * macro	= d->parent_buffer->getMacro(
+		MacroData const * macro	= pbuf->getMacro(
 			name, *this, false);
 		d->macro_lock = false;
 		if (macro)
@@ -2038,8 +2064,9 @@ void Buffer::listMacroNames(MacroNameSet & macros) const
 		it->first->listMacroNames(macros);
 
 	// call parent
-	if (d->parent_buffer)
-		d->parent_buffer->listMacroNames(macros);
+	Buffer const * const pbuf = d->parent();
+	if (pbuf)
+		pbuf->listMacroNames(macros);
 
 	d->macro_lock = false;
 }
@@ -2047,11 +2074,12 @@ void Buffer::listMacroNames(MacroNameSet & macros) const
 
 void Buffer::listParentMacros(MacroSet & macros, LaTeXFeatures & features) const
 {
-	if (!d->parent_buffer)
+	Buffer const * const pbuf = d->parent();
+	if (!pbuf)
 		return;
 
 	MacroNameSet names;
-	d->parent_buffer->listMacroNames(names);
+	pbuf->listMacroNames(names);
 
 	// resolve macros
 	MacroNameSet::iterator it = names.begin();
@@ -2059,7 +2087,7 @@ void Buffer::listParentMacros(MacroSet & macros, LaTeXFeatures & features) const
 	for (; it != end; ++it) {
 		// defined?
 		MacroData const * data =
-		d->parent_buffer->getMacro(*it, *this, false);
+		pbuf->getMacro(*it, *this, false);
 		if (data) {
 			macros.insert(data);
 
@@ -2075,7 +2103,7 @@ void Buffer::listParentMacros(MacroSet & macros, LaTeXFeatures & features) const
 
 Buffer::References & Buffer::references(docstring const & label)
 {
-	if (d->parent_buffer)
+	if (d->parent())
 		return const_cast<Buffer *>(masterBuffer())->references(label);
 
 	RefCache::iterator it = d->ref_cache_.find(label);
@@ -2110,7 +2138,7 @@ InsetLabel const * Buffer::insetLabel(docstring const & label) const
 
 void Buffer::clearReferenceCache() const
 {
-	if (!d->parent_buffer)
+	if (!d->parent())
 		d->ref_cache_.clear();
 }
 
@@ -2156,9 +2184,9 @@ void Buffer::getSourceCode(odocstream & os, pit_type par_begin,
 	// No side effect of file copying and image conversion
 	runparams.dryrun = true;
 
-	d->texrow.reset();
 	if (full_source) {
 		os << "% " << _("Preview source code") << "\n\n";
+		d->texrow.reset();
 		d->texrow.newline();
 		d->texrow.newline();
 		if (isDocBook())
@@ -2180,14 +2208,16 @@ void Buffer::getSourceCode(odocstream & os, pit_type par_begin,
 					convert<docstring>(par_end - 1))
 			   << "\n\n";
 		}
-		d->texrow.newline();
-		d->texrow.newline();
+		TexRow texrow;
+		texrow.reset();
+		texrow.newline();
+		texrow.newline();
 		// output paragraphs
 		if (isDocBook())
 			docbookParagraphs(paragraphs(), *this, os, runparams);
 		else 
 			// latex or literate
-			latexParagraphs(*this, text(), os, d->texrow, runparams);
+			latexParagraphs(*this, text(), os, texrow, runparams);
 	}
 }
 
@@ -2339,6 +2369,39 @@ int AutoSaveBuffer::generateChild()
 } // namespace anon
 
 
+FileName Buffer::getAutosaveFilename() const
+{
+	// if the document is unnamed try to save in the backup dir, else
+	// in the default document path, and as a last try in the filePath, 
+	// which will most often be the temporary directory
+	string fpath;
+	if (isUnnamed())
+		fpath = lyxrc.backupdir_path.empty() ? lyxrc.document_path
+			: lyxrc.backupdir_path;
+	if (!isUnnamed() || fpath.empty() || !FileName(fpath).exists())
+		fpath = filePath();
+
+	string const fname = "#" + d->filename.onlyFileName() + "#";
+	return makeAbsPath(fname, fpath);
+}
+
+
+void Buffer::removeAutosaveFile() const
+{
+	FileName const f = getAutosaveFilename();
+	if (f.exists())
+		f.removeFile();
+}
+
+
+void Buffer::moveAutosaveFile(support::FileName const & oldauto) const
+{
+	FileName const newauto = getAutosaveFilename();
+	if (!(oldauto == newauto || oldauto.moveTo(newauto)))
+		LYXERR0("Unable to remove autosave file `" << oldauto << "'!");
+}
+
+
 // Perfect target for a thread...
 void Buffer::autoSave() const
 {
@@ -2350,14 +2413,7 @@ void Buffer::autoSave() const
 
 	// emit message signal.
 	message(_("Autosaving current document..."));
-
-	// create autosave filename
-	string fname = filePath();
-	fname += '#';
-	fname += d->filename.onlyFileName();
-	fname += '#';
-
-	AutoSaveBuffer autosave(*this, FileName(fname));
+	AutoSaveBuffer autosave(*this, getAutosaveFilename());
 	autosave.start();
 
 	markBakClean();

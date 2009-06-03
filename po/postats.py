@@ -30,7 +30,7 @@ Invocation:
 # modify this when you change branch
 # Note that an empty lyx_branch variable (ie svn trunk)
 # will "do the right thing".
-lyx_branch=""
+lyx_branch="BRANCH_1_6_X"
 # these po-files will be skipped:
 ommitted = ('en.po')
 
@@ -140,5 +140,4 @@ $branch_tag = "%s";
 
 // The data itself
 $podata = array (%s
-)?>
-""" % (sys.argv[1], branch_tag, ",".join([run_msgfmt(po) for po in sys.argv[2:] if po not in ommitted]))
+)?>""" % (sys.argv[1], branch_tag, ",".join([run_msgfmt(po) for po in sys.argv[2:] if po not in ommitted]))

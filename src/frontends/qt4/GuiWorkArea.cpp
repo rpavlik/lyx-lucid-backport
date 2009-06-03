@@ -42,6 +42,7 @@
 #include "graphics/GraphicsImage.h"
 #include "graphics/GraphicsLoader.h"
 
+#include "support/convert.h"
 #include "support/debug.h"
 #include "support/gettext.h"
 #include "support/FileName.h"
@@ -229,7 +230,7 @@ private:
 // cursor is at the top or bottom edge of the viewport. One scroll per 0.2 s
 SyntheticMouseEvent::SyntheticMouseEvent()
 	: timeout(200), restart_timeout(true),
-	  x_old(-1), y_old(-1), scrollbar_value_old(-1.0)
+	  x_old(-1), y_old(-1), min_scrollbar_old(-1.0), max_scrollbar_old(-1.0)
 {}
 
 
@@ -255,6 +256,9 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	}
 
 	screen_ = QPixmap(viewport()->width(), viewport()->height());
+	// With Qt4.5 a mouse event will happen before the first paint event
+	// so make sure that the buffer view has an up to date metrics.
+	buffer_view_->resize(viewport()->width(), viewport()->height());
 	cursor_ = new frontend::CursorWidget();
 	cursor_->hide();
 
@@ -273,11 +277,7 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	setAcceptDrops(true);
 	setMouseTracking(true);
 	setMinimumSize(100, 70);
-#ifdef Q_WS_MACX
 	setFrameStyle(QFrame::NoFrame);
-#else
-	setFrameStyle(QFrame::Box);
-#endif
 	updateWindowTitle();
 
 	viewport()->setAutoFillBackground(false);
@@ -490,7 +490,13 @@ void GuiWorkArea::resizeBufferView()
 	// WARNING: Please don't put any code that will trigger a repaint here!
 	// We are already inside a paint event.
 	lyx_view_->setBusy(true);
+	Point p;
+	int h = 0;
+	buffer_view_->cursorPosAndHeight(p, h);
+	bool const cursor_in_view = buffer_view_->cursorInView(p, h);
 	buffer_view_->resize(viewport()->width(), viewport()->height());
+	if (cursor_in_view)
+		buffer_view_->scrollToCursor();
 	updateScreen();
 
 	// Update scrollbars which might have changed due different
@@ -524,31 +530,18 @@ void GuiWorkArea::showCursor()
 	if (realfont.language() == latex_language)
 		l_shape = false;
 
-	Font const font = buffer_view_->cursor().getFont();
-	FontMetrics const & fm = theFontMetrics(font);
-	int const asc = fm.maxAscent();
-	int const des = fm.maxDescent();
-	int h = asc + des;
-	int x = 0;
-	int y = 0;
-	Cursor & cur = buffer_view_->cursor();
-	cur.getPos(x, y);
-	y -= asc;
-
-	// if it doesn't touch the screen, don't try to show it
-	bool cursorInView = true;
-	if (y + h < 0 || y >= viewport()->height()
-		|| !cur.bv().paragraphVisible(cur))
-		cursorInView = false;
-
+	Point p;
+	int h = 0;
+	buffer_view_->cursorPosAndHeight(p, h);
 	// show cursor on screen
+	Cursor & cur = buffer_view_->cursor();
 	bool completable = cur.inset().showCompletionCursor()
 		&& completer_->completionAvailable()
 		&& !completer_->popupVisible()
 		&& !completer_->inlineVisible();
-	if (cursorInView) {
+	if (buffer_view_->cursorInView(p, h)) {
 		cursor_visible_ = true;
-		showCursor(x, y, h, l_shape, isrtl, completable);
+		showCursor(p.x_, p.y_, h, l_shape, isrtl, completable);
 	}
 }
 
@@ -757,10 +750,10 @@ void GuiWorkArea::mouseMoveEvent(QMouseEvent * e)
 
 	// Has anything changed on-screen since the last QMouseEvent
 	// was received?
-	double const scrollbar_value = verticalScrollBar()->value();
 	if (e->x() == synthetic_mouse_event_.x_old
 		&& e->y() == synthetic_mouse_event_.y_old
-		&& scrollbar_value == synthetic_mouse_event_.scrollbar_value_old) {
+		&& synthetic_mouse_event_.min_scrollbar_old == verticalScrollBar()->minimum()
+		&& synthetic_mouse_event_.max_scrollbar_old == verticalScrollBar()->maximum()) {
 		// Nothing changed on-screen since the last QMouseEvent.
 		return;
 	}
@@ -768,7 +761,8 @@ void GuiWorkArea::mouseMoveEvent(QMouseEvent * e)
 	// Yes something has changed. Store the params used to check this.
 	synthetic_mouse_event_.x_old = e->x();
 	synthetic_mouse_event_.y_old = e->y();
-	synthetic_mouse_event_.scrollbar_value_old = scrollbar_value;
+	synthetic_mouse_event_.min_scrollbar_old = verticalScrollBar()->minimum();
+	synthetic_mouse_event_.max_scrollbar_old = verticalScrollBar()->maximum();
 
 	// ... and dispatch the event to the LyX core.
 	dispatch(cmd);
@@ -781,15 +775,8 @@ void GuiWorkArea::wheelEvent(QWheelEvent * ev)
 	// documentation of QWheelEvent)
 	int const delta = ev->delta() / 120;
 	if (ev->modifiers() & Qt::ControlModifier) {
-		lyxrc.zoom += 5 * delta;
-		if (lyxrc.zoom < 10)
-			lyxrc.zoom = 10;
-		// The global QPixmapCache is used in GuiPainter to cache text
-		// painting so we must reset it.
-		QPixmapCache::clear();
-		guiApp->fontLoader().update();
-		ev->accept();
-		lyx::dispatch(FuncRequest(LFUN_SCREEN_FONT_UPDATE));
+		docstring arg = convert<docstring>(5 * delta);
+		lyx::dispatch(FuncRequest(LFUN_BUFFER_ZOOM_IN, arg));
 		return;
 	}
 
@@ -823,14 +810,17 @@ void GuiWorkArea::generateSyntheticMouseEvent()
 
 	// Has anything changed on-screen since the last timeout signal
 	// was received?
-	double const scrollbar_value = verticalScrollBar()->value();
-	if (scrollbar_value != synthetic_mouse_event_.scrollbar_value_old) {
-		// Yes it has. Store the params used to check this.
-		synthetic_mouse_event_.scrollbar_value_old = scrollbar_value;
-
-		// ... and dispatch the event to the LyX core.
-		dispatch(synthetic_mouse_event_.cmd);
+	int const min_scrollbar = verticalScrollBar()->minimum();
+	int const max_scrollbar = verticalScrollBar()->maximum();
+	if (min_scrollbar == synthetic_mouse_event_.min_scrollbar_old
+		&& max_scrollbar == synthetic_mouse_event_.max_scrollbar_old) {
+		return;
 	}
+	// Yes it has. Store the params used to check this.
+	synthetic_mouse_event_.min_scrollbar_old = min_scrollbar;
+	synthetic_mouse_event_.max_scrollbar_old = max_scrollbar;
+	// ... and dispatch the event to the LyX core.
+	dispatch(synthetic_mouse_event_.cmd);
 }
 
 
@@ -1129,8 +1119,12 @@ void GuiWorkArea::updateWindowTitle()
 	if (!fileName.empty()) {
 		maximize_title = fileName.displayName(30);
 		minimize_title = from_utf8(fileName.onlyFileName());
-		if (buf.lyxvc().inUse())
-			maximize_title +=  _(" (version control)");
+		if (buf.lyxvc().inUse()) {
+			if (buf.lyxvc().locker().empty())
+				maximize_title +=  _(" (version control)");
+			else
+				maximize_title +=  _(" (version control, locking)");
+		}
 		if (!buf.isClean()) {
 			maximize_title += _(" (changed)");
 			minimize_title += char_type('*');
@@ -1216,10 +1210,11 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 	QObject::connect(this, SIGNAL(currentChanged(int)),
 		this, SLOT(on_currentTabChanged(int)));
 
-	QToolButton * closeBufferButton = new QToolButton(this);
+#if QT_VERSION < 0x040500
+	closeBufferButton = new QToolButton(this);
 	closeBufferButton->setPalette(pal);
 	// FIXME: rename the icon to closebuffer.png
-	closeBufferButton->setIcon(QIcon(":/images/closetab.png"));
+	closeBufferButton->setIcon(QIcon(getPixmap("images/", "closetab", "png")));
 	closeBufferButton->setText("Close File");
 	closeBufferButton->setAutoRaise(true);
 	closeBufferButton->setCursor(Qt::ArrowCursor);
@@ -1228,6 +1223,7 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 	QObject::connect(closeBufferButton, SIGNAL(clicked()),
 		this, SLOT(closeCurrentBuffer()));
 	setCornerWidget(closeBufferButton, Qt::TopRightCorner);
+#endif
 
 	// setup drag'n'drop
 	QTabBar* tb = new DragTabBar;
@@ -1240,6 +1236,10 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 	tb->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(tb, SIGNAL(customContextMenuRequested(const QPoint &)),
 		this, SLOT(showContextMenu(const QPoint &)));
+#if QT_VERSION >= 0x040500
+	connect(tb, SIGNAL(tabCloseRequested(int)),
+		tb, SLOT(on_tabCloseRequested(int)));
+#endif
 
 	setUsesScrollButtons(true);
 }
@@ -1261,6 +1261,9 @@ void TabWorkArea::showBar(bool show)
 {
 	tabBar()->setEnabled(show);
 	tabBar()->setVisible(show);
+#if QT_VERSION < 0x040500
+	closeBufferButton->setVisible(show);	
+#endif
 }
 
 
@@ -1394,6 +1397,11 @@ void TabWorkArea::closeCurrentBuffer()
 {
 	if (clicked_tab_ != -1)
 		setCurrentIndex(clicked_tab_);
+	else {
+		// Before dispatching the LFUN we should be sure this
+		// is the current workarea.
+		currentWorkAreaChanged(currentWorkArea());
+	}
 
 	lyx::dispatch(FuncRequest(LFUN_BUFFER_CLOSE));
 }
@@ -1615,9 +1623,9 @@ void TabWorkArea::showContextMenu(const QPoint & pos)
 
 	// show tab popup
 	QMenu popup;
-	popup.addAction(QIcon(":/images/hidetab.png"),
+	popup.addAction(QIcon(getPixmap("images/", "hidetab", "png")),
 		qt_("Hide tab"), this, SLOT(closeCurrentTab()));
-	popup.addAction(QIcon(":/images/closetab.png"),
+	popup.addAction(QIcon(getPixmap("images/", "closetab", "png")),
 		qt_("Close tab"), this, SLOT(closeCurrentBuffer()));
 	popup.exec(tabBar()->mapToGlobal(pos));
 
@@ -1642,6 +1650,16 @@ DragTabBar::DragTabBar(QWidget* parent)
 	: QTabBar(parent)
 {
 	setAcceptDrops(true);
+#if QT_VERSION >= 0x040500
+	setTabsClosable(true);
+#endif
+}
+
+
+void DragTabBar::on_tabCloseRequested(int index)
+{
+	setCurrentIndex(index);
+	lyx::dispatch(FuncRequest(LFUN_BUFFER_CLOSE));
 }
 
 

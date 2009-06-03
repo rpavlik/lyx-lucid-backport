@@ -1,4 +1,4 @@
-#LyX 1.6.2 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -462,7 +462,7 @@ Formel ! eingebettete
 
  zu erstellen, drückt man 
 \family sans
-Strg-m
+Strg+M
 \family default
  oder den Werkzeugleistenknopf 
 \begin_inset Graphics
@@ -487,7 +487,7 @@ Formel ! abgesetzte
 
  zu erstellen, drückt man 
 \family sans
-Strg-M
+Strg+Shift+M
 \family default
 .
 \end_layout
@@ -496,7 +496,7 @@ Strg-M
 Um eine abgesetzte Formel in eine eingebettete umzuwandeln, setzt man den
  Cursor in die Formel und drückt 
 \family sans
-Strg-M
+Strg+Shift+M
 \family default
  oder benutzt das Menü 
 \family sans
@@ -644,7 +644,7 @@ Code
 \family default
  (Tastenkürzel 
 \family sans
-Strg-l
+Strg+L
 \family default
 ).
 \begin_inset Note Note
@@ -789,11 +789,11 @@ Mathematischer Textmodus
 
 , in den man mit dem Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
-m
+M
 \family default
  oder durch Eingabe des Befehls 
 \series bold
@@ -908,7 +908,7 @@ immer
 \begin_layout Standard
 Ein geschütztes Leerzeichen gibt man mit 
 \family sans
-Strg-Leertaste
+Strg+Leertaste
 \family default
  ein.
 \end_layout
@@ -2029,29 +2029,62 @@ Der Befehl für obiges Beispiel lautet:
 \series bold
 
 \backslash
-cfrac{A
-\begin_inset Formula $\to$
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
 \end_inset
 
-
-\backslash
-{B+
-\backslash
-cfrac{C+
-\backslash
-cfrac{E
-\begin_inset Formula $\to$
+A
+\begin_inset Formula $\downarrow$
 \end_inset
 
+B+
+\backslash
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
 
 \backslash
-{F
-\begin_inset Formula $\to\to$
+leer 
+\end_layout
+
 \end_inset
 
+C+
+\backslash
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
 
 \backslash
-{D
+leer 
+\end_layout
+
+\end_inset
+
+E
+\begin_inset Formula $\downarrow$
+\end_inset
+
+F
+\begin_inset Formula $\downarrow$
+\end_inset
+
+D
 \end_layout
 
 \begin_layout Standard
@@ -2070,62 +2103,36 @@ cfrac
 \series default
  bewirkt, dass der Bruch immer in der Größe einer abgesetzten Formel erscheint,
  auch wenn er selbst Teil eines Bruches ist.
+\end_layout
+
+\begin_layout Standard
+Es ist möglich die Ausrichtung des Zählers einzustellen.
+ Der Befehl 
+\series bold
+
+\backslash
+cfracleft
+\series default
+ richtet ihn links, der Befehl 
+\series bold
+
+\backslash
+cfracright
+\series default
+ rechts aus.
  
 \series bold
 
 \backslash
 cfrac
 \series default
- besitzt folgendes Befehlsschema:
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-cfrac[Zählerposition]{Zähler}{Nenner}
-\end_layout
-
-\begin_layout Standard
-Zählerposition kann 
-\emph on
-l
-\emph default
- , 
-\emph on
-c
-\emph default
- oder 
-\emph on
-r
-\emph default
- sein.
- Bei 
-\emph on
-l
-\emph default
- oder 
-\emph on
-r
-\emph default
- wird der Zähler links- bzw.
-\begin_inset space ~
-\end_inset
-
-rechtsbündig am Bruchstrich ausgerichtet.
- Wird 
-\emph on
-c
-\emph default
- oder keine Position angegeben, erscheint der Zähler wie gewohnt mittig.
+ zentriert den Zähler.
  Diese Brüche demonstrieren die verschiedenen Ausrichtungen:
-\begin_inset Newline newline
-\end_inset
+\end_layout
 
+\begin_layout Standard
 
 \series bold
-
 \begin_inset Formula $\cfrac[l]{A}{B+C}$
 \end_inset
 
@@ -2135,6 +2142,42 @@ c
 
 , 
 \begin_inset Formula $\cfrac[r]{A}{B+C}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Achtung:
+\series default
+ 
+\series bold
+
+\backslash
+cfracleft
+\series default
+ und
+\series bold
+ 
+\backslash
+cfracright
+\series default
+ sind keine echten LaTeX-Befehle, sondern stellen den Befehl 
+\series bold
+
+\backslash
+cfrac[Ausrichtung]{Zähler}{Nenner}
+\series default
+ dar.
+ Daher kann man sie nicht im TeX-Code benutzen.
+\end_layout
+
 \end_inset
 
 
@@ -2222,16 +2265,24 @@ unitfracthree
 \end_inset
 
 
-\begin_inset Newline newline
-\end_inset
+\end_layout
 
-Zu beachten ist, dass 
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Achtung:
+\series default
+ 
 \series bold
 
 \backslash
 unitfracthree
 \series default
- kein echter LaTeX-Befehl, sondern der Befehl
+ ist kein echter LaTeX-Befehl, sondern der Befehl
 \begin_inset Newline newline
 \end_inset
 
@@ -2241,7 +2292,13 @@ unitfracthree
 \backslash
 unitfrac[Zahl]{Zähler}{Nenner}
 \series default
- ist, daher kann man ihn nicht im TeX-Code benutzen.
+ .
+ Daher kann man ihn nicht im TeX-Code benutzen.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -3098,7 +3155,7 @@ leer
 
 \end_inset
 
-Strg-Enter
+Strg+Enter
 \end_layout
 
 \end_inset
@@ -3141,7 +3198,7 @@ cases
 
  können mit 
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
  oder dem Tabellen-Werkzeugleistenknopf 
 \begin_inset Graphics
@@ -5119,7 +5176,7 @@ Zeilen & Spalten
  verwenden.
  Neue Zeilen können auch mit 
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
  erstellt werden.
 \end_layout
@@ -5166,7 +5223,7 @@ right
 
  erstellt werden (Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
@@ -5714,7 +5771,7 @@ Spalten
  oder die Mathe-Werkzeugleiste um neue Spalten zu erstellen.
  Neue Zeilen können auch mit 
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
  erstellt werden.
 \end_layout
@@ -7056,7 +7113,7 @@ right
 \series default
  kann man die Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
@@ -7072,7 +7129,7 @@ Der Befehl für das letzte Beispiel würde dann lauten:
 \series bold
 
 \backslash
-ln Alt-m
+ln Alt+M
 \series default
  
 \series bold
@@ -7789,7 +7846,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-Fehler #1505"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1505"
+target "http://www.lyx.org/trac/ticket/1505"
 
 \end_inset
 
@@ -11587,7 +11644,7 @@ Abstand
 \family default
  (Tastenkürzel 
 \family sans
-Strg-Shift-Leertaste
+Strg+Shift+Leertaste
 \family default
 ) ein.
 \end_layout
@@ -12388,31 +12445,10 @@ fbox
 \series default
  muss in diesem Eingabefeld mit 
 \family sans
-Strg-m
+Strg+M
 \family default
- noch eine Formel erstellt werden
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Aufgrund eines Fehlers in LyX ist es nicht möglich mit 
-\family sans
-Strg-m
-\family default
- eine neue Formel zu erzeugen, siehe 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-Fehler #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-, denn der Inhalt dieser Box wird sonst als mathematischer Text behandelt.
+ noch eine Formel erstellt werden, denn der Inhalt dieser Box wird sonst
+ als mathematischer Text behandelt.
  Verwendet man 
 \series bold
 
@@ -12539,32 +12575,6 @@ fbox
 
 \begin_layout Standard
 \align center
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Die Tabelle wurde in eine Minibox gesetzt damit die Fußnote der Tabelle
- auch erscheint.
- Denn sonst würde der Fußnotentext im Ausdruck nicht angezeigt werden.
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Frameless
-position "c"
-hor_pos "c"
-has_inner_box 1
-inner_pos "c"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-\align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
@@ -12576,28 +12586,6 @@ status open
 
 \begin_layout Plain Layout
 Befehl
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Durch einen Fehler in LyX ist es momentan nicht möglich mit 
-\family sans
-Strg-m
-\family default
- eine neue Formel zu erzeugen, siehe 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-Fehler #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -12650,7 +12638,7 @@ leer
 
 
 \family sans
-Strg-m
+Strg+M
 \family default
  
 \backslash
@@ -12676,7 +12664,7 @@ A=B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}$
+\begin_inset Formula $\raisebox{6mm}{}\fbox{\ensuremath{\int A=B}}\raisebox{-4mm}{}$
 \end_inset
 
 
@@ -12806,7 +12794,7 @@ leer
 
 
 \family sans
-Strg-m
+Strg+M
 \family default
  
 \backslash
@@ -12840,7 +12828,7 @@ B
 \end_inset
 
 
-\begin_inset Formula $\framebox[20mm][]{$\frac{A}{B}$}$
+\begin_inset Formula $\framebox[20mm][]{\ensuremath{\frac{A}{B}}}$
 \end_inset
 
 
@@ -12854,11 +12842,6 @@ B
 </cell>
 </row>
 </lyxtabular>
-
-\end_inset
-
-
-\end_layout
 
 \end_inset
 
@@ -13133,6 +13116,38 @@ Soll in der Box eine Formel stehen, muss man wie bei
 fbox
 \series default
  eine weitere Formel erstellen.
+ 
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Achtung:
+\series default
+ Für 
+\series bold
+
+\backslash
+raisebox
+\series default
+ wird diese weitere Formel durch zweimaliges statt einmaliges Drücken von
+ 
+\family sans
+Strg+M
+\family default
+ erstellt, denn LyX unterstützt 
+\series bold
+
+\backslash
+raisebox
+\series default
+ noch nicht direkt.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -13247,7 +13262,7 @@ raisebox{-2mm
 \backslash
 {
 \family sans
-Strg-m
+Strg+M Strg+M
 \family default
  
 \backslash
@@ -13273,18 +13288,7 @@ B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-$A=
-\backslash
-raisebox{-2mm}{$
-\backslash
-sqrt{B}$}$
-\end_layout
-
+\begin_inset Formula $A=\raisebox{-2mm}{\mbox{\ensuremath{\sqrt{B}}}}$
 \end_inset
 
 
@@ -13294,29 +13298,6 @@ sqrt{B}$}$
 </cell>
 </row>
 </lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Die letzte Formel kann derzeit nur im TeX-Modus erstellt werden, da LyX
- statt der benötigten weiteren Formel eine Box einfügt.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-siehe 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-Fehler #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-
-\end_layout
 
 \end_inset
 
@@ -13492,7 +13473,7 @@ colorbox
 \series bold
 
 \backslash
-fbox
+raisebox
 \series default
  eine weitere Formel erstellt werden.
 \begin_inset Foot
@@ -13506,15 +13487,6 @@ Das gilt auch für den Befehl
 fcolorbox
 \series default
 .
- Dabei ist 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-Fehler #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
- zu beachten.
 \end_layout
 
 \end_inset
@@ -13708,7 +13680,26 @@ colorbox{green
 
 
 \backslash
-{A=B
+{
+\family sans
+Strg+M Strg+M
+\family default
+ 
+\backslash
+int
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+C=D
 \end_layout
 
 \end_inset
@@ -13717,7 +13708,7 @@ colorbox{green
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\raisebox{6mm}{}\fbox{\colorbox{green}{A=B}}\raisebox{-3mm}{}$
+\begin_inset Formula $\raisebox{7mm}{}\fbox{\colorbox{green}{\mbox{\ensuremath{\int C=D}}}}\raisebox{-5mm}{}$
 \end_inset
 
 
@@ -14436,7 +14427,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-Fehler #4483"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=4483"
+target "http://www.lyx.org/trac/ticket/4483"
 
 \end_inset
 
@@ -15457,11 +15448,11 @@ d
 \emph default
  und wandelt es mit der Tastenkombination 
 \family sans
-Alt-z
+Alt+Z
 \begin_inset space ~
 \end_inset
 
-r
+R
 \family default
 
 \begin_inset Foot
@@ -15916,11 +15907,11 @@ Eingebettet
 \series default
  (Tastenkombination 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
-l
+L
 \family default
 ).
  Dazu folgendes Beispiel:
@@ -16078,7 +16069,7 @@ leer
  Zeilen untereinander schreiben.
  Mit Eingabe des Zeilenumbruchs (
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
 ) wird eine neue Zeile erstellt.
  Gibt man
@@ -17845,7 +17836,7 @@ ABC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z k
+Alt+Z K
 \end_layout
 
 \end_inset
@@ -17896,7 +17887,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Strg-b
+Strg+B
 \end_layout
 
 \end_inset
@@ -17947,7 +17938,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z f oder Strg-Alt-b
+Alt+Z F oder Strg+Alt+B
 \end_layout
 
 \end_inset
@@ -17998,7 +17989,7 @@ ABC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z h
+Alt+Z H
 \end_layout
 
 \end_inset
@@ -18195,7 +18186,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z r
+Alt+Z R
 \end_layout
 
 \end_inset
@@ -18246,7 +18237,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z s
+Alt+Z S
 \end_layout
 
 \end_inset
@@ -18297,7 +18288,7 @@ AbC
 \begin_inset Text
 
 \begin_layout Plain Layout
-Alt-z c
+Alt+Z C
 \end_layout
 
 \end_inset
@@ -18368,16 +18359,16 @@ ile, sondern in dem Textschriftstil
 textrm
 \series default
 .
- Dass ihr Stil nicht über den Textstil Dialog geändert werden kann ist ein
- Fehler in LyX .
+ Dass deren Stil nicht über den Textstil Dialog geändert werden kann ist
+ ein Fehler in LyX.
 \begin_inset Foot
 status collapsed
 
 \begin_layout Plain Layout
 \begin_inset CommandInset href
 LatexCommand href
-name "LyX-Fehler #4091"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=4091"
+name "LyX-Fehler #4629"
+target "http://www.lyx.org/trac/ticket/4629"
 
 \end_inset
 
@@ -18654,7 +18645,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #5269"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=5269"
+target "http://www.lyx.org/trac/ticket/5269"
 
 \end_inset
 
@@ -27447,7 +27438,7 @@ Allgemeines
 In LyX werden mehrzeilige Formeln erstellt, wenn man in einer Formel 
 \family sans
 \series bold
-Strg-Enter
+Strg+Enter
 \family default
 \series default
  drückt.
@@ -27494,7 +27485,7 @@ Mathe
 In allen mehrzeiligen Formelumgebungen erstellt man eine neue Zeile, indem
  man 
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
  drückt.
  Um Spalten hinzuzufügen oder zu entfernen, können die Mathe-Werkzeugleistenknöp
@@ -27568,7 +27559,7 @@ siehe
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-Fehler #1505"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1505"
+target "http://www.lyx.org/trac/ticket/1505"
 
 \end_inset
 
@@ -28120,7 +28111,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-Fehler #1429"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1429"
+target "http://www.lyx.org/trac/ticket/1429"
 
 \end_inset
 
@@ -28449,7 +28440,7 @@ Formel ! mehrzeilige ! align-Umgebung
 \begin_layout Standard
 Diese Align-Umgebung wird erstellt, indem man in einer Formel 
 \family sans
-Strg-Enter
+Strg+Enter
 \family default
  drückt oder das Menü 
 \family sans
@@ -29197,7 +29188,7 @@ intertext
  Ein Beispiel bei dem der Text zu Beginn der zweiten Zeile eingegeben wurde:
 \begin_inset Formula \begin{align}
 I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
-\intertext{\text{Integrand ist symmetrisch zu $\phi=\pi$, daher}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
+\intertext{\text{Integrand ist symmetrisch zu \ensuremath{\phi=\pi}, daher}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
 
 \end_inset
 
@@ -29267,11 +29258,11 @@ Formel
 \family default
  (Tastenkürzel 
 \family sans
-Strg-Alt
+Strg+Alt
 \begin_inset space ~
 \end_inset
 
-n
+N
 \family default
 ) erstellt, bestehende Formeln über das Menü 
 \family sans
@@ -29285,11 +29276,11 @@ an/aus
 \family default
  (Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
-n
+N
 \family default
 ) nummeriert werden.
  Die Formelnummer erscheint in LyX hinter der Formel als Raute in runden
@@ -29308,11 +29299,11 @@ Zeilennummerierung an/aus
 \family default
  (Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
-N
+Shift+N
 \family default
 ) für jede Zeile die Nummerierung festlegen.
 \end_layout
@@ -32088,7 +32079,7 @@ xleftarrow[#2]{#1}}
 in LyX als normalen Text, markiert ihn komplett und verwendet dann das Tastenkür
 zel 
 \family sans
-Strg-m
+Strg+M
 \family default
 , wird der Befehl in ein Mathe-Makro umgewandelt.
  Bei dieser Methode muss man jedoch aufpassen, dass der 
@@ -33158,11 +33149,11 @@ Diese Reaktionsgleichung kann direkt als Formel erstellt werden.
  Damit die Symbole nicht kursiv erscheinen, markiert man sämtliche Zeichen
  in der Formel und wandelt diese mit der Tastenkombination 
 \family sans
-Alt-z
+Alt+Z
 \begin_inset space ~
 \end_inset
 
-r
+R
 \family default
  in den aufrechten Schriftstil um.
 \begin_inset Foot
@@ -33320,11 +33311,11 @@ In LaTeX fungiert das Komma in einer Formel, gemäß englischer Konvention,
 Um dies zu verhindern, markiert man das Komma und wandelt es in mathematischen
  Text um (Tastenkürzel 
 \family sans
-Alt-m
+Alt+M
 \begin_inset space ~
 \end_inset
 
-m
+M
 \family default
 ).
 \end_layout

@@ -38,7 +38,8 @@ DIST_COMMON = $(dist_bibliodoc_DATA) $(dist_cadoc_DATA) \
 	$(dist_esclipartdoc_DATA) $(dist_esdoc_DATA) \
 	$(dist_eudoc_DATA) $(dist_frclipartdoc_DATA) \
 	$(dist_frdoc_DATA) $(dist_gldoc_DATA) $(dist_hedoc_DATA) \
-	$(dist_hudoc_DATA) $(dist_itclipartdoc_DATA) \
+	$(dist_hudoc_DATA) $(dist_idclipartdoc_DATA) \
+	$(dist_iddoc_DATA) $(dist_itclipartdoc_DATA) \
 	$(dist_itdoc_DATA) $(dist_jaclipartdoc_DATA) \
 	$(dist_jadoc_DATA) $(dist_nbdoc_DATA) $(dist_nldoc_DATA) \
 	$(dist_pldoc_DATA) $(dist_ptdoc_DATA) $(dist_rodoc_DATA) \
@@ -88,6 +89,7 @@ am__installdirs = "$(DESTDIR)$(bibliodocdir)" "$(DESTDIR)$(cadocdir)" \
 	"$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" \
 	"$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" \
 	"$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" \
+	"$(DESTDIR)$(idclipartdocdir)" "$(DESTDIR)$(iddocdir)" \
 	"$(DESTDIR)$(itclipartdocdir)" "$(DESTDIR)$(itdocdir)" \
 	"$(DESTDIR)$(jaclipartdocdir)" "$(DESTDIR)$(jadocdir)" \
 	"$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" \
@@ -112,6 +114,8 @@ dist_frdocDATA_INSTALL = $(INSTALL_DATA)
 dist_gldocDATA_INSTALL = $(INSTALL_DATA)
 dist_hedocDATA_INSTALL = $(INSTALL_DATA)
 dist_hudocDATA_INSTALL = $(INSTALL_DATA)
+dist_idclipartdocDATA_INSTALL = $(INSTALL_DATA)
+dist_iddocDATA_INSTALL = $(INSTALL_DATA)
 dist_itclipartdocDATA_INSTALL = $(INSTALL_DATA)
 dist_itdocDATA_INSTALL = $(INSTALL_DATA)
 dist_jaclipartdocDATA_INSTALL = $(INSTALL_DATA)
@@ -133,7 +137,8 @@ DATA = $(dist_bibliodoc_DATA) $(dist_cadoc_DATA) \
 	$(dist_esclipartdoc_DATA) $(dist_esdoc_DATA) \
 	$(dist_eudoc_DATA) $(dist_frclipartdoc_DATA) \
 	$(dist_frdoc_DATA) $(dist_gldoc_DATA) $(dist_hedoc_DATA) \
-	$(dist_hudoc_DATA) $(dist_itclipartdoc_DATA) \
+	$(dist_hudoc_DATA) $(dist_idclipartdoc_DATA) \
+	$(dist_iddoc_DATA) $(dist_itclipartdoc_DATA) \
 	$(dist_itdoc_DATA) $(dist_jaclipartdoc_DATA) \
 	$(dist_jadoc_DATA) $(dist_nbdoc_DATA) $(dist_nldoc_DATA) \
 	$(dist_pldoc_DATA) $(dist_ptdoc_DATA) $(dist_rodoc_DATA) \
@@ -210,6 +215,7 @@ LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPSAPI = @LIBPSAPI@
 LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
@@ -519,6 +525,7 @@ dist_frdoc_DATA = \
 	fr/Formula-numbering.lyx \
 	fr/Intro.lyx \
 	fr/Math.lyx \
+	fr/Shortcuts.lyx \
 	fr/Tutorial.lyx \
 	fr/UserGuide.lyx
 
@@ -548,6 +555,17 @@ dist_hudoc_DATA = \
 	hu/Intro.lyx \
 	hu/Tutorial.lyx
 
+iddocdir = $(docdir)/id
+dist_iddoc_DATA = \
+	id/Intro.lyx \
+	id/Tutorial.lyx
+
+idclipartdocdir = $(iddocdir)/clipart
+dist_idclipartdoc_DATA = \
+	id/clipart/id-contrib.png \
+	id/clipart/id-footnote.png \
+	id/clipart/id-lingkungan.png
+
 itdocdir = $(docdir)/it
 dist_itdoc_DATA = \
 	it/Customization.lyx \
@@ -565,6 +583,7 @@ dist_jadoc_DATA = \
 	ja/Extended.lyx \
 	ja/Intro.lyx \
 	ja/LaTeXConfig.lyx \
+	ja/Math.lyx \
 	ja/Shortcuts.lyx \
 	ja/Tutorial.lyx \
 	ja/UserGuide.lyx
@@ -965,6 +984,40 @@ uninstall-dist_hudocDATA:
 	  echo " rm -f '$(DESTDIR)$(hudocdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(hudocdir)/$$f"; \
 	done
+install-dist_idclipartdocDATA: $(dist_idclipartdoc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(idclipartdocdir)" || $(MKDIR_P) "$(DESTDIR)$(idclipartdocdir)"
+	@list='$(dist_idclipartdoc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(dist_idclipartdocDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(idclipartdocdir)/$$f'"; \
+	  $(dist_idclipartdocDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(idclipartdocdir)/$$f"; \
+	done
+
+uninstall-dist_idclipartdocDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_idclipartdoc_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(idclipartdocdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(idclipartdocdir)/$$f"; \
+	done
+install-dist_iddocDATA: $(dist_iddoc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(iddocdir)" || $(MKDIR_P) "$(DESTDIR)$(iddocdir)"
+	@list='$(dist_iddoc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(dist_iddocDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(iddocdir)/$$f'"; \
+	  $(dist_iddocDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(iddocdir)/$$f"; \
+	done
+
+uninstall-dist_iddocDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_iddoc_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(iddocdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(iddocdir)/$$f"; \
+	done
 install-dist_itclipartdocDATA: $(dist_itclipartdoc_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(itclipartdocdir)" || $(MKDIR_P) "$(DESTDIR)$(itclipartdocdir)"
@@ -1257,7 +1310,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(bibliodocdir)" "$(DESTDIR)$(cadocdir)" "$(DESTDIR)$(clipartdocdir)" "$(DESTDIR)$(csdocdir)" "$(DESTDIR)$(dadocdir)" "$(DESTDIR)$(declipartdocdir)" "$(DESTDIR)$(dedocdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(esclipartdocdir)" "$(DESTDIR)$(esdocdir)" "$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" "$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" "$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" "$(DESTDIR)$(itclipartdocdir)" "$(DESTDIR)$(itdocdir)" "$(DESTDIR)$(jaclipartdocdir)" "$(DESTDIR)$(jadocdir)" "$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" "$(DESTDIR)$(pldocdir)" "$(DESTDIR)$(ptdocdir)" "$(DESTDIR)$(rodocdir)" "$(DESTDIR)$(rudocdir)" "$(DESTDIR)$(skdocdir)" "$(DESTDIR)$(sldocdir)" "$(DESTDIR)$(svdocdir)" "$(DESTDIR)$(ukclipartdocdir)" "$(DESTDIR)$(ukdocdir)"; do \
+	for dir in "$(DESTDIR)$(bibliodocdir)" "$(DESTDIR)$(cadocdir)" "$(DESTDIR)$(clipartdocdir)" "$(DESTDIR)$(csdocdir)" "$(DESTDIR)$(dadocdir)" "$(DESTDIR)$(declipartdocdir)" "$(DESTDIR)$(dedocdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(esclipartdocdir)" "$(DESTDIR)$(esdocdir)" "$(DESTDIR)$(eudocdir)" "$(DESTDIR)$(frclipartdocdir)" "$(DESTDIR)$(frdocdir)" "$(DESTDIR)$(gldocdir)" "$(DESTDIR)$(hedocdir)" "$(DESTDIR)$(hudocdir)" "$(DESTDIR)$(idclipartdocdir)" "$(DESTDIR)$(iddocdir)" "$(DESTDIR)$(itclipartdocdir)" "$(DESTDIR)$(itdocdir)" "$(DESTDIR)$(jaclipartdocdir)" "$(DESTDIR)$(jadocdir)" "$(DESTDIR)$(nbdocdir)" "$(DESTDIR)$(nldocdir)" "$(DESTDIR)$(pldocdir)" "$(DESTDIR)$(ptdocdir)" "$(DESTDIR)$(rodocdir)" "$(DESTDIR)$(rudocdir)" "$(DESTDIR)$(skdocdir)" "$(DESTDIR)$(sldocdir)" "$(DESTDIR)$(svdocdir)" "$(DESTDIR)$(ukclipartdocdir)" "$(DESTDIR)$(ukdocdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -1313,6 +1366,7 @@ install-data-am: install-dist_bibliodocDATA install-dist_cadocDATA \
 	install-dist_eudocDATA install-dist_frclipartdocDATA \
 	install-dist_frdocDATA install-dist_gldocDATA \
 	install-dist_hedocDATA install-dist_hudocDATA \
+	install-dist_idclipartdocDATA install-dist_iddocDATA \
 	install-dist_itclipartdocDATA install-dist_itdocDATA \
 	install-dist_jaclipartdocDATA install-dist_jadocDATA \
 	install-dist_nbdocDATA install-dist_nldocDATA \
@@ -1364,6 +1418,7 @@ uninstall-am: uninstall-dist_bibliodocDATA uninstall-dist_cadocDATA \
 	uninstall-dist_eudocDATA uninstall-dist_frclipartdocDATA \
 	uninstall-dist_frdocDATA uninstall-dist_gldocDATA \
 	uninstall-dist_hedocDATA uninstall-dist_hudocDATA \
+	uninstall-dist_idclipartdocDATA uninstall-dist_iddocDATA \
 	uninstall-dist_itclipartdocDATA uninstall-dist_itdocDATA \
 	uninstall-dist_jaclipartdocDATA uninstall-dist_jadocDATA \
 	uninstall-dist_nbdocDATA uninstall-dist_nldocDATA \
@@ -1387,6 +1442,7 @@ uninstall-am: uninstall-dist_bibliodocDATA uninstall-dist_cadocDATA \
 	install-dist_eudocDATA install-dist_frclipartdocDATA \
 	install-dist_frdocDATA install-dist_gldocDATA \
 	install-dist_hedocDATA install-dist_hudocDATA \
+	install-dist_idclipartdocDATA install-dist_iddocDATA \
 	install-dist_itclipartdocDATA install-dist_itdocDATA \
 	install-dist_jaclipartdocDATA install-dist_jadocDATA \
 	install-dist_nbdocDATA install-dist_nldocDATA \
@@ -1409,6 +1465,7 @@ uninstall-am: uninstall-dist_bibliodocDATA uninstall-dist_cadocDATA \
 	uninstall-dist_eudocDATA uninstall-dist_frclipartdocDATA \
 	uninstall-dist_frdocDATA uninstall-dist_gldocDATA \
 	uninstall-dist_hedocDATA uninstall-dist_hudocDATA \
+	uninstall-dist_idclipartdocDATA uninstall-dist_iddocDATA \
 	uninstall-dist_itclipartdocDATA uninstall-dist_itdocDATA \
 	uninstall-dist_jaclipartdocDATA uninstall-dist_jadocDATA \
 	uninstall-dist_nbdocDATA uninstall-dist_nldocDATA \

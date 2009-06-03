@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -47,6 +47,12 @@
 % redefine the greyed out note
 \renewenvironment{lyxgreyedout}
  {\textcolor{blue}\bgroup}{\egroup}
+
+% workaround for a makeindex bug, 
+% see sec. "Index Entry Order"
+% only uncomment this when you are using makindex
+%\let\OrgIndex\index 
+%\renewcommand*{\index}[1]{\OrgIndex{#1}}
 
 % use normal list environments also in French documents
 \StandardLayout
@@ -1678,6 +1684,23 @@ Shift-Tab
 \end_inset
 
 2.4.1.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The toolbar button 
+\begin_inset Graphics
+	filename ../../images/bookmark-goto_0.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
+
+\end_inset
+
+ jumps to the position in the document where you recently changed something.
+ This is for example useful when you have a large document and navigated
+ or scrolled to another document part to look for something, and want to
+ go back to your last editing position.
 \end_layout
 
 \begin_layout Section
@@ -3768,7 +3791,13 @@ Indente
 
 Paragraphe
 \family default
- pour changer le statut du paragraphe en cours.
+ (raccourci 
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\indent-toggle"
+\end_inset
+
+) pour changer le statut du paragraphe en cours.
  Si les paragraphes sont indentés par défaut, ce bouton sera d'origine actif.
  Si les paragraphes ne sont pas indentés mais sont séparés par de l'espace
  supplémentaire, ce bouton sera complètement ignoré (vous ne pourrez pas
@@ -10644,13 +10673,21 @@ Vous pouvez modifier la justification des paragraphes avec la fenêtre de
 Paramètres de paragraphe
 \family default
 .
- Il y a quatre possibilités: 
+ Il y a cinq possibilités: 
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Justifié
+Justifié 
+\family default
+(raccourci 
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\align block"
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Itemize
@@ -10660,7 +10697,15 @@ Justifié
 \begin_inset space ~
 \end_inset
 
-Gauche
+Gauche 
+\family default
+(
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\align left"
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Itemize
@@ -10670,13 +10715,43 @@ Gauche
 \begin_inset space ~
 \end_inset
 
-Droite
+Droite 
+\family default
+(
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\align right"
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-Centré
+Centré 
+\family default
+(
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\align center"
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Itemize
+
+\family sans
+Défaut
+\family default
+ (
+\begin_inset Info
+type  "shortcut"
+arg   "paragraph-params \\align default"
+\end_inset
+
+)
 \end_layout
 
 \begin_layout Standard
@@ -25723,7 +25798,19 @@ Revenir
 \family default
  et permet de replacer le curseur juste devant la référence croisée.
  Si on clique avec le bouton de droite sur une référence croisée, le curseur
- se déplace pour se placer devant l'étiquette, mais on ne peut pas revenir.
+ se déplace pour se placer devant l'étiquette et vouz 
+\lang english
+can go back with the toolbar button
+\lang french
+ 
+\begin_inset Graphics
+	filename D:/LyXSVN/LyX1.6.x/lib/images/bookmark-goto_0.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -27339,6 +27426,106 @@ L'entrée précédente n'a pas besoin d'être une vraie entrée, présente dans
  Voyez la sous-section suivante pour un exemple.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+In some cases the index entry order is not correct when you are using the
+ program 
+\family sans
+makeindex 
+\family default
+to generate the index (see sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\lang french
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Programme-d'indexation"
+
+\end_inset
+
+
+\lang english
+).
+ 
+\family sans
+makeindex
+\family default
+ would for example print the index entry for the LaTeX-package aeguill in
+ sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\lang french
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Document-Polices"
+
+\end_inset
+
+
+\lang english
+ after the the index entries of the other LaTeX-packages although all these
+ index commands start with 
+\begin_inset Quotes eld
+\end_inset
+
+
+\series bold
+\lang french
+Paquetages LaTeX !
+\series default
+ 
+\lang english
+
+\begin_inset Quotes eld
+\end_inset
+
+.
+ The reason is that the index entry for aeguill is in a footnote.
+ To fix this 
+\family sans
+makeindex
+\family default
+ bug, add these commands to the preamble of your document:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+let
+\backslash
+OrgIndex
+\backslash
+index
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+renewcommand*{
+\backslash
+index}[1]{
+\backslash
+OrgIndex{#1}}
+\end_layout
+
 \begin_layout Subsection
 Format des Entrées d'Index
 \begin_inset Index
@@ -28882,7 +29069,7 @@ name "sec:propriétés-du-PDF"
 
 
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 PDF ! Propriétés
@@ -28906,8 +29093,10 @@ Propriétés du PDF
  Toutes les options qui sont proposées viennent du paquetage LaTeX 
 \series bold
 hyperref
+\series default
+
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! hyperref
@@ -29015,7 +29204,7 @@ key "hyperref"
 \end_layout
 
 \begin_layout Section
-Le code TeX et la Syntaxe LaTeX 
+Le code TeX et la Syntaxe LaTeX
 \begin_inset CommandInset label
 LatexCommand label
 name "sec:Code-TeX"
@@ -29026,7 +29215,7 @@ name "sec:Code-TeX"
 \end_layout
 
 \begin_layout Subsection
-Les Boîtes de code TeX 
+Les Boîtes de code TeX
 \begin_inset Index
 status collapsed
 
@@ -36974,7 +37163,7 @@ menu déroulant pour les environnements de paragraphes
 \begin_layout Standard
 \align left
 \begin_inset Tabular
-<lyxtabular version="3" rows="20" columns="2">
+<lyxtabular version="3" rows="21" columns="2">
 <features islongtable="true">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
@@ -37307,6 +37496,39 @@ et
 \end_inset
 
 Remplacer
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row interlinespace="2.5mm">
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename ../../images/bookmark-goto_0.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Naviguer
+\family sans
+\SpecialChar \menuseparator
+
+\lang english
+Bookmarks\SpecialChar \menuseparator
+Navigate Back
 \end_layout
 
 \end_inset
@@ -39093,7 +39315,7 @@ langue implicite
 \family sans
 XeTeX
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -39594,8 +39816,10 @@ Japonais
 (EUC-JP) encodage EUC-JP pour le japonais, utilise le paquetage LaTeX 
 \series bold
 CJK
+\series default
+
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! CJK
@@ -39603,9 +39827,7 @@ Paquetages LaTeX ! CJK
 
 \end_inset
 
-, 
-\series default
-quand vous utilisez cet encodage, mettez la langue du document à 
+, quand vous utilisez cet encodage, mettez la langue du document à 
 \family sans
 Japonais
 \begin_inset space ~
@@ -39652,8 +39874,10 @@ CJK)
 (EUC-JP) encodage EUC-JP pour le japonais, utilise le paquetage LaTeX 
 \series bold
 japanese
+\series default
+
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! japanese
@@ -39661,9 +39885,7 @@ Paquetages LaTeX ! japanese
 
 \end_inset
 
-, 
-\series default
-quand vous utilisez cet encodage, mettez la langue du document à 
+, quand vous utilisez cet encodage, mettez la langue du document à 
 \family sans
 Japonais
 \end_layout
@@ -39726,8 +39948,10 @@ Unicode
 (utf8) encodage Unicode utf8 utilsant le paquetage LaTeX 
 \series bold
 CJK
+\series default
+
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! CJK
@@ -39735,9 +39959,7 @@ Paquetages LaTeX ! CJK
 
 \end_inset
 
- 
-\series default
-pour le chinois, le japonais et le coréen
+ pour le chinois, le japonais et le coréen
 \end_layout
 
 \begin_layout Description
@@ -39759,7 +39981,7 @@ inputenc
 \series default
  
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Plus d'information pour utiliser LyX avec XeTeX dans 
@@ -39792,7 +40014,7 @@ ucs
 \series default
 
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! ucs
@@ -39814,7 +40036,7 @@ inputenc
 \series default
 
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! inputenc
@@ -39859,7 +40081,7 @@ natbib
 \series default
 
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! natbib

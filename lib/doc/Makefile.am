@@ -148,6 +148,7 @@ dist_frdoc_DATA = \
 	fr/Formula-numbering.lyx \
 	fr/Intro.lyx \
 	fr/Math.lyx \
+	fr/Shortcuts.lyx \
 	fr/Tutorial.lyx \
 	fr/UserGuide.lyx
 
@@ -177,6 +178,17 @@ dist_hudoc_DATA = \
 	hu/Intro.lyx \
 	hu/Tutorial.lyx
 
+iddocdir = $(docdir)/id
+dist_iddoc_DATA = \
+	id/Intro.lyx \
+	id/Tutorial.lyx
+
+idclipartdocdir = $(iddocdir)/clipart
+dist_idclipartdoc_DATA = \
+	id/clipart/id-contrib.png \
+	id/clipart/id-footnote.png \
+	id/clipart/id-lingkungan.png
+
 itdocdir = $(docdir)/it
 dist_itdoc_DATA = \
 	it/Customization.lyx \
@@ -194,6 +206,7 @@ dist_jadoc_DATA = \
 	ja/Extended.lyx \
 	ja/Intro.lyx \
 	ja/LaTeXConfig.lyx \
+	ja/Math.lyx \
 	ja/Shortcuts.lyx \
 	ja/Tutorial.lyx \
 	ja/UserGuide.lyx
