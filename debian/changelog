@@ -9,6 +9,9 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
   * Lift Build-Depends on libboost-dev up to 1.38.0 - otherwise the
     boost-mt patch will be harmful.
   * Add a ttf-lyx package as replacement for the latex-xft-package.
+  * Add debian/patches/detect-elyxer. Modifies configure.py to search
+    for 'elyxer' instead of 'elyxer.py'. The Debian package will ship
+    the file without the .py extension.
 
  -- Sven Hoexter <sven@timegate.de>  Wed, 03 Jun 2009 20:00:19 +0200
 
