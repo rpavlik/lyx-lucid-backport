@@ -1,7 +1,7 @@
 The new boost symbol names add the -mt suffix again for portability issue.
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -320,10 +320,10 @@ SUFFIXES = .gch
+@@ -321,10 +321,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -18,7 +18,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  @BUILD_CLIENT_SUBDIR_TRUE@CLIENT = src/client
 --- a/config/Makefile.in
 +++ b/config/Makefile.in
-@@ -292,10 +292,10 @@ SUFFIXES = .gch
+@@ -293,10 +293,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -52,7 +52,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  
 --- a/development/Makefile.in
 +++ b/development/Makefile.in
-@@ -302,10 +302,10 @@ SUFFIXES = .gch
+@@ -303,10 +303,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -69,7 +69,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  	FORMAT lyx.rpm.README \
 --- a/lib/Makefile.in
 +++ b/lib/Makefile.in
-@@ -406,10 +406,10 @@ SUFFIXES = .gch
+@@ -407,10 +407,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -86,7 +86,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  dist_pkgdata_DATA = CREDITS chkconfig.ltx external_templates encodings \
 --- a/lib/doc/Makefile.in
 +++ b/lib/doc/Makefile.in
-@@ -369,10 +369,10 @@ SUFFIXES = .gch
+@@ -375,10 +375,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -103,7 +103,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  	Customization.lyx \
 --- a/lib/lyx2lyx/Makefile.in
 +++ b/lib/lyx2lyx/Makefile.in
-@@ -300,10 +300,10 @@ SUFFIXES = .gch
+@@ -301,10 +301,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -120,7 +120,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  lyx2lyxdir = $(pkgdatadir)/lyx2lyx
 --- a/sourcedoc/Makefile.in
 +++ b/sourcedoc/Makefile.in
-@@ -290,10 +290,10 @@ SUFFIXES = .gch
+@@ -291,10 +291,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -137,7 +137,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  
 --- a/src/Makefile.in
 +++ b/src/Makefile.in
-@@ -610,10 +610,10 @@ SUFFIXES = .gch
+@@ -612,10 +612,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -154,7 +154,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  
 --- a/src/client/Makefile.in
 +++ b/src/client/Makefile.in
-@@ -345,10 +345,10 @@ SUFFIXES = .gch
+@@ -346,10 +346,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -167,11 +167,11 @@ The new boost symbol names add the -mt suffix again for portability issue.
 +@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
 +@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
  man_MANS = lyxclient.1
- EXTRA_DIST = lyxclient.man $(am__append_2)
+ EXTRA_DIST = lyxclient.1in $(am__append_2)
  lyxclient_LDADD = \
 --- a/src/frontends/Makefile.in
 +++ b/src/frontends/Makefile.in
-@@ -338,10 +338,10 @@ SUFFIXES = .gch
+@@ -339,10 +339,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -188,7 +188,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  noinst_LTLIBRARIES = liblyxfrontends.la
 --- a/src/frontends/qt4/Makefile.in
 +++ b/src/frontends/qt4/Makefile.in
-@@ -404,10 +404,10 @@ SUFFIXES = .gch
+@@ -405,10 +405,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -205,7 +205,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  
 --- a/src/support/Makefile.in
 +++ b/src/support/Makefile.in
-@@ -397,10 +397,10 @@ SUFFIXES = .gch
+@@ -398,10 +398,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -222,7 +222,7 @@ The new boost symbol names add the -mt suffix again for portability issue.
  EXTRA_DIST = pch.h os_cygwin.cpp os_unix.cpp os_win32.cpp os_win32.h \
 --- a/src/tex2lyx/Makefile.in
 +++ b/src/tex2lyx/Makefile.in
-@@ -340,10 +340,10 @@ SUFFIXES = .gch
+@@ -342,10 +342,10 @@ SUFFIXES = .gch
  @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
  @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
  @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
@@ -234,6 +234,6 @@ The new boost symbol names add the -mt suffix again for portability issue.
 +@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex-mt
 +@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals-mt
 +@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams-mt
- EXTRA_DIST = tex2lyx.1 $(TEST_FILES) pch.h
+ EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
  
  #noinst_LTLIBRARIES = libtexparser.la
