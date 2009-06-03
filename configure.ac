@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.2,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,1.6.3,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2009-03-14"])
+AC_SUBST(LYX_DATE, ["2009-06-03"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -112,6 +112,8 @@ LYX_ADD_INC_DIR(CPPFLAGS,$dir/include)
 ### These are needed in windows
 AC_CHECK_LIB(shlwapi, main, [LIBSHLWAPI=-lshlwapi])
 AC_SUBST(LIBSHLWAPI)
+AC_CHECK_LIB(psapi, main, [LIBPSAPI=-lpsapi])
+AC_SUBST(LIBPSAPI)
 AC_CHECK_LIB(gdi32, main)
 
 AC_ARG_WITH(aiksaurus,
@@ -352,6 +354,7 @@ char * strerror(int n);
 #define BOOST_NO_WSTRING 1
 
 #ifdef __CYGWIN__
+#  define NOMINMAX
 #  define BOOST_POSIX 1
 #  define BOOST_POSIX_API 1
 #  define BOOST_POSIX_PATH 1
@@ -378,48 +381,26 @@ char * strerror(int n);
 #endif
 ])
 
+m4_define([ALLPARTS],[boost,client,insets,mathed,core,tex2lyx,frontend_qt4])
+AC_ARG_ENABLE(monolithic-build,
+  AC_HELP_STRING([--enable-monolithic-build@<:@=LIST@:>@],
+		[Use monolithic build for modules in LIST (default: ALLPARTS)]),
+  [test "$enable_monolithic_build" = yes && enable_monolithic_build="ALLPARTS"
+   test "$enable_monolithic_build" = no && enable_monolithic_build=
+   IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=" ,"
+   for i in $enable_monolithic_build ; do
+       eval "enable_monolithic_$i=yes"
+   done
+   IFS="$ac_save_ifs"],
+  [enable_monolithic_build=])
 
-AC_ARG_ENABLE(monolithic-boost,
-  AC_HELP_STRING([--enable-monolithic-boost],
-		[Use monolithic boost compilations]),,
-  [enable_monolithic_boost=no])
-AM_CONDITIONAL(MONOLITHIC_BOOST, test "$enable_monolithic_boost" = "yes")
-
-AC_ARG_ENABLE(monolithic-client,
-  AC_HELP_STRING([--enable-monolithic-client],
-		[Use monolithic client compilations]),,
-  [enable_monolithic_client=no])
-AM_CONDITIONAL(MONOLITHIC_CLIENT, test "$enable_monolithic_client" = "yes")
-
-AC_ARG_ENABLE(monolithic-insets,
-  AC_HELP_STRING([--enable-monolithic-insets],
-		[Use monolithic insets compilations]),,
-  [enable_monolithic_insets=no])
-AM_CONDITIONAL(MONOLITHIC_INSETS, test "$enable_monolithic_insets" = "yes")
-
-AC_ARG_ENABLE(monolithic-mathed,
-  AC_HELP_STRING([--enable-monolithic-mathed],
-		[Use monolithic mathed compilations]),,
-  [enable_monolithic_mathed=no])
-AM_CONDITIONAL(MONOLITHIC_MATHED, test "$enable_monolithic_mathed" = "yes")
-
-AC_ARG_ENABLE(monolithic-core,
-  AC_HELP_STRING([--enable-monolithic-core],
-		[Use monolithic core files compilations]),,
-  [enable_monolithic_core=no])
-AM_CONDITIONAL(MONOLITHIC_CORE, test "$enable_monolithic_core" = "yes")
-
-AC_ARG_ENABLE(monolithic-tex2lyx,
-  AC_HELP_STRING([--enable-monolithic-tex2lyx],
-		[Use monolithic tex2lyx compilations]),,
-  [enable_monolithic_tex2lyx=no])
-AM_CONDITIONAL(MONOLITHIC_TEX2LYX, test "$enable_monolithic_tex2lyx" = "yes")
-
-AC_ARG_ENABLE(monolithic-frontend-qt4,
-  AC_HELP_STRING([--enable-monolithic-frontend-qt4],
-		[Use monolithic compilation of the Qt 4 frontend. Only recommended with > 512 MB of RAM]),,
-  [enable_monolithic_frontend_qt4=no])
-AM_CONDITIONAL(MONOLITHIC_FRONTEND_QT4, test "$enable_monolithic_frontend_qt4" = "yes")
+AM_CONDITIONAL(MONOLITHIC_BOOST, test "x$enable_monolithic_boost" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_CLIENT, test "x$enable_monolithic_client" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_INSETS, test "x$enable_monolithic_insets" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_MATHED, test "x$enable_monolithic_mathed" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_CORE, test "x$enable_monolithic_core" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_TEX2LYX, test "x$enable_monolithic_tex2lyx" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_FRONTEND_QT4, test "x$enable_monolithic_frontend_qt4" = "xyes")
 
 MSYS_AC_CANONICAL_PATH(lyx_abs_top_srcdir, ${srcdir})
 MSYS_AC_CANONICAL_PATH(lyx_abs_installed_localedir, ${real_localedir})
@@ -463,8 +444,10 @@ AC_CONFIG_FILES([Makefile \
       sourcedoc/Doxyfile \
       sourcedoc/Makefile \
       src/client/Makefile \
+      src/client/lyxclient.1:src/client/lyxclient.1in \
       src/Makefile \
       src/tex2lyx/Makefile \
+      src/tex2lyx/tex2lyx.1:src/tex2lyx/tex2lyx.1in \
       src/support/Makefile \
       src/frontends/Makefile \
       src/frontends/qt4/Makefile

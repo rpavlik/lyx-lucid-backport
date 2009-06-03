@@ -95,7 +95,7 @@ am__liblyxcore_la_SOURCES_DIST = Author.cpp Bidi.cpp boost.cpp \
 	VCBackend.cpp version.cpp VSpace.cpp WordList.cpp Layout.cpp \
 	Author.h Bidi.h BranchList.h buffer_funcs.h Buffer.h \
 	BufferList.h BufferParams.h BufferView.h Bullet.h Citation.h \
-	Changes.h Chktex.h CmdDef.h ColorCode.h Color.h \
+	Changes.h Chktex.h CmdDef.h ColorCode.h Color.h ColorSet.h \
 	CompletionList.h ConverterCache.h Converter.h CoordCache.h \
 	Counters.h Cursor.h CursorSlice.h CutAndPaste.h DepTable.h \
 	DispatchResult.h DocIterator.h Encoding.h ErrorList.h \
@@ -332,7 +332,8 @@ am__DEPENDENCIES_1 =
 @USE_INCLUDED_BOOST_TRUE@am__DEPENDENCIES_2 =  \
 @USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
 am__DEPENDENCIES_3 = $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 lyx_DEPENDENCIES = liblyxcore.la liblyxmathed.la liblyxinsets.la \
 	frontends/liblyxfrontends.la frontends/qt4/liblyxqt4.la \
 	liblyxgraphics.la support/liblyxsupport.la \
@@ -448,6 +449,7 @@ LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBMULTITHREAD = @LIBMULTITHREAD@
 LIBOBJS = @LIBOBJS@
+LIBPSAPI = @LIBPSAPI@
 LIBPTH = @LIBPTH@
 LIBS = 
 LIBSHLWAPI = @LIBSHLWAPI@
@@ -620,7 +622,7 @@ SUBDIRS = support frontends . $(CLIENT) tex2lyx
 ############################### Mathed  ##############################
 EXTRA_DIST = Section.h Section.cpp Variables.cpp Variables.h paper.h \
 	pch.h mathed/InsetFormulaMacro.cpp
-OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) @LIBS@ $(SOCKET_LIBS)
+OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
 
 ############################### Graphics ##############################
 
@@ -761,6 +763,7 @@ HEADERFILESCORE = \
 	CmdDef.h \
 	ColorCode.h \
 	Color.h \
+	ColorSet.h \
 	CompletionList.h \
 	ConverterCache.h \
 	Converter.h \

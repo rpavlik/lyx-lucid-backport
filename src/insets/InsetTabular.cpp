@@ -2091,7 +2091,7 @@ int Tabular::TeXLongtableHeaderFooter(odocstream & os,
 	}
 	// output first header info
 	// first header must be output before the header, otherwise the
-	// correct caption placement becomes really wierd
+	// correct caption placement becomes really weird
 	if (haveLTFirstHead()) {
 		if (endfirsthead.topDL) {
 			os << "\\hline\n";
@@ -3411,18 +3411,43 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 				finish_lfun = LFUN_FINISHED_LEFT;
 		}
 
-		// if we don't have a multicell selection...
-		if (!cur.selIsMultiCell() ||
-		  // ...or we're not doing some LFUN_*_SELECT thing, anyway...
-		    (cmd.action != LFUN_CHAR_FORWARD_SELECT &&
-		     cmd.action != LFUN_CHAR_BACKWARD_SELECT &&
-		     cmd.action != LFUN_CHAR_RIGHT_SELECT &&
-		     cmd.action != LFUN_CHAR_LEFT_SELECT)) {
+		bool const select = cmd.action == LFUN_CHAR_FORWARD_SELECT ||
+		    cmd.action == LFUN_CHAR_BACKWARD_SELECT ||
+		    cmd.action == LFUN_CHAR_RIGHT_SELECT ||
+		    cmd.action == LFUN_CHAR_LEFT_SELECT;
+
+		// If we have a multicell selection or we're 
+		// not doing some LFUN_*_SELECT thing anyway...
+		if (!cur.selIsMultiCell() || !select) {
+			col_type const c = tabular.cellColumn(cur.idx());
+			row_type const r = tabular.cellRow(cur.idx());
+			// Are we trying to select the whole cell and is the whole cell 
+			// not yet selected?
+			bool const select_whole = select && !isCellSelected(cur, r, c) &&
+				((next_cell && cur.pit() == cur.lastpit() 
+				&& cur.pos() == cur.lastpos())
+				|| (!next_cell && cur.pit() == 0 && cur.pos() == 0));
+
 			// ...try to dispatch to the cell's inset.
 			cell(cur.idx())->dispatch(cur, cmd);
-			if (cur.result().dispatched()) 
+
+			bool const empty_cell = cur.lastpos() == 0 && cur.lastpit() == 0;
+			
+			// When we already have a selection we want to select the whole cell
+			// before going to the next cell.
+			if (select_whole && !empty_cell){
+				getText(cur.idx())->selectAll(cur);
+				cur.dispatched();
+				break;
+			}
+
+			// FIXME: When we support the selection of an empty cell, remove 
+			// the !empty_cell from this condition. For now we jump to the next
+			// cell if the current cell is empty.
+			if (cur.result().dispatched() && !empty_cell)
 				break;
 		}
+
 		// move to next/prev cell, as appropriate
 		// note that we will always do this if we're selecting and we have
 		// a multicell selection
@@ -3554,23 +3579,24 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	// insert file functions
 	case LFUN_FILE_INSERT_PLAINTEXT_PARA:
-	case LFUN_FILE_INSERT_PLAINTEXT: {
+	case LFUN_FILE_INSERT_PLAINTEXT:
 		// FIXME UNICODE
-		docstring const tmpstr = cur.bv().contentsOfPlaintextFile(
-			FileName(to_utf8(cmd.argument())));
-		if (tmpstr.empty())
-			break;
-		cur.recordUndoInset(INSERT_UNDO);
-		if (insertPlaintextString(cur.bv(), tmpstr, false)) {
-			// content has been replaced,
-			// so cursor might be invalid
-			cur.pos() = cur.lastpos();
-			cur.pit() = cur.lastpit();
-			bvcur.setCursor(cur);
-		} else
-			cur.undispatched();
+		if (FileName::isAbsolute(to_utf8(cmd.argument()))) {
+			docstring const tmpstr = cur.bv().contentsOfPlaintextFile(
+				FileName(to_utf8(cmd.argument())));
+			if (tmpstr.empty())
+				break;
+			cur.recordUndoInset(INSERT_UNDO);
+			if (insertPlaintextString(cur.bv(), tmpstr, false)) {
+				// content has been replaced,
+				// so cursor might be invalid
+				cur.pos() = cur.lastpos();
+				cur.pit() = cur.lastpit();
+				bvcur.setCursor(cur);
+			} else
+				cur.undispatched();
+		}
 		break;
-	}
 
 	case LFUN_CUT:
 		if (cur.selIsMultiCell()) {
@@ -3751,7 +3777,7 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			return true;
 
 		case Tabular::MULTICOLUMN:
-			// When a row is set as longtable caption, it must not be allowed
+			// If a row is set as longtable caption, it must not be allowed
 			// to unset that this row is a multicolumn.
 			status.setEnabled(sel_row_start == sel_row_end
 				&& !tabular.ltCaption(tabular.cellRow(cur.idx())));
@@ -3860,13 +3886,8 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.setOnOff(convert<int>(argument) == tabular.getUsebox(cur.idx()));
 			break;
 
-		// every row can only be one thing:
-		// either a footer or header or caption
-		case Tabular::SET_LTFIRSTHEAD:			
+		case Tabular::SET_LTFIRSTHEAD:
 			status.setEnabled(sel_row_start == sel_row_end
-				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
 				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTFirstHead(sel_row_start, dummyltt));
 			break;
@@ -3877,9 +3898,6 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 		case Tabular::SET_LTHEAD:
 			status.setEnabled(sel_row_start == sel_row_end
-				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
 				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTHead(sel_row_start, dummyltt));
 			break;
@@ -3890,9 +3908,6 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 		case Tabular::SET_LTFOOT:
 			status.setEnabled(sel_row_start == sel_row_end
-				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTLastFoot(sel_row_start, dummyltt)
 				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTFoot(sel_row_start, dummyltt));
 			break;
@@ -3903,9 +3918,6 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 		case Tabular::SET_LTLASTFOOT:
 			status.setEnabled(sel_row_start == sel_row_end
-				&& !tabular.getRowOfLTFirstHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTHead(sel_row_start, dummyltt)
-				&& !tabular.getRowOfLTFoot(sel_row_start, dummyltt)
 				&& !tabular.ltCaption(sel_row_start));
 			status.setOnOff(tabular.getRowOfLTLastFoot(sel_row_start, dummyltt));
 			break;

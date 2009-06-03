@@ -530,6 +530,11 @@ docstring Encodings::fromLaTeXCommand(docstring const & cmd, docstring & rem)
 
 void Encodings::initUnicodeMath(Buffer const & buffer, bool clear_sets)
 {
+#ifdef TEX2LYX
+	// The code below is not needed in tex2lyx and requires additional stuff
+	(void)buffer;
+	(void)clear_sets;
+#else
 	if (clear_sets) {
 		mathcmd.clear();
 		textcmd.clear();
@@ -549,11 +554,18 @@ void Encodings::initUnicodeMath(Buffer const & buffer, bool clear_sets)
 	for (; bit != bend; ++bit)
 		if (buffer.isChild(*bit))
 			initUnicodeMath(**bit, false);
+#endif
 }
 
 
 void Encodings::validate(char_type c, LaTeXFeatures & features, bool for_mathed)
 {
+#ifdef TEX2LYX
+	// The code below is not needed in tex2lyx and requires additional stuff
+	(void)c;
+	(void)features;
+	(void)for_mathed;
+#else
 	CharInfoMap::const_iterator const it = unicodesymbols.find(c);
 	if (it != unicodesymbols.end()) {
 		// In mathed, c could be used both in textmode and mathmode
@@ -589,9 +601,10 @@ void Encodings::validate(char_type c, LaTeXFeatures & features, bool for_mathed)
 		}
 	}
 	if (for_mathed && isMathSym(c)) {
-		features.require("relsize");
+		features.require("amstext");
 		features.require("lyxmathsym");
 	}
+#endif
 }
 
 

@@ -16,9 +16,11 @@
 #include "InsetMathBig.h"
 #include "InsetMathBox.h"
 #include "InsetMathBrace.h"
+#include "InsetMathChar.h"
 #include "InsetMathColor.h"
 #include "InsetMathComment.h"
 #include "InsetMathDelim.h"
+#include "InsetMathEnsureMath.h"
 #include "InsetMathHull.h"
 #include "InsetMathRef.h"
 #include "InsetMathScript.h"
@@ -41,6 +43,7 @@
 #include "Cursor.h"
 #include "CutAndPaste.h"
 #include "DispatchResult.h"
+#include "Encoding.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "LyXFunc.h"
@@ -513,7 +516,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	//lyxerr << "InsetMathNest: request: " << cmd << endl;
 
-	Parse::flags parseflg = Parse::QUIET;
+	Parse::flags parseflg = Parse::QUIET | Parse::USETEXT;
 
 	switch (cmd.action) {
 
@@ -814,8 +817,14 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// InsetMathFrac -> a pos value > 0 is invalid.
 		// A side effect is that an undo before the macro is finished
 		// undoes the complete macro, not only the last character.
-		if (!cur.inMacroMode())
-			cur.recordUndoSelection();
+		if (!cur.inMacroMode()) {
+			MathMacro const * macro = 0;
+			if (cur.pos() > 0 && cmd.argument() != "\\")
+				macro = cur.inset().asInsetMath()->asMacro();
+			
+			if (!macro)
+				cur.recordUndoSelection();
+		}
 
 		// spacial handling of space. If we insert an inset
 		// via macro mode, we want to put the cursor inside it
@@ -946,7 +955,10 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		docstring const save_selection = grabAndEraseSelection(cur);
 		selClearOrDel(cur);
 		//cur.plainInsert(MathAtom(new InsetMathMBox(cur.bv())));
-		cur.plainInsert(MathAtom(new InsetMathBox(from_ascii("mbox"))));
+		if (currentMode() == Inset::TEXT_MODE)
+			cur.plainInsert(MathAtom(new InsetMathEnsureMath));
+		else
+			cur.plainInsert(MathAtom(new InsetMathBox(from_ascii("mbox"))));
 		cur.posBackward();
 		cur.pushBackward(*cur.nextInset());
 		cur.niceInsert(save_selection);
@@ -960,6 +972,12 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.message(_("entered math text mode (textrm)"));
 		}
 #endif
+		break;
+	}
+
+	case LFUN_MATH_FONT_STYLE: {
+		FuncRequest fr = FuncRequest(LFUN_MATH_INSERT, '\\' + cmd.argument());
+		doDispatch(cur, fr);
 		break;
 	}
 
@@ -1236,17 +1254,21 @@ bool InsetMathNest::getStatus(Cursor & cur, FuncRequest const & cmd,
 		flag.setEnabled(currentMode() != TEXT_MODE);
 		break;
 
-	case LFUN_MATH_INSERT: {
+	case LFUN_MATH_FONT_STYLE: {
 		bool const textarg =
-			arg == "\\textbf"   || arg == "\\textsf" ||
-			arg == "\\textrm"   || arg == "\\textmd" ||
-			arg == "\\textit"   || arg == "\\textsc" ||
-			arg == "\\textsl"   || arg == "\\textup" ||
-			arg == "\\texttt"   || arg == "\\textbb" ||
-			arg == "\\textnormal";
+			arg == "textbf"   || arg == "textsf" ||
+			arg == "textrm"   || arg == "textmd" ||
+			arg == "textit"   || arg == "textsc" ||
+			arg == "textsl"   || arg == "textup" ||
+			arg == "texttt"   || arg == "textbb" ||
+			arg == "textnormal";
 		flag.setEnabled(currentMode() != TEXT_MODE || textarg);
 		break;
 	}
+
+	case LFUN_MATH_INSERT:
+		flag.setEnabled(currentMode() != TEXT_MODE);
+		break;
 
 	case LFUN_MATH_MATRIX:
 		flag.setEnabled(currentMode() == MATH_MODE);
@@ -1586,6 +1608,13 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 			cur.niceInsert(createInsetMath("sim"));
 			return true;
 		}
+		if (!isAsciiOrMathAlpha(c)) {
+			MathAtom at = createInsetMath("text");
+			at.nucleus()->cell(0).push_back(MathAtom(new InsetMathChar(c)));
+			cur.niceInsert(at);
+			cur.posForward();
+			return true;
+		}
 	} else {
 		if (c == '^') {
 			cur.niceInsert(createInsetMath("textasciicircum"));
@@ -1893,6 +1922,9 @@ MathCompletionList::MathCompletionList(Cursor const & cur)
 	globals.push_back(from_ascii("\\color"));
 	globals.push_back(from_ascii("\\normalcolor"));
 	globals.push_back(from_ascii("\\textcolor"));
+	globals.push_back(from_ascii("\\cfrac"));
+	globals.push_back(from_ascii("\\cfracleft"));
+	globals.push_back(from_ascii("\\cfracright"));
 	globals.push_back(from_ascii("\\dfrac"));
 	globals.push_back(from_ascii("\\tfrac"));
 	globals.push_back(from_ascii("\\dbinom"));

@@ -35,6 +35,7 @@ class QDropEvent;
 class QKeyEvent;
 class QWheelEvent;
 class QPaintEvent;
+class QToolButton;
 class QWidget;
 
 #ifdef CursorShape
@@ -86,7 +87,8 @@ public:
 	bool restart_timeout;
 	int x_old;
 	int y_old;
-	double scrollbar_value_old;
+	int min_scrollbar_old;
+	int max_scrollbar_old;
 };
 
 
@@ -281,7 +283,12 @@ private Q_SLOTS:
 	void moveTab(int fromIndex, int toIndex);
 
 private:
+	///
 	int clicked_tab_;
+#if QT_VERSION < 0x040500
+	///
+	QToolButton * closeBufferButton;
+#endif
 }; // TabWorkArea
 
 
@@ -316,6 +323,10 @@ private:
 Q_SIGNALS:
 	///
 	void tabMoveRequested(int fromIndex, int toIndex);
+
+private Q_SLOTS:
+	///
+	void on_tabCloseRequested(int index);
 };
 
 } // namespace frontend

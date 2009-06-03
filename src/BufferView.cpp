@@ -216,7 +216,7 @@ struct BufferView::Private
 	Private(BufferView & bv): wh_(0), cursor_(bv),
 		anchor_pit_(0), anchor_ypos_(0),
 		inlineCompletionUniqueChars_(0),
-		last_inset_(0), gui_(0)
+		last_inset_(0), bookmark_edit_position_(0), gui_(0)
 	{}
 
 	///
@@ -258,6 +258,9 @@ struct BufferView::Private
 	  * Not owned, so don't delete.
 	  */
 	Inset * last_inset_;
+
+	// cache for id of the paragraph which was edited the last time
+	int bookmark_edit_position_;
 
 	mutable TextMetricsCache text_metrics_;
 
@@ -659,6 +662,16 @@ CursorStatus BufferView::cursorStatus(DocIterator const & dit) const
 }
 
 
+void BufferView::bookmarkEditPosition()
+{
+	// Don't eat cpu time for each keystroke
+	if (d->cursor_.paragraph().id() == d->bookmark_edit_position_)
+		return;
+	saveBookmark(0);
+	d->bookmark_edit_position_ = d->cursor_.paragraph().id();
+}
+
+
 void BufferView::saveBookmark(unsigned int idx)
 {
 	// tenatively save bookmark, id and pos will be used to
@@ -763,18 +776,37 @@ int BufferView::workWidth() const
 }
 
 
-void BufferView::showCursor()
+void BufferView::recenter()
 {
-	showCursor(d->cursor_);
+	showCursor(d->cursor_, true);
 }
 
 
-void BufferView::showCursor(DocIterator const & dit)
+void BufferView::showCursor()
+{
+	showCursor(d->cursor_, false);
+}
+
+
+void BufferView::showCursor(DocIterator const & dit, bool recenter)
+{
+	if (scrollToCursor(dit, recenter))
+		buffer_.changed();
+}
+
+
+void BufferView::scrollToCursor()
+{
+	scrollToCursor(d->cursor_, false);
+}
+
+
+bool BufferView::scrollToCursor(DocIterator const & dit, bool recenter)
 {
 	// We are not properly started yet, delay until resizing is
 	// done.
 	if (height_ == 0)
-		return;
+		return false;
 
 	LYXERR(Debug::SCROLLING, "recentering!");
 
@@ -805,16 +837,18 @@ void BufferView::showCursor(DocIterator const & dit)
 		Dimension const & row_dim =
 			pm.getRow(cs.pos(), dit.boundary()).dimension();
 		int scrolled = 0;
-		if (ypos - row_dim.ascent() < 0)
+		if (recenter)
+			scrolled = scroll(ypos - height_/2);
+		else if (ypos - row_dim.ascent() < 0)
 			scrolled = scrollUp(- ypos + row_dim.ascent());
 		else if (ypos + row_dim.descent() > height_)
 			scrolled = scrollDown(ypos - height_ + defaultRowHeight());
 		// else, nothing to do, the cursor is already visible so we just return.
 		if (scrolled != 0) {
 			updateMetrics();
-			buffer_.changed();
+			return true;
 		}
-		return;
+		return false;
 	}
 
 	// fix inline completion position
@@ -830,7 +864,9 @@ void BufferView::showCursor(DocIterator const & dit)
 	Dimension const & row_dim =
 		pm.getRow(cs.pos(), dit.boundary()).dimension();
 
-	if (d->anchor_pit_ == 0)
+	if (recenter)
+		d->anchor_ypos_ = height_/2;
+	else if (d->anchor_pit_ == 0)
 		d->anchor_ypos_ = offset + pm.ascent();
 	else if (d->anchor_pit_ == max_pit)
 		d->anchor_ypos_ = height_ - offset - row_dim.descent();
@@ -840,7 +876,7 @@ void BufferView::showCursor(DocIterator const & dit)
 		d->anchor_ypos_ = defaultRowHeight() * 2;
 
 	updateMetrics();
-	buffer_.changed();
+	return true;
 }
 
 
@@ -878,6 +914,7 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 	case LFUN_MARK_ON:
 	case LFUN_MARK_TOGGLE:
 	case LFUN_SCREEN_RECENTER:
+	case LFUN_SCREEN_SHOW_CURSOR:
 	case LFUN_BIBTEX_DATABASE_ADD:
 	case LFUN_BIBTEX_DATABASE_DEL:
 	case LFUN_NOTES_MUTATE:
@@ -1261,8 +1298,12 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		cur.resetAnchor();
 		break;
 
-	case LFUN_SCREEN_RECENTER:
+	case LFUN_SCREEN_SHOW_CURSOR:
 		showCursor();
+		break;
+	
+	case LFUN_SCREEN_RECENTER:
+		recenter();
 		break;
 
 	case LFUN_BIBTEX_DATABASE_ADD: {
@@ -1403,23 +1444,32 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 	case LFUN_SCREEN_UP:
 	case LFUN_SCREEN_DOWN: {
 		Point p = getPos(cur, cur.boundary());
-		if (p.y_ < 0 || p.y_ > height_) {
+		// This code has been commented out to enable to scroll down a
+		// document, even if there are large insets in it (see bug 5465).
+		/*if (p.y_ < 0 || p.y_ > height_) {
 			// The cursor is off-screen so recenter before proceeding.
 			showCursor();
 			p = getPos(cur, cur.boundary());
-		}
+		}*/
 		int const scrolled = scroll(cmd.action == LFUN_SCREEN_UP
 			? - height_ : height_);
 		if (cmd.action == LFUN_SCREEN_UP && scrolled > - height_)
 			p = Point(0, 0);
 		if (cmd.action == LFUN_SCREEN_DOWN && scrolled < height_)
 			p = Point(width_, height_);
+		Cursor old = cur;
+		bool const in_texted = cur.inTexted();
 		cur.reset(buffer_.inset());
 		updateMetrics();
 		buffer_.changed();
 		d->text_metrics_[&buffer_.text()].editXY(cur, p.x_, p.y_);
 		//FIXME: what to do with cur.x_target()?
+		bool update = false;
+		if (in_texted)
+			update = cur.bv().checkDepm(cur, old);
 		cur.finishUndo();
+		if (update)
+			processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 	}
 
@@ -2225,6 +2275,29 @@ bool BufferView::paragraphVisible(DocIterator const & dit) const
 	TextMetrics const & tm = textMetrics(bot.text());
 
 	return tm.contains(bot.pit());
+}
+
+
+void BufferView::cursorPosAndHeight(Point & p, int & h) const
+{
+	Cursor const & cur = cursor();
+	Font const font = cur.getFont();
+	frontend::FontMetrics const & fm = theFontMetrics(font);
+	int const asc = fm.maxAscent();
+	int const des = fm.maxDescent();
+	h = asc + des;
+	p = getPos(cur, cur.boundary());
+	p.y_ -= asc;
+}
+
+
+bool BufferView::cursorInView(Point const & p, int h) const
+{
+	Cursor const & cur = cursor();
+	// does the cursor touch the screen ?
+	if (p.y_ + h < 0 || p.y_ >= workHeight() || !paragraphVisible(cur))
+		return false;
+	return true;
 }
 
 

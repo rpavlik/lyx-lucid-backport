@@ -256,15 +256,27 @@ void LyXFunc::gotoBookmark(unsigned int idx, bool openFile, bool switchToBuffer)
 	if (!theBufferList().exists(bm.filename))
 		return;
 
+	// bm can be changed when saving
+	BookmarksSection::Bookmark tmp = bm;
+
+	// Special case idx == 0 used for back-from-back jump navigation
+	if (idx == 0)
+		dispatch(FuncRequest(LFUN_BOOKMARK_SAVE, "0"));
+
 	// if the current buffer is not that one, switch to it.
-	if (lyx_view_->buffer()->fileName() != bm.filename) {
+	if (lyx_view_->buffer()->fileName() != tmp.filename) {
 		if (!switchToBuffer)
 			return;
 		dispatch(FuncRequest(LFUN_BUFFER_SWITCH, file));
 	}
+
 	// moveToPosition try paragraph id first and then paragraph (pit, pos).
-	if (!view()->moveToPosition(bm.bottom_pit, bm.bottom_pos,
-		bm.top_id, bm.top_pos))
+	if (!view()->moveToPosition(tmp.bottom_pit, tmp.bottom_pos,
+		tmp.top_id, tmp.top_pos))
+		return;
+
+	// bm changed
+	if (idx == 0)
 		return;
 
 	// Cursor jump succeeded!
@@ -458,7 +470,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		break;
 
 	case LFUN_VC_REGISTER:
-		enable = !buf->lyxvc().inUse() && !buf->isUnnamed();
+		enable = !buf->lyxvc().inUse();
 		break;
 	case LFUN_VC_CHECK_IN:
 		enable = buf->lyxvc().checkInEnabled();
@@ -680,21 +692,30 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 bool LyXFunc::ensureBufferClean(BufferView * bv)
 {
 	Buffer & buf = bv->buffer();
-	if (buf.isClean())
+	if (buf.isClean() && !buf.isUnnamed())
 		return true;
 
 	docstring const file = buf.fileName().displayName(30);
-	docstring text = bformat(_("The document %1$s has unsaved "
+	docstring title;
+	docstring text;
+	if (!buf.isUnnamed()) {
+		text = bformat(_("The document %1$s has unsaved "
 					     "changes.\n\nDo you want to save "
 					     "the document?"), file);
-	int const ret = Alert::prompt(_("Save changed document?"),
-				      text, 0, 1, _("&Save"),
-				      _("&Cancel"));
+		title = _("Save changed document?");
+		
+	} else {
+		text = bformat(_("The document %1$s has not been "
+					     "saved yet.\n\nDo you want to save "
+					     "the document?"), file);
+		title = _("Save new document?");
+	}
+	int const ret = Alert::prompt(title, text, 0, 1, _("&Save"), _("&Cancel"));
 
 	if (ret == 0)
 		lyx_view_->dispatch(FuncRequest(LFUN_BUFFER_WRITE));
 
-	return buf.isClean();
+	return buf.isClean() && !buf.isUnnamed();
 }
 
 
@@ -1066,11 +1087,11 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		// --- version control -------------------------------
 		case LFUN_VC_REGISTER:
 			LASSERT(lyx_view_ && buffer, /**/);
-			if (!ensureBufferClean(view()) || buffer->isUnnamed())
+			if (!ensureBufferClean(view()))
 				break;
 			if (!buffer->lyxvc().inUse()) {
-				buffer->lyxvc().registrer();
-				reloadBuffer();
+				if (buffer->lyxvc().registrer())
+					reloadBuffer();
 			}
 			updateFlags = Update::Force;
 			break;
@@ -1129,21 +1150,30 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			is >> file_name >> row;
 			Buffer * buf = 0;
 			bool loaded = false;
-			if (prefixIs(file_name, package().temp_dir().absFilename()))
+			string const abstmp = package().temp_dir().absFilename();
+			string const realtmp = package().temp_dir().realPath();
+			if (prefixIs(file_name, abstmp) || prefixIs(file_name, realtmp)) {
 				// Needed by inverse dvi search. If it is a file
-				// in tmpdir, call the apropriated function
+				// in tmpdir, call the apropriated function.
+				// If tmpdir is a symlink, we may have the real
+				// path passed back, so we correct for that.
+				if (!prefixIs(file_name, abstmp))
+					file_name = subst(file_name, realtmp, abstmp);
 				buf = theBufferList().getBufferFromTmp(file_name);
-			else {
+			} else {
 				// Must replace extension of the file to be .lyx
 				// and get full path
 				FileName const s = fileSearch(string(), changeExtension(file_name, ".lyx"), "lyx");
 				// Either change buffer or load the file
 				if (theBufferList().exists(s))
 					buf = theBufferList().getBuffer(s);
-				else {
+				else if (s.exists()) {
 					buf = lyx_view_->loadDocument(s);
 					loaded = true;
-				}
+				} else
+					lyx_view_->message(bformat(
+						_("File does not exist: %1$s"),
+						makeDisplayPath(file_name)));
 			}
 
 			if (!buf) {

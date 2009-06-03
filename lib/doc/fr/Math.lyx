@@ -1,4 +1,4 @@
-#LyX 1.6.2 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -1964,30 +1964,65 @@ La commande pour l'exemple précédent est:
 
 \begin_layout Standard
 
+\series bold
+
 \backslash
-cfrac{A
-\begin_inset Formula $\to$
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+spce 
+\end_layout
+
 \end_inset
 
-
-\backslash
-{B+
-\backslash
-cfrac{C+
-\backslash
-cfrac{E
-\begin_inset Formula $\to$
+A
+\begin_inset Formula $\downarrow$
 \end_inset
 
+B+
+\backslash
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
 
 \backslash
-{F
-\begin_inset Formula $\to\to$
+spce 
+\end_layout
+
 \end_inset
 
+C+
+\backslash
+cfrac
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
 
 \backslash
-{D
+spce 
+\end_layout
+
+\end_inset
+
+E
+\begin_inset Formula $\downarrow$
+\end_inset
+
+F
+\begin_inset Formula $\downarrow$
+\end_inset
+
+D
 \end_layout
 
 \begin_layout Standard
@@ -2006,51 +2041,40 @@ cfrac
 \series default
  met toujours la fraction dans la taille d'une formule hors ligne, même
  si elle est une partie d'une autre fraction.
- La commande
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+It is possible to specify the alignment of the numerator.
+ The command 
 \series bold
+
+\backslash
+cfracleft
+\series default
+ is used to left align it, the command 
+\series bold
+
+\backslash
+cfracright
+\series default
+ to right-align it.
  
+\series bold
+
 \backslash
 cfrac
 \series default
- a la syntaxe suivante:
-\end_layout
+ centers the numerator.
 
-\begin_layout Standard
-
-\series bold
-
-\backslash
-cfrac[position du numérateur]{numérateur}{dénominateur}
-\end_layout
-
-\begin_layout Standard
-La position du numérateur peut être 
-\emph on
-l
-\emph default
- , 
-\emph on
-c
-\emph default
-, ou 
-\emph on
-r
-\emph default
- .
- l ou r aligne le numérateur respectivement à gauche ou à droite par rapport
- à la barre de fraction.
- Quand on met 
-\emph on
-c 
-\emph default
-ou rien, le numérateur apparaît centré.
+\lang french
  Les fractions qui suivent illustrent les différents alignements:
-\begin_inset Newline newline
-\end_inset
+\end_layout
 
+\begin_layout Standard
 
 \series bold
-
 \begin_inset Formula $\cfrac[l]{A}{B+C}$
 \end_inset
 
@@ -2060,6 +2084,44 @@ ou rien, le numérateur apparaît centré.
 
 , 
 \begin_inset Formula $\cfrac[r]{A}{B+C}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Notez:
+\series default
+ 
+\series bold
+
+\backslash
+cfracleft
+\series default
+ et 
+\series bold
+cfracright
+\series default
+ ne sont pas des commandes LaTeX réelle, mais représentent la commande 
+\series bold
+
+\backslash
+cfrac[alignement]{numérateur}{dénominateur}
+\series default
+ .
+
+\series bold
+ 
+\series default
+Vous ne pouvez donc pas les utiliser en code TeX.
+\end_layout
+
 \end_inset
 
 
@@ -2143,31 +2205,45 @@ unitfrac
 \backslash
 unitfracthree
 \series default
- qui permet d'écrire une fraction en combinaison avec un nombre:
-\begin_inset Newline newline
+ qui permet d'écrire une fraction en combinaison avec un nombre: 
+\begin_inset Formula $\unitfrac[2]{1}{3}$
 \end_inset
 
-Notez que 
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Notez:
+\series default
+ 
 \series bold
 
 \backslash
 unitfracthree
 \series default
- n'est pas une commande LaTeX réelle, mais c'est la commande
-\begin_inset Newline newline
-\end_inset
-
-
+ n'est pas une commande LaTeX réelle, mais c'est la commande 
 \series bold
 
 \backslash
 unitfrac[nombre]{numérateur}{dénominateur}
 \series default
-,
+ .
+
 \series bold
  
 \series default
-vous ne pouvez donc pas l'utiliser en code TeX.
+Vous ne pouvez donc pas l'utiliser en code TeX.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -6137,7 +6213,7 @@ status open
 \begin_layout Plain Layout
 
 \series bold
-Note:
+Notez:
 \series default
  En mode TeX, on doit utiliser la commande 
 \series bold
@@ -7655,7 +7731,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #1505"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1505"
+target "http://www.lyx.org/trac/ticket/1505"
 
 \end_inset
 
@@ -12318,29 +12394,6 @@ fbox
 \family sans
 Ctrl+M
 \family default
- 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-À cause d'un bug de LyX, il est impossible de créer une nouvelle formule
- avec 
-\family sans
-Ctrl+M
-\family default
-, voir 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-bug #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
 , sinon le contenu de la boîte sera considéré comme du texte mathématique.
  Quand on utilise 
 \series bold
@@ -12469,32 +12522,6 @@ fbox
 
 \begin_layout Standard
 \align center
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-Le tableau a été placé dans une minipage pour que la note de bas de page
- apparaisse.
- Sinon le texte de la note n'aurait pas été affiché.
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Frameless
-position "c"
-hor_pos "c"
-has_inner_box 1
-inner_pos "c"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-\align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
 <features>
@@ -12506,29 +12533,6 @@ status open
 
 \begin_layout Plain Layout
 Commande
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-À cause d'un bug de LyX, il n'est pas possible de créer une nouvelle formule
- avec 
-\family sans
-Ctrl+M
-\family default
-, voir 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-bug #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -12606,7 +12610,7 @@ A=B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\raisebox{6mm}{}\fbox{$\int A=B$}\raisebox{-4mm}{}$
+\begin_inset Formula $\raisebox{6mm}{}\fbox{\ensuremath{\int A=B}}\raisebox{-4mm}{}$
 \end_inset
 
 
@@ -12770,7 +12774,7 @@ B
 \end_inset
 
 
-\begin_inset Formula $\framebox[20mm][]{$\frac{A}{B}$}$
+\begin_inset Formula $\framebox[20mm][]{\ensuremath{\frac{A}{B}}}$
 \end_inset
 
 
@@ -12784,11 +12788,6 @@ B
 </cell>
 </row>
 </lyxtabular>
-
-\end_inset
-
-
-\end_layout
 
 \end_inset
 
@@ -13062,6 +13061,39 @@ Quand la boîte doit contenir une formule, il faut une formule supplémentaire
 fbox
 \series default
 .
+ 
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ 
+\lang english
+For 
+\series bold
+
+\backslash
+raisebox
+\series default
+ this extra formula is created by pressing 
+\family sans
+Ctrl+M
+\family default
+ twice instead of once because LyX doesn't yet support 
+\series bold
+
+\backslash
+raisebox
+\series default
+ directly.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -13176,7 +13208,7 @@ raisebox{-2mm
 \backslash
 {
 \family sans
-Ctrl+M
+Ctrl+M Ctrl+M
 \family default
  
 \backslash
@@ -13202,18 +13234,7 @@ B
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-$A=
-\backslash
-raisebox{-2mm}{$
-\backslash
-sqrt{B}$}$
-\end_layout
-
+\begin_inset Formula $A=\raisebox{-2mm}{\mbox{\ensuremath{\sqrt{B}}}}$
 \end_inset
 
 
@@ -13227,30 +13248,6 @@ sqrt{B}$}$
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-La dernière formule ne peut actuellement être créée qu'en mode TeX, parce
- que LyX insère une boîte plutôt que la formule supplémentaire qui est nécessair
-e
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-voir 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-bug #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -13418,7 +13415,7 @@ colorbox
 \series bold
 
 \backslash
-fbox
+fraisebox
 \series default
 .
 \begin_inset Foot
@@ -13431,15 +13428,6 @@ Ceci s'applique aussi à la commande
 \backslash
 fcolorbox
 \series default
-.
- D'où la note 
-\begin_inset CommandInset href
-LatexCommand href
-name "LyX-bug #1435"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1435"
-
-\end_inset
-
 .
 \end_layout
 
@@ -13632,7 +13620,26 @@ colorbox{green
 
 
 \backslash
-{A=B
+{
+\family sans
+Ctrl+M Ctrl+M
+\family default
+ 
+\backslash
+int
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+spce 
+\end_layout
+
+\end_inset
+
+C=D
 \end_layout
 
 \end_inset
@@ -13641,7 +13648,7 @@ colorbox{green
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\raisebox{6mm}{}\fbox{\colorbox{green}{A=B}}\raisebox{-3mm}{}$
+\begin_inset Formula $\raisebox{7mm}{}\fbox{\colorbox{green}{\mbox{\ensuremath{\int C=D}}}}\raisebox{-5mm}{}$
 \end_inset
 
 
@@ -14325,7 +14332,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #4483"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=4483"
+target "http://www.lyx.org/trac/ticket/4483"
 
 \end_inset
 
@@ -18334,8 +18341,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset CommandInset href
 LatexCommand href
-name "LyX-bug #4091"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=4091"
+name "LyX-bug #4629"
+target "http://www.lyx.org/trac/ticket/4629"
 
 \end_inset
 
@@ -18382,7 +18389,7 @@ name "sub:Formules-en-gras"
 
 
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Formules ! en gras
@@ -18440,7 +18447,7 @@ boldmath
 \backslash
 boldmath
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Commandes ! B ! 
@@ -18509,7 +18516,7 @@ unboldmath
 \begin_layout Subsection
 Formules en couleur
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Formules ! en couleur
@@ -18561,7 +18568,7 @@ textcolor
 \series default
  
 \begin_inset Index
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Commandes ! T ! 
@@ -18589,7 +18596,7 @@ L'exemple suivant a été coloré entièrement en vert foncé et partiellement
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -18622,15 +18629,15 @@ status collapsed
 
 \begin_layout Standard
 A cause d'un bug de LyX, on peut colorer seulement des formules complètes
- avec des couleurs personnalisées
+ avec des couleurs personnalisées.
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #5269"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=5269"
+target "http://www.lyx.org/trac/ticket/5269"
 
 \end_inset
 
@@ -18639,7 +18646,7 @@ target "http://bugzilla.lyx.org/show_bug.cgi?id=5269"
 
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Subsection
@@ -27568,7 +27575,7 @@ voir
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #1505"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1505"
+target "http://www.lyx.org/trac/ticket/1505"
 
 \end_inset
 
@@ -28023,7 +28030,7 @@ status collapsed
 \begin_inset CommandInset href
 LatexCommand href
 name "LyX-bug #1429"
-target "http://bugzilla.lyx.org/show_bug.cgi?id=1429"
+target "http://www.lyx.org/trac/ticket/1429"
 
 \end_inset
 
@@ -29102,7 +29109,7 @@ intertext
  Un exemple où le texte a été inséré au début de la deuxième ligne:
 \begin_inset Formula \begin{align}
 I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
-\intertext{\text{l'intégrande est symétrique autour de $\phi=\pi$, donc}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
+\intertext{\text{l'intégrande est symétrique autour de \ensuremath{\phi=\pi}, donc}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
 
 \end_inset
 
@@ -33544,6 +33551,36 @@ usepackage{braket}
 \end_layout
 
 \begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+ifbraket 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Ce qui suit ne sera affiché que si le paquetage LaTeX 
+\series bold
+braket
+\series default
+ est installé
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Les commandes suivantes sont définies:
 \end_layout
 
@@ -33675,6 +33712,60 @@ Braket
  englobants:
 \begin_inset Formula \[
 \Braket{\phi|J=\frac{3}{2}\,,\, M_{J}}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+else 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Ce qui suit sera affiché si la paquetage LaTeX 
+\series bold
+braket
+\series default
+ n'est pas installé:
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vous avez besoin du paquetage LaTeX 
+\series bold
+braket
+\series default
+ pour voir le reste de cette sous section dans la sortie finale.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi 
+\end_layout
 
 \end_inset
 

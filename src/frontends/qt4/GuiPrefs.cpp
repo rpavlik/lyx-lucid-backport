@@ -23,6 +23,7 @@
 
 #include "BufferList.h"
 #include "Color.h"
+#include "ColorSet.h"
 #include "ConverterCache.h"
 #include "FontEnums.h"
 #include "FuncRequest.h"
@@ -356,6 +357,35 @@ void PrefPlaintext::update(LyXRC const & rc)
 
 /////////////////////////////////////////////////////////////////////
 //
+// StrftimeValidator
+//
+/////////////////////////////////////////////////////////////////////
+
+class StrftimeValidator : public QValidator
+{
+public:
+	StrftimeValidator(QWidget *);
+	QValidator::State validate(QString & input, int & pos) const;
+};
+
+
+StrftimeValidator::StrftimeValidator(QWidget * parent)
+	: QValidator(parent)
+{
+}
+
+
+QValidator::State StrftimeValidator::validate(QString & input, int & /*pos*/) const
+{
+	if (is_valid_strftime(fromqstr(input)))
+		return QValidator::Acceptable;
+	else
+		return QValidator::Intermediate;
+}
+
+
+/////////////////////////////////////////////////////////////////////
+//
 // PrefDate
 //
 /////////////////////////////////////////////////////////////////////
@@ -364,8 +394,19 @@ PrefDate::PrefDate(GuiPreferences * form)
 	: PrefModule(qt_(catOutput), qt_("Date format"), form)
 {
 	setupUi(this);
+	DateED->setValidator(new StrftimeValidator(DateED));
 	connect(DateED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+}
+
+
+void PrefDate::on_DateED_textChanged(const QString &)
+{
+	QString t = DateED->text();
+	int p = 0;
+	bool valid = DateED->validator()->validate(t, p)
+		     == QValidator::Acceptable;
+	setValid(DateLA, valid);
 }
 
 
@@ -488,6 +529,25 @@ PrefCompletion::PrefCompletion(GuiPreferences * form)
 }
 
 
+void PrefCompletion::on_inlineTextCB_clicked()
+{
+	enableCB();
+}
+
+
+void PrefCompletion::on_popupTextCB_clicked()
+{
+	enableCB();
+}
+
+
+void PrefCompletion::enableCB()
+{
+	cursorTextCB->setEnabled(
+		popupTextCB->isChecked() || inlineTextCB->isChecked());
+}
+
+
 void PrefCompletion::apply(LyXRC & rc) const
 {
 	rc.completion_inline_delay = inlineDelaySB->value();
@@ -514,6 +574,7 @@ void PrefCompletion::update(LyXRC const & rc)
 	popupTextCB->setChecked(rc.completion_popup_text);
 	cursorTextCB->setChecked(rc.completion_cursor_text);
 	popupAfterCompleteCB->setChecked(rc.completion_popup_after_complete);
+        enableCB();
 }
 
 
@@ -761,7 +822,8 @@ namespace {
 struct ColorSorter
 {
 	bool operator()(ColorCode lhs, ColorCode rhs) const {
-		return lcolor.getGUIName(lhs) < lcolor.getGUIName(rhs);
+		return 
+			compare_no_case(lcolor.getGUIName(lhs), lcolor.getGUIName(rhs)) < 0;
 	}
 };
 
@@ -2565,7 +2627,8 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	addModule(new PrefSpellchecker(this));
 
 	addModule(new PrefPrinter(this));
-	addModule(new PrefDate(this));
+	PrefDate * dateFormat = new PrefDate(this);
+	addModule(dateFormat);
 	addModule(new PrefPlaintext(this));
 	addModule(new PrefLatex(this));
 
@@ -2588,6 +2651,9 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	bc().setApply(applyPB);
 	bc().setCancel(closePB);
 	bc().setRestore(restorePB);
+
+	// initialize the strftime validator
+	bc().addCheckedLineEdit(dateFormat->DateED);
 }
 
 
@@ -2641,7 +2707,9 @@ bool GuiPreferences::initialiseParams(string const &)
 	update_screen_font_ = false;
 	
 	updateRc(rc_);
-	bc().restore();
+	// Make sure that the bc is in the INITIAL state  
+	if (bc().policy().buttonStatus(ButtonPolicy::RESTORE))  
+		bc().restore();  
 
 	return true;
 }

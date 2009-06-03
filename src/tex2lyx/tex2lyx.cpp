@@ -15,20 +15,20 @@
 #include "tex2lyx.h"
 
 #include "Context.h"
-#include "TextClass.h"
+#include "Encoding.h"
 #include "Layout.h"
+#include "TextClass.h"
 
-#include "support/lassert.h"
 #include "support/convert.h"
 #include "support/debug.h"
 #include "support/ExceptionMessage.h"
 #include "support/filetools.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Package.h"
 
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -202,7 +202,7 @@ void read_environment(Parser & p, string const & begin,
  */
 void read_syntaxfile(FileName const & file_name)
 {
-	ifstream is(file_name.toFilesystemEncoding().c_str());
+	ifdocstream is(file_name.toFilesystemEncoding().c_str());
 	if (!is.good()) {
 		cerr << "Could not open syntax file \"" << file_name
 		     << "\" for reading." << endl;
@@ -236,9 +236,10 @@ void read_syntaxfile(FileName const & file_name)
 
 
 string documentclass;
+string default_encoding;
 string syntaxfile;
 bool overwrite_files = false;
-
+int error_code = 0;
 
 /// return the number of arguments consumed
 typedef int (*cmd_helper)(string const &, string const &);
@@ -246,36 +247,51 @@ typedef int (*cmd_helper)(string const &, string const &);
 
 int parse_help(string const &, string const &)
 {
-	cerr << "Usage: tex2lyx [ command line switches ] <infile.tex> [<outfile.lyx>]\n"
-		"Command line switches (case sensitive):\n"
-		"\t-help              summarize tex2lyx usage\n"
-		"\t-f                 Force creation of .lyx files even if they exist already\n"
-		"\t-userdir dir       try to set user directory to dir\n"
-		"\t-sysdir dir        try to set system directory to dir\n"
-		"\t-c textclass       declare the textclass\n"
+	cerr << "Usage: tex2lyx [options] infile.tex [outfile.lyx]\n"
+		"Options:\n"
+		"\t-c textclass       Declare the textclass.\n"
+		"\t-e encoding        Set the default encoding (latex name).\n"
+		"\t-f                 Force overwrite of .lyx files.\n"
+		"\t-help              Print this message and quit.\n"
 		"\t-n                 translate a noweb (aka literate programming) file.\n"
-		"\t-s syntaxfile      read additional syntax file" << endl;
-	exit(0);
+		"\t-s syntaxfile      read additional syntax file.\n" 
+		"\t-sysdir dir        Set system directory to DIR.\n"
+		"\t-userdir DIR       Set user directory to DIR."
+	     << endl;
+	exit(error_code);
+}
+
+
+void error_message(string const & message)
+{
+	cerr << "tex2lyx: " << message << "\n\n";
+	error_code = 1;
+	parse_help(string(), string());
 }
 
 
 int parse_class(string const & arg, string const &)
 {
-	if (arg.empty()) {
-		cerr << "Missing textclass string after -c switch" << endl;
-		exit(1);
-	}
+	if (arg.empty())
+		error_message("Missing textclass string after -c switch");
 	documentclass = arg;
+	return 1;
+}
+
+
+int parse_encoding(string const & arg, string const &)
+{
+	if (arg.empty())
+		error_message("Missing encoding string after -e switch");
+	default_encoding = arg;
 	return 1;
 }
 
 
 int parse_syntaxfile(string const & arg, string const &)
 {
-	if (arg.empty()) {
-		cerr << "Missing syntaxfile string after -s switch" << endl;
-		exit(1);
-	}
+	if (arg.empty())
+		error_message("Missing syntaxfile string after -s switch");
 	syntaxfile = internal_path(arg);
 	return 1;
 }
@@ -289,10 +305,8 @@ string cl_user_support;
 
 int parse_sysdir(string const & arg, string const &)
 {
-	if (arg.empty()) {
-		cerr << "Missing directory for -sysdir switch" << endl;
-		exit(1);
-	}
+	if (arg.empty())
+		error_message("Missing directory for -sysdir switch");
 	cl_system_support = internal_path(arg);
 	return 1;
 }
@@ -300,10 +314,8 @@ int parse_sysdir(string const & arg, string const &)
 
 int parse_userdir(string const & arg, string const &)
 {
-	if (arg.empty()) {
-		cerr << "Missing directory for -userdir switch" << endl;
-		exit(1);
-	}
+	if (arg.empty())
+		error_message("Missing directory for -userdir switch");
 	cl_user_support = internal_path(arg);
 	return 1;
 }
@@ -328,6 +340,7 @@ void easyParse(int & argc, char * argv[])
 	map<string, cmd_helper> cmdmap;
 
 	cmdmap["-c"] = parse_class;
+	cmdmap["-e"] = parse_encoding;
 	cmdmap["-f"] = parse_force;
 	cmdmap["-s"] = parse_syntaxfile;
 	cmdmap["-help"] = parse_help;
@@ -341,8 +354,12 @@ void easyParse(int & argc, char * argv[])
 			= cmdmap.find(argv[i]);
 
 		// don't complain if not found - may be parsed later
-		if (it == cmdmap.end())
-			continue;
+		if (it == cmdmap.end()) {
+			if (argv[i][0] == '-')
+				error_message(string("Unknown option `") + argv[i] + "'.");
+			else
+				continue;
+		}
 
 		string arg(to_utf8(from_local8bit((i + 1 < argc) ? argv[i + 1] : "")));
 		string arg2(to_utf8(from_local8bit((i + 2 < argc) ? argv[i + 2] : "")));
@@ -389,9 +406,11 @@ namespace {
  *  You must ensure that \p parentFilePath is properly set before calling
  *  this function!
  */
-void tex2lyx(istream & is, ostream & os)
+void tex2lyx(idocstream & is, ostream & os, string const & encoding)
 {
 	Parser p(is);
+	if (!encoding.empty())
+		p.setEncoding(encoding);
 	//p.dump();
 
 	stringstream ss;
@@ -411,7 +430,7 @@ void tex2lyx(istream & is, ostream & os)
 	os << ss.str();
 #ifdef TEST_PARSER
 	p.reset();
-	ofstream parsertest("parsertest.tex");
+	ofdocstream parsertest("parsertest.tex");
 	while (p.good())
 		parsertest << p.get_token().asInput();
 	// <origfile> and parsertest.tex should now have identical content
@@ -420,9 +439,12 @@ void tex2lyx(istream & is, ostream & os)
 
 
 /// convert TeX from \p infilename to LyX and write it to \p os
-bool tex2lyx(FileName const & infilename, ostream & os)
+bool tex2lyx(FileName const & infilename, ostream & os, string const & encoding)
 {
-	ifstream is(infilename.toFilesystemEncoding().c_str());
+	ifdocstream is;
+	// forbid buffering on this stream
+	is.rdbuf()->pubsetbuf(0,0);
+	is.open(infilename.toFilesystemEncoding().c_str());
 	if (!is.good()) {
 		cerr << "Could not open input file \"" << infilename
 		     << "\" for reading." << endl;
@@ -430,7 +452,7 @@ bool tex2lyx(FileName const & infilename, ostream & os)
 	}
 	string const oldParentFilePath = parentFilePath;
 	parentFilePath = onlyPath(infilename.absFilename());
-	tex2lyx(is, os);
+	tex2lyx(is, os, encoding);
 	parentFilePath = oldParentFilePath;
 	return true;
 }
@@ -438,7 +460,8 @@ bool tex2lyx(FileName const & infilename, ostream & os)
 } // anonymous namespace
 
 
-bool tex2lyx(string const & infilename, FileName const & outfilename)
+bool tex2lyx(string const & infilename, FileName const & outfilename, 
+	     string const & encoding)
 {
 	if (outfilename.isReadableFile()) {
 		if (overwrite_files) {
@@ -462,7 +485,7 @@ bool tex2lyx(string const & infilename, FileName const & outfilename)
 	cerr << "Input file: " << infilename << "\n";
 	cerr << "Output file: " << outfilename << "\n";
 #endif
-	return tex2lyx(FileName(infilename), os);
+	return tex2lyx(FileName(infilename), os, encoding);
 }
 
 } // namespace lyx
@@ -476,20 +499,16 @@ int main(int argc, char * argv[])
 
 	easyParse(argc, argv);
 
-	if (argc <= 1) {
-		cerr << "Usage: tex2lyx [ command line switches ] <infile.tex> [<outfile.lyx>]\n"
-			  "See tex2lyx -help." << endl;
-		return 2;
-	}
-
+	if (argc <= 1) 
+		error_message("Not enough arguments.");
 	os::init(argc, argv);
 
 	try { init_package(internal_path(to_utf8(from_local8bit(argv[0]))),
-		cl_system_support, cl_user_support,
-		top_build_dir_is_two_levels_up);
+			     cl_system_support, cl_user_support,
+			     top_build_dir_is_two_levels_up);
 	} catch (ExceptionMessage const & message) {
 		cerr << to_utf8(message.title_) << ":\n"
-			<< to_utf8(message.details_) << endl;
+		     << to_utf8(message.details_) << endl;
 		if (message.type_ == ErrorException)
 			exit(1);
 	}
@@ -507,6 +526,7 @@ int main(int argc, char * argv[])
 	} else
 		outfilename = changeExtension(infilename, ".lyx");
 
+	// Read the syntax tables
 	FileName const system_syntaxfile = libFileSearch("", "syntax.default");
 	if (system_syntaxfile.empty()) {
 		cerr << "Error: Could not find syntax file \"syntax.default\"." << endl;
@@ -516,16 +536,33 @@ int main(int argc, char * argv[])
 	if (!syntaxfile.empty())
 		read_syntaxfile(makeAbsPath(syntaxfile));
 
+	// Read the encodings table.
+	FileName const symbols_path = libFileSearch(string(), "unicodesymbols");
+	if (symbols_path.empty()) {
+		cerr << "Error: Could not find file \"unicodesymbols\"." 
+		     << endl;
+		exit(1);
+	}
+	FileName const enc_path = libFileSearch(string(), "encodings");
+	if (enc_path.empty()) {
+		cerr << "Error: Could not find file \"encodings\"." 
+		     << endl;
+		exit(1);
+	}
+	encodings.read(enc_path, symbols_path);
+	if (!default_encoding.empty() && !encodings.fromLaTeXName(default_encoding))
+		error_message("Unknown LaTeX encoding `" + default_encoding + "'");
+
+	// The real work now.
 	masterFilePath = onlyPath(infilename);
 	parentFilePath = masterFilePath;
-
 	if (outfilename == "-") {
-		if (tex2lyx(FileName(infilename), cout))
+		if (tex2lyx(FileName(infilename), cout, default_encoding))
 			return EXIT_SUCCESS;
 		else
 			return EXIT_FAILURE;
 	} else {
-		if (tex2lyx(infilename, FileName(outfilename)))
+		if (tex2lyx(infilename, FileName(outfilename), default_encoding))
 			return EXIT_SUCCESS;
 		else
 			return EXIT_FAILURE;

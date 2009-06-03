@@ -121,6 +121,7 @@ Menuset
 		OptItem "Note Settings...|N" "inset-settings note"
 		OptItem "Branch Settings...|B" "inset-settings branch"
 		OptItem "Box Settings...|x" "inset-settings box"
+		OptItem "Listings Settings...|g" "inset-settings listings"
 # Hey, guess what's broken ? Surprise surprise, it's tabular stuff
 # This is in the Table submenu instead for now.
 #	OptItem "Table Settings...|a" "inset-settings tabular"
@@ -195,7 +196,7 @@ Menuset
 		Separator
 		Submenu "Change Formula Type|F" "edit_math_mutate"
 		Separator
-		Submenu "Text Style|T" "edit_math_textstyles"
+		Submenu "Text Style|T" "edit_math_fontstyles"
 		Separator
 		Submenu "Use Computer Algebra System|S" "edit_math_extern"
 		Separator
@@ -232,29 +233,29 @@ Menuset
 		 Item "Inline|I"  "math-limits nolimits"
 	End
 
-	Menu "edit_math_textstyles"
-		Item "Math Normal Font|N" "math-insert \mathnormal"
+	Menu "edit_math_fontstyles"
+		Item "Math Normal Font|N" "math-font-style mathnormal"
 		Separator
-		Item "Math Calligraphic Family|C" "math-insert \mathcal"
-		Item "Math Fraktur Family|F" "math-insert \mathfrak"
-		Item "Math Roman Family|R" "math-insert \mathrm"
-		Item "Math Sans Serif Family|S" "math-insert \mathsf"
+		Item "Math Calligraphic Family|C" "math-font-style mathcal"
+		Item "Math Fraktur Family|F" "math-font-style mathfrak"
+		Item "Math Roman Family|R" "math-font-style mathrm"
+		Item "Math Sans Serif Family|S" "math-font-style mathsf"
 		Separator
-		Item "Math Bold Series|B" "math-insert \mathbf"
+		Item "Math Bold Series|B" "math-font-style mathbf"
 		Separator
-		Item "Text Normal Font|T" "math-insert \textnormal"
+		Item "Text Normal Font|T" "math-font-style textnormal"
 		Separator
-		Item "Text Roman Family" "math-insert \textrm"
-		Item "Text Sans Serif Family" "math-insert \textsf"
-		Item "Text Typewriter Family" "math-insert \texttt"
+		Item "Text Roman Family" "math-font-style textrm"
+		Item "Text Sans Serif Family" "math-font-style textsf"
+		Item "Text Typewriter Family" "math-font-style texttt"
 		Separator
-		Item "Text Bold Series" "math-insert \textbf"
-		Item "Text Medium Series" "math-insert \textmd"
+		Item "Text Bold Series" "math-font-style textbf"
+		Item "Text Medium Series" "math-font-style textmd"
 		Separator
-		Item "Text Italic Shape" "math-insert \textit"
-		Item "Text Small Caps Shape" "math-insert \textsc"
-		Item "Text Slanted Shape" "math-insert \textsl"
-		Item "Text Upright Shape" "math-insert \textup"
+		Item "Text Italic Shape" "math-font-style textit"
+		Item "Text Small Caps Shape" "math-font-style textsc"
+		Item "Text Slanted Shape" "math-font-style textsl"
+		Item "Text Upright Shape" "math-font-style textup"
 	End
 
 	Menu "edit_math_extern"
@@ -476,7 +477,7 @@ Menuset
 		Item "Next Note|N" "note-next"
 		Item "Next Change|C" "change-next"
 		Item "Next Cross-Reference|R" "reference-next"
-		Item "Go to Label|L" "label-goto"
+		OptItem "Go to Label|L" "label-goto"
 		Separator
 		Toc
 	End
@@ -489,6 +490,7 @@ Menuset
 		Item "Save Bookmark 5" "bookmark-save 5"
 		Item "Clear Bookmarks|C" "bookmark-clear"
 		Separator
+		Item "Navigate Back|B" "bookmark-goto 0"
 		Bookmarks
 	End
 

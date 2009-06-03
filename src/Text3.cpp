@@ -65,6 +65,7 @@
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/lyxtime.h"
+#include "support/os.h"
 
 #include "mathed/InsetMathHull.h"
 #include "mathed/MathMacroTemplate.h"
@@ -421,10 +422,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	LYXERR(Debug::ACTION, "Text::dispatch: cmd: " << cmd);
 
 	BufferView * bv = &cur.bv();
-	TextMetrics & tm = bv->textMetrics(this);
-	if (!tm.contains(cur.pit())) {
-		lyx::dispatch(FuncRequest(LFUN_SCREEN_RECENTER));
-		tm = bv->textMetrics(this);
+	TextMetrics * tm = &bv->textMetrics(this);
+	if (!tm->contains(cur.pit())) {
+		lyx::dispatch(FuncRequest(LFUN_SCREEN_SHOW_CURSOR));
+		tm = &bv->textMetrics(this);
 	}
 
 	// FIXME: We use the update flag to indicates wether a singlePar or a
@@ -512,7 +513,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (cur.selection()) {
 			cutSelection(cur, true, false);
 		} else
-			tm.deleteLineForward(cur);
+			tm->deleteLineForward(cur);
 		finishChange(cur, false);
 		break;
 
@@ -655,13 +656,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_LINE_BEGIN:
 	case LFUN_LINE_BEGIN_SELECT:
 		needsUpdate |= cur.selHandle(cmd.action == LFUN_LINE_BEGIN_SELECT);
-		needsUpdate |= tm.cursorHome(cur);
+		needsUpdate |= tm->cursorHome(cur);
 		break;
 
 	case LFUN_LINE_END:
 	case LFUN_LINE_END_SELECT:
 		needsUpdate |= cur.selHandle(cmd.action == LFUN_LINE_END_SELECT);
-		needsUpdate |= tm.cursorEnd(cur);
+		needsUpdate |= tm->cursorEnd(cur);
 		break;
 
 	case LFUN_WORD_RIGHT:
@@ -1043,8 +1044,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_SERVER_GET_XY:
 		cur.message(from_utf8(
-			convert<string>(tm.cursorX(cur.top(), cur.boundary()))
-			+ ' ' + convert<string>(tm.cursorY(cur.top(), cur.boundary()))));
+			convert<string>(tm->cursorX(cur.top(), cur.boundary()))
+			+ ' ' + convert<string>(tm->cursorY(cur.top(), cur.boundary()))));
 		break;
 
 	case LFUN_SERVER_SET_XY: {
@@ -1056,7 +1057,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			lyxerr << "SETXY: Could not parse coordinates in '"
 			       << to_utf8(cmd.argument()) << endl;
 		else
-			tm.setCursorFromCoordinates(cur, x, y);
+			tm->setCursorFromCoordinates(cur, x, y);
 		break;
 	}
 
@@ -1166,7 +1167,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		pos_type pos = cur.pos();
 		BufferParams const & bufparams = bv->buffer().params();
 		Layout const & style = par.layout();
-		if (!style.pass_thru
+		InsetLayout const & ilayout = cur.inset().getLayout(bufparams);
+		if (!style.pass_thru && !ilayout.isPassThru()
 		    && par.getFontSettings(bufparams, pos).language()->lang() != "hebrew") {
 			// this avoids a double undo
 			// FIXME: should not be needed, ideally
@@ -1201,9 +1203,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_MOUSE_TRIPLE:
 		if (cmd.button() == mouse_button::button1) {
-			tm.cursorHome(cur);
+			tm->cursorHome(cur);
 			cur.resetAnchor();
-			tm.cursorEnd(cur);
+			tm->cursorEnd(cur);
 			cur.setSelection();
 			bv->cursor() = cur;
 		}
@@ -1272,7 +1274,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		int const wh = bv->workHeight();
 		int const y = max(0, min(wh - 1, cmd.y));
 
-		tm.setCursorFromCoordinates(cur, cmd.x, y);
+		tm->setCursorFromCoordinates(cur, cmd.x, y);
 		cur.setTargetX(cmd.x);
 		if (cmd.y >= wh)
 			lyx::dispatch(FuncRequest(LFUN_DOWN_SELECT));
@@ -1362,6 +1364,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 		cur.resetAnchor();
 		moveCursor(cur, false);
+		bv->bookmarkEditPosition();
 		break;
 	}
 
@@ -1414,6 +1417,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		if (!inset)
 			break;
+		cur.recordUndo();
 		insertInset(cur, inset);
 		cur.posForward();
 		break;
@@ -1943,8 +1947,11 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_DIALOG_SHOW_NEW_INSET:
 		if (cmd.argument() == "bibitem")
 			code = BIBITEM_CODE;
-		else if (cmd.argument() == "bibtex")
+		else if (cmd.argument() == "bibtex") {
 			code = BIBTEX_CODE;
+			// not allowed in description items
+			enable = !inDescriptionItem(cur);
+		}
 		else if (cmd.argument() == "box")
 			code = BOX_CODE;
 		else if (cmd.argument() == "branch")
@@ -2015,6 +2022,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_FLOAT_LIST_INSERT:
 		code = FLOAT_LIST_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_CAPTION_INSERT:
 		code = CAPTION_CODE;
@@ -2046,7 +2055,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_BRANCH_INSERT:
 		code = BRANCH_CODE;
-		if (cur.buffer().masterBuffer()->params().branchlist().empty())
+		if (cur.buffer().masterBuffer()->params().branchlist().empty()
+		    && cur.buffer().params().branchlist().empty())
 			enable = false;
 		break;
 	case LFUN_LABEL_INSERT:
@@ -2065,6 +2075,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_INDEX_PRINT:
 		code = INDEX_PRINT_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_NOMENCL_INSERT:
 		if (cur.selIsMultiCell() || cur.selIsMultiLine()) {
@@ -2075,9 +2087,13 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_NOMENCL_PRINT:
 		code = NOMENCL_PRINT_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_TOC_INSERT:
 		code = TOC_CODE;
+		// not allowed in description items
+		enable = !inDescriptionItem(cur);
 		break;
 	case LFUN_HYPERLINK_INSERT:
 		if (cur.selIsMultiCell() || cur.selIsMultiLine()) {
@@ -2251,6 +2267,13 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		enable = cur.inset().insetAllowed(MATH_CODE);
 		break;
 
+	case LFUN_DATE_INSERT: {
+		string const format = cmd.argument().empty()
+			? lyxrc.date_insert_format : to_utf8(cmd.argument());
+		enable = support::os::is_valid_strftime(format);
+		break;
+	}
+
 	case LFUN_WORD_DELETE_FORWARD:
 	case LFUN_WORD_DELETE_BACKWARD:
 	case LFUN_LINE_DELETE:
@@ -2296,7 +2319,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_SERVER_SET_XY:
 	case LFUN_SERVER_GET_LAYOUT:
 	case LFUN_LAYOUT:
-	case LFUN_DATE_INSERT:
 	case LFUN_SELF_INSERT:
 	case LFUN_LINE_INSERT:
 	case LFUN_MATH_DISPLAY:

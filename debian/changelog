@@ -1,11 +1,12 @@
-lyx (1.6.2-2) UNRELEASED; urgency=low
+lyx (1.6.3-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
+  * New upstream release
   * Add patches/boost-mt. Starting with boost 1.38.0 the -mt suffix in the
     soname is back so we've to modify some makefiles to let it link again.
   * Add a ttf-lyx package as replacement for the latex-xft-package.
 
- -- Sven Hoexter <sven@timegate.de>  Fri, 15 May 2009 20:28:44 +0200
+ -- Sven Hoexter <sven@timegate.de>  Wed, 03 Jun 2009 20:00:19 +0200
 
 lyx (1.6.2-1) unstable; urgency=low
 

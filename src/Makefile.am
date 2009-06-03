@@ -19,7 +19,7 @@ EXTRA_DIST = Section.h \
 	paper.h \
 	pch.h
 
-OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) @LIBS@ $(SOCKET_LIBS)
+OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
 
 noinst_LTLIBRARIES = liblyxcore.la
 bin_PROGRAMS = lyx
@@ -184,6 +184,7 @@ HEADERFILESCORE = \
 	CmdDef.h \
 	ColorCode.h \
 	Color.h \
+	ColorSet.h \
 	CompletionList.h \
 	ConverterCache.h \
 	Converter.h \

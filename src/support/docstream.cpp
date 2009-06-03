@@ -242,33 +242,7 @@ protected:
 	}
 	virtual int do_max_length() const throw()
 	{
-		// FIXME: this information should be transferred to lib/encodings
-		// UTF8 uses at most 4 bytes to represent one UCS4 code point
-		// (see RFC 3629). RFC 2279 specifies 6 bytes, but that
-		// information is outdated, and RFC 2279 has been superseded by
-		// RFC 3629.
-		// The CJK encodings use (different) multibyte representation as well.
-		// All other encodings encode one UCS4 code point in one byte
-		// (and can therefore only encode a subset of UCS4)
-		// Note that BIG5 and SJIS do not work with LaTeX (see lib/encodings). 
-		// Furthermore, all encodings that use shifting (like SJIS) do not work with 
-		// iconv_codecvt_facet.
-		if (encoding_ == "UTF-8" ||
-		    encoding_ == "GB" ||
-		    encoding_ == "EUC-TW")
-			return 4;
-		else if (encoding_ == "EUC-JP")
-			return 3;
-		else if (encoding_ == "ISO-2022-JP")
-			return 5;
-		else if (encoding_ == "BIG5" ||
-			 encoding_ == "EUC-KR" ||
-			 encoding_ == "EUC-CN" ||
-			 encoding_ == "SJIS" ||
-			 encoding_ == "GBK")
-			return 2;
-		else
-			return 1;
+		return lyx::max_encoded_bytes(encoding_);
 	}
 private:
 	/// Do the actual conversion. The interface is equivalent to that of
@@ -281,6 +255,14 @@ private:
 				inbytesleft, to, outbytesleft);
 		if (converted == (size_t)(-1)) {
 			switch(errno) {
+			case 0: 
+				// As strange as it may seem, this
+				// does happen on windows when parsing
+				// comments with accented chars in
+				// tex2lyx. See the following thread
+				// for details
+				// http://thread.gmane.org/gmane.editors.lyx.devel/117636
+				break;
 			case EINVAL:
 			case E2BIG:
 				return base::partial;

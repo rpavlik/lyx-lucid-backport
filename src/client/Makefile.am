@@ -6,16 +6,13 @@ man_MANS = lyxclient.1
 
 bin_PROGRAMS = lyxclient
 
-EXTRA_DIST = lyxclient.man
+EXTRA_DIST = lyxclient.1in
 
 AM_CPPFLAGS += -I$(srcdir)/.. $(BOOST_INCLUDES)
 
-lyxclient.1:
-	cp -p $(srcdir)/lyxclient.man lyxclient.1
-
 lyxclient_LDADD = \
 	$(top_builddir)/src/support/liblyxsupport.la \
-	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS)
+	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
 
 # everything below the line containing the single backslashs
 # an ugly hack and needed because of the

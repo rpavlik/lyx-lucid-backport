@@ -1065,7 +1065,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	//lyxerr << "*** InsetMathGrid: request: " << cmd << endl;
 
-	Parse::flags parseflg = Parse::QUIET;
+	Parse::flags parseflg = Parse::QUIET | Parse::USETEXT;
 
 	switch (cmd.action) {
 
@@ -1266,7 +1266,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		InsetMathGrid grid(1, 1);
 		if (!topaste.empty())
-			if (topaste.size() == 1
+			if ((topaste.size() == 1 && topaste.at(0) < 0x80)
 			    || !mathed_parse_normal(grid, topaste, parseflg)) {
 				resetGrid(grid);
 				mathed_parse_normal(grid, topaste,
@@ -1397,8 +1397,18 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		}
 		if (s == "valign-top" || s == "valign-middle" ||
 		    s == "valign-bottom" || s == "align-left" ||
-		    s == "align-right" || s == "align-center" ||
-		    s == "append-row" || s == "delete-row" ||
+		    s == "align-right" || s == "align-center") {
+			status.setEnabled(true);
+			char const ha = horizontalAlignment(cur.col());
+			char const va = verticalAlignment();
+			status.setOnOff((s == "align-left" && ha == 'l')
+					|| (s == "align-right"   && ha == 'r')
+					|| (s == "align-center"  && ha == 'c')
+					|| (s == "valign-top"    && va == 't')
+					|| (s == "valign-bottom" && va == 'b')
+					|| (s == "valign-middle" && va == 'm'));
+		}
+		if (s == "append-row" || s == "delete-row" ||
 		    s == "copy-row" || s == "swap-row" ||
 		    s == "add-hline-above" || s == "add-hline-below" ||
 		    s == "delete-hline-above" || s == "delete-hline-below" ||
@@ -1412,15 +1422,6 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.message(bformat(
 				from_utf8(N_("Unknown tabular feature '%1$s'")), lyx::from_ascii(s)));
 		}
-
-		char const ha = horizontalAlignment(cur.col());
-		char const va = verticalAlignment();
-		status.setOnOff((s == "align-left" && ha == 'l')
-			   || (s == "align-right"   && ha == 'r')
-			   || (s == "align-center"  && ha == 'c')
-			   || (s == "valign-top"    && va == 't')
-			   || (s == "valign-bottom" && va == 'b')
-			   || (s == "valign-middle" && va == 'm'));
 
 #if 0
 		// FIXME: What did this code do?

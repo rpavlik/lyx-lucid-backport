@@ -21,7 +21,7 @@
 #include "Buffer.h"
 #include "BufferList.h"
 #include "CmdDef.h"
-#include "Color.h"
+#include "ColorSet.h"
 #include "ConverterCache.h"
 #include "Converter.h"
 #include "CutAndPaste.h"
@@ -353,6 +353,9 @@ void LyX::prepareExit()
 	// Clear the clipboard and selection stack:
 	cap::clearCutStack();
 	cap::clearSelection();
+
+	// Write the index file of the converter cache
+	ConverterCache::get().writeIndex();
 
 	// close buffers first
 	pimpl_->buffer_list_.closeAll();

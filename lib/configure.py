@@ -307,17 +307,17 @@ def checkFormatEntries(dtl_tools):
     #
     #checkProg('a Postscript interpreter', ['gs'],
     #  rc_entry = [ r'\ps_command "%%"' ])
-    checkViewer('a Postscript previewer', ['kghostview', 'evince', 'gv', 'ghostview -swap'],
+    checkViewer('a Postscript previewer', ['kghostview', 'okular', 'evince', 'gv', 'ghostview -swap'],
         rc_entry = [r'''\Format eps        eps     EPS                    "" "%%"	""	"vector"
 \Format ps         ps      Postscript             t  "%%"	""	"document,vector"'''])
     #
-    checkViewer('a PDF previewer', ['kpdf', 'evince', 'kghostview', 'xpdf', 'acrobat', 'acroread', \
+    checkViewer('a PDF previewer', ['kpdf', 'okular', 'evince', 'kghostview', 'xpdf', 'acrobat', 'acroread', \
 		    'gv', 'ghostview'],
         rc_entry = [r'''\Format pdf        pdf    "PDF (ps2pdf)"          P  "%%"	""	"document,vector"
 \Format pdf2       pdf    "PDF (pdflatex)"        F  "%%"	""	"document,vector"
 \Format pdf3       pdf    "PDF (dvipdfm)"         m  "%%"	""	"document,vector"'''])
     #
-    checkViewer('a DVI previewer', ['xdvi', 'kdvi'],
+    checkViewer('a DVI previewer', ['xdvi', 'kdvi', 'okular'],
         rc_entry = [r'\Format dvi        dvi     DVI                    D  "%%"	""	"document,vector"'])
     if dtl_tools:
         # Windows only: DraftDVI
@@ -388,20 +388,26 @@ def checkConverterEntries():
     #
     checkProg('an MS Word -> LaTeX converter', ['wvCleanLatex $$i $$o'],
         rc_entry = [ r'\converter word       latex      "%%"	""' ])
-    # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
-    path, htmlconv = checkProg('a LaTeX -> HTML converter', ['htlatex $$i', 'htlatex.sh $$i', \
-        '/usr/share/tex4ht/htlatex $$i', 'tth  -t -e2 -L$$b < $$i > $$o', \
-        'latex2html -no_subdir -split 0 -show_section_numbers $$i', 'hevea -s $$i'],
-        rc_entry = [ r'\converter latex      html       "%%"	"needaux"' ])
-    if htmlconv.find('htlatex') >= 0 or htmlconv == 'latex2html':
+    #
+    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py $$i $$o'],
+      rc_entry = [ r'\converter lyx      html       "%%"	""' ])
+    if elyxer.find('elyxer.py') >= 0:
       addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
     else:
-      addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py $$i $$o"''')
+      # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
+      path, htmlconv = checkProg('a LaTeX -> HTML converter', ['htlatex $$i', 'htlatex.sh $$i', \
+          '/usr/share/tex4ht/htlatex $$i', 'tth  -t -e2 -L$$b < $$i > $$o', \
+          'latex2html -no_subdir -split 0 -show_section_numbers $$i', 'hevea -s $$i'],
+          rc_entry = [ r'\converter latex      html       "%%"	"needaux"' ])
+      if htmlconv.find('htlatex') >= 0 or htmlconv == 'latex2html':
+        addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
+      else:
+        addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py $$i $$o"''')
 
     # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
     path, htmlconv = checkProg('a LaTeX -> MS Word converter', ["htlatex $$i 'html,word' 'symbol/!' '-cvalidate'", \
         "htlatex.sh $$i 'html,word' 'symbol/!' '-cvalidate'", \
-	"/usr/share/tex4ht/htlatex $$i 'html,word' 'symbol/!' '-cvalidate'"],
+        "/usr/share/tex4ht/htlatex $$i 'html,word' 'symbol/!' '-cvalidate'"],
         rc_entry = [ r'\converter latex      wordhtml   "%%"	"needaux"' ])
     if htmlconv.find('htlatex') >= 0:
       addToRC(r'''\copier    wordhtml       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
@@ -520,7 +526,12 @@ def checkConverterEntries():
         if match:
             version_number = match.groups()[0]
             version = version_number.split('.')
-            if int(version[0]) > 2 or (len(version) > 1 and int(version[0]) == 2 and int(version[1]) >= 6):
+            if int(version[0]) > 2 or (len(version) > 1 and int(version[0]) == 2 and int(version[1]) >= 11):
+                addToRC(r'''\converter lilypond   eps        "lilypond -dbackend=eps --ps $$i"	""
+\converter lilypond   png        "lilypond -dbackend=eps --png $$i"	""''')
+                addToRC(r'\converter lilypond   pdf        "lilypond -dbackend=eps --pdf $$i"	""')
+                print '+  found LilyPond version %s.' % version_number
+            elif int(version[0]) > 2 or (len(version) > 1 and int(version[0]) == 2 and int(version[1]) >= 6):
                 addToRC(r'''\converter lilypond   eps        "lilypond -b eps --ps $$i"	""
 \converter lilypond   png        "lilypond -b eps --png $$i"	""''')
                 if int(version[0]) > 2 or (len(version) > 1 and int(version[0]) == 2 and int(version[1]) >= 9):

@@ -74,6 +74,9 @@ std::string internal_path_list(std::string const & p);
  */
 std::string latex_path(std::string const & p);
 
+/// Checks if the format string is suitable on the OS
+bool is_valid_strftime(std::string const & p);
+
 /** Returns a string suitable to be passed to popen when
  *  reading a file.
  */
@@ -108,6 +111,12 @@ bool canAutoOpenFile(std::string const & ext, auto_open_mode const mode = VIEW);
  *  \returns whether or not the file is viewed (or edited) successfully.
  */
 bool autoOpenFile(std::string const & filename, auto_open_mode const mode = VIEW);
+
+/** Resolves a path such that it does not contain '.', '..', or symbolic links.
+  * \warning the path must already be in the filesystem encoding.
+  * \returns the resolved path in utf8 encoding.
+  */
+std::string real_path(std::string const & path);
 
 } // namespace os
 } // namespace support

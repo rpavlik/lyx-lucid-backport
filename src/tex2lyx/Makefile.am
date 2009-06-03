@@ -1,6 +1,6 @@
 include $(top_srcdir)/config/common.am
 
-EXTRA_DIST = tex2lyx.1 $(TEST_FILES) pch.h
+EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
 
 #noinst_LTLIBRARIES = libtexparser.la
 #
@@ -41,7 +41,8 @@ LINKED_FILES = \
 	../Lexer.cpp \
 	../lengthcommon.cpp \
 	../Color.cpp \
-	../Color.h
+	../Color.h \
+	../Encoding.cpp
 
 BUILT_SOURCES = $(PCH_FILE)
 
@@ -65,4 +66,4 @@ tex2lyx_SOURCES = \
 
 tex2lyx_LDADD = \
 	$(top_builddir)/src/support/liblyxsupport.la \
-	$(LIBICONV) $(BOOST_LIBS) @LIBS@
+	$(LIBICONV) $(BOOST_LIBS) @LIBS@ $(LIBPSAPI)

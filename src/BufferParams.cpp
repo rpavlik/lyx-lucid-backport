@@ -23,6 +23,7 @@
 #include "buffer_funcs.h"
 #include "Bullet.h"
 #include "Color.h"
+#include "ColorSet.h"
 #include "Encoding.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
@@ -1128,7 +1129,8 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		os << "}\n";
 		texrow.newline();
 	}
-	if (use_geometry || nonstandard_papersize) {
+	if (!tclass.provides("geometry")
+	    && (use_geometry || nonstandard_papersize)) {
 		odocstringstream ods;
 		if (!getGraphicsDriver("geometry").empty())
 			ods << getGraphicsDriver("geometry");
@@ -1325,7 +1327,7 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		lyxpreamble += oss.str();
 	}
 	
-	// Will be surrounded by \makeatletter and \makeatother when needed
+	// Will be surrounded by \makeatletter and \makeatother when not empty
 	docstring atlyxpreamble;
 
 	// Some macros LyX will need
@@ -1344,7 +1346,7 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			+ tmppreamble + '\n';
 
 	/* the user-defined preamble */
-	if (!preamble.empty())
+	if (!containsOnly(preamble, " \n\t"))
 		// FIXME UNICODE
 		atlyxpreamble += "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% "
 			"User specified LaTeX commands.\n"
@@ -1401,11 +1403,9 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	if (!bullets_def.empty())
 		atlyxpreamble += bullets_def + "}\n\n";
 
-	if (atlyxpreamble.find(from_ascii("@")) != docstring::npos)
+	if (!atlyxpreamble.empty())
 		lyxpreamble += "\n\\makeatletter\n"
 			+ atlyxpreamble + "\\makeatother\n\n";
-	else
-		lyxpreamble += '\n' + atlyxpreamble;
 
 	// We try to load babel late, in case it interferes with other packages.
 	// Jurabib and Hyperref have to be called after babel, though.

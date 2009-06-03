@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -152,7 +152,6 @@
 \newboolean{sidecap}
 \IfFileExists{sidecap.sty}
  {\usepackage{sidecap}
-  \let\marginpar\marginnote
   \setboolean{sidecap}{true}}
  {\setboolean{sidecap}{false}}
 
@@ -2322,7 +2321,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_align-left.png
+	filename ../images/tabular-feature_m-align-left.png
 	scaleBeforeRotation
 
 \end_inset
@@ -2333,7 +2332,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_align-center.png
+	filename ../images/tabular-feature_m-align-center.png
 	scaleBeforeRotation
 
 \end_inset
@@ -2344,7 +2343,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_align-right.png
+	filename ../images/tabular-feature_m-align-right.png
 	scaleBeforeRotation
 
 \end_inset
@@ -2355,7 +2354,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_valign-top.png
+	filename ../images/tabular-feature_m-valign-top.png
 	scaleBeforeRotation
 
 \end_inset
@@ -2366,7 +2365,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_valign-middle.png
+	filename ../images/tabular-feature_m-valign-middle.png
 	scaleBeforeRotation
 
 \end_inset
@@ -2377,7 +2376,7 @@ The toolbar has the following icons:
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
-	filename ../images/tabular-feature_valign-bottom.png
+	filename ../images/tabular-feature_m-valign-bottom.png
 	scaleBeforeRotation
 
 \end_inset
@@ -31613,8 +31612,8 @@ Child documents are used when you have a long document consisting of several
  the document in several files that can be revised separately.
  The different documents are then the so called child documents and a master
  document connects them to print the full document or parts of it.
- A child documents inherits contents of its master, for example the bibliography
- and the labels for cross-references.
+ A child documents inherits contents of its master, for example the LaTeX
+ preamble, the bibliography, and labels for cross-references.
 \end_layout
 
 \begin_layout Standard

@@ -296,6 +296,9 @@ void GuiDelimiter::on_sizeCO_activated(int index)
 
 void GuiDelimiter::on_leftLW_itemActivated(QListWidgetItem *)
 {
+	// do not auto-apply if !matchCB->isChecked()
+	if (!matchCB->isChecked())
+		return;
 	on_insertPB_clicked();
 	accept();
 }
@@ -303,6 +306,9 @@ void GuiDelimiter::on_leftLW_itemActivated(QListWidgetItem *)
 
 void GuiDelimiter::on_rightLW_itemActivated(QListWidgetItem *)
 {
+	// do not auto-apply if !matchCB->isChecked()
+	if (!matchCB->isChecked())
+		return;
 	on_insertPB_clicked();
 	accept();
 }
