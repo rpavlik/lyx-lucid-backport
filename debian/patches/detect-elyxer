@@ -1,4 +1,4 @@
-Search for elyxer instead of elyxer.py.
+Search for elyxer.py and elyxer.
 --- a/lib/configure.py
 +++ b/lib/configure.py
 @@ -389,9 +389,9 @@ def checkConverterEntries():
