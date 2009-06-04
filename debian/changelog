@@ -10,10 +10,9 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
     boost-mt patch will be harmful.
   * Add a ttf-lyx package as replacement for the latex-xft-package.
   * Add debian/patches/detect-elyxer. Modifies configure.py to search
-    for 'elyxer' instead of 'elyxer.py'. The Debian package will ship
-    the file without the .py extension.
-
- -- Sven Hoexter <sven@timegate.de>  Wed, 03 Jun 2009 20:00:19 +0200
+    for 'elyxer' and 'elyxer.py'.
+  
+ -- Sven Hoexter <sven@timegate.de>  Thu, 04 Jun 2009 10:05:34 +0200
 
 lyx (1.6.2-1) unstable; urgency=low
 

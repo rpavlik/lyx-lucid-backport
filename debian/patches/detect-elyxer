@@ -6,7 +6,7 @@ Search for elyxer instead of elyxer.py.
          rc_entry = [ r'\converter word       latex      "%%"	""' ])
      #
 -    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py $$i $$o'],
-+    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer $$i $$o'],
++    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py $$i $$o', 'elyxer $$i $$o'],
        rc_entry = [ r'\converter lyx      html       "%%"	""' ])
 -    if elyxer.find('elyxer.py') >= 0:
 +    if elyxer.find('elyxer') >= 0:
