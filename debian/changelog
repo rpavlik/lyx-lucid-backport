@@ -5,7 +5,7 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
    + URLs in footnotes containing '#' or '%23' work again. Closes: #529937
   * Add patches/boost-mt. Starting with boost 1.38.0 the -mt suffix in the
     soname is back so we've to modify some makefiles to let it link again.
-    Closes: #530469
+    Closes: #530469, #533427
   * Lift Build-Depends on libboost-dev up to 1.38.0 - otherwise the
     boost-mt patch will be harmful.
   * Add a ttf-lyx package as replacement for the latex-xft-package.
