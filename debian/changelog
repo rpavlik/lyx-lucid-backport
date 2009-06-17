@@ -11,6 +11,7 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
   * Add a ttf-lyx package as replacement for the latex-xft-package.
   * Add debian/patches/detect-elyxer. Modifies configure.py to search
     for 'elyxer' and 'elyxer.py'.
+  * Update Standards-Version to 3.8.2 - no changes required.
   
  -- Sven Hoexter <sven@timegate.de>  Thu, 04 Jun 2009 10:05:34 +0200
 

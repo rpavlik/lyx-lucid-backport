@@ -3,7 +3,7 @@ Maintainer: Debian LyX Maintainers <pkg-lyx-devel@lists.alioth.debian.org>
 Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
-Standards-Version: 3.8.1
+Standards-Version: 3.8.2
 Vcs-Svn: svn://svn.debian.org/svn/pkg-lyx/lyx/trunk
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-lyx/lyx/trunk
 Homepage: http://www.lyx.org/
