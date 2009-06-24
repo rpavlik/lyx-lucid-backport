@@ -1,4 +1,10 @@
-lyx (1.6.3-1) UNRELEASED; urgency=low
+lyx (1.6.3-2) UNRELEASED; urgency=low
+
+  * Add a ttf-lyx package as replacement for the latex-xft-package.
+
+ -- Sven Hoexter <sven@timegate.de>  Wed, 24 Jun 2009 20:12:24 +0200
+
+lyx (1.6.3-1) unstable; urgency=low
 
   [ Sven Hoexter ]
   * New upstream release
@@ -8,12 +14,14 @@ lyx (1.6.3-1) UNRELEASED; urgency=low
     Closes: #530469, #533427
   * Lift Build-Depends on libboost-dev up to 1.38.0 - otherwise the
     boost-mt patch will be harmful.
-  * Add a ttf-lyx package as replacement for the latex-xft-package.
   * Add debian/patches/detect-elyxer. Modifies configure.py to search
     for 'elyxer' and 'elyxer.py'.
   * Update Standards-Version to 3.8.2 - no changes required.
-  
- -- Sven Hoexter <sven@timegate.de>  Thu, 04 Jun 2009 10:05:34 +0200
+
+  [ Per Olofsson ]
+  * Update debian/watch URL.
+
+ -- Per Olofsson <pelle@debian.org>  Wed, 24 Jun 2009 00:26:38 +0200
 
 lyx (1.6.2-1) unstable; urgency=low
 
