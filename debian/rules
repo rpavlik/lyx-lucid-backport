@@ -79,8 +79,12 @@ install: build
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
-# move fonts to font package
+# move fonts and font docs to font package
 	mkdir -p debian/ttf-lyx/usr/share/fonts/truetype
+	mkdir -p debian/ttf-lyx/usr/share/doc/ttf-lyx
+	mv debian/lyx-common/usr/share/lyx/fonts/ReadmeBaKoMa4LyX.txt \
+		debian/ttf-lyx/usr/share/doc/ttf-lyx/
+	rm debian/lyx-common/usr/share/lyx/fonts/BaKoMaFontLicense.txt
 	mv debian/lyx-common/usr/share/lyx/fonts \
 		debian/ttf-lyx/usr/share/fonts/truetype/ttf-lyx
 
