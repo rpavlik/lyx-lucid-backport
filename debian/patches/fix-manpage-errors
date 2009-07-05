@@ -1,0 +1,11 @@
+--- a/src/tex2lyx/tex2lyx.1in
++++ b/src/tex2lyx/tex2lyx.1in
+@@ -22,7 +22,7 @@ options.
+ \fBtex2lyx\fR [ \fB\-userdir\fR \fIuserdir\fR ] [ \fB\-systemdir\fR \fIsystemdir\fR ]
+ [ \fB\-n\fR ] [ \fB\-c\fR \fItextclass\fR ] [\ \fB\-s\fR\ \fIsfile1\fR[,\fIsfile2\fR...]]
+ \fIinputfile\fR  
+-." .PP
++.PP
+ ." \fBtex2lyx\fR [ \fB\-userdir\fR \fIuserdir\fR ] [ \fB\-systemdir\fR \fIsystemdir\fR ]
+ ." [\ \fB\-r\fR\ \fIrenv1\fR[,\fIrenv2\fR...]] [\ \fB\-s\fR\ \fIsfile1\fR[,\fIsfile2\fR...]]
+ ." \fIinputfiles\fR \fB\-p\fR \fB\-c\fR \fItextclass\fR
