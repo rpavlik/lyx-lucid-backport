@@ -1,4 +1,4 @@
-lyx (1.6.3-2) UNRELEASED; urgency=low
+lyx (1.6.3-2) unstable; urgency=low
 
   [ Sven Hoexter ]
   * Add a ttf-lyx package as replacement for the latex-xft-package.
@@ -11,7 +11,7 @@ lyx (1.6.3-2) UNRELEASED; urgency=low
   * Move fonts in debian/rules instead of deleting them and installing
     manually.
 
- -- Sven Hoexter <sven@timegate.de>  Wed, 24 Jun 2009 20:12:24 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 18:10:23 +0200
 
 lyx (1.6.3-1) unstable; urgency=low
 
