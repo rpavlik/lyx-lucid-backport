@@ -8,6 +8,8 @@ lyx (1.6.3-2) UNRELEASED; urgency=low
   [ Per Olofsson ]
   * Update Vcs-* fields to the new Git repository.
   * Update ttf-lyx description.
+  * Move fonts in debian/rules instead of deleting them and installing
+    manually.
 
  -- Sven Hoexter <sven@timegate.de>  Wed, 24 Jun 2009 20:12:24 +0200
 
