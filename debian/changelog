@@ -1,8 +1,12 @@
 lyx (1.6.3-2) UNRELEASED; urgency=low
 
+  [ Sven Hoexter ]
   * Add a ttf-lyx package as replacement for the latex-xft-package.
   * Update detect-elyxer. Now all images are included in the output
     directory.
+
+  [ Per Olofsson ]
+  * Update Vcs-* fields to the new Git repository.
 
  -- Sven Hoexter <sven@timegate.de>  Wed, 24 Jun 2009 20:12:24 +0200
 

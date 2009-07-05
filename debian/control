@@ -4,8 +4,8 @@ Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
 Section: editors
 Priority: optional
 Standards-Version: 3.8.2
-Vcs-Svn: svn://svn.debian.org/svn/pkg-lyx/lyx/trunk
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-lyx/lyx/trunk
+Vcs-Git: git://git.debian.org/git/pkg-lyx/lyx.git
+Vcs-Browser: http://git.debian.org/?p=pkg-lyx/lyx.git
 Homepage: http://www.lyx.org/
 Build-Depends: libaiksaurus-dev, python-support (>= 0.6),
  debhelper (>= 7), quilt,
