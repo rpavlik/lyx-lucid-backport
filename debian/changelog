@@ -1,6 +1,7 @@
 lyx (1.6.3-3) UNRELEASED; urgency=low
 
   * Add Section: fonts to ttf-lyx.
+  * Add latex-xft-fonts transitional package.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
 
