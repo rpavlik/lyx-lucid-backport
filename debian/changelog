@@ -2,6 +2,8 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
 
   * Add Section: fonts to ttf-lyx.
   * Add latex-xft-fonts transitional package.
+  * Make a symlink from /usr/share/doc/latex-xft-fonts to ttf-lyx. Saves
+    space.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
 
