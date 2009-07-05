@@ -1,3 +1,9 @@
+lyx (1.6.3-3) UNRELEASED; urgency=low
+
+  * Add Section: fonts to ttf-lyx.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
+
 lyx (1.6.3-2) unstable; urgency=low
 
   [ Sven Hoexter ]
