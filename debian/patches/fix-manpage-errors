@@ -17,7 +17,7 @@
  .BI \-c
  Class. By default, when \fBtex2lyx\fR sees a \f(CW\edocumentclass{foo}\fR command, it
 -creates a file of textclass \*(L"foo\*(R" and reads the LyX layout file for that class
-+creates a file of textclass \*(lqfoo\*(rq and reads the LyX layout file for that class
++creates a file of textclass \*[lq]foo\*[rq] and reads the LyX layout file for that class
  (something like /usr/local/share/lyx/layouts/foo.layout \s-1OR\s0
  \fB\s-1HOME\s0\fR/.lyx/layouts/foo.layout).  Use \fB\-c\fR to declare a different textclass
  (and read a different layout file).
@@ -26,7 +26,7 @@
  .BI \-n
  Noweb. Translate a noweb (aka literate programming) file. This should be
 -(almost?) equivalent to running \*(L"noweb2lyx foo.tex foo.lyx\*(R". This option
-+(almost?) equivalent to running \*(lqnoweb2lyx foo.tex foo.lyx\*(rq. This option
++(almost?) equivalent to running \*[lq]noweb2lyx foo.tex foo.lyx\*[rq]. This option
  requires the \fB\-c\fR option.
 -." .TP
 -." .BI \-p
@@ -53,7 +53,7 @@
 +.\" are no \f(CW\edocumentclass\fR commands in the files \fBtex2lyx\fR is translating. When
 +.\" using this option, you can translate more than one file, as long as all files
 +.\" are the same class. The LyX file created by \fBtex2lyx\fR can be included in an
-+.\" existing LyX file using the \*(lqInclude LyX File\*(rq command from
++.\" existing LyX file using the \*[lq]Include LyX File\*[rq] command from
 +.\" LyX's Insert menu. (\fBNOTE\fR: this feature of the older \fBreLyX\fR script has
 +.\" not yet been implemented in \fBtex2lyx\fR).
 +.\" .TP
@@ -82,8 +82,8 @@
  important after translating a LaTeX document. \fBtex2lyx\fR is better
 -at \*(L"macro-translating\*(R" (translating the whole document) than
 -\*(L"micro-translating\*(R" (translating every little detail). For example, you may see
-+at \*(lqmacro-translating\*(rq (translating the whole document) than
-+\*(lqmicro-translating\*(rq (translating every little detail). For example, you may see
++at \*[lq]macro-translating\*[rq] (translating the whole document) than
++\*[lq]micro-translating\*[rq] (translating every little detail). For example, you may see
  extra spaces or deleted spaces. Space handling has improved, but it's
  not perfect.
  .SS "What tex2lyx Can Handle"
@@ -99,7 +99,7 @@
  .IP "\(bu " 4
  \f(CW\einput{foo}\fR (or \f(CW\einput{foo.blah}\fR) and \f(CW\einclude{foo}\fR. Plain TeX
 -\f(CW\einput\fR command \*(L"\f(CW\einput foo.tex\fR\*(R" is also supported.
-+\f(CW\einput\fR command \*(lq\f(CW\einput foo.tex\fR\*(rq is also supported.
++\f(CW\einput\fR command \*[lq]\f(CW\einput foo.tex\fR\*[rq] is also supported.
  .IP "\(bu" 4
  tabular environment, and commands that go inside it like \f(CW\ehline\fR, \f(CW\ecline\fR,
  and \f(CW\emulticolumn\fR (but see below)
@@ -108,7 +108,7 @@
  \fBtex2lyx\fR copies unknown commands, along with their arguments, verbatim into the
  LyX file. Also, if it sees a \f(CW\ebegin{foo}\fR where it doesn't recognize the
 -\*(L"foo\*(R" environment, it will copy verbatim until it sees \f(CW\eend{foo}\fR (unless
-+\*(lqfoo\*(rq environment, it will copy verbatim until it sees \f(CW\eend{foo}\fR (unless
++\*[lq]foo\*[rq] environment, it will copy verbatim until it sees \f(CW\eend{foo}\fR (unless
  you use the \fB\-r\fR option). Most of these unknown commands
  won't cause \fBtex2lyx\fR to break; they'll merely require you to do some editing
  once you've loaded the file up in LyX.  That should be less painful than
@@ -117,7 +117,7 @@
  matures, these bugs will be squished.
  .IP "\(bu" 4
 -\*(L"Exact\*(R" copying of unknown environments and commands isn't quite exact.
-+\*(lqExact\*(rq copying of unknown environments and commands isn't quite exact.
++\*[lq]Exact\*[rq] copying of unknown environments and commands isn't quite exact.
  This will yield ugly LyX, but in almost all cases the output will be the same. 
  However, most parts of the file will be copied perfectly, including whitespace 
  and comments. This includes: the LaTeX preamble, verbatim environments as well as
@@ -125,7 +125,7 @@
  .IP "\(bu" 4
  \fBtex2lyx\fR translates only a subset of the document class options to native features.
 -Other options are placed in the \*(L"options\*(R" field in the Document->Settings popup.
-+Other options are placed in the \*(lqoptions\*(rq field in the Document->Settings popup.
++Other options are placed in the \*[lq]options\*[rq] field in the Document->Settings popup.
  .IP ""
  More importantly, \fBtex2lyx\fR doesn't translate \f(CW\enewcommands\fR, unknown
  \f(CW\eusepackage\fR commands and other unknown code in the preamble. It
@@ -134,7 +134,7 @@
  environment.
  .IP "\(bu" 4
 -LyX support for tables isn't perfect. For complicated tables, use a \*(L"skip\*(R"
-+LyX support for tables isn't perfect. For complicated tables, use a \*(lqskip\*(rq
++LyX support for tables isn't perfect. For complicated tables, use a \*[lq]skip\*[rq]
  block, so that they will be copied in TeX mode.
  .IP "\(bu" 4
  LyX allows figures to have sizes in the units known to TeX, such as in, cm, etc. It also 
@@ -143,7 +143,7 @@
  that within LyX.
  .SH "EXAMPLES"
 -tex2lyx \fB\-f\fR \fB\-r\fR \*(L"myenv\*(R" foo.tex
-+tex2lyx \fB\-f\fR \fB\-r\fR \*(lqmyenv\*(rq foo.tex
++tex2lyx \fB\-f\fR \fB\-r\fR \*[lq]myenv\*[rq] foo.tex
  .PP
  The above will create a file foo.lyx from foo.tex, overwriting if
  necessary.  When it finds a \f(CW\ebegin{myenv} ... \eend{myenv}\fR block, it will
@@ -151,7 +151,7 @@
  commands in TeX mode.
  .PP
 -tex2lyx \fB\-n\fR \fB\-c\fR \*(L"literate-article\*(R" foo.tex
-+tex2lyx \fB\-n\fR \fB\-c\fR \*(lqliterate-article\*(rq foo.tex
++tex2lyx \fB\-n\fR \fB\-c\fR \*[lq]literate-article\*[rq] foo.tex
  .PP
  The above will change a noweb document into a LyX literate-article
  document. A user would do this if the noweb document had documentclass
@@ -169,7 +169,7 @@
  \fBtex2lyx\fR reads a LyX layout file to know how to handle LaTeX environments and
  commands which get translated to LyX layouts. This file will include all
 -\*(L"normal\*(R" non-math environments (i.e., including quote and itemize, but not
-+\*(lqnormal\*(rq non-math environments (i.e., including quote and itemize, but not
++\*[lq]normal\*[rq] non-math environments (i.e., including quote and itemize, but not
  tabular, minipage, and some other fancy environments), and commands like
  \f(CW\esection\fR and \f(CW\etitle\fR. If you want to tex2lyx a class that doesn't have an
  existing layout file, then you'll have to create a layout file. But you have
@@ -178,7 +178,7 @@
  .PP
  Some commands that cannot be translated to LyX, like \f(CW\embox\fR, have as one of
 -their arguments regular LaTeX text. If the string \*(L"translate\*(R" is put into an
-+their arguments regular LaTeX text. If the string \*(lqtranslate\*(rq is put into an
++their arguments regular LaTeX text. If the string \*[lq]translate\*[rq] is put into an
  argument of an (untranslatable) command in the syntax file, then \fBtex2lyx\fR will
  translate that argument instead of copying it verbatim. So, for example, the
  default syntax file has \f(CW\eraisebox{}[][]{translate}\fR. This means that the
@@ -186,7 +186,7 @@
  exist) are copied in TeX mode, but the last argument (which may contain math,
  complicated LaTeX, other untranslatable commands, etc.) will be translated
 -into LyX. You can't use \*(L"translate\*(R" on optional arguments.
-+into LyX. You can't use \*(lqtranslate\*(rq on optional arguments.
++into LyX. You can't use \*[lq]translate\*[rq] on optional arguments.
  .PP
  User-defined syntax files are allowed to define new commands and
  their syntax, or override the number of arguments for a command given in the
@@ -195,14 +195,14 @@
  identified in the default syntax file.
  .PP
 -Second, the syntax file describes any \*(L"regular environments\*(R".  Usually, an
-+Second, the syntax file describes any \*(lqregular environments\*(rq.  Usually, an
++Second, the syntax file describes any \*[lq]regular environments\*[rq].  Usually, an
  entire unknown environment will be copied in TeX mode. If you define a regular
 -environment \*(L"foo\*(R", though, then only the \f(CW\ebegin{foo}\fR and \f(CW\eend{foo}\fR
-+environment \*(lqfoo\*(rq, though, then only the \f(CW\ebegin{foo}\fR and \f(CW\eend{foo}\fR
++environment \*[lq]foo\*[rq], though, then only the \f(CW\ebegin{foo}\fR and \f(CW\eend{foo}\fR
  commands will be copied in TeX mode; the text within the environment will be
  treated (i.e., translated) by \fBtex2lyx\fR as regular LaTeX, rather than being
 -copied into TeX mode. Don't try to declare \*(L"tabbing\*(R" and \*(L"picture\*(R" as regular
-+copied into TeX mode. Don't try to declare \*(lqtabbing\*(rq and \*(lqpicture\*(rq as regular
++copied into TeX mode. Don't try to declare \*[lq]tabbing\*[rq] and \*[lq]picture\*[rq] as regular
  environments, as the text within those environments will confuse \fBtex2lyx\fR; use
  this capability for new environments you create that have plain text or math
  or simple commands in them. You also can't declare unknown math environments
