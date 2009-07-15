@@ -5,6 +5,8 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
   * Make a symlink from /usr/share/doc/latex-xft-fonts to ttf-lyx. Saves
     space.
   * Add patch fix-manpage-errors which fixes errors in tex2lyx(1).
+  * Simplify debian/rules even more by using the new dh override
+    feature. Also use dh for quilt. Build-deps accordingly.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
 
