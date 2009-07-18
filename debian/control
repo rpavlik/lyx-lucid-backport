@@ -65,6 +65,6 @@ Description: TrueType versions of some TeX fonts
 Package: latex-xft-fonts
 Architecture: all
 Section: fonts
-Depends: ttf-lyx
+Depends: ${misc:Depends}, ttf-lyx
 Description: transitional package
  This package only exists to ease the transition to the ttf-lyx package.
