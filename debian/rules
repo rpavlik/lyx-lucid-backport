@@ -70,7 +70,6 @@ override_dh_auto_install:
 
 override_dh_installdocs:
 	ln -s lyx-common debian/lyx/usr/share/doc/lyx
-	ln -s ttf-lyx debian/latex-xft-fonts/usr/share/doc/latex-xft-fonts
 
 	dh_installdocs
 
