@@ -71,9 +71,9 @@ override_dh_auto_install:
 override_dh_installdocs:
 	dh_installdocs
 
-	mv debian/lyx-common/usr/share/lyx/fonts/ReadmeBaKoMa4LyX.txt \
+	mv debian/ttf-lyx/usr/share/lyx/fonts/ReadmeBaKoMa4LyX.txt \
 		debian/ttf-lyx/usr/share/doc/ttf-lyx/
-	rm debian/lyx-common/usr/share/lyx/fonts/BaKoMaFontLicense.txt
+	rm debian/ttf-lyx/usr/share/lyx/fonts/BaKoMaFontLicense.txt
 
 override_dh_pysupport:
 	dh_pysupport /usr/share/lyx
