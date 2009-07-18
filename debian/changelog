@@ -2,6 +2,8 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
 
   * Add Section: fonts to ttf-lyx.
   * Add latex-xft-fonts transitional package.
+    - Delete old conffile /etc/defoma/hints/latex-xft-fonts.hints from
+      preinst.
   * Make a symlink from /usr/share/doc/latex-xft-fonts to ttf-lyx. Saves
     space.
   * Add patch fix-manpage-errors which fixes errors in tex2lyx(1).
