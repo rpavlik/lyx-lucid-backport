@@ -57,12 +57,7 @@ override_dh_auto_install:
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
-# move fonts and font docs to font package
-	mkdir -p debian/ttf-lyx/usr/share/fonts/truetype
-	mkdir -p debian/ttf-lyx/usr/share/doc/ttf-lyx
-	mv debian/lyx-common/usr/share/lyx/fonts/ReadmeBaKoMa4LyX.txt \
-		debian/ttf-lyx/usr/share/doc/ttf-lyx/
-	rm debian/lyx-common/usr/share/lyx/fonts/BaKoMaFontLicense.txt
+# move fonts to font package
 	mv debian/lyx-common/usr/share/lyx/fonts \
 		debian/ttf-lyx/usr/share/fonts/truetype/ttf-lyx
 
@@ -72,6 +67,13 @@ override_dh_auto_install:
 	mv debian/lyx-common/usr/share/lyx/tex \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx
 	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx
+
+override_dh_installdocs:
+	dh_installdocs
+
+	mv debian/lyx-common/usr/share/lyx/fonts/ReadmeBaKoMa4LyX.txt \
+		debian/ttf-lyx/usr/share/doc/ttf-lyx/
+	rm debian/lyx-common/usr/share/lyx/fonts/BaKoMaFontLicense.txt
 
 override_dh_pysupport:
 	dh_pysupport /usr/share/lyx
