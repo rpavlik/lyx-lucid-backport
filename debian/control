@@ -59,8 +59,9 @@ Architecture: all
 Section: fonts
 Depends: ${misc:Depends}, defoma
 Description: TrueType versions of some TeX fonts
- Some TrueType fonts for use with visual math symbol display in LyX. They
- are also useful for Mozilla Firefox with MathML documents.
+ These fonts are needed for the visual math symbol display in
+ LyX. They can also be used to display MathML in Gecko-based browsers
+ like Iceweasel.
  .
  The following fonts are part of this package:
  cmex10, cmmi10, cmr10, cmsy10, esint10, eufm10, msam10, msbm10, wasy10. 
