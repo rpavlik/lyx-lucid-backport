@@ -9,6 +9,7 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
     feature. Also use dh for quilt. Build-deps accordingly.
   * Improve ttf-lyx's long description, add subject to the first
     sentence. Closes: #537565.
+  * Describe the fonts included in ttf-lyx in its long description.
 
  -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
 

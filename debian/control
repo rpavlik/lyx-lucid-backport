@@ -63,8 +63,16 @@ Description: TrueType versions of some TeX fonts
  LyX. They can also be used to display MathML in Gecko-based browsers
  like Iceweasel.
  .
- The following fonts are part of this package:
- cmex10, cmmi10, cmr10, cmsy10, esint10, eufm10, msam10, msbm10, wasy10. 
+ The following fonts are included in this package:
+  * cmex10  - Computer Modern math extension
+  * cmmi10  - Computer Modern math italic
+  * cmr10   - Computer Modern Roman
+  * cmsy10  - Computer Modern math symbols
+  * esint10 - Alternate integrals
+  * eufm10  - Euler Fraktur (medium-weight)
+  * msam10  - Extra math symbols, first series
+  * msbm10  - Extra math symbols, second series, including Blackboard Bold
+  * wasy10  - Waldi symbol fonts
 
 Package: latex-xft-fonts
 Architecture: all
