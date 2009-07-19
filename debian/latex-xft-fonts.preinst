@@ -20,11 +20,16 @@ rm_conffile() {
 	fi
 }
 
+hintsfile=/etc/defoma/hints/latex-xft-fonts.hints
+
 case "$1" in
 install|upgrade)
 	if dpkg --compare-versions "$2" le "0.1-8"; then
-		rm_conffile latex-xft-fonts \
-			/etc/defoma/hints/latex-xft-fonts.hints
+		if [ -x "`which defoma-font 2>/dev/null`" ]; then
+			defoma-font purge-all $hintsfile
+		fi
+
+		rm_conffile latex-xft-fonts $hintsfile
 	fi
 esac
 

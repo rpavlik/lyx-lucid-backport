@@ -3,7 +3,7 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
   * Add Section: fonts to ttf-lyx.
   * Add latex-xft-fonts transitional package.
     - Delete old conffile /etc/defoma/hints/latex-xft-fonts.hints from
-      preinst.
+      preinst and unregister from defoma.
   * Add patch fix-manpage-errors which fixes errors in tex2lyx(1).
   * Simplify debian/rules even more by using the new dh override
     feature. Also use dh for quilt. Build-deps accordingly.
