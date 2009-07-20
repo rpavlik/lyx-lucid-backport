@@ -1,4 +1,4 @@
-lyx (1.6.3-3) UNRELEASED; urgency=low
+lyx (1.6.3-3) unstable; urgency=low
 
   * Add Section: fonts to ttf-lyx.
   * Add latex-xft-fonts transitional package.
@@ -11,7 +11,7 @@ lyx (1.6.3-3) UNRELEASED; urgency=low
     sentence. Closes: #537565.
   * Describe the fonts included in ttf-lyx in its long description.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 05 Jul 2009 23:18:04 +0200
+ -- Per Olofsson <pelle@debian.org>  Sun, 19 Jul 2009 22:35:35 +0200
 
 lyx (1.6.3-2) unstable; urgency=low
 
