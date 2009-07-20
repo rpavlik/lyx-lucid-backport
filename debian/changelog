@@ -1,3 +1,9 @@
+lyx (1.6.3-4) UNRELEASED; urgency=low
+
+  * Make latex-xft-fonts priority extra, correcting override disparity.
+
+ -- Per Olofsson <pelle@debian.org>  Mon, 20 Jul 2009 09:00:18 +0200
+
 lyx (1.6.3-3) unstable; urgency=low
 
   * Add Section: fonts to ttf-lyx.
