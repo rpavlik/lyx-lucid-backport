@@ -81,6 +81,7 @@ override_dh_installdocs:
 
 	dh_installdocs
 
+	mkdir -p debian/ttf-lyx/usr/share/doc/ttf-lyx
 	mv debian/ttf-lyx/usr/share/fonts/truetype/ttf-lyx/ReadmeBaKoMa4LyX.txt \
 		debian/ttf-lyx/usr/share/doc/ttf-lyx/
 	rm debian/ttf-lyx/usr/share/fonts/truetype/ttf-lyx/BaKoMaFontLicense.txt
