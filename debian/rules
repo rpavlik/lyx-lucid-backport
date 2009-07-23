@@ -54,21 +54,29 @@ override_dh_auto_install:
 	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common
 
 # move binaries to arch package
+	mkdir -p debian/lyx/usr/share
 	mv debian/lyx-common/usr/bin debian/lyx/usr/bin
 	mv debian/lyx-common/usr/share/man debian/lyx/usr/share/man
 
 # move fonts to font package
+	mkdir -p debian/ttf-lyx/usr/share/fonts/truetype
 	mv debian/lyx-common/usr/share/lyx/fonts \
 		debian/ttf-lyx/usr/share/fonts/truetype/ttf-lyx
 
 # remove empty directory
 	rmdir debian/lyx-common/usr/share/lyx/images/commands
 
+# move tex files to correct place
+	mkdir -p debian/lyx-common/usr/share/texmf/tex/latex
 	mv debian/lyx-common/usr/share/lyx/tex \
 		debian/lyx-common/usr/share/texmf/tex/latex/lyx
+
+# install bash completion
+	mkdir -p debian/lyx-common/etc/bash_completion.d
 	cp debian/bash_completion debian/lyx-common/etc/bash_completion.d/lyx
 
 override_dh_installdocs:
+	mkdir -p debian/lyx/usr/share/doc
 	ln -s lyx-common debian/lyx/usr/share/doc/lyx
 
 	dh_installdocs
