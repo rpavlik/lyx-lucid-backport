@@ -25,7 +25,8 @@ hintsfile=/etc/defoma/hints/latex-xft-fonts.hints
 case "$1" in
 install|upgrade)
 	if dpkg --compare-versions "$2" le "0.1-8"; then
-		if [ -x "`which defoma-font 2>/dev/null`" ]; then
+		if [ -x "`which defoma-font 2>/dev/null`" ] && \
+			[ -f $hintsfile ]; then
 			defoma-font purge-all $hintsfile
 		fi
 
