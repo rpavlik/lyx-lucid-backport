@@ -1,10 +1,10 @@
-lyx (1.6.3-4) UNRELEASED; urgency=low
+lyx (1.6.3-4) unstable; urgency=low
 
   * Make latex-xft-fonts priority extra, correcting override disparity.
   * Create all dirs with mkdir in debian/rules, so that they always
     exist even if we build arch-only. Closes: #537691.
 
- -- Per Olofsson <pelle@debian.org>  Mon, 20 Jul 2009 09:00:18 +0200
+ -- Per Olofsson <pelle@debian.org>  Thu, 23 Jul 2009 10:00:40 +0200
 
 lyx (1.6.3-3) unstable; urgency=low
 
