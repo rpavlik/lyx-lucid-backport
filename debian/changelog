@@ -1,9 +1,9 @@
-lyx (1.6.3-5) UNRELEASED; urgency=low
+lyx (1.6.3-5) unstable; urgency=low
 
   * Check if latex-xft-fonts.hints exists before purging it with defoma.
   * Add debian/gbp.conf making git-buildpackage use pristine-tar.
 
- -- Per Olofsson <pelle@debian.org>  Thu, 23 Jul 2009 10:54:57 +0200
+ -- Per Olofsson <pelle@debian.org>  Sat, 01 Aug 2009 12:29:35 +0200
 
 lyx (1.6.3-4) unstable; urgency=low
 
