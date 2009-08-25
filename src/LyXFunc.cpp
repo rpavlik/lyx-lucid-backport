@@ -264,7 +264,7 @@ void LyXFunc::gotoBookmark(unsigned int idx, bool openFile, bool switchToBuffer)
 		dispatch(FuncRequest(LFUN_BOOKMARK_SAVE, "0"));
 
 	// if the current buffer is not that one, switch to it.
-	if (lyx_view_->buffer()->fileName() != tmp.filename) {
+	if (!lyx_view_->buffer() || lyx_view_->buffer()->fileName() != tmp.filename) {
 		if (!switchToBuffer)
 			return;
 		dispatch(FuncRequest(LFUN_BUFFER_SWITCH, file));
@@ -397,7 +397,22 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	//lyxerr << "LyXFunc::getStatus: cmd: " << cmd << endl;
 	FuncStatus flag;
 
-	Buffer * buf = lyx_view_ ? lyx_view_->buffer() : 0;
+	/* In LyX/Mac, when a dialog is open, the menus of the
+	   application can still be accessed without giving focus to
+	   the main window. In this case, we want to disable the menu
+	   entries that are buffer or view-related.
+
+	   If this code is moved somewhere else (like in
+	   GuiView::getStatus), then several functions will not be
+	   handled correctly.
+	*/
+	frontend::LyXView * lv = 0;
+	Buffer * buf = 0;
+	if (lyx_view_ 
+	    && (cmd.origin != FuncRequest::MENU || lyx_view_->hasFocus())) {
+		lv = lyx_view_;
+		buf = lyx_view_->buffer();
+	}
 
 	if (cmd.action == LFUN_NOACTION) {
 		flag.message(from_utf8(N_("Nothing to do")));
@@ -477,6 +492,10 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		break;
 	case LFUN_VC_CHECK_OUT:
 		enable = buf->lyxvc().checkOutEnabled();
+		break;
+	case LFUN_VC_LOCKING_TOGGLE:
+		enable = !buf->isReadonly() && buf->lyxvc().lockingToggleEnabled();
+		flag.setOnOff(enable && !buf->lyxvc().locker().empty());
 		break;
 	case LFUN_VC_REVERT:
 		enable = buf->lyxvc().inUse();
@@ -644,11 +663,11 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 			break;
 
 		// Does the view know something?
-		if (!lyx_view_) {
+		if (!lv) {
 			enable = false;
 			break;
 		}
-		if (lyx_view_->getStatus(cmd, flag))
+		if (lv->getStatus(cmd, flag))
 			break;
 
 		// If we have a BufferView, try cursor position and
@@ -1117,6 +1136,22 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			}
 			break;
 
+		case LFUN_VC_LOCKING_TOGGLE:
+			LASSERT(lyx_view_ && buffer, /**/);
+			if (!ensureBufferClean(view()) || buffer->isReadonly())
+				break;
+			if (buffer->lyxvc().inUse()) {
+				string res = buffer->lyxvc().lockingToggle();
+				if (res.empty())
+					frontend::Alert::error(_("Revision control error."),
+						_("Error when setting the locking property."));
+				else {
+					setMessage(from_utf8(res));
+					reloadBuffer();
+				}
+			}
+			break;
+
 		case LFUN_VC_REVERT:
 			LASSERT(lyx_view_ && buffer, /**/);
 			buffer->lyxvc().revert();
@@ -1152,7 +1187,11 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			bool loaded = false;
 			string const abstmp = package().temp_dir().absFilename();
 			string const realtmp = package().temp_dir().realPath();
-			if (prefixIs(file_name, abstmp) || prefixIs(file_name, realtmp)) {
+			// We have to use os::path_prefix_is() here, instead of
+			// simply prefixIs(), because the file name comes from
+			// an external application and may need case adjustment.
+			if (os::path_prefix_is(file_name, abstmp, os::CASE_ADJUSTED)
+			    || os::path_prefix_is(file_name, realtmp, os::CASE_ADJUSTED)) {
 				// Needed by inverse dvi search. If it is a file
 				// in tmpdir, call the apropriated function.
 				// If tmpdir is a symlink, we may have the real
@@ -1594,6 +1633,9 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			break;
 
 		case LFUN_LYXRC_APPLY: {
+			// reset active key sequences, since the bindings
+			// are updated (bug 6064)
+			keyseq.reset();
 			LyXRC const lyxrc_orig = lyxrc;
 
 			istringstream ss(argument);
@@ -1728,7 +1770,8 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			// processKeySym to avoid another redraw just for a
 			// changed inline completion
 			if (cmd.origin == FuncRequest::KEYBOARD) {
-				if (cmd.action == LFUN_SELF_INSERT)
+				if (cmd.action == LFUN_SELF_INSERT
+				    || (cmd.action == LFUN_ERT_INSERT && view()->cursor().inMathed()))
 					lyx_view_->updateCompletion(view()->cursor(), true, true);
 				else if (cmd.action == LFUN_CHAR_DELETE_BACKWARD)
 					lyx_view_->updateCompletion(view()->cursor(), false, true);
@@ -1963,6 +2006,8 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_FORMAT:
 	case LyXRC::RC_GROUP_LAYOUTS:
 	case LyXRC::RC_INDEX_COMMAND:
+	case LyXRC::RC_JBIBTEX_COMMAND:
+	case LyXRC::RC_JINDEX_COMMAND:
 	case LyXRC::RC_NOMENCL_COMMAND:
 	case LyXRC::RC_INPUT:
 	case LyXRC::RC_KBMAP:

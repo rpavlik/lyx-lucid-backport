@@ -46,6 +46,7 @@
 
 #include "insets/RenderPreview.h"
 #include "insets/InsetLabel.h"
+#include "insets/InsetRef.h"
 
 #include "graphics/PreviewImage.h"
 #include "graphics/PreviewLoader.h"
@@ -422,7 +423,7 @@ void InsetMathHull::metricsT(TextMetricsInfo const & mi, Dimension & dim) const
 		InsetMathGrid::metricsT(mi, dim);
 	} else {
 		odocstringstream os;
-		WriteStream wi(os, false, true, false);
+		WriteStream wi(os, false, true, WriteStream::wsDefault);
 		write(wi);
 		dim.wid = os.str().size();
 		dim.asc = 1;
@@ -437,7 +438,7 @@ void InsetMathHull::drawT(TextPainter & pain, int x, int y) const
 		InsetMathGrid::drawT(pain, x, y);
 	} else {
 		odocstringstream os;
-		WriteStream wi(os, false, true, false);
+		WriteStream wi(os, false, true, WriteStream::wsDefault);
 		write(wi);
 		pain.draw(x, y, os.str().c_str());
 	}
@@ -447,8 +448,15 @@ void InsetMathHull::drawT(TextPainter & pain, int x, int y) const
 static docstring latexString(InsetMathHull const & inset)
 {
 	odocstringstream ls;
-	Encoding const * encoding = &(inset.buffer().params().encoding());
-	WriteStream wi(ls, false, true, false, encoding);
+	// This has to be static, because a preview snippet or a math
+	// macro containing math in text mode (such as $\text{$\phi$}$ or
+	// \newcommand{\xxx}{\text{$\phi$}}) gets processed twice. The
+	// first time as a whole, and the second time only the inner math.
+	// In this last case inset.buffer() would be invalid.
+	static Encoding const * encoding = 0;
+	if (inset.isBufferValid())
+		encoding = &(inset.buffer().params().encoding());
+	WriteStream wi(ls, false, true, WriteStream::wsPreview, encoding);
 	inset.write(wi);
 	return ls.str();
 }
@@ -1214,6 +1222,15 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
+	case LFUN_COPY_LABEL_AS_REF: {
+		row_type row = (type_ == hullMultline) ? nrows() - 1 : cur.row();
+		InsetCommandParams p(REF_CODE, "ref");
+		p["reference"] = label(row);
+		cap::clearSelection();
+		cap::copyInset(cur, new InsetRef(cur.buffer(), p), label(row));
+		break;
+	}
+
 	case LFUN_WORD_DELETE_FORWARD:
 	case LFUN_CHAR_DELETE_FORWARD:
 		if (col(cur.idx()) + 1 == ncols()
@@ -1317,36 +1334,54 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_DOWN:
 	case LFUN_NEWLINE_INSERT:
 	case LFUN_MATH_EXTERN:
-	case LFUN_MATH_MUTATE:
 	case LFUN_MATH_DISPLAY:
 		// we handle these
 		status.setEnabled(true);
 		return true;
+
+	case LFUN_MATH_MUTATE: {
+		HullType ht = hullType(cmd.argument());
+		status.setOnOff(type_ == ht);
+		status.setEnabled(true);
+		return true;
+	}
+
 	case LFUN_MATH_NUMBER_TOGGLE:
 		// FIXME: what is the right test, this or the one of
 		// LABEL_INSERT?
 		status.setEnabled(display());
 		status.setOnOff(numberedType());
 		return true;
+
 	case LFUN_MATH_NUMBER_LINE_TOGGLE: {
 		// FIXME: what is the right test, this or the one of
 		// LABEL_INSERT?
-		bool const enable = (type_ == hullMultline) ?
-			(nrows() - 1 == cur.row()) : display();
+		bool const enable = (type_ == hullMultline)
+			? (nrows() - 1 == cur.row())
+			: (display() != Inline && nrows() > 1);
 		row_type const r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
 		status.setEnabled(enable);
-		status.setOnOff(numbered(r));
+		status.setOnOff(enable && numbered(r));
 		return true;
 	}
+
 	case LFUN_LABEL_INSERT:
 		status.setEnabled(type_ != hullSimple);
 		return true;
+
+	case LFUN_COPY_LABEL_AS_REF: {
+		row_type const row = (type_ == hullMultline) ? nrows() - 1 : cur.row();
+		status.setEnabled(numberedType() && label_[row] && !nonum_[row]);
+		return true;
+	}
+
 	case LFUN_INSET_INSERT:
 		if (cmd.getArg(0) == "label") {
 			status.setEnabled(type_ != hullSimple);
 			return true;
 		}
 		return InsetMathGrid::getStatus(cur, cmd, status);
+
 	case LFUN_TABULAR_FEATURE: {
 		istringstream is(to_utf8(cmd.argument()));
 		string s;
@@ -1396,6 +1431,7 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 		}
 		return InsetMathGrid::getStatus(cur, cmd, status);
 	}
+
 	default:
 		return InsetMathGrid::getStatus(cur, cmd, status);
 	}
@@ -1567,7 +1603,7 @@ bool InsetMathHull::searchForward(BufferView * bv, string const & str,
 void InsetMathHull::write(ostream & os) const
 {
 	odocstringstream oss;
-	WriteStream wi(oss, false, false, false);
+	WriteStream wi(oss, false, false, WriteStream::wsDefault);
 	oss << "Formula ";
 	write(wi);
 	os << to_utf8(oss.str());
@@ -1605,7 +1641,7 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const & runparams) co
 		return tpain.textheight();
 	} else {
 		odocstringstream oss;
-		WriteStream wi(oss, false, true, false, runparams.encoding);
+		WriteStream wi(oss, false, true, WriteStream::wsDefault, runparams.encoding);
 		wi << cell(0);
 
 		docstring const str = oss.str();
@@ -1637,7 +1673,7 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 		// Workaround for db2latex: db2latex always includes equations with
 		// \ensuremath{} or \begin{display}\end{display}
 		// so we strip LyX' math environment
-		WriteStream wi(ls, false, false, false, runparams.encoding);
+		WriteStream wi(ls, false, false, WriteStream::wsDefault, runparams.encoding);
 		InsetMathGrid::write(wi);
 		ms << from_utf8(subst(subst(to_utf8(ls.str()), "&", "&amp;"), "<", "&lt;"));
 		ms << ETag("alt");
@@ -1670,7 +1706,7 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 }
 
 
-void InsetMathHull::textString(odocstream & os) const
+void InsetMathHull::tocString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
 }

@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -791,7 +791,7 @@ WYSIWYM
 、自動的にそれぞれのタイプフェイスとフォント寸法に設定されます。段落の字下げは文脈に依存します。すなわち、別種の段落はそれぞれ異なった字下げ法がなされます。改頁
 もやはり自動的に行われます。一般的に、行間・単語間・段落間の距離は可変的であり、LyXによって調整されます
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3731,7 +3731,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://bugzilla.lyx.org/
+http://www.lyx.org/trac/wiki/BugTrackerHome
 \end_layout
 
 \end_inset
@@ -3854,37 +3854,6 @@ http://www.lyx.org/trac/browser/lyx-devel/trunk/lib/doc
 \end_inset
 
 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-
-\begin_inset Newline newline
-\end_inset
-
-から入手して下さい。そのディレクトリの中に
-\family typewriter
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-DocStyle.lyx
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-というファイルがあります。これを読んで下さい。これは文書化のためのスタイルファイルです。
 \end_layout
 
 \begin_layout Enumerate

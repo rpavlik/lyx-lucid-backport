@@ -1,4 +1,4 @@
-#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -5218,7 +5218,6 @@ Itemize
 \begin_layout Standard
 We said that different levels use different symbols as their label.
  Here's an example of all four possible symbols.
- Note that those of you reading this manual within LyX won't see any difference.
 \end_layout
 
 \begin_layout Itemize
@@ -6813,11 +6812,11 @@ two
 
 \begin_deeper
 \begin_layout Enumerate
-sublist - item #1
+sublist – item #1
 \end_layout
 
 \begin_layout Enumerate
-sublist - item #2
+sublist – item #2
 \end_layout
 
 \end_deeper
@@ -7706,7 +7705,7 @@ level #6
 \end_layout
 
 \begin_layout Enumerate
-level #1 - outermost
+level #1 – outermost
 \end_layout
 
 \begin_deeper
@@ -7885,7 +7884,7 @@ arg   "depth-increment"
 Standard
 \family default
 .
- Do this to create list items with more than one paragraph - it also works
+ Do this to create list items with more than one paragraph — it also works
  for the 
 \family sans
 Description
@@ -7929,7 +7928,7 @@ arg   "break-paragraph inverse"
 List
 \family default
 .
- Remember - we can't nest anything inside a 
+ Remember — we can't nest anything inside a 
 \family sans
 Standard
 \family default
@@ -11400,7 +11399,7 @@ A more widely used character style is the
 Emphasized
 \family default
  style.
- You can activate (or deactivate - it's also a toggle) the 
+ You can activate (or deactivate — it's also a toggle) the 
 \family sans
 Emphasized
 \family default
@@ -12070,7 +12069,7 @@ yet again
 : don't go crazy with this feature.
  You should almost never need to change the font size.
  LyX automatically changes the font size for different paragraph environments
- - use that instead.
+ — use that instead.
  This is here for fine-tuning only!
 \end_layout
 
@@ -13170,7 +13169,7 @@ Ghostscript
 \end_layout
 
 \begin_layout Standard
-You can choose to print only even-numbered or odd-numbered pages - this
+You can choose to print only even-numbered or odd-numbered pages — this
  is useful for printing on two sides: You can re-insert the pages after
  printing one set to print on the other side.
  Some printers spit out pages face-up, others, face-down.
@@ -28660,15 +28659,19 @@ Changes
 \end_layout
 
 \begin_layout Standard
-Changes made in the document will then be highlighted by colors: 
+Changes made in the document will then be highlighted by strokes and colors:
+ 
+\bar under
 \color blue
-Blue text
+underlined text
+\bar default
 \color inherit
  is an addition, 
-\color red
-red canceled text
+\color blue
+canceled text
 \color inherit
  is a deletion.
+ The color depends on the author that made the change.
  You can change the color in LyX's preferences dialog under 
 \family sans
 Look
@@ -28690,12 +28693,22 @@ Colors
 status collapsed
 
 \begin_layout Plain Layout
-Color ! LyX screen
+Color ! Change tracking
 \end_layout
 
 \end_inset
 
+ The author and the date of the change are shown in LyX's status bar when
+ the cursor is in changed text.
+ The same information is shown when you use the toolbar button 
+\begin_inset Graphics
+	filename ../images/changes-merge.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
 
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -34054,9 +34067,9 @@ name "cha:The-User-Interface"
 \end_layout
 
 \begin_layout Standard
-This appendix lists all available menus and describes its functionality.
- It is designed as quick reference if you are searching for a special topic
- inside the user's guide.
+This appendix lists all the available menus and describes their functionality.
+ It is designed as a quick reference if you are searching for a special
+ topic inside the user's guide.
 \end_layout
 
 \begin_layout Section
@@ -34095,7 +34108,7 @@ New from Template
 \end_layout
 
 \begin_layout Standard
-This menu prompts you for a template to use.
+This menu entry prompts you for a template to use.
  Selecting a template will automatically set certain layout features for
  the document, features you would otherwise need to change manually.
 \end_layout
@@ -34142,6 +34155,14 @@ Saves the actual document under a new name to create a copy.
 \end_layout
 
 \begin_layout Subsection
+Save All
+\end_layout
+
+\begin_layout Standard
+Saves all opened documents.
+\end_layout
+
+\begin_layout Subsection
 Revert to saved
 \end_layout
 
@@ -34171,13 +34192,23 @@ Import
 \end_layout
 
 \begin_layout Standard
-You can import there files from older LyX-versions, LaTeX-files, NoWeb-files,
- plain text files, and comma separated, table like, text files (CSV).
+You can import there files from older LyX-versions, HTML-files, LaTeX-files,
+ NoWeb-files, plain text files, and comma separated, table like, text files
+ (CSV) as a new LyX-document.
  The files will be imported as new LyX-document.
 \end_layout
 
 \begin_layout Standard
-When using the menu 
+When using the menu entry 
+\family sans
+Plain
+\begin_inset space ~
+\end_inset
+
+Text
+\family default
+, line breaks in the text will start a new paragraph; when using the menu
+ entry 
 \family sans
 Plain
 \begin_inset space ~
@@ -34189,10 +34220,8 @@ Text, Join
 
 Lines
 \family default
-, all lines will be imported consecutively to one big paragraph.
- A new paragraph is started when there is a blank line in the file.
- , the text is inserted as Paragraphs, where the line breaks of the text
- will start a new paragraph.
+, consecutive lines of text will be imported to one big paragraph.
+ A new paragraph will begin when there is a blank line in the file.
 \end_layout
 
 \begin_layout Subsection
@@ -34297,7 +34326,7 @@ eX
 (pdflatex)
 \family default
  text file with the LaTeX source, additionally all images used in the document
- will be converted to a format that is readable for the 
+ will be converted to a format that is readable by the 
 \family typewriter
 pdflatex
 \family default
@@ -34326,7 +34355,7 @@ eX
 \family default
  text file with the LaTeX source code, additionally all images used in the
  document will be converted to the EPS-format, only this format is readable
- for the 
+ by the 
 \family typewriter
 latex
 \family default
@@ -34338,7 +34367,7 @@ LyX
 \begin_inset space ~
 \end_inset
 
-1.y.x LyX-document in a format readable for the LyX versions 1.y.x (
+1.y.x LyX-document in a format readable by the LyX versions 1.y.x (
 \begin_inset Quotes eld
 \end_inset
 
@@ -34371,16 +34400,6 @@ Abiword
 
 \family sans
 PDF
-\family default
- PDF-format using the program 
-\family typewriter
-ps2pdf
-\end_layout
-
-\begin_layout Description
-
-\family sans
-PDF
 \begin_inset space ~
 \end_inset
 
@@ -34403,6 +34422,20 @@ PDF
  PDF-format using the program 
 \family typewriter
 pdflatex
+\end_layout
+
+\begin_layout Description
+
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(ps2pdf)
+\family default
+ PDF-format using the program 
+\family typewriter
+ps2pdf
 \end_layout
 
 \begin_layout Description
@@ -34466,7 +34499,7 @@ dvipdfm
 \family typewriter
 pdflatex
 \family default
- produces directly PDF-files and supports the latest PDF-file formats.
+ produces PDF-files directly and supports the latest PDF-file formats.
 \end_layout
 
 \begin_layout Standard
@@ -34525,8 +34558,8 @@ Print
 \end_layout
 
 \begin_layout Standard
-With this menu you can print your document to a file in PostScript format
- or send it to a printer.
+With this menu entry you can print your document to a file in PostScript
+ format or send it to a printer.
  The printer will also use the document in PostScript format.
  The conversion to PostScript is done in the background by LyX using the
  program 
@@ -34549,12 +34582,62 @@ reference "sub:Printing-the-File"
 \end_layout
 
 \begin_layout Subsection
+Fax
+\end_layout
+
+\begin_layout Standard
+This menu entry will only appear when you have a fax program installed (on
+ Windows you additionally need to register its program path to LyX's PATH
+ prefix, see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Paths"
+
+\end_inset
+
+).
+ With this menu entry you can send your document to a fax program like 
+\family typewriter
+hylapex
+\family default
+ or 
+\family typewriter
+kdeprintfax
+\family default
+.
+ The default format of the sent file is PostScript.
+ The format can be changed in LyX's preferences as described in section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Converters"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
 New and Close Window
 \end_layout
 
 \begin_layout Standard
-Opens a new instance of LyX with all currently opened documents.
- You can close it later with the corresponding menu.
+Opens or closes a new instance of LyX.
+\end_layout
+
+\begin_layout Subsection
+Exit
+\end_layout
+
+\begin_layout Standard
+Prompts you to save all unsaved documents and then exits.
 \end_layout
 
 \begin_layout Section
@@ -34679,15 +34762,13 @@ Paragraph ! Settings
 \end_layout
 
 \begin_layout Standard
-The settings in the paragraph dialog only affects the paragraph where the
- cursor is in.
- Here you can set here the paragraph alignment and line spacing.
+Enables you to set the paragraph alignment, line spacing and label width.
+ These settings only affect the paragraph in which the cursor is currently.
 \end_layout
 
 \begin_layout Standard
-You can also prevent that the first line of the paragraph is indented.
- This option works only when you have chosen to separate paragraphs with
- indents in the 
+You can also prevent the first line of the paragraph being indented if you
+ have chosen to separate paragraphs with indents in the 
 \family sans
 Document\SpecialChar \menuseparator
 Settings
@@ -34704,7 +34785,7 @@ Layout
 \end_layout
 
 \begin_layout Subsection
-Tabular and Math
+Table Settings and Math
 \end_layout
 
 \begin_layout Standard
@@ -34741,9 +34822,9 @@ Increase / Decrease List Depth
 \end_layout
 
 \begin_layout Standard
-These menus are only active when the cursor is in an environment that can
- be nested.
- They in/decrease the environment nesting level as explained in section
+These menu entries are only active when the cursor is in an environment
+ that can be nested.
+ They increase/decrease the environment nesting level as explained in section
 \begin_inset space ~
 \end_inset
 
@@ -34786,7 +34867,7 @@ View
  menu contains a list of available formats in which you can view the actual
  document with an external program.
  The menu entries for the viewing formats are not the same on all installations
- - it depends on the LaTeX programs that are found while LyX was configured.
+ — it depends on the LaTeX programs that are found while LyX was configured.
  All possible formats are formats listed in section
 \begin_inset space ~
 \end_inset
@@ -34914,7 +34995,7 @@ Update
 \end_layout
 
 \begin_layout Standard
-This menu allows you to update the view with your latest changes without
+This menu entry allows you to update the view with your latest changes without
  opening a new view window.
 \end_layout
 
@@ -34924,10 +35005,10 @@ Split View
 
 \begin_layout Standard
 This will split LyX's main window vertically or horizontally.
- This allows you view documents the same time to compare them, or to view
- the same document, but at different positions.
- You can split the main window even several times to view for example 3
- or more documents the same time.
+ This allows you to view documents the same time to compare them, or to
+ view the same document, but at different positions.
+ You can even split the main window several times to view for example 3
+ or more documents at the same time.
  To return to an unsplit view, use the menu 
 \family sans
 Close Tab Group
@@ -34948,11 +35029,11 @@ Fullscreen
 \end_layout
 
 \begin_layout Standard
-Using this menu or pressing F11 removes the menu bar and all toolbars so
- that you will see nothing than your text.
+Using this menu entry or pressing F11 removes the menu bar and all toolbars
+ so that you will see nothing but your text.
  It furthermore displays LyX's main window fullscreen.
  To return from fullscreen to the normal view, press F11, or right-click
- and turn off the fullscreen mode in the the appearing context menu.
+ and turn off the fullscreen mode in the the context menu.
 \end_layout
 
 \begin_layout Subsection
@@ -34977,7 +35058,7 @@ Toolbar
 \end_layout
 
 \begin_layout Standard
-In this menu you can set the appearance of the different toolbars.
+In this menu entry you can set the appearance of the different toolbars.
  All toolbars and the 
 \family sans
 Command
@@ -35040,7 +35121,7 @@ automatic
 \end_layout
 
 \begin_layout Standard
-LyX's toolbars and its buttons are explained in section
+LyX's toolbars and their buttons are explained in section
 \begin_inset space ~
 \end_inset
 
@@ -35126,7 +35207,7 @@ Note:
 \family sans
 Symbols
 \family default
- dialog because none of the screen font that you can set in the preferences
+ dialog because none of the screen fonts that you can set in the preferences
  dialog (see sec.
 \begin_inset space \thinspace{}
 \end_inset
@@ -35318,7 +35399,7 @@ Here you can insert the following format constructs:
 \end_layout
 
 \begin_layout Description
-Superscript Inserts an superscript: test
+Superscript Inserts a superscript: test
 \begin_inset Formula $^{\text{a,b}}$
 \end_inset
 
@@ -35326,7 +35407,7 @@ Superscript Inserts an superscript: test
 \end_layout
 
 \begin_layout Description
-Subscript Inserts an subscript: test
+Subscript Inserts a subscript: test
 \begin_inset Formula $_{\text{3x}}$
 \end_inset
 
@@ -35414,7 +35495,7 @@ Horizontal
 \begin_inset space ~
 \end_inset
 
-Line Inserts an horizontal line, see section
+Line Inserts a horizontal line, see section
 \begin_inset space ~
 \end_inset
 
@@ -35452,7 +35533,7 @@ Hyphenation
 \begin_inset space ~
 \end_inset
 
-Point Inserts an hyphenation point, see section
+Point Inserts a hyphenation point, see section
 \begin_inset space ~
 \end_inset
 
@@ -35614,7 +35695,7 @@ List / TOC
 \end_layout
 
 \begin_layout Standard
-Various lists can be inserted with this menu.
+Various lists can be inserted with this menu entry.
  The table of contents, the algorithm, figures, and tables list are described
  in section
 \begin_inset space ~
@@ -35722,6 +35803,34 @@ reference "sec:Branches"
 \end_layout
 
 \begin_layout Subsection
+Custom Insets
+\end_layout
+
+\begin_layout Standard
+Inserts document class-specific insets.
+ Such insets only exist when they are defined in the layout file for a certain
+ document class.
+ An example is the document class 
+\begin_inset Quotes eld
+\end_inset
+
+article (Elsevier)
+\begin_inset Quotes erd
+\end_inset
+
+ with three custom insets.
+ The section 
+\emph on
+Flex insets and InsetLayout
+\emph default
+ of the 
+\emph on
+Customization
+\emph default
+ manual explains how custom insets are defined.
+\end_layout
+
+\begin_layout Subsection
 File
 \begin_inset Index
 status collapsed
@@ -35736,8 +35845,9 @@ External Material
 \end_layout
 
 \begin_layout Standard
-Here you can insert files to include them or its content to your document.
- How this can be done is in detail explained in chapter 
+This menu entry allows you to insert or include the contents of other LyX
+ files in your document.
+ How you can do this is explained in detail in the chapter 
 \emph on
 External Stuff
 \emph default
@@ -35775,7 +35885,7 @@ reference "sec:Minipages"
 \end_inset
 
 .
- All box types supported by LyX are explained in detail in chapter 
+ All box types supported by LyX are explained in detail in the chapter 
 \emph on
 Boxes
 \emph default
@@ -35868,7 +35978,7 @@ Longtables ! Caption
 \end_layout
 
 \begin_layout Standard
-Inserts a caption to floats or longtables.
+Inserts a caption in a float or longtable.
  Floats are described in section
 \begin_inset space ~
 \end_inset
@@ -35880,7 +35990,7 @@ reference "sec:Floats"
 
 \end_inset
 
-, captions in longtables are described in section 
+, captions in longtables are described in the section 
 \emph on
 Longtable Captions
 \emph default
@@ -36099,7 +36209,7 @@ Program listings
 
 \begin_layout Standard
 Inserts a program listings box.
- Program listings are explained in chapter 
+ Program listings are explained in the chapter 
 \emph on
 Program Code Listings
 \emph default
@@ -36118,8 +36228,8 @@ Date
 Inserts the actual date.
  The format depends on the date format of the language that is used for
  LyX's menus.
- LyX offers another ways to insert a date which is explained in section
- 
+ LyX offers various ways to insert a date which are explained and also compared
+ in the section 
 \emph on
 External Material
 \emph default
@@ -36128,7 +36238,6 @@ External Material
 Embedded Objects
 \emph default
  manual.
- There the different methods are also compared.
 \end_layout
 
 \begin_layout Section
@@ -36159,8 +36268,8 @@ Bookmarks
 \end_layout
 
 \begin_layout Standard
-With this menu you are able to define your own bookmarks.
- This is useful when you are working on a large documents and often have
+With this menu entry you are able to define your own bookmarks.
+ This is useful when you are working on a large document and often have
  to jump e.
 \begin_inset space \thinspace{}
 \end_inset
@@ -36530,8 +36639,8 @@ Reconfiguration of LyX
 \end_layout
 
 \begin_layout Standard
-This menu reconfigures LyX.
- That means LyX looks for LaTeX-packages and needed programs, see also section
+This menu entry reconfigures LyX; that is, LyX looks for LaTeX-packages
+ and needed programs it needs; see also section
 \begin_inset space ~
 \end_inset
 
@@ -38628,8 +38737,9 @@ Predefined
 \family sans
 Default
 \family default
-, the default driver for the LaTeX-packages are used.
- It is recommended to use the default unless you know what you are doing.
+, the default driver for the LaTeX-packages is used.
+ It is recommended that you use the default unless you know what you are
+ doing.
 \begin_inset Foot
 status collapsed
 
@@ -38666,7 +38776,7 @@ Specifying a master document is necessary when the current document is a
  child or subdocument.
  This master document will be used by LyX when the child document is opened
  without its master.
- This way child documents are always compileable.
+ This way child documents are always compilable.
  More about master and child documents is explained in the section 
 \emph on
 Child Documents
@@ -38874,7 +38984,7 @@ LyX also supports Unicode output, which is particularly useful if you need
 \family sans
 Language Default
 \family default
- (when LyX uses it's list of known LaTeX-commands), but does not work with
+ (when LyX uses its list of known LaTeX-commands), but does not work with
  a fixed utf8 encoding (when the list of known LaTeX-commands is not used,
  because all Unicode symbols can be encoded in utf8).
 \end_layout
@@ -39530,8 +39640,8 @@ Numbering & TOC
 \end_layout
 
 \begin_layout Standard
-You can adjust here the numbering depth of sections headings as described
- in section
+You can adjust here the numbering depth of section headings and the section
+ depth in the table of contents as described in section
 \begin_inset space ~
 \end_inset
 
@@ -39654,7 +39764,7 @@ LaTeX-packages ! esint
 amsmath
 \series default
  is needed for many constructs, so when you get LaTeX-errors in formulas,
- assure that you have enabled AMS.
+ ensure that you have enabled AMS.
 \end_layout
 
 \begin_layout Standard
@@ -39742,12 +39852,12 @@ eX Preamble
 In this text field are entered commands to load special LaTeX-packages or
  to define LaTeX-commands.
  The preamble is a thing for LaTeX-experts.
- You shouldn't enter commands here until you don't exactly know what you
- do.
+ You should not enter commands here until you exactly know what you are
+ doing.
 \end_layout
 
 \begin_layout Standard
-An introduction in the LaTeX-syntax is given in section
+An introduction to the LaTeX-syntax is given in section
 \begin_inset space ~
 \end_inset
 
@@ -39793,7 +39903,7 @@ Tools\SpecialChar \menuseparator
 Preferences
 \family default
 .
- It consists of submenus explained in the following.
+ It has the following submenus.
 \end_layout
 
 \begin_layout Section
@@ -39847,7 +39957,7 @@ Note:
 \end_layout
 
 \begin_layout Standard
-The appearance of the menus and toolbars can be changed by choosing an user
+The appearance of the menus and toolbars can be changed by choosing a user
  interface (ui) file.
  An ui-file is a text file where the toolbars and menus are listed.
  The toolbar buttons and menu entries are specified in the files 
@@ -39929,7 +40039,7 @@ Lastfiles
 
 \series bold
 Item 
-\begin_inset Quotes erd
+\begin_inset Quotes eld
 \end_inset
 
 menu 
@@ -39941,7 +40051,7 @@ or
 \end_inset
 
  
-\begin_inset Quotes erd
+\begin_inset Quotes eld
 \end_inset
 
 LyX-function
@@ -39989,7 +40099,23 @@ Bookmarks
 
 
 \series bold
-Item "Save Bookmark 6" "bookmark-save 6"
+Item 
+\begin_inset Quotes eld
+\end_inset
+
+Save Bookmark 6
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset Quotes eld
+\end_inset
+
+bookmark-save 6
+\begin_inset Quotes erd
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -40298,7 +40424,7 @@ Settings ! Color
 \end_layout
 
 \begin_layout Standard
-You can here change all colors used by LyX.
+You can here change all the colors used by LyX.
  Choose an item in the list and use the 
 \family sans
 Alter
@@ -40389,6 +40515,19 @@ The option
 Group environments by their category
 \family default
  groups the entries in the pull-down box for the paragraph environments.
+\end_layout
+
+\begin_layout Standard
+The math macro editing option determines the editing style, see the section
+ 
+\emph on
+Math Macros
+\emph default
+ of the 
+\emph on
+Math
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Subsubsection
@@ -40561,7 +40700,7 @@ paste
 \emph on
 LyX Functions
 \emph default
- that you find in the 
+ that you will find in the 
 \family sans
 Help
 \family default
@@ -40594,7 +40733,7 @@ Modify
  So press Alt+Q to define the shortcut.
  Modifying an existing shortcut is done the same way.
  You can also bind multiple functions to one shortcut by modifying an existing
- binding and adding the different function names as semicolon separated
+ binding and adding the different function names as a semicolon separated
  list.
  LyX will then use the first function that is enabled in the current document
  part.
@@ -40602,7 +40741,7 @@ Modify
 \family sans
 command-alter
 \family default
- is an example for this.
+ is an example of this.
 \end_layout
 
 \begin_layout Standard
@@ -40617,7 +40756,7 @@ Alternatively you can also edit shortcuts by modifying bind-files with a
 
 \backslash
 bind 
-\begin_inset Quotes erd
+\begin_inset Quotes eld
 \end_inset
 
 key combination
@@ -40625,7 +40764,7 @@ key combination
 \end_inset
 
  
-\begin_inset Quotes erd
+\begin_inset Quotes eld
 \end_inset
 
 LyX-function
@@ -40763,6 +40902,13 @@ reference "sec:Input-Completion"
 
 \begin_layout Section
 Paths
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Paths"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -40966,8 +41112,8 @@ PATH
 prefix This field contains a list of paths to external programs.
  When LyX needs to use an external program, it looks in this list where
  to find it on the system.
- The path list is automatically set up on Windows and Mac systems while
- LyX is configured, so that you normally don't have to modify it.
+ The path list is automatically set up on Windows and Mac systems when LyX
+ is configured, so that you normally don't have to modify it.
  On Unix
 \begin_inset space \thinspace{}
 \end_inset
@@ -41041,8 +41187,7 @@ Interface
 
 language Here you can select the language of LyX's menus.
  Unfortunately this doesn't work on Mac and Windows.
- It works so far on Linux, but not for every language you can select here
- exists a translation of the LyX menus.
+ It works on Linux for the languages into LyX's menus and dialogs are translated.
  You find the actual translation status here: 
 \begin_inset CommandInset href
 LatexCommand href
@@ -41104,13 +41249,13 @@ reference "sec:TeX-Code"
 \begin_inset Newline newline
 \end_inset
 
-The 
+
 \series bold
 babel
 \series default
- translates in the background automatically text labels of documents to
- the document language.
- A text label is for instance the word 
+ automatically translates in the background the text labels of documents
+ to the document language.
+ A text label is, for instance, the word 
 \begin_inset Quotes eld
 \end_inset
 
@@ -41280,7 +41425,7 @@ Cursor
 \end_inset
 
 movement When writing RTL, you can define if the left and right arrow keys
- moves the cursor visually to the left or right, respectively, or logically.
+ move the cursor visually to the left or right, respectively, or logically.
  Logical means that the cursor is moved to the left when pressing the right
  arrow key and the cursor is inside text in an RTL language.
 \end_layout
@@ -41362,8 +41507,7 @@ status open
 \series bold
 Note:
 \series default
- You can leave this field empty on Windows systems because it has there
- no effect.
+ You can leave this field empty on Windows systems because it has no effect.
 \end_layout
 
 \end_inset
@@ -41679,7 +41823,7 @@ command Command for the program
 \family sans
 CheckTeX
 \family default
- that is described in section 
+ that is described in the section 
 \emph on
 Checking TeX
 \emph default
@@ -41906,6 +42050,13 @@ File handling
 
 \begin_layout Subsection
 Converters
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Converters"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -41976,7 +42127,7 @@ Maximum Age (in days
 
 \begin_layout Standard
 More about converters, like the variables and flags that can be used in
- the converter definition, is described in section 
+ the converter definition, is described in the section 
 \emph on
 Converters
 \emph default
@@ -42026,7 +42177,7 @@ Here you find the list of defined file formats that LyX can handle.
 
 \begin_layout Standard
 More about formats, like the options that can be used in the format definition,
- is described in section 
+ is described in the section 
 \emph on
 Formats
 \emph default
@@ -42046,7 +42197,7 @@ Since all conversions from one format to another take place in LyX's temporary
 Copier
 \family default
 .
- More about this is described in section 
+ More about this is described in the section 
 \emph on
 Copiers
 \emph default

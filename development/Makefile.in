@@ -72,7 +72,7 @@ RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = MacOSX
+DIST_SUBDIRS = cygwin MacOSX
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 pkgdatadir = @pkgdatadir@
 ACLOCAL = @ACLOCAL@
@@ -89,6 +89,7 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BOOST_MT = @BOOST_MT@
 BUILD_INCLUDED_LIBINTL = @BUILD_INCLUDED_LIBINTL@
 CATOBJEXT = @CATOBJEXT@
 CC = @CC@
@@ -303,10 +304,11 @@ SUFFIXES = .gch
 @USE_INCLUDED_BOOST_TRUE@BOOST_INCLUDES = -I$(top_srcdir)/boost
 @USE_INCLUDED_BOOST_FALSE@BOOST_LIBS = $(BOOST_FILESYSTEM) $(BOOST_REGEX) $(BOOST_SIGNALS) $(BOOST_IOSTREAMS)
 @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.la
-@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem
-@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex
-@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals
-@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams
+@USE_INCLUDED_BOOST_FALSE@BOOST_FILESYSTEM = -lboost_filesystem$(BOOST_MT)
+@USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex$(BOOST_MT)
+@USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals$(BOOST_MT)
+@USE_INCLUDED_BOOST_FALSE@BOOST_IOSTREAMS = -lboost_iostreams$(BOOST_MT)
+@INSTALL_CYGWIN_TRUE@SUBDIRS = cygwin
 @INSTALL_MACOSX_TRUE@SUBDIRS = MacOSX
 EXTRA_DIST = boostworkaround.txt coding/Rules coding/Recommendations \
 	FORMAT lyx.rpm.README \
@@ -319,6 +321,8 @@ tools/x-font \
 tools/README \
 tools/count_total_lines_of_compiled_code.sh \
 tools/count_lines_of_included_code.sh \
+tools/lyxeditor \
+tools/lyxpak.py \
 Win32/launcher/launcher.nsi \
 Win32/packaging/icons/lyx_doc.svg \
 Win32/packaging/icons/lyx_32x32.png \

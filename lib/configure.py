@@ -317,7 +317,7 @@ def checkFormatEntries(dtl_tools):
 \Format pdf2       pdf    "PDF (pdflatex)"        F  "%%"	""	"document,vector"
 \Format pdf3       pdf    "PDF (dvipdfm)"         m  "%%"	""	"document,vector"'''])
     #
-    checkViewer('a DVI previewer', ['xdvi', 'kdvi', 'okular'],
+    checkViewer('a DVI previewer', ['xdvi', 'kdvi', 'okular', 'dviout -Set=!m'],
         rc_entry = [r'\Format dvi        dvi     DVI                    D  "%%"	""	"document,vector"'])
     if dtl_tools:
         # Windows only: DraftDVI
@@ -389,10 +389,10 @@ def checkConverterEntries():
     checkProg('an MS Word -> LaTeX converter', ['wvCleanLatex $$i $$o'],
         rc_entry = [ r'\converter word       latex      "%%"	""' ])
     #
-    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py $$i $$o'],
+    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py --directory $$r $$i $$o','elyxer --directory $$r $$i $$o'],
       rc_entry = [ r'\converter lyx      html       "%%"	""' ])
-    if elyxer.find('elyxer.py') >= 0:
-      addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
+    if elyxer.find('elyxer') >= 0:
+      addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,jpg,jpeg,css $$i $$o"''')
     else:
       # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
       path, htmlconv = checkProg('a LaTeX -> HTML converter', ['htlatex $$i', 'htlatex.sh $$i', \
@@ -467,7 +467,7 @@ def checkConverterEntries():
     else:
         addToRC(r'\converter lyxpreview png        ""	""')
     #  
-    checkProg('a fax program', ['kdeprintfax $$i', 'ksendfax $$i'],
+    checkProg('a fax program', ['kdeprintfax $$i', 'ksendfax $$i', 'hylapex $$i'],
         rc_entry = [ r'\converter ps         fax        "%%"	""'])
     #
     checkProg('a FIG -> EPS/PPM converter', ['fig2dev'],
@@ -597,10 +597,14 @@ def checkOtherEntries():
             r'\plaintext_roff_command ""' ])
     checkProg('ChkTeX', ['chktex -n1 -n3 -n6 -n9 -n22 -n25 -n30 -n38'],
         rc_entry = [ r'\chktex_command "%%"' ])
-    checkProg('BibTeX', ['jbibtex', 'bibtex'],
+    checkProg('BibTeX', ['bibtex'],
         rc_entry = [ r'\bibtex_command "%%"' ])
+    checkProg('JBibTeX, the Japanese BibTeX', ['jbibtex', 'bibtex'],
+        rc_entry = [ r'\jbibtex_command "%%"' ])
     checkProg('an index processor', ['texindy', 'makeindex -c -q'],
         rc_entry = [ r'\index_command "%%"' ])
+    checkProg('an index processor appropriate to Japanese', ['mendex -c -q', 'makeindex -c -q'],
+        rc_entry = [ r'\jindex_command "%%"' ])
     checkProg('a nomenclature processor', ['makeindex'],
         rc_entry = [ r'\nomencl_command "makeindex -s nomencl.ist"' ])
     checkProg('a spellchecker', ['ispell'],
@@ -798,9 +802,9 @@ def processModuleFile(file, bool_docbook):
 
         The top of a module file should look like this:
           #\DeclareLyXModule[LaTeX Packages]{ModuleName}
-          #BeginDescription
+          #DescriptionBegin
           #...body of description...
-          #EndDescription
+          #DescriptionEnd
           #Requires: [list of required modules]
           #Excludes: [list of excluded modules]
         The last two lines are optional

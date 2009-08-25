@@ -1,4 +1,4 @@
-#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -104,7 +104,7 @@
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
-\quotes_language english
+\quotes_language french
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
@@ -1131,10 +1131,11 @@ estrellado
 \end_layout
 
 \begin_layout Standard
-Objetos insertados como notas, flotantes, etc., se pueden disolver.
- Esto significa que el objeto insertado se elimina y su contenido se deja
- como texto normal.
- Para disolver un insertado se sitúa el cursor al comienzo del mismo y se
+Cosas como las notas, flotantes, etc., se insertan en recuadros que se pueden
+ disolver.
+ Esto significa que el recuadro se elimina y su contenido se deja como texto
+ normal.
+ Para disolver un recuadro se sitúa el cursor al comienzo del mismo y se
  pulsa 
 \family sans
 Retroceso
@@ -5276,87 +5277,12 @@ Permite hasta cuatro niveles de anidación.
 
 \end_deeper
 \begin_layout Standard
-Las distintas etiquetas para cada nivel de profundidad en una lista 
+Las distintas etiquetas para cada nivel de profundidad en una lista numerada,
+ 
 \family sans
 Enumeración
 \family default
- se ven igual en LyX y en la salida,
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\emph on
-\begin_inset CommandInset label
-LatexCommand label
-name "np:N.del-t.:-enum"
-
-\end_inset
-
-N.
-\begin_inset space \thinspace{}
-\end_inset
-
-del t.:
-\emph default
- En documentos en español, la salida muestra las etiquetas: 
-\begin_inset space ~
-\end_inset
-
- 1.
- 
-\begin_inset space ~
-\end_inset
-
- 
-\emph on
-a
-\emph default
-) 
-\emph on
-
-\begin_inset space ~
-\end_inset
-
- 
-\emph default
-1) 
-\emph on
-
-\begin_inset space ~
-\end_inset
-
- a
-\begin_inset Formula $^{\prime}$
-\end_inset
-
-
-\emph default
-
-\begin_inset Newline newline
-\end_inset
-
-Más información
-\emph on
-
-\begin_inset space ~
-\end_inset
-
-
-\emph default
-
-\begin_inset CommandInset ref
-LatexCommand vpageref
-reference "sub:En-español"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
- como se ve en el siguiente ejemplo:
+, son las que se muestran en el siguiente ejemplo:
 \end_layout
 
 \begin_layout Enumerate
@@ -5365,17 +5291,18 @@ El primer nivel usa números arábigos seguidos de un punto.
 
 \begin_deeper
 \begin_layout Enumerate
-El segundo usa letras minúsculas entre paréntesis.
+El segundo usa letras minúsculas y un paréntesis.
+ 
 \end_layout
 
 \begin_deeper
 \begin_layout Enumerate
-El tercer nivel usa números romanos en minúscula y punto.
+El tercer nivel usa números arábigos seguidos de paréntesis.
 \end_layout
 
 \begin_deeper
 \begin_layout Enumerate
-El cuarto usa mayúsculas y punto.
+El cuarto usa letras minúsculas y prima.
 \end_layout
 
 \begin_layout Enumerate
@@ -5409,8 +5336,7 @@ Enumeración
 Características adicionales
 \emph default
 ).
- Como se dijo antes, tal personalización sólo se aprecia en la versión impresa,
- no en LyX.
+ Estos cambios sólo se aprecian en la versión impresa, no en LyX.
 \end_layout
 
 \begin_layout Standard
@@ -5492,16 +5418,22 @@ spanish
  establece por omisión un conjunto de formatos y características adaptado
  a los usos tipográficos propios del español.
  En particular, las marcas que aparecen en los ítems de una lista sin numerar
- y los caracteres que aparecen en una lista numerada, (entornos 
+ (entorno 
 \family sans
 Enumeración
 \family default
-* y 
-\family sans
-Enumeración
-\family default
-, respectivamente), no son como los que se han descrito en las dos secciones
- anteriores.
+*), no son como las que se han descrito en la sección
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Enumeración*"
+
+\end_inset
+
+.
  
 \end_layout
 
@@ -5568,19 +5500,15 @@ spanishsignitems
 \begin_layout Standard
 A partir de la versión 
 \family typewriter
-5.0
+5.0h
 \family default
 , 
 \family typewriter
 spanish
 \family default
  ofrece la posibilidad de anular sus valores predefinidos de marcas y símbolos
- mediante la opción de paquete «es-nolists», (en la versión 
-\family typewriter
-5.0h
-\family default
- se añaden «es-noitemize» y «es-noenumerate»), insertada en el preámbulo
- LaTeX del documento con el comando:
+ mediante las opciones de paquete «es-nolists», «es-noitemize» y «es-noenumerate
+», insertando en el preámbulo LaTeX del documento el comando:
 \family typewriter
  
 \end_layout
@@ -5596,22 +5524,23 @@ spanishoptions{opción}
 \end_layout
 
 \begin_layout Standard
-Según la opción, en la salida se imprimirán en todas las listas, (o sólo
- en
+Según la opción elegida, en la salida se imprimirán en todas las listas,
+ o sólo en
 \family typewriter
  
 \family sans
 Enumeración*
 \family default
- o en 
+ o sólo en 
 \family sans
-Enumeración)
+Enumeración,
 \family default
- las etiquetas predefinidas por LaTeX (no por 
+ respectivamente, las etiquetas predefinidas por LyX/LaTeX en vez de las
+ predefinidas por 
 \family typewriter
 spanish
 \family default
-).
+.
  
 \end_layout
 
@@ -8334,7 +8263,7 @@ del t.:
 \size default
 \emph default
 \color inherit
-véanse notas 
+véase nota 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "np:N.del-t.:-item"
@@ -8345,28 +8274,14 @@ reference "np:N.del-t.:-item"
 \family roman
 \series medium
 \bar no
- y 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "np:N.del-t.:-enum"
-
-\end_inset
-
- en las secciones 
+ en la sección 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Enumeración*"
 
 \end_inset
 
- y 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Enumeración"
-
-\end_inset
-
-, respectivamente.
+.
 \end_layout
 
 \end_inset
@@ -27950,7 +27865,7 @@ Pregunta: ¿Quién fue el primer Nobel de Física?
 
 \begin_layout Standard
 \begin_inset Branch Respuesta
-status open
+status collapsed
 
 \begin_layout Standard
 Respuesta: Wilhelm Conrad Röntgen
@@ -28042,7 +27957,7 @@ respuesta}[1]{#1}
 
 \begin_layout Standard
 \begin_inset Branch Pregunta
-status collapsed
+status open
 
 \begin_layout Standard
 \begin_inset ERT
@@ -29243,15 +29158,19 @@ cambios
 \end_layout
 
 \begin_layout Standard
-Los cambios realizados en el documento se resaltarán con colores: 
+Los cambios realizados en el documento se resaltarán con trazos y colores:
+ 
+\bar under
 \color blue
-Texto en azul
+texto subrayado
+\bar default
 \color inherit
  es texto añadido, 
-\color red
-texto tachado en rojo
+\color blue
+texto tachado
 \color inherit
  es texto borrado.
+ El color depende del autor que hizo el cambio.
  Puedes cambiar estos colores en el diálogo de las preferencias de LyX,
  en 
 \family sans
@@ -29266,12 +29185,23 @@ Colores
 status collapsed
 
 \begin_layout Plain Layout
-Color ! Pantalla de LyX
+Color ! Seguimiento de cambios
 \end_layout
 
 \end_inset
 
+ El autor y la fecha del cambio se muestran en la barra de estado de LyX
+ cuando el cursor está en texto modificado.
+ Esta misma información se muestra usando el botón de la barra de herramientas
+ 
+\begin_inset Graphics
+	filename ../../images/changes-merge.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
 
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -34770,6 +34700,14 @@ Guarda el documento en pantalla con la posibilidad de cambiarle el nombre.
 \end_layout
 
 \begin_layout Subsection
+Guardar todo
+\end_layout
+
+\begin_layout Standard
+Guarda todos los documentos abiertos.
+\end_layout
+
+\begin_layout Subsection
 Revertir
 \end_layout
 
@@ -34807,9 +34745,9 @@ Importar
 \end_layout
 
 \begin_layout Standard
-Se pueden importar archivos de versiones anteriores de LyX, archivos de
- LaTeX, archivos NoWeb, archivos de texto simple y archivos de texto (CVS)
- separados por coma, tipo tabla.
+Se pueden importar archivos de versiones anteriores de LyX, archivos HTML,
+ archivos de LaTeX, archivos NoWeb, archivos de texto simple y archivos
+ de texto tipo tabla (CVS) con separación con comas.
  Los archivos serán importados como documento nuevo de LyX.
  
 \end_layout
@@ -35008,16 +34946,6 @@ Abiword
 
 \family sans
 PDF
-\family default
- formato PDF usando el programa 
-\family typewriter
-ps2pdf
-\end_layout
-
-\begin_layout Description
-
-\family sans
-PDF
 \begin_inset space ~
 \end_inset
 
@@ -35040,6 +34968,20 @@ PDF
  formato PDF usando el programa 
 \family typewriter
 pdflatex
+\end_layout
+
+\begin_layout Description
+
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(ps2pdf)
+\family default
+ formato PDF usando el programa 
+\family typewriter
+ps2pdf
 \end_layout
 
 \begin_layout Description
@@ -35096,7 +35038,7 @@ El programa
 \family typewriter
 dvipdfm
 \family default
- produce internamente un archivo dvi que es convertido después a pdf.
+ produce internamente un archivo DVI que es convertido después a PDF.
  Está algo obsoleto y la salida podría ser diferente de la esperada.
  
 \family typewriter
@@ -35190,6 +35132,50 @@ reference "sub:Imprimir-archivos"
 .
 \end_layout
 
+\begin_layout Subsection
+Fax
+\end_layout
+
+\begin_layout Standard
+Esta entrada de menú solo aparece cuando está instalado un programa de fax
+ (en Windows, es necesario además registrar la ruta del programa en el prefijo
+ PATH de LyX, véase la sección
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Rutas"
+
+\end_inset
+
+).
+ Con esta entrada puedes enviar tu documento a un programa de fax como 
+\family typewriter
+hylapex
+\family default
+ o 
+\family typewriter
+kdeprintfax
+\family default
+.
+ Por omisión, el archivo se envía en formato PostScript.
+ El formato se puede cambiar en las preferencias de LyX como se describe
+ en la sección
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Convertidores"
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Standard
 
 \end_layout
@@ -35199,12 +35185,15 @@ Ventana nueva y Cerrar ventana
 \end_layout
 
 \begin_layout Standard
-Abre otra ventana de LyX con todos los documentos que estén abiertos.
- El menú 
-\family sans
-Cerrar 
-\family default
-te permite cerrar dicha ventana.
+Abre una nueva ventana de LyX o cierra una ventana .
+\end_layout
+
+\begin_layout Subsection
+Salir
+\end_layout
+
+\begin_layout Standard
+Avisa si hay documentos no guardados y sale.
 \end_layout
 
 \begin_layout Section
@@ -35353,7 +35342,7 @@ Configuración
 \end_layout
 
 \begin_layout Subsection
-Tablas y Ecuaciones
+Configuración de la tabla y Ecuaciones
 \end_layout
 
 \begin_layout Standard
@@ -36407,6 +36396,38 @@ reference "sec:Ramas"
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsection
+Recuadro personalizado
+\end_layout
+
+\begin_layout Standard
+Inserta recuadros específicos de la clase de documento.
+ Estos recuadros solo son posibles si están definidos en el archivo de formato
+ (
+\emph on
+layout
+\emph default
+) para una determinada clase de documento.
+ Un ejemplo es la clase de documento 
+\begin_inset Quotes fld
+\end_inset
+
+article (Elsevier)
+\begin_inset Quotes frd
+\end_inset
+
+ con tres recuadros personalizados.
+ La sección 
+\emph on
+Recuadros flexibles y formato del recuadro
+\emph default
+ del manual 
+\emph on
+Personalización
+\emph default
+ explica cómo se definen los recuadros personalizados.
 \end_layout
 
 \begin_layout Subsection
@@ -41229,6 +41250,19 @@ Agrupar entornos por categorías
  agrupa las entradas del menú desplegable de los entornos de párrafo.
 \end_layout
 
+\begin_layout Standard
+La opción Editar macros de ecuación determina el estilo de edición, véase
+ la sección  
+\emph on
+Macros de ecuaciones
+\emph default
+ del manual 
+\emph on
+Ecuaciones
+\emph default
+.
+\end_layout
+
 \begin_layout Subsubsection
 Pantalla completa
 \end_layout
@@ -41242,7 +41276,6 @@ Limitar anchura del texto
  especifica la anchura del texto en pantalla completa.
  De esta manera puedes mostrar el texto más pequeño que la pantalla, el
  texto se ve centrado.
- 
 \end_layout
 
 \begin_layout Subsection
@@ -41545,6 +41578,13 @@ ones largas deberían, o no, abreviarse.
 
 \begin_layout Section
 Rutas
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Rutas"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -42893,6 +42933,13 @@ Formatos externos
 
 \begin_layout Subsection
 Convertidores
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Convertidores"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -44633,7 +44680,7 @@ key "Vietnamese"
 
 \begin_inset CommandInset href
 LatexCommand href
-name "Wiki-page"
+name "Página Wiki"
 target "http://wiki.lyx.org/Windows/Vietnamese"
 
 \end_inset
@@ -44737,7 +44784,7 @@ key "spanish"
 \begin_inset CommandInset href
 LatexCommand href
 name "Página web"
-target "http://www.texytipografia.com/archive/spanish.pdf"
+target "http://www.tex-tipografia.com/spanish.html"
 
 \end_inset
 

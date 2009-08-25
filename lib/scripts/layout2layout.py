@@ -63,13 +63,25 @@ def trim_eol(line):
         return line
 
 
+def trim_bom(line):
+    " Remove byte order mark."
+    if line[0:3] == "\357\273\277":
+        return line[3:]
+    else:
+        return line
+
+
 def read(input):
     " Read input file and strip lineendings."
     lines = list()
+    first_line = 1
     while 1:
         line = input.readline()
         if not line:
             break
+        if (first_line):
+            line = trim_bom(line)
+            first_line = 0
         lines.append(trim_eol(line))
     return lines
 
@@ -117,7 +129,7 @@ def convert(lines):
     re_End = re.compile(r'^(\s*)(End)(\s*)$', re.IGNORECASE)
     re_Provides = re.compile(r'^(\s*)Provides(\S+)(\s+)(\S+)', re.IGNORECASE)
     re_CharStyle = re.compile(r'^(\s*)CharStyle(\s+)(\S+)$', re.IGNORECASE)
-    re_AMSMaths = re.compile(r'^\s*Input amsmaths.inc\s*')
+    re_AMSMaths = re.compile(r'^\s*Input ams(?:math|def)s.inc\s*')
     re_AMSMathsPlain = re.compile(r'^\s*Input amsmaths-plain.inc\s*')
     re_AMSMathsSeq = re.compile(r'^\s*Input amsmaths-seq.inc\s*')
 

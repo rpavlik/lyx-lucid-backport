@@ -107,18 +107,18 @@ WriteStream & operator<<(WriteStream & ws, docstring const & s)
 }
 
 
-WriteStream::WriteStream(odocstream & os, bool fragile, bool latex, bool dryrun,
+WriteStream::WriteStream(odocstream & os, bool fragile, bool latex, OutputType output,
 			Encoding const * encoding)
 	: os_(os), fragile_(fragile), firstitem_(false), latex_(latex),
-	  dryrun_(dryrun), pendingspace_(false), pendingbrace_(false),
-	  textmode_(false), line_(0), encoding_(encoding)
+	  output_(output), pendingspace_(false), pendingbrace_(false),
+	  textmode_(false), locked_(0), line_(0), encoding_(encoding)
 {}
 
 
 WriteStream::WriteStream(odocstream & os)
 	: os_(os), fragile_(false), firstitem_(false), latex_(false),
-	  dryrun_(false), pendingspace_(false), pendingbrace_(false),
-	  textmode_(false), line_(0), encoding_(0)
+	  output_(wsDefault), pendingspace_(false), pendingbrace_(false),
+	  textmode_(false), locked_(0), line_(0), encoding_(0)
 {}
 
 
@@ -152,6 +152,12 @@ void WriteStream::pendingBrace(bool brace)
 void WriteStream::textMode(bool textmode)
 {
 	textmode_ = textmode;
+}
+
+
+void WriteStream::lockedMode(bool locked)
+{
+	locked_ = locked;
 }
 
 

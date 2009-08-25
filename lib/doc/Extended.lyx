@@ -1,4 +1,4 @@
-#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -112,6 +112,8 @@ End
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
+\author "" 
+\author "" 
 \author "" 
 \author "" 
 \end_header
@@ -4613,66 +4615,33 @@ Some DVI/PDF viewers
 status collapsed
 
 \begin_layout Plain Layout
-Currently, only Skim on Mac OSX and SumatraPDF on Windows offer the reverse
- PDF search feature.
+The following viewers offer the reverse PDF search feature: Okular on KDE/Linux,
+ Skim on Mac OSX and SumatraPDF on Windows.
 \end_layout
 
 \end_inset
 
- provide the reverse search feature (also called 
+ provide 
+\emph on
+reverse search
+\emph default
+ facility (also called 
 \emph on
 inverse search
 \emph default
-), allowing the cursor in LyX to automatically jump to the point corresponding
- to a given position in the previewed DVI or PDF file.
- A program or script will be called by the viewer when initiating a reverse
- search.
- The way the search is triggered depends on the viewer (for example, 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-xdvi
-\end_layout
-
-\end_inset
-
- uses Ctrl-click (Alt-click on Mac OSX), 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-yap
-\end_layout
-
-\end_inset
-
- and 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-SumatraPDF
-\end_layout
-
-\end_inset
-
- use double-click, whereas 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-Skim
-\end_layout
-
-\end_inset
-
- uses COMMAND-SHIFT-click), but in general the program is called with two
- arguments, a filename and a line number, and, in turn, it should pass this
- info to a running instance of LyX.
- This can be done through the LyX server either by using the named pipe
- (lyxpipe), or the unix domain socket (lyxsocket) that lyx creates in its
- temporary directory (this is the way the 
+).
+ This means that you can tell LyX to put the cursor to a specific line in
+ the document by clicking at the respective position in the DVI/PDF output.
+ To achieve this, the viewer must be able to communicate with LyX.
+ This is done via the LyX server either by using the named pipe (
+\emph on
+lyxpipe
+\emph default
+), or the UNIX domain socket (
+\emph on
+lyxsocket
+\emph default
+) that LyX creates in its temporary directory (this is the way the 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4683,25 +4652,54 @@ lyxclient
 \end_inset
 
  program communicates with LyX).
+ In some cases, you need a helper script that mediates between the viewer
+ and LyX, in others, the viewer can communicate with LyX directly.
+ This depends on the selected viewer and on your operating system.
+ The same applies to the way viewers need to be configured and the way the
+ reverse search is actually performed.
+ In what follows, we will thus describe how to setup reverse search for
+ specific viewers.
+ Before we turn to this, though, we will explain what needs to be done generally
+ to enable reverse search in the DVI/PDF output.
+\end_layout
+
+\begin_layout Subsection
+Enabling reverse search
 \end_layout
 
 \begin_layout Standard
-The reverse search feature can be enabled in LyX as follows:
+LaTeX provides several different methods for reverse search.
+ Some are built-in in the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+latex/pdflatex
 \end_layout
 
-\begin_layout Itemize
-The DVI or PDF file should be complemented by suitable info produced either
- by using appropriate options when calling the LaTeX compiler (method 1,
- DVI only), or by using an appropriate package (method 2, both DVI and PDF).
+\end_inset
+
+ program, some are provided by external packages.
+ Your choice depends on whether your LaTeX distribution already provides
+ a given method (the built-in methods are rather new) and whether your viewer
+ can cope with it.
+ The available methods are described in the following.
 \end_layout
 
-\begin_deeper
-\begin_layout Description
-Method
+\begin_layout Subsubsection*
+Built-in
 \begin_inset space ~
 \end_inset
 
-1
+DVI-search
+\begin_inset space ~
+\end_inset
+
+via
+\begin_inset space ~
+\end_inset
+
+src-specials
 \begin_inset space ~
 \end_inset
 
@@ -4709,7 +4707,15 @@ Method
 \begin_inset space ~
 \end_inset
 
-only) If you use recent texlive or miktex distributions, change the 
+only) 
+\end_layout
+
+\begin_layout Standard
+This method provides the DVI file with the necessary information for reverse
+ search.
+ It is available in LaTeX since quite some time (any somewhat recent LaTeX
+ distribution should include it), and it works reliably.
+ To enable it, change the 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -4773,15 +4779,46 @@ latex -src-specials $$i
 
 \end_inset
 
-, otherwise check what is the appropriate option for your TeX engine.
+.
+ If this doesn't work, check if your TeX engine needs different options
+ (the syntax might differ in some distributions).
 \end_layout
 
-\begin_layout Description
-Method
+\begin_layout Subsubsection*
+External
 \begin_inset space ~
 \end_inset
 
-2 Insert in the preamble of the LyX file 
+Packages
+\begin_inset space ~
+\end_inset
+
+(PDFSync
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+scrltx) 
+\end_layout
+
+\begin_layout Standard
+The packages 
+\emph on
+pdfsync
+\emph default
+ and 
+\emph on
+scrltx
+\emph default
+ provide reverse search facility for PDF output (via pdflatex) and DVI output,
+ respectively.
+ In order to enable it, load the packages in the LyX preamble: 
+\end_layout
+
+\begin_layout Itemize
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4793,8 +4830,10 @@ usepackage{pdfsync}
 
 \end_inset
 
- for reverse PDF search, or (as an alternative to redefining the converters)
- 
+ for reverse PDF search,
+\end_layout
+
+\begin_layout Itemize
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4807,11 +4846,13 @@ usepackage[active]{srcltx}
 \end_inset
 
  for reverse DVI search.
- If you want to be able to perform both DVI and PDF reverse searches, you
+\end_layout
+
+\begin_layout Standard
+If you want to be able to perform both DVI and PDF reverse searches, you
  can also insert in the preamble the following lines
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 
 \backslash
@@ -4849,13 +4890,216 @@ fi
 \end_layout
 
 \begin_layout Standard
-In this way, you can preview the file as either DVI or PDF (pdflatex) and
- the right package will be used.
+This way, you can preview the file as either DVI or PDF (pdflatex) and the
+ right package will be used.
 \end_layout
 
-\end_deeper
-\end_deeper
-\begin_layout Itemize
+\begin_layout Standard
+Note that PDFSync might affect the output layout of your document.
+ It is therefore advised to disable PDFsync for final documents.
+\end_layout
+
+\begin_layout Subsubsection*
+Built-in
+\begin_inset space ~
+\end_inset
+
+reverse
+\begin_inset space ~
+\end_inset
+
+search
+\begin_inset space ~
+\end_inset
+
+via
+\begin_inset space ~
+\end_inset
+
+SyncTeX
+\begin_inset space ~
+\end_inset
+
+(DVI
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+PDF) 
+\end_layout
+
+\begin_layout Standard
+Recent versions of 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+(pdf)latex
+\end_layout
+
+\end_inset
+
+ have built-in support for both PDF and DVI reverse search.
+ This so-called 
+\emph on
+SyncTeX
+\emph default
+ facility is basically the result of the integration of the PDFSync package
+ to the pdftex program and its merge with the 
+\emph on
+scr-specials
+\emph default
+ approach.
+ You need at least TeXLive 2008 or a recent MikTeX distribution in order
+ to use it.
+ Also note that only a few PDF viewers (Skim on the Mac, SumatraPDF on Windows)
+ already provide SyncTeX support.
+\end_layout
+
+\begin_layout Standard
+To enable SyncTeX for DVI output, change the 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+LaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX (plain) -> DVI
+\end_layout
+
+\end_inset
+
+ or 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+LaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX (plain) -> DraftDVI
+\end_layout
+
+\end_inset
+
+ converter in 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Preferences\SpecialChar \menuseparator
+File Handling\SpecialChar \menuseparator
+Converters
+\end_layout
+
+\end_inset
+
+ to 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+latex -synctex=1 $$i
+\end_layout
+
+\end_inset
+
+, and for PDF output, change the 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+LaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX (pdflatex) -> PDF (pdflatex)
+\end_layout
+
+\end_inset
+
+ or converter to 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+pdflatex -synctex=1 $$i
+\end_layout
+
+\end_inset
+
+.
+ Check the documentation of your viewer whether the viewer needs to be configure
+d for the use with SyncTeX.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+The 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-synctex=1
+\end_layout
+
+\end_inset
+
+ option enables gzip compression.
+ If your viewer does not support it, you should instead use 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-synctex=-1
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Configuring and using specific viewers
+\end_layout
+
+\begin_layout Subsubsection*
+Xdvi (all platforms)
+\end_layout
+
+\begin_layout Standard
 If you use 
 \begin_inset Flex CharStyle:Code
 status collapsed
@@ -4879,9 +5123,14 @@ lyxclient
 \end_inset
 
  program.
- However, if for whatever reason you want to use the named pipe instead
- of the socket for communicating with LyX, simply change the DVI viewer
- in 
+ Just setup your document as described above (reverse search is triggered
+ by Ctrl-click or Alt-click on Mac OSX, respectively).
+\end_layout
+
+\begin_layout Standard
+However, if for whatever reason you want to use the named pipe instead of
+ the socket for communicating with LyX, simply change the DVI viewer in
+ 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -4937,7 +5186,6 @@ lyxeditor.sh
  For example, a minimal shell script is the following one:
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 #!/bin/sh
 \begin_inset Newline newline
@@ -4969,7 +5217,18 @@ status collapsed
 
 \end_inset
 
- is the LyXServer pipe path specified in 
+ is the Ly
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+XServer pipe path specified in 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -4981,15 +5240,48 @@ Paths
 \end_inset
 
 .
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+In the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+development/tools
 \end_layout
 
-\end_deeper
-\begin_layout Itemize
-If you use Mac OSX and MacDviX as a DVI viewer, add at the end of
-\begin_inset Newline newline
+\end_inset
+
+ folder of a source distribution you can find a 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxeditor
+\end_layout
+
+\end_inset
+
+ script which is able to locate the 
+\emph on
+lyxpipe
+\emph default
+ based on your preferences.
+\end_layout
+
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsubsection*
+MacDviX (Mac OSX)
+\end_layout
+
+\begin_layout Standard
+At the end of 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -4999,10 +5291,9 @@ status collapsed
 
 \end_inset
 
- the following lines:
+, add the following lines:
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 /Applications/Ly
 \begin_inset ERT
@@ -5023,13 +5314,20 @@ exit 1
 \end_layout
 
 \begin_layout Standard
-(Modify as needed if you install LyX somewhere other than the Applications
- folder.)
+Modify the lines accordingly if you install LyX somewhere else than in the
+ Applications folder.
 \end_layout
 
-\end_deeper
-\begin_layout Itemize
-If you use Mac OSX and Skim as a PDF viewer, you should enter 
+\begin_layout Standard
+Reverse search is triggered by Alt-click (OPTION-click).
+\end_layout
+
+\begin_layout Subsubsection*
+Skim (Mac OSX)
+\end_layout
+
+\begin_layout Standard
+Enter 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5039,7 +5337,7 @@ open -a Skim.app $$i
 
 \end_inset
 
- in the viewer setting in 
+ to the viewer setting in 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -5078,11 +5376,59 @@ status collapsed
 X.
 \end_layout
 
-\begin_layout Itemize
-If you use the Cygwin version of LyX and yap as a DVI viewer, you should
- set the name of the program that communicates with LyX directly in yap
- as follows.
- Launch yap, choose its 
+\begin_layout Standard
+Reverse search is triggered by COMMAND-SHIFT-click
+\end_layout
+
+\begin_layout Subsubsection*
+Okular (KDE)
+\end_layout
+
+\begin_layout Standard
+Go to 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Settings\SpecialChar \menuseparator
+Configure Okular\SpecialChar \ldots{}
+\SpecialChar \menuseparator
+Editor
+\end_layout
+
+\end_inset
+
+, select 
+\begin_inset Quotes eld
+\end_inset
+
+Custom Text Editor
+\begin_inset Quotes erd
+\end_inset
+
+ and add the command 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxclient -g %f %l
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Reverse search is triggered by SHIFT-click
+\end_layout
+
+\begin_layout Subsubsection*
+YAP (Cygwin)
+\end_layout
+
+\begin_layout Standard
+Launch yap, choose its 
 \begin_inset Flex CharStyle:MenuItem
 status collapsed
 
@@ -5093,11 +5439,52 @@ Options
 
 \end_inset
 
- menu and select the "Inverse DVI Search" tab.
- Click on the "New..." button and, in the window which opens, enter "LyX Editor"
- (or any other name you like) in the "Name:" field.
- Now click on the button labeled "..." to open a filedialog and navigate to
- the directory containing the batch file 
+ menu and select the 
+\begin_inset Quotes eld
+\end_inset
+
+Inverse DVI Search
+\begin_inset Quotes erd
+\end_inset
+
+ tab.
+ Click on the 
+\begin_inset Quotes eld
+\end_inset
+
+New\SpecialChar \ldots{}
+
+\begin_inset Quotes erd
+\end_inset
+
+ button and, in the window that opens, enter 
+\begin_inset Quotes eld
+\end_inset
+
+LyX Editor
+\begin_inset Quotes erd
+\end_inset
+
+ (or any other name you like) in the 
+\begin_inset Quotes eld
+\end_inset
+
+Name:
+\begin_inset Quotes erd
+\end_inset
+
+ field.
+ Now click on the button labeled 
+\begin_inset Quotes eld
+\end_inset
+
+\SpecialChar \ldots{}
+
+\begin_inset Quotes erd
+\end_inset
+
+ to open a file dialog and navigate to the directory containing the batch
+ file 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5149,8 +5536,8 @@ lyxclient
 \end_inset
 
  program.
- As yap is a native Windows application, the filename it provides should
- be converted to posix style before being passed to 
+ Since yap is a native Windows application, the filename it provides should
+ be converted to POSIX style before being passed to 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5183,7 +5570,6 @@ lyxeditor.bat
  wrapper, which is as follows:
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 @echo off
 \begin_inset Newline newline
@@ -5233,11 +5619,17 @@ lyxclient.exe
  in the above batch file.
 \end_layout
 
-\end_deeper
-\begin_layout Itemize
-If you use the Cygwin version of LyX and SumatraPDF as a PDF viewer, you
- can set the name of the program that communicates with LyX by simply launching
- SumatraPDF as 
+\begin_layout Standard
+In yap, reverse search is triggered by double-click.
+\end_layout
+
+\begin_layout Subsubsection*
+SumatraPDF (Cygwin)
+\end_layout
+
+\begin_layout Standard
+In SumatraPDF, you can set the name of the program that communicates with
+ LyX by simply launching SumatraPDF as 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5258,8 +5650,30 @@ status collapsed
 
 \end_inset
 
- option will not be needed from now on (in this way you will be using the
- lyxsocket; omit the 
+ option will not be needed from now on
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+It has been reported that SumatraPDF is not able to remember the settings
+ if it is installed in the Program Files system folder.
+ This problem can be avoided by installing it somewhere else, for example
+ in 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+/usr/local/bin
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ (in this way you will be using the lyxsocket; omit the 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5313,11 +5727,19 @@ SumatraPDF.sh
 
 \end_inset
 
- is the following script (to be placed in your command PATH, /usr/local/bin
+ is the following script (to be placed in your command PATH, 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+/usr/local/bin
+\end_layout
+
+\end_inset
+
  being the best choice):
 \end_layout
 
-\begin_deeper
 \begin_layout LyX-Code
 #!/bin/bash
 \begin_inset Newline newline
@@ -5335,16 +5757,8 @@ This is needed because SumatraPDF is a native Windows application and does
  not understand the posix paths used by the Cygwin version of LyX.
 \end_layout
 
-\end_deeper
 \begin_layout Standard
-If you did no mistakes and the DVI or PDF files are produced as previously
- described, whenever you Ctrl-click (Alt-click on Mac) in xdvi, double-click
- in yap and SumatraPDF, or COMMAND-SHIFT-click in Skim, the cursor in LyX
- should jump to the desired location.
-\end_layout
-
-\begin_layout Standard
-
+Reverse search is triggered by double-click.
 \end_layout
 
 \begin_layout Chapter
@@ -18046,7 +18460,15 @@ The file exchange through various revision control systems brings the problem
 
 \begin_layout Standard
 SVN has two mechanisms to provide such kind of mutual exclusivity for file
- access - locks and automatical setting of write permissions based on 
+ access - locks and automatical setting of write permissions (see sec.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:Automatical-Locking-Property"
+
+\end_inset
+
+) based on 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -18058,7 +18480,7 @@ svn:needs-lock
 
  file svn property
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 http://svnbook.red-bean.com/en/1.2/svn.advanced.locking.html
@@ -18132,6 +18554,182 @@ svn update "<file-name>"
 \end_inset
 
 svn lock "<file-name>"
+\end_layout
+
+\begin_layout Subsubsection
+
+\family typewriter
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Automatical-Locking-Property"
+
+\end_inset
+
+
+\family default
+Automatical Locking Property
+\end_layout
+
+\begin_layout Standard
+The above mentioned automatical setting of write permissions of the .lyx
+ file can be set through
+\family sans
+\bar under
+ F
+\bar default
+ile\SpecialChar \menuseparator
+
+\bar under
+V
+\bar default
+ersion
+\begin_inset space ~
+\end_inset
+
+Control\SpecialChar \menuseparator
+
+\bar under
+T
+\bar default
+oggle locking property
+\family default
+.
+ This command is active only when the file is not locked on the svn server
+ (i.e.
+ you need to check-out before proceeding).
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+SVN
+\begin_inset space ~
+\end_inset
+
+commands:
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+Set:
+\family typewriter
+ svn propset svn:needs-lock ON "<file-name>"
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+Unset: 
+\family typewriter
+svn propdel svn:needs-lock "<file-name>"
+\end_layout
+
+\begin_layout Subsubsection
+Revision Information in Documents
+\end_layout
+
+\begin_layout Standard
+Currently there is no way how to provide such kind of information directly
+ from LyX.
+ There are possibilities how to activate it with the help of svn features,
+ but each has its own drawbacks.
+\end_layout
+
+\begin_layout Standard
+One possibility is to use svn keywords
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+http://svnbook.red-bean.com/en/1.4/svn.advanced.props.special.keywords.html
+\end_layout
+
+\end_inset
+
+.
+ In short -- you set file keywords property (e.g.
+ 
+\family sans
+svn propset svn:keywords 'Rev' file.lyx
+\family default
+) and then paste keyword ERT
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+This is an easy way how to ensure that LyX won't break the line in the middle
+ of keyword tag.
+\end_layout
+
+\end_inset
+
+ tag in your document (e.g.
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$Rev$
+\end_layout
+
+\end_inset
+
+).
+ This way svn client will automatically substitute revision number (e.g.
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$Rev: 59 $
+\end_layout
+
+\end_inset
+
+) after each update and commit.
+ There are more problems with this approach.
+ Firstly, the '$' character is used in TeX world for math equations, so
+ any occurence of math formula 
+\begin_inset Formula $Rev$
+\end_inset
+
+ become 
+\begin_inset Formula $Rev:59$
+\end_inset
+
+ in your LyX document.
+ Similarly for other keywords like Id, Date, Author, etc.
+ Secondly svn output is dependent on your locales, so its very easy that
+ svn would produce some problematic strings once Date is used.
+ Thirdly you get the whole 'Rev: 59' string in your document instead of
+ the plain number.
+ Until subversion implements user's custom keywords it will be hard to use
+ this approach reliably or let LyX to support it directly .
+\end_layout
+
+\begin_layout Standard
+The second possibility would be to write your own external-material template
+ which calls either 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+svnversion
+\end_layout
+
+\end_inset
+
+ utility or parses the output of 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+svn info file.lyx
+\end_layout
+
+\end_inset
+
+ command and returns the result back, when typeseting the document.
 \end_layout
 
 \begin_layout Subsection

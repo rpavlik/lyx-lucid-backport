@@ -33,6 +33,9 @@
 using namespace std;
 
 namespace lyx {
+
+void emergencyCleanup();
+
 namespace support {
 namespace os {
 
@@ -122,15 +125,29 @@ string convert_path_list(string const & p, PathStyle const & target)
 	return subst(p, '\\', '/');
 }
 
+
+BOOL terminate_handler(DWORD event)
+{
+	if (event == CTRL_CLOSE_EVENT
+	    || event == CTRL_LOGOFF_EVENT
+	    || event == CTRL_SHUTDOWN_EVENT) {
+		lyx::emergencyCleanup();
+		return TRUE;
+	}
+	return FALSE;
+}
+
 } // namespace anon
 
 void init(int, char *[])
 {
 	// Make sure that the TEMP variable is set
 	// and sync the Windows environment.
-
 	setenv("TEMP", "/tmp", false);
 	cygwin_internal(CW_SYNC_WINENV);
+
+	// Catch shutdown events.
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)terminate_handler, TRUE);
 }
 
 
@@ -163,6 +180,38 @@ docstring::size_type common_path(docstring const & p1, docstring const & p2)
 			--i;
 	}
 	return i;
+}
+
+
+bool path_prefix_is(string const & path, string const & pre)
+{
+	return path_prefix_is(const_cast<string &>(path), pre, CASE_UNCHANGED);
+}
+
+
+bool path_prefix_is(string & path, string const & pre, path_case how)
+{
+	docstring const p1 = from_utf8(path);
+	docstring const p2 = from_utf8(pre);
+	docstring::size_type const p1_len = p1.length();
+	docstring::size_type const p2_len = p2.length();
+	docstring::size_type common_len = common_path(p1, p2);
+
+	if (p2[p2_len - 1] == '/' && p1_len != p2_len)
+		++common_len;
+
+	if (common_len != p2_len)
+		return false;
+
+	if (how == CASE_ADJUSTED && !prefixIs(path, pre)) {
+		if (p1_len < common_len)
+			path = to_utf8(p2.substr(0, p1_len));
+		else
+			path = to_utf8(p2 + p1.substr(common_len,
+							p1_len - common_len));
+	}
+
+	return true;
 }
 
 

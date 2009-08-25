@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -525,10 +525,10 @@ ti del documento assumono automaticamente una differente
  dimensione e formattazione del carattere.
  Anche l'indentazione del paragrafo è dipendente dal contesto: paragrafi
  differenti posseggono indentazioni diverse.
- Lo stesso vale per le interruzioni di pagina, che sono gestite in modo
+ Lo stresso vale per le interruzioni di pagina, che sono gestite in modo
  automatico.
  In generale, lo spazio tra righe, parole, e paragrafi, è variabile, e gestito
- da LyX
+ da LyX.
 \begin_inset Foot
 status collapsed
 
@@ -549,7 +549,7 @@ Caratteristiche estese
 
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Standard
@@ -1377,7 +1377,7 @@ reference "cap:Units-for-image"
 
 \end_inset
 
- mostra tutte le unitò di misura disponibili in LyX, e vi aiuterà a comprendere
+ mostra tutte le unità di misura disponibili in LyX, e vi aiuterà a comprendere
  meglio quelle descritte in questa documentazione.
 \end_layout
 
@@ -1921,7 +1921,7 @@ Tutorial Se siete nuovi utenti di LyX, e non avete mai usato LaTeX prima
  d'ora, dovreste cominciare da qui.
  Quando anche aveste già usato LaTeX, dovreste ugualmente leggere il 
 \emph on
-Tutoral
+Tutorial
 \emph default
 , a partire dalla sezione 
 \begin_inset Quotes eld
@@ -2062,13 +2062,14 @@ In caso contrario, rischiate di ostacolare voi stessi in modo interminabile.
 \end_layout
 
 \begin_layout Section
+Contribuire al progetto LyX
 \begin_inset CommandInset label
 LatexCommand label
 name "sec:Contrib"
 
 \end_inset
 
-Contribuire al progetto LyX
+
 \end_layout
 
 \begin_layout Subsection
@@ -2128,7 +2129,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://bugzilla.lyx.org/
+http://www.lyx.org/trac/wiki/BugTrackerHome
 \end_layout
 
 \end_inset
@@ -2297,15 +2298,6 @@ http://www.lyx.org/trac/browser/lyx-devel/trunk/lib/doc
 \end_inset
 
 
-\begin_inset Newline newline
-\end_inset
-
-All'interno di questa directory trovate il file 
-\family typewriter
-DocStyle.lyx
-\family default
-.
- Leggetelo: è il foglio di stile per la documentazione.
 \end_layout
 
 \begin_layout Enumerate

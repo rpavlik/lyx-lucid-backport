@@ -702,12 +702,13 @@ GuiApplication::~GuiApplication()
 
 
 GuiApplication::GuiApplication(int & argc, char ** argv)
-	: QApplication(argc, argv),	current_view_(0), d(new GuiApplication::Private)
+	: QApplication(argc, argv), current_view_(0),
+	  d(new GuiApplication::Private)
 {
 	QString app_name = "LyX";
 	QCoreApplication::setOrganizationName(app_name);
 	QCoreApplication::setOrganizationDomain("lyx.org");
-	QCoreApplication::setApplicationName(app_name + "-" + lyx_version);
+	QCoreApplication::setApplicationName(lyx_package);
 
 	// Install translator for GUI elements.
 	installTranslator(&d->qt_trans_);
@@ -1393,6 +1394,10 @@ bool GuiApplication::closeAllViews()
 	if (d->views_.empty())
 		return true;
 
+	// When a view/window was closed before without quitting LyX, there
+	// are already entries in the lastOpened list.
+	theSession().lastOpened().clear();
+
 	QList<GuiView *> views = d->views_.values();
 	foreach (GuiView * view, views) {
 		if (!view->close())
@@ -1468,10 +1473,26 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 
 	if (ui_path.empty()) {
 		LYXERR(Debug::INIT, "Could not find " << name);
+		if (include) {
+			Alert::warning(_("Could not find UI definition file"),
+				bformat(_("Error while reading the included file\n%1$s.\n"
+					"Please check your installation."), qstring_to_ucs4(name)));
+			return false;
+		}
 		Alert::warning(_("Could not find UI definition file"),
-			       bformat(_("Error while reading the configuration file\n%1$s.\n"
-				   "Please check your installation."), qstring_to_ucs4(name)));
-		return false;
+			bformat(_("Error while reading the configuration file\n%1$s.\n"
+				"Falling back to default.\n"
+				"Please look under Tools>Preferences>User Interface and\n"
+				"check which user interface file you are using."), qstring_to_ucs4(name)));
+		// QString to disambiguate for monolithic builds
+		ui_path = libFileSearch("ui", QString("default"), "ui");
+		if (ui_path.empty()) {
+			LYXERR(Debug::INIT, "Could not find default UI file!!");
+			Alert::warning(_("Could not find default UI file"),
+				_("LyX could not find the default UI file!\n"
+					"Please check your installation."));
+			return false;
+		}
 	}
 
 
@@ -1504,6 +1525,9 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 	if (lyxerr.debugging(Debug::PARSER))
 		lex.printTable(lyxerr);
 
+	// store which ui files define Toolbars
+	static QStringList toolbar_uifiles;
+
 	while (lex.isOK()) {
 		switch (lex.lex()) {
 		case ui_include: {
@@ -1523,6 +1547,7 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 
 		case ui_toolbars:
 			d->toolbars_.readToolbarSettings(lex);
+			toolbar_uifiles.push_back(uifile);
 			break;
 
 		default:
@@ -1543,9 +1568,12 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 		QFileInfo fi(uifiles[i]);
 		QDateTime const date_value = fi.lastModified();
 		QString const name_key = QString::number(i);
-		if (!settings.contains(name_key)
+		// if an ui file which defines Toolbars has changed,
+		// we have to reset the settings
+		if (toolbar_uifiles.contains(uifiles[i])
+		 && (!settings.contains(name_key)
 		 || settings.value(name_key).toString() != uifiles[i]
-		 || settings.value(name_key + "/date").toDateTime() != date_value) {
+		 || settings.value(name_key + "/date").toDateTime() != date_value)) {
 			touched = true;
 			settings.setValue(name_key, uifiles[i]);
 			settings.setValue(name_key + "/date", date_value);

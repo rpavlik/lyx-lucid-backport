@@ -65,6 +65,10 @@ using ::boost::scoped_ptr;
 
 namespace lyx {
 
+// Keep the linker happy on Windows
+void emergencyCleanup()
+{}
+
 namespace support {
 
 string itoa(unsigned int i)
@@ -624,6 +628,8 @@ int main(int argc, char * argv[])
 		if (iowatch.isset(0)) {
 			string command;
 			getline(cin, command);
+			if (command.empty())
+				continue;
 			if (command == "BYE:") {
 				server->writeln("BYE:");
 				saidbye = true;

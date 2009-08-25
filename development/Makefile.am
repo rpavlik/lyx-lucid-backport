@@ -4,6 +4,10 @@ if INSTALL_MACOSX
 SUBDIRS = MacOSX
 endif
 
+if INSTALL_CYGWIN
+SUBDIRS = cygwin
+endif
+
 EXTRA_DIST = boostworkaround.txt coding/Rules coding/Recommendations \
 	FORMAT lyx.rpm.README \
 	lyxserver lyx.spec.in lyx.spec Seminar.txt \
@@ -15,6 +19,8 @@ tools/x-font \
 tools/README \
 tools/count_total_lines_of_compiled_code.sh \
 tools/count_lines_of_included_code.sh \
+tools/lyxeditor \
+tools/lyxpak.py \
 Win32/launcher/launcher.nsi \
 Win32/packaging/icons/lyx_doc.svg \
 Win32/packaging/icons/lyx_32x32.png \

@@ -286,6 +286,15 @@ void Paragraph::addChangesToToc(DocIterator const & cdit,
 }
 
 
+bool Paragraph::isFullyDeleted(pos_type start, pos_type end) const
+{
+	LASSERT(start >= 0 && start <= size(), /**/);
+	LASSERT(end > start && end <= size() + 1, /**/);
+
+	return d->changes_.isFullyDeleted(start, end);
+}
+
+
 bool Paragraph::isChanged(pos_type start, pos_type end) const
 {
 	LASSERT(start >= 0 && start <= size(), /**/);
@@ -1854,7 +1863,12 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 {
 	int column = 0;
 
-	switch (params_.align()) {
+	LyXAlignment const curAlign = params_.align();
+
+	if (curAlign == layout_->align)
+		return column;
+
+	switch (curAlign) {
 	case LYX_ALIGN_NONE:
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
@@ -1874,7 +1888,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	InsetCode code = owner_->ownerCode();
 	bool const lastpar = runparams.isLastPar;
 
-	switch (params_.align()) {
+	switch (curAlign) {
 	case LYX_ALIGN_NONE:
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
@@ -1956,6 +1970,8 @@ bool Paragraph::latex(BufferParams const & bparams,
 	bool open_font = false;
 
 	Change runningChange = Change(Change::UNCHANGED);
+
+	Encoding const * const prev_encoding = runparams.encoding;
 
 	texrow.start(id(), 0);
 
@@ -2078,9 +2094,14 @@ bool Paragraph::latex(BufferParams const & bparams,
 			running_font = font;
 			open_font = true;
 			docstring fontchange = ods.str();
+			docstring const last_modifier = rsplit(fontchange, '\\');
+			// check whether the fontchange ends with a \\textcolor
+			// modifier and the text starts with a space (bug 4473)
+			if (prefixIs(last_modifier, from_ascii("textcolor")) && c == ' ')
+				os << fontchange << from_ascii("{}");
 			// check if the fontchange ends with a trailing blank
 			// (like "\small " (see bug 3382)
-			if (suffixIs(fontchange, ' ') && c == ' ')
+			else if (suffixIs(fontchange, ' ') && c == ' ')
 				os << fontchange.substr(0, fontchange.size() - 1) 
 				   << from_ascii("{}");
 			else
@@ -2173,10 +2194,8 @@ bool Paragraph::latex(BufferParams const & bparams,
 		return_value = false;
 	}
 
-	if (allowcust) {
-		column += d->endTeXParParams(bparams, os, texrow,
-					  runparams);
-	}
+	if (allowcust && d->endTeXParParams(bparams, os, texrow, runparams))
+		runparams.encoding = prev_encoding;
 
 	LYXERR(Debug::LATEX, "Paragraph::latex... done " << this);
 	return return_value;

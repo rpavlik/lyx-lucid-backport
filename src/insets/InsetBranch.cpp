@@ -76,13 +76,17 @@ void InsetBranch::read(Lexer & lex)
 }
 
 
-docstring InsetBranch::toolTip(BufferView const &, int, int) const
+docstring InsetBranch::toolTip(BufferView const & bv, int x, int y) const
 {
 	docstring const status = isBranchSelected() ? 
 		_("active") : _("non-active");
-	return support::bformat(_("Branch (%1$s): %2$s"),
-				  status,
-				  params_.branch);
+	docstring const heading = 
+		support::bformat(_("Branch (%1$s): %2$s"), status, params_.branch);
+	docstring const contents = InsetCollapsable::toolTip(bv, x, y);
+	if (isOpen(bv) || contents.empty())
+		return heading;
+	else
+		return heading + from_ascii("\n") + contents;
 }
 
 
@@ -91,7 +95,8 @@ docstring const InsetBranch::buttonLabel(BufferView const & bv) const
 	docstring s = _("Branch: ") + params_.branch;
 	Buffer const & realbuffer = *buffer().masterBuffer();
 	BranchList const & branchlist = realbuffer.params().branchlist();
-	if (!branchlist.find(params_.branch))
+	if (!branchlist.find(params_.branch)
+	    && buffer().params().branchlist().find(params_.branch))
 		s = _("Branch (child only): ") + params_.branch;
 	if (!params_.branch.empty()) {
 		// FIXME UNICODE
@@ -137,13 +142,6 @@ void InsetBranch::doDispatch(Cursor & cur, FuncRequest & cmd)
 		setLayout(cur.buffer().params());
 		break;
 	}
-
-	case LFUN_MOUSE_PRESS:
-		if (cmd.button() != mouse_button::button3)
-			InsetCollapsable::doDispatch(cur, cmd);
-		else
-			cur.undispatched();
-		break;
 
 	case LFUN_INSET_DIALOG_UPDATE:
 		cur.bv().updateDialog("branch", params2string(params()));

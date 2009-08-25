@@ -996,6 +996,49 @@ void LyXAction::init()
 		{ LFUN_BUFFER_END_SELECT, "buffer-end-select", ReadOnly, Edit },
 
 /*!
+ * \var lyx::FuncCode lyx::LFUN_INSET_BEGIN
+ * \li Action: Move the cursor to the beginning of the current inset 
+               if it is not already there, or at the beginning of the 
+               enclosing inset otherwise
+ * \li Syntax: inset-begin
+ * \li Origin: JMarc, 2009/03/16
+ * \endvar
+ */
+		{ LFUN_INSET_BEGIN, "inset-begin", ReadOnly, Edit },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_INSET_BEGIN_SELECT
+ * \li Action: Move the cursor to the beginning of the current inset 
+               if it is not already there, or at the beginning of the 
+               enclosing inset otherwise (adding the
+               traversed text to the selection).
+ * \li Syntax: inset-begin-select
+ * \li Origin: JMarc, 2009/03/16
+ * \endvar
+ */
+		{ LFUN_INSET_BEGIN_SELECT, "inset-begin-select", ReadOnly, Edit },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_INSET_END
+ * \li Action: Move the cursor to the end of the current inset 
+               if it is not already there, or at the end of the 
+               enclosing inset otherwise
+ * \li Syntax: inset-end
+ * \li Origin: JMarc, 2009/03/16
+ * \endvar
+ */
+		{ LFUN_INSET_END, "inset-end", ReadOnly, Edit },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_INSET_END_SELECT
+ * \li Action: Move the cursor to the end of the current inset 
+               if it is not already there, or at the end of the 
+               enclosing inset otherwise (adding the
+               traversed text to the selection).
+ * \li Syntax: inset-end-select
+ * \li Origin: JMarc, 2009/03/16
+ * \endvar
+ */
+		{ LFUN_INSET_END_SELECT, "inset-end-select", ReadOnly, Edit },
+
+/*!
  * \var lyx::FuncCode lyx::LFUN_LINE_BEGIN
  * \li Action: Move the cursor to the begining of the (screen) line.
  * \li Syntax: line-begin
@@ -1051,7 +1094,7 @@ void LyXAction::init()
  * \var lyx::FuncCode lyx::LFUN_PASTE
  * \li Action: Pastes material from the active clipboard.
  * \li Syntax: paste [<TYPE>]
- * \li Params: <TYPE>: pdf|png|jpeg|linkback
+ * \li Params: <TYPE>: emf|pdf|png|jpeg|linkback|wmf
  * \endvar
  */
 		{ LFUN_PASTE, "paste", Noop, Edit },
@@ -1433,6 +1476,14 @@ void LyXAction::init()
  * \li Action: Inserts math objects and symbols.
  * \li Syntax: math-insert <ARG>
  * \li Params: <ARG>: Symbol or LaTeX code to be inserted.
+ * \li Notion: When <ARG> is a _single_ math inset with more than one cell
+               (such as "x_y^z" or "\frac{x}{y}"), the content of cell(0) is
+               replaced by the current selection (only works if the selection
+               is in mathed). As an example, if "abc" is selected in mathed,
+               "math-insert \frac{x}{y}" replaces "abc" with "\frac{abc}{y}",
+               and "math-insert x_y^z" replaces "abc" with "abc_y^z".
+               If nothing is selected (or the selection is not in mathed),
+               math-insert works as expected.
  * \endvar
  */
 		{ LFUN_MATH_INSERT, "math-insert", Noop, Math },
@@ -2003,6 +2054,15 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_VC_COMMAND, "vc-command", NoBuffer | ReadOnly, System },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_VC_LOCKING_TOGGLE
+ * \li Action: Toggles the locking property of the edited file.
+ * \li Notion: This is currently implemented only for SVN.
+ * \li Syntax: vc-locking-toggle
+ * \li Origin: sanda, 25 Jun 2009
+ * \endvar
+ */
+		{ LFUN_VC_LOCKING_TOGGLE, "vc-locking-toggle", ReadOnly, System },
 
 /*!
  * \var lyx::FuncCode lyx::LFUN_CHANGES_TRACK
@@ -2029,6 +2089,15 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_CHANGE_NEXT, "change-next", ReadOnly, Edit },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_CHANGE_PREVIOUS
+ * \li Action: Moves the cursor to the position of the previous change
+               of the change tracking records.
+ * \li Syntax: change-previous
+ * \li Origin: vfr, 4 Apr 2009
+ * \endvar
+ */
+		{ LFUN_CHANGE_PREVIOUS, "change-previous", ReadOnly, Edit },
 /*!
  * \var lyx::FuncCode lyx::LFUN_CHANGES_MERGE
  * \li Action: Open change tracking dialog for merging and moves the cursor
