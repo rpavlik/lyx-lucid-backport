@@ -282,6 +282,8 @@ docstring BufferList::emergencyWrite(Buffer * buf)
 	}
 
 	user_message += _("  Save failed! Bummer. Document is lost.");
+	// Don't try again
+	buf->markClean();
 	return user_message;
 }
 
@@ -327,9 +329,26 @@ Buffer * BufferList::getBufferFromTmp(string const & s)
 {
 	BufferStorage::iterator it = bstore.begin();
 	BufferStorage::iterator end = bstore.end();
-	for (; it < end; ++it)
-		if (prefixIs(s, (*it)->temppath()))
-			return *it;
+	for (; it < end; ++it) {
+		if (prefixIs(s, (*it)->temppath())) {
+			// check whether the filename matches the master
+			string const master_name = changeExtension(onlyFilename(
+						(*it)->absFileName()), ".tex");
+			if (suffixIs(s, master_name))
+				return *it;
+			// if not, try with the children
+			vector<Buffer *> clist = (*it)->getChildren();
+			vector<Buffer *>::const_iterator cit = clist.begin();
+			vector<Buffer *>::const_iterator cend = clist.end();
+			for (; cit < cend; ++cit) {
+				string const mangled_child_name = DocFileName(
+					changeExtension((*cit)->absFileName(),
+						".tex")).mangledFilename();
+				if (suffixIs(s, mangled_child_name))
+					return *cit;
+			}
+		}
+	}
 	return 0;
 }
 

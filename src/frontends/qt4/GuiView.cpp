@@ -38,6 +38,7 @@
 #include "BufferView.h"
 #include "Converter.h"
 #include "Cursor.h"
+#include "CutAndPaste.h"
 #include "Encoding.h"
 #include "ErrorList.h"
 #include "Format.h"
@@ -375,6 +376,7 @@ bool GuiView::restoreLayout()
 	if (!settings.contains(icon_key))
 		return false;
 
+	//code below is skipped when when ~/.config/LyX is (re)created
 	setIconSize(settings.value(icon_key).toSize());
 #ifdef Q_WS_X11
 	QPoint pos = settings.value("pos", QPoint(50, 50)).toPoint();
@@ -382,19 +384,24 @@ bool GuiView::restoreLayout()
 	resize(size);
 	move(pos);
 #else
-	if (!restoreGeometry(settings.value("geometry").toByteArray()))
-		setGeometry(50, 50, 690, 510);
+	// Work-around for bug #6034: the window ends up in an undetermined
+	// state when trying to restore a maximized window when it is
+	// already maximized.
+	if (!(windowState() & Qt::WindowMaximized))
+		if (!restoreGeometry(settings.value("geometry").toByteArray()))
+			setGeometry(50, 50, 690, 510);
 #endif
 	// Make sure layout is correctly oriented.
 	setLayoutDirection(qApp->layoutDirection());
 
 	// Allow the toc and view-source dock widget to be restored if needed.
-	Dialog *d;
-	if ((d = findOrBuild("toc", true)))
-		// see bug 5082
-		d->showView();
-	if ((d = findOrBuild("view-source", true)))
-		d->showView();
+	Dialog * dialog;
+	if ((dialog = findOrBuild("toc", true)))
+		// see bug 5082. At least setup title and enabled state.
+		// Visibility will be adjusted by restoreState below.
+		dialog->prepareView();
+	if ((dialog = findOrBuild("view-source", true)))
+		dialog->prepareView();
 
 	if (!restoreState(settings.value("layout").toByteArray(), 0))
 		initToolbars();
@@ -527,13 +534,24 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 	setFocus();
 	GuiWorkArea const * active_wa = currentWorkArea();
 
-	int splitter_count = d.splitter_->count();
-	for (; splitter_count > 0; --splitter_count) {
-		TabWorkArea * twa = d.tabWorkArea(0);
+	// We might be in a situation that there is still a tabWorkArea, but
+	// there are no tabs anymore. This can happen when we get here after a 
+	// TabWorkArea::lastWorkAreaRemoved() signal. Therefore we count how
+	// many TabWorkArea's have no documents anymore.
+	int empty_twa = 0;
+
+	// We have to call count() each time, because it can happen that
+	// more than one splitter will disappear in one iteration (bug 5998).
+	for (; d.splitter_->count() > empty_twa; ) {
+		TabWorkArea * twa = d.tabWorkArea(empty_twa);
 				
-		int twa_count = twa->count();
-		for (; twa_count > 0; --twa_count) {
-			twa->setCurrentIndex(twa_count-1);
+		if (twa->count() == 0) {
+			++empty_twa;
+			continue;
+		}
+
+		for (; twa == d.tabWorkArea(empty_twa);) {
+			twa->setCurrentIndex(twa->count() - 1);
 
 			GuiWorkArea * wa = twa->currentWorkArea();
 			bool const is_active_wa = active_wa == wa;
@@ -930,6 +948,8 @@ GuiWorkArea const * GuiView::currentWorkArea() const
 void GuiView::setCurrentWorkArea(GuiWorkArea * wa)
 {
 	LASSERT(wa, return);
+	if (view())
+		cap::saveSelection(view()->cursor());
 	d.current_work_area_ = wa;
 	for (int i = 0; i != d.splitter_->count(); ++i) {
 		if (d.tabWorkArea(i)->setCurrentWorkArea(wa))
@@ -1056,7 +1076,7 @@ void GuiView::connectBuffer(Buffer & buf)
 void GuiView::disconnectBuffer()
 {
 	if (d.current_work_area_)
-		d.current_work_area_->bufferView().setGuiDelegate(0);
+		d.current_work_area_->bufferView().buffer().setGuiDelegate(0);
 }
 
 
@@ -1138,17 +1158,6 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 	bool enable = true;
 	Buffer * buf = buffer();
 
-	/* In LyX/Mac, when a dialog is open, the menus of the
-	   application can still be accessed without giving focus to
-	   the main window. In this case, we want to disable the menu
-	   entries that are buffer-related.
-
-	   Note that this code is not perfect, as bug 1941 attests:
-	   http://bugzilla.lyx.org/show_bug.cgi?id=1941#c4
-	*/
-	if (cmd.origin == FuncRequest::MENU && !hasFocus())
-		buf = 0;
-
 	switch(cmd.action) {
 	case LFUN_BUFFER_WRITE:
 		enable = buf && (buf->isUnnamed() || !buf->isClean());
@@ -1202,7 +1211,7 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 			}
 		}
 		else if (name == "symbols") {
-			if (!view() || view()->cursor().inMathed())
+			if (buf->isReadonly() || !view() || view()->cursor().inMathed())
 				enable = false;
 			else {
 				InsetCode ic = view()->cursor().inset().lyxCode();
@@ -1867,6 +1876,7 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 		// have no autosave file but I guess
 		// this is really improbable (Jug)
 		buf.removeAutosaveFile();
+		buf.markClean();
 		break;
 	case 2:
 		return false;
@@ -2427,7 +2437,7 @@ bool GuiView::isDialogVisible(string const & name) const
 	map<string, DialogPtr>::const_iterator it = d.dialogs_.find(name);
 	if (it == d.dialogs_.end())
 		return false;
-	return it->second.get()->isVisibleView();
+	return it->second.get()->isVisibleView() && !it->second.get()->isClosing();
 }
 
 

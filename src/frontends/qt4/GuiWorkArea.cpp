@@ -332,18 +332,13 @@ void GuiWorkArea::close()
 void GuiWorkArea::setFullScreen(bool full_screen)
 {
 	buffer_view_->setFullScreen(full_screen);
+	setFrameStyle(QFrame::NoFrame);
 	if (full_screen) {
 		setFrameStyle(QFrame::NoFrame);
 		if (lyxrc.full_screen_scrollbar)
 			setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	} else {
-#ifdef Q_WS_MACX
-		setFrameStyle(QFrame::NoFrame);
-#else
-		setFrameStyle(QFrame::Box);
-#endif
+	} else
 		setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	}
 }
 
 
@@ -808,18 +803,7 @@ void GuiWorkArea::generateSyntheticMouseEvent()
 	if (synthetic_mouse_event_.restart_timeout)
 		synthetic_mouse_event_.timeout.start();
 
-	// Has anything changed on-screen since the last timeout signal
-	// was received?
-	int const min_scrollbar = verticalScrollBar()->minimum();
-	int const max_scrollbar = verticalScrollBar()->maximum();
-	if (min_scrollbar == synthetic_mouse_event_.min_scrollbar_old
-		&& max_scrollbar == synthetic_mouse_event_.max_scrollbar_old) {
-		return;
-	}
-	// Yes it has. Store the params used to check this.
-	synthetic_mouse_event_.min_scrollbar_old = min_scrollbar;
-	synthetic_mouse_event_.max_scrollbar_old = max_scrollbar;
-	// ... and dispatch the event to the LyX core.
+	// Dispatch the event to the LyX core.
 	dispatch(synthetic_mouse_event_.cmd);
 }
 
@@ -854,8 +838,12 @@ void GuiWorkArea::keyPressEvent(QKeyEvent * ev)
 
 	KeySymbol sym;
 	setKeySymbol(&sym, ev);
-	processKeySym(sym, q_key_state(ev->modifiers()));
-	ev->accept();
+	if (sym.isOK()) {
+		processKeySym(sym, q_key_state(ev->modifiers()));
+		ev->accept();
+	} else {
+		ev->ignore();
+	}
 }
 
 
@@ -1427,7 +1415,9 @@ public:
 	DisplayPath(int tab, FileName const & filename)
 		: tab_(tab)
 	{
-		filename_ = toqstr(filename.onlyFileNameWithoutExt());
+		filename_ = (filename.extension() == "lyx") ?
+			toqstr(filename.onlyFileNameWithoutExt())
+			: toqstr(filename.onlyFileName());
 		postfix_ = toqstr(filename.absoluteFilePath()).
 			split("/", QString::SkipEmptyParts);
 		postfix_.pop_back();

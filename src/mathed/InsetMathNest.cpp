@@ -339,7 +339,7 @@ MathData InsetMathNest::glue() const
 
 void InsetMathNest::write(WriteStream & os) const
 {
-	ModeSpecifier specifier(os, currentMode());
+	ModeSpecifier specifier(os, currentMode(), lockedMode());
 	docstring const latex_name = name();
 	os << '\\' << latex_name;
 	for (size_t i = 0; i < nargs(); ++i)
@@ -364,8 +364,9 @@ void InsetMathNest::normalize(NormalStream & os) const
 
 int InsetMathNest::latex(odocstream & os, OutputParams const & runparams) const
 {
-	WriteStream wi(os, runparams.moving_arg, true, runparams.dryrun,
-			runparams.encoding);
+	WriteStream wi(os, runparams.moving_arg, true,
+		       runparams.dryrun ? WriteStream::wsDryrun : WriteStream::wsDefault,
+		       runparams.encoding);
 	write(wi);
 	return wi.line();
 }
@@ -524,7 +525,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		parseflg |= Parse::VERBATIM;
 		// fall through
 	case LFUN_PASTE: {
-		if (cur.currentMode() == TEXT_MODE)
+		if (cur.currentMode() <= TEXT_MODE)
 			parseflg |= Parse::TEXTMODE;
 		cur.recordUndoSelection();
 		cur.message(_("Paste"));
@@ -808,7 +809,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 				cur.insert(arg);
 			break;
 		}
-		// Don't record undo steps if we are in macro mode and
+		// Don't record undo steps if we are in macro mode and thus
 		// cmd.argument is the next character of the macro name.
 		// Otherwise we'll get an invalid cursor if we undo after
 		// the macro was finished and the macro is a known command,
@@ -817,14 +818,9 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// InsetMathFrac -> a pos value > 0 is invalid.
 		// A side effect is that an undo before the macro is finished
 		// undoes the complete macro, not only the last character.
-		if (!cur.inMacroMode()) {
-			MathMacro const * macro = 0;
-			if (cur.pos() > 0 && cmd.argument() != "\\")
-				macro = cur.inset().asInsetMath()->asMacro();
-			
-			if (!macro)
-				cur.recordUndoSelection();
-		}
+		// At the time we hit '\' we are not in macro mode, still.
+		if (!cur.inMacroMode())
+			cur.recordUndoSelection();
 
 		// spacial handling of space. If we insert an inset
 		// via macro mode, we want to put the cursor inside it
@@ -890,37 +886,37 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_FONT_BOLD:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "textbf");
 		else
 			handleFont(cur, cmd.argument(), "mathbf");
 		break;
 	case LFUN_FONT_BOLDSYMBOL:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "textbf");
 		else
 			handleFont(cur, cmd.argument(), "boldsymbol");
 		break;
 	case LFUN_FONT_SANS:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "textsf");
 		else
 			handleFont(cur, cmd.argument(), "mathsf");
 		break;
 	case LFUN_FONT_EMPH:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "emph");
 		else
 			handleFont(cur, cmd.argument(), "mathcal");
 		break;
 	case LFUN_FONT_ROMAN:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "textrm");
 		else
 			handleFont(cur, cmd.argument(), "mathrm");
 		break;
 	case LFUN_FONT_TYPEWRITER:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "texttt");
 		else
 			handleFont(cur, cmd.argument(), "mathtt");
@@ -929,13 +925,13 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		handleFont(cur, cmd.argument(), "mathfrak");
 		break;
 	case LFUN_FONT_ITAL:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			handleFont(cur, cmd.argument(), "textit");
 		else
 			handleFont(cur, cmd.argument(), "mathit");
 		break;
 	case LFUN_FONT_NOUN:
-		if (currentMode() == TEXT_MODE)
+		if (currentMode() <= TEXT_MODE)
 			// FIXME: should be "noun"
 			handleFont(cur, cmd.argument(), "textsc");
 		else
@@ -955,7 +951,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		docstring const save_selection = grabAndEraseSelection(cur);
 		selClearOrDel(cur);
 		//cur.plainInsert(MathAtom(new InsetMathMBox(cur.bv())));
-		if (currentMode() == Inset::TEXT_MODE)
+		if (currentMode() <= Inset::TEXT_MODE)
 			cur.plainInsert(MathAtom(new InsetMathEnsureMath));
 		else
 			cur.plainInsert(MathAtom(new InsetMathBox(from_ascii("mbox"))));
@@ -1114,8 +1110,9 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		else {
 			MathData ar;
 			asArray(cmd.argument(), ar);
-			if (ar.size() == 1 && ar[0]->asNestInset()
-					&& ar[0]->asNestInset()->nargs() > 1)
+			if (cur.selection() && ar.size() == 1
+			    && ar[0]->asNestInset()
+			    && ar[0]->asNestInset()->nargs() > 1)
 				handleNest(cur, ar[0]);
 			else
 				cur.niceInsert(cmd.argument());
@@ -1236,10 +1233,6 @@ bool InsetMathNest::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_FONT_ROMAN:
 	case LFUN_FONT_DEFAULT:
 		flag.setEnabled(true);
-		break;
-	case LFUN_MATH_MUTATE:
-		//flag.setOnOff(mathcursor::formula()->hullType() == to_utf8(cmd.argument()));
-		flag.setOnOff(false);
 		break;
 
 	// we just need to be in math mode to enable that
@@ -1458,7 +1451,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 			// remove the '\\'
 			if (c == '\\') {
 				cur.backspace();
-				if (currentMode() == InsetMath::TEXT_MODE)
+				if (currentMode() <= InsetMath::TEXT_MODE)
 					cur.niceInsert(createInsetMath("textbackslash"));
 				else
 					cur.niceInsert(createInsetMath("backslash"));
@@ -1512,7 +1505,13 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 		}
 
 		// leave macro mode and try again if necessary
-		cur.macroModeClose();
+		if (cur.macroModeClose()) {
+			MathAtom const atom = cur.prevAtom();
+			if (atom->asNestInset() && atom->isActive()) {
+				cur.posBackward();
+				cur.pushBackward(*cur.nextInset());
+			}
+		}
 		if (c == '{')
 			cur.niceInsert(MathAtom(new InsetMathBrace));
 		else if (c != ' ')
@@ -1550,14 +1549,14 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 	selClearOrDel(cur);
 
 	if (c == '\n') {
-		if (currentMode() == InsetMath::TEXT_MODE)
+		if (currentMode() <= InsetMath::TEXT_MODE)
 			cur.insert(c);
 		return true;
 	}
 
 	if (c == ' ') {
-		if (currentMode() == InsetMath::TEXT_MODE) {
-			// insert spaces in text mode,
+		if (currentMode() <= InsetMath::TEXT_MODE) {
+			// insert spaces in text or undecided mode,
 			// but suppress direct insertion of two spaces in a row
 			// the still allows typing  '<space>a<space>' and deleting the 'a', but
 			// it is better than nothing...
@@ -1608,7 +1607,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 			cur.niceInsert(createInsetMath("sim"));
 			return true;
 		}
-		if (!isAsciiOrMathAlpha(c)) {
+		if (currentMode() == InsetMath::MATH_MODE && !isAsciiOrMathAlpha(c)) {
 			MathAtom at = createInsetMath("text");
 			at.nucleus()->cell(0).push_back(MathAtom(new InsetMathChar(c)));
 			cur.niceInsert(at);

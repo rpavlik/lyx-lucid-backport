@@ -1,4 +1,11 @@
-﻿Version 4.19
+﻿Version 4.20
+- LyX 1.6.4
+- updated to ImageMagick 6.5.x-y
+- updated to JabRef 2.5
+- updated to Ghostscript 8.70
+
+
+Version 4.19
 - LyX 1.6.3
 - add two missing programs so that paths in LyX document
   preambles will correctly be parsed
@@ -8,7 +15,7 @@
 - LyX can now be installed with Indonesian and Slovak menus
 - the uninstaller is now also shown in the Windows system language
 - updated to Python 2.6.2
-- updated to ImageMagick 6.5.2-4
+- updated to ImageMagick 6.5.3-2
 
 
 Version 4.18

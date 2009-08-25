@@ -430,6 +430,19 @@ AC_DEFUN([LYX_USE_INCLUDED_BOOST],[
 	    [lyx_cv_with_included_boost=yes])
 	AM_CONDITIONAL(USE_INCLUDED_BOOST, test x$lyx_cv_with_included_boost = xyes)
 	AC_MSG_RESULT([$lyx_cv_with_included_boost])
+	if test x$lyx_cv_with_included_boost != xyes ; then
+		AC_CHECK_LIB(boost_signals, main, [lyx_boost_underscore=yes], [], [-lm])
+		AC_CHECK_LIB(boost_signals-mt, main, [lyx_boost_underscore_mt=yes], [], [-lm $LIBTHREAD])
+		if test x$lyx_boost_underscore_mt = xyes ; then
+			BOOST_MT="-mt"
+		else
+			BOOST_MT=""
+			if test x$lyx_boost_underscore != xyes ; then
+				LYX_ERROR([No suitable boost library found (use --with-included-boost)])
+			fi
+		fi
+		AC_SUBST(BOOST_MT)
+	fi
 ])
 
 
@@ -596,6 +609,7 @@ AC_ARG_WITH(packaging,
   esac])
 AC_MSG_RESULT($lyx_use_packaging)
 lyx_install_macosx=false
+lyx_install_cygwin=false
 case $lyx_use_packaging in
    macosx) AC_DEFINE(USE_MACOSX_PACKAGING, 1, [Define to 1 if LyX should use a MacOS X application bundle file layout])
 	   PACKAGE=LyX${version_suffix}
@@ -618,10 +632,14 @@ case $lyx_use_packaging in
 	   PACKAGE=lyx${version_suffix}
 	   program_suffix=$version_suffix
 	   pkgdatadir='${datadir}/${PACKAGE}'
-	   default_prefix=$ac_default_prefix ;;
+	   default_prefix=$ac_default_prefix
+	   case ${host} in
+	   *cygwin*) lyx_install_cygwin=true ;;
+	   esac ;;
     *) LYX_ERROR([Unknown packaging type $lyx_use_packaging]) ;;
 esac
 AM_CONDITIONAL(INSTALL_MACOSX, $lyx_install_macosx)
+AM_CONDITIONAL(INSTALL_CYGWIN, $lyx_install_cygwin)
 dnl Next two lines are only for autoconf <= 2.59
 datadir='${datarootdir}'
 AC_SUBST(datarootdir)

@@ -1,4 +1,4 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -20,7 +20,7 @@
 \end_preamble
 \use_default_options false
 \language hebrew
-\inputencoding auto
+\inputencoding cp1255
 \font_roman default
 \font_sans default
 \font_typewriter default
@@ -377,7 +377,7 @@ WYSIWYG
 \begin_inset Quotes eld
 \end_inset
 
-What you see is what you ge
+What you see is what you get
 \begin_inset Quotes erd
 \end_inset
 
@@ -3002,7 +3002,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://bugzilla.lyx.org/
+http://www.lyx.org/trac/wiki/BugTrackerHome
 \end_layout
 
 \end_inset
@@ -3301,14 +3301,6 @@ lib/doc/
 \family default
 \lang hebrew
 .
- בתוך תיקייה זו ישנו קובץ הנקרא 
-\family typewriter
-\lang english
-DocStyle.lyx
-\family default
-\lang hebrew
-.
- קרא אותו, זהו קובץ הסגנון עבור התיעוד.
 \end_layout
 
 \begin_layout Enumerate

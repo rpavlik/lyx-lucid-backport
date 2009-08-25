@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.3,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,1.6.4,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2009-06-03"])
+AC_SUBST(LYX_DATE, ["2009-08-22"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -433,6 +433,8 @@ AC_CONFIG_FILES([Makefile \
       development/MacOSX/Info.plist \
       development/MacOSX/lyxrc.dist \
       development/MacOSX/spotlight/Makefile \
+      development/cygwin/Makefile \
+      development/cygwin/lyxrc.dist \
       development/lyx.spec \
       intl/Makefile \
       lib/Makefile \

@@ -121,12 +121,13 @@ dist_faexamples_DATA = \
 frexamplesdir = $(pkgdatadir)/examples/fr
 dist_frexamples_DATA = \
 	examples/fr/AlignementDecimal.lyx \
-	examples/fr/simplecv.lyx \
-	examples/fr/Foils.lyx \
-	examples/fr/ListesPuces.lyx \
+	examples/fr/Braille.lyx \
 	examples/fr/exemple_brut.lyx \
 	examples/fr/exemple_lyxifie.lyx \
+	examples/fr/Foils.lyx \
+	examples/fr/ListesPuces.lyx \
 	examples/fr/multicol.lyx \
+	examples/fr/simplecv.lyx \
 	examples/fr/splash.lyx
 
 glexamplesdir = $(pkgdatadir)/examples/gl
@@ -316,6 +317,7 @@ dist_images_DATA = \
 	images/dialog-show_mathmatrix.png \
 	images/dialog-show_print.png \
 	images/dialog-show_spellchecker.png \
+	images/dialog-show_vclog.png \
 	images/dialog-toggle_toc.png \
 	images/down.png \
 	images/ert-insert.png \
@@ -344,11 +346,6 @@ dist_images_DATA = \
 	images/layout_Section.png \
 	images/lyx-quit.png \
 	images/lyx.png \
-	images/vc-check-in.png \
-	images/vc-check-out.png \
-	images/dialog-show_vclog.png \
-	images/vc-register.png \
-	images/vc-revert.png \
 	images/marginalnote-insert.png \
 	images/math-display.png \
 	images/math-macro-add-greedy-optional-param.png \
@@ -410,11 +407,15 @@ dist_images_DATA = \
 	images/undo.png \
 	images/unknown.png \
 	images/up.png \
-	images/url-insert.png
+	images/url-insert.png \
+	images/vc-check-in.png \
+	images/vc-check-out.png \
+	images/vc-locking-toggle.png \
+	images/vc-register.png \
+	images/vc-revert.png
 
 imagesmathdir = $(imagesdir)/math
 dist_imagesmath_DATA = \
-	images/math/style.png \
 	images/math/font.png \
 	images/math/delim.png \
 	images/math/equation.png \
@@ -552,6 +553,8 @@ dist_imagesmath_DATA = \
 	images/math/eth.png \
 	images/math/exists.png \
 	images/math/fallingdotseq.png \
+	images/math/fint.png \
+	images/math/fintop.png \
 	images/math/flat.png \
 	images/math/forall.png \
 	images/math/frac.png \
@@ -602,6 +605,10 @@ dist_imagesmath_DATA = \
 	images/math/kappa.png \
 	images/math/lambda.png \
 	images/math/lambda2.png \
+	images/math/landdownint.png \
+	images/math/landdownintop.png \
+	images/math/landupint.png \
+	images/math/landupintop.png \
 	images/math/langle.png \
 	images/math/lbrace.png \
 	images/math/lbrace_rbrace.png \

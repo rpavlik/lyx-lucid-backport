@@ -55,23 +55,26 @@ bool documentclass_language;
 namespace {
 
 const char * const known_languages[] = { "afrikaans", "american", "arabic",
-"austrian", "bahasa", "basque", "belarusian", "brazil", "breton", "british",
-"bulgarian", "canadian", "canadien", "catalan", "croatian", "czech", "danish",
-"dutch", "english", "esperanto", "estonian", "finnish", "francais", "french",
-"frenchb", "frenchle", "frenchpro", "galician", "german", "germanb", "greek",
-"hebrew", "icelandic", "irish", "italian", "lsorbian", "magyar", "naustrian",
-"ngerman", "ngermanb", "norsk", "nynorsk", "polish", "portuges", "romanian",
-"russian", "russianb", "scottish", "serbian", "slovak", "slovene", "spanish",
-"swedish", "thai", "turkish", "ukraineb", "ukrainian", "usorbian", "welsh", 0};
+"austrian", "bahasa", "basque", "belarusian", "brazil", "brazilian", "breton",
+"british", "bulgarian", "canadian", "canadien", "catalan", "croatian", "czech",
+"danish", "dutch", "english", "esperanto", "estonian", "finnish", "francais",
+"french", "frenchb", "frenchle", "frenchpro", "galician", "german", "germanb",
+"greek", "hebrew", "icelandic", "irish", "italian", "lsorbian", "magyar",
+"naustrian", "ngerman", "ngermanb", "norsk", "nynorsk", "polish", "portuges",
+"portuguese", "romanian", "russian", "russianb", "scottish", "serbian", "slovak",
+"slovene", "spanish", "swedish", "thai", "turkish", "ukraineb", "ukrainian",
+"usorbian", "welsh", 0};
 
 //note this when updating to lyxformat 305:
 //bahasai, indonesian, and indon = equal to bahasa
-//malay, and meyalu = equal to bahasam
+//malay and meyalu = equal to bahasam
 
+const char * const known_brazilian_languages[] = {"brazil", "brazilian", 0};
 const char * const known_french_languages[] = {"french", "frenchb", "francais",
 						"frenchle", "frenchpro", 0};
 const char * const known_german_languages[] = {"german", "germanb", 0};
 const char * const known_ngerman_languages[] = {"ngerman", "ngermanb", 0};
+const char * const known_portuguese_languages[] = {"portuges", "portuguese", 0};
 const char * const known_russian_languages[] = {"russian", "russianb", 0};
 const char * const known_ukrainian_languages[] = {"ukrainian", "ukraineb", 0};
 
@@ -120,7 +123,8 @@ string h_paperfontsize           = "default";
 string h_spacing                 = "single";
 string h_papersize               = "default";
 string h_use_geometry            = "false";
-string h_use_amsmath             = "0";
+string h_use_amsmath             = "1";
+string h_use_esint               = "1";
 string h_cite_engine             = "basic";
 string h_use_bibtopic            = "false";
 string h_paperorientation        = "portrait";
@@ -256,8 +260,10 @@ void handle_package(Parser &p, string const & name, string const & opts,
 	string scale;
 
 	// roman fonts
-	if (is_known(name, known_roman_fonts))
+	if (is_known(name, known_roman_fonts)) {
 		h_font_roman = name;
+		p.skip_spaces();
+	}
 
 	if (name == "fourier") {
 		h_font_roman = "utopia";
@@ -265,6 +271,7 @@ void handle_package(Parser &p, string const & name, string const & opts,
 		if (opts == "expert")
 			h_font_sc = "true";
 	}
+
 	if (name == "mathpazo")
 		h_font_roman = "palatino";
 
@@ -279,6 +286,7 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			h_font_sf_scale = scale_as_percentage(scale);
 		}
 	}
+
 	// typewriter fonts
 	if (is_known(name, known_typewriter_fonts)) {
 		h_font_typewriter = name;
@@ -287,12 +295,16 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			h_font_tt_scale = scale_as_percentage(scale);
 		}
 	}
+
 	// font uses old-style figure
 	if (name == "eco")
 		h_font_osf = "true";
 
 	else if (name == "amsmath" || name == "amssymb")
 		h_use_amsmath = "2";
+
+	else if (name == "esint")
+		h_use_esint = "2";
 
 	else if (name == "babel" && !opts.empty()) {
 		// check if more than one option was used - used later for inputenc
@@ -309,12 +321,16 @@ void handle_package(Parser &p, string const & name, string const & opts,
 		if (documentclass_language == false) {
 			handle_opt(options, known_languages, h_language);
 			delete_opt(options, known_languages);
-			if (is_known(h_language, known_french_languages))
+			if (is_known(h_language, known_brazilian_languages))
+				h_language = "brazilian";
+			else if (is_known(h_language, known_french_languages))
 				h_language = "french";
 			else if (is_known(h_language, known_german_languages))
 				h_language = "german";
 			else if (is_known(h_language, known_ngerman_languages))
 				h_language = "ngerman";
+			else if (is_known(h_language, known_portuguese_languages))
+				h_language = "portuguese";
 			else if (is_known(h_language, known_russian_languages))
 				h_language = "russian";
 			else if (is_known(h_language, known_ukrainian_languages))
@@ -322,8 +338,9 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			h_quotes_language = h_language;
 		}
 	}
+
 	else if (name == "fontenc")
-		; // ignore this
+		 ;// ignore this
 
 	else if (name == "inputenc") {
 		// only set when there is not more than one inputenc
@@ -346,13 +363,29 @@ void handle_package(Parser &p, string const & name, string const & opts,
 	else if (name == "makeidx")
 		; // ignore this
 
-	else if (name == "verbatim")
+	else if (name == "prettyref")
 		; // ignore this
 
-	else if (name == "color")
+	else if (name == "varioref")
+		; // ignore this
+
+	else if (name == "verbatim")		
+		; // ignore this
+
+	else if (name == "nomencl")
+		; // ignore this
+
+	else if (name == "textcomp")
+		; // ignore this
+
+	else if (name == "url")
+		; // ignore this
+
+	else if (name == "color") {
 		// with the following command this package is only loaded when needed for
 		// undefined colors, since we only support the predefined colors
 		h_preamble << "\\@ifundefined{definecolor}\n {\\usepackage{color}}{}\n";
+	}
 
 	else if (name == "graphicx")
 		; // ignore this
@@ -365,12 +398,16 @@ void handle_package(Parser &p, string const & name, string const & opts,
 		  // command. This command is handled below.
 
 	else if (is_known(name, known_languages)) {
-		if (is_known(name, known_french_languages))
+		if (is_known(h_language, known_brazilian_languages))
+				h_language = "brazilian";
+		else if (is_known(name, known_french_languages))
 			h_language = "french";
 		else if (is_known(name, known_german_languages))
 			h_language = "german";
 		else if (is_known(name, known_ngerman_languages))
 			h_language = "ngerman";
+		else if (is_known(h_language, known_portuguese_languages))
+				h_language = "portuguese";
 		else if (is_known(name, known_russian_languages))
 			h_language = "russian";
 		else if (is_known(name, known_ukrainian_languages))
@@ -379,6 +416,7 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			h_language = name;
 		h_quotes_language = h_language;
 	}
+
 	else if (name == "natbib") {
 		h_cite_engine = "natbib_authoryear";
 		vector<string>::iterator it =
@@ -393,8 +431,10 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			}
 		}
 	}
+
 	else if (name == "jurabib")
 		h_cite_engine = "jurabib";
+
 	else if (!in_lyx_preamble) {
 		if (options.empty())
 			h_preamble << "\\usepackage{" << name << "}";
@@ -409,6 +449,9 @@ void handle_package(Parser &p, string const & name, string const & opts,
 	if (!options.empty())
 		cerr << "Ignoring options '" << join(options, ",")
 		     << "' of package " << name << '.' << endl;
+
+	// remove the whitespace
+	p.skip_spaces();
 }
 
 
@@ -416,7 +459,7 @@ void handle_package(Parser &p, string const & name, string const & opts,
 void end_preamble(ostream & os, TextClass const & /*textclass*/)
 {
 	os << "#LyX file created by tex2lyx " << PACKAGE_VERSION << "\n"
-	   << "\\lyxformat 249\n"
+	   << "\\lyxformat 264\n"
 	   << "\\begin_document\n"
 	   << "\\begin_header\n"
 	   << "\\textclass " << h_textclass << "\n";
@@ -440,6 +483,7 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 	   << "\\papersize " << h_papersize << "\n"
 	   << "\\use_geometry " << h_use_geometry << "\n"
 	   << "\\use_amsmath " << h_use_amsmath << "\n"
+	   << "\\use_esint " << h_use_esint << "\n"
 	   << "\\cite_engine " << h_cite_engine << "\n"
 	   << "\\use_bibtopic " << h_use_bibtopic << "\n"
 	   << "\\paperorientation " << h_paperorientation << "\n"
@@ -510,7 +554,6 @@ void parse_preamble(Parser & p, ostream & os,
 			h_preamble << t.asInput();
 
 		else if (t.cat() == catComment) {
-			// regex to parse comments
 			static regex const islyxfile("%% LyX .* created this file");
 			static regex const usercommands("User specified LaTeX commands");
 			
@@ -555,7 +598,10 @@ void parse_preamble(Parser & p, ostream & os,
 		}
 
 		else if (t.cs() == "newcommand" || t.cs() == "renewcommand"
-			    || t.cs() == "providecommand") {
+			    || t.cs() == "providecommand"
+				|| t.cs() == "DeclareRobustCommand"
+				|| t.cs() == "ProvideTextCommandDefault"
+				|| t.cs() == "DeclareMathAccent") {
 			bool star = false;
 			if (p.next_token().character() == '*') {
 				p.get_token();
@@ -569,15 +615,12 @@ void parse_preamble(Parser & p, ostream & os,
 			if (name == "\\rmdefault")
 				if (is_known(body, known_roman_fonts))
 					h_font_roman = body;
-
 			if (name == "\\sfdefault")
 				if (is_known(body, known_sans_fonts))
 					h_font_sans = body;
-
 			if (name == "\\ttdefault")
 				if (is_known(body, known_typewriter_fonts))
 					h_font_typewriter = body;
-
 			if (name == "\\familydefault") {
 				string family = body;
 				// remove leading "\"
@@ -616,12 +659,16 @@ void parse_preamble(Parser & p, ostream & os,
 			documentclass_language = false;
 			handle_opt(opts, known_languages, h_language);
 			delete_opt(opts, known_languages);
-			if (is_known(h_language, known_french_languages))
+			if (is_known(h_language, known_brazilian_languages))
+				h_language = "brazilian";
+			else if (is_known(h_language, known_french_languages))
 				h_language = "french";
 			else if (is_known(h_language, known_german_languages))
 				h_language = "german";
 			else if (is_known(h_language, known_ngerman_languages))
 				h_language = "ngerman";
+			else if (is_known(h_language, known_portuguese_languages))
+				h_language = "portuguese";
 			else if (is_known(h_language, known_russian_languages))
 				h_language = "russian";
 			else if (is_known(h_language, known_ukrainian_languages))
@@ -685,6 +732,7 @@ void parse_preamble(Parser & p, ostream & os,
 		else if (t.cs() == "newenvironment") {
 			string const name = p.getArg('{', '}');
 			ostringstream ss;
+			// only non LyX specific stuff is output
 			ss << "\\newenvironment{" << name << "}";
 			ss << p.getOpt();
 			ss << p.getOpt();
@@ -808,7 +856,12 @@ void parse_preamble(Parser & p, ostream & os,
 
 		else if (!t.cs().empty() && !in_lyx_preamble)
 			h_preamble << '\\' << t.cs();
+
+		// remove the whitespace
+		p.skip_spaces();
 	}
+
+	// remove the whitespace
 	p.skip_spaces();
 
 	// Force textclass if the user wanted it

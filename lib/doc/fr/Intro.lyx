@@ -1,4 +1,4 @@
-#LyX 1.6.3svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -808,7 +808,11 @@ pdf
 \begin_inset Quotes fld
 \end_inset
 
+
+\emph on
 device independent
+\emph default
+
 \begin_inset Foot
 status collapsed
 
@@ -945,7 +949,7 @@ classes: définitions d'un type de document, utilisant LaTeX\SpecialChar \@.
 \end_layout
 
 \begin_layout Description
-styles: modifications du comportement par défaut de LaTeX d'une façon donnée.
+styles: modifications du comportement implicite de LaTeX d'une façon donnée.
 \end_layout
 
 \begin_layout Description
@@ -2479,7 +2483,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://bugzilla.lyx.org/
+http://www.lyx.org/trac/wiki/BugTrackerHome
 \end_layout
 
 \end_inset
@@ -2616,19 +2620,10 @@ http://www.lyx.org/trac/browser/lyx-devel/trunk/lib/doc
 \end_inset
 
 
-\begin_inset Newline newline
-\end_inset
-
-Dans ce répertoire il existe un fichier appelé 
-\family typewriter
-DocStyle.lyx
-\family default
-.
- Lisez-le ; c'est la feuille de style de la documentation.
 \end_layout
 
 \begin_layout Enumerate
-Ensuite, lisez le 
+Lisez le 
 \shape italic
 Guide
 \begin_inset space ~

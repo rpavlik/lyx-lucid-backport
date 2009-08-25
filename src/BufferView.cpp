@@ -964,6 +964,7 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 
 	case LFUN_CHANGES_MERGE:
 	case LFUN_CHANGE_NEXT:
+	case LFUN_CHANGE_PREVIOUS:
 	case LFUN_ALL_CHANGES_ACCEPT:
 	case LFUN_ALL_CHANGES_REJECT:
 		// TODO: context-sensitive enabling of LFUNs
@@ -1210,9 +1211,15 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
 		processUpdateFlags(Update::Force | Update::FitCursor);
 		break;
+	
+	case LFUN_CHANGE_PREVIOUS:
+		findPreviousChange(this);
+		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
+		processUpdateFlags(Update::Force | Update::FitCursor);
+		break;
 
 	case LFUN_CHANGES_MERGE:
-		if (findNextChange(this)) {
+		if (findNextChange(this) || findPreviousChange(this)) {
 			processUpdateFlags(Update::Force | Update::FitCursor);
 			showDialog("changes");
 		}
@@ -1373,9 +1380,12 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		// turn compression on/off
 		buffer_.params().compressed = !buffer_.params().compressed;
 		break;
+
 	case LFUN_COPY_LABEL_AS_REF: {
 		// if there is an inset at cursor, try to copy it
-		Inset * inset = cur.nextInset();
+		Inset * inset = &cur.inset();
+		if (!inset || !inset->asInsetMath())
+			inset = cur.nextInset();
 		if (inset) {
 			FuncRequest tmpcmd = cmd;
 			inset->dispatch(cur, tmpcmd);
@@ -1387,6 +1397,7 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		processUpdateFlags(Update::SinglePar | Update::FitCursor);
 		break;
 	}
+
 	case LFUN_NEXT_INSET_TOGGLE: {
 		// create the the real function we want to invoke
 		FuncRequest tmpcmd = cmd;
@@ -1462,7 +1473,8 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		cur.reset(buffer_.inset());
 		updateMetrics();
 		buffer_.changed();
-		d->text_metrics_[&buffer_.text()].editXY(cur, p.x_, p.y_);
+		d->text_metrics_[&buffer_.text()].editXY(cur, p.x_, p.y_,
+			true, cmd.action == LFUN_SCREEN_UP); 
 		//FIXME: what to do with cur.x_target()?
 		bool update = false;
 		if (in_texted)
@@ -1956,7 +1968,9 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 	bool update = leftinset;
 	if (!do_selection && !badcursor && d->cursor_.inTexted())
 		update |= checkDepm(cur, d->cursor_);
+	d->cursor_.macroModeClose();
 
+	d->cursor_.resetAnchor();
 	d->cursor_.setCursor(cur);
 	d->cursor_.boundary(cur.boundary());
 	if (do_selection)

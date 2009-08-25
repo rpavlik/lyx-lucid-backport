@@ -298,8 +298,14 @@ bool InsetInclude::getStatus(Cursor & cur, FuncRequest const & cmd,
 	switch (cmd.action) {
 
 	case LFUN_INSET_EDIT:
-	case LFUN_INSET_MODIFY:
 		flag.setEnabled(true);
+		return true;
+
+	case LFUN_INSET_MODIFY:
+		if (cmd.getArg(0) == "changetype")
+			return InsetCommand::getStatus(cur, cmd, flag);
+		else
+			flag.setEnabled(true);
 		return true;
 
 	default:
@@ -497,7 +503,7 @@ int InsetInclude::latex(odocstream & os, OutputParams const & runparams) const
 				included_file.displayName(),
 				from_utf8(tmp->params().documentClass().name()),
 				from_utf8(masterBuffer->params().documentClass().name()));
-			Alert::warning(_("Different textclasses"), text);
+			Alert::warning(_("Different textclasses"), text, true);
 		}
 
 		// Make sure modules used in child are all included in master

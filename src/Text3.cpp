@@ -539,6 +539,26 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		cur.updateFlags(Update::FitCursor);
 		break;
 
+	case LFUN_INSET_BEGIN:
+	case LFUN_INSET_BEGIN_SELECT:
+		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_BEGIN_SELECT);
+		if (cur.depth() == 1 || cur.pos() > 0)
+			needsUpdate |= cursorTop(cur);
+		else
+			cur.undispatched();
+		cur.updateFlags(Update::FitCursor);
+		break;
+
+	case LFUN_INSET_END:
+	case LFUN_INSET_END_SELECT:
+		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_END_SELECT);
+		if (cur.depth() == 1 || cur.pos() < cur.lastpos())
+			needsUpdate |= cursorBottom(cur);
+		else
+			cur.undispatched();
+		cur.updateFlags(Update::FitCursor);
+		break;
+
 	case LFUN_CHAR_FORWARD:
 	case LFUN_CHAR_FORWARD_SELECT:
 		//LYXERR0(" LFUN_CHAR_FORWARD[SEL]:\n" << cur);
@@ -549,6 +569,19 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				&& cur.boundary() == oldBoundary) {
 			cur.undispatched();
 			cmd = FuncRequest(LFUN_FINISHED_FORWARD);
+		
+			// we will probably be moving out the inset, so we should execute
+			// the depm-mechanism, but only when the cursor has a place to 
+			// go outside this inset, i.e. in a slice above.
+			if (cur.depth() > 1 && cur.pos() == cur.lastpos() 
+				  && cur.pit() == cur.lastpit()) {
+				// The cursor hasn't changed yet. To give the 
+				// DEPM the possibility of doing something we must
+				// provide it with two different cursors.
+				Cursor dummy = cur;
+				dummy.pos() = dummy.pit() = 0;
+				cur.bv().checkDepm(dummy, cur);
+			}
 		}
 		break;
 
@@ -562,6 +595,19 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			&& cur.boundary() == oldBoundary) {
 			cur.undispatched();
 			cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
+
+			// we will probably be moving out the inset, so we should execute
+			// the depm-mechanism, but only when the cursor has a place to 
+			// go outside this inset, i.e. in a slice above.
+			if (cur.depth() > 1 && cur.pos() == 0 && cur.pit() == 0) {
+				// The cursor hasn't changed yet. To give the 
+				// DEPM the possibility of doing something we must
+				// provide it with two different cursors.
+				Cursor dummy = cur;
+				dummy.pos() = cur.lastpos();
+				dummy.pit() = cur.lastpit();
+				cur.bv().checkDepm(dummy, cur);
+			}
 		}
 		break;
 
@@ -1020,6 +1066,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				type = Clipboard::JpegGraphicsType;
 			else if (arg == "linkback")
 				type = Clipboard::LinkBackGraphicsType;
+			else if (arg == "emf")
+				type = Clipboard::EmfGraphicsType;
+			else if (arg == "wmf")
+				type = Clipboard::WmfGraphicsType;
+
 			else
 				LASSERT(false, /**/);
 
@@ -2172,11 +2223,14 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		}
 
 		// explicit graphics type?
-		if ((arg == "pdf" && theClipboard().hasGraphicsContents(Clipboard::PdfGraphicsType))
-		    || (arg == "png" && theClipboard().hasGraphicsContents(Clipboard::PngGraphicsType))
-		    || (arg == "jpeg" && theClipboard().hasGraphicsContents(Clipboard::JpegGraphicsType))
-		    || (arg == "linkback" && theClipboard().hasGraphicsContents(Clipboard::LinkBackGraphicsType))) {
-			enable = true;
+		Clipboard::GraphicsType type = Clipboard::AnyGraphicsType;
+		if ((arg == "pdf" && (type = Clipboard::PdfGraphicsType))
+			  || (arg == "png" && (type = Clipboard::PngGraphicsType))
+			  || (arg == "jpeg" && (type = Clipboard::JpegGraphicsType))
+			  || (arg == "linkback" &&  (type = Clipboard::LinkBackGraphicsType))
+			  || (arg == "emf" &&  (type = Clipboard::EmfGraphicsType))
+			  || (arg == "wmf" &&  (type = Clipboard::WmfGraphicsType))) {
+			enable = theClipboard().hasGraphicsContents(type);
 			break;
 		}
 
@@ -2354,10 +2408,14 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_PARAGRAPH_PARAMS_APPLY:
 	case LFUN_PARAGRAPH_PARAMS:
 	case LFUN_ESCAPE:
-	case LFUN_BUFFER_END:
 	case LFUN_BUFFER_BEGIN:
+	case LFUN_BUFFER_END:
 	case LFUN_BUFFER_BEGIN_SELECT:
 	case LFUN_BUFFER_END_SELECT:
+	case LFUN_INSET_BEGIN:
+	case LFUN_INSET_END:
+	case LFUN_INSET_BEGIN_SELECT:
+	case LFUN_INSET_END_SELECT:
 	case LFUN_UNICODE_INSERT:
 		// these are handled in our dispatch()
 		enable = true;

@@ -2081,7 +2081,7 @@ int Tabular::TeXLongtableHeaderFooter(odocstream & os,
 
 	int ret = 0;
 	// caption handling
-	// the caption must be output befrore the headers
+	// the caption must be output before the headers
 	if (haveLTCaption()) {
 		for (row_type i = 0; i < row_info.size(); ++i) {
 			if (row_info[i].caption) {
@@ -2256,7 +2256,13 @@ int Tabular::TeXRow(odocstream & os, row_type i,
 		}
 		++cell;
 	}
-	os << "\\tabularnewline";
+	if (row_info[i].caption && !endfirsthead.empty && !haveLTFirstHead())
+		// if no first header and no empty first header is used,
+		// the caption needs to be terminated by \endfirsthead
+		// (bug 6057)
+		os << "\\endfirsthead";
+	else
+		os << "\\tabularnewline";
 	if (row_info[i].bottom_space_default) {
 		if (use_booktabs)
 			os << "\\addlinespace";
@@ -3428,10 +3434,10 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 				&& cur.pos() == cur.lastpos())
 				|| (!next_cell && cur.pit() == 0 && cur.pos() == 0));
 
+			bool const empty_cell = cur.lastpos() == 0 && cur.lastpit() == 0;
+
 			// ...try to dispatch to the cell's inset.
 			cell(cur.idx())->dispatch(cur, cmd);
-
-			bool const empty_cell = cur.lastpos() == 0 && cur.lastpit() == 0;
 			
 			// When we already have a selection we want to select the whole cell
 			// before going to the next cell.
@@ -3604,8 +3610,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 				cur.recordUndoInset(DELETE_UNDO);
 				cutSelection(cur);
 			}
-		}
-		else
+		} else
 			cell(cur.idx())->dispatch(cur, cmd);
 		break;
 
@@ -3664,7 +3669,8 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_PASTE:
 		if (!tabularStackDirty()) {
-			cell(cur.idx())->dispatch(cur, cmd);
+			if (!cur.selIsMultiCell())
+				cell(cur.idx())->dispatch(cur, cmd);
 			break;
 		}
 		if (theClipboard().isInternal() ||
@@ -4004,15 +4010,22 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 		return true;
 
 	case LFUN_PASTE:
-		if (cur.selIsMultiCell()) {
-			status.setEnabled(false);
-			status.message(_("You cannot paste into a multicell selection."));
+		if (tabularStackDirty() && theClipboard().isInternal()) {
+			if (cur.selIsMultiCell()) {
+				row_type rs, re;
+				col_type cs, ce;
+				getSelection(cur, rs, re, cs, ce);
+				if (paste_tabular && paste_tabular->column_info.size() == ce - cs + 1
+					  && paste_tabular->row_info.size() == re - rs + 1)
+					status.setEnabled(true);	
+				else {
+					status.setEnabled(false);
+					status.message(_("Selection size should match clipboard content."));
+				}
+			} else
+				status.setEnabled(true);
 			return true;
 		}
-		if (tabularStackDirty() && theClipboard().isInternal()) {
-			status.setEnabled(true);
-			return true;
-		} 
 		return cell(cur.idx())->getStatus(cur, cmd, status);
 
 	case LFUN_INSET_MODIFY:
@@ -4844,8 +4857,15 @@ bool InsetTabular::pasteClipboard(Cursor & cur)
 {
 	if (!paste_tabular)
 		return false;
-	col_type const actcol = tabular.cellColumn(cur.idx());
-	row_type const actrow = tabular.cellRow(cur.idx());
+	col_type actcol = tabular.cellColumn(cur.idx());
+	row_type actrow = tabular.cellRow(cur.idx());
+
+	if (cur.selIsMultiCell()) {
+		row_type re;
+		col_type ce;
+		getSelection(cur, actrow, re, actcol, ce);
+	}
+
 	for (row_type r1 = 0, r2 = actrow;
 	     r1 < paste_tabular->row_info.size() && r2 < tabular.row_info.size();
 	     ++r1, ++r2) {
@@ -4853,7 +4873,7 @@ bool InsetTabular::pasteClipboard(Cursor & cur)
 		    c1 < paste_tabular->column_info.size() && c2 < tabular.column_info.size();
 		    ++c1, ++c2) {
 			if (paste_tabular->isPartOfMultiColumn(r1, c1) &&
-			    tabular.isPartOfMultiColumn(r2, c2))
+			      tabular.isPartOfMultiColumn(r2, c2))
 				continue;
 			if (paste_tabular->isPartOfMultiColumn(r1, c1)) {
 				--c2;
