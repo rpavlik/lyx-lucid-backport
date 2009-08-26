@@ -2,6 +2,7 @@ lyx (1.6.4-1) UNRELEASED; urgency=low
 
   * New upstream release.
     - Drop patches detect-elyxer, boost-mt (applied upstream).
+  * Bump Standards-Version to 3.8.3. No changes.
 
  -- Per Olofsson <pelle@debian.org>  Tue, 25 Aug 2009 23:27:49 +0200
 
