@@ -1,4 +1,4 @@
-lyx (1.6.4-1) UNRELEASED; urgency=low
+lyx (1.6.4-1) unstable; urgency=low
 
   * New upstream release.
     - Drop patches detect-elyxer, boost-mt (applied upstream).
@@ -6,7 +6,7 @@ lyx (1.6.4-1) UNRELEASED; urgency=low
   * Un-versioned build-dep on boost.
   * Un-versioned build-dep on python-support.
 
- -- Per Olofsson <pelle@debian.org>  Tue, 25 Aug 2009 23:27:49 +0200
+ -- Per Olofsson <pelle@debian.org>  Thu, 27 Aug 2009 14:58:40 +0200
 
 lyx (1.6.3-5) unstable; urgency=low
 
