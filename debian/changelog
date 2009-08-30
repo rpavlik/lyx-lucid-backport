@@ -1,6 +1,7 @@
 lyx (1.6.4-2) UNRELEASED; urgency=low
 
   * Modify build-dep on quilt so it accepts backported quilt as well.
+  * Remove "obvious" Suggests (lpr, www-browser).
 
  -- Per Olofsson <pelle@debian.org>  Sun, 30 Aug 2009 12:06:07 +0200
 
