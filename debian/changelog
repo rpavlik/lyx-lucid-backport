@@ -1,3 +1,9 @@
+lyx (1.6.4-2) UNRELEASED; urgency=low
+
+  * Modify build-dep on quilt so it accepts backported quilt as well.
+
+ -- Per Olofsson <pelle@debian.org>  Sun, 30 Aug 2009 12:06:07 +0200
+
 lyx (1.6.4-1) unstable; urgency=low
 
   * New upstream release.

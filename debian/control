@@ -8,7 +8,7 @@ Vcs-Git: git://git.debian.org/git/pkg-lyx/lyx.git
 Vcs-Browser: http://git.debian.org/?p=pkg-lyx/lyx.git
 Homepage: http://www.lyx.org/
 Build-Depends: libaiksaurus-dev, python-support,
- debhelper (>= 7.0.50), quilt (>= 0.46-7),
+ debhelper (>= 7.0.50), quilt (>> 0.46-6),
  libz-dev, libx11-dev, libaspell-dev,
  autotools-dev, libqt4-dev, libboost-dev,
  libboost-filesystem-dev, libboost-signals-dev,
