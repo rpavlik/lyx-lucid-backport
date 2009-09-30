@@ -1,5 +1,6 @@
 lyx (1.6.4-2) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * Modify build-dep on quilt so it accepts backported quilt as well.
   * Remove "obvious" Suggests (lpr, www-browser).
   * Remove conflicts and replaces, as they were only needed pre-lenny.
@@ -7,7 +8,10 @@ lyx (1.6.4-2) UNRELEASED; urgency=low
     on new installations. Otherwise installation might fail.
     Closes: #548119.
 
- -- Per Olofsson <pelle@debian.org>  Sun, 30 Aug 2009 12:06:07 +0200
+  [ Sven Hoexter ]
+  * Add elyxer to the list of HTML converters.
+
+ -- Sven Hoexter <hoexter@debian.org>  Wed, 30 Sep 2009 21:37:15 +0200
 
 lyx (1.6.4-1) unstable; urgency=low
 
