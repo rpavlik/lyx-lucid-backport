@@ -1,6 +1,6 @@
 Source: lyx
 Maintainer: Debian LyX Maintainers <pkg-lyx-devel@lists.alioth.debian.org>
-Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <sven@timegate.de>
+Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <hoexter@debian.org>
 Section: editors
 Priority: optional
 Standards-Version: 3.8.3
