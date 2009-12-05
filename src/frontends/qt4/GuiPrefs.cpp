@@ -937,11 +937,26 @@ void PrefColors::change_lyxObjects_selection()
 /////////////////////////////////////////////////////////////////////
 
 PrefDisplay::PrefDisplay(GuiPreferences * form)
-	: PrefModule(qt_(catLookAndFeel), qt_("Graphics"), form)
+	: PrefModule(qt_(catLookAndFeel), qt_("Display"), form)
 {
 	setupUi(this);
 	connect(displayGraphicsCB, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
 	connect(instantPreviewCO, SIGNAL(activated(int)), this, SIGNAL(changed()));
+	connect(previewSizeSB, SIGNAL(valueChanged(double)), this, SIGNAL(changed()));
+	if (instantPreviewCO->currentIndex() == 0)
+		previewSizeSB->setEnabled(false);
+	else
+		previewSizeSB->setEnabled(true);
+	connect(paragraphMarkerCB, SIGNAL(toggled(bool)), this, SIGNAL(changed())); 
+}
+
+
+void PrefDisplay::on_instantPreviewCO_currentIndexChanged(int index)
+{
+	if (index == 0)
+		previewSizeSB->setEnabled(false);
+	else
+		previewSizeSB->setEnabled(true);
 }
 
 
@@ -954,6 +969,8 @@ void PrefDisplay::apply(LyXRC & rc) const
 	}
 
 	rc.display_graphics = displayGraphicsCB->isChecked();
+	rc.preview_scale_factor = previewSizeSB->value();
+	rc.paragraph_markers = paragraphMarkerCB->isChecked();
 
 	// FIXME!! The graphics cache no longer has a changeDisplay method.
 #if 0
@@ -981,6 +998,8 @@ void PrefDisplay::update(LyXRC const & rc)
 
 	displayGraphicsCB->setChecked(rc.display_graphics);
 	instantPreviewCO->setEnabled(rc.display_graphics);
+	previewSizeSB->setValue(rc.preview_scale_factor);
+	paragraphMarkerCB->setChecked(rc.paragraph_markers);
 }
 
 
@@ -1958,6 +1977,11 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 		TextLabel1, SLOT(setEnabled(bool)));
 	connect(openDocumentsInTabsCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
+#if QT_VERSION < 0x040500
+	singleCloseTabButtonCB->setEnabled(false);
+#endif
+	connect(singleCloseTabButtonCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
 	connect(uiFilePB, SIGNAL(clicked()),
 		this, SLOT(select_ui()));
 	connect(uiFileED, SIGNAL(textChanged(QString)),
@@ -1971,6 +1995,8 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 	connect(autoSaveSB, SIGNAL(valueChanged(int)),
 		this, SIGNAL(changed()));
 	connect(autoSaveCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(backupCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(lastfilesSB, SIGNAL(valueChanged(int)),
 		this, SIGNAL(changed()));
@@ -1986,11 +2012,15 @@ void PrefUserInterface::apply(LyXRC & rc) const
 	rc.use_lastfilepos = restoreCursorCB->isChecked();
 	rc.load_session = loadSessionCB->isChecked();
 	rc.allow_geometry_session = allowGeometrySessionCB->isChecked();
-	rc.autosave = autoSaveSB->value() * 60;
-	rc.make_backup = autoSaveCB->isChecked();
+	rc.autosave = autoSaveCB->isChecked()?  autoSaveSB->value() * 60 : 0;
+	rc.make_backup = backupCB->isChecked();
 	rc.num_lastfiles = lastfilesSB->value();
 	rc.use_tooltip = tooltipCB->isChecked();
 	rc.open_buffers_in_tabs = openDocumentsInTabsCB->isChecked();
+	rc.single_close_tab_button = singleCloseTabButtonCB->isChecked();
+#if QT_VERSION < 0x040500
+	rc.single_close_tab_button = true;
+#endif
 }
 
 
@@ -2001,14 +2031,18 @@ void PrefUserInterface::update(LyXRC const & rc)
 	loadSessionCB->setChecked(rc.load_session);
 	allowGeometrySessionCB->setChecked(rc.allow_geometry_session);
 	// convert to minutes
-	int mins(rc.autosave / 60);
-	if (rc.autosave && !mins)
-		mins = 1;
+	bool autosave = rc.autosave > 0;
+	int mins = rc.autosave / 60;
+	if (!mins)
+		mins = 5;
 	autoSaveSB->setValue(mins);
-	autoSaveCB->setChecked(rc.make_backup);
+	autoSaveCB->setChecked(autosave);
+	autoSaveSB->setEnabled(autosave);
+	backupCB->setChecked(rc.make_backup);
 	lastfilesSB->setValue(rc.num_lastfiles);
 	tooltipCB->setChecked(rc.use_tooltip);
 	openDocumentsInTabsCB->setChecked(rc.open_buffers_in_tabs);
+	singleCloseTabButtonCB->setChecked(rc.single_close_tab_button);
 }
 
 

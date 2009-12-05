@@ -35,14 +35,16 @@ namespace lyx {
 /////////////////////////////////////////////////////////////////////
 
 
-InsetMathFracBase::InsetMathFracBase(idx_type ncells)
-	: InsetMathNest(ncells)
+InsetMathFracBase::InsetMathFracBase(Buffer * buf, idx_type ncells)
+	: InsetMathNest(buf, ncells)
 {}
 
 
 bool InsetMathFracBase::idxUpDown(Cursor & cur, bool up) const
 {
-	InsetMath::idx_type target = !up; // up ? 0 : 1, since upper cell has idx 0
+	// If we only have one cell, target = 0, otherwise
+	// target = up ? 0 : 1, since upper cell has idx 0
+	InsetMath::idx_type target = nargs() > 1 ? !up : 0;
 	if (cur.idx() == target)
 		return false;
 	cur.idx() = target;
@@ -59,8 +61,8 @@ bool InsetMathFracBase::idxUpDown(Cursor & cur, bool up) const
 /////////////////////////////////////////////////////////////////////
 
 
-InsetMathFrac::InsetMathFrac(Kind kind, InsetMath::idx_type ncells)
-	: InsetMathFracBase(ncells), kind_(kind)
+InsetMathFrac::InsetMathFrac(Buffer * buf, Kind kind, InsetMath::idx_type ncells)
+	: InsetMathFracBase(buf, ncells), kind_(kind)
 {}
 
 
@@ -499,8 +501,8 @@ void InsetMathTFrac::validate(LaTeXFeatures & features) const
 /////////////////////////////////////////////////////////////////////
 
 
-InsetMathBinom::InsetMathBinom(Kind kind)
-	: kind_(kind)
+InsetMathBinom::InsetMathBinom(Buffer * buf, Kind kind)
+	: InsetMathFracBase(buf), kind_(kind)
 {}
 
 

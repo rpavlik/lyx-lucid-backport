@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -3073,6 +3073,94 @@ reference "svglobal"
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsection
+Springer Monographs
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "textclass"
+arg   "svmono"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+ftp://ftp.springer.de/pub/tex/latex/svmonogl/
+\end_layout
+
+\begin_layout Description
+WWW: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.springeronline.com
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Notes: 
+\family sans
+svmono
+\family default
+ is for monographs published by Springer Verlag.
+ Please look at the template for the structure of the monograph.
+\end_layout
+
+\begin_layout Subsection
+Springer Contributed Books
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "textclass"
+arg   "svmult"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+ftp://ftp.springer.de/pub/tex/latex/svmultgl/
+\end_layout
+
+\begin_layout Description
+WWW: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.springeronline.com
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Notes: 
+\family sans
+svmult
+\family default
+ is for contributed books published by Springer Verlag.
+ Please look at the templates for the structure of the book.
 \end_layout
 
 \begin_layout Subsection

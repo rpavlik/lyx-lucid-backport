@@ -240,6 +240,10 @@ private:
 
 	///
 	GuiCompleter * completer_;
+	/// store the position of the rightclick when the mouse is
+	/// pressed. This is used to get the correct context menu 
+	/// when the menu is actually shown (after releasing on Windwos).
+	QPoint context_target_pos_;
 }; // GuiWorkArea
 
 
@@ -285,10 +289,8 @@ private Q_SLOTS:
 private:
 	///
 	int clicked_tab_;
-#if QT_VERSION < 0x040500
 	///
 	QToolButton * closeBufferButton;
-#endif
 }; // TabWorkArea
 
 

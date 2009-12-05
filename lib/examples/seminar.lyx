@@ -1,4 +1,4 @@
-#LyX 1.6.1svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -79,9 +79,9 @@ seminar
  class is designed to produce transparencies, not powerpoint-like presentations.
  For such presentations, use a presentation document class like
 \family sans
- beame
+ beamer
 \family default
-r or
+ or
 \family sans
  powerdot
 \family default
@@ -673,22 +673,19 @@ Paper
 Size
 \family default
  to 
-\family sans
-Default
-\family default
-, add 
 \begin_inset Quotes eld
 \end_inset
 
 
 \family sans
-a4
+A4
 \family default
 
 \begin_inset Quotes erd
 \end_inset
 
-, and delete the option 
+ (unless it is the default layout of your LaTeX distribution), and delete
+ the option 
 \begin_inset Quotes eld
 \end_inset
 
@@ -700,7 +697,7 @@ a4paper
 \begin_inset Quotes erd
 \end_inset
 
- if necessary, in the 
+ if necessary in the 
 \family sans
 Options
 \family default

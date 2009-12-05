@@ -247,6 +247,18 @@ def checkLatex(dtl_tools):
     return ''
 
 
+def checkModule(module):
+    ''' Check for a Python module, return the status '''
+    print 'checking for "' + module + ' module"... '
+    try:
+      __import__(module)
+      print "yes"
+      return True
+    except ImportError:
+      print "no"
+      return False
+
+
 def checkFormatEntries(dtl_tools):  
     ''' Check all formats (\Format entries) '''
     checkViewer('a Tgif viewer and editor', ['tgif'],
@@ -388,10 +400,17 @@ def checkConverterEntries():
     #
     checkProg('an MS Word -> LaTeX converter', ['wvCleanLatex $$i $$o'],
         rc_entry = [ r'\converter word       latex      "%%"	""' ])
-    #
-    path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py --directory $$r $$i $$o','elyxer --directory $$r $$i $$o'],
-      rc_entry = [ r'\converter lyx      html       "%%"	""' ])
-    if elyxer.find('elyxer') >= 0:
+    # eLyXer: search as a Python module and then as an executable (elyxer.py, elyxer)
+    elyxerfound = checkModule('elyxer')
+    if elyxerfound:
+      addToRC(r'''\converter lyx      html       "python -m elyxer --directory $$r $$i $$o"	""''')
+    else:
+      path, elyxer = checkProg('a LyX -> HTML converter', ['elyxer.py --directory $$r $$i $$o', 'elyxer --directory $$r $$i $$o'],
+        rc_entry = [ r'\converter lyx      html       "%%"	""' ])
+      if elyxer.find('elyxer') >= 0:
+        elyxerfound = True
+
+    if elyxerfound:
       addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,jpg,jpeg,css $$i $$o"''')
     else:
       # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
@@ -603,7 +622,7 @@ def checkOtherEntries():
         rc_entry = [ r'\jbibtex_command "%%"' ])
     checkProg('an index processor', ['texindy', 'makeindex -c -q'],
         rc_entry = [ r'\index_command "%%"' ])
-    checkProg('an index processor appropriate to Japanese', ['mendex -c -q', 'makeindex -c -q'],
+    checkProg('an index processor appropriate to Japanese', ['mendex -c -q', 'jmakeindex -c -q', 'makeindex -c -q'],
         rc_entry = [ r'\jindex_command "%%"' ])
     checkProg('a nomenclature processor', ['makeindex'],
         rc_entry = [ r'\nomencl_command "makeindex -s nomencl.ist"' ])

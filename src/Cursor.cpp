@@ -1275,9 +1275,9 @@ void Cursor::insert(Inset * inset0)
 
 void Cursor::niceInsert(docstring const & t, Parse::flags f)
 {
-	MathData ar;
+	MathData ar(&buffer());
 	asArray(t, ar, f);
-	if (ar.size() == 1)
+	if (ar.size() == 1 && selection())
 		niceInsert(ar[0]);
 	else
 		insert(ar);
@@ -1288,15 +1288,16 @@ void Cursor::niceInsert(MathAtom const & t)
 {
 	macroModeClose();
 	docstring const safe = cap::grabAndEraseSelection(*this);
+	// Enter the new inset and, if something is selected,
+	// move the contents of the selection if possible.
 	plainInsert(t);
-	// enter the new inset and move the contents of the selection if possible
-	if (t->isActive()) {
+	if (!safe.empty() && t->isActive()) {
 		posBackward();
 		// be careful here: don't use 'pushBackward(t)' as this we need to
 		// push the clone, not the original
 		pushBackward(*nextInset());
 		// We may not use niceInsert here (recursion)
-		MathData ar;
+		MathData ar(&buffer());
 		asArray(safe, ar);
 		insert(ar);
 	}
@@ -1447,7 +1448,7 @@ bool Cursor::macroModeClose()
 		return false;
 	InsetMathUnknown * p = activeMacro();
 	p->finalize();
-	MathData selection;
+	MathData selection(&buffer());
 	asArray(p->selection(), selection);
 	docstring const s = p->name();
 	--pos();
@@ -1465,7 +1466,8 @@ bool Cursor::macroModeClose()
 	InsetMathNest * const in = inset().asInsetMath()->asNestInset();
 	if (in && in->interpretString(*this, s))
 		return true;
-	MathAtom atom = createInsetMath(name);
+	MathAtom atom = buffer().getMacro(name, *this, false) ?
+		MathAtom(new MathMacro(&buffer(), name)) : createInsetMath(name, &buffer());
 
 	// try to put argument into macro, if we just inserted a macro
 	bool macroArg = false;
@@ -1491,7 +1493,7 @@ bool Cursor::macroModeClose()
 
 	// finally put the macro argument behind, if needed
 	if (macroArg) {
-		if (selection.size() > 1)
+		if (selection.size() > 1 || selection[0]->asScriptInset())
 			plainInsert(MathAtom(new InsetMathBrace(selection)));
 		else
 			insert(selection);
@@ -1859,31 +1861,50 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 			operator=(dummy);
 		}
 	} else {
-		// if there is a selection, we stay out of any inset, and just jump to the right position:
+		// if there is a selection, we stay out of any inset,
+		// and just jump to the right position:
 		Cursor old = *this;
+		int next_row = row;
+		bool update = false;
 		if (up) {
 			if (row > 0) {
-				top().pos() = min(tm.x2pos(pit(), row - 1, xo), top().lastpos());
+				--next_row;
+				update = true;
 			} else if (pit() > 0) {
 				--pit();
 				TextMetrics & tm = bv_->textMetrics(text());
 				if (!tm.contains(pit()))
 					tm.newParMetricsUp();
 				ParagraphMetrics const & pmcur = tm.parMetrics(pit());
-				top().pos() = min(tm.x2pos(pit(), pmcur.rows().size() - 1, xo), top().lastpos());
+				next_row = pmcur.rows().size() - 1;
+				update = true;
 			}
 		} else {
 			if (row + 1 < int(pm.rows().size())) {
-				top().pos() = min(tm.x2pos(pit(), row + 1, xo), top().lastpos());
+				++next_row;
+				update = true;
 			} else if (pit() + 1 < int(text()->paragraphs().size())) {
 				++pit();
 				TextMetrics & tm = bv_->textMetrics(text());
 				if (!tm.contains(pit()))
 					tm.newParMetricsDown();
-				top().pos() = min(tm.x2pos(pit(), 0, xo), top().lastpos());
+				next_row = 0;
+				update = true;
 			}
 		}
+		if (update) {
+			top().pos() = min(tm.x2pos(pit(), next_row, xo), top().lastpos());
 
+			int const xpos = tm.x2pos(pit(), next_row, xo);
+			bool const at_end_row = xpos == tm.x2pos(pit(), next_row, tm.width());
+			bool const at_beg_row = xpos == tm.x2pos(pit(), next_row, 0);
+
+			if (at_end_row && at_beg_row)
+				// make sure the cursor ends up on this row
+				boundary(false);
+			else
+				boundary(at_end_row);
+		}
 		updateNeeded |= bv().checkDepm(*this, old);
 	}
 
@@ -1914,8 +1935,8 @@ void Cursor::handleFont(string const & font)
 		} else {
 			// cursor in between. split cell
 			MathData::iterator bt = cell().begin();
-			MathAtom at = createInsetMath(from_utf8(font));
-			at.nucleus()->cell(0) = MathData(bt, bt + pos());
+			MathAtom at = createInsetMath(from_utf8(font), &buffer());
+			at.nucleus()->cell(0) = MathData(&buffer(), bt, bt + pos());
 			cell().erase(bt, bt + pos());
 			popBackward();
 			plainInsert(at);

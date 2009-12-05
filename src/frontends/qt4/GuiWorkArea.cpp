@@ -239,7 +239,8 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	: buffer_view_(new BufferView(buffer)), lyx_view_(&lv),
 	cursor_visible_(false),
 	need_resize_(false), schedule_redraw_(false),
-	preedit_lines_(1), completer_(new GuiCompleter(this))
+	preedit_lines_(1), completer_(new GuiCompleter(this)),
+	context_target_pos_()
 {
 	buffer.workAreaManager().add(this);
 	// Setup the signals
@@ -629,7 +630,25 @@ bool GuiWorkArea::event(QEvent * e)
 
 void GuiWorkArea::contextMenuEvent(QContextMenuEvent * e)
 {
-	QPoint pos = e->pos();
+	QPoint pos;
+	if (e->reason() == QContextMenuEvent::Mouse)
+		// the position is set on mouse press
+		pos = context_target_pos_;
+	else
+		pos = e->pos();
+	Cursor const & cur = buffer_view_->cursor();
+	if (e->reason() == QContextMenuEvent::Keyboard && cur.inTexted()) {
+		// Do not access the context menu of math right in front of before
+		// the cursor. This does not work when the cursor is in text.
+		Inset * inset = cur.paragraph().getInset(cur.pos());
+		if (inset && inset->asInsetMath())
+			--pos.rx();
+		else if (cur.pos() > 0) {
+			Inset * inset = cur.paragraph().getInset(cur.pos() - 1);
+			if (inset)
+				++pos.rx();
+		}
+	}
 	docstring name = buffer_view_->contextMenu(pos.x(), pos.y());
 	if (name.empty()) {
 		QAbstractScrollArea::contextMenuEvent(e);
@@ -674,6 +693,9 @@ void GuiWorkArea::mousePressEvent(QMouseEvent * e)
 		e->accept();
 		return;
 	}
+
+	if (e->button() == Qt::RightButton)
+		context_target_pos_ = e->pos();
 
 	inputContext()->reset();
 
@@ -1088,7 +1110,8 @@ QVariant GuiWorkArea::inputMethodQuery(Qt::InputMethodQuery query) const
 			cur_r = cursor_->rect();
 			if (preedit_lines_ != 1)
 				cur_r.moveLeft(10);
-			cur_r.moveBottom(cur_r.bottom() + cur_r.height() * preedit_lines_);
+			cur_r.moveBottom(cur_r.bottom()
+				+ cur_r.height() * (preedit_lines_ - 1));
 			// return lower right of cursor in LyX.
 			return cur_r;
 		default:
@@ -1186,6 +1209,9 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 #ifdef Q_WS_MACX
 	setStyle(&noTabFrameMacStyle);
 #endif
+#if QT_VERSION < 0x040500
+	lyxrc.single_close_tab_button = true;
+#endif
 
 	QPalette pal = palette();
 	pal.setColor(QPalette::Active, QPalette::Button,
@@ -1198,7 +1224,6 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 	QObject::connect(this, SIGNAL(currentChanged(int)),
 		this, SLOT(on_currentTabChanged(int)));
 
-#if QT_VERSION < 0x040500
 	closeBufferButton = new QToolButton(this);
 	closeBufferButton->setPalette(pal);
 	// FIXME: rename the icon to closebuffer.png
@@ -1211,7 +1236,6 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 	QObject::connect(closeBufferButton, SIGNAL(clicked()),
 		this, SLOT(closeCurrentBuffer()));
 	setCornerWidget(closeBufferButton, Qt::TopRightCorner);
-#endif
 
 	// setup drag'n'drop
 	QTabBar* tb = new DragTabBar;
@@ -1249,8 +1273,9 @@ void TabWorkArea::showBar(bool show)
 {
 	tabBar()->setEnabled(show);
 	tabBar()->setVisible(show);
-#if QT_VERSION < 0x040500
-	closeBufferButton->setVisible(show);	
+	closeBufferButton->setVisible(show && lyxrc.single_close_tab_button);
+#if QT_VERSION >= 0x040500
+	setTabsClosable(!lyxrc.single_close_tab_button);
 #endif
 }
 
@@ -1641,7 +1666,7 @@ DragTabBar::DragTabBar(QWidget* parent)
 {
 	setAcceptDrops(true);
 #if QT_VERSION >= 0x040500
-	setTabsClosable(true);
+	setTabsClosable(!lyxrc.single_close_tab_button);
 #endif
 }
 

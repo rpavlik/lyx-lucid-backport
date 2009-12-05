@@ -397,22 +397,7 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 	//lyxerr << "LyXFunc::getStatus: cmd: " << cmd << endl;
 	FuncStatus flag;
 
-	/* In LyX/Mac, when a dialog is open, the menus of the
-	   application can still be accessed without giving focus to
-	   the main window. In this case, we want to disable the menu
-	   entries that are buffer or view-related.
-
-	   If this code is moved somewhere else (like in
-	   GuiView::getStatus), then several functions will not be
-	   handled correctly.
-	*/
-	frontend::LyXView * lv = 0;
-	Buffer * buf = 0;
-	if (lyx_view_ 
-	    && (cmd.origin != FuncRequest::MENU || lyx_view_->hasFocus())) {
-		lv = lyx_view_;
-		buf = lyx_view_->buffer();
-	}
+	Buffer * buf = lyx_view_ ? lyx_view_->buffer() : 0;
 
 	if (cmd.action == LFUN_NOACTION) {
 		flag.message(from_utf8(N_("Nothing to do")));
@@ -597,6 +582,10 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 		break;
 	}
 
+	case LFUN_VC_REPO_UPDATE:
+		enable = buf->lyxvc().inUse();
+		break;
+
 	case LFUN_VC_COMMAND: {
 		if (cmd.argument().empty())
 			enable = false;
@@ -663,11 +652,11 @@ FuncStatus LyXFunc::getStatus(FuncRequest const & cmd) const
 			break;
 
 		// Does the view know something?
-		if (!lv) {
+		if (!lyx_view_) {
 			enable = false;
 			break;
 		}
-		if (lv->getStatus(cmd, flag))
+		if (lyx_view_->getStatus(cmd, flag))
 			break;
 
 		// If we have a BufferView, try cursor position and
@@ -1183,6 +1172,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			int row;
 			istringstream is(argument);
 			is >> file_name >> row;
+			file_name = os::internal_path(file_name);
 			Buffer * buf = 0;
 			bool loaded = false;
 			string const abstmp = package().temp_dir().absFilename();
@@ -1670,6 +1660,15 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			theSession().bookmarks().clear();
 			break;
 
+		case LFUN_VC_REPO_UPDATE:
+			LASSERT(lyx_view_ && buffer, /**/);
+			if (ensureBufferClean(view())) {
+				string res = buffer->lyxvc().repoUpdate();
+				setMessage(from_utf8(res));
+				reloadBuffer();
+			}
+			break;
+
 		case LFUN_VC_COMMAND: {
 			string flag = cmd.getArg(0);
 			if (buffer && contains(flag, 'R') && !ensureBufferClean(view()))
@@ -1858,6 +1857,8 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 void LyXFunc::reloadBuffer()
 {
 	FileName filename = lyx_view_->buffer()->fileName();
+	Buffer const * master = lyx_view_->buffer()->masterBuffer();
+	bool const is_child = master != lyx_view_->buffer();
 	// The user has already confirmed that the changes, if any, should
 	// be discarded. So we just release the Buffer and don't call closeBuffer();
 	theBufferList().release(lyx_view_->buffer());
@@ -1868,6 +1869,10 @@ void LyXFunc::reloadBuffer()
 	docstring const disp_fn = makeDisplayPath(filename.absFilename());
 	docstring str;
 	if (buf) {
+		// re-allocate master if necessary
+		if (is_child && theBufferList().isLoaded(master)
+		    && buf->masterBuffer() != master)
+			buf->setParent(master);
 		updateLabels(*buf);
 		lyx_view_->setBuffer(buf);
 		buf->errors("Parse");
@@ -2028,6 +2033,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_MARK_FOREIGN_LANGUAGE:
 	case LyXRC::RC_MOUSE_WHEEL_SPEED:
 	case LyXRC::RC_NUMLASTFILES:
+	case LyXRC::RC_PARAGRAPH_MARKERS:
 	case LyXRC::RC_PATH_PREFIX:
 		if (lyxrc_orig.path_prefix != lyxrc_new.path_prefix) {
 			prependEnvPath("PATH", lyxrc.path_prefix);
@@ -2092,6 +2098,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_USE_SPELL_LIB:
 	case LyXRC::RC_VIEWDVI_PAPEROPTION:
 	case LyXRC::RC_SORT_LAYOUTS:
+	case LyXRC::RC_SINGLE_CLOSE_TAB_BUTTON:
 	case LyXRC::RC_FULL_SCREEN_LIMIT:
 	case LyXRC::RC_FULL_SCREEN_SCROLLBAR:
 	case LyXRC::RC_FULL_SCREEN_TABBAR:

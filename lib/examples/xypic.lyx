@@ -1,11 +1,10 @@
-#LyX 1.6.2svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
 \textclass scrartcl
 \begin_preamble
 \usepackage[all]{xy}
-
 
 % define new commands used in sec. 5.1
 \newcommand{\xyR}[1]{
@@ -83,7 +82,7 @@
 \begin_layout Title
 Using 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -111,7 +110,7 @@ preview
 \family typewriter
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -124,7 +123,7 @@ Xy
 
 
 \family default
--Pic can be conveniently used inside LyX.
+-pic can be conveniently used inside LyX.
  Diagrams can be edited and displayed inside the main LyX editing window.
  Here, we shall describe how to use the 
 \family typewriter
@@ -193,7 +192,7 @@ xypic
 \align center
 \begin_inset Graphics
 	filename xyfigure.png
-	scale 50
+	width 75col%
 	BoundingBox 0bp 0bp 580bp 440bp
 	clip
 
@@ -212,7 +211,7 @@ xypic
 \begin_layout Standard
 In this note, we describe how 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -237,7 +236,7 @@ XP and under Windows Vista.
 There are two modes of operations: For a start, and for some first tests,
  it may be easiest to first enter the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -248,7 +247,7 @@ Xy
 
 \end_inset
 
--Pic code inside the LyX-window, select it all and convert it to a graphical
+-pic code inside the LyX-window, select it all and convert it to a graphical
  representation by pressing 
 \family sans
 Ctrl-m
@@ -260,7 +259,7 @@ Ctrl-M
 .
  If you use 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -271,7 +270,7 @@ Xy
 
 \end_inset
 
--Pic more frequently, or if you want to modify your initial figure, you
+-pic more frequently, or if you want to modify your initial figure, you
  will want to assemble and modify your figures using LyX's math editor.
  
 \end_layout
@@ -288,7 +287,7 @@ Once the cursor is moved over a diagram, this is displayed as an array of
 In the first two sections of this documentation, we explain how to use LyX
  in the first mentioned mode and we introduce all 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -299,7 +298,7 @@ Xy
 
 \end_inset
 
--Pic features that might be of use for drawing commutative diagrams, graphs
+-pic features that might be of use for drawing commutative diagrams, graphs
  or automata.
  Section 
 \begin_inset CommandInset ref
@@ -310,7 +309,7 @@ reference "sec:math-editor"
 
  explains how to use the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -321,14 +320,14 @@ Xy
 
 \end_inset
 
--Pic commands inside a math-editing area.
+-pic commands inside a math-editing area.
  
 \end_layout
 
 \begin_layout Standard
 It is not our intention to write another introduction to 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -339,10 +338,10 @@ Xy
 
 \end_inset
 
--Pic, rather our motivation is to give an introduction how the most important
+-pic, rather our motivation is to give an introduction how the most important
  commands work inside LyX, since the keystrokes as explained in the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -353,7 +352,7 @@ Xy
 
 \end_inset
 
--Pic manual
+-pic manual
 \begin_inset CommandInset citation
 LatexCommand cite
 key "xypic manual"
@@ -396,7 +395,7 @@ key "xypic"
 .
  After freshly installing them, it may be necessary, to run 
 \family sans
-Edit\SpecialChar \menuseparator
+Tools\SpecialChar \menuseparator
 Reconfigure
 \family default
  from the main LyX menu.
@@ -413,17 +412,38 @@ preview
 \begin_layout Enumerate
 Open LyX, choose 
 \family sans
-Edit\SpecialChar \menuseparator
+Tools\SpecialChar \menuseparator
 Preferences\SpecialChar \menuseparator
 Look and Feel\SpecialChar \menuseparator
-Graphics
+Display
 \family default
- and place a check-mark at 
+ and turn 
 \emph on
 Instant Preview
 \emph default
+ on.
+\end_layout
+
+\begin_layout Enumerate
+In 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Math
+\begin_inset space ~
+\end_inset
+
+Options
+\family default
+, uncheck 
+\emph on
+Use AMS Math package automatically
+\emph default
+ and check 
+\emph on
+Use AMS Math package
+\emph default
 .
- 
 \end_layout
 
 \begin_layout Enumerate
@@ -454,7 +474,7 @@ Move the cursor out of the formula, and watch it change its appearance to
 \begin_layout Enumerate
 Activate and test 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -465,7 +485,7 @@ Xy
 
 \end_inset
 
--Pic
+-pic
 \family typewriter
 :
 \end_layout
@@ -510,14 +530,17 @@ $
 \end_inset
 
 .
- Commutative diagrams
 \end_layout
 
 \end_deeper
+\begin_layout Section
+Commutative diagrams
+\end_layout
+
 \begin_layout Standard
 The following diagram, which is taken from the documentation of 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -528,7 +551,7 @@ Xy
 
 \end_inset
 
--Pic
+-pic
 \begin_inset CommandInset citation
 LatexCommand cite
 key "xypic manual"
@@ -903,7 +926,7 @@ beta
 \begin_inset Formula $\beta$
 \end_inset
 
- above the arrow, i.
+ above the arrow, e.
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -1002,7 +1025,7 @@ ar[r]^g & Z }
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -1042,7 +1065,7 @@ For labels placed to the left or to the right of the arrow this does not
  work.
  The corresponding 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -1762,7 +1785,7 @@ newdir
 \family typewriter
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -1902,7 +1925,7 @@ Math
  
 \family sans
 \SpecialChar \menuseparator
-Alignment.
+Change Formula Type.
 \end_layout
 
 \begin_layout Subsection
@@ -2114,7 +2137,7 @@ Framing objects
 \begin_layout Standard
 With 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2125,7 +2148,7 @@ Xy
 
 \end_inset
 
--Pic, entries can obtain a single or a double frame, such as 
+-pic, entries can obtain a single or a double frame, such as 
 \begin_inset Formula $\xymatrix{*+[F]{A}}
 $
 \end_inset
@@ -2238,7 +2261,7 @@ entrymodifiers={++[o][F-]}
 \family default
 , all following entries inside 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2421,7 +2444,7 @@ Recall that in LyX's math-editor any pair of braces
  to the parameter is entered.
  In connection with 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2510,7 +2533,7 @@ xymatrix
 
 1- 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2549,7 +2572,11 @@ Alt-m c
 Alt-m w
 \family default
  for the row commands.
- 
+ A more direct way uses the icons in the math toolbar once it has been activated
+ via 
+\family sans
+View\SpecialChar \menuseparator
+Toolbars.
 \end_layout
 
 \begin_layout Subsection
@@ -2743,19 +2770,20 @@ lly convert it into graphical output.
 \end_layout
 
 \begin_layout Standard
-A more serious reason could be a syntactical error in your input.
- If necessary, redo the last editing steps, using 
-\emph on
+A more serious reason could be a syntactical error in your input (in that
+ case, the math edition area disappears completely).
+ If necessary, undo the last editing steps, using 
+\family sans
 Ctrl+Z
-\emph default
+\family default
 , or try to translate the LyX-file into 
-\emph on
+\family sans
 DVI
-\emph default
+\family default
  using 
-\emph on
+\family sans
 Ctrl+D
-\emph default
+\family default
  or 
 \family sans
 View\SpecialChar \menuseparator
@@ -2787,7 +2815,7 @@ It is often convenient to stretch the horizontal or the vertical dimensions
  of an entire diagram by using spacing commands for rows and/or columns.
  According to the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2811,7 +2839,7 @@ xymatrix@R=1pc{
 \family default
  defines an 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2843,7 +2871,7 @@ xymatrix@C=
  Unfortunately, these commands do currently not work inside LyX, as the
  @-character is interpreted by LyX as ending the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2861,7 +2889,7 @@ Xy
 \begin_layout Standard
 Knowing that 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -2945,7 +2973,7 @@ xymatrixcolsep@
 \backslash
 xyR{...} into the 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3013,7 +3041,7 @@ Label positioning
 \begin_layout Standard
 Another useful 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3030,7 +3058,7 @@ Xy
  items, such as the intersection of the arrows in the figure below.
  In order to shift a label position alongside the shaft of an arrow, 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3245,7 +3273,7 @@ Further
 \family typewriter
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3272,7 +3300,7 @@ xymatrix
 \family typewriter
  
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3290,7 +3318,7 @@ Xy
 \family typewriter
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3303,7 +3331,7 @@ Xy
 
 
 \family default
--Pic manual 
+-pic manual 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "xypic manual"
@@ -3322,7 +3350,7 @@ key "Lauda"
 
  explains how to use 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3338,7 +3366,7 @@ Xy
 \family typewriter
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3375,7 +3403,7 @@ key "xypic manual"
 Kristoffer H.
  Rose: 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3388,7 +3416,7 @@ Xy
 
 
 \emph on
--Pic User's Guide
+-pic User's Guide
 \emph default
 .
  Version 3.7, Feb.
@@ -3477,7 +3505,7 @@ key "Lauda"
 
 Aarlon Lauda: 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3490,7 +3518,7 @@ Xy
 
 
 \emph on
--Pic
+-pic
 \emph default
  
 \emph on
@@ -3520,7 +3548,7 @@ key "Ouvaton"
 
 Filipp Ouvaton: 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -3533,7 +3561,7 @@ Xy
 
 
 \emph on
--Pic
+-pic
 \emph default
 : 
 \emph on

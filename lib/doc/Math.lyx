@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -82,6 +82,9 @@
 % needed in sec. 19.4
 \usepackage{remreset}
 
+% for the Fourier transformation symbol
+\usepackage{mathrsfs}
+
 % center multirows (e.g. in sec. 13.3)
 \renewcommand{\multirowsetup}{\centering}
 
@@ -125,15 +128,14 @@
   \setboolean{eurosym}{true}}
  {\setboolean{eurosym}{false}}
 
-% needed in sec. 22.4
 % check for package braket
+% used for physical vectors
 \newboolean{braket}
 \IfFileExists{braket.sty}
  {\usepackage{braket}
   \setboolean{braket}{true}}
  {\setboolean{braket}{false}}
 
-% needed in sec. 22.10
 % check for package upgreek
 \newboolean{upgreek}
 \IfFileExists{upgreek.sty}
@@ -33986,109 +33988,11 @@ Eating From The Right
 
 \begin_layout Section
 Tips
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-texorpdfstring{
-\end_layout
-
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Other useful math tips can be found in 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Voss"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}{}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-
-\backslash
-texorpdfstring is used to avoid that the footnote appears in the PDF-bookmark.
-\end_layout
-
-\begin_layout Plain Layout
-More about 
-\backslash
-texorpdfstring is in section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Formulas-in-Section"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
 Tips
-\end_layout
-
-\end_inset
-
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Ions|see
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\end_inset
-
-Chemical characters
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -36030,7 +35934,7 @@ The following table will only be displayed when the LaTeX-package
 \series bold
 upgreek
 \series default
- is installed.
+ is installed:
 \end_layout
 
 \end_inset
@@ -36455,14 +36359,19 @@ cm the multiplication sign
 \end_inset
 
  is used.
- It is available via the menu 
+ It is available either via the command 
+\series bold
+
+\backslash
+times
+\series default
+ or via the menu 
 \family sans
 Insert\SpecialChar \menuseparator
 Special Character\SpecialChar \menuseparator
 Symbols
 \family default
 .
- With some keyboard definitions it can also be inserted directly.
 \end_layout
 
 \begin_layout Itemize
@@ -36497,6 +36406,92 @@ Components of matrices are set italic:
 The differentiation/integration operator 'd', the Euler's number 'e', and
  the imaginary unit 'i' should be set upright, to avoid mixing them up with
  other variables.
+\end_layout
+
+\begin_layout Itemize
+The character that denotes a 
+\noun on
+Fourier
+\noun default
+ transformation is inserted either by the command 
+\series bold
+
+\backslash
+mathscr
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+spce 
+\end_layout
+
+\end_inset
+
+
+\backslash
+{F
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Commands ! M ! 
+\backslash
+mathscr
+\end_layout
+
+\end_inset
+
+ or via the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Special Character\SpecialChar \menuseparator
+Symbols\SpecialChar \menuseparator
+Letterlike
+\begin_inset space ~
+\end_inset
+
+Symbols
+\family default
+: 
+\begin_inset Formula $\mathscr{F}$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+To be able to use the command 
+\series bold
+
+\backslash
+mathscr
+\series default
+, the LaTeX package 
+\series bold
+mathrsfs
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Packages ! mathrsfs
+\end_layout
+
+\end_inset
+
+ needs to be loaded with the LaTeX-preamble line 
+\series bold
+
+\backslash
+usepackage{mathrsfs}
+\series default
+.
 \end_layout
 
 \begin_layout Standard
@@ -37202,24 +37197,6 @@ target "ftp://ftp.dante.de/tex-archive/info/math/voss/mathmode/Mathmode.pdf"
 \end_inset
 
  of LaTeX's math abilities
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "Voss"
-
-\end_inset
-
-LaTeX tips and tricks-
-\begin_inset CommandInset href
-LatexCommand href
-name "page"
-target "http://tug.org/TeXnik/"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Bibliography

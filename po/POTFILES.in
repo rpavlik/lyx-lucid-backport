@@ -1,8 +1,8 @@
 src/BiblioInfo.cpp
 src/Buffer.cpp
-src/BufferList.cpp
 src/BufferParams.cpp
 src/BufferView.cpp
+src/Changes.cpp
 src/Chktex.cpp
 src/Color.cpp
 src/Converter.cpp

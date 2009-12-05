@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -149,6 +149,10 @@ Uwe Stöhr
 
 \size default
 
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Foot
 status collapsed
 
@@ -173,7 +177,7 @@ type "mailto:"
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 3.
+letzte Änderung: 23.
  August 2009
 \end_layout
 
@@ -967,8 +971,7 @@ gen
  speichern sie unter 
 \family sans
 Dokument\SpecialChar \menuseparator
-Einstellungen\SpecialChar \ldots{}
-\SpecialChar \menuseparator
+Einstellungen\SpecialChar \menuseparator
 Als
 \begin_inset space \space{}
 \end_inset
@@ -1007,15 +1010,14 @@ faults
 .
  Danach wird versucht, in Ihrem Heimatverzeichnis die Datei 
 \family typewriter
-~/.lyx/pre\SpecialChar \-
+pre\SpecialChar \-
 ferences
 \family default
  zu lesen.
  Über das Dialogfenster 
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Einstellungen\SpecialChar \ldots{}
-
+Einstellungen
 \family default
  können viele LyX-Vor\SpecialChar \-
 einstel\SpecialChar \-
@@ -2887,7 +2889,7 @@ Strg+X
 \family default
  oder 
 \begin_inset Graphics
-	filename ../../images/copy.png
+	filename ../../images/cut.png
 	scale 70
 	scaleBeforeRotation
 	BoundingBox 0bp 6bp 20bp 20bp
@@ -2915,7 +2917,7 @@ Strg+C
 \family default
  oder 
 \begin_inset Graphics
-	filename ../../images/cut.png
+	filename ../../images/copy.png
 	scale 70
 	scaleBeforeRotation
 	BoundingBox 0bp 6bp 20bp 20bp
@@ -33161,8 +33163,7 @@ DVI
  
 \family sans
 Werkzeuge\SpecialChar \menuseparator
-Einstellungen\SpecialChar \ldots{}
-\SpecialChar \menuseparator
+Einstellungen\SpecialChar \menuseparator
 Aussehen
 \begin_inset space \space{}
 \end_inset
@@ -33172,7 +33173,7 @@ Aussehen
 \end_inset
 
 Handhabung\SpecialChar \menuseparator
-Grafik
+Anzeige
 \family default
  
 \family sans
@@ -33187,36 +33188,21 @@ Vorschau
 An
 \family default
  setzen.
- Vorschauen werden erzeugt, wenn Sie ein Dokument öffnen und etwas eingefügt
+ Die 
+\family sans
+Vorschaugröße
+\family default
+ ist der Multiplikationsfaktor für die Größe.
+\end_layout
+
+\begin_layout Standard
+Vorschauen werden erzeugt, wenn Sie ein Dokument öffnen und etwas eingefügt
  haben.
  Von einem bereits geöffneten Dokument werden 
 \emph on
 keine
 \emph default
  Vorschauen erzeugt.
-\end_layout
-
-\begin_layout Standard
-Vorschauen werden erzeugt, wenn Sie ein Dokument öffnen und wenn Sie eine
- Einfügung beendet haben.
- Vorschauen werden allein durch Setzen von 
-\family sans
-Sofortige
-\begin_inset space \space{}
-\end_inset
-
-Vorschau
-\family default
- auf 
-\family sans
-An
-\family default
- 
-\emph on
-nicht
-\emph default
- gezeigt.
- Sie müssen die Dokumente neu laden.
 \end_layout
 
 \begin_layout Standard
@@ -38948,7 +38934,7 @@ Zweig
 \end_layout
 
 \begin_layout Subsection
-Grafik
+Anzeige
 \end_layout
 
 \begin_layout Description
@@ -38956,8 +38942,7 @@ Grafiken
 \begin_inset space ~
 \end_inset
 
-anzeigen Hier legen Sie fest, wie Grafiken in LyX dargestellt werden sollen.
- Ist Ihr PC langsam, können Sie auch auf eine Darstellung verzichten.
+anzeigen Hier legen Sie fest, ob Grafiken in LyX dargestellt werden sollen.
 \end_layout
 
 \begin_layout Description
@@ -38967,6 +38952,14 @@ Sofortige
 
 Vorschau Hier legen Sie fest, wie schnell Grafiken in LyX dargestellt werden
  sollen.
+\end_layout
+
+\begin_layout Description
+Absatzenden
+\begin_inset space ~
+\end_inset
+
+markieren Zeigt hinter jedem Absatz ein Absatzzeichen an.
 \end_layout
 
 \begin_layout Section

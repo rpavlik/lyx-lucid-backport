@@ -309,23 +309,15 @@ Buffer::~Buffer()
 			theBufferList().releaseChild(this, child);
 	}
 
+	if (!isClean()) {
+		docstring msg = _("LyX attempted to close a document that had unsaved changes!\n");
+		msg += emergencyWrite();
+		frontend::Alert::warning(_("Attempting to close changed document!"), msg);
+	}
+		
 	// clear references to children in macro tables
 	d->children_positions.clear();
 	d->position_to_children.clear();
-
-	if (!isClean()) {
-		docstring const text = bformat(_("The document %1$s has unsaved changes."
-				"\n\nDo you want to save the document or discard the changes?"), from_utf8(absFileName()));
-		int const ret = Alert::prompt(_("Save changed document?"),
-				text, 0, 2, _("&Save"), _("&Discard"));
-		switch (ret) {
-		case 0:
-			save();
-			break;
-		case 1:
-			break;
-		}
-	}
 
 	if (!d->temppath.destroyDirectory()) {
 		Alert::warning(_("Could not remove temporary directory"),
@@ -642,6 +634,7 @@ bool Buffer::readDocument(Lexer & lex)
 	// read main text
 	bool const res = text().read(*this, lex, errorList, d->inset);
 
+	usermacros.clear();
 	updateMacros();
 	updateMacroInstances();
 	return res;
@@ -941,6 +934,63 @@ bool Buffer::writeFile(FileName const & fname) const
 	message(str + _(" done."));
 
 	return true;
+}
+
+
+docstring Buffer::emergencyWrite()
+{
+	// No need to save if the buffer has not changed.
+	if (isClean())
+		return docstring();
+
+	string const doc = isUnnamed() ? onlyFilename(absFileName()) : absFileName();
+
+	docstring user_message = bformat(
+		_("LyX: Attempting to save document %1$s\n"), from_utf8(doc));
+
+	// We try to save three places:
+	// 1) Same place as document. Unless it is an unnamed doc.
+	if (!isUnnamed()) {
+		string s = absFileName();
+		s += ".emergency";
+		LYXERR0("  " << s);
+		if (writeFile(FileName(s))) {
+			markClean();
+			user_message += bformat(_("  Saved to %1$s. Phew.\n"), from_utf8(s));
+			return user_message;
+		} else {
+			user_message += _("  Save failed! Trying again...\n");
+		}
+	}
+
+	// 2) In HOME directory.
+	string s = addName(package().home_dir().absFilename(), absFileName());
+	s += ".emergency";
+	lyxerr << ' ' << s << endl;
+	if (writeFile(FileName(s))) {
+		markClean();
+		user_message += bformat(_("  Saved to %1$s. Phew.\n"), from_utf8(s));
+		return user_message;
+	}
+
+	user_message += _("  Save failed! Trying yet again...\n");
+
+	// 3) In "/tmp" directory.
+	// MakeAbsPath to prepend the current
+	// drive letter on OS/2
+	s = addName(package().temp_dir().absFilename(), absFileName());
+	s += ".emergency";
+	lyxerr << ' ' << s << endl;
+	if (writeFile(FileName(s))) {
+		markClean();
+		user_message += bformat(_("  Saved to %1$s. Phew.\n"), from_utf8(s));
+		return user_message;
+	}
+
+	user_message += _("  Save failed! Bummer. Document is lost.");
+	// Don't try again.
+	markClean();
+	return user_message;
 }
 
 
@@ -1983,9 +2033,9 @@ void Buffer::updateMacros(DocIterator & it, DocIterator & scope) const
 				continue;
 
 			// get macro data
-			MathMacroTemplate & macroTemplate
-			= static_cast<MathMacroTemplate &>(*iit->inset);
-			MacroContext mc(*this, it);
+			MathMacroTemplate & macroTemplate =
+				static_cast<MathMacroTemplate &>(*iit->inset);
+			MacroContext mc(this, it);
 			macroTemplate.updateToContext(mc);
 
 			// valid?
@@ -1997,8 +2047,9 @@ void Buffer::updateMacros(DocIterator & it, DocIterator & scope) const
 				continue;
 
 			// register macro
+			Buffer * buf = const_cast<Buffer *>(this);
 			d->macros[macroTemplate.name()][it] =
-				Impl::ScopeMacro(scope, MacroData(*this, it));
+				Impl::ScopeMacro(scope, MacroData(buf, it));
 		}
 
 		// next paragraph
@@ -2049,7 +2100,7 @@ void Buffer::updateMacroInstances() const
 
 		// update macro in all cells of the InsetMathNest
 		DocIterator::idx_type n = minset->nargs();
-		MacroContext mc = MacroContext(*this, it);
+		MacroContext mc = MacroContext(this, it);
 		for (DocIterator::idx_type i = 0; i < n; ++i) {
 			MathData & data = minset->cell(i);
 			data.updateMacros(0, mc);
@@ -2341,6 +2392,15 @@ private:
 
 int AutoSaveBuffer::generateChild()
 {
+#if defined(__APPLE__)
+	/* FIXME fork() is not usable for autosave on Mac OS X 10.6 (snow leopard) 
+	 *   We should use something else like threads.
+	 *
+	 * Since I do not know how to determine at run time what is the OS X
+	 * version, I just disable forking altogether for now (JMarc)
+	 */
+	pid_t const pid = -1;
+#else
 	// tmp_ret will be located (usually) in /tmp
 	// will that be a problem?
 	// Note that this calls ForkedCalls::fork(), so it's
@@ -2350,6 +2410,7 @@ int AutoSaveBuffer::generateChild()
 	// you should set pid to -1, and comment out the fork.
 	if (pid != 0 && pid != -1)
 		return pid;
+#endif
 
 	// pid = -1 signifies that lyx was unable
 	// to fork. But we will do the save
@@ -2651,11 +2712,33 @@ bool Buffer::readFileHelper(FileName const & s)
 				      _("&Recover"),  _("&Load Original"),
 				      _("&Cancel")))
 		{
-		case 0:
+		case 0: {
 			// the file is not saved if we load the emergency file.
 			markDirty();
-			return readFile(e);
+			docstring str;
+			bool res;
+
+			if ((res = readFile(e)) == success)
+				str = _("Document was successfully recovered.");
+			else
+				str = _("Document was NOT successfully recovered.");
+			str += "\n\n" + bformat(_("Remove emergency file now?\n(%1$s)"),
+						from_utf8(e.absFilename()));
+
+			if (!Alert::prompt(_("Delete emergency file?"), str, 1, 1,
+					_("&Remove"), _("&Keep it"))) {
+				e.removeFile();
+				if (res == success)
+					Alert::warning(_("Emergency file deleted"),
+						_("Do not forget to save your file now!"), true);
+				}
+			return res;
+		}
 		case 1:
+			if (!Alert::prompt(_("Delete emergency file?"),
+					_("Remove emergency file now?"), 1, 1,
+					_("&Remove"), _("&Keep it")))
+				e.removeFile();
 			break;
 		default:
 			return false;

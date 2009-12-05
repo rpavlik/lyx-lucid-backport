@@ -25,6 +25,7 @@ namespace lyx {
 class Encoding;
 class ExportData;
 class Font;
+class Language;
 
 
 class OutputParams {
@@ -81,6 +82,10 @@ public:
 	/** Document language babel name
 	 */
 	mutable std::string document_language;
+
+	/** The master language. Non-null only for child documents.
+	 */
+	mutable Language const * master_language;
 
 	/** Current stream encoding. Only used for LaTeX.
 	    This must be set to the document encoding (via the constructor)
@@ -146,6 +151,11 @@ public:
 	 *  Needed for subfloat detection on the command line.
 	 */
 	Float inFloat;
+
+	/** Whether we are inside an index inset.
+	 *  ERT needs to know this, due to the active chars.
+	 */
+	bool inIndexEntry;
 
 	/** Whether we are inside an inset that is logically deleted.
 	 *  A value > 0 indicates a deleted inset.

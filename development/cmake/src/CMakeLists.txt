@@ -34,8 +34,10 @@ if (ASPELL_FOUND)
 	set(lyx_sources ${lyx_sources} ${TOP_SRC_DIR}/src/ASpell.cpp)
 endif()
 
+lyx_automoc(${TOP_SRC_DIR}/src/Server.cpp)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
-	${ZLIB_INCLUDE_DIR})
+	${ZLIB_INCLUDE_DIR} ${QT_INCLUDES})
 
 lyx_add_msvc_pch(lyx)
 
@@ -85,7 +87,7 @@ if (MINGW)
   target_link_libraries(${_lyx} ole32)
 endif()
 
-if (AIKSAURUSLIB_LIBRARY)
+if (AIKSAURUSLIB_FOUND)
   target_link_libraries(${_lyx} ${AIKSAURUSLIB_LIBRARY})
 endif()
 project_source_group("${GROUP_CODE}" lyx_sources lyx_headers)
