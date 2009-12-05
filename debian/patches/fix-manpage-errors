@@ -1,3 +1,5 @@
+This patch fixes some errors in the tex2lyx manpage.
+http://www.lyx.org/trac/ticket/6051
 --- a/src/tex2lyx/tex2lyx.1in
 +++ b/src/tex2lyx/tex2lyx.1in
 @@ -22,15 +22,15 @@ options.
