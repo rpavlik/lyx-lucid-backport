@@ -1,7 +1,7 @@
 Add xdg-open as the first choice whenever this seems to be usefull.
 --- a/lib/configure.py
 +++ b/lib/configure.py
-@@ -264,7 +264,7 @@ def checkFormatEntries(dtl_tools):  
+@@ -276,7 +276,7 @@ def checkFormatEntries(dtl_tools):  
      checkViewer('a FEN viewer and editor', ['xboard -lpf $$i -mode EditPosition'],
          rc_entry = [r'\Format fen        fen     FEN                    "" "%%"	"%%"	""'])
      #
@@ -10,7 +10,7 @@ Add xdg-open as the first choice whenever this seems to be usefull.
      path, ie = checkViewer('a raster image editor', ['gimp-remote', 'gimp'])
      addToRC(r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
  \Format gif        gif     GIF                    "" "%s"	"%s"	""
-@@ -307,29 +307,29 @@ def checkFormatEntries(dtl_tools):  
+@@ -319,29 +319,29 @@ def checkFormatEntries(dtl_tools):  
      #
      #checkProg('a Postscript interpreter', ['gs'],
      #  rc_entry = [ r'\ps_command "%%"' ])

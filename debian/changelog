@@ -11,6 +11,7 @@ lyx (1.6.5-1) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * New upstream version
     + Fixes a crash after editing formulars. Closes: #548519
+  * Refresh patches/prefer-xdg-open.
   * Add elyxer to the list of HTML converters.
   * Switch to my @d.o e-mail address in the Uploaders control field.
 
