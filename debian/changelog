@@ -1,4 +1,4 @@
-lyx (1.6.4-2) UNRELEASED; urgency=low
+lyx (1.6.5-1) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Modify build-dep on quilt so it accepts backported quilt as well.
@@ -12,7 +12,7 @@ lyx (1.6.4-2) UNRELEASED; urgency=low
   * Add elyxer to the list of HTML converters.
   * Switch to my @d.o e-mail address in the Uploaders control field.
 
- -- Sven Hoexter <hoexter@debian.org>  Wed, 30 Sep 2009 21:37:15 +0200
+ -- Sven Hoexter <hoexter@debian.org>  Sat, 05 Dec 2009 17:27:41 +0100
 
 lyx (1.6.4-1) unstable; urgency=low
 
