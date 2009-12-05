@@ -317,7 +317,7 @@ bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos) const
 	if (!lyxrc.rtl_support)
 		return false;
 
-	// no RTL boundary at line start
+	// no RTL boundary at paragraph start
 	if (pos == 0)
 		return false;
 
@@ -333,6 +333,23 @@ bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos,
 	if (!lyxrc.rtl_support)
 		return false;
 
+	// no RTL boundary at paragraph start
+	if (pos == 0)
+		return false;
+	
+	ParagraphMetrics & pm = par_metrics_[pit];
+	// no RTL boundary in empty paragraph
+	if (pm.rows().empty())
+		return false;
+
+	pos_type endpos = pm.getRow(pos - 1, false).endpos();
+	pos_type startpos = pm.getRow(pos, false).pos();
+	// no RTL boundary at line start:
+	// abc\n   -> toggle to RTL ->    abc\n     (and not:    abc\n|
+	// |                              |                               )
+	if (pos == startpos && pos == endpos) // start of cur row, end of prev row
+		return false;
+
 	Paragraph const & par = text_->getPar(pit);
 	bool left = font.isVisibleRightToLeft();
 	bool right;
@@ -340,6 +357,16 @@ bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos,
 		right = par.isRTL(bv_->buffer().params());
 	else
 		right = displayFont(pit, pos).isVisibleRightToLeft();
+	
+	// no RTL boundary at line break:
+	// abc|\n    -> move right ->   abc\n       (and not:    abc\n|
+	// FED                          FED|                     FED     )
+	if (startpos == pos && endpos == pos && endpos != par.size() 
+		&& (par.isNewline(pos - 1) 
+			|| par.isLineSeparator(pos - 1) 
+			|| par.isSeparator(pos - 1)))
+		return false;
+	
 	return left != right;
 }
 
@@ -415,7 +442,7 @@ bool TextMetrics::redoParagraph(pit_type const pit)
 			- right_margin;
 		Font const & font = ii->inset->noFontChange() ?
 			bufferfont : displayFont(pit, ii->pos);
-		MacroContext mc(buffer, parPos);
+		MacroContext mc(&buffer, parPos);
 		MetricsInfo mi(bv_, font.fontInfo(), w, mc);
 		ii->inset->metrics(mi, dim);
 		Dimension const old_dim = pm.insetDimension(ii->inset);
@@ -800,11 +827,24 @@ pit_type TextMetrics::rowBreakPoint(int width, pit_type const pit,
 	// pixel width since last breakpoint
 	int chunkwidth = 0;
 
+	docstring const s(1, char_type(0x00B6));
+	Font f;
+	int par_marker_width = theFontMetrics(f).width(s);
+
 	FontIterator fi = FontIterator(*this, par, pit, pos);
 	pos_type point = end;
 	pos_type i = pos;
+
+	ParagraphList const & pars_ = text_->paragraphs();
+	bool const draw_par_end_marker = lyxrc.paragraph_markers
+		&& size_type(pit + 1) < pars_.size();
+				
 	for ( ; i < end; ++i, ++fi) {
 		int thiswidth = pm.singleWidth(i, *fi);
+		
+		if (draw_par_end_marker && i == end - 1)
+			// enlarge the last character to hold the end-of-par marker
+			thiswidth += par_marker_width;
 
 		// add inline completion width
 		if (inlineCompletionLPos == i) {
@@ -919,7 +959,12 @@ int TextMetrics::rowWidth(int right_margin, pit_type const pit,
 					w -= singleWidth(pit, i - 1);
 				w = max(w, label_end);
 			}
-			w += pm.singleWidth(i, *fi);
+			
+			// a line separator at the end of a line (but not at the end of a 
+			// paragraph) will not be drawn and should therefore not count for
+			// the row width.
+			if (!par.isLineSeparator(i) || i != end - 1 || end == par.size())
+				w += pm.singleWidth(i, *fi);
 
 			// add inline completion width
 			if (inlineCompletionLPos == i) {
@@ -927,6 +972,18 @@ int TextMetrics::rowWidth(int right_margin, pit_type const pit,
 				if (completion.length() > 0)
 					w += theFontMetrics(*fi).width(completion);
 			}
+		}
+	}
+
+	// count the paragraph end marker.
+	if (end == par.size() && lyxrc.paragraph_markers) {
+		ParagraphList const & pars_ = text_->paragraphs();
+		if (size_type(pit + 1) < pars_.size()) {
+			// enlarge the last character to hold the
+			// end-of-par marker
+			docstring const s(1, char_type(0x00B6));
+			Font f;
+			w += theFontMetrics(f).width(s);
 		}
 	}
 
@@ -1173,6 +1230,12 @@ pos_type TextMetrics::getColumnNearX(pit_type const pit,
 		return 0;
 	}
 
+	// if the first character is a separator, we are in RTL
+	// text. This character will not be painted on screen
+	// and thus we should not count it and skip to the next.
+	if (par.isSeparator(bidi.vis2log(vc)))
+		++vc;
+
 	while (vc < end && tmpx <= x) {
 		c = bidi.vis2log(vc);
 		last_tmpx = tmpx;
@@ -1384,8 +1447,8 @@ Row const & TextMetrics::getPitAndRowNearY(int & y, pit_type & pit,
 		if (yy + rit->height() > y)
 			break;
 
-	if (assert_in_view && yy + rit->height() != y) {
-		if (!up) {
+	if (assert_in_view) {
+		if (!up && yy + rit->height() > y) {
 			if (rit != pm.rows().begin()) {
 				y = yy;
 				--rit;
@@ -1397,11 +1460,11 @@ Row const & TextMetrics::getPitAndRowNearY(int & y, pit_type & pit,
 				--rit;
 				y = yy;
 			}
-		} else  {
+		} else if (up && yy != y) {
 			if (rit != rlast) {
 				y = yy + rit->height();
 				++rit;
-			} else if (pit != int(par_metrics_.size())) {
+			} else if (pit < int(par_metrics_.size()) - 1) {
 				++pit;
 				newParMetricsDown();
 				ParagraphMetrics const & pm2 = par_metrics_[pit];
@@ -1626,6 +1689,15 @@ int TextMetrics::cursorX(CursorSlice const & sl,
 	// it's in the last row of a paragraph; see skipped_sep_vpos declaration
 	if (end > 0 && end < par.size() && par.isSeparator(end - 1))
 		skipped_sep_vpos = bidi.log2vis(end - 1);
+
+	if (lyxrc.paragraph_markers && text_->isRTL(buffer, par)) {
+		ParagraphList const & pars_ = text_->paragraphs();
+		if (size_type(pit + 1) < pars_.size()) {
+			FontInfo f;
+			docstring const s = docstring(1, char_type(0x00B6));
+			x += theFontMetrics(f).width(s);
+		}
+	}
 
 	// Inline completion RTL special case row_pos == cursor_pos:
 	// "__|b" => cursor_pos is right of __
@@ -2098,11 +2170,16 @@ void TextMetrics::drawParagraph(PainterInfo & pi, pit_type pit, int x, int y) co
 		rp.paintAppendix();
 		rp.paintDepthBar();
 		rp.paintChangeBar();
-		if (i == 0)
+		bool const is_rtl = text_->isRTL(bv_->buffer(), text_->getPar(pit));
+		if (i == 0 && !is_rtl)
 			rp.paintFirst();
-		rp.paintText();
-		if (i == nrows - 1)
+		if (i == nrows - 1 && is_rtl)
 			rp.paintLast();
+		rp.paintText();
+		if (i == nrows - 1 && !is_rtl)
+			rp.paintLast();
+		if (i == 0 && is_rtl)
+			rp.paintFirst();
 		y += row.descent();
 		// Restore full_repaint status.
 		pi.full_repaint = tmp;

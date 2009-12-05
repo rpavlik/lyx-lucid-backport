@@ -121,6 +121,7 @@ LexerKeyword lyxrcTags[] = {
 	{ "\\nomencl_command", LyXRC::RC_NOMENCL_COMMAND },
 	{ "\\num_lastfiles", LyXRC::RC_NUMLASTFILES },
 	{ "\\open_buffers_in_tabs", LyXRC::RC_OPEN_BUFFERS_IN_TABS },
+	{ "\\paragraph_markers", LyXRC::RC_PARAGRAPH_MARKERS },
 	{ "\\path_prefix", LyXRC::RC_PATH_PREFIX },
 	{ "\\personal_dictionary", LyXRC::RC_PERS_DICT },
 	{ "\\plaintext_linelen", LyXRC::RC_PLAINTEXT_LINELEN },
@@ -160,6 +161,7 @@ LexerKeyword lyxrcTags[] = {
 	{ "\\serverpipe", LyXRC::RC_SERVERPIPE },
 	{ "\\set_color", LyXRC::RC_SET_COLOR },
 	{ "\\show_banner", LyXRC::RC_SHOW_BANNER },
+	{ "\\single_close_tab_button", LyXRC::RC_SINGLE_CLOSE_TAB_BUTTON },
 	{ "\\sort_layouts", LyXRC::RC_SORT_LAYOUTS },
 	{ "\\spell_command", LyXRC::RC_SPELL_COMMAND },
 	{ "\\tempdir_path", LyXRC::RC_TEMPDIRPATH },
@@ -290,13 +292,14 @@ void LyXRC::setDefaults()
 	tex_allows_spaces = false;
 	date_insert_format = "%x";
 	cursor_follows_scrollbar = false;
+	paragraph_markers = false;
 	mac_like_word_movement = false;
 	macro_edit_style = MACRO_EDIT_INLINE_BOX;
 	dialogs_iconify_with_main = false;
 	label_init_length = 3;
 	preview = PREVIEW_OFF;
 	preview_hashed_labels  = false;
-	preview_scale_factor = "0.9";
+	preview_scale_factor = 1.0;
 	use_converter_cache = true;
 	use_tooltip = true;
 	use_pixmap_cache = false;
@@ -304,6 +307,7 @@ void LyXRC::setDefaults()
 	user_name = to_utf8(support::user_name());
 	user_email = to_utf8(support::user_email());
 	open_buffers_in_tabs = true;
+	single_close_tab_button = false;
 
 	// Fullscreen settings
 	full_screen_limit = false;
@@ -446,10 +450,8 @@ int LyXRC::read(Lexer & lexrc)
 		case RC_KBMAP_PRIMARY:
 			if (lexrc.next()) {
 				string const kmap(os::internal_path(lexrc.getString()));
-				if (kmap.empty()) {
-					// nothing
-				} else if (!libFileSearch("kbd", kmap,
-							  "kmap").empty()) {
+				if (!libFileSearch("kbd", kmap, "kmap").empty()
+					  || kmap.empty()) {
 					primary_kbmap = kmap;
 				} else {
 					lexrc.printError("LyX: Keymap `$$Token' not found");
@@ -460,10 +462,8 @@ int LyXRC::read(Lexer & lexrc)
 		case RC_KBMAP_SECONDARY:
 			if (lexrc.next()) {
 				string const kmap(os::internal_path(lexrc.getString()));
-				if (kmap.empty()) {
-					// nothing
-				} else if (!libFileSearch("kbd", kmap,
-							  "kmap").empty()) {
+				if (!libFileSearch("kbd", kmap, "kmap").empty()
+					  || kmap.empty()) {
 					secondary_kbmap = kmap;
 				} else {
 					lexrc.printError("LyX: Keymap `$$Token' not found");
@@ -824,6 +824,10 @@ int LyXRC::read(Lexer & lexrc)
 			lexrc >> cursor_follows_scrollbar;
 			break;
 
+		case RC_PARAGRAPH_MARKERS:
+			lexrc >> paragraph_markers;
+			break;
+
 		case RC_MAC_LIKE_WORD_MOVEMENT:
 			lexrc >> mac_like_word_movement;
 			break;
@@ -1099,6 +1103,9 @@ int LyXRC::read(Lexer & lexrc)
 			break;
 		case RC_OPEN_BUFFERS_IN_TABS:
 			lexrc >> open_buffers_in_tabs;
+			break;
+		case RC_SINGLE_CLOSE_TAB_BUTTON:
+			lexrc >> single_close_tab_button;
 			break;
 
 		case RC_LAST:
@@ -1537,6 +1544,15 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		}
 		if (tag != RC_LAST)
 			break;
+	case RC_PARAGRAPH_MARKERS:
+		if (ignore_system_lyxrc ||
+			paragraph_markers
+		    != system_lyxrc.paragraph_markers) {
+			os << "\\paragraph_markers "
+			   << convert<string>(paragraph_markers) << '\n';
+		}
+		if (tag != RC_LAST)
+			break;
 	case RC_MAC_LIKE_WORD_MOVEMENT:
 		if (ignore_system_lyxrc ||
 		    mac_like_word_movement
@@ -1715,6 +1731,13 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		    open_buffers_in_tabs != system_lyxrc.open_buffers_in_tabs) {
 			os << "\\open_buffers_in_tabs "
 			   << convert<string>(open_buffers_in_tabs)
+			   << '\n';
+		}
+	case RC_SINGLE_CLOSE_TAB_BUTTON:
+		if (ignore_system_lyxrc ||
+		    single_close_tab_button != system_lyxrc.single_close_tab_button) {
+			os << "\\single_close_tab_button "
+			   << convert<string>(single_close_tab_button)
 			   << '\n';
 		}
 		if (tag != RC_LAST)

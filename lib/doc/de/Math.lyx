@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -82,6 +82,9 @@
 % benutzt in Kap. 19.4
 \usepackage{remreset}
 
+% für das Fourier-Transformationssymbol
+\usepackage{mathrsfs}
+
 %Mehrfachzeilen zentriert ausrichten (z.B. in Kap. 13.3)
 \renewcommand{\multirowsetup}{\centering}
 
@@ -130,15 +133,14 @@
   \setboolean{eurosym}{true}}
  {\setboolean{eurosym}{false}}
 
-% benutzt in Kap. 22.4
 % testen ob Paket braket installiert ist
+% benötigt für physikalische Vektoren
 \newboolean{braket}
 \IfFileExists{braket.sty}
  {\usepackage{braket}
   \setboolean{braket}{true}}
  {\setboolean{braket}{false}}
 
-% benutzt in Kap. 22.10
 % testen ob Paket upgreek installiert ist
 \newboolean{upgreek}
 \IfFileExists{upgreek.sty}
@@ -33970,117 +33972,11 @@ hinzufügen
 
 \begin_layout Section
 Tipps
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-texorpdfstring{
-\end_layout
-
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Weitere gute Tipps gibt es unter 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Voss"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}{}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-
-\backslash
-texorpdfstring
-\series default
- dient dazu, dass die Fußnote nicht mit im pdf-Lesezeichen erscheint.
-\end_layout
-
-\begin_layout Plain Layout
-Näheres zu 
-\series bold
-
-\backslash
-texorpdfstring
-\series default
- steht in Kapitel 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Formeln-in-Überschriften"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
 Tipps
-\end_layout
-
-\end_inset
-
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Ionen|see
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\end_inset
-
-chemische Zeichen
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -36025,7 +35921,7 @@ ifupgreek
 status open
 
 \begin_layout Plain Layout
-Die folgende Tabelle erscheint nur im Ausdruck wenn das LaTeX-Paket 
+Das Folgende erscheint nur im Ausdruck wenn das LaTeX-Paket 
 \series bold
 upgreek
 \series default
@@ -36454,14 +36350,19 @@ cm, verwendet man das gelegte Kreuz
 \begin_inset Quotes grd
 \end_inset
 
-, dass über den LaTeX-Befehl 
+, dass entweder über den Befehl 
 \series bold
 
 \backslash
-texttimes
+times
 \series default
- verfügbar ist, mit einigen Tastaturdefinitionen aber auch direkt eingegeben
- werden kann.
+ oder über das Menü 
+\family sans
+Einfügen\SpecialChar \menuseparator
+Sonderzeichen\SpecialChar \menuseparator
+Symbole
+\family default
+ verfügbar ist.
 \end_layout
 
 \begin_layout Itemize
@@ -36510,6 +36411,92 @@ Komponenten von Matrizen werden kursiv gesetzt:
 Der Ableitungs-/Integrationsoperator 'd', die Eulersche Zahl 'e' und die
  Imaginäre Zahl 'i' sollten aufrecht gesetzt werden, um sie nicht mit anderen
  Variablen zu verwechseln.
+\end_layout
+
+\begin_layout Itemize
+Das Symbol für eine 
+\noun on
+Fourier
+\noun default
+-Transformation kann entweder mit dem Befehl 
+\series bold
+
+\backslash
+mathscr
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+
+\backslash
+{F
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Befehle ! M ! 
+\backslash
+mathscr
+\end_layout
+
+\end_inset
+
+ oder über das Menü 
+\family sans
+Einfügen\SpecialChar \menuseparator
+Sonderzeichen\SpecialChar \menuseparator
+Symbole\SpecialChar \menuseparator
+Buchstabenähnliche
+\begin_inset space ~
+\end_inset
+
+Symbole
+\family default
+ eingefügt werden: 
+\begin_inset Formula $\mathscr{F}$
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Um den Befehl 
+\series bold
+
+\backslash
+mathscr
+\series default
+ benutzen zu können, muss das LaTeX-Paket 
+\series bold
+mathrsfs
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Pakete ! mathrsfs
+\end_layout
+
+\end_inset
+
+ mit der LaTeX-Vorspannzeile 
+\series bold
+
+\backslash
+usepackage{mathrsfs}
+\series default
+ geladen werden.
 \end_layout
 
 \begin_layout Standard
@@ -37215,24 +37202,6 @@ target "ftp://ftp.dante.de/tex-archive/info/math/voss/mathmode/Mathmode.pdf"
 \end_inset
 
  der mathematischen Fähigkeiten von LaTeX
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "Voss"
-
-\end_inset
-
-LaTeX Tipps- und Tricks-
-\begin_inset CommandInset href
-LatexCommand href
-name "Seite"
-target "http://tug.org/TeXnik/"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Bibliography

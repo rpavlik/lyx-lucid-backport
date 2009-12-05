@@ -71,6 +71,7 @@ Menuset
 		OptItem "Register...|R" "vc-register"
 		OptItem "Check In Changes...|I" "vc-check-in"
 		OptItem "Check Out for Edit|O" "vc-check-out"
+		OptItem "Update local directory from repository|d" "vc-repo-update"
 		OptItem "Revert to Repository Version|R" "vc-revert"
 		OptItem "Undo Last Check In|U" "vc-undo-last"
 		OptItem "Show History...|H" "dialog-show vclog"
@@ -306,7 +307,7 @@ Menuset
 		Separator
 		Item "Split View Into Left and Right Half|i" "split-view horizontal"
 		Item "Split View Into Upper and Lower Half|V" "split-view vertical"
-		Item "Close Tab Group|G" "close-tab-group"
+		Item "Close Current View|w" "close-tab-group"
 		Item "Fullscreen|l" "ui-toggle fullscreen"
 		Submenu "Toolbars|b" "toolbars"
 		Separator
@@ -347,8 +348,8 @@ Menuset
 		Separator
 		Item "Table...|T" "tabular-insert"
 		Item "Graphics...|G" "dialog-show-new-inset graphics"
-		Item "URL" "flex-insert URL"
-		Item "Hyperlink|k" "href-insert"
+		Item "URL|U" "flex-insert URL"
+		Item "Hyperlink...|k" "href-insert"
 		Item "Footnote|F" "footnote-insert"
 		Item "Marginal Note|M" "marginalnote-insert"
 		Item "Short Title|S" "optional-insert"

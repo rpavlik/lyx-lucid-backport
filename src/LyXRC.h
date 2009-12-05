@@ -107,6 +107,7 @@ public:
 		RC_MOUSE_WHEEL_SPEED,
 		RC_NOMENCL_COMMAND,
 		RC_NUMLASTFILES,
+		RC_PARAGRAPH_MARKERS,
 		RC_PATH_PREFIX,
 		RC_PERS_DICT,
 		RC_PREVIEW,
@@ -144,6 +145,7 @@ public:
 		RC_SERVERPIPE,
 		RC_SET_COLOR,
 		RC_SHOW_BANNER,
+		RC_SINGLE_CLOSE_TAB_BUTTON,
 		RC_OPEN_BUFFERS_IN_TABS,
 		RC_SORT_LAYOUTS,
 		RC_SPELL_COMMAND,
@@ -324,6 +326,8 @@ public:
 	bool isp_use_alt_lang;
 	/// Use personal dictionary?
 	bool isp_use_pers_dict;
+	/// End of paragraph markers?
+	bool paragraph_markers;
 	/// Use tooltips?
 	bool use_tooltip;
 	/// Use pixmap cache?
@@ -405,7 +409,7 @@ public:
 	///
 	bool preview_hashed_labels;
 	///
-	std::string preview_scale_factor;
+	double preview_scale_factor;
 	/// user name
 	std::string user_name;
 	/// user email
@@ -456,6 +460,8 @@ public:
 	bool completion_popup_after_complete;
 	///
 	bool open_buffers_in_tabs;
+	///
+	bool single_close_tab_button;
 };
 
 

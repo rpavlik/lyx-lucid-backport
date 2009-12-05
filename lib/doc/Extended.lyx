@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -112,8 +112,6 @@ End
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
 \author "" 
 \author "" 
 \end_header
@@ -4123,26 +4121,6 @@ push
  citations to LyX.
 \end_layout
 
-\begin_layout Standard
-Please note that, at present, 
-\emph on
-the server does not work natively on Windows
-\emph default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-There is no reason it cannot do so.
- But none of the developers on Windows have yet implemented this functionality
- there.
-\end_layout
-
-\end_inset
-
- but it does work with Cygwin versions of LyX.
-\end_layout
-
 \begin_layout Section
 Starting the LyX Server
 \end_layout
@@ -4155,6 +4133,36 @@ status collapsed
 
 \begin_layout Plain Layout
 UserDir
+\end_layout
+
+\end_inset
+
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+On Windows, 
+\emph on
+local
+\emph default
+ named pipes are special objects located in 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+
+\backslash
+.
+\backslash
+pipe
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \end_inset
@@ -4201,7 +4209,7 @@ lyxpipe.out
 status collapsed
 
 \begin_layout Plain Layout
-.lyxpipe.in
+lyxpipe.in
 \end_layout
 
 \end_inset
@@ -4211,7 +4219,7 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-.lyxpipe.out
+lyxpipe.out
 \end_layout
 
 \end_inset
@@ -4238,7 +4246,25 @@ status collapsed
 
 \end_inset
 
+, or 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+"
+\backslash
+
+\backslash
 .
+\backslash
+pipe
+\backslash
+lyxpipe"
+\end_layout
+
+\end_inset
+
+ on Windows.
  You 
 \emph on
 must
@@ -4270,7 +4296,7 @@ status collapsed
 ' to create the pipes.
  If one of the pipes already exists, LyX will assume that another LyX process
  is already running and will not start the server.
- If for some other reason, an unused 
+ On POSIX (Unix like) systems, if for some other reason, an unused 
 \begin_inset Quotes eld
 \end_inset
 
@@ -4282,6 +4308,8 @@ stale
  it.
  If this fails for some reason, you will need to delete the pipes manually
  and then restart LyX.
+ On Windows, pipes are deleted by the OS on program termination or crash,
+ so “stale” pipes should not be possible.
 \end_layout
 
 \begin_layout Standard
@@ -5424,7 +5452,7 @@ Reverse search is triggered by SHIFT-click
 \end_layout
 
 \begin_layout Subsubsection*
-YAP (Cygwin)
+YAP (Windows)
 \end_layout
 
 \begin_layout Standard
@@ -5515,49 +5543,8 @@ status collapsed
 
 \end_inset
 
- if you want to use the shell script above, or as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
--g %f %l
-\end_layout
-
-\end_inset
-
- if you want to use the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyxclient
-\end_layout
-
-\end_inset
-
- program.
- Since yap is a native Windows application, the filename it provides should
- be converted to POSIX style before being passed to 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyxeditor.sh
-\end_layout
-
-\end_inset
-
- or 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyxclient
-\end_layout
-
-\end_inset
-
-, and this is the purpose of the 
+.
+ The 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5567,7 +5554,11 @@ lyxeditor.bat
 
 \end_inset
 
- wrapper, which is as follows:
+ wrapper is used for communicating with LyX through the 
+\emph on
+lyxpipe
+\emph default
+ and is as follows:
 \end_layout
 
 \begin_layout LyX-Code
@@ -5575,48 +5566,240 @@ lyxeditor.bat
 \begin_inset Newline newline
 \end_inset
 
-if "%1" == "-g" goto lyxclient
+echo LYXCMD:revdvi:server-goto-file-row:%1 %2> 
+\backslash
+
+\backslash
+.
+\backslash
+pipe
+\backslash
+lyxpipe.in
 \begin_inset Newline newline
 \end_inset
 
-bash -c 'lyxeditor.sh $(cygpath -a "%1") %2'
-\begin_inset Newline newline
-\end_inset
+type 
+\backslash
 
-exit
-\begin_inset Newline newline
-\end_inset
-
-:lyxclient
-\begin_inset Newline newline
-\end_inset
-
-bash -c 'lyxclient %1 $(cygpath -a "%2") %3'
+\backslash
+.
+\backslash
+pipe
+\backslash
+lyxpipe.out
 \end_layout
 
 \begin_layout Standard
-You have to make sure that both 
+Make sure that the LyXServer pipe path you specified in LyX is 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
 \begin_layout Plain Layout
-lyxeditor.sh
+
+\backslash
+
+\backslash
+.
+\backslash
+pipe
+\backslash
+lyxpipe
 \end_layout
 
 \end_inset
 
- and 
+, otherwise change the 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
 \begin_layout Plain Layout
-lyxclient.exe
+lyxeditor.bat
 \end_layout
 
 \end_inset
 
- are in the command PATH, otherwise you have to use their full posix path
- in the above batch file.
+ wrapper accordingly.
+ You are advised to select in 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Preferences\SpecialChar \menuseparator
+Paths
+\end_layout
+
+\end_inset
+
+ a temporary directory whose name does not contain spaces, otherwise inverse
+ search will fail.
+\end_layout
+
+\begin_layout Standard
+In yap, reverse search is triggered by double-click.
+\end_layout
+
+\begin_layout Subsubsection*
+SumatraPDF (Windows)
+\end_layout
+
+\begin_layout Standard
+In order to use SumatraPDF for inverse search, enter 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+SumatraPDF -inverse-search "lyxeditor.bat %f %l"
+\end_layout
+
+\end_inset
+
+ in the viewer setting in 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Preferences\SpecialChar \menuseparator
+File Handling\SpecialChar \menuseparator
+File formats\SpecialChar \menuseparator
+PDF (pdflatex)
+\end_layout
+
+\end_inset
+
+, where 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxeditor.bat
+\end_layout
+
+\end_inset
+
+ is the previous wrapper.
+ If SumatraPDF.exe is not in your command PATH, use its full file name.
+ Again, make sure that the LyX temporary directory name does not contain
+ spaces, otherwise inverse search will fail.
+\end_layout
+
+\begin_layout Standard
+Reverse search is triggered by double-click.
+\end_layout
+
+\begin_layout Subsubsection*
+YAP (Cygwin)
+\end_layout
+
+\begin_layout Standard
+First of all, make sure that yap is your default DVI viewer in the Windows
+ environment, then launch it, choose its 
+\begin_inset Flex CharStyle:MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+View\SpecialChar \menuseparator
+Options
+\end_layout
+
+\end_inset
+
+ menu and select the 
+\begin_inset Quotes eld
+\end_inset
+
+Inverse DVI Search
+\begin_inset Quotes erd
+\end_inset
+
+ tab.
+ Click on the 
+\begin_inset Quotes eld
+\end_inset
+
+New\SpecialChar \ldots{}
+
+\begin_inset Quotes erd
+\end_inset
+
+ button and, in the window that opens, enter 
+\begin_inset Quotes eld
+\end_inset
+
+LyX Editor
+\begin_inset Quotes erd
+\end_inset
+
+ (or any other name you like) in the 
+\begin_inset Quotes eld
+\end_inset
+
+Name:
+\begin_inset Quotes erd
+\end_inset
+
+ field.
+ Now click on the button labeled 
+\begin_inset Quotes eld
+\end_inset
+
+\SpecialChar \ldots{}
+
+\begin_inset Quotes erd
+\end_inset
+
+ to open a file dialog and navigate to the directory containing the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxeditor.exe
+\end_layout
+
+\end_inset
+
+ program (which is installed by default on Cygwin along with the LyX executable).
+ Select 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxeditor.exe
+\end_layout
+
+\end_inset
+
+ and then specify the program arguments as 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-g %f %l
+\end_layout
+
+\end_inset
+
+.
+ In this way, you will be using the 
+\emph on
+lyxsocket
+\emph default
+ for communicating with LyX.
+ If, for whatever reason, you want to use the 
+\emph on
+lyxpipe
+\emph default
+, omit the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-g
+\end_layout
+
+\end_inset
+
+ option and be sure to specify the LyXServer pipe path in the LyX preferences.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -5628,73 +5811,7 @@ SumatraPDF (Cygwin)
 \end_layout
 
 \begin_layout Standard
-In SumatraPDF, you can set the name of the program that communicates with
- LyX by simply launching SumatraPDF as 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-SumatraPDF -inverse-search "lyxeditor.bat -g %f %l"
-\end_layout
-
-\end_inset
-
- and then quit.
- The program will remember the setting and using the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
--inverse-search
-\end_layout
-
-\end_inset
-
- option will not be needed from now on
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-It has been reported that SumatraPDF is not able to remember the settings
- if it is installed in the Program Files system folder.
- This problem can be avoided by installing it somewhere else, for example
- in 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-/usr/local/bin
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
- (in this way you will be using the lyxsocket; omit the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
--g
-\end_layout
-
-\end_inset
-
- option if you want to use the lyxpipe and be sure that the 
-\begin_inset Flex CharStyle:Code
-status collapsed
-
-\begin_layout Plain Layout
-lyxeditor.sh
-\end_layout
-
-\end_inset
-
- script is in your command PATH).
- If SumatraPDF is not your default PDF viewer, you should enter 
+In order to use SumatraPDF for inverse search, enter 
 \begin_inset Flex CharStyle:Code
 status collapsed
 
@@ -5749,12 +5866,44 @@ cd $(dirname $1)
 \begin_inset Newline newline
 \end_inset
 
-SumatraPDF.exe $(basename $1)
+SumatraPDF -inverse-search "lyxeditor -g %f %l" $(basename $1)
 \end_layout
 
 \begin_layout Standard
-This is needed because SumatraPDF is a native Windows application and does
- not understand the posix paths used by the Cygwin version of LyX.
+This wrapper script is needed because SumatraPDF is a native Windows application
+ and does not understand the posix paths used by the Cygwin version of LyX.
+ If SumatraPDF.exe is not in your command PATH, use its full posix path in
+ the script above.
+ The 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-g
+\end_layout
+
+\end_inset
+
+ enables communication via the 
+\emph on
+lyxsocket
+\emph default
+.
+ Again, omit the 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+-g
+\end_layout
+
+\end_inset
+
+ option if you want to use the 
+\emph on
+lyxpipe
+\emph default
+, and be sure to specify the LyXServer pipe path in the LyX preferences.
 \end_layout
 
 \begin_layout Standard
@@ -18253,7 +18402,24 @@ Control
  submenu.
  Please note that if you use password protected access to repository via
  ssh, you will be asked in terminal window.
- LyX was tested against SVN 1.4 and 1.5.
+ LyX was tested against SVN 1.5 and 1.6
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Most of the commands will work with 1.4 too, see 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:SVN-update-from-repo"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsubsection
@@ -18361,7 +18527,7 @@ Check Out For Edit
 \begin_layout Standard
 Updates the changes of this file from the repository.
  Be sure you understand SVN merging and conflicts resolving before using
- this function, because all conflicts has to be done manually by you!
+ this function, because all conflicts has to be resolved manually by you!
 \end_layout
 
 \begin_layout Standard
@@ -18413,6 +18579,122 @@ svn revert -q
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:SVN-update-from-repo"
+
+\end_inset
+
+Synchronization of the local directory checkout from repository
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Note that this command will work only with subversion 
+\begin_inset Formula $\geqq1.5$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+All the commands above have one shortcomming - they deal with the current
+ document only.
+ Once your document contains pictures, includes external 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+.tex
+\end_layout
+
+\end_inset
+
+ files and so on administration becomes more complicated.
+ LyX now supports updating the whole tree in which resides the document
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+One need to organize the files structure so that all external files are
+ in the same directory or subdirectories of the document.
+\end_layout
+
+\end_inset
+
+.
+ This become especially useful once you cooperate with people which neither
+ know about subversion management nor they have ambition to commit additional
+ material to the repository.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+Synchronize local directory with repository
+\end_layout
+
+\end_inset
+
+ command updates the whole directory and in case of merge conflicts local
+ version of the files are left, so no unintended data loss occurs.
+ If local changes are detected user is warned before update starts.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+SVN
+\begin_inset space ~
+\end_inset
+
+commands: 
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+svn diff $path (Ask if changes are detected.)
+\begin_inset Newline newline
+\end_inset
+
+svn update --accept mine-full $path
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Flex CharStyle:Code
+status collapsed
+
+\begin_layout Plain Layout
+$path
+\end_layout
+
+\end_inset
+
+ stands for the path to the document.
 \end_layout
 
 \begin_layout Subsubsection

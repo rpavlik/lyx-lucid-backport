@@ -96,7 +96,8 @@ dist_deexamples_DATA = \
 	examples/de/serienbrief1.lyx \
 	examples/de/serienbrief2.lyx \
 	examples/de/serienbrief3.lyx \
-	examples/de/splash.lyx
+	examples/de/splash.lyx \
+	examples/de/tufte-handout.lyx
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
@@ -124,11 +125,16 @@ dist_frexamples_DATA = \
 	examples/fr/Braille.lyx \
 	examples/fr/exemple_brut.lyx \
 	examples/fr/exemple_lyxifie.lyx \
+	examples/fr/exemple-powerdot.lyx \
 	examples/fr/Foils.lyx \
+	examples/fr/linguistics.lyx \
 	examples/fr/ListesPuces.lyx \
 	examples/fr/multicol.lyx \
+	examples/fr/seminar.lyx \
 	examples/fr/simplecv.lyx \
-	examples/fr/splash.lyx
+	examples/fr/splash.lyx \
+	examples/fr/xyfigure.png \
+	examples/fr/xypic.lyx
 
 glexamplesdir = $(pkgdatadir)/examples/gl
 dist_glexamples_DATA = \
@@ -185,6 +191,10 @@ dist_roexamples_DATA = \
 ruexamplesdir = $(pkgdatadir)/examples/ru
 dist_ruexamples_DATA = \
 	examples/ru/splash.lyx
+
+skexamplesdir = $(pkgdatadir)/examples/sk
+dist_skexamples_DATA = \
+	examples/sk/splash.lyx
 
 slexamplesdir = $(pkgdatadir)/examples/sl
 dist_slexamples_DATA = \
@@ -248,6 +258,8 @@ dist_examples_DATA = \
 	examples/serial_letter3.lyx \
 	examples/simplecv.lyx \
 	examples/splash.lyx \
+	examples/tufte-book.lyx \
+	examples/tufte-handout.lyx \
 	examples/xyfigure.png \
 	examples/xypic.lyx
 
@@ -412,6 +424,7 @@ dist_images_DATA = \
 	images/vc-check-out.png \
 	images/vc-locking-toggle.png \
 	images/vc-register.png \
+	images/vc-repo-update.png \
 	images/vc-revert.png
 
 imagesmathdir = $(imagesdir)/math
@@ -1004,17 +1017,20 @@ dist_layouts_DATA =\
 	layouts/docbook-chapter.layout \
 	layouts/docbook-section.layout \
 	layouts/docbook.layout \
+	layouts/doublecol-new.layout \
 	layouts/dtk.layout \
 	layouts/egs.layout \
 	layouts/elsart.layout \
 	layouts/elsarticle.layout \
 	layouts/endnotes.module \
 	layouts/entcs.layout \
+	layouts/eqs-within-sections.module \
 	layouts/europecv.layout \
 	layouts/extarticle.layout \
 	layouts/extbook.layout \
 	layouts/extletter.layout \
 	layouts/extreport.layout \
+	layouts/figs-within-sections.module \
 	layouts/foils.layout \
 	layouts/foottoend.module \
 	layouts/g-brief-de.layout \
@@ -1075,6 +1091,7 @@ dist_layouts_DATA =\
 	layouts/sigplanconf.layout \
 	layouts/simplecv.layout \
 	layouts/singlecol.layout \
+	layouts/singlecol-new.layout \
 	layouts/slides.layout \
 	layouts/spie.layout \
 	layouts/stdclass.inc \
@@ -1094,14 +1111,24 @@ dist_layouts_DATA =\
 	layouts/svglobal3.layout \
 	layouts/svjog.layout \
 	layouts/svjour.inc \
+	layouts/svmono.layout \
+	layouts/svmult.layout \
 	layouts/svprobth.layout \
+	layouts/tabs-within-sections.module \
 	layouts/tarticle.layout \
 	layouts/tbook.layout \
-	layouts/theorems-ams-extended.module \
 	layouts/theorems-ams.inc \
 	layouts/theorems-ams.module \
+	layouts/theorems-ams-bytype.inc \
+	layouts/theorems-ams-bytype.module \
+	layouts/theorems-ams-extended.module \
+	layouts/theorems-ams-extended-bytype.module \
 	layouts/theorems-chap.module \
 	layouts/theorems.inc \
+	layouts/theorems-bytype.inc \
+	layouts/theorems-bytype.module \
+	layouts/theorems-chap-bytype.module \
+	layouts/theorems-sec-bytype.module \
 	layouts/theorems-order.inc \
 	layouts/theorems-proof.inc \
 	layouts/theorems-sec.module \
@@ -1109,7 +1136,9 @@ dist_layouts_DATA =\
 	layouts/theorems-starred.inc \
 	layouts/theorems-starred.module \
 	layouts/theorems-std.module \
-	layouts/treport.layout
+	layouts/treport.layout \
+	layouts/tufte-book.layout \
+	layouts/tufte-handout.layout
 
 scriptsdir = $(pkgdatadir)/scripts
 # Note that we "chmod 755" manually these files in install-data-hook.
@@ -1162,7 +1191,12 @@ dist_templates_DATA = \
 	templates/README.new_templates \
 	templates/revtex.lyx \
 	templates/revtex4.lyx \
-	templates/slides.lyx
+	templates/slides.lyx \
+	templates/svjour3.lyx \
+	templates/svmono_book.lyx \
+	templates/svmult_appendix.lyx \
+	templates/svmult_author.lyx \
+	templates/svmult_editor.lyx
 
 texdir = $(pkgdatadir)/tex
 dist_tex_DATA = \

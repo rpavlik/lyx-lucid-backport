@@ -1039,6 +1039,15 @@ void LyXAction::init()
 		{ LFUN_INSET_END_SELECT, "inset-end-select", ReadOnly, Edit },
 
 /*!
+ * \var lyx::FuncCode lyx::LFUN_INSET_SELECT_ALL
+ * \li Action: Selects all contents of an inset.
+ * \li Syntax: inset-select-all
+ * \li Origin: vfr, 22 Aug 2009
+ * \endvar
+ */
+		{ LFUN_INSET_SELECT_ALL, "inset-select-all", ReadOnly, Edit },
+
+/*!
  * \var lyx::FuncCode lyx::LFUN_LINE_BEGIN
  * \li Action: Move the cursor to the begining of the (screen) line.
  * \li Syntax: line-begin
@@ -2063,6 +2072,16 @@ void LyXAction::init()
  * \endvar
  */
 		{ LFUN_VC_LOCKING_TOGGLE, "vc-locking-toggle", ReadOnly, System },
+/*!
+ * \var lyx::FuncCode lyx::LFUN_VC_REPO_UPDATE
+ * \li Action: Update the local archive directory in which resides
+               the current document with the remote repository.
+ * \li Notion: This is currently implemented only for SVN.
+ * \li Syntax: vc-repo-update
+ * \li Origin: sanda, 16 Oct 2009
+ * \endvar
+ */
+		{ LFUN_VC_REPO_UPDATE, "vc-repo-update", ReadOnly, System },
 
 /*!
  * \var lyx::FuncCode lyx::LFUN_CHANGES_TRACK
@@ -3239,6 +3258,16 @@ void LyXAction::init()
  */
 		{ LFUN_BUFFER_ZOOM_OUT, "buffer-zoom-out", ReadOnly, Buffer },
 
+/*!
+ * \var lyx::FuncCode lyx::LFUN_GRAPHICS_RELOAD
+ * \li Action: Reloads the image if necessary.
+ * \li Syntax: graphics-reload
+ * \li Origin: vfr, 10 Aug 2009
+ * \endvar
+ */
+		{ LFUN_GRAPHICS_RELOAD, "graphics-reload", ReadOnly, Edit },
+
+
 		{ LFUN_NOACTION, "", Noop, Hidden }
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 	};
@@ -3282,7 +3311,7 @@ string const LyXAction::getActionName(FuncCode action) const
 }
 
 
-LyXAction::func_type const LyXAction::getActionType(FuncCode action) const
+LyXAction::func_type LyXAction::getActionType(FuncCode action) const
 {
 	info_map::const_iterator const it = lyx_info_map.find(action);
 	return it != lyx_info_map.end() ? it->second.type : Hidden;

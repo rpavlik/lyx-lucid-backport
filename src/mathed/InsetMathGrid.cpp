@@ -112,8 +112,8 @@ InsetMathGrid::ColInfo::ColInfo()
 //////////////////////////////////////////////////////////////
 
 
-InsetMathGrid::InsetMathGrid()
-	: InsetMathNest(1),
+InsetMathGrid::InsetMathGrid(Buffer * buf)
+	: InsetMathNest(buf, 1),
 	  rowinfo_(1 + 1),
 		colinfo_(1 + 1),
 		cellinfo_(1),
@@ -123,8 +123,8 @@ InsetMathGrid::InsetMathGrid()
 }
 
 
-InsetMathGrid::InsetMathGrid(col_type m, row_type n)
-	: InsetMathNest(m * n),
+InsetMathGrid::InsetMathGrid(Buffer * buf, col_type m, row_type n)
+	: InsetMathNest(buf, m * n),
 	  rowinfo_(n + 1),
 		colinfo_(m + 1),
 		cellinfo_(m * n),
@@ -134,8 +134,9 @@ InsetMathGrid::InsetMathGrid(col_type m, row_type n)
 }
 
 
-InsetMathGrid::InsetMathGrid(col_type m, row_type n, char v, docstring const & h)
-	: InsetMathNest(m * n),
+InsetMathGrid::InsetMathGrid(Buffer * buf, col_type m, row_type n, char v,
+			     docstring const & h)
+	: InsetMathNest(buf, m * n),
 	  rowinfo_(n + 1),
 	  colinfo_(m + 1),
 		cellinfo_(m * n),
@@ -633,7 +634,7 @@ void InsetMathGrid::drawT(TextPainter & /*pain*/, int /*x*/, int /*y*/) const
 }
 
 
-docstring InsetMathGrid::eolString(row_type row, bool emptyline, bool fragile) const
+docstring InsetMathGrid::eolString(row_type row, bool fragile) const
 {
 	docstring eol;
 
@@ -651,7 +652,7 @@ docstring InsetMathGrid::eolString(row_type row, bool emptyline, bool fragile) c
 	}
 
 	// only add \\ if necessary
-	if (eol.empty() && row + 1 == nrows() && (nrows() == 1 || !emptyline))
+	if (eol.empty() && row + 1 == nrows())
 		return docstring();
 
 	return (fragile ? "\\protect\\\\" : "\\\\") + eol;
@@ -985,11 +986,13 @@ void InsetMathGrid::write(WriteStream & os) const
 	docstring eol;
 	for (row_type row = 0; row < nrows(); ++row) {
 		os << verboseHLine(rowinfo_[row].lines_);
-		// don't write & and empty cells at end of line
+		// don't write & and empty cells at end of line,
+		// unless there are vertical lines
 		col_type lastcol = 0;
 		bool emptyline = true;
 		for (col_type col = 0; col < ncols(); ++col)
-			if (!cell(index(row, col)).empty()) {
+			if (!cell(index(row, col)).empty()
+				  || colinfo_[col + 1].lines_) {
 				lastcol = col + 1;
 				emptyline = false;
 			}
@@ -999,7 +1002,7 @@ void InsetMathGrid::write(WriteStream & os) const
 				ModeSpecifier specifier(os, TEXT_MODE);
 			os << eocString(col, lastcol);
 		}
-		eol = eolString(row, emptyline, os.fragile());
+		eol = eolString(row, os.fragile());
 		os << eol;
 		// append newline only if line wasn't completely empty
 		// and this was not the last line in the grid
@@ -1264,7 +1267,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			is >> n;
 			topaste = cap::selection(n);
 		}
-		InsetMathGrid grid(1, 1);
+		InsetMathGrid grid(buffer_, 1, 1);
 		if (!topaste.empty())
 			if ((topaste.size() == 1 && topaste.at(0) < 0x80)
 			    || !mathed_parse_normal(grid, topaste, parseflg)) {

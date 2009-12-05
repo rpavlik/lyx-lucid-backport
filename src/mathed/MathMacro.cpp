@@ -116,10 +116,11 @@ private:
 };
 
 
-MathMacro::MathMacro(docstring const & name)
-	: InsetMathNest(0), name_(name), displayMode_(DISPLAY_INIT),
-		attachedArgsNum_(0), optionals_(0), nextFoldMode_(true),
-		macro_(0), needsUpdate_(false), appetite_(9)
+MathMacro::MathMacro(Buffer * buf, docstring const & name)
+	: InsetMathNest(buf, 0), name_(name), displayMode_(DISPLAY_INIT),
+	  expanded_(buf), attachedArgsNum_(0), optionals_(0),
+	  nextFoldMode_(true), macroBackup_(buf), macro_(0),
+	  needsUpdate_(false), appetite_(9)
 {}
 
 
@@ -629,15 +630,16 @@ bool MathMacro::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 		docstring const & unfolded_name = name();
 		if (unfolded_name != name_) {
 			// The macro name was changed
-			cur = old;
-			bool left = cur.pos() == 0;
-			cur.recordUndoInset();
-			cur.popForward();
-			cur.backspace();
-			cur.niceInsert(createInsetMath(unfolded_name));
-			if (left)
-				cur.backwardPos();
-			cur.updateFlags(Update::Force);
+			Cursor inset_cursor = old;
+			int macroSlice = inset_cursor.find(this);
+			LASSERT(macroSlice != -1, /**/);
+			inset_cursor.cutOff(macroSlice);
+			inset_cursor.recordUndoInset();
+			inset_cursor.pop();
+			inset_cursor.cell().erase(inset_cursor.pos());
+			inset_cursor.cell().insert(inset_cursor.pos(),
+				createInsetMath(unfolded_name, &cur.buffer()));
+			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
 			return true;
 		}
 	}

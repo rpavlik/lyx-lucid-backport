@@ -28,9 +28,9 @@ class RenderPreview;
 class InsetMathHull : public InsetMathGrid {
 public:
 	///
-	InsetMathHull();
+	InsetMathHull(Buffer * buf);
 	///
-	explicit InsetMathHull(HullType type);
+	InsetMathHull(Buffer * buf, HullType type);
 	///
 	~InsetMathHull();
 	///
@@ -148,7 +148,7 @@ protected:
 	bool getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & status) const;
 	///
-	docstring eolString(row_type row, bool emptyline, bool fragile) const;
+	docstring eolString(row_type row, bool fragile) const;
 
 private:
 	virtual Inset * clone() const;

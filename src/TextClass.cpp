@@ -40,6 +40,15 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef ERROR 
+#undef ERROR
+#endif
+
+#ifdef OK 
+#undef OK
+#endif
+
+
 using namespace std;
 using namespace lyx::support;
 
@@ -347,9 +356,6 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			readOutputType(lexrc);
 			break;
 
-#ifdef TEX2LYX
-		case TC_DEFAULTMODULE:
-#endif
 		case TC_INPUT: // Include file
 			if (lexrc.next()) {
 				string const inc = lexrc.getString();
@@ -496,7 +502,6 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			break;
 		}
 
-#ifndef TEX2LYX
 		case TC_DEFAULTMODULE: {
 			lexrc.next();
 			string const module = lexrc.getString();
@@ -504,7 +509,6 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 				default_modules_.push_back(module);
 			break;
 		}
-#endif
 
 		case TC_PROVIDESMODULE: {
 			lexrc.next();
@@ -618,6 +622,22 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 
 	if (rt != BASECLASS) 
 		return (error ? ERROR : OK);
+
+#ifdef TEX2LYX
+	list<string>::const_iterator it = default_modules_.begin();
+	list<string>::const_iterator const endit = default_modules_.end();
+	for ( ; it != endit ; ++it) {
+		FileName tmp = libFileSearch("layouts", *it, "module");
+		if (tmp.empty()) {
+			lexrc.printError("Could not find module: " + *it);
+			error = true;
+		} else if (!read(tmp, MERGE)) {
+			lexrc.printError("Error reading module"
+					 "file: " + tmp.absFilename());
+			error = true;
+		}
+	}
+#endif
 
 	if (defaultlayout_.empty()) {
 		LYXERR0("Error: Textclass '" << name_

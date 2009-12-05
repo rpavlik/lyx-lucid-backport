@@ -30,6 +30,7 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "CutAndPaste.h"
+#include "Encoding.h"
 #include "FuncStatus.h"
 #include "LaTeXFeatures.h"
 #include "Cursor.h"
@@ -146,29 +147,31 @@ docstring hullName(HullType type)
 
 static InsetLabel * dummy_pointer = 0;
 
-InsetMathHull::InsetMathHull()
-	: InsetMathGrid(1, 1), type_(hullNone), nonum_(1, false),
+InsetMathHull::InsetMathHull(Buffer * buf)
+	: InsetMathGrid(buf, 1, 1), type_(hullNone), nonum_(1, false),
 	  label_(1, dummy_pointer), preview_(new RenderPreview(this))
 {
 	//lyxerr << "sizeof InsetMath: " << sizeof(InsetMath) << endl;
 	//lyxerr << "sizeof MetricsInfo: " << sizeof(MetricsInfo) << endl;
 	//lyxerr << "sizeof InsetMathChar: " << sizeof(InsetMathChar) << endl;
 	//lyxerr << "sizeof FontInfo: " << sizeof(FontInfo) << endl;
+	buffer_ = buf;
 	initMath();
 	setDefaults();
 }
 
 
-InsetMathHull::InsetMathHull(HullType type)
-	: InsetMathGrid(getCols(type), 1), type_(type), nonum_(1, false),
+InsetMathHull::InsetMathHull(Buffer * buf, HullType type)
+	: InsetMathGrid(buf, getCols(type), 1), type_(type), nonum_(1, false),
 	  label_(1, dummy_pointer), preview_(new RenderPreview(this))
 {
+	buffer_ = buf;
 	initMath();
 	setDefaults();
 }
 
 
-InsetMathHull::InsetMathHull(InsetMathHull const & other) : InsetMathGrid()
+InsetMathHull::InsetMathHull(InsetMathHull const & other) : InsetMathGrid(other)
 {
 	operator=(other);
 }
@@ -194,6 +197,7 @@ InsetMathHull & InsetMathHull::operator=(InsetMathHull const & other)
 	InsetMathGrid::operator=(other);
 	type_  = other.type_;
 	nonum_ = other.nonum_;
+	buffer_ = other.buffer_;
 	for (size_t i = 0; i < label_.size(); ++i)
 		delete label_[i];
 	label_ = other.label_;
@@ -509,9 +513,14 @@ void InsetMathHull::label(row_type row, docstring const & label)
 			label_[row] = dummy_pointer;
 			// We need an update of the Buffer reference cache.
 			// This is achieved by updateLabels().
-			lyx::updateLabels(buffer());
-		} else
-			label_[row]->updateCommand(label);
+			if (buffer_)
+				lyx::updateLabels(buffer());
+		} else {
+			if (buffer_)
+				label_[row]->updateCommand(label);
+			else
+				label_[row]->setParam("name", label);
+		}
 		return;
 	}
 	InsetCommandParams p(LABEL_CODE);
@@ -798,7 +807,7 @@ void InsetMathHull::glueall()
 	MathData ar;
 	for (idx_type i = 0; i < nargs(); ++i)
 		ar.append(cell(i));
-	*this = InsetMathHull(hullSimple);
+	*this = InsetMathHull(buffer_, hullSimple);
 	cell(0) = ar;
 	setDefaults();
 }
@@ -811,7 +820,7 @@ void InsetMathHull::splitTo2Cols()
 	for (row_type row = 0; row < nrows(); ++row) {
 		idx_type const i = 2 * row;
 		pos_type pos = firstRelOp(cell(i));
-		cell(i + 1) = MathData(cell(i).begin() + pos, cell(i).end());
+		cell(i + 1) = MathData(buffer_, cell(i).begin() + pos, cell(i).end());
 		cell(i).erase(pos, cell(i).size());
 	}
 }
@@ -826,7 +835,7 @@ void InsetMathHull::splitTo3Cols()
 	for (row_type row = 0; row < nrows(); ++row) {
 		idx_type const i = 3 * row + 1;
 		if (cell(i).size()) {
-			cell(i + 1) = MathData(cell(i).begin() + 1, cell(i).end());
+			cell(i + 1) = MathData(buffer_, cell(i).begin() + 1, cell(i).end());
 			cell(i).erase(1, cell(i).size());
 		}
 	}
@@ -1021,7 +1030,7 @@ void InsetMathHull::mutate(HullType newtype)
 }
 
 
-docstring InsetMathHull::eolString(row_type row, bool emptyline, bool fragile) const
+docstring InsetMathHull::eolString(row_type row, bool fragile) const
 {
 	docstring res;
 	if (numberedType()) {
@@ -1030,7 +1039,7 @@ docstring InsetMathHull::eolString(row_type row, bool emptyline, bool fragile) c
 		if (nonum_[row] && (type_ != hullMultline))
 			res += "\\nonumber ";
 	}
-	return res + InsetMathGrid::eolString(row, emptyline, fragile);
+	return res + InsetMathGrid::eolString(row, fragile);
 }
 
 
@@ -1105,7 +1114,7 @@ void InsetMathHull::doExtern(Cursor & cur, FuncRequest & func)
 			ar = cur.cell();
 			lyxerr << "use whole cell: " << ar << endl;
 		} else {
-			ar = MathData(cur.cell().begin() + pos + 1, cur.cell().end());
+			ar = MathData(buffer_, cur.cell().begin() + pos + 1, cur.cell().end());
 			lyxerr << "use partial cell form pos: " << pos << endl;
 		}
 		cur.cell().append(eq);
@@ -1234,7 +1243,8 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_WORD_DELETE_FORWARD:
 	case LFUN_CHAR_DELETE_FORWARD:
 		if (col(cur.idx()) + 1 == ncols()
-		    && cur.pos() == cur.lastpos()) {
+		    && cur.pos() == cur.lastpos()
+		    && !cur.selection()) {
 			if (!label(row(cur.idx())).empty()) {
 				cur.recordUndoInset();
 				label(row(cur.idx()), docstring());
@@ -1476,7 +1486,7 @@ void InsetMathHull::handleFont(Cursor & cur, docstring const & arg,
 	if (cur.inset().asInsetMath()->name() == font)
 		cur.handleFont(to_utf8(font));
 	else {
-		cur.handleNest(createInsetMath(font));
+		cur.handleNest(createInsetMath(font, &cur.buffer()));
 		cur.insert(arg);
 	}
 }
@@ -1489,7 +1499,7 @@ void InsetMathHull::handleFont2(Cursor & cur, docstring const & arg)
 	bool b;
 	font.fromString(to_utf8(arg), b);
 	if (font.fontInfo().color() != Color_inherit) {
-		MathAtom at = MathAtom(new InsetMathColor(true, font.fontInfo().color()));
+		MathAtom at = MathAtom(new InsetMathColor(buffer_, true, font.fontInfo().color()));
 		cur.handleNest(at, 0);
 	}
 }
@@ -1566,7 +1576,7 @@ bool InsetMathHull::searchForward(BufferView * bv, string const & str,
 	// FIXME: completely broken
 	static InsetMathHull * lastformula = 0;
 	static CursorBase current = DocIterator(ibegin(nucleus()));
-	static MathData ar;
+	static MathData ar(buffer_);
 	static string laststr;
 
 	if (lastformula != this || laststr != str) {
@@ -1613,7 +1623,7 @@ void InsetMathHull::write(ostream & os) const
 void InsetMathHull::read(Lexer & lex)
 {
 	MathAtom at;
-	mathed_parse_normal(at, lex);
+	mathed_parse_normal(buffer_, at, lex, Parse::TRACKMACRO);
 	operator=(*at->asHullInset());
 }
 
@@ -1621,13 +1631,14 @@ void InsetMathHull::read(Lexer & lex)
 bool InsetMathHull::readQuiet(Lexer & lex)
 {
 	MathAtom at;
-	bool result = mathed_parse_normal(at, lex, Parse::QUIET);
-	operator=(*at->asHullInset());
-	return result;
+	bool success = mathed_parse_normal(buffer_, at, lex, Parse::QUIET);
+	if (success)
+		operator=(*at->asHullInset());
+	return success;
 }
 
 
-int InsetMathHull::plaintext(odocstream & os, OutputParams const & runparams) const
+int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
 {
 	if (0 && display()) {
 		Dimension dim;
@@ -1641,7 +1652,8 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const & runparams) co
 		return tpain.textheight();
 	} else {
 		odocstringstream oss;
-		WriteStream wi(oss, false, true, WriteStream::wsDefault, runparams.encoding);
+		Encoding const * const enc = encodings.fromLyXName("utf8");
+		WriteStream wi(oss, false, true, WriteStream::wsDefault, enc);
 		wi << cell(0);
 
 		docstring const str = oss.str();

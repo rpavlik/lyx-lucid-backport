@@ -52,13 +52,15 @@
 #include "insets/InsetCollapsable.h"
 #include "insets/InsetCommand.h"
 #include "insets/InsetExternal.h"
+#include "insets/InsetFloat.h"
+#include "insets/InsetGraphics.h"
+#include "insets/InsetGraphicsParams.h"
 #include "insets/InsetFloatList.h"
 #include "insets/InsetNewline.h"
 #include "insets/InsetQuotes.h"
 #include "insets/InsetSpecialChar.h"
 #include "insets/InsetText.h"
-#include "insets/InsetGraphics.h"
-#include "insets/InsetGraphicsParams.h"
+#include "insets/InsetWrap.h"
 
 #include "support/convert.h"
 #include "support/debug.h"
@@ -136,7 +138,7 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 #ifdef ENABLE_ASSERTIONS
 		const int old_pos = cur.pos();
 #endif
-		cur.insert(new InsetMathHull(hullSimple));
+		cur.insert(new InsetMathHull(&cur.buffer(), hullSimple));
 #ifdef ENABLE_ASSERTIONS
 		LASSERT(old_pos == cur.pos(), /**/);
 #endif
@@ -160,7 +162,7 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 				&& sel.find(from_ascii("\\newlyxcommand")) == string::npos
 				&& sel.find(from_ascii("\\def")) == string::npos)
 		{
-			InsetMathHull * formula = new InsetMathHull;
+			InsetMathHull * formula = new InsetMathHull(&cur.buffer());
 			string const selstr = to_utf8(sel);
 			istringstream is(selstr);
 			Lexer lex;
@@ -179,7 +181,7 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 			} else
 				cur.insert(formula);
 		} else {
-			cur.insert(new MathMacroTemplate(sel));
+			cur.insert(new MathMacroTemplate(&cur.buffer(), sel));
 		}
 	}
 	if (valid)
@@ -542,7 +544,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_BEGIN:
 	case LFUN_INSET_BEGIN_SELECT:
 		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_BEGIN_SELECT);
-		if (cur.depth() == 1 || cur.pos() > 0)
+		if (cur.depth() == 1 || !cur.top().at_begin())
 			needsUpdate |= cursorTop(cur);
 		else
 			cur.undispatched();
@@ -552,9 +554,21 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_END:
 	case LFUN_INSET_END_SELECT:
 		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_END_SELECT);
-		if (cur.depth() == 1 || cur.pos() < cur.lastpos())
+		if (cur.depth() == 1 || !cur.top().at_end())
 			needsUpdate |= cursorBottom(cur);
 		else
+			cur.undispatched();
+		cur.updateFlags(Update::FitCursor);
+		break;
+
+	case LFUN_INSET_SELECT_ALL:
+		if (cur.depth() == 1 || !cur.selection() || !cur.selBegin().at_begin()
+			  || !cur.selEnd().at_end()) {
+			needsUpdate |= cur.selHandle(false);
+			needsUpdate |= cursorTop(cur);
+			needsUpdate |= cur.selHandle(true);
+			needsUpdate |= cursorBottom(cur);
+		} else 
 			cur.undispatched();
 		cur.updateFlags(Update::FitCursor);
 		break;
@@ -1604,7 +1618,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			MacroType type = MacroTypeNewcommand;
 			if (s2 == "def")
 				type = MacroTypeDef;
-			MathMacroTemplate * inset = new MathMacroTemplate(from_utf8(token(s, ' ', 0)), nargs, false, type);
+			MathMacroTemplate * inset = new MathMacroTemplate(&cur.buffer(),
+				from_utf8(token(s, ' ', 0)), nargs, false, type);
 			inset->setBuffer(bv->buffer());
 			insertInset(cur, inset);
 
@@ -1631,7 +1646,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MATH_BIGDELIM: {
 		cur.recordUndo();
 		cap::replaceSelection(cur);
-		cur.insert(new InsetMathHull(hullSimple));
+		cur.insert(new InsetMathHull(&cur.buffer(), hullSimple));
 		checkAndActivateInset(cur, true);
 		LASSERT(cur.inMathed(), /**/);
 		cur.dispatch(cmd);
@@ -2062,9 +2077,36 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_FLOAT_INSERT:
 	case LFUN_FLOAT_WIDE_INSERT:
+		// FIXME: If there is a selection, we should check whether there
+		// are floats in the selection, but this has performance issues, see
+		// LFUN_CHANGE_ACCEPT/REJECT.
 		code = FLOAT_CODE;
-		// not allowed in description items
-		enable = !inDescriptionItem(cur);
+		if (inDescriptionItem(cur))
+			// not allowed in description items
+			enable = false;
+		else {
+			InsetCode const inset_code = cur.inset().lyxCode();
+
+			// algorithm floats cannot be put in another float
+			if (to_utf8(cmd.argument()) == "algorithm") {
+				enable = inset_code != WRAP_CODE && inset_code != FLOAT_CODE;
+				break;
+			}
+
+			// for figures and tables: only allow in another
+			// float or wrap if it is of the same type and
+			// not a subfloat already
+			if(cur.inset().lyxCode() == code) {
+				InsetFloat const & ins =
+					static_cast<InsetFloat const &>(cur.inset());
+				enable = ins.params().type == to_utf8(cmd.argument())
+					&& !ins.params().subfloat;
+			} else if(cur.inset().lyxCode() == WRAP_CODE) {
+				InsetWrap const & ins =
+					static_cast<InsetWrap const &>(cur.inset());
+				enable = ins.params().type == to_utf8(cmd.argument());
+			}
+		}
 		break;
 	case LFUN_WRAP_INSERT:
 		code = WRAP_CODE;
@@ -2416,6 +2458,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_INSET_END:
 	case LFUN_INSET_BEGIN_SELECT:
 	case LFUN_INSET_END_SELECT:
+	case LFUN_INSET_SELECT_ALL:
 	case LFUN_UNICODE_INSERT:
 		// these are handled in our dispatch()
 		enable = true;

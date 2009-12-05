@@ -46,8 +46,8 @@ using namespace std;
 namespace lyx {
 
 
-MathData::MathData(const_iterator from, const_iterator to)
-	: base_type(from, to)
+MathData::MathData(Buffer * buf, const_iterator from, const_iterator to)
+	: base_type(from, to), buffer_(buf)
 {}
 
 
@@ -379,13 +379,20 @@ void MathData::drawT(TextPainter & pain, int x, int y) const
 
 void MathData::updateMacros(Cursor * cur, MacroContext const & mc)
 {
+	// If we are editing a macro, we cannot update it immediately,
+	// otherwise wrong undo steps will be recorded (bug 6208).
+	InsetMath const * inmath = cur ? cur->inset().asInsetMath() : 0;
+	MathMacro const * inmacro = inmath ? inmath->asMacro() : 0;
+	docstring const edited_name = inmacro ? inmacro->name() : docstring();
+
 	// go over the array and look for macros
 	for (size_t i = 0; i < size(); ++i) {
 		MathMacro * macroInset = operator[](i).nucleus()->asMacro();
 		if (!macroInset || macroInset->name_[0] == '^'
-				|| macroInset->name_[0] == '_')
+				|| macroInset->name_[0] == '_'
+				|| macroInset->name() == edited_name)
 			continue;
-		
+
 		// get macro
 		macroInset->updateMacro(mc);
 		size_t macroNumArgs = 0;
@@ -469,6 +476,7 @@ void MathData::updateMacros(Cursor * cur, MacroContext const & mc)
 void MathData::detachMacroParameters(Cursor * cur, const size_type macroPos)
 {
 	MathMacro * macroInset = operator[](macroPos).nucleus()->asMacro();
+	Buffer * buf = &cur->buffer();
 	
 	// detach all arguments
 	vector<MathData> detachedArgs;
@@ -523,7 +531,7 @@ void MathData::detachMacroParameters(Cursor * cur, const size_type macroPos)
 		for (size_t q = 0; q < arg.size(); ++q) {
 			if (arg[q]->getChar() == ']') {
 				// put brace
-				brace = new InsetMathBrace();
+				brace = new InsetMathBrace(buf);
 				break;
 			}
 		}
@@ -672,6 +680,7 @@ void MathData::collectOptionalParameters(Cursor * cur,
 	size_t & pos, MathAtom & scriptToPutAround,
 	const pos_type macroPos, const int thisPos, const int thisSlice)
 {
+	Buffer * buf = cur ? &cur->buffer() : 0;
 	// insert optional arguments?
 	while (params.size() < numOptionalParams 
 	       && pos < size()
@@ -709,7 +718,7 @@ void MathData::collectOptionalParameters(Cursor * cur,
 		}
 		
 		// add everything between [ and ] as optional argument
-		MathData optarg(begin() + pos + 1, begin() + right);
+		MathData optarg(buf, begin() + pos + 1, begin() + right);
 		
 		// a brace?
 		bool brace = false;

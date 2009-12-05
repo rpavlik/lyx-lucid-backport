@@ -1311,6 +1311,11 @@ lib_templates_files = Split('''
     revtex.lyx
     revtex4.lyx
     slides.lyx
+    svjour3.lyx
+    svmono_book.lyx
+    svmult_appendix.lyx
+    svmult_author.lyx
+    svmult_editor.lyx
 ''')
 
 
@@ -1484,6 +1489,7 @@ lib_images_files = Split('''
     vc-check-out.png
     vc-locking-toggle.png
     vc-register.png
+    vc-repo-update.png
     vc-revert.png
 ''')
 
@@ -2345,6 +2351,12 @@ lib_doc_uk_clipart_files = Split('''
 ''')
 
 
+lib_doc_zhCN_files = Split('''
+    Intro.lyx
+    Tutorial.lyx
+''')
+
+
 lib_examples_files = Split('''
     aa_sample.lyx
     aas_sample.lyx
@@ -2396,6 +2408,8 @@ lib_examples_files = Split('''
     serial_letter3.lyx
     simplecv.lyx
     splash.lyx
+    tufte-book.lyx
+    tufte-handout.lyx
     xyfigure.png
     xypic.lyx
 ''')
@@ -2431,6 +2445,7 @@ lib_examples_de_files = Split('''
     serienbrief2.lyx
     serienbrief3.lyx
     splash.lyx
+    tufte-handout.lyx
 ''')
 
 
@@ -2444,11 +2459,16 @@ lib_examples_fr_files = Split('''
     Braille.lyx
     exemple_brut.lyx
     exemple_lyxifie.lyx
+    exemple-powerdot.lyx
     Foils.lyx
+    linguistics.lyx
     ListesPuces.lyx
     multicol.lyx
+    seminar.lyx
     simplecv.lyx
     splash.lyx
+    xyfigure.png
+    xypic.lyx
 ''')
 
 
@@ -2537,6 +2557,11 @@ lib_examples_ru_files = Split('''
 ''')
 
 
+lib_examples_sk_files = Split('''
+    splash.lyx
+''')
+
+
 lib_examples_sl_files = Split('''
     primer_lyxan.lyx
     primer_surov.lyx
@@ -2605,6 +2630,7 @@ lib_layouts_files = Split('''
     docbook-chapter.layout
     docbook-section.layout
     docbook.layout
+    doublecol-new.layout
     dtk.layout
     egs.layout
     elsart.layout
@@ -2664,15 +2690,20 @@ lib_layouts_files = Split('''
     sigplanconf.layout
     simplecv.layout
     singlecol.layout
+    singlecol-new.layout
     slides.layout
     spie.layout
     svglobal.layout
     svglobal3.layout
     svjog.layout
+    svmono.layout
+    svmult.layout
     svprobth.layout
     tarticle.layout
     tbook.layout
     treport.layout
+    tufte-book.layout
+    tufte-handout.layout
 ''')
 
 
@@ -2717,6 +2748,8 @@ lib_layouts_inc_files = Split('''
     svjour.inc
     theorems.inc
     theorems-ams.inc
+    theorems-ams-bytype.inc
+    theorems-bytype.inc
     theorems-order.inc
     theorems-proof.inc
     theorems-starred.inc
@@ -2727,14 +2760,22 @@ lib_layouts_inc_files = Split('''
 lib_layouts_module_files = Split('''
     braille.module
     endnotes.module
+    eqs-within-sections.module
+    figs-within-sections.module
     foottoend.module
     hanging.module
     linguistics.module
     logicalmkup.module
     minimalistic.module
+    tabs-within-sections.module
+    theorems-ams-bytype.module
     theorems-ams-extended.module
+    theorems-ams-extended-bytype.module
     theorems-ams.module
+    theorems-bytype.module
+    theorems-chap-bytype.module
     theorems-chap.module
+    theorems-sec-bytype.module
     theorems-sec.module
     theorems-starred.module
     theorems-std.module

@@ -48,8 +48,7 @@ Function ConfigureLyX
   Delete "$INSTDIR\Resources\lyxrc.dist"
   FileOpen $R1 "$INSTDIR\Resources\lyxrc.dist" w
   # set some general things
-  FileWrite $R1 '\preview_scale_factor "1.0"$\r$\n\
-  		 \screen_zoom "120"$\r$\n'
+  FileWrite $R1 '\screen_zoom "120"$\r$\n'
   ${if} "$PathPrefix" != ""
    FileWrite $R1 '\path_prefix "$PathPrefix"$\r$\n'
   ${endif}
@@ -68,7 +67,8 @@ Function ConfigureLyX
   ${endif}
   FileClose $R1
   IfErrors 0 +2
-  MessageBox MB_OK|MB_ICONEXCLAMATION "$(ModifyingConfigureFailed)"
+   MessageBox MB_OK|MB_ICONEXCLAMATION "$(ModifyingConfigureFailed)"
+  ClearErrors
   
   # register LyX
   ${if} $CreateFileAssociations == "true"

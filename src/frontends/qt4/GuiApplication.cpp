@@ -825,6 +825,9 @@ bool GuiApplication::dispatch(FuncRequest const & cmd)
 		// update bookmark pit of the current buffer before window close
 		for (size_t i = 0; i < theSession().bookmarks().size(); ++i)
 			theLyXFunc().gotoBookmark(i+1, false, false);
+		// clear the last opened list, because
+		// maybe this will end the session
+		theSession().lastOpened().clear();
 		current_view_->close();
 		break;
 
@@ -983,10 +986,9 @@ void GuiApplication::createView(QString const & geometry_arg, bool autoShow,
 
 	// create new view
 	int id = view_id;
-	if (id == 0) {
-		while (d->views_.find(id) != d->views_.end())
-			id++;
-	}
+	while (d->views_.find(id) != d->views_.end())
+		id++;
+
 	LYXERR(Debug::GUI, "About to create new window with ID " << id);
 	GuiView * view = new GuiView(id);
 	// register view
@@ -1162,8 +1164,8 @@ QAbstractItemModel * GuiApplication::languageModel()
 	QStandardItemModel * lang_model = new QStandardItemModel(this);
 	lang_model->insertColumns(0, 1);
 	int current_row;
-	Languages::const_iterator it = languages.begin();
-	Languages::const_iterator end = languages.end();
+	Languages::const_iterator it = lyx::languages.begin();
+	Languages::const_iterator end = lyx::languages.end();
 	for (; it != end; ++it) {
 		current_row = lang_model->rowCount();
 		lang_model->insertRows(current_row, 1);
@@ -1196,9 +1198,18 @@ void GuiApplication::restoreGuiSession()
 	// Note that we open them in reverse order. This is because we close
 	// buffers also in reverse order (aesthetically motivated).
 	for (size_t i = lastopened.size(); i > 0; --i) {
-		current_view_->loadDocument(lastopened[i - 1].file_name, false);
+		FileName const & file_name = lastopened[i - 1].file_name;
+		if (d->views_.empty() || (!lyxrc.open_buffers_in_tabs
+			  && current_view_->buffer() != 0)) {
+			boost::crc_32_type crc;
+			string const & fname = file_name.absFilename();
+			crc = for_each(fname.begin(), fname.end(), crc);
+			createView(crc.checksum());
+		}
+		current_view_->loadDocument(file_name, false);
+
 		if (lastopened[i - 1].active)
-			active_file = lastopened[i - 1].file_name;
+			active_file = file_name;
 	}
 
 	// Restore last active buffer
@@ -1292,7 +1303,7 @@ bool GuiApplication::notify(QObject * receiver, QEvent * event)
 		case BufferException: {
 			Buffer * buf = current_view_->buffer();
 			docstring details = e.details_ + '\n';
-			details += theBufferList().emergencyWrite(buf);
+			details += buf->emergencyWrite();
 			theBufferList().release(buf);
 			details += "\n" + _("The current document was closed.");
 			Alert::error(e.title_, details);

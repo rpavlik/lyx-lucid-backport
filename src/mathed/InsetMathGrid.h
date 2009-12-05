@@ -92,11 +92,12 @@ public:
 
 public:
 	/// sets nrows and ncols to 1, vertical alingment to 'c'
-	InsetMathGrid();
+	InsetMathGrid(Buffer * buf);
 	/// Note: columns first!
-	InsetMathGrid(col_type m, row_type n);
+	InsetMathGrid(Buffer * buf, col_type m, row_type n);
 	///
-	InsetMathGrid(col_type m, row_type n, char valign, docstring const & halign);
+	InsetMathGrid(Buffer * buf, col_type m, row_type n, char valign,
+		      docstring const & halign);
 	///
 	void metrics(MetricsInfo & mi, Dimension &) const;
 	///
@@ -229,8 +230,7 @@ protected:
 	/// returns y offset of cell compared to inset
 	int cellYOffset(idx_type idx) const;
 	/// returns proper 'end of line' code for LaTeX
-	virtual docstring eolString(row_type row, bool emptyline,
-				      bool fragile) const;
+	virtual docstring eolString(row_type row, bool fragile) const;
 	/// returns proper 'end of column' code for LaTeX
 	virtual docstring eocString(col_type col, col_type lastcol) const;
 	/// splits cells and shifts right part to the next cell

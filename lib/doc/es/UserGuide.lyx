@@ -1,4 +1,4 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -1407,7 +1407,7 @@ reference "sec:IG"
 .
  Con un clic puedes saltar a la parte del documento correspondiente.
  En la parte superior hay un cuadro desplegable en el que puedes escoger
- entre varias listas e índices de objetos, como notas al pie.
+ entre varias listas e índices de recuadros insertados, como notas al pie.
  Algunos de éstos, como los índices de tablas, de figuras y de algoritmos,
  se pueden añadir al documento, véase
 \begin_inset space ~
@@ -9802,12 +9802,12 @@ Proteger
 \end_layout
 
 \begin_layout Subsubsection
-Espacio reservado
+Espacio fantasma
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Espacios ! Reservado
+Espacios ! fantasma
 \end_layout
 
 \end_inset
@@ -28631,9 +28631,14 @@ inmediata
 \family sans
 Herramientas\SpecialChar \menuseparator
 Preferencias\SpecialChar \menuseparator
-Gráficos
+Pantalla
 \family default
 .
+ El 
+\family sans
+Tamaño de la vista preliminar
+\family default
+ es el factor de multiplicación para el tamaño.
 \end_layout
 
 \begin_layout Standard
@@ -35578,11 +35583,13 @@ Estas entradas del menú dividirán la pantalla principal de LyX vertical
 e., tres o más documentos a la vez.
  Para volver a una vista sin dividir, usa el menú 
 \family sans
-Cerrar grupo de pestañas.
+Cerrar la vista actual
+\family default
+.
 \end_layout
 
 \begin_layout Subsection
-Cerrar grupo de pestañas
+Cerrar la vista actual
 \end_layout
 
 \begin_layout Standard
@@ -35596,7 +35603,7 @@ Pantalla completa
 \end_layout
 
 \begin_layout Standard
-Esta opción del menú o pulsando F11 se muestra la ventana principal de LyX
+Esta opción del menú o pulsando F11 muestra la ventana principal de LyX
  en modo pantalla completa, ocultando la barra de menú y las barras de herramien
 tas.
  Para volver a vista normal pulsa F11 o haz clic derecha en el ratón y desmarca
@@ -41149,12 +41156,12 @@ Cambiar
 \end_layout
 
 \begin_layout Subsection
-Gráficos
+Pantalla
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Gráficos ! Configuración
+Configuración ! Pantalla
 \end_layout
 
 \end_inset
@@ -41163,7 +41170,7 @@ Gráficos ! Configuración
 \end_layout
 
 \begin_layout Standard
-Esta opción permite decidir cómo se mostrarán los gráficos en la pantalla
+Esta opción permite decidir si se mostrarán los gráficos en la pantalla
  de LyX.
 \end_layout
 
@@ -41186,7 +41193,7 @@ preliminar
 
 
 \family sans
-instantánea
+inmediata
 \family default
  sirve para ver directamente en la pantalla de LyX objetos gráficos como
  imágenes o ecuaciones, como se explica en la sección
@@ -41201,6 +41208,26 @@ reference "sec:Vista-preliminar-inmediata"
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+La opción  
+\family sans
+Marcar
+\begin_inset space ~
+\end_inset
+
+final
+\begin_inset space ~
+\end_inset
+
+de
+\begin_inset space ~
+\end_inset
+
+párrafos
+\family default
+ muestra un calderón (¶) al final de cada párrafo.
 \end_layout
 
 \begin_layout Section

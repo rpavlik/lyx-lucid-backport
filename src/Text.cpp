@@ -542,7 +542,9 @@ void Text::insertChar(Cursor & cur, char_type c)
 	cur.checkBufferStructure();
 
 //		cur.updateFlags(Update::Force);
-	setCursor(cur.top(), cur.pit(), cur.pos() + 1);
+	bool const boundary = cur.boundary()
+		|| tm.isRTLBoundary(cur.pit(), cur.pos() + 1);
+	setCursor(cur, cur.pit(), cur.pos() + 1, false, boundary);
 	charInserted(cur);
 }
 
@@ -1240,6 +1242,9 @@ bool Text::dissolveInset(Cursor & cur)
 		// this is the least that needs to be done (bug 6003)
 		// in the above case, pasteParagraphList handles this
 		updateLabels(cur.buffer());
+	
+	// Ensure the current language is set correctly (bug 6292)
+	cur.text()->setCursor(cur, cur.pit(), cur.pos());
 	cur.clearSelection();
 	cur.resetAnchor();
 	return true;

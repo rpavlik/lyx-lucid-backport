@@ -923,6 +923,7 @@ FuncStatus BufferView::getStatus(FuncRequest const & cmd)
 		flag.setEnabled(true);
 		break;
 
+	case LFUN_GRAPHICS_RELOAD:
 	case LFUN_COPY_LABEL_AS_REF: {
 		// if there is an inset at cursor, see whether it
 		// handles the lfun
@@ -1381,6 +1382,15 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 		buffer_.params().compressed = !buffer_.params().compressed;
 		break;
 
+	case LFUN_GRAPHICS_RELOAD: {
+		Inset * inset = cur.nextInset();
+		if (inset) {
+			FuncRequest tmpcmd = cmd;
+			inset->dispatch(cur, tmpcmd);
+		}
+		break;
+	}
+
 	case LFUN_COPY_LABEL_AS_REF: {
 		// if there is an inset at cursor, try to copy it
 		Inset * inset = &cur.inset();
@@ -1631,7 +1641,7 @@ Inset const * BufferView::getCoveringInset(Text const & text,
 	if (!inset)
 		return 0;
 
-	if (!inset->descendable())
+	if (!inset->descendable(*this))
 		// No need to go further down if the inset is not
 		// descendable.
 		return inset;
@@ -1864,8 +1874,10 @@ void BufferView::gotoLabel(docstring const & label)
 	TocIterator toc_it = toc.begin();
 	TocIterator end = toc.end();
 	for (; toc_it != end; ++toc_it) {
-		if (label == toc_it->str())
+		if (label == toc_it->str()) {
 			dispatch(toc_it->action());
+			break;
+		}
 	}
 	//FIXME: We could do a bit more searching thanks to this:
 	//InsetLabel const * inset = buffer_.insetLabel(label);
@@ -1904,6 +1916,7 @@ int BufferView::workHeight() const
 
 void BufferView::setCursor(DocIterator const & dit)
 {
+	d->cursor_.reset(buffer().inset());
 	size_t const n = dit.depth();
 	for (size_t i = 0; i < n; ++i)
 		dit[i].inset().edit(d->cursor_, true);
@@ -1948,6 +1961,8 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 		// persistent selection
 		cap::saveSelection(cursor());
 
+	d->cursor_.macroModeClose();
+
 	// Has the cursor just left the inset?
 	bool badcursor = false;
 	bool leftinset = (&d->cursor_.inset() != &cur.inset());
@@ -1968,7 +1983,6 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 	bool update = leftinset;
 	if (!do_selection && !badcursor && d->cursor_.inTexted())
 		update |= checkDepm(cur, d->cursor_);
-	d->cursor_.macroModeClose();
 
 	d->cursor_.resetAnchor();
 	d->cursor_.setCursor(cur);
