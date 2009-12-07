@@ -1,4 +1,4 @@
-lyx (1.6.5-1) UNRELEASED; urgency=low
+lyx (1.6.5-1) unstable; urgency=low
 
   [ Per Olofsson ]
   * Modify build-dep on quilt so it accepts backported quilt as well.
@@ -9,13 +9,13 @@ lyx (1.6.5-1) UNRELEASED; urgency=low
     Closes: #548119.
 
   [ Sven Hoexter ]
-  * New upstream version
+  * New upstream release.
     + Fixes a crash after editing formulars. Closes: #548519
   * Refresh patches/prefer-xdg-open.
   * Add elyxer to the list of HTML converters.
   * Switch to my @d.o e-mail address in the Uploaders control field.
 
- -- Sven Hoexter <hoexter@debian.org>  Sat, 05 Dec 2009 17:27:41 +0100
+ -- Sven Hoexter <hoexter@debian.org>  Mon, 07 Dec 2009 20:16:27 +0100
 
 lyx (1.6.4-1) unstable; urgency=low
 
