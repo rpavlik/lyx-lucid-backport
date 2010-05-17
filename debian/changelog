@@ -1,4 +1,4 @@
-lyx (1.6.5-2) UNRELEASED; urgency=low
+lyx (1.6.6-1) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Add texlive-science to Recommends. It's not big, and it's required
