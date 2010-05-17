@@ -187,10 +187,6 @@ Function InstDirChange
    StrCpy $FileName "session"
    Call CheckAppPathPreferences # function from LyXUtils.nsh
    
-   # set the new path to the lyx.bat file
-   # following macro from TextFunc.nsh # calls Function ReplaceLineContent from LyXUtils.nsh
-   ${LineFind} "$INSTDIR\bin\lyx.bat" "" "1:-1" "ReplaceLineContent" 
-   
    # set new path to ImageMagick
    ReadRegStr $ImageMagickPath SHCTX "SOFTWARE\Classes\Applications" "AutoRun"
    ${if} $ImageMagickPath != ""
@@ -214,8 +210,37 @@ Function RefreshRegUninst
    WriteRegStr HKLM "SOFTWARE\Aspell" "OnlyWithLyX" "Yes${PRODUCT_VERSION_SHORT}"
   ${endif}
   
-  # install eLyXer as Python module
-  Call eLyXer # function from InstallThirdPartyProgs.nsh
+  # eLyXer
+  # first test if Python is installed
+  ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\2.5\InstallPath" ""
+  ${if} $PythonPath == ""
+   ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\2.6\InstallPath" ""
+  ${endif}
+  ${if} $PythonPath == ""
+   ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\3.0\InstallPath" ""
+  ${endif}
+  ${if} $PythonPath == ""
+   ReadRegStr $PythonPath HKLM "Software\Python\PythonCore\3.1\InstallPath" ""
+  ${endif}
+  ${if} $PythonPath != ""
+   StrCpy $PythonPath $PythonPath -1 # remove the "\" at the end
+  ${endif}
+  # now install eLyXer as Python module
+  ${if} $PythonPath != ""
+   # a Python module cannot simply started with
+   # ExecWait '$PythonPath\python.exe "$INSTDIR\bin\setup.py" install'
+   # therefore run a script
+   StrCpy $1 $INSTDIR 2 # get drive letter
+   FileOpen $R1 "$INSTDIR\bin\eLyXer.bat" w
+   FileWrite $R1 '$1$\r$\n\
+		  cd "$INSTDIR\bin"$\r$\n\
+		  "$PythonPath\python.exe" setup.py install'
+   FileClose $R1
+   ExecWait '"$INSTDIR\bin\eLyXer.bat"'
+   Delete "$INSTDIR\bin\eLyXer.bat"
+  ${else}
+   ExecWait '"$INSTDIR\bin\python.exe" "$INSTDIR\bin\setup.py" install'
+  ${endif}
   
   # Metafile2eps
   Var /GLOBAL RegLocation

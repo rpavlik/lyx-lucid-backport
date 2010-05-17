@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -27,9 +27,11 @@
 
 % Ein PDF-Lesezeichen für das Inhaltsverzeichnis wird hinzugefügt
 \let\myTOC\tableofcontents
-\renewcommand{\tableofcontents}{%
- \pdfbookmark[1]{\contentsname}{}
- \myTOC }
+\renewcommand\tableofcontents{%
+  \frontmatter
+  \pdfbookmark[1]{\contentsname}{}
+  \myTOC
+  \mainmatter }
 
 % Damit der Index den Namen "Stichwortverzeichnis" erhält
 \addto\captionsngerman{\renewcommand{\indexname}{Stichwortverzeichnis}}
@@ -39,19 +41,13 @@
   L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
   {LyX}}
 
-% redefine the \lyxarrow macro for PDF bookmarks
-\renewcommand{\lyxarrow}{%
- \texorpdfstring{%
-  \leavevmode\,$\triangleright$\,\allowbreak}
-  {->}}
-
 % workaround for a makeindex bug, 
 % see sec. "Index Entry Order"
 % only uncomment this when you are using makindex
 %\let\OrgIndex\index 
 %\renewcommand*{\index}[1]{\OrgIndex{#1}}
 \end_preamble
-\options intoc,bibtotoc,idxtotoc,BCOR7mm,tablecaptionabove,liststotoc
+\options intoc,bibtotoc,idxtotoc,BCOR7mm,tablecaptionabove
 \use_default_options false
 \language ngerman
 \inputencoding auto
@@ -98,9 +94,9 @@
 \color #aa55ff
 \end_branch
 \secnumdepth 3
-\tocdepth 3
+\tocdepth 2
 \paragraph_separation indent
-\defskip smallskip
+\defskip medskip
 \quotes_language german
 \papercolumns 1
 \papersides 2
@@ -177,8 +173,8 @@ type "mailto:"
 \end_layout
 
 \begin_layout Date
-letzte Änderung: 23.
- August 2009
+letzte Änderung: 24.
+ Februar 2010
 \end_layout
 
 \begin_layout Standard
@@ -3084,7 +3080,7 @@ article[
 \begin_inset space \space{}
 \end_inset
 
-(koma-script)] für Standardartikel
+(KOMA-Script)] für Standardartikel
 \end_layout
 
 \begin_layout Description
@@ -3092,7 +3088,7 @@ book[
 \begin_inset space \space{}
 \end_inset
 
-(koma-script)] für Bücher
+(KOMA-Script)] für Bücher
 \end_layout
 
 \begin_layout Description
@@ -3100,7 +3096,7 @@ letter[
 \begin_inset space \space{}
 \end_inset
 
-(DIN-Brief/german/koma-script)] für Briefe im deutschen Stil
+(DIN-Brief/german/KOMA-Script)] für Briefe im deutschen Stil
 \end_layout
 
 \begin_layout Description
@@ -3108,14 +3104,14 @@ report[
 \begin_inset space \space{}
 \end_inset
 
-(koma-script)] für Standardberichte
+(KOMA-Script)] für Standardberichte
 \end_layout
 
 \begin_layout Standard
 
 \family sans
 \series bold
-koma-script
+KOMA-Script
 \family default
 \series default
  ersetzt die Standardklassen und bietet viele nützliche Funktionen wie das
@@ -3123,7 +3119,7 @@ koma-script
  Weitere Hinweise zu 
 \family sans
 \series bold
-koma-script
+KOMA-Script
 \family default
 \series default
  finden Sie in den 
@@ -3630,7 +3626,7 @@ höchste Abschnittsstufe
 \begin_inset Text
 
 \begin_layout Plain Layout
-article[ (koma-script)]
+article[ (KOMA-Script)]
 \end_layout
 
 \end_inset
@@ -3740,7 +3736,7 @@ Abschnitt
 \begin_inset Text
 
 \begin_layout Plain Layout
-book[ (koma-script)]
+book[ (KOMA-Script)]
 \end_layout
 
 \end_inset
@@ -3795,7 +3791,7 @@ Kapitel
 \begin_inset Text
 
 \begin_layout Plain Layout
-letter[ (german/koma-script)]
+letter[ (german/KOMA-Script)]
 \end_layout
 
 \end_inset
@@ -3848,7 +3844,7 @@ keine
 \begin_inset Text
 
 \begin_layout Plain Layout
-report[ (koma-script)]
+report[ (KOMA-Script)]
 \end_layout
 
 \end_inset
@@ -5175,13 +5171,21 @@ alles
  in die neue Klasse umwandeln, einschließlich der Absatzumgebungen.
  Einige Absatzumgebungen sind Standard; alle Dokumentklassen haben sie.
  Einige Klassen jedoch haben besondere Absatzumgebungen.
- Wenn Sie in so einem Fall die Dokumentklasse ändern, setzt LyX die fehlenden
- Absatzumgebungen auf 
-\family sans
-Standard
-\family default
- und platziert ein Fehlerkästchen an den Anfang des Absatzes.
- Wenn Sie draufklicken, sehen Sie eine Meldung, warum die Umwandlung fehlschlug.
+ Wenn Sie in so einem Fall die Dokumentklasse ändern, markiert LyX die Absätze,
+ deren Umgebungen es nicht mehr kennt, als 
+\begin_inset Quotes gld
+\end_inset
+
+unbekannt
+\begin_inset Quotes grd
+\end_inset
+
+.
+ Der Name der Umgebung wird beibehalten für den Fall, dass Sie zur vorigen
+ Dokumentklasse zurückwechseln wollen.
+ Absätze mit unbekannter Umgebung werden ohne spezielle Formatierung ausgegeben,
+ so dass Sie entweder eine eigene Formatierung festlegen oder für den Absatz
+ eine bekannte Umgebung der aktuellen Dokumentklasse ändern müssen.
 \end_layout
 
 \begin_layout Section
@@ -8752,7 +8756,7 @@ Zusammenfassung
 \series default
  zentriert über den Text gesetzt (allerdings nicht bei der 
 \family sans
-KOMA-script
+KOMA-Script
 \family default
 -Version).
  Die Marke und der Text werden durch zusätzlichen Leerraum getrennt.
@@ -8799,7 +8803,7 @@ book
 \begin_inset space ~
 \end_inset
 
-(KOMA-script
+(KOMA-Script
 \family default
 )-Klasse benutzt.
  Wenn Sie noch nie von einer Zusammenfassung gehört haben, können Sie diese
@@ -9051,7 +9055,7 @@ Legende unten
 \family default
  in der 
 \family sans
-KOMA-script
+KOMA-Script
 \family default
 -Version.
 \end_layout
@@ -13804,7 +13808,7 @@ en bestehen, dem Buchstaben und dem Akzent.
  Deswegen kann man Dokumente nicht nach Worten mit solchen Zeichen durchsuchen.
  Wenn Sie zum Beispiel das französische Wort 
 \emph on
-rève
+brève
 \emph default
  in einer PDF-Datei suchen, werden Sie es nicht finden, weil der PDF-Betrachter
  nach 
@@ -24177,11 +24181,14 @@ reference "Tab:Tabelle-ohne-Titel"
 \end_inset
 
  ist ein Beispiel dafür.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float table
 placement htbp
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -25305,41 +25312,6 @@ iint
 \family default
 ).
  Unglücklicherweise sehen sie nicht immer konsistent aus.
- Zum Beispiel sieht das Zeichen 
-\begin_inset Formula $\iint$
-\end_inset
-
- 
-\family typewriter
-(
-\backslash
-iint)
-\family default
- des 
-\family typewriter
-wasysym
-\family default
--Paketes wie 
-\begin_inset Formula $\varint$
-\end_inset
-
- 
-\family typewriter
-(
-\backslash
-varint
-\family default
-) aus, nicht wie 
-\begin_inset Formula $\int$
-\end_inset
-
- 
-\family typewriter
-(
-\backslash
-int
-\family default
-).
 \end_layout
 
 \begin_layout Standard
@@ -25369,17 +25341,6 @@ verwenden
 Mathe-Werkzeugleiste
 \family default
 .
- Dieses Dokument benutzt das 
-\family typewriter
-wasysym
-\family default
--Paket anstatt des 
-\family typewriter
-esint
-\family default
--Paket, damit Sie die unterschiedlichen Integralzeichen in der DVI-Vorschau
- sehen können, weil das letztere nicht in allen LaTeX-Distributionen vorhanden
- ist.
 \end_layout
 
 \begin_layout Subsection
@@ -29043,48 +29004,67 @@ Einfügen
 \end_layout
 
 \begin_layout Standard
-Es gibt folgende Querverweistypen:
+Es gibt folgende Querverweisstile:
 \end_layout
 
-\begin_layout Enumerate
+\begin_layout Description
+<Querverweis>: druckt die Nummer der Gleitumgebung, dies ist die Voreinstellung:
+ 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "Werkzeugleisten"
+reference "Tab:Gleitende-Tabelle"
 
 \end_inset
 
- (die Abschnittsnummer),
+
 \end_layout
 
-\begin_layout Enumerate
+\begin_layout Description
+(<Querverweis>): druckt die Nummer der Gleitumgebung umgeben von zwei runden
+ Klammern, dies ist der Stil, wie er normalerweise für Verweise auf Formeln
+ verwendet wird, speziell wenn der Name 
+\begin_inset Quotes gld
+\end_inset
+
+Gleichung
+\begin_inset Quotes grd
+\end_inset
+
+ weggelassen wird: 
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "eq:fifth-eqn"
+reference "Tab:Gleitende-Tabelle"
 
 \end_inset
 
- (setzt den Querverweis in runde Klammern und ist deshalb für das Zitieren
- von Gleichungen geeignet),
+
 \end_layout
 
-\begin_layout Enumerate
+\begin_layout Description
+<Seite>: druckt die Seitennummer: Seite
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset CommandInset ref
 LatexCommand pageref
-reference "Werkzeugleisten"
+reference "Tab:Gleitende-Tabelle"
 
 \end_inset
 
- (die Seitennummer der Marke),
+
 \end_layout
 
-\begin_layout Enumerate
-\begin_inset CommandInset ref
-LatexCommand vpageref
-reference "Werkzeugleisten"
-
+\begin_layout Description
+auf
+\begin_inset space ~
 \end_inset
 
- (
+Seite
+\begin_inset space ~
+\end_inset
+
+<Seite>: druckt den Text 
 \begin_inset Quotes gld
 \end_inset
 
@@ -29092,140 +29072,226 @@ auf Seite
 \begin_inset Quotes grd
 \end_inset
 
- + die Seitennummer der Marke),
-\end_layout
-
-\begin_layout Enumerate
+ und die Seitennummer: 
 \begin_inset CommandInset ref
-LatexCommand vref
-reference "Werkzeugleisten"
+LatexCommand vpageref
+reference "Tab:Gleitende-Tabelle"
 
 \end_inset
 
- (Typ 1 + Typ 4).
- Wenn Sie bei Verwendung dieses Typs Probleme mit LaTeX bekommen sollten,
- verwenden Sie bitte einen anderen oder formulieren Sie den Text mit dem
- Querverweis etwas anders.
- Am ehesten kommt es vor, dass der Querverweis über das Zeilenende hinaus
- gedruckt wird.
-\end_layout
-
-\begin_layout Enumerate
-Formatierter Querverweis sieht aus wie 1.
-\end_layout
-
-\begin_layout Standard
-Wenn Sie Text aus einem anderen Dokument kopieren, der einen Verweis enthält,
- oder wenn Sie eine Marke aus Ihrem Dokument, auf die verwiesen wird, löschen,
- werden in der Druckausgabe zwei Fragezeichen an der Stelle des Verweises
- stehen.
-\end_layout
-
-\begin_layout Standard
-Wenn Sie aus Versehen dieselbe Marke noch einmal vergeben wollen, meldet
- LyX das und macht einen Vorschlag, wie die Marke heißen soll.
- Wenn Sie ein bereits vorhandenes Dokument mit Mehrfachmarken öffnen, schreibt
- LyX vor die zweite und folgende Marken DUPLIKAT:.
- Wenn Sie aus Versehen eine Marke löschen, erscheint auf einem Querverweis
- auf diese Marke der Text NICHT VORHANDEN: \SpecialChar \ldots{}
 
 \end_layout
 
-\begin_layout Standard
-Es gibt noch einige Anmerkungen zu 
-\family sans
-Marken
-\family default
-.
- Sie enthalten immer die Abschnittsnummer der vorangehenden Überschrift.
- Wenn Sie also auf ein 
-\family sans
-Kapitel
-\family default
- verweisen wollen, aber eine 
-\family sans
-Abschnitt
-\family default
--Überschrift unmittelbar folgt, müssen Sie die Marke 
-\emph on
-in
-\emph default
- die 
-\family sans
-Kapitel
-\family default
--Umgebung setzen.
- Es ist egal, wo, und es sieht auf dem Bildschirm seltsam aus.
- Aber Sie müssen es tun, wenn Sie 
-\family sans
-Kapitel
-\family default
- anders als 
-\family sans
-Abschnitt
-\family default
- markieren wollen.
- Dasselbe gilt für alle Abschnittsüberschriften.
- Nur wenn nach der Überschrift Text folgt, dürfen Sie die Marke ohne Nachdenken
- in den Text setzen.
+\begin_layout Description
+<Querverweis>
+\begin_inset space ~
+\end_inset
+
+auf
+\begin_inset space ~
+\end_inset
+
+Seite
+\begin_inset space ~
+\end_inset
+
+<Seite>: druckt die Nummer der Gleitumgebung, den Text 
+\begin_inset Quotes gld
+\end_inset
+
+auf Seite
+\begin_inset Quotes grd
+\end_inset
+
+, und die Seitennummer: 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "Tab:Gleitende-Tabelle"
+
+\end_inset
+
+
 \end_layout
 
-\begin_layout Standard
-Außerdem macht eine Marke 
-\emph on
-nur
-\emph default
- für 
-\emph on
-nummerierte
-\emph default
- Abschnitte und Gleitobjekte (Tabellen und Abbildungen) Sinn.
- Normale Abbildungen und Tabellen sind nicht nummeriert, also kann man für
- sie ebenso wie für nichtnummerierte Abschnitte eigentlich keine Marken
- benutzen.
-\begin_inset Foot
+\begin_layout Description
+Formatierter
+\begin_inset space ~
+\end_inset
+
+Querverweis: druckt ein selbst definiertes Querverweisformat
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Bemerkung:
+\series default
+ Dies ist nur möglich, wenn das LaTeX-Paket 
+\series bold
+prettyref
+\series default
+
+\begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Nun, man 
-\emph on
-kann,
-\emph default
- aber nur, wenn man als 
-\family sans
-Format
-\family default
- <Seite> oder auf Seite <Seite> benutzt.
- Der normale Verweis auf eine Abschnitts-, Tabellen- oder Abbildungsnummer
- geht nicht, weil es keine Nummer gibt! Ein Verweis mit <Querverweis> würde
- auf die letzte nummerierte Überschrift zeigen.
+LaTeX-Pakete! prettyref
 \end_layout
 
 \end_inset
 
- In den Abschnitten 
-\begin_inset CommandInset ref
-LatexCommand vref
-reference "Beschriftung-von-Abbildungen"
+ installiert ist.
+\end_layout
 
 \end_inset
 
-, 
-\begin_inset CommandInset ref
-LatexCommand vref
-reference "Tabellen-in-Gleitobjekt-Umgebungen"
 
+\end_layout
+
+\begin_layout Standard
+
+\family sans
+<Seite>
+\family default
+ druckt nicht die Seitennummer, wenn sich die referenzierte Marke auf der
+ vorherigen, der selben oder der nächsten Seite befindet.
+ Stattdessen wird z.
+\begin_inset space \thinspace{}
 \end_inset
 
- und 
+B.
+ der Text 
+\begin_inset Quotes gld
+\end_inset
+
+
+\family sans
+auf dieser Seite
+\family default
+
+\begin_inset Quotes grd
+\end_inset
+
+ gedruckt.
+ Der Stil 
+\family sans
+<Querverweis>
+\begin_inset space ~
+\end_inset
+
+auf
+\begin_inset space ~
+\end_inset
+
+Seite
+\begin_inset space ~
+\end_inset
+
+<Seite>
+\family default
+ druckt nichts über die Seite, wenn die referenzierte Marke auf der gleichen
+ Seite ist.
+\end_layout
+
+\begin_layout Standard
+Die Nummer und die aktuelle Seite des referenzierten Dokumentteils wird
+ automatisch von LaTeX berechnet.
+ Die Stile können im Feld 
+\family sans
+Format
+\family default
+ des Querverweis-Fensters eingestellt werden, das erscheint, wenn Sie auf
+ einen Querverweis klicken.
+\end_layout
+
+\begin_layout Standard
+Der Stil 
+\family sans
+<Querverweis>
+\family default
+ kann nur zur Referenzierung nummerierter Teile des Dokuments verwendet
+ werden, während der Stil 
+\family sans
+<Seite>
+\family default
+ immer möglich ist.
+\end_layout
+
+\begin_layout Standard
+Um einen Abschnitt zu referenzieren, setzen Sie die Marke in die Abschnittsübers
+chrift; bei Gleitobjekten setzen Sie die Marke in die Beschriftung; bei
+ Fußnoten wird die Marke in die Fußnote gesetzt.
+ Die Referenzierung von Formeln ist in Abschnitt
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset CommandInset ref
-LatexCommand vref
+LatexCommand ref
 reference "Gleichungen-numerieren-markieren"
 
 \end_inset
 
- finden Sie weitere Einzelheiten über das Markieren von Abbildungen, Tabellen
- und Gleichungen.
+ beschrieben.
+\end_layout
+
+\begin_layout Standard
+Recht-klicken auf einen Querverweis öffnet ein Kontextmenü.
+ Der Eintrag 
+\family sans
+Gehe
+\begin_inset space ~
+\end_inset
+
+zur
+\begin_inset space ~
+\end_inset
+
+Marke
+\family default
+ setzt den Cursor vor die referenzierte Marke.
+ Dieser Eintrag wird im Kontextmenü der Marke in 
+\family sans
+Gehe
+\begin_inset space ~
+\end_inset
+
+zurück
+\family default
+ umbenannt, so dass man ihn benutze kann, um zum Querverweis zurückzukehren.
+ Man kann auch mit dem Werkzeugleistenknopf 
+\begin_inset Graphics
+	filename ../../images/bookmark-goto_0.png
+	BoundingBox 0bp 5bp 20bp 25bp
+	rotateOrigin center
+
+\end_inset
+
+ zurückkehren.
+\end_layout
+
+\begin_layout Standard
+Marken können jederzeit geändert werden.
+ Verweise auf die geänderte Marke werden automatisch aktualisiert, so dass
+ Sie sich nicht darum kümmern müssen.
+\end_layout
+
+\begin_layout Standard
+Wenn ein Querverweis eine nicht existierende Marke referenziert, erscheinen
+ in der Ausgabe zwei Fragezeichen statt der Referenz.
+\end_layout
+
+\begin_layout Standard
+Querverweise sind detailliert im 
+\emph on
+Eingebettete Objekte
+\emph default
+ Handbuch beschrieben.
 \end_layout
 
 \begin_layout Section
@@ -33087,7 +33153,7 @@ Manche Dokumentklassen haben eingebaute Lösungen für bekannte Probleme wie
  das obige.
  Wenn Sie zum Beispiel die Klasse 
 \family sans
-KOMA-script
+KOMA-Script
 \family default
  benutzen, benötigen Sie das Paket 
 \family typewriter
@@ -33279,7 +33345,7 @@ LyX selber besitzt keine Rechtschreibprüfung, sondern benutzt wahlweise
 \family typewriter
 aspell
 \family default
-,
+
 \begin_inset Foot
 status collapsed
 
@@ -33300,13 +33366,9 @@ http://aspell.sourceforge.net
 
 \end_inset
 
- 
-\family typewriter
-hspell
-\family default
  oder 
 \family typewriter
-ispell.
+ispell
 \family default
 
 \begin_inset Foot
@@ -33329,36 +33391,36 @@ http://fmg-www.cs.ucla.edu/fmg-members/geoff/ispell.html
 
 \end_inset
 
+, für hebräische Dokumente außerdem noch 
+\family typewriter
+hspell.
+
+\family default
  
 \family typewriter
-aspell
+Aspell
 \family default
  ist neuer und generell besser als 
 \family typewriter
 ispell
 \family default
+ (bspw.
+ unterstützt es die Prüfung mehrsprachiger Dokumente).
+ Sie sollten also möglichst 
+\family typewriter
+aspell
+\family default
+ verwenden (unter Windows ist dies ohnehin die einzige Möglichkeit).
+ Installationsanweisungen und Hinweise zu Wörterbüchern finden Sie in der
+ Dokumentation von 
+\family typewriter
+aspell
+\family default
+ und 
+\family typewriter
+ispell
+\family default
 .
- In der 
-\family typewriter
-ispell
-\family default
--Dokumentation finden Sie Installationsanweisungen und Hinweise zu Wörterbüchern.
- Sorgen Sie dafür, dass 
-\family typewriter
-\shape up
-ispell
-\family default
-\shape default
- in Ihrem 
-\begin_inset Quotes pld
-\end_inset
-
-PATH
-\begin_inset Quotes grd
-\end_inset
-
- erreichbar ist.
- 
 \end_layout
 
 \begin_layout Standard
@@ -33587,12 +33649,24 @@ Die verwendete
 \family typewriter
 aspell/hspell/ispell
 \family default
--Datei hängt von der Sprache ab, die im zu prüfenden Dokument verwendet
- wird.
- Diese wiederum wurde im Dialogfenster 
+-Datei hängt von der Sprache ab, die im zu prüfenden Dokument bzw.
+ (bei 
+\family typewriter
+aspell
+\family default
+) der zu prüfenden Passage verwendet wird.
+ Diese wiederum wurde entweder im Dialogfenster 
 \family sans
 Dokument\SpecialChar \menuseparator
 Einstellungen\SpecialChar \menuseparator
+Sprache
+\family default
+ oder aber, falls es sich um fremdsprachige Passagen handelt, in 
+\family sans
+Bearbeiten\SpecialChar \menuseparator
+Textstil\SpecialChar \menuseparator
+Benutzerdefiniert\SpecialChar \ldots{}
+\SpecialChar \menuseparator
 Sprache
 \family default
  festgelegt.
@@ -33601,11 +33675,71 @@ fung erst gar nicht gestartet.
 \end_layout
 
 \begin_layout Standard
-Für 
+Wenn Sie 
 \family typewriter
 ispell
 \family default
- kann man auch einen 
+ verwenden, müssen Sie darauf achten, dass die 
+\family typewriter
+ispell
+\family default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+"=
+\end_layout
+
+\end_inset
+
+Wörterbücher Namen haben, die LyX kennt.
+ LyX gibt an 
+\family typewriter
+ispell
+\family default
+ den englischen Namen weiter, der vom LaTeX-Babel-Paket benutzt wird (z.
+\begin_inset space \thinspace{}
+\end_inset
+
+B.
+ 
+\emph on
+ngerman
+\emph default
+ für neue und 
+\emph on
+german
+\emph default
+ für alte deutsche Rechtschreibung).
+ Die 
+\family typewriter
+ispell
+\family default
+-Dateien hingegen haben häufig Namen in der Muttersprache (bspw.
+
+\emph on
+ deutsch
+\emph default
+).
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Bitte lesen Sie den folgenden Abschnitt für Hinweise zur Einrichtung des
+ richtigen Wörterbuchs für alte\SpecialChar \slash{}
+neue deutsche Rechtschreibung.
+\end_layout
+
+\end_inset
+
+ Sie müssen also, falls das richtige Wörterbuch nicht gefunden wird, gegebenenfa
+lls in dem Ordner, in dem sich die 
+\family typewriter
+ispell
+\family default
+-Wörterbücher befinden, einen 
 \emph on
 Link
 \emph default
@@ -33623,28 +33757,9 @@ hash
 \family default
  nach 
 \family typewriter
-[n]
+german.(aff|hash)
 \family default
-ger\SpecialChar \-
-man
-\family typewriter
-.(aff|hash)
-\family default
-, oder was auch immer auf Ihre Sprache zutrifft, definieren.
- Das ist nötig, weil die 
-\family typewriter
-ispell
-\family default
--Dateien normalerweise Namen in der Muttersprache haben (
-\emph on
-deutsch
-\emph default
-), während 
-\family typewriter
-ispell
-\family default
-, wenn es von LyX aus gestartet wird, nach dem englischen Namen der Datei
- sucht, der vom LaTeX-Babel-Paket benutzt wird ([n]german).
+ setzen oder die Dateien entsprechend umbenennen.
 \end_layout
 
 \begin_layout Standard
@@ -33785,6 +33900,151 @@ ispell
 \begin_layout Enumerate
 Die vierte Möglichkeit ist, dass der Pfleger des Wörterbuchs das Problem
  löst.
+\end_layout
+
+\begin_layout Subsubsection*
+Alte vs.
+ neue deutsche Rechtschreibung
+\end_layout
+
+\begin_layout Standard
+Sowohl für 
+\family typewriter
+aspell
+\family default
+ als auch für 
+\family typewriter
+ispell
+\family default
+ liegen spezifische Wörterbücher für die alte und die neue Rechtschreibung
+ vor, LyX unterstützt also beide Varianten (im Fall von
+\family typewriter
+ aspell
+\family default
+ auch gleichzeitig, etwa wenn Sie in einem Dokument mit neuer Rechtschreibung
+ aus Dokumenten mit alter Rechtschreibung zitieren
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+In diesem Fall sollten Sie die Zitate wie fremdsprachigen Text behandeln,
+ in 
+\family sans
+Bearbeiten\SpecialChar \menuseparator
+Textstil\SpecialChar \menuseparator
+Benutzerdefiniert\SpecialChar \ldots{}
+\SpecialChar \menuseparator
+Sprache 
+\family default
+also 
+\begin_inset Quotes gld
+\end_inset
+
+Deutsch (alte Rechtschreibung)
+\begin_inset Quotes grd
+\end_inset
+
+ für die Zitate auswählen.
+\end_layout
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Wenn Sie 
+\family typewriter
+ispell
+\family default
+ verwenden, ist es wichtig, dass die Wörterbuchdateien richtig bezeichnet
+ sind.
+ Das 
+\family typewriter
+ispell
+\family default
+-Wörterbuch für alte Rechtschreibung (das üblicherweise 
+\emph on
+deutsch
+\emph default
+ heißt), sucht LyX unter dem Namen 
+\emph on
+german
+\emph default
+; das 
+\family typewriter
+ispell
+\family default
+-Wörterbuch für neue Rechtschreibung (das üblicherweise 
+\emph on
+german
+\emph default
+ heißt), sucht LyX unter dem Namen 
+\emph on
+ngerman
+\emph default
+.
+ Für eine funktionierende 
+\family typewriter
+ispell
+\family default
+-Rechtschreibprüfung für alte und neue Rechtschreibung müssen Sie also folgendes
+ tun:
+\end_layout
+
+\begin_layout Enumerate
+Benennen Sie die Dateien 
+\family typewriter
+german.(aff|hash)
+\family default
+ um in
+\family typewriter
+ ngerman.(aff|hash)
+\end_layout
+
+\begin_layout Enumerate
+Setzen Sie, wie oben beschrieben, einen Link von 
+\family typewriter
+deutsch.(aff|hash)
+\family default
+ nach 
+\family typewriter
+german.(aff|hash) 
+\family default
+oder benennen Sie alternativ die Dateien 
+\family typewriter
+deutsch.*
+\family default
+ um in
+\family typewriter
+ german.*
+\end_layout
+
+\begin_layout Standard
+Bitte beachten Sie, dass 
+\family typewriter
+ispell
+\family default
+ fälschlicherweise das Wörterbuch für neue Rechtschreibung bei alter Rechtschrei
+bung verwenden wird, wenn Sie den ersten Schritt vergessen!
+\end_layout
+
+\begin_layout Standard
+Wenn Sie 
+\family typewriter
+aspell
+\family default
+ verwenden, ist die Situation weit weniger verwirrend.
+ Vorausgesetzt, die Wörterbücher heißen 
+\emph on
+de_DE
+\emph default
+ (neue Rechtschreibung) und 
+\emph on
+de-alt
+\emph default
+ (alte Rechtschreibung), was normalerweise der Fall ist, funktioniert sowohl
+ neue als auch alte Rechtschreibung von vorneherein.
 \end_layout
 
 \begin_layout Subsubsection

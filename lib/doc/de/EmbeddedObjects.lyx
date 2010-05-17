@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -191,7 +191,7 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 2
@@ -11449,45 +11449,19 @@ Bearbeiten\SpecialChar \menuseparator
 Tabelle\SpecialChar \menuseparator
 Mehrfachspalte
 \family default
- oder den 
-\family sans
-Tabellen-Einstellungen
-\family default
--Dialog, in dem Sie auf der Karteikarte 
-\family sans
-Tabellen-Einstellungen
-\family default
+, oder klicken Sie rechts auf die markierten Zellen und wählen im Kontextmenü
  
 \family sans
 Mehrfachspalte
 \family default
- ankreuzen.
+.
 \end_layout
 
 \begin_layout Standard
 Mehrfachspalten haben ihre eigenen Einstellungen.
  Das bedeutet, dass sie sich nur auf die Mehrfachspalte auswirken.
- Hier ist ein Beispiel, wobei 
-\begin_inset Quotes gld
-\end_inset
-
-B 2
-\begin_inset Quotes grd
-\end_inset
-
- keine Mehrfachzeile ist, wie in Abschnitt
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "uab:Mehrfachzeilen"
-
-\end_inset
-
- beschrieben.
- Es wurde nur eine Linie weggelassen:
+ Hier ist ein Beispiel mit einer Mehrfachspalte in der ersten Zeile und
+ einer in der letzten Zeile, bei der die obere Linie weggelassen wurde:
 \end_layout
 
 \begin_layout Standard
@@ -12385,8 +12359,8 @@ multirow{Zeilenzahl}{Zellenbreite}{Zelleninhalt}
 \end_layout
 
 \begin_layout Standard
-In der folgenden 3×3-Tabelle wurde die letzte Zelle  der ersten Spalte als
- Mehrfachspalte definiert und die obere Linie entfernt.
+In der folgenden 3×3-Tabelle wurde obere Linie der letzten Zelle der ersten
+ Spalte entfernt.
 \end_layout
 
 \begin_layout Standard
@@ -12460,8 +12434,7 @@ multirow{2}{2.5cm}{
 
 \end_inset
 
-Mehrfach\SpecialChar \-
-zeilen-Text
+mehrzeiliger Text
 \begin_inset ERT
 status collapsed
 
@@ -12497,7 +12470,7 @@ f
 </cell>
 </row>
 <row>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -12592,7 +12565,13 @@ cm.
 multirow
 \series default
  richtet seinen Inhalt standardmäßig linksbündig aus.
- Das wurde mit dem Befehl
+ Um die Ausrichtung zu Ändern, erneuern Sie den Befehl 
+\series bold
+
+\backslash
+multirowsetup
+\series default
+ mit dem Befehl
 \end_layout
 
 \begin_layout Standard
@@ -12608,30 +12587,31 @@ centering}
 \end_layout
 
 \begin_layout Standard
-als TeX-Code  vor der (Gleitobjekt-)Tabelle überschrieben und durch
-\end_layout
-
-\begin_layout Standard
-
+im LaTeX-Vorspann.
+ Es werden dann die Inhalte aller Mehrfachzeilen-Zellen des Dokuments zentriert.
+ Wenn diese Ausrichtung nur für einige Tabellen gelten soll, kann der Befehl
+ auch mittels TeX-Code vor der jeweiligen Tabelle, statt im LaTeX-Vorspann,
+ erneuert werden.
+ Für rechtsbündigen Text ersetzt man 
 \series bold
 
 \backslash
-renewcommand{
-\backslash
-multirowsetup}{
-\backslash
-raggedright}
-\end_layout
-
-\begin_layout Standard
-zurückgesetzt.
- Für rechtsbündigen Text benutzt man 
+centering
+\series default
+ durch 
 \series bold
 
 \backslash
 raggedleft
 \series default
 .
+ Um zur linksbündigen Ausrichtung zurückzukehren, wird 
+\series bold
+
+\backslash
+raggedright
+\series default
+ verwendet.
 \end_layout
 
 \begin_layout Section
@@ -15363,7 +15343,7 @@ schreiben.
 \series bold
 
 \backslash
-rowcolow{cyan}
+rowcolor{cyan}
 \end_layout
 
 \begin_layout Standard
@@ -17626,9 +17606,9 @@ reference "tab:Verschiedene-Ausrichtungen"
 \end_inset
 
  wird mit 
-\family typewriter
+\series bold
 dcolumn
-\family default
+\series default
  wie die erste Spalte von Tabelle
 \begin_inset space ~
 \end_inset
@@ -17657,6 +17637,13 @@ reference "tab:Verschiedene-Ausrichtungen"
 dcolumn
 \series default
  nicht möglich.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -17709,7 +17696,7 @@ dcolumn
 <features>
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{-1}">
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{4.9}">
-<column alignment="center" valignment="top" width="0" special="D{~}{\,}{9.7}">
+<column alignment="center" valignment="top" width="0" special="D{+}{\,}{9.7}">
 <row>
 <cell multicolumn="1" alignment="center" valignment="top" bottomline="true" usebox="none">
 \begin_inset Text
@@ -17748,11 +17735,7 @@ Einheiten
 \begin_inset space \thinspace{}
 \end_inset
 
-
-\begin_inset Formula $\mbox{Flaschen}$
-\end_inset
-
-
+Flaschen
 \end_layout
 
 \end_inset
@@ -17791,7 +17774,7 @@ times
 
 \end_inset
 
-24~
+24+
 \begin_inset Formula $\mbox{Flaschen}$
 \end_inset
 
@@ -17810,11 +17793,7 @@ times
 \begin_inset space \thinspace{}
 \end_inset
 
-
-\begin_inset Formula $\mbox{Pixel}$
-\end_inset
-
-
+Pixel
 \end_layout
 
 \end_inset
@@ -17853,7 +17832,7 @@ times
 
 \end_inset
 
-768~
+768+
 \begin_inset Formula $\mbox{Pixel}$
 \end_inset
 
@@ -17872,11 +17851,7 @@ times
 \begin_inset space \thinspace{}
 \end_inset
 
-
-\begin_inset Formula $\mbox{cm}$
-\end_inset
-
-
+cm
 \end_layout
 
 \end_inset
@@ -17915,7 +17890,7 @@ times
 
 \end_inset
 
-6~
+6+
 \begin_inset Formula $\mbox{cm}$
 \end_inset
 
@@ -20929,6 +20904,16 @@ Bemerkung:
 \series bold
 prettyref
 \series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-Pakete! prettyref
+\end_layout
+
+\end_inset
+
  installiert ist.
 \end_layout
 
@@ -20938,34 +20923,48 @@ prettyref
 \end_layout
 
 \begin_layout Standard
-Beachten Sie, dass der Stil <Seite> nicht die Seitennummer druckt, wenn
- sich die referenzierte Marke auf der vorherigen, derselben oder der nächsten
- Seite befindet.
- Stattdessen wird der Text 
+
+\family sans
+<Seite>
+\family default
+ druckt nicht die Seitennummer, wenn sich die referenzierte Marke auf der
+ vorherigen, der selben oder der nächsten Seite befindet.
+ Stattdessen wird z.
+\begin_inset space \thinspace{}
+\end_inset
+
+B.
+ der Text 
 \begin_inset Quotes gld
 \end_inset
 
-auf der vorigen Seite
-\begin_inset Quotes grd
-\end_inset
 
-, 
-\begin_inset Quotes gld
-\end_inset
-
+\family sans
 auf dieser Seite
-\begin_inset Quotes grd
-\end_inset
+\family default
 
- oder 
-\begin_inset Quotes gld
-\end_inset
-
-auf der nächsten Seite
 \begin_inset Quotes grd
 \end_inset
 
  gedruckt.
+ Der Stil 
+\family sans
+<Querverweis>
+\begin_inset space ~
+\end_inset
+
+auf
+\begin_inset space ~
+\end_inset
+
+Seite
+\begin_inset space ~
+\end_inset
+
+<Seite>
+\family default
+ druckt nichts über die Seite, wenn die referenzierte Marke auf der gleichen
+ Seite ist.
 \end_layout
 
 \begin_layout Standard
@@ -20977,6 +20976,73 @@ Format
 \family default
  des Querverweis-Fensters eingestellt werden, das erscheint, wenn Sie auf
  einen Querverweis klicken.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Bemerkung:
+\series default
+ Das LaTeX-Paket 
+\series bold
+prettyref
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-Pakete! prettyref
+\end_layout
+
+\end_inset
+
+ kennt nicht alle möglichen Marken-Kürzel
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+ 
+\begin_inset Quotes gld
+\end_inset
+
+abb:
+\begin_inset Quotes grd
+\end_inset
+
+ ist z.
+\begin_inset space \thinspace{}
+\end_inset
+
+B.
+ LyXs Kürzel für Marken in Bildbeschriftungen.
+\end_layout
+
+\end_inset
+
+ von LyX und ist auch nicht internationalisiert.
+ Wie man weitere Marken-Kürzel und Übersetzungen hinzufüg, ist in der Dokumentat
+ion von 
+\series bold
+prettyref
+\series default
+ beschrieben 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "prettyref"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -22976,14 +23042,14 @@ tableposition=top
 \series default
  hat keine Auswirkung, wenn eine 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-Pakete ! KOMA-script
+LaTeX-Pakete ! KOMA-Script
 \end_layout
 
 \end_inset
@@ -23068,33 +23134,33 @@ thefigure
 
 Wenn Sie eine 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-Pakete ! KOMA-script
+LaTeX-Pakete ! KOMA-Script
 \end_layout
 
 \end_inset
 
 -Dokumentklasse (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
  oder 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 ) benutzen, können Sie anstatt des 
 \series bold
@@ -23108,7 +23174,7 @@ setkomafont
 \series default
  von 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
  benutzen.
  Der Befehl
@@ -23137,7 +23203,7 @@ setkomafont
 \series default
  finden Sie in der 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 -Do\SpecialChar \-
 ku\SpecialChar \-
@@ -23146,7 +23212,7 @@ ta\SpecialChar \-
 tion 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -23454,33 +23520,33 @@ tableposition=top
 \begin_layout Standard
 Wenn Sie eine 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-Pakete ! KOMA-script
+LaTeX-Pakete ! KOMA-Script
 \end_layout
 
 \end_inset
 
 -Dokumentklasse (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
  oder 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 ) benutzen, können Sie alternativ zum 
 \series bold
@@ -28729,7 +28795,7 @@ fboxsep
 \series bold
 
 \backslash
-definecolor{shadebox}
+definecolor{shadecolor}
 \series default
  oder global über das Menü 
 \family sans
@@ -32529,64 +32595,51 @@ Include
 \end_layout
 
 \begin_layout Standard
-Mit dem LaTeX-Befehl 
-\series bold
+Wenn Sie nur an einem Kapitel eines großen Dokuments arbeiten und Zeit sparen
+ wollen, können Sie eingefügte Dateien in einen Zweig setzen.
+\begin_inset Foot
+status collapsed
 
-\backslash
-includeonly 
+\begin_layout Plain Layout
+Zweige sind im Kapitel 
+\emph on
+Zweige
+\emph default
+ des LyX 
+\emph on
+Benutzerhandbuchs
+\emph default
+ erklärt.
+\end_layout
+
+\end_inset
+
+ Durch das de/aktivieren der Zweige können Sie festlegen, welche eingefügte
+ Dateien in der Ausgabe erscheinen.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Achtung:
 \series default
-können Sie festlegen, für welche eingebundenen Unterdokumente eine Druckausgabe
- erstellt werden soll.
- Das ist nützlich, wenn Sie nur ein Kapitel bearbeiten und deren Auswirkungen
- sehen wollen, und es geht schneller.
- 
+ Aufgrund eines Fehlers in LyX kann der LaTeX-Befehl 
 \series bold
 
 \backslash
 includeonly
 \series default
- wird in den LaTeX-Vorspann des Hauptdokuments eingefügt.
- Im folgenden Beispiel
+ momentan nicht als Alternative benutzt werden um festzulegen, welche eingefügte
+ Dateien in der Ausgabe erscheinen.
 \end_layout
 
-\begin_layout Standard
-
-\series bold
-
-\backslash
-includeonly{Kapitel1,Kapitel5}
-\end_layout
-
-\begin_layout Standard
-werden nur die Dateien 
-\begin_inset Quotes gld
-\end_inset
-
-Kapitel1.lyx
-\begin_inset Quotes grd
-\end_inset
-
- (oder 
-\begin_inset Quotes gld
-\end_inset
-
-Kapitel1.tex
-\begin_inset Quotes grd
-\end_inset
-
-) und 
-\begin_inset Quotes gld
-\end_inset
-
-Kapitel5.lyx
-\begin_inset Quotes grd
 \end_inset
 
 
-\series bold
- 
-\series default
-eingebunden.
 \end_layout
 
 \begin_layout Standard
@@ -35048,7 +35101,7 @@ LaTeX-Pakete ! hyperref
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -35057,7 +35110,7 @@ Dokumentation des LaTeX-Pakets
 
 \begin_inset CommandInset href
 LatexCommand href
-name "KOMA-script"
+name "KOMA-Script"
 target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrguide.pdf"
 
 \end_inset
@@ -35069,7 +35122,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrg
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-Pakete ! KOMA-script
+LaTeX-Pakete ! KOMA-Script
 \end_layout
 
 \end_inset
@@ -35198,6 +35251,38 @@ status collapsed
 
 \begin_layout Plain Layout
 LaTeX-Pakete ! sidecap
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "prettyref"
+
+\end_inset
+
+Dokumentation des LaTeX-Pakets 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "prettyref"
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref.pdf"
+
+\end_inset
+
+
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-Pakete ! prettyref
 \end_layout
 
 \end_inset

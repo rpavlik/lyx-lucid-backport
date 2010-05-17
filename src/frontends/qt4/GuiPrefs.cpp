@@ -1148,11 +1148,15 @@ PrefSpellchecker::PrefSpellchecker(GuiPreferences * form)
 	spellCommandCO->addItem(qt_("ispell"));
 	spellCommandCO->addItem(qt_("aspell"));
 	spellCommandCO->addItem(qt_("hspell"));
+#ifdef USE_ENCHANT
+	spellCommandCO->addItem(qt_("enchant"));
+#else
 #ifdef USE_PSPELL
 	spellCommandCO->addItem(qt_("pspell (library)"));
 #else
 #ifdef USE_ASPELL
 	spellCommandCO->addItem(qt_("aspell (library)"));
+#endif
 #endif
 #endif
 }
@@ -1199,7 +1203,7 @@ void PrefSpellchecker::update(LyXRC const & rc)
 	}
 
 	if (rc.use_spell_lib) {
-#if defined(USE_ASPELL) || defined(USE_PSPELL)
+#if defined(USE_ENCHANT) || defined(USE_ASPELL) || defined(USE_PSPELL)
 		spellCommandCO->setCurrentIndex(3);
 #endif
 	}
@@ -2155,8 +2159,6 @@ PrefShortcuts::PrefShortcuts(GuiPreferences * form)
 		this, SLOT(select_bind()));
 	connect(bindFileED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
-	connect(removePB, SIGNAL(clicked()),
-		this, SIGNAL(changed()));
 
 	shortcut_ = new GuiShortcutDialog(this);
 	shortcut_bc_.setPolicy(ButtonPolicy::OkCancelPolicy);
@@ -2387,7 +2389,7 @@ void PrefShortcuts::modifyShortcut()
 	QTreeWidgetItem * item = shortcutsTW->currentItem();
 	if (item->flags() & Qt::ItemIsSelectable) {
 		shortcut_->lfunLE->setText(item->text(0));
-		save_lfun_ = item->text(0);
+		save_lfun_ = item->text(0).trimmed();
 		shortcut_->shortcutWG->setText(item->text(1));
 		KeySequence seq;
 		seq.parse(fromqstr(item->data(1, Qt::UserRole).toString()));
@@ -2480,6 +2482,7 @@ void PrefShortcuts::on_newPB_pressed()
 
 void PrefShortcuts::on_removePB_pressed()
 {
+	changed();
 	removeShortcut();
 }
 
@@ -2542,29 +2545,25 @@ void PrefShortcuts::shortcut_okPB_pressed()
 	FuncRequest oldBinding = system_bind_.getBinding(k);
 	if (oldBinding.action == LFUN_UNKNOWN_ACTION)
 		oldBinding = user_bind_.getBinding(k);
-	if (oldBinding == func) {
-		docstring const actionStr = makeCmdString(func);
-		Alert::error(_("Failed to create shortcut"),
-			bformat(_("Shortcut `%1$s' is already bound to:\n%2$s"), 
-			k.print(KeySequence::ForGui), actionStr));
+	if (oldBinding == func)
+		// nothing has changed
 		return;
-	}
 	
 	// make sure this key isn't already bound---and, if so, not unbound
 	FuncCode const unbind = user_unbind_.getBinding(k).action;
-	if (oldBinding.action != LFUN_UNKNOWN_ACTION && unbind == LFUN_UNKNOWN_ACTION)
-	{
+	docstring const action_str = makeCmdString(oldBinding);
+	if (oldBinding.action > LFUN_NOACTION && unbind == LFUN_UNKNOWN_ACTION
+		  && save_lfun_ != toqstr(action_str)) {
 		// FIXME Perhaps we should offer to over-write the old shortcut?
 		// If so, we'll need to remove it from our list, etc.
-		docstring const actionStr = makeCmdString(oldBinding);
 		Alert::error(_("Failed to create shortcut"),
 			bformat(_("Shortcut `%1$s' is already bound to:\n%2$s\n"
 			  "You need to remove that binding before creating a new one."), 
-			k.print(KeySequence::ForGui), actionStr));
+			k.print(KeySequence::ForGui), action_str));
 		return;
 	}
 
-	if (!save_lfun_.isEmpty() && new_lfun == save_lfun_)
+	if (!save_lfun_.isEmpty())
 		// real modification of the lfun's shortcut,
 		// so remove the previous one
 		removeShortcut();

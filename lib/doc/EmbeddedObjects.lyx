@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -190,7 +190,7 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options " linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options " linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
 \use_amsmath 2
@@ -475,7 +475,7 @@ Maintain aspect ratio
 \end_inset
 
 Images can be opened in a program of your choice by right-clicking on it
- choosing the entry 
+ and choosing the entry 
 \family sans
 Edit
 \begin_inset space ~
@@ -483,7 +483,7 @@ Edit
 
 externally
 \family default
- in the appearing context menu.
+ in the context menu.
  The program can be set for every image format in the file format settings
  in LyX's preferences.
 \end_layout
@@ -843,7 +843,7 @@ reference "fig:escher"
 \end_inset
 
 .
- More about the caption placement is described in section
+ More about caption placement is described in section
 \begin_inset space ~
 \end_inset
 
@@ -1013,7 +1013,7 @@ the figure above
 \begin_inset Quotes erd
 \end_inset
 
-, because as LaTeX will reposition the floats in the final document, it
+, because LaTeX will reposition the floats in the final document and it
  might not be 
 \begin_inset Quotes eld
 \end_inset
@@ -1259,7 +1259,7 @@ reference "cha:Output-File-Formats"
 
 \end_inset
 
-, every output document format allows only a few image formats.
+, each output document format allows only a few image formats.
  LyX uses therefore the program 
 \family typewriter
 ImageMagick
@@ -1292,7 +1292,7 @@ Bitmap
 \end_inset
 
 images consist of pixel values, often in a compressed form.
- They are therefore not fully scalable and look pixeled in large zooms.
+ They are therefore not fully scalable and look pixelated in large zooms.
  Well-known bitmap image formats are 
 \begin_inset Quotes eld
 \end_inset
@@ -1674,7 +1674,7 @@ can be
 
 , because you can convert any bitmap image to a PDF or EPS-image and the
  result will still be a bitmap image.
- In this cases only a header with the image properties is added to the original
+ In such cases only a header with the image properties is added to the original
  image
 \begin_inset Foot
 status collapsed
@@ -1749,7 +1749,7 @@ Insert\SpecialChar \menuseparator
 Table
 \family default
 .
- The toolbar button offers you a graphical selection: Move the mouse to
+ The toolbar button offers you a graphical selection: move the mouse to
  set the column/row number of the table that should be created and then
  press a mouse button.
  When you use the menu to create a table, a dialog will appear, asking you
@@ -2025,8 +2025,8 @@ reference "sub:Multiple-Lines-in"
 \end_inset
 
 .
- If you set no width, the column is as wide as their widest cell content
- is.
+ If you set no width, the column is as wide as the content of the widest
+ cell.
 \begin_inset Newline newline
 \end_inset
 
@@ -2046,7 +2046,7 @@ reference "sub:Multicolumns"
 \begin_inset Newline newline
 \end_inset
 
-The rotate check boxes rotates the current cell, a selection, or the whole
+The rotate check boxes rotate the current cell, a selection, or the whole
  table counter-clockwise by 90°.
  The rotation is not shown within LyX, only in the output.
 \begin_inset Newline newline
@@ -2120,7 +2120,7 @@ reference "sec:Formal-Tables"
 \begin_inset Newline newline
 \end_inset
 
-You can also add here space to table rows as decribed in section
+You can also add here space to table rows as described in section
 \begin_inset space ~
 \end_inset
 
@@ -2152,7 +2152,7 @@ longtable
 \end_inset
 
  that can run over several pages.
- Section
+ Sections
 \begin_inset space ~
 \end_inset
 
@@ -2303,7 +2303,7 @@ The toolbar has the following icons:
 \end_inset
 
  adds lines around the current or selected cells - if the current cell no
- multicolumn this also affects the current row and column
+ multicolumn cell this also affects the current row and column
 \end_layout
 
 \begin_layout Labeling
@@ -2315,7 +2315,7 @@ The toolbar has the following icons:
 \end_inset
 
  deletes all lines of the current or selected cells - if the current cell
- no multicolumn this also affects the current row and column
+ no multicolumn cell this also affects the current row and column
 \end_layout
 
 \begin_layout Labeling
@@ -2763,7 +2763,7 @@ Table
 \end_inset
 
  (# is the actual table number).
- You can insert tables to the float above or below the caption.
+ You can insert tables in the float above or below the caption.
 \end_layout
 
 \begin_layout Standard
@@ -2784,7 +2784,7 @@ reference "tab:a table float"
 \begin_layout Standard
 Having the caption above the table is the common rule that is unfortunately
  not supported in LaTeX's standard classes.
- That means if you are using the document classes 
+ This means that, if you are using the document classes 
 \family sans
 article
 \family default
@@ -2800,7 +2800,7 @@ letter
 \family sans
 report
 \family default
- there will be no space between the caption and the table.
+, there will be no space between the caption and the table.
  To insert the needed space, add the following option to the load command
  of the LaTeX-package 
 \series bold
@@ -2988,7 +2988,7 @@ First
 header
 \family default
  is defined.
- This therefore called the main header.
+ This is therefore called the main header.
 \end_layout
 
 \begin_layout Description
@@ -3018,7 +3018,7 @@ Last
 \begin_inset space ~
 \end_inset
 
-footer: The current row is defined to be a footer row that appear on the
+footer: The current row is defined to be a footer row that appears on the
  last page of the longtable.
 \end_layout
 
@@ -5285,7 +5285,7 @@ Longtables ! Alignment
 
 \begin_layout Standard
 Longtables are by default centered.
- In contrary to the alignment of the table columns and row, the table alignment
+ Unlike the alignment of the table columns and rows, the table alignment
  can currently not be changed in the table dialog.
  To change the alignment of longtables you have to change the value of the
  lengths 
@@ -5314,7 +5314,7 @@ LTleft}{value}
 \end_layout
 
 \begin_layout Standard
-Where the value can have any of the units listed in Table
+where the value can have any of the units listed in Table
 \begin_inset space ~
 \end_inset
 
@@ -5705,7 +5705,7 @@ name "sub:Longtable-Captions"
 A longtable cannot be put into a table float because floats can only be
  on one page.
  But the caption environment of floats can also be used for longtables when
- you use for a table row the longtable option 
+ you use the longtable option 
 \family sans
 Caption
 \family default
@@ -6061,8 +6061,8 @@ Note
 
 1:
 \series default
- The table number is increased for every longtable, also if you didn't set
- a caption for it.
+ The table number is increased for for every longtable, even if you did
+ not set a caption for it.
  For this reason you could have the case that e.
 \begin_inset space \thinspace{}
 \end_inset
@@ -6075,12 +6075,12 @@ Table
 \begin_inset space ~
 \end_inset
 
-2.4 follows on Table
+2.4 follows Table
 \begin_inset space ~
 \end_inset
 
 2.1 in the list of tables if there are two longtables without captions.
- To avoid this you can add the following command in TeX-Code behind every
+ To avoid this you can add the following command in TeX-Code after every
  longtable without a caption:
 \end_layout
 
@@ -7401,7 +7401,7 @@ caption*{caption text}
 \end_layout
 
 \begin_layout Standard
-in a dummy caption row that is marked as header.
+in a dummy caption row that is marked as a header.
  Table
 \begin_inset space ~
 \end_inset
@@ -7413,7 +7413,7 @@ reference "tab:DiffCaptions"
 
 \end_inset
 
- is an example for a longtable with different heading where the second caption
+ is an example of a longtable with different heading where the second caption
  doesn't include the table number.
 \end_layout
 
@@ -9338,8 +9338,8 @@ Longtables ! Calculation
 \begin_layout Standard
 LaTeX calculates the height of table pages and their page breaks using so
  called chunks.
- Chunks are pieces of the tables that are at once in LaTeX's memory.
- The default value is historically set to only 20 table rows.
+ Chunks are parts of tables that held at the same time in LaTeX's memory.
+ The default value was historically set to only 20 table rows.
  If you are using longtables with many pages this may slow down the creation
  of your document.
  You can safely increase the chunk size to values of 100-1000 by adding
@@ -9371,13 +9371,25 @@ Longtables ! Floats
 \begin_layout Standard
 There might be problems when a float appears on the same page where a longtable
  starts.
- To avoid such situation, add the command 
-\series bold
+ To avoid such a situation, insert a 
+\begin_inset Quotes eld
+\end_inset
 
-\backslash
-clearpage
-\series default
- as TeX-Code before your longtable.
+clear page
+\begin_inset Quotes erd
+\end_inset
+
+ (menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Formatting\SpecialChar \menuseparator
+Clear
+\begin_inset space ~
+\end_inset
+
+Page
+\family default
+) before your longtable.
 \end_layout
 
 \begin_layout Subsection
@@ -9413,7 +9425,7 @@ By default tables are only broken between rows.
 \begin_inset Quotes erd
 \end_inset
 
- as TeX-Code at this point of the cell where it can be broken.
+ as TeX-Code at the point of the cell where it can be broken.
  Before the 
 \series bold
 
@@ -9422,7 +9434,7 @@ By default tables are only broken between rows.
 \backslash
 
 \series default
- command you have to insert in TeX-Code so many 
+ command you have to insert in TeX-Code as many 
 \begin_inset Quotes eld
 \end_inset
 
@@ -9434,7 +9446,7 @@ By default tables are only broken between rows.
 \begin_inset Quotes erd
 \end_inset
 
- characters like the number of the following table columns.
+ characters as the number of the following table columns.
  The 
 \series bold
 &
@@ -9449,7 +9461,7 @@ By default tables are only broken between rows.
 \begin_inset Newline newline
 \end_inset
 
-Behind the the 
+After the 
 \series bold
 
 \backslash
@@ -9457,11 +9469,11 @@ Behind the the
 \backslash
 
 \series default
- command, insert so many 
+ command, insert as many 
 \series bold
 &
 \series default
- characters like the number of table columns before the current column.
+ characters as the number of table columns before the current column.
  In Table
 \begin_inset space ~
 \end_inset
@@ -9475,7 +9487,7 @@ reference "tab:ForcedPagebreak"
 
  the cell that should be broken is in the second column followed by another
  column.
- Therefore the following command was inserted in the cell as TeX-Code behind
+ Therefore the following command was inserted in the cell as TeX-Code after
  
 \begin_inset Quotes eld
 \end_inset
@@ -9516,15 +9528,15 @@ The
 \begin_inset Quotes erd
 \end_inset
 
- in the third columns of the row was deleted.
+ in the third column of the row was deleted.
  
 \series bold
 
 \backslash
 newpage
 \series default
- is only needed when a page break should definitively occur at this position,
- otherwise it is only a possibility to break.
+ is only needed when a page break should definitely occur at this position,
+ otherwise it would be a conditional break.
  If your footer row of the longtable has for a certain reason no upper line
  but you would have a horizontal line where the cell is broken, use this
  command instead:
@@ -9562,7 +9574,7 @@ parfillskip}{0pt}
 
 \begin_layout Standard
 must be inserted as TeX-Code at the beginning of the cell.
- This assures that the part of the cell that will be displayed on the new
+ This ensures that the part of the cell that will be displayed on the new
  page appears with the full width.
 \end_layout
 
@@ -11004,8 +11016,8 @@ i
 \end_layout
 
 \begin_layout Standard
-Adjusting a fixed width for a column, enables to enter text as a paragraph
- with multiple lines and hyphenations.
+Setting a fixed width for a column enables you to enter text as a paragraph
+ with multiple lines and hyphenation.
 \end_layout
 
 \begin_layout Standard
@@ -11027,7 +11039,7 @@ reference "tab:Table-with-multiple"
 
 cm and choose centered for the vertical and horizontal alignment.
  The vertical alignment is used for all cells of the row.
- As our text is smaller than than 2.5
+ As our text is smaller than 2.5
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -11046,7 +11058,7 @@ arg   "newline-insert linebreak"
 \begin_layout Standard
 If you have a long word in a cell with a fixed width, it cannot be hyphenated
  by LaTeX if it is the first entry.
- Therefore you need to insert something, to make the word not being the
+ Therefore you need to insert something to prevent the word not being the
  first entry.
  So add a horizontal space of 0
 \begin_inset space \thinspace{}
@@ -11349,8 +11361,8 @@ Multicolumn Basics
 \end_layout
 
 \begin_layout Standard
-To span a cell over multiple columns, mark as much cells within a line that
- should be one spanned cell and use either the table-toolbar button 
+To merge cells over multiple columns, select as many cells within a row
+ as you want to merge and use either the table-toolbar button 
 \begin_inset Graphics
 	filename ../images/tabular-feature_multicolumn.png
 	scale 85
@@ -11364,12 +11376,11 @@ Edit\SpecialChar \menuseparator
 Table\SpecialChar \menuseparator
 Multicolumn
 \family default
-, or right click on the marked cells and choose multicolumn in the appearing
- table dialog under the tab 
+, or right click on the marked cells and choose 
 \family sans
-Table Settings
+Multicolumn
 \family default
-.
+ in the appearing context menu.
 \end_layout
 
 \begin_layout Standard
@@ -11541,7 +11552,7 @@ Multicolumns ! Calculations
 \end_layout
 
 \begin_layout Standard
-LyX supports multicolumns directly, but we have to take notice of the cell
+LyX supports multicolumns directly, but we have to take account of the cell
  width of the columns spanned by the multicolumn cell.
 \end_layout
 
@@ -11715,8 +11726,8 @@ centered alignment
 \end_inset
 
 cm in the table dialog.
- The spanned columns should have exactly half the width of the multicolumn
- cell, so that you would adjust a width of 1.25
+ The merged columns should have exactly half the width of the multicolumn
+ cell, so that you would set a width of 1.25
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -11756,7 +11767,7 @@ name "tab:Table-without-half"
 
 \end_inset
 
-Table where the spanned table columns have not exactly half the width of
+Table where the spanned table columns are not exactly half the width of
  the multicolumn cell
 \begin_inset OptArg
 status collapsed
@@ -11883,9 +11894,9 @@ i
 \end_layout
 
 \begin_layout Standard
-You can see that the first column has not the half width of the multicolumn
+You can see that the first column is not half the width of the multicolumn
  cell, it is a bit bigger.
- The reason is that the given width of a cell 
+ The reason is that the specified width of a cell 
 \begin_inset Formula $W_{g}$
 \end_inset
 
@@ -11893,7 +11904,7 @@ You can see that the first column has not the half width of the multicolumn
 \begin_inset Formula $W_{\mathrm{tot}}$
 \end_inset
 
- because a cell is always a bit larger than its given width.
+ because a cell is always a bit larger than specified.
  Appendix
 \begin_inset space ~
 \end_inset
@@ -11905,15 +11916,15 @@ reference "cha:Explanation-of-Equation"
 
 \end_inset
 
- explains it in detail.
+ explains this in detail.
 \end_layout
 
 \begin_layout Standard
-The needed given width 
+The width 
 \begin_inset Formula $W_{g\, n}$
 \end_inset
 
- when 
+ which the user needs to set when 
 \emph on
 n
 \emph default
@@ -11983,8 +11994,11 @@ usepackage{calc}
 \end_layout
 
 \begin_layout Standard
-LyX does not allow to calculate lengths in the width-field of the table
- dialog.
+LyX does not allow you to calculate lengths in the 
+\family sans
+Width
+\family default
+ field of the table dialog.
  Therefore you have to format the column by inserting a LaTeX-argument in
  the dialog.
  Here is an overview about the arguments:
@@ -12068,7 +12082,7 @@ The command
 Although we have chosen centered alignment for the text of the multicolumn
  cell, it is still left aligned.
  This is because LyX only applies the alignment to single columns.
- So we have to use for the multicolumn the LaTeX-argument
+ So for the multicolumn cell we have to use the LaTeX-argument
 \end_layout
 
 \begin_layout Standard
@@ -12104,8 +12118,8 @@ Table ! Multirows
 \end_layout
 
 \begin_layout Standard
-In contrary to multicolumns multirows are not yet supported by LyX so a
- bit of TeX-Code needs to be used.
+Unlike multicolumns multirows are not yet supported by LyX; so a bit of
+ TeX-Code needs to be used.
  To use multirows load the LaTeX-package 
 \series bold
 multirow
@@ -12254,7 +12268,7 @@ f
 </cell>
 </row>
 <row>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -12308,8 +12322,7 @@ raggedright}
 
 \begin_layout Standard
 create a 3×3 table.
- To get rid of the line above the last cell in the first column, the cell
- is marked as multicolumn and the upper border is unset.
+ Unset the upper border of the last cell in the first column.
  The multirow is now created in the second row of the first column by inserting
  there the command
 \end_layout
@@ -12335,7 +12348,7 @@ cm.
 \series bold
 }
 \series default
- in another TeX-Code-box behind the text.
+ in another TeX-Code-box after the text.
 \end_layout
 
 \begin_layout Standard
@@ -12371,7 +12384,7 @@ centering}
 in TeX-Code in the document preamble.
  Then all entries of multirow cells in the document are centered.
  If centering is only needed for several tables, you can renew the command
- in an TeX-Code box just before the table instead of the preamble.
+ in a TeX-Code box just before the table instead of the preamble.
  If the text should be right-aligned, replace 
 \series bold
 
@@ -15001,7 +15014,7 @@ as LaTeX-argument for this column.
 \series bold
 
 \backslash
-rowcolow{cyan}
+rowcolor{cyan}
 \end_layout
 
 \begin_layout Standard
@@ -16886,6 +16899,7 @@ reference "tab:Several-table-cell"
 
 \begin_layout Standard
 \begin_inset Float table
+placement h
 wide false
 sideways false
 status open
@@ -17223,7 +17237,7 @@ LaTeX-packages ! dcolumn
 \end_inset
 
  that provides table cell alignments.
- But this unfortunately treats the cell entries as math and doesn't allow
+ But this unfortunately treats the cell entries as math and does not allow
  formulas in table cells: The first column of Table
 \begin_inset space ~
 \end_inset
@@ -17270,6 +17284,13 @@ dcolumn
 \end_layout
 
 \begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float table
 placement h
 wide false
@@ -17302,7 +17323,7 @@ Alignments when LaTeX-package dcolumn is used.
 <features>
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{-1}">
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{4.9}">
-<column alignment="center" valignment="top" width="0" special="D{~}{\,}{9.7}">
+<column alignment="center" valignment="top" width="0" special="D{+}{\,}{9.7}">
 <row>
 <cell multicolumn="1" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
@@ -17380,7 +17401,7 @@ times
 
 \end_inset
 
-24~
+24+
 \begin_inset Formula $\mbox{bottles}$
 \end_inset
 
@@ -17438,7 +17459,7 @@ times
 
 \end_inset
 
-768~
+768+
 \begin_inset Formula $\mbox{Pixels}$
 \end_inset
 
@@ -17496,7 +17517,7 @@ times
 
 \end_inset
 
-6~
+6+
 \begin_inset Formula $\mbox{cm}$
 \end_inset
 
@@ -17819,7 +17840,7 @@ K{red}
 \end_layout
 
 \begin_layout Standard
-for the the last column, and
+for the last column, and
 \end_layout
 
 \begin_layout Standard
@@ -19193,7 +19214,7 @@ reference "tab:Table-with-dashed"
 \backslash
 hdashline
 \series default
- was inserted to the first cell of the third row and the the TeX-Code command
+ was inserted to the first cell of the third row and the TeX-Code command
 \begin_inset Newline newline
 \end_inset
 
@@ -20410,7 +20431,10 @@ Formatted
 \end_inset
 
 reference: prints a self defined cross-reference format.
- 
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Note Greyedout
 status open
 
@@ -20423,6 +20447,16 @@ Note:
 \series bold
 prettyref
 \series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-packages ! prettyref
+\end_layout
+
+\end_inset
+
  installed.
 \end_layout
 
@@ -20432,8 +20466,12 @@ prettyref
 \end_layout
 
 \begin_layout Standard
-Note that the style <page> won't print the page number if the label is on
- the previous, the same, or the next page.
+
+\family sans
+<page>
+\family default
+ will not print the page number if the label is on the previous, the same,
+ or the next page.
  You will e.
 \begin_inset space \thinspace{}
 \end_inset
@@ -20455,6 +20493,11 @@ on this page
 \end_inset
 
  instead.
+ The style 
+\family sans
+<reference> on page <page>
+\family default
+ will not print anything about the page if the label is on the same page.
 \end_layout
 
 \begin_layout Standard
@@ -20466,6 +20509,100 @@ Format
 \family default
  of the cross-reference window, that appear when you click on the cross-referenc
 e box.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ The LaTeX-package 
+\series bold
+prettyref
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-packages ! prettyref
+\end_layout
+
+\end_inset
+
+ does not know all of LyX's possible label shortcuts
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+fig:
+\begin_inset Quotes erd
+\end_inset
+
+ is for example LyX's shortcut for labels in figure captions.
+\end_layout
+
+\end_inset
+
+ and is not internationalized.
+ How to tell 
+\series bold
+prettyref
+\series default
+ new shortcuts and translations, have a look at its documentation 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "prettyref"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ Due to a bug in the LaTeX-package 
+\series bold
+varioref
+\series default
+ version 1.4w, some cross-reference formats will cause LaTeX errors for document
+ languages that make the period character active (like French).
+ For a workaround, see
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+target "http://wiki.lyx.org/LaTeX/LatexBugs#toc5"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -22522,14 +22659,14 @@ tableposition=top
 \series default
  has no effect when a 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-packages ! KOMA-script
+LaTeX-packages ! KOMA-Script
 \end_layout
 
 \end_inset
@@ -22630,33 +22767,33 @@ thefigure
 
 If you are using a 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-packages ! KOMA-script
+LaTeX-packages ! KOMA-Script
 \end_layout
 
 \end_inset
 
  document class (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
 , or 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 
 \begin_inset space \thinspace{}
@@ -22668,7 +22805,7 @@ caption
 \series default
  package use 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 's built-in command 
 \series bold
@@ -22700,12 +22837,12 @@ setkomafont
 \series default
  we refer to the 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
  documentation 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -23002,33 +23139,33 @@ tableposition=top
 \begin_layout Standard
 If you are using a 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-packages ! KOMA-script
+LaTeX-packages ! KOMA-Script
 \end_layout
 
 \end_inset
 
  document class (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
 , or 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 
 \begin_inset space \thinspace{}
@@ -24093,9 +24230,9 @@ Floats ! Float Lists
 \end_layout
 
 \begin_layout Standard
-Similar to the the table of contents where the sections of the document
- are listed, there are listings for all float types, like the figures of
- the documents.
+Similar to the table of contents where the sections of the document are
+ listed, there are listings for all float types, like the figures of the
+ documents.
  You can insert them via the 
 \family sans
 Insert\SpecialChar \menuseparator
@@ -24392,8 +24529,8 @@ button
 \bar default
 .
  To change a note to text, press the backspace key when the cursor is in
- the first position of a note, or press the deletey key when the cursor
- is in the very last position of the note, respectively.
+ the first position of a note, or press the delete key when the cursor is
+ in the very last position of the note, respectively.
 \end_layout
 
 \begin_layout Standard
@@ -25403,7 +25540,7 @@ ftnright
 \end_inset
 
 In some scientific literature it is usual to collect the footnotes and print
- them in a separate paragraph at the the end of a section, like in Figure
+ them in a separate paragraph at the end of a section, like in Figure
 \begin_inset space ~
 \end_inset
 
@@ -25465,7 +25602,7 @@ theendnotes
 \end_layout
 
 \begin_layout Standard
-in TeX-Code at the the end of a section or chapter.
+in TeX-Code at the end of a section or chapter.
 \end_layout
 
 \begin_layout Standard
@@ -26717,7 +26854,7 @@ reference "sec:Parboxes"
 \end_layout
 
 \begin_layout Standard
-Boxes aren't numbered and can therefore not be referenced like floats or
+Boxes are not numbered and can therefore not be referenced like floats or
  footnotes.
 \end_layout
 
@@ -26854,7 +26991,7 @@ reference "tab:Units"
 .
  The field 
 \family sans
-Heigth
+Height
 \family default
  offers the following additional sizes:
 \end_layout
@@ -26917,7 +27054,7 @@ Depth
 \end_layout
 
 \begin_layout Description
-Height This is the heigth of the text that is inside the box.
+Height This is the height of the text that is inside the box.
  A value of e.
 \begin_inset space \thinspace{}
 \end_inset
@@ -26926,7 +27063,11 @@ g.
 \begin_inset space \space{}
 \end_inset
 
-2 for this size will set the box heigth to 2 times the text height: 
+2 for this size will set the box height to 2
+\begin_inset space ~
+\end_inset
+
+times the text height: 
 \begin_inset Box Boxed
 position "c"
 hor_pos "c"
@@ -26998,7 +27139,7 @@ Height
 \end_layout
 
 \begin_layout Description
-Width This sets the width of the box as heigth: 
+Width This sets the width of the box as height: 
 \begin_inset Box Boxed
 position "c"
 hor_pos "c"
@@ -27135,8 +27276,8 @@ status open
 \series bold
 Note:
 \series default
- The vertical box aligment can be lost in the output when you have two boxes
- in a line and one has e.
+ The vertical box alignment can be lost in the output when you have two
+ boxes in a line and one has e.
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -27169,7 +27310,7 @@ Inner
 
 Box
 \family default
-, the box content can be vertical aligned to:
+, the box content can be aligned vertically to:
 \end_layout
 
 \begin_layout Description
@@ -27338,7 +27479,7 @@ stretched.
 \end_layout
 
 \begin_layout Standard
-If you haven't set an 
+If you have not set an 
 \family sans
 Inner
 \begin_inset space ~
@@ -27395,7 +27536,7 @@ Boxes ! Decoration
 \end_layout
 
 \begin_layout Standard
-The type of the box can be specified in the box-dialog in the drop-down
+The type of the box can be specified in the box dialog in the drop-down
  list 
 \family sans
 Decoration
@@ -27413,7 +27554,7 @@ rectangular
 \begin_inset space ~
 \end_inset
 
-frame This draws a rectangle frame around the box.
+frame This draws a rectangular frame around the box.
  The frame line thickness has the size of 
 \series bold
 
@@ -27471,7 +27612,7 @@ fboxrule
 \backslash
 fboxsep
 \series default
- has no effect on this box type.
+ have no effect on this box type.
  The frame line thickness has the size of 
 \series bold
 
@@ -27582,7 +27723,7 @@ Drop
 \begin_inset space ~
 \end_inset
 
-shadow This draws a rectangle frame with a shadow around the box.
+shadow This draws a rectangular frame with a shadow around the box.
  The frame line thickness has the size of 
 \series bold
 
@@ -27676,7 +27817,7 @@ rectangular
 \begin_inset space ~
 \end_inset
 
-frame This draws a double-line rectangle frame around the box.
+frame This draws a double-line rectangular frame around the box.
  The line thickness of the inner frame is 0.75
 \begin_inset space \thinspace{}
 \end_inset
@@ -27767,7 +27908,7 @@ LaTeX-packages ! fancybox
 \end_layout
 
 \begin_layout Section
-Box customization
+Box Customization
 \begin_inset Index
 status collapsed
 
@@ -28383,7 +28524,7 @@ fboxsep
 \series bold
 
 \backslash
-definecolor{shadebox}
+definecolor{shadecolor}
 \series default
  or globally with the menu 
 \family sans
@@ -28445,7 +28586,7 @@ reference "sec:Colored-Boxes"
 
 \end_inset
 
- For example the appearance of the following shaded background note is set
+ For example the appearance of the following shaded background box is set
  with the TeX-Code commands
 \end_layout
 
@@ -30436,7 +30577,7 @@ Rotated and Scaled Boxes
 \end_layout
 
 \begin_layout Standard
-To use the the commands described in this section, the LaTeX-package 
+To use the commands described in this section, the LaTeX-package 
 \series bold
 graphicx
 \series default
@@ -32194,64 +32335,51 @@ The preamble of the child document is ignored, only the preamble of the
 \end_layout
 
 \begin_layout Standard
-With the LaTeX-command 
-\series bold
+In case you are only working on a certain chapter of a large document and
+ want to save compiling time, you can put each included file into a branch.
+\begin_inset Foot
+status collapsed
 
-\backslash
-includeonly 
+\begin_layout Plain Layout
+Branches are described in section 
+\emph on
+Branches
+\emph default
+ of the LyX 
+\emph on
+Userguide
+\emph default
+.
+\end_layout
+
+\end_inset
+
+ By enabling/disabling branches you can decide what included files will
+ appear in the output.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
 \series default
-you can specify which included child documents are processed when the output
- is generated.
- This is useful when you are perhaps only working on a certain chapter of
- your large document as this saves compiling time.
- 
+ Due to a bug in LyX the LaTeX command 
 \series bold
 
 \backslash
 includeonly
 \series default
- is inserted to the master document preamble.
- It takes a comma-separated list of the filenames as argument, e.
-\begin_inset space \thinspace{}
-\end_inset
-
-g.
+ can currently not be used as alternative to decide what files should be
+ included.
 \end_layout
 
-\begin_layout Standard
-
-\series bold
-
-\backslash
-includeonly{chapter1,chapter5}
-\end_layout
-
-\begin_layout Standard
-will only process the included files named 
-\begin_inset Quotes eld
 \end_inset
 
-chapter1.lyx
-\begin_inset Quotes erd
-\end_inset
 
- (or 
-\begin_inset Quotes eld
-\end_inset
-
-chapter1.tex
-\begin_inset Quotes erd
-\end_inset
-
-) and 
-\begin_inset Quotes eld
-\end_inset
-
-chapter5.lyx
-\begin_inset Quotes erd
-\end_inset
-
- .
 \end_layout
 
 \begin_layout Standard
@@ -34641,7 +34769,7 @@ LaTeX-packages ! hyperref
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -34650,7 +34778,7 @@ Documentation of the LaTeX-package
 
 \begin_inset CommandInset href
 LatexCommand href
-name "KOMA-script"
+name "KOMA-Script"
 target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrguien.pdf"
 
 \end_inset
@@ -34662,7 +34790,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrg
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-packages ! KOMA-script
+LaTeX-packages ! KOMA-Script
 \end_layout
 
 \end_inset
@@ -34791,6 +34919,38 @@ status collapsed
 
 \begin_layout Plain Layout
 LaTeX-packages ! sidecap
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "prettyref"
+
+\end_inset
+
+Documentation of the LaTeX-package 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "prettyref"
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref.pdf"
+
+\end_inset
+
+
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-packages ! prettyref
 \end_layout
 
 \end_inset

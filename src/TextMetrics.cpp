@@ -239,11 +239,9 @@ int TextMetrics::rightMargin(pit_type const pit) const
 
 void TextMetrics::applyOuterFont(Font & font) const
 {
-	Font lf(font_);
-	lf.fontInfo().reduce(bv_->buffer().params().getFont().fontInfo());
-	lf.fontInfo().realize(font.fontInfo());
-	lf.setLanguage(font.language());
-	font = lf;
+	FontInfo lf(font_.fontInfo());
+	lf.reduce(bv_->buffer().params().getFont().fontInfo());
+	font.fontInfo().realize(lf); 
 }
 
 
@@ -330,13 +328,14 @@ bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos) const
 bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos,
 		Font const & font) const
 {
-	if (!lyxrc.rtl_support)
+	if (!lyxrc.rtl_support
+	    // no RTL boundary at paragraph start
+	    || pos == 0
+	    // if the metrics have not been calculated, then we are not
+	    // on screen and can safely ignore issues about boundaries.
+	    || !contains(pit))
 		return false;
 
-	// no RTL boundary at paragraph start
-	if (pos == 0)
-		return false;
-	
 	ParagraphMetrics & pm = par_metrics_[pit];
 	// no RTL boundary in empty paragraph
 	if (pm.rows().empty())

@@ -229,9 +229,6 @@
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
-/* Define to 1 if you have the <NewAPIs.h> header file. */
-#undef HAVE_NEWAPIS_H
-
 /* Define if you have <langinfo.h> and it defines the NL_LOCALE_NAME macro if
    _GNU_SOURCE is defined. */
 #undef HAVE_NL_LOCALE_NAME
@@ -506,6 +503,9 @@
 /* Define as 1 to use the aspell library */
 #undef USE_ASPELL
 
+/* Define as 1 to use the enchant library */
+#undef USE_ENCHANT
+
 /* Define as 1 to use an external ispell process to check spelling */
 #undef USE_ISPELL
 
@@ -701,10 +701,6 @@ char * strerror(int n);
 #  define BOOST_POSIX 1
 #  define BOOST_POSIX_API 1
 #  define BOOST_POSIX_PATH 1
-#endif
-
-#if defined(HAVE_NEWAPIS_H)
-#  define WANT_GETFILEATTRIBUTESEX_WRAPPER 1
 #endif
 
 /*

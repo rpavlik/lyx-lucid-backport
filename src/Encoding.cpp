@@ -344,7 +344,7 @@ void Encoding::init() const
 }
 
 
-docstring Encoding::latexChar(char_type c, bool for_mathed) const
+docstring Encoding::latexChar(char_type c, bool no_commands) const
 {
 	// assure the used encoding is properly initialized
 	init();
@@ -355,7 +355,7 @@ docstring Encoding::latexChar(char_type c, bool for_mathed) const
 		return docstring(1, c);
 	if (encodable_.find(c) != encodable_.end())
 		return docstring(1, c);
-	if (for_mathed)
+	if (no_commands)
 		return docstring();
 
 	// c cannot (or should not) be encoded in this encoding
@@ -554,11 +554,10 @@ void Encodings::initUnicodeMath(Buffer const & buffer, bool clear_sets)
 		it->initUnicodeMath();
 
 	// Check children
-	BufferList::iterator bit = theBufferList().begin();
-	BufferList::iterator const bend = theBufferList().end();
-	for (; bit != bend; ++bit)
-		if (buffer.isChild(*bit))
-			initUnicodeMath(**bit, false);
+	std::vector<Buffer *> clist = buffer.getChildren();
+	for (vector<Buffer *>::const_iterator cit = clist.begin();
+	     cit != clist.end(); ++cit) 
+		initUnicodeMath(**cit, false);
 #endif
 }
 

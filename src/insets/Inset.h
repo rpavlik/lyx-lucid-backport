@@ -440,7 +440,8 @@ public:
 	 *  Most insets have no interest in this capability, so the method
 	 *  defaults to empty.
 	 */
-	virtual void addPreview(graphics::PreviewLoader &) const {}
+	virtual void addPreview(DocIterator const &,
+		graphics::PreviewLoader &) const {}
 
 	/** Classifies the unicode characters appearing in a math inset
 	 *  depending on whether they are to be translated as latex
@@ -472,6 +473,8 @@ public:
 	virtual mode_type currentMode() const { return UNDECIDED_MODE; }
 	/// returns whether changing mode during latex export is forbidden
 	virtual bool lockedMode() const { return false; }
+	/// returns whether only ascii chars are allowed during latex export
+	virtual bool asciiOnly() const { return false; }
 	/// returns whether this inset is allowed in other insets of given mode
 	virtual bool allowedIn(mode_type) const { return true; }
 	/**
@@ -496,7 +499,7 @@ public:
 	///
 	int scroll() const { return 0; }
 	///
-	virtual ColorCode backgroundColor() const;
+	virtual ColorCode backgroundColor(PainterInfo const &) const;
 	///
 	enum CollapseStatus {
 		Collapsed,

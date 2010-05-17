@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -104,7 +104,7 @@
 \color #00ff00
 \end_branch
 \secnumdepth 3
-\tocdepth 3
+\tocdepth 2
 \paragraph_separation indent
 \defskip medskip
 \quotes_language french
@@ -2656,7 +2656,7 @@ Kluwer Disposition pour les journaux publiés par le groupe Kluwer.
 \end_layout
 
 \begin_layout Description
-koma-script Remplacement pour les classes standard, offre de nombreuses
+KOMA-Script Remplacement pour les classes standard, offre de nombreuses
  fonctions intéressantes comme le formattage des légendes, le calcul automatique
  de la taille de la zone d'impression etc...
 \end_layout
@@ -3581,7 +3581,7 @@ Document ! Paramètres
 \begin_layout Standard
 Si vous utilisez une classe de document 
 \series bold
-koma-script
+KOMA-Script
 \series default
 , vous pouvez utiliser les 
 \family sans
@@ -3597,7 +3597,7 @@ défau
 \family default
 t car 
 \series bold
-koma-script
+KOMA-Script
 \series default
  calcule la taille de la zone d'impression automatiquement en tenant compte
  du format du papier et de la taille de la fonte de caractères.
@@ -3616,14 +3616,14 @@ tout
  Ceci inclut les environnements de paragraphe.
  Quelques-uns sont standard, et toutes les classes de document les possèdent.
  Cependant, certaines classes ont des environnements de paragraphe spéciaux.
- Si tel est le cas, et que vous changez de classe de document, LyX placera
- les paragraphes concernés dans l'environnement 
-\family sans
-Standard
-\family default
- et ajoutera une boîte d'erreur au début de chacun.
- Cliquez sur celle-ci et une fenêtre de message vous dira de quelle conversion
- il s'agissait et pourquoi elle a échoué.
+ Si tel est le cas, et que vous changez de classe de document, 
+\lang english
+LyX will mark the paragraphs whose styles it no longer understands as “unknown”.
+ The name of the style is retained, in case you should want to go back to
+ the old class.
+ But these paragraphs will be output with no special formatting, so you
+ will either need to create a new style yourself or else to convert these
+ paragraphs manually to a style present in your new document class.
 \end_layout
 
 \begin_layout Section
@@ -11751,7 +11751,7 @@ AE
 \begin_inset Quotes eld
 \end_inset
 
-rève
+brève
 \begin_inset Quotes erd
 \end_inset
 
@@ -16703,7 +16703,7 @@ reference "sec:Formats-des-fichiers-en-sortie"
  de formats d'images.
  Pour s'en sortir LyX utilise le programme 
 \family typewriter
-Imagemagick
+ImageMagick
 \family default
  en arrière plan pour convertir les formats que vous utilisez dans un des
  formats acceptés par le format de sortie.
@@ -25765,17 +25765,40 @@ Paquetages LaTeX ! prettyref
 \end_layout
 
 \begin_layout Standard
-Notez que le style <page> n'imprimera pas le numéro de la page si l'étiquette
- se trouve sur la page précédente, la même page ou la page suivante.
+
+\family sans
+<page>
+\family default
+ n'imprimera pas le numéro de la page si l'étiquette se trouve sur la page
+ précédente, la même page ou la page suivante.
  Vous verrez par exemple un texte du genre 
 \begin_inset Quotes eld
 \end_inset
 
+
+\family sans
 sur cette page
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
  à la place.
+ Le style 
+\family sans
+<référence>
+\begin_inset space ~
+\end_inset
+
+page
+\begin_inset space ~
+\end_inset
+
+<page>
+\family default
+ 
+\lang english
+will not print anything about the page if the label is on the same page.
 \end_layout
 
 \begin_layout Standard
@@ -25820,8 +25843,12 @@ reference "sec:Numérotation-et-étiquetage"
 \end_layout
 
 \begin_layout Standard
-Le bouton 
+
+\lang english
+Right-clicking on a cross-reference opens a context menu.
+ The entry 
 \family sans
+\lang french
 Aller
 \begin_inset space ~
 \end_inset
@@ -25832,16 +25859,21 @@ Aller
 
 l'étiquette
 \family default
- de la fenêtre positionne le curseur juste avant l'étiquette à laquelle
- on fait référence.
- Le texte du bouton se change en 
+ 
+\lang english
+sets the the cursor before the referenced label.
+ This entry will be renamed in the context menu of the label to
+\lang french
+ 
 \family sans
 Revenir
 \family default
- et permet de replacer le curseur juste devant la référence croisée.
- Si on clique avec le bouton de droite sur une référence croisée, le curseur
- se déplace pour se placer devant l'étiquette et vous pouvez revenir au
- point de départ avec le bouton 
+ 
+\lang english
+so that you can use it to set the cursor back to the cross-reference.
+
+\lang french
+ Vous pouvez aussi revenir au point de départ avec le bouton 
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
 	BoundingBox 0bp 5bp 20bp 25bp
@@ -29565,7 +29597,7 @@ Remarquez que certaines classes de documents ont des solutions toutes prêtes
  à certains problèmes bien connus comme le vôtre.
  Par exemple, si vous utilisez une classe 
 \family typewriter
-koma-script
+KOMA-Script
 \family default
 , vous n'aurez pas besoin du paquetage 
 \series bold
@@ -34379,6 +34411,14 @@ Ferme le document courant.
 \end_layout
 
 \begin_layout Subsection
+Fermer tout
+\end_layout
+
+\begin_layout Standard
+Ferme tous les documents ouverts.
+\end_layout
+
+\begin_layout Subsection
 Enregistrer
 \end_layout
 
@@ -34811,13 +34851,9 @@ Fax
 \end_layout
 
 \begin_layout Standard
-
-\lang english
-This menu entry will only appear when you have a fax program installed (on
- Windows you additionally need to register its program path to LyX's PATH
- prefix, see section
-\lang french
-
+Cette entrée de menu n'apparaît que si un programme de fax est installé
+ ( sous Windows, vous devez en plus ajouter le chemin vers ce programme
+ au préfixe PATH de LyX, voir section
 \begin_inset space ~
 \end_inset
 
@@ -34829,21 +34865,19 @@ reference "sec:Répertoires"
 \end_inset
 
 ).
- 
-\lang english
-With this menu entry you can send your document to a fax program like 
+ Avec cette entrée de menu, vous pouvez envoyer votre document à un programme
+ de fax comme 
 \family typewriter
 hylapex
 \family default
- or 
+ ou 
 \family typewriter
 kdeprintfax
 \family default
 .
- The default format of the sent file is PostScript.
- The format can be changed in LyX's preferences as described in section
-\lang french
-
+ Le format utilisé par défaut pour le fichier qui est envoyé est le PostScript.
+ Ce format peut être changé dans les préférences de LyX comme cela est décrit
+ dans la 
 \begin_inset space ~
 \end_inset
 
@@ -41041,25 +41075,31 @@ reference "sec:Aperçu-de-morceaux"
 \end_layout
 
 \begin_layout Standard
-
-\lang english
-The option 
+L'option 
 \family sans
-Mark
+Marquer
 \begin_inset space ~
 \end_inset
 
-end
+la
 \begin_inset space ~
 \end_inset
 
-of
+fin
 \begin_inset space ~
 \end_inset
 
-paragraphs
+des
+\begin_inset space ~
+\end_inset
+
+paragraphes 
 \family default
- displays a pilcrow (¶) at the end of every paragraph.
+affiche un pied-de-mouche ( ¶, 
+\emph on
+pilcrow
+\emph default
+ en anglais ) à la fin de chaque paragraphe.
 \end_layout
 
 \begin_layout Section
@@ -41319,7 +41359,7 @@ Alt+Q
  dans la partie courant du document.
  L'association pour la fontion
 \family sans
-command-alter
+ command-alter
 \family default
  en est un exemple.
 \end_layout

@@ -851,6 +851,12 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			updateFlags = Update::None;
 			break;
 
+		case LFUN_BUFFER_CLOSE_ALL:
+			lyx_view_->closeBufferAll();
+			buffer = 0;
+			updateFlags = Update::None;
+			break;
+
 		case LFUN_BUFFER_RELOAD: {
 			LASSERT(lyx_view_ && buffer, /**/);
 			docstring const file = makeDisplayPath(buffer->absFileName(), 20);
@@ -859,8 +865,10 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			int const ret = Alert::prompt(_("Revert to saved document?"),
 				text, 1, 1, _("&Revert"), _("&Cancel"));
 
-			if (ret == 0)
+			if (ret == 0) {
+				buffer->markClean();
 				reloadBuffer();
+			}
 			break;
 		}
 
@@ -1170,9 +1178,19 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			LASSERT(lyx_view_, /**/);
 			string file_name;
 			int row;
-			istringstream is(argument);
-			is >> file_name >> row;
-			file_name = os::internal_path(file_name);
+			size_t i = argument.find_last_of(' ');
+			if (i != string::npos) {
+				file_name = os::internal_path(trim(
+							argument.substr(0, i)));
+				istringstream is(argument.substr(i + 1));
+				is >> row;
+				if (is.fail())
+					i = string::npos;
+			}
+			if (i == string::npos) {
+				LYXERR0("Wrong argument: " << argument);
+				break;
+			}
 			Buffer * buf = 0;
 			bool loaded = false;
 			string const abstmp = package().temp_dir().absFilename();
@@ -1665,7 +1683,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 			if (ensureBufferClean(view())) {
 				string res = buffer->lyxvc().repoUpdate();
 				setMessage(from_utf8(res));
-				reloadBuffer();
+				checkExternallyModifiedBuffers();
 			}
 			break;
 
@@ -1856,23 +1874,33 @@ void LyXFunc::sendDispatchMessage(docstring const & msg, FuncRequest const & cmd
 
 void LyXFunc::reloadBuffer()
 {
-	FileName filename = lyx_view_->buffer()->fileName();
-	Buffer const * master = lyx_view_->buffer()->masterBuffer();
-	bool const is_child = master != lyx_view_->buffer();
+	Buffer * buf = lyx_view_->buffer();
+	reloadBuffer(buf);
+}
+
+
+void LyXFunc::reloadBuffer(Buffer * buf)
+{
+	FileName filename = buf->fileName();
+	buf->removeAutosaveFile();
+	// e.g., read-only status could have changed due to version control
+	filename.refresh();
+	Buffer const * parent = buf->parent();
+	bool const is_child = parent != buf;
 	// The user has already confirmed that the changes, if any, should
 	// be discarded. So we just release the Buffer and don't call closeBuffer();
-	theBufferList().release(lyx_view_->buffer());
+	theBufferList().release(buf);
 	// if the lyx_view_ has been destroyed, create a new one
 	if (!lyx_view_)
 		theApp()->dispatch(FuncRequest(LFUN_WINDOW_NEW));
-	Buffer * buf = lyx_view_->loadDocument(filename);
+	buf = lyx_view_->loadDocument(filename);
 	docstring const disp_fn = makeDisplayPath(filename.absFilename());
 	docstring str;
 	if (buf) {
 		// re-allocate master if necessary
-		if (is_child && theBufferList().isLoaded(master)
-		    && buf->masterBuffer() != master)
-			buf->setParent(master);
+		if (is_child && theBufferList().isLoaded(parent)
+		      && buf->parent() != parent)
+			buf->setParent(parent);
 		updateLabels(*buf);
 		lyx_view_->setBuffer(buf);
 		buf->errors("Parse");
@@ -1882,6 +1910,29 @@ void LyXFunc::reloadBuffer()
 	}
 	lyx_view_->message(str);
 }
+
+
+void LyXFunc::checkExternallyModifiedBuffers()
+{
+	BufferList::iterator bit = theBufferList().begin();
+	BufferList::iterator const bend = theBufferList().end();
+	for (; bit != bend; ++bit) {
+		if ((*bit)->fileName().exists()
+		    && (*bit)->isExternallyModified(Buffer::checksum_method)) {
+			docstring text = bformat(_("Document \n%1$s\n has been externally modified."
+					" Reload now? Any local changes will be lost."),
+					from_utf8((*bit)->absFileName()));
+			int const ret = Alert::prompt(_("Reload externally changed document?"),
+						text, 0, 1, _("&Reload"), _("&Cancel"));
+			if (!ret) {
+				reloadBuffer(*bit);
+				checkExternallyModifiedBuffers();
+				return;
+			}
+		}
+	}
+}
+
 
 // Each "lyx_view_" should have it's own message method. lyxview and
 // the minibuffer would use the minibuffer, but lyxserver would

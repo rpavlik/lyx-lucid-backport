@@ -1,7 +1,7 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006, Peter KÃ¼mmel, <syntheticpp@gmx.net>
+# Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
 #
 
 cmake_minimum_required(VERSION 2.4)
@@ -188,6 +188,22 @@ else()
 endif()
 set(aspell)
 
+if(WIN32)
+  find_library(ENCHANT_LIBRARY "libenchant")
+  find_path(ENCHANT_INCLUDE_DIR "enchant++.h")
+else()
+  find_library(ENCHANT_LIBRARY "enchant"  "/usr/local/lib" "/usr/lib")
+  find_path(ENCHANT_INCLUDE_DIR "enchant++.h" PATHS /usr/local/include /usr/local/include/enchant /usr/include /usr/include/enchant)
+endif()
+if (ENCHANT_LIBRARY AND ENCHANT_INCLUDE_DIR)
+  set(ENCHANT_FOUND TRUE)
+  add_definitions(-DUSE_ENCHANT=1)
+  message(STATUS "----- Building with USE_ENCHANT")
+else()
+  message(STATUS "----- Enchant not found, building without enchant support")
+endif()
+
+
 set(use_external_libintl TRUE)
 
 if(use_external_libintl)
@@ -348,6 +364,12 @@ if(MSVC)
 			"${CMAKE_CXX_FLAGS_MINSIZEREL} ${MSVC_W_ERROR} ${MSVC_W_DISABLE}")
 
 	endif()
+	set(CMAKE_CXX_FLAGS_DEBUG
+		"${CMAKE_CXX_FLAGS_DEBUG} /Zc:wchar_t-")
+	set(CMAKE_CXX_FLAGS_RELEASE
+		"${CMAKE_CXX_FLAGS_RELEASE} /Zc:wchar_t-")
+	set(CMAKE_CXX_FLAGS_MINSIZEREL
+		"${CMAKE_CXX_FLAGS_MINSIZEREL} /Zc:wchar_t-")
 
 	message(STATUS "----- Warning level      : ${CMAKE_CXX_WARNING_LEVEL}  ${WARNING_LEVEL_MESSAGE}")
 	message(STATUS "----- Warnings as errors : ${MSVC_W_ERROR}")

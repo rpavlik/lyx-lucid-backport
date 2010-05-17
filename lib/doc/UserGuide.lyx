@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -101,7 +101,7 @@
 \color #aa55ff
 \end_branch
 \secnumdepth 3
-\tocdepth 3
+\tocdepth 2
 \paragraph_separation indent
 \defskip medskip
 \quotes_language english
@@ -292,7 +292,7 @@ Like most applications, LyX has the familiar menu bar across the top of
 \end_layout
 
 \begin_layout Standard
-Note that there is no horizontal scroll bar.
+Note that there is no horizontal scrollbar.
  This is not a bug or an oversight, but intentional.
  When you read a book, you expect the end of a line to wrap around to the
  next line.
@@ -2362,7 +2362,7 @@ Letter for US-style letters
 \begin_layout Standard
 There are also some non-standard classes, which LyX only uses if you have
  installed them.
- Here are some of the classes, the full list with detailed explanations
+ Here are some of the classes; the full list with detailed explanations
  can be found in chapter 
 \emph on
 Special Document Classes
@@ -2482,7 +2482,7 @@ Kluwer Layout for journals of the Kluwer publishing group
 \end_layout
 
 \begin_layout Description
-koma-script a replacement for the standard classes, offers many useful features
+KOMA-Script a replacement for the standard classes, offers many useful features
  like caption formatting, automatic print space calculation etc.
 \end_layout
 
@@ -2581,8 +2581,7 @@ Document ! Modules
 \begin_layout Standard
 Modules load additional features to a document that are not by default available
  in the chosen document class.
- For example you might want to use write Braille (embossed printing) in
- a document.
+ For example you might want to write Braille (embossed printing) in a document.
  This is of course not available in any document class, so you have to load
  the corresponding module in the 
 \family sans
@@ -2636,6 +2635,7 @@ status open
 Note also:
 \series default
  Some modules require other modules, and some pairs of modules are incompatible.
+ LyX will advise you about these things.
 \end_layout
 
 \end_inset
@@ -3557,8 +3557,8 @@ Document ! Settings
 \end_layout
 
 \begin_layout Standard
-If you use a koma-script document class, you can use the default settings.
- Because koma-script calculates then the printspace automatically by taking
+If you use a KOMA-Script document class, you can use the default settings.
+ Because KOMA-Script calculates then the printspace automatically by taking
  the paper format and the font size into account.
 \end_layout
 
@@ -3575,14 +3575,13 @@ everything
  That includes the paragraph environments.
  Some paragraph environments are standard; all of the document classes have
  them; but some classes have special paragraph environments.
- If this is the case, and you change the document class, LyX sets the missing
- paragraph environments to 
-\family sans
-Standard
-\family default
- and places an error box at the beginning of the paragraph.
- Just click on them and you'll get a message dialog that tells you about
- the conversion and why it failed.
+ If this is the case, and you change the document class, LyX will mark the
+ paragraphs whose styles it no longer understands as “unknown”.
+ The name of the style is retained, in case you should want to go back to
+ the old class.
+ But these paragraphs will be output with no special formatting, so you
+ will either need to create a new style yourself or else to convert these
+ paragraphs manually to a style present in your new document class.
 \end_layout
 
 \begin_layout Section
@@ -6321,6 +6320,7 @@ Abstract
 
 \begin_layout Standard
 \begin_inset Float figure
+placement h
 wide false
 sideways false
 status open
@@ -6482,8 +6482,8 @@ Bibliography
 \begin_layout Standard
 There is another, usually better way to include references in your document
  by using a BibTeX database.
- For more information on that, and for a a detailed description of LyX's
- bibliography handling, have a look at in section
+ For more information on that, and for a detailed description of LyX's bibliogra
+phy handling, have a look at in section
 \begin_inset space ~
 \end_inset
 
@@ -9885,7 +9885,7 @@ Edge
 \end_inset
 
 ) at the beginning of the last two lines.
- The command prints out the phrase within the the two braces, but invisible.
+ The command prints out the phrase within the two braces, but invisible.
  That is why it is named 
 \begin_inset Quotes eld
 \end_inset
@@ -10866,8 +10866,8 @@ cm
 \family typewriter
 ec
 \family default
- are bitmap fonts, they often looks pixeled in PDF output, especially when
- you read the PDF in a zoomed size.
+ are bitmap fonts, they often looks pixelated in PDF output, especially
+ when you read the PDF in a zoomed size.
 \begin_inset Foot
 status collapsed
 
@@ -10886,7 +10886,7 @@ Reader
 
 \end_inset
 
- To get rid of pixeled fonts, you have to use a vector font.
+ To get rid of pixelated fonts, you have to use a vector font.
  There are three ways to use one:
 \end_layout
 
@@ -10987,7 +10987,7 @@ AE
 \begin_inset Quotes eld
 \end_inset
 
-rève
+brève
 \begin_inset Quotes erd
 \end_inset
 
@@ -12707,7 +12707,7 @@ device-independent
 \end_layout
 
 \begin_layout Standard
-DVI files doen't contain images, they only link them.
+DVI files do not contain images, they only link them.
  So don't forget to deliver the images together with your DVIs.
  Because the DVI-viewer has to convert the image in the background to make
  it visible when you scroll the DVI, this can slow down your computer when
@@ -15571,7 +15571,7 @@ reference "sub:Output-file-formats"
 , every output document format allows only a few image formats.
  LyX uses therefore the program 
 \family typewriter
-Imagemagick
+ImageMagick
 \family default
  in the background to convert the images to the right format.
  To increase your workflow by avoiding these conversions in the background,
@@ -15599,7 +15599,7 @@ Bitmap
 \end_inset
 
 images consist of pixel values, often in a compressed form.
- They are therefore not fully scalable and look pixeled in large zooms.
+ They are therefore not fully scalable and look pixelated in large zooms.
  Well-known bitmap image formats are 
 \begin_inset Quotes eld
 \end_inset
@@ -18951,7 +18951,7 @@ To have multi-line entries in table cells, you have to declare a fixed width
 \bar no
 \noun off
 \color none
-This is a multiline entry in a table.
+This is a multi-line entry in a table.
 \end_layout
 
 \end_inset
@@ -19063,7 +19063,7 @@ This is longer now.
 \bar no
 \noun off
 \color none
-This is a multiline entry in a table.
+This is a multi-line entry in a table.
  This is longer now.
 \end_layout
 
@@ -20236,7 +20236,7 @@ sideways
 
 \begin_layout Standard
 Rotated floats are always placed on their own pages (or columns, when you
- have a multi-column document).
+ have a multicolumn document).
  You can let them span several columns using the float settings option 
 \family sans
 Span
@@ -24445,8 +24445,12 @@ LaTeX-packages ! prettyref
 \end_layout
 
 \begin_layout Standard
-Note that the style <page> won't print the page number if the label is on
- the previous, the same, or the next page.
+
+\family sans
+<page>
+\family default
+ will not print the page number if the label is on the previous, the same,
+ or the next page.
  You will e.
 \begin_inset space \thinspace{}
 \end_inset
@@ -24468,6 +24472,11 @@ on this page
 \end_inset
 
  instead.
+ The style 
+\family sans
+<reference> on page <page>
+\family default
+ will not print anything about the page if the label is on the same page.
 \end_layout
 
 \begin_layout Standard
@@ -24478,7 +24487,7 @@ The number and current page of the referenced document part in the output,
 Format
 \family default
  of the cross-reference window, that appear when you click on the cross-referenc
-e box.
+e.
 \end_layout
 
 \begin_layout Standard
@@ -24494,9 +24503,9 @@ You can only use the style
 \end_layout
 
 \begin_layout Standard
-If you want to reference a section, put the label in the section heading,
- to reference a float, put the label in the caption.
- For footnotes you can put the label somewhere in it.
+If you want to reference a section, put the label in the section heading;
+ for floats put the label in the caption; for footnotes put the label in
+ it.
  Referencing formulas is explained in section
 \begin_inset space ~
 \end_inset
@@ -24512,7 +24521,8 @@ reference "sec:Formula-Numbering-and"
 \end_layout
 
 \begin_layout Standard
-The button 
+Right-clicking on a cross-reference opens a context menu.
+ The entry 
 \family sans
 Go
 \begin_inset space ~
@@ -24524,9 +24534,8 @@ to
 
 Label
 \family default
- in the cross-reference window sets the the cursor before the referenced
- label.
- The button text changes then to 
+ sets the cursor before the referenced label.
+ This entry will be renamed in the context menu of the label to 
 \family sans
 Go
 \begin_inset space ~
@@ -24534,9 +24543,8 @@ Go
 
 Back
 \family default
- and you can use it to set the cursor back to the cross-reference.
- Right-clicking on a cross-reference box also sets the cursor before the
- referred label and you can go back with the toolbar button 
+ so that you can use it to set the cursor back to the cross-reference.
+ You can also go back with the toolbar button 
 \begin_inset Graphics
 	filename ../images/bookmark-goto_0.png
 	BoundingBox 0bp 5bp 20bp 25bp
@@ -24548,13 +24556,13 @@ Back
 \end_layout
 
 \begin_layout Standard
-You can change labels at any time by clicking on the label box.
- References to the changed label will automatically change its link to the
- new label text, so that you don't need to take care about this.
+You can change labels at any time.
+ References to the changed label will automatically be updated so that you
+ do not need to take care about this.
 \end_layout
 
 \begin_layout Standard
-If a cross-reference refers to a non-existent label, you'll see two question
+If a cross-reference refers to a non-existent label, you will see two question
  marks in the output instead of the reference.
 \end_layout
 
@@ -25056,7 +25064,7 @@ reference "sub:Biblio_environment"
 
 .
  If you want anything other than numerical citations that are used in this
- document, like author-year cituations, then you must
+ document, like author-year citations, then you must
 \emph on
  
 \emph default
@@ -28017,7 +28025,7 @@ Note that some document classes have built-in solutions for well known problems
  like your case.
  For example if you use a 
 \family sans
-koma-script
+KOMA-Script
 \family default
  class, you don't need the package 
 \series bold
@@ -28308,13 +28316,18 @@ aspell
 \family typewriter
 ispell
 \family default
-, so that it is recommended to use aspell.
+, and contrary to 
+\family typewriter
+ispell
+\family default
+, it supports multiple languages in parallel, so it is recommended to use
+ aspell.
  
 \family typewriter
 hspell
 \family default
  is a Hebrew spell-checker.
- The used spell checker ind its settings are specified in LyX's preferences
+ The used spell checker and its settings are specified in LyX's preferences
  under 
 \family sans
 Language Settings
@@ -28566,13 +28579,13 @@ Thesaurus
 \end_inset
 
 .
- A dialog pops up showing you prossibly related words that you can use as
+ A dialog pops up showing you possibly related words that you can use as
  replacement.
 \end_layout
 
 \begin_layout Standard
 The related words shown may not really be related to the word you are currently
- checking; scrolling in the poposal list might help in some cases to find
+ checking; scrolling in the proposal list might help in some cases to find
  related words.
 \end_layout
 
@@ -34148,6 +34161,14 @@ Closes the current document.
 \end_layout
 
 \begin_layout Subsection
+Close All
+\end_layout
+
+\begin_layout Standard
+Closes all opened documents.
+\end_layout
+
+\begin_layout Subsection
 Save
 \end_layout
 
@@ -34252,8 +34273,8 @@ You can export your document to various file formats.
 \end_layout
 
 \begin_layout Standard
-Here is a list of all available entries; they are explained in detail in
- section
+Here is a list of all available entries; some of them are explained in detail
+ in section
 \begin_inset space ~
 \end_inset
 
@@ -35042,7 +35063,7 @@ Using this menu entry or pressing F11 removes the menu bar and all toolbars
  so that you will see nothing but your text.
  It furthermore displays LyX's main window fullscreen.
  To return from fullscreen to the normal view, press F11, or right-click
- and turn off the fullscreen mode in the the context menu.
+ and turn off the fullscreen mode in the context menu.
 \end_layout
 
 \begin_layout Subsection
@@ -40668,7 +40689,7 @@ Some bind-files, like
 math.bind
 \emph default
 , have only a small scope.
- When looking at the the end of the file 
+ When looking at the end of the file 
 \shape italic
 cua.bind
 \shape default

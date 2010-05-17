@@ -101,13 +101,16 @@ dist_deexamples_DATA = \
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
+	examples/es/beamer-conference-ornate20min.lyx \
 	examples/es/Braille.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
 	examples/es/ItemizeBullets.lyx \
 	examples/es/linguistics.lyx \
 	examples/es/multicol.lyx \
-	examples/es/splash.lyx
+	examples/es/splash.lyx \
+	examples/es/tufte-book.lyx \
+	examples/es/tufte-handout.lyx
 
 euexamplesdir = $(pkgdatadir)/examples/eu
 dist_euexamples_DATA = \
@@ -166,7 +169,11 @@ dist_itexamples_DATA = \
 jaexamplesdir = $(pkgdatadir)/examples/ja
 dist_jaexamples_DATA = \
 	examples/ja/Braille.lyx \
-	examples/ja/splash.lyx
+	examples/ja/linguistics.lyx \
+	examples/ja/multicol.lyx \
+	examples/ja/splash.lyx \
+	examples/ja/xyfigure.png \
+	examples/ja/xypic.lyx
 
 nlexamplesdir = $(pkgdatadir)/examples/nl
 dist_nlexamples_DATA = \
@@ -538,6 +545,7 @@ dist_imagesmath_DATA = \
 	images/math/diagdown.png \
 	images/math/diagup.png \
 	images/math/diamond.png \
+	images/math/diamond2.png \
 	images/math/diamondsuit.png \
 	images/math/digamma.png \
 	images/math/div.png \
@@ -1174,6 +1182,7 @@ dist_templates_DATA = \
 	templates/dinbrief.lyx \
 	templates/docbook_article.lyx \
 	templates/elsarticle.lyx \
+	templates/es_beamer-conference-ornate-20min.lyx \
 	templates/fr_beamer-conference-ornate-20min.lyx \
 	templates/g-brief2.lyx \
 	templates/g-brief-de.lyx \

@@ -20,6 +20,7 @@
 #include "BufferView.h"
 #include "Cursor.h"
 #include "CutAndPaste.h"
+#include "FuncRequest.h"
 #include "Language.h"
 #include "LyXRC.h"
 #include "Paragraph.h"
@@ -30,9 +31,12 @@
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
+#include <QKeyEvent>
 #include <QListWidgetItem>
 
-#if defined(USE_ASPELL)
+#if defined(USE_ENCHANT)
+# include "Enchant.h"
+#elif defined(USE_ASPELL)
 # include "ASpell_local.h"
 #elif defined(USE_PSPELL)
 # include "PSpell.h"
@@ -74,6 +78,8 @@ GuiSpellchecker::GuiSpellchecker(GuiView & lv)
 
 	wordED->setReadOnly(true);
 
+	suggestionsLW->installEventFilter(this);
+
 	bc().setPolicy(ButtonPolicy::NoRepeatedApplyReadOnlyPolicy);
 	bc().setCancel(closePB);
 }
@@ -82,6 +88,24 @@ GuiSpellchecker::GuiSpellchecker(GuiView & lv)
 GuiSpellchecker::~GuiSpellchecker()
 {
 	delete speller_;
+}
+
+
+bool GuiSpellchecker::eventFilter(QObject *obj, QEvent *event)
+{
+	if (obj == suggestionsLW && event->type() == QEvent::KeyPress) {
+		QKeyEvent *e = static_cast<QKeyEvent *> (event);
+		if (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return) {
+			suggestionChanged(suggestionsLW->currentItem());
+			replace();
+			return true;
+		} else if (e->key() == Qt::Key_Right) {
+			suggestionChanged(suggestionsLW->currentItem());
+			return true;
+		}
+	}
+	// standard event processing
+	return QWidget::eventFilter(obj, event);
 }
 
 
@@ -201,13 +225,21 @@ void GuiSpellchecker::partialUpdate(int state)
 
 static SpellBase * createSpeller(BufferParams const & bp)
 {
-	string lang = (lyxrc.isp_use_alt_lang)
-		      ? lyxrc.isp_alt_lang
-		      : bp.language->code();
+	string lang;
+	string variety;
+	if (lyxrc.isp_use_alt_lang)
+		variety = split(lyxrc.isp_alt_lang, lang, '-');
+	else {
+	      lang = bp.language->code();
+	      variety = bp.language->variety();
+	}
 
-#if defined(USE_ASPELL)
+#if defined(USE_ENCHANT)
 	if (lyxrc.use_spell_lib)
-		return new ASpell(bp, lang);
+		return new Enchant(bp, lang);
+#elif defined(USE_ASPELL)
+	if (lyxrc.use_spell_lib)
+		return new ASpell(bp, lang, variety);
 #elif defined(USE_PSPELL)
 	if (lyxrc.use_spell_lib)
 		return new PSpell(bp, lang);
@@ -280,6 +312,7 @@ static WordLangTuple nextWord(Cursor & cur, ptrdiff_t & progress)
 	cur.resetAnchor();
 	docstring word;
 	string lang_code;
+	string lang_variety;
 
 	while (cur.depth()) {
 		if (isLetter(cur)) {
@@ -288,7 +321,10 @@ static WordLangTuple nextWord(Cursor & cur, ptrdiff_t & progress)
 				ignoreword = false;
 				cur.resetAnchor();
 				word.clear();
-				lang_code = cur.paragraph().getFontSettings(bp, cur.pos()).language()->code();
+				lang_code = cur.paragraph().getFontSettings(
+					bp, cur.pos()).language()->code();
+				lang_variety = cur.paragraph().getFontSettings(
+					bp, cur.pos()).language()->variety();
 			}
 			// Insets like optional hyphens and ligature
 			// break are part of a word.
@@ -302,7 +338,7 @@ static WordLangTuple nextWord(Cursor & cur, ptrdiff_t & progress)
 			if (inword)
 				if (!word.empty() && !ignoreword) {
 					cur.setSelection();
-					return WordLangTuple(word, lang_code);
+					return WordLangTuple(word, lang_code, lang_variety);
 				}
 				inword = false;
 		}
@@ -429,16 +465,21 @@ void GuiSpellchecker::replace(docstring const & replacement)
 {
 	LYXERR(Debug::GUI, "GuiSpellchecker::replace("
 			   << to_utf8(replacement) << ")");
-	BufferView * bv = const_cast<BufferView *>(bufferview());
-	if (!bv->cursor().inTexted())
-		return;
-	cap::replaceSelectionWithString(bv->cursor(), replacement, true);
-	bv->buffer().markDirty();
-	// If we used an LFUN, we would not need that
-	bv->processUpdateFlags(Update::Force | Update::FitCursor);
+	/*
+	  Slight hack ahead: we want to use the dispatch machinery
+	  (see bug #6217), but self-insert honors the ``auto region
+	  delete'' setting, which is not wanted here. Creating a new
+	  ad-hoc LFUN seems overkill, but it could be an option (JMarc).
+	*/
+	bool const ard = lyxrc.auto_region_delete;
+	lyxrc.auto_region_delete = true;
+	dispatch(FuncRequest(LFUN_SELF_INSERT, replacement));
+	lyxrc.auto_region_delete = ard;
 	// fix up the count
 	--count_;
-	check();
+	// Do nothing if the spellchecker has been terminated already
+	if (speller_)
+		check();
 }
 
 

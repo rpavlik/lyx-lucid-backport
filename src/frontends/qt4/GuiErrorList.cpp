@@ -15,7 +15,9 @@
 #include "qt_helpers.h"
 
 #include "Buffer.h"
+#include "BufferList.h"
 #include "BufferView.h"
+#include "FuncRequest.h"
 #include "ParIterator.h"
 #include "Text.h"
 
@@ -30,6 +32,23 @@
 
 using namespace std;
 using namespace lyx::support;
+
+namespace {
+  
+string const guiErrorType(string const & s)
+{
+	if (s == "docbook")
+		return N_("DocBook");
+	if (s == "literate")
+		return N_("Literate");
+	if (s == "platex")
+		return N_("pLaTeX");
+	if (s == "latex")
+		return N_("LaTeX");
+	return s;
+}
+
+} // namespace anon
 
 namespace lyx {
 namespace frontend {
@@ -52,7 +71,7 @@ GuiErrorList::GuiErrorList(GuiView & lv)
 void GuiErrorList::showEvent(QShowEvent * e)
 {
 	select();
-	updateContents();
+	paramsToDialog();
 	e->accept();
 }
 
@@ -68,14 +87,15 @@ void GuiErrorList::select()
 }
 
 
-void GuiErrorList::updateContents()
+void GuiErrorList::paramsToDialog()
 {
 	setTitle(toqstr(name_));
 	errorsLW->clear();
 	descriptionTB->setPlainText(QString());
 
-	ErrorList::const_iterator it = errorList().begin();
-	ErrorList::const_iterator end = errorList().end();
+	ErrorList const & el = errorList();
+	ErrorList::const_iterator it = el.begin();
+	ErrorList::const_iterator end = el.end();
 	for (; it != end; ++it)
 		errorsLW->addItem(toqstr(it->error));
 	errorsLW->setCurrentRow(0);
@@ -84,31 +104,40 @@ void GuiErrorList::updateContents()
 
 ErrorList const & GuiErrorList::errorList() const
 {
-	return bufferview()->buffer().errorList(error_type_);
+	if (bufferview() && &bufferview()->buffer() == buf_)
+		error_list_ = bufferview()->buffer().errorList(error_type_);
+	return error_list_;
 }
 
 
 bool GuiErrorList::initialiseParams(string const & error_type)
 {
 	error_type_ = error_type;
-	Buffer const & buf = bufferview()->buffer();
-	name_ = bformat(_("%1$s Errors (%2$s)"), _(error_type),
-				     from_utf8(buf.absFileName()));
+	buf_ = &bufferview()->buffer();
+	name_ = bformat(_("%1$s Errors (%2$s)"),
+			_(guiErrorType(error_type)),
+			from_utf8(buf_->absFileName()));
+	paramsToDialog();
 	return true;
 }
 
 
 bool GuiErrorList::goTo(int item)
 {
+	if (!bufferview() || &buffer() != buf_) {
+		if (!theBufferList().isLoaded(buf_))
+			return false;
+		FuncRequest fr(LFUN_BUFFER_SWITCH, buf_->absFileName());
+		dispatch(fr);
+	}
 	ErrorItem const & err = errorList()[item];
 
 	if (err.par_id == -1)
 		return false;
 
-	Buffer const & buf = buffer();
-	DocIterator dit = buf.getParFromID(err.par_id);
+	DocIterator dit = buf_->getParFromID(err.par_id);
 
-	if (dit == doc_iterator_end(buf.inset())) {
+	if (dit == doc_iterator_end(buf_->inset())) {
         // FIXME: Happens when loading a read-only doc with 
         // unknown layout. Should this be the case?
 		LYXERR0("par id " << err.par_id << " not found");

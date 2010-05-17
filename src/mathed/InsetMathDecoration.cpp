@@ -104,8 +104,19 @@ bool InsetMathDecoration::ams() const
 }
 
 
+InsetMath::mode_type InsetMathDecoration::currentMode() const
+{
+	return key_->name == "underbar" ? TEXT_MODE : MATH_MODE;
+}
+
+
 void InsetMathDecoration::metrics(MetricsInfo & mi, Dimension & dim) const
 {
+	bool const upshape = currentMode() == TEXT_MODE
+				&& mi.base.font.color() == Color_math;
+	ShapeChanger dummy(mi.base.font, upshape ?
+				UP_SHAPE : mi.base.font.shape());
+
 	cell(0).metrics(mi, dim);
 
 	dh_  = 6; //mathed_char_height(LM_TC_VAR, mi, 'I', ascent_, descent_);
@@ -125,6 +136,11 @@ void InsetMathDecoration::metrics(MetricsInfo & mi, Dimension & dim) const
 
 void InsetMathDecoration::draw(PainterInfo & pi, int x, int y) const
 {
+	bool const upshape = currentMode() == TEXT_MODE
+				&& pi.base.font.color() == Color_math;
+	ShapeChanger dummy(pi.base.font, upshape ?
+				UP_SHAPE : pi.base.font.shape());
+
 	cell(0).draw(pi, x + 1, y);
 	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
 	if (wide())
@@ -142,7 +158,9 @@ void InsetMathDecoration::write(WriteStream & os) const
 	MathEnsurer ensurer(os);
 	if (os.fragile() && protect())
 		os << "\\protect";
-	os << '\\' << key_->name << '{' << cell(0) << '}';
+	os << '\\' << key_->name << '{';
+	ModeSpecifier specifier(os, currentMode());
+	os << cell(0) << '}';
 }
 
 

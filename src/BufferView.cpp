@@ -839,10 +839,23 @@ bool BufferView::scrollToCursor(DocIterator const & dit, bool recenter)
 		int scrolled = 0;
 		if (recenter)
 			scrolled = scroll(ypos - height_/2);
+
+		// If the top part of the row falls of the screen, we scroll
+		// up to align the top of the row with the top of the screen.
 		else if (ypos - row_dim.ascent() < 0)
-			scrolled = scrollUp(- ypos + row_dim.ascent());
-		else if (ypos + row_dim.descent() > height_)
-			scrolled = scrollDown(ypos - height_ + defaultRowHeight());
+			scrolled = scrollUp(-ypos + row_dim.ascent());
+
+		// If the bottom of the row falls of the screen, we scroll down.
+		// However, we have to be careful not to scroll that much that
+		// the top falls of the screen.
+		else if (ypos + row_dim.descent() > height_) {
+			int ynew = height_ - row_dim.descent();
+			if (ynew < row_dim.ascent())
+				ynew = row_dim.ascent();
+			int const scroll = ypos - ynew;
+			scrolled = scrollDown(scroll);
+		}
+
 		// else, nothing to do, the cursor is already visible so we just return.
 		if (scrolled != 0) {
 			updateMetrics();
@@ -1272,7 +1285,8 @@ bool BufferView::dispatch(FuncRequest const & cmd)
 			DocIterator end = cur.selectionEnd();
 			if (beg.pit() == end.pit()) {
 				for (pos_type p = beg.pos() ; p < end.pos() ; ++p) {
-					if (cur.paragraph().isDeleted(p))
+					if (!cur.inMathed()
+					    && cur.paragraph().isDeleted(p))
 						has_deleted = true;
 				}
 			}
@@ -1984,7 +1998,8 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 	if (!do_selection && !badcursor && d->cursor_.inTexted())
 		update |= checkDepm(cur, d->cursor_);
 
-	d->cursor_.resetAnchor();
+	if (!do_selection)
+		d->cursor_.resetAnchor();
 	d->cursor_.setCursor(cur);
 	d->cursor_.boundary(cur.boundary());
 	if (do_selection)

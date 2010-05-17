@@ -49,6 +49,7 @@ Var ImageEditorPath
 Var LangEncoding
 Var LangSysEncoding
 Var LaTeXName
+Var LangNameLyX
 Var MiKTeXVersion
 Var MiKTeXUser
 Var MissedProg
@@ -89,7 +90,7 @@ Var WMFPath
 # Function to configure LyX
 !include "ConfigLyX.nsh"
 
-# Function to configure needed third-party programs
+# Functions to configure needed third-party programs
 !include "InstallThirdPartyProgs.nsh"
 
 # Function for page to install Aspell dictionaries

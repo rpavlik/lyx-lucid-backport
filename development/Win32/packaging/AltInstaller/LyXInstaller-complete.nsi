@@ -51,6 +51,7 @@ Var InstallJabRef
 Var LangEncoding
 Var LangSysEncoding
 Var LaTeXName
+Var LangNameLyX
 Var MiKTeXVersion
 Var MiKTeXUser
 Var MiKTeXPath
@@ -88,7 +89,7 @@ Var WMFPath
 # Function to configure LyX
 !include "ConfigLyX.nsh"
 
-# Function to configure needed third-party programs
+# Functions to configure needed third-party programs
 !include "InstallThirdPartyProgs.nsh"
 
 # Function for page to install Aspell dictionaries
@@ -274,7 +275,7 @@ FunctionEnd
 #--------------------------------
 
 Function LaunchProduct
-  # call the lyx.exe and not the lyx.bat to show the console window. This is
+  # call the lyx.exe and not the lyxLauncher.exe to show the console window. This is
   # necessary because sometimes LyX's configure run that is started by the
   # installer fails when MiKTeX was installed together with this installer.
   # Showing the console gives the user feedback otherwise he would wonder why

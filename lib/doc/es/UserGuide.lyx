@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -101,7 +101,7 @@
 \color #aa55ff
 \end_branch
 \secnumdepth 3
-\tocdepth 3
+\tocdepth 2
 \paragraph_separation indent
 \defskip medskip
 \quotes_language french
@@ -2328,7 +2328,7 @@ Kluwer
 \end_layout
 
 \begin_layout Description
-Koma-script Una revisión de las clases estándar, ofrece varias características
+KOMA-Script Una revisión de las clases estándar, ofrece varias características
  útiles como formato de encabezados, cálculo automático de espacio de impresión
  etc.
 \end_layout
@@ -3449,8 +3449,8 @@ Documentos ! Configuración
 \end_layout
 
 \begin_layout Standard
-Si usas la clase de documento koma-script, puedes dejar los valores predetermina
-dos, porque koma-script calcula automáticamente el espacio de impresión
+Si usas la clase de documento KOMA-Script, puedes dejar los valores predetermina
+dos, porque KOMA-Script calcula automáticamente el espacio de impresión
  en función del formato del papel y el tamaño de fuente.
 \end_layout
 
@@ -3467,14 +3467,20 @@ todo
  Esto incluye los entornos de párrafo, algunos de los cuáles son estándar,
  los tienen todas las clases de documento; pero algunas clases tienen entornos
  de párrafo específicos.
- En ese caso, si cambias la clase del documento, LyX transforma los entornos
- de párrafo ausentes a 
-\family sans
-Normal
-\family default
- y abre un cuadro de errores.
- Pulsando sobre ellos verás un mensaje que te informa de la conversión realizada
- y la causa del fallo.
+ En ese caso, si cambias la clase del documento, LyX marcará los párrafos
+ cuyo estilo no es reconocido como 
+\begin_inset Quotes fld
+\end_inset
+
+desconocido
+\begin_inset Quotes frd
+\end_inset
+
+.
+ El nombre del estilo es retenido por si se deseara volver a la clase original.
+ No obstante, esos párrafos se mostrarán en la salida sin formato especial,
+ de modo que necesitarás crear un nuevo estilo o bien convertirlos manualmente
+ a uno de los estilos presentes en la nueva clase de documento.
  
 \end_layout
 
@@ -11137,7 +11143,7 @@ e.
 \begin_inset Quotes fld
 \end_inset
 
-rève
+brève
 \begin_inset Quotes frd
 \end_inset
 
@@ -13932,11 +13938,7 @@ h3knix/m0n0wall
 \family sans
 Insertar\SpecialChar \menuseparator
 Formato\SpecialChar \menuseparator
-Punto
-\begin_inset space ~
-\end_inset
-
-guionado
+Guión silábico
 \family default
 .
  Estos guiones extras sólo son recomendaciones para LaTeX.
@@ -15773,7 +15775,7 @@ reference "sub:Formatos-de-salida"
  de archivo de imagen.
  Por eso LyX usa el programa 
 \family sans
-Imagemagick
+ImageMagick
 \family default
  en segundo plano para convertir imágenes al formato adecuado.
  Para aumentar el rendimiento evitando estas conversiones, puedes usar sólo
@@ -24957,7 +24959,7 @@ formato: imprime un formato personalizado.
 
 
 \begin_inset Note Greyedout
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -24987,22 +24989,46 @@ LaTeX, paquetes ! prettyref
 \end_layout
 
 \begin_layout Standard
-El estilo 
+
 \family sans
 <página>
 \family default
- no imprime el número de página si la etiqueta está en la página anterior,
- en la misma o en la siguiente.
- En estos casos aparecerá en su lugar un texto como, p.
+
 \begin_inset space \thinspace{}
 \end_inset
 
-e., «
+ no imprime el número si la etiqueta está en la misma página, en la anterior
+ o en la siguiente.
+ En su lugar verás p.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+el texto «
 \family sans
 en esta página
 \family default
 ».
- 
+ El estilo 
+\family sans
+<referencia>
+\begin_inset space ~
+\end_inset
+
+en
+\begin_inset space ~
+\end_inset
+
+página
+\begin_inset space ~
+\end_inset
+
+<página>
+\family default
+ no imprimirá nada sobre la página si la etiqueta está en la misma página.
 \end_layout
 
 \begin_layout Standard
@@ -25049,7 +25075,8 @@ reference "sec:Numeración-y-referencia"
 \end_layout
 
 \begin_layout Standard
-El botón 
+Clic derecho sobre una referencia cruzada abre un menú contextual.
+ La entrada 
 \family sans
 Ir
 \begin_inset space ~
@@ -25065,14 +25092,14 @@ la
 
 etiqueta
 \family default
- de la ventana de referencias lleva el cursor justo al comienzo de la etiqueta
- referida, y el texto del botón cambia a 
+ lleva al cursor delante de la etiqueta correspondiente.
+ Esta entrada se cambiará por 
 \family sans
-Volver,
+Volver
 \family default
- que sirve para retornar el cursor al cuadro de la referencia.
- Clic derecho sobre el cuadro de una referencia también lleva el cursor
- a la etiqueta y puedes volver con el botón 
+ en el menú contextual de la etiqueta, de modo que permite retornar el cursor
+ a la referencia.
+ Puedes también volver con el botón 
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
 
@@ -28514,9 +28541,9 @@ Ten en cuenta que algunas clases de documento llevan incorporadas soluciones
  para problemas habituales como el de este caso.
  Por ejemplo, si usas la clase 
 \family typewriter
-koma-scrip
+KOMA-Script
 \family default
-t, no necesitas el paquete 
+, no necesitas el paquete 
 \series bold
 caption
 \series default
@@ -34689,6 +34716,14 @@ Cierra el documento en pantalla.
 \end_layout
 
 \begin_layout Subsection
+Cerrar todo
+\end_layout
+
+\begin_layout Standard
+Cierra todos los documentos abiertos.
+\end_layout
+
+\begin_layout Subsection
 Guardar
 \end_layout
 
@@ -35216,7 +35251,7 @@ Menú ! Editar
 \end_layout
 
 \begin_layout Subsection
-El menú Editar
+Deshacer y Rehacer
 \end_layout
 
 \begin_layout Standard
@@ -36104,11 +36139,11 @@ reference "sub:Espacio-vertical"
 \end_layout
 
 \begin_layout Description
-Punto
+Guión
 \begin_inset space ~
 \end_inset
 
-guionado Inserta un guión, véase la sección
+silábico Inserta un guión, véase la sección
 \begin_inset space ~
 \end_inset
 
@@ -37327,10 +37362,6 @@ reference "sec:LaTeX-conf"
 \end_inset
 
 ).
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \begin_layout Standard
@@ -41105,7 +41136,7 @@ reference "sub:Fuentes-de-documento"
 \begin_layout Standard
 Con la opción 
 \family sans
-Enable Pixmap Cache
+Usar Pixmap Cache
 \family default
  marcada, LyX necesita refrescar la pantalla con menor frecuencia.
  Esto conlleva un mejor rendimiento, especialmente en sistemas lentos.
@@ -41116,10 +41147,6 @@ Enable Pixmap Cache
 \end_inset
 
 OS o Windows.
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \begin_layout Subsection
@@ -41156,12 +41183,12 @@ Cambiar
 \end_layout
 
 \begin_layout Subsection
-Pantalla
+Visualización
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Configuración ! Pantalla
+Configuración ! Visualización
 \end_layout
 
 \end_inset
@@ -41952,7 +41979,7 @@ Paquete
 \begin_inset space ~
 \end_inset
 
-del
+de
 \begin_inset space ~
 \end_inset
 
@@ -42945,12 +42972,12 @@ Configuración
 \end_layout
 
 \begin_layout Section
-Formatos externos
+Gestión de archivos
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-Formatos externos
+Gestión de archivos
 \end_layout
 
 \end_inset

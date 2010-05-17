@@ -189,7 +189,7 @@ TeXEnvironment(Buffer const & buf,
 			   << "}\n";
 		} else if (style.labeltype == LABEL_BIBLIO) {
 			// ale970405
-			os << '{' << bibitemWidest(buf) << "}\n";
+			os << '{' << bibitemWidest(buf, runparams) << "}\n";
 		} else
 			os << from_ascii(style.latexparam()) << '\n';
 		texrow.newline();
@@ -323,6 +323,15 @@ TeXOnePar(Buffer const & buf,
 	OutputParams runparams = runparams_in;
 	runparams.isLastPar = nextpit == paragraphs.end();
 
+	bool const maintext = text.isMainText(buf);
+	// we are at the beginning of an inset and CJK is already open;
+	// we count inheritation levels to get the inset nesting right.
+	if (pit == paragraphs.begin() && !maintext
+	    && (cjk_inherited_ > 0 || open_encoding_ == CJK)) {
+		cjk_inherited_ += 1;
+		open_encoding_ = none;
+	}
+
 	if (runparams.verbatim) {
 		int const dist = distance(paragraphs.begin(), pit);
 		Font const outerfont = outerFont(dist, paragraphs);
@@ -342,17 +351,6 @@ TeXOnePar(Buffer const & buf,
 	// Perhaps we should issue an error if it is.
 	Layout const style = pit->forcePlainLayout() ?
 		bparams.documentClass().plainLayout() : pit->layout();
-
-	runparams.moving_arg |= style.needprotect;
-
-	bool const maintext = text.isMainText(buf);
-	// we are at the beginning of an inset and CJK is already open;
-	// we count inheritation levels to get the inset nesting right.
-	if (pit == paragraphs.begin() && !maintext
-	    && (cjk_inherited_ > 0 || open_encoding_ == CJK)) {
-		cjk_inherited_ += 1;
-		open_encoding_ = none;
-	}
 
 	// This paragraph's language
 	Language const * const par_language = pit->getParLanguage(bparams);
@@ -466,7 +464,9 @@ TeXOnePar(Buffer const & buf,
 		// Look ahead for future encoding changes.
 		// We try to output them at the beginning of the paragraph,
 		// since the \inputencoding command is not allowed e.g. in
-		// sections.
+		// sections. For this reason we only set runparams.moving_arg
+		// after checking for the encoding change, otherwise the
+		// change would be always avoided by switchEncoding().
 		for (pos_type i = 0; i < pit->size(); ++i) {
 			char_type const c = pit->getChar(i);
 			Encoding const * const encoding =
@@ -517,6 +517,7 @@ TeXOnePar(Buffer const & buf,
 		}
 	}
 
+	runparams.moving_arg |= style.needprotect;
 	Encoding const * const prev_encoding = runparams.encoding;
 
 	bool const useSetSpace = bparams.documentClass().provides("SetSpace");
@@ -681,7 +682,7 @@ TeXOnePar(Buffer const & buf,
 					(nextpit == paragraphs.end()
 					 && runparams.master_language)
 						? runparams.master_language
-						: prev_language;
+						: outer_language;
 				if (!current_language->babel().empty()) {
 					os << from_ascii(subst(
 						lyxrc.language_command_begin,

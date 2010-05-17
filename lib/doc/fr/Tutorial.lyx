@@ -1,4 +1,4 @@
-#LyX 1.6.4 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -5512,6 +5512,38 @@ tex2lyx
  Consultez-la pour savoir quels sont les commandes et environnements LaTeX
  qui ne sont pas supportés, les problèmes connus (avec la façon de les contourne
 r), et comment utiliser les différentes options.
+\end_layout
+
+\begin_layout Standard
+Il faut bien comprendre que 
+\family typewriter
+tex2lyx
+\family default
+ ne peut convertir que des document dont la classe est 
+\begin_inset Quotes fld
+\end_inset
+
+connue
+\begin_inset Quotes frd
+\end_inset
+
+ de LyX, c'est-à-dire pour laquelle il existe un fichier de format pour
+ LyX ( fichier .layout ).
+ S'il n'y a pas de fichier de format, vous aurez un message d'erreur disant
+ que la conversion ne peut avoir lieu.
+ Ce qui fait que, si vous n'avez pas de fichier de format pour la classe
+ de votre document LaTeX, 
+\family typewriter
+tex2lyx
+\family default
+ ne saura tout simplement pas comment convertir les commandes LaTeX en quelquech
+ose que LyX comprenne.
+ Vous trouverez plus d'information sur les fichiers de format et la façon
+ de les créer dans le chapitre 5 du manuel 
+\emph on
+Personnalisation
+\emph default
+.
 \end_layout
 
 \begin_layout Subsection

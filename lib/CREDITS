@@ -76,6 +76,9 @@
 @bMatthias Kalle Dalheimer
 @iE-mail: kalle () kdab ! net
    Qt2 port
+@bUlysse Danglis
+@iE-mail: o2d () freemail ! gr
+   Greek translations
 @bAnders Ekberg
 @iE-mail: anek () chalmers ! se
    Improvements to the Swedish translation of the Windows Installer
@@ -238,6 +241,9 @@
 @bHangzai Luo
 @iE-mail: memcache () gmail ! com
    Bugfixes
+@bMohamed Magdy
+@iE-mail: physicist2010 () gmail ! com>
+   Arabic translation
 @bTetsuya Makimura
 @iE-mail: makimura () ims ! tsukuba.ac ! jp
    Improvements to the Japanese language support.
@@ -247,6 +253,9 @@
 @bRoman Maurer
 @iE-mail: roman.maurer () amis ! net
    Slovenian translation coordinator
+@bCaolán McNamara
+@iE-mail: caolanm () redhat ! com
+   Support for the enchant spell checking library
 @bTino Meinen
 @iE-mail: a.t.meinen () chello ! nl
    Dutch translation coordinator
@@ -406,6 +415,9 @@
 @bTaoWang (mgc)
 @iE-mail: mgcgogo () gmail ! com
    translation of documentation and user interface to Simplified Chinese
+@bSergey Tereschenko
+@iE-mail: serg.partizan () gmail ! com
+   Russian translation of the user interface
 @bReuben Thomas
 @iE-mail: rrt () sc3d ! org
    encts document class lots of useful bug reports

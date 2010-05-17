@@ -58,7 +58,9 @@ public:
 	///
 	void label(row_type row, docstring const & label);
 	///
-	ColorCode backgroundColor() const { return Color_mathbg; }
+	std::vector<InsetLabel *> const & getLabels() { return label_; }
+	///
+	ColorCode backgroundColor(PainterInfo const & pi) const;
 	///
 	void numbered(row_type row, bool num);
 	///
@@ -126,7 +128,12 @@ public:
 	///
 	//bool insetAllowed(InsetCode code) const;
 	///
-	void addPreview(graphics::PreviewLoader &) const;
+	void addPreview(DocIterator const & inset_pos,
+		graphics::PreviewLoader &) const;
+	/// Prepare the preview if preview is enabled.
+	void preparePreview(DocIterator const & pos, Buffer const & buffer) const;
+	/// Recreates the preview if preview is enabled.
+	void reloadPreview(DocIterator const & pos, Buffer const & buffer) const;
 	///
 	void initUnicodeMath() const;
 

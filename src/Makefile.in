@@ -314,19 +314,20 @@ am__objects_5 = InsetMathAMSArray.lo InsetMathArray.lo InsetMathBig.lo \
 liblyxmathed_la_OBJECTS = $(am_liblyxmathed_la_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__lyx_SOURCES_DIST = main.cpp ASpell.cpp ASpell_local.h PSpell.cpp \
-	PSpell.h ISpell.cpp ISpell.h SpellBase.cpp BiblioInfo.h \
-	BiblioInfo.cpp Box.cpp Box.h Dimension.cpp Dimension.h \
-	PrinterParams.cpp PrinterParams.h Thesaurus.cpp Thesaurus.h \
-	lyxwinres.rc
-@USE_ASPELL_TRUE@am__objects_6 = ASpell.$(OBJEXT)
-@USE_PSPELL_TRUE@am__objects_7 = PSpell.$(OBJEXT)
-@USE_ISPELL_TRUE@am__objects_8 = ISpell.$(OBJEXT)
-@LYX_WIN_RESOURCE_TRUE@am__objects_9 = lyxwinres.$(OBJEXT)
+am__lyx_SOURCES_DIST = main.cpp Enchant.cpp Enchant.h ASpell.cpp \
+	ASpell_local.h PSpell.cpp PSpell.h ISpell.cpp ISpell.h \
+	SpellBase.cpp BiblioInfo.h BiblioInfo.cpp Box.cpp Box.h \
+	Dimension.cpp Dimension.h PrinterParams.cpp PrinterParams.h \
+	Thesaurus.cpp Thesaurus.h lyxwinres.rc
+@USE_ENCHANT_TRUE@am__objects_6 = Enchant.$(OBJEXT)
+@USE_ASPELL_TRUE@am__objects_7 = ASpell.$(OBJEXT)
+@USE_PSPELL_TRUE@am__objects_8 = PSpell.$(OBJEXT)
+@USE_ISPELL_TRUE@am__objects_9 = ISpell.$(OBJEXT)
+@LYX_WIN_RESOURCE_TRUE@am__objects_10 = lyxwinres.$(OBJEXT)
 am_lyx_OBJECTS = main.$(OBJEXT) $(am__objects_6) $(am__objects_7) \
-	$(am__objects_8) SpellBase.$(OBJEXT) BiblioInfo.$(OBJEXT) \
-	Box.$(OBJEXT) Dimension.$(OBJEXT) PrinterParams.$(OBJEXT) \
-	Thesaurus.$(OBJEXT) $(am__objects_9)
+	$(am__objects_8) $(am__objects_9) SpellBase.$(OBJEXT) \
+	BiblioInfo.$(OBJEXT) Box.$(OBJEXT) Dimension.$(OBJEXT) \
+	PrinterParams.$(OBJEXT) Thesaurus.$(OBJEXT) $(am__objects_10)
 lyx_OBJECTS = $(am_lyx_OBJECTS)
 am__DEPENDENCIES_1 =
 @USE_INCLUDED_BOOST_FALSE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
@@ -337,7 +338,7 @@ am__DEPENDENCIES_1 =
 @USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
 am__DEPENDENCIES_3 = $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 lyx_DEPENDENCIES = liblyxcore.la liblyxmathed.la liblyxinsets.la \
 	frontends/liblyxfrontends.la frontends/qt4/liblyxqt4.la \
 	liblyxgraphics.la support/liblyxsupport.la \
@@ -419,7 +420,8 @@ ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_CFLAGS = @AM_CFLAGS@
 AM_CPPFLAGS = @AM_CPPFLAGS@ $(PCH_FLAGS) -I$(top_srcdir)/src \
-	$(BOOST_INCLUDES) $(QT4_CPPFLAGS) $(QT4_CORE_INCLUDES)
+	$(BOOST_INCLUDES) $(ENCHANT_CFLAGS) $(QT4_CPPFLAGS) \
+	$(QT4_CORE_INCLUDES)
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
@@ -452,6 +454,8 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENCHANT_CFLAGS = @ENCHANT_CFLAGS@
+ENCHANT_LIBS = @ENCHANT_LIBS@
 EXEEXT = @EXEEXT@
 FRONTENDS = @FRONTENDS@
 FRONTENDS_PROGS = @FRONTENDS_PROGS@
@@ -657,7 +661,7 @@ SUBDIRS = support frontends . $(CLIENT) tex2lyx
 ############################### Mathed  ##############################
 EXTRA_DIST = Section.h Section.cpp Variables.cpp Variables.h paper.h \
 	pch.h mathed/InsetFormulaMacro.cpp
-OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
+OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) $(ENCHANT_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
 
 ############################### Graphics ##############################
 
@@ -679,6 +683,7 @@ lyx_LDADD = \
 #lyx_LDFLAGS=-Wl,-O1
 BUILT_SOURCES = $(PCH_FILE) $(am__append_2) $(am__append_4) \
 	$(am__append_6) $(am__append_8)
+@USE_ENCHANT_TRUE@ENCHANT = Enchant.cpp Enchant.h
 @USE_ASPELL_TRUE@ASPELL = ASpell.cpp ASpell_local.h
 @USE_PSPELL_TRUE@PSPELL = PSpell.cpp PSpell.h
 @USE_ISPELL_TRUE@ISPELL = ISpell.cpp ISpell.h
@@ -687,10 +692,10 @@ BUILT_SOURCES = $(PCH_FILE) $(am__append_2) $(am__append_4) \
 # referenced within the core and therefore are not picked up
 # by the linker without looping over libs. We do not want that,
 # and in fact libtools seems not able to do that.
-lyx_SOURCES = main.cpp $(ASPELL) $(PSPELL) $(ISPELL) SpellBase.cpp \
-	BiblioInfo.h BiblioInfo.cpp Box.cpp Box.h Dimension.cpp \
-	Dimension.h PrinterParams.cpp PrinterParams.h Thesaurus.cpp \
-	Thesaurus.h $(am__append_1)
+lyx_SOURCES = main.cpp $(ENCHANT) $(ASPELL) $(PSPELL) $(ISPELL) \
+	SpellBase.cpp BiblioInfo.h BiblioInfo.cpp Box.cpp Box.h \
+	Dimension.cpp Dimension.h PrinterParams.cpp PrinterParams.h \
+	Thesaurus.cpp Thesaurus.h $(am__append_1)
 SOURCEFILESCORE = \
 	Author.cpp \
 	Bidi.cpp \
@@ -1286,6 +1291,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DepTable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Dimension.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DocIterator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Enchant.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Encoding.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorList.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Exporter.Plo@am__quote@

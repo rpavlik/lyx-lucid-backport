@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.5,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,1.6.6,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2009-12-05"])
+AC_SUBST(LYX_DATE, ["2010-05-17"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -222,7 +222,7 @@ AC_LANG_POP(C)
 # some standard header files
 AC_HEADER_DIRENT
 AC_HEADER_MAJOR
-AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h strings.h locale.h io.h process.h NewAPIs.h utime.h sys/utime.h)
+AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h strings.h locale.h io.h process.h utime.h sys/utime.h)
 
 # some standard structures
 AC_HEADER_STAT
@@ -358,10 +358,6 @@ char * strerror(int n);
 #  define BOOST_POSIX 1
 #  define BOOST_POSIX_API 1
 #  define BOOST_POSIX_PATH 1
-#endif
-
-#if defined(HAVE_NEWAPIS_H)
-#  define WANT_GETFILEATTRIBUTESEX_WRAPPER 1
 #endif
 
 /*

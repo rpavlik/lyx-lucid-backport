@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -198,7 +198,7 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
 \use_amsmath 2
@@ -210,7 +210,7 @@
 \tocdepth 3
 \paragraph_separation skip
 \defskip medskip
-\quotes_language english
+\quotes_language french
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
@@ -9254,13 +9254,25 @@ Tablas largas ! Flotantes
 \begin_layout Standard
 Podría haber problemas si un flotante aparece en la misma página donde comienza
  una tabla larga.
- Para evitarlo, añade el comando 
-\series bold
+ Para evitarlo, añade un 
+\begin_inset Quotes fld
+\end_inset
 
-\backslash
-clearpage
-\series default
- en código TeX antes de la tabla.
+salto de página limpia
+\begin_inset Quotes frd
+\end_inset
+
+ (menú 
+\family sans
+Insertar\SpecialChar \menuseparator
+Formato\SpecialChar \menuseparator
+Limpiar
+\begin_inset space ~
+\end_inset
+
+página
+\family default
+) antes de la tabla.
 \end_layout
 
 \begin_layout Subsection
@@ -11211,12 +11223,11 @@ Editar\SpecialChar \menuseparator
 Tabla\SpecialChar \menuseparator
 Multicolumna
 \family default
-, o clic derecho sobre las celdas marcadas y se selecciona en el diálogo,
- bajo la solapa 
+, o clic derecho sobre las celdas marcadas y elige 
 \family sans
-Configuración
+Multicolumna 
 \family default
-, la casilla Multicolumna.
+en el menú contextual emergente.
 \end_layout
 
 \begin_layout Standard
@@ -12109,7 +12120,7 @@ f
 </cell>
 </row>
 <row>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -12163,8 +12174,7 @@ raggedright}
 
 \begin_layout Standard
 crea una tabla 3×3.
- Para quitar la línea sobre la última celda en la primera columna, se marca
- la celda como multicolumna y se quita el borde superior.
+ Elimina el borde superior de la última celda en la primera columna.
  Ahora se crea la multifila en la segunda fila de la primera columna insertando
  ahí el comando
 \end_layout
@@ -14909,7 +14919,7 @@ como argumento LaTeX para esta columna.
 \series bold
 
 \backslash
-rowcolow{cyan}
+rowcolor{cyan}
 \end_layout
 
 \begin_layout Standard
@@ -16817,6 +16827,7 @@ o más pequeño al comienzo de la última columna para conseguir el espacio
 
 \begin_layout Standard
 \begin_inset Float table
+placement h
 wide false
 sideways false
 status open
@@ -17201,6 +17212,13 @@ dcolumn
 \end_layout
 
 \begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float table
 placement h
 wide false
@@ -17249,7 +17267,7 @@ dcolumn
 <features>
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{4.9}">
 <column alignment="center" valignment="top" width="0" special="D{x}{\times}{4.9}">
-<column alignment="center" valignment="top" width="0" special="D{~}{\,}{9.7}">
+<column alignment="center" valignment="top" width="0" special="D{+}{\,}{9.7}">
 <row>
 <cell multicolumn="1" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
@@ -17327,7 +17345,7 @@ times
 
 \end_inset
 
-24~
+24+
 \begin_inset Formula $\mbox{bottles}$
 \end_inset
 
@@ -17385,7 +17403,7 @@ times
 
 \end_inset
 
-768~
+768+
 \begin_inset Formula $\mbox{Pixels}$
 \end_inset
 
@@ -17443,7 +17461,7 @@ times
 
 \end_inset
 
-6~
+6+
 \begin_inset Formula $\mbox{cm}$
 \end_inset
 
@@ -20258,7 +20276,10 @@ con
 \end_inset
 
 formato: imprime un formato personalizado.
- 
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Note Greyedout
 status open
 
@@ -20273,6 +20294,16 @@ Nota:
 prettyref
 \series default
 .
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-paquetes ! prettyref
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -20281,7 +20312,11 @@ prettyref
 \end_layout
 
 \begin_layout Standard
-Ten en cuenta que el estilo <página>
+
+\family sans
+<página>
+\family default
+
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -20300,6 +20335,23 @@ el texto «
 en esta página
 \family default
 ».
+ El estilo 
+\family sans
+<referencia>
+\begin_inset space ~
+\end_inset
+
+en
+\begin_inset space ~
+\end_inset
+
+página
+\begin_inset space ~
+\end_inset
+
+<página> 
+\family default
+no imprimirá nada sobre la página si la etiqueta está en la misma página.
 \end_layout
 
 \begin_layout Standard
@@ -20310,6 +20362,68 @@ El número y página actual de la parte del documento referida es automáticamen
 Formato
 \family default
  de la ventana de referencia cruzada, que aparece al pinchar sobre el cuadro.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Nota:
+\series default
+ El paquete LaTeX 
+\series bold
+prettyref
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-paquetes ! prettyref
+\end_layout
+
+\end_inset
+
+ no reconoce todas las abreviaturas de etiquetas
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Quotes fld
+\end_inset
+
+fig:
+\begin_inset Quotes frd
+\end_inset
+
+, por ejemplo, es la abreviatura en LyX para las etiquetas de leyendas de
+ figuras.
+\end_layout
+
+\end_inset
+
+ posibles en LyX y no está internacionalizado.
+ Para saber cómo indicar a 
+\series bold
+prettyref
+\series default
+ nuevas abreviaturas y traducciones, echa un vistazo a su documentación,
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "prettyref"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -22392,7 +22506,7 @@ tableposition=top
 \series default
  no tiene efecto si se usa una clase de documento 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 .
  En este caso debe utilizarse la opción de clase de documento 
@@ -22462,33 +22576,33 @@ thefigure
 
 Si estás usando la clase de documento 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-paquetes ! KOMA-script
+LaTeX-paquetes ! KOMA-Script
 \end_layout
 
 \end_inset
 
  (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
 , o 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 
 \begin_inset space \thinspace{}
@@ -22506,7 +22620,7 @@ setkomafont
 \series default
  incluido en 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 .
  Por ejemplo, para poner en negrita la etiqueta de la leyenda añade este
@@ -22532,12 +22646,12 @@ setkomafont
 \series default
  en la documentación de 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -22853,33 +22967,33 @@ tableposition=top
 \begin_layout Standard
 Si estás usando la clase 
 \series bold
-KOMA-script
+KOMA-Script
 \series default
 
 \begin_inset Index
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-paquetes ! KOMA-script
+LaTeX-paquetes ! KOMA-Script
 \end_layout
 
 \end_inset
 
  (
 \family sans
-article (KOMA-script)
+article (KOMA-Script)
 \family default
 , 
 \family sans
-book (KOMA-script)
+book (KOMA-Script)
 \family default
 , 
 \family sans
-letter (KOMA-script)
+letter (KOMA-Script)
 \family default
 , o 
 \family sans
-report (KOMA-script)
+report (KOMA-Script)
 \family default
 
 \begin_inset space \thinspace{}
@@ -25241,30 +25355,23 @@ Notas ! al final
 
 \end_inset
 
- en vez de al pie, 
-\lang english
-load in the menu
-\lang spanish
- 
+ en vez de a pie de página, carga en el menú 
 \family sans
 Documento\SpecialChar \menuseparator
 Configuratión\SpecialChar \menuseparator
-Módulos 
+Módulos
 \family default
-\lang english
-the module
-\lang spanish
- 
+ el módulo 
 \family sans
 Pie
 \begin_inset space ~
 \end_inset
 
-a
+al
 \begin_inset space ~
 \end_inset
 
-Final
+final
 \family default
 .
  Para insertar la colección de notas, escribe el comando
@@ -28206,7 +28313,7 @@ fboxsep
 \series bold
 
 \backslash
-definecolor{shadebox}
+definecolor{shadecolor}
 \series default
  o globalmente con el menú 
 \family sans
@@ -31813,41 +31920,52 @@ El preámbulo del documento hijo se ignora, sólo se utiliza el preámbulo
 \end_layout
 
 \begin_layout Standard
-Con el comando LaTeX 
+En caso de estar trabajando solo en un capítulo determinado de un documento
+ extenso, y con el fin de ahorrar tiempo de compilación, se puede poner
+ cada archivo incluido en una rama.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Las ramas se describen en la sección
+\emph on
+ Ramas
+\emph default
+ de la  
+\emph on
+Guía del usuario
+\emph default
+ de LyX.
+\end_layout
+
+\end_inset
+
+ Habilitando/deshabilitando las ramas puedes decidir qué archivos incluidos
+ aparecerán en la salida.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Nota:
+\series default
+ Debido a un fallo de LyX, el comando LaTeX 
 \series bold
 
 \backslash
 includeonly
 \series default
- puedes determinar qué documentos hijos serán procesados al generar la salida.
- Esto es útil si, por ejemplo, estás trabajando sólo cierto capítulo de
- un extenso documento y quieres ahorrar tiempo de compilación.
- 
-\series bold
+ no se puede usar por el momento como alternativa para decidir qué archivos
+ deberían ser incluidos.
+\end_layout
 
-\backslash
-includeonly 
-\series default
-se inserta en el preámbulo del documento maestro, poniendo como argumento
- una lista de los nombres de archivo separados con comas, p.
-\begin_inset space \thinspace{}
 \end_inset
 
-e.
- la orden:
-\end_layout
 
-\begin_layout Standard
-
-\series bold
-
-\backslash
-includeonly{capítulo1,capítulo5}
-\end_layout
-
-\begin_layout Standard
-hará que sólo se procesen los archivos incluidos cuyos nombres son «capítulo1.lyx
-» (o «capítulo1.tex») y «capítulo5.lyx».
 \end_layout
 
 \begin_layout Standard
@@ -34128,7 +34246,7 @@ LaTeX-paquetes ! hyperref
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "KOMA-script"
+key "KOMA-Script"
 
 \end_inset
 
@@ -34137,7 +34255,7 @@ Documentación del paquete LaTeX
 
 \begin_inset CommandInset href
 LatexCommand href
-name "KOMA-script"
+name "KOMA-Script"
 target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrguien.pdf"
 
 \end_inset
@@ -34149,7 +34267,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrg
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX-paquetes ! KOMA-script
+LaTeX-paquetes ! KOMA-Script
 \end_layout
 
 \end_inset
@@ -34278,6 +34396,38 @@ status collapsed
 
 \begin_layout Plain Layout
 LaTeX-paquetes ! sidecap
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "prettyref"
+
+\end_inset
+
+Documentación del paquete LaTeX 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "prettyref"
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref.pdf"
+
+\end_inset
+
+
+\series default
+
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+LaTeX-paquetes ! prettyref
 \end_layout
 
 \end_inset

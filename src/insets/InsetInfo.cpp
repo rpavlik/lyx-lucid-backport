@@ -291,10 +291,26 @@ void InsetInfo::updateInfo()
 	}
 	case LYXRC_INFO: {
 		ostringstream oss;
+		if (name_.empty()) {
+			setText(_("undefined"));
+			break;
+		}
 		lyxrc.write(oss, true, name_);
 		string result = oss.str();
-		// remove leading \\name
-		result = result.substr(name_.size() + 2);
+		if (result.size() < 2) {
+			setText(_("undefined"));
+			break;
+		}
+		string::size_type loc = result.rfind("\n", result.size() - 2);
+		loc = loc == string::npos ? 0 : loc + 1;
+		if (result.size() < loc + name_.size() + 1
+			  || result.substr(loc + 1, name_.size()) != name_) {
+			setText(_("undefined"));
+			break;
+		}
+		// remove leading comments and \\name and space
+		result = result.substr(loc + name_.size() + 2);
+		
 		// remove \n and ""
 		result = rtrim(result, "\n");
 		result = trim(result, "\"");
@@ -305,9 +321,14 @@ void InsetInfo::updateInfo()
 		// check in packages.lst
 		setText(LaTeXFeatures::isAvailable(name_) ? _("yes") : _("no"));
 		break;
+
 	case TEXTCLASS_INFO: {
 		// name_ is the class name
-		setText(LayoutFileList::get().haveClass(name_) ? _("yes") : _("no"));
+		LayoutFileList const & list = LayoutFileList::get();
+		bool available = false;
+		if (list.haveClass(name_))
+			available = list[name_].isTeXClassAvailable();
+		setText(available ? _("yes") : _("no"));
 		break;
 	}
 	case MENU_INFO: {

@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -136,6 +136,13 @@
   \setboolean{braket}{true}}
  {\setboolean{braket}{false}}
 
+% check for package cancel
+\newboolean{cancel}
+\IfFileExists{cancel.sty}
+ {\usepackage{cancel}
+  \setboolean{cancel}{true}}
+ {\setboolean{cancel}{false}}
+
 % check for package upgreek
 \newboolean{upgreek}
 \IfFileExists{upgreek.sty}
@@ -262,25 +269,38 @@ LatexCommand tableofcontents
 
 \begin_layout Standard
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
-Para exportar este documento a PDF, PS, o DVI deben estar instalados los
+Para exportar este documento a PDF, PS o DVI deberían estar instalados los
  paquetes LaTeX 
 \series bold
-eurosym
+braket, cancel, eurosym
 \series default
 , 
 \series bold
-multirow
+mhchem
+\series default
+,
+\series bold
+ multirow
 \series default
  y 
 \series bold
 was
 \series default
 .
- Si no están instalados también puedes exportar el documento pero las secciones
+ Si
+\series bold
+ 
+\series default
+no están instalados también puedes exportar el documento pero las secciones
  en que se requieren dichos paquetes no aparecerán en la salida.
+ 
+\series bold
+mhchem
+\series default
+ es una excepción: si no está instalado no se puede exportar este archivo.
 \end_layout
 
 \begin_layout Plain Layout
@@ -670,7 +690,7 @@ Para cambiar el preámbulo LaTeX
 status collapsed
 
 \begin_layout Plain Layout
-LaTeX preámbulo
+LaTeX, preámbulo
 \end_layout
 
 \end_inset
@@ -878,10 +898,6 @@ Un espacio protegido se inserta con
 Ctrl+Espacio
 \family default
 .
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection*
@@ -13918,11 +13934,8 @@ Un ejemplo:
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-
 \color green
+
 \begin_inset Formula \begin{equation}
 {\color{green}{\color{red}\int A=B}}\label{eq:rojoverde}\end{equation}
 
@@ -19025,19 +19038,189 @@ Un comando de tamaño se inserta en modo TeX antes de la ecuación, y se aplica
 normalsize
 \series default
  en modo TeX detrás de la ecuación.
- 
 \end_layout
 
 \begin_layout Standard
-Dentro de una fórmula el tamaño sólo se puede cambiar para símbolos o letras
- en texto matemático.
- Para hacerlo se inserta el comando en texto matemático.
+Dentro de una ecuación, el tamaño se puede cambiar usando los siguientes
+ comandos de tamaño:
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Comando
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Resultado
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+
+\series bold
+
+\backslash
+raisebox
+\series default
+ se usa sólo como espaciador
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+displaystyle
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Comandos ! D ! 
+\backslash
+displaystyle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{6.5mm}{}{\displaystyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-5.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+textstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\textstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-4mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+scriptstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\scriptstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-3.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+scriptscriptstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\scriptscriptstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-3.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Después de introcucir estos comandos, aparece un marco azul en el que se
+ insertan las partes de la fórmula.
+\end_layout
+
+\begin_layout Standard
+Hay un método más para cambiar el tamaño de fuente, aunque solo funciona
+ para símbolos o letras en texto matemático.
+ Para usarlo se inserta en texto matemático uno de los comandos de tamaño
+ de texto anteriores.
  Todos los caracteres siguientes, hasta el final del texto matemático o
  hasta otro comando de tamaño, tendrán el tamaño seleccionado.
  Dos ejemplos:
-\end_layout
-
-\begin_layout Standard
 \begin_inset VSpace -2mm
 \end_inset
 
@@ -20719,7 +20902,7 @@ Se puede encontrar una lista con todos los símbolos de la mayoría de paquetes
  LaTeX en 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "Symbole"
+key "Symbols"
 
 \end_inset
 
@@ -22828,6 +23011,13 @@ fi
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Relaciones
 \begin_inset CommandInset label
@@ -24445,7 +24635,7 @@ cursiva
 .
  Por eso hay funciones predefinidas, que además se separan un poco del factor
  precedente.
- Se insertan como comandos con una barra inversa  delante de su nombre.
+ Se insertan como comandos con una barra inversa delante de su nombre.
 \end_layout
 
 \begin_layout Standard
@@ -24554,7 +24744,7 @@ Las funciones siguientes están predefinidas:
 status collapsed
 
 \begin_layout Plain Layout
-Se han añadido los comandos equivalentes suministrados por el estilo 
+Se han añadido los comandos equivalentes proporcionados por el estilo 
 \series bold
 spanish
 \series default
@@ -24562,7 +24752,8 @@ spanish
 \series bold
 babel
 \series default
-, adaptados a las convenciones hispanohablantes.
+.
+ (Estos no están disponibles en el panel de funciones).
  Además, en su caso, las funciones serán acentuadas automáticamente en la
  salida, p.
 \begin_inset space \thinspace{}
@@ -25893,6 +26084,13 @@ En una ecuación presentada:
 
 En una ecuación en línea se pone menos espacio delante del nombre de la
  función para todas las variantes.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -27797,6 +27995,13 @@ else
 textdegree
 \backslash
 fi}
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -29729,6 +29934,13 @@ intertext
 I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
 \intertext{\text{el integrando es simétrico para \ensuremath{\phi=\pi}, por tanto}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
 \end_inset
 
 
@@ -34805,20 +35017,6 @@ El paquete LaTeX
 braket
 \series default
 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-braket
-\series default
- se incluye en las instalaciones estándar de LaTeX.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -35411,20 +35609,6 @@ Para cancelar ecuaciones o partes de ellas hay que cargar el paquete LaTeX
 cancel
 \series default
 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-cancel
-\series default
- forma parte de las distribuciones estándar de LaTeX.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -35443,6 +35627,36 @@ Paquetes ! cancel
 
 \backslash
 usepackage[samesize]{cancel}
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+ifcancel 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+La tabla siguiente sólo se mostrará en la salida si el paquete LaTeX 
+\series bold
+cancel
+\series default
+ está instalado.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -35680,6 +35894,60 @@ cancelto
  en una ecuación:
 \begin_inset Formula \[
 \frac{\left(x_{0}+bB\right)^{2}}{\left(1+b^{2}\right)^{\cancelto{2}{3}}}=\frac{x_{0}^{2}+B^{2}-r_{g}^{2}}{\cancel{1+b^{2}}}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+else
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Lo que sigue se verá en la salida si el paquete LaTeX 
+\series bold
+cancel
+\series default
+ no está instalado:
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Debes instalar el paquete LaTeX 
+\series bold
+cancel
+\series default
+ para ver en la salida el resto de esta subsección.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi
+\end_layout
 
 \end_inset
 
@@ -36835,7 +37103,7 @@ reference "sub:Estilos-de-fuentes"
 
 \end_inset
 
-: 30
+, aunque aparezcan en un texto en cursiva: 30
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -37835,7 +38103,7 @@ AmS
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "Symbole"
+key "Symbols"
 
 \end_inset
 
