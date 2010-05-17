@@ -790,7 +790,8 @@ public:
 	///
 	virtual bool usePlainLayout() { return true; }
 	///
-	void addPreview(graphics::PreviewLoader &) const;
+	void addPreview(DocIterator const & inset_pos,
+		graphics::PreviewLoader &) const;
 
 	/// lock cell with given index
 	void edit(Cursor & cur, bool front, EntryDirection entry_from);
@@ -802,8 +803,10 @@ public:
 	Inset * editXY(Cursor & cur, int x, int y);
 	/// can we go further down on mouse click?
 	bool descendable(BufferView const &) const { return true; }
-	// Update the counters of this inset and of its contents
+	/// Update the counters of this inset and of its contents
 	void updateLabels(ParIterator const &);
+	///
+	void addToToc(DocIterator const &);
 
 	///
 	bool completionSupported(Cursor const &) const;

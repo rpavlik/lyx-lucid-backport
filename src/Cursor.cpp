@@ -265,8 +265,8 @@ docstring parbreak(Paragraph const & par)
 // bv functions are not yet available!
 Cursor::Cursor(BufferView & bv)
 	: DocIterator(), bv_(&bv), anchor_(), x_target_(-1), textTargetOffset_(0),
-	  selection_(false), mark_(false), logicalpos_(false),
-	  current_font(inherit_font)
+	  selection_(false), mark_(false), word_selection_(false),
+	  logicalpos_(false), current_font(inherit_font)
 {}
 
 
@@ -1033,6 +1033,7 @@ void Cursor::setSelection(DocIterator const & where, int n)
 void Cursor::clearSelection()
 {
 	setSelection(false);
+	setWordSelection(false);
 	setMark(false);
 	resetAnchor();
 }
@@ -1273,11 +1274,11 @@ void Cursor::insert(Inset * inset0)
 }
 
 
-void Cursor::niceInsert(docstring const & t, Parse::flags f)
+void Cursor::niceInsert(docstring const & t, Parse::flags f, bool enter)
 {
 	MathData ar(&buffer());
 	asArray(t, ar, f);
-	if (ar.size() == 1 && selection())
+	if (ar.size() == 1 && (enter || selection()))
 		niceInsert(ar[0]);
 	else
 		insert(ar);
@@ -1288,10 +1289,9 @@ void Cursor::niceInsert(MathAtom const & t)
 {
 	macroModeClose();
 	docstring const safe = cap::grabAndEraseSelection(*this);
-	// Enter the new inset and, if something is selected,
-	// move the contents of the selection if possible.
 	plainInsert(t);
-	if (!safe.empty() && t->isActive()) {
+	// If possible, enter the new inset and move the contents of the selection
+	if (t->isActive()) {
 		posBackward();
 		// be careful here: don't use 'pushBackward(t)' as this we need to
 		// push the clone, not the original
@@ -2109,9 +2109,12 @@ Font Cursor::getFont() const
 
 bool Cursor::fixIfBroken()
 {
-	if (DocIterator::fixIfBroken()) {
-			clearSelection();
-			return true;
+	bool const broken_cursor = DocIterator::fixIfBroken();
+	bool const broken_anchor = anchor_.fixIfBroken();
+	
+	if (broken_cursor || broken_anchor) {
+		clearSelection();
+		return true;
 	}
 	return false;
 }

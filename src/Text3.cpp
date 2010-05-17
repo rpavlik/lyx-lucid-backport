@@ -243,16 +243,31 @@ static bool doInsertInset(Cursor & cur, Text * text,
 	cur.clearSelection(); // bug 393
 	cur.finishUndo();
 	InsetText * insetText = dynamic_cast<InsetText *>(inset);
-	if (insetText && (!insetText->allowMultiPar() || cur.lastpit() == 0)) {
-		// reset first par to default
-		cur.text()->paragraphs().begin()
-			->setPlainOrDefaultLayout(bparams.documentClass());
-		cur.pos() = 0;
-		cur.pit() = 0;
-		// Merge multiple paragraphs -- hack
-		while (cur.lastpit() > 0)
-			mergeParagraph(bparams, cur.text()->paragraphs(), 0);
-		cur.leaveInset(*inset);
+	if (insetText) {
+		if (insetText->getLayout(bparams).isPassThru()) {
+			// Fix the font of all paragraphs
+			Font font(inherit_font, bparams.language);
+			font.setLanguage(latex_language);
+			ParagraphList::iterator par = insetText->paragraphs().begin();
+			ParagraphList::iterator const end = insetText->paragraphs().end();
+			while (par != end) {
+				par->resetFonts(font);
+				par->params().clear();
+				++par;
+			}
+		}
+
+		if (!insetText->allowMultiPar() || cur.lastpit() == 0) {
+			// reset first par to default
+			cur.text()->paragraphs().begin()
+				->setPlainOrDefaultLayout(bparams.documentClass());
+			cur.pos() = 0;
+			cur.pit() = 0;
+			// Merge multiple paragraphs -- hack
+			while (cur.lastpit() > 0)
+				mergeParagraph(bparams, cur.text()->paragraphs(), 0);
+			cur.leaveInset(*inset);
+		}
 	} else {
 		cur.leaveInset(*inset);
 		// reset surrounding par to default
@@ -262,7 +277,6 @@ static bool doInsertInset(Cursor & cur, Text * text,
 			: dc.defaultLayoutName();
 		text->setLayout(cur, layoutname);
 	}
-
 	return true;
 }
 
@@ -1284,14 +1298,17 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	// Single-click on work area
-	case LFUN_MOUSE_PRESS:
+	case LFUN_MOUSE_PRESS: {
 		// We are not marking a selection with the keyboard in any case.
-		cur.bv().cursor().setMark(false);
+		Cursor & bvcur = cur.bv().cursor();
+		bvcur.setMark(false);
 		switch (cmd.button()) {
 		case mouse_button::button1:
 			// Set the cursor
 			if (!bv->mouseSetCursor(cur, cmd.argument() == "region-select"))
 				cur.updateFlags(Update::SinglePar | Update::FitCursor);
+			if (bvcur.wordSelection())
+				selectWord(bvcur, WHOLE_WORD);
 			break;
 
 		case mouse_button::button2:
@@ -1304,7 +1321,6 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			break;
 
 		case mouse_button::button3: {
-			Cursor const & bvcur = cur.bv().cursor();
 			// Don't do anything if we right-click a
 			// selection, a context menu will popup.
 			if (bvcur.selection() && cur >= bvcur.selectionBegin()
@@ -1321,7 +1337,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			break;
 		} // switch (cmd.button())
 		break;
-
+	}
 	case LFUN_MOUSE_MOTION: {
 		// Mouse motion with right or middle mouse do nothing for now.
 		if (cmd.button() != mouse_button::button1) {
@@ -2359,6 +2375,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MATH_MATRIX:
 	case LFUN_MATH_DELIM:
 	case LFUN_MATH_BIGDELIM:
+	case LFUN_MATH_SUBSCRIPT:
+	case LFUN_MATH_SUPERSCRIPT:
 		// not allowed in ERT, for example.
 		enable = cur.inset().insetAllowed(MATH_CODE);
 		break;
@@ -2420,8 +2438,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MATH_DISPLAY:
 	case LFUN_MATH_MODE:
 	case LFUN_MATH_MACRO:
-	case LFUN_MATH_SUBSCRIPT:
-	case LFUN_MATH_SUPERSCRIPT:
 	case LFUN_FONT_DEFAULT:
 	case LFUN_FONT_UNDERLINE:
 	case LFUN_FONT_SIZE:

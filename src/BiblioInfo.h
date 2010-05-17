@@ -32,7 +32,7 @@ class Buffer;
 std::vector<CiteStyle> citeStyles(CiteEngine);
 /// \param latex_str a LaTeX command, "cite", "Citep*", etc
 CitationStyle citationStyleFromString(std::string const & latex_str);
-/// the other way rounf
+/// the other way round
 std::string citationStyleToString(CitationStyle const &);
 
 
@@ -52,6 +52,8 @@ public:
 	BibTeXInfo(bool ib) : is_bibtex_(ib) {}
 	/// constructor that sets the entryType
 	BibTeXInfo(docstring const & key, docstring const & type);
+	///
+	bool isBibtex() const { return is_bibtex_; }
 	///
 	bool hasField(docstring const & field) const;
 	/// return the short form of an authorlist
@@ -126,6 +128,9 @@ public:
 	/// Empty if no info exists. 
 	/// Note that this will retrieve data from the crossref as needed.
 	docstring const getInfo(docstring const & key) const;
+	/// Is this a reference from a bibtex database
+	/// or from a bibliography environment?
+	bool isBibtex(docstring const & key) const;
 	
 	/**
 	  * "Translates" the available Citation Styles into strings for a given key,

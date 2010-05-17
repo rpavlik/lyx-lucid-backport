@@ -58,6 +58,7 @@ following hack as starting point to write some macros:
 #include "InsetMathSpace.h"
 #include "InsetMathSplit.h"
 #include "InsetMathSqrt.h"
+#include "InsetMathString.h"
 #include "InsetMathTabular.h"
 #include "MathMacroTemplate.h"
 #include "MathFactory.h"
@@ -933,6 +934,14 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			// in an unreliable way. See this thread
 			// http://www.mail-archive.com/lyx-devel%40lists.lyx.org/msg104917.html
 			// for more details.
+			// However, we remove empty braces because they look
+			// ugly on screen and we are sure that they were added
+			// by the write() method (and will be re-added on save).
+			if (p->nuc().size() == 1 &&
+			    p->nuc().back()->asBraceInset() &&
+			    p->nuc().back()->asBraceInset()->cell(0).empty())
+				p->nuc().erase(0);
+
 			parse(p->cell(p->idxOfScript(up)), FLAG_ITEM, mode);
 			if (limits) {
 				p->limits(limits);
@@ -1306,11 +1315,15 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		}
 #endif
 
-		else if (t.cs() == "limits")
-			limits = 1;
-
-		else if (t.cs() == "nolimits")
-			limits = -1;
+		else if (t.cs() == "limits" || t.cs() == "nolimits") {
+			CatCode cat = nextToken().cat();
+			if (cat == catSuper || cat == catSub)
+				limits = t.cs() == "limits" ? 1 : -1;
+			else {
+				MathAtom at = createInsetMath(t.cs(), buf);
+				cell->push_back(at);
+			}
+		}
 
 		else if (t.cs() == "nonumber") {
 			if (grid.asHullInset())
@@ -1394,8 +1407,14 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		else if (t.cs() == "ref" || t.cs() == "eqref" || t.cs() == "prettyref"
 			  || t.cs() == "pageref" || t.cs() == "vpageref" || t.cs() == "vref") {
 			cell->push_back(MathAtom(new InsetMathRef(buf, t.cs())));
-			parse(cell->back().nucleus()->cell(1), FLAG_OPTION, mode);
-			parse(cell->back().nucleus()->cell(0), FLAG_ITEM, mode);
+			docstring const opt = parse_verbatim_option();
+			docstring const ref = parse_verbatim_item();
+			if (!opt.empty()) {
+				cell->back().nucleus()->cell(1).push_back(
+					MathAtom(new InsetMathString(opt)));
+			}
+			cell->back().nucleus()->cell(0).push_back(
+					MathAtom(new InsetMathString(ref)));
 		}
 
 		else if (t.cs() == "left") {

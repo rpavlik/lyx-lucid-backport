@@ -1000,6 +1000,11 @@ void Tabular::setColumnPWidth(Cursor & cur, idx_type cell,
 	col_type const j = cellColumn(cell);
 
 	column_info[j].p_width = width;
+	// reset the vertical alignment to top if the fixed with
+	// is removed or zero because only fixed width columns can
+	// have a vertical alignment
+	if (column_info[j].p_width.zero())
+		column_info[j].valignment = LYX_VALIGN_TOP;
 	for (row_type i = 0; i < row_info.size(); ++i) {
 		idx_type const cell = cellIndex(i, j);
 		// because of multicolumns
@@ -1931,7 +1936,7 @@ int Tabular::TeXCellPreamble(odocstream & os, idx_type cell, bool & ismulticol) 
 	if (is_long_tabular && row_info[r].caption)
 		return ret;
 
-	Tabular::VAlignment valign =  getVAlignment(cell, !isMultiColumn(cell));
+	Tabular::VAlignment valign = getVAlignment(cell, !isMultiColumn(cell));
 	LyXAlignment align = getAlignment(cell, !isMultiColumn(cell));
 	// figure out how to set the lines
 	// we always set double lines to the right of the cell
@@ -3232,6 +3237,7 @@ void InsetTabular::edit(Cursor & cur, bool front, EntryDirection)
 		cur.pit() = 0;
 		cur.pos() = cur.lastpos(); // FIXME crude guess
 	}
+	cur.setCurrentFont();
 	// FIXME: this accesses the position cache before it is initialized
 	//resetPos(cur);
 	//cur.bv().fitCursor();
@@ -3255,6 +3261,16 @@ void InsetTabular::updateLabels(ParIterator const & it)
 	//reset afterwards
 	if (tabular.is_long_tabular)
 		cnts.current_float(saveflt);
+}
+
+
+void InsetTabular::addToToc(DocIterator const & cpit)
+{
+	DocIterator dit = cpit;
+	dit.forwardPos();
+	size_t const end = dit.nargs();
+	for ( ; dit.idx() < end; dit.top().forwardIdx())
+		cell(dit.idx())->addToToc(dit);
 }
 
 
@@ -3486,6 +3502,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 				TextMetrics const & tm =
 					cur.bv().textMetrics(cell(cur.idx())->getText(0));
 				cur.pos() = tm.x2pos(cur.pit(), 0, cur.targetX());
+				cur.setCurrentFont();
 			}
 		}
 		if (sl == cur.top()) {
@@ -3497,6 +3514,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (cur.selIsMultiCell()) {
 			cur.pit() = cur.lastpit();
 			cur.pos() = cur.lastpos();
+			cur.setCurrentFont();
 			return;
 		}
 		break;
@@ -3519,6 +3537,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 				ParagraphMetrics const & pm =
 					tm.parMetrics(cur.lastpit());
 				cur.pos() = tm.x2pos(cur.pit(), pm.rows().size()-1, cur.targetX());
+				cur.setCurrentFont();
 			}
 		}
 		if (sl == cur.top()) {
@@ -3528,6 +3547,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (cur.selIsMultiCell()) {
 			cur.pit() = 0;
 			cur.pos() = cur.lastpos();
+			cur.setCurrentFont();
 			return;
 		}
 		break;
@@ -3839,6 +3859,7 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 		case Tabular::M_VALIGN_TOP:
 			flag = false;
 		case Tabular::VALIGN_TOP:
+			status.setEnabled(!tabular.getPWidth(cur.idx()).zero());
 			status.setOnOff(
 				tabular.getVAlignment(cur.idx(), flag) == Tabular::LYX_VALIGN_TOP);
 			break;
@@ -3846,6 +3867,7 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 		case Tabular::M_VALIGN_BOTTOM:
 			flag = false;
 		case Tabular::VALIGN_BOTTOM:
+			status.setEnabled(!tabular.getPWidth(cur.idx()).zero());
 			status.setOnOff(
 				tabular.getVAlignment(cur.idx(), flag) == Tabular::LYX_VALIGN_BOTTOM);
 			break;
@@ -3853,6 +3875,7 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 		case Tabular::M_VALIGN_MIDDLE:
 			flag = false;
 		case Tabular::VALIGN_MIDDLE:
+			status.setEnabled(!tabular.getPWidth(cur.idx()).zero());
 			status.setOnOff(
 				tabular.getVAlignment(cur.idx(), flag) == Tabular::LYX_VALIGN_MIDDLE);
 			break;
@@ -4286,7 +4309,7 @@ void InsetTabular::moveNextCell(Cursor & cur, EntryDirection entry_from)
 		break;
 
 	}
-
+	cur.setCurrentFont();
 	resetPos(cur);
 }
 
@@ -4336,7 +4359,7 @@ void InsetTabular::movePrevCell(Cursor & cur, EntryDirection entry_from)
 		break;
 
 	}
-
+	cur.setCurrentFont();
 	resetPos(cur);
 }
 
@@ -5125,13 +5148,19 @@ bool InsetTabular::insertPlaintextString(BufferView & bv, docstring const & buf,
 }
 
 
-void InsetTabular::addPreview(PreviewLoader & loader) const
+void InsetTabular::addPreview(DocIterator const & inset_pos,
+	PreviewLoader & loader) const
 {
 	row_type const rows = tabular.row_info.size();
 	col_type const columns = tabular.column_info.size();
+	DocIterator cell_pos = inset_pos;
+
+	cell_pos.push_back(CursorSlice(*const_cast<InsetTabular *>(this)));
 	for (row_type i = 0; i < rows; ++i) {
-		for (col_type j = 0; j < columns; ++j)
-			tabular.cellInset(i, j)->addPreview(loader);
+		for (col_type j = 0; j < columns; ++j) {
+			cell_pos.top().idx() = tabular.cellIndex(i, j);
+			tabular.cellInset(i, j)->addPreview(cell_pos, loader);
+		}
 	}
 }
 

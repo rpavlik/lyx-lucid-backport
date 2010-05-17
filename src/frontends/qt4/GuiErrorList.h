@@ -35,8 +35,8 @@ public Q_SLOTS:
 private:
 	///
 	void showEvent(QShowEvent *);
-	/// update contents
-	void updateContents();
+	///
+	void paramsToDialog();
 	///
 	bool isBufferDependent() const { return true; }
 	///
@@ -57,6 +57,10 @@ private:
 	std::string error_type_;
 	/// the parent document name
 	docstring name_;
+	///
+	Buffer const * buf_;
+	///
+	mutable ErrorList error_list_;
 };
 
 } // namespace frontend

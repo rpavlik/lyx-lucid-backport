@@ -136,7 +136,7 @@ opts.AddOptions(
             ) ),
     #
     EnumOption('spell', 'Choose spell checker to use.', 'auto',
-        allowed_values = ('aspell', 'pspell', 'ispell', 'auto', 'no') ),
+        allowed_values = ('aspell', 'enchant', 'pspell', 'ispell', 'auto', 'no') ),
     # packaging method
     EnumOption('packaging', 'Packaging method to use.', default_packaging_method,
         allowed_values = ('windows', 'posix', 'macosx')),
@@ -411,6 +411,7 @@ if platform_name == 'win32':
 # hard-coded options are required and will always be there
 # default options can be replaced by enviromental variables or command line options
 CCFLAGS_required = []
+CXXFLAGS_required = []
 LINKFLAGS_required = []
 CCFLAGS_default = []
 
@@ -420,6 +421,7 @@ if use_vc:
     #   in the current code page (number)
     # C4996: foo was decleared deprecated
     CCFLAGS_required.append('/EHsc')
+    CXXFLAGS_required.append('/Zc:wchar_t-')
     if mode == 'debug':
         CCFLAGS_default.extend(['/wd4819', '/wd4996', '/nologo', '/MDd'])
     else:
@@ -514,7 +516,7 @@ setEnvVariable(env, 'CPP')
 setEnvVariable(env, 'CXX')
 setEnvVariable(env, 'CXXCPP')
 setEnvVariable(env, 'CCFLAGS', CCFLAGS_required, CCFLAGS_default)
-setEnvVariable(env, 'CXXFLAGS')
+setEnvVariable(env, 'CXXFLAGS', CXXFLAGS_required)
 setEnvVariable(env, 'CPPFLAGS')
 setEnvVariable(env, 'LINKFLAGS', LINKFLAGS_required)
 
@@ -740,7 +742,6 @@ utils.createConfigFile(conf,
         ('ostream', 'HAVE_OSTREAM', 'cxx'),
         ('locale', 'HAVE_LOCALE', 'cxx'),
         ('sstream', 'HAVE_SSTREAM', 'cxx'),
-        #('newapis.h', 'HAVE_NEWAPIS_H', 'c'),
     ],
     custom_tests = [
         (env.has_key('assertions') and env['assertions'] and mode == 'debug',
@@ -775,10 +776,6 @@ utils.createConfigFile(conf,
 
 #define BOOST_ALL_NO_LIB 1
 
-#if defined(HAVE_NEWAPIS_H)
-#  define WANT_GETFILEATTRIBUTESEX_WRAPPER 1
-#endif
-
 /*
  * the FreeBSD libc uses UCS4, but libstdc++ has no proper wchar_t
  * support compiled in:
@@ -810,10 +807,13 @@ else:
 # determine headers to use
 spell_opt = ARGUMENTS.get('spell', 'auto')
 env['USE_ASPELL'] = False
+env['USE_ENCHANT'] = False
 env['USE_PSPELL'] = False
 env['USE_ISPELL'] = False
 if spell_opt in ['auto', 'aspell'] and conf.CheckLib(aspell_lib):
     spell_engine = 'USE_ASPELL'
+elif spell_opt in ['auto', 'enchant'] and conf.CheckLib('enchant'):
+    spell_engine = 'USE_ENCHANT'
 elif spell_opt in ['auto', 'pspell'] and conf.CheckLib('pspell'):
     spell_engine = 'USE_PSPELL'
 elif spell_opt in ['auto', 'ispell'] and conf.CheckLib('ispell'):
@@ -1075,8 +1075,8 @@ char * strerror(int n);
 )
 
 # these keys are needed in env
-for key in ['USE_ASPELL', 'USE_PSPELL', 'USE_ISPELL', 'HAVE_FCNTL',\
-    'HAVE_LIBGDI32', 'HAVE_LIBAIKSAURUS', 'AIKSAURUS_LIB']:
+for key in ['USE_ASPELL', 'USE_ENCHANT', 'USE_PSPELL', 'USE_ISPELL',\
+    'HAVE_FCNTL', 'HAVE_LIBGDI32', 'HAVE_LIBAIKSAURUS', 'AIKSAURUS_LIB']:
     # USE_ASPELL etc does not go through result
     if result.has_key(key):
         env[key] = result[key]
@@ -1233,6 +1233,7 @@ libs = [
     ('HAVE_LIBGDI32', 'gdi32'),
     ('HAVE_LIBAIKSAURUS', env['AIKSAURUS_LIB']),
     ('USE_ASPELL', aspell_lib),
+    ('USE_ENCHANT', 'enchant'),
     ('USE_ISPELL', 'ispell'),
     ('USE_PSPELL', 'pspell'),
 ]
@@ -1557,6 +1558,8 @@ Alias('tex2lyx', tex2lyx)
 #
 if env.has_key('USE_ASPELL') and env['USE_ASPELL']:
     src_post_files.append('ASpell.cpp')
+elif env.has_key('USE_ENCHANT') and env['USE_ENCHANT']:
+    src_post_files.append('Enchant.cpp')
 elif env.has_key('USE_PSPELL') and env['USE_PSPELL']:
     src_post_files.append('PSpell.cpp')
 elif env.has_key('USE_ISPELL') and env['USE_ISPELL']:

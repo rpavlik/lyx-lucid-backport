@@ -1,4 +1,26 @@
-﻿Version 4.21
+﻿Version 4.23
+- LyX 1.6.6
+- updated to eLyXer 0.43
+- updated to Ghostscript 8.71
+- updated to ImageMagick 6.6.1-4
+- updated to Python 2.6.5
+- updated to MiKTeX 2.8 (build 3761)
+- support to set Greek as LyX menu language (new feature in LyX 1.6.6)
+- fix bug that it was not possible to change the language of the
+  LyX menus via the LyX menu Tools->Preferences->Language Settings
+- no longer use a *.bat file to start LyX
+  (avoids one of the two windows that appeared for a few milliseconds
+   when starting LyX)
+
+
+Version 4.22
+- LyX 1.6.5
+- updated to eLyXer 0.38
+- updated to ImageMagick 6.5.8-4
+- fix bug that SVG images could not be used
+
+
+Version 4.21
 - new converter to export LyX files as HTML:
   eLyXer 0.35 (http://www.nongnu.org/elyxer)
 - updated to MiKTeX 2.8 (needed to run LyX under Windows 7)

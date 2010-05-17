@@ -817,7 +817,7 @@ Buffer::ReadStatus Buffer::readFile(Lexer & lex, FileName const & filename,
 			<< ' ' << quoteName(lyx2lyx.toFilesystemEncoding())
 			<< " -t " << convert<string>(LYX_FORMAT)
 			<< " -o " << quoteName(tmpfile.toFilesystemEncoding())
-			<< ' ' << quoteName(filename.toFilesystemEncoding());
+			<< ' ' << quoteName(filename.toSafeFilesystemEncoding());
 		string const command_str = command.str();
 
 		LYXERR(Debug::INFO, "Running '" << command_str << '\'');
@@ -855,8 +855,6 @@ bool Buffer::save() const
 {
 	// We don't need autosaves in the immediate future. (Asger)
 	resetAutosaveTimers();
-
-	string const encodedFilename = d->filename.toFilesystemEncoding();
 
 	FileName backupName;
 	bool madeBackup = false;
@@ -915,11 +913,13 @@ bool Buffer::writeFile(FileName const & fname) const
 		makeDisplayPath(fname.absFilename()));
 	message(str);
 
+	string const encoded_fname = fname.toSafeFilesystemEncoding(os::CREATE);
+
 	if (params().compressed) {
-		gz::ogzstream ofs(fname.toFilesystemEncoding().c_str(), ios::out|ios::trunc);
+		gz::ogzstream ofs(encoded_fname.c_str(), ios::out|ios::trunc);
 		retval = ofs && write(ofs);
 	} else {
-		ofstream ofs(fname.toFilesystemEncoding().c_str(), ios::out|ios::trunc);
+		ofstream ofs(encoded_fname.c_str(), ios::out|ios::trunc);
 		retval = ofs && write(ofs);
 	}
 
@@ -928,7 +928,7 @@ bool Buffer::writeFile(FileName const & fname) const
 		return false;
 	}
 
-	removeAutosaveFile();
+	// removeAutosaveFile();
 
 	saveCheckSum(d->filename);
 	message(str + _(" done."));
@@ -1184,13 +1184,40 @@ void Buffer::writeLaTeXSource(odocstream & os,
 			// FIXME UNICODE
 			// We don't know the encoding of inputpath
 			docstring const inputpath = from_utf8(latex_path(original_path));
-			os << "\\makeatletter\n"
-			   << "\\def\\input@path{{"
-			   << inputpath << "/}}\n"
-			   << "\\makeatother\n";
-			d->texrow.newline();
-			d->texrow.newline();
-			d->texrow.newline();
+			docstring uncodable_glyphs;
+			Encoding const * const enc = runparams.encoding;
+			if (enc) {
+				for (size_t n = 0; n < inputpath.size(); ++n) {
+					docstring const glyph =
+						docstring(1, inputpath[n]);
+					if (enc->latexChar(inputpath[n], true) != glyph) {
+						LYXERR0("Uncodable character '"
+							<< glyph
+							<< "' in input path!");
+						uncodable_glyphs += glyph;
+					}
+				}
+			}
+
+			// warn user if we found uncodable glyphs.
+			if (!uncodable_glyphs.empty()) {
+				frontend::Alert::warning(_("Uncodable character in path"),
+						support::bformat(_("The path of your document\n"
+						  "(%1$s)\n"
+						  "contains glyphs that are unknown in the\n"
+						  "current document encoding (namely %2$s).\n"
+						  "This will likely result in incomplete output.\n\n"
+						  "Chose an appropriate document encoding (such as utf8)\n"
+						  "or change the path name."), inputpath, uncodable_glyphs));
+			} else {
+				os << "\\makeatletter\n"
+				   << "\\def\\input@path{{"
+				   << inputpath << "/}}\n"
+				   << "\\makeatother\n";
+				d->texrow.newline();
+				d->texrow.newline();
+				d->texrow.newline();
+			}
 		}
 
 		// get parent macros (if this buffer has a parent) which will be
@@ -1213,8 +1240,11 @@ void Buffer::writeLaTeXSource(odocstream & os,
 		// output the parent macros
 		MacroSet::iterator it = parentMacros.begin();
 		MacroSet::iterator end = parentMacros.end();
-		for (; it != end; ++it)
-			(*it)->write(os, true);
+		for (; it != end; ++it) {
+			int num_lines = (*it)->write(os, true);
+			d->texrow.newlines(num_lines);
+		}
+		
 	} // output_preamble
 
 	d->texrow.start(paragraphs().begin()->id(), 0);
@@ -1816,12 +1846,17 @@ std::vector<Buffer *> Buffer::getChildren() const
 	Impl::BufferPositionMap::iterator end = d->children_positions.end();
 	for (; it != end; ++it) {
 		Buffer * child = const_cast<Buffer *>(it->first);
-		clist.push_back(child);
+		// ignore recursive includes
+		if (child != this)
+			clist.push_back(child);
 		// there might be grandchildren
 		std::vector<Buffer *> glist = child->getChildren();
 		for (vector<Buffer *>::const_iterator git = glist.begin();
-		     git != glist.end(); ++git)
-			clist.push_back(*git);
+		     git != glist.end(); ++git) {
+			// ignore recursive includes
+			if (*git != this)
+				clist.push_back(*git);
+		}
 	}
 	return clist;
 }
@@ -2472,8 +2507,10 @@ void Buffer::removeAutosaveFile() const
 void Buffer::moveAutosaveFile(support::FileName const & oldauto) const
 {
 	FileName const newauto = getAutosaveFilename();
-	if (!(oldauto == newauto || oldauto.moveTo(newauto)))
-		LYXERR0("Unable to remove autosave file `" << oldauto << "'!");
+	oldauto.refresh();
+	if (newauto != oldauto && oldauto.exists())
+		if (!oldauto.moveTo(newauto))
+			LYXERR0("Unable to remove autosave file `" << oldauto << "'!");
 }
 
 

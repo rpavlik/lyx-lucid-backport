@@ -165,6 +165,7 @@ GuiCompleter::GuiCompleter(GuiWorkArea * gui, QObject * parent)
 	model_ = new GuiCompletionModel(this, 0);
 	setModel(model_);
 	setCompletionMode(QCompleter::PopupCompletion);
+	setCaseSensitivity(Qt::CaseInsensitive);
 	setWidget(gui_);
 	
 	// create the popup
@@ -403,7 +404,8 @@ void GuiCompleter::updatePopup(Cursor & cur)
 void GuiCompleter::asyncUpdatePopup()
 {
 	Cursor cur = gui_->bufferView().cursor();
-	if (!cur.inset().completionSupported(cur)) {
+	if (!cur.inset().completionSupported(cur)
+			|| !cur.bv().paragraphVisible(cur)) {
 		popupVisible_ = false;
 		return;
 	}

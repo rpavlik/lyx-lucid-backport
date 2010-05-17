@@ -723,11 +723,12 @@ string const LaTeXFeatures::getMacros() const
 	for (; pit != pend; ++pit)
 		macros << *pit << '\n';
 
-	if (mustProvide("papersize"))
+	if (mustProvide("papersize")) {
 		if (runparams_.flavor == OutputParams::LATEX)
 			macros << papersizedvi_def << '\n';
 		else
 			macros << papersizepdf_def << '\n';
+	}
 
 	if (mustProvide("LyX"))
 		macros << lyx_def << '\n';
@@ -741,8 +742,17 @@ string const LaTeXFeatures::getMacros() const
 	if (mustProvide("lyxarrow"))
 		macros << lyxarrow_def << '\n';
 
-	if (mustProvide("textgreek"))
-		macros << textgreek_def << '\n';
+	if (mustProvide("textgreek")) {
+		// Avoid a LaTeX error if times fonts are used and the grtimes
+		// package is installed but actual fonts are not (bug 6469).
+		if (params_.fontsRoman == "times")
+			macros << subst(textgreek_def, "\\greektext #1",
+					"%\n  \\IfFileExists{grtm10.tfm}{}"
+					"{\\fontfamily{cmr}}\\greektext #1")
+			       << '\n';
+		else
+			macros << textgreek_def << '\n';
+	}
 
 	if (mustProvide("textcyr"))
 		macros << textcyr_def << '\n';

@@ -51,21 +51,22 @@ bool one_language = true;
 
 namespace {
 
+//add these to known_languages when updating to lyxformat 268:
+//"chinese-simplified", "chinese-traditional", "japanese", "korean"
 const char * const known_languages[] = { "afrikaans", "american", "arabic",
 "austrian", "bahasa", "basque", "belarusian", "brazil", "brazilian", "breton",
 "british", "bulgarian", "canadian", "canadien", "catalan", "croatian", "czech",
 "danish", "dutch", "english", "esperanto", "estonian", "finnish", "francais",
 "french", "frenchb", "frenchle", "frenchpro", "galician", "german", "germanb",
-"greek", "hebrew", "icelandic", "irish", "italian", "lsorbian", "magyar",
+"greek", "hebrew", "icelandic", "irish", "italian", "kazakh", "lsorbian", "magyar",
 "naustrian", "ngerman", "ngermanb", "norsk", "nynorsk", "polish", "portuges",
 "portuguese", "romanian", "russian", "russianb", "scottish", "serbian", "slovak",
 "slovene", "spanish", "swedish", "thai", "turkish", "ukraineb", "ukrainian",
 "usorbian", "welsh", 0};
 
-//note this when updating to lyxformat 305:
+//add this when updating to lyxformat 305:
 //bahasai, indonesian, and indon = equal to bahasa
 //malay and meyalu = equal to bahasam
-
 const char * const known_brazilian_languages[] = {"brazil", "brazilian", 0};
 const char * const known_french_languages[] = {"french", "frenchb", "francais",
 						"frenchle", "frenchpro", 0};
@@ -74,6 +75,27 @@ const char * const known_ngerman_languages[] = {"ngerman", "ngermanb", 0};
 const char * const known_portuguese_languages[] = {"portuges", "portuguese", 0};
 const char * const known_russian_languages[] = {"russian", "russianb", 0};
 const char * const known_ukrainian_languages[] = {"ukrainian", "ukraineb", 0};
+
+//add these to known_english_quotes_languages when updating to lyxformat 268:
+//"chinese-simplified", "korean"
+const char * const known_english_quotes_languages[] = {"american", "canadian",
+"english", "esperanto", "hebrew", "irish", "scottish", "thai", 0};
+
+//add this to known_french_quotes_languages when updating to lyxformat 327:
+//"spanish-mexico"
+const char * const known_french_quotes_languages[] = {"albanian", "arabic",
+"basque", "canadien", "catalan", "galician", "greek", "italian", "norsk",
+"nynorsk", "spanish", "turkish", 0};
+
+const char * const known_german_quotes_languages[] = {"austrian", "bulgarian",
+"czech", "icelandic", "lithuanian", "lsorbian", "naustrian", "serbian",
+"serbian-latin", "slovak", "slovene", "usorbian",  0};
+
+const char * const known_polish_quotes_languages[] = {"afrikaans", "croatian",
+"dutch", "estonian", "magyar", "polish", "romanian", 0};
+
+const char * const known_swedish_quotes_languages[] = {"bahasa", "finnish", 
+"swedish", 0};
 
 char const * const known_fontsizes[] = { "10pt", "11pt", "12pt", 0 };
 
@@ -308,47 +330,25 @@ void handle_package(Parser &p, string const & name, string const & opts,
 			one_language = false;
 			h_inputencoding = "auto";
 		}
-		// babel takes the the last language of the option of its \usepackage
+		// babel takes the last language of the option of its \usepackage
 		// call as document language. If there is no such language option, the
 		// last language in the documentclass options is used.
 		handle_opt(options, known_languages, h_language);
 		delete_opt(options, known_languages);
-		if (is_known(h_language, known_brazilian_languages))
-			h_language = "brazilian";
-		else if (is_known(h_language, known_french_languages))
-			h_language = "french";
-		else if (is_known(h_language, known_german_languages))
-			h_language = "german";
-		else if (is_known(h_language, known_ngerman_languages))
-			h_language = "ngerman";
-		else if (is_known(h_language, known_portuguese_languages))
-			h_language = "portuguese";
-		else if (is_known(h_language, known_russian_languages))
-			h_language = "russian";
-		else if (is_known(h_language, known_ukrainian_languages))
-			h_language = "ukrainian";
-		h_quotes_language = h_language;
-		// there is only the quotes language "german"
-		if (h_quotes_language == "ngerman")
-			h_quotes_language = "german";
 	}
 
 	else if (name == "fontenc")
 		 ;// ignore this
 
 	else if (name == "inputenc") {
-		// only set when there is not more than one inputenc
-		// option therefore check for the "," character also
-		// only set when there is not more then one babel
-		// language option
-		if (opts.find(",") == string::npos && one_language == true) {
-			if (opts == "ascii")
-				//change ascii to auto to be in the unicode range, see
-				//http://bugzilla.lyx.org/show_bug.cgi?id=4719
-				h_inputencoding = "auto";
-			else if (!opts.empty())
-				h_inputencoding = opts;
-		}
+		// h_inputencoding is only set when there is not more than one
+		// inputenc option because otherwise h_inputencoding must be
+		// set to "auto" (the default encoding of the document language)
+		// Therefore check for the "," character.
+		// It is also only set when there is not more then one babel
+		// language option but this is handled in the routine for babel.
+		if (opts.find(",") == string::npos && one_language == true)
+			h_inputencoding = opts;
 		if (!options.empty())
 			p.setEncoding(options.back());
 		options.clear();
@@ -391,28 +391,8 @@ void handle_package(Parser &p, string const & name, string const & opts,
 		; // Ignore this, the geometry settings are made by the \geometry
 		  // command. This command is handled below.
 
-	else if (is_known(name, known_languages)) {
-		if (is_known(h_language, known_brazilian_languages))
-				h_language = "brazilian";
-		else if (is_known(name, known_french_languages))
-			h_language = "french";
-		else if (is_known(name, known_german_languages))
-			h_language = "german";
-		else if (is_known(name, known_ngerman_languages))
-			h_language = "ngerman";
-		else if (is_known(h_language, known_portuguese_languages))
-				h_language = "portuguese";
-		else if (is_known(name, known_russian_languages))
-			h_language = "russian";
-		else if (is_known(name, known_ukrainian_languages))
-			h_language = "ukrainian";
-		else
-			h_language = name;
-		h_quotes_language = h_language;
-		// there is only the quotes language "german"
-		if (h_quotes_language == "ngerman")
-			h_quotes_language = "german";
-	}
+	else if (is_known(name, known_languages))
+		h_language = name;
 
 	else if (name == "natbib") {
 		h_cite_engine = "natbib_authoryear";
@@ -455,6 +435,57 @@ void handle_package(Parser &p, string const & name, string const & opts,
 
 void end_preamble(ostream & os, TextClass const & /*textclass*/)
 {
+	// merge synonym languages
+	if (is_known(h_language, known_brazilian_languages))
+		h_language = "brazilian";
+	else if (is_known(h_language, known_french_languages))
+		h_language = "french";
+	else if (is_known(h_language, known_german_languages))
+		h_language = "german";
+	else if (is_known(h_language, known_ngerman_languages))
+		h_language = "ngerman";
+	else if (is_known(h_language, known_portuguese_languages))
+		h_language = "portuguese";
+	else if (is_known(h_language, known_russian_languages))
+		h_language = "russian";
+	else if (is_known(h_language, known_ukrainian_languages))
+		h_language = "ukrainian";
+
+	// set the quote language
+	// LyX only knows the following quotes languages:
+	// english, swedish, german, polish, french and danish
+	// (quotes for "japanese" and "chinese-traditional" are missing because
+	//  they wouldn't be useful: http://www.lyx.org/trac/ticket/6383)
+	// conversion list taken from
+	// http://en.wikipedia.org/wiki/Quotation_mark,_non-English_usage
+	// (quotes for kazakh and interlingua are unknown)
+	// danish
+	if (h_language == "danish")
+		h_quotes_language = "danish";
+	// french
+	else if (is_known(h_language, known_french_quotes_languages)
+		|| is_known(h_language, known_french_languages)
+		|| is_known(h_language, known_russian_languages)
+		|| is_known(h_language, known_ukrainian_languages))
+		h_quotes_language = "french";
+	// german
+	else if (is_known(h_language, known_german_quotes_languages)
+		|| is_known(h_language, known_german_languages)
+		|| is_known(h_language, known_ngerman_languages))
+		h_quotes_language = "german";
+	// polish
+	else if (is_known(h_language, known_polish_quotes_languages))
+		h_quotes_language = "polish";
+	// swedish
+	else if (is_known(h_language, known_swedish_quotes_languages))
+		h_quotes_language = "swedish";
+	//english
+	else if (is_known(h_language, known_english_quotes_languages)
+		|| is_known(h_language, known_brazilian_languages)
+		|| is_known(h_language, known_portuguese_languages))
+		h_quotes_language = "english";
+
+	// output the LyX file settings
 	os << "#LyX file created by tex2lyx " << PACKAGE_VERSION << "\n"
 	   << "\\lyxformat 264\n"
 	   << "\\begin_document\n"
@@ -544,7 +575,7 @@ void parse_preamble(Parser & p, ostream & os,
 		     t.cat() == catEnd ||
 		     t.cat() == catAlign ||
 		     t.cat() == catParameter))
-			h_preamble << t.character();
+			h_preamble << t.cs();
 
 		else if (!in_lyx_preamble && 
 			 (t.cat() == catSpace || t.cat() == catNewline))
@@ -657,21 +688,7 @@ void parse_preamble(Parser & p, ostream & os,
 			// options.
 			handle_opt(opts, known_languages, h_language);
 			delete_opt(opts, known_languages);
-			if (is_known(h_language, known_brazilian_languages))
-				h_language = "brazilian";
-			else if (is_known(h_language, known_french_languages))
-				h_language = "french";
-			else if (is_known(h_language, known_german_languages))
-				h_language = "german";
-			else if (is_known(h_language, known_ngerman_languages))
-				h_language = "ngerman";
-			else if (is_known(h_language, known_portuguese_languages))
-				h_language = "portuguese";
-			else if (is_known(h_language, known_russian_languages))
-				h_language = "russian";
-			else if (is_known(h_language, known_ukrainian_languages))
-				h_language = "ukrainian";
-			h_quotes_language = h_language;
+			
 			// paper orientation
 			if ((it = find(opts.begin(), opts.end(), "landscape")) != opts.end()) {
 				h_paperorientation = "landscape";
@@ -854,9 +871,6 @@ void parse_preamble(Parser & p, ostream & os,
 
 		else if (!t.cs().empty() && !in_lyx_preamble)
 			h_preamble << '\\' << t.cs();
-
-		// remove the whitespace
-		p.skip_spaces();
 	}
 
 	// remove the whitespace

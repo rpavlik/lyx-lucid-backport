@@ -1,4 +1,4 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
+#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -136,6 +136,13 @@
   \setboolean{braket}{true}}
  {\setboolean{braket}{false}}
 
+% check for package cancel
+\newboolean{cancel}
+\IfFileExists{cancel.sty}
+ {\usepackage{cancel}
+  \setboolean{cancel}{true}}
+ {\setboolean{cancel}{false}}
+
 % check for package upgreek
 \newboolean{upgreek}
 \IfFileExists{upgreek.sty}
@@ -265,21 +272,26 @@ LatexCommand tableofcontents
 status open
 
 \begin_layout Plain Layout
-To export this document to PDF, PS, or DVI the LaTeX-packages 
+To export this document to PDF, PS or DVI the LaTeX-packages 
 \series bold
-eurosym,
+braket, cancel, eurosym,
 \series default
  
 \series bold
-multirow,
+mhchem, multirow
 \series default
  and 
 \series bold
 was
 \series default
- must be installed.
- If they are not installed you can export the document anyway but the sections
- where the packages are required won't appear in the output.
+ should be installed.
+ If they are not installed the document can be export anyway but the sections
+ where the packages are required will not appear in the output.
+ An exeption is 
+\series bold
+mhchem
+\series default
+; if it is not installed, this file cannot be exported.
 \end_layout
 
 \begin_layout Plain Layout
@@ -526,6 +538,8 @@ To display parts of an inline formula in the size of a display style formula,
 
 \backslash
 displaystyle
+\series default
+
 \begin_inset Index
 status collapsed
 
@@ -537,8 +551,6 @@ displaystyle
 
 \end_inset
 
-
-\series default
  to a formula.
  Then a new blue box appears in which the desired formula part is inserted.
 \end_layout
@@ -665,7 +677,7 @@ proper names
 \begin_inset Quotes erd
 \end_inset
 
- that appear in the output with sub- and superscript letters: TeX, LaTeX,
+ that appear in the output with sub- and superscript letters: TeX, LaTeX
  and LyX
 \end_layout
 
@@ -715,7 +727,7 @@ Preamble
 \end_layout
 
 \begin_layout Standard
-To edit matrices, case differentiations, and multiline formulas subsequently,
+To edit matrices, case differentiations and multiline formulas subsequently,
  the menus 
 \family sans
 Edit\SpecialChar \menuseparator
@@ -795,7 +807,7 @@ Mathematical text
 \end_inset
 
  is used.
- This mode is invoked with the the shortcut 
+ This mode is invoked with the shortcut 
 \begin_inset Info
 type  "shortcut"
 arg   "font-default"
@@ -806,6 +818,8 @@ arg   "font-default"
 
 \backslash
 text
+\series default
+
 \begin_inset Index
 status collapsed
 
@@ -817,8 +831,6 @@ text
 
 \end_inset
 
-
-\series default
 .
  The text appears black in LyX and can therefore be distinguished from the
  other formula parts that appear blue.
@@ -2039,7 +2051,7 @@ cfrac
 \end_inset
 
  can be used.
- Here an example:
+ Here is an example:
 \begin_inset VSpace -3mm
 \end_inset
 
@@ -5050,7 +5062,7 @@ Math\SpecialChar \menuseparator
 Matrix
 \family default
 .
- You will be asked for the number of matrix columns and rows, and the alignment.
+ You will be asked for the number of matrix columns and rows and the alignment.
  The vertical alignment is hereby only of importance for matrices in inline
  formulas:
 \end_layout
@@ -5070,7 +5082,7 @@ B & E & H & K\\
 C & F & I & L\end{array}$
 \end_inset
 
-, and the third bottom 
+ and the third bottom 
 \begin_inset Formula $\begin{array}[b]{cccc}
 A & D & G & J\\
 B & E & H & K\\
@@ -5091,7 +5103,7 @@ l
 \emph on
 c
 \emph default
- centered, and 
+ centered and 
 \emph on
 r
 \emph default
@@ -5105,7 +5117,7 @@ r
 \end_inset
 
 matrix where the first column is left aligned, the second and third are
- centered, and the last one is right aligned, one enters for the horizontal
+ centered and the last one is right aligned, one enters for the horizontal
  alignment 
 \series bold
 lccr
@@ -6417,7 +6429,7 @@ Big
 \backslash
 bigg
 \series default
-, and 
+ and 
 \series bold
 
 \backslash
@@ -13114,7 +13126,7 @@ makebox
 
 \end_inset
 
-, and 
+ and 
 \series bold
 
 \backslash
@@ -13582,7 +13594,7 @@ red
 \series bold
 white
 \series default
-, and 
+ and 
 \series bold
 yellow
 \end_layout
@@ -14075,7 +14087,7 @@ magenta
 \series bold
 yellow
 \series default
-, and 
+ and 
 \series bold
 black
 \series default
@@ -14112,7 +14124,7 @@ red
 \series bold
 green
 \series default
-, and 
+ and 
 \series bold
 blue
 \series default
@@ -14754,7 +14766,7 @@ reference "sec:Formula-Styles"
 
 \end_inset
 
- Then the description follows as normal text, and finally 
+ Then the description follows as normal text and finally 
 \series bold
 }}
 \backslash
@@ -18890,7 +18902,7 @@ footnotesize
 \backslash
 scriptsize
 \series default
-, and 
+ and 
 \series bold
 
 \backslash
@@ -18947,9 +18959,189 @@ normalsize
 \end_layout
 
 \begin_layout Standard
-Within a formula the size can only be changed for symbols or letters in
- mathematical text.
- To do this, the size command is inserted in mathematical text.
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Within a formula the size can be changed using the following size commands:
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Command
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Result
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+
+\series bold
+
+\backslash
+raisebox
+\series default
+ is only used as spacer.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+displaystyle
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Commands ! D ! 
+\backslash
+displaystyle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{6.5mm}{}{\displaystyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-5.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+textstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\textstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-4mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+scriptstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\scriptstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-3.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+scriptscriptstyle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\raisebox{4.5mm}{}{\scriptscriptstyle E_{\mathrm{pot_{1}}}=\frac{K}{l+\frac{m}{n_{2}}}}\raisebox{-3.5mm}{}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+After entering these commands, a blue box appears in which the formula parts
+ are inserted.
+\end_layout
+
+\begin_layout Standard
+There is a further method to change the font size, that though only works
+ for symbols or letters in mathematical text.
+ To use it, one of the above text size commands is inserted in mathematical
+ text.
  All following characters until the end of the mathematical text or until
  another size command will have the selected size.
  Two examples:
@@ -19149,6 +19341,13 @@ A
 \begin_layout Standard
 If a symbol cannot be displayed in different sizes, it will always be displayed
  in the default size.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -20629,7 +20828,7 @@ status collapsed
 A list with all symbols of most of the LaTeX-packages can be found in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "Symbole"
+key "Symbols"
 
 \end_inset
 
@@ -22725,13 +22924,6 @@ status collapsed
 fi 
 \end_layout
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
 \end_inset
 
 
@@ -24985,8 +25177,8 @@ sgn
 \end_layout
 
 \begin_layout Itemize
-Write the the formula as usual, mark the formula name, in our example the
- letters 
+Write the formula as usual, mark the formula name, in our example the letters
+ 
 \emph on
 sgn
 \emph default
@@ -25463,13 +25655,6 @@ The variants in a displayed formula:
 \begin_layout Standard
 In an inline formula less space is set before the function names for all
  variants.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
@@ -26784,7 +26969,7 @@ The accents
 \series bold
 '
 \series default
- , and 
+ and 
 \series bold
 ^
 \series default
@@ -26862,8 +27047,8 @@ u
 \backslash
 v
 \series default
-, and accents inserted directly with the keyboard are also available in
- mathematical text.
+ and accents that are inserted directly with the keyboard are also available
+ in mathematical text.
  For the other accents there are special math commands to be used in formulas,
  see 
 \begin_inset CommandInset ref
@@ -26898,7 +27083,7 @@ textcircled
 \end_inset
 
  all numbers and letters can be set into a circle, quasi accented with a
- circle, similar to the the copyright symbol.
+ circle, similar to the copyright symbol.
 \end_layout
 
 \begin_layout Standard
@@ -27367,13 +27552,6 @@ textdegree
 fi}
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Formula Styles
 \begin_inset CommandInset label
@@ -27760,7 +27938,7 @@ end{eqnarray*}
 \begin_inset VSpace bigskip
 \end_inset
 
-To set the the line separation for all lines in a formula, the length 
+To set the line separation for all lines in a formula, the length 
 \series bold
 
 \backslash
@@ -30852,13 +31030,6 @@ Note:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Newpage pagebreak
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \begin_inset ERT
 status collapsed
 
@@ -31932,6 +32103,13 @@ key "mhchem"
 .
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Diagrams
 \end_layout
@@ -32020,7 +32198,7 @@ To create the relations there are the following commands:
 \series bold
 @>>>
 \series default
- a right arrow, and 
+ a right arrow and 
 \series bold
 @=
 \series default
@@ -32036,7 +32214,7 @@ To create the relations there are the following commands:
 \series bold
 @VVV
 \series default
- an down arrow, and 
+ an down arrow and 
 \series bold
 @|
 \series default
@@ -32268,13 +32446,6 @@ XY-pic
 Manual
 \family default
 .
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
@@ -32993,7 +33164,7 @@ To define a command for the solution formula where only the three parameters
 \begin_inset Formula $p$
 \end_inset
 
-, and 
+ and 
 \begin_inset Formula $q$
 \end_inset
 
@@ -33309,7 +33480,7 @@ Here is our macro example with the arguments
 \begin_inset Formula $\ln(x)$
 \end_inset
 
-, and 
+ and 
 \begin_inset Formula $B$
 \end_inset
 
@@ -34236,20 +34407,6 @@ Predefined vectors are offered by the LaTeX-package
 braket
 \series default
 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-braket
-\series default
- should be part of every LaTeX standard installation.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -34297,6 +34454,10 @@ braket
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 The following commands are defined:
 \end_layout
 
@@ -34847,20 +35008,6 @@ To cancel formulas or formula parts, the LaTeX-package
 cancel
 \series default
 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-cancel
-\series default
- is part of every LaTeX standard installation.
-\end_layout
-
-\end_inset
-
-
 \begin_inset Index
 status collapsed
 
@@ -34879,6 +35026,36 @@ Packages ! cancel
 
 \backslash
 usepackage[samesize]{cancel}
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+ifcancel 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+The following table will only be displayed when the LaTeX-package 
+\series bold
+cancel
+\series default
+ is installed.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -35111,6 +35288,60 @@ cancelto
  is especially suitable to visualize the reduction of fractions within formulas:
 \begin_inset Formula \[
 \frac{\left(x_{0}+bB\right)^{2}}{\left(1+b^{2}\right)^{\cancelto{2}{3}}}=\frac{x_{0}^{2}+B^{2}-r_{g}^{2}}{\cancel{1+b^{2}}}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+else 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+The following will be displayed when the LaTeX-package 
+\series bold
+cancel
+\series default
+ is not installed:
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You need to install the LaTeX-package 
+\series bold
+cancel
+\series default
+ to see the rest of this subsection in the output.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi 
+\end_layout
 
 \end_inset
 
@@ -35807,7 +36038,7 @@ reference "eq:within"
 \end_inset
 
  consists of five columns whereas in the first two columns contain the equation,
- the third the matrix, and the last one an empty TeX-brace.
+ the third the matrix and the last one an empty TeX-brace.
 \begin_inset Formula \begin{flalign}
 \hspace{30pt}F_{A} & =\rho·V·g & \footnotesize\begin{array}{ll}
 \rho & \textrm{density}\\
@@ -36221,6 +36452,14 @@ key "Duden"
 \end_inset
 
  that lists some of the ISO rules.
+ More rules are listed in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Checklist"
+
+\end_inset
+
+.
 \end_layout
 
 \end_inset
@@ -36250,7 +36489,7 @@ reference "sub:Font-Styles"
 
 \end_inset
 
-: 30
+, no matter if they appear in italic text: 30
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -36403,7 +36642,7 @@ Components of matrices are set italic:
 \end_layout
 
 \begin_layout Itemize
-The differentiation/integration operator 'd', the Euler's number 'e', and
+The differentiation/integration operator 'd', the Euler's number 'e' and
  the imaginary unit 'i' should be set upright, to avoid mixing them up with
  other variables.
 \end_layout
@@ -37233,7 +37472,7 @@ AmS
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "Symbole"
+key "Symbols"
 
 \end_inset
 
@@ -37371,7 +37610,25 @@ Duden Band 1
  Auflage, Duden 2001
 \end_layout
 
-\begin_layout Subsubsection*
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "Checklist"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "Check list"
+target "http://physics.nist.gov/Document/checklist.pdf"
+
+\end_inset
+
+ for reviewing manuscripts
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset index_print
 LatexCommand printindex
 

@@ -324,6 +324,7 @@ GuiView::GuiView(int id)
 	setAcceptDrops(true);
 
 	statusBar()->setSizeGripEnabled(true);
+	updateStatusBar();
 
 	// Forbid too small unresizable window because it can happen
 	// with some window manager under X11.
@@ -532,82 +533,12 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 	// it can happen that this event arrives without selecting the view,
 	// e.g. when clicking the close button on a background window.
 	setFocus();
-	GuiWorkArea const * active_wa = currentWorkArea();
-
-	// We might be in a situation that there is still a tabWorkArea, but
-	// there are no tabs anymore. This can happen when we get here after a 
-	// TabWorkArea::lastWorkAreaRemoved() signal. Therefore we count how
-	// many TabWorkArea's have no documents anymore.
-	int empty_twa = 0;
-
-	// We have to call count() each time, because it can happen that
-	// more than one splitter will disappear in one iteration (bug 5998).
-	for (; d.splitter_->count() > empty_twa; ) {
-		TabWorkArea * twa = d.tabWorkArea(empty_twa);
-				
-		if (twa->count() == 0) {
-			++empty_twa;
-			continue;
-		}
-
-		for (; twa == d.tabWorkArea(empty_twa);) {
-			twa->setCurrentIndex(twa->count() - 1);
-
-			GuiWorkArea * wa = twa->currentWorkArea();
-			bool const is_active_wa = active_wa == wa;
-			Buffer * b = &wa->bufferView().buffer();
-
-			if (b->parent()) {
-				// This is a child document, just close the tab
-				// after saving but keep the file loaded.
-				if (!closeBuffer(*b, true, is_active_wa)) {
-					closing_ = false;
-					close_event->ignore();
-					return;
-				}
-				continue;
-			}
-			
-			vector<Buffer *> clist = b->getChildren();
-			for (vector<Buffer *>::const_iterator it = clist.begin();
-				 it != clist.end(); ++it) {
-				if ((*it)->isClean())
-					continue;
-				Buffer * c = *it;
-				// If a child is dirty, do not close
-				// without user intervention
-				if (!closeBuffer(*c, false)) {
-					closing_ = false;
-					close_event->ignore();
-					return;
-				}
-			}
-
-			QList<int> const ids = guiApp->viewIds();
-			for (int i = 0; i != ids.size(); ++i) {
-				if (id_ == ids[i])
-					continue;
-				if (guiApp->view(ids[i]).workArea(*b)) {
-					// FIXME 1: should we put an alert box here that the buffer
-					// is viewed elsewhere?
-					// FIXME 2: should we try to save this buffer in any case?
-					//saveBuffer(b);
-
-					// This buffer is also opened in another view, so
-					// close the associated work area...
-					removeWorkArea(d.current_work_area_);
-					// ... but don't close the buffer.
-					b = 0;
-					break;
-				}
-			}
-			if (b && !closeBuffer(*b, true, is_active_wa)) {
-				closing_ = false;
-				close_event->ignore();
-				return;
-			}
-		}
+	if (!closeBufferAll(true)) {
+		closing_ = false;
+		close_event->ignore();
+		return;
 	}
+
 	// Make sure that nothing will use this close to be closed View.
 	guiApp->unregisterView(this);
 
@@ -639,6 +570,79 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 }
 
 
+bool GuiView::closeBufferAll(bool tolastopened)
+{
+	GuiWorkArea const * active_wa = currentWorkArea();
+
+	// We might be in a situation that there is still a tabWorkArea, but
+	// there are no tabs anymore. This can happen when we get here after a 
+	// TabWorkArea::lastWorkAreaRemoved() signal. Therefore we count how
+	// many TabWorkArea's have no documents anymore.
+	int empty_twa = 0;
+
+	// We have to call count() each time, because it can happen that
+	// more than one splitter will disappear in one iteration (bug 5998).
+	for (; d.splitter_->count() > empty_twa; ) {
+		TabWorkArea * twa = d.tabWorkArea(empty_twa);
+				
+		if (twa->count() == 0) {
+			++empty_twa;
+			continue;
+		}
+
+		for (; twa == d.tabWorkArea(empty_twa);) {
+			twa->setCurrentIndex(twa->count() - 1);
+
+			GuiWorkArea * wa = twa->currentWorkArea();
+			bool const is_active_wa = active_wa == wa;
+			Buffer * b = &wa->bufferView().buffer();
+
+			if (b->parent()) {
+				// This is a child document, just close the tab
+				// after saving but keep the file loaded.
+				if (!closeBuffer(*b, tolastopened, is_active_wa))
+					return false;
+				continue;
+			}
+			
+			vector<Buffer *> clist = b->getChildren();
+			for (vector<Buffer *>::const_iterator it = clist.begin();
+				 it != clist.end(); ++it) {
+				if ((*it)->isClean())
+					continue;
+				Buffer * c = *it;
+				// If a child is dirty, do not close
+				// without user intervention
+				if (!closeBuffer(*c, false))
+					return false; 
+			}
+
+			QList<int> const ids = guiApp->viewIds();
+			for (int i = 0; i != ids.size(); ++i) {
+				if (id_ == ids[i])
+					continue;
+				if (guiApp->view(ids[i]).workArea(*b)) {
+					// FIXME 1: should we put an alert box here that the buffer
+					// is viewed elsewhere?
+					// FIXME 2: should we try to save this buffer in any case?
+					//saveBuffer(b);
+
+					// This buffer is also opened in another view, so
+					// close the associated work area...
+					removeWorkArea(d.current_work_area_);
+					// ... but don't close the buffer.
+					b = 0;
+					break;
+				}
+			}
+			if (b && !closeBuffer(*b, tolastopened, is_active_wa))
+				return false;
+		}
+	}
+	return true;
+}
+
+
 void GuiView::dragEnterEvent(QDragEnterEvent * event)
 {
 	if (event->mimeData()->hasUrls())
@@ -659,13 +663,42 @@ void GuiView::dropEvent(QDropEvent * event)
 	for (int i = 0; i != files.size(); ++i) {
 		string const file = os::internal_path(fromqstr(
 			files.at(i).toLocalFile()));
-		if (!file.empty()) {
-			// Asynchronously post the event. DropEvent usually come
-			// from the BufferView. But reloading a file might close
-			// the BufferView from within its own event handler.
-			guiApp->dispatchDelayed(FuncRequest(LFUN_FILE_OPEN, file));
-			event->accept();
+		if (file.empty())
+			continue;
+
+		string const ext = support::getExtension(file);
+		vector<const Format *> found_formats;
+
+		// Find all formats that have the correct extension.
+		vector<const Format *> const & import_formats 
+			= theConverters().importableFormats();
+		vector<const Format *>::const_iterator it = import_formats.begin();
+		for (; it != import_formats.end(); ++it)
+			if ((*it)->extension() == ext)
+				found_formats.push_back(*it);
+
+		FuncRequest cmd;
+		if (found_formats.size() >= 1) {
+			if (found_formats.size() > 1) {
+				//FIXME: show a dialog to choose the correct importable format
+				LYXERR(Debug::FILES,
+					"Multiple importable formats found, selecting first");
+			}
+			string const arg = found_formats[0]->name() + " " + file;
+			cmd = FuncRequest(LFUN_BUFFER_IMPORT, arg);
+		} 
+		else {
+			//FIXME: do we have to explicitly check whether it's a lyx file?
+			LYXERR(Debug::FILES,
+				"No formats found, trying to open it as a lyx file");
+			cmd = FuncRequest(LFUN_FILE_OPEN, file);
 		}
+
+		// Asynchronously post the event. DropEvent usually come
+		// from the BufferView. But reloading a file might close
+		// the BufferView from within its own event handler.
+		guiApp->dispatchDelayed(cmd);
+		event->accept();
 	}
 }
 
@@ -756,6 +789,7 @@ void GuiView::on_lastWorkAreaRemoved()
 	updateDialogs();
 
 	resetWindowTitleAndIconText();
+	updateStatusBar();
 
 	if (lyxrc.open_buffers_in_tabs)
 		// Nothing more to do, the window should stay open.
@@ -1178,6 +1212,22 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		enable = buf;
 		break;
 
+	case LFUN_BUFFER_CLOSE_ALL: {
+		enable = false;
+		BufferList::iterator it = theBufferList().begin();
+		BufferList::iterator end = theBufferList().end();
+		int visible_buffers = 0;
+		for (; it != end; ++it) {
+			if (workArea(**it))
+				++visible_buffers;
+				if (visible_buffers > 1) {
+					enable = true;
+					break;  
+				}
+		}
+		break;
+	}
+
 	case LFUN_SPLIT_VIEW:
 		if (cmd.getArg(0) == "vertical")
 			enable = buf && (d.splitter_->count() == 1 ||
@@ -1232,7 +1282,7 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		else if (name == "latexlog")
 			enable = FileName(buf->logName()).isReadableFile();
 		else if (name == "spellchecker")
-#if defined (USE_ASPELL) || defined (USE_ISPELL) || defined (USE_PSPELL)
+#if defined (USE_ENCHANT) || defined (USE_ASPELL) || defined (USE_ISPELL) || defined (USE_PSPELL)
 			enable = !buf->isReadonly();
 #else
 			enable = false;
@@ -1846,6 +1896,7 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 		theLyXFunc().gotoBookmark(i+1, false, false);
 
 	if (buf.isClean() || buf.paragraphs().empty()) {
+		buf.removeAutosaveFile();
 		// save in sessions if requested
 		// do not save childs if their master
 		// is opened as well
@@ -1886,13 +1937,14 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 		// if we crash after this we could
 		// have no autosave file but I guess
 		// this is really improbable (Jug)
-		buf.removeAutosaveFile();
+		//buf.removeAutosaveFile();
 		buf.markClean();
 		break;
 	case 2:
 		return false;
 	}
 
+	buf.removeAutosaveFile();
 	// save file names to .lyx/session
 	if (tolastopened)
 		theSession().lastOpened().add(buf.fileName(), mark_active);
@@ -1949,7 +2001,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				if (buffer)
 					setBuffer(buffer);
 				else
-					bv->cursor().message(_("Document not loaded"));
+					theLyXFunc().setMessage(_("Document not loaded"));
 			}
 			break;
 
@@ -2505,8 +2557,12 @@ void GuiView::updateDialogs()
 
 	for(; it != end; ++it) {
 		Dialog * dialog = it->second.get();
-		if (dialog && dialog->isVisibleView())
-			dialog->checkStatus();
+		if (dialog) {
+			if (dialog->needBufferOpen() && !d.current_work_area_)
+				hideDialog(fromqstr(dialog->name()), 0);
+			else if (dialog->isVisibleView())
+				dialog->checkStatus();
+		}
 	}
 	updateToolbars();
 	updateLayoutList();

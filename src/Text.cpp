@@ -344,11 +344,13 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	DocumentClass const & tclass = cur.buffer().params().documentClass();
 	Layout const & layout = cpar.layout();
 
-	// this is only allowed, if the current paragraph is not empty
-	// or caption and if it has not the keepempty flag active
-	if (cur.lastpos() == 0 && !cpar.allowEmpty() &&
-	    layout.labeltype != LABEL_SENSITIVE)
+	if (cur.lastpos() == 0 && !cpar.allowEmpty()) {
+		if (changeDepthAllowed(cur, DEC_DEPTH))
+			changeDepth(cur, DEC_DEPTH);
+		else 
+			setLayout(cur, tclass.defaultLayoutName());
 		return;
+	}
 
 	// a layout change may affect also the following paragraph
 	recUndo(cur, cur.pit(), undoSpan(cur.pit()) - 1);
@@ -753,9 +755,11 @@ void Text::selectWord(Cursor & cur, word_location loc)
 		setCursor(cur, from.pit(), from.pos());
 	if (to == from)
 		return;
-	cur.resetAnchor();
+	if (!cur.selection())
+		cur.resetAnchor();
 	setCursor(cur, to.pit(), to.pos());
 	cur.setSelection();
+	cur.setWordSelection(true);
 }
 
 
@@ -1194,7 +1198,7 @@ bool Text::backspace(Cursor & cur)
 	needsUpdate |= handleBibitems(cur);
 
 	// A singlePar update is not enough in this case.
-//		cur.updateFlags(Update::Force);
+	// cur.updateFlags(Update::Force);
 	setCursor(cur.top(), cur.pit(), cur.pos());
 
 	return needsUpdate;

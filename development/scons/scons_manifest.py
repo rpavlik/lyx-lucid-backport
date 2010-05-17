@@ -58,6 +58,7 @@ src_header_files = Split('''
     Dimension.h
     DispatchResult.h
     DocIterator.h
+    Enchant.h
     Encoding.h
     ErrorList.h
     Exporter.h
@@ -244,6 +245,7 @@ src_post_files = Split('''
 
 src_extra_src_files = Split('''
     ASpell.cpp
+    Enchant.cpp
     ISpell.cpp
     main.cpp
     PSpell.cpp
@@ -1175,6 +1177,7 @@ po_extra_files = Split('''
     de.po
     en@boldquot.header
     en@quot.header
+    el.po
     en.po
     es.po
     eu.po
@@ -1293,6 +1296,7 @@ lib_templates_files = Split('''
     dinbrief.lyx
     docbook_article.lyx
     elsarticle.lyx
+    es_beamer-conference-ornate-20min.lyx
     fr_beamer-conference-ornate-20min.lyx
     g-brief-de.lyx
     g-brief-en.lyx
@@ -1593,6 +1597,7 @@ lib_images_math_files = Split('''
     diagdown.png
     diagup.png
     diamond.png
+    diamond2.png
     diamondsuit.png
     digamma.png
     div.png
@@ -2268,7 +2273,12 @@ lib_doc_it_clipart_files = Split('''
 
 
 lib_doc_ja_files = Split('''
+    Customization.lyx
+    DummyDocument1.lyx
+    DummyDocument2.lyx
+    EmbeddedObjects.lyx
     Extended.lyx
+    Formula-numbering.lyx
     Intro.lyx
     LaTeXConfig.lyx
     Math.lyx
@@ -2279,10 +2289,12 @@ lib_doc_ja_files = Split('''
 
 
 lib_doc_ja_clipart_files = Split('''
+    ChildDocumentQt4.png
+    ERT.png
+    ExternalMaterialQt4.png
     floatQt4.png
     footnoteQt4.png
     referenceQt4.png
-    ERT.png
     ToolbarEnvBox.png
 ''')
 
@@ -2473,6 +2485,7 @@ lib_examples_fr_files = Split('''
 
 
 lib_examples_es_files = Split('''
+    beamer-conference-ornate20min.lyx
     Braille.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
@@ -2480,6 +2493,8 @@ lib_examples_es_files = Split('''
     linguistics.lyx
     multicol.lyx
     splash.lyx
+    tufte-book.lyx
+    tufte-handout.lyx
 ''')
 
 
@@ -2524,7 +2539,11 @@ lib_examples_it_files = Split('''
 
 lib_examples_ja_files = Split('''
     Braille.lyx
+    linguistics.lyx
+    multicol.lyx
     splash.lyx
+    xyfigure.png
+    xypic.lyx
 ''')
 
 

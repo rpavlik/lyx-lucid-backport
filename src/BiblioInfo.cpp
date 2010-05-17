@@ -130,10 +130,14 @@ docstring convertLaTeXCommands(docstring const & str)
 				scanning_cmd = false;
 			}
 
-			// was the last character a \? If so, then this is something like: \\,
-			// or \$, so we'll just output it. That's probably not always right...
+			// was the last character a \? If so, then this is something like: \\ or
+			// \$, so we'll just output it. That's probably not always right...
 			if (escaped) {
-				ret += ch;
+				// exception: output \, as THIN SPACE
+				if (ch == ',')
+					ret.push_back(0x2009);
+				else
+					ret += ch;
 				val = val.substr(1);
 				escaped = false;
 				continue;
@@ -215,7 +219,11 @@ docstring const BibTeXInfo::getAbbreviatedAuthor() const
 			return docstring();
 
 		docstring authors;
-		split(opt, authors, '(');
+		docstring const remainder = trim(split(opt, authors, '('));
+		if (remainder.empty())
+			// in this case, we didn't find a "(", 
+			// so we don't have author (year)
+			return docstring();
 		return authors;
 	}
 
@@ -252,9 +260,12 @@ docstring const BibTeXInfo::getYear() const
 		return docstring();
 
 	docstring authors;
-	docstring const tmp = split(opt, authors, '(');
+	docstring tmp = split(opt, authors, '(');
+	if (tmp.empty()) 
+		// we don't have author (year)
+		return docstring();
 	docstring year;
-	split(tmp, year, ')');
+	tmp = split(tmp, year, ')');
 	return year;
 }
 
@@ -459,6 +470,16 @@ docstring const BiblioInfo::getInfo(docstring const & key) const
 	}
 	return data.getInfo(xrefptr);
 }
+
+
+bool BiblioInfo::isBibtex(docstring const & key) const
+{
+	BiblioInfo::const_iterator it = find(key);
+	if (it == end())
+		return false;
+	return it->second.isBibtex();
+}
+
 
 
 vector<docstring> const BiblioInfo::getCiteStrings(
