@@ -7,6 +7,7 @@ lyx (1.6.6-1) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * New upstream release.
     + Should no longer crash when inserting floats. Closes: #579630
+    + Refresh debian/patches/prefer-xdg-open.
   * Bump Standards-Version to 3.8.4 - no changes required.
   * Add debian/source/format to state that this is still a package in
     1.0 format.
