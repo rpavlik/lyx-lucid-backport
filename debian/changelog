@@ -2,6 +2,8 @@ lyx (1.6.6-2) unstable; urgency=low
 
   * Add --with-enchant to the configure flags and add build-depend on
     libenchant-dev.
+  * Add librsvg2-bin | inkscape to the Recommends to support SVG image
+    handling (new in LyX 1.6.6).
 
  -- Sven Hoexter <hoexter@debian.org>  Thu, 20 May 2010 15:40:47 +0200
 
