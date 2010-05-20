@@ -19,7 +19,7 @@ Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, lyx-common (= ${source:Version}), xdg-utils, mime-support
 Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-science, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, ttf-lyx, evince | pdf-viewer, librsvg2-bin | inkscape
-Suggests: rcs, dvipost, tex4ht | elyxer | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf
+Suggests: rcs, dvipost, elyxer | tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf
 Description: Document Processor
  LyX is an almost WYSIWYG-frontend for LaTeX. It makes the power and
  typesetting quality of LaTeX available for people who are used to
@@ -38,7 +38,7 @@ Description: Document Processor
   * noweb: import noweb files
   * rcs: integrated version control
   * sgmltools-lite: export SGML DocBook documents
-  * tex4ht, elyxer, hevea, tth, or latex2html: export HTML documents
+  * elyxer, tex4ht, hevea, tth, or latex2html: export HTML documents
   * texlive-latex-extra: more styles and packages
   * wv: import MS Word documents
 
