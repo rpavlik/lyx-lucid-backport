@@ -21,6 +21,7 @@ CONFIGURE_OPTIONS += \
 	--with-gnu-ld \
 	--without-pspell \
 	--with-aspell \
+	--with-enchant \
 	--with-x \
 	--without-included-gettext \
 	--without-included-boost \
