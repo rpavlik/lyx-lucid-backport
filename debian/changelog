@@ -1,12 +1,15 @@
-lyx (1.6.6-2) unstable; urgency=low
+lyx (1.6.6-2) UNRELEASED; urgency=low
 
   * Add --with-enchant to the configure flags and add build-depend on
     libenchant-dev.
   * Add librsvg2-bin | inkscape to the Recommends to support SVG image
     handling (new in LyX 1.6.6).
   * Set elyxer to the first position in the list of HTML converters.
+  * Add debian/patches/spellcheckfix which reverts upstream commit
+    r33567 to fix the broken spellchecker in LyX 1.6.6.
+    Upstream bugreport: http://www.lyx.org/trac/ticket/6708
 
- -- Sven Hoexter <hoexter@debian.org>  Thu, 20 May 2010 15:40:47 +0200
+ -- Sven Hoexter <hoexter@debian.org>  Fri, 28 May 2010 14:07:05 +0200
 
 lyx (1.6.6-1) unstable; urgency=low
 
