@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.6,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,1.6.7,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2010-05-17"])
+AC_SUBST(LYX_DATE, ["2010-07-10"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -27,6 +27,7 @@ AM_MAINTAINER_MODE
 
 save_PACKAGE=$PACKAGE
 AM_INIT_AUTOMAKE([foreign dist-bzip2 no-define 1.8])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 PACKAGE=$save_PACKAGE
 
 ### Set the execute permissions of the various scripts correctly

@@ -1671,7 +1671,7 @@ void LyXFunc::dispatch(FuncRequest const & cmd)
 		case LFUN_BOOKMARK_GOTO:
 			// go to bookmark, open unopened file and switch to buffer if necessary
 			gotoBookmark(convert<unsigned int>(to_utf8(cmd.argument())), true, true);
-			updateFlags = Update::FitCursor;
+			updateFlags = Update::Force | Update::FitCursor;
 			break;
 
 		case LFUN_BOOKMARK_CLEAR:
@@ -2157,6 +2157,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_FULL_SCREEN_WIDTH:
 	case LyXRC::RC_VISUAL_CURSOR:
 	case LyXRC::RC_VIEWER:
+	case LyXRC::RC_EXPORT_OVERWRITE:
 	case LyXRC::RC_LAST:
 		break;
 	}

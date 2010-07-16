@@ -853,6 +853,17 @@ Buffer::ReadStatus Buffer::readFile(Lexer & lex, FileName const & filename,
 // Should probably be moved to somewhere else: BufferView? LyXView?
 bool Buffer::save() const
 {
+	// ask if the disk file has been externally modified (use checksum method)
+	if (fileName().exists() && isExternallyModified(checksum_method)) {
+		docstring const file = makeDisplayPath(absFileName(), 20);
+		docstring text = bformat(_("Document %1$s has been externally modified. Are you sure "
+							     "you want to overwrite this file?"), file);
+		int const ret = Alert::prompt(_("Overwrite modified file?"),
+			text, 1, 1, _("&Overwrite"), _("&Cancel"));
+		if (ret == 1)
+			return false;
+	}
+
 	// We don't need autosaves in the immediate future. (Asger)
 	resetAutosaveTimers();
 
@@ -868,7 +879,7 @@ bool Buffer::save() const
 			backupName = FileName(addName(lyxrc.backupdir_path,
 						      mangledName));
 		}
-		if (fileName().copyTo(backupName)) {
+		if (fileName().moveTo(backupName)) {
 			madeBackup = true;
 		} else {
 			Alert::error(_("Backup failure"),
@@ -877,17 +888,6 @@ bool Buffer::save() const
 					     from_utf8(backupName.absFilename())));
 			//LYXERR(Debug::DEBUG, "Fs error: " << fe.what());
 		}
-	}
-
-	// ask if the disk file has been externally modified (use checksum method)
-	if (fileName().exists() && isExternallyModified(checksum_method)) {
-		docstring const file = makeDisplayPath(absFileName(), 20);
-		docstring text = bformat(_("Document %1$s has been externally modified. Are you sure "
-							     "you want to overwrite this file?"), file);
-		int const ret = Alert::prompt(_("Overwrite modified file?"),
-			text, 1, 1, _("&Overwrite"), _("&Cancel"));
-		if (ret == 1)
-			return false;
 	}
 
 	if (writeFile(d->filename)) {
@@ -2639,7 +2639,9 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	vector<ExportedFile> const files =
 		runparams.exportdata->externalFiles(format);
 	string const dest = onlyPath(result_file);
-	CopyStatus status = SUCCESS;
+	bool use_force = use_gui ? lyxrc.export_overwrite == ALL_FILES
+				 : force_overwrite == ALL_FILES;
+	CopyStatus status = use_force ? FORCE : SUCCESS;
 	for (vector<ExportedFile>::const_iterator it = files.begin();
 		it != files.end() && status != CANCEL; ++it) {
 		string const fmt = formats.getFormatFromFile(it->sourceName);
@@ -2651,6 +2653,10 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		message(_("Document export cancelled."));
 	} else if (tmp_result_file.exists()) {
 		// Finally copy the main file
+		use_force = use_gui ? lyxrc.export_overwrite != NO_FILES
+				    : force_overwrite != NO_FILES;
+		if (status == SUCCESS && use_force)
+			status = FORCE;
 		status = copyFile(format, tmp_result_file,
 			FileName(result_file), result_file,
 			status == FORCE);
@@ -2760,7 +2766,7 @@ bool Buffer::readFileHelper(FileName const & s)
 			else
 				str = _("Document was NOT successfully recovered.");
 			str += "\n\n" + bformat(_("Remove emergency file now?\n(%1$s)"),
-						from_utf8(e.absFilename()));
+						makeDisplayPath(e.absFilename()));
 
 			if (!Alert::prompt(_("Delete emergency file?"), str, 1, 1,
 					_("&Remove"), _("&Keep it"))) {

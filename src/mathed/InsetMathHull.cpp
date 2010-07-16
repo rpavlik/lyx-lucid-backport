@@ -329,6 +329,12 @@ docstring InsetMathHull::standardFont() const
 }
 
 
+docstring InsetMathHull::standardColor() const
+{
+	return from_ascii(type_ == hullNone ? "foreground" : "math");
+}
+
+
 bool InsetMathHull::previewState(BufferView * bv) const
 {
 	if (!editing(bv) && RenderPreview::status() == LyXRC::PREVIEW_ON) {
@@ -413,8 +419,11 @@ void InsetMathHull::draw(PainterInfo & pi, int x, int y) const
 		return;
 	}
 
+	bool const really_change_color = pi.base.font.color() == Color_none;
+	ColorChanger dummy0(pi.base.font, standardColor(), really_change_color);
 	FontSetChanger dummy1(pi.base, standardFont());
 	StyleChanger dummy2(pi.base, display() ? LM_ST_DISPLAY : LM_ST_TEXT);
+
 	InsetMathGrid::draw(pi, x + 1, y);
 
 	if (numberedType()) {
@@ -1067,7 +1076,7 @@ void InsetMathHull::mutate(HullType newtype)
 }
 
 
-docstring InsetMathHull::eolString(row_type row, bool fragile) const
+docstring InsetMathHull::eolString(row_type row, bool fragile, bool last_eoln) const
 {
 	docstring res;
 	if (numberedType()) {
@@ -1077,7 +1086,9 @@ docstring InsetMathHull::eolString(row_type row, bool fragile) const
 		if (nonum_[row] && (type_ != hullMultline))
 			res += "\\nonumber ";
 	}
-	return res + InsetMathGrid::eolString(row, fragile);
+	// Never add \\ on the last empty line of eqnarray and friends
+	last_eoln = false;
+	return res + InsetMathGrid::eolString(row, fragile, last_eoln);
 }
 
 

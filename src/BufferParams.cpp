@@ -1092,9 +1092,12 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	// this one is not per buffer
 	// for arabic_arabi and farsi we also need to load the LAE and
 	// LFE encoding
+	size_t fars = language_options.str().find("farsi");
+	size_t arab = language_options.str().find("arabic");
 	if (lyxrc.fontenc != "default" && language->lang() != "japanese") {
 		if (language->lang() == "arabic_arabi"
-		    || language->lang() == "farsi") {
+			|| language->lang() == "farsi" || fars != string::npos
+			|| arab != string::npos) {
 			os << "\\usepackage[" << from_ascii(lyxrc.fontenc)
 			   << ",LFE,LAE]{fontenc}\n";
 			texrow.newline();
@@ -1209,26 +1212,30 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			os << '[' << g_options << ']';
 		os << "{geometry}\n";
 		texrow.newline();
-		os << "\\geometry{verbose";
-		if (!topmargin.empty())
-			os << ",tmargin=" << from_ascii(Length(topmargin).asLatexString());
-		if (!bottommargin.empty())
-			os << ",bmargin=" << from_ascii(Length(bottommargin).asLatexString());
-		if (!leftmargin.empty())
-			os << ",lmargin=" << from_ascii(Length(leftmargin).asLatexString());
-		if (!rightmargin.empty())
-			os << ",rmargin=" << from_ascii(Length(rightmargin).asLatexString());
-		if (!headheight.empty())
-			os << ",headheight=" << from_ascii(Length(headheight).asLatexString());
-		if (!headsep.empty())
-			os << ",headsep=" << from_ascii(Length(headsep).asLatexString());
-		if (!footskip.empty())
-			os << ",footskip=" << from_ascii(Length(footskip).asLatexString());
-		if (!columnsep.empty())
-			os << ",columnsep=" << from_ascii(Length(columnsep).asLatexString());
-		os << "}\n";
-		texrow.newline();
-	} else if (orientation == ORIENTATION_LANDSCAPE) {
+		// output this only if use_geometry is true
+		if (use_geometry) {
+			os << "\\geometry{verbose";
+			if (!topmargin.empty())
+				os << ",tmargin=" << from_ascii(Length(topmargin).asLatexString());
+			if (!bottommargin.empty())
+				os << ",bmargin=" << from_ascii(Length(bottommargin).asLatexString());
+			if (!leftmargin.empty())
+				os << ",lmargin=" << from_ascii(Length(leftmargin).asLatexString());
+			if (!rightmargin.empty())
+				os << ",rmargin=" << from_ascii(Length(rightmargin).asLatexString());
+			if (!headheight.empty())
+				os << ",headheight=" << from_ascii(Length(headheight).asLatexString());
+			if (!headsep.empty())
+				os << ",headsep=" << from_ascii(Length(headsep).asLatexString());
+			if (!footskip.empty())
+				os << ",footskip=" << from_ascii(Length(footskip).asLatexString());
+			if (!columnsep.empty())
+				os << ",columnsep=" << from_ascii(Length(columnsep).asLatexString());
+			os << "}\n";
+			texrow.newline();
+		}
+	} else if (orientation == ORIENTATION_LANDSCAPE
+		   || papersize != PAPER_DEFAULT) {
 		features.require("papersize");
 	}
 
@@ -1517,7 +1524,7 @@ bool BufferParams::removeBadModules()
 		for (; !excluded && pit != pen; ++pit) {
 			if (!LyXModule::areCompatible(modname, *pit)) {
 				LYXERR0("Module " << modname << 
-						" dropped becuase it conflicts with provided module `" << *pit << "'.");
+						" dropped because it conflicts with provided module `" << *pit << "'.");
 				consistent = false;
 				excluded = true;
 			}

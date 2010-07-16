@@ -14,12 +14,14 @@ lyx_add_msvc_pch(graphics)
 
 include_directories(${TOP_SRC_DIR}/src/graphics)
 
-if(NOT MERGE_FILES)
+if(NOT LYX_MERGE_FILES)
 	add_library(graphics ${library_type} ${graphics_sources} ${graphics_headers})
 else()
 	lyx_const_touched_files(_allinone  graphics_sources)
 	add_library(graphics ${library_type} ${_allinone_files})
 endif()
+
+lyx_add_gcc_pch(graphics)
 
 project_source_group("${GROUP_CODE}" graphics_sources graphics_headers)
 
