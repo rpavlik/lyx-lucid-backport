@@ -20,7 +20,6 @@ CONFIGURE_OPTIONS += \
 	--with-aiksaurus \
 	--with-gnu-ld \
 	--without-pspell \
-	--with-aspell \
 	--with-enchant \
 	--with-x \
 	--without-included-gettext \
