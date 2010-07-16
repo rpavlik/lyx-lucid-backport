@@ -1462,8 +1462,9 @@ void GuiView::openDocument(string const & fname)
 				from_utf8(fullname.absFilename())));
 		return;
 	}
-	// if the file doesn't exist, let the user create one
-	if (!fullname.exists()) {
+	// if the file doesn't exist and isn't already open (bug 6645),
+	// let the user create one
+	if (!fullname.exists() && !theBufferList().exists(fullname)) {
 		// the user specifically chose this name. Believe him.
 		Buffer * const b = newFile(filename, string(), true);
 		if (b)
@@ -1994,16 +1995,42 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			importDocument(to_utf8(cmd.argument()));
 			break;
 
-		case LFUN_BUFFER_SWITCH:
-			if (FileName::isAbsolute(to_utf8(cmd.argument()))) {
-				Buffer * buffer = 
-					theBufferList().getBuffer(FileName(to_utf8(cmd.argument())));
-				if (buffer)
-					setBuffer(buffer);
-				else
-					theLyXFunc().setMessage(_("Document not loaded"));
+		case LFUN_BUFFER_SWITCH: {
+			string const file_name = to_utf8(cmd.argument()); 
+			if (!FileName::isAbsolute(file_name))
+				break;
+			Buffer * buffer = theBufferList().getBuffer(FileName(file_name));
+			if (!buffer) {
+				theLyXFunc().setMessage(_("Document not loaded"));
+				break;
+			}
+			
+			// Do we open or switch to the buffer in this view ? 
+			if (workArea(*buffer)
+				  || lyxrc.open_buffers_in_tabs || !view()) {
+				setBuffer(buffer);
+				break;
+			}
+
+			// Look for the buffer in other views 
+			QList<int> const ids = guiApp->viewIds();
+			int i = 0;
+			for (; i != ids.size(); ++i) {
+				GuiView & gv = guiApp->view(ids[i]);
+				if (gv.workArea(*buffer)) {
+					gv.activateWindow();
+					gv.setBuffer(buffer);
+					break;
+				}
+			}
+
+			// If necessary, open a new window as a last resort
+			if (i == ids.size()) {
+				lyx::dispatch(FuncRequest(LFUN_WINDOW_NEW));
+				lyx::dispatch(cmd);
 			}
 			break;
+		}
 
 		case LFUN_BUFFER_NEXT:
 			gotoNextOrPreviousBuffer(NEXTBUFFER);

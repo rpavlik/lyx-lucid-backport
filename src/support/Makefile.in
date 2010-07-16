@@ -84,16 +84,16 @@ am__liblyxsupport_la_SOURCES_DIST = FileMonitor.h FileMonitor.cpp \
 	ForkedCalls.h gettext.cpp gettext.h gzstream.cpp gzstream.h \
 	kill.cpp lassert.h lassert.cpp limited_stack.h lstrings.cpp \
 	lstrings.h lyxalgo.h lyxlib.h lyxtime.cpp lyxtime.h \
-	Messages.cpp Messages.h os.cpp os.h Path.cpp Path.h \
-	Package.cpp Package.h qstring_helpers.cpp qstring_helpers.h \
-	socktools.cpp socktools.h strfwd.h Systemcall.cpp Systemcall.h \
-	SignalSlot.cpp SignalSlot.h SignalSlotPrivate.cpp \
-	SignalSlotPrivate.h textutils.h Translator.h Timeout.cpp \
-	Timeout.h types.h userinfo.cpp userinfo.h unicode.cpp \
-	unicode.h weighted_btree.h linkback/LinkBack.h \
-	linkback/LinkBack.m linkback/LinkBackProxy.h \
-	linkback/LinkBackProxy.m linkback/LinkBackServer.h \
-	linkback/LinkBackServer.m
+	numpunct_lyx_char_type.h Messages.cpp Messages.h os.cpp os.h \
+	Path.cpp Path.h Package.cpp Package.h qstring_helpers.cpp \
+	qstring_helpers.h socktools.cpp socktools.h strfwd.h \
+	Systemcall.cpp Systemcall.h SignalSlot.cpp SignalSlot.h \
+	SignalSlotPrivate.cpp SignalSlotPrivate.h textutils.h \
+	Translator.h Timeout.cpp Timeout.h types.h userinfo.cpp \
+	userinfo.h unicode.cpp unicode.h weighted_btree.h \
+	linkback/LinkBack.h linkback/LinkBack.m \
+	linkback/LinkBackProxy.h linkback/LinkBackProxy.m \
+	linkback/LinkBackServer.h linkback/LinkBackServer.m
 @INSTALL_MACOSX_TRUE@am__objects_1 = LinkBack.lo LinkBackProxy.lo \
 @INSTALL_MACOSX_TRUE@	LinkBackServer.lo
 am_liblyxsupport_la_OBJECTS = FileMonitor.lo convert.lo debug.lo \
@@ -104,9 +104,13 @@ am_liblyxsupport_la_OBJECTS = FileMonitor.lo convert.lo debug.lo \
 	SignalSlot.lo SignalSlotPrivate.lo Timeout.lo userinfo.lo \
 	unicode.lo $(am__objects_1)
 liblyxsupport_la_OBJECTS = $(am_liblyxsupport_la_OBJECTS)
-liblyxsupport_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(liblyxsupport_la_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
+liblyxsupport_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(liblyxsupport_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_check_convert_OBJECTS = check_convert.$(OBJEXT) boost.$(OBJEXT)
 check_convert_OBJECTS = $(am_check_convert_OBJECTS)
 @USE_INCLUDED_BOOST_FALSE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
@@ -117,9 +121,10 @@ check_convert_OBJECTS = $(am_check_convert_OBJECTS)
 @USE_INCLUDED_BOOST_TRUE@	$(top_builddir)/boost/liblyxboost.la
 check_convert_DEPENDENCIES = liblyxsupport.la $(am__DEPENDENCIES_2) \
 	$(am__DEPENDENCIES_1)
-check_convert_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(check_convert_LDFLAGS) $(LDFLAGS) -o $@
+check_convert_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(check_convert_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am_check_filetools_OBJECTS = check_filetools.$(OBJEXT) boost.$(OBJEXT)
 check_filetools_OBJECTS = $(am_check_filetools_OBJECTS)
 check_filetools_DEPENDENCIES = liblyxsupport.la $(am__DEPENDENCIES_2)
@@ -127,40 +132,68 @@ am_check_lstrings_OBJECTS = check_lstrings.$(OBJEXT) boost.$(OBJEXT)
 check_lstrings_OBJECTS = $(am_check_lstrings_OBJECTS)
 check_lstrings_DEPENDENCIES = liblyxsupport.la $(am__DEPENDENCIES_2) \
 	$(am__DEPENDENCIES_1)
-check_lstrings_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(check_lstrings_LDFLAGS) $(LDFLAGS) -o $@
+check_lstrings_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(check_lstrings_LDFLAGS) \
+	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+AM_V_CXX = $(am__v_CXX_$(V))
+am__v_CXX_ = $(am__v_CXX_$(AM_DEFAULT_VERBOSITY))
+am__v_CXX_0 = @echo "  CXX   " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CXXLD = $(am__v_CXXLD_$(V))
+am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CXXLD_0 = @echo "  CXXLD " $@;
 OBJCCOMPILE = $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS)
-LTOBJCCOMPILE = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS)
+LTOBJCCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_OBJCFLAGS) $(OBJCFLAGS)
+AM_V_OBJC = $(am__v_OBJC_$(V))
+am__v_OBJC_ = $(am__v_OBJC_$(AM_DEFAULT_VERBOSITY))
+am__v_OBJC_0 = @echo "  OBJC  " $@;
 OBJCLD = $(OBJC)
-OBJCLINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
-	$(OBJCLD) $(AM_OBJCFLAGS) $(OBJCFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+OBJCLINK = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(OBJCLD) $(AM_OBJCFLAGS) $(OBJCFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_OBJCLD = $(am__v_OBJCLD_$(V))
+am__v_OBJCLD_ = $(am__v_OBJCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_OBJCLD_0 = @echo "  OBJCLD" $@;
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_$(V))
+am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
+am__v_CC_0 = @echo "  CC    " $@;
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_$(V))
+am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CCLD_0 = @echo "  CCLD  " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = $(liblyxsupport_la_SOURCES) $(check_convert_SOURCES) \
 	$(check_filetools_SOURCES) $(check_lstrings_SOURCES)
 DIST_SOURCES = $(am__liblyxsupport_la_SOURCES_DIST) \
@@ -183,6 +216,7 @@ AM_CFLAGS = @AM_CFLAGS@
 AM_CPPFLAGS = @AM_CPPFLAGS@ $(PCH_FLAGS) -I$(srcdir)/.. \
 	$(BOOST_INCLUDES) $(QT4_CPPFLAGS) $(QT4_CORE_INCLUDES)
 AM_CXXFLAGS = @AM_CXXFLAGS@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AS = @AS@
@@ -436,13 +470,14 @@ liblyxsupport_la_SOURCES = FileMonitor.h FileMonitor.cpp \
 	ForkedCalls.h gettext.cpp gettext.h gzstream.cpp gzstream.h \
 	kill.cpp lassert.h lassert.cpp limited_stack.h lstrings.cpp \
 	lstrings.h lyxalgo.h lyxlib.h lyxtime.cpp lyxtime.h \
-	Messages.cpp Messages.h os.cpp os.h Path.cpp Path.h \
-	Package.cpp Package.h qstring_helpers.cpp qstring_helpers.h \
-	socktools.cpp socktools.h strfwd.h Systemcall.cpp Systemcall.h \
-	SignalSlot.cpp SignalSlot.h SignalSlotPrivate.cpp \
-	SignalSlotPrivate.h textutils.h Translator.h Timeout.cpp \
-	Timeout.h types.h userinfo.cpp userinfo.h unicode.cpp \
-	unicode.h weighted_btree.h $(am__append_1)
+	numpunct_lyx_char_type.h Messages.cpp Messages.h os.cpp os.h \
+	Path.cpp Path.h Package.cpp Package.h qstring_helpers.cpp \
+	qstring_helpers.h socktools.cpp socktools.h strfwd.h \
+	Systemcall.cpp Systemcall.h SignalSlot.cpp SignalSlot.h \
+	SignalSlotPrivate.cpp SignalSlotPrivate.h textutils.h \
+	Translator.h Timeout.cpp Timeout.h types.h userinfo.cpp \
+	userinfo.h unicode.cpp unicode.h weighted_btree.h \
+	$(am__append_1)
 TESTS = \
 	tests/test_convert \
 	tests/test_filetools \
@@ -512,7 +547,7 @@ clean-noinstLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 liblyxsupport.la: $(liblyxsupport_la_OBJECTS) $(liblyxsupport_la_DEPENDENCIES) 
-	$(liblyxsupport_la_LINK)  $(liblyxsupport_la_OBJECTS) $(liblyxsupport_la_LIBADD) $(LIBS)
+	$(AM_V_CXXLD)$(liblyxsupport_la_LINK)  $(liblyxsupport_la_OBJECTS) $(liblyxsupport_la_LIBADD) $(LIBS)
 
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
@@ -524,13 +559,13 @@ clean-checkPROGRAMS:
 	rm -f $$list
 check_convert$(EXEEXT): $(check_convert_OBJECTS) $(check_convert_DEPENDENCIES) 
 	@rm -f check_convert$(EXEEXT)
-	$(check_convert_LINK) $(check_convert_OBJECTS) $(check_convert_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(check_convert_LINK) $(check_convert_OBJECTS) $(check_convert_LDADD) $(LIBS)
 check_filetools$(EXEEXT): $(check_filetools_OBJECTS) $(check_filetools_DEPENDENCIES) 
 	@rm -f check_filetools$(EXEEXT)
-	$(CXXLINK) $(check_filetools_OBJECTS) $(check_filetools_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(check_filetools_OBJECTS) $(check_filetools_LDADD) $(LIBS)
 check_lstrings$(EXEEXT): $(check_lstrings_OBJECTS) $(check_lstrings_DEPENDENCIES) 
 	@rm -f check_lstrings$(EXEEXT)
-	$(check_lstrings_LINK) $(check_lstrings_OBJECTS) $(check_lstrings_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(check_lstrings_LINK) $(check_lstrings_OBJECTS) $(check_lstrings_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -574,123 +609,140 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/userinfo.Plo@am__quote@
 
 .cpp.o:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cpp.lo:
-@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 check_convert.o: tests/check_convert.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_convert.o -MD -MP -MF $(DEPDIR)/check_convert.Tpo -c -o check_convert.o `test -f 'tests/check_convert.cpp' || echo '$(srcdir)/'`tests/check_convert.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_convert.Tpo $(DEPDIR)/check_convert.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_convert.o -MD -MP -MF $(DEPDIR)/check_convert.Tpo -c -o check_convert.o `test -f 'tests/check_convert.cpp' || echo '$(srcdir)/'`tests/check_convert.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_convert.Tpo $(DEPDIR)/check_convert.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_convert.cpp' object='check_convert.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_convert.o `test -f 'tests/check_convert.cpp' || echo '$(srcdir)/'`tests/check_convert.cpp
 
 check_convert.obj: tests/check_convert.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_convert.obj -MD -MP -MF $(DEPDIR)/check_convert.Tpo -c -o check_convert.obj `if test -f 'tests/check_convert.cpp'; then $(CYGPATH_W) 'tests/check_convert.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_convert.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_convert.Tpo $(DEPDIR)/check_convert.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_convert.obj -MD -MP -MF $(DEPDIR)/check_convert.Tpo -c -o check_convert.obj `if test -f 'tests/check_convert.cpp'; then $(CYGPATH_W) 'tests/check_convert.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_convert.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_convert.Tpo $(DEPDIR)/check_convert.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_convert.cpp' object='check_convert.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_convert.obj `if test -f 'tests/check_convert.cpp'; then $(CYGPATH_W) 'tests/check_convert.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_convert.cpp'; fi`
 
 boost.o: tests/boost.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT boost.o -MD -MP -MF $(DEPDIR)/boost.Tpo -c -o boost.o `test -f 'tests/boost.cpp' || echo '$(srcdir)/'`tests/boost.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/boost.Tpo $(DEPDIR)/boost.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT boost.o -MD -MP -MF $(DEPDIR)/boost.Tpo -c -o boost.o `test -f 'tests/boost.cpp' || echo '$(srcdir)/'`tests/boost.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/boost.Tpo $(DEPDIR)/boost.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/boost.cpp' object='boost.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o boost.o `test -f 'tests/boost.cpp' || echo '$(srcdir)/'`tests/boost.cpp
 
 boost.obj: tests/boost.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT boost.obj -MD -MP -MF $(DEPDIR)/boost.Tpo -c -o boost.obj `if test -f 'tests/boost.cpp'; then $(CYGPATH_W) 'tests/boost.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/boost.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/boost.Tpo $(DEPDIR)/boost.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT boost.obj -MD -MP -MF $(DEPDIR)/boost.Tpo -c -o boost.obj `if test -f 'tests/boost.cpp'; then $(CYGPATH_W) 'tests/boost.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/boost.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/boost.Tpo $(DEPDIR)/boost.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/boost.cpp' object='boost.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o boost.obj `if test -f 'tests/boost.cpp'; then $(CYGPATH_W) 'tests/boost.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/boost.cpp'; fi`
 
 check_filetools.o: tests/check_filetools.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_filetools.o -MD -MP -MF $(DEPDIR)/check_filetools.Tpo -c -o check_filetools.o `test -f 'tests/check_filetools.cpp' || echo '$(srcdir)/'`tests/check_filetools.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_filetools.Tpo $(DEPDIR)/check_filetools.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_filetools.o -MD -MP -MF $(DEPDIR)/check_filetools.Tpo -c -o check_filetools.o `test -f 'tests/check_filetools.cpp' || echo '$(srcdir)/'`tests/check_filetools.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_filetools.Tpo $(DEPDIR)/check_filetools.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_filetools.cpp' object='check_filetools.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_filetools.o `test -f 'tests/check_filetools.cpp' || echo '$(srcdir)/'`tests/check_filetools.cpp
 
 check_filetools.obj: tests/check_filetools.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_filetools.obj -MD -MP -MF $(DEPDIR)/check_filetools.Tpo -c -o check_filetools.obj `if test -f 'tests/check_filetools.cpp'; then $(CYGPATH_W) 'tests/check_filetools.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_filetools.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_filetools.Tpo $(DEPDIR)/check_filetools.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_filetools.obj -MD -MP -MF $(DEPDIR)/check_filetools.Tpo -c -o check_filetools.obj `if test -f 'tests/check_filetools.cpp'; then $(CYGPATH_W) 'tests/check_filetools.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_filetools.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_filetools.Tpo $(DEPDIR)/check_filetools.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_filetools.cpp' object='check_filetools.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_filetools.obj `if test -f 'tests/check_filetools.cpp'; then $(CYGPATH_W) 'tests/check_filetools.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_filetools.cpp'; fi`
 
 check_lstrings.o: tests/check_lstrings.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_lstrings.o -MD -MP -MF $(DEPDIR)/check_lstrings.Tpo -c -o check_lstrings.o `test -f 'tests/check_lstrings.cpp' || echo '$(srcdir)/'`tests/check_lstrings.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_lstrings.Tpo $(DEPDIR)/check_lstrings.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_lstrings.o -MD -MP -MF $(DEPDIR)/check_lstrings.Tpo -c -o check_lstrings.o `test -f 'tests/check_lstrings.cpp' || echo '$(srcdir)/'`tests/check_lstrings.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_lstrings.Tpo $(DEPDIR)/check_lstrings.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_lstrings.cpp' object='check_lstrings.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_lstrings.o `test -f 'tests/check_lstrings.cpp' || echo '$(srcdir)/'`tests/check_lstrings.cpp
 
 check_lstrings.obj: tests/check_lstrings.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_lstrings.obj -MD -MP -MF $(DEPDIR)/check_lstrings.Tpo -c -o check_lstrings.obj `if test -f 'tests/check_lstrings.cpp'; then $(CYGPATH_W) 'tests/check_lstrings.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_lstrings.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/check_lstrings.Tpo $(DEPDIR)/check_lstrings.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT check_lstrings.obj -MD -MP -MF $(DEPDIR)/check_lstrings.Tpo -c -o check_lstrings.obj `if test -f 'tests/check_lstrings.cpp'; then $(CYGPATH_W) 'tests/check_lstrings.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_lstrings.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_lstrings.Tpo $(DEPDIR)/check_lstrings.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='tests/check_lstrings.cpp' object='check_lstrings.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o check_lstrings.obj `if test -f 'tests/check_lstrings.cpp'; then $(CYGPATH_W) 'tests/check_lstrings.cpp'; else $(CYGPATH_W) '$(srcdir)/tests/check_lstrings.cpp'; fi`
 
 .m.o:
-@am__fastdepOBJC_TRUE@	$(OBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(OBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepOBJC_FALSE@	$(OBJCCOMPILE) -c -o $@ $<
 
 .m.obj:
-@am__fastdepOBJC_TRUE@	$(OBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(OBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepOBJC_FALSE@	$(OBJCCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .m.lo:
-@am__fastdepOBJC_TRUE@	$(LTOBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(LTOBJCCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepOBJC_FALSE@	$(LTOBJCCOMPILE) -c -o $@ $<
 
 LinkBack.lo: linkback/LinkBack.m
-@am__fastdepOBJC_TRUE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBack.lo -MD -MP -MF $(DEPDIR)/LinkBack.Tpo -c -o LinkBack.lo `test -f 'linkback/LinkBack.m' || echo '$(srcdir)/'`linkback/LinkBack.m
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/LinkBack.Tpo $(DEPDIR)/LinkBack.Plo
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBack.lo -MD -MP -MF $(DEPDIR)/LinkBack.Tpo -c -o LinkBack.lo `test -f 'linkback/LinkBack.m' || echo '$(srcdir)/'`linkback/LinkBack.m
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/LinkBack.Tpo $(DEPDIR)/LinkBack.Plo
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='linkback/LinkBack.m' object='LinkBack.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepOBJC_FALSE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBack.lo `test -f 'linkback/LinkBack.m' || echo '$(srcdir)/'`linkback/LinkBack.m
+@am__fastdepOBJC_FALSE@	$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBack.lo `test -f 'linkback/LinkBack.m' || echo '$(srcdir)/'`linkback/LinkBack.m
 
 LinkBackProxy.lo: linkback/LinkBackProxy.m
-@am__fastdepOBJC_TRUE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBackProxy.lo -MD -MP -MF $(DEPDIR)/LinkBackProxy.Tpo -c -o LinkBackProxy.lo `test -f 'linkback/LinkBackProxy.m' || echo '$(srcdir)/'`linkback/LinkBackProxy.m
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/LinkBackProxy.Tpo $(DEPDIR)/LinkBackProxy.Plo
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBackProxy.lo -MD -MP -MF $(DEPDIR)/LinkBackProxy.Tpo -c -o LinkBackProxy.lo `test -f 'linkback/LinkBackProxy.m' || echo '$(srcdir)/'`linkback/LinkBackProxy.m
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/LinkBackProxy.Tpo $(DEPDIR)/LinkBackProxy.Plo
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='linkback/LinkBackProxy.m' object='LinkBackProxy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepOBJC_FALSE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBackProxy.lo `test -f 'linkback/LinkBackProxy.m' || echo '$(srcdir)/'`linkback/LinkBackProxy.m
+@am__fastdepOBJC_FALSE@	$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBackProxy.lo `test -f 'linkback/LinkBackProxy.m' || echo '$(srcdir)/'`linkback/LinkBackProxy.m
 
 LinkBackServer.lo: linkback/LinkBackServer.m
-@am__fastdepOBJC_TRUE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBackServer.lo -MD -MP -MF $(DEPDIR)/LinkBackServer.Tpo -c -o LinkBackServer.lo `test -f 'linkback/LinkBackServer.m' || echo '$(srcdir)/'`linkback/LinkBackServer.m
-@am__fastdepOBJC_TRUE@	$(am__mv) $(DEPDIR)/LinkBackServer.Tpo $(DEPDIR)/LinkBackServer.Plo
+@am__fastdepOBJC_TRUE@	$(AM_V_OBJC)$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -MT LinkBackServer.lo -MD -MP -MF $(DEPDIR)/LinkBackServer.Tpo -c -o LinkBackServer.lo `test -f 'linkback/LinkBackServer.m' || echo '$(srcdir)/'`linkback/LinkBackServer.m
+@am__fastdepOBJC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/LinkBackServer.Tpo $(DEPDIR)/LinkBackServer.Plo
+@am__fastdepOBJC_FALSE@	$(AM_V_OBJC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	source='linkback/LinkBackServer.m' object='LinkBackServer.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJC_FALSE@	DEPDIR=$(DEPDIR) $(OBJCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepOBJC_FALSE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBackServer.lo `test -f 'linkback/LinkBackServer.m' || echo '$(srcdir)/'`linkback/LinkBackServer.m
+@am__fastdepOBJC_FALSE@	$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCFLAGS) $(OBJCFLAGS) -c -o LinkBackServer.lo `test -f 'linkback/LinkBackServer.m' || echo '$(srcdir)/'`linkback/LinkBackServer.m
 
 mostlyclean-libtool:
 	-rm -f *.lo

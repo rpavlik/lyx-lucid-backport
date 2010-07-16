@@ -295,6 +295,8 @@ named_deco_struct deco_table[] = {
 	{"vert",           vert,       0 },
 	{"Vert",           Vert,       0 },
 	{"'",              slash,      1 },
+	{"<",              angle,      0 },
+	{">",              angle,      2 },
 	{"\\",             slash,      1 },
 	{"backslash",      slash,      1 },
 	{"langle",         angle,      0 },
@@ -450,7 +452,7 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 			pi.pain.line(
 				int(x + xx + 0.5), int(y + yy + 0.5),
 				int(x + x2 + 0.5), int(y + y2 + 0.5),
-				Color_math);
+				pi.base.font.color());
 		} else {
 			int xp[32];
 			int yp[32];
@@ -467,7 +469,7 @@ void mathed_draw_deco(PainterInfo & pi, int x, int y, int w, int h,
 				yp[j] = int(y + yy + 0.5);
 				//  lyxerr << "P[" << j ' ' << xx << ' ' << yy << ' ' << x << ' ' << y << ']';
 			}
-			pi.pain.lines(xp, yp, n, Color_math);
+			pi.pain.lines(xp, yp, n, pi.base.font.color());
 		}
 	}
 }
@@ -632,6 +634,20 @@ fontinfo * searchFont(docstring const & name)
 bool isFontName(docstring const & name)
 {
 	return lookupFont(name);
+}
+
+
+bool isMathFont(docstring const & name)
+{
+	fontinfo * f = lookupFont(name);
+	return f && f->color_ == Color_math;
+}
+
+
+bool isTextFont(docstring const & name)
+{
+	fontinfo * f = lookupFont(name);
+	return f && f->color_ == Color_foreground;
 }
 
 

@@ -11,22 +11,22 @@ CLEANFILES += $(BUILT_SOURCES)
 UIC4FLAGS=-tr lyx::qt_
 
 ui_%.h: ui/%.ui
-	$(UIC4) $(UIC4FLAGS) $< -o $@
+	$(AM_V_GEN)$(UIC4) $(UIC4FLAGS) $< -o $@
 
 MOCEDFILES = $(MOCHEADER:%.h=%_moc.cpp)
 
 %_moc.cpp: %.h
-	$(MOC4) -o $@ $<
+	$(AM_V_GEN)$(MOC4) -o $@ $<
 
 Resources.qrc: Makefile
-	echo "<!DOCTYPE RCC><RCC version='1.0'><qresource>" > $@
+	$(AM_V_GEN)echo "<!DOCTYPE RCC><RCC version='1.0'><qresource>" > $@
 	find $(top_srcdir)/lib/images -name '*.png' \
 		| sed -e 's:$(top_srcdir)/lib/\(.*\):<file alias="\1">&</file>:' \
 		>> $@
 	echo "</qresource></RCC>" >> $@
 
 Resources.cpp: Resources.qrc
-	$(RCC4) $< -name Resources -o $@
+	$(AM_V_GEN)$(RCC4) $< -name Resources -o $@
 
 
 #########################  LIBRARIES  #############################
@@ -271,7 +271,6 @@ UIFILES = \
 	PrefColorsUi.ui \
 	PrefCompletionUi.ui \
 	PrefConvertersUi.ui \
-	PrefDateUi.ui \
 	PrefDisplayUi.ui \
 	PrefEditUi.ui \
 	PrefFileformatsUi.ui \
@@ -279,6 +278,7 @@ UIFILES = \
 	PrefInputUi.ui \
 	PrefLanguageUi.ui \
 	PrefLatexUi.ui \
+	PrefOutputUi.ui \
 	PrefPathsUi.ui \
 	PrefPlaintextUi.ui \
 	PrefPrinterUi.ui \

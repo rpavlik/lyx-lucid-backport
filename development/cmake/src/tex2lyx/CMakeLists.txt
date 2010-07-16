@@ -28,7 +28,7 @@ include_directories(BEFORE ${TOP_SRC_DIR}/src/tex2lyx
 
 add_definitions(-DTEX2LYX)
 
-if(NOT MERGE_FILES)
+if(NOT LYX_MERGE_FILES)
 	add_executable(${_tex2lyx} ${tex2lyx_sources} ${LINKED_sources}
 		${tex2lyx_headers} ${LINKED_headers})
 else()
@@ -40,7 +40,7 @@ endif()
 
 target_link_libraries(${_tex2lyx}
 	support
-	boost_regex
+	${Lyx_Boost_Libraries}
 	${QT_QTCORE_LIBRARY}
 	${LIBINTL_LIBRARIES}
 	${ICONV_LIBRARY})

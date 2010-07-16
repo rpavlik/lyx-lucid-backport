@@ -13,16 +13,17 @@ list(REMOVE_ITEM insets_sources ${TOP_SRC_DIR}/src/insets/InsetTheorem.cpp)
 
 lyx_add_msvc_pch(insets)
 
-include_directories(${TOP_SRC_DIR}/src/insets)
+include_directories(${TOP_SRC_DIR}/src/insets ${QT_INCLUDES})
 
 
-if(NOT MERGE_FILES)
+if(NOT LYX_MERGE_FILES)
 	add_library(insets ${library_type} ${insets_sources} ${insets_headers})
 else()
 	lyx_const_touched_files(_allinone  insets_sources)
 	add_library(insets ${library_type} ${_allinone_files})
 endif()
 
+lyx_add_gcc_pch(insets)
 
 project_source_group("${GROUP_CODE}" insets_sources insets_headers)
 

@@ -304,7 +304,6 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 	case Boxed:
 		os << "\\framebox";
 		if (!params_.inner_box) {
-			os << "{\\makebox";
 			// Special widths, see usrguide §3.5
 			// FIXME UNICODE
 			if (params_.special != "none") {
@@ -396,8 +395,6 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 		os << "\\end{framed}";
 		break;
 	case Boxed:
-		if (!params_.inner_box)
-			os << "}"; // for makebox
 		os << "}";
 		break;
 	case ovalbox:

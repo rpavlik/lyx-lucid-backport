@@ -1,7 +1,7 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
+# Copyright (c) 2006, Peter KÃ¼mmel, <syntheticpp@gmx.net>
 #
 
 set(_lyx ${PACKAGE_BASE}${PROGRAM_SUFFIX})
@@ -26,7 +26,10 @@ list(REMOVE_ITEM lyx_sources
 	${TOP_SRC_DIR}/src/PSpell.cpp
 	${TOP_SRC_DIR}/src/ISpell.cpp
 	${TOP_SRC_DIR}/src/Variables.cpp
-	${TOP_SRC_DIR}/src/Section.cpp)
+	${TOP_SRC_DIR}/src/Section.cpp
+	${TOP_SRC_DIR}/src/lyxcore.cpp
+	${TOP_SRC_DIR}/src/lyxinsets.cpp
+	${TOP_SRC_DIR}/src/lyxmathed.cpp)
 
 if (ASPELL_FOUND)
   include_directories(${ASPELL_INCLUDE_DIR})
@@ -50,25 +53,37 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}
 lyx_add_msvc_pch(lyx)
 
 
-if (NOT MERGE_FILES)
+if (NOT LYX_MERGE_FILES)
 	set(lyx_sources ${lyx_sources})
 else()
+	# somewhere PACKAGE is undefined
+	set(dont_merge ${TOP_SRC_DIR}/src/version.cpp)
+	list(REMOVE_ITEM lyx_sources ${dont_merge})
 	lyx_const_touched_files(_allinone  lyx_sources)
-	set(lyx_sources ${_allinone_files})
+	set(lyx_sources ${_allinone_files} ${dont_merge})
 endif()
 
-if (LYX_LEAK_DETECTION)
-	configure_file(${vld_path}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/vld.ini COPYONLY)
-	configure_file(${vld_path}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt COPYONLY)
+if (LYX_VLD)
+	configure_file(${LYX_VLD_PATH}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/vld.ini COPYONLY)
+	configure_file(${LYX_VLD_PATH}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt COPYONLY)
 	set(vld_files ${CMAKE_CURRENT_BINARY_DIR}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt)
 endif()
+
+if(WIN32)
+        set(FILE_RC ${CMAKE_SOURCE_DIR}/lyx.rc)
+        message(STATUS "Using icon defined in resource file: ${FILE_RC}")
+endif()
+
 
 add_executable(${_lyx}
 	${WIN32_CONSOLE}
 	${lyx_sources}
 	${lyx_headers}
 	${vld_files}
+        ${FILE_RC}
 )
+
+lyx_add_gcc_pch(${_lyx})
 
 target_link_libraries(${_lyx}
 	mathed

@@ -302,6 +302,7 @@ src_support_header_files = Split('''
     lyxalgo.h
     lyxlib.h
     lyxtime.h
+    numpunct_lyx_char_type.h
     Messages.h
     os.h
     os_win32.h
@@ -922,7 +923,6 @@ src_frontends_qt4_ui_files = Split('''
     PrefColorsUi.ui
     PrefCompletionUi.ui
     PrefConvertersUi.ui
-    PrefDateUi.ui
     PrefDisplayUi.ui
     PrefEditUi.ui
     PrefFileformatsUi.ui
@@ -930,6 +930,7 @@ src_frontends_qt4_ui_files = Split('''
     PrefInputUi.ui
     PrefLanguageUi.ui
     PrefLatexUi.ui
+    PrefOutputUi.ui
     PrefPathsUi.ui
     PrefPlaintextUi.ui
     PrefPrinterUi.ui
@@ -2121,6 +2122,11 @@ lib_doc_cs_files = Split('''
 ''')
 
 
+lib_doc_da_files = Split('''
+    Intro.lyx
+''')
+
+
 lib_doc_de_files = Split('''
     Customization.lyx
     DummyDocument1.lyx
@@ -2152,10 +2158,9 @@ lib_doc_de_clipart_files = Split('''
 ''')
 
 
-lib_doc_da_files = Split('''
+lib_doc_el_files = Split('''
     Intro.lyx
 ''')
-
 
 lib_doc_es_files = Split('''
     Customization.lyx
@@ -2461,6 +2466,25 @@ lib_examples_de_files = Split('''
 ''')
 
 
+lib_examples_es_files = Split('''
+    beamer-conference-ornate20min.lyx
+    Braille.lyx
+    ejemplo_con_lyx.lyx
+    ejemplo_sin_lyx.lyx
+    ItemizeBullets.lyx
+    linguistics.lyx
+    multicol.lyx
+    splash.lyx
+    tufte-book.lyx
+    tufte-handout.lyx
+''')
+
+
+lib_examples_el_files = Split('''
+    splash.lyx
+''')
+
+
 lib_examples_fa_files = Split('''
     splash.lyx
 ''')
@@ -2481,20 +2505,6 @@ lib_examples_fr_files = Split('''
     splash.lyx
     xyfigure.png
     xypic.lyx
-''')
-
-
-lib_examples_es_files = Split('''
-    beamer-conference-ornate20min.lyx
-    Braille.lyx
-    ejemplo_con_lyx.lyx
-    ejemplo_sin_lyx.lyx
-    ItemizeBullets.lyx
-    linguistics.lyx
-    multicol.lyx
-    splash.lyx
-    tufte-book.lyx
-    tufte-handout.lyx
 ''')
 
 
