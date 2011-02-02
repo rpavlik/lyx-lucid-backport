@@ -6,6 +6,8 @@ lyx (2.0.0~beta3-1) UNRELEASED; urgency=low
   * Update to Standards-Version: 3.9.1 - no changes required.
   * Recommend evince-gtk instead of evince. (Closes: #597623)
   * Move 'librsvg2-bin | inkscape' down from recommends to suggests.
+  * Drop our own bash_completion file and instead install the one
+    provided by upstream in the correct location.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 17:35:52 +0100
 
