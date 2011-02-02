@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -39,13 +39,13 @@ static docstring convertDelimToLatexName(docstring const & name)
 
 
 InsetMathDelim::InsetMathDelim(Buffer * buf, docstring const & l,
-			       docstring const & r)
+		docstring const & r)
 	: InsetMathNest(buf, 1), left_(l), right_(r)
 {}
 
 
-InsetMathDelim::InsetMathDelim(Buffer * buf, docstring const & l,
-			       docstring const & r, MathData const & ar)
+InsetMathDelim::InsetMathDelim(Buffer * buf, docstring const & l, docstring const & r,
+	MathData const & ar)
 	: InsetMathNest(buf, 1), left_(l), right_(r)
 {
 	cell(0) = ar;
@@ -163,8 +163,14 @@ void InsetMathDelim::mathematica(MathematicaStream & os) const
 
 void InsetMathDelim::mathmlize(MathStream & os) const
 {
-	os << "<fenced open=\"" << left_ << "\" close=\""
-		<< right_ << "\">" << cell(0) << "</fenced>";
+	os << "<mo form='prefix' fence='true' stretchy='true' symmetric='true'>" << left_ << "</mo>"
+		<< cell(0) << "<mo form='postfix' fence='true' stretchy='true' symmetric='true'>" << right_ << "</mo>";
+}
+
+
+void InsetMathDelim::htmlize(HtmlStream & os) const
+{
+	os << left_ << cell(0) << right_;
 }
 
 

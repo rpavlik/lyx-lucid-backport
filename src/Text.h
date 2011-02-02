@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author unknown
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  *
  * Full author contact details are available in file CREDITS.
@@ -23,6 +23,7 @@ class Buffer;
 class BufferParams;
 class BufferView;
 class CompletionList;
+class Cursor;
 class CursorSlice;
 class DocIterator;
 class ErrorList;
@@ -31,33 +32,37 @@ class FontInfo;
 class FuncRequest;
 class FuncStatus;
 class Inset;
-class Cursor;
 class Lexer;
 class PainterInfo;
 class Spacing;
 
-
-/// This class encapsulates the main text data and operations in LyX
+/// This class encapsulates the main text data and operations in LyX.
+/// This is more or less the private implementation of InsetText.
 class Text {
-public:
-	/// constructor
-	explicit Text();
+private:
+	/// Default constructor.
+	Text(InsetText * owner, bool use_default_layout);
 
+	/// Copy constructor.
+	Text(InsetText * owner, Text const & text);
+
+public:
 	/// \return true if there's no content at all.
 	/// \warning a non standard layout on an empty paragraph doesn't
 	// count as empty.
 	bool empty() const;
+	/// Access to owner InsetText.
+	InsetText const & inset() const;
 
 	///
-	FontInfo layoutFont(Buffer const & buffer, pit_type pit) const;
+	FontInfo layoutFont(pit_type pit) const;
 	///
-	FontInfo labelFont(Buffer const & buffer,
-		Paragraph const & par) const;
+	FontInfo labelFont(Paragraph const & par) const;
 	/** Set font of character at position \p pos in paragraph \p pit.
 	 *  Must not be called if \p pos denotes an inset with text contents,
 	 *  and the inset is not allowed inside a font change (see below).
 	 */
-	void setCharFont(Buffer const & buffer, pit_type pit, pos_type pos,
+	void setCharFont(pit_type pit, pos_type pos,
 		Font const & font, Font const & display_font);
 
 	/** Needed to propagate font changes to all text cells of insets
@@ -71,10 +76,13 @@ public:
 		Font const & font, bool toggleall = false);
 
 	/// what you expect when pressing \<enter\> at cursor position
+	/// \param inverse_logic if false, the same layout is set for the
+	/// new paragraph if the layout is an environment; if true, the
+	/// same layout is set if it is not an environment
 	void breakParagraph(Cursor & cur, bool inverse_logic = false);
 
 	/// set layout over selection
-	void setLayout(Buffer const & buffer, pit_type start, pit_type end,
+	void setLayout(pit_type start, pit_type end,
 		docstring const & layout);
 	/// Set given layout to current cursor position.
 	/// FIXME: replace Cursor with DocIterator.
@@ -118,6 +126,12 @@ public:
 	///
 	docstring asString(pit_type beg, pit_type end,
 		int options = AS_STR_NONE) const;
+	/// Appends a possibly abbreviated representation of our text
+	/// to \param os, where \param maxlen defines the maximum size
+	/// of \param os. If \param shorten is true, then we will shorten
+	/// \param os to maxlen chars and replace the final three by "...,
+	/// if \param os is longer than maxlen chars.
+	void forToc(docstring & os, size_t maxlen, bool shorten = true) const;
 
 	/// insert a character at cursor position
 	/// FIXME: replace Cursor with DocIterator.
@@ -162,9 +176,9 @@ public:
 	/// accept or reject the selected change
 	void acceptOrRejectChanges(Cursor & cur, ChangeOp op);
 	/// accept the changes within the complete Text
-	void acceptChanges(BufferParams const & bparams);
+	void acceptChanges();
 	/// reject the changes within the complete Text
-	void rejectChanges(BufferParams const & bparams);
+	void rejectChanges();
 
 	/// returns true if par was empty and was removed
 	bool setCursor(Cursor & cur, pit_type par, pos_type pos,
@@ -251,25 +265,25 @@ public:
 	/* these things are for search and replace */
 
 	/// needed to insert the selection
-	/// FIXME: replace Cursor with DocIterator.
-	void insertStringAsLines(Cursor & cur, docstring const & str);
+	void insertStringAsLines(DocIterator const & dit, docstring const & str,
+		Font const & font);
 	/// needed to insert the selection
-	/// FIXME: replace Cursor with DocIterator.
-	void insertStringAsParagraphs(Cursor & cur, docstring const & str);
+	void insertStringAsParagraphs(DocIterator const & dit, docstring const & str,
+		Font const & font);
 
 	/// access to our paragraphs
 	ParagraphList const & paragraphs() const { return pars_; }
 	ParagraphList & paragraphs() { return pars_; }
 	/// return true if this is the main text
-	bool isMainText(Buffer const &) const;
+	bool isMainText() const;
 
 	///
-	double spacing(Buffer const & buffer, Paragraph const & par) const;
+	double spacing(Paragraph const & par) const;
 	/// make a suggestion for a label
 	/// FIXME: replace Cursor with DocIterator.
 	docstring getPossibleLabel(Cursor const & cur) const;
 	/// is this paragraph right-to-left?
-	bool isRTL(Buffer const &, Paragraph const & par) const;
+	bool isRTL(Paragraph const & par) const;
 
 	///
 	bool checkAndActivateInset(Cursor & cur, bool front);
@@ -277,10 +291,10 @@ public:
 	bool checkAndActivateInsetVisual(Cursor & cur, bool movingForward, bool movingLeft);
 
 	///
-	void write(Buffer const & buf, std::ostream & os) const;
+	void write(std::ostream & os) const;
 	/// returns true if \end_document has not been read
 	/// insetPtr is the containing Inset
-	bool read(Buffer const & buf, Lexer & lex, ErrorList & errorList, 
+	bool read(Lexer & lex, ErrorList & errorList, 
 	          InsetText * insetPtr);
 
 	/// delete double spaces, leading spaces, and empty paragraphs around old cursor.
@@ -310,14 +324,20 @@ public:
 	bool insertCompletion(Cursor & cur, docstring const & s, bool /*finished*/);
 	///
 	docstring completionPrefix(Cursor const & cur) const;
-
-public:
+	/// for the environments
+	pit_type depthHook(pit_type par, depth_type depth) const;
 	///
-	ParagraphList pars_;
+	pit_type outerHook(pit_type par) const;
+	/// Is it the first par with same depth and layout?
+	bool isFirstInSequence(pit_type par) const;
+	/// Get the font of the "environment" of paragraph \p par_offset in \p pars.
+	/// All font changes of the paragraph are relative to this font.
+	Font const outerFont(pit_type par_offset) const;
 
-	///
-	bool autoBreakRows_;
 private:
+	/// The InsetText owner shall have access to everything.
+	friend class InsetText;
+
 	/// return past-the-last paragraph influenced by a layout
 	/// change on pit
 	pit_type undoSpan(pit_type pit);
@@ -343,10 +363,46 @@ private:
 	/// \param asParagraphs whether to paste as paragraphs or as lines
 	void pasteString(Cursor & cur, docstring const & str,
 			bool asParagraphs);
+	///
+	void readParToken(Paragraph & par, Lexer & lex, std::string const & token,
+		Font & font, Change & change, ErrorList & errorList);
+	///
+	void readParagraph(Paragraph & par, Lexer & lex, ErrorList & errorList);
+	/// Set Label Width string to all paragraphs of the same layout
+    /// and depth in a sequence.
+	void setLabelWidthStringToSequence(pit_type const par_offset, docstring const & s);
 
+	/// Owner Inset.
+	InsetText * owner_;
+	///
+	ParagraphList pars_;
+	///
+	bool autoBreakRows_;
 	/// position of the text in the buffer.
 	DocIterator macrocontext_position_;
+	///
+	unsigned int undo_counter_;
 };
+
+
+///
+void breakParagraphConservative(BufferParams const & bparams,
+				ParagraphList & paragraphs,
+				pit_type par,
+				pos_type pos);
+
+/**
+ * Append the next paragraph onto the tail of this one.
+ * Be careful, this doesent make any check at all.
+ */
+void mergeParagraph(BufferParams const & bparams,
+	ParagraphList & paragraphs, pit_type par);
+
+/// accept the changes within the complete ParagraphList
+void acceptChanges(ParagraphList & pars, BufferParams const & bparams);
+
+/// reject the changes within the complete ParagraphList
+void rejectChanges(ParagraphList & pars, BufferParams const & bparams);
 
 } // namespace lyx
 

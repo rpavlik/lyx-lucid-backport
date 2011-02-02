@@ -20,15 +20,19 @@
 #include "Cursor.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 
 #include "insets/Inset.h"
 
 #include "support/debug.h"
 #include "support/lassert.h"
 
+#include <QLabel>
+#include <QLineEdit>
+#include <QList>
 #include <QSettings>
 #include <QString>
+#include <QValidator>
 
 #include <string>
 
@@ -37,7 +41,6 @@ using namespace lyx::support;
 
 namespace lyx {
 namespace frontend {
-
 
 Dialog::Dialog(GuiView & lv, QString const & name, QString const & title)
 	: name_(name), title_(title), lyxview_(&lv)
@@ -58,7 +61,6 @@ bool Dialog::canApply() const
 
 void Dialog::dispatch(FuncRequest const & fr) const
 {
-	theLyXFunc().setLyXView(lyxview_);
 	lyx::dispatch(fr);
 }
 
@@ -77,19 +79,19 @@ void Dialog::disconnect() const
 
 bool Dialog::isBufferAvailable() const
 {
-	return lyxview_->buffer() != 0;
+	return lyxview_->currentBufferView() != 0;
 }
 
 
 bool Dialog::isBufferReadonly() const
 {
-	if (!lyxview_->buffer())
+	if (!lyxview_->documentBufferView())
 		return true;
-	return lyxview_->buffer()->isReadonly();
+	return lyxview_->documentBufferView()->buffer().isReadonly();
 }
 
 
-QString Dialog::bufferFilepath() const
+QString Dialog::bufferFilePath() const
 {
 	return toqstr(buffer().filePath());
 }
@@ -108,14 +110,14 @@ KernelDocType Dialog::docType() const
 
 BufferView const * Dialog::bufferview() const
 {
-	return lyxview_->view();
+	return lyxview_->currentBufferView();
 }
 
 
 Buffer const & Dialog::buffer() const
 {
-	LASSERT(lyxview_->buffer(), /**/);
-	return *lyxview_->buffer();
+	LASSERT(lyxview_->currentBufferView(), /**/);
+	return lyxview_->currentBufferView()->buffer();
 }
 
 
@@ -158,8 +160,6 @@ void Dialog::prepareView()
 	// Make sure the dialog controls are correctly enabled/disabled with
 	// readonly status.
 	checkStatus();
-	if (exitEarly())
-		return;
 
 	QWidget * w = asQWidget();
 	w->setWindowTitle(title_);

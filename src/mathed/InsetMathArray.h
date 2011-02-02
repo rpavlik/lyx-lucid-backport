@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@ public:
 	InsetMathArray(Buffer * buf, docstring const &, int m, int n);
 	///
 	InsetMathArray(Buffer * buf, docstring const &, int m, int n,
-		       char valign, docstring const & halign);
+		char valign, docstring const & halign);
 	/// convenience constructor from whitespace/newline separated data
 	InsetMathArray(Buffer * buf, docstring const &, docstring const & str);
 	///
@@ -49,6 +49,8 @@ public:
 	void maple(MapleStream & os) const;
 	///
 	void validate(LaTeXFeatures & features) const;
+	///
+	InsetCode lyxCode() const { return MATH_ARRAY_CODE; }
 private:
 	virtual Inset * clone() const;
 	///

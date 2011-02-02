@@ -3,10 +3,10 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  * \author Abdelrazak Younes
- * \author Peter Kümmel
+ * \author Peter KÃ¼mmel
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,14 +16,18 @@
 #include "GuiView.h"
 
 #include "Dialog.h"
+#include "DispatchResult.h"
 #include "FileDialog.h"
 #include "FontLoader.h"
 #include "GuiApplication.h"
 #include "GuiCommandBuffer.h"
 #include "GuiCompleter.h"
-#include "GuiWorkArea.h"
 #include "GuiKeySymbol.h"
+#include "GuiToc.h"
 #include "GuiToolbar.h"
+#include "GuiWorkArea.h"
+#include "GuiProgress.h"
+#include "LayoutBox.h"
 #include "Menus.h"
 #include "TocModel.h"
 
@@ -36,6 +40,7 @@
 #include "BufferList.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "Compare.h"
 #include "Converter.h"
 #include "Cursor.h"
 #include "CutAndPaste.h"
@@ -47,11 +52,13 @@
 #include "Intl.h"
 #include "Layout.h"
 #include "Lexer.h"
-#include "LyXFunc.h"
+#include "LyXAction.h"
 #include "LyX.h"
 #include "LyXRC.h"
 #include "LyXVC.h"
 #include "Paragraph.h"
+#include "SpellChecker.h"
+#include "TexRow.h"
 #include "TextClass.h"
 #include "Text.h"
 #include "Toolbars.h"
@@ -63,12 +70,16 @@
 #include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
+#include "support/filetools.h"
 #include "support/ForkedCalls.h"
 #include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Package.h"
+#include "support/Path.h"
+#include "support/Systemcall.h"
 #include "support/Timeout.h"
+#include "support/ProgressInterface.h"
 
 #include <QAction>
 #include <QApplication>
@@ -90,12 +101,26 @@
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QTime>
 #include <QTimer>
 #include <QToolBar>
 #include <QUrl>
 #include <QScrollBar>
 
-#include <boost/bind.hpp>
+
+
+#define EXPORT_in_THREAD 1
+
+// QtConcurrent was introduced in Qt 4.4
+#if (QT_VERSION >= 0x040400)
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QtConcurrentRun>
+#endif
+
+#include "support/bind.h"
+
+#include <sstream>
 
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -103,6 +128,7 @@
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
+
 
 using namespace std;
 using namespace lyx::support;
@@ -118,6 +144,8 @@ public:
 	BackgroundWidget()
 	{
 		LYXERR(Debug::GUI, "show banner: " << lyxrc.show_banner);
+		if (!lyxrc.show_banner)
+			return;
 		/// The text to be written on top of the pixmap
 		QString const text = lyx_version ?
 			qt_("version ") + lyx_version : qt_("unknown version");
@@ -130,8 +158,10 @@ public:
 		font.setStyleHint(QFont::SansSerif);
 		font.setWeight(QFont::Bold);
 		font.setPointSize(int(toqstr(lyxrc.font_sizes[FONT_SIZE_LARGE]).toDouble()));
+		int width = QFontMetrics(font).width(text);
 		pain.setFont(font);
-		pain.drawText(190, 225, text);
+		pain.drawText(397 - width, 15, text);
+		setFocusPolicy(Qt::StrongFocus);
 	}
 
 	void paintEvent(QPaintEvent *)
@@ -142,29 +172,42 @@ public:
 		pain.drawPixmap(x, y, splash_);
 	}
 
+	void keyPressEvent(QKeyEvent * ev)
+	{
+		KeySymbol sym;
+		setKeySymbol(&sym, ev);
+		if (sym.isOK()) {
+			guiApp->processKeySym(sym, q_key_state(ev->modifiers()));
+			ev->accept();
+		} else {
+			ev->ignore();
+		}
+	}
+
 private:
 	QPixmap splash_;
 };
 
 
 /// Toolbar store providing access to individual toolbars by name.
-typedef std::map<std::string, GuiToolbar *> ToolbarMap;
+typedef map<string, GuiToolbar *> ToolbarMap;
 
-typedef boost::shared_ptr<Dialog> DialogPtr;
+typedef shared_ptr<Dialog> DialogPtr;
 
 } // namespace anon
 
 
 struct GuiView::GuiViewPrivate
 {
-	GuiViewPrivate()
-		: current_work_area_(0), layout_(0), autosave_timeout_(5000),
+	GuiViewPrivate(GuiView * gv)
+		: gv_(gv), current_work_area_(0), current_main_work_area_(0),
+		layout_(0), autosave_timeout_(5000),
 		in_show_(false)
 	{
 		// hardcode here the platform specific icon size
-		smallIconSize = 14;	// scaling problems
-		normalIconSize = 20;	// ok, default
-		bigIconSize = 26;		// better for some math icons
+		smallIconSize = 14;  // scaling problems
+		normalIconSize = 20; // ok, default
+		bigIconSize = 26;	// better for some math icons
 
 		splitter_ = new QSplitter;
 		bg_widget_ = new BackgroundWidget;
@@ -172,6 +215,21 @@ struct GuiView::GuiViewPrivate
 		stack_widget_->addWidget(bg_widget_);
 		stack_widget_->addWidget(splitter_);
 		setBackground();
+
+		// TODO cleanup, remove the singleton, handle multiple Windows?
+		progress_ = ProgressInterface::instance();
+		if (!dynamic_cast<GuiProgress*>(progress_)) {
+			progress_ = new GuiProgress();  // TODO who deletes it
+			ProgressInterface::setInstance(progress_);
+		}
+		QObject::connect(
+				dynamic_cast<GuiProgress*>(progress_),
+				SIGNAL(updateStatusBarMessage(QString const&)),
+				gv, SLOT(updateStatusBarMessage(QString const&)));
+		QObject::connect(
+				dynamic_cast<GuiProgress*>(progress_),
+				SIGNAL(clearMessageText()),
+				gv, SLOT(clearMessageText()));
 	}
 
 	~GuiViewPrivate()
@@ -223,6 +281,12 @@ struct GuiView::GuiViewPrivate
 	{
 		stack_widget_->setCurrentWidget(bg_widget_);
 		bg_widget_->setUpdatesEnabled(true);
+		bg_widget_->setFocus();
+	}
+
+	int tabWorkAreaCount()
+	{
+		return splitter_->count();
 	}
 
 	TabWorkArea * tabWorkArea(int i)
@@ -232,13 +296,14 @@ struct GuiView::GuiViewPrivate
 
 	TabWorkArea * currentTabWorkArea()
 	{
-		if (splitter_->count() == 1)
+		int areas = tabWorkAreaCount();
+		if (areas == 1)
 			// The first TabWorkArea is always the first one, if any.
 			return tabWorkArea(0);
 
-		for (int i = 0; i != splitter_->count(); ++i) {
+		for (int i = 0; i != areas;  ++i) {
 			TabWorkArea * twa = tabWorkArea(i);
-			if (current_work_area_ == twa->currentWorkArea())
+			if (current_main_work_area_ == twa->currentWorkArea())
 				return twa;
 		}
 
@@ -246,15 +311,30 @@ struct GuiView::GuiViewPrivate
 		return tabWorkArea(0);
 	}
 
+#if (QT_VERSION >= 0x040400)
+	void setPreviewFuture(QFuture<docstring> const & f)
+	{
+		if (processing_thread_watcher_.isRunning()) {
+			// we prefer to cancel this preview in order to keep a snappy
+			// interface.
+			return;
+		}
+		processing_thread_watcher_.setFuture(f);
+	}
+#endif
+
 public:
+	GuiView * gv_;
 	GuiWorkArea * current_work_area_;
+	GuiWorkArea * current_main_work_area_;
 	QSplitter * splitter_;
 	QStackedWidget * stack_widget_;
 	BackgroundWidget * bg_widget_;
 	/// view's toolbars
 	ToolbarMap toolbars_;
+	ProgressInterface* progress_;
 	/// The main layout box.
-	/** 
+	/**
 	 * \warning Don't Delete! The layout box is actually owned by
 	 * whichever toolbar contains it. All the GuiView class needs is a
 	 * means of accessing it.
@@ -262,10 +342,7 @@ public:
 	 * FIXME: replace that with a proper model so that we are not limited
 	 * to only one dialog.
 	 */
-	GuiLayoutBox * layout_;
-
-	///
-	map<string, Inset *> open_insets_;
+	LayoutBox * layout_;
 
 	///
 	map<string, DialogPtr> dialogs_;
@@ -282,11 +359,46 @@ public:
 
 	///
 	TocModels toc_models_;
+
+#if (QT_VERSION >= 0x040400)
+	///
+	QFutureWatcher<docstring> autosave_watcher_;
+	QFutureWatcher<docstring> processing_thread_watcher_;
+	///
+	string last_export_format;
+#else
+	struct DummyWatcher { bool isRunning(){return false;} };
+	DummyWatcher processing_thread_watcher_;
+#endif
+
+	static QSet<Buffer const *> busyBuffers;
+	static docstring previewAndDestroy(Buffer const * orig, Buffer * buffer, string const & format);
+	static docstring exportAndDestroy(Buffer const * orig, Buffer * buffer, string const & format);
+	static docstring compileAndDestroy(Buffer const * orig, Buffer * buffer, string const & format);
+	static docstring autosaveAndDestroy(Buffer const * orig, Buffer * buffer);
+
+	template<class T>
+	static docstring runAndDestroy(const T& func, Buffer const * orig, Buffer * buffer, string const & format, string const & msg);
+
+	// TODO syncFunc/previewFunc: use bind
+	bool asyncBufferProcessing(string const & argument,
+				   Buffer const * used_buffer,
+				   docstring const & msg,
+				   docstring (*asyncFunc)(Buffer const *, Buffer *, string const &),
+				   bool (Buffer::*syncFunc)(string const &, bool, bool) const,
+				   bool (Buffer::*previewFunc)(string const &, bool) const);
+
+	QTimer processing_cursor_timer_;
+	bool indicates_processing_;
+	QMap<GuiWorkArea*, Qt::CursorShape> orig_cursors_;
+	QVector<GuiWorkArea*> guiWorkAreas();
 };
+
+QSet<Buffer const *> GuiView::GuiViewPrivate::busyBuffers;
 
 
 GuiView::GuiView(int id)
-	: d(*new GuiViewPrivate), id_(id), closing_(false)
+	: d(*new GuiViewPrivate(this)), id_(id), closing_(false), busy_(0)
 {
 	// GuiToolbars *must* be initialised before the menu bar.
 	normalSizedIcons(); // at least on Mac the default is 32 otherwise, which is huge
@@ -295,8 +407,8 @@ GuiView::GuiView(int id)
 	// set ourself as the current view. This is needed for the menu bar
 	// filling, at least for the static special menu item on Mac. Otherwise
 	// they are greyed out.
-	theLyXFunc().setLyXView(this);
-	
+	guiApp->setCurrentView(this);
+
 	// Fill up the menu bar.
 	guiApp->menus().fillMenuBar(menuBar(), this, true);
 
@@ -304,7 +416,7 @@ GuiView::GuiView(int id)
 
 	// Start autosave timer
 	if (lyxrc.autosave) {
-		d.autosave_timeout_.timeout.connect(boost::bind(&GuiView::autoSave, this));
+		d.autosave_timeout_.timeout.connect(bind(&GuiView::autoSave, this));
 		d.autosave_timeout_.setTimeout(lyxrc.autosave * 1000);
 		d.autosave_timeout_.start();
 	}
@@ -320,11 +432,31 @@ GuiView::GuiView(int id)
 	setWindowIcon(getPixmap("images/", "lyx", "png"));
 #endif
 
+#if (QT_VERSION >= 0x040300)
+	// use tabbed dock area for multiple docks
+	// (such as "source" and "messages")
+	setDockOptions(QMainWindow::ForceTabbedDocks);
+#endif
+
 	// For Drag&Drop.
 	setAcceptDrops(true);
 
 	statusBar()->setSizeGripEnabled(true);
 	updateStatusBar();
+
+#if (QT_VERSION >= 0x040400)
+	connect(&d.autosave_watcher_, SIGNAL(finished()), this,
+		SLOT(autoSaveThreadFinished()));
+	connect(&d.processing_thread_watcher_, SIGNAL(finished()), this,
+		SLOT(processingThreadFinished()));
+
+	d.processing_cursor_timer_.setInterval(1000 * 3);
+	connect(&d.processing_cursor_timer_, SIGNAL(timeout()), this,
+		SLOT(indicateProcessing()));
+#endif
+
+	connect(this, SIGNAL(triggerShowDialog(QString const &, QString const &, Inset *)),
+		SLOT(doShowDialog(QString const &, QString const &, Inset *)));
 
 	// Forbid too small unresizable window because it can happen
 	// with some window manager under X11.
@@ -352,6 +484,137 @@ GuiView::~GuiView()
 }
 
 
+QVector<GuiWorkArea*> GuiView::GuiViewPrivate::guiWorkAreas()
+{
+	QVector<GuiWorkArea*> areas;
+	for (int i = 0; i < tabWorkAreaCount(); i++) {
+		TabWorkArea* ta = tabWorkArea(i);
+		for (int u = 0; u < ta->count(); u++) {
+			areas << ta->workArea(u);
+		}
+	}
+	return areas;
+}
+
+
+#if QT_VERSION >= 0x040400
+void GuiView::setCursorShapes(Qt::CursorShape shape)
+{
+	QVector<GuiWorkArea*> areas = d.guiWorkAreas();
+	Q_FOREACH(GuiWorkArea* wa, areas) {
+		wa->setCursorShape(shape);
+	}
+}
+
+
+void GuiView::restoreCursorShapes()
+{
+	QVector<GuiWorkArea*> areas = d.guiWorkAreas();
+	Q_FOREACH(GuiWorkArea* wa, areas) {
+		if (d.orig_cursors_.contains(wa)) {
+			wa->setCursorShape(d.orig_cursors_[wa]);
+		}
+	}
+}
+
+
+void GuiView::saveCursorShapes()
+{
+	d.orig_cursors_.clear();
+	QVector<GuiWorkArea*> areas = d.guiWorkAreas();
+	Q_FOREACH(GuiWorkArea* wa, areas) {
+		d.orig_cursors_[wa] = wa->cursorShape();
+	}
+}
+
+
+void GuiView::indicateProcessing()
+{
+	if (d.indicates_processing_) {
+		restoreCursorShapes();
+	} else {
+		setCursorShapes(Qt::BusyCursor);
+	}
+	d.indicates_processing_ = !d.indicates_processing_;
+}
+
+
+void GuiView::processingThreadStarted()
+{
+	saveCursorShapes();
+	d.indicates_processing_ = false;
+	indicateProcessing();
+	d.processing_cursor_timer_.start();
+}
+
+
+void GuiView::processingThreadFinished(bool show_errors)
+{
+	QFutureWatcher<docstring> const * watcher =
+		static_cast<QFutureWatcher<docstring> const *>(sender());
+	message(watcher->result());
+	updateToolbars();
+	if (show_errors) {
+		errors(d.last_export_format);
+ 	}
+	d.processing_cursor_timer_.stop();
+	restoreCursorShapes();
+	d.indicates_processing_ = false;
+}
+
+void GuiView::processingThreadFinished()
+{
+	processingThreadFinished(true);
+}
+
+void GuiView::autoSaveThreadFinished()
+{
+	processingThreadFinished(false);
+}
+
+#else
+
+void GuiView::setCursorShapes(Qt::CursorShape)
+{
+}
+
+
+void GuiView::restoreCursorShapes()
+{
+}
+
+
+void GuiView::saveCursorShapes()
+{
+}
+
+
+void GuiView::indicateProcessing()
+{
+}
+
+
+void GuiView::processingThreadStarted()
+{
+}
+
+
+void GuiView::processingThreadFinished(bool)
+{
+}
+
+
+void GuiView::processingThreadFinished()
+{
+}
+
+
+void GuiView::autoSaveThreadFinished()
+{
+}
+#endif
+
+
 void GuiView::saveLayout() const
 {
 	QSettings settings;
@@ -365,6 +628,19 @@ void GuiView::saveLayout() const
 #endif
 	settings.setValue("layout", saveState(0));
 	settings.setValue("icon_size", iconSize());
+}
+
+
+void GuiView::saveUISettings() const
+{
+	// Save the toolbar private states
+	ToolbarMap::iterator end = d.toolbars_.end();
+	for (ToolbarMap::iterator it = d.toolbars_.begin(); it != end; ++it)
+		it->second->saveSession();
+	// Now take care of all other dialogs
+	map<string, DialogPtr>::const_iterator it = d.dialogs_.begin();
+	for (; it!= d.dialogs_.end(); ++it)
+		it->second->saveSession();
 }
 
 
@@ -403,6 +679,10 @@ bool GuiView::restoreLayout()
 		dialog->prepareView();
 	if ((dialog = findOrBuild("view-source", true)))
 		dialog->prepareView();
+	if ((dialog = findOrBuild("progress", true)))
+		dialog->prepareView();
+	if ((dialog = findOrBuild("findreplaceadv", true)))
+		dialog->prepareView();
 
 	if (!restoreState(settings.value("layout").toByteArray(), 0))
 		initToolbars();
@@ -418,7 +698,6 @@ GuiToolbar * GuiView::toolbar(string const & name)
 		return it->second;
 
 	LYXERR(Debug::GUI, "Toolbar::display: no toolbar named " << name);
-	message(bformat(_("Unknown toolbar \"%1$s\""), from_utf8(name)));
 	return 0;
 }
 
@@ -429,7 +708,12 @@ void GuiView::constructToolbars()
 	for (; it != d.toolbars_.end(); ++it)
 		delete it->second;
 	d.toolbars_.clear();
-	d.layout_ = 0;
+
+	// I don't like doing this here, but the standard toolbar
+	// destroys this object when it's destroyed itself (vfr)
+	d.layout_ = new LayoutBox(*this);
+	d.stack_widget_->addWidget(d.layout_);
+	d.layout_->move(0,0);
 
 	// extracts the toolbars from the backend
 	Toolbars::Infos::iterator cit = guiApp->toolbars().begin();
@@ -449,7 +733,7 @@ void GuiView::initToolbars()
 		if (!tb)
 			continue;
 		int const visibility = guiApp->toolbars().defaultVisibility(cit->name);
-		bool newline = true;
+		bool newline = !(visibility & Toolbars::SAMEROW);
 		tb->setVisible(false);
 		tb->setVisibility(visibility);
 
@@ -462,7 +746,8 @@ void GuiView::initToolbars()
 		if (visibility & Toolbars::BOTTOM) {
 			// Qt < 4.2.2 cannot handle ToolBarBreak on non-TOP dock.
 #if (QT_VERSION >= 0x040202)
-			addToolBarBreak(Qt::BottomToolBarArea);
+			if (newline)
+				addToolBarBreak(Qt::BottomToolBarArea);
 #endif
 			addToolBar(Qt::BottomToolBarArea, tb);
 		}
@@ -470,7 +755,8 @@ void GuiView::initToolbars()
 		if (visibility & Toolbars::LEFT) {
 			// Qt < 4.2.2 cannot handle ToolBarBreak on non-TOP dock.
 #if (QT_VERSION >= 0x040202)
-			addToolBarBreak(Qt::LeftToolBarArea);
+			if (newline)
+				addToolBarBreak(Qt::LeftToolBarArea);
 #endif
 			addToolBar(Qt::LeftToolBarArea, tb);
 		}
@@ -478,7 +764,8 @@ void GuiView::initToolbars()
 		if (visibility & Toolbars::RIGHT) {
 			// Qt < 4.2.2 cannot handle ToolBarBreak on non-TOP dock.
 #if (QT_VERSION >= 0x040202)
-			addToolBarBreak(Qt::RightToolBarArea);
+			if (newline)
+				addToolBarBreak(Qt::RightToolBarArea);
 #endif
 			addToolBar(Qt::RightToolBarArea, tb);
 		}
@@ -497,12 +784,23 @@ TocModels & GuiView::tocModels()
 
 void GuiView::setFocus()
 {
-	// Make sure LyXFunc points to the correct view.
-	guiApp->setCurrentView(this);
-	theLyXFunc().setLyXView(this);
+	LYXERR(Debug::DEBUG, "GuiView::setFocus()" << this);
 	QMainWindow::setFocus();
-	if (d.current_work_area_)
-		d.current_work_area_->setFocus();
+}
+
+
+void GuiView::focusInEvent(QFocusEvent * e)
+{
+	LYXERR(Debug::DEBUG, "GuiView::focusInEvent()" << this);
+	QMainWindow::focusInEvent(e);
+	// Make sure guiApp points to the correct view.
+	guiApp->setCurrentView(this);
+	if (currentMainWorkArea())
+		currentMainWorkArea()->setFocus();
+	else if (currentWorkArea())
+		currentWorkArea()->setFocus();
+	else
+		d.bg_widget_->setFocus();
 }
 
 
@@ -526,20 +824,45 @@ void GuiView::showEvent(QShowEvent * e)
 }
 
 
-void GuiView::closeEvent(QCloseEvent * close_event)
+bool GuiView::closeScheduled()
 {
 	closing_ = true;
+	return close();
+}
+
+
+/** Destroy only all tabbed WorkAreas. Destruction of other WorkAreas
+ ** is responsibility of the container (e.g., dialog)
+ **/
+void GuiView::closeEvent(QCloseEvent * close_event)
+{
+	LYXERR(Debug::DEBUG, "GuiView::closeEvent()");
+
+	if (!GuiViewPrivate::busyBuffers.isEmpty()) {
+		Alert::warning(_("Exit LyX"), 
+			_("LyX could not be closed because documents are being processed by LyX."));
+		close_event->setAccepted(false);
+		return;
+	}
+
+	// If the user pressed the x (so we didn't call closeView
+	// programmatically), we want to clear all existing entries.
+	if (!closing_)
+		theSession().lastOpened().clear();
+	closing_ = true;
+
+	writeSession();
 
 	// it can happen that this event arrives without selecting the view,
 	// e.g. when clicking the close button on a background window.
 	setFocus();
-	if (!closeBufferAll(true)) {
+	if (!closeWorkAreaAll()) {
 		closing_ = false;
 		close_event->ignore();
 		return;
 	}
 
-	// Make sure that nothing will use this close to be closed View.
+	// Make sure that nothing will use this to be closed View.
 	guiApp->unregisterView(this);
 
 	if (isFullScreen()) {
@@ -554,92 +877,11 @@ void GuiView::closeEvent(QCloseEvent * close_event)
 	// Saving fullscreen requires additional tweaks in the toolbar code.
 	// It wouldn't also work under linux natively.
 	if (lyxrc.allow_geometry_session) {
-		// Save this window geometry and layout.
 		saveLayout();
-		// Then the toolbar private states.
-		ToolbarMap::iterator end = d.toolbars_.end();
-		for (ToolbarMap::iterator it = d.toolbars_.begin(); it != end; ++it)
-			it->second->saveSession();
-		// Now take care of all other dialogs:
-		map<string, DialogPtr>::const_iterator it = d.dialogs_.begin();
-		for (; it!= d.dialogs_.end(); ++it)
-			it->second->saveSession();
+		saveUISettings();
 	}
 
 	close_event->accept();
-}
-
-
-bool GuiView::closeBufferAll(bool tolastopened)
-{
-	GuiWorkArea const * active_wa = currentWorkArea();
-
-	// We might be in a situation that there is still a tabWorkArea, but
-	// there are no tabs anymore. This can happen when we get here after a 
-	// TabWorkArea::lastWorkAreaRemoved() signal. Therefore we count how
-	// many TabWorkArea's have no documents anymore.
-	int empty_twa = 0;
-
-	// We have to call count() each time, because it can happen that
-	// more than one splitter will disappear in one iteration (bug 5998).
-	for (; d.splitter_->count() > empty_twa; ) {
-		TabWorkArea * twa = d.tabWorkArea(empty_twa);
-				
-		if (twa->count() == 0) {
-			++empty_twa;
-			continue;
-		}
-
-		for (; twa == d.tabWorkArea(empty_twa);) {
-			twa->setCurrentIndex(twa->count() - 1);
-
-			GuiWorkArea * wa = twa->currentWorkArea();
-			bool const is_active_wa = active_wa == wa;
-			Buffer * b = &wa->bufferView().buffer();
-
-			if (b->parent()) {
-				// This is a child document, just close the tab
-				// after saving but keep the file loaded.
-				if (!closeBuffer(*b, tolastopened, is_active_wa))
-					return false;
-				continue;
-			}
-			
-			vector<Buffer *> clist = b->getChildren();
-			for (vector<Buffer *>::const_iterator it = clist.begin();
-				 it != clist.end(); ++it) {
-				if ((*it)->isClean())
-					continue;
-				Buffer * c = *it;
-				// If a child is dirty, do not close
-				// without user intervention
-				if (!closeBuffer(*c, false))
-					return false; 
-			}
-
-			QList<int> const ids = guiApp->viewIds();
-			for (int i = 0; i != ids.size(); ++i) {
-				if (id_ == ids[i])
-					continue;
-				if (guiApp->view(ids[i]).workArea(*b)) {
-					// FIXME 1: should we put an alert box here that the buffer
-					// is viewed elsewhere?
-					// FIXME 2: should we try to save this buffer in any case?
-					//saveBuffer(b);
-
-					// This buffer is also opened in another view, so
-					// close the associated work area...
-					removeWorkArea(d.current_work_area_);
-					// ... but don't close the buffer.
-					b = 0;
-					break;
-				}
-			}
-			if (b && !closeBuffer(*b, tolastopened, is_active_wa))
-				return false;
-		}
-	}
-	return true;
 }
 
 
@@ -670,7 +912,7 @@ void GuiView::dropEvent(QDropEvent * event)
 		vector<const Format *> found_formats;
 
 		// Find all formats that have the correct extension.
-		vector<const Format *> const & import_formats 
+		vector<const Format *> const & import_formats
 			= theConverters().importableFormats();
 		vector<const Format *>::const_iterator it = import_formats.begin();
 		for (; it != import_formats.end(); ++it)
@@ -686,20 +928,21 @@ void GuiView::dropEvent(QDropEvent * event)
 			}
 			string const arg = found_formats[0]->name() + " " + file;
 			cmd = FuncRequest(LFUN_BUFFER_IMPORT, arg);
-		} 
+		}
 		else {
 			//FIXME: do we have to explicitly check whether it's a lyx file?
 			LYXERR(Debug::FILES,
 				"No formats found, trying to open it as a lyx file");
 			cmd = FuncRequest(LFUN_FILE_OPEN, file);
 		}
-
-		// Asynchronously post the event. DropEvent usually come
-		// from the BufferView. But reloading a file might close
-		// the BufferView from within its own event handler.
-		guiApp->dispatchDelayed(cmd);
+		// add the functions to the queue
+		guiApp->addToFuncRequestQueue(cmd);
 		event->accept();
 	}
+	// now process the collected functions. We perform the events
+	// asynchronously. This prevents potential problems in case the
+	// BufferView is closed within an event.
+	guiApp->processFuncRequestQueueAsync();
 }
 
 
@@ -708,7 +951,20 @@ void GuiView::message(docstring const & str)
 	if (ForkedProcess::iAmAChild())
 		return;
 
-	statusBar()->showMessage(toqstr(str));
+	// call is moved to GUI-thread by GuiProgress
+	d.progress_->appendMessage(toqstr(str));
+}
+
+
+void GuiView::clearMessageText()
+{
+	message(docstring());
+}
+
+
+void GuiView::updateStatusBarMessage(QString const & str)
+{
+	statusBar()->showMessage(str);
 	d.statusbar_timer_.stop();
 	d.statusbar_timer_.start(3000);
 }
@@ -734,17 +990,20 @@ void GuiView::bigSizedIcons()
 
 void GuiView::clearMessage()
 {
-	if (!hasFocus())
-		return;
-	theLyXFunc().setLyXView(this);
-	statusBar()->showMessage(toqstr(theLyXFunc().viewStatusMessage()));
+	// FIXME: This code was introduced in r19643 to fix bug #4123. However,
+	// the hasFocus function mostly returns false, even if the focus is on
+	// a workarea in this view.
+	//if (!hasFocus())
+	//	return;
+	showMessage();
 	d.statusbar_timer_.stop();
 }
 
 
 void GuiView::updateWindowTitle(GuiWorkArea * wa)
 {
-	if (wa != d.current_work_area_)
+	if (wa != d.current_work_area_
+		|| wa->bufferView().buffer().isInternal())
 		return;
 	setWindowTitle(qt_("LyX: ") + wa->windowTitle());
 	setWindowIconText(wa->windowIconText());
@@ -815,14 +1074,21 @@ void GuiView::updateStatusBar()
 	if (d.statusbar_timer_.isActive())
 		return;
 
-	theLyXFunc().setLyXView(this);
-	statusBar()->showMessage(toqstr(theLyXFunc().viewStatusMessage()));
+	showMessage();
 }
 
 
-bool GuiView::hasFocus() const
+void GuiView::showMessage()
 {
-	return qApp->activeWindow() == this;
+	QString msg = toqstr(theGuiApp()->viewStatusMessage());
+	if (msg.isEmpty()) {
+		BufferView const * bv = currentBufferView();
+		if (bv)
+			msg = toqstr(bv->cursor().currentState());
+		else
+			msg = qt_("Welcome to LyX!");
+	}
+	statusBar()->showMessage(msg);
 }
 
 
@@ -846,12 +1112,17 @@ bool GuiView::event(QEvent * e)
 	//	break;
 
 	case QEvent::WindowActivate: {
-		if (this == guiApp->currentView()) {
+		GuiView * old_view = guiApp->currentView();
+		if (this == old_view) {
 			setFocus();
 			return QMainWindow::event(e);
 		}
+		if (old_view && old_view->currentBufferView()) {
+			// save current selection to the selection buffer to allow
+			// middle-button paste in this window.
+			cap::saveSelection(old_view->currentBufferView()->cursor());
+		}
 		guiApp->setCurrentView(this);
-		theLyXFunc().setLyXView(this);
 		if (d.current_work_area_) {
 			BufferView & bv = d.current_work_area_->bufferView();
 			connectBufferView(bv);
@@ -885,26 +1156,7 @@ bool GuiView::event(QEvent * e)
 			}
 		}
 #endif
-
-		if (d.current_work_area_)
-			// Nothing special to do.
-			return QMainWindow::event(e);
-
-		QKeyEvent * ke = static_cast<QKeyEvent*>(e);
-		// Let Qt handle menu access and the Tab keys to navigate keys to navigate
-		// between controls.
-		if (ke->modifiers() & Qt::AltModifier || ke->key() == Qt::Key_Tab 
-			|| ke->key() == Qt::Key_Backtab)
-			return QMainWindow::event(e);
-
-		// Allow processing of shortcuts that are allowed even when no Buffer
-		// is viewed.
-		theLyXFunc().setLyXView(this);
-		KeySymbol sym;
-		setKeySymbol(&sym, ke);
-		theLyXFunc().processKeySym(sym, q_key_state(ke->modifiers()));
-		e->accept();
-		return true;
+		return QMainWindow::event(e);
 	}
 
 	default:
@@ -914,8 +1166,8 @@ bool GuiView::event(QEvent * e)
 
 void GuiView::resetWindowTitleAndIconText()
 {
-    setWindowTitle(qt_("LyX"));
-    setWindowIconText(qt_("LyX"));
+	setWindowTitle(qt_("LyX"));
+	setWindowIconText(qt_("LyX"));
 }
 
 bool GuiView::focusNextPrevChild(bool /*next*/)
@@ -925,8 +1177,20 @@ bool GuiView::focusNextPrevChild(bool /*next*/)
 }
 
 
+bool GuiView::busy() const
+{
+	return busy_ > 0;
+}
+
+
 void GuiView::setBusy(bool busy)
 {
+	bool const busy_before = busy_ > 0;
+	busy ? ++busy_ : --busy_;
+	if ((busy_ > 0) == busy_before)
+		// busy state didn't change
+		return;
+
 	if (d.current_work_area_) {
 		d.current_work_area_->setUpdatesEnabled(!busy);
 		if (busy)
@@ -942,8 +1206,20 @@ void GuiView::setBusy(bool busy)
 }
 
 
+GuiWorkArea * GuiView::workArea(int index)
+{
+	if (TabWorkArea * twa = d.currentTabWorkArea())
+		if (index < twa->count())
+			return dynamic_cast<GuiWorkArea *>(twa->widget(index));
+	return 0;
+}
+
+
 GuiWorkArea * GuiView::workArea(Buffer & buffer)
 {
+	if (currentWorkArea()
+		&& &currentWorkArea()->bufferView().buffer() == &buffer)
+		return (GuiWorkArea *) currentWorkArea();
 	if (TabWorkArea * twa = d.currentTabWorkArea())
 		return twa->workArea(buffer);
 	return 0;
@@ -953,7 +1229,7 @@ GuiWorkArea * GuiView::workArea(Buffer & buffer)
 GuiWorkArea * GuiView::addWorkArea(Buffer & buffer)
 {
 	// Automatically create a TabWorkArea if there are none yet.
-	TabWorkArea * tab_widget = d.splitter_->count() 
+	TabWorkArea * tab_widget = d.splitter_->count()
 		? d.currentTabWorkArea() : addTabWorkArea();
 	return tab_widget->addWorkArea(buffer, *this);
 }
@@ -979,16 +1255,73 @@ GuiWorkArea const * GuiView::currentWorkArea() const
 }
 
 
+GuiWorkArea * GuiView::currentWorkArea()
+{
+	return d.current_work_area_;
+}
+
+
+GuiWorkArea const * GuiView::currentMainWorkArea() const
+{
+	if (!d.currentTabWorkArea())
+		return 0;
+	return d.currentTabWorkArea()->currentWorkArea();
+}
+
+
+GuiWorkArea * GuiView::currentMainWorkArea()
+{
+	if (!d.currentTabWorkArea())
+		return 0;
+	return d.currentTabWorkArea()->currentWorkArea();
+}
+
+
 void GuiView::setCurrentWorkArea(GuiWorkArea * wa)
 {
-	LASSERT(wa, return);
-	if (view())
-		cap::saveSelection(view()->cursor());
-	d.current_work_area_ = wa;
-	for (int i = 0; i != d.splitter_->count(); ++i) {
-		if (d.tabWorkArea(i)->setCurrentWorkArea(wa))
-			return;
+	LYXERR(Debug::DEBUG, "Setting current wa: " << wa << endl);
+	if (!wa) {
+		d.current_work_area_ = 0;
+		d.setBackground();
+		return;
 	}
+
+	// FIXME: I've no clue why this is here and why it accesses
+	//  theGuiApp()->currentView, which might be 0 (bug 6464).
+	//  See also 27525 (vfr).
+	if (theGuiApp()->currentView() == this
+		  && theGuiApp()->currentView()->currentWorkArea() == wa)
+		return;
+
+	if (currentBufferView())
+		cap::saveSelection(currentBufferView()->cursor());
+
+	theGuiApp()->setCurrentView(this);
+	d.current_work_area_ = wa;
+	
+	// We need to reset this now, because it will need to be
+	// right if the tabWorkArea gets reset in the for loop. We
+	// will change it back if we aren't in that case.
+	GuiWorkArea * const old_cmwa = d.current_main_work_area_;
+	d.current_main_work_area_ = wa;
+
+	for (int i = 0; i != d.splitter_->count(); ++i) {
+		if (d.tabWorkArea(i)->setCurrentWorkArea(wa)) {
+			LYXERR(Debug::DEBUG, "Current wa: " << currentWorkArea() 
+				<< ", Current main wa: " << currentMainWorkArea());
+			return;
+		}
+	}
+	
+	d.current_main_work_area_ = old_cmwa;
+	
+	LYXERR(Debug::DEBUG, "This is not a tabbed wa");
+	on_currentWorkAreaChanged(wa);
+	BufferView & bv = wa->bufferView();
+	bv.cursor().fixIfBroken();
+	bv.updateMetrics();
+	wa->setUpdatesEnabled(true);
+	LYXERR(Debug::DEBUG, "Current wa: " << currentWorkArea() << ", Current main wa: " << currentMainWorkArea());
 }
 
 
@@ -999,39 +1332,47 @@ void GuiView::removeWorkArea(GuiWorkArea * wa)
 		disconnectBuffer();
 		disconnectBufferView();
 		d.current_work_area_ = 0;
+		d.current_main_work_area_ = 0;
 	}
 
+	bool found_twa = false;
 	for (int i = 0; i != d.splitter_->count(); ++i) {
 		TabWorkArea * twa = d.tabWorkArea(i);
-		if (!twa->removeWorkArea(wa))
-			// Not found in this tab group.
-			continue;
-
-		// We found and removed the GuiWorkArea.
-		if (!twa->count()) {
-			// No more WorkAreas in this tab group, so delete it.
-			delete twa;
+		if (twa->removeWorkArea(wa)) {
+			// Found in this tab group, and deleted the GuiWorkArea.
+			found_twa = true;
+			if (twa->count() != 0) {
+				if (d.current_work_area_ == 0)
+					// This means that we are closing the current GuiWorkArea, so
+					// switch to the next GuiWorkArea in the found TabWorkArea.
+					setCurrentWorkArea(twa->currentWorkArea());
+			} else {
+				// No more WorkAreas in this tab group, so delete it.
+				delete twa;
+			}
 			break;
 		}
-
-		if (d.current_work_area_)
-			// This means that we are not closing the current GuiWorkArea;
-			break;
-
-		// Switch to the next GuiWorkArea in the found TabWorkArea.
-		d.current_work_area_ = twa->currentWorkArea();
-		break;
 	}
 
-	if (d.splitter_->count() == 0)
-		// No more work area, switch to the background widget.
-		d.setBackground();
+	// It is not a tabbed work area (i.e., the search work area), so it
+	// should be deleted by other means.
+	LASSERT(found_twa, /* */);
+
+	if (d.current_work_area_ == 0) {
+		if (d.splitter_->count() != 0) {
+			TabWorkArea * twa = d.currentTabWorkArea();
+			setCurrentWorkArea(twa->currentWorkArea());
+		} else {
+			// No more work areas, switch to the background widget.
+			setCurrentWorkArea(0);
+		}
+	}
 }
 
 
-void GuiView::setLayoutDialog(GuiLayoutBox * layout)
+LayoutBox * GuiView::getLayoutDialog() const
 {
-	d.layout_ = layout;
+	return d.layout_;
 }
 
 
@@ -1047,12 +1388,13 @@ void GuiView::updateToolbars()
 	ToolbarMap::iterator end = d.toolbars_.end();
 	if (d.current_work_area_) {
 		bool const math =
-			d.current_work_area_->bufferView().cursor().inMathed();
+			d.current_work_area_->bufferView().cursor().inMathed()
+			&& !d.current_work_area_->bufferView().cursor().inRegexped();
 		bool const table =
 			lyx::getStatus(FuncRequest(LFUN_LAYOUT_TABULAR)).enabled();
 		bool const review =
 			lyx::getStatus(FuncRequest(LFUN_CHANGES_TRACK)).enabled() &&
-			lyx::getStatus(FuncRequest(LFUN_CHANGES_TRACK)).onoff(true);
+			lyx::getStatus(FuncRequest(LFUN_CHANGES_TRACK)).onOff(true);
 		bool const mathmacrotemplate =
 			lyx::getStatus(FuncRequest(LFUN_IN_MATHMACROTEMPLATE)).enabled();
 
@@ -1064,31 +1406,22 @@ void GuiView::updateToolbars()
 }
 
 
-Buffer * GuiView::buffer()
-{
-	if (d.current_work_area_)
-		return &d.current_work_area_->bufferView().buffer();
-	return 0;
-}
-
-
-Buffer const * GuiView::buffer() const
-{
-	if (d.current_work_area_)
-		return &d.current_work_area_->bufferView().buffer();
-	return 0;
-}
-
-
 void GuiView::setBuffer(Buffer * newBuffer)
 {
+	LYXERR(Debug::DEBUG, "Setting buffer: " << newBuffer << endl);
 	LASSERT(newBuffer, return);
 	setBusy(true);
 
 	GuiWorkArea * wa = workArea(*newBuffer);
 	if (wa == 0) {
-		updateLabels(*newBuffer->masterBuffer());
+		newBuffer->masterBuffer()->updateBuffer();
 		wa = addWorkArea(*newBuffer);
+		// scroll to the position when the BufferView was last closed
+		if (lyxrc.use_lastfilepos) {
+			LastFilePosSection::FilePos filepos =
+				theSession().lastFilePos().load(newBuffer->fileName());
+			wa->bufferView().moveToPosition(filepos.pit, filepos.pos, 0, 0);
+		}
 	} else {
 		//Disconnect the old buffer...there's no new one.
 		disconnectBuffer();
@@ -1127,15 +1460,26 @@ void GuiView::disconnectBufferView()
 }
 
 
-void GuiView::errors(string const & error_type)
+void GuiView::errors(string const & error_type, bool from_master)
 {
-	ErrorList & el = buffer()->errorList(error_type);
-	if (!el.empty())
-		showDialog("errorlist", error_type);
+	BufferView const * const bv = currentBufferView();
+	if (!bv)
+		return;
+
+	ErrorList & el = from_master ?
+		bv->buffer().masterBuffer()->errorList(error_type) :
+		bv->buffer().errorList(error_type);
+	if (el.empty())
+		return;
+
+	string data = error_type;
+	if (from_master)
+		data = "from_master|" + error_type;
+	showDialog("errorlist", data);
 }
 
 
-void GuiView::updateTocItem(std::string const & type, DocIterator const & dit)
+void GuiView::updateTocItem(string const & type, DocIterator const & dit)
 {
 	d.toc_models_.updateItem(toqstr(type), dit);
 }
@@ -1143,7 +1487,7 @@ void GuiView::updateTocItem(std::string const & type, DocIterator const & dit)
 
 void GuiView::structureChanged()
 {
-	d.toc_models_.reset(view());
+	d.toc_models_.reset(documentBufferView());
 	// Navigator needs more than a simple update in this case. It needs to be
 	// rebuilt.
 	updateDialog("toc", "");
@@ -1165,18 +1509,66 @@ void GuiView::updateDialog(string const & name, string const & data)
 }
 
 
-BufferView * GuiView::view()
+BufferView * GuiView::documentBufferView()
+{
+	return currentMainWorkArea()
+		? &currentMainWorkArea()->bufferView()
+		: 0;
+}
+
+
+BufferView const * GuiView::documentBufferView() const
+{
+	return currentMainWorkArea()
+		? &currentMainWorkArea()->bufferView()
+		: 0;
+}
+
+
+BufferView * GuiView::currentBufferView()
 {
 	return d.current_work_area_ ? &d.current_work_area_->bufferView() : 0;
 }
+
+
+BufferView const * GuiView::currentBufferView() const
+{
+	return d.current_work_area_ ? &d.current_work_area_->bufferView() : 0;
+}
+
+
+#if (QT_VERSION >= 0x040400)
+docstring GuiView::GuiViewPrivate::autosaveAndDestroy(
+	Buffer const * orig, Buffer * buffer)
+{
+	bool const success = buffer->autoSave();
+	delete buffer;
+	busyBuffers.remove(orig);
+	return success
+		? _("Automatic save done.")
+		: _("Automatic save failed!");
+}
+#endif
 
 
 void GuiView::autoSave()
 {
 	LYXERR(Debug::INFO, "Running autoSave()");
 
-	if (buffer())
-		view()->buffer().autoSave();
+	Buffer * buffer = documentBufferView()
+		? &documentBufferView()->buffer() : 0;
+	if (!buffer)
+		return;
+
+#if (QT_VERSION >= 0x040400)
+	GuiViewPrivate::busyBuffers.insert(buffer);
+	QFuture<docstring> f = QtConcurrent::run(GuiViewPrivate::autosaveAndDestroy,
+		buffer, buffer->clone());
+	d.autosave_watcher_.setFuture(f);
+#else
+	buffer->autoSave();
+#endif
+	resetAutosaveTimers();
 }
 
 
@@ -1190,50 +1582,102 @@ void GuiView::resetAutosaveTimers()
 bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 {
 	bool enable = true;
-	Buffer * buf = buffer();
+	Buffer * buf = currentBufferView()
+		? &currentBufferView()->buffer() : 0;
+	Buffer * doc_buffer = documentBufferView()
+		? &(documentBufferView()->buffer()) : 0;
 
-	/* In LyX/Mac, when a dialog is open, the menus of the
-	   application can still be accessed without giving focus to
-	   the main window. In this case, we want to disable the menu
-	   entries that are buffer-related.
+	// Check whether we need a buffer
+	if (!lyxaction.funcHasFlag(cmd.action(), LyXAction::NoBuffer) && !buf) {
+		// no, exit directly
+		flag.message(from_utf8(N_("Command not allowed with"
+					"out any document open")));
+		flag.setEnabled(false);
+		return true;
+	}
 
-	   Note that this code is not perfect, as bug 1941 attests:
-	   http://bugzilla.lyx.org/show_bug.cgi?id=1941#c4
-	*/
-	if (cmd.origin == FuncRequest::MENU && !hasFocus())
-		buf = 0;
+	if (cmd.origin() == FuncRequest::TOC) {
+		GuiToc * toc = static_cast<GuiToc*>(findOrBuild("toc", false));
+		if (!toc || !toc->getStatus(documentBufferView()->cursor(), cmd, flag))
+			flag.setEnabled(false);
+		return true;
+	}
 
-	switch(cmd.action) {
-	case LFUN_BUFFER_WRITE:
-		enable = buf && (buf->isUnnamed() || !buf->isClean());
+	switch(cmd.action()) {
+	case LFUN_BUFFER_IMPORT:
 		break;
 
-	case LFUN_BUFFER_WRITE_AS:
-		enable = buf;
+	case LFUN_MASTER_BUFFER_UPDATE:
+	case LFUN_MASTER_BUFFER_VIEW:
+		enable = doc_buffer && doc_buffer->parent() != 0
+			&& !d.processing_thread_watcher_.isRunning();
 		break;
 
-	case LFUN_BUFFER_CLOSE_ALL: {
-		enable = false;
-		BufferList::iterator it = theBufferList().begin();
-		BufferList::iterator end = theBufferList().end();
-		int visible_buffers = 0;
-		for (; it != end; ++it) {
-			if (workArea(**it))
-				++visible_buffers;
-				if (visible_buffers > 1) {
-					enable = true;
-					break;  
-				}
+	case LFUN_BUFFER_UPDATE:
+	case LFUN_BUFFER_VIEW: {
+		if (!doc_buffer || d.processing_thread_watcher_.isRunning()) {
+			enable = false;
+			break;
 		}
+		string format = to_utf8(cmd.argument());
+		if (cmd.argument().empty())
+			format = doc_buffer->getDefaultOutputFormat();
+		enable = doc_buffer->isExportableFormat(format);
 		break;
 	}
 
+	case LFUN_BUFFER_RELOAD:
+		enable = doc_buffer && !doc_buffer->isUnnamed()
+			&& doc_buffer->fileName().exists()
+			&& (!doc_buffer->isClean()
+			   || doc_buffer->isExternallyModified(Buffer::timestamp_method));
+		break;
+
+	case LFUN_BUFFER_CHILD_OPEN:
+		enable = doc_buffer;
+		break;
+
+	case LFUN_BUFFER_WRITE:
+		enable = doc_buffer && (doc_buffer->isUnnamed() || !doc_buffer->isClean());
+		break;
+
+	//FIXME: This LFUN should be moved to GuiApplication.
+	case LFUN_BUFFER_WRITE_ALL: {
+		// We enable the command only if there are some modified buffers
+		Buffer * first = theBufferList().first();
+		enable = false;
+		if (!first)
+			break;
+		Buffer * b = first;
+		// We cannot use a for loop as the buffer list is a cycle.
+		do {
+			if (!b->isClean()) {
+				enable = true;
+				break;
+			}
+			b = theBufferList().next(b);
+		} while (b != first);
+		break;
+	}
+
+	case LFUN_BUFFER_WRITE_AS:
+		enable = doc_buffer;
+		break;
+
+	case LFUN_BUFFER_CLOSE:
+		enable = doc_buffer;
+		break;
+
+	case LFUN_BUFFER_CLOSE_ALL:
+		enable = theBufferList().last() != theBufferList().first();
+		break;
+
 	case LFUN_SPLIT_VIEW:
 		if (cmd.getArg(0) == "vertical")
-			enable = buf && (d.splitter_->count() == 1 ||
+			enable = doc_buffer && (d.splitter_->count() == 1 ||
 					 d.splitter_->orientation() == Qt::Vertical);
 		else
-			enable = buf && (d.splitter_->count() == 1 ||
+			enable = doc_buffer && (d.splitter_->count() == 1 ||
 					 d.splitter_->orientation() == Qt::Horizontal);
 		break;
 
@@ -1241,13 +1685,32 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		enable = d.currentTabWorkArea();
 		break;
 
-	case LFUN_TOOLBAR_TOGGLE:
-		if (GuiToolbar * t = toolbar(cmd.getArg(0)))
+	case LFUN_TOOLBAR_TOGGLE: {
+		string const name = cmd.getArg(0);
+		if (GuiToolbar * t = toolbar(name))
 			flag.setOnOff(t->isVisible());
+		else {
+			enable = false;
+			docstring const msg =
+				bformat(_("Unknown toolbar \"%1$s\""), from_utf8(name));
+			flag.message(msg);
+		}
+		break;
+	}
+
+	case LFUN_DROP_LAYOUTS_CHOICE:
+		enable = buf;
 		break;
 
 	case LFUN_UI_TOGGLE:
 		flag.setOnOff(isFullScreen());
+		break;
+
+	case LFUN_DIALOG_DISCONNECT_INSET:
+		break;
+
+	case LFUN_DIALOG_HIDE:
+		// FIXME: should we check if the dialog is shown?
 		break;
 
 	case LFUN_DIALOG_TOGGLE:
@@ -1255,40 +1718,32 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		// fall through to set "enable"
 	case LFUN_DIALOG_SHOW: {
 		string const name = cmd.getArg(0);
-		if (!buf)
+		if (!doc_buffer)
 			enable = name == "aboutlyx"
 				|| name == "file" //FIXME: should be removed.
 				|| name == "prefs"
-				|| name == "texinfo";
+				|| name == "texinfo"
+				|| name == "progress"
+				|| name == "compare";
 		else if (name == "print")
-			enable = buf->isExportable("dvi")
+			enable = doc_buffer->isExportable("dvi")
 				&& lyxrc.print_command != "none";
-		else if (name == "character") {
-			if (!view())
+		else if (name == "character" || name == "symbols") {
+			if (!buf || buf->isReadonly())
 				enable = false;
 			else {
-				InsetCode ic = view()->cursor().inset().lyxCode();
-				enable = ic != ERT_CODE && ic != LISTINGS_CODE;
-			}
-		}
-		else if (name == "symbols") {
-			if (buf->isReadonly() || !view() || view()->cursor().inMathed())
-				enable = false;
-			else {
-				InsetCode ic = view()->cursor().inset().lyxCode();
-				enable = ic != ERT_CODE && ic != LISTINGS_CODE;
+				// FIXME we should consider passthru
+				// paragraphs too.
+				Inset const & in = currentBufferView()->cursor().inset();
+				enable = !in.getLayout().isPassThru();
 			}
 		}
 		else if (name == "latexlog")
-			enable = FileName(buf->logName()).isReadableFile();
+			enable = FileName(doc_buffer->logName()).isReadableFile();
 		else if (name == "spellchecker")
-#if defined (USE_ENCHANT) || defined (USE_ASPELL) || defined (USE_ISPELL) || defined (USE_PSPELL)
-			enable = !buf->isReadonly();
-#else
-			enable = false;
-#endif
+			enable = theSpellChecker() && !doc_buffer->isReadonly();
 		else if (name == "vclog")
-			enable = buf->lyxvc().inUse();
+			enable = doc_buffer->lyxvc().inUse();
 		break;
 	}
 
@@ -1299,57 +1754,106 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		break;
 	}
 
-	case LFUN_INSET_APPLY: {
-		string const name = cmd.getArg(0);
-		Inset * inset = getOpenInset(name);
-		if (inset) {
-			FuncRequest fr(LFUN_INSET_MODIFY, cmd.argument());
-			FuncStatus fs;
-			if (!inset->getStatus(view()->cursor(), fr, fs)) {
-				// Every inset is supposed to handle this
-				LASSERT(false, break);
-			}
-			flag |= fs;
-		} else {
-			FuncRequest fr(LFUN_INSET_INSERT, cmd.argument());
-			flag |= lyx::getStatus(fr);
-		}
-		enable = flag.enabled();
+	case LFUN_COMMAND_EXECUTE:
+	case LFUN_MESSAGE:
+	case LFUN_MENU_OPEN:
+		// Nothing to check.
 		break;
-	}
 
 	case LFUN_COMPLETION_INLINE:
 		if (!d.current_work_area_
-		    || !d.current_work_area_->completer().inlinePossible(view()->cursor()))
-		    enable = false;
+			|| !d.current_work_area_->completer().inlinePossible(
+			currentBufferView()->cursor()))
+			enable = false;
 		break;
 
 	case LFUN_COMPLETION_POPUP:
 		if (!d.current_work_area_
-		    || !d.current_work_area_->completer().popupPossible(view()->cursor()))
-		    enable = false;
+			|| !d.current_work_area_->completer().popupPossible(
+			currentBufferView()->cursor()))
+			enable = false;
 		break;
 
 	case LFUN_COMPLETION_COMPLETE:
 		if (!d.current_work_area_
-			|| !d.current_work_area_->completer().inlinePossible(view()->cursor()))
-		    enable = false;
+			|| !d.current_work_area_->completer().inlinePossible(
+			currentBufferView()->cursor()))
+			enable = false;
 		break;
 
 	case LFUN_COMPLETION_ACCEPT:
+		if (!d.current_work_area_
+			|| (!d.current_work_area_->completer().popupVisible()
+			&& !d.current_work_area_->completer().inlineVisible()
+			&& !d.current_work_area_->completer().completionAvailable()))
+			enable = false;
+		break;
+
 	case LFUN_COMPLETION_CANCEL:
 		if (!d.current_work_area_
-		    || (!d.current_work_area_->completer().popupVisible()
+			|| (!d.current_work_area_->completer().popupVisible()
 			&& !d.current_work_area_->completer().inlineVisible()))
 			enable = false;
 		break;
 
 	case LFUN_BUFFER_ZOOM_OUT:
-		enable = buf && lyxrc.zoom > 10;
+		enable = doc_buffer && lyxrc.zoom > 10;
 		break;
 
 	case LFUN_BUFFER_ZOOM_IN:
-		enable = buf;
+		enable = doc_buffer;
+		break;
+
+	case LFUN_BUFFER_NEXT:
+	case LFUN_BUFFER_PREVIOUS:
+		// FIXME: should we check is there is an previous or next buffer?
+		break;
+	case LFUN_BUFFER_SWITCH:
+		// toggle on the current buffer, but do not toggle off
+		// the other ones (is that a good idea?)
+		if (doc_buffer
+			&& to_utf8(cmd.argument()) == doc_buffer->absFileName())
+			flag.setOnOff(true);
+		break;
+
+	case LFUN_VC_REGISTER:
+		enable = doc_buffer && !doc_buffer->lyxvc().inUse();
+		break;
+	case LFUN_VC_CHECK_IN:
+		enable = doc_buffer && doc_buffer->lyxvc().checkInEnabled();
+		break;
+	case LFUN_VC_CHECK_OUT:
+		enable = doc_buffer && doc_buffer->lyxvc().checkOutEnabled();
+		break;
+	case LFUN_VC_LOCKING_TOGGLE:
+		enable = doc_buffer && !doc_buffer->isReadonly()
+			&& doc_buffer->lyxvc().lockingToggleEnabled();
+		flag.setOnOff(enable && doc_buffer->lyxvc().locking());
+		break;
+	case LFUN_VC_REVERT:
+		enable = doc_buffer && doc_buffer->lyxvc().inUse() && !doc_buffer->isReadonly();
+		break;
+	case LFUN_VC_UNDO_LAST:
+		enable = doc_buffer && doc_buffer->lyxvc().undoLastEnabled();
+		break;
+	case LFUN_VC_REPO_UPDATE:
+		enable = doc_buffer && doc_buffer->lyxvc().repoUpdateEnabled();
+		break;
+	case LFUN_VC_COMMAND: {
+		if (cmd.argument().empty())
+			enable = false;
+		if (!doc_buffer && contains(cmd.getArg(0), 'D'))
+			enable = false;
+		break;
+	}
+	case LFUN_VC_COMPARE:
+		enable = doc_buffer && doc_buffer->lyxvc().prepareFileRevisionEnabled();
+		break;
+
+	case LFUN_SERVER_GOTO_FILE_ROW:
+		break;
+	case LFUN_FORWARD_SEARCH:
+		enable = !(lyxrc.forward_search_dvi.empty() && lyxrc.forward_search_pdf.empty());
 		break;
 
 	default:
@@ -1367,10 +1871,10 @@ static FileName selectTemplateFile()
 {
 	FileDialog dlg(qt_("Select template file"));
 	dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
-	dlg.setButton1(qt_("Templates|#T#t"), toqstr(lyxrc.template_path));
+	dlg.setButton2(qt_("Templates|#T#t"), toqstr(lyxrc.template_path));
 
 	FileDialog::Result result = dlg.open(toqstr(lyxrc.template_path),
-			     QStringList(qt_("LyX Documents (*.lyx)")));
+				 QStringList(qt_("LyX Documents (*.lyx)")));
 
 	if (result.first == FileDialog::Later)
 		return FileName();
@@ -1384,22 +1888,22 @@ Buffer * GuiView::loadDocument(FileName const & filename, bool tolastfiles)
 {
 	setBusy(true);
 
-	Buffer * newBuffer = checkAndLoadLyXFile(filename);
+	Buffer * newBuffer = 0;
+	try {
+		newBuffer = checkAndLoadLyXFile(filename);
+	} catch (ExceptionMessage const & e) {
+		setBusy(false);
+		throw(e);
+	}
 
 	if (!newBuffer) {
 		message(_("Document not loaded."));
 		setBusy(false);
 		return 0;
 	}
-	
-	setBuffer(newBuffer);
 
-	// scroll to the position when the file was last closed
-	if (lyxrc.use_lastfilepos) {
-		LastFilePosSection::FilePos filepos =
-			theSession().lastFilePos().load(filename);
-		view()->moveToPosition(filepos.pit, filepos.pos, 0, 0);
-	}
+	newBuffer->errors("Parse");
+	setBuffer(newBuffer);
 
 	if (tolastfiles)
 		theSession().lastFiles().add(filename);
@@ -1413,8 +1917,8 @@ void GuiView::openDocument(string const & fname)
 {
 	string initpath = lyxrc.document_path;
 
-	if (buffer()) {
-		string const trypath = buffer()->filePath();
+	if (documentBufferView()) {
+		string const trypath = documentBufferView()->buffer().filePath();
 		// If directory is writeable, use this as default.
 		if (FileName(trypath).isDirWritable())
 			initpath = trypath;
@@ -1426,7 +1930,7 @@ void GuiView::openDocument(string const & fname)
 		FileDialog dlg(qt_("Select document to open"), LFUN_FILE_OPEN);
 		dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
 		dlg.setButton2(qt_("Examples|#E#e"),
-				toqstr(addPath(package().system_support().absFilename(), "examples")));
+				toqstr(addPath(package().system_support().absFileName(), "examples")));
 
 		QStringList filter(qt_("LyX Documents (*.lyx)"));
 		filter << qt_("LyX-1.3.x Documents (*.lyx13)")
@@ -1450,18 +1954,19 @@ void GuiView::openDocument(string const & fname)
 		filename = fname;
 
 	// get absolute path of file and add ".lyx" to the filename if
-	// necessary. 
-	FileName const fullname = 
+	// necessary.
+	FileName const fullname =
 			fileSearch(string(), filename, "lyx", support::may_not_exist);
 	if (!fullname.empty())
-		filename = fullname.absFilename();
+		filename = fullname.absFileName();
 
 	if (!fullname.onlyPath().isDirectory()) {
 		Alert::warning(_("Invalid filename"),
 				bformat(_("The directory in the given path\n%1$s\ndoes not exist."),
-				from_utf8(fullname.absFilename())));
+				from_utf8(fullname.absFileName())));
 		return;
 	}
+
 	// if the file doesn't exist and isn't already open (bug 6645),
 	// let the user create one
 	if (!fullname.exists() && !theBufferList().exists(fullname)) {
@@ -1478,10 +1983,6 @@ void GuiView::openDocument(string const & fname)
 	docstring str2;
 	Buffer * buf = loadDocument(fullname);
 	if (buf) {
-		updateLabels(*buf);
-		
-		setBuffer(buf);
-		buf->errors("Parse");
 		str2 = bformat(_("Document %1$s opened."), disp_fn);
 		if (buf->lyxvc().inUse())
 			str2 += " " + from_utf8(buf->lyxvc().versionString()) +
@@ -1496,18 +1997,18 @@ void GuiView::openDocument(string const & fname)
 static bool import(GuiView * lv, FileName const & filename,
 	string const & format, ErrorList & errorList)
 {
-	FileName const lyxfile(support::changeExtension(filename.absFilename(), ".lyx"));
+	FileName const lyxfile(support::changeExtension(filename.absFileName(), ".lyx"));
 
 	string loader_format;
 	vector<string> loaders = theConverters().loaders();
 	if (find(loaders.begin(), loaders.end(), format) == loaders.end()) {
 		for (vector<string>::const_iterator it = loaders.begin();
-		     it != loaders.end(); ++it) {
+			 it != loaders.end(); ++it) {
 			if (!theConverters().isReachable(format, *it))
 				continue;
 
 			string const tofile =
-				support::changeExtension(filename.absFilename(),
+				support::changeExtension(filename.absFileName(),
 				formats.extension(*it));
 			if (!theConverters().convert(0, filename, FileName(tofile),
 				filename, format, *it, errorList))
@@ -1517,7 +2018,7 @@ static bool import(GuiView * lv, FileName const & filename,
 		}
 		if (loader_format.empty()) {
 			frontend::Alert::error(_("Couldn't import file"),
-				     bformat(_("No information for importing the format %1$s."),
+					 bformat(_("No information for importing the format %1$s."),
 					 formats.prettyName(format)));
 			return false;
 		}
@@ -1528,20 +2029,18 @@ static bool import(GuiView * lv, FileName const & filename,
 		Buffer * buf = lv->loadDocument(lyxfile);
 		if (!buf)
 			return false;
-		updateLabels(*buf);
-		lv->setBuffer(buf);
-		buf->errors("Parse");
 	} else {
-		Buffer * const b = newFile(lyxfile.absFilename(), string(), true);
+		Buffer * const b = newFile(lyxfile.absFileName(), string(), true);
 		if (!b)
 			return false;
 		lv->setBuffer(b);
 		bool as_paragraphs = loader_format == "textparagraph";
-		string filename2 = (loader_format == format) ? filename.absFilename()
-			: support::changeExtension(filename.absFilename(),
+		string filename2 = (loader_format == format) ? filename.absFileName()
+			: support::changeExtension(filename.absFileName(),
 					  formats.extension(loader_format));
-		lv->view()->insertPlaintextFile(FileName(filename2), as_paragraphs);
-		theLyXFunc().setLyXView(lv);
+		lv->currentBufferView()->insertPlaintextFile(FileName(filename2),
+			as_paragraphs);
+		guiApp->setCurrentView(lv);
 		lyx::dispatch(FuncRequest(LFUN_MARK_OFF));
 	}
 
@@ -1559,10 +2058,8 @@ void GuiView::importDocument(string const & argument)
 	// need user interaction
 	if (filename.empty()) {
 		string initpath = lyxrc.document_path;
-
-		Buffer const * buf = buffer();
-		if (buf) {
-			string const trypath = buf->filePath();
+		if (documentBufferView()) {
+			string const trypath = documentBufferView()->buffer().filePath();
 			// If directory is writeable, use this as default.
 			if (FileName(trypath).isDirWritable())
 				initpath = trypath;
@@ -1574,7 +2071,7 @@ void GuiView::importDocument(string const & argument)
 		FileDialog dlg(toqstr(text), LFUN_BUFFER_IMPORT);
 		dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
 		dlg.setButton2(qt_("Examples|#E#e"),
-			toqstr(addPath(package().system_support().absFilename(), "examples")));
+			toqstr(addPath(package().system_support().absFileName(), "examples")));
 
 		docstring filter = formats.prettyName(format);
 		filter += " (*.";
@@ -1601,7 +2098,7 @@ void GuiView::importDocument(string const & argument)
 	// get absolute path of file
 	FileName const fullname(support::makeAbsPath(filename));
 
-	FileName const lyxfile(support::changeExtension(fullname.absFilename(), ".lyx"));
+	FileName const lyxfile(support::changeExtension(fullname.absFileName(), ".lyx"));
 
 	// Check if the document already is open
 	Buffer * buf = theBufferList().getBuffer(lyxfile);
@@ -1613,7 +2110,7 @@ void GuiView::importDocument(string const & argument)
 		}
 	}
 
-	docstring const displaypath = makeDisplayPath(lyxfile.absFilename(), 30);
+	docstring const displaypath = makeDisplayPath(lyxfile.absFileName(), 30);
 
 	// if the file exists already, and we didn't do
 	// -i lyx thefile.lyx, warn
@@ -1644,9 +2141,8 @@ void GuiView::importDocument(string const & argument)
 void GuiView::newDocument(string const & filename, bool from_template)
 {
 	FileName initpath(lyxrc.document_path);
-	Buffer * buf = buffer();
-	if (buf) {
-		FileName const trypath(buf->filePath());
+	if (documentBufferView()) {
+		FileName const trypath(documentBufferView()->buffer().filePath());
 		// If directory is writeable, use this as default.
 		if (trypath.isDirWritable())
 			initpath = trypath;
@@ -1654,81 +2150,78 @@ void GuiView::newDocument(string const & filename, bool from_template)
 
 	string templatefile;
 	if (from_template) {
-		templatefile = selectTemplateFile().absFilename();
+		templatefile = selectTemplateFile().absFileName();
 		if (templatefile.empty())
 			return;
 	}
-	
+
 	Buffer * b;
 	if (filename.empty())
-		b = newUnnamedFile(templatefile, initpath);
+		b = newUnnamedFile(initpath, to_utf8(_("newfile")), templatefile);
 	else
 		b = newFile(filename, templatefile, true);
 
 	if (b)
 		setBuffer(b);
 
-	// If no new document could be created, it is unsure 
+	// If no new document could be created, it is unsure
 	// whether there is a valid BufferView.
-	if (view())
+	if (currentBufferView())
 		// Ensure the cursor is correctly positioned on screen.
-		view()->showCursor();
+		currentBufferView()->showCursor();
 }
 
 
 void GuiView::insertLyXFile(docstring const & fname)
 {
-	BufferView * bv = view();
+	BufferView * bv = documentBufferView();
 	if (!bv)
 		return;
 
 	// FIXME UNICODE
 	FileName filename(to_utf8(fname));
-	
-	if (!filename.empty()) {
-		bv->insertLyXFile(filename);
-		return;
-	}
-
-	// Launch a file browser
-	// FIXME UNICODE
-	string initpath = lyxrc.document_path;
-	string const trypath = bv->buffer().filePath();
-	// If directory is writeable, use this as default.
-	if (FileName(trypath).isDirWritable())
-		initpath = trypath;
-
-	// FIXME UNICODE
-	FileDialog dlg(qt_("Select LyX document to insert"), LFUN_FILE_INSERT);
-	dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
-	dlg.setButton2(qt_("Examples|#E#e"),
-		toqstr(addPath(package().system_support().absFilename(),
-		"examples")));
-
-	FileDialog::Result result = dlg.open(toqstr(initpath),
-			     QStringList(qt_("LyX Documents (*.lyx)")));
-
-	if (result.first == FileDialog::Later)
-		return;
-
-	// FIXME UNICODE
-	filename.set(fromqstr(result.second));
-
-	// check selected filename
 	if (filename.empty()) {
-		// emit message signal.
-		message(_("Canceled."));
-		return;
+		// Launch a file browser
+		// FIXME UNICODE
+		string initpath = lyxrc.document_path;
+		string const trypath = bv->buffer().filePath();
+		// If directory is writeable, use this as default.
+		if (FileName(trypath).isDirWritable())
+			initpath = trypath;
+
+		// FIXME UNICODE
+		FileDialog dlg(qt_("Select LyX document to insert"), LFUN_FILE_INSERT);
+		dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
+		dlg.setButton2(qt_("Examples|#E#e"),
+			toqstr(addPath(package().system_support().absFileName(),
+			"examples")));
+
+		FileDialog::Result result = dlg.open(toqstr(initpath),
+					 QStringList(qt_("LyX Documents (*.lyx)")));
+
+		if (result.first == FileDialog::Later)
+			return;
+
+		// FIXME UNICODE
+		filename.set(fromqstr(result.second));
+
+		// check selected filename
+		if (filename.empty()) {
+			// emit message signal.
+			message(_("Canceled."));
+			return;
+		}
 	}
 
 	bv->insertLyXFile(filename);
+	bv->buffer().errors("Parse");
 }
 
 
 void GuiView::insertPlaintextFile(docstring const & fname,
 	bool asParagraph)
 {
-	BufferView * bv = view();
+	BufferView * bv = documentBufferView();
 	if (!bv)
 		return;
 
@@ -1739,7 +2232,7 @@ void GuiView::insertPlaintextFile(docstring const & fname,
 
 	// FIXME UNICODE
 	FileName filename(to_utf8(fname));
-	
+
 	if (!filename.empty()) {
 		bv->insertPlaintextFile(filename, asParagraph);
 		return;
@@ -1775,25 +2268,25 @@ bool GuiView::renameBuffer(Buffer & b, docstring const & newname)
 
 	if (!newname.empty()) {
 		// FIXME UNICODE
-		fname = support::makeAbsPath(to_utf8(newname), oldname.onlyPath().absFilename());
+		fname = support::makeAbsPath(to_utf8(newname), oldname.onlyPath().absFileName());
 	} else {
 		// Switch to this Buffer.
 		setBuffer(&b);
 
-		/// No argument? Ask user through dialog.
+		// No argument? Ask user through dialog.
 		// FIXME UNICODE
 		FileDialog dlg(qt_("Choose a filename to save document as"),
 				   LFUN_BUFFER_WRITE_AS);
 		dlg.setButton1(qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
 		dlg.setButton2(qt_("Templates|#T#t"), toqstr(lyxrc.template_path));
 
-		if (!isLyXFilename(fname.absFilename()))
+		if (!isLyXFileName(fname.absFileName()))
 			fname.changeExtension(".lyx");
 
 		FileDialog::Result result =
-			dlg.save(toqstr(fname.onlyPath().absFilename()),
-			       QStringList(qt_("LyX Documents (*.lyx)")),
-				     toqstr(fname.onlyFileName()));
+			dlg.save(toqstr(fname.onlyPath().absFileName()),
+				   QStringList(qt_("LyX Documents (*.lyx)")),
+					 toqstr(fname.onlyFileName()));
 
 		if (result.first == FileDialog::Later)
 			return false;
@@ -1803,15 +2296,16 @@ bool GuiView::renameBuffer(Buffer & b, docstring const & newname)
 		if (fname.empty())
 			return false;
 
-		if (!isLyXFilename(fname.absFilename()))
+		if (!isLyXFileName(fname.absFileName()))
 			fname.changeExtension(".lyx");
 	}
 
+	// fname is now the new Buffer location.
 	if (FileName(fname).exists()) {
-		docstring const file = makeDisplayPath(fname.absFilename(), 30);
+		docstring const file = makeDisplayPath(fname.absFileName(), 30);
 		docstring text = bformat(_("The document %1$s already "
 					   "exists.\n\nDo you want to "
-					   "overwrite that document?"), 
+					   "overwrite that document?"),
 					 file);
 		int const ret = Alert::prompt(_("Overwrite document?"),
 			text, 0, 2, _("&Overwrite"), _("&Rename"), _("&Cancel"));
@@ -1822,37 +2316,30 @@ bool GuiView::renameBuffer(Buffer & b, docstring const & newname)
 		}
 	}
 
-	FileName oldauto = b.getAutosaveFilename();
-
-	// Ok, change the name of the buffer
-	b.setFileName(fname.absFilename());
-	b.markDirty();
-	bool unnamed = b.isUnnamed();
-	b.setUnnamed(false);
-	b.saveCheckSum(fname);
-
-	// bring the autosave file with us, just in case.
-	b.moveAutosaveFile(oldauto);
-	
-	if (!saveBuffer(b)) {
-		oldauto = b.getAutosaveFilename();
-		b.setFileName(oldname.absFilename());
-		b.setUnnamed(unnamed);
-		b.saveCheckSum(oldname);
-		b.moveAutosaveFile(oldauto);
-		return false;
-	}
-
-	return true;
+	return saveBuffer(b, fname);
 }
 
 
-bool GuiView::saveBuffer(Buffer & b)
-{
-	if (b.isUnnamed())
-		return renameBuffer(b, docstring());
+bool GuiView::saveBuffer(Buffer & b) {
+	return saveBuffer(b, FileName());
+}
 
-	if (b.save()) {
+
+bool GuiView::saveBuffer(Buffer & b, FileName const & fn)
+{
+	if (workArea(b) && workArea(b)->inDialogMode())
+		return true;
+
+	if (fn.empty() && b.isUnnamed())
+			return renameBuffer(b, docstring());
+
+	bool success;
+	if (fn.empty())
+		success = b.save();
+	else
+		success = b.saveAs(fn);
+	
+	if (success) {
 		theSession().lastFiles().add(b.fileName());
 		return true;
 	}
@@ -1882,34 +2369,185 @@ bool GuiView::saveBuffer(Buffer & b)
 }
 
 
-bool GuiView::closeBuffer()
+bool GuiView::hideWorkArea(GuiWorkArea * wa)
 {
-	Buffer * buf = buffer();
-	return buf && closeBuffer(*buf);
+	return closeWorkArea(wa, false);
 }
 
 
-bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
+bool GuiView::closeWorkArea(GuiWorkArea * wa)
 {
-	// goto bookmark to update bookmark pit.
-	//FIXME: we should update only the bookmarks related to this buffer!
-	for (size_t i = 0; i < theSession().bookmarks().size(); ++i)
-		theLyXFunc().gotoBookmark(i+1, false, false);
+	Buffer & buf = wa->bufferView().buffer();
+	return closeWorkArea(wa, !buf.parent());
+}
 
-	if (buf.isClean() || buf.paragraphs().empty()) {
-		buf.removeAutosaveFile();
-		// save in sessions if requested
-		// do not save childs if their master
-		// is opened as well
-		if (tolastopened)
-			theSession().lastOpened().add(buf.fileName(), mark_active);
-		if (buf.parent())
-			// Don't close child documents.
-			removeWorkArea(d.current_work_area_);
-		else
-			theBufferList().release(&buf);
+
+bool GuiView::closeBuffer()
+{
+	GuiWorkArea * wa = currentMainWorkArea();
+	setCurrentWorkArea(wa);
+	Buffer & buf = wa->bufferView().buffer();
+	return wa && closeWorkArea(wa, !buf.parent());
+}
+
+
+void GuiView::writeSession() const {
+	GuiWorkArea const * active_wa = currentMainWorkArea();
+	for (int i = 0; i < d.splitter_->count(); ++i) {
+		TabWorkArea * twa = d.tabWorkArea(i);
+		for (int j = 0; j < twa->count(); ++j) {
+			GuiWorkArea * wa = static_cast<GuiWorkArea *>(twa->widget(j));
+			Buffer & buf = wa->bufferView().buffer();
+			theSession().lastOpened().add(buf.fileName(), wa == active_wa);
+		}
+	}
+}
+
+
+bool GuiView::closeBufferAll()
+{
+	// Close the workareas in all other views
+	QList<int> const ids = guiApp->viewIds();
+	for (int i = 0; i != ids.size(); ++i) {
+		if (id_ != ids[i] && !guiApp->view(ids[i]).closeWorkAreaAll())
+			return false;
+	}
+
+	// Close our own workareas
+	if (!closeWorkAreaAll())
+		return false;
+
+	// Now close the hidden buffers. We prevent hidden buffers from being
+	// dirty, so we can just close them.
+	theBufferList().closeAll();
+	return true;
+}
+
+
+bool GuiView::closeWorkAreaAll()
+{
+	setCurrentWorkArea(currentMainWorkArea());
+
+	// We might be in a situation that there is still a tabWorkArea, but
+	// there are no tabs anymore. This can happen when we get here after a
+	// TabWorkArea::lastWorkAreaRemoved() signal. Therefore we count how
+	// many TabWorkArea's have no documents anymore.
+	int empty_twa = 0;
+
+	// We have to call count() each time, because it can happen that
+	// more than one splitter will disappear in one iteration (bug 5998).
+	for (; d.splitter_->count() > empty_twa; ) {
+		TabWorkArea * twa = d.tabWorkArea(empty_twa);
+
+		if (twa->count() == 0)
+			++empty_twa;
+		else {
+			setCurrentWorkArea(twa->currentWorkArea());
+			if (!closeTabWorkArea(twa))
+				return false;
+		}
+	}
+	return true;
+}
+
+
+bool GuiView::closeWorkArea(GuiWorkArea * wa, bool close_buffer)
+{
+	if (!wa)
+		return false;
+
+	Buffer & buf = wa->bufferView().buffer();
+
+	if (close_buffer && GuiViewPrivate::busyBuffers.contains(&buf)) {
+		Alert::warning(_("Close document"), 
+			_("Document could not be closed because it is being processed by LyX."));
+		return false;
+	}
+
+	if (close_buffer)
+		return closeBuffer(buf);
+	else {
+		if (!inMultiTabs(wa))
+			if (!saveBufferIfNeeded(buf, true))
+				return false;
+		removeWorkArea(wa);
 		return true;
 	}
+}
+
+
+bool GuiView::closeBuffer(Buffer & buf)
+{
+	// If we are in a close_event all children will be closed in some time,
+	// so no need to do it here. This will ensure that the children end up
+	// in the session file in the correct order. If we close the master
+	// buffer, we can close or release the child buffers here too.
+	bool success = true;
+	if (!closing_) {
+		ListOfBuffers clist = buf.getChildren();
+		ListOfBuffers::const_iterator it = clist.begin();
+		ListOfBuffers::const_iterator const bend = clist.end();
+		for (; it != bend; ++it) {
+			// If a child is dirty, do not close
+			// without user intervention
+			//FIXME: should we look in other tabworkareas?
+			Buffer * child_buf = *it;
+			GuiWorkArea * child_wa = workArea(*child_buf);
+			if (child_wa) {
+				if (!closeWorkArea(child_wa, true)) {
+					success = false;
+					break;
+				}
+			} else
+				theBufferList().releaseChild(&buf, child_buf);
+		}
+	}
+	if (success) {
+		// goto bookmark to update bookmark pit.
+		//FIXME: we should update only the bookmarks related to this buffer!
+		LYXERR(Debug::DEBUG, "GuiView::closeBuffer()");
+		for (size_t i = 0; i < theSession().bookmarks().size(); ++i)
+			guiApp->gotoBookmark(i+1, false, false);
+
+		if (saveBufferIfNeeded(buf, false)) {
+			buf.removeAutosaveFile();
+			theBufferList().release(&buf);
+			return true;
+		}
+	}
+	// open all children again to avoid a crash because of dangling
+	// pointers (bug 6603)
+	buf.updateBuffer();
+	return false;
+}
+
+
+bool GuiView::closeTabWorkArea(TabWorkArea * twa)
+{
+	while (twa == d.currentTabWorkArea()) {
+		twa->setCurrentIndex(twa->count()-1);
+
+		GuiWorkArea * wa = twa->currentWorkArea();
+		Buffer & b = wa->bufferView().buffer();
+
+		// We only want to close the buffer if the same buffer is not visible
+		// in another view, and if this is not a child and if we are closing
+		// a view (not a tabgroup).
+		bool const close_buffer =
+			!inOtherView(b) && !b.parent() && closing_;
+
+		if (!closeWorkArea(wa, close_buffer))
+			return false;
+	}
+	return true;
+}
+
+
+bool GuiView::saveBufferIfNeeded(Buffer & buf, bool hiding)
+{
+	if (buf.isClean() || buf.paragraphs().empty())
+		return true;
+
 	// Switch to this Buffer.
 	setBuffer(&buf);
 
@@ -1924,10 +2562,21 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 	raise();
 	activateWindow();
 
-	docstring const text = bformat(_("The document %1$s has unsaved changes."
-		"\n\nDo you want to save the document or discard the changes?"), file);
-	int const ret = Alert::prompt(_("Save changed document?"),
-		text, 0, 2, _("&Save"), _("&Discard"), _("&Cancel"));
+	int ret;
+	if (hiding && buf.isUnnamed()) {
+		docstring const text = bformat(_("The document %1$s has not been "
+						 "saved yet.\n\nDo you want to save "
+						 "the document?"), file);
+		ret = Alert::prompt(_("Save new document?"),
+			text, 0, 1, _("&Save"), _("&Cancel"));
+		if (ret == 1)
+			++ret;
+	} else {
+		docstring const text = bformat(_("The document %1$s has unsaved changes."
+			"\n\nDo you want to save the document or discard the changes?"), file);
+		ret = Alert::prompt(_("Save changed document?"),
+			text, 0, 2, _("&Save"), _("&Discard"), _("&Cancel"));
+	}
 
 	switch (ret) {
 	case 0:
@@ -1935,84 +2584,635 @@ bool GuiView::closeBuffer(Buffer & buf, bool tolastopened, bool mark_active)
 			return false;
 		break;
 	case 1:
-		// if we crash after this we could
-		// have no autosave file but I guess
-		// this is really improbable (Jug)
-		//buf.removeAutosaveFile();
+		// If we crash after this we could have no autosave file
+		// but I guess this is really improbable (Jug).
+		// Sometimes improbable things happen:
+		// - see bug http://www.lyx.org/trac/ticket/6587 (ps)
+		// buf.removeAutosaveFile();
+		if (hiding)
+			// revert all changes
+			reloadBuffer(buf);
 		buf.markClean();
 		break;
 	case 2:
 		return false;
 	}
-
-	buf.removeAutosaveFile();
-	// save file names to .lyx/session
-	if (tolastopened)
-		theSession().lastOpened().add(buf.fileName(), mark_active);
-
-	if (buf.parent())
-		// Don't close child documents.
-		removeWorkArea(d.current_work_area_);
-	else
-		theBufferList().release(&buf);
-
 	return true;
+}
+
+
+bool GuiView::inMultiTabs(GuiWorkArea * wa)
+{
+	Buffer & buf = wa->bufferView().buffer();
+
+	for (int i = 0; i != d.splitter_->count(); ++i) {
+		GuiWorkArea * wa_ = d.tabWorkArea(i)->workArea(buf);
+		if (wa_ && wa_ != wa)
+			return true;
+	}
+	return inOtherView(buf);
+}
+
+
+bool GuiView::inOtherView(Buffer & buf)
+{
+	QList<int> const ids = guiApp->viewIds();
+
+	for (int i = 0; i != ids.size(); ++i) {
+		if (id_ == ids[i])
+			continue;
+
+		if (guiApp->view(ids[i]).workArea(buf))
+			return true;
+	}
+	return false;
 }
 
 
 void GuiView::gotoNextOrPreviousBuffer(NextOrPrevious np)
 {
-	Buffer * const curbuf = buffer();
-	Buffer * nextbuf = curbuf;
-	while (true) {
-		if (np == NEXTBUFFER)
-			nextbuf = theBufferList().next(nextbuf);
-		else
-			nextbuf = theBufferList().previous(nextbuf);
-		if (nextbuf == curbuf)
-			break;
-		if (nextbuf == 0) {
-			nextbuf = curbuf;
-			break;
+	if (!documentBufferView())
+		return;
+	
+	if (TabWorkArea * twa = d.currentTabWorkArea()) {
+		Buffer * const curbuf = &documentBufferView()->buffer();
+		int nwa = twa->count();
+		for (int i = 0; i < nwa; ++i) {
+			if (&workArea(i)->bufferView().buffer() == curbuf) {
+				int next_index;
+				if (np == NEXTBUFFER)
+					next_index = (i == nwa - 1 ? 0 : i + 1);
+				else
+					next_index = (i == 0 ? nwa - 1 : i - 1);
+				setBuffer(&workArea(next_index)->bufferView().buffer());
+				break;
+			}
 		}
-		if (workArea(*nextbuf))
-			break;
 	}
-	setBuffer(nextbuf);
 }
 
 
-bool GuiView::dispatch(FuncRequest const & cmd)
+/// make sure the document is saved
+static bool ensureBufferClean(Buffer * buffer)
 {
-	BufferView * bv = view();
-	// By default we won't need any update.
-	if (bv)
-		bv->cursor().updateFlags(Update::None);
-	bool dispatched = true;
+	LASSERT(buffer, return false);
+	if (buffer->isClean() && !buffer->isUnnamed())
+		return true;
 
-	switch(cmd.action) {
+	docstring const file = buffer->fileName().displayName(30);
+	docstring title;
+	docstring text;
+	if (!buffer->isUnnamed()) {
+		text = bformat(_("The document %1$s has unsaved "
+						 "changes.\n\nDo you want to save "
+						 "the document?"), file);
+		title = _("Save changed document?");
+
+	} else {
+		text = bformat(_("The document %1$s has not been "
+						 "saved yet.\n\nDo you want to save "
+						 "the document?"), file);
+		title = _("Save new document?");
+	}
+	int const ret = Alert::prompt(title, text, 0, 1, _("&Save"), _("&Cancel"));
+
+	if (ret == 0)
+		dispatch(FuncRequest(LFUN_BUFFER_WRITE));
+
+	return buffer->isClean() && !buffer->isUnnamed();
+}
+
+
+bool GuiView::reloadBuffer(Buffer & buf)
+{
+	Buffer::ReadStatus status = buf.reload();
+	return status == Buffer::ReadSuccess;
+}
+
+
+void GuiView::checkExternallyModifiedBuffers()
+{
+	BufferList::iterator bit = theBufferList().begin();
+	BufferList::iterator const bend = theBufferList().end();
+	for (; bit != bend; ++bit) {
+		Buffer * buf = *bit;
+		if (buf->fileName().exists()
+			&& buf->isExternallyModified(Buffer::checksum_method)) {
+			docstring text = bformat(_("Document \n%1$s\n has been externally modified."
+					" Reload now? Any local changes will be lost."),
+					from_utf8(buf->absFileName()));
+			int const ret = Alert::prompt(_("Reload externally changed document?"),
+						text, 0, 1, _("&Reload"), _("&Cancel"));
+			if (!ret)
+				reloadBuffer(*buf);
+		}
+	}
+}
+
+
+void GuiView::dispatchVC(FuncRequest const & cmd, DispatchResult & dr)
+{
+	Buffer * buffer = documentBufferView()
+		? &(documentBufferView()->buffer()) : 0;
+
+	switch (cmd.action()) {
+	case LFUN_VC_REGISTER:
+		if (!buffer || !ensureBufferClean(buffer))
+			break;
+		if (!buffer->lyxvc().inUse()) {
+			if (buffer->lyxvc().registrer()) {
+				reloadBuffer(*buffer);
+				dr.suppressMessageUpdate();
+			}
+		}
+		break;
+
+	case LFUN_VC_CHECK_IN:
+		if (!buffer || !ensureBufferClean(buffer))
+			break;
+		if (buffer->lyxvc().inUse() && !buffer->isReadonly()) {
+			dr.setMessage(buffer->lyxvc().checkIn());
+			if (!dr.message().empty())
+				reloadBuffer(*buffer);
+		}
+		break;
+
+	case LFUN_VC_CHECK_OUT:
+		if (!buffer || !ensureBufferClean(buffer))
+			break;
+		if (buffer->lyxvc().inUse()) {
+			dr.setMessage(buffer->lyxvc().checkOut());
+			reloadBuffer(*buffer);
+		}
+		break;
+
+	case LFUN_VC_LOCKING_TOGGLE:
+		LASSERT(buffer, return);
+		if (!ensureBufferClean(buffer) || buffer->isReadonly())
+			break;
+		if (buffer->lyxvc().inUse()) {
+			string res = buffer->lyxvc().lockingToggle();
+			if (res.empty()) {
+				frontend::Alert::error(_("Revision control error."),
+				_("Error when setting the locking property."));
+			} else {
+				dr.setMessage(res);
+				reloadBuffer(*buffer);
+			}
+		}
+		break;
+
+	case LFUN_VC_REVERT:
+		LASSERT(buffer, return);
+		if (buffer->lyxvc().revert()) {
+			reloadBuffer(*buffer);
+			dr.suppressMessageUpdate();
+		}
+		break;
+
+	case LFUN_VC_UNDO_LAST:
+		LASSERT(buffer, return);
+		buffer->lyxvc().undoLast();
+		reloadBuffer(*buffer);
+		dr.suppressMessageUpdate();
+		break;
+
+	case LFUN_VC_REPO_UPDATE:
+		LASSERT(buffer, return);
+		if (ensureBufferClean(buffer)) {
+			dr.setMessage(buffer->lyxvc().repoUpdate());
+			checkExternallyModifiedBuffers();
+		}
+		break;
+
+	case LFUN_VC_COMMAND: {
+		string flag = cmd.getArg(0);
+		if (buffer && contains(flag, 'R') && !ensureBufferClean(buffer))
+			break;
+		docstring message;
+		if (contains(flag, 'M')) {
+			if (!Alert::askForText(message, _("LyX VC: Log Message")))
+				break;
+		}
+		string path = cmd.getArg(1);
+		if (contains(path, "$$p") && buffer)
+			path = subst(path, "$$p", buffer->filePath());
+		LYXERR(Debug::LYXVC, "Directory: " << path);
+		FileName pp(path);
+		if (!pp.isReadableDirectory()) {
+			lyxerr << _("Directory is not accessible.") << endl;
+			break;
+		}
+		support::PathChanger p(pp);
+
+		string command = cmd.getArg(2);
+		if (command.empty())
+			break;
+		if (buffer) {
+			command = subst(command, "$$i", buffer->absFileName());
+			command = subst(command, "$$p", buffer->filePath());
+		}
+		command = subst(command, "$$m", to_utf8(message));
+		LYXERR(Debug::LYXVC, "Command: " << command);
+		Systemcall one;
+		one.startscript(Systemcall::Wait, command);
+
+		if (!buffer)
+			break;
+		if (contains(flag, 'I'))
+			buffer->markDirty();
+		if (contains(flag, 'R'))
+			reloadBuffer(*buffer);
+
+		break;
+		}
+
+	case LFUN_VC_COMPARE: {
+
+		if (cmd.argument().empty()) {
+			lyx::dispatch(FuncRequest(LFUN_DIALOG_SHOW, "comparehistory"));
+			break;
+		}
+
+		string rev1 = cmd.getArg(0);
+		string f1, f2;
+
+		// f1
+		if (!buffer->lyxvc().prepareFileRevision(rev1, f1))
+			break;
+
+		if (isStrInt(rev1) && convert<int>(rev1) <= 0) {
+			f2 = buffer->absFileName();
+		} else {
+			string rev2 = cmd.getArg(1);
+			if (rev2.empty())
+				break;
+			// f2
+			if (!buffer->lyxvc().prepareFileRevision(rev2, f2))
+				break;
+		}
+
+		LYXERR(Debug::LYXVC, "Launching comparison for fetched revisions:\n" <<
+					f1 << "\n"  << f2 << "\n" );
+		string par = "compare run " + quoteName(f1) + " " + quoteName(f2);
+		lyx::dispatch(FuncRequest(LFUN_DIALOG_SHOW, par));
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+
+
+void GuiView::openChildDocument(string const & fname)
+{
+	LASSERT(documentBufferView(), return);
+	Buffer & buffer = documentBufferView()->buffer();
+	FileName const filename = support::makeAbsPath(fname, buffer.filePath());
+	documentBufferView()->saveBookmark(false);
+	Buffer * child = 0;
+	if (theBufferList().exists(filename)) {
+		child = theBufferList().getBuffer(filename);
+		setBuffer(child);
+	} else {
+		message(bformat(_("Opening child document %1$s..."),
+			makeDisplayPath(filename.absFileName())));
+		child = loadDocument(filename, false);
+	}
+	// Set the parent name of the child document.
+	// This makes insertion of citations and references in the child work,
+	// when the target is in the parent or another child document.
+	if (child)
+		child->setParent(&buffer);
+}
+
+
+bool GuiView::goToFileRow(string const & argument)
+{
+	string file_name;
+	int row;
+	size_t i = argument.find_last_of(' ');
+	if (i != string::npos) {
+		file_name = os::internal_path(trim(argument.substr(0, i)));
+		istringstream is(argument.substr(i + 1));
+		is >> row;
+		if (is.fail())
+			i = string::npos;
+	}
+	if (i == string::npos) {
+		LYXERR0("Wrong argument: " << argument);
+		return false;
+	}
+	Buffer * buf = 0;
+	string const abstmp = package().temp_dir().absFileName();
+	string const realtmp = package().temp_dir().realPath();
+	// We have to use os::path_prefix_is() here, instead of
+	// simply prefixIs(), because the file name comes from
+	// an external application and may need case adjustment.
+	if (os::path_prefix_is(file_name, abstmp, os::CASE_ADJUSTED)
+		|| os::path_prefix_is(file_name, realtmp, os::CASE_ADJUSTED)) {
+		// Needed by inverse dvi search. If it is a file
+		// in tmpdir, call the apropriated function.
+		// If tmpdir is a symlink, we may have the real
+		// path passed back, so we correct for that.
+		if (!prefixIs(file_name, abstmp))
+			file_name = subst(file_name, realtmp, abstmp);
+		buf = theBufferList().getBufferFromTmp(file_name);
+	} else {
+		// Must replace extension of the file to be .lyx
+		// and get full path
+		FileName const s = fileSearch(string(),
+						  support::changeExtension(file_name, ".lyx"), "lyx");
+		// Either change buffer or load the file
+		if (theBufferList().exists(s))
+			buf = theBufferList().getBuffer(s);
+		else if (s.exists()) {
+			buf = loadDocument(s);
+			if (!buf)
+				return false;
+		} else {
+			message(bformat(
+					_("File does not exist: %1$s"),
+					makeDisplayPath(file_name)));
+			return false;
+		}
+	}
+	setBuffer(buf);
+	documentBufferView()->setCursorFromRow(row);
+	return true;
+}
+
+
+#if (QT_VERSION >= 0x040400)
+template<class T>
+docstring GuiView::GuiViewPrivate::runAndDestroy(const T& func, Buffer const * orig, Buffer * buffer, string const & format, string const & msg)
+{
+	bool const update_unincluded =
+				buffer->params().maintain_unincluded_children
+				&& !buffer->params().getIncludedChildren().empty();
+	bool const success = func(format, update_unincluded);
+	delete buffer;
+	busyBuffers.remove(orig);
+	if (msg == "preview") {
+		return success
+			? bformat(_("Successful preview of format: %1$s"), from_utf8(format))
+			: bformat(_("Error while previewing format: %1$s"), from_utf8(format));
+	}
+	return success
+		? bformat(_("Successful export to format: %1$s"), from_utf8(format))
+		: bformat(_("Error while exporting format: %1$s"), from_utf8(format));
+}
+
+
+docstring GuiView::GuiViewPrivate::compileAndDestroy(Buffer const * orig, Buffer * buffer, string const & format)
+{
+	bool (Buffer::* mem_func)(std::string const &, bool, bool) const = &Buffer::doExport;
+	return runAndDestroy(bind(mem_func, buffer, _1, true, _2), orig, buffer, format, "export");
+}
+
+
+docstring GuiView::GuiViewPrivate::exportAndDestroy(Buffer const * orig, Buffer * buffer, string const & format)
+{
+	bool (Buffer::* mem_func)(std::string const &, bool, bool) const = &Buffer::doExport;
+	return runAndDestroy(bind(mem_func, buffer, _1, false, _2), orig, buffer, format, "export");
+}
+
+
+docstring GuiView::GuiViewPrivate::previewAndDestroy(Buffer const * orig, Buffer * buffer, string const & format)
+{
+	bool(Buffer::* mem_func)(std::string const &, bool) const = &Buffer::preview;
+	return runAndDestroy(bind(mem_func, buffer, _1, _2), orig, buffer, format, "preview");
+}
+
+#else
+
+// not used, but the linker needs them
+
+docstring GuiView::GuiViewPrivate::compileAndDestroy(
+		Buffer const *, Buffer *, string const &)
+{
+	return docstring();
+}
+
+
+docstring GuiView::GuiViewPrivate::exportAndDestroy(
+		Buffer const *, Buffer *, string const &)
+{
+	return docstring();
+}
+
+
+docstring GuiView::GuiViewPrivate::previewAndDestroy(
+		Buffer const *, Buffer *, string const &)
+{
+	return docstring();
+}
+
+#endif
+
+
+bool GuiView::GuiViewPrivate::asyncBufferProcessing(
+			   string const & argument,
+			   Buffer const * used_buffer,
+			   docstring const & msg,
+			   docstring (*asyncFunc)(Buffer const *, Buffer *, string const &),
+			   bool (Buffer::*syncFunc)(string const &, bool, bool) const,
+			   bool (Buffer::*previewFunc)(string const &, bool) const)
+{
+	if (!used_buffer)
+		return false;
+
+	string format = argument;
+	if (format.empty())
+		format = used_buffer->getDefaultOutputFormat();
+
+#if EXPORT_in_THREAD && (QT_VERSION >= 0x040400)
+	gv_->processingThreadStarted();
+	if (!msg.empty()) {
+		progress_->clearMessages();
+		gv_->message(msg);
+	}
+	GuiViewPrivate::busyBuffers.insert(used_buffer);
+	QFuture<docstring> f = QtConcurrent::run(
+				asyncFunc,
+				used_buffer,
+				used_buffer->clone(),
+				format);
+	setPreviewFuture(f);
+	last_export_format = used_buffer->bufferFormat();
+	(void) syncFunc;
+	(void) previewFunc;
+	// We are asynchronous, so we don't know here anything about the success
+	return true;
+#else
+	if (syncFunc) {
+		// TODO check here if it breaks exporting with Qt < 4.4
+		bool const update_unincluded =
+				used_buffer->params().maintain_unincluded_children &&
+				!used_buffer->params().getIncludedChildren().empty();
+		return (used_buffer->*syncFunc)(format, true, update_unincluded);
+	} else if (previewFunc) {
+		return (used_buffer->*previewFunc)(format, false);
+	}
+	(void) asyncFunc;
+	return false;
+#endif
+}
+
+void GuiView::dispatchToBufferView(FuncRequest const & cmd, DispatchResult & dr)
+{
+	BufferView * bv = currentBufferView();
+	LASSERT(bv, /**/);
+
+	// Let the current BufferView dispatch its own actions.
+	bv->dispatch(cmd, dr);
+	if (dr.dispatched())
+		return;
+
+	// Try with the document BufferView dispatch if any.
+	BufferView * doc_bv = documentBufferView();
+	if (doc_bv) {
+		doc_bv->dispatch(cmd, dr);
+		if (dr.dispatched())
+			return;
+	}
+
+	// Then let the current Cursor dispatch its own actions.
+	bv->cursor().dispatch(cmd);
+
+	// update completion. We do it here and not in
+	// processKeySym to avoid another redraw just for a
+	// changed inline completion
+	if (cmd.origin() == FuncRequest::KEYBOARD) {
+		if (cmd.action() == LFUN_SELF_INSERT
+			|| (cmd.action() == LFUN_ERT_INSERT && bv->cursor().inMathed()))
+			updateCompletion(bv->cursor(), true, true);
+		else if (cmd.action() == LFUN_CHAR_DELETE_BACKWARD)
+			updateCompletion(bv->cursor(), false, true);
+		else
+			updateCompletion(bv->cursor(), false, false);
+	}
+
+	dr = bv->cursor().result();
+}
+
+
+void GuiView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
+{
+	BufferView * bv = currentBufferView();
+	// By default we won't need any update.
+	dr.screenUpdate(Update::None);
+	// assume cmd will be dispatched
+	dr.dispatched(true);
+
+	Buffer * doc_buffer = documentBufferView()
+		? &(documentBufferView()->buffer()) : 0;
+
+	if (cmd.origin() == FuncRequest::TOC) {
+		GuiToc * toc = static_cast<GuiToc*>(findOrBuild("toc", false));
+		// FIXME: do we need to pass a DispatchResult object here?
+		toc->doDispatch(bv->cursor(), cmd);
+		return;
+	}
+
+	string const argument = to_utf8(cmd.argument());
+
+	switch(cmd.action()) {
+		case LFUN_BUFFER_CHILD_OPEN:
+			openChildDocument(to_utf8(cmd.argument()));
+			break;
+
 		case LFUN_BUFFER_IMPORT:
 			importDocument(to_utf8(cmd.argument()));
 			break;
 
-		case LFUN_BUFFER_SWITCH: {
-			string const file_name = to_utf8(cmd.argument()); 
-			if (!FileName::isAbsolute(file_name))
+		case LFUN_BUFFER_EXPORT: {
+			if (!doc_buffer)
 				break;
-			Buffer * buffer = theBufferList().getBuffer(FileName(file_name));
-			if (!buffer) {
-				theLyXFunc().setMessage(_("Document not loaded"));
+			// GCC only sees strfwd.h when building merged
+			if (::lyx::operator==(cmd.argument(), "custom")) {
+				dispatch(FuncRequest(LFUN_DIALOG_SHOW, "sendto"), dr);
 				break;
 			}
-			
-			// Do we open or switch to the buffer in this view ? 
+#if QT_VERSION < 0x040400
+			if (!doc_buffer->doExport(argument, false)) {
+				dr.setError(true);
+				dr.setMessage(bformat(_("Error exporting to format: %1$s."),
+					cmd.argument()));
+			}
+#else
+			/* TODO/Review: Is it a problem to also export the children?
+					See the update_unincluded flag */
+			d.asyncBufferProcessing(argument,
+						doc_buffer,
+						_("Exporting ..."),
+						&GuiViewPrivate::exportAndDestroy,
+						&Buffer::doExport,
+						0);
+			// TODO Inform user about success
+#endif
+			break;
+		}
+
+		case LFUN_BUFFER_UPDATE: {
+			d.asyncBufferProcessing(argument,
+						doc_buffer,
+						_("Exporting ..."),
+						&GuiViewPrivate::compileAndDestroy,
+						&Buffer::doExport,
+						0);
+			break;
+		}
+		case LFUN_BUFFER_VIEW: {
+			d.asyncBufferProcessing(argument,
+						doc_buffer,
+						_("Previewing ..."),
+						&GuiViewPrivate::previewAndDestroy,
+						0,
+						&Buffer::preview);
+			break;
+		}
+		case LFUN_MASTER_BUFFER_UPDATE: {
+			d.asyncBufferProcessing(argument,
+						(doc_buffer ? doc_buffer->masterBuffer() : 0),
+						docstring(),
+						&GuiViewPrivate::compileAndDestroy,
+						&Buffer::doExport,
+						0);
+			break;
+		}
+		case LFUN_MASTER_BUFFER_VIEW: {
+			d.asyncBufferProcessing(argument,
+						(doc_buffer ? doc_buffer->masterBuffer() : 0),
+						docstring(),
+						&GuiViewPrivate::previewAndDestroy,
+						0, &Buffer::preview);
+			break;
+		}
+		case LFUN_BUFFER_SWITCH: {
+			string const file_name = to_utf8(cmd.argument());
+			if (!FileName::isAbsolute(file_name)) {
+				dr.setError(true);
+				dr.setMessage(_("Absolute filename expected."));
+				break;
+			}
+
+			Buffer * buffer = theBufferList().getBuffer(FileName(file_name));
+			if (!buffer) {
+				dr.setError(true);
+				dr.setMessage(_("Document not loaded"));
+				break;
+			}
+
+			// Do we open or switch to the buffer in this view ?
 			if (workArea(*buffer)
-				  || lyxrc.open_buffers_in_tabs || !view()) {
+				  || lyxrc.open_buffers_in_tabs || !documentBufferView()) {
 				setBuffer(buffer);
 				break;
 			}
 
-			// Look for the buffer in other views 
+			// Look for the buffer in other views
 			QList<int> const ids = guiApp->viewIds();
 			int i = 0;
 			for (; i != ids.size(); ++i) {
@@ -2052,8 +3252,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			break;
 		}
 		case LFUN_DROP_LAYOUTS_CHOICE:
-			if (d.layout_)
-				d.layout_->showPopup();
+			d.layout_->showPopup();
 			break;
 
 		case LFUN_MENU_OPEN:
@@ -2064,6 +3263,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 		case LFUN_FILE_INSERT:
 			insertLyXFile(cmd.argument());
 			break;
+
 		case LFUN_FILE_INSERT_PLAINTEXT_PARA:
 			insertPlaintextFile(cmd.argument(), true);
 			break;
@@ -2072,14 +3272,36 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			insertPlaintextFile(cmd.argument(), false);
 			break;
 
+		case LFUN_BUFFER_RELOAD: {
+			LASSERT(doc_buffer, break);
+
+			int ret = 0;
+			if (!doc_buffer->isClean()) {
+				docstring const file =
+					makeDisplayPath(doc_buffer->absFileName(), 20);
+				docstring text = bformat(_("Any changes will be lost. "
+					"Are you sure you want to revert to the saved version "
+					"of the document %1$s?"), file);
+				ret = Alert::prompt(_("Revert to saved document?"),
+					text, 1, 1, _("&Revert"), _("&Cancel"));
+			}
+
+			if (ret == 0) {
+				doc_buffer->markClean();
+				reloadBuffer(*doc_buffer);
+				dr.forceBufferUpdate();
+			}
+			break;
+		}
+
 		case LFUN_BUFFER_WRITE:
-			if (bv)
-				saveBuffer(bv->buffer());
+			LASSERT(doc_buffer, break);
+			saveBuffer(*doc_buffer);
 			break;
 
 		case LFUN_BUFFER_WRITE_AS:
-			if (bv)
-				renameBuffer(bv->buffer(), cmd.argument());
+			LASSERT(doc_buffer, break);
+			renameBuffer(*doc_buffer, cmd.argument());
 			break;
 
 		case LFUN_BUFFER_WRITE_ALL: {
@@ -2095,10 +3317,18 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 					LYXERR(Debug::ACTION, "Saved " << b->absFileName());
 				}
 				b = theBufferList().next(b);
-			} while (b != first); 
-			message(_("All documents saved."));
+			} while (b != first);
+			dr.setMessage(_("All documents saved."));
 			break;
 		}
+
+		case LFUN_BUFFER_CLOSE:
+			closeBuffer();
+			break;
+
+		case LFUN_BUFFER_CLOSE_ALL:
+			closeBufferAll();
+			break;
 
 		case LFUN_TOOLBAR_TOGGLE: {
 			string const name = cmd.getArg(0);
@@ -2109,23 +3339,29 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 
 		case LFUN_DIALOG_UPDATE: {
 			string const name = to_utf8(cmd.argument());
-			// Can only update a dialog connected to an existing inset
-			Inset * inset = getOpenInset(name);
-			if (inset) {
-				FuncRequest fr(LFUN_INSET_DIALOG_UPDATE, cmd.argument());
-				inset->dispatch(view()->cursor(), fr);
-			} else if (name == "paragraph") {
-				lyx::dispatch(FuncRequest(LFUN_PARAGRAPH_UPDATE));
-			} else if (name == "prefs" || name == "document")
+			if (name == "prefs" || name == "document")
 				updateDialog(name, string());
+			else if (name == "paragraph")
+				lyx::dispatch(FuncRequest(LFUN_PARAGRAPH_UPDATE));
+			else if (currentBufferView()) {
+				Inset * inset = currentBufferView()->editedInset(name);
+				// Can only update a dialog connected to an existing inset
+				if (inset) {
+					// FIXME: get rid of this indirection; GuiView ask the inset
+					// if he is kind enough to update itself...
+					FuncRequest fr(LFUN_INSET_DIALOG_UPDATE, cmd.argument());
+					//FIXME: pass DispatchResult here?
+					inset->dispatch(currentBufferView()->cursor(), fr);
+				}
+			}
 			break;
 		}
 
 		case LFUN_DIALOG_TOGGLE: {
 			if (isDialogVisible(cmd.getArg(0)))
-				dispatch(FuncRequest(LFUN_DIALOG_HIDE, cmd.argument()));
+				dispatch(FuncRequest(LFUN_DIALOG_HIDE, cmd.argument()), dr);
 			else
-				dispatch(FuncRequest(LFUN_DIALOG_SHOW, cmd.argument()));
+				dispatch(FuncRequest(LFUN_DIALOG_SHOW, cmd.argument()), dr);
 			break;
 		}
 
@@ -2147,8 +3383,8 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				if (!data.empty())
 					showDialog("character", data);
 			} else if (name == "latexlog") {
-				Buffer::LogType type; 
-				string const logfile = buffer()->logName(&type);
+				Buffer::LogType type;
+				string const logfile = doc_buffer->logName(&type);
 				switch (type) {
 				case Buffer::latexlog:
 					data = "latex ";
@@ -2161,7 +3397,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 				showDialog("log", data);
 			} else if (name == "vclog") {
 				string const data = "vc " +
-					Lexer::quoteString(buffer()->lyxvc().getLogFile());
+					Lexer::quoteString(doc_buffer->lyxvc().getLogFile());
 				showDialog("log", data);
 			} else if (name == "symbols") {
 				data = bv->cursor().getEncoding()->name();
@@ -2169,71 +3405,53 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 					showDialog("symbols", data);
 			// bug 5274
 			} else if (name == "prefs" && isFullScreen()) {
-				FuncRequest fr(LFUN_INSET_INSERT, "fullscreen");
-				lfunUiToggle(fr);
+				lfunUiToggle("fullscreen");
 				showDialog("prefs", data);
 			} else
 				showDialog(name, data);
 			break;
 		}
 
-		case LFUN_INSET_APPLY: {
-			string const name = cmd.getArg(0);
-			Inset * inset = getOpenInset(name);
-			if (inset) {
-				// put cursor in front of inset.
-				if (!view()->setCursorFromInset(inset)) {
-					LASSERT(false, break);
-				}
-				
-				// useful if we are called from a dialog.
-				view()->cursor().beginUndoGroup();
-				view()->cursor().recordUndo();
-				FuncRequest fr(LFUN_INSET_MODIFY, cmd.argument());
-				inset->dispatch(view()->cursor(), fr);
-				view()->cursor().endUndoGroup();
-			} else {
-				FuncRequest fr(LFUN_INSET_INSERT, cmd.argument());
-				lyx::dispatch(fr);
-			}
+		case LFUN_MESSAGE:
+			dr.setMessage(cmd.argument());
 			break;
-		}
 
-		case LFUN_UI_TOGGLE:
-			lfunUiToggle(cmd);
+		case LFUN_UI_TOGGLE: {
+			string arg = cmd.getArg(0);
+			if (!lfunUiToggle(arg)) {
+				docstring const msg = "ui-toggle " + _("%1$s unknown command!");
+				dr.setMessage(bformat(msg, from_utf8(arg)));
+			}
 			// Make sure the keyboard focus stays in the work area.
 			setFocus();
 			break;
+		}
 
-		case LFUN_SPLIT_VIEW:
-			if (Buffer * buf = buffer()) {
-				string const orientation = cmd.getArg(0);
-				d.splitter_->setOrientation(orientation == "vertical"
-					? Qt::Vertical : Qt::Horizontal);
-				TabWorkArea * twa = addTabWorkArea();
-				GuiWorkArea * wa = twa->addWorkArea(*buf, *this);
-				setCurrentWorkArea(wa);
-			}
+		case LFUN_SPLIT_VIEW: {
+			LASSERT(doc_buffer, break);
+			string const orientation = cmd.getArg(0);
+			d.splitter_->setOrientation(orientation == "vertical"
+				? Qt::Vertical : Qt::Horizontal);
+			TabWorkArea * twa = addTabWorkArea();
+			GuiWorkArea * wa = twa->addWorkArea(*doc_buffer, *this);
+			setCurrentWorkArea(wa);
 			break;
-
+		}
 		case LFUN_CLOSE_TAB_GROUP:
 			if (TabWorkArea * twa = d.currentTabWorkArea()) {
-				delete twa;
+				closeTabWorkArea(twa);
+				d.current_work_area_ = 0;
 				twa = d.currentTabWorkArea();
 				// Switch to the next GuiWorkArea in the found TabWorkArea.
 				if (twa) {
-					d.current_work_area_ = twa->currentWorkArea();
 					// Make sure the work area is up to date.
-					twa->setCurrentWorkArea(d.current_work_area_);
+					setCurrentWorkArea(twa->currentWorkArea());
 				} else {
-					d.current_work_area_ = 0;
+					setCurrentWorkArea(0);
 				}
-				if (d.splitter_->count() == 0)
-					// No more work area, switch to the background widget.
-					d.setBackground();
 			}
 			break;
-			
+
 		case LFUN_COMPLETION_INLINE:
 			if (d.current_work_area_)
 				d.current_work_area_->completer().showInline();
@@ -2267,7 +3485,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 		case LFUN_BUFFER_ZOOM_IN:
 		case LFUN_BUFFER_ZOOM_OUT:
 			if (cmd.argument().empty()) {
-				if (cmd.action == LFUN_BUFFER_ZOOM_IN)
+				if (cmd.action() == LFUN_BUFFER_ZOOM_IN)
 					lyxrc.zoom += 20;
 				else
 					lyxrc.zoom -= 20;
@@ -2276,7 +3494,7 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 
 			if (lyxrc.zoom < 10)
 				lyxrc.zoom = 10;
-				
+
 			// The global QPixmapCache is used in GuiPainter to cache text
 			// painting so we must reset it.
 			QPixmapCache::clear();
@@ -2284,27 +3502,79 @@ bool GuiView::dispatch(FuncRequest const & cmd)
 			lyx::dispatch(FuncRequest(LFUN_SCREEN_FONT_UPDATE));
 			break;
 
+		case LFUN_VC_REGISTER:
+		case LFUN_VC_CHECK_IN:
+		case LFUN_VC_CHECK_OUT:
+		case LFUN_VC_REPO_UPDATE:
+		case LFUN_VC_LOCKING_TOGGLE:
+		case LFUN_VC_REVERT:
+		case LFUN_VC_UNDO_LAST:
+		case LFUN_VC_COMMAND:
+		case LFUN_VC_COMPARE:
+			dispatchVC(cmd, dr);
+			break;
+
+		case LFUN_SERVER_GOTO_FILE_ROW:
+			goToFileRow(to_utf8(cmd.argument()));
+			break;
+
+		case LFUN_FORWARD_SEARCH: {
+			FileName const path(doc_buffer->temppath());
+			string const texname = doc_buffer->latexName();
+			FileName const dviname(addName(path.absFileName(),
+				    support::changeExtension(texname, "dvi")));
+			FileName const pdfname(addName(path.absFileName(),
+				    support::changeExtension(texname, "pdf")));
+			if (!dviname.exists() && !pdfname.exists()) {
+				dr.setMessage(_("Please, preview the document first."));
+				break;
+			}
+			string outname = dviname.onlyFileName();
+			string command = lyxrc.forward_search_dvi;
+			if (!dviname.exists() ||
+			    pdfname.lastModified() > dviname.lastModified()) {
+				outname = pdfname.onlyFileName();
+				command = lyxrc.forward_search_pdf;
+			}
+
+			int row = doc_buffer->texrow().getRowFromIdPos(bv->cursor().paragraph().id(), bv->cursor().pos());
+			LYXERR(Debug::ACTION, "Forward search: row:" << row
+				<< " id:" << bv->cursor().paragraph().id());
+			if (!row || command.empty()) {
+				dr.setMessage(_("Couldn't proceed."));
+				break;
+			}
+			string texrow = convert<string>(row);
+
+			command = subst(command, "$$n", texrow);
+			command = subst(command, "$$t", texname);
+			command = subst(command, "$$o", outname);
+
+			PathChanger p(path);
+			Systemcall one;
+			one.startscript(Systemcall::DontWait, command);
+			break;
+		}
 		default:
-			dispatched = false;
+			// The LFUN must be for one of BufferView, Buffer or Cursor;
+			// let's try that:
+			dispatchToBufferView(cmd, dr);
 			break;
 	}
 
 	// Part of automatic menu appearance feature.
 	if (isFullScreen()) {
-		if (menuBar()->isVisible())
+		if (menuBar()->isVisible() && lyxrc.full_screen_menubar)
 			menuBar()->hide();
 		if (statusBar()->isVisible())
 			statusBar()->hide();
 	}
-
-	return dispatched;
 }
 
 
-void GuiView::lfunUiToggle(FuncRequest const & cmd)
+bool GuiView::lfunUiToggle(string const & ui_component)
 {
-	string const arg = cmd.getArg(0);
-	if (arg == "scrollbar") {
+	if (ui_component == "scrollbar") {
 		// hide() is of no help
 		if (d.current_work_area_->verticalScrollBarPolicy() ==
 			Qt::ScrollBarAlwaysOff)
@@ -2314,18 +3584,13 @@ void GuiView::lfunUiToggle(FuncRequest const & cmd)
 		else
 			d.current_work_area_->setVerticalScrollBarPolicy(
 				Qt::ScrollBarAlwaysOff);
-		return;
-	}
-	if (arg == "statusbar") {
+	} else if (ui_component == "statusbar") {
 		statusBar()->setVisible(!statusBar()->isVisible());
-		return;
-	}
-	if (arg == "menubar") {
+	} else if (ui_component == "menubar") {
 		menuBar()->setVisible(!menuBar()->isVisible());
-		return;
-	}
+	} else
 #if QT_VERSION >= 0x040300
-	if (arg == "frame") {
+	if (ui_component == "frame") {
 		int l, t, r, b;
 		getContentsMargins(&l, &t, &r, &b);
 		//are the frames in default state?
@@ -2335,15 +3600,13 @@ void GuiView::lfunUiToggle(FuncRequest const & cmd)
 		} else {
 			setContentsMargins(0, 0, 0, 0);
 		}
-		return;
-	}
+	} else
 #endif
-	if (arg == "fullscreen") {
+	if (ui_component == "fullscreen") {
 		toggleFullScreen();
-		return;
-	}
-
-	message(bformat("LFUN_UI_TOGGLE " + _("%1$s unknown command!"), from_utf8(arg)));
+	} else
+		return false;
+	return true;
 }
 
 
@@ -2370,7 +3633,8 @@ void GuiView::toggleFullScreen()
 		saveLayout();
 		setWindowState(windowState() ^ Qt::WindowFullScreen);
 		statusBar()->hide();
-		menuBar()->hide();
+		if (lyxrc.full_screen_menubar)
+			menuBar()->hide();
 		if (lyxrc.full_screen_toolbars) {
 			ToolbarMap::iterator end = d.toolbars_.end();
 			for (ToolbarMap::iterator it = d.toolbars_.begin(); it != end; ++it)
@@ -2385,13 +3649,20 @@ void GuiView::toggleFullScreen()
 
 Buffer const * GuiView::updateInset(Inset const * inset)
 {
-	if (!d.current_work_area_)
+	if (!inset)
 		return 0;
 
-	if (inset)
-		d.current_work_area_->scheduleRedraw();
+	Buffer const * inset_buffer = &(inset->buffer());
 
-	return &d.current_work_area_->bufferView().buffer();
+	for (int i = 0; i != d.splitter_->count(); ++i) {
+		GuiWorkArea * wa = d.tabWorkArea(i)->currentWorkArea();
+		if (!wa)
+			continue;
+		Buffer const * buffer = &(wa->bufferView().buffer());
+		if (inset_buffer == buffer)
+			wa->scheduleRedraw();
+	}
+	return inset_buffer;
 }
 
 
@@ -2424,17 +3695,15 @@ namespace {
 // docs in LyXAction.cpp.
 
 char const * const dialognames[] = {
+
 "aboutlyx", "bibitem", "bibtex", "box", "branch", "changes", "character",
-"citation", "document", "errorlist", "ert", "external", "file",
-"findreplace", "float", "graphics", "include", "index", "info", "nomenclature", "label", "log",
-"mathdelimiter", "mathmatrix", "mathspace", "note", "paragraph", "prefs", "print", 
-"ref", "sendto", "space", "spellchecker", "symbols", "tabular", "tabularcreate",
-
-#ifdef HAVE_LIBAIKSAURUS
-"thesaurus",
-#endif
-
-"texinfo", "toc", "href", "view-source", "vspace", "wrap", "listings" };
+"citation", "compare", "comparehistory", "document", "errorlist", "ert",
+"external", "file", "findreplace", "findreplaceadv", "float", "graphics",
+"href", "include", "index", "index_print", "info", "listings", "label", "line",
+"log", "mathdelimiter", "mathmatrix", "mathspace", "nomenclature",
+"nomencl_print", "note", "paragraph", "phantom", "prefs", "print", "ref",
+"sendto", "space", "spellchecker", "symbols", "tabular", "tabularcreate",
+"thesaurus", "texinfo", "toc", "view-source", "vspace", "wrap", "progress"};
 
 char const * const * const end_dialognames =
 	dialognames + (sizeof(dialognames) / sizeof(char *));
@@ -2453,7 +3722,7 @@ private:
 bool isValidName(string const & name)
 {
 	return find_if(dialognames, end_dialognames,
-			    cmpCStr(name.c_str())) != end_dialognames;
+				cmpCStr(name.c_str())) != end_dialognames;
 }
 
 } // namespace anon
@@ -2461,16 +3730,16 @@ bool isValidName(string const & name)
 
 void GuiView::resetDialogs()
 {
-	// Make sure that no LFUN uses any LyXView.
-	theLyXFunc().setLyXView(0);
+	// Make sure that no LFUN uses any GuiView.
+	guiApp->setCurrentView(0);
 	saveLayout();
+	saveUISettings();
 	menuBar()->clear();
 	constructToolbars();
 	guiApp->menus().fillMenuBar(menuBar(), this, false);
-	if (d.layout_)
-		d.layout_->updateContents(true);
+	d.layout_->updateContents(true);
 	// Now update controls with current buffer.
-	theLyXFunc().setLyXView(this);
+	guiApp->setCurrentView(this);
 	restoreLayout();
 	restartCursor();
 }
@@ -2502,16 +3771,35 @@ Dialog * GuiView::findOrBuild(string const & name, bool hide_it)
 void GuiView::showDialog(string const & name, string const & data,
 	Inset * inset)
 {
+	triggerShowDialog(toqstr(name), toqstr(data), inset);
+}
+
+
+void GuiView::doShowDialog(QString const & qname, QString const & qdata,
+	Inset * inset)
+{
 	if (d.in_show_)
 		return;
+
+	const string name = fromqstr(qname);
+	const string data = fromqstr(qdata);
 
 	d.in_show_ = true;
 	try {
 		Dialog * dialog = findOrBuild(name, false);
 		if (dialog) {
+			bool const visible = dialog->isVisibleView();
 			dialog->showData(data);
-			if (inset)
-				d.open_insets_[name] = inset;
+			if (inset && currentBufferView())
+				currentBufferView()->editInset(name, inset);
+			// We only set the focus to the new dialog if it was not yet
+			// visible in order not to change the existing previous behaviour
+			if (visible) {
+				// activateWindow is needed for floating dockviews
+				dialog->asQWidget()->raise();
+				dialog->asQWidget()->activateWindow();
+				dialog->asQWidget()->setFocus();
+			}
 		}
 	}
 	catch (ExceptionMessage const & ex) {
@@ -2537,13 +3825,18 @@ void GuiView::hideDialog(string const & name, Inset * inset)
 	if (it == d.dialogs_.end())
 		return;
 
-	if (inset && inset != getOpenInset(name))
-		return;
+	if (inset) {
+		if (!currentBufferView())
+			return;
+		if (inset != currentBufferView()->editedInset(name))
+			return;
+	}
 
 	Dialog * const dialog = it->second.get();
 	if (dialog->isVisibleView())
 		dialog->hideView();
-	d.open_insets_[name] = 0;
+	if (currentBufferView())
+		currentBufferView()->editInset(name, 0);
 }
 
 
@@ -2551,19 +3844,8 @@ void GuiView::disconnectDialog(string const & name)
 {
 	if (!isValidName(name))
 		return;
-
-	if (d.open_insets_.find(name) != d.open_insets_.end())
-		d.open_insets_[name] = 0;
-}
-
-
-Inset * GuiView::getOpenInset(string const & name) const
-{
-	if (!isValidName(name))
-		return 0;
-
-	map<string, Inset *>::const_iterator it = d.open_insets_.find(name);
-	return it == d.open_insets_.end() ? 0 : it->second;
+	if (currentBufferView())
+		currentBufferView()->editInset(name, 0);
 }
 
 
@@ -2585,7 +3867,7 @@ void GuiView::updateDialogs()
 	for(; it != end; ++it) {
 		Dialog * dialog = it->second.get();
 		if (dialog) {
-			if (dialog->needBufferOpen() && !d.current_work_area_)
+			if (dialog->needBufferOpen() && !documentBufferView())
 				hideDialog(fromqstr(dialog->name()), 0);
 			else if (dialog->isVisibleView())
 				dialog->checkStatus();
@@ -2595,111 +3877,105 @@ void GuiView::updateDialogs()
 	updateLayoutList();
 }
 
+Dialog * createDialog(GuiView & lv, string const & name);
 
 // will be replaced by a proper factory...
 Dialog * createGuiAbout(GuiView & lv);
-Dialog * createGuiBibitem(GuiView & lv);
 Dialog * createGuiBibtex(GuiView & lv);
-Dialog * createGuiBox(GuiView & lv);
-Dialog * createGuiBranch(GuiView & lv);
 Dialog * createGuiChanges(GuiView & lv);
 Dialog * createGuiCharacter(GuiView & lv);
 Dialog * createGuiCitation(GuiView & lv);
+Dialog * createGuiCompare(GuiView & lv);
+Dialog * createGuiCompareHistory(GuiView & lv);
 Dialog * createGuiDelimiter(GuiView & lv);
 Dialog * createGuiDocument(GuiView & lv);
 Dialog * createGuiErrorList(GuiView & lv);
-Dialog * createGuiERT(GuiView & lv);
 Dialog * createGuiExternal(GuiView & lv);
-Dialog * createGuiFloat(GuiView & lv);
 Dialog * createGuiGraphics(GuiView & lv);
 Dialog * createGuiInclude(GuiView & lv);
-Dialog * createGuiInfo(GuiView & lv);
-Dialog * createGuiLabel(GuiView & lv);
+Dialog * createGuiIndex(GuiView & lv);
 Dialog * createGuiListings(GuiView & lv);
 Dialog * createGuiLog(GuiView & lv);
-Dialog * createGuiMathHSpace(GuiView & lv);
 Dialog * createGuiMathMatrix(GuiView & lv);
-Dialog * createGuiNomenclature(GuiView & lv);
 Dialog * createGuiNote(GuiView & lv);
 Dialog * createGuiParagraph(GuiView & lv);
+Dialog * createGuiPhantom(GuiView & lv);
 Dialog * createGuiPreferences(GuiView & lv);
 Dialog * createGuiPrint(GuiView & lv);
+Dialog * createGuiPrintindex(GuiView & lv);
 Dialog * createGuiRef(GuiView & lv);
 Dialog * createGuiSearch(GuiView & lv);
+Dialog * createGuiSearchAdv(GuiView & lv);
 Dialog * createGuiSendTo(GuiView & lv);
 Dialog * createGuiShowFile(GuiView & lv);
 Dialog * createGuiSpellchecker(GuiView & lv);
 Dialog * createGuiSymbols(GuiView & lv);
 Dialog * createGuiTabularCreate(GuiView & lv);
-Dialog * createGuiTabular(GuiView & lv);
 Dialog * createGuiTexInfo(GuiView & lv);
-Dialog * createGuiTextHSpace(GuiView & lv);
 Dialog * createGuiToc(GuiView & lv);
 Dialog * createGuiThesaurus(GuiView & lv);
-Dialog * createGuiHyperlink(GuiView & lv);
-Dialog * createGuiVSpace(GuiView & lv);
 Dialog * createGuiViewSource(GuiView & lv);
 Dialog * createGuiWrap(GuiView & lv);
+Dialog * createGuiProgressView(GuiView & lv);
+
 
 
 Dialog * GuiView::build(string const & name)
 {
 	LASSERT(isValidName(name), return 0);
 
+	Dialog * dialog = createDialog(*this, name);
+	if (dialog)
+		return dialog;
+
 	if (name == "aboutlyx")
 		return createGuiAbout(*this);
-	if (name == "bibitem")
-		return createGuiBibitem(*this);
 	if (name == "bibtex")
 		return createGuiBibtex(*this);
-	if (name == "box")
-		return createGuiBox(*this);
-	if (name == "branch")
-		return createGuiBranch(*this);
 	if (name == "changes")
 		return createGuiChanges(*this);
 	if (name == "character")
 		return createGuiCharacter(*this);
 	if (name == "citation")
 		return createGuiCitation(*this);
+	if (name == "compare")
+		return createGuiCompare(*this);
+	if (name == "comparehistory")
+		return createGuiCompareHistory(*this);
 	if (name == "document")
 		return createGuiDocument(*this);
 	if (name == "errorlist")
 		return createGuiErrorList(*this);
-	if (name == "ert")
-		return createGuiERT(*this);
 	if (name == "external")
 		return createGuiExternal(*this);
 	if (name == "file")
 		return createGuiShowFile(*this);
 	if (name == "findreplace")
 		return createGuiSearch(*this);
-	if (name == "float")
-		return createGuiFloat(*this);
+	if (name == "findreplaceadv")
+		return createGuiSearchAdv(*this);
 	if (name == "graphics")
 		return createGuiGraphics(*this);
 	if (name == "include")
 		return createGuiInclude(*this);
-	if (name == "info")
-		return createGuiInfo(*this);
-	if (name == "nomenclature")
-		return createGuiNomenclature(*this);
-	if (name == "label")
-		return createGuiLabel(*this);
+	if (name == "index")
+		return createGuiIndex(*this);
+	if (name == "index_print")
+		return createGuiPrintindex(*this);
+	if (name == "listings")
+		return createGuiListings(*this);
 	if (name == "log")
 		return createGuiLog(*this);
-	if (name == "view-source")
-		return createGuiViewSource(*this);
 	if (name == "mathdelimiter")
 		return createGuiDelimiter(*this);
-	if (name == "mathspace")
-		return createGuiMathHSpace(*this);
 	if (name == "mathmatrix")
 		return createGuiMathMatrix(*this);
 	if (name == "note")
 		return createGuiNote(*this);
 	if (name == "paragraph")
 		return createGuiParagraph(*this);
+	if (name == "phantom")
+		return createGuiPhantom(*this);
 	if (name == "prefs")
 		return createGuiPreferences(*this);
 	if (name == "print")
@@ -2708,32 +3984,24 @@ Dialog * GuiView::build(string const & name)
 		return createGuiRef(*this);
 	if (name == "sendto")
 		return createGuiSendTo(*this);
-	if (name == "space")
-		return createGuiTextHSpace(*this);
 	if (name == "spellchecker")
 		return createGuiSpellchecker(*this);
 	if (name == "symbols")
 		return createGuiSymbols(*this);
-	if (name == "tabular")
-		return createGuiTabular(*this);
 	if (name == "tabularcreate")
 		return createGuiTabularCreate(*this);
 	if (name == "texinfo")
 		return createGuiTexInfo(*this);
-#ifdef HAVE_LIBAIKSAURUS
 	if (name == "thesaurus")
 		return createGuiThesaurus(*this);
-#endif
 	if (name == "toc")
 		return createGuiToc(*this);
-	if (name == "href")
-		return createGuiHyperlink(*this);
-	if (name == "vspace")
-		return createGuiVSpace(*this);
+	if (name == "view-source")
+		return createGuiViewSource(*this);
 	if (name == "wrap")
 		return createGuiWrap(*this);
-	if (name == "listings")
-		return createGuiListings(*this);
+	if (name == "progress")
+		return createGuiProgressView(*this);
 
 	return 0;
 }
@@ -2742,4 +4010,4 @@ Dialog * GuiView::build(string const & name)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiView_moc.cpp"
+#include "moc_GuiView.cpp"

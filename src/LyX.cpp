@@ -4,10 +4,10 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alfredo Braunstein
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,7 +17,8 @@
 
 #include "LyX.h"
 
-#include "LayoutFile.h"
+#include "AppleSpellChecker.h"
+#include "AspellChecker.h"
 #include "Buffer.h"
 #include "BufferList.h"
 #include "CmdDef.h"
@@ -25,15 +26,18 @@
 #include "ConverterCache.h"
 #include "Converter.h"
 #include "CutAndPaste.h"
+#include "EnchantChecker.h"
 #include "Encoding.h"
 #include "ErrorList.h"
 #include "Format.h"
 #include "FuncStatus.h"
+#include "HunspellChecker.h"
 #include "KeyMap.h"
 #include "Language.h"
+#include "LayoutFile.h"
 #include "Lexer.h"
+#include "LyX.h"
 #include "LyXAction.h"
-#include "LyXFunc.h"
 #include "LyXRC.h"
 #include "ModuleList.h"
 #include "Mover.h"
@@ -59,7 +63,7 @@
 #include "support/Path.h"
 #include "support/Systemcall.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 #include <boost/scoped_ptr.hpp>
 
 #include <algorithm>
@@ -86,10 +90,19 @@ namespace os = support::os;
 bool use_gui = true;
 
 
-// Tell what files can be silently overwritten during batch export.
-// Possible values are: NO_FILES, MAIN_FILE, ALL_FILES.
+// We default to open documents in an already running instance, provided that
+// the lyxpipe has been setup. This can be overridden either on the command
+// line or through preference settings.
 
-OverwriteFiles force_overwrite = NO_FILES;
+RunMode run_mode = PREFERRED;
+
+
+// Tell what files can be silently overwritten during batch export.
+// Possible values are: NO_FILES, MAIN_FILE, ALL_FILES, UNSPECIFIED.
+// Unless specified on command line (through the -f switch) or through the
+// environment variable LYX_FORCE_OVERWRITE, the default will be MAIN_FILE.
+
+OverwriteFiles force_overwrite = UNSPECIFIED;
 
 
 namespace {
@@ -124,19 +137,25 @@ void reconfigureUserLyXDir()
 
 } // namespace anon
 
-
 /// The main application class private implementation.
 struct LyX::Impl
 {
-	Impl()
+	Impl() : spell_checker_(0), apple_spell_checker_(0), aspell_checker_(0), enchant_checker_(0), hunspell_checker_(0)
 	{
 		// Set the default User Interface language as soon as possible.
 		// The language used will be derived from the environment
 		// variables.
 		messages_["GUI"] = Messages();
 	}
-	/// our function handler
-	LyXFunc lyxfunc_;
+
+	~Impl()
+	{
+		delete apple_spell_checker_;
+		delete aspell_checker_;
+		delete enchant_checker_;
+		delete hunspell_checker_;
+	}
+
 	///
 	BufferList buffer_list_;
 	///
@@ -176,6 +195,16 @@ struct LyX::Impl
 
 	///
 	graphics::Previews preview_;
+	///
+	SpellChecker * spell_checker_;
+	///
+	SpellChecker * apple_spell_checker_;
+	///
+	SpellChecker * aspell_checker_;
+	///
+	SpellChecker * enchant_checker_;
+	///
+	SpellChecker * hunspell_checker_;
 };
 
 ///
@@ -190,8 +219,8 @@ frontend::Application * theApp()
 
 LyX::~LyX()
 {
-	singleton_ = 0;
 	delete pimpl_;
+	singleton_ = 0;
 }
 
 
@@ -259,14 +288,24 @@ void setRcGuiLanguage()
 
 int LyX::exec(int & argc, char * argv[])
 {
+	// Minimal setting of locale before parsing command line
+	try {
+		init_package(os::utf8_argv(0), string(), string(),
+			top_build_dir_is_one_level_up);
+	} catch (ExceptionMessage const & message) {
+		LYXERR(Debug::LOCALE, message.title_ + ", " + message.details_);
+	}
+	// FIXME: This breaks out of source build under Windows.
+	locale_init();
+
 	// Here we need to parse the command line. At least
 	// we need to parse for "-dbg" and "-help"
 	easyParse(argc, argv);
 
 	try {
 		init_package(os::utf8_argv(0),
-			      cl_system_support, cl_user_support,
-			      top_build_dir_is_one_level_up);
+			cl_system_support, cl_user_support,
+			top_build_dir_is_one_level_up);
 	} catch (ExceptionMessage const & message) {
 		if (message.type_ == ErrorException) {
 			Alert::error(message.title_, message.details_);
@@ -303,12 +342,13 @@ int LyX::exec(int & argc, char * argv[])
 			Buffer * buf = *I;
 			if (buf != buf->masterBuffer())
 				continue;
-			bool success = false;
 			vector<string>::const_iterator bcit  = pimpl_->batch_commands.begin();
 			vector<string>::const_iterator bcend = pimpl_->batch_commands.end();
+			DispatchResult dr;
 			for (; bcit != bcend; bcit++) {
-				buf->dispatch(*bcit, &success);
-				final_success |= success;
+				LYXERR(Debug::ACTION, "Buffer::dispatch: cmd: " << *bcit);
+				buf->dispatch(*bcit, dr);
+				final_success |= !dr.error();
 			}
 		}
 		prepareExit();
@@ -332,22 +372,37 @@ int LyX::exec(int & argc, char * argv[])
 		prepareExit();
 		return exit_status;
 	}
- 
+
+	// If not otherwise specified by a command line option or
+	// by preferences, we default to reuse a running instance.
+	if (run_mode == PREFERRED)
+		run_mode = USE_REMOTE;
+
 	// FIXME
 	/* Create a CoreApplication class that will provide the main event loop
 	* and the socket callback registering. With Qt4, only QtCore
 	* library would be needed.
 	* When this is done, a server_mode could be created and the following two
 	* line would be moved out from here.
+	* However, note that the first of the two lines below triggers the
+	* "single instance" behavior, which should occur right at this point.
 	*/
 	// Note: socket callback must be registered after init(argc, argv)
 	// such that package().temp_dir() is properly initialized.
-	pimpl_->lyx_server_.reset(new Server(&pimpl_->lyxfunc_, lyxrc.lyxpipes));
-	pimpl_->lyx_socket_.reset(new ServerSocket(&pimpl_->lyxfunc_,
-			FileName(package().temp_dir().absFilename() + "/lyxsocket")));
+	pimpl_->lyx_server_.reset(new Server(lyxrc.lyxpipes));
+	pimpl_->lyx_socket_.reset(new ServerSocket(
+			FileName(package().temp_dir().absFileName() + "/lyxsocket")));
 
 	// Start the real execution loop.
-	exit_status = pimpl_->application_->exec();
+	if (!theServer().deferredLoadingToOtherInstance())
+		exit_status = pimpl_->application_->exec();
+	else if (!pimpl_->files_to_load_.empty()) {
+		vector<string>::const_iterator it = pimpl_->files_to_load_.begin();
+		vector<string>::const_iterator end = pimpl_->files_to_load_.end();
+		lyxerr << _("The following files could not be loaded:") << endl;
+		for (; it != end; ++it)
+			lyxerr << *it << endl;
+	}
 
 	prepareExit();
 
@@ -378,19 +433,19 @@ void LyX::prepareExit()
 
 	// do any other cleanup procedures now
 	if (package().temp_dir() != package().system_temp_dir()) {
-		string const abs_tmpdir = package().temp_dir().absFilename();
-		if (!contains(package().temp_dir().absFilename(), "lyx_tmpdir")) {
+		string const abs_tmpdir = package().temp_dir().absFileName();
+		if (!contains(package().temp_dir().absFileName(), "lyx_tmpdir")) {
 			docstring const msg =
 				bformat(_("%1$s does not appear like a LyX created temporary directory."),
 				from_utf8(abs_tmpdir));
 			Alert::warning(_("Cannot remove temporary directory"), msg);
 		} else {
 			LYXERR(Debug::INFO, "Deleting tmp dir "
-				<< package().temp_dir().absFilename());
+				<< package().temp_dir().absFileName());
 			if (!package().temp_dir().destroyDirectory()) {
 				docstring const msg =
 					bformat(_("Unable to remove the temporary directory %1$s"),
-					from_utf8(package().temp_dir().absFilename()));
+					from_utf8(package().temp_dir().absFileName()));
 				Alert::warning(_("Unable to remove temporary directory"), msg);
 			}
 		}
@@ -434,12 +489,12 @@ int LyX::init(int & argc, char * argv[])
 		return EXIT_FAILURE;
 
 	// Remaining arguments are assumed to be files to load.
-	for (int argi = argc - 1; argi >= 1; --argi)
+	for (int argi = 1; argi < argc; ++argi)
 		pimpl_->files_to_load_.push_back(os::utf8_argv(argi));
 
 	if (first_start) {
 		pimpl_->files_to_load_.push_back(
-			i18nLibFileSearch("examples", "splash.lyx").absFilename());
+			i18nLibFileSearch("examples", "splash.lyx").absFileName());
 	}
 
 	return EXIT_SUCCESS;
@@ -462,12 +517,12 @@ bool LyX::loadFiles()
 		if (fname.empty())
 			continue;
 
-		Buffer * buf = pimpl_->buffer_list_.newBuffer(fname.absFilename(), false);
-		if (buf->loadLyXFile(fname)) {
+		Buffer * buf = pimpl_->buffer_list_.newBuffer(fname.absFileName(), false);
+		if (buf->loadLyXFile() == Buffer::ReadSuccess) {
 			ErrorList const & el = buf->errorList("Parse");
 			if (!el.empty())
 				for_each(el.begin(), el.end(),
-				boost::bind(&LyX::printError, this, _1));
+				bind(&LyX::printError, this, _1));
 		}
 		else {
 			pimpl_->buffer_list_.release(buf);
@@ -492,40 +547,39 @@ void LyX::execCommands()
 	// aknowledged.
 
 	// if reconfiguration is needed.
-	while (LayoutFileList::get().empty()) {
+	if (LayoutFileList::get().empty()) {
 		switch (Alert::prompt(
 			_("No textclass is found"),
-			_("LyX cannot continue because no textclass is found. "
-				"You can either reconfigure normally, or reconfigure using "
-				"default textclasses, or quit LyX."),
+			_("LyX will only have minimal functionality because no textclasses "
+				"have been found. You can either try to reconfigure LyX normally, "
+				"try to reconfigure without checking your LaTeX installation, or continue."),
 			0, 2,
 			_("&Reconfigure"),
-			_("&Use Default"),
-			_("&Exit LyX")))
+			_("&Without LaTeX"),
+			_("&Continue")))
 		{
 		case 0:
 			// regular reconfigure
-			pimpl_->lyxfunc_.dispatch(FuncRequest(LFUN_RECONFIGURE, ""));
+			lyx::dispatch(FuncRequest(LFUN_RECONFIGURE, ""));
 			break;
 		case 1:
 			// reconfigure --without-latex-config
-			pimpl_->lyxfunc_.dispatch(FuncRequest(LFUN_RECONFIGURE,
+			lyx::dispatch(FuncRequest(LFUN_RECONFIGURE,
 				" --without-latex-config"));
 			break;
 		default:
-			pimpl_->lyxfunc_.dispatch(FuncRequest(LFUN_LYX_QUIT));
-			return;
+			break;
 		}
 	}
-	
+
 	// create the first main window
-	pimpl_->lyxfunc_.dispatch(FuncRequest(LFUN_WINDOW_NEW, geometryArg));
+	lyx::dispatch(FuncRequest(LFUN_WINDOW_NEW, geometryArg));
 
 	if (!pimpl_->files_to_load_.empty()) {
 		// if some files were specified at command-line we assume that the
 		// user wants to edit *these* files and not to restore the session.
 		for (size_t i = 0; i != pimpl_->files_to_load_.size(); ++i) {
-			pimpl_->lyxfunc_.dispatch(
+			lyx::dispatch(
 				FuncRequest(LFUN_FILE_OPEN, pimpl_->files_to_load_[i]));
 		}
 		// clear this list to save a few bytes of RAM
@@ -541,7 +595,7 @@ void LyX::execCommands()
 	vector<string>::const_iterator bcend = pimpl_->batch_commands.end();
 	for (; bcit != bcend; bcit++) {
 		LYXERR(Debug::INIT, "About to handle -x '" << *bcit << '\'');
-		pimpl_->lyxfunc_.dispatch(lyxaction.lookupFunc(*bcit));
+		lyx::dispatch(lyxaction.lookupFunc(*bcit));
 	}
 }
 
@@ -601,26 +655,34 @@ static void error_handler(int err_sig)
 
 	// This shouldn't matter here, however, as we've already invoked
 	// emergencyCleanup.
+	docstring msg;
 	switch (err_sig) {
 #ifdef SIGHUP
 	case SIGHUP:
-		lyxerr << "\nlyx: SIGHUP signal caught\nBye." << endl;
+		msg = _("SIGHUP signal caught!\nBye.");
 		break;
 #endif
 	case SIGFPE:
-		lyxerr << "\nlyx: SIGFPE signal caught\nBye." << endl;
+		msg = _("SIGFPE signal caught!\nBye.");
 		break;
 	case SIGSEGV:
-		lyxerr << "\nlyx: SIGSEGV signal caught\n"
-			  "Sorry, you have found a bug in LyX. "
+		msg = _("SIGSEGV signal caught!\n"
+			  "Sorry, you have found a bug in LyX, "
+			  "hope you have not lost any data.\n"
 			  "Please read the bug-reporting instructions "
-			  "in Help->Introduction and send us a bug report, "
-			  "if necessary. Thanks !\nBye." << endl;
+			  "in 'Help->Introduction' and send us a bug report, "
+			  "if necessary. Thanks !\nBye.");
 		break;
 	case SIGINT:
 	case SIGTERM:
 		// no comments
 		break;
+	}
+
+	if (!msg.empty()) {
+		lyxerr << "\nlyx: " << msg << endl;
+		// try to make a GUI message
+		Alert::error(_("LyX crashed!"), msg);
 	}
 
 	// Deinstall the signal handlers
@@ -634,11 +696,18 @@ static void error_handler(int err_sig)
 
 #ifdef SIGHUP
 	if (err_sig == SIGSEGV ||
-	    (err_sig != SIGHUP && !getEnv("LYXDEBUG").empty()))
+		(err_sig != SIGHUP && !getEnv("LYXDEBUG").empty())) {
 #else
-	if (err_sig == SIGSEGV || !getEnv("LYXDEBUG").empty())
+	if (err_sig == SIGSEGV || !getEnv("LYXDEBUG").empty()) {
 #endif
+#ifdef _MSC_VER
+		// with abort() it crashes again.
+		exit(err_sig);
+#else
 		abort();
+#endif
+	}
+
 	exit(0);
 }
 
@@ -664,15 +733,15 @@ bool LyX::init()
 	signal(SIGTERM, error_handler);
 	// SIGPIPE can be safely ignored.
 
-	lyxrc.tempdir_path = package().temp_dir().absFilename();
-	lyxrc.document_path = package().document_dir().absFilename();
+	lyxrc.tempdir_path = package().temp_dir().absFileName();
+	lyxrc.document_path = package().document_dir().absFileName();
 
 	if (lyxrc.example_path.empty()) {
-		lyxrc.example_path = addPath(package().system_support().absFilename(),
+		lyxrc.example_path = addPath(package().system_support().absFileName(),
 					      "examples");
 	}
 	if (lyxrc.template_path.empty()) {
-		lyxrc.template_path = addPath(package().system_support().absFilename(),
+		lyxrc.template_path = addPath(package().system_support().absFileName(),
 					      "templates");
 	}
 
@@ -692,7 +761,7 @@ bool LyX::init()
 	// Add the directory containing the LyX executable to the path
 	// so that LyX can find things like tex2lyx.
 	if (package().build_support().empty())
-		prependEnvPath("PATH", package().binary_dir().absFilename());
+		prependEnvPath("PATH", package().binary_dir().absFileName());
 #endif
 	if (!lyxrc.path_prefix.empty())
 		prependEnvPath("PATH", lyxrc.path_prefix);
@@ -701,9 +770,20 @@ bool LyX::init()
 	if (queryUserLyXDir(package().explicit_user_support()))
 		reconfigureUserLyXDir();
 
-	// no need for a splash when there is no GUI
 	if (!use_gui) {
+		// No need for a splash when there is no GUI
 		first_start = false;
+		// Default is to overwrite the main file during export, unless
+		// the -f switch was specified or LYX_FORCE_OVERWRITE was set
+		if (force_overwrite == UNSPECIFIED) {
+			string const what = getEnv("LYX_FORCE_OVERWRITE");
+			if (what == "all")
+				force_overwrite = ALL_FILES;
+			else if (what == "none")
+				force_overwrite = NO_FILES;
+			else
+				force_overwrite = MAIN_FILE;
+		}
 	}
 
 	// This one is generated in user_support directory by lib/configure.py.
@@ -737,12 +817,11 @@ bool LyX::init()
 	// Set the language defined by the user.
 	setRcGuiLanguage();
 
-	// Load the layouts
 	LYXERR(Debug::INIT, "Reading layouts...");
-	if (!LyXSetStyle())
-		return false;
+	// Load the layouts
+	LayoutFileList::get().read();
 	//...and the modules
-	moduleList.load();
+	theModuleList.read();
 
 	// read keymap and ui files in batch mode as well
 	// because InsetInfo needs to know these to produce
@@ -751,13 +830,12 @@ bool LyX::init()
 	// Set up command definitions
 	pimpl_->toplevel_cmddef_.read(lyxrc.def_file);
 
+	// FIXME
 	// Set up bindings
 	pimpl_->toplevel_keymap_.read("site");
 	pimpl_->toplevel_keymap_.read(lyxrc.bind_file);
 	// load user bind file user.bind
-	pimpl_->toplevel_keymap_.read("user");
-
-	pimpl_->lyxfunc_.initKeySequences(&pimpl_->toplevel_keymap_);
+	pimpl_->toplevel_keymap_.read("user", 0, KeyMap::MissingOK);
 
 	if (lyxerr.debugging(Debug::LYXRC))
 		lyxrc.print();
@@ -786,7 +864,7 @@ bool LyX::init()
 	}
 
 	LYXERR(Debug::INIT, "LyX tmp dir: `"
-			    << package().temp_dir().absFilename() << '\'');
+			    << package().temp_dir().absFileName() << '\'');
 
 	LYXERR(Debug::INIT, "Reading session information '.lyx/session'...");
 	pimpl_->session_.reset(new Session(lyxrc.num_lastfiles));
@@ -794,7 +872,7 @@ bool LyX::init()
 	// This must happen after package initialization and after lyxrc is
 	// read, therefore it can't be done by a static object.
 	ConverterCache::init();
-		
+
 	return true;
 }
 
@@ -825,13 +903,13 @@ static bool needsUpdate(string const & file)
 	static bool firstrun = true;
 	if (firstrun) {
 		configure_script =
-			FileName(addName(package().system_support().absFilename(),
+			FileName(addName(package().system_support().absFileName(),
 				"configure.py"));
 		firstrun = false;
 	}
 
-	FileName absfile = 
-		FileName(addName(package().user_support().absFilename(), file));
+	FileName absfile =
+		FileName(addName(package().user_support().absFileName(), file));
 	return !absfile.exists()
 		|| configure_script.lastModified() > absfile.lastModified();
 }
@@ -860,7 +938,7 @@ bool LyX::queryUserLyXDir(bool explicit_userdir)
 		    bformat(_("You have specified a non-existent user "
 					   "LyX directory, %1$s.\n"
 					   "It is needed to keep your own configuration."),
-			    from_utf8(package().user_support().absFilename())),
+			    from_utf8(package().user_support().absFileName())),
 		    1, 0,
 		    _("&Create directory"),
 		    _("&Exit LyX"))) {
@@ -869,7 +947,7 @@ bool LyX::queryUserLyXDir(bool explicit_userdir)
 	}
 
 	lyxerr << to_utf8(bformat(_("LyX: Creating directory %1$s"),
-			  from_utf8(sup.absFilename()))) << endl;
+			  from_utf8(sup.absFileName()))) << endl;
 
 	if (!sup.createDirectory(0755)) {
 		// Failed, so let's exit.
@@ -951,7 +1029,7 @@ int parse_dbg(string const & arg, string const &, string &)
 	}
 	lyxerr << to_utf8(bformat(_("Setting debug level to %1$s"), from_utf8(arg))) << endl;
 
-	lyxerr.level(Debug::value(arg));
+	lyxerr.setLevel(Debug::value(arg));
 	Debug::showLevel(lyxerr, lyxerr.level());
 	return 1;
 }
@@ -975,15 +1053,22 @@ int parse_help(string const &, string const &, string &)
 		  "                  where fmt is the export format of choice.\n"
 		  "                  Look on Tools->Preferences->File formats->Format\n"
 		  "                  to get an idea which parameters should be passed.\n"
+		  "                  Note that the order of -e and -x switches matters.\n"
 		  "\t-i [--import] fmt file.xxx\n"
 		  "                  where fmt is the import format of choice\n"
 		  "                  and file.xxx is the file to be imported.\n"
 		  "\t-f [--force-overwrite] what\n"
-		  "                  where what is either `all' or `main'.\n"
-		  "                  Using `all', all files are overwritten during\n"
-		  "                  a batch export, otherwise only the main file will be.\n"
+		  "                  where what is either `all', `main' or `none',\n"
+		  "                  specifying whether all files, main file only, or no files,\n"
+		  "                  respectively, are to be overwritten during a batch export.\n"
 		  "                  Anything else is equivalent to `all', but is not consumed.\n"
-		  "\t-version        summarize version and build info\n"
+		  "\t-n [--no-remote]\n"
+		  "                  open documents in a new instance\n"
+		  "\t-r [--remote]\n"
+		  "                  open documents in an already running instance\n"
+		  "                  (a working lyxpipe is needed)\n"
+		  "\t-batch    execute commands without launching GUI and exit.\n"
+		  "\t-version  summarize version and build info\n"
 			       "Check the LyX man page for more details.")) << endl;
 	exit(0);
 	return 0;
@@ -1077,13 +1162,37 @@ int parse_geometry(string const & arg1, string const &, string &)
 }
 
 
-int parse_force(string const & arg, string const &, string &) 
+int parse_batch(string const &, string const &, string &)
+{
+	use_gui = false;
+	return 0;
+}
+
+
+int parse_noremote(string const &, string const &, string &)
+{
+	run_mode = NEW_INSTANCE;
+	return 0;
+}
+
+
+int parse_remote(string const &, string const &, string &)
+{
+	run_mode = USE_REMOTE;
+	return 0;
+}
+
+
+int parse_force(string const & arg, string const &, string &)
 {
 	if (arg == "all") {
 		force_overwrite = ALL_FILES;
 		return 1;
 	} else if (arg == "main") {
 		force_overwrite = MAIN_FILE;
+		return 1;
+	} else if (arg == "none") {
+		force_overwrite = NO_FILES;
 		return 1;
 	}
 	force_overwrite = ALL_FILES;
@@ -1112,8 +1221,13 @@ void LyX::easyParse(int & argc, char * argv[])
 	cmdmap["-i"] = parse_import;
 	cmdmap["--import"] = parse_import;
 	cmdmap["-geometry"] = parse_geometry;
+	cmdmap["-batch"] = parse_batch;
 	cmdmap["-f"] = parse_force;
 	cmdmap["--force-overwrite"] = parse_force;
+	cmdmap["-n"] = parse_noremote;
+	cmdmap["--no-remote"] = parse_noremote;
+	cmdmap["-r"] = parse_remote;
+	cmdmap["--remote"] = parse_remote;
 
 	for (int i = 1; i < argc; ++i) {
 		map<string, cmd_helper>::const_iterator it
@@ -1148,15 +1262,29 @@ void LyX::easyParse(int & argc, char * argv[])
 
 FuncStatus getStatus(FuncRequest const & action)
 {
-	LASSERT(singleton_, /**/);
-	return singleton_->pimpl_->lyxfunc_.getStatus(action);
+	LASSERT(theApp(), /**/);
+	return theApp()->getStatus(action);
 }
 
 
 void dispatch(FuncRequest const & action)
 {
+	LASSERT(theApp(), /**/);
+	return theApp()->dispatch(action);
+}
+
+
+void dispatch(FuncRequest const & action, DispatchResult & dr)
+{
+	LASSERT(theApp(), /**/);
+	return theApp()->dispatch(action, dr);
+}
+
+
+vector<string> & theFilesToLoad()
+{
 	LASSERT(singleton_, /**/);
-	singleton_->pimpl_->lyxfunc_.dispatch(action);
+	return singleton_->pimpl_->files_to_load_;
 }
 
 
@@ -1164,13 +1292,6 @@ BufferList & theBufferList()
 {
 	LASSERT(singleton_, /**/);
 	return singleton_->pimpl_->buffer_list_;
-}
-
-
-LyXFunc & theLyXFunc()
-{
-	LASSERT(singleton_, /**/);
-	return singleton_->pimpl_->lyxfunc_;
 }
 
 
@@ -1241,14 +1362,14 @@ Movers & theSystemMovers()
 }
 
 
-Messages & getMessages(string const & language)
+Messages const & getMessages(string const & language)
 {
 	LASSERT(singleton_, /**/);
 	return singleton_->messages(language);
 }
 
 
-Messages & getGuiMessages()
+Messages const & getGuiMessages()
 {
 	LASSERT(singleton_, /**/);
 	return singleton_->pimpl_->messages_["GUI"];
@@ -1273,6 +1394,61 @@ CmdDef & theTopLevelCmdDef()
 {
 	LASSERT(singleton_, /**/);
 	return singleton_->pimpl_->toplevel_cmddef_;
+}
+
+
+SpellChecker * theSpellChecker()
+{
+	if (!singleton_->pimpl_->spell_checker_)
+		setSpellChecker();
+	return singleton_->pimpl_->spell_checker_;
+}
+
+
+void setSpellChecker()
+{
+	SpellChecker::ChangeNumber speller_change_number =singleton_->pimpl_->spell_checker_ ?
+		singleton_->pimpl_->spell_checker_->changeNumber() : 0;
+
+	if (lyxrc.spellchecker == "native") {
+#if defined(USE_MACOSX_PACKAGING)
+		if (!singleton_->pimpl_->apple_spell_checker_)
+			singleton_->pimpl_->apple_spell_checker_ = new AppleSpellChecker();
+		singleton_->pimpl_->spell_checker_ = singleton_->pimpl_->apple_spell_checker_;
+#else
+		singleton_->pimpl_->spell_checker_ = 0;
+#endif
+	} else if (lyxrc.spellchecker == "aspell") {
+#if defined(USE_ASPELL)
+		if (!singleton_->pimpl_->aspell_checker_)
+			singleton_->pimpl_->aspell_checker_ = new AspellChecker();
+		singleton_->pimpl_->spell_checker_ = singleton_->pimpl_->aspell_checker_;
+#else
+		singleton_->pimpl_->spell_checker_ = 0;
+#endif
+	} else if (lyxrc.spellchecker == "enchant") {
+#if defined(USE_ENCHANT)
+		if (!singleton_->pimpl_->enchant_checker_)
+			singleton_->pimpl_->enchant_checker_ = new EnchantChecker();
+		singleton_->pimpl_->spell_checker_ = singleton_->pimpl_->enchant_checker_;
+#else
+		singleton_->pimpl_->spell_checker_ = 0;
+#endif
+	} else if (lyxrc.spellchecker == "hunspell") {
+#if defined(USE_HUNSPELL)
+		if (!singleton_->pimpl_->hunspell_checker_)
+			singleton_->pimpl_->hunspell_checker_ = new HunspellChecker();
+		singleton_->pimpl_->spell_checker_ = singleton_->pimpl_->hunspell_checker_;
+#else
+		singleton_->pimpl_->spell_checker_ = 0;
+#endif
+	} else {
+		singleton_->pimpl_->spell_checker_ = 0;
+	}
+	if (singleton_->pimpl_->spell_checker_) {
+		singleton_->pimpl_->spell_checker_->changeNumber(speller_change_number);
+		singleton_->pimpl_->spell_checker_->advanceChangeNumber();
+	}
 }
 
 } // namespace lyx

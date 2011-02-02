@@ -4,10 +4,10 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alfredo Braunstein
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Martin Vermeer
  *
  * Full author contact details are available in file CREDITS.
@@ -25,6 +25,8 @@
 #include "Color.h"
 #include "ColorSet.h"
 #include "Encoding.h"
+#include "HSpace.h"
+#include "IndicesList.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
 #include "ModuleList.h"
@@ -70,7 +72,11 @@ static char const * const string_quotes_language[] = {
 
 static char const * const string_papersize[] = {
 	"default", "custom", "letterpaper", "legalpaper", "executivepaper",
-	"a3paper", "a4paper", "a5paper", "b3paper", "b4paper", "b5paper", ""
+	"a0paper", "a1paper", "a2paper", "a3paper",	"a4paper", "a5paper",
+	"a6paper", "b0paper", "b1paper", "b2paper","b3paper", "b4paper",
+	"b5paper", "b6paper", "c0paper", "c1paper", "c2paper", "c3paper",
+	"c4paper", "c5paper", "c6paper", "b0j", "b1j", "b2j", "b3j", "b4j", "b5j",
+	"b6j", ""
 };
 
 
@@ -91,6 +97,7 @@ static char const * const tex_graphics[] = {
 	"psprint", "pubps", "tcidvi", "textures", "truetex", "vtex", "xdvi",
 	"xetex", "none", ""
 };
+
 
 
 namespace lyx {
@@ -153,12 +160,34 @@ static PaperSizeTranslator initPaperSizeTranslator()
 	translator.addPair(string_papersize[2], PAPER_USLETTER);
 	translator.addPair(string_papersize[3], PAPER_USLEGAL);
 	translator.addPair(string_papersize[4], PAPER_USEXECUTIVE);
-	translator.addPair(string_papersize[5], PAPER_A3);
-	translator.addPair(string_papersize[6], PAPER_A4);
-	translator.addPair(string_papersize[7], PAPER_A5);
-	translator.addPair(string_papersize[8], PAPER_B3);
-	translator.addPair(string_papersize[9], PAPER_B4);
-	translator.addPair(string_papersize[10], PAPER_B5);
+	translator.addPair(string_papersize[5], PAPER_A0);
+	translator.addPair(string_papersize[6], PAPER_A1);
+	translator.addPair(string_papersize[7], PAPER_A2);
+	translator.addPair(string_papersize[8], PAPER_A3);
+	translator.addPair(string_papersize[9], PAPER_A4);
+	translator.addPair(string_papersize[10], PAPER_A5);
+	translator.addPair(string_papersize[11], PAPER_A6);
+	translator.addPair(string_papersize[12], PAPER_B0);
+	translator.addPair(string_papersize[13], PAPER_B1);
+	translator.addPair(string_papersize[14], PAPER_B2);
+	translator.addPair(string_papersize[15], PAPER_B3);
+	translator.addPair(string_papersize[16], PAPER_B4);
+	translator.addPair(string_papersize[17], PAPER_B5);
+	translator.addPair(string_papersize[18], PAPER_B6);
+	translator.addPair(string_papersize[19], PAPER_C0);
+	translator.addPair(string_papersize[20], PAPER_C1);
+	translator.addPair(string_papersize[21], PAPER_C2);
+	translator.addPair(string_papersize[22], PAPER_C3);
+	translator.addPair(string_papersize[23], PAPER_C4);
+	translator.addPair(string_papersize[24], PAPER_C5);
+	translator.addPair(string_papersize[25], PAPER_C6);
+	translator.addPair(string_papersize[26], PAPER_JISB0);
+	translator.addPair(string_papersize[27], PAPER_JISB1);
+	translator.addPair(string_papersize[28], PAPER_JISB2);
+	translator.addPair(string_papersize[29], PAPER_JISB3);
+	translator.addPair(string_papersize[30], PAPER_JISB4);
+	translator.addPair(string_papersize[31], PAPER_JISB5);
+	translator.addPair(string_papersize[32], PAPER_JISB6);
 	return translator;
 }
 
@@ -270,7 +299,6 @@ SpaceTranslator const & spacetranslator()
 	return translator;
 }
 
-
 } // anon namespace
 
 
@@ -283,10 +311,12 @@ public:
 	BranchList branchlist;
 	Bullet temp_bullets[4];
 	Bullet user_defined_bullets[4];
+	IndicesList indiceslist;
 	Spacing spacing;
 	/** This is the amount of space used for paragraph_separation "skip",
 	 * and for detached paragraphs in "indented" documents.
 	 */
+	HSpace indentation;
 	VSpace defskip;
 	PDFOptions pdfoptions;
 	LayoutFileIndex baseClass_;
@@ -332,33 +362,60 @@ BufferParams::BufferParams()
 	use_geometry = false;
 	use_amsmath = package_auto;
 	use_esint = package_auto;
+	use_mhchem = package_auto;
+	use_mathdots = package_auto;
 	cite_engine_ = ENGINE_BASIC;
 	use_bibtopic = false;
+	use_indices = false;
 	trackChanges = false;
 	outputChanges = false;
 	use_default_options = true;
+	maintain_unincluded_children = false;
 	secnumdepth = 3;
 	tocdepth = 3;
 	language = default_language;
-	fontsRoman = "default";
-	fontsSans = "default";
-	fontsTypewriter = "default";
-	fontsDefaultFamily = "default";
-	fontsSC = false;
-	fontsOSF = false;
-	fontsSansScale = 100;
-	fontsTypewriterScale = 100;
+	fontenc = "global";
+	fonts_roman = "default";
+	fonts_sans = "default";
+	fonts_typewriter = "default";
+	fonts_default_family = "default";
+	useNonTeXFonts = false;
+	fonts_expert_sc = false;
+	fonts_old_figures = false;
+	fonts_sans_scale = 100;
+	fonts_typewriter_scale = 100;
 	inputenc = "auto";
-	graphicsDriver = "default";
+	graphics_driver = "default";
+	default_output_format = "default";
+	bibtex_command = "default";
+	index_command = "default";
 	sides = OneSide;
 	columns = 1;
 	listings_params = string();
 	pagestyle = "default";
-	compressed = false;
+	suppress_date = false;
+	// no color is the default (white)
+	backgroundcolor = lyx::rgbFromHexName("#ffffff");
+	isbackgroundcolor = false;
+	// no color is the default (black)
+	fontcolor = lyx::rgbFromHexName("#000000");
+	isfontcolor = false;
+	// light gray is the default font color for greyed-out notes
+	notefontcolor = lyx::rgbFromHexName("#cccccc");
+	boxbgcolor = lyx::rgbFromHexName("#ff0000");
+	compressed = lyxrc.save_compressed;
 	for (int iter = 0; iter < 4; ++iter) {
 		user_defined_bullet(iter) = ITEMIZE_DEFAULTS[iter];
 		temp_bullet(iter) = ITEMIZE_DEFAULTS[iter];
 	}
+	// default index
+	indiceslist().addDefault(B_("Index"));
+	html_be_strict = false;
+	html_math_output = MathML;
+	html_math_img_scale = 1.0;
+
+	output_sync = false;
+	use_refstyle = true;
 }
 
 
@@ -390,6 +447,18 @@ BranchList & BufferParams::branchlist()
 BranchList const & BufferParams::branchlist() const
 {
 	return pimpl_->branchlist;
+}
+
+
+IndicesList & BufferParams::indiceslist()
+{
+	return pimpl_->indiceslist;
+}
+
+
+IndicesList const & BufferParams::indiceslist() const
+{
+	return pimpl_->indiceslist;
 }
 
 
@@ -445,6 +514,18 @@ PDFOptions const & BufferParams::pdfoptions() const
 }
 
 
+HSpace const & BufferParams::getIndentation() const
+{
+	return pimpl_->indentation;
+}
+
+
+void BufferParams::setIndentation(HSpace const & indent)
+{
+	pimpl_->indentation = indent;
+}
+
+
 VSpace const & BufferParams::getDefSkip() const
 {
 	return pimpl_->defskip;
@@ -453,6 +534,8 @@ VSpace const & BufferParams::getDefSkip() const
 
 void BufferParams::setDefSkip(VSpace const & vs)
 {
+	// DEFSKIP will cause an infinite loop
+	LASSERT(vs.kind() != VSpace::DEFSKIP, return);
 	pimpl_->defskip = vs;
 }
 
@@ -464,28 +547,36 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		lex.next();
 		string const classname = lex.getString();
 		// if there exists a local layout file, ignore the system one
-		// NOTE: in this case, the textclass (.cls file) is assumed to be available.
+		// NOTE: in this case, the textclass (.cls file) is assumed to 
+		// be available.
 		string tcp;
 		LayoutFileList & bcl = LayoutFileList::get();
 		if (tcp.empty() && !filepath.empty())
-			tcp = bcl.addLocalLayout(classname, filepath.absFilename());
+			tcp = bcl.addLocalLayout(classname, filepath.absFileName());
 		if (!tcp.empty())
 			setBaseClass(tcp);
 		else
 			setBaseClass(classname);
-		// We assume that a tex class exists for local or unknown layouts so this warning
-		// will only be given for system layouts.
+		// We assume that a tex class exists for local or unknown 
+		// layouts so this warning, will only be given for system layouts.
 		if (!baseClass()->isTeXClassAvailable()) {
+			docstring const desc = 
+				translateIfPossible(from_utf8(baseClass()->description()));
+			docstring const prereqs = 
+				from_utf8(baseClass()->prerequisites());
 			docstring const msg =
-				bformat(_("The layout file requested by this document,\n"
-						 "%1$s.layout,\n"
-						 "is not usable. This is probably because a LaTeX\n"
-						 "class or style file required by it is not\n"
-						 "available. See the Customization documentation\n"
-						 "for more information.\n"), from_utf8(classname));
+				bformat(_("The selected document class\n"
+						 "\t%1$s\n"
+						 "requires external files that are not available.\n"
+						 "The document class can still be used, but the\n"
+						 "document cannot be compiled until the following\n"
+						 "prerequisites are installed:\n"
+						 "\t%2$s\n"
+						 "See section 3.1.2.2 (Class Availability) of the\n"
+						 "User's Guide for more information."), desc, prereqs);
 			frontend::Alert::warning(_("Document class not available"),
-				       msg + _("LyX will not be able to produce output."));
-		} 
+				       msg);
+		}
 	} else if (token == "\\begin_preamble") {
 		readPreamble(lex);
 	} else if (token == "\\begin_local_layout") {
@@ -494,6 +585,10 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		readModules(lex);
 	} else if (token == "\\begin_removed_modules") {
 		readRemovedModules(lex);
+	} else if (token == "\\begin_includeonly") {
+		readIncludeonly(lex);
+	} else if (token == "\\maintain_unincluded_children") {
+		lex >> maintain_unincluded_children;
 	} else if (token == "\\options") {
 		lex.eatLine();
 		options = lex.getString();
@@ -502,41 +597,63 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 	} else if (token == "\\master") {
 		lex.eatLine();
 		master = lex.getString();
+	} else if (token == "\\suppress_date") {
+		lex >> suppress_date;
 	} else if (token == "\\language") {
 		readLanguage(lex);
 	} else if (token == "\\inputencoding") {
 		lex >> inputenc;
 	} else if (token == "\\graphics") {
 		readGraphicsDriver(lex);
+	} else if (token == "\\default_output_format") {
+		lex >> default_output_format;
+	} else if (token == "\\bibtex_command") {
+		lex.eatLine();
+		bibtex_command = lex.getString();
+	} else if (token == "\\index_command") {
+		lex.eatLine();
+		index_command = lex.getString();
+	} else if (token == "\\fontencoding") {
+		lex.eatLine();
+		fontenc = lex.getString();
 	} else if (token == "\\font_roman") {
-		lex >> fontsRoman;
+		lex.eatLine();
+		fonts_roman = lex.getString();
 	} else if (token == "\\font_sans") {
-		lex >> fontsSans;
+		lex.eatLine();
+		fonts_sans = lex.getString();
 	} else if (token == "\\font_typewriter") {
-		lex >> fontsTypewriter;
+		lex.eatLine();
+		fonts_typewriter = lex.getString();
 	} else if (token == "\\font_default_family") {
-		lex >> fontsDefaultFamily;
+		lex >> fonts_default_family;
+	} else if (token == "\\use_non_tex_fonts") {
+		lex >> useNonTeXFonts;
 	} else if (token == "\\font_sc") {
-		lex >> fontsSC;
+		lex >> fonts_expert_sc;
 	} else if (token == "\\font_osf") {
-		lex >> fontsOSF;
+		lex >> fonts_old_figures;
 	} else if (token == "\\font_sf_scale") {
-		lex >> fontsSansScale;
+		lex >> fonts_sans_scale;
 	} else if (token == "\\font_tt_scale") {
-		lex >> fontsTypewriterScale;
+		lex >> fonts_typewriter_scale;
 	} else if (token == "\\font_cjk") {
-		lex >> fontsCJK;
+		lex >> fonts_cjk;
 	} else if (token == "\\paragraph_separation") {
 		string parsep;
 		lex >> parsep;
 		paragraph_separation = parseptranslator().find(parsep);
+	} else if (token == "\\paragraph_indentation") {
+		lex.next();
+		string indentation = lex.getString();
+		pimpl_->indentation = HSpace(indentation);
 	} else if (token == "\\defskip") {
 		lex.next();
-		string defskip = lex.getString();
-		if (defskip == "defskip")
-			// this is invalid
-			defskip = "medskip";
+		string const defskip = lex.getString();
 		pimpl_->defskip = VSpace(defskip);
+		if (pimpl_->defskip.kind() == VSpace::DEFSKIP)
+			// that is invalid
+			pimpl_->defskip = VSpace(VSpace::MEDSKIP);
 	} else if (token == "\\quotes_language") {
 		string quotes_lang;
 		lex >> quotes_lang;
@@ -555,12 +672,22 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		int useesint;
 		lex >> useesint;
 		use_esint = packagetranslator().find(useesint);
+	} else if (token == "\\use_mhchem") {
+		int usemhchem;
+		lex >> usemhchem;
+		use_mhchem = packagetranslator().find(usemhchem);
+	} else if (token == "\\use_mathdots") {
+		int usemathdots;
+		lex >> usemathdots;
+		use_mathdots = packagetranslator().find(usemathdots);
 	} else if (token == "\\cite_engine") {
 		string engine;
 		lex >> engine;
 		cite_engine_ = citeenginetranslator().find(engine);
 	} else if (token == "\\use_bibtopic") {
 		lex >> use_bibtopic;
+	} else if (token == "\\use_indices") {
+		lex >> use_indices;
 	} else if (token == "\\tracking_changes") {
 		lex >> trackChanges;
 	} else if (token == "\\output_changes") {
@@ -580,7 +707,11 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 				if (branch_ptr)
 					branch_ptr->setSelected(lex.getInteger());
 			}
-			// not yet operational
+			if (tok == "\\filename_suffix") {
+				lex.next();
+				if (branch_ptr)
+					branch_ptr->setFileNameSuffix(lex.getInteger());
+			}
 			if (tok == "\\color") {
 				lex.eatLine();
 				string color = lex.getString();
@@ -591,7 +722,36 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 					color = lcolor.getX11Name(Color_background);
 				// FIXME UNICODE
 				lcolor.setColor(to_utf8(branch), color);
-
+			}
+		}
+	} else if (token == "\\index") {
+		lex.eatLine();
+		docstring index = lex.getDocString();
+		docstring shortcut;
+		indiceslist().add(index);
+		while (true) {
+			lex.next();
+			string const tok = lex.getString();
+			if (tok == "\\end_index")
+				break;
+			Index * index_ptr = indiceslist().find(index);
+			if (tok == "\\shortcut") {
+				lex.next();
+				shortcut = lex.getDocString();
+				if (index_ptr)
+					index_ptr->setShortcut(shortcut);
+			}
+			if (tok == "\\color") {
+				lex.eatLine();
+				string color = lex.getString();
+				if (index_ptr)
+					index_ptr->setColor(color);
+				// Update also the Color table:
+				if (color == "none")
+					color = lcolor.getX11Name(Color_background);
+				// FIXME UNICODE
+				if (!shortcut.empty())
+					lcolor.setColor(to_utf8(shortcut), color);
 			}
 		}
 	} else if (token == "\\author") {
@@ -599,11 +759,27 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		istringstream ss(lex.getString());
 		Author a;
 		ss >> a;
-		author_map.push_back(pimpl_->authorlist.record(a));
+		author_map[a.bufferId()] = pimpl_->authorlist.record(a);
 	} else if (token == "\\paperorientation") {
 		string orient;
 		lex >> orient;
 		orientation = paperorientationtranslator().find(orient);
+	} else if (token == "\\backgroundcolor") {
+		lex.eatLine();
+		backgroundcolor = lyx::rgbFromHexName(lex.getString());
+		isbackgroundcolor = true;
+	} else if (token == "\\fontcolor") {
+		lex.eatLine();
+		fontcolor = lyx::rgbFromHexName(lex.getString());
+		isfontcolor = true;
+	} else if (token == "\\notefontcolor") {
+		lex.eatLine();
+		string color = lex.getString();
+		notefontcolor = lyx::rgbFromHexName(color);
+	} else if (token == "\\boxbgcolor") {
+		lex.eatLine();
+		string color = lex.getString();
+		boxbgcolor = lyx::rgbFromHexName(color);
 	} else if (token == "\\paperwidth") {
 		lex >> paperwidth;
 	} else if (token == "\\paperheight") {
@@ -664,6 +840,26 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 				toktmp << endl;
 			return toktmp;
 		}
+	} else if (token == "\\html_math_output") {
+		int temp;
+		lex >> temp;
+		html_math_output = static_cast<MathOutput>(temp);
+	} else if (token == "\\html_be_strict") {
+		lex >> html_be_strict;
+	} else if (token == "\\html_math_img_scale") {
+		lex >> html_math_img_scale;
+	} else if (token == "\\html_latex_start") {
+		lex.eatLine();
+		html_latex_start = lex.getString();
+	} else if (token == "\\html_latex_end") {
+		lex.eatLine();
+		html_latex_end = lex.getString();
+	} else if (token == "\\output_sync") {
+		lex >> output_sync;
+	} else if (token == "\\output_sync_macro") {
+		lex >> output_sync_macro;
+	} else if (token == "\\use_refstyle") {
+		lex >> use_refstyle;
 	} else {
 		lyxerr << "BufferParams::readToken(): Unknown token: " << 
 			token << endl;
@@ -706,25 +902,37 @@ void BufferParams::writeFile(ostream & os) const
 	}
 	
 	// removed modules
-	if (!removedModules_.empty()) {
+	if (!removed_modules_.empty()) {
 		os << "\\begin_removed_modules" << '\n';
-		set<string>::const_iterator it = removedModules_.begin();
-		set<string>::const_iterator en = removedModules_.end();
+		list<string>::const_iterator it = removed_modules_.begin();
+		list<string>::const_iterator en = removed_modules_.end();
 		for (; it != en; it++)
 			os << *it << '\n';
 		os << "\\end_removed_modules" << '\n';
 	}
 
 	// the modules
-	if (!layoutModules_.empty()) {
+	if (!layout_modules_.empty()) {
 		os << "\\begin_modules" << '\n';
-		LayoutModuleList::const_iterator it = layoutModules_.begin();
-		LayoutModuleList::const_iterator en = layoutModules_.end();
+		LayoutModuleList::const_iterator it = layout_modules_.begin();
+		LayoutModuleList::const_iterator en = layout_modules_.end();
 		for (; it != en; it++)
 			os << *it << '\n';
 		os << "\\end_modules" << '\n';
 	}
-	
+
+	// includeonly
+	if (!included_children_.empty()) {
+		os << "\\begin_includeonly" << '\n';
+		list<string>::const_iterator it = included_children_.begin();
+		list<string>::const_iterator en = included_children_.end();
+		for (; it != en; it++)
+			os << *it << '\n';
+		os << "\\end_includeonly" << '\n';
+	}
+	os << "\\maintain_unincluded_children "
+	   << convert<string>(maintain_unincluded_children) << '\n';
+
 	// local layout information
 	if (!local_layout.empty()) {
 		// remove '\n' from the end 
@@ -738,19 +946,27 @@ void BufferParams::writeFile(ostream & os) const
 	if (language != ignore_language)
 		os << "\\language " << language->lang() << '\n';
 	os << "\\inputencoding " << inputenc
-	   << "\n\\font_roman " << fontsRoman
-	   << "\n\\font_sans " << fontsSans
-	   << "\n\\font_typewriter " << fontsTypewriter
-	   << "\n\\font_default_family " << fontsDefaultFamily
-	   << "\n\\font_sc " << convert<string>(fontsSC)
-	   << "\n\\font_osf " << convert<string>(fontsOSF)
-	   << "\n\\font_sf_scale " << fontsSansScale
-	   << "\n\\font_tt_scale " << fontsTypewriterScale
+	   << "\n\\fontencoding " << fontenc
+	   << "\n\\font_roman " << fonts_roman
+	   << "\n\\font_sans " << fonts_sans
+	   << "\n\\font_typewriter " << fonts_typewriter
+	   << "\n\\font_default_family " << fonts_default_family
+	   << "\n\\use_non_tex_fonts " << convert<string>(useNonTeXFonts)
+	   << "\n\\font_sc " << convert<string>(fonts_expert_sc)
+	   << "\n\\font_osf " << convert<string>(fonts_old_figures)
+	   << "\n\\font_sf_scale " << fonts_sans_scale
+	   << "\n\\font_tt_scale " << fonts_typewriter_scale
 	   << '\n';
-	if (!fontsCJK.empty()) {
-		os << "\\font_cjk " << fontsCJK << '\n';
+	if (!fonts_cjk.empty()) {
+		os << "\\font_cjk " << fonts_cjk << '\n';
 	}
-	os << "\n\\graphics " << graphicsDriver << '\n';
+	os << "\n\\graphics " << graphics_driver << '\n';
+	os << "\\default_output_format " << default_output_format << '\n';
+	os << "\\output_sync " << output_sync << '\n';
+	if (!output_sync_macro.empty())
+		os << "\\output_sync_macro \"" << output_sync_macro << "\"\n";
+	os << "\\bibtex_command " << bibtex_command << '\n';
+	os << "\\index_command " << index_command << '\n';
 
 	if (!float_placement.empty()) {
 		os << "\\float_placement " << float_placement << '\n';
@@ -764,18 +980,42 @@ void BufferParams::writeFile(ostream & os) const
 	   << "\n\\use_geometry " << convert<string>(use_geometry)
 	   << "\n\\use_amsmath " << use_amsmath
 	   << "\n\\use_esint " << use_esint
+	   << "\n\\use_mhchem " << use_mhchem
+	   << "\n\\use_mathdots " << use_mathdots
 	   << "\n\\cite_engine " << citeenginetranslator().find(cite_engine_)
 	   << "\n\\use_bibtopic " << convert<string>(use_bibtopic)
+	   << "\n\\use_indices " << convert<string>(use_indices)
 	   << "\n\\paperorientation " << string_orientation[orientation]
+	   << "\n\\suppress_date " << convert<string>(suppress_date)
+		 << "\n\\use_refstyle " << use_refstyle
 	   << '\n';
+	if (isbackgroundcolor == true)
+		os << "\\backgroundcolor " << lyx::X11hexname(backgroundcolor) << '\n';
+	if (isfontcolor == true)
+		os << "\\fontcolor " << lyx::X11hexname(fontcolor) << '\n';
+	if (notefontcolor != lyx::rgbFromHexName("#cccccc"))
+		os << "\\notefontcolor " << lyx::X11hexname(notefontcolor) << '\n';
+	if (boxbgcolor != lyx::rgbFromHexName("#ff0000"))
+		os << "\\boxbgcolor " << lyx::X11hexname(boxbgcolor) << '\n';
 
 	BranchList::const_iterator it = branchlist().begin();
 	BranchList::const_iterator end = branchlist().end();
 	for (; it != end; ++it) {
 		os << "\\branch " << to_utf8(it->branch())
 		   << "\n\\selected " << it->isSelected()
+		   << "\n\\filename_suffix " << it->hasFileNameSuffix()
 		   << "\n\\color " << lyx::X11hexname(it->color())
 		   << "\n\\end_branch"
+		   << "\n";
+	}
+
+	IndicesList::const_iterator iit = indiceslist().begin();
+	IndicesList::const_iterator iend = indiceslist().end();
+	for (; iit != iend; ++iit) {
+		os << "\\index " << to_utf8(iit->index())
+		   << "\n\\shortcut " << to_utf8(iit->shortcut())
+		   << "\n\\color " << lyx::X11hexname(iit->color())
+		   << "\n\\end_index"
 		   << "\n";
 	}
 
@@ -812,9 +1052,12 @@ void BufferParams::writeFile(ostream & os) const
 	os << "\\secnumdepth " << secnumdepth
 	   << "\n\\tocdepth " << tocdepth
 	   << "\n\\paragraph_separation "
-	   << string_paragraph_separation[paragraph_separation]
-	   << "\n\\defskip " << getDefSkip().asLyXCommand()
-	   << "\n\\quotes_language "
+	   << string_paragraph_separation[paragraph_separation];
+	if (!paragraph_separation)
+		os << "\n\\paragraph_indentation " << getIndentation().asLyXCommand();
+	else
+		os << "\n\\defskip " << getDefSkip().asLyXCommand();
+	os << "\n\\quotes_language "
 	   << string_quotes_language[quotes_language]
 	   << "\n\\papercolumns " << columns
 	   << "\n\\papersides " << sides
@@ -839,17 +1082,19 @@ void BufferParams::writeFile(ostream & os) const
 		}
 	}
 
-	os << "\\tracking_changes " << convert<string>(trackChanges) << "\n";
-	os << "\\output_changes " << convert<string>(outputChanges) << "\n";
+	os << "\\tracking_changes " << convert<string>(trackChanges) << '\n'
+		 << "\\output_changes " << convert<string>(outputChanges) << '\n'
+		 << "\\html_math_output " << html_math_output << '\n'
+		 << "\\html_be_strict " << convert<string>(html_be_strict) << '\n';
+	
+	if (html_math_img_scale != 1.0)
+		os << "\\html_math_img_scale " << convert<string>(html_math_img_scale) << '\n';
+	if (!html_latex_start.empty())
+		os << "\\html_latex_start " << html_latex_start << '\n';
+	if (!html_latex_end.empty())
+		 os << "\\html_latex_end " << html_latex_end << '\n';
 
-	AuthorList::Authors::const_iterator a_it = pimpl_->authorlist.begin();
-	AuthorList::Authors::const_iterator a_end = pimpl_->authorlist.end();
-	for (; a_it != a_end; ++a_it) {
-		if (a_it->second.used())
-			os << "\\author " << a_it->second << "\n";
-		else
-			os << "\\author " << Author() << "\n";
-	}
+	os << pimpl_->authorlist;
 }
 
 
@@ -875,7 +1120,9 @@ void BufferParams::validate(LaTeXFeatures & features) const
 				features.require("ct-none");
 			}
 			break;
+		case OutputParams::LUATEX:
 		case OutputParams::PDFLATEX:
+		case OutputParams::XETEX:
 			if (xcolorulem) {
 				features.require("ct-xcolor-ulem");
 				features.require("ulem");
@@ -901,6 +1148,10 @@ void BufferParams::validate(LaTeXFeatures & features) const
 		features.require("amsmath");
 	if (use_esint == package_on)
 		features.require("esint");
+	if (use_mhchem == package_on)
+		features.require("mhchem");
+	if (use_mathdots == package_on)
+		features.require("mathdots");
 
 	// Document-level line spacing
 	if (spacing().getSpace() != Spacing::Single && !spacing().isDefault())
@@ -932,10 +1183,14 @@ void BufferParams::validate(LaTeXFeatures & features) const
 		features.require("hyperref");
 		// due to interferences with babel and hyperref, the color package has to
 		// be loaded after hyperref when hyperref is used with the colorlinks
-		// option, see http://bugzilla.lyx.org/show_bug.cgi?id=5291
+		// option, see http://www.lyx.org/trac/ticket/5291
 		if (pdfoptions().colorlinks)
 			features.require("color");
 	}
+
+	if (features.runparams().flavor == OutputParams::XETEX
+	    && useNonTeXFonts)
+		features.require("polyglossia");
 
 	if (language->lang() == "vietnamese")
 		features.require("vietnamese");
@@ -945,7 +1200,7 @@ void BufferParams::validate(LaTeXFeatures & features) const
 
 
 bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
-			      TexRow & texrow) const
+			      TexRow & texrow, FileName const & filepath) const
 {
 	os << "\\documentclass";
 
@@ -959,11 +1214,15 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		clsoptions << fontsize << "pt,";
 	}
 
-	// custom, A3, B3 and B4 paper sizes need geometry
-	bool nonstandard_papersize = papersize == PAPER_B3
-		|| papersize == PAPER_B4
-		|| papersize == PAPER_A3
-		|| papersize == PAPER_CUSTOM;
+	// all paper sizes except of A4, A5, B5 and the US sizes need the
+	// geometry package
+	bool nonstandard_papersize = papersize != PAPER_DEFAULT
+		&& papersize != PAPER_USLETTER
+		&& papersize != PAPER_USLEGAL
+		&& papersize != PAPER_USEXECUTIVE
+		&& papersize != PAPER_A4
+		&& papersize != PAPER_A5
+		&& papersize != PAPER_B5;
 
 	if (!use_geometry) {
 		switch (papersize) {
@@ -986,9 +1245,31 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			clsoptions << "legalpaper,";
 			break;
 		case PAPER_DEFAULT:
+		case PAPER_A0:
+		case PAPER_A1:
+		case PAPER_A2:
 		case PAPER_A3:
+		case PAPER_A6:
+		case PAPER_B0:
+		case PAPER_B1:
+		case PAPER_B2:
 		case PAPER_B3:
 		case PAPER_B4:
+		case PAPER_B6:
+		case PAPER_C0:
+		case PAPER_C1:
+		case PAPER_C2:
+		case PAPER_C3:
+		case PAPER_C4:
+		case PAPER_C5:
+		case PAPER_C6:
+		case PAPER_JISB0:
+		case PAPER_JISB1:
+		case PAPER_JISB2:
+		case PAPER_JISB3:
+		case PAPER_JISB4:
+		case PAPER_JISB5:
+		case PAPER_JISB6:
 		case PAPER_CUSTOM:
 			break;
 		}
@@ -1025,33 +1306,17 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		features.useLanguage(default_language);
 
 	ostringstream language_options;
-	bool const use_babel = features.useBabel();
-	if (use_babel) {
+	bool const use_babel = features.useBabel() && !tclass.provides("babel");
+	bool const use_polyglossia = features.usePolyglossia();
+	bool const global = lyxrc.language_global_options;
+	if (use_babel || (use_polyglossia && global)) {
 		language_options << features.getLanguages();
 		if (!language->babel().empty()) {
 			if (!language_options.str().empty())
 				language_options << ',';
 			language_options << language->babel();
 		}
-		// if Vietnamese is used, babel must directly be loaded
-		// with language options, not in the class options, see
-		// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg129417.html
-		size_t viet = language_options.str().find("vietnam");
-		// viet = string::npos when not found
-		// the same is for all other languages that are not directly supported by
-		// babel, but where LaTeX-packages add babel support.
-		// this is currently the case for Latvian, Lithuanian, and Mongolian
-		size_t latvian = language_options.str().find("latvian");
-		size_t lithu = language_options.str().find("lithuanian");
-		size_t mongo = language_options.str().find("mongolian");
-		// if Japanese is used, babel must directly be loaded
-		// with language options, not in the class options, see
-		// http://bugzilla.lyx.org/show_bug.cgi?id=4597#c4
-		size_t japan = language_options.str().find("japanese");
-		if (lyxrc.language_global_options && !language_options.str().empty()
-			&& viet == string::npos && japan == string::npos
-			&& latvian == string::npos && lithu == string::npos
-			&& mongo == string::npos)
+		if (global && !features.needBabelLangOptions())
 			clsoptions << language_options.str() << ',';
 	}
 
@@ -1075,34 +1340,51 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	texrow.newline();
 	// end of \documentclass defs
 
-	// font selection must be done before loading fontenc.sty
-	string const fonts =
-		loadFonts(fontsRoman, fontsSans,
-			  fontsTypewriter, fontsSC, fontsOSF,
-			  fontsSansScale, fontsTypewriterScale);
-	if (!fonts.empty()) {
-		os << from_ascii(fonts);
+	int nlines;
+	// if we use fontspec, we have to load the AMS packages here
+	string const ams = features.loadAMSPackages();
+	if (useNonTeXFonts && !ams.empty()) {
+		os << from_ascii(ams);
+		nlines = int(count(ams.begin(), ams.end(), '\n'));
+		texrow.newlines(nlines);
+	}
+
+	if (useNonTeXFonts) {
+		os << "\\usepackage{fontspec}\n";
 		texrow.newline();
 	}
-	if (fontsDefaultFamily != "default")
+
+	// font selection must be done before loading fontenc.sty
+	string const fonts =
+		loadFonts(fonts_roman, fonts_sans,
+			  fonts_typewriter, fonts_expert_sc, fonts_old_figures,
+			  fonts_sans_scale, fonts_typewriter_scale, useNonTeXFonts);
+	if (!fonts.empty()) {
+		os << from_ascii(fonts);
+		nlines =
+			int(count(fonts.begin(), fonts.end(), '\n'));
+		texrow.newlines(nlines);
+	}
+	if (fonts_default_family != "default")
 		os << "\\renewcommand{\\familydefault}{\\"
-		   << from_ascii(fontsDefaultFamily) << "}\n";
+		   << from_ascii(fonts_default_family) << "}\n";
 
 	// set font encoding
-	// this one is not per buffer
 	// for arabic_arabi and farsi we also need to load the LAE and
 	// LFE encoding
-	size_t fars = language_options.str().find("farsi");
-	size_t arab = language_options.str().find("arabic");
-	if (lyxrc.fontenc != "default" && language->lang() != "japanese") {
+	// XeTeX and LuaTeX (with OS fonts) work without fontenc
+	if (font_encoding() != "default" && language->lang() != "japanese"
+	    && !useNonTeXFonts && !tclass.provides("fontenc")) {
+		size_t fars = language_options.str().find("farsi");
+		size_t arab = language_options.str().find("arabic");
 		if (language->lang() == "arabic_arabi"
 			|| language->lang() == "farsi" || fars != string::npos
 			|| arab != string::npos) {
-			os << "\\usepackage[" << from_ascii(lyxrc.fontenc)
+			os << "\\usepackage[" << from_ascii(font_encoding())
 			   << ",LFE,LAE]{fontenc}\n";
 			texrow.newline();
 		} else {
-			os << "\\usepackage[" << from_ascii(lyxrc.fontenc)
+			os << "\\usepackage[" << from_ascii(font_encoding())
 			   << "]{fontenc}\n";
 			texrow.newline();
 		}
@@ -1110,6 +1392,32 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 
 	// handle inputenc etc.
 	writeEncodingPreamble(os, features, texrow);
+
+	// includeonly
+	if (!features.runparams().includeall && !included_children_.empty()) {
+		os << "\\includeonly{";
+		list<string>::const_iterator it = included_children_.begin();
+		list<string>::const_iterator en = included_children_.end();
+		bool first = true;
+		for (; it != en; ++it) {
+			string incfile = *it;
+			FileName inc = makeAbsPath(incfile, filepath.absFileName());
+			string mangled = DocFileName(changeExtension(inc.absFileName(), ".tex")).
+			mangledFileName();
+			if (!features.runparams().nice)
+				incfile = mangled;
+			// \includeonly doesn't want an extension 
+			incfile = changeExtension(incfile, string());
+			incfile = support::latex_path(incfile);
+			if (!incfile.empty()) {
+				if (!first)
+					os << ",";
+				os << from_utf8(incfile);
+			}
+			first = false;
+		}
+		os << "}\n";
+	}
 
 	if (!listings_params.empty() || features.isRequired("listings")) {
 		os << "\\usepackage{listings}\n";
@@ -1157,6 +1465,15 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		case PAPER_USEXECUTIVE:
 			ods << ",executivepaper";
 			break;
+		case PAPER_A0:
+			ods << ",a0paper";
+			break;
+		case PAPER_A1:
+			ods << ",a1paper";
+			break;
+		case PAPER_A2:
+			ods << ",a2paper";
+			break;
 		case PAPER_A3:
 			ods << ",a3paper";
 			break;
@@ -1166,6 +1483,18 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		case PAPER_A5:
 			ods << ",a5paper";
 			break;
+		case PAPER_A6:
+			ods << ",a6paper";
+			break;
+		case PAPER_B0:
+			ods << ",b0paper";
+			break;
+		case PAPER_B1:
+			ods << ",b1paper";
+			break;
+		case PAPER_B2:
+			ods << ",b2paper";
+			break;
 		case PAPER_B3:
 			ods << ",b3paper";
 			break;
@@ -1174,6 +1503,51 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			break;
 		case PAPER_B5:
 			ods << ",b5paper";
+			break;
+		case PAPER_B6:
+			ods << ",b6paper";
+			break;
+		case PAPER_C0:
+			ods << ",c0paper";
+			break;
+		case PAPER_C1:
+			ods << ",c1paper";
+			break;
+		case PAPER_C2:
+			ods << ",c2paper";
+			break;
+		case PAPER_C3:
+			ods << ",c3paper";
+			break;
+		case PAPER_C4:
+			ods << ",c4paper";
+			break;
+		case PAPER_C5:
+			ods << ",c5paper";
+			break;
+		case PAPER_C6:
+			ods << ",c6paper";
+			break;
+		case PAPER_JISB0:
+			ods << ",b0j";
+			break;
+		case PAPER_JISB1:
+			ods << ",b1j";
+			break;
+		case PAPER_JISB2:
+			ods << ",b2j";
+			break;
+		case PAPER_JISB3:
+			ods << ",b3j";
+			break;
+		case PAPER_JISB4:
+			ods << ",b4j";
+			break;
+		case PAPER_JISB5:
+			ods << ",b5j";
+			break;
+		case PAPER_JISB6:
+			ods << ",b6j";
 			break;
 		default:
 			// default papersize ie PAPER_DEFAULT
@@ -1200,8 +1574,30 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			case PAPER_B5:
 				ods << ",b5paper";
 				break;
+			case PAPER_A0:
+			case PAPER_A1:
+			case PAPER_A2:
+			case PAPER_A6:
+			case PAPER_B0:
+			case PAPER_B1:
+			case PAPER_B2:
 			case PAPER_B3:
 			case PAPER_B4:
+			case PAPER_B6:
+			case PAPER_C0:
+			case PAPER_C1:
+			case PAPER_C2:
+			case PAPER_C3:
+			case PAPER_C4:
+			case PAPER_C5:
+			case PAPER_C6:
+			case PAPER_JISB0:
+			case PAPER_JISB1:
+			case PAPER_JISB2:
+			case PAPER_JISB3:
+			case PAPER_JISB4:
+			case PAPER_JISB5:
+			case PAPER_JISB6:
 			case PAPER_CUSTOM:
 				break;
 			}
@@ -1249,6 +1645,24 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		texrow.newline();
 	}
 
+	// only output when the background color is not default
+	if (isbackgroundcolor == true) {
+		// only require color here, the background color will be defined
+		// in LaTeXFeatures.cpp to avoid interferences with the LaTeX
+		// package pdfpages 
+		features.require("color");
+		features.require("pagecolor");
+	}
+
+	// only output when the font color is not default
+	if (isfontcolor == true) {
+		// only require color here, the font color will be defined
+		// in LaTeXFeatures.cpp to avoid interferences with the LaTeX
+		// package pdfpages 
+		features.require("color");
+		features.require("fontcolor");
+	}
+
 	// Only if class has a ToC hierarchy
 	if (tclass.hasTocLevels()) {
 		if (secnumdepth != tclass.secnumdepth()) {
@@ -1266,6 +1680,7 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	}
 
 	if (paragraph_separation) {
+		// when skip separation
 		switch (getDefSkip().kind()) {
 		case VSpace::SMALLSKIP:
 			os << "\\setlength{\\parskip}{\\smallskipamount}\n";
@@ -1286,35 +1701,67 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			break;
 		}
 		texrow.newline();
-
 		os << "\\setlength{\\parindent}{0pt}\n";
 		texrow.newline();
+	} else {
+		// when separation by indentation
+		// only output something when a width is given
+		if (getIndentation().asLyXCommand() != "default") {
+			os << "\\setlength{\\parindent}{"
+				<< from_utf8(getIndentation().asLatexCommand())
+			   << "}\n";
+			texrow.newline();
+		}
 	}
 
 	// Now insert the LyX specific LaTeX commands...
 	docstring lyxpreamble;
 
+	if (output_sync) {
+		if (!output_sync_macro.empty())
+			lyxpreamble += from_utf8(output_sync_macro) +"\n";
+		else if (features.runparams().flavor == OutputParams::LATEX)
+			lyxpreamble += "\\usepackage[active]{srcltx}\n";
+		else if (features.runparams().flavor == OutputParams::PDFLATEX)
+			lyxpreamble += "\\synctex=-1\n";
+	}
+
 	// due to interferences with babel and hyperref, the color package has to
 	// be loaded (when it is not already loaded) before babel when hyperref
 	// is used with the colorlinks option, see
-	// http://bugzilla.lyx.org/show_bug.cgi?id=5291
+	// http://www.lyx.org/trac/ticket/5291
 	// we decided therefore to load color always before babel, see
 	// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg144349.html
 	lyxpreamble += from_ascii(features.getColorOptions());
 	
 	// If we use hyperref, jurabib, japanese, or vietnamese, we have to call babel before them.
 	if (use_babel
-		&& (features.isRequired("jurabib")
-			|| features.isRequired("hyperref")
-			|| features.isRequired("vietnamese")
-			|| features.isRequired("japanese") ) ) {
-				// FIXME UNICODE
-				lyxpreamble += from_utf8(babelCall(language_options.str())) + '\n';
-				lyxpreamble += from_utf8(features.getBabelOptions()) + '\n';
+	    && (features.isRequired("jurabib")
+		|| features.isRequired("hyperref")
+		|| features.isRequired("vietnamese")
+		|| features.isRequired("japanese"))) {
+			// FIXME UNICODE
+			lyxpreamble += from_utf8(features.getBabelPresettings());
+			lyxpreamble += from_utf8(babelCall(language_options.str(),
+							   features.needBabelLangOptions())) + '\n';
+			lyxpreamble += from_utf8(features.getBabelPostsettings());
 	}
 
 	// The optional packages;
 	lyxpreamble += from_ascii(features.getPackages());
+
+	// Additional Indices
+	if (features.isRequired("splitidx")) {
+		IndicesList::const_iterator iit = indiceslist().begin();
+		IndicesList::const_iterator iend = indiceslist().end();
+		for (; iit != iend; ++iit) {
+			lyxpreamble += "\\newindex[";
+			lyxpreamble += iit->index();
+			lyxpreamble += "]{";
+			lyxpreamble += iit->shortcut();
+			lyxpreamble += "}\n";
+		}
+	}
 
 	// Line spacing
 	lyxpreamble += from_utf8(spacing().writePreamble(tclass.provides("SetSpace")));
@@ -1327,7 +1774,7 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	//   before hyperref. Then hyperref has a chance to detect babel.
 	// * Has to be loaded before the "LyX specific LaTeX commands" to
 	//   avoid errors with algorithm floats.
-	// use hyperref explicitely if it is required
+	// use hyperref explicitly if it is required
 	if (features.isRequired("hyperref")) {
 		// pass what we have to stream here, since we need 
 		// to access the stream itself in PDFOptions.
@@ -1342,13 +1789,19 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		texrow.newlines(lines);
 		// set back for the rest
 		lyxpreamble.clear();
-	}
+		// correctly break URLs with hyperref and dvi output
+		if (features.runparams().flavor == OutputParams::LATEX
+		    && features.isAvailable("breakurl"))
+			lyxpreamble += "\\usepackage{breakurl}\n";
+	} else if (features.isRequired("nameref"))
+		// hyperref loads this automatically
+		lyxpreamble += "\\usepackage{nameref}\n";
 
 	// Will be surrounded by \makeatletter and \makeatother when not empty
 	docstring atlyxpreamble;
 
 	// Some macros LyX will need
-	docstring tmppreamble(from_ascii(features.getMacros()));
+	docstring tmppreamble(features.getMacros());
 
 	if (!tmppreamble.empty())
 		atlyxpreamble += "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% "
@@ -1361,6 +1814,12 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		atlyxpreamble += "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% "
 			"Textclass specific LaTeX commands.\n"
 			+ tmppreamble + '\n';
+
+	// suppress date if selected
+	// use \@ifundefined because we cannot be sure that every document class
+	// has a \date command
+	if (suppress_date)
+		atlyxpreamble += "\\@ifundefined{date}{}{\\date{}}\n";
 
 	/* the user-defined preamble */
 	if (!containsOnly(preamble, " \n\t"))
@@ -1431,15 +1890,48 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	    && !features.isRequired("vietnamese")
 	    && !features.isRequired("japanese")) {
 		// FIXME UNICODE
-		lyxpreamble += from_utf8(babelCall(language_options.str())) + '\n';
-		lyxpreamble += from_utf8(features.getBabelOptions()) + '\n';
+		lyxpreamble += from_utf8(features.getBabelPresettings());
+		lyxpreamble += from_utf8(babelCall(language_options.str(),
+						   features.needBabelLangOptions())) + '\n';
+		lyxpreamble += from_utf8(features.getBabelPostsettings());
 	}
 
-	int const nlines =
-		int(count(lyxpreamble.begin(), lyxpreamble.end(), '\n'));
+	// xunicode needs to be loaded at least after amsmath, amssymb,
+	// esint and the other packages that provide special glyphs
+	if (features.runparams().flavor == OutputParams::XETEX)
+		lyxpreamble += "\\usepackage{xunicode}\n";
+
+	// Polyglossia must be loaded last
+	if (use_polyglossia) {
+		// call the package
+		lyxpreamble += "\\usepackage{polyglossia}\n";
+		// set the main language
+		lyxpreamble += "\\setdefaultlanguage";
+		if (!language->polyglossiaOpts().empty())
+			lyxpreamble += "[" + from_ascii(language->polyglossiaOpts()) + "]";
+		lyxpreamble += "{" + from_ascii(language->polyglossia()) + "}\n";
+		// now setup the other languages
+		std::map<std::string, std::string> const polylangs = 
+			features.getPolyglossiaLanguages();
+		for (std::map<std::string, std::string>::const_iterator mit = polylangs.begin();
+		     mit != polylangs.end() ; ++mit) {
+			lyxpreamble += "\\setotherlanguage";
+			if (!mit->second.empty())
+				lyxpreamble += "[" + from_ascii(mit->second) + "]";
+			lyxpreamble += "{" + from_ascii(mit->first) + "}\n";
+		}
+	}
+
+	docstring const i18npreamble =
+		features.getTClassI18nPreamble(use_babel, use_polyglossia);
+	if (!i18npreamble.empty())
+		lyxpreamble += i18npreamble + '\n';
+
+	nlines = int(count(lyxpreamble.begin(), lyxpreamble.end(), '\n'));
 	texrow.newlines(nlines);
 
 	os << lyxpreamble;
+
 	return use_babel;
 }
 
@@ -1479,175 +1971,16 @@ DocumentClass const & BufferParams::documentClass() const
 }
 
 
-DocumentClass const * BufferParams::documentClassPtr() const {
+DocumentClass const * BufferParams::documentClassPtr() const
+{
 	return doc_class_;
 }
 
 
-void BufferParams::setDocumentClass(DocumentClass const * const tc) {
+void BufferParams::setDocumentClass(DocumentClass const * const tc)
+{
 	// evil, but this function is evil
 	doc_class_ = const_cast<DocumentClass *>(tc);
-}
-
-
-bool BufferParams::removeBadModules()
-{
-	// we'll write a new list of modules, since we can't just remove them,
-	// as that would invalidate our iterators
-	list<string> oldModules = getModules();
-	clearLayoutModules();
-
-	list<string> const & provmods = baseClass()->providedModules();
-	list<string> const & exclmods = baseClass()->excludedModules();
-	bool consistent = true; // set to false if we have to do anything
-
-	list<string>::const_iterator oit = oldModules.begin();
-	list<string>::const_iterator const oen = oldModules.end();
-	for (; oit != oen; ++oit) {
-		string const & modname = *oit;
-		// skip modules that the class provides
-		if (find(provmods.begin(), provmods.end(), modname) != provmods.end()) {
-			LYXERR0("Module `" << modname << "' dropped because provided by document class.");
-			consistent = false;
-			continue;
-		}
-		// are we excluded by the document class?
-		if (find(exclmods.begin(), exclmods.end(), modname) != exclmods.end()) {
-			LYXERR0("Module `" << modname << "' dropped because excluded by document class.");
-			consistent = false;
-			continue;
-		}
-		// determine whether some provided module excludes us or we exclude it
-		list<string>::const_iterator pit = provmods.begin();
-		list<string>::const_iterator const pen = provmods.end();
-		bool excluded = false;
-		for (; !excluded && pit != pen; ++pit) {
-			if (!LyXModule::areCompatible(modname, *pit)) {
-				LYXERR0("Module " << modname << 
-						" dropped because it conflicts with provided module `" << *pit << "'.");
-				consistent = false;
-				excluded = true;
-			}
-		}
-		if (excluded)
-			continue;
-		layoutModules_.push_back(modname);
-	}
-	return consistent;
-}
-
-
-void BufferParams::addDefaultModules()
-{
-	// add any default modules not already in use
-	list<string> const & mods = baseClass()->defaultModules();
-	list<string>::const_iterator mit = mods.begin();
-	list<string>::const_iterator men = mods.end();
-
-	// We want to insert the default modules at the beginning of
-	// the list, but also to insert them in the correct order.
-	// The obvious thing to do would be to collect them and then
-	// insert them, but that doesn't work because a later default
-	// module may require an earlier one, and then the test below
-	//     moduleCanBeAdded(modname)
-	// will fail. So we have to do it a more complicated way.
-	list<string>::iterator insertpos = layoutModules_.begin();
-	int numinserts = 0;
-
-	for (; mit != men; mit++) {
-		string const & modName = *mit;
-		// make sure the user hasn't removed it
-		if (find(removedModules_.begin(), removedModules_.end(), modName) !=
-		    removedModules_.end()) {
-			LYXERR(Debug::TCLASS, "Default module `" << modName << 
-					"' not added because removed by user.");
-			continue;
-		}
-
-		if (!moduleCanBeAdded(modName)) {
-			// FIXME This could be because it's already present, so we should
-			// probably return something indicating that.
-			LYXERR(Debug::TCLASS, "Default module `" << modName << 
-					"' could not be added.");
-			continue;
-		}
-		LYXERR(Debug::TCLASS, "Default module `" << modName << "' added.");
-		layoutModules_.insert(insertpos, modName);
-		// now we reset insertpos
-		++numinserts;
-		insertpos = layoutModules_.begin();
-		advance(insertpos, numinserts);
-	}
-}
-
-
-bool BufferParams::checkModuleConsistency() {
-	bool consistent = true;
-	// Perform a consistency check on the set of modules. We need to make
-	// sure that none of the modules exclude each other and that requires
-	// are satisfied.
-	list<string> oldModules = getModules();
-	clearLayoutModules();
-	list<string>::const_iterator oit = oldModules.begin();
-	list<string>::const_iterator oen = oldModules.end();
-	list<string> const & provmods = baseClass()->providedModules();
-	for (; oit != oen; ++oit) {
-		string const & modname = *oit;
-		bool excluded = false;
-		// Determine whether some prior module excludes us, or we exclude it
-		list<string>::const_iterator lit = layoutModules_.begin();
-		list<string>::const_iterator len = layoutModules_.end();
-		for (; !excluded && lit != len; ++lit) {
-			if (!LyXModule::areCompatible(modname, *lit)) {
-				consistent = false;
-				LYXERR0("Module " << modname << 
-						" dropped because it is excluded by prior module " << *lit);
-				excluded = true;
-			}
-		}
-
-		if (excluded)
-			continue;
-
-		// determine whether some provided module or some prior module
-		// satisfies our requirements
-		LyXModule const * const oldmod = moduleList[modname];
-		if (!oldmod) {
-			LYXERR0("Default module " << modname << 
-					" added although it is unavailable and can't check requirements.");
-			continue;
-		}
-			
-		vector<string> const & reqs = oldmod->getRequiredModules();
-		if (!reqs.empty()) {
-			// we now set excluded to true, meaning that we haven't
-			// yet found a required module.
-			excluded = true;
-			vector<string>::const_iterator rit  = reqs.begin();
-			vector<string>::const_iterator ren = reqs.end();
-			for (; rit != ren; ++rit) {
-				string const reqmod = *rit;
-				if (find(provmods.begin(), provmods.end(), reqmod) != 
-						provmods.end()) {
-					excluded = false;
-					break;
-				}
-				if (find(layoutModules_.begin(), layoutModules_.end(), reqmod) != 
-						layoutModules_.end()) {
-					excluded = false;
-					break;
-				}
-			}
-		}
-		if (excluded) {
-			consistent = false;
-			LYXERR0("Module " << modname << " dropped because requirements not met.");
-		} else {
-			LYXERR(Debug::TCLASS, "Module " << modname << " passed consistency check.");
-			layoutModules_.push_back(modname);
-		}
-	}
-	return consistent;
 }
 
 
@@ -1657,10 +1990,11 @@ bool BufferParams::setBaseClass(string const & classname)
 	LayoutFileList & bcl = LayoutFileList::get();
 	if (!bcl.haveClass(classname)) {
 		docstring s = 
-			bformat(_("The document class %1$s could not be found. "
-				"A default textclass with default layouts will be used. "
-				"LyX might not be able to produce output unless a correct "
-				"textclass is selected from the document settings dialog."),
+			bformat(_("The layout file:\n"
+				"%1$s\n"
+				"could not be found. A default textclass with default\n"
+				"layouts will be used. LyX will not be able to produce\n"
+				"correct output."),
 			from_utf8(classname));
 		frontend::Alert::error(_("Document class not found"), s);
 		bcl.addEmptyClass(classname);
@@ -1669,35 +2003,18 @@ bool BufferParams::setBaseClass(string const & classname)
 	bool const success = bcl[classname].load();
 	if (!success) {
 		docstring s = 
-			bformat(_("The document class %1$s could not be loaded."),
+			bformat(_("Due to some error in it, the layout file:\n"
+				"%1$s\n"
+				"could not be loaded. A default textclass with default\n"
+				"layouts will be used. LyX will not be able to produce\n"
+				"correct output."),
 			from_utf8(classname));
 		frontend::Alert::error(_("Could not load class"), s);
-		return false;
+		bcl.addEmptyClass(classname);
 	}
 
 	pimpl_->baseClass_ = classname;
-	// the previous document class may have loaded some modules that the
-	// new one excludes, and the new class may provide, etc, some that
-	// conflict with ones that were already loaded. So we need to go 
-	// through the list and fix everything. I suppose there are various
-	// ways this could be done, but the following seems to work at the 
-	// moment. (Thanks to Philippe Charpentier for helping work out all 
-	// the bugs---rgh.)
-	// 
-	// first, we remove any modules the new document class itself provides,
-	// those it excludes, and those that conflict with ones it excludes.
-	// this has to be done first because, otherwise, a module we're about
-	// to remove could prevent a default module from being added.
-	removeBadModules();
-	// next, we add any default modules the new class provides.
-	addDefaultModules();
-	// finally, we perform a general consistency check on the set of
-	// loaded modules.
-	checkModuleConsistency();
-	// FIXME removeBadModules() and checkModuleConsistency() both return
-	// a boolean indicating whether something had to be changed. It might
-	// be worth popping a message to the user if so.
-
+	layout_modules_.adaptToBaseClass(baseClass(), removed_modules_);
 	return true;
 }
 
@@ -1722,41 +2039,8 @@ void BufferParams::makeDocumentClass()
 	if (!baseClass())
 		return;
 
-	doc_class_ = &(DocumentClassBundle::get().newClass(*baseClass()));
+	doc_class_ = &(DocumentClassBundle::get().makeDocumentClass(*baseClass(), layout_modules_));
 
-	// FIXME It might be worth loading the children's modules here,
-	// just as we load their bibliographies and such, instead of just 
-	// doing a check in InsetInclude.
-	LayoutModuleList::const_iterator it = layoutModules_.begin();
-	for (; it != layoutModules_.end(); it++) {
-		string const modName = *it;
-		LyXModule * lm = moduleList[modName];
-		if (!lm) {
-			docstring const msg =
-				bformat(_("The module %1$s has been requested by\n"
-					"this document but has not been found in the list of\n"
-					"available modules. If you recently installed it, you\n"
-					"probably need to reconfigure LyX.\n"), from_utf8(modName));
-			frontend::Alert::warning(_("Module not available"),
-					msg + _("Some layouts may not be available."));
-			LYXERR0("BufferParams::makeDocumentClass(): Module " <<
-					modName << " requested but not found in module list.");
-			continue;
-		}
-		if (!lm->isAvailable()) {
-			docstring const msg =
-						bformat(_("The module %1$s requires a package that is\n"
-						"not available in your LaTeX installation. LaTeX output\n"
-						"may not be possible.\n"), from_utf8(modName));
-			frontend::Alert::warning(_("Package not available"), msg);
-		}
-		FileName layout_file = libFileSearch("layouts", lm->getFilename());
-		if (!doc_class_->read(layout_file, TextClass::MODULE)) {
-			docstring const msg =
-				bformat(_("Error reading module %1$s\n"), from_utf8(modName));
-			frontend::Alert::warning(_("Read Error"), msg);
-		}
-	}
 	if (!local_layout.empty()) {
 		if (!doc_class_->read(local_layout, TextClass::MODULE)) {
 			docstring const msg = _("Error reading internal layout information");
@@ -1768,76 +2052,18 @@ void BufferParams::makeDocumentClass()
 
 bool BufferParams::moduleCanBeAdded(string const & modName) const
 {
-	// Is the module already present?
-	LayoutModuleList::const_iterator it = layoutModules_.begin();
-	LayoutModuleList::const_iterator end = layoutModules_.end();
-	for (; it != end; it++)
-		if (*it == modName) 
-			return false;
-
-	LyXModule const * const lm = moduleList[modName];
-	if (!lm)
-		return true;
-
-	// Is this module explicitly excluded by the document class?
-	list<string>::const_iterator const exclmodstart = 
-			baseClass()->excludedModules().begin();
-	list<string>::const_iterator const exclmodend = 
-			baseClass()->excludedModules().end();
-	if (find(exclmodstart, exclmodend, modName) != exclmodend)
-		return false;
-
-	// Is this module already provided by the document class?
-	list<string>::const_iterator const provmodstart = 
-			baseClass()->providedModules().begin();
-	list<string>::const_iterator const provmodend = 
-			baseClass()->providedModules().end();
-	if (find(provmodstart, provmodend, modName) != provmodend)
-		return false;
-
-	// Check for conflicts with used modules
-	// first the provided modules...
-	list<string>::const_iterator provmodit = provmodstart;
-	for (; provmodit != provmodend; ++provmodit) {
-		if (!LyXModule::areCompatible(modName, *provmodit))
-			return false;
-	}
-	// and then the selected modules
-	LayoutModuleList::const_iterator mit = getModules().begin();
-	LayoutModuleList::const_iterator const men = getModules().end();
-	for (; mit != men; ++mit)
-		if (!LyXModule::areCompatible(modName, *mit))
-			return false;
-
-	// Check whether some required module is available
-	vector<string> const reqs = lm->getRequiredModules();
-	if (reqs.empty())
-		return true;
-
-	mit = getModules().begin(); // reset
-	vector<string>::const_iterator rit = reqs.begin();
-	vector<string>::const_iterator ren = reqs.end();
-	bool foundone = false;
-	for (; rit != ren; ++rit) {
-		if (find(mit, men, *rit) != men || 
-		    find(provmodstart, provmodend, *rit) != provmodend) {
-			foundone = true;
-			break;
-		}
-	}
-
-	return foundone;
+	return layout_modules_.moduleCanBeAdded(modName, baseClass());
 }
 
 
 bool BufferParams::addLayoutModule(string const & modName)
 {
-	LayoutModuleList::const_iterator it = layoutModules_.begin();
-	LayoutModuleList::const_iterator end = layoutModules_.end();
+	LayoutModuleList::const_iterator it = layout_modules_.begin();
+	LayoutModuleList::const_iterator end = layout_modules_.end();
 	for (; it != end; it++)
 		if (*it == modName) 
 			return false;
-	layoutModules_.push_back(modName);
+	layout_modules_.push_back(modName);
 	return true;
 }
 
@@ -1845,11 +2071,11 @@ bool BufferParams::addLayoutModule(string const & modName)
 Font const BufferParams::getFont() const
 {
 	FontInfo f = documentClass().defaultfont();
-	if (fontsDefaultFamily == "rmdefault")
+	if (fonts_default_family == "rmdefault")
 		f.setFamily(ROMAN_FAMILY);
-	else if (fontsDefaultFamily == "sfdefault")
+	else if (fonts_default_family == "sfdefault")
 		f.setFamily(SANS_FAMILY);
-	else if (fontsDefaultFamily == "ttdefault")
+	else if (fonts_default_family == "ttdefault")
 		f.setFamily(TYPEWRITER_FAMILY);
 	return Font(f, language);
 }
@@ -1905,14 +2131,14 @@ void BufferParams::readGraphicsDriver(Lexer & lex)
 		string const test = tex_graphics[n++];
 
 		if (test == tmptok) {
-			graphicsDriver = tmptok;
+			graphics_driver = tmptok;
 			break;
 		}
 		if (test.empty()) {
 			lex.printError(
 				"Warning: graphics driver `$$Token' not recognized!\n"
 				"         Setting graphics driver to `default'.\n");
-			graphicsDriver = "default";
+			graphics_driver = "default";
 			break;
 		}
 	}
@@ -1980,22 +2206,39 @@ void BufferParams::readRemovedModules(Lexer & lex)
 		string mod = lex.getString();
 		if (mod == "\\end_removed_modules")
 			break;
-		removedModules_.insert(mod);
+		removed_modules_.push_back(mod);
 		lex.eatLine();
 	}
 	// now we want to remove any removed modules that were previously 
 	// added. normally, that will be because default modules were added in 
 	// setBaseClass(), which gets called when \textclass is read at the 
 	// start of the read.
-	set<string>::const_iterator rit = removedModules_.begin();
-	set<string>::const_iterator const ren = removedModules_.end();
+	list<string>::const_iterator rit = removed_modules_.begin();
+	list<string>::const_iterator const ren = removed_modules_.end();
 	for (; rit != ren; rit++) {
-		LayoutModuleList::iterator const mit = layoutModules_.begin();
-		LayoutModuleList::iterator const men = layoutModules_.end();
+		LayoutModuleList::iterator const mit = layout_modules_.begin();
+		LayoutModuleList::iterator const men = layout_modules_.end();
 		LayoutModuleList::iterator found = find(mit, men, *rit);
 		if (found == men)
 			continue;
-		layoutModules_.erase(found);
+		layout_modules_.erase(found);
+	}
+}
+
+
+void BufferParams::readIncludeonly(Lexer & lex)
+{
+	if (!lex.eatLine()) {
+		lyxerr << "Error (BufferParams::readIncludeonly):"
+				"Unexpected end of input." << endl;
+		return;
+	}
+	while (true) {
+		string child = lex.getString();
+		if (child == "\\end_includeonly")
+			break;
+		included_children_.push_back(child);
+		lex.eatLine();
 	}
 }
 
@@ -2024,14 +2267,42 @@ string BufferParams::paperSizeName(PapersizePurpose purpose) const
 		}
 		return string();
 	}
+	case PAPER_A0:
+		// dvips and dvipdfm do not know this
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "a0";
+	case PAPER_A1:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "a1";
+	case PAPER_A2:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "a2";
 	case PAPER_A3:
 		return "a3";
 	case PAPER_A4:
 		return "a4";
 	case PAPER_A5:
 		return "a5";
+	case PAPER_A6:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "a6";
+	case PAPER_B0:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "b0";
+	case PAPER_B1:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "b1";
+	case PAPER_B2:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "b2";
 	case PAPER_B3:
-		// dvips and dvipdfm do not know this
 		if (purpose == DVIPS || purpose == DVIPDFM)
 			return string();
 		return "b3";
@@ -2041,10 +2312,69 @@ string BufferParams::paperSizeName(PapersizePurpose purpose) const
 			return string();
 		return "b4";
 	case PAPER_B5:
-		// dvipdfm does not know this
 		if (purpose == DVIPDFM)
 			return string();
 		return "b5";
+	case PAPER_B6:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "b6";
+	case PAPER_C0:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c0";
+	case PAPER_C1:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c1";
+	case PAPER_C2:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c2";
+	case PAPER_C3:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c3";
+	case PAPER_C4:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c4";
+	case PAPER_C5:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c5";
+	case PAPER_C6:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "c6";
+	case PAPER_JISB0:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb0";
+	case PAPER_JISB1:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb1";
+	case PAPER_JISB2:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb2";
+	case PAPER_JISB3:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb3";
+	case PAPER_JISB4:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb4";
+	case PAPER_JISB5:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb5";
+	case PAPER_JISB6:
+		if (purpose == DVIPS || purpose == DVIPDFM)
+			return string();
+		return "jisb6";
 	case PAPER_USEXECUTIVE:
 		// dvipdfm does not know this
 		if (purpose == DVIPDFM)
@@ -2092,36 +2422,27 @@ string const BufferParams::dvips_options() const
 }
 
 
-string BufferParams::babelCall(string const & lang_opts) const
+string const BufferParams::font_encoding() const
 {
-	string lang_pack = lyxrc.language_package;
-	if (lang_pack != "\\usepackage{babel}")
-		return lang_pack;
-	// suppress the babel call when there is no babel language defined
+	return (fontenc == "global") ? lyxrc.fontenc : fontenc;
+}
+
+
+string BufferParams::babelCall(string const & lang_opts, bool const langoptions) const
+{
+	if (lyxrc.language_package_selection == LyXRC::LP_CUSTOM)
+		return lyxrc.language_custom_package;
+	// suppress the babel call if there is no BabelName defined
 	// for the document language in the lib/languages file and if no
 	// other languages are used (lang_opts is then empty)
 	if (lang_opts.empty())
 		return string();
-	// If Vietnamese is used, babel must directly be loaded with the
-	// language options, see
-	// http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg129417.html
-	size_t viet = lang_opts.find("vietnam");
-	// viet = string::npos when not found
-	// the same is for all other languages that are not directly supported by
-	// babel, but where LaTeX-packages add babel support.
-	// this is currently the case for Latvian, Lithuanian, and Mongolian
-	size_t latvian = lang_opts.find("latvian");
-	size_t lithu = lang_opts.find("lithuanian");
-	size_t mongo = lang_opts.find("mongolian");
-	// If Japanese is used, babel must directly be loaded with the
-	// language options, see
-	// http://bugzilla.lyx.org/show_bug.cgi?id=4597#c4
-	size_t japan = lang_opts.find("japanese");
-	if (!lyxrc.language_global_options || viet != string::npos
-		|| japan != string::npos || latvian != string::npos
-		|| lithu != string::npos || mongo != string::npos)
+	// either a specific language (AsBabelOptions setting in
+	// lib/languages) or the prefs require the languages to
+	// be submitted to babel itself (not the class).
+	if (langoptions)
 		return "\\usepackage[" + lang_opts + "]{babel}";
-	return lang_pack;
+	return "\\usepackage{babel}";
 }
 
 
@@ -2130,12 +2451,12 @@ docstring BufferParams::getGraphicsDriver(string const & package) const
 	docstring result;
 
 	if (package == "geometry") {
-		if (graphicsDriver == "dvips"
-		    || graphicsDriver == "dvipdfm"
-		    || graphicsDriver == "pdftex"
-		    || graphicsDriver == "vtex")
-			result = from_ascii(graphicsDriver);
-		else if (graphicsDriver == "dvipdfmx")
+		if (graphics_driver == "dvips"
+		    || graphics_driver == "dvipdfm"
+		    || graphics_driver == "pdftex"
+		    || graphics_driver == "vtex")
+			result = from_ascii(graphics_driver);
+		else if (graphics_driver == "dvipdfmx")
 			result = from_ascii("dvipdfm");
 	}
 
@@ -2146,6 +2467,18 @@ docstring BufferParams::getGraphicsDriver(string const & package) const
 void BufferParams::writeEncodingPreamble(odocstream & os,
 		LaTeXFeatures & features, TexRow & texrow) const
 {
+	// XeTeX does not need this
+	if (features.runparams().flavor == OutputParams::XETEX)
+		return;
+	// LuaTeX neither, but with tex fonts, we need to load
+	// the luainputenc package.
+	if (features.runparams().flavor == OutputParams::LUATEX) {
+		if (!useNonTeXFonts) {
+			os << "\\usepackage[utf8]{luainputenc}\n";
+			texrow.newline();
+		}
+		return;
+	}
 	if (inputenc == "auto") {
 		string const doc_encoding =
 			language->encoding()->latexName();
@@ -2184,7 +2517,7 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 		}
 		if (package == Encoding::CJK || features.mustProvide("CJK")) {
 			if (language->encoding()->name() == "utf8-cjk"
-			    && features.isAvailable("CJKutf8"))
+			    && LaTeXFeatures::isAvailable("CJKutf8"))
 				os << "\\usepackage{CJKutf8}\n";
 			else
 				os << "\\usepackage{CJK}\n";
@@ -2205,7 +2538,7 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 			break;
 		case Encoding::CJK:
 			if (encoding().name() == "utf8-cjk"
-			    && features.isAvailable("CJKutf8"))
+			    && LaTeXFeatures::isAvailable("CJKutf8"))
 				os << "\\usepackage{CJKutf8}\n";
 			else
 				os << "\\usepackage{CJK}\n";
@@ -2224,10 +2557,22 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 }
 
 
+string const BufferParams::parseFontName(string const & name) const
+{
+	string mangled = name;
+	size_t const idx = mangled.find('[');
+	if (idx == string::npos || idx == 0)
+		return mangled;
+	else
+		return mangled.substr(0, idx - 1);
+}
+
+
 string const BufferParams::loadFonts(string const & rm,
 				     string const & sf, string const & tt,
 				     bool const & sc, bool const & osf,
-				     int const & sfscale, int const & ttscale) const
+				     int const & sfscale, int const & ttscale,
+				     bool const & use_systemfonts) const
 {
 	/* The LaTeX font world is in a flux. In the PSNFSS font interface,
 	   several packages have been replaced by others, that might not
@@ -2247,8 +2592,50 @@ string const BufferParams::loadFonts(string const & rm,
 
 	ostringstream os;
 
+	/* Fontspec (XeTeX, LuaTeX): we provide GUI support for oldstyle
+	 * numbers (Numbers=OldStyle) and sf/tt scaling. The Ligatures=TeX
+	 * option assures TeX ligatures (such as "--") are resolved.
+	 * Note that tt does not use these ligatures.
+	 * TODO:
+	 *    -- add more GUI options?
+	 *    -- add more fonts (fonts for other scripts)
+	 *    -- if there's a way to find out if a font really supports
+	 *       OldStyle, enable/disable the widget accordingly. 
+	*/
+	if (use_systemfonts) {
+		if (rm != "default") {
+			os << "\\setmainfont[Ligatures=TeX";
+			if (osf)
+				os << ",Numbers=OldStyle";
+			os << "]{" << parseFontName(rm) << "}\n";
+		}
+		if (sf != "default") {
+			string const sans = parseFontName(sf);
+			if (sfscale != 100)
+				os << "\\setsansfont[Scale=" 
+				   << float(sfscale) / 100 
+				   << ",Ligatures=TeX]{"
+				   << sans << "}\n";
+			else
+				os << "\\setsansfont[Ligatures=TeX]{"
+				   << sans << "}\n";
+		}
+		if (tt != "default") {
+			string const mono = parseFontName(tt);
+			if (ttscale != 100)
+				os << "\\setmonofont[Scale=" 
+				   << float(ttscale) / 100 
+				   << "]{"
+				   << mono << "}\n";
+			else
+				os << "\\setmonofont{"
+				   << mono << "}\n";
+		}
+		return os.str();
+	}
+
 	// ROMAN FONTS
-	// Computer Modern (must be explicitely selectable -- there might be classes
+	// Computer Modern (must be explicitly selectable -- there might be classes
 	// that define a different default font!
 	if (rm == "cmr") {
 		os << "\\renewcommand{\\rmdefault}{cmr}\n";
@@ -2262,7 +2649,7 @@ string const BufferParams::loadFonts(string const & rm,
 	// AE
 	else if (rm == "ae") {
 		// not needed when using OT1 font encoding.
-		if (lyxrc.fontenc != "default")
+		if (font_encoding() != "default")
 			os << "\\usepackage{ae,aecompl}\n";
 	}
 	// Times
@@ -2301,7 +2688,7 @@ string const BufferParams::loadFonts(string const & rm,
 		// fourier supersedes utopia.sty, but does
 		// not work with OT1 encoding.
 		if (LaTeXFeatures::isAvailable("fourier")
-		    && lyxrc.fontenc != "default") {
+		    && font_encoding() != "default") {
 			os << "\\usepackage";
 			if (osf || sc) {
 				os << '[';
@@ -2363,6 +2750,12 @@ string const BufferParams::loadFonts(string const & rm,
 
 Encoding const & BufferParams::encoding() const
 {
+	// FIXME: actually, we should check for the flavor
+	// or runparams.isFullyUnicode() here:
+	// This check will not work with XeTeX/LuaTeX and tex fonts.
+	// Thus we have to reset the encoding in Buffer::makeLaTeXFile.
+	if (useNonTeXFonts)
+		return *(encodings.fromLaTeXName("utf8-plain"));
 	if (inputenc == "auto" || inputenc == "default")
 		return *language->encoding();
 	Encoding const * const enc = encodings.fromLaTeXName(inputenc);

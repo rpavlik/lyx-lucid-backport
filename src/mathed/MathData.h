@@ -5,8 +5,8 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
- * \author Lars Gullik Bjønnes
+ * \author AndrÃ© PÃ¶nitz
+ * \author Lars Gullik BjÃ¸nnes
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -17,6 +17,8 @@
 
 #include "Dimension.h"
 #include "MathAtom.h"
+
+#include "OutputEnums.h"
 
 #include "support/strfwd.h"
 
@@ -35,6 +37,7 @@ class MacroContext;
 class MathMacro;
 class MetricsInfo;
 class PainterInfo;
+class ParIterator;
 class TextMetricsInfo;
 class TextPainter;
 
@@ -164,6 +167,8 @@ public:
 	/// attach/detach arguments to macros, updating the cur to 
 	/// stay visually at the same position (cur==0 is allowed)
 	void updateMacros(Cursor * cur, MacroContext const & mc);
+	///
+	void updateBuffer(ParIterator const &, UpdateType);
 
 protected:
 	/// cached values for super/subscript placement

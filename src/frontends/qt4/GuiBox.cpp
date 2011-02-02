@@ -3,9 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna (Minipage stuff)
+ * \author JÃ¼rgen Vigna (Minipage stuff)
  * \author Martin Vermeer
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,10 +14,8 @@
 
 #include "GuiBox.h"
 
-#include "FuncRequest.h"
 #include "LengthCombo.h"
 #include "Length.h"
-#include "LyXRC.h" // to set the default length values
 #include "qt_helpers.h"
 #include "Validator.h"
 
@@ -74,175 +72,158 @@ static QStringList boxGuiSpecialLengthNames()
 }
 
 
-GuiBox::GuiBox(GuiView & lv)
-	: GuiDialog(lv, "box", qt_("Box Settings")), params_("")
+GuiBox::GuiBox(QWidget * parent) : InsetParamsWidget(parent)
 {
 	setupUi(this);
 
 	// fill the box type choice
 	ids_ = boxGuiIds();
 	gui_names_ = boxGuiNames();
-	foreach (QString const & str, gui_names_)
-		typeCO->addItem(str);
+	for (int i = 0; i != ids_.size(); ++i)
+		typeCO->addItem(gui_names_[i], ids_[i]);
 
 	// add the special units to the height choice
 	// width needs different handling
 	ids_spec_ = boxGuiSpecialLengthIds();
 	gui_names_spec_ = boxGuiSpecialLengthNames();
-	foreach (QString const & str, gui_names_spec_)
-		heightUnitsLC->addItem(str);
+	for (int i = 0; i != ids_spec_.size(); ++i)
+		heightUnitsLC->addItem(gui_names_spec_[i], ids_spec_[i]);
 
-	connect(restorePB, SIGNAL(clicked()), this, SLOT(slotRestore()));
-	connect(okPB, SIGNAL(clicked()), this, SLOT(slotOK()));
-	connect(applyPB, SIGNAL(clicked()), this, SLOT(slotApply()));
-	connect(closePB, SIGNAL(clicked()), this, SLOT(slotClose()));
-
-	connect(widthED, SIGNAL(textChanged(QString)),
-		this, SLOT(change_adaptor()));
+	connect(widthED, SIGNAL(textChanged(QString)), this, SIGNAL(changed()));
 	connect(widthUnitsLC, SIGNAL(selectionChanged(lyx::Length::UNIT)),
-		this, SLOT(change_adaptor()));
-	connect(valignCO, SIGNAL(highlighted(QString)),
-		this, SLOT(change_adaptor()));
-	connect(heightCB, SIGNAL(stateChanged(int)),
-		this, SLOT(change_adaptor()));
-	connect(heightED, SIGNAL(textChanged(QString)),
-		this, SLOT(change_adaptor()));
+		this, SIGNAL(changed()));
+	connect(valignCO, SIGNAL(highlighted(QString)), this, SIGNAL(changed()));
+	connect(heightED, SIGNAL(textChanged(QString)), this, SIGNAL(changed()));
 	connect(heightUnitsLC, SIGNAL(selectionChanged(lyx::Length::UNIT)),
-		this, SLOT(change_adaptor()));
-	connect(restorePB, SIGNAL(clicked()), this, SLOT(restoreClicked()));
-	connect(typeCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
-	connect(typeCO, SIGNAL(activated(int)), this, SLOT(typeChanged(int)));
-	connect(halignCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
-	connect(ialignCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
-	connect(innerBoxCO, SIGNAL(activated(QString)),
-		this, SLOT(innerBoxChanged(QString)));
-	connect(innerBoxCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
-	connect(pagebreakCB, SIGNAL(stateChanged(int)),
-		this, SLOT(pagebreakClicked()));
+		this, SIGNAL(changed()));
+	connect(halignCO, SIGNAL(activated(int)), this, SIGNAL(changed()));
+	connect(ialignCO, SIGNAL(activated(int)), this, SIGNAL(changed()));
 
 	heightED->setValidator(unsignedLengthValidator(heightED));
 	widthED->setValidator(unsignedLengthValidator(widthED));
 
-	bc().setPolicy(ButtonPolicy::OkApplyCancelReadOnlyPolicy);
-
-	bc().addReadOnly(typeCO);
-	bc().addReadOnly(innerBoxCO);
-	bc().addReadOnly(valignCO);
-	bc().addReadOnly(ialignCO);
-	bc().addReadOnly(halignCO);
-	bc().addReadOnly(widthED);
-	bc().addReadOnly(widthUnitsLC);
-	bc().addReadOnly(heightCB);
-	bc().addReadOnly(heightED);
-	bc().addReadOnly(heightUnitsLC);
-	bc().addReadOnly(pagebreakCB);
-
-	bc().setRestore(restorePB);
-	bc().setOK(okPB);
-	bc().setApply(applyPB);
-	bc().setCancel(closePB);
-
 	// initialize the length validator
-	bc().addCheckedLineEdit(widthED, widthLA);
-	bc().addCheckedLineEdit(heightED, heightCB);
+	addCheckedWidget(widthED, widthLA);
+	addCheckedWidget(heightED, heightCB);
+
+	initDialog();
 }
 
 
-void GuiBox::change_adaptor()
+void GuiBox::on_innerBoxCO_activated(int /* index */)
 {
+	QString itype =
+		innerBoxCO->itemData(innerBoxCO->currentIndex()).toString();
+	// handle parbox and minipage the same way
+	bool const ibox =
+		(itype != "none"
+		 && itype != "makebox");
+	QString const outer =
+		typeCO->itemData(typeCO->currentIndex()).toString();
+	valignCO->setEnabled(ibox);
+	ialignCO->setEnabled(ibox);
+	if (heightCB->isChecked() && !ibox)
+		heightCB->setChecked(false);
+	heightCB->setEnabled(ibox);
+	// except for frameless and boxed, the width cannot be specified if
+	// there is no inner box
+	bool const width_enabled =
+		ibox || outer == "Frameless" || outer == "Boxed";
+	widthED->setEnabled(width_enabled);
+	widthUnitsLC->setEnabled(width_enabled);
+	// halign is only allowed for Boxed without inner box or for makebox
+	halignCO->setEnabled((!ibox && outer == "Boxed")
+		|| (itype == "makebox"));
+	// pagebreak is only allowed for Boxed without inner box
+	pagebreakCB->setEnabled(!ibox && outer == "Boxed");
+	setSpecial(ibox);
 	changed();
 }
 
 
-void GuiBox::innerBoxChanged(QString const & str)
+void GuiBox::on_typeCO_activated(int index)
 {
-	bool const ibox = (str != qt_("None"));
-	int outer = typeCO->currentIndex(); 
-	valignCO->setEnabled(ibox);
-	ialignCO->setEnabled(ibox);
-	heightCB->setEnabled(ibox);
-	heightED->setEnabled(heightCB->checkState() == Qt::Checked && ibox);
-	heightUnitsLC->setEnabled(heightCB->checkState() == Qt::Checked && ibox);
-	// except for frameless and boxed, the width cannot be specified if
-	// there is no inner box
-	bool const width_disabled = (!ibox && outer != 0 &&
-		outer != 1);
-	widthED->setEnabled(!width_disabled);
-	widthUnitsLC->setEnabled(!width_disabled);
-	// halign and pagebreak are only allowed for Boxed without inner box
-	halignCO->setEnabled(!ibox && outer == 1);
-	pagebreakCB->setEnabled(!ibox && outer == 1);
-	setSpecial(ibox);
-}
-
-
-void GuiBox::typeChanged(int index)
-{
-	bool const frameless = (index == 0);
-	if (frameless) {
-		valignCO->setEnabled(true);
-		ialignCO->setEnabled(true);
-		heightCB->setEnabled(true);
-		heightED->setEnabled(heightCB->checkState() == Qt::Checked);
-		heightUnitsLC->setEnabled(heightCB->checkState() == Qt::Checked);
-		setSpecial(true);
-	}
-	if (index != 1)
-		pagebreakCB->setChecked(false);
-	int itype = innerBoxCO->currentIndex();
-	if (innerBoxCO->count() == 2)
-		++itype;
-	// halign and pagebreak are only allowed for Boxed without inner box
-	halignCO->setEnabled(index == 1 && itype == 0);
-	pagebreakCB->setEnabled(index == 1 && itype == 0);
-	// except for frameless and boxed, the width cannot be specified if
-	// there is no inner box
-	bool const width_disabled = (itype == 0 && !frameless
-		&& index != 1);
-	widthED->setEnabled(!width_disabled);
-	widthUnitsLC->setEnabled(!width_disabled);
+ 	QString const type =
+		typeCO->itemData(index).toString();
+	bool const frameless = (type == "Frameless");
+	QString itype =
+		innerBoxCO->itemData(innerBoxCO->currentIndex()).toString();
 	setInnerType(frameless, itype);
+	// refresh itype because it might have been changed in setInnerType
+	itype =
+		innerBoxCO->itemData(innerBoxCO->currentIndex()).toString();
+	// handle parbox and minipage the same way
+	bool const ibox =
+		(itype != "none"
+		 && itype != "makebox");
+	if (frameless && itype != "makebox") {
+		valignCO->setEnabled(ibox);
+		ialignCO->setEnabled(ibox);
+		if (heightCB->isChecked() && !ibox)
+			heightCB->setChecked(false);
+		heightCB->setEnabled(ibox);
+		setSpecial(ibox);
+	}
+	// except for frameless and boxed, the width cannot be specified if
+	// there is no inner box
+	bool const width_enabled = 
+		itype != "none" || frameless || type == "Boxed";
+	widthED->setEnabled(width_enabled);
+	widthUnitsLC->setEnabled(width_enabled);
+	// halign is only allowed for Boxed without inner box or for makebox
+	halignCO->setEnabled((type == "Boxed" && itype == "none") || (itype == "makebox"));
+	// pagebreak is only allowed for Boxed without inner box
+	pagebreakCB->setEnabled(type == "Boxed" && itype == "none");
+	changed();
 }
 
 
-void GuiBox::restoreClicked()
+void GuiBox::initDialog()
 {
-	setInnerType(true, 2);
+	setInnerType(true, toqstr("minipage"));
 	widthED->setText("100");
 	widthUnitsLC->setCurrentItem(Length::PCW);
-	heightCB->setCheckState(Qt::Checked);
 	heightED->setText("1");
-	for (int i = 0; i != heightUnitsLC->count(); ++i) {
-		if (heightUnitsLC->itemText(i) == qt_("Total Height"))
-			heightUnitsLC->setCurrentItem(i);
-	}
+	heightUnitsLC->setCurrentItem("totalheight");
 }
 
 
-void GuiBox::pagebreakClicked()
+void GuiBox::on_heightCB_stateChanged(int state)
+{
+	bool const enable = (innerBoxCO->currentText() != qt_("None"))
+		&& (state == Qt::Checked);
+	heightED->setEnabled(enable);
+	heightUnitsLC->setEnabled(enable);
+	changed();
+}
+
+
+void GuiBox::on_pagebreakCB_stateChanged()
 {
 	bool pbreak = (pagebreakCB->checkState() == Qt::Checked);
 	innerBoxCO->setEnabled(!pbreak);
 	widthED->setEnabled(!pbreak);
 	widthUnitsLC->setEnabled(!pbreak);
-	if (pbreak) {
-		valignCO->setEnabled(false);
-		ialignCO->setEnabled(false);
-		halignCO->setEnabled(false);
-		heightCB->setEnabled(false);
-		heightED->setEnabled(false);
-		heightUnitsLC->setEnabled(false);
-		setSpecial(false);
-	} else {
-		typeChanged(typeCO->currentIndex());
+	if (!pbreak) {
+		on_typeCO_activated(typeCO->currentIndex());
+		return;
 	}
-	change_adaptor();
+	valignCO->setEnabled(false);
+	ialignCO->setEnabled(false);
+	halignCO->setEnabled(false);
+	heightCB->setEnabled(false);
+	heightED->setEnabled(false);
+	heightUnitsLC->setEnabled(false);
+	setSpecial(false);
+	changed();
 }
 
 
-void GuiBox::updateContents()
+void GuiBox::paramsToDialog(Inset const * inset)
 {
-	QString type = toqstr(params_.type);
+	InsetBox const * box = static_cast<InsetBox const *>(inset);
+	InsetBoxParams const & params = box->params();
+	QString type = toqstr(params.type);
 	if (type == "Framed") {
 		pagebreakCB->setChecked(true);
 		type = "Boxed";
@@ -250,82 +231,62 @@ void GuiBox::updateContents()
 		pagebreakCB->setChecked(false);
 	}
 
-	for (int i = 0; i != gui_names_.size(); ++i) {
-		if (type == ids_[i])
-			typeCO->setCurrentIndex(i);
-	}
+	typeCO->setCurrentIndex(typeCO->findData(type));
 
 	// default: minipage
-	int inner_type = 2;
-	if (!params_.inner_box)
-		// none
-		inner_type = 0;
-	if (params_.use_parbox)
-		// parbox
-		inner_type = 1;
-	bool const frameless = (params_.type == "Frameless");
+	QString inner_type = "minipage";
+	if (!params.inner_box)
+		inner_type = "none";
+	if (params.use_parbox)
+		inner_type = "parbox";
+	if (params.use_makebox)
+		inner_type = "makebox";
+	bool const frameless = (params.type == "Frameless");
 	setInnerType(frameless, inner_type);
-	
-	char c = params_.pos;
+
+	char c = params.pos;
 	valignCO->setCurrentIndex(string("tcb").find(c, 0));
-	c = params_.inner_pos;
+	c = params.inner_pos;
 	ialignCO->setCurrentIndex(string("tcbs").find(c, 0));
-	c = params_.hor_pos;
+	c = params.hor_pos;
 	halignCO->setCurrentIndex(string("lcrs").find(c, 0));
 
-	bool ibox = params_.inner_box;
+	bool ibox = (params.inner_box && !params.use_makebox);
 	valignCO->setEnabled(ibox);
 	ialignCO->setEnabled(ibox);
 	setSpecial(ibox);
 
 	// halign and pagebreak are only allowed for Boxed without inner box
-	halignCO->setEnabled(!ibox && type == "Boxed");
+	halignCO->setEnabled((!ibox && type == "Boxed") || (params.use_makebox));
+	// pagebreak is only allowed for Boxed without inner box
 	pagebreakCB->setEnabled(!ibox && type == "Boxed");
 
 	// except for frameless and boxed, the width cannot be specified if
 	// there is no inner box
-	bool const width_disabled = (!ibox && !frameless
-		&& type != "Boxed");
-	widthED->setEnabled(!width_disabled);
-	widthUnitsLC->setEnabled(!width_disabled);
+	bool const width_enabled = (ibox || frameless || type == "Boxed");
+	widthED->setEnabled(width_enabled);
+	widthUnitsLC->setEnabled(width_enabled);
 
-	Length::UNIT default_unit =
-		(lyxrc.default_papersize > 3) ? Length::CM : Length::IN;
+	Length::UNIT const default_unit = Length::defaultUnit();
 
 	lengthToWidgets(widthED, widthUnitsLC,
-		(params_.width).asString(), default_unit);
+		(params.width).asString(), default_unit);
 
-	QString const special = toqstr(params_.special);
-	if (!special.isEmpty() && special != "none") {
-		QString spc;
-		for (int i = 0; i != gui_names_spec_.size(); ++i) {
-			if (special == ids_spec_[i])
-				spc = gui_names_spec_[i];
-		}
-		for (int i = 0; i != widthUnitsLC->count(); ++i) {
-			if (widthUnitsLC->itemText(i) == spc)
-				widthUnitsLC->setCurrentIndex(i);
-		}
-	}
+	QString const special = toqstr(params.special);
+	if (!special.isEmpty() && special != "none")
+		widthUnitsLC->setCurrentItem(special);
 
 	lengthToWidgets(heightED, heightUnitsLC,
-		(params_.height).asString(), default_unit);
+		(params.height).asString(), default_unit);
 	
-	QString const height_special = toqstr(params_.height_special);
-	if (!height_special.isEmpty() && height_special != "none") {
-		QString hspc;
-		for (int i = 0; i != gui_names_spec_.size(); ++i) {
-			if (height_special == ids_spec_[i])
-				hspc = gui_names_spec_[i];
-		}
-		for (int i = 0; i != heightUnitsLC->count(); ++i) {
-			if (heightUnitsLC->itemText(i) == hspc)
-				heightUnitsLC->setCurrentIndex(i);
-		}
-	}
-	// set no optional height when the value is the default "1\height"
+	QString const height_special = toqstr(params.height_special);
+	if (!height_special.isEmpty() && height_special != "none")
+		heightUnitsLC->setCurrentItem(height_special);
+	// set no optional height if the value is the default "1\height"
 	// (special units like \height are handled as "in",
-	if (height_special == "totalheight" &&  params_.height == Length("1in"))
+	// FIXME: this is a very bad UI, this check box should be disabled in
+	// this case, not forced to 'unchecked' state.
+	if (height_special == "totalheight" && params.height == Length("1in"))
 		heightCB->setCheckState(Qt::Unchecked);
 	else
 		heightCB->setCheckState(Qt::Checked);
@@ -334,171 +295,108 @@ void GuiBox::updateContents()
 }
 
 
-void GuiBox::applyView()
+docstring GuiBox::dialogToParams() const
 {
-	bool pagebreak = pagebreakCB->isEnabled() && pagebreakCB->isChecked();
+	bool const pagebreak =
+		pagebreakCB->isEnabled() && pagebreakCB->isChecked();
+	string box_type;
 	if (pagebreak)
-		params_.type = "Framed";
+		box_type = "Framed";
 	else
-		params_.type = fromqstr(ids_[typeCO->currentIndex()]);
+		box_type = fromqstr(typeCO->itemData(
+				typeCO->currentIndex()).toString());
 
-	params_.inner_box = (!pagebreak && innerBoxCO->currentText() != qt_("None"));
-	params_.use_parbox = (!pagebreak && innerBoxCO->currentText() == qt_("Parbox"));
+	InsetBoxParams params(box_type);
+	params.inner_box =
+		(!pagebreak && innerBoxCO->currentText() != qt_("None"));
+	params.use_parbox =
+		(!pagebreak && innerBoxCO->currentText() == qt_("Parbox"));
+	params.use_makebox =
+		(!pagebreak && innerBoxCO->currentText() == qt_("Makebox"));
 
-	params_.pos = "tcb"[valignCO->currentIndex()];
-	params_.inner_pos = "tcbs"[ialignCO->currentIndex()];
-	params_.hor_pos = "lcrs"[halignCO->currentIndex()];
+	params.pos = "tcb"[valignCO->currentIndex()];
+	params.inner_pos = "tcbs"[ialignCO->currentIndex()];
+	params.hor_pos = "lcrs"[halignCO->currentIndex()];
 
-	int i = -1;
-	bool spec = false;
-	QString special = widthUnitsLC->currentText();
+	QString unit =
+		widthUnitsLC->itemData(widthUnitsLC->currentIndex()).toString();
 	QString value = widthED->text();
-	if (special == qt_("Height")) {
-		i = 0;
-		spec = true;
-	} else if (special == qt_("Depth")) {
-		i = 1;
-		spec = true;
-	} else if (special == qt_("Total Height")) {
-		i = 2;
-		spec = true;
-	} else if (special == qt_("Width")) {
-		i = 3;
-		spec = true;
-	}
-	// the user might insert a non-special value in the line edit
-	if (isValidLength(fromqstr(value)) || i == -1) {
-		params_.special = "none";
-		spec = false;
-	} else
-		params_.special = fromqstr(ids_spec_[i]);
-
-	string width;
-	if (spec) {
-		width = fromqstr(value);
-		// beware: bogosity! the unit is simply ignored in this case
-		width += "in";
+	if (ids_spec_.contains(unit) && !isValidLength(fromqstr(value))) {
+		params.special = fromqstr(unit);
+		// Note: the unit is simply ignored in this case
+		params.width = Length(value.toDouble(), Length::IN);
 	} else {
-		width = widgetsToLength(widthED, widthUnitsLC);
+		params.special = "none";
+		params.width = Length(widgetsToLength(widthED, widthUnitsLC));
 	}
 
-	params_.width = Length(width);
-
-	i = -1;
-	spec = false;
-	special = heightUnitsLC->currentText();
-	value = heightED->text();
-	if (special == qt_("Height")) {
-		i = 0;
-		spec = true;
-	} else if (special == qt_("Depth")) {
-		i = 1;
-		spec = true;
-	} else if (special == qt_("Total Height")) {
-		i = 2;
-		spec = true;
-	} else if (special == qt_("Width")) {
-		i = 3;
-		spec = true;
-	}
-	// the user might insert a non-special value in the line edit
-	if (isValidLength(fromqstr(value)) || i == -1) {
-		params_.height_special = "none";
-		spec = false;
-	} else
-		params_.height_special = fromqstr(ids_spec_[i]);
-
-	string height;
-	if (spec  && !isValidLength(fromqstr(heightED->text()))) {
-		height = fromqstr(value);
-		// beware: bogosity! the unit is simply ignored in this case
-		height += "in";
-	} else
-		height = widgetsToLength(heightED, heightUnitsLC);
-
-	// the height parameter is omitted in InsetBox.cpp when the value
+	// the height parameter is omitted if the value
 	// is "1in" and "Total Height" is used as unit.
-	// 1in + "Total Height" means "1\height" which is the LaTeX default when
-	// no height is given
-	if (heightCB->checkState() == Qt::Checked)
-		params_.height = Length(height);
-	else {
-		params_.height = Length("1in");
-		params_.height_special = "totalheight";
+	// 1in + "Total Height" means "1\height" which is the LaTeX default
+	// if no height is given
+	if (heightCB->checkState() == Qt::Unchecked) {
+		params.height = Length("1in");
+		params.height_special = "totalheight";
+	} else {
+		unit = heightUnitsLC->itemData(heightUnitsLC->currentIndex()).toString();
+		value = heightED->text();
+		if (ids_spec_.contains(unit) && !isValidLength(fromqstr(value))) {
+			params.height_special = fromqstr(unit);
+			// Note: the unit is simply ignored in this case
+			params.height = Length(value.toDouble(), Length::IN);
+		} else {
+			params.height_special = "none";
+			params.height =
+				Length(widgetsToLength(heightED, heightUnitsLC));
+		}
 	}
+	return from_ascii(InsetBox::params2string(params));
 }
 
 
 void GuiBox::setSpecial(bool ibox)
 {
-	QString const current_text = widthUnitsLC->currentText();
+	QString const last_item =
+		widthUnitsLC->itemData(heightUnitsLC->currentIndex()).toString();
 
 	// check if the widget contains the special units
-	int const count = widthUnitsLC->count();
-	bool has_special = false;
-	for (int i = 0; i != count; ++i)
-		if (widthUnitsLC->itemText(i).contains(qt_("Total Height")) > 0)
-			has_special = true;
+	bool const has_special = (widthUnitsLC->findData("totalheight") != -1);
 	// insert 'em if needed...
 	if (!ibox && !has_special) {
-		for (int i = 1; i < gui_names_spec_.size(); ++i)
-			widthUnitsLC->addItem(gui_names_spec_[i]);
+		for (int i = 1; i < ids_spec_.size(); ++i)
+			widthUnitsLC->addItem(gui_names_spec_[i], ids_spec_[i]);
 	// ... or remove 'em if needed
-	} else if (ibox && has_special)
-		widthUnitsLC->reset();
-	// restore selected text, if possible
-	int const idx = widthUnitsLC->findText(current_text);
-	if (idx != -1)
-		widthUnitsLC->setCurrentIndex(idx);
-}
-
-
-void GuiBox::setInnerType(bool frameless, int i)
-{
-	// with "frameless" boxes, inner box is mandatory (i.e. is the actual box)
-	// we have to remove "none" then and adjust the combo
-	if (frameless) {
-		innerBoxCO->clear();
-		innerBoxCO->addItem(qt_("Parbox"));
-		innerBoxCO->addItem(qt_("Minipage"));
-		if (i != 0)
-			innerBoxCO->setCurrentIndex(i - 1);
-		else
-			innerBoxCO->setCurrentIndex(i);
-	} else {
-		innerBoxCO->clear();
-		innerBoxCO->addItem(qt_("None"));
-		innerBoxCO->addItem(qt_("Parbox"));
-		innerBoxCO->addItem(qt_("Minipage"));
-		innerBoxCO->setCurrentIndex(i);
+	} else if (ibox && has_special) {
+		for (int i = 1; i < ids_spec_.size(); ++i) {
+			int n = widthUnitsLC->findData(ids_spec_[i]);
+			if (n != -1)
+				widthUnitsLC->removeItem(n);
+		}
 	}
+	// restore selected text, if possible
+	widthUnitsLC->setCurrentItem(last_item);
 }
 
-bool GuiBox::initialiseParams(string const & data)
+
+void GuiBox::setInnerType(bool frameless, QString const & type)
 {
-	InsetBox::string2params(data, params_);
-	return true;
-
+	// with "frameless" boxes, inner box is mandatory
+	// (i.e. is the actual box)
+	// we have to remove "none" then and adjust the combo
+	innerBoxCO->clear();
+	if (!frameless)
+		innerBoxCO->addItem(qt_("None"), toqstr("none"));
+	else
+		innerBoxCO->addItem(qt_("Makebox"), toqstr("makebox"));
+	innerBoxCO->addItem(qt_("Parbox"), toqstr("parbox"));
+	innerBoxCO->addItem(qt_("Minipage"), toqstr("minipage"));
+	int i = (innerBoxCO->findData(type) != -1)
+		? innerBoxCO->findData(type) : 0;
+	innerBoxCO->setCurrentIndex(i);
 }
-
-
-void GuiBox::clearParams()
-{
-	params_ = InsetBoxParams("");
-}
-
-
-void GuiBox::dispatchParams()
-{
-	dispatch(FuncRequest(getLfun(), InsetBox::params2string(params_)));
-}
-
-
-Dialog * createGuiBox(GuiView & lv) { return new GuiBox(lv); }
-
 
 } // namespace frontend
 } // namespace lyx
 
 
-#include "GuiBox_moc.cpp"
+#include "moc_GuiBox.cpp"

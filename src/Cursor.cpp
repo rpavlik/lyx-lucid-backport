@@ -6,7 +6,7 @@
  * \author Alejandro Aguilar Sierra
  * \author Alfredo Braunstein
  * \author Dov Feldstern
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -26,9 +26,9 @@
 #include "FuncCode.h"
 #include "FuncRequest.h"
 #include "Language.h"
-#include "LyXFunc.h" // only for setMessage()
+#include "Layout.h"
+#include "LyXAction.h"
 #include "LyXRC.h"
-#include "paragraph_funcs.h"
 #include "Paragraph.h"
 #include "ParIterator.h"
 #include "Row.h"
@@ -50,11 +50,12 @@
 #include "mathed/MathData.h"
 #include "mathed/MathMacro.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <sstream>
 #include <limits>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -153,7 +154,7 @@ bool bruteFind(Cursor & cursor,
 	else
 		++et.pit();
 
-	double best_dist = numeric_limits<double>::max();;
+	double best_dist = numeric_limits<double>::max();
 	DocIterator best_cursor = et;
 
 	for ( ; it != et; it.forwardPos(true)) {
@@ -205,10 +206,9 @@ bool bruteFind3(Cursor & cur, int x, int y, bool up)
 	//	<< " xlow: " << xlow << " xhigh: " << xhigh
 	//	<< " ylow: " << ylow << " yhigh: " << yhigh
 	//	<< endl;
-	Inset & inset = bv.buffer().inset();
-	DocIterator it = doc_iterator_begin(inset);
+	DocIterator it = doc_iterator_begin(cur.buffer());
 	it.pit() = from;
-	DocIterator et = doc_iterator_end(inset);
+	DocIterator et = doc_iterator_end(cur.buffer());
 
 	double best_dist = numeric_limits<double>::max();
 	DocIterator best_cursor = et;
@@ -216,8 +216,10 @@ bool bruteFind3(Cursor & cur, int x, int y, bool up)
 	for ( ; it != et; it.forwardPos()) {
 		// avoid invalid nesting when selecting
 		if (bv.cursorStatus(it) == CUR_INSIDE
-				&& (!cur.selection() || positionable(it, cur.anchor_))) {
-			Point p = bv.getPos(it, false);
+				&& (!cur.selection() || positionable(it, cur.realAnchor()))) {
+			// If this function is ever used again, check whether this
+			// is the same as "bv.getPos(it, false)" with boundary = false.
+			Point p = bv.getPos(it);
 			int xo = p.x_;
 			int yo = p.y_;
 			if (xlow <= xo && xo <= xhigh && ylow <= yo && yo <= yhigh) {
@@ -247,34 +249,24 @@ bool bruteFind3(Cursor & cur, int x, int y, bool up)
 	return true;
 }
 
-docstring parbreak(Paragraph const & par)
-{
-	odocstringstream os;
-	os << '\n';
-	// only add blank line if we're not in an ERT or Listings inset
-	if (par.ownerCode() != ERT_CODE
-			&& par.ownerCode() != LISTINGS_CODE)
-		os << '\n';
-	return os.str();
-}
-
 } // namespace anon
 
 
 // be careful: this is called from the bv's constructor, too, so
 // bv functions are not yet available!
 Cursor::Cursor(BufferView & bv)
-	: DocIterator(), bv_(&bv), anchor_(), x_target_(-1), textTargetOffset_(0),
+	: DocIterator(&bv.buffer()), bv_(&bv), anchor_(),
+	  x_target_(-1), textTargetOffset_(0),
 	  selection_(false), mark_(false), word_selection_(false),
 	  logicalpos_(false), current_font(inherit_font)
 {}
 
 
-void Cursor::reset(Inset & inset)
+void Cursor::reset()
 {
 	clear();
-	push_back(CursorSlice(inset));
-	anchor_ = doc_iterator_begin(inset);
+	push_back(CursorSlice(buffer()->inset()));
+	anchor_ = doc_iterator_begin(buffer());
 	anchor_.clear();
 	clearTargetX();
 	selection_ = false;
@@ -289,6 +281,49 @@ void Cursor::setCursor(DocIterator const & cur)
 }
 
 
+bool Cursor::getStatus(FuncRequest const & cmd, FuncStatus & status) const
+{
+	Cursor cur = *this;
+
+	// Try to fix cursor in case it is broken.
+	cur.fixIfBroken();
+
+	// Is this a function that acts on inset at point?
+	Inset * inset = cur.nextInset();
+	if (lyxaction.funcHasFlag(cmd.action(), LyXAction::AtPoint)
+	    && inset && inset->getStatus(cur, cmd, status))
+		return true;
+
+	// This is, of course, a mess. Better create a new doc iterator and use
+	// this in Inset::getStatus. This might require an additional
+	// BufferView * arg, though (which should be avoided)
+	//Cursor safe = *this;
+	bool res = false;
+	for ( ; cur.depth(); cur.pop()) {
+		//lyxerr << "\nCursor::getStatus: cmd: " << cmd << endl << *this << endl;
+		LASSERT(cur.idx() <= cur.lastidx(), /**/);
+		LASSERT(cur.pit() <= cur.lastpit(), /**/);
+		LASSERT(cur.pos() <= cur.lastpos(), /**/);
+
+		// The inset's getStatus() will return 'true' if it made
+		// a definitive decision on whether it want to handle the
+		// request or not. The result of this decision is put into
+		// the 'status' parameter.
+		if (cur.inset().getStatus(cur, cmd, status)) {
+			res = true;
+			break;
+		}
+	}
+	return res;
+}
+
+
+void Cursor::saveBeforeDispatchPosXY()
+{
+	getPos(beforeDispatchPosX_, beforeDispatchPosY_);
+}
+
+
 void Cursor::dispatch(FuncRequest const & cmd0)
 {
 	LYXERR(Debug::DEBUG, "cmd: " << cmd0 << '\n' << *this);
@@ -298,7 +333,26 @@ void Cursor::dispatch(FuncRequest const & cmd0)
 	fixIfBroken();
 	FuncRequest cmd = cmd0;
 	Cursor safe = *this;
-	
+	Cursor old = *this;
+	disp_ = DispatchResult();
+
+	buffer()->undo().beginUndoGroup();
+
+	// Is this a function that acts on inset at point?
+	if (lyxaction.funcHasFlag(cmd.action(), LyXAction::AtPoint)
+	    && nextInset()) {
+		disp_.dispatched(true);
+		disp_.screenUpdate(Update::FitCursor | Update::Force);
+		FuncRequest tmpcmd = cmd;
+		LYXERR(Debug::DEBUG, "Cursor::dispatch: (AtPoint) cmd: "
+			<< cmd0 << endl << *this);
+		nextInset()->dispatch(*this, tmpcmd);
+		if (disp_.dispatched()) {
+			buffer()->undo().endUndoGroup();
+			return;
+		}
+	}
+
 	// store some values to be used inside of the handlers
 	beforeDispatchCursor_ = *this;
 	for (; depth(); pop(), boundary(false)) {
@@ -311,7 +365,7 @@ void Cursor::dispatch(FuncRequest const & cmd0)
 		// The common case is 'LFUN handled, need update', so make the
 		// LFUN handler's life easier by assuming this as default value.
 		// The handler can reset the update and val flags if necessary.
-		disp_.update(Update::FitCursor | Update::Force);
+		disp_.screenUpdate(Update::FitCursor | Update::Force);
 		disp_.dispatched(true);
 		inset().dispatch(*this, cmd);
 		if (disp_.dispatched())
@@ -332,17 +386,30 @@ void Cursor::dispatch(FuncRequest const & cmd0)
 			safe.pos() = safe.lastpos();
 		}
 		operator=(safe);
-		disp_.update(Update::None);
+		disp_.screenUpdate(Update::None);
 		disp_.dispatched(false);
 	} else {
 		// restore the previous one because nested Cursor::dispatch calls
 		// are possible which would change it
 		beforeDispatchCursor_ = safe.beforeDispatchCursor_;
 	}
+	buffer()->undo().endUndoGroup();
+
+	// notify insets we just left
+	if (*this != old) {
+		old.beginUndoGroup();
+		old.fixIfBroken();
+		bool badcursor = notifyCursorLeavesOrEnters(old, *this);
+		if (badcursor) {
+			fixIfBroken();
+			bv().fixInlineCompletionPos();
+		}
+		old.endUndoGroup();
+	}
 }
 
 
-DispatchResult Cursor::result() const
+DispatchResult const & Cursor::result() const
 {
 	return disp_;
 }
@@ -352,13 +419,6 @@ BufferView & Cursor::bv() const
 {
 	LASSERT(bv_, /**/);
 	return *bv_;
-}
-
-
-Buffer & Cursor::buffer() const
-{
-	LASSERT(bv_, /**/);
-	return bv_->buffer();
 }
 
 
@@ -372,13 +432,13 @@ void Cursor::pop()
 void Cursor::push(Inset & p)
 {
 	push_back(CursorSlice(p));
-	p.setBuffer(bv_->buffer());
+	p.setBuffer(*buffer());
 }
 
 
 void Cursor::pushBackward(Inset & p)
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return);
 	//lyxerr << "Entering inset " << t << " front" << endl;
 	push(p);
 	p.idxFirst(*this);
@@ -387,7 +447,7 @@ void Cursor::pushBackward(Inset & p)
 
 bool Cursor::popBackward()
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return false);
 	if (depth() == 1)
 		return false;
 	pop();
@@ -397,7 +457,7 @@ bool Cursor::popBackward()
 
 bool Cursor::popForward()
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return false);
 	//lyxerr << "Leaving inset from in back" << endl;
 	const pos_type lp = (depth() > 1) ? (*this)[depth() - 2].lastpos() : 0;
 	if (depth() == 1)
@@ -425,7 +485,7 @@ int Cursor::currentMode()
 
 void Cursor::getPos(int & x, int & y) const
 {
-	Point p = bv().getPos(*this, boundary());
+	Point p = bv().getPos(*this);
 	x = p.x_;
 	y = p.y_;
 }
@@ -448,8 +508,14 @@ void Cursor::resetAnchor()
 
 void Cursor::setCursorToAnchor()
 {
-	if (selection())
-		setCursor(anchor_);
+	if (selection()) {
+		DocIterator normal = anchor_;
+		while (depth() < normal.depth())
+			normal.pop_back();
+		if (depth() < anchor_.depth() && top() <= anchor_[depth() - 1])
+			++normal.pos();
+		setCursor(normal);
+	}
 }
 
 
@@ -517,7 +583,7 @@ bool Cursor::posVisRight(bool skip_inset)
 		// currently to the left of 'right_pos'). In order to move to the 
 		// right, it depends whether or not the character at 'right_pos' is RTL.
 		new_pos_is_RTL = paragraph().getFontSettings(
-			bv().buffer().params(), right_pos).isVisibleRightToLeft();
+			buffer()->params(), right_pos).isVisibleRightToLeft();
 		// If the character at 'right_pos' *is* LTR, then in order to move to
 		// the right of it, we need to be *after* 'right_pos', i.e., move to
 		// position 'right_pos' + 1.
@@ -529,10 +595,10 @@ bool Cursor::posVisRight(bool skip_inset)
 			// (this means that we're moving right to the end of an LTR chunk
 			// which is at the end of an RTL paragraph);
 				(new_cur.pos() == lastpos()
-				 && paragraph().isRTL(buffer().params()))
+				 && paragraph().isRTL(buffer()->params()))
 			// 2. if the position *after* right_pos is RTL (we want to be 
 			// *after* right_pos, not before right_pos + 1!)
-				|| paragraph().getFontSettings(bv().buffer().params(),
+				|| paragraph().getFontSettings(buffer()->params(),
 						new_cur.pos()).isVisibleRightToLeft()
 			)
 				new_cur.boundary(true);
@@ -610,7 +676,7 @@ bool Cursor::posVisLeft(bool skip_inset)
 		// currently to the right of 'left_pos'). In order to move to the 
 		// left, it depends whether or not the character at 'left_pos' is RTL.
 		new_pos_is_RTL = paragraph().getFontSettings(
-			bv().buffer().params(), left_pos).isVisibleRightToLeft();
+			buffer()->params(), left_pos).isVisibleRightToLeft();
 		// If the character at 'left_pos' *is* RTL, then in order to move to
 		// the left of it, we need to be *after* 'left_pos', i.e., move to
 		// position 'left_pos' + 1.
@@ -622,10 +688,10 @@ bool Cursor::posVisLeft(bool skip_inset)
 			// (this means that we're moving left to the end of an RTL chunk
 			// which is at the end of an LTR paragraph);
 				(new_cur.pos() == lastpos()
-				 && !paragraph().isRTL(buffer().params()))
+				 && !paragraph().isRTL(buffer()->params()))
 			// 2. if the position *after* left_pos is not RTL (we want to be 
 			// *after* left_pos, not before left_pos + 1!)
-				|| !paragraph().getFontSettings(bv().buffer().params(),
+				|| !paragraph().getFontSettings(buffer()->params(),
 						new_cur.pos()).isVisibleRightToLeft()
 			)
 				new_cur.boundary(true);
@@ -660,7 +726,7 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 {
 	// preparing bidi tables
 	Paragraph const & par = paragraph();
-	Buffer const & buf = buffer();
+	Buffer const & buf = *buffer();
 	Row const & row = textRow();
 	Bidi bidi;
 	bidi.computeTables(par, buf, row);
@@ -670,7 +736,7 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 	// The cursor is painted *before* the character at pos(), or, if 'boundary'
 	// is true, *after* the character at (pos() - 1). So we already have one
 	// known position around the cursor:
-	pos_type known_pos = boundary() && pos() > 0 ? pos() - 1 : pos();
+	pos_type const known_pos = boundary() && pos() > 0 ? pos() - 1 : pos();
 	
 	// edge case: if we're at the end of the paragraph, things are a little 
 	// different (because lastpos is a position which does not really "exist" 
@@ -679,8 +745,8 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 		if (par.isRTL(buf.params())) {
 			left_pos = -1;
 			right_pos = bidi.vis2log(row.pos());
-		}
-		else { // LTR paragraph
+		} else { 
+			// LTR paragraph
 			right_pos = -1;
 			left_pos = bidi.vis2log(row.endpos() - 1);
 		}
@@ -695,11 +761,10 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 	// For an RTL character, "before" means "to the right" and "after" means
 	// "to the left"; and for LTR, it's the reverse. So, 'known_pos' is to the
 	// right of the cursor if (RTL && boundary) or (!RTL && !boundary):
-	bool known_pos_on_right = (cur_is_RTL == boundary());
+	bool const known_pos_on_right = cur_is_RTL == boundary();
 
 	// So we now know one of the positions surrounding the cursor. Let's 
-	// determine the other one:
-	
+	// determine the other one:	
 	if (known_pos_on_right) {
 		right_pos = known_pos;
 		// *visual* position of 'left_pos':
@@ -713,9 +778,9 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 		if (bidi.inRange(v_left_pos) 
 				&& bidi.vis2log(v_left_pos) + 1 == row.endpos() 
 				&& row.endpos() < lastpos()
-				&& par.isSeparator(bidi.vis2log(v_left_pos))) {
+				&& par.isSeparator(bidi.vis2log(v_left_pos)))
 			--v_left_pos;
-		}
+
 		// calculate the logical position of 'left_pos', if in row
 		if (!bidi.inRange(v_left_pos))
 			left_pos = -1;
@@ -725,14 +790,14 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 		// separator", set 'right_pos' to the *next* position to the right.
 		if (right_pos + 1 == row.endpos() && row.endpos() < lastpos() 
 				&& par.isSeparator(right_pos)) {
-			pos_type v_right_pos = bidi.log2vis(right_pos) + 1;
+			pos_type const v_right_pos = bidi.log2vis(right_pos) + 1;
 			if (!bidi.inRange(v_right_pos))
 				right_pos = -1;
 			else
 				right_pos = bidi.vis2log(v_right_pos);
 		}
-	} 
-	else { // known_pos is on the left
+	} else { 
+		// known_pos is on the left
 		left_pos = known_pos;
 		// *visual* position of 'right_pos'
 		pos_type v_right_pos = bidi.log2vis(left_pos) + 1;
@@ -741,9 +806,9 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 		if (bidi.inRange(v_right_pos) 
 				&& bidi.vis2log(v_right_pos) + 1 == row.endpos() 
 				&& row.endpos() < lastpos()
-				&& par.isSeparator(bidi.vis2log(v_right_pos))) {
+				&& par.isSeparator(bidi.vis2log(v_right_pos)))
 			++v_right_pos;
-		}
+
 		// calculate the logical position of 'right_pos', if in row
 		if (!bidi.inRange(v_right_pos)) 
 			right_pos = -1;
@@ -753,7 +818,7 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 		// separator", set 'left_pos' to the *next* position to the left.
 		if (left_pos + 1 == row.endpos() && row.endpos() < lastpos() 
 				&& par.isSeparator(left_pos)) {
-			pos_type v_left_pos = bidi.log2vis(left_pos) - 1;
+			pos_type const v_left_pos = bidi.log2vis(left_pos) - 1;
 			if (!bidi.inRange(v_left_pos))
 				left_pos = -1;
 			else
@@ -767,7 +832,7 @@ void Cursor::getSurroundingPos(pos_type & left_pos, pos_type & right_pos)
 bool Cursor::posVisToNewRow(bool movingLeft)
 {
 	Paragraph const & par = paragraph();
-	Buffer const & buf = buffer();
+	Buffer const & buf = *buffer();
 	Row const & row = textRow();
 	bool par_is_LTR = !par.isRTL(buf.params());
 
@@ -821,7 +886,7 @@ void Cursor::posVisToRowExtremity(bool left)
 {
 	// prepare bidi tables
 	Paragraph const & par = paragraph();
-	Buffer const & buf = buffer();
+	Buffer const & buf = *buffer();
 	Row const & row = textRow();
 	Bidi bidi;
 	bidi.computeTables(par, buf, row);
@@ -862,35 +927,29 @@ void Cursor::posVisToRowExtremity(bool left)
 			// "boundary" which we simulate at insets.
 			// Another exception is when row.endpos() is 0.
 			
-			bool right_of_pos = false; // do we want to be to the right of pos?
-
+			// do we want to be to the right of pos?
 			// as explained above, if at last pos in row, stay to the right
-			if (row.endpos() > 0 && pos() == row.endpos() - 1
-				  && !par.isInset(pos()))
-				right_of_pos = true;
+			bool const right_of_pos = row.endpos() > 0
+				&& pos() == row.endpos() - 1 && !par.isInset(pos());
 
 			// Now we know if we want to be to the left or to the right of pos,
 			// let's make sure we are where we want to be.
-			bool new_pos_is_RTL = 
+			bool const new_pos_is_RTL = 
 				par.getFontSettings(buf.params(), pos()).isVisibleRightToLeft();
 
-			if (new_pos_is_RTL == !right_of_pos) {
+			if (new_pos_is_RTL != right_of_pos) {
 				++pos();
 				boundary(true);
 			}
-			
 		}
-	}
-	else { // move to rightmost position
+	} else { 
+		// move to rightmost position
 		// if this is an LTR paragraph, and we're at the last row in the
 		// paragraph, move to lastpos
 		if (!par.isRTL(buf.params()) && row.endpos() == lastpos())
 			pos() = lastpos();
 		else {
-			if (row.endpos() > 0)
-				pos() = bidi.vis2log(row.endpos() - 1);
-			else
-				pos() = 0;
+			pos() = row.endpos() > 0 ? bidi.vis2log(row.endpos() - 1) : 0;
 
 			// Moving to the rightmost position in the row, the cursor should
 			// normally be placed to the *right* of the rightmost position.
@@ -917,17 +976,15 @@ void Cursor::posVisToRowExtremity(bool left)
 			// "boundary" which we simulate at insets.
 			// Another exception is when row.endpos() is 0.
 			
-			bool left_of_pos = false; // do we want to be to the left of pos?
-
+			// do we want to be to the left of pos?
 			// as explained above, if at last pos in row, stay to the left,
 			// unless the last position is the same as the first.
-			if (row.endpos() > 0 && pos() == row.endpos() - 1 
-				  && !par.isInset(pos()))
-				left_of_pos = true;
+			bool const left_of_pos = row.endpos() > 0
+				&& pos() == row.endpos() - 1 && !par.isInset(pos());
 
 			// Now we know if we want to be to the left or to the right of pos,
 			// let's make sure we are where we want to be.
-			bool new_pos_is_RTL = 
+			bool const new_pos_is_RTL = 
 				par.getFontSettings(buf.params(), pos()).isVisibleRightToLeft();
 
 			if (new_pos_is_RTL == left_of_pos) {
@@ -941,7 +998,7 @@ void Cursor::posVisToRowExtremity(bool left)
 }
 
 
-CursorSlice Cursor::anchor() const
+CursorSlice Cursor::normalAnchor() const
 {
 	if (!selection())
 		return top();
@@ -955,11 +1012,17 @@ CursorSlice Cursor::anchor() const
 }
 
 
+DocIterator & Cursor::realAnchor()
+{
+	return anchor_;
+}
+
+
 CursorSlice Cursor::selBegin() const
 {
 	if (!selection())
 		return top();
-	return anchor() < top() ? anchor() : top();
+	return normalAnchor() < top() ? normalAnchor() : top();
 }
 
 
@@ -967,7 +1030,7 @@ CursorSlice Cursor::selEnd() const
 {
 	if (!selection())
 		return top();
-	return anchor() > top() ? anchor() : top();
+	return normalAnchor() > top() ? normalAnchor() : top();
 }
 
 
@@ -979,10 +1042,10 @@ DocIterator Cursor::selectionBegin() const
 	DocIterator di;
 	// FIXME: This is a work-around for the problem that
 	// CursorSlice doesn't keep track of the boundary.
-	if (anchor() == top())
+	if (normalAnchor() == top())
 		di = anchor_.boundary() > boundary() ? anchor_ : *this;
 	else
-		di = anchor() < top() ? anchor_ : *this;
+		di = normalAnchor() < top() ? anchor_ : *this;
 	di.resize(depth());
 	return di;
 }
@@ -996,10 +1059,10 @@ DocIterator Cursor::selectionEnd() const
 	DocIterator di;
 	// FIXME: This is a work-around for the problem that
 	// CursorSlice doesn't keep track of the boundary.
-	if (anchor() == top())
+	if (normalAnchor() == top())
 		di = anchor_.boundary() < boundary() ? anchor_ : *this;
 	else
-		di = anchor() > top() ? anchor_ : *this;
+		di = normalAnchor() > top() ? anchor_ : *this;
 
 	if (di.depth() > depth()) {
 		di.resize(depth());
@@ -1014,9 +1077,9 @@ void Cursor::setSelection()
 	setSelection(true);
 	// A selection with no contents is not a selection
 	// FIXME: doesnt look ok
-	if (idx() == anchor().idx() && 
-	    pit() == anchor().pit() && 
-	    pos() == anchor().pos())
+	if (idx() == normalAnchor().idx() && 
+	    pit() == normalAnchor().pit() && 
+	    pos() == normalAnchor().pos())
 		setSelection(false);
 }
 
@@ -1152,9 +1215,6 @@ LyXErr & operator<<(LyXErr & os, Cursor const & cur)
 
 namespace lyx {
 
-//#define FILEDEBUG 1
-
-
 bool Cursor::isInside(Inset const * p) const
 {
 	for (size_t i = 0; i != depth(); ++i)
@@ -1228,13 +1288,14 @@ void Cursor::plainInsert(MathAtom const & t)
 	++pos();
 	inset().setBuffer(bv_->buffer());
 	inset().initView();
+	forceBufferUpdate();
 }
 
 
 void Cursor::insert(docstring const & str)
 {
 	for_each(str.begin(), str.end(),
-		 boost::bind(static_cast<void(Cursor::*)(char_type)>
+		 bind(static_cast<void(Cursor::*)(char_type)>
 			     (&Cursor::insert), this, _1));
 }
 
@@ -1265,18 +1326,20 @@ void Cursor::insert(Inset * inset0)
 {
 	LASSERT(inset0, /**/);
 	if (inMathed())
-		insert(MathAtom(inset0));
+		insert(MathAtom(inset0->asInsetMath()));
 	else {
 		text()->insertInset(*this, inset0);
 		inset0->setBuffer(bv_->buffer());
 		inset0->initView();
+		if (inset0->isLabeled())
+			forceBufferUpdate();
 	}
 }
 
 
 void Cursor::niceInsert(docstring const & t, Parse::flags f, bool enter)
 {
-	MathData ar(&buffer());
+	MathData ar(buffer());
 	asArray(t, ar, f);
 	if (ar.size() == 1 && (enter || selection()))
 		niceInsert(ar[0]);
@@ -1297,9 +1360,18 @@ void Cursor::niceInsert(MathAtom const & t)
 		// push the clone, not the original
 		pushBackward(*nextInset());
 		// We may not use niceInsert here (recursion)
-		MathData ar(&buffer());
+		MathData ar(buffer());
 		asArray(safe, ar);
 		insert(ar);
+	} else if (t->asMacro() && !safe.empty()) {
+		MathData ar(buffer());
+		asArray(safe, ar);
+		docstring const name = t->asMacro()->name();
+		MacroData const * data = buffer()->getMacro(name);
+		if (data && data->numargs() - data->optionals() > 0) {
+			plainInsert(MathAtom(new InsetMathBrace(ar)));
+			posBackward();
+		}
 	}
 }
 
@@ -1311,6 +1383,8 @@ void Cursor::insert(MathData const & ar)
 		cap::eraseSelection(*this);
 	cell().insert(pos(), ar);
 	pos() += ar.size();
+	// FIXME audit setBuffer calls
+	inset().setBuffer(bv_->buffer());
 }
 
 
@@ -1448,7 +1522,7 @@ bool Cursor::macroModeClose()
 		return false;
 	InsetMathUnknown * p = activeMacro();
 	p->finalize();
-	MathData selection(&buffer());
+	MathData selection(buffer());
 	asArray(p->selection(), selection);
 	docstring const s = p->name();
 	--pos();
@@ -1460,14 +1534,14 @@ bool Cursor::macroModeClose()
 
 	// trigger updates of macros, at least, if no full
 	// updates take place anyway
-	updateFlags(Update::Force);
+	screenUpdateFlags(Update::Force);
 
 	docstring const name = s.substr(1);
 	InsetMathNest * const in = inset().asInsetMath()->asNestInset();
 	if (in && in->interpretString(*this, s))
 		return true;
-	MathAtom atom = buffer().getMacro(name, *this, false) ?
-		MathAtom(new MathMacro(&buffer(), name)) : createInsetMath(name, &buffer());
+	MathAtom atom = buffer()->getMacro(name, *this, false) ?
+		MathAtom(new MathMacro(buffer(), name)) : createInsetMath(name, buffer());
 
 	// try to put argument into macro, if we just inserted a macro
 	bool macroArg = false;
@@ -1476,7 +1550,7 @@ bool Cursor::macroModeClose()
 		// macros here are still unfolded (in init mode in fact). So
 		// we have to resolve the macro here manually and check its arity
 		// to put the selection behind it if arity > 0.
-		MacroData const * data = buffer().getMacro(atomAsMacro->name());
+		MacroData const * data = buffer()->getMacro(atomAsMacro->name());
 		if (selection.size() > 0 && data && data->numargs() - data->optionals() > 0) {
 			macroArg = true;
 			atomAsMacro->setDisplayMode(MathMacro::DISPLAY_INTERACTIVE_INIT, 1);
@@ -1626,8 +1700,8 @@ bool Cursor::upDownInMath(bool up)
 	int xo = 0;
 	int yo = 0;
 	getPos(xo, yo);
-	xo = theLyXFunc().cursorBeforeDispatchX();
-	
+	xo = beforeDispatchPosX_;
+
 	// check if we had something else in mind, if not, this is the future
 	// target
 	if (x_target_ == -1)
@@ -1676,7 +1750,7 @@ bool Cursor::upDownInMath(bool up)
 				int x;
 				int y;
 				getPos(x, y);
-				int oy = theLyXFunc().cursorBeforeDispatchY();
+				int oy = beforeDispatchPosY_;
 				if ((!up && y <= oy) ||
 						(up && y >= oy))
 					operator=(old);
@@ -1697,7 +1771,7 @@ bool Cursor::upDownInMath(bool up)
 				int x;
 				int y;
 				getPos(x, y);
-				int oy = theLyXFunc().cursorBeforeDispatchY();
+				int oy = beforeDispatchPosY_;
 				if ((!up && y <= oy) ||
 						(up && y >= oy))
 					operator=(old);
@@ -1721,7 +1795,7 @@ bool Cursor::upDownInMath(bool up)
 		//lyxerr << "updown: popBackward succeeded" << endl;
 		int xnew;
 		int ynew;
-		int yold = theLyXFunc().cursorBeforeDispatchY();
+		int yold = beforeDispatchPosY_;
 		getPos(xnew, ynew);
 		if (up ? ynew < yold : ynew > yold)
 			return true;
@@ -1763,7 +1837,7 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 	int xo = 0;
 	int yo = 0;
 	getPos(xo, yo);
-	xo = theLyXFunc().cursorBeforeDispatchX();
+	xo = beforeDispatchPosX_;
 
 	// update the targetX - this is here before the "return false"
 	// to set a new target which can be used by InsetTexts above
@@ -1807,7 +1881,7 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 		row = pm.pos2row(pos() - 1);
 	else
 		row = pm.pos2row(pos());
-
+		
 	if (atFirstOrLastRow(up)) {
 		// Is there a place for the cursor to go ? If yes, we
 		// can execute the DEPM, otherwise we should keep the
@@ -1833,13 +1907,15 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 
 			updateNeeded |= bv().checkDepm(dummy, *this);
 			updateTextTargetOffset();
-		}	
+			if (updateNeeded)
+				forceBufferUpdate();
+		}
 		return false;
 	}
 
 	// with and without selection are handled differently
 	if (!selection()) {
-		int yo = bv().getPos(*this, boundary()).y_;
+		int yo = bv().getPos(*this).y_;
 		Cursor old = *this;
 		// To next/previous row
 		if (up)
@@ -1848,16 +1924,16 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 			tm.editXY(*this, xo, yo + textRow().descent() + 1);
 		clearSelection();
 		
-		// This happens when you move out of an inset.
-		// And to give the DEPM the possibility of doing
-		// something we must provide it with two different
-		// cursors. (Lgb)
+		// This happens when you move out of an inset.  
+		// And to give the DEPM the possibility of doing  
+		// something we must provide it with two different  
+		// cursors. (Lgb)  
 		Cursor dummy = *this;
 		if (dummy == old)
 			++dummy.pos();
 		if (bv().checkDepm(dummy, old)) {
 			updateNeeded = true;
-			// Make sure that cur gets back whatever happened to dummy(Lgb)
+			// Make sure that cur gets back whatever happened to dummy (Lgb) 
 			operator=(dummy);
 		}
 	} else {
@@ -1865,11 +1941,9 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 		// and just jump to the right position:
 		Cursor old = *this;
 		int next_row = row;
-		bool update = false;
 		if (up) {
 			if (row > 0) {
 				--next_row;
-				update = true;
 			} else if (pit() > 0) {
 				--pit();
 				TextMetrics & tm = bv_->textMetrics(text());
@@ -1877,37 +1951,35 @@ bool Cursor::upDownInText(bool up, bool & updateNeeded)
 					tm.newParMetricsUp();
 				ParagraphMetrics const & pmcur = tm.parMetrics(pit());
 				next_row = pmcur.rows().size() - 1;
-				update = true;
 			}
 		} else {
 			if (row + 1 < int(pm.rows().size())) {
 				++next_row;
-				update = true;
 			} else if (pit() + 1 < int(text()->paragraphs().size())) {
 				++pit();
 				TextMetrics & tm = bv_->textMetrics(text());
 				if (!tm.contains(pit()))
 					tm.newParMetricsDown();
 				next_row = 0;
-				update = true;
 			}
 		}
-		if (update) {
-			top().pos() = min(tm.x2pos(pit(), next_row, xo), top().lastpos());
+		top().pos() = min(tm.x2pos(pit(), next_row, xo), top().lastpos());
 
-			int const xpos = tm.x2pos(pit(), next_row, xo);
-			bool const at_end_row = xpos == tm.x2pos(pit(), next_row, tm.width());
-			bool const at_beg_row = xpos == tm.x2pos(pit(), next_row, 0);
+		int const xpos = tm.x2pos(pit(), next_row, xo);
+		bool const at_end_row = xpos == tm.x2pos(pit(), next_row, tm.width());
+		bool const at_beg_row = xpos == tm.x2pos(pit(), next_row, 0);
 
-			if (at_end_row && at_beg_row)
-				// make sure the cursor ends up on this row
-				boundary(false);
-			else
-				boundary(at_end_row);
-		}
+		if (at_end_row && at_beg_row)
+			// make sure the cursor ends up on this row
+			boundary(false);
+		else
+			boundary(at_end_row);
+
 		updateNeeded |= bv().checkDepm(*this, old);
 	}
 
+	if (updateNeeded)
+		forceBufferUpdate();
 	updateTextTargetOffset();
 	return true;
 }	
@@ -1935,8 +2007,8 @@ void Cursor::handleFont(string const & font)
 		} else {
 			// cursor in between. split cell
 			MathData::iterator bt = cell().begin();
-			MathAtom at = createInsetMath(from_utf8(font), &buffer());
-			at.nucleus()->cell(0) = MathData(&buffer(), bt, bt + pos());
+			MathAtom at = createInsetMath(from_utf8(font), buffer());
+			at.nucleus()->cell(0) = MathData(buffer(), bt, bt + pos());
 			cell().erase(bt, bt + pos());
 			popBackward();
 			plainInsert(at);
@@ -1953,13 +2025,28 @@ void Cursor::handleFont(string const & font)
 
 void Cursor::message(docstring const & msg) const
 {
-	theLyXFunc().setMessage(msg);
+	disp_.setMessage(msg);
 }
 
 
 void Cursor::errorMessage(docstring const & msg) const
 {
-	theLyXFunc().setErrorMessage(msg);
+	disp_.setMessage(msg);
+	disp_.setError(true);
+}
+
+
+namespace {
+docstring parbreak(Cursor const * cur)
+{
+	odocstringstream os;
+	os << '\n';
+	// only add blank line if we're not in a ParbreakIsNewline situation
+	if (!cur->inset().getLayout().parbreakIsNewline() 
+	    && !cur->paragraph().layout().parbreak_is_newline)
+		os << '\n';
+	return os.str();
+}
 }
 
 
@@ -1968,51 +2055,47 @@ docstring Cursor::selectionAsString(bool with_label) const
 	if (!selection())
 		return docstring();
 
-	int const label = with_label
-		? AS_STR_LABEL | AS_STR_INSETS : AS_STR_INSETS;
-
-	if (inTexted()) {
-		idx_type const startidx = selBegin().idx();
-		idx_type const endidx = selEnd().idx();
-		if (startidx != endidx) {
-			// multicell selection
-			InsetTabular * table = inset().asInsetTabular();
-			LASSERT(table, return docstring());
-			return table->asString(startidx, endidx);
-		}
-		
-		ParagraphList const & pars = text()->paragraphs();
-
-		pit_type const startpit = selBegin().pit();
-		pit_type const endpit = selEnd().pit();
-		size_t const startpos = selBegin().pos();
-		size_t const endpos = selEnd().pos();
-
-		if (startpit == endpit)
-			return pars[startpit].asString(startpos, endpos, label);
-
-		// First paragraph in selection
-		docstring result = pars[startpit].
-			asString(startpos, pars[startpit].size(), label)
-				 + parbreak(pars[startpit]);
-
-		// The paragraphs in between (if any)
-		for (pit_type pit = startpit + 1; pit != endpit; ++pit) {
-			Paragraph const & par = pars[pit];
-			result += par.asString(0, par.size(), label)
-				  + parbreak(pars[pit]);
-		}
-
-		// Last paragraph in selection
-		result += pars[endpit].asString(0, endpos, label);
-
-		return result;
-	}
-
 	if (inMathed())
 		return cap::grabSelection(*this);
 
-	return docstring();
+	int const label = with_label
+		? AS_STR_LABEL | AS_STR_INSETS : AS_STR_INSETS;
+
+	idx_type const startidx = selBegin().idx();
+	idx_type const endidx = selEnd().idx();
+	if (startidx != endidx) {
+		// multicell selection
+		InsetTabular * table = inset().asInsetTabular();
+		LASSERT(table, return docstring());
+		return table->asString(startidx, endidx);
+	}
+
+	ParagraphList const & pars = text()->paragraphs();
+
+	pit_type const startpit = selBegin().pit();
+	pit_type const endpit = selEnd().pit();
+	size_t const startpos = selBegin().pos();
+	size_t const endpos = selEnd().pos();
+
+	if (startpit == endpit)
+		return pars[startpit].asString(startpos, endpos, label);
+
+	// First paragraph in selection
+	docstring result = pars[startpit].
+		asString(startpos, pars[startpit].size(), label)
+		+ parbreak(this);
+
+	// The paragraphs in between (if any)
+	for (pit_type pit = startpit + 1; pit != endpit; ++pit) {
+		Paragraph const & par = pars[pit];
+		result += par.asString(0, par.size(), label)
+			+ parbreak(this);
+	}
+
+	// Last paragraph in selection
+	result += pars[endpit].asString(0, endpos, label);
+
+	return result;
 }
 
 
@@ -2044,7 +2127,7 @@ Encoding const * Cursor::getEncoding() const
 	CursorSlice const & sl = innerTextSlice();
 	Text const & text = *sl.text();
 	Font font = text.getPar(sl.pit()).getFont(
-		bv().buffer().params(), sl.pos(), outerFont(sl.pit(), text.paragraphs()));
+		bv().buffer().params(), sl.pos(), text.outerFont(sl.pit()));
 	return font.language()->encoding();
 }
 
@@ -2061,15 +2144,33 @@ void Cursor::dispatched()
 }
 
 
-void Cursor::updateFlags(Update::flags f)
+void Cursor::screenUpdateFlags(Update::flags f)
 {
-	disp_.update(f);
+	disp_.screenUpdate(f);
 }
 
 
-void Cursor::noUpdate()
+void Cursor::forceBufferUpdate()
 {
-	disp_.update(Update::None);
+	disp_.forceBufferUpdate();
+}
+
+
+void Cursor::clearBufferUpdate()
+{
+	disp_.clearBufferUpdate();
+}
+
+
+bool Cursor::needBufferUpdate() const
+{
+	return disp_.needBufferUpdate();
+}
+
+
+void Cursor::noScreenUpdate()
+{
+	disp_.screenUpdate(Update::None);
 }
 
 
@@ -2100,8 +2201,8 @@ Font Cursor::getFont() const
 	}
 	
 	// get font at the position
-	Font font = par.getFont(bv().buffer().params(), pos,
-		outerFont(sl.pit(), text.paragraphs()));
+	Font font = par.getFont(buffer()->params(), pos,
+		text.outerFont(sl.pit()));
 
 	return font;
 }
@@ -2120,7 +2221,7 @@ bool Cursor::fixIfBroken()
 }
 
 
-bool notifyCursorLeaves(Cursor const & old, Cursor & cur)
+bool notifyCursorLeavesOrEnters(Cursor const & old, Cursor & cur)
 {
 	// find inset in common
 	size_type i;
@@ -2131,19 +2232,25 @@ bool notifyCursorLeaves(Cursor const & old, Cursor & cur)
 
 	// update words if we just moved to another paragraph
 	if (i == old.depth() && i == cur.depth()
-	    && !cur.buffer().isClean()
+	    && !cur.buffer()->isClean()
 	    && cur.inTexted() && old.inTexted()
 	    && cur.pit() != old.pit()) {
-		old.paragraph().updateWords(old.top());
-		return false;
+		old.paragraph().updateWords();
 	}
-	
+
 	// notify everything on top of the common part in old cursor,
 	// but stop if the inset claims the cursor to be invalid now
-	for (; i < old.depth(); ++i) {
-		Cursor insetPos = old;
-		insetPos.cutOff(i);
-		if (old[i].inset().notifyCursorLeaves(insetPos, cur))
+	for (size_type j = i; j < old.depth(); ++j) {
+		Cursor inset_pos = old;
+		inset_pos.cutOff(j);
+		if (old[j].inset().notifyCursorLeaves(inset_pos, cur))
+			return true;
+	}
+
+	// notify everything on top of the common part in new cursor,
+	// but stop if the inset claims the cursor to be invalid now
+	for (; i < cur.depth(); ++i) {
+		if (cur[i].inset().notifyCursorEnters(cur))
 			return true;
 	}
 	
@@ -2180,7 +2287,7 @@ void Cursor::setCurrentFont()
 	}
 
 	// get font
-	BufferParams const & bufparams = buffer().params();
+	BufferParams const & bufparams = buffer()->params();
 	current_font = par.getFontSettings(bufparams, cpos);
 	real_current_font = tm.displayFont(cpit, cpos);
 
@@ -2201,7 +2308,7 @@ bool Cursor::textUndo()
 {
 	DocIterator dit = *this;
 	// Undo::textUndo() will modify dit.
-	if (!bv_->buffer().undo().textUndo(dit))
+	if (!buffer()->undo().textUndo(dit))
 		return false;
 	// Set cursor
 	setCursor(dit);
@@ -2215,7 +2322,7 @@ bool Cursor::textRedo()
 {
 	DocIterator dit = *this;
 	// Undo::textRedo() will modify dit.
-	if (!bv_->buffer().undo().textRedo(dit))
+	if (!buffer()->undo().textRedo(dit))
 		return false;
 	// Set cursor
 	setCursor(dit);
@@ -2227,49 +2334,49 @@ bool Cursor::textRedo()
 
 void Cursor::finishUndo() const
 {
-	bv_->buffer().undo().finishUndo();
+	buffer()->undo().finishUndo();
 }
 
 
 void Cursor::beginUndoGroup() const
 {
-	bv_->buffer().undo().beginUndoGroup();
+	buffer()->undo().beginUndoGroup();
 }
 
 
 void Cursor::endUndoGroup() const
 {
-	bv_->buffer().undo().endUndoGroup();
+	buffer()->undo().endUndoGroup();
 }
 
 
 void Cursor::recordUndo(UndoKind kind, pit_type from, pit_type to) const
 {
-	bv_->buffer().undo().recordUndo(*this, kind, from, to);
+	buffer()->undo().recordUndo(*this, kind, from, to);
 }
 
 
 void Cursor::recordUndo(UndoKind kind, pit_type from) const
 {
-	bv_->buffer().undo().recordUndo(*this, kind, from);
+	buffer()->undo().recordUndo(*this, kind, from);
 }
 
 
 void Cursor::recordUndo(UndoKind kind) const
 {
-	bv_->buffer().undo().recordUndo(*this, kind);
+	buffer()->undo().recordUndo(*this, kind);
 }
 
 
-void Cursor::recordUndoInset(UndoKind kind) const
+void Cursor::recordUndoInset(UndoKind kind, Inset const * inset) const
 {
-	bv_->buffer().undo().recordUndoInset(*this, kind);
+	buffer()->undo().recordUndoInset(*this, kind, inset);
 }
 
 
 void Cursor::recordUndoFullDocument() const
 {
-	bv_->buffer().undo().recordUndoFullDocument(*this);
+	buffer()->undo().recordUndoFullDocument(*this);
 }
 
 
@@ -2280,21 +2387,21 @@ void Cursor::recordUndoSelection() const
 			recordUndoInset();
 		else
 			recordUndo();
-	} else
-		bv_->buffer().undo().recordUndo(*this, ATOMIC_UNDO,
+	} else {
+		buffer()->undo().recordUndo(*this, ATOMIC_UNDO,
 			selBegin().pit(), selEnd().pit());
+	}
 }
 
 
 void Cursor::checkBufferStructure()
 {
-	Buffer const * master = buffer().masterBuffer();
+	Buffer const * master = buffer()->masterBuffer();
 	master->tocBackend().updateItem(*this);
-	if (master != &buffer() && !master->guiDelegate())
-		// If the master is not open and thus has no gui
-		// associated with it, the TocItem is not updated
-		// (part of bug 5699).
-		buffer().tocBackend().updateItem(*this);
+	if (master != buffer() && !master->hasGuiDelegate())
+		// In case the master has no gui associated with it, 
+		// the TocItem is not updated (part of bug 5699).
+		buffer()->tocBackend().updateItem(*this);
 }
 
 

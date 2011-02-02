@@ -4,8 +4,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -51,22 +51,20 @@ class InsetFloat : public InsetCollapsable
 {
 public:
 	///
-	InsetFloat(Buffer const &, std::string const &);
-	///
-	~InsetFloat();
+	InsetFloat(Buffer * buffer, std::string params_str);
 
 	///
 	static void string2params(std::string const &, InsetFloatParams &);
 	///
 	static std::string params2string(InsetFloatParams const &);
 	///
-	void setWide(bool w, BufferParams const &, bool update_label = true);
+	void setWide(bool w, bool update_label = true);
 	///
-	void setSideways(bool s, BufferParams const &, bool update_label = true);
+	void setSideways(bool s, bool update_label = true);
 	///
-	void setSubfloat(bool s, BufferParams const &, bool update_label = true);
+	void setSubfloat(bool s, bool update_label = true);
 	///
-	void setNewLabel(BufferParams const &);
+	void setNewLabel();
 	///
 	InsetFloatParams const & params() const { return params_; }
 private:
@@ -89,7 +87,7 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
-	docstring editMessage() const;
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	bool insetAllowed(InsetCode) const;
 	/** returns true if, when outputing LaTeX, font changes should
@@ -97,11 +95,9 @@ private:
 	    insets that may contain several paragraphs */
 	bool noFontChange() const { return true; }
 	///
-	bool showInsetDialog(BufferView *) const;
-	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
@@ -109,11 +105,7 @@ private:
 	///
 	docstring getCaption(OutputParams const &) const;
 	///
-	docstring getCaptionText(OutputParams const &) const;
-	///
 	InsetFloatParams params_;
-	///
-	docstring name_;
 };
 
 

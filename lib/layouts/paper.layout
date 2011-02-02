@@ -4,12 +4,11 @@
 # Created by Jean-Marc Lasgouttes (Jean-Marc.Lasgouttes@inria.fr)
 
 
-Format 11
+Format 30
 Columns                 1
 Sides                   1
 SecNumDepth             3
 TocDepth                3
-
 
 Style Standard
 	Margin                Static
@@ -20,6 +19,11 @@ Style Standard
 	Align                 Block
 	AlignPossible         Block, Left, Right, Center
 	LabelType             No_Label
+	HTMLStyle
+		div.standard {
+			margin-bottom: 2ex;
+		}
+	EndHTMLStyle
 End
 
 Input stdtitle.inc
@@ -31,6 +35,7 @@ Input stdsections.inc
 Input stdstarsections.inc
 Input stdlists.inc
 Input stdcounters.inc
+Input stdciteformats.inc
 
 # There are no chapters in a paper.
 NoStyle                 Chapter
@@ -146,6 +151,7 @@ Style SubTitle
 	  Series              Medium
 	  Size                Large
 	EndFont
+	HTMLTitle             false
 End
 
 
@@ -157,6 +163,8 @@ Style Institution
 	  Series              Medium
 	  Size                Normal
 	EndFont
+	HTMLTag               div
+	HTMLTitle             false
 End
 
 

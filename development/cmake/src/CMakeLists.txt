@@ -1,7 +1,7 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006, Peter KÃ¼mmel, <syntheticpp@gmx.net>
+# Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
 #
 
 set(_lyx ${PACKAGE_BASE}${PROGRAM_SUFFIX})
@@ -20,67 +20,115 @@ if (UNIX)
 endif()
 
 file(GLOB lyx_sources ${TOP_SRC_DIR}/src/${LYX_CPP_FILES})
+file(GLOB moc_files ${TOP_SRC_DIR}/src/${LYX_MOC_FILES})
+list(REMOVE_ITEM  lyx_sources ${moc_files} .)
 file(GLOB lyx_headers ${TOP_SRC_DIR}/src/${LYX_HPP_FILES})
 
 list(REMOVE_ITEM lyx_sources
-	${TOP_SRC_DIR}/src/PSpell.cpp
-	${TOP_SRC_DIR}/src/ISpell.cpp
 	${TOP_SRC_DIR}/src/Variables.cpp
 	${TOP_SRC_DIR}/src/Section.cpp
 	${TOP_SRC_DIR}/src/lyxcore.cpp
 	${TOP_SRC_DIR}/src/lyxinsets.cpp
 	${TOP_SRC_DIR}/src/lyxmathed.cpp)
 
-if (ASPELL_FOUND)
-  include_directories(${ASPELL_INCLUDE_DIR})
-else()
-  list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/ASpell.cpp)
-  list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/ASpell_local.h)
+list(REMOVE_ITEM lyx_headers
+	${TOP_SRC_DIR}/src/Variables.h
+	${TOP_SRC_DIR}/src/Section.h)
+
+if(NOT APPLE)
+	list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/AppleSpellChecker.cpp)
+	list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/AppleSpellChecker.h)
 endif()
 
-if (ENCHANT_FOUND)
-  include_directories("${ENCHANT_INCLUDE_DIR}")
+if(NOT ASPELL_FOUND)
+	list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/AspellChecker.cpp)
+	list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/AspellChecker.h)
 else()
-  list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/Enchant.cpp)
-  list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/Enchant.h)
+	set(dont_merge ${dont_merge} ${TOP_SRC_DIR}/src/AspellChecker.cpp)
 endif()
 
-lyx_automoc(${TOP_SRC_DIR}/src/Server.cpp)
+if(NOT ENCHANT_FOUND)
+	list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/EnchantChecker.cpp)
+	list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/EnchantChecker.h)
+else()
+	set(dont_merge ${dont_merge} ${TOP_SRC_DIR}/src/EnchantChecker.cpp)
+endif()
+
+if(NOT HUNSPELL_FOUND)
+	list(REMOVE_ITEM lyx_sources ${TOP_SRC_DIR}/src/HunspellChecker.cpp)
+	list(REMOVE_ITEM lyx_headers ${TOP_SRC_DIR}/src/HunspellChecker.h)
+else()
+	set(dont_merge ${dont_merge} ${TOP_SRC_DIR}/src/HunspellChecker.cpp)
+endif()
+
+
+lyx_automoc(${TOP_SRC_DIR}/src/Compare.cpp)
+if (WIN32)
+  lyx_automoc(${TOP_SRC_DIR}/src/Server.cpp)
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
 	${ZLIB_INCLUDE_DIR} ${QT_INCLUDES})
 
 lyx_add_msvc_pch(lyx)
 
+if (LYX_DEVEL_VERSION)
+	add_definitions(-DDEVEL_VERSION)
+endif()
 
-if (NOT LYX_MERGE_FILES)
-	set(lyx_sources ${lyx_sources})
-else()
-	# somewhere PACKAGE is undefined
-	set(dont_merge ${TOP_SRC_DIR}/src/version.cpp)
-	list(REMOVE_ITEM lyx_sources ${dont_merge})
-	lyx_const_touched_files(_allinone  lyx_sources)
+if (LYX_MERGE_FILES)
+	if(dont_merge)
+		list(REMOVE_ITEM lyx_sources ${dont_merge})
+	endif()
+	lyx_const_touched_files(_allinone lyx_sources)
 	set(lyx_sources ${_allinone_files} ${dont_merge})
 endif()
 
 if (LYX_VLD)
-	configure_file(${LYX_VLD_PATH}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/vld.ini COPYONLY)
-	configure_file(${LYX_VLD_PATH}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt COPYONLY)
+	configure_file(${vld_path}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/vld.ini COPYONLY)
+	configure_file(${vld_path}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt COPYONLY)
 	set(vld_files ${CMAKE_CURRENT_BINARY_DIR}/vld.ini ${CMAKE_CURRENT_BINARY_DIR}/memory_leak_report.txt)
 endif()
 
 if(WIN32)
-        set(FILE_RC ${CMAKE_SOURCE_DIR}/lyx.rc)
-        message(STATUS "Using icon defined in resource file: ${FILE_RC}")
+	set(FILE_RC ${CMAKE_SOURCE_DIR}/lyx.rc)
+	message(STATUS "Using icon defined in resource file: ${FILE_RC}")
 endif()
 
+if(MSVC_IDE)
+	file(GLOB info_files ${TOP_SRC_DIR}/*)
+	set(lyx_info_files)
+	foreach(_it ${info_files})
+		if(NOT IS_DIRECTORY ${_it})
+			set_source_files_properties(${_it} PROPERTIES HEADER_FILE_ONLY TRUE)
+			set(lyx_info_files ${lyx_info_files} ${_it})
+		endif()
+	endforeach()
+	source_group(LyXInfoFiles FILES ${lyx_info_files})
+	
+	file(GLOB cmake_files1 ${TOP_SRC_DIR}/development/cmake/*)
+	file(GLOB cmake_files2 ${TOP_SRC_DIR}/development/cmake/modules/*)
+	set(lyx_cmake_files)
+	foreach(_it ${cmake_files1} ${cmake_files2})
+		if(NOT IS_DIRECTORY ${_it})
+			get_filename_component(name ${_it} NAME)
+			if(NOT name STREQUAL CMakeLists.txt AND NOT ${_it} MATCHES "^/\\\\..*$;~$")
+				set_source_files_properties(${_it} PROPERTIES HEADER_FILE_ONLY TRUE)
+				set(lyx_cmake_files ${lyx_cmake_files} ${_it})
+			endif()
+		endif()
+	endforeach()
+	source_group(LyXCMakeFiles FILES ${lyx_cmake_files})
+endif()
 
 add_executable(${_lyx}
 	${WIN32_CONSOLE}
 	${lyx_sources}
 	${lyx_headers}
 	${vld_files}
-        ${FILE_RC}
+	${FILE_RC}
+	${lyx_info_files}
+	${lyx_cmake_files}
 )
 
 lyx_add_gcc_pch(${_lyx})
@@ -97,12 +145,14 @@ target_link_libraries(${_lyx}
 	${QT_QTMAIN_LIBRARY}
 	${vld_dll})
 
+if (HUNSPELL_FOUND)
+        target_link_libraries(${_lyx} ${HUNSPELL_LIBRARY})
+endif()
 if (ASPELL_FOUND)
 	target_link_libraries(${_lyx} ${ASPELL_LIBRARY})
 endif()
-
 if (ENCHANT_FOUND)
-        target_link_libraries(${_lyx} ${ENCHANT_LIBRARY})
+    target_link_libraries(${_lyx} ${ENCHANT_LIBRARY})
 endif()
 
 if (APPLE)
@@ -114,9 +164,6 @@ if (MINGW)
   target_link_libraries(${_lyx} ole32)
 endif()
 
-if (AIKSAURUSLIB_FOUND)
-  target_link_libraries(${_lyx} ${AIKSAURUSLIB_LIBRARY})
-endif()
 project_source_group("${GROUP_CODE}" lyx_sources lyx_headers)
 
 install(TARGETS ${_lyx} DESTINATION bin)

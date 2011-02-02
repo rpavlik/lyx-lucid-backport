@@ -18,20 +18,30 @@
 
 #include "support/debug.h"
 
-#include <QKeyEvent>
-#include <QListView>
-#include <QPushButton>
 #include <QAbstractListModel>
+#include <QItemSelection>
+#include <QListView>
+#include <QKeyEvent>
+#include <QPushButton>
 
 #ifdef KeyPress
 #undef KeyPress
 #endif
 
+#ifdef ControlModifier
+#undef ControlModifier
+#endif
+
+#ifdef FocusIn
+#undef FocusIn
+#endif
+
+
 namespace lyx {
 namespace frontend {
 
 GuiSelectionManager::GuiSelectionManager(
-	QListView * avail, 
+	QAbstractItemView * avail,
 	QListView * sel,
 	QPushButton * add, 
 	QPushButton * del, 
@@ -53,11 +63,17 @@ GuiSelectionManager::GuiSelectionManager(
 	availableLV->setModel(amod);
 	
 	connect(availableLV->selectionModel(),
-	        SIGNAL(currentChanged(QModelIndex,QModelIndex)),
+	        SIGNAL(currentChanged(QModelIndex, QModelIndex)),
 	        this, SLOT(availableChanged(QModelIndex, QModelIndex)));
 	connect(selectedLV->selectionModel(),
 	        SIGNAL(currentChanged(QModelIndex, QModelIndex)),
 	        this, SLOT(selectedChanged(QModelIndex, QModelIndex)));
+	connect(availableLV->selectionModel(),
+	        SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+	        this, SLOT(availableChanged(QItemSelection, QItemSelection)));
+	connect(selectedLV->selectionModel(),
+	        SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+	        this, SLOT(selectedChanged(QItemSelection, QItemSelection)));
 	connect(addPB, SIGNAL(clicked()), 
 	        this, SLOT(addPB_clicked()));
 	connect(deletePB, SIGNAL(clicked()), 
@@ -66,12 +82,8 @@ GuiSelectionManager::GuiSelectionManager(
 	        this, SLOT(upPB_clicked()));
 	connect(downPB, SIGNAL(clicked()), 
 	        this, SLOT(downPB_clicked()));
-	connect(availableLV, SIGNAL(clicked(QModelIndex)), 
-	        this, SLOT(availableLV_clicked(QModelIndex)));
 	connect(availableLV, SIGNAL(doubleClicked(QModelIndex)), 
 	        this, SLOT(availableLV_doubleClicked(QModelIndex)));
-	connect(selectedLV, SIGNAL(clicked(QModelIndex)), 
-	        this, SLOT(selectedLV_clicked(QModelIndex)));
 	
 	availableLV->installEventFilter(this);
 	selectedLV->installEventFilter(this);
@@ -84,6 +96,29 @@ void GuiSelectionManager::update()
 	updateDelPB();
 	updateDownPB();
 	updateUpPB();
+}
+
+
+QModelIndex GuiSelectionManager::getSelectedIndex() const
+{
+	QModelIndexList avail = availableLV->selectionModel()->selectedIndexes();
+	QModelIndexList sel   = selectedLV->selectionModel()->selectedIndexes();
+	bool const have_avl = !avail.isEmpty();
+	bool const have_sel = !sel.isEmpty();
+
+	if (selectedFocused()) { 
+		if (have_sel)
+			return sel.front();
+		if (have_avl)
+			return avail.front();
+	} 
+	else { // available has focus
+		if (have_avl)
+			return avail.front();
+		if (have_sel)
+			return sel.front();
+	}
+	return QModelIndex();
 }
 
 
@@ -153,6 +188,15 @@ bool GuiSelectionManager::isSelected(const QModelIndex & idx)
 }
 
 
+void GuiSelectionManager::availableChanged(QItemSelection const & qis, QItemSelection const &)
+{
+	QModelIndexList il = qis.indexes();
+	if (il.empty())	
+		return;
+	availableChanged(il.front(), QModelIndex());
+}
+
+
 void GuiSelectionManager::availableChanged(const QModelIndex & idx, const QModelIndex &)
 {
 	if (!idx.isValid())
@@ -160,6 +204,15 @@ void GuiSelectionManager::availableChanged(const QModelIndex & idx, const QModel
 	
 	selectedHasFocus_ = false;
 	updateHook();
+}
+
+
+void GuiSelectionManager::selectedChanged(QItemSelection const & qis, QItemSelection const &)
+{
+	QModelIndexList il = qis.indexes();
+	if (il.empty())	
+		return;
+	selectedChanged(il.front(), QModelIndex());
 }
 
 
@@ -176,8 +229,10 @@ void GuiSelectionManager::selectedChanged(const QModelIndex & idx, const QModelI
 bool GuiSelectionManager::insertRowToSelected(int i, 
 		QMap<int, QVariant> const & itemData)
 {
-	if (i <= -1 || i > selectedModel->rowCount())
-		return false;
+	if (i <= -1)
+		i = 0;
+	if (i > selectedModel->rowCount())
+		i = selectedModel->rowCount();
 	if (!selectedModel->insertRow(i))
 		return false;
 	return selectedModel->setItemData(selectedModel->index(i), itemData);
@@ -232,7 +287,11 @@ void GuiSelectionManager::deletePB_clicked()
 
 void GuiSelectionManager::upPB_clicked()
 {
-	QModelIndex idx = selectedLV->currentIndex();
+	QModelIndexList selIdx =
+		selectedLV->selectionModel()->selectedIndexes();
+	if (selIdx.isEmpty())
+		return;
+	QModelIndex idx = selIdx.first();
 
 	int const pos = idx.row();
 	if (pos <= 0)
@@ -253,7 +312,11 @@ void GuiSelectionManager::upPB_clicked()
 
 void GuiSelectionManager::downPB_clicked()
 {
-	QModelIndex idx = selectedLV->currentIndex();
+	QModelIndexList selIdx =
+		selectedLV->selectionModel()->selectedIndexes();
+	if (selIdx.isEmpty())
+		return;
+	QModelIndex idx = selIdx.first();
 
 	int const pos = idx.row();
 	if (pos >= selectedModel->rowCount() - 1)
@@ -272,18 +335,6 @@ void GuiSelectionManager::downPB_clicked()
 }
 
 
-// FIXME These slots do not really do what they need to do, since focus
-// can enter the QListView in other ways. But there are no signals sent
-// in that case. We need to reimplement focusInEvent() to capture those,
-// which means subclassing QListView. (rgh)
-// Or by installing an event listener.. (andre)
-void GuiSelectionManager::availableLV_clicked(const QModelIndex &)
-{
-	selectedHasFocus_ = false;
-	updateHook();
-}
-
-
 void GuiSelectionManager::availableLV_doubleClicked(const QModelIndex & idx)
 {
 	if (isSelected(idx) || !addPB->isEnabled())
@@ -296,74 +347,82 @@ void GuiSelectionManager::availableLV_doubleClicked(const QModelIndex & idx)
 }
 
 
-void GuiSelectionManager::selectedLV_clicked(const QModelIndex &)
-{
-	selectedHasFocus_ = true;
-	updateHook();
-}
-
-
 bool GuiSelectionManager::eventFilter(QObject * obj, QEvent * event) 
 {
+	QEvent::Type etype = event->type();
 	if (obj == availableLV) {
-		if (event->type() != QEvent::KeyPress)
-			return QObject::eventFilter(obj, event);
-		QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event);
-		int const keyPressed = keyEvent->key();
-		Qt::KeyboardModifiers const keyModifiers = keyEvent->modifiers();
-		// Enter key without modifier will add current item.
-		// Ctrl-Enter will add it and close the dialog.
-		// This is designed to work both with the main enter key
-		// and the one on the numeric keypad.
-		if (keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return) {
-			if (!keyModifiers)
-				addPB_clicked();
-			else if (keyModifiers == Qt::ControlModifier ||
-					keyModifiers == Qt::KeypadModifier  ||
-					keyModifiers == (Qt::ControlModifier | Qt::KeypadModifier)) {
-				if (addPB->isEnabled()) {
+		if (etype == QEvent::KeyPress) {
+			QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event);
+			int const keyPressed = keyEvent->key();
+			Qt::KeyboardModifiers const keyModifiers = keyEvent->modifiers();
+			// Enter key without modifier will add current item.
+			// Ctrl-Enter will add it and close the dialog.
+			// This is designed to work both with the main enter key
+			// and the one on the numeric keypad.
+			if (keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return) {
+				if (!keyModifiers)
 					addPB_clicked();
-					okHook(); //signal
+				else if (keyModifiers == Qt::ControlModifier ||
+						keyModifiers == Qt::KeypadModifier  ||
+						keyModifiers == (Qt::ControlModifier | Qt::KeypadModifier)) {
+					if (addPB->isEnabled()) {
+						addPB_clicked();
+						okHook(); //signal
+					}
 				}
+				event->accept();
+				return true;
+			}
+		} else if (etype == QEvent::FocusIn) {
+			if (selectedHasFocus_) {
+				selectedHasFocus_ = false;
+				updateHook();
 			}
 			event->accept();
 			return true;
-		}
+		} 
 	} else if (obj == selectedLV) {
-		if (event->type() != QEvent::KeyPress)
-			return QObject::eventFilter(obj, event);
-		QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event);
-		int const keyPressed = keyEvent->key();
-		Qt::KeyboardModifiers const keyModifiers = keyEvent->modifiers();
-		// Delete or backspace key will delete current item
-		// ...with control modifier will clear the list
-		if (keyPressed == Qt::Key_Delete || keyPressed == Qt::Key_Backspace) {
-			if (keyModifiers == Qt::NoModifier && deletePB->isEnabled()) {
-				deletePB_clicked();
-				updateHook();
-			} else if (keyModifiers == Qt::ControlModifier) {
-				selectedModel->removeRows(0, selectedModel->rowCount());
-				updateHook();
-			} else
-				return QObject::eventFilter(obj, event);
-		} 
-		// Ctrl-Up activates upPB
-		else if (keyPressed == Qt::Key_Up) {
-			if (keyModifiers == Qt::ControlModifier) {
-				if (upPB->isEnabled())
-					upPB_clicked();
-				event->accept();
-				return true;
+		if (etype == QEvent::KeyPress) {
+			QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event);
+			int const keyPressed = keyEvent->key();
+			Qt::KeyboardModifiers const keyModifiers = keyEvent->modifiers();
+			// Delete or backspace key will delete current item
+			// ...with control modifier will clear the list
+			if (keyPressed == Qt::Key_Delete || keyPressed == Qt::Key_Backspace) {
+				if (keyModifiers == Qt::NoModifier && deletePB->isEnabled()) {
+					deletePB_clicked();
+					updateHook();
+				} else if (keyModifiers == Qt::ControlModifier) {
+					selectedModel->removeRows(0, selectedModel->rowCount());
+					updateHook();
+				} else
+					return QObject::eventFilter(obj, event);
+			} 
+			// Ctrl-Up activates upPB
+			else if (keyPressed == Qt::Key_Up) {
+				if (keyModifiers == Qt::ControlModifier) {
+					if (upPB->isEnabled())
+						upPB_clicked();
+					event->accept();
+					return true;
+				}
+			} 
+			// Ctrl-Down activates downPB
+			else if (keyPressed == Qt::Key_Down) {
+				if (keyModifiers == Qt::ControlModifier) {
+					if (downPB->isEnabled())
+						downPB_clicked();
+					event->accept();
+					return true;
+				}
 			}
-		} 
-		// Ctrl-Down activates downPB
-		else if (keyPressed == Qt::Key_Down) {
-			if (keyModifiers == Qt::ControlModifier) {
-				if (downPB->isEnabled())
-					downPB_clicked();
-				event->accept();
-				return true;
+		} else if (etype == QEvent::FocusIn) {
+			if (!selectedHasFocus_) {
+				selectedHasFocus_ = true;
+				updateHook();
 			}
+			event->accept();
+			return true;
 		}
 	}
 	return QObject::eventFilter(obj, event);
@@ -372,4 +431,4 @@ bool GuiSelectionManager::eventFilter(QObject * obj, QEvent * event)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiSelectionManager_moc.cpp"
+#include "moc_GuiSelectionManager.cpp"

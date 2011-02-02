@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -103,6 +103,18 @@ void InsetMathBoldSymbol::write(WriteStream & os) const
 		os << "\\hm{" << cell(0) << "}";
 		break;
 	}
+}
+
+
+void InsetMathBoldSymbol::mathmlize(MathStream & os) const
+{
+	os << "<mstyle mathvariant='bold'>" << cell(0) << "</mstyle>";
+}
+
+
+void InsetMathBoldSymbol::htmlize(HtmlStream & os) const
+{
+	os << MTag("b") << cell(0) << ETag("b");
 }
 
 

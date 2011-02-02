@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -66,6 +66,7 @@ following hack as starting point to write some macros:
 #include "MathSupport.h"
 
 #include "Buffer.h"
+#include "BufferParams.h"
 #include "Encoding.h"
 #include "Lexer.h"
 
@@ -848,9 +849,16 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				Token const & n = getToken();
 				if (n.cat() == catMath) {
 					// TeX's $$...$$ syntax for displayed math
-					cell->push_back(MathAtom(new InsetMathHull(buf, hullEquation)));
-					parse2(cell->back(), FLAG_SIMPLE, InsetMath::MATH_MODE, false);
-					getToken(); // skip the second '$' token
+					if (mode == InsetMath::UNDECIDED_MODE) {
+						cell->push_back(MathAtom(new InsetMathHull(buf, hullEquation)));
+						parse2(cell->back(), FLAG_SIMPLE, InsetMath::MATH_MODE, false);
+						getToken(); // skip the second '$' token
+					} else {
+						// This is not an outer hull and display math is
+						// not allowed inside text mode environments.
+						error("bad math environment");
+						break;
+					}
 				} else {
 					// simple $...$  stuff
 					putback();
@@ -871,8 +879,19 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else {
-				error("something strange in the parser");
-				break;
+				Token const & n = getToken();
+				if (n.cat() == catMath) {
+					error("something strange in the parser");
+					break;
+				} else {
+					// This is inline math ($...$), but the parser thinks we are
+					// already in math mode and latex would issue an error, unless we
+					// are inside a text mode user macro. We have no way to tell, so
+					// let's play safe by using \ensuremath, as it will work in any case.
+					putback();
+					cell->push_back(MathAtom(new InsetMathEnsureMath(buf)));
+					parse(cell->back().nucleus()->cell(0), FLAG_SIMPLE, InsetMath::MATH_MODE);
+				}
 			}
 		}
 
@@ -1038,8 +1057,8 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (nextToken().cat() == catBegin)
 				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
 			
-			cell->push_back(MathAtom(new MathMacroTemplate(buf, name,
-				nargs, 0, MacroTypeDef,
+			cell->push_back(MathAtom(new MathMacroTemplate(buf,
+				name, nargs, 0, MacroTypeDef,
 				vector<MathData>(), def, display)));
 
 			if (buf && (mode_ & Parse::TRACKMACRO))
@@ -1086,8 +1105,8 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (nextToken().cat() == catBegin)
 				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
 			
-			cell->push_back(MathAtom(new MathMacroTemplate(buf, name,
-				nargs, optionals, MacroTypeNewcommand,
+			cell->push_back(MathAtom(new MathMacroTemplate(buf,
+				name, nargs, optionals, MacroTypeNewcommand,
 				optionalValues, def, display)));
 
 			if (buf && (mode_ & Parse::TRACKMACRO))
@@ -1207,8 +1226,8 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			if (nextToken().cat() == catBegin)
 				parse(display, FLAG_ITEM, InsetMath::MATH_MODE);
 
-			cell->push_back(MathAtom(new MathMacroTemplate(buf, name,
-				nargs, optionals, MacroTypeNewcommandx,
+			cell->push_back(MathAtom(new MathMacroTemplate(buf,
+				name, nargs, optionals, MacroTypeNewcommandx,
 				optionalValues, def, display)));
 
 			if (buf && (mode_ & Parse::TRACKMACRO))
@@ -1216,12 +1235,8 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		}
 
 		else if (t.cs() == "(") {
-			if (mode == InsetMath::MATH_MODE) {
-				error("bad math environment");
-				break;
-			}
-			cell->push_back(MathAtom(new InsetMathHull(buf, hullSimple)));
-			parse2(cell->back(), FLAG_SIMPLE2, InsetMath::MATH_MODE, false);
+			cell->push_back(MathAtom(new InsetMathEnsureMath(buf)));
+			parse(cell->back().nucleus()->cell(0), FLAG_SIMPLE2, InsetMath::MATH_MODE);
 		}
 
 		else if (t.cs() == "[") {
@@ -1333,7 +1348,7 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 #endif
 
 		else if (t.cs() == "limits" || t.cs() == "nolimits") {
-			CatCode cat = nextToken().cat();
+			CatCode const cat = nextToken().cat();
 			if (cat == catSuper || cat == catSub)
 				limits = t.cs() == "limits" ? 1 : -1;
 			else {
@@ -1493,12 +1508,8 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 			}
 
 			else if (name == "math") {
-				if (mode == InsetMath::MATH_MODE) {
-					error("bad math environment");
-					break;
-				}
-				cell->push_back(MathAtom(new InsetMathHull(buf, hullSimple)));
-				parse2(cell->back(), FLAG_END, InsetMath::MATH_MODE, true);
+				cell->push_back(MathAtom(new InsetMathEnsureMath(buf)));
+				parse(cell->back().nucleus()->cell(0), FLAG_END, InsetMath::MATH_MODE);
 			}
 
 			else if (name == "equation" || name == "equation*"
@@ -1716,6 +1727,14 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				delEmptyLastRow(subgrid);
 		}
 
+		else if (t.cs() == "Diagram") {
+			odocstringstream os;
+			while (good() && nextToken().cat() != catBegin)
+				os << getToken().asInput();
+			cell->push_back(createInsetMath(t.cs() + os.str(), buf));
+			parse2(cell->back(), FLAG_ITEM, mode, false);
+		}
+
 		else if (t.cs() == "framebox" || t.cs() == "makebox") {
 			cell->push_back(createInsetMath(t.cs(), buf));
 			parse(cell->back().nucleus()->cell(0), FLAG_OPTION, InsetMath::TEXT_MODE);
@@ -1743,7 +1762,7 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 				// we must not create an InsetMathSpace.
 				cell->push_back(MathAtom(new MathMacro(buf, name)));
 				MathData ar;
-				mathed_parse_cell(ar, '{' + arg + '}');
+				mathed_parse_cell(ar, '{' + arg + '}', mode_);
 				cell->append(ar);
 			}
 		}
@@ -1811,10 +1830,16 @@ bool Parser::parse1(InsetMathGrid & grid, unsigned flags,
 		}
 
 		else if (t.cs().size()) {
-			bool const is_user_macro =
-				buf && (mode_ & Parse::TRACKMACRO
-					? buf->usermacros.count(t.cs()) != 0
-					: buf->getMacro(t.cs(), false) != 0);
+			bool const no_mhchem =
+				(t.cs() == "ce" || t.cs() == "cf")
+				&& buf && buf->params().use_mhchem ==
+						BufferParams::package_off;
+
+			bool const is_user_macro = no_mhchem ||
+				(buf && (mode_ & Parse::TRACKMACRO
+					 ? buf->usermacros.count(t.cs()) != 0
+					 : buf->getMacro(t.cs(), false) != 0));
+
 			latexkeys const * l = in_word_set(t.cs());
 			if (l && !is_user_macro) {
 				if (l->inset == "big") {

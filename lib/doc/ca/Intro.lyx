@@ -1,5 +1,5 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 404
 \begin_document
 \begin_header
 \textclass article
@@ -37,18 +37,25 @@
   {LyX}}
 \end_preamble
 \use_default_options false
+\maintain_unincluded_children false
 \language catalan
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_xetex false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -65,26 +72,35 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Índex
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 2
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -333,9 +349,13 @@ Introducció
 \begin_layout Standard
 Veiem ara el problema de la consistència.
  Cinc dies més tard, obriu l'informe i comenceu la secció 4.
- Però heu oblidat que estàveu usant lletra en negreta de 18 punts, i useu
- la de 16, així que acabeu escrivint l'encapçalament de la secció 4 amb
- un tipus de lletra diferent al que vau emprar a la secció 1.
+ Però heu oblidat que estàveu usant lletra en negreta de 18
+\begin_inset space \thinspace{}
+\end_inset
+
+punts, i useu la de 16, així que acabeu escrivint l'encapçalament de la
+ secció 4 amb un tipus de lletra diferent al que vau emprar a la secció
+ 1.
  Aquest problema no existeix al LyX.
  L'ordinador s'encarrega de tota la feina feixuga de portar el compte de
  mides i tipus de lletra, no l'autor.
@@ -399,7 +419,7 @@ sí
 
 \begin_layout Subsection
 Diferències entre el LyX i altres processadors de text
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -987,7 +1007,7 @@ esteses
 
  (fitxer 
 \family typewriter
-Extended.lyx
+Additional.lyx
 \family default
 ).
  Quan necessitem fer referència a associacions de tecles, usarem la següent
@@ -1434,7 +1454,7 @@ Unitats
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="20" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>

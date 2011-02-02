@@ -31,14 +31,16 @@ public:
 
 	///
 	std::string type;
-	/// Use a parbox (true) or minipage (false)
+	/// Is there a parbox?
 	bool use_parbox;
+	/// Is there a makebox?
+	bool use_makebox;
 	/// Do we have an inner parbox or minipage to format paragraphs to
 	/// columnwidth?
 	bool inner_box;
 	///
 	Length width;
-	/// "special" widths, see usrguide.dvi ง3.5
+	/// "special" widths, see usrguide.dvi ยง3.5
 	std::string special;
 	///
 	char pos;
@@ -76,18 +78,16 @@ public:
 		Doublebox
 	};
 	///
-	InsetBox(Buffer const &, std::string const &);
-	///
-	~InsetBox();
+	InsetBox(Buffer *, std::string const &);
 	///
 	static std::string params2string(InsetBoxParams const &);
 	///
 	static void string2params(std::string const &, InsetBoxParams &);
+	///
+	InsetBoxParams const & params() const { return params_; }
 private:
 	///
 	friend class InsetBoxParams;
-	///
-	docstring editMessage() const;
 	///
 	InsetCode lyxCode() const { return BOX_CODE; }
 	///
@@ -100,8 +100,6 @@ private:
 	void setButtonLabel();
 	///
 	void metrics(MetricsInfo &, Dimension &) const;
-	/// show the Box dialog
-	bool showInsetDialog(BufferView * bv) const;
 	///
 	DisplayType display() const { return Inline; }
 	///
@@ -119,9 +117,9 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
-	void validate(LaTeXFeatures &) const;
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
-	InsetBoxParams const & params() const { return params_; }
+	void validate(LaTeXFeatures &) const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	///
@@ -133,7 +131,7 @@ private:
 	/// used by the constructors
 	void init();
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 
 	///
 	InsetBoxParams params_;

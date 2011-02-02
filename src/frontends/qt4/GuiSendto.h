@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Angus Leeming
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -60,9 +60,6 @@ private:
 	bool isBufferDependent() const { return true; }
 	///
 	FuncCode getLfun() const { return LFUN_BUFFER_EXPORT_CUSTOM; }
-
-	/// Return a vector of those formats that can be exported from "lyx".
-	std::vector<Format const *> allFormats() const;
 
 private:
 	///

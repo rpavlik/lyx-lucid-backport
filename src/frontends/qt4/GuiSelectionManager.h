@@ -19,6 +19,8 @@ class QModelIndex;
 class QListView;
 class QPushButton;
 class QVariant;
+class QAbstractItemView;
+class QItemSelection;
 template <class T, class U> class QMap;
 
 namespace lyx {
@@ -39,7 +41,7 @@ class GuiSelectionManager : public QObject
 public:
 	///
 	GuiSelectionManager(
-		QListView * availableLV, 
+		QAbstractItemView * availableLV,
 		QListView * selectedLV,
 		QPushButton * addPB, 
 		QPushButton * delPB, 
@@ -59,7 +61,10 @@ public:
 	/// to be used, for example, in displaying information about a
 	/// highlighted item: should it be the highlighted available item
 	/// or the highlighted selected item that is displayed?
-	bool selectedFocused() { return selectedHasFocus_; };
+	bool selectedFocused() const { return selectedHasFocus_; };
+	/// Returns the selected index. Note that this will depend upon
+	/// selectedFocused().
+	QModelIndex getSelectedIndex() const;
 
 Q_SIGNALS:
 	/// Emitted when the list of selected items has changed. 
@@ -84,7 +89,7 @@ protected:
 	///
  	bool insertRowToSelected(int i, QMap<int, QVariant> const & itemData);
 	///
-	QListView * availableLV;
+	QAbstractItemView * availableLV;
 	///
 	QListView * selectedLV;
 	///
@@ -102,9 +107,13 @@ protected:
 
 protected Q_SLOTS:
 	///
-	void availableChanged(const QModelIndex & idx, const QModelIndex &);
+	void availableChanged(QModelIndex const & idx, QModelIndex const &);
 	///
-	void selectedChanged(const QModelIndex & idx, const QModelIndex &);
+	void selectedChanged(QModelIndex const & idx, QModelIndex const &);
+	///
+	void availableChanged(QItemSelection const & qis, QItemSelection const &);
+	///
+	void selectedChanged(QItemSelection const & qis, QItemSelection const &);
 	///
 	virtual void addPB_clicked();
 	///
@@ -114,11 +123,7 @@ protected Q_SLOTS:
 	///
 	virtual void downPB_clicked();
 	///
-	void availableLV_clicked(const QModelIndex &);
-	///
 	void availableLV_doubleClicked(const QModelIndex &);
-	///
-	void selectedLV_clicked(const QModelIndex &);
 	///
 	bool eventFilter(QObject *, QEvent *);
 

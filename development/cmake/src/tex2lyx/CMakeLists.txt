@@ -14,7 +14,8 @@ set(LINKED_headers)
 
 foreach(_src insets/InsetLayout Color Counters
     Encoding FloatList Floating
-    Layout Lexer TextClass)
+    Layout LayoutModuleList Lexer ModuleList TextClass
+    FontInfo Spacing)
   list(APPEND LINKED_sources ${TOP_SRC_DIR}/src/${_src}.cpp)
   list(APPEND LINKED_headers ${TOP_SRC_DIR}/src/${_src}.h)
 endforeach(_src)
@@ -36,7 +37,6 @@ else()
 	lyx_const_touched_files(_allinone_linked  LINKED_sources)
 	add_executable(${_tex2lyx} ${_allinone_files} ${_allinone_linked_files})
 endif()
-
 
 target_link_libraries(${_tex2lyx}
 	support

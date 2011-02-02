@@ -1,5 +1,5 @@
-#LyX 1.6.4svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 404
 \begin_document
 \begin_header
 \textclass article
@@ -37,18 +37,25 @@
   {LyX}}
 \end_preamble
 \use_default_options false
+\maintain_unincluded_children false
 \language galician
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_xetex false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -65,14 +72,23 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 0
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Índice
+\shortcut idx
+\color #008000
+\end_index
 \leftmargin 2cm
 \topmargin 2cm
 \rightmargin 2cm
@@ -80,15 +96,15 @@
 \secnumdepth 2
 \tocdepth 2
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -385,8 +401,15 @@ Outro tema importante é o da consisténcia do texto.
 
 4.
  Pon-se a escrebé-la, mais engana-se en canto a fonte que estaba a utilizar
- para os títulos da sección, e no canto de empregar unha fonte 18pt en negrito
- usa outra de 16pt, polo que o título da Sección
+ para os títulos da sección, e no canto de empregar unha fonte 18
+\begin_inset space \thinspace{}
+\end_inset
+
+pt en negrito usa outra de 16
+\begin_inset space \thinspace{}
+\end_inset
+
+pt, polo que o título da Sección
 \begin_inset space ~
 \end_inset
 
@@ -478,7 +501,7 @@ Esta é a razón pola que o LyX non é bon para elaborar cartaces e anúncios—
 
 \begin_layout Subsection
 Diferenzas entre o LyX e outros procesadores de texto
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout

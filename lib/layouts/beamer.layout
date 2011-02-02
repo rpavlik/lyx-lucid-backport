@@ -1,13 +1,14 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[beamer,pgf.sty,xcolor.sty]{presentation (beamer)}
+#  \DeclareLaTeXClass[beamer,amssymb.sty,hyperref.sty,pgf.sty,xcolor.sty,xxcolor.sty]{presentation (beamer)}
 # Author : Till Tantau <tantau@users.sourceforge.net>
 
 # $Header: /cvsroot/latex-beamer/latex-beamer/lyx/layouts/beamer.layout,v 1.16 2004/10/07 20:53:07 tantau Exp $
 
 # Includes
-Format 11
+Format 30
 Input stdcounters.inc
 Input stdinsets.inc
+
 
 # General textclass parameters
 Columns            1
@@ -77,6 +78,7 @@ Style Enumerate
   ParSep           0.3
   Align            Left
   LabelType        Enumerate
+  RefPrefix        enu
 End
 
 # Description style definition
@@ -122,6 +124,7 @@ Style Part
   Align            Center
   LabelType        Static
   LabelString      "Part"
+	RefPrefix        part
 
   # standard font definition
   Font 
@@ -133,6 +136,7 @@ Style Part
   LabelFont
     Color          Latex
   EndFont
+  	TocLevel 0
 End
 
 # Section style definition
@@ -152,6 +156,7 @@ Style Section
   LabelType        Counter
   LabelCounter     section
   LabelString      "Section \arabic{section}"
+	RefPrefix        sec
   OptionalArgs     1
 
   Font 
@@ -194,6 +199,7 @@ Style Subsection
   LabelType        Counter
   LabelCounter     subsection
   LabelString      "Subsection \arabic{section}.\arabic{subsection}"
+	RefPrefix        sub
   OptionalArgs     1
 
   # standard font definition
@@ -253,7 +259,6 @@ Style BeginFrame
   EndFont
 
   Preamble
-    \makeatletter
     \long\def\lyxframe#1{\@lyxframe#1\@lyxframestop}%
     \def\@lyxframe{\@ifnextchar<{\@@lyxframe}{\@@lyxframe<*>}}%
     \def\@@lyxframe<#1>{\@ifnextchar[{\@@@lyxframe<#1>}{\@@@lyxframe<#1>[]}}
@@ -261,7 +266,6 @@ Style BeginFrame
     \def\@@@@@lyxframe<#1>[#2]{\@ifnextchar[{\@@@@lyxframe<#1>[#2]}{\@@@@lyxframe<#1>[#2][]}}
     \long\def\@@@@lyxframe<#1>[#2][#3]#4\@lyxframestop#5\lyxframeend{%
       \frame<#1>[#2][#3]{\frametitle{#4}#5}}
-    \makeatother
   EndPreamble
 End
 
@@ -296,12 +300,10 @@ Style BeginPlainFrame
   EndFont
 
   Preamble
-    \makeatletter
     \long\def\lyxplainframe#1{\@lyxplainframe#1\@lyxframestop}%
     \def\@lyxplainframe{\@ifnextchar<{\@@lyxplainframe}{\@@lyxplainframe<*>}}%
     \long\def\@@lyxplainframe<#1>#2\@lyxframestop#3\lyxframeend{%
       \frame<#1>[plain]{\frametitle{#2}#3}}
-    \makeatother
   EndPreamble
 End
 
@@ -336,13 +338,11 @@ Style AgainFrame
   EndFont
 
   Preamble
-    \makeatletter
     \long\def\lyxagainframe#1{\@lyxagainframe#1\@lyxframestop}%
     \def\@lyxagainframe{\@ifnextchar<{\@@lyxagainframe}{\@@lyxagainframe<*>}}%
     \def\@@lyxagainframe<#1>{\@ifnextchar[{\@@@lyxagainframe<#1>}{\@@@lyxagainframe<#1>[]}}
     \long\def\@@@lyxagainframe<#1>[#2]#3\@lyxframestop{%
       \againframe<#1>[#2]{#3}}
-    \makeatother
   EndPreamble
 End
 
@@ -658,8 +658,8 @@ Style Block
   LabelSep         xx
 
   LatexName        block
-  LabelString      "Block ( ERT[{title}] body ):"
-
+  LabelString      "Block:"
+  
   ParSkip          0.5
   TopSep           1
   BottomSep        1
@@ -684,8 +684,8 @@ Style ExampleBlock
   LabelSep         xx
 
   LatexName        exampleblock
-  LabelString      "Block ( ERT[{title}] example text ):"
-
+  LabelString      "Example Block:"
+  
   ParSkip          0.5
   TopSep           1
   BottomSep        1
@@ -714,8 +714,8 @@ Style AlertBlock
   LabelSep         xx
 
   LatexName        alertblock
-  LabelString      "Block ( ERT[{title}] alert text ):"
-
+  LabelString      "Alert Block:"
+  
   ParSkip          0.5
   TopSep           1
   BottomSep        1
@@ -1152,7 +1152,7 @@ End
 
 # Charstyles:
 
-InsetLayout CharStyle:Alert
+InsetLayout Flex:Alert
   LyXType charstyle
   LabelString Alert
   LatexType        command
@@ -1163,7 +1163,7 @@ InsetLayout CharStyle:Alert
 End
 
 
-InsetLayout CharStyle:Structure
+InsetLayout Flex:Structure
   LyXType charstyle
   LabelString Structure
   LatexType        command
@@ -1174,7 +1174,7 @@ InsetLayout CharStyle:Structure
 End
 
 
-InsetLayout Custom:ArticleMode
+InsetLayout Flex:ArticleMode
    LyXType	custom
    LatexName	mode<article>
    LatexType	command
@@ -1184,7 +1184,7 @@ InsetLayout Custom:ArticleMode
 End
 
 
-InsetLayout Custom:PresentationMode
+InsetLayout Flex:PresentationMode
    LyXType	custom
    LatexName	mode<presentation>
    LatexType	command
@@ -1202,7 +1202,8 @@ Float
   NumberWithin     none
   Style            plain
   ListName         "List of Tables"
-  LaTeXBuiltin     true
+  NeedsFloatPkg    false
+	ListCommand      listoftables
 End
 
 
@@ -1214,7 +1215,8 @@ Float
   NumberWithin     none
   Style            plain
   ListName         "List of Figures"
-  LaTeXBuiltin     true
+  NeedsFloatPkg    false
+	ListCommand      listoffigures
 End
 
 
@@ -1222,7 +1224,7 @@ End
 # head-/footline, we define our own maketitle command
 TitleLaTeXName makebeamertitle
 
-Preamble
+AddToPreamble
   % this default might be overridden by plain title style
   \newcommand\makebeamertitle{\frame{\maketitle}}%
   \AtBeginDocument{
@@ -1232,3 +1234,4 @@ Preamble
   }
 EndPreamble
 
+Input theorems-refprefix.inc

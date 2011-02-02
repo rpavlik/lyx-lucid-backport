@@ -38,7 +38,7 @@ class TocItem
 
 public:
 	/// Default constructor for STL containers.
-	TocItem() {}
+	TocItem() : dit_(0) {}
 	///
 	TocItem(DocIterator const & dit,
 		int depth,
@@ -57,6 +57,8 @@ public:
 	docstring const & tooltip() const;
 	///
 	docstring const asString() const;
+	///
+	DocIterator const & dit() const;
 
 	/// the action corresponding to the goTo above
 	FuncRequest action() const;

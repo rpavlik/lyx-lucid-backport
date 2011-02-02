@@ -105,7 +105,6 @@ dist_elexamples_DATA = \
 
 esexamplesdir = $(pkgdatadir)/examples/es
 dist_esexamples_DATA = \
-	examples/es/beamer-conference-ornate20min.lyx \
 	examples/es/Braille.lyx \
 	examples/es/ejemplo_con_lyx.lyx \
 	examples/es/ejemplo_sin_lyx.lyx \
@@ -133,6 +132,7 @@ dist_frexamples_DATA = \
 	examples/fr/exemple_brut.lyx \
 	examples/fr/exemple_lyxifie.lyx \
 	examples/fr/exemple-powerdot.lyx \
+	examples/fr/FeynmanDiagrams.lyx \
 	examples/fr/Foils.lyx \
 	examples/fr/linguistics.lyx \
 	examples/fr/ListesPuces.lyx \
@@ -203,15 +203,20 @@ ruexamplesdir = $(pkgdatadir)/examples/ru
 dist_ruexamples_DATA = \
 	examples/ru/splash.lyx
 
-skexamplesdir = $(pkgdatadir)/examples/sk
-dist_skexamples_DATA = \
-	examples/sk/splash.lyx
-
 slexamplesdir = $(pkgdatadir)/examples/sl
 dist_slexamples_DATA = \
 	examples/sl/primer_lyxan.lyx \
 	examples/sl/primer_surov.lyx \
 	examples/sl/splash.lyx
+
+skexamplesdir = $(pkgdatadir)/examples/sk
+dist_skexamples_DATA = \
+	examples/sk/splash.lyx
+
+srexamplesdir = $(pkgdatadir)/examples/sr
+dist_srexamples_DATA = \
+	examples/sr/Braille.lyx \
+	examples/sr/splash.lyx
 
 ukexamplesdir = $(pkgdatadir)/examples/uk
 dist_ukexamples_DATA = \
@@ -251,10 +256,13 @@ dist_examples_DATA = \
 	examples/europeCV.lyx \
 	examples/example_lyxified.lyx \
 	examples/example_raw.lyx \
+	examples/FeynmanDiagrams.lyx \
 	examples/iecc05.fen \
 	examples/iecc07.fen \
 	examples/iecc12.fen \
+	examples/instant_preview.lyx \
 	examples/landslide.lyx \
+	examples/lilypond.lyx \
 	examples/linguistics.lyx \
 	examples/listerrors.lyx \
 	examples/modernCV.lyx \
@@ -269,6 +277,7 @@ dist_examples_DATA = \
 	examples/serial_letter3.lyx \
 	examples/simplecv.lyx \
 	examples/splash.lyx \
+	examples/sweave.lyx \
 	examples/tufte-book.lyx \
 	examples/tufte-handout.lyx \
 	examples/xyfigure.png \
@@ -286,6 +295,7 @@ dist_fonts_DATA = \
 	fonts/msam10.ttf \
 	fonts/msbm10.ttf \
 	fonts/ReadmeBaKoMa4LyX.txt \
+	fonts/rsfs10.ttf \
 	fonts/wasy10.ttf
 
 imagesdir = $(pkgdatadir)/images
@@ -300,18 +310,37 @@ dist_images_DATA = \
 	images/box-insert.png \
 	images/break-line.png \
 	images/buffer-close.png \
+	images/buffer-export.png \
 	images/buffer-export_dvi.png \
+	images/buffer-export_dvi3.png \
 	images/buffer-export_latex.png \
+	images/buffer-export_pdf.png \
 	images/buffer-export_pdf2.png \
+	images/buffer-export_pdf3.png \
+	images/buffer-export_pdf4.png \
+	images/buffer-export_pdf5.png \
 	images/buffer-export_ps.png \
 	images/buffer-export_text.png \
 	images/buffer-new.png \
 	images/buffer-reload.png \
+	images/buffer-toggle-output-sync.png \
+	images/buffer-update.png \
 	images/buffer-update_dvi.png \
+	images/buffer-update_dvi3.png \
+	images/buffer-update_pdf.png \
 	images/buffer-update_pdf2.png \
+	images/buffer-update_pdf3.png \
+	images/buffer-update_pdf4.png \
+	images/buffer-update_pdf5.png \
 	images/buffer-update_ps.png \
+	images/buffer-view.png \
 	images/buffer-view_dvi.png \
+	images/buffer-view_dvi3.png \
+	images/buffer-view_pdf.png \
 	images/buffer-view_pdf2.png \
+	images/buffer-view_pdf3.png \
+	images/buffer-view_pdf4.png \
+	images/buffer-view_pdf5.png \
 	images/buffer-view_ps.png \
 	images/buffer-write-as.png \
 	images/buffer-write.png \
@@ -341,6 +370,7 @@ dist_images_DATA = \
 	images/dialog-show_print.png \
 	images/dialog-show_spellchecker.png \
 	images/dialog-show_vclog.png \
+	images/dialog-toggle_findreplaceadv.png \
 	images/dialog-toggle_toc.png \
 	images/down.png \
 	images/ert-insert.png \
@@ -356,6 +386,7 @@ dist_images_DATA = \
 	images/href-insert.png \
 	images/hidetab.png \
 	images/index-insert.png \
+	images/info-insert_buffer_vcs-revision.png \
 	images/label-insert.png \
 	images/layout.png \
 	images/layout-document.png \
@@ -370,6 +401,8 @@ dist_images_DATA = \
 	images/lyx-quit.png \
 	images/lyx.png \
 	images/marginalnote-insert.png \
+	images/master-buffer-update.png \
+	images/master-buffer-view.png \
 	images/math-display.png \
 	images/math-macro-add-greedy-optional-param.png \
 	images/math-macro-add-optional-param.png \
@@ -396,6 +429,8 @@ dist_images_DATA = \
 	images/psnfss4.png \
 	images/redo.png \
 	images/reload.png \
+	images/script-insert_subscript.png \
+	images/script-insert_superscript.png \
 	images/split-view_horizontal.png \
 	images/split-view_vertical.png \
 	images/standard.png \
@@ -407,6 +442,7 @@ dist_images_DATA = \
 	images/tabular-feature_delete-column.png \
 	images/tabular-feature_delete-row.png \
 	images/tabular-feature_multicolumn.png \
+	images/tabular-feature_multirow.png \
 	images/tabular-feature_set-all-lines.png \
 	images/tabular-feature_set-longtabular.png \
 	images/tabular-feature_set-rotate-cell.png \
@@ -430,36 +466,22 @@ dist_images_DATA = \
 	images/undo.png \
 	images/unknown.png \
 	images/up.png \
+	images/update-others.png \
 	images/url-insert.png \
 	images/vc-check-in.png \
 	images/vc-check-out.png \
+	images/vc-compare.png \
+	images/vc-compare_0.png \
 	images/vc-locking-toggle.png \
 	images/vc-register.png \
 	images/vc-repo-update.png \
-	images/vc-revert.png
+	images/vc-revert.png \
+	images/view-others.png
 
 imagesmathdir = $(imagesdir)/math
 dist_imagesmath_DATA = \
-	images/math/font.png \
-	images/math/delim.png \
-	images/math/equation.png \
-	images/math/matrix.png \
-	images/math/space.png \
-	images/math/sqrt-square.png \
-	images/math/style.png \
-	images/math/sub.png \
-	images/math/super.png \
-	images/math/Bbbk.png \
-	images/math/Finv.png \
-	images/math/Game.png \
-	images/math/Im.png \
-	images/math/Lleftarrow.png \
-	images/math/Rrightarrow.png \
-	images/math/Lsh.png \
-	images/math/Re.png \
-	images/math/Rsh.png \
-	images/math/Vvdash.png \
 	images/math/acute.png \
+	images/math/adots.png \
 	images/math/aleph.png \
 	images/math/alpha.png \
 	images/math/amalg.png \
@@ -475,6 +497,7 @@ dist_imagesmath_DATA = \
 	images/math/bar.png \
 	images/math/bars.png \
 	images/math/barwedge.png \
+	images/math/Bbbk.png \
 	images/math/because.png \
 	images/math/beta.png \
 	images/math/beth.png \
@@ -542,8 +565,11 @@ dist_imagesmath_DATA = \
 	images/math/dashrightarrow.png \
 	images/math/dashv.png \
 	images/math/ddagger.png \
+	images/math/ddddot.png \
+	images/math/dddot.png \
 	images/math/ddot.png \
 	images/math/ddots.png \
+	images/math/delim.png \
 	images/math/delta.png \
 	images/math/delta2.png \
 	images/math/diagdown.png \
@@ -573,19 +599,24 @@ dist_imagesmath_DATA = \
 	images/math/eqcirc.png \
 	images/math/eqslantgtr.png \
 	images/math/eqslantless.png \
+	images/math/equation.png \
 	images/math/equiv.png \
 	images/math/eta.png \
 	images/math/eth.png \
 	images/math/exists.png \
+	images/math/export-others.png \
 	images/math/fallingdotseq.png \
 	images/math/fint.png \
 	images/math/fintop.png \
+	images/math/Finv.png \
 	images/math/flat.png \
+	images/math/font.png \
 	images/math/forall.png \
 	images/math/frac.png \
 	images/math/frac-square.png \
 	images/math/frown.png \
 	images/math/functions.png \
+	images/math/Game.png \
 	images/math/gamma.png \
 	images/math/gamma2.png \
 	images/math/geq.png \
@@ -613,12 +644,14 @@ dist_imagesmath_DATA = \
 	images/math/hookrightarrow.png \
 	images/math/hphantom.png \
 	images/math/hslash.png \
+	images/math/iddots.png \
 	images/math/iiiint.png \
 	images/math/iiiintop.png \
 	images/math/iiint.png \
 	images/math/iiintop.png \
 	images/math/iint.png \
 	images/math/iintop.png \
+	images/math/Im.png \
 	images/math/imath.png \
 	images/math/in.png \
 	images/math/infty.png \
@@ -667,6 +700,7 @@ dist_imagesmath_DATA = \
 	images/math/lfloor_rfloor.png \
 	images/math/ll.png \
 	images/math/llcorner.png \
+	images/math/Lleftarrow.png \
 	images/math/lll.png \
 	images/math/lnapprox.png \
 	images/math/lneq.png \
@@ -685,6 +719,7 @@ dist_imagesmath_DATA = \
 	images/math/lparen.png \
 	images/math/lparen_rparen.png \
 	images/math/lrcorner.png \
+	images/math/Lsh.png \
 	images/math/ltimes.png \
 	images/math/lvertneqq.png \
 	images/math/mapsto.png \
@@ -700,6 +735,7 @@ dist_imagesmath_DATA = \
 	images/math/mathcal_O.png \
 	images/math/mathcircumflex.png \
 	images/math/mathrm_T.png \
+	images/math/matrix.png \
 	images/math/measuredangle.png \
 	images/math/mho.png \
 	images/math/mid.png \
@@ -798,6 +834,7 @@ dist_imagesmath_DATA = \
 	images/math/rbrace.png \
 	images/math/rbracket.png \
 	images/math/rceil.png \
+	images/math/Re.png \
 	images/math/rfloor.png \
 	images/math/rho.png \
 	images/math/rightarrow.png \
@@ -813,6 +850,8 @@ dist_imagesmath_DATA = \
 	images/math/risingdotseq.png \
 	images/math/root.png \
 	images/math/rparen.png \
+	images/math/Rrightarrow.png \
+	images/math/Rsh.png \
 	images/math/rtimes.png \
 	images/math/searrow.png \
 	images/math/setminus.png \
@@ -828,6 +867,7 @@ dist_imagesmath_DATA = \
 	images/math/smallsetminus.png \
 	images/math/smallsmile.png \
 	images/math/smile.png \
+	images/math/space.png \
 	images/math/spadesuit.png \
 	images/math/sphericalangle.png \
 	images/math/sqcap.png \
@@ -837,12 +877,15 @@ dist_imagesmath_DATA = \
 	images/math/sqint.png \
 	images/math/sqintop.png \
 	images/math/sqrt.png \
+	images/math/sqrt-square.png \
 	images/math/sqsubset.png \
 	images/math/sqsubseteq.png \
 	images/math/sqsupset.png \
 	images/math/sqsupseteq.png \
 	images/math/square.png \
 	images/math/star.png \
+	images/math/style.png \
+	images/math/sub.png \
 	images/math/subset.png \
 	images/math/subset2.png \
 	images/math/subseteq.png \
@@ -857,6 +900,7 @@ dist_imagesmath_DATA = \
 	images/math/succnsim.png \
 	images/math/succsim.png \
 	images/math/sum.png \
+	images/math/super.png \
 	images/math/supset.png \
 	images/math/supset2.png \
 	images/math/supseteq.png \
@@ -930,6 +974,7 @@ dist_imagesmath_DATA = \
 	images/math/vert.png \
 	images/math/vert2.png \
 	images/math/vphantom.png \
+	images/math/Vvdash.png \
 	images/math/wedge.png \
 	images/math/widehat.png \
 	images/math/widetilde.png \
@@ -992,6 +1037,8 @@ dist_layouts_DATA =\
 	layouts/aastex.layout \
 	layouts/achemso.layout \
 	layouts/acmsiggraph.layout \
+	layouts/AEA.layout \
+	layouts/agutex.layout \
 	layouts/agu-dtd.layout \
 	layouts/agu_stdclass.inc \
 	layouts/agu_stdcounters.inc \
@@ -1014,6 +1061,7 @@ dist_layouts_DATA =\
 	layouts/broadway.layout \
 	layouts/chess.layout \
 	layouts/cl2emult.layout \
+	layouts/customHeadersFooters.module \
 	layouts/db_lyxmacros.inc \
 	layouts/db_stdclass.inc \
 	layouts/db_stdcharstyles.inc \
@@ -1031,11 +1079,13 @@ dist_layouts_DATA =\
 	layouts/docbook.layout \
 	layouts/doublecol-new.layout \
 	layouts/dtk.layout \
+	layouts/ectaart.layout \
 	layouts/egs.layout \
 	layouts/elsart.layout \
 	layouts/elsarticle.layout \
 	layouts/endnotes.module \
 	layouts/entcs.layout \
+	layouts/enumitem.module \
 	layouts/eqs-within-sections.module \
 	layouts/europecv.layout \
 	layouts/extarticle.layout \
@@ -1043,10 +1093,11 @@ dist_layouts_DATA =\
 	layouts/extletter.layout \
 	layouts/extreport.layout \
 	layouts/figs-within-sections.module \
+	layouts/fixltx2e.module \
 	layouts/foils.layout \
 	layouts/foottoend.module \
-	layouts/g-brief-de.layout \
-	layouts/g-brief-en.layout \
+	layouts/frletter.layout \
+	layouts/g-brief.layout \
 	layouts/g-brief2.layout \
 	layouts/hanging.module \
 	layouts/heb-article.layout \
@@ -1055,6 +1106,7 @@ dist_layouts_DATA =\
 	layouts/IEEEtran.layout \
 	layouts/ijmpc.layout \
 	layouts/ijmpd.layout \
+	layouts/initials.module \
 	layouts/iopart.layout \
 	layouts/isprs.layout \
 	layouts/jarticle.layout \
@@ -1067,6 +1119,8 @@ dist_layouts_DATA =\
 	layouts/kluwer.layout \
 	layouts/latex8.layout \
 	layouts/letter.layout \
+	layouts/lettre.layout \
+	layouts/lilypond.module \
 	layouts/linguistics.module \
 	layouts/literate-article.layout \
 	layouts/literate-book.layout \
@@ -1082,6 +1136,7 @@ dist_layouts_DATA =\
 	layouts/mwart.layout \
 	layouts/mwbk.layout \
 	layouts/mwrep.layout \
+	layouts/noweb.module \
 	layouts/numarticle.inc \
 	layouts/numreport.inc \
 	layouts/numrevtex.inc \
@@ -1106,6 +1161,7 @@ dist_layouts_DATA =\
 	layouts/singlecol-new.layout \
 	layouts/slides.layout \
 	layouts/spie.layout \
+	layouts/stdciteformats.inc \
 	layouts/stdclass.inc \
 	layouts/stdcharstyles.inc \
 	layouts/stdcounters.inc \
@@ -1115,6 +1171,7 @@ dist_layouts_DATA =\
 	layouts/stdlayouts.inc \
 	layouts/stdletter.inc \
 	layouts/stdlists.inc \
+	layouts/stdrefprefix.inc \
 	layouts/stdsections.inc \
 	layouts/stdstarsections.inc \
 	layouts/stdstruct.inc \
@@ -1126,6 +1183,7 @@ dist_layouts_DATA =\
 	layouts/svmono.layout \
 	layouts/svmult.layout \
 	layouts/svprobth.layout \
+	layouts/sweave.module \
 	layouts/tabs-within-sections.module \
 	layouts/tarticle.layout \
 	layouts/tbook.layout \
@@ -1140,10 +1198,13 @@ dist_layouts_DATA =\
 	layouts/theorems-bytype.inc \
 	layouts/theorems-bytype.module \
 	layouts/theorems-chap-bytype.module \
-	layouts/theorems-sec-bytype.module \
+	layouts/theorems-named.module \
 	layouts/theorems-order.inc \
 	layouts/theorems-proof.inc \
+	layouts/theorems-proof-std.inc \
+	layouts/theorems-refprefix.inc \
 	layouts/theorems-sec.module \
+	layouts/theorems-sec-bytype.module \
 	layouts/theorems-starred-equivalents.inc \
 	layouts/theorems-starred.inc \
 	layouts/theorems-starred.module \
@@ -1155,23 +1216,30 @@ dist_layouts_DATA =\
 scriptsdir = $(pkgdatadir)/scripts
 # Note that we "chmod 755" manually these files in install-data-hook.
 dist_scripts_PYTHON = \
-	scripts/TeXFiles.py \
+	scripts/bash_completion \
 	scripts/clean_dvi.py \
-	scripts/csv2lyx.py \
 	scripts/convertDefault.py \
+	scripts/csv2lyx.py \
 	scripts/date.py \
 	scripts/ext_copy.py \
 	scripts/fen2ascii.py \
 	scripts/fig2pdftex.py \
 	scripts/fig2pstex.py \
 	scripts/fig_copy.py \
+	scripts/include_bib.py \
 	scripts/layout2layout.py \
 	scripts/legacy_lyxpreview2ppm.py \
 	scripts/listerrors \
 	scripts/lyxpreview2bitmap.py \
+	scripts/lyxpreview-lytex2bitmap.py \
 	scripts/lyxpreview-platex2bitmap.py \
 	scripts/lyxpreview_tools.py \
-	scripts/tex_copy.py
+	scripts/lyxsweave.R \
+	scripts/prefs2prefs.py \
+	scripts/prefs2prefs_lfuns.py \
+	scripts/prefs2prefs_prefs.py \
+	scripts/tex_copy.py \
+	scripts/TeXFiles.py
 
 templatesdir = $(pkgdatadir)/templates
 dist_templates_DATA = \
@@ -1179,15 +1247,19 @@ dist_templates_DATA = \
 	templates/aastex.lyx \
 	templates/ACM-siggraph.lyx \
 	templates/ACM-sigplan.lyx \
+	templates/AEA.lyx \
+	templates/agutex.lyx \
 	templates/agu_article.lyx \
 	templates/apa.lyx \
 	templates/beamer-conference-ornate-20min.lyx \
 	templates/de_beamer-conference-ornate-20min.lyx \
 	templates/dinbrief.lyx \
 	templates/docbook_article.lyx \
+	templates/ectaart.lyx \
 	templates/elsarticle.lyx \
 	templates/es_beamer-conference-ornate-20min.lyx \
 	templates/fr_beamer-conference-ornate-20min.lyx \
+	templates/frletter.lyx \
 	templates/g-brief2.lyx \
 	templates/g-brief-de.lyx \
 	templates/g-brief-en.lyx \
@@ -1201,6 +1273,7 @@ dist_templates_DATA = \
 	templates/koma-letter2.lyx \
 	templates/latex8.lyx \
 	templates/letter.lyx \
+	templates/lettre.lyx \
 	templates/README.new_templates \
 	templates/revtex.lyx \
 	templates/revtex4.lyx \
@@ -1210,6 +1283,17 @@ dist_templates_DATA = \
 	templates/svmult_appendix.lyx \
 	templates/svmult_author.lyx \
 	templates/svmult_editor.lyx
+
+thesistemplatesdir = $(pkgdatadir)/templates/thesis
+dist_thesistemplates_DATA = \
+	templates/thesis/Acknowledgments.lyx \
+	templates/thesis/alpha.bst \
+	templates/thesis/Appendix.lyx \
+	templates/thesis/chapter-1.lyx \
+	templates/thesis/chapter-2.lyx \
+	templates/thesis/Summary.lyx \
+	templates/thesis/thesis.lyx \
+	templates/thesis/thesisExample.bib
 
 texdir = $(pkgdatadir)/tex
 dist_tex_DATA = \

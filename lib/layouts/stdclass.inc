@@ -7,7 +7,7 @@
 # ``standard'' layouts, like article and friends.
 
 
-Format 11
+Format 30
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -35,6 +35,12 @@ Style Standard
 	Align                 Block
 	AlignPossible         Block, Left, Right, Center
 	LabelType             No_Label
+	# FIXME This ought to be set dynamically.
+	HTMLStyle
+		div.standard {
+			margin-bottom: 2ex;
+		}
+	EndHTMLStyle
 End
 
 #Input stdcharstyles.inc
@@ -49,3 +55,4 @@ Input stdtitle.inc
 Input stdstruct.inc
 Input lyxmacros.inc
 Input stdlayouts.inc
+Input stdciteformats.inc

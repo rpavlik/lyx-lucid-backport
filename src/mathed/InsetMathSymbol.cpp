@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -60,8 +60,12 @@ void InsetMathSymbol::metrics(MetricsInfo & mi, Dimension & dim) const
 	//	<< "' drawn as: '" << sym_->draw
 	//	<< "'" << endl;
 
+	bool const italic_upcase_greek = sym_->inset == "cmr" &&
+					 sym_->extra == "mathalpha" &&
+					 mi.base.fontname == "mathit";
+	docstring const font = italic_upcase_greek ? from_ascii("cmm") : sym_->inset;
 	int const em = mathed_char_width(mi.base.font, 'M');
-	FontSetChanger dummy(mi.base, sym_->inset);
+	FontSetChanger dummy(mi.base, font);
 	mathed_string_dim(mi.base.font, sym_->draw, dim);
 	docstring::const_reverse_iterator rit = sym_->draw.rbegin();
 	kerning_ = mathed_char_kerning(mi.base.font, *rit);
@@ -91,13 +95,18 @@ void InsetMathSymbol::draw(PainterInfo & pi, int x, int y) const
 	//	<< "' in font: '" << sym_->inset
 	//	<< "' drawn as: '" << sym_->draw
 	//	<< "'" << endl;
+
+	bool const italic_upcase_greek = sym_->inset == "cmr" &&
+					 sym_->extra == "mathalpha" &&
+					 pi.base.fontname == "mathit";
+	docstring const font = italic_upcase_greek ? from_ascii("cmm") : sym_->inset;
 	int const em = mathed_char_width(pi.base.font, 'M');
 	if (isRelOp())
 		x += static_cast<int>(0.25*em+0.5);
 	else
 		x += static_cast<int>(0.0833*em+0.5);
 
-	FontSetChanger dummy(pi.base, sym_->inset.c_str());
+	FontSetChanger dummy(pi.base, font);
 	pi.draw(x, y - h_, sym_->draw);
 }
 
@@ -127,13 +136,6 @@ bool InsetMathSymbol::takesLimits() const
 		sym_->inset == "lyxboldsymb" ||
 		sym_->inset == "esint" ||
 		sym_->extra == "funclim";
-}
-
-
-void InsetMathSymbol::validate(LaTeXFeatures & features) const
-{
-	if (!sym_->requires.empty())
-		features.require(to_utf8(sym_->requires));
 }
 
 
@@ -175,23 +177,50 @@ void InsetMathSymbol::mathematica(MathematicaStream & os) const
 }
 
 
+// FIXME This will likely need some work.
 char const * MathMLtype(docstring const & s)
 {
-	if (s == "mathop")
-		return "mo";
-	return "mi";
+	if (s == "mathord")
+		return "mi";
+	return "mo";
 }
 
 
 void InsetMathSymbol::mathmlize(MathStream & os) const
 {
+	// FIXME We may need to do more interesting things 
+	// with MathMLtype.
 	char const * type = MathMLtype(sym_->extra);
 	os << '<' << type << "> ";
-	if (sym_->xmlname == "x") // unknown so far
+	if (sym_->xmlname == "x") 
+		// unknown so far
 		os << name();
 	else
 		os << sym_->xmlname;
 	os << " </" << type << '>';
+}
+
+
+void InsetMathSymbol::htmlize(HtmlStream & os, bool spacing) const
+{
+	// FIXME We may need to do more interesting things 
+	// with MathMLtype.
+	char const * type = MathMLtype(sym_->extra);
+	bool op = (std::string(type) == "mo");
+	
+	if (sym_->xmlname == "x") 
+		// unknown so far
+		os << ' ' << name() << ' ';
+	else if (op && spacing) 
+		os << ' ' << sym_->xmlname << ' ';
+	else
+		os << sym_->xmlname;
+}
+
+
+void InsetMathSymbol::htmlize(HtmlStream & os) const
+{
+	htmlize(os, true);
 }
 
 
@@ -224,5 +253,24 @@ void InsetMathSymbol::infoize2(odocstream & os) const
 	os << from_ascii("Symbol: ") << name();
 }
 
+
+void InsetMathSymbol::validate(LaTeXFeatures & features) const
+{
+	// this is not really the ideal place to do this, but we can't
+	// validate in InsetMathExInt.
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML
+	    && sym_->name == from_ascii("int")) {
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.limits{display: inline-block; vertical-align: middle; text-align:center; font-size: 75%;}\n"
+			"span.limits span{display: block;}\n"
+			"span.intsym{font-size: 150%;}\n"
+			"sub.limit{font-size: 75%;}\n"
+			"sup.limit{font-size: 75%;}\n"
+			"</style>");
+	} else {
+		if (!sym_->requires.empty())
+			features.require(to_utf8(sym_->requires));
+	}
+}
 
 } // namespace lyx

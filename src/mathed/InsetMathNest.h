@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,6 +16,8 @@
 
 // FIXME: remove
 #include "support/docstring.h"
+
+#include <map>
 
 namespace lyx {
 
@@ -29,7 +31,9 @@ public:
 	/// nestinsets have a fixed size to start with
 	InsetMathNest(Buffer * buf, idx_type ncells);
 	///
-	virtual ~InsetMathNest() {}
+	virtual ~InsetMathNest();
+	///
+	void setBuffer(Buffer &);
 
 	/// the size is usually some sort of convex hull of the cells
 	/// hides inset::metrics() intentionally!
@@ -41,6 +45,8 @@ public:
 	/// draw decorations.
 	void drawDecoration(PainterInfo & pi, int x, int y) const
 	{ drawMarkers(pi, x, y); }
+	///
+	void updateBuffer(ParIterator const &, UpdateType);
 	/// identifies NestInsets
 	InsetMathNest * asNestInset() { return this; }
 	/// identifies NestInsets
@@ -78,9 +84,9 @@ public:
 	/// get notification when the cursor leaves this inset
 	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
 
-	/// direct access to the cell.
-	/// inlined because shows in profile.
 	//@{
+	/// direct access to the cell.
+	/// Inlined because of performance reasons.
 	MathData & cell(idx_type i) { return cells_[i]; }
 	MathData const & cell(idx_type i) const { return cells_[i]; }
 	//@}
@@ -107,9 +113,10 @@ public:
 	///
 	int latex(odocstream & os, OutputParams const & runparams) const;
 	///
-	bool setMouseHover(bool mouse_hover);
+	bool setMouseHover(BufferView const * bv, bool mouse_hover);
 	///
-	bool mouseHovered() const { return mouse_hover_; }
+	bool mouseHovered(BufferView const * bv) const 
+		{ return mouse_hover_[bv]; }
 
 	///
 	bool completionSupported(Cursor const &) const;
@@ -127,6 +134,8 @@ public:
 	bool insertCompletion(Cursor & cur, docstring const & s, bool finished);
 	///
 	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
+	///
+	InsetCode lyxCode() const { return MATH_NEST_CODE; }
 
 protected:
 	///
@@ -188,8 +197,8 @@ protected:
 	/// if the inset is locked, it can't be entered with the cursor
 	bool lock_;
 	///
-	bool mouse_hover_;
-};
+	mutable std::map<BufferView const *, bool> mouse_hover_;
+};	
 
 
 

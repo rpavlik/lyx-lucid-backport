@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -26,7 +26,6 @@
 #include "support/docstream.h"
 
 #include <map>
-#include <sstream>
 
 using namespace std;
 
@@ -188,16 +187,25 @@ double const hline[] = {
 
 
 double const ddot[] = {
-	1, 0.2, 0.5,  0.3, 0.5,
-	1, 0.7, 0.5,  0.8, 0.5,
+	1, 0.2, 0.5, 0.3, 0.5,
+	1, 0.7, 0.5, 0.8, 0.5,
 	0
 };
 
 
 double const dddot[] = {
-	1, 0.1, 0.5,  0.2, 0.5,
+	1, 0.1,  0.5, 0.2,  0.5,
 	1, 0.45, 0.5, 0.55, 0.5,
-	1, 0.8, 0.5,  0.9, 0.5,
+	1, 0.8,  0.5, 0.9,  0.5,
+	0
+};
+
+
+double const ddddot[] = {
+	1, 0.1,  0.5, 0.2,  0.5,
+	1, 0.45, 0.5, 0.55, 0.5,
+	1, 0.8,  0.5, 0.9,  0.5,
+	1, 1.15, 0.5, 1.25, 0.5,
 	0
 };
 
@@ -315,6 +323,7 @@ named_deco_struct deco_table[] = {
 	// Accents
 	{"ddot",           ddot,       0 },
 	{"dddot",          dddot,      0 },
+	{"ddddot",         ddddot,     0 },
 	{"hat",            angle,      3 },
 	{"grave",          slash,      1 },
 	{"acute",          slash,      0 },
@@ -332,6 +341,8 @@ named_deco_struct deco_table[] = {
 	{"cdots",          hline3,     0 },
 	{"vdots",          hline3,     1 },
 	{"ddots",          dline3,     0 },
+	{"adots",          dline3,     1 },
+	{"iddots",         dline3,     1 },
 	{"dotsb",          hline3,     0 },
 	{"dotsc",          hline3,     0 },
 	{"dotsi",          hline3,     0 },
@@ -535,6 +546,8 @@ fontinfo fontinfos[] = {
 			  inh_shape, Color_math},
 	{"mathit",        inh_family, inh_series,
 			  ITALIC_SHAPE, Color_math},
+	{"mathscr",       RSFS_FAMILY, inh_series,
+	          inh_shape, Color_math}, 
 	{"cmex",          CMEX_FAMILY, inh_series,
 			  inh_shape, Color_math},
 	{"cmm",           CMM_FAMILY, inh_series,

@@ -5,27 +5,24 @@ CLEANFILES += $(BUILT_SOURCES)
 EXTRA_DIST = pch.h \
 	os_cygwin.cpp os_unix.cpp os_win32.cpp os_win32.h
 
-noinst_LTLIBRARIES = liblyxsupport.la
-
-liblyxsupport_la_LIBADD = $(LIBSHLWAPI) $(QT4_CORE_LIB) $(BOOST_SIGNALS)
-liblyxsupport_la_LDFLAGS = $(QT4_CORE_LDFLAGS)
+noinst_LIBRARIES = liblyxsupport.a
 
 BUILT_SOURCES = $(PCH_FILE)
 
 #########################  Qt stuff  #############################
 #
 
-MOCHEADER = SignalSlotPrivate.h
+MOCHEADER = SystemcallPrivate.h
 
-MOCEDFILES = $(MOCHEADER:%.h=%_moc.cpp)
+MOCEDFILES = $(MOCHEADER:%.h=moc_%.cpp)
 
 CLEANFILES += $(MOCEDFILES)
 BUILT_SOURCES += $(MOCEDFILES)
 
-%_moc.cpp: %.h
+moc_%.cpp: %.h
 	$(MOC4) -o $@ $<
 
-liblyxsupport_la_DEPENDENCIES = $(MOCEDFILES)
+liblyxsupport_a_DEPENDENCIES = $(MOCEDFILES)
 
 #
 ##################################################################
@@ -33,10 +30,11 @@ liblyxsupport_la_DEPENDENCIES = $(MOCEDFILES)
 AM_CPPFLAGS += $(PCH_FLAGS) -I$(srcdir)/.. $(BOOST_INCLUDES)
 AM_CPPFLAGS += $(QT4_CPPFLAGS) $(QT4_CORE_INCLUDES) 
 
-liblyxsupport_la_SOURCES = \
+liblyxsupport_a_SOURCES = \
 	FileMonitor.h \
 	FileMonitor.cpp \
 	RandomAccessList.h \
+	bind.h \
 	convert.cpp \
 	convert.h \
 	copied_ptr.h \
@@ -58,6 +56,7 @@ liblyxsupport_la_SOURCES = \
 	foreach.h \
 	ForkedCalls.cpp \
 	ForkedCalls.h \
+	functional.h \
 	gettext.cpp \
 	gettext.h \
 	gzstream.cpp \
@@ -72,26 +71,26 @@ liblyxsupport_la_SOURCES = \
 	lyxlib.h \
 	lyxtime.cpp \
 	lyxtime.h \
-	numpunct_lyx_char_type.h \
 	Messages.cpp \
 	Messages.h \
+	numpunct_lyx_char_type.h \
 	os.cpp \
 	os.h \
 	Path.cpp \
 	Path.h \
 	Package.cpp \
 	Package.h \
+	ProgressInterface.h \
 	qstring_helpers.cpp \
 	qstring_helpers.h \
+	regex.h \
 	socktools.cpp \
 	socktools.h \
 	strfwd.h \
 	Systemcall.cpp \
 	Systemcall.h \
-	SignalSlot.cpp \
-	SignalSlot.h \
-	SignalSlotPrivate.cpp \
-	SignalSlotPrivate.h \
+	SystemcallPrivate.h \
+	shared_ptr.h \
 	textutils.h \
 	Translator.h \
 	Timeout.cpp \
@@ -101,10 +100,21 @@ liblyxsupport_la_SOURCES = \
 	userinfo.h \
 	unicode.cpp \
 	unicode.h \
-	weighted_btree.h
+	weighted_btree.h \
+	mythes/mythes.cxx \
+	mythes/mythes.hxx \
+	mythes/license.readme
+
+#if INSTALL_MACOSX
+#liblyxsupport_a_SOURCES += \
+#	AppleSpellChecker.h \
+#	AppleSpellChecker.mm
+#endif
 
 if INSTALL_MACOSX
-liblyxsupport_la_SOURCES += \
+liblyxsupport_a_SOURCES += \
+	AppleSpeller.h \
+	AppleSpeller.m \
 	linkback/LinkBack.h \
 	linkback/LinkBack.m \
 	linkback/LinkBackProxy.h \
@@ -134,19 +144,19 @@ check_PROGRAMS = \
 	check_filetools \
 	check_lstrings
 
-check_convert_LDADD = liblyxsupport.la  \
-	$(BOOST_LIBS) $(QT4_CORE_LIB)
-check_convert_LDFLAGS = $(QT4_CORE_LDFLAGS)
+check_convert_LDADD = liblyxsupport.a $(INTLLIBS) $(LIBICONV) $(BOOST_LIBS) $(QT4_CORE_LIBS)
+check_convert_LDFLAGS = $(QT4_LDFLAGS)
 check_convert_SOURCES = \
 	tests/check_convert.cpp \
 	tests/boost.cpp
 
-check_filetools_LDADD = liblyxsupport.la $(BOOST_LIBS)
+check_filetools_LDADD = liblyxsupport.a $(INTLLIBS) $(LIBICONV) $(BOOST_LIBS) $(QT4_CORE_LIBS)
+check_filetools_LDFLAGS = $(QT4_CORE_LDFLAGS)
 check_filetools_SOURCES = \
 	tests/check_filetools.cpp \
 	tests/boost.cpp
 
-check_lstrings_LDADD = liblyxsupport.la $(BOOST_LIBS) $(QT4_CORE_LIB)
+check_lstrings_LDADD = liblyxsupport.a $(INTLLIBS) $(LIBICONV) $(BOOST_LIBS) $(QT4_CORE_LIBS)
 check_lstrings_LDFLAGS = $(QT4_CORE_LDFLAGS)
 check_lstrings_SOURCES = \
 	tests/check_lstrings.cpp \

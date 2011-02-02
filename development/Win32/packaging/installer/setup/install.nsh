@@ -23,13 +23,6 @@ Section -ProgramFiles SecProgramFiles
   # $PLUGINSDIR is automatically deleted when the installer exits.
   InitPluginsDir
   
-  # Delete stuff from previous versions
-  Delete "$INSTDIR\bin\lyxc.exe"
-  RMDir /r "$INSTDIR\ghostscript\bin"
-  RMDir /r "$INSTDIR\ghostscript\lib"
-  RMDir /r "$INSTDIR\ghostscript\fonts"
-  RMDir /r "$INSTDIR\imagemagick"
-  
   # Binaries
   SetOutPath "$INSTDIR\bin"
   !insertmacro FileListLyXBin File "${FILES_LYX}\bin\"

@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,6 +19,7 @@
 
 #include "support/debug.h"
 #include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
@@ -90,18 +91,10 @@ void InsetMathString::octave(OctaveStream & os) const
 }
 
 
-void InsetMathString::mathmlize(MathStream & os) const
+void InsetMathString::mathmlize(MathStream & /*os*/) const
 {
-/*
-	if (code_ == LM_TC_VAR)
-		os << "<mi> " << str_ << " </mi>";
-	else if (code_ == LM_TC_CONST)
-		os << "<mn> " << str_ << " </mn>";
-	else if (code_ == LM_TC_RM || code_ == LM_TC_TEXTRM)
-		os << "<mtext> " << str_ <<  " </mtext>";
-	else
-*/
-		os << str_;
+	// useless, no doubt, but we should not be here
+	LASSERT(false, /* */);
 }
 
 
@@ -173,7 +166,7 @@ void InsetMathString::write(WriteStream & os) const
 			}
 			case WriteStream::wsPreview: {
 				// indicate the encoding error by a boxed '?'
-				os << "{\\fboxsep=1pt\\fbox{?}}";;
+				os << "{\\fboxsep=1pt\\fbox{?}}";
 				LYXERR0("Uncodable character" << " '"
 					<< docstring(1, e.failed_char)
 					<< "'");

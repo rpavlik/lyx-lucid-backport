@@ -53,6 +53,8 @@ public:
 
 	/// The converter is latex or its derivatives
 	bool latex;
+	/// The latex derivate
+	std::string latex_flavor;
 	/// The converter is xml
 	bool xml;
 	/// This converter needs the .aux files
@@ -71,8 +73,6 @@ public:
 ///
 class Converters {
 public:
-	///
-	typedef std::vector<int> EdgePath; // to be removed SOON
 	///
 	typedef std::vector<Converter> ConverterList;
 	///
@@ -100,8 +100,10 @@ public:
 		     bool clear_visited);
 
 	std::vector<Format const *> importableFormats();
+	std::vector<Format const *> exportableFormats(bool only_viewable);
 
 	std::vector<std::string> loaders() const;
+	std::vector<std::string> savers() const;
 
 	/// Does a conversion path from format \p from to format \p to exist?
 	bool isReachable(std::string const & from, std::string const & to);

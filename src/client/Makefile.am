@@ -11,8 +11,9 @@ EXTRA_DIST = lyxclient.1in
 AM_CPPFLAGS += -I$(srcdir)/.. $(BOOST_INCLUDES)
 
 lyxclient_LDADD = \
-	$(top_builddir)/src/support/liblyxsupport.la \
-	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
+	$(top_builddir)/src/support/liblyxsupport.a \
+	$(BOOST_LIBS) $(INTLLIBS) @LIBS@ $(SOCKET_LIBS) \
+	$(QT4_LIB) $(QT4_LDFLAGS) $(LIBSHLWAPI) $(LIBPSAPI)
 
 # everything below the line containing the single backslashs
 # an ugly hack and needed because of the

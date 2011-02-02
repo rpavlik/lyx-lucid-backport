@@ -12,6 +12,9 @@
 #define APPLICATION_H
 
 #include "ColorCode.h"
+#include "FuncCode.h"
+
+#include "KeyModifier.h"
 
 #include "support/strfwd.h"
 
@@ -24,6 +27,7 @@ namespace lyx {
 
 class BufferView;
 class Buffer;
+class DispatchResult;
 class docstring_list;
 class FuncRequest;
 class FuncStatus;
@@ -35,8 +39,6 @@ namespace frontend {
 
 class Clipboard;
 class FontLoader;
-class Gui;
-class LyXView;
 class Selection;
 
 /// The main application class
@@ -55,7 +57,7 @@ initialisation should be done before the instanciation of this class.
 
  Application (this is the frontend really, should probably be renamed).
    |
-   LyXView-1 (one or more in case of split-view mode).
+   GuiView-1 (one or more in case of split-view mode).
    |  |
    |  <tab-widget-1-1> 
    |  |  |
@@ -73,7 +75,7 @@ initialisation should be done before the instanciation of this class.
    |  |
    |  <tab-widget-1-2> 
    |
-   LyXView-2 (one or more in case of split-view mode).
+   GuiView-2 (one or more in case of split-view mode).
    |  |
    |  <tab-widget-2-1>
    |  |  |
@@ -132,14 +134,14 @@ initialisation should be done before the instanciation of this class.
  - etc.
 
 
- 4) The Window: \c LyXView (and its qt4 specialisation \c GuiView)
+ 4) The Window: \c GuiView
 
  This is a full window containing a menubar, toolbars and a central
- widget. A LyXView is in charge of creating and closing a View for a
+ widget. A GuiView is in charge of creating and closing a View for a
  given Buffer.
  In the qt4 specialisation, \c GuiView, the central widget is a tab
  widget. Each tab is reverved to the visualisation of one Buffer and
- contains one WorkArea. In the qt4 frontend, one LyXView thus contains
+ contains one WorkArea. In the qt4 frontend, one GuiView thus contains
  multiple WorkAreas but this number can limited to one for another
  frontend. The idea is that the kernel should not know how a Buffer
  is displayed on screen; it's the frontend business.
@@ -168,20 +170,24 @@ public:
 	///
 	virtual ~Application() {}
 
-	///
-	virtual bool getStatus(FuncRequest const & cmd, FuncStatus & flag) const = 0;
-	/// dispatch command.
-	/// \return true if the \c FuncRequest has been dispatched.
-	virtual bool dispatch(FuncRequest const & cmd) = 0;
+	/// LyX dispatcher: executes lyx actions and does necessary
+	/// screen updates depending on results.
+	/// This method encapsulates all the LyX command operations.
+	/// This is the class of the LyX's "high level event handler".
+	/// Every user command is processed here, either invocated from
+	/// keyboard or from the GUI. All GUI objects, including buttons and
+	/// menus should use this class and never call kernel functions directly.
+	virtual void dispatch(FuncRequest const &) = 0;
+
+	/// LyX dispatcher: executes lyx actions and returns result.
+	virtual void dispatch(FuncRequest const &, DispatchResult & dr) = 0;
 
 	///
-	virtual void resetGui() = 0;
+	virtual FuncStatus getStatus(FuncRequest const & cmd) const = 0;
 
 	/// Load files and restore GUI Session.
 	virtual void restoreGuiSession() = 0;
 
-	///
-	virtual void hideDialogs(std::string const & name, Inset * inset) const = 0;
 	///
 	virtual Buffer const * updateInset(Inset const * inset) const = 0;
 
@@ -203,6 +209,8 @@ public:
 	* It returns false on failure and sets r, g, b to 0.
 	*/
 	virtual bool getRgbColor(ColorCode col, RGBColor & rgbcol) = 0;
+	/// Like getRgbColor(), but static and slower
+	static bool getRgbColorUncached(ColorCode col, RGBColor & rgbcol);
 
 	/** Eg, passing Color_black returns "000000",
 	*      passing Color_white returns "ffffff".
@@ -226,7 +234,11 @@ public:
 		docstring_list & names) const = 0;
 
 	/// \return the icon file name for the given action.
-	virtual docstring iconName(FuncRequest const & f, bool unknown) = 0;
+	static docstring iconName(FuncRequest const & f, bool unknown);
+
+	/// Handle a accented char key sequence
+	/// FIXME: this is only needed for LFUN_ACCENT_* in Text::dispatch()
+	virtual void handleKeyFunc(FuncCode action) = 0;
 };
 
 /// Return the list of loadable formats.

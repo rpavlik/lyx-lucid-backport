@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -38,11 +38,18 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void maple(MapleStream &) const;
 	///
 	void mathematica(MathematicaStream &) const;
 	///
 	void octave(OctaveStream &) const;
+	///
+	InsetCode lyxCode() const { return MATH_ROOT_CODE; }
+	///
+	void validate(LaTeXFeatures &) const;
+
 private:
 	virtual Inset * clone() const;
 };

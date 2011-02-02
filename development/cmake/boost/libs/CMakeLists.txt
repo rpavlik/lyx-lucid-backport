@@ -7,6 +7,12 @@
 project(boost)
 
 
-add_subdirectory(regex)
+if(LYX_USE_TR1_REGEX)
+	message(STATUS "Using TR1 regex")
+else()
+	add_subdirectory(regex) 
+endif()
+
+
 add_subdirectory(signals) 
 

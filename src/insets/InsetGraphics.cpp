@@ -66,6 +66,7 @@ TODO
 #include "MetricsInfo.h"
 #include "Mover.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 #include "sgml.h"
 #include "TocBackend.h"
 
@@ -101,8 +102,10 @@ namespace {
 /// Note that \p format may be unknown (i. e. an empty string)
 string findTargetFormat(string const & format, OutputParams const & runparams)
 {
-	// Are we using latex or pdflatex?
-	if (runparams.flavor == OutputParams::PDFLATEX) {
+	// Are we using latex or XeTeX/LuaTeX/pdflatex?
+	if (runparams.flavor == OutputParams::PDFLATEX
+	    || runparams.flavor == OutputParams::XETEX
+	    || runparams.flavor == OutputParams::LUATEX) {
 		LYXERR(Debug::GRAPHICS, "findTargetFormat: PDF mode");
 		Format const * const f = formats.getFormat(format);
 		// Convert vector graphics to pdf
@@ -112,6 +115,12 @@ string findTargetFormat(string const & format, OutputParams const & runparams)
 		if (format == "jpg")
 			return format;
 		// Convert everything else to png
+		return "png";
+	}
+	// for HTML, we leave the known formats and otherwise convert to png
+	if (runparams.flavor == OutputParams::HTML) {
+		if (format == "jpg" || format == "png" || format == "gif")
+			return format;
 		return "png";
 	}
 	// If it's postscript, we always do eps.
@@ -153,11 +162,10 @@ void readInsetGraphics(Lexer & lex, string const & bufpath,
 } // namespace anon
 
 
-InsetGraphics::InsetGraphics(Buffer & buf)
-	: graphic_label(sgml::uniqueID(from_ascii("graph"))),
+InsetGraphics::InsetGraphics(Buffer * buf)
+	: Inset(buf), graphic_label(sgml::uniqueID(from_ascii("graph"))),
 	  graphic_(new RenderGraphic(this))
 {
-	Inset::setBuffer(buf);
 }
 
 
@@ -185,12 +193,12 @@ InsetGraphics::~InsetGraphics()
 
 void InsetGraphics::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_EDIT: {
 		InsetGraphicsParams p = params();
 		if (!cmd.argument().empty())
 			string2params(to_utf8(cmd.argument()), buffer(), p);
-		editGraphics(p, buffer());
+		editGraphics(p);
 		break;
 	}
 
@@ -198,28 +206,22 @@ void InsetGraphics::doDispatch(Cursor & cur, FuncRequest & cmd)
 		InsetGraphicsParams p;
 		string2params(to_utf8(cmd.argument()), buffer(), p);
 		if (p.filename.empty()) {
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			break;
 		}
 
+		cur.recordUndo();
 		setParams(p);
 		// if the inset is part of a graphics group, all the
 		// other members should be updated too.
 		if (!params_.groupId.empty())
-			graphics::unifyGraphicsGroups(cur.buffer(), 
+			graphics::unifyGraphicsGroups(buffer(), 
 						      to_utf8(cmd.argument()));
 		break;
 	}
 
 	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("graphics", params2string(params(),
-				      cur.bv().buffer()));
-		break;
-
-	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection() && cmd.button() == mouse_button::button1)
-			cur.bv().showDialog("graphics", params2string(params(),
-					    cur.bv().buffer()), this);
+		cur.bv().updateDialog("graphics", params2string(params(), buffer()));
 		break;
 
 	case LFUN_GRAPHICS_RELOAD:
@@ -237,7 +239,7 @@ void InsetGraphics::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetGraphics::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_EDIT:
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
@@ -251,11 +253,13 @@ bool InsetGraphics::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetGraphics::edit(Cursor & cur, bool, EntryDirection)
+bool InsetGraphics::showInsetDialog(BufferView * bv) const
 {
-	cur.bv().showDialog("graphics", params2string(params(),
-		cur.bv().buffer()), this);
+	bv->showDialog("graphics", params2string(params(), bv->buffer()),
+		const_cast<InsetGraphics *>(this));
+	return true;
 }
+
 
 
 void InsetGraphics::metrics(MetricsInfo & mi, Dimension & dim) const
@@ -267,12 +271,6 @@ void InsetGraphics::metrics(MetricsInfo & mi, Dimension & dim) const
 void InsetGraphics::draw(PainterInfo & pi, int x, int y) const
 {
 	graphic_->draw(pi, x, y);
-}
-
-
-Inset::EDITABLE InsetGraphics::editable() const
-{
-	return IS_EDITABLE;
 }
 
 
@@ -397,7 +395,7 @@ docstring InsetGraphics::toDocbookLength(Length const & len) const
 		case Length::PPW: // Percent of PageWidth
 		case Length::PLW: // Percent of LineWidth
 		case Length::PTH: // Percent of TextHeight
-		case Length::PPH: // Percent of Paper
+		case Length::PPH: // Percent of PaperHeight
 			// Sigh, this will go wrong.
 			result << len.value() << "%";
 			break;
@@ -475,7 +473,7 @@ copyFileIfNeeded(FileName const & file_in, FileName const & file_out)
 		LYXERR(Debug::GRAPHICS,
 			to_utf8(bformat(_("Could not copy the file\n%1$s\n"
 							   "into the temporary directory."),
-						from_utf8(file_in.absFilename()))));
+						from_utf8(file_in.absFileName()))));
 	}
 
 	GraphicsCopyStatus status = success ? SUCCESS : FAILURE;
@@ -486,20 +484,20 @@ copyFileIfNeeded(FileName const & file_in, FileName const & file_out)
 pair<GraphicsCopyStatus, FileName> const
 copyToDirIfNeeded(DocFileName const & file, string const & dir)
 {
-	string const file_in = file.absFilename();
+	string const file_in = file.absFileName();
 	string const only_path = onlyPath(file_in);
 	if (rtrim(onlyPath(file_in) , "/") == rtrim(dir, "/"))
 		return make_pair(IDENTICAL_PATHS, file_in);
 
-	string mangled = file.mangledFilename();
+	string mangled = file.mangledFileName();
 	if (file.isZipped()) {
 		// We need to change _eps.gz to .eps.gz. The mangled name is
-		// still unique because of the counter in mangledFilename().
-		// We can't just call mangledFilename() with the zip
+		// still unique because of the counter in mangledFileName().
+		// We can't just call mangledFileName() with the zip
 		// extension removed, because base.eps and base.eps.gz may
 		// have different content but would get the same mangled
 		// name in this case.
-		string const base = removeExtension(file.unzippedFilename());
+		string const base = removeExtension(file.unzippedFileName());
 		string::size_type const ext_len = file_in.length() - base.length();
 		mangled[mangled.length() - ext_len] = '.';
 	}
@@ -552,17 +550,13 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 	if (params().filename.empty())
 		return string();
 
-	string const orig_file = params().filename.absFilename();
+	string const orig_file = params().filename.absFileName();
 	// this is for dryrun and display purposes, do not use latexFilename
-	string const rel_file = params().filename.relFilename(buffer().filePath());
+	string const rel_file = params().filename.relFileName(buffer().filePath());
 
 	// previewing source code, no file copying or file format conversion
 	if (runparams.dryrun)
 		return stripExtensionIfPossible(rel_file, runparams.nice);
-
-	// temp_file will contain the file for LaTeX to act on if, for example,
-	// we move it to a temp dir or uncompress it.
-	FileName temp_file = params().filename;
 
 	// The master buffer. This is useful when there are multiple levels
 	// of include files
@@ -573,13 +567,16 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 	// We are not going to change the extension or using the name of the
 	// temporary file, the code is already complicated enough.
 	if (runparams.inComment || !params().filename.isReadableFile())
-		return params().filename.outputFilename(masterBuffer->filePath());
+		return params().filename.outputFileName(masterBuffer->filePath());
 
 	// We place all temporary files in the master buffer's temp dir.
 	// This is possible because we use mangled file names.
 	// This is necessary for DVI export.
 	string const temp_path = masterBuffer->temppath();
 
+	// temp_file will contain the file for LaTeX to act on if, for example,
+	// we move it to a temp dir or uncompress it.
+	FileName temp_file;
 	GraphicsCopyStatus status;
 	boost::tie(status, temp_file) =
 			copyToDirIfNeeded(params().filename, temp_path);
@@ -591,17 +588,29 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 	// "nice" means that the buffer is exported to LaTeX format but not
 	// run through the LaTeX compiler.
 	string output_file = runparams.nice ?
-		params().filename.outputFilename(masterBuffer->filePath()) :
-		onlyFilename(temp_file.absFilename());
+		params().filename.outputFileName(masterBuffer->filePath()) :
+		onlyFileName(temp_file.absFileName());
 
-	if (runparams.nice && !isValidLaTeXFilename(output_file)) {
-		frontend::Alert::warning(_("Invalid filename"),
-				         _("The following filename is likely to cause trouble "
-					   "when running the exported file through LaTeX: ") +
-					    from_utf8(output_file));
+	if (runparams.nice) {
+		if (!isValidLaTeXFileName(output_file)) {
+			frontend::Alert::warning(_("Invalid filename"),
+				_("The following filename will cause troubles "
+				  "when running the exported file through LaTeX: ") +
+				from_utf8(output_file));
+		}
+		// only show DVI-specific warning when export format is plain latex
+		if (!isValidDVIFileName(output_file)
+			&& runparams.flavor == OutputParams::LATEX) {
+				frontend::Alert::warning(_("Problematic filename for DVI"),
+				         _("The following filename can cause troubles "
+					       "when running the exported file through LaTeX "
+						   "and opening the resulting DVI: ") +
+					     from_utf8(output_file), true);
+		}
 	}
 
 	FileName source_file = runparams.nice ? FileName(params().filename) : temp_file;
+	// determine the export format
 	string const tex_format = (runparams.flavor == OutputParams::LATEX) ?
 			"latex" : "pdflatex";
 
@@ -626,7 +635,7 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 				// LaTeX needs the bounding box file in the
 				// tmp dir
 				FileName bb_file =
-					FileName(changeExtension(temp_file.absFilename(), "bb"));
+					FileName(changeExtension(temp_file.absFileName(), "bb"));
 				boost::tie(status, bb_file) =
 					copyFileIfNeeded(bb_orig_file, bb_file);
 				if (status == FAILURE)
@@ -644,9 +653,9 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 		}
 
 		FileName const unzipped_temp_file =
-			FileName(unzippedFileName(temp_file.absFilename()));
+			FileName(unzippedFileName(temp_file.absFileName()));
 		output_file = unzippedFileName(output_file);
-		source_file = FileName(unzippedFileName(source_file.absFilename()));
+		source_file = FileName(unzippedFileName(source_file.absFileName()));
 		if (compare_timestamps(unzipped_temp_file, temp_file) > 0) {
 			// temp_file has been unzipped already and
 			// orig_file has not changed in the meantime.
@@ -674,17 +683,18 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 	LYXERR(Debug::GRAPHICS, "\tthe orig file is: " << orig_file);
 
 	if (from == to) {
+		// source and destination formats are the same
 		if (!runparams.nice && !FileName(temp_file).hasExtension(ext)) {
 			// The LaTeX compiler will not be able to determine
 			// the file format from the extension, so we must
 			// change it.
 			FileName const new_file = 
-				FileName(changeExtension(temp_file.absFilename(), ext));
+				FileName(changeExtension(temp_file.absFileName(), ext));
 			if (temp_file.moveTo(new_file)) {
 				temp_file = new_file;
 				output_file = changeExtension(output_file, ext);
 				source_file = 
-					FileName(changeExtension(source_file.absFilename(), ext));
+					FileName(changeExtension(source_file.absFileName(), ext));
 			} else {
 				LYXERR(Debug::GRAPHICS, "Could not rename file `"
 					<< temp_file << "' to `" << new_file << "'.");
@@ -698,7 +708,8 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 		return stripExtensionIfPossible(output_file, to, runparams.nice);
 	}
 
-	FileName const to_file = FileName(changeExtension(temp_file.absFilename(), ext));
+	// so the source and destination formats are different
+	FileName const to_file = FileName(changeExtension(temp_file.absFileName(), ext));
 	string const output_to_file = changeExtension(output_file, ext);
 
 	// Do we need to perform the conversion?
@@ -741,7 +752,7 @@ int InsetGraphics::latex(odocstream & os,
 	// If there is no file specified or not existing,
 	// just output a message about it in the latex output.
 	LYXERR(Debug::GRAPHICS, "insetgraphics::latex: Filename = "
-		<< params().filename.absFilename());
+		<< params().filename.absFileName());
 
 	bool const file_exists = !params().filename.empty()
 			&& params().filename.isReadableFile();
@@ -801,7 +812,7 @@ int InsetGraphics::plaintext(odocstream & os, OutputParams const &) const
 	// FIXME: We have no idea what the encoding of the filename is
 
 	docstring const str = bformat(buffer().B_("Graphics file: %1$s"),
-				      from_utf8(params().filename.absFilename()));
+				      from_utf8(params().filename.absFileName()));
 	os << '<' << str << '>';
 
 	return 2 + str.size();
@@ -867,6 +878,108 @@ int InsetGraphics::docbook(odocstream & os,
 }
 
 
+string InsetGraphics::prepareHTMLFile(OutputParams const & runparams) const
+{
+	// The following code depends on non-empty filenames
+	if (params().filename.empty())
+		return string();
+
+	string const orig_file = params().filename.absFileName();
+
+	// The master buffer. This is useful when there are multiple levels
+	// of include files
+	Buffer const * masterBuffer = buffer().masterBuffer();
+
+	if (!params().filename.isReadableFile())
+		return string();
+
+	// We place all temporary files in the master buffer's temp dir.
+	// This is possible because we use mangled file names.
+	// FIXME We may want to put these files in some special temporary
+	// directory.
+	string const temp_path = masterBuffer->temppath();
+
+	// Copy to temporary directory.
+	FileName temp_file;
+	GraphicsCopyStatus status;
+	boost::tie(status, temp_file) =
+			copyToDirIfNeeded(params().filename, temp_path);
+
+	if (status == FAILURE)
+		return string();
+
+	string output_file = onlyFileName(temp_file.absFileName());
+
+	string const from = formats.getFormatFromFile(temp_file);
+	if (from.empty())
+		LYXERR(Debug::GRAPHICS, "\tCould not get file format.");
+
+	string const to   = findTargetFormat(from, runparams);
+	string const ext  = formats.extension(to);
+	LYXERR(Debug::GRAPHICS, "\t we have: from " << from << " to " << to);
+	LYXERR(Debug::GRAPHICS, "\tthe orig file is: " << orig_file);
+
+	if (from == to) {
+		// source and destination formats are the same
+		runparams.exportdata->addExternalFile("xhtml", temp_file, output_file);
+		return output_file;
+	}
+
+	// so the source and destination formats are different
+	FileName const to_file = FileName(changeExtension(temp_file.absFileName(), ext));
+	string const output_to_file = changeExtension(output_file, ext);
+
+	// Do we need to perform the conversion?
+	// Yes if to_file does not exist or if temp_file is newer than to_file
+	if (compare_timestamps(temp_file, to_file) < 0) {
+		// FIXME UNICODE
+		LYXERR(Debug::GRAPHICS,
+			to_utf8(bformat(_("No conversion of %1$s is needed after all"),
+				   from_utf8(orig_file))));
+		runparams.exportdata->addExternalFile("xhtml", to_file, output_to_file);
+		return output_to_file;
+	}
+
+	LYXERR(Debug::GRAPHICS,"\tThe original file is " << orig_file << "\n"
+		<< "\tA copy has been made and convert is to be called with:\n"
+		<< "\tfile to convert = " << temp_file << '\n'
+		<< "\t from " << from << " to " << to);
+
+	// FIXME (Abdel 12/08/06): Is there a need to show these errors?
+	ErrorList el;
+	bool const success = 
+		theConverters().convert(&buffer(), temp_file, to_file, params().filename,
+			from, to, el, Converters::try_default | Converters::try_cache);
+	if (!success)	
+		return string();
+	runparams.exportdata->addExternalFile("xhtml", to_file, output_to_file);
+	return output_to_file;
+}
+
+
+docstring InsetGraphics::xhtml(XHTMLStream & xs, OutputParams const & op) const
+{
+	string const output_file = prepareHTMLFile(op);
+	if (output_file.empty()) {
+		LYXERR0("InsetGraphics::xhtml: Unable to prepare file `" 
+		        << params().filename << "' for output. File missing?");
+		string const attr = "src='" + params().filename.absFileName() 
+		                    + "' alt='image: " + output_file + "'";
+		xs << html::CompTag("img", attr);
+		return docstring();
+	}
+
+	// FIXME XHTML 
+	// Do we want to do something with the parameters, other than use them to 
+	// crop, etc, the image?
+	// Speaking of which: Do the cropping, rotating, etc.
+	string const attr = "src='" + output_file + "' alt='image: " 
+	                    + output_file + "'";
+	xs << html::CompTag("img", attr);
+	return docstring();
+}
+
+
 void InsetGraphics::validate(LaTeXFeatures & features) const
 {
 	// If we have no image, we should not require anything.
@@ -874,14 +987,14 @@ void InsetGraphics::validate(LaTeXFeatures & features) const
 		return;
 
 	features.includeFile(graphic_label,
-			     removeExtension(params().filename.absFilename()));
+			     removeExtension(params().filename.absFileName()));
 
 	features.require("graphicx");
 
 	if (features.runparams().nice) {
 		Buffer const * masterBuffer = features.buffer().masterBuffer();
 		string const rel_file = removeExtension(
-			params().filename.relFilename(masterBuffer->filePath()));
+			params().filename.relFileName(masterBuffer->filePath()));
 		if (contains(rel_file, "."))
 			features.require("lyxdot");
 	}
@@ -911,10 +1024,9 @@ InsetGraphicsParams const & InsetGraphics::params() const
 }
 
 
-void InsetGraphics::editGraphics(InsetGraphicsParams const & p,
-				 Buffer const & buffer) const
+void InsetGraphics::editGraphics(InsetGraphicsParams const & p) const
 {
-	formats.edit(buffer, p.filename,
+	formats.edit(buffer(), p.filename,
 		     formats.getFormatFromFile(p.filename));
 }
 
@@ -929,7 +1041,7 @@ void InsetGraphics::addToToc(DocIterator const & cpit)
 }
 
 
-docstring InsetGraphics::contextMenu(BufferView const &, int, int) const
+docstring InsetGraphics::contextMenuName() const
 {
 	return from_ascii("context-graphics");
 }

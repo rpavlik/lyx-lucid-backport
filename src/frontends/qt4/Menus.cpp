@@ -5,9 +5,9 @@
  *
  * \author John Levon
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Dekel Tsur
  * \author Martin Vermeer
  *
@@ -21,6 +21,7 @@
 #include "Action.h"
 #include "GuiApplication.h"
 #include "GuiView.h"
+#include "GuiWorkArea.h"
 #include "qt_helpers.h"
 
 #include "BiblioInfo.h"
@@ -36,18 +37,22 @@
 #include "Format.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "IndicesList.h"
 #include "KeyMap.h"
+#include "Language.h"
 #include "Lexer.h"
 #include "LyXAction.h"
-#include "LyX.h" // for lastfiles
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
+#include "lyxfind.h"
 #include "Paragraph.h"
 #include "ParIterator.h"
 #include "Session.h"
+#include "SpellChecker.h"
 #include "TextClass.h"
 #include "TocBackend.h"
 #include "Toolbars.h"
+#include "WordLangTuple.h"
 
 #include "insets/Inset.h"
 #include "insets/InsetCitation.h"
@@ -67,7 +72,7 @@
 #include <QMenuBar>
 #include <QString>
 
-#include <boost/shared_ptr.hpp>
+#include "support/shared_ptr.h"
 
 #include <algorithm>
 #include <vector>
@@ -96,6 +101,15 @@ public:
 		Submenu,
 		///
 		Separator,
+		/** This type of item explains why something is unavailable. If this
+		    menuitem is in a submenu, the submenu is enabled to make sure the
+		    user sees the information. */
+		Help,
+		/** This type of item merely shows that there might be a list or 
+		    something alike at this position, but the list is still empty.
+		    If this item is in a submenu, the submenu will not always be 
+		    enabled. */
+		Info,
 		/** This is the list of last opened file,
 		    typically for the File menu. */
 		Lastfiles,
@@ -140,10 +154,22 @@ public:
 		Toolbars,
 		/** Available branches in document */
 		Branches,
+		/** Available indices in document */
+		Indices,
+		/** Context menu for indices in document */
+		IndicesContext,
+		/** Available index lists in document */
+		IndicesLists,
+		/** Context menu for available indices lists in document */
+		IndicesListsContext,
 		/** Available citation styles for a given citation */
 		CiteStyles,
 		/** Available graphics groups */
-		GraphicsGroups
+		GraphicsGroups,
+		/// Words suggested by the spellchecker.
+		SpellingSuggestions,
+		/** Used Languages */
+		LanguageSelector
 	};
 
 	explicit MenuItem(Kind kind) : kind_(kind), optional_(false) {}
@@ -151,22 +177,27 @@ public:
 	MenuItem(Kind kind,
 		 QString const & label,
 		 QString const & submenu = QString(),
+		 QString const & tooltip = QString(),
 		 bool optional = false)
-		: kind_(kind), label_(label), submenuname_(submenu), optional_(optional)
+		: kind_(kind), label_(label), submenuname_(submenu),
+		  tooltip_(tooltip), optional_(optional)
 	{
-		LASSERT(kind == Submenu, /**/);
+		LASSERT(kind == Submenu || kind == Help || kind == Info, /**/);
 	}
 
 	MenuItem(Kind kind,
 		 QString const & label,
 		 FuncRequest const & func,
-		 bool optional = false)
-		: kind_(kind), label_(label), func_(func), optional_(optional)
+		 QString const & tooltip = QString(),
+		 bool optional = false,
+		 FuncRequest::Origin origin = FuncRequest::MENU)
+		: kind_(kind), label_(label), func_(func),
+		  tooltip_(tooltip), optional_(optional)
 	{
-		func_.origin = FuncRequest::MENU;
+		func_.setOrigin(origin);
 	}
 
-	// boost::shared_ptr<MenuDefinition> needs this apprently...
+	// shared_ptr<MenuDefinition> needs this apprently...
 	~MenuItem() {}
 
 	/// The label of a given menuitem
@@ -183,12 +214,14 @@ public:
 		return index == -1 ? QString() : label_.mid(index + 1); 
 	}
 	/// The complete label, with label and shortcut separated by a '|'
-	QString fulllabel() const { return label_;}
+	QString fulllabel() const { return label_; }
 	/// The kind of entry
 	Kind kind() const { return kind_; }
 	/// the action (if relevant)
 	FuncRequest const & func() const { return func_; }
-	/// returns true if the entry should be ommited when disabled
+	/// the tooltip
+	QString const & tooltip() const { return tooltip_; }
+	/// returns true if the entry should be omitted when disabled
 	bool optional() const { return optional_; }
 	/// returns the status of the lfun associated with this entry
 	FuncStatus const & status() const { return status_; }
@@ -209,7 +242,7 @@ public:
 			return toqstr(bindings.begin()->print(KeySequence::ForGui));
 
 		LYXERR(Debug::KBMAP, "No binding for "
-			<< lyxaction.getActionName(func_.action)
+			<< lyxaction.getActionName(func_.action())
 			<< '(' << func_.argument() << ')');
 		return QString();
 	}
@@ -239,6 +272,8 @@ private:
 	FuncRequest func_;
 	///
 	QString submenuname_;
+	///
+	QString tooltip_;
 	///
 	bool optional_;
 	///
@@ -273,6 +308,8 @@ public:
 	const_iterator begin() const { return items_.begin(); }
 	///
 	const_iterator end() const { return items_.end(); }
+	///
+	void cat(MenuDefinition const & other);
 	
 	// search for func in this menu iteratively, and put menu
 	// names in a stack.
@@ -300,8 +337,12 @@ public:
 	void expandPasteRecent(Buffer const * buf);
 	void expandToolbars();
 	void expandBranches(Buffer const * buf);
+	void expandIndices(Buffer const * buf, bool listof = false);
+	void expandIndicesContext(Buffer const * buf, bool listof = false);
 	void expandCiteStyles(BufferView const *);
 	void expandGraphicsGroups(BufferView const *);
+	void expandSpellingSuggestions(BufferView const *);
+	void expandLanguageSelector(Buffer const * buf);
 	///
 	ItemList items_;
 	///
@@ -348,9 +389,11 @@ void MenuDefinition::addWithStatusCheck(MenuItem const & i)
 		bool enabled = false;
 		if (i.hasSubmenu()) {
 			for (const_iterator cit = i.submenu().begin();
-			     cit != i.submenu().end(); ++cit) {
+				  cit != i.submenu().end(); ++cit) {
+				// Only these kind of items affect the status of the submenu
 				if ((cit->kind() == MenuItem::Command
-				     || cit->kind() == MenuItem::Submenu)
+					|| cit->kind() == MenuItem::Submenu
+					|| cit->kind() == MenuItem::Help)
 				    && cit->status().enabled()) {
 					enabled = true;
 					break;
@@ -389,6 +432,10 @@ void MenuDefinition::read(Lexer & lex)
 		md_endmenu,
 		md_exportformats,
 		md_importformats,
+		md_indices,
+		md_indicescontext,
+		md_indiceslists,
+		md_indiceslistscontext,
 		md_lastfiles,
 		md_optitem,
 		md_optsubmenu,
@@ -401,7 +448,9 @@ void MenuDefinition::read(Lexer & lex)
 		md_floatinsert,
 		md_pasterecent,
 		md_toolbars,
-		md_graphicsgroups
+		md_graphicsgroups,
+		md_spellingsuggestions,
+		md_languageselector
 	};
 
 	LexerKeyword menutags[] = {
@@ -418,12 +467,18 @@ void MenuDefinition::read(Lexer & lex)
 		{ "floatlistinsert", md_floatlistinsert },
 		{ "graphicsgroups", md_graphicsgroups },
 		{ "importformats", md_importformats },
+		{ "indices", md_indices },
+		{ "indicescontext", md_indicescontext },
+		{ "indiceslists", md_indiceslists },
+		{ "indiceslistscontext", md_indiceslistscontext },
 		{ "item", md_item },
+		{ "languageselector", md_languageselector },
 		{ "lastfiles", md_lastfiles },
 		{ "optitem", md_optitem },
 		{ "optsubmenu", md_optsubmenu },
 		{ "pasterecent", md_pasterecent },
 		{ "separator", md_separator },
+		{ "spellingsuggestions", md_spellingsuggestions },
 		{ "submenu", md_submenu },
 		{ "toc", md_toc },
 		{ "toolbars", md_toolbars },
@@ -448,7 +503,10 @@ void MenuDefinition::read(Lexer & lex)
 			lex.next(true);
 			string const command = lex.getString();
 			FuncRequest func = lyxaction.lookupFunc(command);
-			add(MenuItem(MenuItem::Command, toqstr(name), func, optional));
+			FuncRequest::Origin origin = FuncRequest::MENU;
+			if (name_.startsWith("context-toc-"))
+				origin = FuncRequest::TOC;
+			add(MenuItem(MenuItem::Command, toqstr(name), func, QString(), optional, origin));
 			optional = false;
 			break;
 		}
@@ -529,6 +587,30 @@ void MenuDefinition::read(Lexer & lex)
 			add(MenuItem(MenuItem::GraphicsGroups));
 			break;
 
+		case md_spellingsuggestions:
+			add(MenuItem(MenuItem::SpellingSuggestions));
+			break;
+
+		case md_languageselector:
+			add(MenuItem(MenuItem::LanguageSelector));
+			break;
+
+		case md_indices:
+			add(MenuItem(MenuItem::Indices));
+			break;
+
+		case md_indicescontext:
+			add(MenuItem(MenuItem::IndicesContext));
+			break;
+
+		case md_indiceslists:
+			add(MenuItem(MenuItem::IndicesLists));
+			break;
+
+		case md_indiceslistscontext:
+			add(MenuItem(MenuItem::IndicesListsContext));
+			break;
+
 		case md_optsubmenu:
 			optional = true;
 			// fallback to md_submenu
@@ -538,7 +620,7 @@ void MenuDefinition::read(Lexer & lex)
 			lex.next(true);
 			docstring const mname = lex.getDocString();
 			add(MenuItem(MenuItem::Submenu,
-				toqstr(mlabel), toqstr(mname), optional));
+				toqstr(mlabel), toqstr(mname), QString(), optional));
 			optional = false;
 			break;
 		}
@@ -568,6 +650,14 @@ bool MenuDefinition::hasFunc(FuncRequest const & func) const
 		if (it->func() == func)
 			return true;
 	return false;
+}
+
+
+void MenuDefinition::cat(MenuDefinition const & other)
+{
+	const_iterator et = other.end();
+	for (const_iterator it = other.begin(); it != et; ++it)
+		add(*it);
 }
 
 
@@ -658,6 +748,141 @@ void MenuDefinition::expandGraphicsGroups(BufferView const * bv)
 	}
 }
 
+
+void MenuDefinition::expandSpellingSuggestions(BufferView const * bv)
+{
+	if (!bv)
+		return;
+	WordLangTuple wl;
+	docstring_list suggestions;
+	Cursor const & cur = bv->cursor();
+	Paragraph const & par = cur.paragraph();
+	pos_type from = cur.pos();
+	pos_type to = from;
+	SpellChecker::Result res = par.spellCheck(from, to, wl, suggestions, true, true);
+	switch (res) {
+	case SpellChecker::UNKNOWN_WORD:
+		if (lyxrc.spellcheck_continuously) {
+			LYXERR(Debug::GUI, "Misspelled Word! Suggested Words = ");
+			docstring const & selection = cur.selectionAsString(false);
+			if (!cur.selection() || selection == wl.word()) {
+				size_t i = 0;
+				size_t m = 10; // first submenu index
+				MenuItem item(MenuItem::Submenu, qt_("More Spelling Suggestions"));
+				item.setSubmenu(MenuDefinition(qt_("More Spelling Suggestions")));
+				for (; i != suggestions.size(); ++i) {
+					docstring const & suggestion = suggestions[i];
+					LYXERR(Debug::GUI, suggestion);
+					MenuItem w(MenuItem::Command, toqstr(suggestion),
+						FuncRequest(LFUN_WORD_REPLACE, 
+							replace2string(suggestion,selection,
+								true, true, false, false)));
+					if (i < m)
+						add(w);
+					else
+						item.submenu().add(w);
+				}
+				if (i > m)
+					add(item);
+				if (i > 0)
+					add(MenuItem(MenuItem::Separator));
+				docstring const arg = wl.word() + " " + from_ascii(wl.lang()->lang());
+				add(MenuItem(MenuItem::Command, qt_("Add to personal dictionary|n"),
+						FuncRequest(LFUN_SPELLING_ADD, arg)));
+				add(MenuItem(MenuItem::Command, qt_("Ignore all|I"),
+						FuncRequest(LFUN_SPELLING_IGNORE, arg)));
+			}
+		}
+		break;
+	case SpellChecker::LEARNED_WORD: {
+			LYXERR(Debug::GUI, "Learned Word.");
+			docstring const arg = wl.word() + " " + from_ascii(wl.lang()->lang());
+			add(MenuItem(MenuItem::Command, qt_("Remove from personal dictionary|r"),
+					FuncRequest(LFUN_SPELLING_REMOVE, arg)));
+		}
+		break;
+	case SpellChecker::WORD_OK:
+	case SpellChecker::COMPOUND_WORD:
+	case SpellChecker::ROOT_FOUND:
+	case SpellChecker::IGNORED_WORD:
+		break;
+	}
+}
+
+struct sortLanguageByName {
+	bool operator()(const Language * a, const Language * b) const {
+		return qt_(a->display()).localeAwareCompare(qt_(b->display())) < 0;
+	}
+};
+
+void MenuDefinition::expandLanguageSelector(Buffer const * buf)
+{
+	if (!buf)
+		return;
+
+	std::set<Language const *> languages_buffer =
+		buf->masterBuffer()->getLanguages();
+	
+	if (languages_buffer.size() < 2)
+		return;
+
+	std::set<Language const *, sortLanguageByName> languages;
+
+	std::set<Language const *>::const_iterator const beg =
+		languages_buffer.begin();
+	for (std::set<Language const *>::const_iterator cit = beg;
+	     cit != languages_buffer.end(); ++cit) {
+		languages.insert(*cit);
+	}
+
+	MenuItem item(MenuItem::Submenu, qt_("Language|L"));
+	item.setSubmenu(MenuDefinition(qt_("Language")));
+	QString morelangs = qt_("More Languages ...|M");
+	QStringList accelerators;
+	if (morelangs.contains('|'))
+		accelerators.append(morelangs.section('|', -1));
+	std::set<Language const *, sortLanguageByName>::const_iterator const begin = languages.begin();
+	for (std::set<Language const *, sortLanguageByName>::const_iterator cit = begin;
+	     cit != languages.end(); ++cit) {
+		QString label = qt_((*cit)->display());
+		// try to add an accelerator
+		bool success = false;
+		// try capitals first
+		for (int i = 0; i < label.size(); ++i) {
+			QChar const ch = label[i];
+			if (!ch.isUpper())
+				continue;
+			if (!accelerators.contains(ch, Qt::CaseInsensitive)) {
+				label = label + toqstr("|") + ch;
+				accelerators.append(ch);
+				success = true;
+				break;
+			}
+		}
+		// if all capitals are taken, try the rest
+		if (!success) {
+			for (int i = 0; i < label.size(); ++i) {
+				if (label[i].isSpace())
+					continue;
+				QString const ch = QString(label[i]);
+				if (!accelerators.contains(ch, Qt::CaseInsensitive)) {
+					label = label + toqstr("|") + ch;
+					accelerators.append(ch);
+					break;
+				}
+			}
+		}
+		MenuItem w(MenuItem::Command, label,
+			FuncRequest(LFUN_LANGUAGE, (*cit)->lang()));
+		item.submenu().addWithStatusCheck(w);
+	}
+	item.submenu().add(MenuItem(MenuItem::Separator));
+	item.submenu().add(MenuItem(MenuItem::Command, morelangs,
+			FuncRequest(LFUN_DIALOG_SHOW, "character")));
+	add(item);
+}
+
+
 void MenuDefinition::expandLastfiles()
 {
 	LastFilesSection::LastFiles const & lf = theSession().lastFiles().lastFiles();
@@ -666,43 +891,71 @@ void MenuDefinition::expandLastfiles()
 	unsigned int ii = 1;
 
 	for (; lfit != lf.end() && ii <= lyxrc.num_lastfiles; ++lfit, ++ii) {
-		string const file = lfit->absFilename();
+		string const file = lfit->absFileName();
+		QString const short_path = toqstr(makeDisplayPath(file, 30));
+		QString const long_path = toqstr(makeDisplayPath(file));
 		QString label;
 		if (ii < 10)
-			label = QString("%1. %2|%3").arg(ii)
-				.arg(toqstr(makeDisplayPath(file, 30))).arg(ii);
+			label = QString("%1. %2|%3").arg(ii).arg(short_path).arg(ii);
 		else
-			label = QString("%1. %2").arg(ii)
-				.arg(toqstr(makeDisplayPath(file, 30)));
-		add(MenuItem(MenuItem::Command, label, FuncRequest(LFUN_FILE_OPEN, file)));
+			label = QString("%1. %2").arg(ii).arg(short_path);
+		add(MenuItem(MenuItem::Command, label,
+			FuncRequest(LFUN_FILE_OPEN, file), long_path));
 	}
 }
 
 
 void MenuDefinition::expandDocuments()
 {
+	MenuItem item(MenuItem::Submenu, qt_("Hidden|H"));
+	item.setSubmenu(MenuDefinition(qt_("Hidden|H")));
+
 	Buffer * first = theBufferList().first();
-	if (first) {
-		Buffer * b = first;
-		int ii = 1;
-		
-		// We cannot use a for loop as the buffer list cycles.
-		do {
+	if (!first) {
+		add(MenuItem(MenuItem::Info, qt_("<No Documents Open>")));
+		return;
+	}
+
+	int i = 0;
+	while (true) {
+		if (!guiApp->currentView())
+			break;
+		GuiWorkArea * wa = guiApp->currentView()->workArea(i);
+		if (!wa)
+			break;
+		Buffer const & b = wa->bufferView().buffer();
+		QString label = toqstr(b.fileName().displayName(20));
+		if (!b.isClean())
+			label += "*";
+		if (i < 10)
+			label = QString::number(i) + ". " + label + '|' + QString::number(i);
+		add(MenuItem(MenuItem::Command, label,
+			FuncRequest(LFUN_BUFFER_SWITCH, b.absFileName())));
+		++i;
+	}
+
+
+	i = 0;
+	Buffer * b = first;
+	// We cannot use a for loop as the buffer list cycles.
+	do {
+		bool const shown = guiApp->currentView()
+			? guiApp->currentView()->workArea(*b) : false;
+		if (!shown) {
 			QString label = toqstr(b->fileName().displayName(20));
 			if (!b->isClean())
 				label += "*";
-			if (ii < 10)
-				label = QString::number(ii) + ". " + label + '|' + QString::number(ii);
-			add(MenuItem(MenuItem::Command, label,
+			if (i < 10)
+				label = QString::number(i) + ". " + label + '|' + QString::number(i);
+			item.submenu().add(MenuItem(MenuItem::Command, label,
 				FuncRequest(LFUN_BUFFER_SWITCH, b->absFileName())));
-			
-			b = theBufferList().next(b);
-			++ii;
-		} while (b != first); 
-	} else {
-		add(MenuItem(MenuItem::Command, qt_("No Documents Open!"),
-		           FuncRequest(LFUN_NOACTION)));
-	}
+			++i;
+		}
+		b = theBufferList().next(b);
+	} while (b != first); 
+	
+	if (!item.submenu().empty())
+		add(item);
 }
 
 
@@ -710,26 +963,26 @@ void MenuDefinition::expandBookmarks()
 {
 	lyx::BookmarksSection const & bm = theSession().bookmarks();
 
+	bool empty = true;
 	for (size_t i = 1; i <= bm.size(); ++i) {
 		if (bm.isValid(i)) {
-			string const file = bm.bookmark(i).filename.absFilename();
+			string const file = bm.bookmark(i).filename.absFileName();
 			QString const label = QString("%1. %2|%3").arg(i)
 				.arg(toqstr(makeDisplayPath(file, 20))).arg(i);
 			add(MenuItem(MenuItem::Command, label,
 				FuncRequest(LFUN_BOOKMARK_GOTO, convert<docstring>(i))));
+			empty = false;
 		}
 	}
+	if (empty)
+		add(MenuItem(MenuItem::Info, qt_("<No Bookmarks Saved Yet>")));
 }
 
 
 void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 {
-	if (!buf && kind != MenuItem::ImportFormats) {
-		add(MenuItem(MenuItem::Command,
-				    qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf && kind != MenuItem::ImportFormats)
 		return;
-	}
 
 	typedef vector<Format const *> Formats;
 	Formats formats;
@@ -753,6 +1006,17 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 		action = LFUN_BUFFER_EXPORT;
 	}
 	sort(formats.begin(), formats.end(), &compareFormat);
+
+	bool const view_update = (kind == MenuItem::ViewFormats
+			|| kind == MenuItem::UpdateFormats);
+
+	QString smenue;
+	if (view_update)
+		smenue = (kind == MenuItem::ViewFormats ?
+			qt_("View (Other Formats)|F")
+			: qt_("Update (Other Formats)|p"));
+	MenuItem item(MenuItem::Submenu, smenue);
+	item.setSubmenu(MenuDefinition(smenue));
 
 	Formats::const_iterator fit = formats.begin();
 	Formats::const_iterator end = formats.end();
@@ -780,8 +1044,17 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 			label += "...";
 			break;
 		case MenuItem::ViewFormats:
-		case MenuItem::ExportFormats:
 		case MenuItem::UpdateFormats:
+			if ((*fit)->name() == buf->getDefaultOutputFormat()) {
+				docstring lbl = (kind == MenuItem::ViewFormats ?
+					bformat(_("View [%1$s]|V"), qstring_to_ucs4(label))
+					: bformat(_("Update [%1$s]|U"), qstring_to_ucs4(label)));
+				MenuItem w(MenuItem::Command, toqstr(lbl),
+						FuncRequest(action, (*fit)->name()));
+				add(w);
+				continue;
+			}
+		case MenuItem::ExportFormats:
 			if (!(*fit)->documentFormat())
 				continue;
 			break;
@@ -792,23 +1065,31 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 		if (!shortcut.isEmpty())
 			label += '|' + shortcut;
 
-		if (buf)
-			addWithStatusCheck(MenuItem(MenuItem::Command, label,
-				FuncRequest(action, (*fit)->name())));
-		else
-			add(MenuItem(MenuItem::Command, label,
-				FuncRequest(action, (*fit)->name())));
+		if (view_update) {
+			if (buf)
+				item.submenu().addWithStatusCheck(MenuItem(MenuItem::Command, label,
+					FuncRequest(action, (*fit)->name())));
+			else
+				item.submenu().add(MenuItem(MenuItem::Command, label,
+					FuncRequest(action, (*fit)->name())));
+		} else {
+			if (buf)
+				addWithStatusCheck(MenuItem(MenuItem::Command, label,
+					FuncRequest(action, (*fit)->name())));
+			else
+				add(MenuItem(MenuItem::Command, label,
+					FuncRequest(action, (*fit)->name())));
+		}
 	}
+	if (view_update)
+		add(item);
 }
 
 
 void MenuDefinition::expandFloatListInsert(Buffer const * buf)
 {
-	if (!buf) {
-		add(MenuItem(MenuItem::Command, qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf)
 		return;
-	}
 
 	FloatList const & floats = buf->params().documentClass().floats();
 	FloatList::const_iterator cit = floats.begin();
@@ -817,18 +1098,15 @@ void MenuDefinition::expandFloatListInsert(Buffer const * buf)
 		addWithStatusCheck(MenuItem(MenuItem::Command,
 				    qt_(cit->second.listName()),
 				    FuncRequest(LFUN_FLOAT_LIST_INSERT,
-						cit->second.type())));
+						cit->second.floattype())));
 	}
 }
 
 
 void MenuDefinition::expandFloatInsert(Buffer const * buf)
 {
-	if (!buf) {
-		add(MenuItem(MenuItem::Command, qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf)
 		return;
-	}
 
 	FloatList const & floats = buf->params().documentClass().floats();
 	FloatList::const_iterator cit = floats.begin();
@@ -838,7 +1116,7 @@ void MenuDefinition::expandFloatInsert(Buffer const * buf)
 		QString const label = qt_(cit->second.name());
 		addWithStatusCheck(MenuItem(MenuItem::Command, label,
 				    FuncRequest(LFUN_FLOAT_INSERT,
-						cit->second.type())));
+						cit->second.floattype())));
 	}
 }
 
@@ -846,18 +1124,19 @@ void MenuDefinition::expandFloatInsert(Buffer const * buf)
 void MenuDefinition::expandFlexInsert(
 		Buffer const * buf, InsetLayout::InsetLyXType type)
 {
-	if (!buf) {
-		add(MenuItem(MenuItem::Command, qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf)
 		return;
-	}
+
 	TextClass::InsetLayouts const & insetLayouts =
 		buf->params().documentClass().insetLayouts();
 	TextClass::InsetLayouts::const_iterator cit = insetLayouts.begin();
 	TextClass::InsetLayouts::const_iterator end = insetLayouts.end();
 	for (; cit != end; ++cit) {
 		if (cit->second.lyxtype() == type) {
-			docstring const label = cit->first;
+			docstring label = cit->first;
+			// we remove the "Flex:" prefix, if it is present
+			if (prefixIs(label, from_utf8("Flex:")))
+				label = label.substr(5);
 			addWithStatusCheck(MenuItem(MenuItem::Command, 
 				toqstr(translateIfPossible(label)),
 				FuncRequest(LFUN_FLEX_INSERT, Lexer::quoteString(label))));
@@ -865,9 +1144,7 @@ void MenuDefinition::expandFlexInsert(
 	}
 	// FIXME This is a little clunky.
 	if (items_.empty() && type == InsetLayout::CUSTOM)
-		add(MenuItem(MenuItem::Command,
-				    qt_("No custom insets defined!"),
-				    FuncRequest(LFUN_NOACTION)));
+		add(MenuItem(MenuItem::Help, qt_("No Custom Insets Defined!")));
 }
 
 
@@ -939,8 +1216,7 @@ void MenuDefinition::expandToc(Buffer const * buf)
 	// OK, so we avoid this unnecessary overhead (JMarc)
 
 	if (!buf) {
-		add(MenuItem(MenuItem::Command, qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+		add(MenuItem(MenuItem::Info, qt_("<No Document Open>")));
 		return;
 	}
 
@@ -995,12 +1271,14 @@ void MenuDefinition::expandToc(Buffer const * buf)
 
 	// Handle normal TOC
 	cit = toc_list.find("tableofcontents");
-	if (cit == end) {
-		addWithStatusCheck(MenuItem(MenuItem::Command,
-				    qt_("No Table of contents"),
-				    FuncRequest()));
-	} else
-		expandToc2(cit->second, 0, cit->second.size(), 0);
+	if (cit == end)
+		LYXERR(Debug::GUI, "No table of contents.");
+	else {
+		if (cit->second.size() > 0 ) 
+			expandToc2(cit->second, 0, cit->second.size(), 0);
+		else
+			add(MenuItem(MenuItem::Info, qt_("<Empty Table of Contents>")));
+	}
 }
 
 
@@ -1043,19 +1321,13 @@ void MenuDefinition::expandToolbars()
 
 void MenuDefinition::expandBranches(Buffer const * buf)
 {
-	if (!buf) {
-		add(MenuItem(MenuItem::Command,
-				    qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf)
 		return;
-	}
 
 	BufferParams const & master_params = buf->masterBuffer()->params();
 	BufferParams const & params = buf->params();
 	if (params.branchlist().empty() && master_params.branchlist().empty() ) {
-		add(MenuItem(MenuItem::Command,
-				    qt_("No Branch in Document!"),
-				    FuncRequest(LFUN_NOACTION)));
+		add(MenuItem(MenuItem::Help, qt_("No Branches Set for Document!")));
 		return;
 	}
 
@@ -1102,14 +1374,82 @@ void MenuDefinition::expandBranches(Buffer const * buf)
 }
 
 
-void MenuDefinition::expandCiteStyles(BufferView const * bv)
+void MenuDefinition::expandIndices(Buffer const * buf, bool listof)
 {
-	if (!bv) {
-		add(MenuItem(MenuItem::Command,
-				    qt_("No Document Open!"),
-				    FuncRequest(LFUN_NOACTION)));
+	if (!buf)
+		return;
+
+	BufferParams const & params = buf->masterBuffer()->params();
+	if (!params.use_indices) {
+		if (listof)
+			addWithStatusCheck(MenuItem(MenuItem::Command,
+					   qt_("Index List|I"),
+					   FuncRequest(LFUN_INDEX_PRINT,
+						  from_ascii("idx"))));
+		else
+			addWithStatusCheck(MenuItem(MenuItem::Command,
+					   qt_("Index Entry|d"),
+					   FuncRequest(LFUN_INDEX_INSERT,
+						  from_ascii("idx"))));
 		return;
 	}
+
+	if (params.indiceslist().empty())
+		return;
+
+	IndicesList::const_iterator cit = params.indiceslist().begin();
+	IndicesList::const_iterator end = params.indiceslist().end();
+
+	for (int ii = 1; cit != end; ++cit, ++ii) {
+		if (listof) {
+			docstring const label = 
+				bformat(_("Index: %1$s"), cit->index());
+			addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
+					   FuncRequest(LFUN_INDEX_PRINT, cit->shortcut())));
+		} else {
+			docstring const label = 
+				bformat(_("Index Entry (%1$s)"), cit->index());
+			addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
+					   FuncRequest(LFUN_INDEX_INSERT, cit->shortcut())));
+		}
+	}
+}
+
+
+void MenuDefinition::expandIndicesContext(Buffer const * buf, bool listof)
+{
+	if (!buf)
+		return;
+
+	BufferParams const & params = buf->masterBuffer()->params();
+	if (!params.use_indices || params.indiceslist().empty())
+		return;
+
+	IndicesList::const_iterator cit = params.indiceslist().begin();
+	IndicesList::const_iterator end = params.indiceslist().end();
+
+	for (int ii = 1; cit != end; ++cit, ++ii) {
+		if (listof) {
+			InsetCommandParams p(INDEX_PRINT_CODE);
+			p["type"] = cit->shortcut();
+			string const data = InsetCommand::params2string(p);
+			addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(cit->index()),
+					   FuncRequest(LFUN_INSET_MODIFY, data)));
+		} else {
+			docstring const label = 
+					bformat(_("Index Entry (%1$s)"), cit->index());
+			addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
+					   FuncRequest(LFUN_INSET_MODIFY,
+						  from_ascii("changetype ") + cit->shortcut())));
+		}
+	}
+}
+
+
+void MenuDefinition::expandCiteStyles(BufferView const * bv)
+{
+	if (!bv)
+		return;
 
 	Inset const * inset = bv->cursor().nextInset();
 	if (!inset || inset->lyxCode() != CITE_CODE) {
@@ -1140,7 +1480,7 @@ void MenuDefinition::expandCiteStyles(BufferView const * bv)
 		CiteStyle cst = citeStyleList[ii - 1];
 		cs.style = cst;
 		addWithStatusCheck(MenuItem(MenuItem::Command, toqstr(label),
-				    FuncRequest(LFUN_NEXT_INSET_MODIFY,
+				    FuncRequest(LFUN_INSET_MODIFY,
 						"changetype " + from_utf8(citationStyleToString(cs)))));
 	}
 }
@@ -1209,7 +1549,7 @@ void Menu::Impl::populate(QMenu & qMenu, MenuDefinition const & menu)
 		} else {
 			// we have a MenuItem::Command
 			qMenu.addAction(new Action(view, QIcon(), label(*m), 
-				m->func(), QString(), &qMenu));
+				m->func(), m->tooltip(), &qMenu));
 		}
 	}
 }
@@ -1258,7 +1598,7 @@ struct Menus::Impl {
 	/// Expands some special entries of the menu
 	/** The entries with the following kind are expanded to a
 	    sequence of Command MenuItems: Lastfiles, Documents,
-	    ViewFormats, ExportFormats, UpdateFormats, Branches
+	    ViewFormats, ExportFormats, UpdateFormats, Branches, Indices
 	*/
 	void expand(MenuDefinition const & frommenu, MenuDefinition & tomenu,
 		BufferView const *) const;
@@ -1433,6 +1773,22 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 			tomenu.expandBranches(buf);
 			break;
 
+		case MenuItem::Indices:
+			tomenu.expandIndices(buf);
+			break;
+
+		case MenuItem::IndicesContext:
+			tomenu.expandIndicesContext(buf);
+			break;
+
+		case MenuItem::IndicesLists:
+			tomenu.expandIndices(buf, true);
+			break;
+
+		case MenuItem::IndicesListsContext:
+			tomenu.expandIndicesContext(buf, true);
+			break;
+
 		case MenuItem::CiteStyles:
 			tomenu.expandCiteStyles(bv);
 			break;
@@ -1445,6 +1801,14 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 			tomenu.expandGraphicsGroups(bv);
 			break;
 
+		case MenuItem::SpellingSuggestions:
+			tomenu.expandSpellingSuggestions(bv);
+			break;
+
+		case MenuItem::LanguageSelector:
+			tomenu.expandLanguageSelector(buf);
+			break;
+
 		case MenuItem::Submenu: {
 			MenuItem item(*cit);
 			item.setSubmenu(MenuDefinition(cit->submenuname()));
@@ -1453,6 +1817,8 @@ void Menus::Impl::expand(MenuDefinition const & frommenu,
 		}
 		break;
 
+		case MenuItem::Info:
+		case MenuItem::Help:
 		case MenuItem::Separator:
 			tomenu.addWithStatusCheck(*cit);
 			break;
@@ -1528,7 +1894,7 @@ void Menus::read(Lexer & lex)
 	enum {
 		md_menu,
 		md_menubar,
-		md_endmenuset,
+		md_endmenuset
 	};
 
 	LexerKeyword menutags[] = {
@@ -1612,7 +1978,7 @@ void Menus::fillMenuBar(QMenuBar * qmb, GuiView * view, bool initial)
 	MenuDefinition menu;
 	BufferView * bv = 0;
 	if (view)
-		bv = view->view();
+		bv = view->currentBufferView();
 	d->expand(d->menubar_, menu, bv);
 
 	MenuDefinition::const_iterator m = menu.begin();
@@ -1652,20 +2018,30 @@ void Menus::updateMenu(Menu * qmenu)
 	if (qmenu->d->name.isEmpty())
 		return;
 
-	// Here, We make sure that theLyXFunc points to the correct LyXView.
-	theLyXFunc().setLyXView(qmenu->d->view);
+	docstring identifier = qstring_to_ucs4(qmenu->d->name);
+	MenuDefinition fromLyxMenu(qmenu->d->name);
+	while (!identifier.empty()) {
+		docstring menu_name;
+		identifier = split(identifier, menu_name, ';');
 
-	if (!d->hasMenu(qmenu->d->name)) {
-		qmenu->addAction(qt_("No action defined!"));
-		LYXERR(Debug::GUI, "\tWARNING: non existing menu: "
-			<< qmenu->d->name);
+		if (!d->hasMenu(toqstr(menu_name))) {
+			LYXERR(Debug::GUI, "\tWARNING: non existing menu: "
+				<< menu_name);
+			continue;
+		}
+
+		fromLyxMenu.cat(d->getMenu(toqstr(menu_name)));
+		fromLyxMenu.add(MenuItem(MenuItem::Separator));
+	}
+
+	if (fromLyxMenu.empty()) {
+		qmenu->addAction(qt_("No Action Defined!"));
 		return;
 	}
 
-	MenuDefinition const & fromLyxMenu = d->getMenu(qmenu->d->name);
 	BufferView * bv = 0;
 	if (qmenu->d->view)
-		bv = qmenu->d->view->view();
+		bv = qmenu->d->view->currentBufferView();
 	d->expand(fromLyxMenu, *qmenu->d->top_level_menu, bv);
 	qmenu->d->populate(*qmenu, *qmenu->d->top_level_menu);
 }
@@ -1688,4 +2064,4 @@ Menu * Menus::menu(QString const & name, GuiView & view)
 } // namespace frontend
 } // namespace lyx
 
-#include "Menus_moc.cpp"
+#include "moc_Menus.cpp"

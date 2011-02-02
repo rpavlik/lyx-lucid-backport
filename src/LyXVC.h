@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@ class VCS;
 class Buffer;
 
 /** Version Control for LyX.
-    This is the class giving the verison control features to LyX. It is
+    This is the class giving the version control features to LyX. It is
     intended to support different kinds of version control.
     The support in LyX is based loosely upon the version control in GNU Emacs,
     but is not as extensive as that one. See Extended Manual for a simple
@@ -67,36 +67,57 @@ public:
 	/// Register the document as an VC file.
 	bool registrer();
 
+
+	// std::string used as a return value in functions below are
+	// workaround to defer messages to be displayed in UI. If message()
+	// is used directly, message string is immediately overwritten
+	// by the next multiple messages on the top of the processed dispatch
+	// machinery.
+
 	/// Unlock and commit changes. Returns log.
 	std::string checkIn();
 	/// Does the current VC supports this operation?
-	bool checkInEnabled();
+	bool checkInEnabled() const;
 
 	/// Lock/update and prepare to edit document. Returns log.
 	std::string checkOut();
 	/// Does the current VC supports this operation?
-	bool checkOutEnabled();
+	bool checkOutEnabled() const;
 
 	/// Synchronize the whole archive with repository
 	std::string repoUpdate();
 	/// Does the current VC supports this operation?
-	bool repoUpdateEnabled();
+	bool repoUpdateEnabled() const;
 
 	/**
 	 * Toggle locking property of the edited file,
 	 * i.e. whether the file uses locking mechanism.
 	 */
 	std::string lockingToggle();
-	/// Does the current VC supports this operation?
-	bool lockingToggleEnabled();
+	/// Does the current VC support this operation?
+	bool lockingToggleEnabled() const;
 
 	/// Revert to last version
-	void revert();
+	bool revert();
 
 	/// Undo last check-in.
 	void undoLast();
 	/// Does the current VC supports this operation?
-	bool undoLastEnabled();
+	bool undoLastEnabled() const;
+	/**
+	 * Prepare revision rev of the file into newly created temporary file
+	 * and save the filename into parameter f.
+	 * Parameter rev can be either revision number or negative number
+	 * which is interpreted as how many revision back from the current
+	 * one do we want. rev=0 is reserved for the last (committed) revision.
+	 * We need rev to be string, since in various VCS revision is not integer.
+	 * If RCS addressed by a single number, it is automatically used
+	 * as the last number in the whole revision specification (it applies
+	 * for retrieving normal revisions (rev>0) or backtracking (rev<0).
+	 */
+	bool prepareFileRevision(std::string const & rev, std::string & f);
+	/// Does the current VC supports this operation?
+	bool prepareFileRevisionEnabled();
 
 	/**
 	 * Generate a log file and return the filename.
@@ -105,19 +126,41 @@ public:
 	 */
 	const std::string getLogFile() const;
 
-	///
+	/**
+	 * We do not support this generally. In RCS/SVN file read-only flag
+	 * is often connected with locking state and one has to be careful to
+	 * keep things in synchro once we would allow user to toggle
+	 * read-only flags.
+	 */
 	void toggleReadOnly();
 
 	/// Is the document under administration by VCS?
-	bool inUse();
+	bool inUse() const;
 
-	/// Returns the version number.
-	//std::string const & version() const;
-	/// Returns the version number.
+	/// Returns the RCS + version number for messages
 	std::string const versionString() const;
 
-	/// Returns the userid of the person who has locked the doc.
-	std::string const & locker() const;
+	/**
+	 * Returns whether we use locking for the given file.
+	 */
+	bool locking() const;
+
+	// type of the revision information
+	enum RevisionInfo {
+		Unknown = 0,
+		File = 1,
+		Tree = 2,
+		Author = 3,
+		Date = 4,
+		Time = 5
+	};
+
+	/**
+	 * Return revision info specified by the argument.
+	 * Its safe to call it regardless VCS is in usage or this
+	 * info is (un)available. Returns empty string in such a case.
+	 */
+	std::string revisionInfo(RevisionInfo const info) const;
 
 private:
 	///

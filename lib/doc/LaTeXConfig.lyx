@@ -1,21 +1,28 @@
-#LyX 1.6.7svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 410
 \begin_document
 \begin_header
 \textclass article
 \use_default_options false
+\maintain_unincluded_children false
 \language english
 \inputencoding default
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref false
@@ -23,21 +30,32 @@
 \use_geometry false
 \use_amsmath 0
 \use_esint 0
+\use_mhchem 0
+\use_mathdots 0
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle plain
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict true
+\html_latex_start <span class='latex'>
+\html_latex_end </span>
 \end_header
 
 \begin_body
@@ -193,6 +211,125 @@ Fonts
 \end_layout
 
 \begin_layout Subsection
+Almost European (AE)
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "ae"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/ae/
+\end_layout
+
+\begin_layout Description
+Notes: The 
+\family sans
+AE
+\family default
+ package provide virtual PostScript versions of LaTeX' standard font (Computer
+ Modern).
+ Unless you rely on special characters, we recommend to use 
+\family sans
+Latin Modern
+\family default
+ instead.
+ 
+\end_layout
+
+\begin_layout Subsection
+Bera
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "bera"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/bera
+\end_layout
+
+\begin_layout Description
+Notes: The bera fonts are a clone of Bitstream Vera, including Bera Serif
+ (a slab-serif Roman), Bera Sans (a Frutiger descendant), and Bera Mono
+ (monospaced/typewriter).
+\end_layout
+
+\begin_layout Subsection
+CM bright
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "cmbright"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/cmbright
+\end_layout
+
+\begin_layout Description
+Notes: CM bright is a sans serif font that also provides nice sans serif
+ math fonts.
+\end_layout
+
+\begin_layout Subsection
+Concrete
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "ccfonts"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+macros/latex/contrib/ccfonts/
+\end_layout
+
+\begin_layout Description
+Notes: The 
+\family sans
+ccfonts
+\family default
+ package provides support for the font that has been designed by Donald
+ Knuth for his 
+\emph on
+Concrete Mathematics
+\emph default
+ book, hence called concrete fonts.
+\end_layout
+
+\begin_layout Subsection
 EC fonts
 \end_layout
 
@@ -241,6 +378,119 @@ ec
 \end_layout
 
 \begin_layout Subsection
+Eco
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "eco"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/eco/
+\end_layout
+
+\begin_layout Description
+Notes: The 
+\family sans
+eco
+\family default
+ package is used by LyX to access the old style numerals of the 
+\family sans
+Computer Modern
+\family default
+ font family.
+ 
+\end_layout
+
+\begin_layout Subsection
+feyn
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "feyn"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/feyn/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+feyn
+\family default
+ is used when you use 
+\family sans
+Feynman
+\family default
+ diagrams in formulas (LaTeX-command 
+\series bold
+
+\backslash
+Diagram
+\series default
+).
+\end_layout
+
+\begin_layout Subsection
+fourier-GUTenberg
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "fourier"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family sans
+fonts/fourier-GUT
+\end_layout
+
+\begin_layout Description
+Notes: The 
+\family sans
+fourier
+\family default
+ package provides support for the Utopia PostScript font.
+ Contrary to the 
+\family sans
+utopia
+\family default
+ package that ships with 
+\family sans
+PSNFSS
+\family default
+ bundle, it also provides suitable math fonts.
+ If this package is installed, it will be used instead of 
+\family sans
+utopia
+\family default
+ if you select the Utopia font.
+\end_layout
+
+\begin_layout Subsection
 Latin Modern
 \end_layout
 
@@ -273,14 +523,14 @@ Latin Modern
 \end_layout
 
 \begin_layout Subsection
-Almost European (AE)
+LuxiMono
 \end_layout
 
 \begin_layout Description
 Found: 
 \begin_inset Info
 type  "package"
-arg   "ae"
+arg   "luximono"
 \end_inset
 
 
@@ -289,55 +539,15 @@ arg   "ae"
 \begin_layout Description
 CTAN: 
 \family sans
-fonts/ae/
+fonts/LuxiMono/
 \end_layout
 
 \begin_layout Description
 Notes: The 
 \family sans
-AE
+luximono
 \family default
- package provide virtual PostScript versions of LaTeX' standard font (Computer
- Modern).
- Unless you rely on special characters, we recommend to use 
-\family sans
-Latin Modern
-\family default
- instead.
- 
-\end_layout
-
-\begin_layout Subsection
-Eco
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "eco"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-fonts/eco/
-\end_layout
-
-\begin_layout Description
-Notes: The 
-\family sans
-eco
-\family default
- package is used by LyX to access the old style numerals of the 
-\family sans
-Computer Modern
-\family default
- font family.
- 
+ package provides support for the monospaced Luxida Mono font.
 \end_layout
 
 \begin_layout Subsection
@@ -641,160 +851,6 @@ arg   "utopia"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Subsection
-fourier-GUTenberg
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "fourier"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-fonts/fourier-GUT
-\end_layout
-
-\begin_layout Description
-Notes: The 
-\family sans
-fourier
-\family default
- package provides support for the Utopia PostScript font.
- Contrary to the 
-\family sans
-utopia
-\family default
- package that ships with 
-\family sans
-PSNFSS
-\family default
- bundle, it also provides suitable math fonts.
- If this package is installed, it will be used instead of 
-\family sans
-utopia
-\family default
- if you select the Utopia font.
-\end_layout
-
-\begin_layout Subsection
-CM bright
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "cmbright"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-fonts/cmbright
-\end_layout
-
-\begin_layout Description
-Notes: CM bright is a sans serif font that also provides nice sans serif
- math fonts.
-\end_layout
-
-\begin_layout Subsection
-Bera
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "bera"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-fonts/bera
-\end_layout
-
-\begin_layout Description
-Notes: The bera fonts are a clone of Bitstream Vera, including Bera Serif
- (a slab-serif Roman), Bera Sans (a Frutiger descendant), and Bera Mono
- (monospaced/typewriter).
-\end_layout
-
-\begin_layout Subsection
-Concrete
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "ccfonts"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-macros/latex/contrib/ccfonts/
-\end_layout
-
-\begin_layout Description
-Notes: The 
-\family sans
-ccfonts
-\family default
- package provides support for the font that has been designed by Donald
- Knuth for his 
-\emph on
-Concrete Mathematics
-\emph default
- book, hence called concrete fonts.
-\end_layout
-
-\begin_layout Subsection
-LuxiMono
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "luximono"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family sans
-fonts/LuxiMono/
-\end_layout
-
-\begin_layout Description
-Notes: The 
-\family sans
-luximono
-\family default
- package provides support for the monospaced Luxida Mono font.
 \end_layout
 
 \begin_layout Subsection
@@ -1128,6 +1184,103 @@ Astrophysical Journal, Astronomical Journal
 Publications of the Astronomical Society of the Pacific
 \emph default
 .
+\end_layout
+
+\begin_layout Subsection
+AEA (American Economic Association) Journals
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "textclass"
+arg   "AEA"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: N/A
+\end_layout
+
+\begin_layout Description
+WWW: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.aeaweb.org/templates/latex_templates.zip
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Notes: The document class
+\family sans
+ AEA
+\family default
+ can be used to write articles for submission to the following journals
+ published by the American Economic Association: 
+\emph on
+American Economic Review
+\emph default
+, 
+\emph on
+Papers and Proceedings
+\emph default
+, 
+\emph on
+Journal of Economic Literature
+\emph default
+, 
+\emph on
+Journal of Economic Perspectives
+\emph default
+ and 
+\emph on
+American Economics Journal
+\emph default
+.
+ The use of packages should be limited to those packages which provide core
+ functionality, such as 
+\family sans
+amsmath
+\family default
+, 
+\family sans
+graphicx
+\family default
+, and 
+\family sans
+harvard
+\family default
+.
+ Please read carefully 
+\family typewriter
+AEA-LaTeX-AuthorGuide.pdf
+\family default
+ and Information for Authors on the web 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.aeaweb.org/aer/authref.php
+\end_layout
+
+\end_inset
+
+.
+ Start writing with the template 
+\family typewriter
+AEA.lyx
+\family default
+ and read instructions in it.
 \end_layout
 
 \begin_layout Subsection
@@ -3274,6 +3427,35 @@ required
 \end_layout
 
 \begin_layout Subsection
+amstext
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "amstext"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/required/amslatex/math/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+amstext
+\family default
+ is needed by LyX to correctly size unicode symbols used as super or subscripts
+ in math.
+\end_layout
+
+\begin_layout Subsection
 array
 \end_layout
 
@@ -3487,6 +3669,34 @@ booktabs
 \end_layout
 
 \begin_layout Subsection
+calc
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "calc"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/required/tools/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+calc
+\family default
+ is needed by LyX to process lengths and counters.
+\end_layout
+
+\begin_layout Subsection
 color
 \end_layout
 
@@ -3522,6 +3732,44 @@ graphics
 \end_layout
 
 \begin_layout Subsection
+float
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "float"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/float/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+float
+\family default
+ is needed by LyX to create non-standard floating objects.
+ Also, it provides the 
+\begin_inset Quotes eld
+\end_inset
+
+here, definitely!
+\begin_inset Quotes erd
+\end_inset
+
+ float placement setting.
+ 
+\end_layout
+
+\begin_layout Subsection
 graphicx
 \end_layout
 
@@ -3550,11 +3798,39 @@ graphicx
  You will also need 
 \family typewriter
 \size normal
-ghost
-\size default
-script
+ghostscript
 \family default
+\size default
  to see them on screen.
+\end_layout
+
+\begin_layout Subsection
+hhline
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "hhline"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/required/tools/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+hhline
+\family default
+ improves horizontal lines in tables and arrays.
+ This is necessary for the spreadsheet external inset.
 \end_layout
 
 \begin_layout Subsection
@@ -3612,39 +3888,6 @@ Notes: The package
 longtable
 \family default
  is needed by LyX to be able to output correctly multipage tables.
-\end_layout
-
-\begin_layout Subsection
-amstext
-\end_layout
-
-\begin_layout Description
-Found: 
-\begin_inset Info
-type  "package"
-arg   "amstext"
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-CTAN: 
-\family typewriter
-macros/latex/required/amslatex/math/
-\end_layout
-
-\begin_layout Description
-Notes: The package 
-\family sans
-amstext
-\family default
- is needed by LyX to correctly size unicode symbols used as super or subscripts
- in math.
-\end_layout
-
-\begin_layout Description
-
 \end_layout
 
 \begin_layout Subsection
@@ -3821,6 +4064,47 @@ Notes: The package
 braille 
 \family default
 makes it possible to typeset Braille, a character system for blind people.
+\end_layout
+
+\begin_layout Subsection
+Initials module
+\end_layout
+
+\begin_layout Subsubsection
+lettrine
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "lettrine"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/lettrine/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+lettrine
+\family default
+\color none
+ is used to create 
+\begin_inset CommandInset href
+LatexCommand href
+name "initials"
+target "http://en.wikipedia.org/wiki/Initial"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -4050,6 +4334,77 @@ mongolian-babel
  Mongolian.
 \end_layout
 
+\begin_layout Subsection
+polyglossia
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "polyglossia"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/xetex/latex/polyglossia/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+polyglossia
+\family default
+ provides a language interface specifically for XeTeX.
+ It aims to supersede the 
+\family sans
+babel
+\family default
+ package by using XeTeX's mutlilingual and multiscript facilities.
+ If installed, 
+\family sans
+polyglossia
+\family default
+ will by used for language handling instead of 
+\family sans
+babel
+\family default
+ when XeTeX is used as output format.
+\end_layout
+
+\begin_layout Subsection
+turkmen
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "turkmen"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+language/turkmen/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+turkmen
+\family default
+ is needed by LyX to be able to output documents with the document language
+ Turkmen.
+\end_layout
+
 \begin_layout Section
 
 \series bold
@@ -4158,6 +4513,35 @@ Notes: The package
 bibtopic
 \family default
  is used to split BibTeX created bibliographies into sections.
+\end_layout
+
+\begin_layout Subsection
+breakurl
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "breakurl"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/breakurl/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+breakurl
+\family default
+ assures that url's are correctly broken at the end of lines with DVI output
+ when hyperref is used.
 \end_layout
 
 \begin_layout Subsection
@@ -4343,6 +4727,39 @@ fancy
 \end_layout
 
 \begin_layout Subsection
+fixltx2e
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "subscript"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/unpacked/fixltx2e.sty
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+fixltx2e
+\family default
+ fixes some bugs in the LaTeX kernel.
+ It can be used by including the 
+\family sans
+fixltx2e
+\family default
+ module.
+\end_layout
+
+\begin_layout Subsection
 hyphenat
 \end_layout
 
@@ -4494,6 +4911,112 @@ listings
 \end_layout
 
 \begin_layout Subsection
+luainputenc
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "luainputenc"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/luatex/latex/luainputenc/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+luainputenc
+\family default
+\color none
+ reimplements input encoding features for LuaTeX.
+ It is needed if LuaTeX is used as output format with tex fonts.
+\end_layout
+
+\begin_layout Subsection
+mathrsfs
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "mathrsfs"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/jknappen/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+mathrsfs
+\family default
+ is used by LyX to output the math font style 
+\begin_inset Quotes eld
+\end_inset
+
+formal script
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+mathdots
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "mathdots"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/generic/mathdots/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+mathdots
+\family default
+ is used by LyX to parse the math command 
+\family sans
+
+\backslash
+iddots
+\family default
+.
+ It can be loaded in the 
+\family sans
+Math
+\family default
+ section of the document settings and will additionally change the appearance
+ of all math dots commands in a document.
+\end_layout
+
+\begin_layout Subsection
 mhchem
 \end_layout
 
@@ -4520,6 +5043,35 @@ mhchem
 \family default
  is needed by LyX to produce chemical formulas and reaction equations in
  math.
+\end_layout
+
+\begin_layout Subsection
+multirow
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "multirow"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/multirow/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+multirow
+\family default
+ is needed by LyX to merge table cells over several rows, as well as supporting
+ the spreadsheet external inset.
 \end_layout
 
 \begin_layout Subsection
@@ -4811,6 +5363,39 @@ slashed
 \end_layout
 
 \begin_layout Subsection
+splitidx
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "splitidx"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/splitindex/
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+splitidx
+\family default
+ is needed by LyX to generate multiple and subdivided indices.
+ Note that you also need to install one of the included 
+\family sans
+splitindex
+\family default
+ converter programs.
+\end_layout
+
+\begin_layout Subsection
 subfig
 \end_layout
 
@@ -4842,6 +5427,39 @@ subfig
 e., subfigures, subtables, etc.).
  Subfloats are floats that are embedded inside other floats and that can
  have individual subcaptions.
+\end_layout
+
+\begin_layout Subsection
+subscript
+\end_layout
+
+\begin_layout Description
+Found: 
+\begin_inset Info
+type  "package"
+arg   "subscript"
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+CTAN: 
+\family typewriter
+macros/latex/contrib/fragments/subscript.sty
+\end_layout
+
+\begin_layout Description
+Notes: The package 
+\family sans
+subscript
+\family default
+ is needed by LyX to output subscript text with some document classes.
+ In TeX distributions it is usually part of the 
+\family sans
+fragments
+\family default
+ package.
 \end_layout
 
 \begin_layout Subsection

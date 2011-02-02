@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,59 +19,126 @@
 
 namespace lyx {
 
+class InsetIndexParams {
+public:
+	///
+	explicit InsetIndexParams(docstring const & b = docstring())
+		: index(b) {}
+	///
+	void write(std::ostream & os) const;
+	///
+	void read(Lexer & lex);
+	///
+	docstring index;
+};
+
+
 /** Used to insert index labels
   */
 class InsetIndex : public InsetCollapsable {
 public:
 	///
-	InsetIndex(Buffer const &);
+	InsetIndex(Buffer *, InsetIndexParams const &);
+	///
+	static std::string params2string(InsetIndexParams const &);
+	///
+	static void string2params(std::string const &, InsetIndexParams &);
 private:
 	///
-	EDITABLE editable() const { return HIGHLY_EDITABLE; }
+	bool hasSettings() const;
 	///
 	InsetCode lyxCode() const { return INDEX_CODE; }
 	///
 	docstring name() const { return from_ascii("Index"); }
 	///
+	ColorCode labelColor() const;
+	///
 	void write(std::ostream & os) const;
 	///
+	void read(Lexer & lex);
+	///
 	int docbook(odocstream &, OutputParams const &) const;
+	/// 
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	int latex(odocstream &, OutputParams const &) const;
+	///
+	bool showInsetDialog(BufferView *) const;
+	///
+	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
 	/// should paragraph indendation be omitted in any case?
 	bool neverIndent() const { return true; }
 	///
 	void addToToc(DocIterator const &);
 	///
+	docstring toolTip(BufferView const & bv, int x, int y) const;
+	///
+	docstring const buttonLabel(BufferView const & bv) const;
+	/// Updates needed features for this inset.
+	void validate(LaTeXFeatures & features) const;
+	///
+	docstring contextMenuName() const;
+	///
 	Inset * clone() const { return new InsetIndex(*this); }
+
+	///
+	friend class InsetIndexParams;
+	///
+	InsetIndexParams params_;
 };
 
 
 class InsetPrintIndex : public InsetCommand {
 public:
 	///
-	InsetPrintIndex(InsetCommandParams const &);
+	InsetPrintIndex(Buffer * buf, InsetCommandParams const &);
 
+	/// \name Public functions inherited from Inset class
+	//@{
 	///
-	static ParamInfo const & findInfo(std::string const &);
+	InsetCode lyxCode() const { return INDEX_PRINT_CODE; }
 	///
-	static std::string defaultCommand() { return "printindex"; };
+	int latex(odocstream &, OutputParams const &) const;
+	/// 
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
-	static bool isCompatibleCommand(std::string const & s) 
-		{ return s == "printindex"; }
-private:
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	///
+	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
+	///
+	docstring contextMenuName() const;
 	/// Updates needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
 	///
-	EDITABLE editable() const { return NOT_EDITABLE; }
-	///
-	InsetCode lyxCode() const;
+	bool hasSettings() const;
 	///
 	DisplayType display() const { return AlignCenter; }
+	//@}
+
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	///
-	docstring screenLabel() const;
+	static ParamInfo const & findInfo(std::string const &);
+	///
+	static std::string defaultCommand() { return "printindex"; }
+	///
+	static bool isCompatibleCommand(std::string const & s);
+	//@}
+
+private:
+	/// \name Private functions inherited from Inset class
+	//@{
 	///
 	Inset * clone() const { return new InsetPrintIndex(*this); }
+	//@}
+
+	/// \name Private functions inherited from InsetCommand class
+	//@{
+	///
+	docstring screenLabel() const;
+	//@}
 };
 
 

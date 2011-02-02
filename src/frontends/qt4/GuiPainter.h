@@ -42,7 +42,7 @@ public:
 		int x2, int y2,
 		Color,
 		line_style = line_solid,
-		line_width = line_thin);
+		float line_width = thin_line);
 
 	/**
 	 * lines -  draw a set of lines
@@ -56,7 +56,7 @@ public:
 		int np,
 		Color,
 		line_style = line_solid,
-		line_width = line_thin);
+		float line_width = thin_line);
 
 	/// draw a rectangle
 	virtual void rectangle(
@@ -64,7 +64,7 @@ public:
 		int w, int h,
 		Color,
 		line_style = line_solid,
-		line_width = line_thin);
+		float line_width = thin_line);
 
 	/// draw a filled rectangle
 	virtual void fillRectangle(
@@ -119,6 +119,8 @@ public:
 	virtual int preeditText(int x, int y,
 		char_type c, FontInfo const & f, preedit_style style);
 
+	void wavyHorizontalLine(int x, int y, int width, ColorCode col);
+
 private:
 	/// check the font, and if set, draw an underline
 	void underline(FontInfo const & f,
@@ -126,6 +128,14 @@ private:
 
 	/// check the font, and if set, draw an dashed underline
 	void dashedUnderline(FontInfo const & f,
+		int x, int y, int width);
+
+	/// check the font, and if set, draw an strike-through line
+	void strikeoutLine(FontInfo const & f,
+		int x, int y, int width);
+
+	/// check the font, and if set, draw double underline
+	void doubleUnderline(FontInfo const & f,
 		int x, int y, int width);
 
 	/// draw a bevelled button border
@@ -140,11 +150,11 @@ private:
 
 	/// set pen parameters
 	void setQPainterPen(QColor const & col,
-		line_style ls = line_solid, line_width lw = line_thin);
+		line_style ls = line_solid, float lw = thin_line);
 
 	QColor current_color_;
 	Painter::line_style current_ls_;
-	Painter::line_width current_lw_;
+	float current_lw_;
 	///
 	bool const use_pixmap_cache_;
 	///

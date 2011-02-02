@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -35,10 +35,17 @@ public:
 	///
 	void normalize(NormalStream & os) const;
 	///
+	void mathmlize(MathStream &) const;
+	///
+	void htmlize(HtmlStream &) const;
+	///
 	void infoize2(odocstream & os) const;
 	///
 	static bool isBigInsetDelim(docstring const &);
-
+	///
+	InsetCode lyxCode() const { return MATH_BIG_CODE; }
+	///
+	void validate(LaTeXFeatures &) const;
 private:
 	virtual Inset * clone() const;
 	///

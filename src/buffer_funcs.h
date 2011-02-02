@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Alfredo Braunstein
  *
  * Full author contact details are available in file CREDITS.
@@ -36,23 +36,21 @@ Buffer * checkAndLoadLyXFile(support::FileName const & filename,
 Buffer * newFile(std::string const & filename, std::string const & templatename,
 		 bool isNamed = false);
 
-/** Make a new unnamed file (buffer) based on a template
- *  named \c templatename
+/** Make a new unnamed file (buffer) with prefix \c prefix
+ *  based on a template named \c templatename
  */
-Buffer * newUnnamedFile(std::string const & templatename,
-	support::FileName const & path);
+Buffer * newUnnamedFile(support::FileName const & path,
+	std::string const & prefix, std::string const & templatename = "");
+
+/// Load the file with name \c fname, and returns the buffer. If the
+/// file was already loaded it just returns the associated buffer.
+Buffer * loadIfNeeded(support::FileName const & fname);
 
 /// Count the number of words in the text between these two iterators
 int countWords(DocIterator const & from, DocIterator const & to);
 
 /// Count the number of chars in the text between these two iterators
 int countChars(DocIterator const & from, DocIterator const & to, bool with_blanks);
-
-/// updates all counters
-void updateLabels(Buffer const &, bool childonly = false);
-
-///
-void updateLabels(Buffer const &, ParIterator &);
 
 } // namespace lyx
 

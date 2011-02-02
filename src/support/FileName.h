@@ -64,7 +64,7 @@ public:
 	static bool isAbsolute(std::string const & name);
 
 	/// get the absolute file name in UTF-8 encoding
-	std::string absFilename() const;
+	std::string absFileName() const;
 
 	/** returns an absolute pathname (whose resolution does not involve
 	  * '.', '..', or symbolic links) in UTF-8 encoding
@@ -104,7 +104,7 @@ public:
 	std::time_t lastModified() const;
 	/// generates a checksum of a file
 	virtual unsigned long checksum() const;
-	/// return true when file is readable but not writabel
+	/// return true when file is readable but not writable
 	bool isReadOnly() const;
 	/// return true when it names a directory
 	bool isDirectory() const;
@@ -222,11 +222,18 @@ private:
 };
 
 
-bool equivalent(FileName const &, FileName const &);
+/// \return true if lhs and rhs represent the same file. E.g.,
+/// they might be hardlinks of one another.
+bool equivalent(FileName const & lhs, FileName const & rhs);
+/// \return true if the absolute path names are the same.
 bool operator==(FileName const &, FileName const &);
+///
 bool operator!=(FileName const &, FileName const &);
+/// Lexically compares the absolute path names.
 bool operator<(FileName const &, FileName const &);
+/// Lexically compares the absolute path names.
 bool operator>(FileName const &, FileName const &);
+/// Writes the absolute path name to the stream.
 std::ostream & operator<<(std::ostream &, FileName const &);
 
 
@@ -240,7 +247,7 @@ class DocFileName : public FileName {
 public:
 	DocFileName();
 	/** \param abs_filename the file in question. Must have an absolute path.
-	 *  \param save_abs_path how is the file to be output to file?
+	 *  \param save_abs_path how is the filename to be output?
 	 */
 	DocFileName(std::string const & abs_filename, bool save_abs_path = true);
 	DocFileName(FileName const & abs_filename, bool save_abs_path = true);
@@ -251,14 +258,14 @@ public:
 	 *  the absolute path using this.
 	 */
 	virtual void set(std::string const & filename, std::string const & buffer_path);
-
+	///
 	void erase();
-
+	///
 	bool saveAbsPath() const { return save_abs_path_; }
 	/// \param buffer_path if empty, uses `pwd`
-	std::string relFilename(std::string const & buffer_path = empty_string()) const;
+	std::string relFileName(std::string const & buffer_path = empty_string()) const;
 	/// \param buf_path if empty, uses `pwd`
-	std::string outputFilename(std::string const & buf_path = empty_string()) const;
+	std::string outputFileName(std::string const & buf_path = empty_string()) const;
 	
 	/** @returns a mangled representation of the absolute file name
 	 *  suitable for use in the temp dir when, for example, converting
@@ -281,14 +288,16 @@ public:
 	 *  with @c dir.
 	 */
 	std::string
-	mangledFilename(std::string const & dir = empty_string()) const;
+	mangledFileName(std::string const & dir = empty_string()) const;
 
 	/// \return true if the file is compressed.
 	bool isZipped() const;
 	/// \return the absolute file name without its .gz, .z, .Z extension
-	std::string unzippedFilename() const;
+	std::string unzippedFileName() const;
 
 private:
+	/// Records whether we should save (or export) the filename as a relative
+	/// or absolute path.
 	bool save_abs_path_;
 	/// Cache for isZipped() because zippedFile() is expensive
 	mutable bool zipped_;
@@ -297,7 +306,10 @@ private:
 };
 
 
+/// \return true if these have the same absolute path name AND 
+/// if save_abs_path_ has the same value in both cases.
 bool operator==(DocFileName const &, DocFileName const &);
+///
 bool operator!=(DocFileName const &, DocFileName const &);
 
 } // namespace support

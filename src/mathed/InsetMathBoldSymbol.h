@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,7 +16,6 @@
 
 
 namespace lyx {
-
 
 /// Inset for AMSTeX's \boldsymbol
 class InsetMathBoldSymbol : public InsetMathNest {
@@ -43,7 +42,13 @@ public:
 	///
 	void write(WriteStream & os) const;
 	///
+	void mathmlize(MathStream &) const;
+	///
+	void htmlize(HtmlStream &) const;
+	///
 	void infoize(odocstream & os) const;
+	///
+	InsetCode lyxCode() const { return MATH_BOLDSYMBOL_CODE; }
 	///
 	Kind kind_;
 private:

@@ -246,6 +246,21 @@ public:
 		return it;
 	}
 
+	void swap(size_t i, size_t j)
+	{
+		size_t const p = std::max(i, j);
+		size_t const q = std::min(i, j);
+		container_.splice(iterCont_[p], container_, iterCont_[q]);
+		container_.splice(iterCont_[q], container_, iterCont_[p]);
+		recreateVector();
+	}
+
+	void splice(iterator where, iterator first, iterator last)
+	{
+		container_.splice(where, container_, first, last);
+		recreateVector();
+	}
+
 	void swap(RandomAccessList & x)
 	{
 		std::swap(container_, x.container_);
@@ -256,6 +271,32 @@ public:
 	{
 		container_.clear();
 		iterCont_.clear();
+	}
+
+	size_t position(iterator it) const
+	{
+		size_t const s = iterCont_.size();
+		for (size_t i = 0; it != s; ++i) {
+			if (iterCont_[i] == it)
+				return i;
+		}
+		return s;
+	}
+
+	size_t position(const_iterator it) const
+	{
+		size_t const s = iterCont_.size();
+		for (size_t i = 0; i != s; ++i) {
+			if (iterCont_[i] == it)
+				return i;
+		}
+		return s;
+	}
+
+
+	const_iterator constIterator(size_t i) const
+	{
+		return iterCont_[i];
 	}
 
 private:

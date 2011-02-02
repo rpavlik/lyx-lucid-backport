@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Jean-Marc Lasgouttes
  * \author Georg Baum
  *
@@ -72,7 +72,7 @@ enum LTRowType
 class RowInfo {
 public:
 	RowInfo() : topline(false), bottomline(false), type(LT_NORMAL),
-		    newpage(false) {}
+		    caption(false), newpage(false) {}
 	/// horizontal line above
 	bool topline;
 	/// horizontal line below
@@ -80,19 +80,22 @@ public:
 	/// These are for longtabulars only
 	/// row type (head, foot, firsthead etc.)
 	LTRowType type;
+	/// row for a caption
+	bool caption;
 	/// row for a newpage
 	bool newpage;
 };
 
 
+/// the numeric values are part of the file format!
 enum Multicolumn {
 	/// A normal cell
 	CELL_NORMAL = 0,
 	/// A multicolumn cell. The number of columns is <tt>1 + number
 	/// of CELL_PART_OF_MULTICOLUMN cells</tt> that follow directly
-	CELL_BEGIN_OF_MULTICOLUMN,
+	CELL_BEGIN_OF_MULTICOLUMN = 1,
 	/// This is a dummy cell (part of a multicolumn cell)
-	CELL_PART_OF_MULTICOLUMN
+	CELL_PART_OF_MULTICOLUMN = 2
 };
 
 
@@ -203,7 +206,8 @@ char const HLINE = '\004';
 /*!
  * Move the information in leftlines, rightlines, align and valign to the
  * special field. This is necessary if the special field is not empty,
- * because LyX ignores leftlines, rightlines, align and valign in this case.
+ * because LyX ignores leftlines > 1, rightlines > 1, align and valign in
+ * this case.
  */
 void ci2special(ColInfo & ci)
 {
@@ -235,12 +239,13 @@ void ci2special(ColInfo & ci)
 	} else
 		ci.special += ci.align;
 
-	for (int i = 0; i < ci.leftlines; ++i)
+	// LyX can only have one left and one right line.
+	for (int i = 1; i < ci.leftlines; ++i)
 		ci.special.insert(0, "|");
-	for (int i = 0; i < ci.rightlines; ++i)
+	for (int i = 1; i < ci.rightlines; ++i)
 		ci.special += '|';
-	ci.leftlines = 0;
-	ci.rightlines = 0;
+	ci.leftlines = min(ci.leftlines, 1);
+	ci.rightlines = min(ci.rightlines, 1);
 	ci.align = 'n';
 	ci.valign = 'n';
 }
@@ -515,7 +520,7 @@ void parse_table(Parser & p, ostream & os, bool is_long_tabular,
 		Token const & t = p.get_token();
 
 #ifdef FILEDEBUG
-		cerr << "t: " << t << " flags: " << flags << "\n";
+		debugToken(cerr, t, flags);
 #endif
 
 		// comments and whitespace in hlines
@@ -963,6 +968,7 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 				// special cell properties alignment
 				vector<ColInfo> t;
 				handle_colalign(p, t, ColInfo());
+				p.skip_spaces(true);
 				ColInfo & ci = t.front();
 
 				// The logic of LyX for multicolumn vertical
@@ -997,6 +1003,35 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 					cellinfo[row][col].multi = CELL_PART_OF_MULTICOLUMN;
 					cellinfo[row][col].align = 'c';
 				}
+
+			} else if (col == 0 && is_long_tabular &&
+			           p.next_token().cs() == "caption") {
+				// longtable caption support in LyX is a hack:
+				// Captions require a row of their own with
+				// the caption flag set to true, having only
+				// one multicolumn cell. The contents of that
+				// cell must contain exactly one caption inset
+				// and nothing else.
+				rowinfo[row].caption = true;
+				for (size_t c = 1; c < cells.size(); ++c) {
+					if (!cells[c].empty()) {
+						cerr << "Moving cell content '"
+						     << cells[c]
+						     << "' into the caption cell. "
+							"This will probably not work."
+						     << endl;
+						cells[0] += cells[c];
+					}
+				}
+				cells.resize(1);
+				cellinfo[row][col].align      = colinfo[col].align;
+				cellinfo[row][col].multi      = CELL_BEGIN_OF_MULTICOLUMN;
+				ostringstream os;
+				parse_text_in_inset(p, os, FLAG_CELL, false, context);
+				cellinfo[row][col].content += os.str();
+				// add dummy multicolumn cells
+				for (size_t c = 1; c < colinfo.size(); ++c)
+					cellinfo[row][c].multi = CELL_PART_OF_MULTICOLUMN;
 
 			} else {
 				cellinfo[row][col].leftlines  = colinfo[col].leftlines;
@@ -1035,6 +1070,36 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 		}
 	}
 
+	// Distribute lines from rows/columns to cells
+	// The code was stolen from convert_tablines() in lyx2lyx/lyx_1_6.py.
+	// Each standard cell inherits the settings of the corresponding
+	// rowinfo/colinfo. This works because all cells with individual
+	// settings were converted to multicolumn cells above.
+	// Each multicolumn cell inherits the settings of the rowinfo/colinfo
+	// corresponding to the first column of the multicolumn cell (default
+	// of the multicol package). This works because the special field
+	// overrides the line fields.
+	for (size_t row = 0; row < rowinfo.size(); ++row) {
+		for (size_t col = 0; col < cellinfo[row].size(); ++col) {
+			if (cellinfo[row][col].multi == CELL_NORMAL) {
+				cellinfo[row][col].topline = rowinfo[row].topline;
+				cellinfo[row][col].bottomline = rowinfo[row].bottomline;
+				cellinfo[row][col].leftlines = colinfo[col].leftlines;
+				cellinfo[row][col].rightlines = colinfo[col].rightlines;
+			} else if (cellinfo[row][col].multi == CELL_BEGIN_OF_MULTICOLUMN) {
+				size_t s = col + 1;
+				while (s < cellinfo[row].size() &&
+				       cellinfo[row][s].multi == CELL_PART_OF_MULTICOLUMN)
+					s++;
+				if (s < cellinfo[row].size() &&
+				    cellinfo[row][s].multi != CELL_BEGIN_OF_MULTICOLUMN)
+					cellinfo[row][col].rightlines = colinfo[col].rightlines;
+				if (col > 0 && cellinfo[row][col-1].multi == CELL_NORMAL)
+					cellinfo[row][col].leftlines = colinfo[col].leftlines;
+			}
+		}
+	}
+
 	//cerr << "// output what we have\n";
 	// output what we have
 	os << "\n<lyxtabular version=\"3\" rows=\"" << rowinfo.size()
@@ -1050,8 +1115,6 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 		   << verbose_align(colinfo[col].align) << "\""
 		   << " valignment=\""
 		   << verbose_valign(colinfo[col].valign) << "\""
-		   << write_attribute("leftline", colinfo[col].leftlines > 0)
-		   << write_attribute("rightline", colinfo[col].rightlines > 0)
 		   << write_attribute("width", translate_len(colinfo[col].width))
 		   << write_attribute("special", colinfo[col].special)
 		   << ">\n";
@@ -1060,8 +1123,6 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 
 	for (size_t row = 0; row < rowinfo.size(); ++row) {
 		os << "<row"
-		   << write_attribute("topline", rowinfo[row].topline)
-		   << write_attribute("bottomline", rowinfo[row].bottomline)
 		   << write_attribute("endhead",
 				      rowinfo[row].type == LT_HEAD)
 		   << write_attribute("endfirsthead",
@@ -1071,6 +1132,7 @@ void handle_tabular(Parser & p, ostream & os, bool is_long_tabular,
 		   << write_attribute("endlastfoot",
 				      rowinfo[row].type == LT_LASTFOOT)
 		   << write_attribute("newpage", rowinfo[row].newpage)
+		   << write_attribute("caption", rowinfo[row].caption)
 		   << ">\n";
 		for (size_t col = 0; col < colinfo.size(); ++col) {
 			CellInfo const & cell = cellinfo[row][col];

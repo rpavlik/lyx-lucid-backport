@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -20,9 +20,11 @@
 namespace lyx {
 
 
-InsetMathXYMatrix::InsetMathXYMatrix(Buffer * buf, Length const & s, char c)
-	: InsetMathGrid(buf, 1, 1), spacing_(s), spacing_code_(c)
-{}
+InsetMathXYMatrix::InsetMathXYMatrix(Buffer * buf, Length const & s, char c,
+	bool e) : InsetMathGrid(buf, 1, 1), spacing_(s), spacing_code_(c),
+	equal_spacing_(e)
+{
+}
 
 
 Inset * InsetMathXYMatrix::clone() const
@@ -55,19 +57,29 @@ void InsetMathXYMatrix::write(WriteStream & os) const
 {
 	MathEnsurer ensurer(os);
 	os << "\\xymatrix";
-	switch (spacing_code_) {
-	case 'R':
-	case 'C':
-	case 'M':
-	case 'W':
-	case 'H':
-	case 'L':
-		os << '@' << spacing_code_ << '='
-		   << from_ascii(spacing_.asLatexString());
-		break;
-	default:
-		if (!spacing_.empty())
-			os << "@=" << from_ascii(spacing_.asLatexString());
+	if (equal_spacing_) {
+		os << "@!";
+		switch (spacing_code_) {
+		case '0':
+		case 'R':
+		case 'C':
+			os << spacing_code_;
+		}
+	} else {
+		switch (spacing_code_) {
+		case 'R':
+		case 'C':
+		case 'M':
+		case 'W':
+		case 'H':
+		case 'L':
+			os << '@' << spacing_code_ << '='
+			   << from_ascii(spacing_.asLatexString());
+			break;
+		default:
+			if (!spacing_.empty())
+				os << "@=" << from_ascii(spacing_.asLatexString());
+		}
 	}
 	os << '{';
 	InsetMathGrid::write(os);
@@ -78,19 +90,28 @@ void InsetMathXYMatrix::write(WriteStream & os) const
 void InsetMathXYMatrix::infoize(odocstream & os) const
 {
 	os << "xymatrix ";
-	switch (spacing_code_) {
-	case 'R':
-	case 'C':
-	case 'M':
-	case 'W':
-	case 'H':
-	case 'L':
-		os << spacing_code_ << ' '
-		   << from_ascii(spacing_.asLatexString()) << ' ';
-		break;
-	default:
-		if (!spacing_.empty())
-			os << from_ascii(spacing_.asLatexString()) << ' ';
+	if (equal_spacing_) {
+		switch (spacing_code_) {
+		case '0':
+		case 'R':
+		case 'C':
+			os << '!' << spacing_code_ << ' ';
+		}
+	} else {
+		switch (spacing_code_) {
+		case 'R':
+		case 'C':
+		case 'M':
+		case 'W':
+		case 'H':
+		case 'L':
+			os << spacing_code_ << ' '
+			   << from_ascii(spacing_.asLatexString()) << ' ';
+			break;
+		default:
+			if (!spacing_.empty())
+				os << from_ascii(spacing_.asLatexString()) << ' ';
+		}
 	}
 	InsetMathGrid::infoize(os);
 }
@@ -116,6 +137,18 @@ void InsetMathXYMatrix::validate(LaTeXFeatures & features) const
 {
 	features.require("xy");
 	InsetMathGrid::validate(features);
+}
+
+
+void InsetMathXYMatrix::mathmlize(MathStream &) const
+{
+	throw MathExportException();
+}
+
+
+void InsetMathXYMatrix::htmlize(HtmlStream &) const 
+{
+	throw MathExportException(); 
 }
 
 

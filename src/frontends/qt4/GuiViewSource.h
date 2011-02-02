@@ -44,6 +44,10 @@ public:
 public Q_SLOTS:
 	// update content
 	void updateView();
+	///
+	void updateDefaultFormat();
+	///
+	void fullSourceChanged();
 
 private:
 	///
@@ -52,6 +56,8 @@ private:
 	QTextDocument * document_;
 	/// LaTeX syntax highlighter
 	LaTeXHighlighter * highlighter_;
+	///
+	bool force_getcontent_;
 };
 
 

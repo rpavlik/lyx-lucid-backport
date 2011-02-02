@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -29,19 +29,19 @@ namespace lyx {
 
 
 InsetMathArray::InsetMathArray(Buffer * buf, docstring const & name, int m,
-			       int n)
+		int n)
 	: InsetMathGrid(buf, m, n), name_(name)
 {}
 
 
 InsetMathArray::InsetMathArray(Buffer * buf, docstring const & name, int m,
-			       int n, char valign, docstring const & halign)
+		int n, char valign, docstring const & halign)
 	: InsetMathGrid(buf, m, n, valign, halign), name_(name)
 {}
 
 
 InsetMathArray::InsetMathArray(Buffer * buf, docstring const & name,
-			       docstring const & str)
+		docstring const & str)
 	: InsetMathGrid(buf, 1, 1), name_(name)
 {
 	vector< vector<string> > dat;
@@ -62,7 +62,7 @@ InsetMathArray::InsetMathArray(Buffer * buf, docstring const & name,
 	for (row_type row = 0; row < dat.size(); ++row)
 		for (col_type col = 0; col < dat[0].size(); ++col)
 			mathed_parse_cell(cell(index(row, col)),
-					  from_utf8(dat[row][col]));
+					  from_utf8(dat[row][col]), Parse::NORMAL);
 }
 
 

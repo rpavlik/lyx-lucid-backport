@@ -12,6 +12,8 @@
 
 #include "GuiAbout.h"
 
+#include "ui_AboutUi.h"
+
 #include "qt_helpers.h"
 #include "version.h"
 
@@ -42,7 +44,7 @@ static QDate release_date()
 static QString credits()
 {
 	QString res;
-	QFile file(toqstr(package().system_support().absFilename()) + "/CREDITS");
+	QFile file(toqstr(package().system_support().absFileName()) + "/CREDITS");
 	QTextStream out(&res);
 
 	if (file.isReadable()) {
@@ -118,29 +120,45 @@ static QString version()
 	QTextStream out(&res);
 	out << toqstr(version_date);
 	out << qt_("Library directory: ");
-	out << toqstr(makeDisplayPath(package().system_support().absFilename()));
+	out << toqstr(makeDisplayPath(package().system_support().absFileName()));
 	out << "\n";
 	out << qt_("User directory: ");
-	out << toqstr(makeDisplayPath(package().user_support().absFilename()));
+	out << toqstr(makeDisplayPath(package().user_support().absFileName()));
+#ifdef DEVEL_VERSION
+	out << "\n";
+	out << "Qt Version (run-time): " << toqstr(qVersion()) << "\n";
+	out << "Qt Version (compile-time): " << QT_VERSION_STR << "\n";
+#endif
 	return res;
 }
 
 
-GuiAbout::GuiAbout(GuiView & lv)
-	: GuiDialog(lv, "aboutlyx", qt_("About LyX"))
+struct GuiAbout::Private
 {
-	setupUi(this);
+	Ui::AboutUi ui;
+};
 
-	connect(closePB, SIGNAL(clicked()), this, SLOT(reject()));
 
-	copyrightTB->setPlainText(copyright());
-	copyrightTB->append(QString());
-	copyrightTB->append(license());
-	copyrightTB->append(QString());
-	copyrightTB->append(disclaimer());
+GuiAbout::GuiAbout(GuiView & lv)
+	: DialogView(lv, "aboutlyx", qt_("About LyX")),
+	d(new GuiAbout::Private)
+{
+	d->ui.setupUi(this);
 
-	versionLA->setText(version());
-	creditsTB->setHtml(credits());
+	d->ui.copyrightTB->setPlainText(copyright());
+	d->ui.copyrightTB->append(QString());
+	d->ui.copyrightTB->append(license());
+	d->ui.copyrightTB->append(QString());
+	d->ui.copyrightTB->append(disclaimer());
+
+	d->ui.versionLA->setText(version());
+	d->ui.creditsTB->setHtml(credits());
+}
+
+
+void GuiAbout::on_closePB_clicked()
+{
+	close();
 }
 
 
@@ -150,4 +168,4 @@ Dialog * createGuiAbout(GuiView & lv) { return new GuiAbout(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiAbout_moc.cpp"
+#include "moc_GuiAbout.cpp"

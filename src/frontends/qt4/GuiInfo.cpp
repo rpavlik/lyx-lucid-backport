@@ -19,11 +19,11 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "Cursor.h"
-#include "FuncRequest.h"
 
 #include "insets/InsetInfo.h"
 
 #include "support/debug.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
 
 
@@ -40,15 +40,14 @@ namespace frontend {
 /////////////////////////////////////////////////////////////////
 
 char const * info_types[] =
-{ "unknown", "shortcut", "shortcuts", "lyxrc", "package", "textclass", "menu", "icon", "buffer", "" };
+{ "unknown", "shortcut", "shortcuts", "lyxrc", "package", "textclass", "menu", "icon", "buffer", "lyxinfo", "" };
 
 char const * info_types_gui[] =
 { N_("unknown"), N_("shortcut"), N_("shortcuts"), N_("lyxrc"), N_("package"), N_("textclass"),
-  N_("menu"), N_("icon"), N_("buffer"), ""};
+  N_("menu"), N_("icon"), N_("buffer"), N_("lyxinfo"), ""};
 
 
-GuiInfo::GuiInfo(GuiView & lv)
-	: DialogView(lv, "info", qt_("Info"))
+GuiInfo::GuiInfo(QWidget * parent) : InsetParamsWidget(parent)
 {
 	setupUi(this);
 
@@ -56,107 +55,42 @@ GuiInfo::GuiInfo(GuiView & lv)
 	for (int n = 0; info_types[n][0]; ++n)
 		typeCO->addItem(qt_(info_types_gui[n]));
 	typeCO->blockSignals(false);
+
+	connect(typeCO, SIGNAL(currentIndexChanged(int)), this, SIGNAL(changed()));
+	connect(nameLE, SIGNAL(textChanged(QString)), this, SIGNAL(changed()));
 }
 
 
-void GuiInfo::on_newPB_clicked()
+void GuiInfo::paramsToDialog(Inset const * inset)
 {
-	dialogToParams();
-	docstring const argument = qstring_to_ucs4(type_ + ' ' + name_);
-	dispatch(FuncRequest(LFUN_INFO_INSERT, argument));
-}
-
-
-void GuiInfo::on_closePB_clicked()
-{
-	hide();
-}
-
-
-void GuiInfo::on_typeCO_currentIndexChanged(int)
-{
-	applyView();
-}
-
-
-void GuiInfo::on_nameLE_textChanged(QString const &)
-{
-	applyView();
-}
-
-
-void GuiInfo::applyView()
-{
-	InsetInfo const * ii = static_cast<InsetInfo const *>(inset(INFO_CODE));
-	if (!ii) {
-		return;
-	}
-	
-	dialogToParams();
-	docstring const argument = qstring_to_ucs4(type_ + ' ' + name_);
-	if (!ii->validate(argument))
-		return;
-
-	dispatch(FuncRequest(LFUN_INSET_MODIFY, argument));
-	// FIXME: update the inset contents
-	updateLabels(bufferview()->buffer());
-	BufferView * bv = const_cast<BufferView *>(bufferview());
-	bv->updateMetrics();
-	bv->buffer().changed();
-	bv->buffer().markDirty();
-}
-
-
-void GuiInfo::updateView()
-{
-	InsetInfo const * ii = static_cast<InsetInfo const *>(inset(INFO_CODE));
-	if (!ii) {
-		enableView(false);
-		return;
-	}
-
-	type_ = toqstr(ii->infoType());
-	name_ = toqstr(ii->infoName());
-	paramsToDialog();
-}
-
-
-void GuiInfo::paramsToDialog()
-{
+	InsetInfo const * ii = static_cast<InsetInfo const *>(inset);
+	QString const type = toqstr(ii->infoType());
+	QString const name = toqstr(ii->infoName());
 	typeCO->blockSignals(true);
 	nameLE->blockSignals(true);
-	int type = findToken(info_types, fromqstr(type_));
-	typeCO->setCurrentIndex(type >= 0 ? type : 0);
-	// Without this test, 'math-insert' (name_) will replace 'math-insert '
+	int type_index = findToken(info_types, fromqstr(type));
+	typeCO->setCurrentIndex(type_index >= 0 ? type_index : 0);
+	// Without this test, 'math-insert' (name) will replace 'math-insert '
 	// in nameLE and effectively disallow the input of spaces after a LFUN.
-	if (nameLE->text().trimmed() != name_)
-		nameLE->setText(name_);
+	if (nameLE->text().trimmed() != name)
+		nameLE->setText(name);
 	typeCO->blockSignals(false);
 	nameLE->blockSignals(false);
 }
 
 
-void GuiInfo::dialogToParams()
+docstring GuiInfo::dialogToParams() const
 {
-	int type = typeCO->currentIndex();
-	if (type != -1)
-		type_ = info_types[type];
-	name_ = nameLE->text();
+	int type_index = typeCO->currentIndex();
+	QString type;
+	if (type_index != -1)
+		type = info_types[type_index];
+	QString const name = nameLE->text();
+	return qstring_to_ucs4(type + ' ' + name);
 }
-
-
-void GuiInfo::enableView(bool enable)
-{
-	typeCO->setEnabled(enable);
-	nameLE->setEnabled(enable);
-	newPB->setEnabled(!enable);
-}
-
-
-Dialog * createGuiInfo(GuiView & lv) { return new GuiInfo(lv); }
 
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiInfo_moc.cpp"
+#include "moc_GuiInfo.cpp"

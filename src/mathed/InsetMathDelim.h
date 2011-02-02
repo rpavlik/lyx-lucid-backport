@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -27,7 +27,7 @@ public:
 	InsetMathDelim(Buffer * buf, docstring const & left, docstring const & right);
 	///
 	InsetMathDelim(Buffer * buf, docstring const & left, docstring const & right,
-		       MathData const &);
+		MathData const &);
 	///
 	InsetMathDelim * asDelimInset() { return this; }
 	///
@@ -58,7 +58,11 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void octave(OctaveStream &) const;
+	///
+	InsetCode lyxCode() const { return MATH_DELIM_CODE; }
 	///
 	docstring left_;
 	///

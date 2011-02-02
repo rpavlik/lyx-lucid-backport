@@ -5,8 +5,8 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,11 +14,11 @@
 #ifndef INSETCOLLAPSABLE_H
 #define INSETCOLLAPSABLE_H
 
-#include "Inset.h"
 #include "InsetText.h"
 
 #include "Box.h"
-#include "TextClass.h"
+
+#include <map>
 
 namespace lyx {
 
@@ -32,13 +32,12 @@ namespace frontend { class Painter; }
 */
 class InsetCollapsable : public InsetText {
 public:
-	///	By default, InsetCollapsable uses the plain layout. If you 
-	/// want to override this in a subclass, you'll need to call 
-	/// Paragraph::setDefaultLayout() in its constructor. See
-	/// InsetBranch for an example.
-	InsetCollapsable(Buffer const &);
+	///
+	InsetCollapsable(Buffer *, InsetText::UsePlain = InsetText::PlainLayout);
 	///
 	InsetCollapsable(InsetCollapsable const & rhs);
+	///
+	virtual ~InsetCollapsable();
 	///
 	InsetCollapsable * asInsetCollapsable() { return this; }
 	///
@@ -47,17 +46,6 @@ public:
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
 	docstring name() const { return from_ascii("Collapsable"); }
-	///
-	InsetLayout const & getLayout(BufferParams const &) const { return *layout_; }
-	///
-	InsetLayout const & getLayout() const { return *layout_; } 
-	///
-	void setLayout(BufferParams const &);
-	/// (Re-)set the character style parameters from \p tc according
-	/// to name()
-	void setLayout(DocumentClass const * const tc);
-	///
-	virtual bool usePlainLayout() { return true; }
 	///
 	void read(Lexer &);
 	///
@@ -77,7 +65,11 @@ public:
 	///
 	docstring const getNewLabel(docstring const & l) const;
 	///
-	EDITABLE editable() const;
+	bool editable() const;
+	///
+	bool hasSettings() const { return true; }
+	///
+	bool clickable(int x, int y) const;
 	/// can we go further down on mouse click?
 	bool descendable(BufferView const & bv) const;
 	///
@@ -85,11 +77,17 @@ public:
 	///
 	virtual void setButtonLabel() {}
 	///
-	virtual docstring const buttonLabel(BufferView const &) const
-		{ return labelstring_; }
+	virtual docstring const buttonLabel(BufferView const &) const;
 	///
 	bool isOpen(BufferView const & bv) const 
 		{ return geometry(bv) != ButtonOnly; }
+	///
+	enum CollapseStatus {
+		Collapsed,
+		Open
+	};
+	///
+	virtual void setStatus(Cursor & cur, CollapseStatus st);
 	///
 	CollapseStatus status(BufferView const & bv) const;
 	/** Of the old CollapseStatus we only keep the values  
@@ -128,39 +126,26 @@ public:
 	Geometry geometry(BufferView const & bv) const;
 	/// Returns the geometry disregarding auto_open_
 	Geometry geometry() const;
-	/// Allow spellchecking, except for insets with latex_language
-	bool allowSpellCheck() const { return !forceLTR(); }
-	///
-	bool allowMultiPar() const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	///
-	void setStatus(Cursor & cur, CollapseStatus st);
-	///
-	bool setMouseHover(bool mouse_hover);
+	bool setMouseHover(BufferView const * bv, bool mouse_hover) const;
 	///
 	ColorCode backgroundColor(PainterInfo const &) const
-		{ return layout_->bgcolor(); }
+		{ return getLayout().bgcolor(); }
 	///
-	int latex(odocstream &, OutputParams const &) const;
-	///
-	void validate(LaTeXFeatures &) const;
+	ColorCode labelColor() const { return getLayout().labelfont().color(); }
 	///
 	InsetCode lyxCode() const { return COLLAPSABLE_CODE; }
 
-	/// Allow multiple blanks
-	virtual bool isFreeSpacing() const { return layout_->isFreeSpacing(); }
-	/// Don't eliminate empty paragraphs
-	virtual bool allowEmpty() const { return layout_->isKeepEmpty(); }
-	/// Force inset into LTR environment if surroundings are RTL?
-	virtual bool forceLTR() const { return layout_->isForceLtr(); }
 	///
 	virtual bool usePlainLayout() const { return true; }
-	/// Is this inset's layout defined in the document's textclass?
-	/// May be wrong after textclass change or paste from another document
-	bool undefined() const;
 	///
-	virtual docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	///
+	docstring contextMenuName() const;
+	///
+	docstring floatName(std::string const & type) const;
 protected:
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
@@ -170,23 +155,11 @@ protected:
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 	///
-	docstring floatName(std::string const & type, BufferParams const &) const;
-	///
-	virtual void resetParagraphsFont();
-	///
 	mutable CollapseStatus status_;
 private:
-	/// cache for the layout_. Make sure it is in sync with the document class!
-	InsetLayout const * layout_;
 	///
 	Dimension dimensionCollapsed(BufferView const & bv) const;
 	///
-	/// should paragraphs be forced to use the empty layout?
-	virtual bool forcePlainLayout(idx_type = 0) const 
-		{ return getLayout().forcePlainLayout(); }
-	/// should the user be allowed to customize alignment, etc.?
-	virtual bool allowParagraphCustomization(idx_type = 0) const 
-		{ return getLayout().allowParagraphCustomization(); }
 	docstring labelstring_;
 	///
 	mutable Box button_dim;
@@ -196,7 +169,7 @@ private:
 	/// dependent on the bufferview, compare with MathMacro::editing_.
 	mutable std::map<BufferView const *, bool> auto_open_;
 	/// changes color when mouse enters/leaves this inset
-	bool mouse_hover_;
+	mutable std::map<BufferView const *, bool> mouse_hover_;
 };
 
 } // namespace lyx

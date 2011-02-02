@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  * \author Baruch Even
  * \author Angus Leeming
  *
@@ -40,8 +40,8 @@ public:
 
 private Q_SLOTS:
 	void change_adaptor();
-	void change_group(int);
-	void change_bb();
+	void changeGroup(int);
+	void changeBB();
 	void on_newGroupPB_clicked();
 	void on_browsePB_clicked();
 	void on_getPB_clicked();

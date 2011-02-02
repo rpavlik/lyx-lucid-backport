@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Enrico Forestieri
  *
@@ -25,7 +25,6 @@
 
 namespace lyx {
 
-class LyXFunc;
 class Server;
 
 
@@ -102,6 +101,9 @@ public:
 	void read_ready(DWORD);
 #endif
 
+	/// Tell whether we asked another instance of LyX to open the files
+	bool deferredLoading() { return deferred_loading_; }
+
 private:
 	/// the filename of the in pipe
 	std::string const inPipeName() const;
@@ -114,6 +116,9 @@ private:
 
 	/// Close pipes
 	void closeConnection();
+
+	/// Load files in another running instance of LyX
+	bool loadFilesInOtherInstance();
 
 #ifndef _WIN32
 	/// start a pipe
@@ -179,6 +184,9 @@ private:
 
 	/// The client callback function
 	ClientCallbackfct clientcb_;
+
+	/// Did we defer loading of files to another instance?
+	bool deferred_loading_;
 };
 
 
@@ -188,19 +196,18 @@ public:
 	// FIXME IN 0.13
 	// Hack! This should be changed in 0.13
 
-	// The lyx server should not take an argument "LyXFunc" but this is
-	// how it will be done for 0.12. In 0.13 we must write a non-gui
-	// bufferview.
 	// IMO lyxserver is atypical, and for the moment the only one, non-gui
 	// bufferview. We just have to find a way to handle situations like if
 	// lyxserver is using a buffer that is being edited with a bufferview.
 	// With a common buffer list this is not a problem, maybe. (Alejandro)
 	///
-	Server(LyXFunc * f, std::string const & pip);
+	Server(std::string const & pip);
 	///
 	~Server();
 	///
 	void notifyClient(std::string const &);
+	///
+	bool deferredLoadingToOtherInstance() { return pipes_.deferredLoading(); }
 
 	/// whilst crashing etc.
 	void emergencyCleanup() { pipes_.emergencyCleanup(); }
@@ -219,13 +226,14 @@ private:
 	///
 	int numclients_;
 	///
-	LyXFunc * func_;
-	///
 	LyXComm pipes_;
 };
 
 /// Implementation is in LyX.cpp
-extern Server & theServer();
+Server & theServer();
+
+/// Implementation is in LyX.cpp
+extern std::vector<std::string> & theFilesToLoad();
 
 
 } // namespace lyx

@@ -1,6 +1,330 @@
 LyX file-format changes
 -----------------------
 
+Please keep the entries informative enough, i.e. try to indicate what
+changes happened in particular if possible. A good example would be 
+2010-01-10 entry. 
+
+Please also indicate the revision at which your change was committed. 
+This will help later people understand what you did, especially as 
+adjustments are made to tex2lyx and bugs are fixed in lyx2lyx.
+
+-----------------------
+
+2010-11-28 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 409 (r36500)
+	  Rename buffer param \use_xetex to \use_non_tex_fonts.
+
+2010-11-21 Georg Baum  <Georg.Baum@post.rwth-aachen.de>
+	* Format incremented to 408 (r36424)
+	  New inset for sub/superscripts:
+	  script superscript
+	  script subscript
+
+2010-11-07 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 407 (r36182)
+	  Support for vertical offset of multirow cells.
+	  New tag "mroffset" for multirow cells with an offset.
+
+2010-11-06 Jean-Marc Lasgouttes <lasgouttes@lyx.org>
+	* Format incremented to 406 (r36163)
+	  Proper ERT behaviour for normal layouts. Paragraph breaks 
+	  generate single \n in latex output when ParbreakIsNewline
+	  is true.
+
+2010-10-23 Vincent van Ravesteijn <vfr@lyx.org>
+	* Format incremented to 405 (r36134)
+		Author hash numbers.
+	  The authors that are used in change tracking are
+	  now identified in the file by a number that represents
+	  the hash value of the name and email. In this way
+	  collaboration using version control leads to way less
+	  merge conflicts.
+
+2010-10-13 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 404 (r35623)
+	  Support for refstyle package.
+	  Changed the LaTeXCommand for InsetRef from "prettyref"
+	  to "formatted", where "formatted" is now interprted
+	  differently, depending upon whether the new buffer param
+	  use_refstyle is true or false.
+
+2010-10-12 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 403 (r35608)
+	  Renaming of flex insets.
+	  Changed 
+	    \begin_inset Flex TAG:Style 
+	  to
+	    \begin_inset Flex Style
+	  where TAG is Custom, CharStyle, or Element
+
+2010-10-11 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 402 (r35590)
+	  No new or removed parameter, used to insert a
+	  clear(double)page before BibTeX inset.
+
+2010-09-19 Ronen Abravanel <ronena@gmail.com>
+	* Format incremented to 401 (r35455)
+	  Support for Feynman diagrams
+	  New math command \Diagram
+
+2010-09-07 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 400 (r35299)
+	  Support for the LaTeX-command \rule.
+	  New CommandInset "line".
+
+2010-08-31 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 399 (r35241)
+	  Support for the LaTeX-package mathdots.
+	  New parameter \use_mathdots.
+
+2010-07-17 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 398 (r34941)
+	  Support \mathscr.
+	  No new parameter but the mathrsfs package will be loaded.
+
+2010-07-16 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 397 (r34920)
+	  Remove Nameref support
+
+2010-07-13 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 396 (r34884)
+	  nameref support
+		new commands nameref and Nameref for InsetRef
+
+2010-07-13 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 395 (r34883) 
+	  Support for ISO C-series paper format.
+	  New parameter \papersize cxpaper with (x = 0 - 6).
+
+2010-07-03 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 394 (r34748)
+	  Support for makebox.
+	  New box parameter \use_makebox.
+
+2010-06-07 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 393 (r34619)
+		Renaming in LyX format: \begin_inset OptArg becomes
+	  \begin_inset Argument.	
+
+2010-06-07 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 392 (r34615)
+	  Dummy format change permitting Beamer files to be converted to 
+		a new, more useful format.
+
+2010-06-05 Edwin Leuven <e.leuven@uva.nl>
+	* Format incremented to 391 (r34598)
+	  Added support for decimal alignment in tables.
+
+2010-05-25 Pavel Sanda <sanda@lyx.org>
+	* Format incremented to 390: support for ouput sync (forward/reverse)
+	search. New boolean \forward_search and string \forward_macro.
+
+2010-05-24 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 389: remove quotes from html_latex_* params.
+
+2010-05-18 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 388: support for page sizes A0-3, A6, B0-3, B6
+	  and JIS B0-6
+
+2010-04-21 Richard heck <rgheck@comcast.net>
+	* Format incremented to 387: New options for XHTML math output.
+	  New BufferParams: html_math_img_scale, html_latex_start,
+	  html_latex_end.
+
+2010-04-17 Richard heck <rgheck@comcast.net>
+	* Format incremented to 386: LyX version for InsetInfo:
+	  new parameters: type  "lyxinfo", arg   "version".
+
+2010-04-08 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 385: support to change the background color
+	  for shaded boxes: new buffer parameter \boxbgcolor
+
+2010-04-03 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 384: support to specify a document-wide
+	  font color: new buffer parameter \fontcolor
+
+2010-03-31 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 383: support for Turkmen
+
+2010-03-31 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 382: support to change the font color
+	  for greyed-out notes: new buffer parameter \notefontcolor
+
+2010-03-28: Vincent van Ravesteijn <vfr@lyx.org>
+	* Format incremented to 381: support for new parameters
+	  for \xymatrix: \xymatrix@!0, \xymatrix!R and \xymatrix!C.
+
+2010-03-28: Vincent van Ravesteijn <vfr@lyx.org>
+	* Format incremented to 380: introduction of InsetPreview.
+	
+2010-03-18: Richard Heck <rgheck@comcast.net>
+	* Format incremented to 379: revise format 374
+	  Replace boolean \html_use_mathml with \html_math_output,
+	  which at the moment can be: MathML, HTML, Images, or LaTeX.
+
+2010-02-12 Pavel Sanda <sanda@lyx.org>
+	* Format incremented to 378: support for revision InsetInfo.
+	  Various "vcs-*" strings could be argument of arg parameter
+	  in InsetInfo. This entry is a safety measure, no lyx2lyx
+	  conversion is needed in fact.
+
+2010-02-11 Uwe Stöhr <uwestoehr@web.de> and Edwin Leuven <e.leuven@uva.nl>
+	* Format incremented to 377: support for multirow cells in
+	  tables
+
+2010-01-10 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 376: new buffer param
+	  \maintain_unincluded_children. If true, the aux files of
+	  non-included children (with \includeonly) are updated to
+	  keep the counters and refs correct.
+
+2010-01-06 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 375: add support for \includeonly
+	  This adds a new buffer param list of relative filenames
+	  which are output as \includeonly arguments, like this:
+	  \begin_includeonly
+	  child1.lyx
+	  child2.lyx
+	  \end_includeonly
+
+2009-12-30 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 374: add html output options.
+		\html_use_mathml (boolean): whether to use MathML or images
+		\html_be_strict (boolean): whether to be XHTML 1.1 compliant
+
+2009-12-07 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 373: merge g-brief-de and g-brief-en
+	  classes into one g-brief class.
+	  All German layout names are replaced by English ones, the
+	  two classes are renamed to g-brief.
+
+2009-11-29 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 372: new buffer param fontencoding.
+	  This param holds a buffer-specific fontencoding (argument
+	  of the fontenc package).
+	  Possible values:
+	  - global: use lyxrc.fontenc [this is the default]
+	  - default: do not load the fontenc package at all
+	  - <ENC>: real encodings such as "T1". Multiple encodings
+	    can be separated by comma.
+
+2009-11-11 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 371: add option to suppress the LaTeX
+	  package mhchem.
+
+2009-07-20 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 370: introduce a document option to
+	  suppress the default date.
+
+2009-07-22 Vincent van Ravesteijn <vfr@lyx.org>
+	* Format incremented to 369: add the author ids to the list of
+	  authors and let the numbering start with 1 in stead of 0.	
+
+2009-07-21 Jürgen Spitzmüller <spitz@lyx.org>, Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 368: allow to use glue lengths for
+	  horizontal spaces.
+	  We just revert hspaces with glue lengths to ERT, since the
+	  inset didn't support them prior to format 368.
+	  No explicit conversion.
+
+2009-07-20 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 367: allow to use percent lengths for
+	  vertical and horizontal spaces.
+
+2009-07-20 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 366: allow to use percent lengths for the
+	  paragraph skip separation.
+
+2009-07-19 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 365: support for paragraph indentation.
+
+2009-07-13 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 364: add \filename_suffix parameter
+	  to branches.
+	  Possible values: 0, 1.
+	  If "1", the branch name is appended to the filename on export
+	  (e.g., <filename>-<suffix>.pdf).
+
+2009-07-11 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 363: support for horizontal longtable
+	  alignment.
+  
+2009-06-11 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 362: support for the applemac encoding.
+
+2009-05-25 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 361: support for custom setting of
+	  bibliography (longest) label width.
+	  Empty file format change.
+
+2009-05-22 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 360: param width for nomencl_print
+	CommandInset. This
+	1.) adds a further value "width" to param set_width
+	(see format 359)
+	and
+	2.) a param width, which takes a length
+	If "width" is chosen, we define the indendation of the nomencl
+	list via the optional argument of \printnomenclature, e.g.
+	\printnomenclature[2cm]{}
+
+2009-05-22 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 359: param set_width for nomencl_print
+	CommandInset. This specifies how wide the longest nomencl label
+	is (i.e., how wide the indendation in the nomencl list is).
+	Possible values:
+	- none: do not specifiy the width (use predefined values)
+	- auto: compute the widest label and specify via
+	  \settowidth{\nomlabelwidth}{<widest label>}
+
+2009-05-22 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 358: support for custom bibtex and
+	  makeindex commands.
+
+2009-05-05 Pavel Sanda <sanda@lyx.org>, Enrico Forestieri <forenr@lyx.org>
+	* Format incremented to 357: Change of the latex output for
+	  underline from \underbar to ulem's \uline.
+
+2009-05-05 Pavel Sanda <sanda@lyx.org>
+	* Format incremented to 356: support for double and wave underline
+	  character styles via ulem's \uuline and \uwave
+
+2009-05-03 Pavel Sanda <sanda@lyx.org>
+	* Format incremented to 355: support for strikeout character
+	  style via ulem's \sout
+
+2009-04-26 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 354: support for splitindex's
+	  \printindex* and \printsubindex*.
+
+2009-04-26 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 353: support for splitindex's
+	  \printsubindex.
+
+2009-04-15 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 352: splitindex support.
+
+2009-04-11 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 351: support to set a page background
+	  color.
+
+2009-04-06 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 350: new param \default_output_format.
+
+2009-04-05 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 349: initial support for XeTeX.
+
+2009-01-30 Uwe Stöhr <uwestoehr@web.de>
+	* Format incremented to 348: support for \*phantom.
+
+2009-01-03 Vincent van Ravesteijn <V.F.vanRavesteijn@tudelft.nl>
+	* Format incremented to 347: support for tabular valign.
+
+2008-11-28 Jürgen Spitzmüller <j.spitzmueller@gmx.de>
+	* Format incremented to 346: support for German (Switzerland):
+	  (bug 5450)
+
 2008-11-07 José Matos <jamatos@lyx.org>
 	* Format incremented to 345: for docbook backend CharStyle: -> Element:
 	  (fix bug 5411)
@@ -380,7 +704,7 @@ LyX file-format changes
 		\\newcommand{\\lyxline}[1][1pt]{%
  	          \\par\\noindent%
  	          \\rule[.5ex]{\\linewidth}{#1}\\par}
-        The new definition is more robust, see bug 1988 and now really takes care about
+        The new definition is more robust, see bug 1988 and now really takes care of
 	the fontsize: \lyxline{\Huge} produces now a thicker line than \lyxline{\normalfont}
 
 2007-01-29  Georg Baum  <Georg.Baum@post.rwth-aachen.de>

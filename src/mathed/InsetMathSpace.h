@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -18,6 +18,7 @@
 
 namespace lyx {
 
+struct InsetSpaceParams;
 
 /// Smart spaces
 class InsetMathSpace : public InsetMath {
@@ -28,8 +29,6 @@ public:
 	explicit InsetMathSpace(std::string const & name, std::string const & length);
 	///
 	explicit InsetMathSpace(Length const & length);
-	///
-	~InsetMathSpace();
 	///
 	InsetMathSpace const * asSpaceInset() const { return this; }
 	///
@@ -52,15 +51,22 @@ public:
 	///
 	void octave(OctaveStream &) const;
 	///
+	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
+	///
 	void write(WriteStream & os) const;
 	/// generate something that will be understood by the Dialogs.
-	std::string const createDialogStr() const;
+	InsetSpaceParams params() const;
 	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	bool hasSettings() const { return true; }
 	///
-	docstring contextMenu(BufferView const &, int, int) const;
+	docstring contextMenuName() const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
+	///
+	InsetCode lyxCode() const { return MATH_SPACE_CODE; }
+
 protected:
 	///
 	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);

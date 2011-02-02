@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -73,6 +73,8 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void octave(OctaveStream &) const;
 	///
 	void infoize(odocstream &) const;
@@ -90,7 +92,7 @@ public:
 		DISPLAY_INIT,
 		DISPLAY_INTERACTIVE_INIT,
 		DISPLAY_UNFOLDED,
-		DISPLAY_NORMAL,
+		DISPLAY_NORMAL
 	};
 
 	///
@@ -120,6 +122,8 @@ public:
 	}
 	/// Return the maximal number of arguments the macro is greedy for.
 	size_t appetite() const { return appetite_; }
+	///
+	InsetCode lyxCode() const { return MATH_MACRO_CODE; }
 
 protected:
 	friend class MathData;

@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -22,7 +22,7 @@ using namespace std;
 
 namespace boost {
 
-void throw_exception(exception const & e)
+void throw_exception(std::exception const & e)
 {
 	lyx::lyxerr << "Exception caught:\n"
 	       << e.what() << endl;

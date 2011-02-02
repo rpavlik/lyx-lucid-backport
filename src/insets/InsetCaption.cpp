@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,12 +25,14 @@
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "InsetList.h"
+#include "Language.h"
 #include "MetricsInfo.h"
 #include "output_latex.h"
+#include "output_xhtml.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
-#include "paragraph_funcs.h"
 #include "TextClass.h"
+#include "TextMetrics.h"
 #include "TocBackend.h"
 
 #include "frontends/FontMetrics.h"
@@ -47,21 +49,27 @@ using namespace lyx::support;
 namespace lyx {
 
 
-InsetCaption::InsetCaption(Buffer const & buf)
-	: InsetText(buf)
+InsetCaption::InsetCaption(Buffer * buf)
+	: InsetText(buf, InsetText::PlainLayout)
 {
 	setAutoBreakRows(true);
 	setDrawFrame(true);
-	setFrameColor(Color_captionframe);
-	// caption insets should use the plain layout
-	paragraphs().back().setPlainLayout(buf.params().documentClass());
+	setFrameColor(Color_collapsableframe);
 }
 
 
 void InsetCaption::write(ostream & os) const
 {
 	os << "Caption\n";
-	text().write(buffer(), os);
+	text().write(os);
+}
+
+
+docstring InsetCaption::name() const
+{
+	if (type_.empty())
+		return from_ascii("Caption");
+	return from_utf8("Caption:" + type_);
 }
 
 
@@ -74,12 +82,6 @@ void InsetCaption::read(Lexer & lex)
 	lex >> "Caption";
 #endif
 	InsetText::read(lex);
-}
-
-
-docstring InsetCaption::editMessage() const
-{
-	return _("Opened Caption Inset");
 }
 
 
@@ -111,7 +113,8 @@ void InsetCaption::addToToc(DocIterator const & cpit)
 	pit.push_back(CursorSlice(*this));
 
 	Toc & toc = buffer().tocBackend().toc(type_);
-	docstring const str = full_label_ + ". " + text().getPar(0).asString();
+	docstring str = full_label_ + ". ";
+	text().forToc(str, TOC_ENTRY_LENGTH);
 	toc.push_back(TocItem(pit, 0, str));
 
 	// Proceed with the rest of the inset.
@@ -139,6 +142,15 @@ void InsetCaption::metrics(MetricsInfo & mi, Dimension & dim) const
 }
 
 
+void InsetCaption::drawBackground(PainterInfo & pi, int x, int y) const
+{
+	TextMetrics & tm = pi.base.bv->textMetrics(&text());
+	int const h = tm.height() + 2 * TEXT_TO_INSET_OFFSET;
+	int const yy = y - TEXT_TO_INSET_OFFSET - tm.ascent();
+	pi.pain.fillRectangle(x, yy, labelwidth_, h, pi.backgroundColor(this));
+}
+
+
 void InsetCaption::draw(PainterInfo & pi, int x, int y) const
 {
 	// We must draw the label, we should get the label string
@@ -151,7 +163,9 @@ void InsetCaption::draw(PainterInfo & pi, int x, int y) const
 
 	FontInfo tmpfont = pi.base.font;
 	pi.base.font = pi.base.bv->buffer().params().getFont().fontInfo();
-	pi.pain.text(x, y, full_label_, pi.base.font);
+	pi.base.font.setColor(pi.textColor(pi.base.font.color()).baseColor);
+	int const xx = x + TEXT_TO_INSET_OFFSET;
+	pi.pain.text(xx, y, full_label_, pi.base.font);
 	InsetText::draw(pi, x + labelwidth_, y);
 	pi.base.font = tmpfont;
 }
@@ -174,12 +188,15 @@ Inset * InsetCaption::editXY(Cursor & cur, int x, int y)
 bool InsetCaption::insetAllowed(InsetCode code) const
 {
 	switch (code) {
+	// code that is not allowed in a caption
+	case CAPTION_CODE:
 	case FLOAT_CODE:
+	case FOOT_CODE:
+	case NEWPAGE_CODE:
+	case MARGIN_CODE:
+	case MATHMACRO_CODE:
 	case TABULAR_CODE:
 	case WRAP_CODE:
-	case CAPTION_CODE:
-	case NEWPAGE_CODE:
-	case MATHMACRO_CODE:
 		return false;
 	default:
 		return InsetText::insetAllowed(code);
@@ -190,14 +207,14 @@ bool InsetCaption::insetAllowed(InsetCode code) const
 bool InsetCaption::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_BREAK_PARAGRAPH:
 		status.setEnabled(false);
 		return true;
 
-	case LFUN_OPTIONAL_INSERT:
-		status.setEnabled(cur.paragraph().insetList().find(OPTARG_CODE) == -1);
+	case LFUN_ARGUMENT_INSERT:
+		status.setEnabled(cur.paragraph().insetList().find(ARG_CODE) == -1);
 		return true;
 
 	case LFUN_INSET_TOGGLE:
@@ -227,7 +244,7 @@ int InsetCaption::latex(odocstream & os,
 	// optional argument.
 	runparams.moving_arg = true;
 	os << "\\caption";
-	int l = latexOptArgInsets(paragraphs()[0], os, runparams, 1);
+	int l = latexArgInsets(paragraphs()[0], os, runparams, 0, 1);
 	os << '{';
 	l += InsetText::latex(os, runparams);
 	os << "}\n";
@@ -258,6 +275,21 @@ int InsetCaption::docbook(odocstream & os,
 }
 
 
+docstring InsetCaption::xhtml(XHTMLStream & xs, OutputParams const & rp) const
+{
+	if (rp.html_disable_captions)
+		return docstring();
+	string attr = "class='float-caption";
+	if (!type_.empty())
+		attr += " float-caption-" + type_;
+	attr += "'";
+	xs << html::StartTag("div", attr);
+	docstring def = getCaptionAsHTML(xs, rp);
+	xs << html::EndTag("div");
+	return def;
+}
+
+
 int InsetCaption::getArgument(odocstream & os,
 			OutputParams const & runparams) const
 {
@@ -268,11 +300,11 @@ int InsetCaption::getArgument(odocstream & os,
 int InsetCaption::getOptArg(odocstream & os,
 			OutputParams const & runparams) const
 {
-	return latexOptArgInsets(paragraphs()[0], os, runparams, 1);
+	return latexArgInsets(paragraphs()[0], os, runparams, 0, 1);
 }
 
 
-int InsetCaption::getCaptionText(odocstream & os,
+int InsetCaption::getCaptionAsPlaintext(odocstream & os,
 			OutputParams const & runparams) const
 {
 	os << full_label_ << ' ';
@@ -280,12 +312,27 @@ int InsetCaption::getCaptionText(odocstream & os,
 }
 
 
-void InsetCaption::updateLabels(ParIterator const & it)
+docstring InsetCaption::getCaptionAsHTML(XHTMLStream & xs,
+			OutputParams const & runparams) const
+{
+	xs << full_label_ << ' ';
+	InsetText::XHTMLOptions const opts = 
+		InsetText::WriteLabel | InsetText::WriteInnerTag;
+	return InsetText::insetAsXHTML(xs, runparams, opts);
+}
+
+
+void InsetCaption::updateBuffer(ParIterator const & it, UpdateType utype)
 {
 	Buffer const & master = *buffer().masterBuffer();
 	DocumentClass const & tclass = master.params().documentClass();
+	string const & lang = it.paragraph().getParLanguage(master.params())->code();
 	Counters & cnts = tclass.counters();
 	string const & type = cnts.current_float();
+	if (utype == OutputUpdate) {
+		// counters are local to the caption
+		cnts.saveLastCounter();
+	}
 	// Memorize type for addToToc().
 	type_ = type;
 	if (type.empty())
@@ -305,16 +352,18 @@ void InsetCaption::updateLabels(ParIterator const & it)
 				       master.B_(tclass.floats().getType(type).name()));
 		}
 		if (cnts.hasCounter(counter)) {
-			cnts.step(counter);
+			cnts.step(counter, utype);
 			full_label_ = bformat(from_ascii("%1$s %2$s:"), 
 					      name,
-					      cnts.theCounter(counter));
+					      cnts.theCounter(counter, lang));
 		} else
 			full_label_ = bformat(from_ascii("%1$s #:"), name);	
 	}
 
 	// Do the real work now.
-	InsetText::updateLabels(it);
+	InsetText::updateBuffer(it, utype);
+	if (utype == OutputUpdate)
+		cnts.restoreLastCounter();
 }
 
 

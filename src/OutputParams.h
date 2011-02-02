@@ -12,10 +12,8 @@
 #ifndef OUTPUTPARAMS_H
 #define OUTPUTPARAMS_H
 
-#include <string>
 
-#include "support/types.h"
-#include <boost/shared_ptr.hpp>
+#include "support/shared_ptr.h"
 #include "Changes.h"
 
 
@@ -27,13 +25,24 @@ class ExportData;
 class Font;
 class Language;
 
-
 class OutputParams {
 public:
 	enum FLAVOR {
 		LATEX,
+		LUATEX,
 		PDFLATEX,
-		XML
+		XETEX,
+		XML,
+		HTML,
+		TEXT
+	};
+	
+	enum MathFlavor {
+		NotApplicable,
+		MathAsMathML,
+		MathAsHTML,
+		MathAsImages,
+		MathAsLaTeX
 	};
 
 	enum TableCell {
@@ -51,11 +60,18 @@ public:
 	OutputParams(Encoding const *);
 	~OutputParams();
 
-	/** The latex that we export depends occasionally on what is to
+	/** The file that we export depends occasionally on what is to
 	    compile the file.
 	*/
 	FLAVOR flavor;
-
+	/// is it some flavor of LaTeX?
+	bool isLaTeX() const;
+	/// does this flavour support full unicode?
+	bool isFullUnicode() const;
+	
+	/// Same, but for math output, which only matter is XHTML output.
+	MathFlavor math_flavor;
+	
 	/** Are we to write a 'nice' LaTeX file or not.
 	    This esentially seems to mean whether InsetInclude, InsetGraphics
 	    and InsetExternal should add the absolute path to any external
@@ -74,6 +90,14 @@ public:
 	    Footnotes in such environments have moving arguments.
 	*/
 	bool intitle;
+
+	/** inulemcmd == true means that the environment in which the
+	    inset is typeset is part of a ulem command (\uline, \uuline,
+	    \uwave, or \sout). Insets that output latex commands relying
+	    on local assignments (such as \cite) should enclose such
+	    commands in \mbox{} in order to avoid breakage.
+	*/
+	mutable bool inulemcmd;
 
 	/** the font at the point where the inset is
 	 */
@@ -115,11 +139,27 @@ public:
 	*/
 	bool use_babel;
 
+	/** Do we use polyglossia (instead of babel)?
+	*/
+	bool use_polyglossia;
+
+	/** Are we generating multiple indices?
+	*/
+	bool use_indices;
+
 	/** Are we using japanese (pLaTeX)?
 	*/
 	bool use_japanese;
 
-	/** Line length to use with plaintext export.
+	/** Customized bibtex_command
+	*/
+	mutable std::string bibtex_command;
+
+	/** Customized index_command
+	*/
+	mutable std::string index_command;
+
+	/** Line length to use with plaintext or LaTeX export.
 	*/
 	size_type linelen;
 
@@ -132,7 +172,7 @@ public:
 	    This is a hack: Make it possible to add stuff to constant
 	    OutputParams instances.
 	*/
-	boost::shared_ptr<ExportData> exportdata;
+	shared_ptr<ExportData> exportdata;
 
 	/** Whether we are inside a comment inset. Insets that are including
 	 *  external files like InsetGraphics, InsetInclude and InsetExternal
@@ -170,23 +210,40 @@ public:
 	/** allow output of only part of the top-level paragraphs
 	 *  par_begin: beginning paragraph
 	 */
-	pit_type par_begin;
+	mutable pit_type par_begin;
 
 	/** allow output of only part of the top-level paragraphs
 	 *  par_end: par_end-1 is the ending paragraph
 	 *  if par_begin=par_end, output all paragraphs
 	 */
-	pit_type par_end;
+	mutable pit_type par_end;
 
 	/// is this the last paragraph in the current buffer/inset?
 	bool isLastPar;
+	
 
 	/** whether or not do actual file copying and image conversion
 	 *  This mode will be used to preview the source code
 	 */
 	bool dryrun;
+	
 	/// Should we output verbatim or escape LaTeX's special chars?
-	bool verbatim;
+	bool pass_thru;
+	
+	/// Should we output captions?
+	bool html_disable_captions;
+	
+	/// Are we already in a paragraph?
+	bool html_in_par;
+	
+	/// Does the present context even permit paragraphs?
+	bool html_make_pars;
+	
+	/// Are we generating this material for inclusion in a TOC-like entity?
+	bool for_toc;
+	
+	/// Include all children notwithstanding the use of \includeonly
+	bool includeall;
 };
 
 

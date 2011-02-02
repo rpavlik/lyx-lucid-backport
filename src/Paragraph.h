@@ -5,10 +5,10 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
- * \author André Pönitz
- * \author Jürgen Vigna
+ * \author AndrÃ© PÃ¶nitz
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,12 +17,14 @@
 #define PARAGRAPH_H
 
 #include "FontEnums.h"
-#include "Layout.h"
+#include "SpellChecker.h"
 
 #include "insets/InsetCode.h"
 
 #include "support/strfwd.h"
 #include "support/types.h"
+
+#include <set>
 
 namespace lyx {
 
@@ -34,6 +36,7 @@ class Counters;
 class Cursor;
 class CursorSlice;
 class DocIterator;
+class docstring_list;
 class DocumentClass;
 class Inset;
 class InsetBibitem;
@@ -41,6 +44,7 @@ class LaTeXFeatures;
 class Inset_code;
 class InsetList;
 class Language;
+class Layout;
 class Font;
 class Font_size;
 class MetricsInfo;
@@ -49,6 +53,8 @@ class PainterInfo;
 class ParagraphParameters;
 class TexRow;
 class Toc;
+class WordLangTuple;
+class XHTMLStream;
 
 class FontSpan {
 public:
@@ -60,6 +66,26 @@ public:
 public:
 	/// Range including first and last.
 	pos_type first, last;
+
+	inline bool operator<(FontSpan const & s) const
+	{
+		return first < s.first;
+	}
+	
+	inline bool operator==(FontSpan const & s) const
+	{
+		return first == s.first && last == s.last;
+	}
+	
+	inline bool inside(pos_type p) const
+	{
+		return first <= p && p <= last;
+	}
+
+	inline bool empty() const
+	{
+		return first > last;
+	}
 };
 
 ///
@@ -79,7 +105,8 @@ enum AsStringParameter
 	AS_STR_NONE = 0, ///< No option, only printable characters.
 	AS_STR_LABEL = 1, ///< Prefix with paragraph label.
 	AS_STR_INSETS = 2, ///< Go into insets.
-	AS_STR_NEWLINES = 4 ///< Get also newline characters.
+	AS_STR_NEWLINES = 4, ///< Get also newline characters.
+	AS_STR_SKIPDELETE = 8 ///< Skip deleted text in change tracking.
 };
 
 
@@ -89,7 +116,7 @@ class Paragraph
 public:
 	///
 	Paragraph();
-	///
+	/// Copy constructor.
 	Paragraph(Paragraph const &);
 	/// Partial copy constructor.
 	/// Copy the Paragraph contents from \p beg to \p end (without end).
@@ -100,6 +127,8 @@ public:
 	~Paragraph();
 	///
 	int id() const;
+	///
+	void setId(int id);
 
 	///
 	void addChangesToToc(DocIterator const & cdit, Buffer const & buf) const;
@@ -112,6 +141,8 @@ public:
 			    Language const * from, Language const * to);
 	///
 	bool isMultiLingual(BufferParams const &) const;
+	///
+	void getLanguages(std::set<Language const *> &) const;
 
 	/// Convert the paragraph to a string.
 	/// \param AsStringParameter options. This can contain any combination of
@@ -123,6 +154,12 @@ public:
 	///
 	docstring asString(pos_type beg, pos_type end,
 		int options = AS_STR_NONE) const;
+	///
+	void forToc(docstring &, size_t maxlen) const;
+
+	/// Extract only the explicitly visible text (without any formatting),
+	/// descending into insets
+	docstring stringify(pos_type beg, pos_type end, int options, OutputParams & runparams) const;
 
 	///
 	void write(std::ostream &, BufferParams const &,
@@ -130,9 +167,10 @@ public:
 	///
 	void validate(LaTeXFeatures &) const;
 
-	///
-	bool latex(BufferParams const &, Font const & outerfont, odocstream &,
-		TexRow & texrow, OutputParams const &) const;
+	/// \param force means: output even if layout.inpreamble is true.
+	void latex(BufferParams const &, Font const & outerfont, odocstream &,
+		   TexRow & texrow, OutputParams const &,
+		   int start_pos = 0, int end_pos = -1, bool force = false) const;
 
 	/// Can we drop the standard paragraph wrapper?
 	bool emptyTag() const;
@@ -140,12 +178,22 @@ public:
 	/// Get the id of the paragraph, usefull for docbook
 	std::string getID(Buffer const & buf, OutputParams const & runparams) const;
 
-	/// Get the first word of a paragraph, return the position where it left
-	pos_type firstWord(odocstream & os, OutputParams const & runparams) const;
+	/// Output the first word of a paragraph, return the position where it left.
+	pos_type firstWordDocBook(odocstream & os, OutputParams const & runparams) const;
+
+	/// Output the first word of a paragraph, return the position where it left.
+	pos_type firstWordLyXHTML(XHTMLStream & xs, OutputParams const & runparams) const;
 
 	/// Writes to stream the docbook representation
 	void simpleDocBookOnePar(Buffer const & buf,
 				 odocstream &,
+				 OutputParams const & runparams,
+				 Font const & outerfont,
+				 pos_type initial = 0) const;
+	/// \return any material that has had to be deferred until after the
+	/// paragraph has closed.
+	docstring simpleLyXHTMLOnePar(Buffer const & buf,
+				 XHTMLStream & xs,
 				 OutputParams const & runparams,
 				 Font const & outerfont,
 				 pos_type initial = 0) const;
@@ -160,10 +208,6 @@ public:
 	void setInsetOwner(Inset const * inset);
 	///
 	Inset const & inInset() const;
-	///
-	InsetCode ownerCode() const;
-	///
-	bool forcePlainLayout() const;
 	///
 	bool allowParagraphCustomization() const;
 	///
@@ -193,13 +237,13 @@ public:
 	/// is there a change within the given range ?
 	bool isChanged(pos_type start, pos_type end) const;
 	/// is there an unchanged char at the given pos ?
-	bool isUnchanged(pos_type pos) const;
+	bool isChanged(pos_type pos) const;
 	/// is there an insertion at the given pos ?
 	bool isInserted(pos_type pos) const;
 	/// is there a deletion at the given pos ?
 	bool isDeleted(pos_type pos) const;
 	/// is the whole paragraph deleted ?
-	bool isFullyDeleted(pos_type start, pos_type end) const;
+	bool isDeleted(pos_type start, pos_type end) const;
 
 	/// will the paragraph be physically merged with the next
 	/// one if the imaginary end-of-par character is logically deleted?
@@ -212,10 +256,10 @@ public:
 	void setChange(pos_type pos, Change const & change);
 
 	/// accept changes within the given range
-	void acceptChanges(BufferParams const & bparams, pos_type start, pos_type end);
+	void acceptChanges(pos_type start, pos_type end);
 
 	/// reject changes within the given range
-	void rejectChanges(BufferParams const & bparams, pos_type start, pos_type end);
+	void rejectChanges(pos_type start, pos_type end);
 
 	/// Paragraphs can contain "manual labels", for example, Description
 	/// environment. The text for this user-editable label is stored in
@@ -227,18 +271,15 @@ public:
 	void setBeginOfBody();
 
 	///
+	docstring expandLabel(Layout const &, BufferParams const &) const;
+	///
+	docstring expandDocBookLabel(Layout const &, BufferParams const &) const;
+	///
 	docstring const & labelString() const;
-
 	/// the next two functions are for the manual labels
 	docstring const getLabelWidthString() const;
 	/// Set label width string.
 	void setLabelWidthString(docstring const & s);
-	/// translate \p label to the paragraph language if possible.
-	docstring const translateIfPossible(docstring const & label,
-		BufferParams const & bparams) const;
-	/// Expand the counters for the labelstring of \c layout
-	docstring expandLabel(Layout const &, BufferParams const &,
-		bool process_appendix = true) const;
 	/// Actual paragraph alignment used
 	char getAlign() const;
 	/// The nesting depth of a paragraph
@@ -347,9 +388,9 @@ public:
 	bool isSeparator(pos_type pos) const;
 	///
 	bool isLineSeparator(pos_type pos) const;
-	/// True if the character/inset at this point can be part of a word.
-	/// Note that digits in particular are considered as letters
-	bool isLetter(pos_type pos) const;
+	/// True if the character/inset at this point is a word separator.
+	/// Note that digits in particular are not considered as word separator.
+	bool isWordSeparator(pos_type pos) const;
 	/// True if the element at this point is a character that is not a letter.
 	bool isChar(pos_type pos) const;
 	/// True if the element at this point is a space
@@ -389,23 +430,59 @@ public:
 		pos_type & right, TextCase action);
 
 	/// find \param str string inside Paragraph.
-	/// \return true if the specified string is at the specified position
+	/// \return non-zero if the specified string is at the specified
+	///	position; returned value is the actual match length in positions
 	/// \param del specifies whether deleted strings in ct mode will be considered
-	bool find(
+	int find(
 		docstring const & str, ///< string to search
 		bool cs, ///<
 		bool mw, ///<
 		pos_type pos, ///< start from here.
 		bool del = true) const;
 	
+	void locateWord(pos_type & from, pos_type & to,
+		word_location const loc) const;
 	///
-	void updateWords(CursorSlice const & sl);
+	void updateWords();
+
+	/// Spellcheck word at position \p from and fill in found misspelled word
+	/// and \p suggestions if \p do_suggestion is true.
+	/// \return result from spell checker, SpellChecker::UNKNOWN_WORD when misspelled.
+	SpellChecker::Result spellCheck(pos_type & from, pos_type & to, WordLangTuple & wl,
+		docstring_list & suggestions, bool do_suggestion =  true,
+		bool check_learned = false) const;
+
+	/// Spell checker status at position \p pos.
+	/// \return true if pointed position is misspelled.
+	bool isMisspelled(pos_type pos) const;
+
+	/// \return true if both positions are inside the same
+	/// spell range - i.e. the same word.
+	/// use it for positions inside misspelled range only.
+	bool isSameSpellRange(pos_type pos1, pos_type pos2) const;
+
+	/// spell check of whole paragraph
+	/// remember results until call of requestSpellCheck()
+	void spellCheck() const;
+
+	/// query state of spell checker results
+	bool needsSpellCheck() const;
+	/// mark position of text manipulation to inform the spell checker
+	/// default value -1 marks the whole paragraph to be checked (again)
+	void requestSpellCheck(pos_type pos = -1);
+
+	/// an automatically generated identifying label for this paragraph.
+	/// presently used only in the XHTML output routines.
+	std::string magicLabel() const;
 
 private:
+	/// Expand the counters for the labelstring of \c layout
+	docstring expandParagraphLabel(Layout const &, BufferParams const &,
+		bool process_appendix) const;
 	///
 	void deregisterWords();
 	///
-	void collectWords(CursorSlice const & sl);
+	void collectWords();
 	///
 	void registerWords();
 

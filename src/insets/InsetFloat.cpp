@@ -3,9 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,14 +25,12 @@
 #include "FloatList.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "InsetList.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
-#include "OutputParams.h"
+#include "output_xhtml.h"
 #include "ParIterator.h"
 #include "TextClass.h"
 
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/docstream.h"
 #include "support/gettext.h"
@@ -41,6 +39,7 @@
 #include "frontends/Application.h"
 
 using namespace std;
+using namespace lyx::support;
 
 
 namespace lyx {
@@ -51,7 +50,7 @@ namespace lyx {
 // (read DocBook).
 // By using float.sty we will have the same handling for all floats, both
 // for those already in existance (table and figure) and all user created
-// ones¹. So suddenly we give the users the possibility of creating new
+// onesÂ¹. So suddenly we give the users the possibility of creating new
 // kinds of floats on the fly. (and with a uniform look)
 //
 // API to float.sty:
@@ -88,7 +87,7 @@ namespace lyx {
 //   \listof{type}{title}
 //     title -
 
-// ¹ the algorithm float is defined using the float.sty package. Like this
+// Â¹ the algorithm float is defined using the float.sty package. Like this
 //   \floatstyle{ruled}
 //   \newfloat{algorithm}{htbp}{loa}[<sect>]
 //   \floatname{algorithm}{Algorithm}
@@ -112,31 +111,24 @@ namespace lyx {
 //
 // Lgb
 
-
-InsetFloat::InsetFloat(Buffer const & buf, string const & type)
-	: InsetCollapsable(buf), name_(from_utf8(type))
+//FIXME: why do we set in stone the type here?
+InsetFloat::InsetFloat(Buffer * buf, string params_str)
+	: InsetCollapsable(buf)
 {
-	setLabel(_("float: ") + floatName(type, buf.params()));
-	params_.type = type;
-}
-
-
-InsetFloat::~InsetFloat()
-{
-	hideDialogs("float", this);
+	string2params(params_str, params_);
 }
 
 
 docstring InsetFloat::name() const 
 { 
-	return "Float:" + name_; 
+	return "Float:" + from_utf8(params_.type);
 }
 
 
 docstring InsetFloat::toolTip(BufferView const & bv, int x, int y) const
 {
-	if (InsetCollapsable::toolTip(bv, x, y).empty() || isOpen(bv))
-		return docstring();
+	if (isOpen(bv))
+		return InsetCollapsable::toolTip(bv, x, y);
 
 	OutputParams rp(&buffer().params().encoding());
 	return getCaptionText(rp);
@@ -145,22 +137,27 @@ docstring InsetFloat::toolTip(BufferView const & bv, int x, int y) const
 
 void InsetFloat::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
 		InsetFloatParams params;
 		string2params(to_utf8(cmd.argument()), params);
+		cur.recordUndoInset(ATOMIC_UNDO, this);
 
 		// placement, wide and sideways are not used for subfloats
 		if (!params_.subfloat) {
 			params_.placement = params.placement;
 			params_.wide      = params.wide;
 			params_.sideways  = params.sideways;
-			setWide(params_.wide, cur.buffer().params(), false);
-			setSideways(params_.sideways, cur.buffer().params(), false);
 		}
-
-		setNewLabel(cur.buffer().params());
+		setNewLabel();
+		if (params_.type != params.type) {
+			params_.type = params.type;
+			cur.forceBufferUpdate();
+		}
+		// what we really want here is a TOC update, but that means
+		// a full buffer update
+		cur.forceBufferUpdate();
 		break;
 	}
 
@@ -179,7 +176,7 @@ void InsetFloat::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetFloat::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
@@ -199,10 +196,14 @@ bool InsetFloat::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetFloat::updateLabels(ParIterator const & it)
+void InsetFloat::updateBuffer(ParIterator const & it, UpdateType utype)
 {
 	Counters & cnts =
 		buffer().masterBuffer()->params().documentClass().counters();
+	if (utype == OutputUpdate) {
+		// counters are local to the float
+		cnts.saveLastCounter();
+	}
 	string const saveflt = cnts.current_float();
 	bool const savesubflt = cnts.isSubfloat();
 
@@ -211,23 +212,25 @@ void InsetFloat::updateLabels(ParIterator const & it)
 	// floats can only embed subfloats of their own kind
 	if (subflt)
 		params_.type = saveflt;
-	setSubfloat(subflt, buffer().params());
+	setSubfloat(subflt);
 
 	// Tell to captions what the current float is
 	cnts.current_float(params().type);
 	cnts.isSubfloat(subflt);
 
-	InsetCollapsable::updateLabels(it);
+	InsetCollapsable::updateBuffer(it, utype);
 
 	//reset afterwards
 	cnts.current_float(saveflt);
+	if (utype == OutputUpdate)
+		cnts.restoreLastCounter();
 	cnts.isSubfloat(savesubflt);
 }
 
 
 void InsetFloatParams::write(ostream & os) const
 {
-	os << "Float " << type << '\n';
+	os << type << '\n';
 
 	if (!placement.empty())
 		os << "placement " << placement << "\n";
@@ -247,6 +250,7 @@ void InsetFloatParams::write(ostream & os) const
 void InsetFloatParams::read(Lexer & lex)
 {
 	lex.setContext("InsetFloatParams::read");
+	lex >> type;
 	if (lex.checkFor("placement"))
 		lex >> placement;
 	lex >> "wide" >> wide;
@@ -256,6 +260,7 @@ void InsetFloatParams::read(Lexer & lex)
 
 void InsetFloat::write(ostream & os) const
 {
+	os << "Float ";
 	params_.write(os);
 	InsetCollapsable::write(os);
 }
@@ -264,9 +269,12 @@ void InsetFloat::write(ostream & os) const
 void InsetFloat::read(Lexer & lex)
 {
 	params_.read(lex);
-	setWide(params_.wide, buffer().params());
-	setSideways(params_.sideways, buffer().params());
 	InsetCollapsable::read(lex);
+	// check if the float type exists
+	if (buffer().params().documentClass().floats().typeExist(params_.type))
+		setLabel(_("float: ") + floatName(params_.type));
+	else
+		setLabel(bformat(_("ERROR: Unknown float type: %1$s"), from_utf8(params_.type)));
 }
 
 
@@ -288,9 +296,32 @@ void InsetFloat::validate(LaTeXFeatures & features) const
 }
 
 
-docstring InsetFloat::editMessage() const
+docstring InsetFloat::xhtml(XHTMLStream & xs, OutputParams const & rp) const
 {
-	return _("Opened Float Inset");
+	FloatList const & floats = buffer().params().documentClass().floats();
+	Floating const & ftype = floats.getType(params_.type);
+	string const & htmltype = ftype.htmlTag();
+	string const & attr = ftype.htmlAttrib();
+
+	odocstringstream ods;
+	XHTMLStream newxs(ods);
+	newxs << html::StartTag(htmltype, attr);
+	InsetText::XHTMLOptions const opts = 
+		InsetText::WriteLabel | InsetText::WriteInnerTag;
+	docstring deferred = InsetText::insetAsXHTML(newxs, rp, opts);
+	newxs << html::EndTag(htmltype);
+
+	if (rp.inFloat == OutputParams::NONFLOAT)
+		// In this case, this float needs to be deferred, but we'll put it
+		// before anything the text itself deferred.
+		deferred = ods.str() + '\n' + deferred;
+	else 
+		// In this case, the whole thing is already being deferred, so
+		// we can write to the stream.
+		// Note that things will already have been escaped, so we do not 
+		// want to escape them again.
+		xs << XHTMLStream::ESCAPE_NONE << ods.str();
+	return deferred;
 }
 
 
@@ -365,7 +396,7 @@ int InsetFloat::latex(odocstream & os, OutputParams const & runparams_in) const
 int InsetFloat::plaintext(odocstream & os, OutputParams const & runparams) const
 {
 	os << '[' << buffer().B_("float") << ' '
-		<< floatName(params_.type, buffer().params()) << ":\n";
+		<< floatName(params_.type) << ":\n";
 	InsetText::plaintext(os, runparams);
 	os << "\n]";
 
@@ -400,47 +431,38 @@ bool InsetFloat::insetAllowed(InsetCode code) const
 }
 
 
-bool InsetFloat::showInsetDialog(BufferView * bv) const
-{
-	if (!InsetText::showInsetDialog(bv))
-		bv->showDialog("float", params2string(params()),
-			const_cast<InsetFloat *>(this));
-	return true;
-}
-
-
-void InsetFloat::setWide(bool w, BufferParams const & bp, bool update_label)
+void InsetFloat::setWide(bool w, bool update_label)
 {
 	params_.wide = w;
 	if (update_label)
-		setNewLabel(bp);
+		setNewLabel();
 }
 
 
-void InsetFloat::setSideways(bool s, BufferParams const & bp, bool update_label)
+void InsetFloat::setSideways(bool s, bool update_label)
 {
 	params_.sideways = s;
 	if (update_label)
-		setNewLabel(bp);
+		setNewLabel();
 }
 
 
-void InsetFloat::setSubfloat(bool s, BufferParams const & bp, bool update_label)
+void InsetFloat::setSubfloat(bool s, bool update_label)
 {
 	params_.subfloat = s;
 	if (update_label)
-		setNewLabel(bp);
+		setNewLabel();
 }
 
 
-void InsetFloat::setNewLabel(BufferParams const & bp)
+void InsetFloat::setNewLabel()
 {
 	docstring lab = _("float: ");
 
 	if (params_.subfloat)
 		lab = _("subfloat: ");
 
-	lab += floatName(params_.type, bp);
+	lab += floatName(params_.type);
 
 	if (params_.wide)
 		lab += '*';
@@ -457,47 +479,16 @@ docstring InsetFloat::getCaption(OutputParams const & runparams) const
 	if (paragraphs().empty())
 		return docstring();
 
-	ParagraphList::const_iterator pit = paragraphs().begin();
-	for (; pit != paragraphs().end(); ++pit) {
-		InsetList::const_iterator it = pit->insetList().begin();
-		for (; it != pit->insetList().end(); ++it) {
-			Inset & inset = *it->inset;
-			if (inset.lyxCode() == CAPTION_CODE) {
-				odocstringstream ods;
-				InsetCaption * ins =
-					static_cast<InsetCaption *>(it->inset);
-				ins->getOptArg(ods, runparams);
-				ods << '[';
-				ins->getArgument(ods, runparams);
-				ods << ']';
-				return ods.str();
-			}
-		}
-	}
-	return docstring();
-}
-
-
-docstring InsetFloat::getCaptionText(OutputParams const & runparams) const
-{
-	if (paragraphs().empty())
+	InsetCaption const * ins = getCaptionInset();
+	if (ins == 0)
 		return docstring();
 
-	ParagraphList::const_iterator pit = paragraphs().begin();
-	for (; pit != paragraphs().end(); ++pit) {
-		InsetList::const_iterator it = pit->insetList().begin();
-		for (; it != pit->insetList().end(); ++it) {
-			Inset & inset = *it->inset;
-			if (inset.lyxCode() == CAPTION_CODE) {
-				odocstringstream ods;
-				InsetCaption * ins =
-					static_cast<InsetCaption *>(it->inset);
-				ins->getCaptionText(ods, runparams);
-				return ods.str();
-			}
-		}
-	}
-	return docstring();
+	odocstringstream ods;
+	ins->getOptArg(ods, runparams);
+	ods << '[';
+	ins->getArgument(ods, runparams);
+	ods << ']';
+	return ods.str();
 }
 
 
@@ -511,8 +502,6 @@ void InsetFloat::string2params(string const & in, InsetFloatParams & params)
 	Lexer lex;
 	lex.setStream(data);
 	lex.setContext("InsetFloat::string2params");
-	lex >> "float" >> "Float";
-	lex >> params.type; // We have to read the type here!
 	params.read(lex);
 }
 
@@ -520,7 +509,6 @@ void InsetFloat::string2params(string const & in, InsetFloatParams & params)
 string InsetFloat::params2string(InsetFloatParams const & params)
 {
 	ostringstream data;
-	data << "float" << ' ';
 	params.write(data);
 	return data.str();
 }

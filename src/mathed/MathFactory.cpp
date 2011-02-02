@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -41,8 +41,10 @@
 #include "InsetMathTabular.h"
 #include "InsetMathUnderset.h"
 #include "InsetMathUnknown.h"
+#include "InsetMathHull.h"
 #include "InsetMathXArrow.h"
 #include "InsetMathXYMatrix.h"
+#include "InsetMathDiagram.h"
 #include "MacroTable.h"
 #include "MathMacro.h"
 #include "MathMacroArgument.h"
@@ -61,6 +63,8 @@
 
 #include "frontends/FontLoader.h"
 
+#include "Buffer.h"
+#include "BufferParams.h"
 #include "Encoding.h"
 #include "LyX.h" // use_gui
 #include "OutputParams.h"
@@ -75,7 +79,7 @@ bool has_math_fonts;
 
 namespace {
 
-MathWordList theWordList;
+MathWordList theMathWordList;
 
 
 bool isMathFontAvailable(docstring & name)
@@ -131,6 +135,7 @@ void initSymbols()
 			continue;
 		} else if (line.size() >= 4 && line.substr(0, 4) == "else") {
 			skip = !skip;
+			continue;
 		} else if (line.size() >= 5 && line.substr(0, 5) == "endif") {
 			skip = false;
 			continue;
@@ -175,6 +180,8 @@ void initSymbols()
 					tmp.requires = from_ascii("amssymb");
 				else if (tmp.inset == "wasy")
 					tmp.requires = from_ascii("wasysym");
+				else if (tmp.inset == "mathscr")
+					tmp.requires = from_ascii("mathrsfs");
 			}
 
 			// symbol font is not available sometimes
@@ -204,11 +211,11 @@ void initSymbols()
 					      << " used for " << to_utf8(tmp.name));
 		}
 
-		if (theWordList.find(tmp.name) != theWordList.end())
+		if (theMathWordList.find(tmp.name) != theMathWordList.end())
 			LYXERR(Debug::MATHED, "readSymbols: inset " << to_utf8(tmp.name)
 				<< " already exists.");
 		else
-			theWordList[tmp.name] = tmp;
+			theMathWordList[tmp.name] = tmp;
 
 		LYXERR(Debug::MATHED, "read symbol '" << to_utf8(tmp.name)
 			<< "  inset: " << to_utf8(tmp.inset)
@@ -238,7 +245,7 @@ bool isSpecialChar(docstring const & name)
 
 MathWordList const & mathedWordList()
 {
-	return theWordList;
+	return theMathWordList;
 }
 
 
@@ -297,8 +304,8 @@ int ensureMode(WriteStream & os, InsetMath::mode_type mode,
 
 latexkeys const * in_word_set(docstring const & str)
 {
-	MathWordList::iterator it = theWordList.find(str);
-	return it != theWordList.end() ? &(it->second) : 0;
+	MathWordList::iterator it = theMathWordList.find(str);
+	return it != theMathWordList.end() ? &(it->second) : 0;
 }
 
 
@@ -311,6 +318,10 @@ MathAtom createInsetMath(char const * const s, Buffer * buf)
 MathAtom createInsetMath(docstring const & s, Buffer * buf)
 {
 	//lyxerr << "creating inset with name: '" << to_utf8(s) << '\'' << endl;
+	if ((s == "ce" || s == "cf") && buf
+	    && buf->params().use_mhchem == BufferParams::package_off)
+		return MathAtom(new MathMacro(buf, s));
+
 	latexkeys const * l = in_word_set(s);
 	if (l) {
 		docstring const & inset = l->inset;
@@ -370,11 +381,23 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 	if (s.substr(0, 8) == "xymatrix") {
 		char spacing_code = '\0';
 		Length spacing;
+		bool equal_spacing = false;
 		size_t const len = s.length();
 		size_t i = 8;
 		if (i < len && s[i] == '@') {
 			++i;
-			if (i < len) {
+			if (i < len && s[i] == '!') {
+				equal_spacing = true;
+				++i;
+				if (i < len) {
+					switch (s[i]) {
+					case '0':
+					case 'R':
+					case 'C':
+						spacing_code = static_cast<char>(s[i]);
+					}
+				}
+			} else if (i < len) {
 				switch (s[i]) {
 				case 'R':
 				case 'C':
@@ -386,17 +409,21 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 					++i;
 					break;
 				}
-			}
-			if (i < len && s[i] == '=') {
-				++i;
-				spacing = Length(to_ascii(s.substr(i)));
+				if (i < len && s[i] == '=') {
+					++i;
+					spacing = Length(to_ascii(s.substr(i)));
+				}
 			}
 		}
-		return MathAtom(new InsetMathXYMatrix(buf, spacing, spacing_code));
+		return MathAtom(new InsetMathXYMatrix(buf, spacing, spacing_code,
+			equal_spacing));
 	}
+
+	if (s == "Diagram")
+		return MathAtom(new InsetMathDiagram(buf));
 	if (s == "xrightarrow" || s == "xleftarrow")
 		return MathAtom(new InsetMathXArrow(buf, s));
-	if (s == "split" || s == "gathered" || s == "aligned" || s == "alignedat")
+	if (s == "split" || s == "alignedat")
 		return MathAtom(new InsetMathSplit(buf, s));
 	if (s == "cases")
 		return MathAtom(new InsetMathCases(buf));
@@ -414,6 +441,10 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 		return MathAtom(new InsetMathStackrel(buf));
 	if (s == "binom")
 		return MathAtom(new InsetMathBinom(buf, InsetMathBinom::BINOM));
+	if (s == "dbinom")
+		return MathAtom(new InsetMathBinom(buf, InsetMathBinom::DBINOM));
+	if (s == "tbinom")
+		return MathAtom(new InsetMathBinom(buf, InsetMathBinom::TBINOM));
 	if (s == "choose")
 		return MathAtom(new InsetMathBinom(buf, InsetMathBinom::CHOOSE));
 	if (s == "brace")
@@ -424,6 +455,10 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 		return MathAtom(new InsetMathFrac(buf));
 	if (s == "cfrac")
 		return MathAtom(new InsetMathFrac(buf, InsetMathFrac::CFRAC));
+	if (s == "dfrac")
+		return MathAtom(new InsetMathFrac(buf, InsetMathFrac::DFRAC));
+	if (s == "tfrac")
+		return MathAtom(new InsetMathFrac(buf, InsetMathFrac::TFRAC));
 	if (s == "over")
 		return MathAtom(new InsetMathFrac(buf, InsetMathFrac::OVER));
 	if (s == "nicefrac")
@@ -457,14 +492,6 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 		return MathAtom(new InsetMathColor(buf, true));
 	if (s == "textcolor")
 		return MathAtom(new InsetMathColor(buf, false));
-	if (s == "dfrac")
-		return MathAtom(new InsetMathDFrac(buf));
-	if (s == "tfrac")
-		return MathAtom(new InsetMathTFrac(buf));
-	if (s == "dbinom")
-		return MathAtom(new InsetMathDBinom(buf));
-	if (s == "tbinom")
-		return MathAtom(new InsetMathTBinom(buf));
 	if (s == "hphantom")
 		return MathAtom(new InsetMathPhantom(buf, InsetMathPhantom::hphantom));
 	if (s == "phantom")
@@ -475,6 +502,9 @@ MathAtom createInsetMath(docstring const & s, Buffer * buf)
 		return MathAtom(new InsetMathEnsureMath(buf));
 	if (isSpecialChar(s))
 		return MathAtom(new InsetMathSpecialChar(s));
+
+	if (s == "regexp")
+		return MathAtom(new InsetMathHull(buf, hullRegexp));
 
 	return MathAtom(new MathMacro(buf, s));
 }
@@ -490,8 +520,10 @@ bool createInsetMath_fromDialogStr(docstring const & str, MathData & ar)
 	if (name == "ref") {
 		InsetCommandParams icp(REF_CODE);
 		// FIXME UNICODE
-		InsetCommand::string2params("ref", to_utf8(str), icp);
-		mathed_parse_cell(ar, icp.getCommand());
+		InsetCommand::string2params(to_utf8(str), icp);
+		Encoding const * const utf8 = encodings.fromLyXName("utf8");
+		OutputParams op(utf8);
+		mathed_parse_cell(ar, icp.getCommand(op));
 	} else if (name == "mathspace") {
 		InsetSpaceParams isp(true);
 		InsetSpace::string2params(to_utf8(str), isp);

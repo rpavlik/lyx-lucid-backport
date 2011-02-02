@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author Dekel Tsur
@@ -15,15 +15,14 @@
 #ifndef FONT_PROPERTIES_H
 #define FONT_PROPERTIES_H
 
-#ifdef TEX2LYX
-#include "tex2lyx/Font.h"
-#else
-
 #include "Color.h"
 #include "ColorCode.h"
 #include "FontEnums.h"
+#include "support/strfwd.h"
 
 namespace lyx {
+
+class Lexer;
 
 ///
 class FontInfo
@@ -41,11 +40,15 @@ public:
 		ColorCode background,
 		FontState emph,
 		FontState underbar,
+		FontState strikeout,
+		FontState uuline,
+		FontState uwave,
 		FontState noun,
 		FontState number)
 		: family_(family), series_(series), shape_(shape), size_(size), 
 		color_(color), background_(background), paint_color_(), emph_(emph),
-		underbar_(underbar), noun_(noun), number_(number)
+		underbar_(underbar), strikeout_(strikeout), uuline_(uuline),
+		uwave_(uwave), noun_(noun), number_(number)
 	{}
 
 	/// Decreases font size by one
@@ -53,8 +56,8 @@ public:
 	/// Increases font size by one
 	FontInfo & incSize();
 
-	/// Accessor methods.
-	///@{
+	/// \name Accessor methods
+	//@{
 	FontFamily family() const { return family_; }
 	void setFamily(FontFamily f) { family_ = f; }
 	FontSeries series() const { return series_; }
@@ -67,6 +70,12 @@ public:
 	void setEmph(FontState e) { emph_ = e; }
 	FontState underbar() const { return underbar_; }
 	void setUnderbar(FontState u) { underbar_ = u; }
+	FontState strikeout() const { return strikeout_; }
+	void setStrikeout(FontState s) { strikeout_ = s; }
+	FontState uuline() const { return uuline_; }
+	void setUuline(FontState s) { uuline_ = s; }
+	FontState uwave() const { return uwave_; }
+	void setUwave(FontState s) { uwave_ = s; }
 	FontState noun() const { return noun_; }
 	void setNoun(FontState n) { noun_ = n; }
 	FontState number() const { return number_; }
@@ -75,7 +84,7 @@ public:
 	void setColor(ColorCode c) { color_ = c; }
 	ColorCode background() const { return background_; }
 	void setBackground(ColorCode b) { background_ = b; }
-	///@}
+	//@}
 
 	///
 	void update(FontInfo const & newfont, bool toggleall);
@@ -94,6 +103,9 @@ public:
 	Color realColor() const;
 	/// Sets the color which is used during painting
 	void setPaintColor(Color c) { paint_color_ = c; }
+
+	///
+	docstring asCSS() const;
 
 	/// Converts logical attributes to concrete shape attribute
 	/// Try hard to inline this as it shows up with 4.6 % in the profiler.
@@ -125,6 +137,7 @@ public:
 
 private:
 	friend bool operator==(FontInfo const & lhs, FontInfo const & rhs);
+
 	///
 	FontFamily family_;
 	///
@@ -144,6 +157,12 @@ private:
 	///
 	FontState underbar_;
 	///
+	FontState strikeout_;
+	///
+	FontState uuline_;
+	///
+	FontState uwave_;
+	///
 	FontState noun_;
 	///
 	FontState number_;
@@ -160,6 +179,9 @@ inline bool operator==(FontInfo const & lhs, FontInfo const & rhs)
 		&& lhs.background_ == rhs.background_
 		&& lhs.emph_ == rhs.emph_
 		&& lhs.underbar_ == rhs.underbar_
+		&& lhs.strikeout_ == rhs.strikeout_
+		&& lhs.uuline_ == rhs.uuline_
+		&& lhs.uwave_ == rhs.uwave_
 		&& lhs.noun_ == rhs.noun_
 		&& lhs.number_ == rhs.number_;
 }
@@ -177,7 +199,27 @@ extern FontInfo const inherit_font;
 /// All ignore font.
 extern FontInfo const ignore_font;
 
+/// Set family after LyX text format
+void setLyXFamily(std::string const &, FontInfo &);
+
+/// Set series after LyX text format
+void setLyXSeries(std::string const &, FontInfo &);
+
+/// Set shape after LyX text format
+void setLyXShape(std::string const &, FontInfo &);
+
+/// Set size after LyX text format
+void setLyXSize(std::string const &, FontInfo &);
+
+/// Sets color after LyX text format
+void setLyXColor(std::string const &, FontInfo &);
+
+/// Returns misc flag after LyX text format
+FontState setLyXMisc(std::string const &);
+
+/// Read a font specification from Lexer. Used for layout files.
+FontInfo lyxRead(Lexer &, FontInfo const & fi = sane_font);
+
 } // namespace lyx
 
-#endif // TEX2LYX_FONT_H
 #endif

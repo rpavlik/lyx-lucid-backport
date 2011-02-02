@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author José Matos
+ * \author JosÃ© Matos
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,19 +12,23 @@
 #include "InsetRef.h"
 
 #include "Buffer.h"
+#include "BufferParams.h"
 #include "Cursor.h"
 #include "DispatchResult.h"
-#include "FuncRequest.h"
+#include "InsetLabel.h"
 #include "LaTeXFeatures.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 #include "ParIterator.h"
 #include "sgml.h"
 #include "TocBackend.h"
 
+#include "support/debug.h"
 #include "support/docstream.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
+#include "support/textutils.h"
 
 using namespace lyx::support;
 using namespace std;
@@ -32,13 +36,13 @@ using namespace std;
 namespace lyx {
 
 
-InsetRef::InsetRef(Buffer const & buf, InsetCommandParams const & p)
-	: InsetCommand(p, "ref"), isLatex(buf.isLatex())
+InsetRef::InsetRef(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
 {}
 
 
 InsetRef::InsetRef(InsetRef const & ir)
-	: InsetCommand(ir), isLatex(ir.isLatex)
+	: InsetCommand(ir)
 {}
 
 
@@ -49,8 +53,9 @@ bool InsetRef::isCompatibleCommand(string const & s) {
 		|| s == "pageref"
 		|| s == "vref" 
 		|| s == "vpageref"
-		|| s == "prettyref"
-		|| s == "eqref";
+		|| s == "formatted"
+		|| s == "eqref"
+		|| s == "nameref";
 }
 
 
@@ -59,19 +64,97 @@ ParamInfo const & InsetRef::findInfo(string const & /* cmdName */)
 	static ParamInfo param_info_;
 	if (param_info_.empty()) {
 		param_info_.add("name", ParamInfo::LATEX_OPTIONAL);
-		param_info_.add("reference", ParamInfo::LATEX_REQUIRED);
+		param_info_.add("reference", ParamInfo::LATEX_REQUIRED,
+				ParamInfo::HANDLING_ESCAPE);
 	}
 	return param_info_;
 }
 
 
-int InsetRef::latex(odocstream & os, OutputParams const &) const
+// the ref argument is the label name we are referencing.
+// we expect ref to be in the form: pfx:suffix.
+//
+// if it isn't, then we can't produce a formatted reference, 
+// so we return "\ref" and put ref into label.
+//
+// for refstyle, we return "\pfxcmd", and put suffix into 
+// label and pfx into prefix. this is because refstyle expects
+// the command: \pfxcmd{suffix}.
+// 
+// for prettyref, we return "\prettyref" and put ref into label
+// and pfx into prefix. this is because prettyref 
+//
+docstring InsetRef::getFormattedCmd(docstring const & ref, 
+	docstring & label, docstring & prefix) const
 {
-	// We don't want to output p_["name"], since that is only used 
-	// in docbook. So we construct new params, without it, and use that.
-	InsetCommandParams p(REF_CODE, getCmdName());
-	p["reference"] = getParam("reference");
-	os << escape(p.getCommand());
+	static docstring const defcmd = from_ascii("\\ref");
+	static docstring const prtcmd = from_ascii("\\prettyref");
+	
+	label = split(ref, prefix, ':');
+
+	// we have to have xxx:xxxxx...
+	if (label.empty()) {
+		LYXERR0("Label `" << ref << "' contains no prefix.");
+		label = ref;
+		prefix = from_ascii("");
+		return defcmd;
+	}
+
+	if (prefix.empty()) {
+		// we have ":xxxx"
+		label = ref;
+		return defcmd;
+	}
+	
+	if (!buffer().params().use_refstyle) {
+		// \prettyref uses the whole label
+		label = ref;
+		return prtcmd;
+	}
+
+	// make sure the prefix is legal for a latex command
+	int const len = prefix.size();
+	for (int i = 0; i < len; i++) {
+		char_type const c = prefix[i];
+		if (!isAlphaASCII(c)) {
+			LYXERR0("Prefix `" << prefix << "' is invalid for LaTeX.");
+			// restore the label
+			label = ref;
+			return defcmd;
+		}
+	}
+	return from_ascii("\\") + prefix + from_ascii("ref");
+}
+
+
+docstring InsetRef::getEscapedLabel(OutputParams const & rp) const
+{
+	InsetCommandParams const & p = params();
+	ParamInfo const & pi = p.info();
+	ParamInfo::ParamData const & pd = pi["reference"];
+	return p.prepareCommand(rp, getParam("reference"), pd.handling());		
+}
+
+
+int InsetRef::latex(odocstream & os, OutputParams const & rp) const
+{
+	string const cmd = getCmdName();
+	if (cmd != "formatted") {
+		// We don't want to output p_["name"], since that is only used 
+		// in docbook. So we construct new params, without it, and use that.
+		InsetCommandParams p(REF_CODE, cmd);
+		docstring const ref = getParam("reference");
+		p["reference"] = ref;
+		os << p.getCommand(rp);
+		return 0;
+	} 
+	
+	// so we're doing a formatted reference.
+	docstring const data = getEscapedLabel(rp);
+	docstring label;
+	docstring prefix;
+	docstring const fcmd = getFormattedCmd(data, label, prefix);
+	os << fcmd << '{' << label << '}';
 	return 0;
 }
 
@@ -109,13 +192,60 @@ int InsetRef::docbook(odocstream & os, OutputParams const & runparams) const
 }
 
 
-void InsetRef::tocString(odocstream & os) const
+docstring InsetRef::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	docstring const & ref = getParam("reference");
+	InsetLabel const * il = buffer().insetLabel(ref);
+	string const & cmd = params().getCmdName();
+	docstring display_string;
+
+	if (il && !il->counterValue().empty()) {
+		// Try to construct a label from the InsetLabel we reference.
+		docstring const & value = il->counterValue();
+		if (cmd == "ref")
+			display_string = value;
+		else if (cmd == "vref")
+			// normally, would be "ref on page #", but we have no pages
+			display_string = value;
+		else if (cmd == "pageref" || cmd == "vpageref")
+			// normally would be "on page #", but we have no pages
+			display_string = _("elsewhere");
+		else if (cmd == "eqref")
+			display_string = bformat(from_ascii("equation (%1$s)"), value);
+		else if (cmd == "prettyref" 
+		         // we don't really have the ability to handle these 
+		         // properly in XHTML output
+		         || cmd == "nameref")
+			display_string = il->prettyCounter();
+	} else 
+			display_string = ref;
+
+	// FIXME What we'd really like to do is to be able to output some
+	// appropriate sort of text here. But to do that, we need to associate
+	// some sort of counter with the label, and we don't have that yet.
+	string const attr = "href=\"#" + html::cleanAttr(to_utf8(ref)) + "\"";
+	xs << html::StartTag("a", attr);
+	xs << display_string;
+	xs << html::EndTag("a");
+	return docstring();
+}
+
+
+void InsetRef::toString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
 }
 
 
-void InsetRef::updateLabels(ParIterator const & it)
+void InsetRef::forToc(docstring & os, size_t) const
+{
+	// There's no need for details in the TOC, and a long label
+	// will just get in the way.
+	os += '#';
+}
+
+
+void InsetRef::updateBuffer(ParIterator const & it, UpdateType)
 {
 	docstring const & ref = getParam("reference");
 	// register this inset into the buffer reference cache.
@@ -129,8 +259,8 @@ void InsetRef::updateLabels(ParIterator const & it)
 		}
 	}
 	label += ref;
-
-	if (!isLatex && !getParam("name").empty()) {
+	
+	if (!buffer().isLatex() && !getParam("name").empty()) {
 		label += "||";
 		label += getParam("name");
 	}
@@ -166,12 +296,34 @@ void InsetRef::addToToc(DocIterator const & cpit)
 
 void InsetRef::validate(LaTeXFeatures & features) const
 {
-	if (getCmdName() == "vref" || getCmdName() == "vpageref")
+	string const cmd = getCmdName();
+	if (cmd == "vref" || cmd == "vpageref")
 		features.require("varioref");
-	else if (getCmdName() == "prettyref")
-		features.require("prettyref");
-	else if (getCmdName() == "eqref")
+	else if (getCmdName() == "formatted") {
+		docstring const data = getEscapedLabel(features.runparams());
+		docstring label;
+		docstring prefix;
+		if (buffer().params().use_refstyle) {
+			features.require("refstyle");
+			string const fcmd = to_utf8(getFormattedCmd(data, label, prefix));
+			if (!prefix.empty()) {
+				string lcmd = "\\AtBeginDocument{\\providecommand" + 
+						fcmd + "[1]{\\ref{" + to_utf8(prefix) + ":#1}}}";
+				features.addPreambleSnippet(lcmd);
+			} else if (prefix == "cha")
+				features.addPreambleSnippet("\\let\\charef=\\chapref");
+		} else {
+			features.require("prettyref");
+			// prettyref uses "cha" for chapters, so we provide a kind of
+			// translation.
+			if (prefix == "chap")
+				features.addPreambleSnippet("\\let\\pr@chap=\\pr@cha");
+		}
+	} else if (getCmdName() == "eqref" && !buffer().params().use_refstyle)
+		// refstyle defines its own version
 		features.require("amsmath");
+	else if (cmd == "nameref")
+		features.require("nameref");
 }
 
 
@@ -181,7 +333,8 @@ InsetRef::type_info InsetRef::types[] = {
 	{ "pageref",   N_("Page Number"),           N_("Page: ")},
 	{ "vpageref",  N_("Textual Page Number"),   N_("TextPage: ")},
 	{ "vref",      N_("Standard+Textual Page"), N_("Ref+Text: ")},
-	{ "prettyref", N_("PrettyRef"),             N_("FormatRef: ")},
+	{ "formatted", N_("Formatted"),             N_("Format: ")},
+	{ "nameref",   N_("Reference to Name"),     N_("NameRef:")},
 	{ "", "", "" }
 };
 

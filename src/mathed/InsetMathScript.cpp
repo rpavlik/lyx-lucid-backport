@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,6 +17,7 @@
 #include "InsetMathFont.h"
 #include "InsetMathScript.h"
 #include "InsetMathSymbol.h"
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathSupport.h"
@@ -612,6 +613,10 @@ void InsetMathScript::mathematica(MathematicaStream & os) const
 }
 
 
+// FIXME XHTML
+// It may be worth trying to output munder, mover, and munderover
+// in certain cases, e.g., for display formulas. But then we would
+// need to know if we're in a display formula.
 void InsetMathScript::mathmlize(MathStream & os) const
 {
 	bool d = hasDown() && down().size();
@@ -625,16 +630,38 @@ void InsetMathScript::mathmlize(MathStream & os) const
 		os << MTag("msub");
 
 	if (nuc().size())
-		os << nuc();
+		os << MTag("mrow") << nuc() << ETag("mrow");
 	else
-		os << "<mrow/>";
+		os << "<mrow />";
 
 	if (u && d)
-		os << down() << up() << ETag("msubsup");
+		os << MTag("mrow") << down() << ETag("mrow") 
+		   << MTag("mrow") << up() << ETag("mrow") 
+		   << ETag("msubsup");
 	else if (u)
-		os << up() << ETag("msup");
+		os << MTag("mrow") << up() << ETag("mrow") << ETag("msup");
 	else if (d)
-		os << down() << ETag("msub");
+		os << MTag("mrow") << down() << ETag("mrow") << ETag("msub");
+}
+
+
+void InsetMathScript::htmlize(HtmlStream & os) const
+{
+	bool d = hasDown() && down().size();
+	bool u = hasUp() && up().size();
+
+	if (nuc().size())
+		os << nuc();
+
+	if (u && d)
+		os << MTag("span", "class='scripts'")
+			 << MTag("span") << up() << ETag("span")
+			 << MTag("span") << down() << ETag("span")
+			 << ETag("span");
+	else if (u)
+		os << MTag("sup", "class='math'") << up() << ETag("sup");
+	else if (d)
+		os << MTag("sub", "class='math'") << down() << ETag("sub");
 }
 
 
@@ -677,13 +704,13 @@ bool InsetMathScript::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 			// must be a subscript...
 			old.recordUndoInset();
 			removeScript(false);
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+			cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 			return true;
 		} else if (cell(1).empty()) {
 			// must be a superscript...
 			old.recordUndoInset();
 			removeScript(true);
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+			cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 			return true;
 		}
 	}
@@ -713,7 +740,7 @@ bool InsetMathScript::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 		insetCur.cell().insert(insetCur.pos(), ar);
 
 		// redraw
-		cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+		cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 		return true;
 	}
 
@@ -726,7 +753,7 @@ void InsetMathScript::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	//LYXERR("InsetMathScript: request: " << cmd);
 
-	if (cmd.action == LFUN_MATH_LIMITS) {
+	if (cmd.action() == LFUN_MATH_LIMITS) {
 		if (!cmd.argument().empty()) {
 			if (cmd.argument() == "limits")
 				limits_ = 1;
@@ -744,5 +771,18 @@ void InsetMathScript::doDispatch(Cursor & cur, FuncRequest & cmd)
 	InsetMathNest::doDispatch(cur, cmd);
 }
 
+
+// the idea for dual scripts came from the eLyXer code
+void InsetMathScript::validate(LaTeXFeatures & features) const
+{
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.scripts{display: inline-block; vertical-align: middle; text-align:center; font-size: 75%;}\n"
+			"span.scripts span {display: block;}\n"
+			"sub.math{font-size: 75%;}\n"
+			"sup.math{font-size: 75%;}\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
 
 } // namespace lyx

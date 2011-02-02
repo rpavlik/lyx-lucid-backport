@@ -1,5 +1,5 @@
-#LyX 1.6.7svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 404
 \begin_document
 \begin_header
 \textclass scrbook
@@ -54,20 +54,27 @@
 %\let\OrgIndex\index 
 %\renewcommand*{\index}[1]{\OrgIndex{#1}}
 \end_preamble
-\options intoc,bibtotoc,idxtotoc,BCOR7mm,tablecaptionabove
+\options intoc,bibliography=totoc,index=totoc,BCOR7.5mm,captions=tableheading
 \use_default_options false
+\maintain_unincluded_children false
 \language basque
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_xetex false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -84,34 +91,46 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels,pdftex"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
 \use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\notefontcolor #0000ff
 \branch galdera
 \selected 1
+\filename_suffix 0
 \color #68fa58
 \end_branch
 \branch erantzuna
 \selected 0
+\filename_suffix 0
 \color #aa55ff
 \end_branch
+\index Indizea
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 2
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -156,7 +175,7 @@ Zuzenketak: Hizkuntza Politikarako Sailburuordetza <hizpol@ej-gv.es>, 2004.
 \begin_inset Newline newline
 \end_inset
 
-1.6 bertsioa
+2.0 bertsioa
 \begin_inset Note Note
 status open
 
@@ -325,7 +344,7 @@ ak erabili gabe.
  Lortzen duen informazio hori hainbat 
 \family typewriter
 Hobespenak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -348,7 +367,7 @@ Tresnak\SpecialChar \menuseparator
 Birkonfiguratu
 \family default
 .
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -461,7 +480,7 @@ atalean aipatzen da.
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -479,7 +498,7 @@ Nola lan egin LyX-ekin
 
 \begin_layout Subsection
 Oinarrizko fitxategi-eragiketak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -690,7 +709,7 @@ Bertsio-kontrola
 
 \begin_layout Subsection
 Oinarrizko edizio-eginbideak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -823,7 +842,7 @@ Desegin
 \end_layout
 
 \begin_layout Standard
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -892,7 +911,7 @@ bakar bat
 \begin_layout Standard
 
 \family typewriter
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -904,7 +923,7 @@ Ordeztu
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1059,7 +1078,7 @@ Ezabatu
 
 \begin_layout Subsection
 Desegin eta berregin
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1069,7 +1088,7 @@ Desegin
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1145,7 +1164,7 @@ Berregin
 
 \begin_layout Subsection
 Saguaren eragiketak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1222,7 +1241,7 @@ Klik egin saguaren eskuineko botoiarekin taula eraldatzea eskaintzen dizun
 
 \begin_layout Subsection
 Arakatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1421,16 +1440,8 @@ Tresna-barrako
 \end_layout
 
 \begin_layout Subsection
-Sarreren
-\begin_inset space \thinspace{}
-\end_inset
-
-/
-\begin_inset space \thinspace{}
-\end_inset
-
-Hitzen osaketa
-\begin_inset Index
+Sarreren / Hitzen osaketa
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1440,7 +1451,7 @@ Sarreren osaketa
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1568,7 +1579,7 @@ atala.
 
 \begin_layout Subsection
 Oinarrizko lasterbideak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1578,7 +1589,7 @@ Teklen loturak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1610,7 +1621,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2036,7 +2047,7 @@ atalean aipatu den bezala.
 
 \begin_layout Chapter
 LyX-en oinarriak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2050,7 +2061,7 @@ LyX-en oinarriak
 
 \begin_layout Section
 Dokumentu motak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2095,7 +2106,7 @@ Jarraitu irakurtzen jakiteko LyX-ekin aukeran dituzun dokumentu-klaseen
 
 \begin_layout Subsection
 Dokumentu-klaseak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2125,7 +2136,7 @@ Dokumentua
 Ezarpenak
 \family typewriter
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2434,7 +2445,7 @@ Eginbide gehigarriak
 
 \begin_layout Subsubsection
 Moduluak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2469,7 +2480,7 @@ Dokumentua
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2545,7 +2556,7 @@ Klase bakoitzak bere lehenetsitako aukera-multzoa dauka.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -2883,7 +2894,7 @@ atalean zehatz-mehatz azaltzen ditugu.
 
 \begin_layout Subsection
 Dokumentuen diseinuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2893,7 +2904,7 @@ Dokumentua ! Estiloak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3012,7 +3023,7 @@ Sofistikatua
 fancyhdr
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3063,7 +3074,7 @@ atalean azaltzen dira.
 
 \begin_layout Subsection
 Paper tamaina eta orientazioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3097,7 +3108,7 @@ Ezarpenak
 Orri-diseinua
 \family default
  atalean honako aukerak aurkituko dituzu
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3192,7 +3203,7 @@ dokumentua
 
 \begin_layout Subsection
 Marjinak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3222,7 +3233,7 @@ Dokumentua
 Ezarpenak
 \family default
  menuan ezartzen dira.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3272,7 +3283,7 @@ o kasua gertatzen denerako.
 
 \begin_layout Section
 Paragrafoen koskatze eta bereizmena
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3356,7 +3367,7 @@ LaTeX-ek egiten du hori LyX-ek inprimagarria den fitxategia sortzean.
 
 \begin_layout Subsection
 Paragrafoen bereizketa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3379,7 +3390,7 @@ Dokumentua
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3473,7 +3484,7 @@ Paragrafo bakar batentzako koskatze-metodoa aldatzea nahikoa izango duzu
 
 \begin_layout Subsection
 Lerro-tartea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3518,7 +3529,7 @@ setspace
 
 \begin_layout Section
 Paragrafo-inguruneak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3528,7 +3539,7 @@ Paragrafoa ! Inguruneak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3748,7 +3759,7 @@ Arrunta
 
 \begin_layout Subsection
 Dokumentu-tituluak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3846,7 +3857,7 @@ Oin-oharrak erabil ditzakezu "esker onak" edo harremanetarako helbideak
 
 \begin_layout Subsection
 Goiburuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3872,7 +3883,7 @@ Atalen goiburuak sortzeko bederatzi paragrafo-ingurune daude.
 
 \begin_layout Subsubsection
 Zenbatutako goiburuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4059,7 +4070,7 @@ Azpiazpiatala
 
 \begin_layout Subsubsection
 Zenbatu gabeko goiburuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4177,7 +4188,7 @@ Dokumentua
 Ezarpenak
 \family default
  elkarrizketa-koadroa.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4203,7 +4214,7 @@ Zenbaketa
 
 \begin_layout Subsubsection
 Goiburuen titulu laburrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4213,7 +4224,7 @@ Atalen izenburuak ! Titulu laburrak
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -4350,7 +4361,7 @@ Arrunta
 
 \begin_layout Subsubsection
 Aipuak eta Aipamenak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4471,7 +4482,7 @@ Aipamena
 
 \begin_layout Subsubsection
 Bertsoa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4481,7 +4492,7 @@ Paragrafoa ! Bertsoa
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4591,7 +4602,7 @@ arg   "newline-insert newline"
 
 \begin_layout Subsection
 Zerrendak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4705,7 +4716,7 @@ atal osoa irakurtzea aholkatzen dizugu.
 
 \begin_layout Subsubsection
 Elementua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4865,7 +4876,7 @@ Ezarpenak
 Buletak
 \family default
  izeneko fitxan etiketak pertsonaliza ditzakezu.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4896,7 +4907,7 @@ atalean azaltzen ditugu.
 
 \begin_layout Subsubsection
 Zenbatuta
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5073,7 +5084,7 @@ atala irakurri beharko zenuke.
 
 \begin_layout Subsubsection
 Azalpena
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5252,7 +5263,7 @@ Jabetuko zinen LyX-ek, lehenbiziko lerroaren ostean, paragrafo berdineko
 
 \begin_layout Subsubsection
 LyX zerrenda
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5598,7 +5609,7 @@ horizontala
 
 \begin_layout Subsection
 Gutunak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5799,7 +5810,7 @@ Idazkera akademiko gehienek laburpen batekin hasten dira eta bibliografia
 
 \begin_layout Subsubsection
 Laburpena
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5941,7 +5952,7 @@ irudian.
 
 \begin_layout Subsubsection
 Bibliografia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6022,7 +6033,7 @@ atalean aurki dezakezu.
 
 \begin_layout Subsection
 LyX kodea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6257,7 +6268,7 @@ LyX-kodea
  kodea, komando-lerroko script-a, rc-fitxategia, eta abar.
  Erabili oso egoera berezietan bakarrik, idazmakina batekin bezalako testua
  sortu behar duzunean, alegia.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6271,7 +6282,7 @@ Paragrafoen inguruneak|)
 
 \begin_layout Section
 Inguruneak habiaratzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6680,7 +6691,7 @@ bezalako zenbatutako atalen goiburuak zerrendetan (adibidez) habiaratzeko
 
 \begin_layout Subsection
 Bestelakoak habiaratzea: taulak, matematikak, mugikorrak, e.a.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6690,7 +6701,7 @@ Habiaratzea ! Taulak e.a.
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -6804,7 +6815,7 @@ Hau
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -6945,7 +6956,7 @@ Hau
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -7097,7 +7108,7 @@ Hau
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -7631,7 +7642,7 @@ Alt+Maius+Ezkerrera
 \begin_layout Subsubsection
 3.
  adibidea: etiketak, mailak eta Zenbatuta eta Elementua inguruneak
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -7990,7 +8001,7 @@ Zuretzat jarri dugu taula:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8205,7 +8216,7 @@ Elementua
 
 \begin_layout Section
 Tartea, orrialdeztapen eta lerro-jauziak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8238,7 +8249,7 @@ name "sub:Zuriune-babestuak"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8315,7 +8326,7 @@ Ktrl+Zuriunea
 
 \begin_layout Subsection
 Tarte horizontala
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8370,7 +8381,7 @@ eranskinean zerrendatuta daude.
 
 \begin_layout Subsubsection
 Hitzen arteko tartea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8414,7 +8425,7 @@ Ktrl+Alt+Zuriunea
 
 \begin_layout Subsubsection
 Tarte txikia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8721,7 +8732,7 @@ Tarte horizontal desberdinen zabalerak
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -8930,7 +8941,7 @@ em
 
 \begin_layout Subsubsection
 Betegarri horizontala
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -9135,7 +9146,7 @@ Babestu
 
 \begin_layout Subsubsection
 Mamu-tartea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9308,7 +9319,7 @@ key "latexlagunartea"
 
 \begin_layout Subsection
 Tarte bertikala
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9571,7 +9582,7 @@ azken hau berriz ezkerrean lerrokatuta dago.
 
 \begin_layout Subsection
 Orrialde-jauziak derrigortzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9686,7 +9697,7 @@ kapitulua
 
 \begin_layout Subsubsection
 Orri-jauzi garbiak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9770,7 +9781,7 @@ kin), orrialde bat gehitzea beharrezkoa izanez gero.
 
 \begin_layout Subsection
 Derrigortutako lerro-jauziak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9881,7 +9892,7 @@ atalak).
 
 \begin_layout Subsection
 Marra horizontalak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9901,8 +9912,15 @@ name "sub:Marra-horizontalak"
 \end_layout
 
 \begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
 
-\lyxline
+\end_inset
+
 
 \end_layout
 
@@ -9930,8 +9948,19 @@ horizontala
 \end_layout
 
 \begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
 
-\lyxline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
@@ -10008,7 +10037,7 @@ name "sec:LetraTipoEtaTestuEstiloa"
 
 \begin_layout Subsection
 Letra-tipoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10030,7 +10059,7 @@ Letra-tipo
 \end_inset
 
 bektorialak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10087,7 +10116,7 @@ Bit-mapetako
 \end_inset
 
 letra-tipoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10150,7 +10179,7 @@ PDF formatuko dokumentu batean zer letra-tipo erabiltzen den probatzeko,
 
 \begin_layout Subsection
 Dokumentuen letra-tipoa eta letra-tamaina
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10160,7 +10189,7 @@ Letra ! Tipoak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10186,7 +10215,7 @@ Dokumentua\SpecialChar \menuseparator
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10703,7 +10732,7 @@ atala.
 
 \begin_layout Subsection
 Beste karaktere-estiloak erabiltzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10713,7 +10742,7 @@ Karaktere-estiloa
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10873,7 +10902,7 @@ Testu-estiloa
 
 \begin_layout Subsection
 Testu-estiloarekin fintzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11540,7 +11569,7 @@ Arrosa
 Horia
 \family default
  testu-koloreen artean.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11851,7 +11880,7 @@ Ondoren, LaTeX-ek
 
 \begin_layout Subsection
 Irteerako fitxategi-formatuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11872,7 +11901,7 @@ name "sub:IrteerakoFitxFormatuak"
 
 \begin_layout Subsubsection
 ASCII
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11937,7 +11966,7 @@ soila
 
 \begin_layout Subsubsection
 LaTeX
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12001,7 +12030,7 @@ LaTeX
 
 \begin_layout Subsubsection
 DVI
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12072,7 +12101,7 @@ DVI
 
 \begin_layout Subsubsection
 PostScript
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12124,7 +12153,7 @@ Honi buruzko jakin-mina sortzen bazaizu, begiratu ezazu LaTeX-eko
 pstricks
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12200,7 +12229,7 @@ PostScript
 
 \begin_layout Subsubsection
 PDF
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12210,7 +12239,7 @@ Fitxategi-formatuak ! PDF
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12347,7 +12376,7 @@ dvipdfm
 
 \begin_layout Subsection
 Aurrebista
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12568,7 +12597,7 @@ Fitxategia
 
 \begin_layout Section
 Tipografiari buruzko aipamena
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12582,7 +12611,7 @@ Tipografia
 
 \begin_layout Subsection
 Marrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12620,7 +12649,7 @@ marra luzea
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -12943,7 +12972,7 @@ minus ikurra
 
 \begin_layout Subsection
 Hitz-zatiketak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12953,7 +12982,7 @@ Hitz-zatiketa
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12980,7 +13009,7 @@ Hitzak ez dira LyX-eko pantailan zatitzen, baizik eta irteeran zatitzen
 babel
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13068,51 +13097,27 @@ A-b c
 
  ikurra hitza zatitzeko puntua dela usteko du, eta leku horretan hitza zatitzeak
  itxura itsusia eragingo luke.
- Lasterbidea ez zatitzeko, LaTeX-eko kutxarentzako 
-\series bold
-
-\backslash
-mbox
-\series default
- komandoa erabil dezakezu.
- LaTeX-eko kutxak ez dira inoiz zatitzen.
- LyX-ek ez duenez 
-\series bold
-
-\backslash
-mbox
-\series default
- komandoa onartzen, TeX kodean idatzi behar da, eta LyX-en honako itxura
- edukiko luke:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Graphics
-	filename ../clipart/mbox.png
-
+ 
+\lang english
+To prevent the shortcut from being hyphenated, you can put it into a makebox
+ as described in section 
+\begin_inset Quotes eld
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-TeX kodeari buruz gehiago ikasteko, irakurri 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:TeX-kodea"
-
+Prevent Hyphenation
+\begin_inset Quotes erd
 \end_inset
 
-
-\begin_inset space ~
-\end_inset
-
-atala.
+ of the 
+\emph on
+EmbeddedObjects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Subsection
 Puntuazio-markak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13223,7 +13228,7 @@ reference "sub:Hitzen-arteko-tartea"
 \end_inset
 
 atala).
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13252,7 +13257,7 @@ reference "sub:Tarte-txikia"
 \end_inset
 
 atala).
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13323,7 +13328,7 @@ Egiaztatu TeX
 
 \begin_layout Subsubsection
 Komatxoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13333,7 +13338,7 @@ Tipografia ! Komatxoak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13394,7 +13399,7 @@ Dokumentua
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13613,7 +13618,7 @@ Ezarpen hauek " tekla sakatzean sortzen duenari eragiten diote.
 
 \begin_layout Subsection
 Hizki-loturak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13623,7 +13628,7 @@ Tipografia ! Hizki-loturak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13746,7 +13751,7 @@ fest
 
 \begin_layout Subsection
 Izen egokiak LyX-en
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13975,7 +13980,7 @@ atala.
 
 \begin_layout Subsection
 Unitateak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14032,7 +14037,7 @@ Hona hemen adibide bat desberdintasunak erakusteko:
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -14100,7 +14105,7 @@ zenbaki eta unitatearen arteko tarte erdia
 
 \begin_layout Subsection
 Alargunak eta umezurtzak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14184,7 +14189,7 @@ Kapsulatutako objektuak
 
 \begin_layout Section
 Oharrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14330,7 +14335,7 @@ Oharra
 
 \begin_layout Section
 Oin-oharrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14434,7 +14439,7 @@ Oin-ohar eta marjinentzat trikimailuak
 
 \begin_layout Section
 Albo-oharrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14497,7 +14502,7 @@ n.
 
 \begin_layout Section
 Grafikoak eta irudiak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14507,7 +14512,7 @@ Irudiak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14662,7 +14667,7 @@ atala.
 
 \begin_layout Subsection
 Irudien formatua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14734,7 +14739,7 @@ irudiek pixelen balioak dauzkate, sarritan konprimituta.
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14774,7 +14779,7 @@ status collapsed
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14822,7 +14827,7 @@ status collapsed
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14879,7 +14884,7 @@ Irudi eskalagarrien formatuak honakoak dira: SVG (
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14919,7 +14924,7 @@ status collapsed
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14959,7 +14964,7 @@ status collapsed
 \end_inset
 
  luzapenekoa)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15014,7 +15019,7 @@ Normalean bit-mapa motako irudi bat ezin da eskalagarrira bihurtu, alderantziz
 
 \begin_layout Subsection
 Irudien ezarpenak elkartzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15056,7 +15061,7 @@ izena
 
 \begin_layout Section
 Taulak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15102,7 +15107,7 @@ ta-koadro bat agertuko zaizu.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0in">
@@ -15392,7 +15397,7 @@ anitza
 \family sans
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="4">
-<features firstHeadTopDL="true" firstHeadBottomDL="true">
+<features firstHeadTopDL="true" firstHeadBottomDL="true" tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="top" width="0in">
@@ -15591,7 +15596,7 @@ Lehenetsia
 
 \begin_layout Subsection
 Taula luzeak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15601,7 +15606,7 @@ Taulak ! Taula luzeak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15738,7 +15743,7 @@ goiburukoa
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="69" columns="3">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="block" valignment="top" width="5cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="right" valignment="top" width="0pt">
@@ -17892,7 +17897,7 @@ Amaiera
 
 \begin_layout Subsection
 Taularen gelaxkak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17937,7 +17942,7 @@ Taulako gelaxketan lerro anitzeko sarrerak edukitzeko, zutabearen zabalera
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="block" valignment="top" width="3cm">
 <column alignment="center" valignment="top" width="0pt">
@@ -18193,7 +18198,7 @@ Jakin ezazu, ezin duzula hainbat gelaxketako hautapen batean itsatsi, ez
 
 \begin_layout Section
 Mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18284,7 +18289,7 @@ zbkia:
  dokumentuan.
  Etiketa automatikoki itzuliko da dokumentuko hizkuntzara irteeran.
  Etiketaren ostean, epigrafearen testua idatz dezakezu.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18319,7 +18324,7 @@ Mugikor motak
 
 \begin_layout Subsubsection
 Irudi mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18713,7 +18718,7 @@ atalean aipatu bezala.
 
 \begin_layout Subsubsection
 Taula mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18800,7 +18805,7 @@ Taula mugikor bat
 \lang english
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -18881,7 +18886,8 @@ Ted
 \begin_layout Plain Layout
 \begin_inset Formula $\left[\begin{array}{cc}
 a & b\\
-c & d\end{array}\right]$
+c & d
+\end{array}\right]$
 \end_inset
 
 
@@ -18916,7 +18922,7 @@ c & d\end{array}\right]$
 
 \begin_layout Subsubsection
 Algoritmo mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19031,7 +19037,7 @@ algorithm
 
 \begin_layout Subsubsection
 Bilgarri mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19143,7 +19149,7 @@ Bilgarri mugikorra
  menua LaTeX-eko 
 \series bold
 wrapfig
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19256,7 +19262,7 @@ Doitutako mugikorrak ez daude onartuta atalen goiburuetan edo tauletan.
 
 \begin_layout Subsection
 Biratutako mugikorrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19377,7 +19383,7 @@ Biratutako taula
 \lang english
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -19444,7 +19450,7 @@ e
 
 \begin_layout Subsection
 Mugikorrak kokatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19697,7 +19703,7 @@ key "latexlagunartea,latex_gida,latex_liburua"
 
 \begin_layout Section
 Orritxoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19744,6 +19750,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "30col%"
 special "none"
 height "1pt"
@@ -19813,6 +19820,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -19837,6 +19845,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -19874,7 +19883,7 @@ Kutxak
 
 \begin_layout Chapter
 Matematika-formulak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19884,7 +19893,7 @@ Matematika
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19936,7 +19945,7 @@ Matematika
 
 \begin_layout Section
 Matematiken oinarrizko edizioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20040,7 +20049,7 @@ Matematikako panela
 
 \begin_layout Subsection
 Formulak arakatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20073,7 +20082,8 @@ Zuriunea
  parentesiak, edo 
 \begin_inset Formula $\left[\begin{array}{cc}
 1 & 2\\
-3 & 4\end{array}\right]$
+3 & 4
+\end{array}\right]$
 \end_inset
 
  matrizea edota bestelako) eraikina utziko du.
@@ -20231,7 +20241,8 @@ Formula bateko zati batzuk beteta utz ditzakezu (besteak hutsik), matrize
 \left(\begin{array}{ccc}
 \lambda_{1}\\
  & \ddots\\
- &  & \lambda_{n}\end{array}\right).\]
+ &  & \lambda_{n}
+\end{array}\right).\]
 
 \end_inset
 
@@ -20264,7 +20275,7 @@ Maius
 
 \begin_layout Subsection
 Berretzaile eta azpindizeak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20274,7 +20285,7 @@ Matematika ! Berretzaileak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20411,7 +20422,7 @@ spce
 
 \begin_layout Subsection
 Zatikiak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20466,7 +20477,8 @@ Gora
 \begin_inset Formula \[
 \left[\frac{1}{\left(\begin{array}{cc}
 2 & 3\\
-4 & 5\end{array}\right)}\right]\]
+4 & 5
+\end{array}\right)}\right]\]
 
 \end_inset
 
@@ -20475,7 +20487,7 @@ Gora
 
 \begin_layout Subsection
 Erroak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20534,7 +20546,7 @@ sqrt
 
 \begin_layout Subsection
 Eragileak mugatzaileekin
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20544,7 +20556,7 @@ Matematika ! Baturak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20649,7 +20661,7 @@ Matematikako beste adierazpen batzuk
 \end_inset
 
 mugak mugitzea" ezaugarria ere badaukate, honek bezala
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20659,7 +20671,7 @@ Matematika ! Mugak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20714,7 +20726,7 @@ atala.
 
 \begin_layout Subsection
 Matematikako ikurrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20761,7 +20773,7 @@ panela
 
 \begin_layout Subsection
 Tarteak eraldatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20862,7 +20874,7 @@ Zuriune
 
 \begin_layout Subsection
 Funtzioak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20943,7 +20955,7 @@ atalean azaltzen den bezala.
 
 \begin_layout Subsection
 Azentuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21042,7 +21054,7 @@ Azentuen izenak eta dagokien komandoak.
 \lang english
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -21481,7 +21493,7 @@ Marko-apaingarriak
 
 \begin_layout Section
 Kortxeteak eta mugatzaileak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21491,7 +21503,7 @@ Matematika ! Kortxeteak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21535,7 +21547,8 @@ LyX-ek hainbat kortxete (edo parentesi) mota desberdin eskaintzen dizkizu.
 \begin_inset Formula \[
 \left[\begin{array}{cc}
 1 & 2\\
-3 & 4\end{array}\right]\]
+3 & 4
+\end{array}\right]\]
 
 \end_inset
 
@@ -21594,7 +21607,7 @@ Txertatu
 
 \begin_layout Section
 Matrizeak eta lerro anitzeko ekuazioak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21604,7 +21617,7 @@ Matematika ! Matrizeak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21614,7 +21627,7 @@ Matematika ! Array-ak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21652,7 +21665,8 @@ matrizearen
 \left(\begin{array}{ccc}
 1 & 2 & 3\\
 4 & 5 & 6\\
-7 & 8 & 9\end{array}\right)\]
+7 & 8 & 9
+\end{array}\right)\]
 
 \end_inset
 
@@ -21736,7 +21750,8 @@ lcr
 \begin{array}{lcr}
 zutabe & zutabe\, hau & zutabe\, hau\, eskuinera\\
 hau & erdian\, lerrokatuta & lerrokatu\\
-ezkerrean\, lerrokatua\, da & dago & da\end{array}\]
+ezkerrean\, lerrokatua\, da & dago & da
+\end{array}\]
 
 \end_inset
 
@@ -21797,7 +21812,8 @@ cases
 f(x)=\begin{cases}
 -1 & x<0\\
 0 & x=0\\
-1 & x>0\end{cases}\]
+1 & x>0
+\end{cases}\]
 
 \end_inset
 
@@ -21841,7 +21857,8 @@ Ktrl+Sartu
 \begin_layout Standard
 \begin_inset Formula \begin{eqnarray}
 a^{2} & = & (b^{2}+c^{2})(b^{2}-c^{2})\nonumber \\
-a & = & \sqrt{b^{4}-c^{4}}\label{eku:errokarratua}\end{eqnarray}
+a & = & \sqrt{b^{4}-c^{4}}\label{eku:errokarratua}
+\end{eqnarray}
 
 \end_inset
 
@@ -21901,7 +21918,7 @@ atalean azaltzen dira.
 
 \begin_layout Section
 Formulak zenbatu eta erreferentziazea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21911,7 +21928,7 @@ Matematika ! Ekuazioak zenbatzea
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22043,7 +22060,8 @@ Alt+M Maius+N
 \begin_inset Formula \begin{eqnarray}
 1 & = & 3-2\\
 2 & = & 4-2\nonumber \\
-4 & \leq & 7\end{eqnarray}
+4 & \leq & 7
+\end{eqnarray}
 
 \end_inset
 
@@ -22122,7 +22140,8 @@ eku:tanhBer
 \begin_layout Standard
 \begin_inset Formula \begin{eqnarray}
 \tanh(x) & = & \frac{\sinh(x)}{\cosh(x)}\nonumber \\
- & = & \frac{\mathrm{e}^{2x}-1}{\mathrm{e}^{2x}+1}\label{eku:tanhBer}\end{eqnarray}
+ & = & \frac{\mathrm{e}^{2x}-1}{\mathrm{e}^{2x}+1}\label{eku:tanhBer}
+\end{eqnarray}
 
 \end_inset
 
@@ -22206,7 +22225,7 @@ Hau ez da oso intuitiboa eta LyX-en hurrengo bertsioan konpontzea espero
 
 \begin_layout Section
 Makroak definitzea (matematika-eran)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22235,7 +22254,7 @@ Fintzea
 
 \begin_layout Subsection
 Letra-tipoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22310,7 +22329,7 @@ Letra-tipoak eta dagokien komandoak.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -22681,7 +22700,7 @@ Testu-estiloa
 
 \begin_layout Subsection
 Matematikako testua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22737,7 +22756,8 @@ Alt+C zuriunea
 \begin_inset Formula \[
 f(x)=\begin{array}{cc}
 x & \textrm{horrela badiot}\\
--x & \textrm{bestela}\end{array}\]
+-x & \textrm{bestela}
+\end{array}\]
 
 \end_inset
 
@@ -22746,7 +22766,7 @@ x & \textrm{horrela badiot}\\
 
 \begin_layout Subsection
 Letra-tamainak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22886,7 +22906,7 @@ Teoremen moduluak
 \begin_layout Standard
 LyX 1.6 bertsioan teoremen inguruneak dokumentu--klasetatik kanpora atera
  eta diseinuen moduluetara eraman dira.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22913,7 +22933,7 @@ atala diseinuen modulu gehiagorako.
 
 \begin_layout Section
 AMS-LaTeX
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22923,7 +22943,7 @@ AMS Matematika
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22951,7 +22971,7 @@ Dokumentua\SpecialChar \menuseparator
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22988,7 +23008,7 @@ ri jarriz.
 
 \begin_layout Subsection
 AMS formula-motak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23040,7 +23060,7 @@ Bestelako tresnak
 
 \begin_layout Section
 Erreferentzia gurutzatuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23410,7 +23430,7 @@ Oharra
 prettyref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23479,7 +23499,7 @@ Atal bati erreferentzia egitea nahi baduzu, jarri etiketa bat atalaren goiburuan
  haien barruan.
  Formulei erreferentzia egitea 
 \begin_inset CommandInset ref
-LatexCommand prettyref
+LatexCommand formatted
 reference "sec:Ekuazioak-zenbatu-eta"
 
 \end_inset
@@ -23557,7 +23577,7 @@ Kapsulatutako objektuak
 
 \begin_layout Section
 Gaien aurkibidea eta beste zerrendak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23567,7 +23587,7 @@ Gaien aurkibidea
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23710,7 +23730,7 @@ Aurk.
 
 \begin_layout Section
 URLak eta hiperestekak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23720,7 +23740,7 @@ URLak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23922,7 +23942,7 @@ urlcolor=blue
 
 \begin_layout Section
 Eranskinak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23997,7 +24017,7 @@ eranskina
 
 \begin_layout Section
 Bibliografia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24158,7 +24178,7 @@ key "Lyx_kredituak"
 
 \begin_layout Subsection
 Bibliografiaren datu-basea (BibTeX)
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24168,7 +24188,7 @@ Bibliografia ! Datu-baseak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24466,7 +24486,7 @@ alphadin.bst
 
 \begin_layout Subsection
 Bibliografiaren diseinua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24491,7 +24511,7 @@ Dokumentua
 Ezarpenak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24548,7 +24568,7 @@ key "latexlagunartea"
 
 \begin_layout Section
 Indizea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24661,7 +24681,7 @@ Indizea
 
 \begin_layout Subsection
 Indizeko sarrerak elkartzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24777,7 +24797,7 @@ Zerrendak
 
 \begin_layout Subsection
 Orrialdeen barrutia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24877,7 +24897,7 @@ Dokumentua ! Ezarpenak
 
 \begin_layout Subsection
 Erreferentziak gurutzatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24935,7 +24955,7 @@ non kortxeteak TeX kodea bezala sartu behar diren.
 
 \begin_layout Subsection
 Indizeko sarrerak ordenatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24999,7 +25019,7 @@ maïs
 \end_inset
 
  sarrerekin.
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25009,7 +25029,7 @@ Probako sarrera ! maître
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25045,7 +25065,7 @@ For an unknown reason, the character ï cannot directly be entered to index
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25194,7 +25214,7 @@ OrgIndex{#1}}
 
 \begin_layout Subsection
 Indizeko sarreren diseinua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25209,7 +25229,7 @@ Indizea ! Sarreren diseinua
 \begin_layout Standard
 Indizearen sarreren itxura alda dezakezu testu-estiloaren elkarrizketa-koadroa
  erabiliz.
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25241,7 +25261,7 @@ orrialdearen zenbakia etzanarekin:|textit
 
 \begin_layout Standard
 orrialdearen zenbakia forma etzanarekin lortzeko.
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25364,7 +25384,7 @@ nire sarrera|IndizeaDef
 
 \begin_layout Standard
 indizearen sarreran.
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -25408,7 +25428,7 @@ key "xindy,makeindex"
 
 \begin_layout Subsection
 Indizearen programa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25479,7 +25499,7 @@ xindy
 
 \begin_layout Section
 Nomenklatura / Glosarioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25489,7 +25509,7 @@ Nomenklatura
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25542,7 +25562,7 @@ Nomenklaturak sortzeko gai izateko, LaTeX-eko
 nomencl
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25617,7 +25637,7 @@ Oharra
 
 \begin_layout Subsection
 Nomenklaturaren definizioa eta diseinua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25777,7 +25797,7 @@ emph
 
 \begin_layout Subsection
 Nomenklaturako sarreren antolaketa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25896,7 +25916,7 @@ key "nomencl"
 
 \begin_layout Subsection
 Nomenklaturaren aukerak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26111,7 +26131,7 @@ nomnorefeqpage Dagozkion aukerak desaktibatzen ditu
 
 \begin_layout Subsection
 Nomenklatura inprimatzea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26238,7 +26258,7 @@ cm da.
 
 \begin_layout Subsection
 Nomenklaturaren programa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26284,7 +26304,7 @@ atala.
 
 \begin_layout Section
 Adarrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26294,7 +26314,7 @@ Adarrak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26583,7 +26603,7 @@ Matematika
 
 \begin_layout Section
 PDFen propietateak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26627,7 +26647,7 @@ propietateak
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26749,7 +26769,7 @@ name "sec:TeX-kodea"
 
 \begin_layout Subsection
 TeX kodearen kutxak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26895,7 +26915,7 @@ Oharra
 
 \begin_layout Subsection
 LaTeX sintaxiaren sarrera laburra
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26905,7 +26925,7 @@ LaTeX sintaxia
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -26968,7 +26988,7 @@ Behar duzun emaitza
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27114,7 +27134,7 @@ key "latexlagunartea,latex_gida"
 
 \begin_layout Section
 Dokumentuaren zatia aurreikustea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27124,7 +27144,7 @@ Berehalako aurrebista
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27161,7 +27181,7 @@ DVI
 preview-latex
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27292,7 +27312,7 @@ iturburua
 
 \begin_layout Section
 Zuzentzaile ortografikoa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27548,7 +27568,7 @@ ispell
 
 \begin_layout Section
 Thesaurus
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27634,7 +27654,7 @@ report
 
 \begin_layout Section
 Aldaketen jarraipena
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27644,7 +27664,7 @@ Aldaketen jarraipena
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27724,7 +27744,7 @@ izaera
 Koloreak
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27751,7 +27771,7 @@ Aldaketen jarraipena aktibatzean, LyX-en
 berrikusi
 \family default
  tresna-barra ikusiko duzu:
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27804,7 +27824,7 @@ berrikusi
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -27814,7 +27834,6 @@ berrikusi
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-track.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -27853,7 +27872,6 @@ aldaketak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-output.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -27888,7 +27906,6 @@ Erakutsi aldaketak irteeran
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-next.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -27915,7 +27932,6 @@ Joan hurrengo aldaketara
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-accept.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -27954,7 +27970,6 @@ aldaketa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-reject.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -27993,7 +28008,6 @@ aldaketa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-merge.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -28032,7 +28046,6 @@ aldaketak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/all-changes-accept.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -28075,7 +28088,6 @@ guztiak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/all-changes-reject.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -28118,7 +28130,6 @@ guztiak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-insert.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -28153,7 +28164,6 @@ oharra
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-next.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -28218,7 +28228,7 @@ Egindako aldaketak irteeran erakusteko, LaTeX-eko
 dvipost
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28240,7 +28250,7 @@ key "TeX-katalogoa"
 
 \begin_layout Section
 Nazioarteko euskarria
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28283,7 +28293,7 @@ atala.
 
 \begin_layout Subsection
 Hizkuntzaren aukerak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28293,7 +28303,7 @@ Hizkuntza ! Aukerak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28303,7 +28313,7 @@ Dokumentua ! Ezarpenak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28498,7 +28508,7 @@ latin1
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="17">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -31405,7 +31415,7 @@ tatea deskribatzen du.
 
 \begin_layout Section
 Fitxategia menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31831,7 +31841,7 @@ reference "sec:LyX-en-oinarrizko-konfigurazioa"
 \end_inset
 
 atala.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31926,7 +31936,7 @@ gorde gabe dauden dokumentuak gordetzea nahi dituzun galdetu, eta gero irten
 
 \begin_layout Section
 Editatu menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32029,7 +32039,7 @@ atalean azaltzen da.
 
 \begin_layout Subsection
 Paragrafo-ezarpenak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32167,7 +32177,7 @@ reference "sec:LyX-en-oinarrizko-konfigurazioa"
 \end_inset
 
 atala.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32312,7 +32322,7 @@ F11
 
 \begin_layout Subsection
 Tresna-barrak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32564,7 +32574,7 @@ Ikur
 \end_inset
 
 fonetikoak 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32574,7 +32584,7 @@ Ikur fonetikoak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32590,7 +32600,7 @@ Formula bat sortzen du tipa izeneko txertakuntzarekin.
 tipa
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33074,7 +33084,7 @@ Flex insets and InsetLayout
 
 \begin_layout Subsection
 Fitxategia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33102,7 +33112,7 @@ Kanpoko gauzak (External Stuff)
 
 \begin_layout Subsection
 Kutxa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33197,7 +33207,7 @@ atalean azaltzen den bezala.
 
 \begin_layout Subsection
 Epigrafea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33207,7 +33217,7 @@ Epigrafeak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33434,7 +33444,7 @@ atala xehetasun gehiagorako.
 
 \begin_layout Subsection
 Programen zerrenda
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33481,7 +33491,7 @@ Kanpoko materiala
 
 \begin_layout Section
 Arakatu menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33577,7 +33587,7 @@ Menuko elementu hau aktibatzeko kurtsorea erreferentzia gurutzatu baten
 
 \begin_layout Section
 Dokumentua menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33717,7 +33727,7 @@ eranskinean azaltzen dira.
 
 \begin_layout Section
 Tresnak menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33769,7 +33779,7 @@ atalean azaltzen da.
 
 \begin_layout Subsection
 Estatistikak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33779,7 +33789,7 @@ Hitz zenbaketak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33798,7 +33808,7 @@ Uneko dokumentuaren, edo nabarmendutako testuaren, hitz eta karaktere kopurua
 
 \begin_layout Subsection
 TeX informazioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33817,7 +33827,7 @@ LaTeX sisteman instalatuta dauden klase eta estiloen zerrenda erakusten
 
 \begin_layout Subsection
 Birkonfiguratu
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33849,7 +33859,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33899,7 +33909,7 @@ eranskinean azaltzen da.
 
 \begin_layout Section
 Laguntza menua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33973,7 +33983,7 @@ Eginbide gehigarriak
 
 \begin_layout Subsection
 Tresna-barra arrunta
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34050,7 +34060,7 @@ Kapsulatutako objektuak
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -34097,7 +34107,7 @@ paragrafo-inguruneen goitibeherako zerrenda
 \align left
 \begin_inset Tabular
 <lyxtabular version="3" rows="21" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -34109,7 +34119,6 @@ paragrafo-inguruneen goitibeherako zerrenda
 \family sans
 \begin_inset Graphics
 	filename ../../images/buffer-new.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34138,7 +34147,6 @@ Berria
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/file-open.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34167,7 +34175,6 @@ Ireki
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-write.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34196,7 +34203,6 @@ gorde
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_print.png
-	BoundingBox 0bp 5bp 24bp 20bp
 
 \end_inset
 
@@ -34225,7 +34231,6 @@ Inprimatu
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_spellchecker.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34254,7 +34259,6 @@ Zuzentzailea
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/undo.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34283,7 +34287,6 @@ Desegin
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/redo.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34312,7 +34315,6 @@ Berregin
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/cut.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34341,7 +34343,6 @@ Ebaki
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/copy.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34370,7 +34371,6 @@ Kopiatu
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/paste.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34399,7 +34399,6 @@ Itsatsi
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_findreplace.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34437,7 +34436,6 @@ ordeztu
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34468,7 +34466,6 @@ Arakatu atzerantz
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/font-emph.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34499,7 +34496,6 @@ Testu-estiloa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/font-noun.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34530,7 +34526,6 @@ Testu-estiloa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/textstyle-apply.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34561,7 +34556,6 @@ Testu-estiloa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-mode.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -34595,7 +34589,6 @@ formula
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_graphics.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34625,7 +34618,6 @@ Grafikoak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/tabular-insert.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34655,7 +34647,6 @@ Taula
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-toggle_toc.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34687,7 +34678,6 @@ Eskema
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/toolbar-toggle_math.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34714,7 +34704,6 @@ Erakutsi/Ezkutatu matematikaren tresna-barra
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/toolbar-toggle_table.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34743,7 +34732,7 @@ Erakutsi/Ezkutatu taularen tresna-barra
 
 \begin_layout Subsection
 Gehigarria tresna-barra
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34790,7 +34779,7 @@ Gehigarria
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="25" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -34800,7 +34789,6 @@ Gehigarria
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34827,7 +34815,6 @@ Lehenetsia
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Enumerate.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34854,7 +34841,6 @@ Zenbatutako zerrenda
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Itemize.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34881,7 +34867,6 @@ Elementuen zerrenda
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_List.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34908,7 +34893,6 @@ Zerrenda
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Description.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34935,7 +34919,6 @@ Azalpenen zerrenda
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/depth-increment.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34969,7 +34952,6 @@ sakonera
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/depth-decrement.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35003,7 +34985,6 @@ sakonera
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/float-insert_figure.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35033,7 +35014,6 @@ Irudia
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/float-insert_table.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35063,7 +35043,6 @@ Taula
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/label-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35092,7 +35071,6 @@ Etiketa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_ref.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35121,7 +35099,6 @@ Erreferentzia gurutzatua
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_citation.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35150,7 +35127,6 @@ Aipamena
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/index-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35179,7 +35155,6 @@ Indize-sarrera
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/nomencl-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35208,7 +35183,6 @@ Nomenklatura-sarrera
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/footnote-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35237,7 +35211,6 @@ Oin-oharra
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/marginalnote-insert.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35267,7 +35240,6 @@ Albo-oharra
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35301,7 +35273,6 @@ oharra
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/box-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35330,7 +35301,6 @@ Kutxa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/url-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35359,7 +35329,6 @@ Hiperesteka
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/ert-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35403,7 +35372,6 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro_newmacroname_newcommand.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35433,7 +35401,6 @@ Makroa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_include.png
-	BoundingBox 0bp 5bp 20bp 20bp
 
 \end_inset
 
@@ -35467,7 +35434,6 @@ umea
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_character.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35497,7 +35463,6 @@ Testu-estiloa
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout-paragraph.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35527,7 +35492,6 @@ Paragrafo-ezarpenak
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/thesaurus-entry.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35559,7 +35523,7 @@ Thesaurusa
 
 \begin_layout Subsection
 Ikusi/eguneratu tresna-barra
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35601,7 +35565,7 @@ Ikusi/eguneratu tresna-barrak honako botoiak ditu (ezkerretik eskuinera):
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -35611,7 +35575,6 @@ Ikusi/eguneratu tresna-barrak honako botoiak ditu (ezkerretik eskuinera):
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_dvi.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35641,7 +35604,6 @@ DVI
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_dvi.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35672,7 +35634,6 @@ DVI
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_pdf2.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35702,7 +35663,6 @@ PDF
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_pdf2.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35733,7 +35693,6 @@ PDF
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_ps.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35763,7 +35722,6 @@ Postscript
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_ps.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -35811,7 +35769,7 @@ reference "sec:Aldaketen-jarraipena"
 \end_inset
 
 atalean azaltzen da, taularen tresna-barra
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35825,7 +35783,7 @@ Tresna-barra ! Taula
 Kapsulatutako objektua
 \emph default
 k eskuliburuan, eta matematikaren makroen tresna-barra
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36079,7 +36037,7 @@ atala.
 
 \begin_layout Section
 Hizkuntza
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36196,7 +36154,7 @@ Hizkuntza lehenetsia
 inputenc
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36494,7 +36452,7 @@ Japoniera
  CJK
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36544,7 +36502,7 @@ Japoniera
  japanese
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36682,7 +36640,7 @@ Unicode
  CJK
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36749,7 +36707,7 @@ hedatua)
  ucs
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36772,7 +36730,7 @@ Unicode
  inputenc
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36873,7 +36831,7 @@ Aipamene estiloa zehatz dezakezu hemen LaTeX-eko
 natbib
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36887,7 +36845,7 @@ LaTeX paketeak! natbib
 jurabib
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36940,7 +36898,7 @@ Hemengo aukera hauek LyX-i derrigortzen diote LaTeX-eko
 amsmath
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36954,7 +36912,7 @@ LaTeX paketeak ! amsmath
 esint
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37080,7 +37038,7 @@ atala.
 
 \begin_layout Chapter
 Hobespenak elkarrizketa-koadroa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37123,7 +37081,7 @@ Erabiltzaile-interfazea
 
 \begin_layout Subsubsection
 Erabiltzaile-interfazearen fitxategia
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37133,7 +37091,7 @@ Pertsonalizazioa ! tresna-barra
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37409,7 +37367,7 @@ name "sub:Babeskopiak"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37457,7 +37415,7 @@ Ireki dokumentuak fitxetan
 
 \begin_layout Subsection
 Pantailako letra-tipoak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37631,7 +37589,7 @@ OS eta Windows sistemetan.
 
 \begin_layout Subsection
 Koloreak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37641,7 +37599,7 @@ Kolorea ! LyX pantaila
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37664,7 +37622,7 @@ Aldatu
 
 \begin_layout Subsection
 Bistaratu
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37712,7 +37670,7 @@ Markatu paragrafoen amaiera
 
 \begin_layout Section
 Edizioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37786,7 +37744,7 @@ Mugatu testuaren zabalera
 
 \begin_layout Subsection
 Lasterbideak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37796,7 +37754,7 @@ Teklen loturak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37806,7 +37764,7 @@ Ezarpenak ! Lasterbideak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38004,16 +37962,8 @@ LyX-funtzioa
 \end_layout
 
 \begin_layout Subsection
-Teklatua
-\begin_inset space \thinspace{}
-\end_inset
-
-/
-\begin_inset space \thinspace{}
-\end_inset
-
-sagua
-\begin_inset Index
+Teklatua / sagua
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38023,7 +37973,7 @@ Teklatu-mapa
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38076,7 +38026,7 @@ Gurpilaren korritze-abiadura
 
 \begin_layout Subsection
 Sarreren osaketa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38116,7 +38066,7 @@ atalean azaltzen da.
 
 \begin_layout Section
 Bide-izenak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38126,7 +38076,7 @@ Bide-izenak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38240,7 +38190,7 @@ Babeskopien
 \end_inset
 
 direktorioa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38364,7 +38314,7 @@ atalean azaldutakoa) erabiltzen da identitatea, burutu dituzun aldaketak
 
 \begin_layout Section
 Hizkuntzaren ezarpenak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38374,7 +38324,7 @@ Hizkuntza ! Ezarpenak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38668,7 +38618,7 @@ Irteera
 
 \begin_layout Subsection
 Inprimagailua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38678,7 +38628,7 @@ Inprimagailua
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38787,7 +38737,7 @@ komando-aukerak Inprimagailuaren aukerak ezar ditzakezu hemen.
 
 \begin_layout Subsection
 Data-formatua
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -38797,7 +38747,7 @@ Data-formatua
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39141,7 +39091,7 @@ fitxategietan Windows sistemetako notazioa erabiltzen du bide-izenetan,
 
  erabili ordez .
  Aukera hau gaituta egon ohi da LyX Windows sisteman erabiltzean.
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39151,7 +39101,7 @@ Bide-izenak
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39191,7 +39141,7 @@ Ezarpenak
 
 \begin_layout Section
 Fitxategien kudeaketa
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39205,7 +39155,7 @@ Fitxategien kudeaketa
 
 \begin_layout Subsection
 Bihurtzaileak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39290,7 +39240,7 @@ Bihurtzaileak
 
 \begin_layout Subsection
 Fitxategi-formatuak
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39350,7 +39300,7 @@ Kopiatzaileak
 
 \begin_layout Chapter
 Unitate erabilgarriak LyX-en
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -39409,7 +39359,7 @@ Unitateak
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="20" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -39969,6 +39919,7 @@ Bibliografia
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 label "Kredituak"
@@ -40003,6 +39954,7 @@ http://www.lyx.org/trac/browser/lyx-devel/trunk/lib/CREDITS
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexlagunartea"
@@ -40016,6 +39968,7 @@ Michel Goossens eta Frank Mittelbach:
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latex_gida"
@@ -40028,6 +39981,7 @@ Helmut Kopka eta Patrick W.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latex_liburua"
@@ -40044,6 +39998,7 @@ LaTeX: A Document Preparation System
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "tex_liburua"
@@ -40061,6 +40016,7 @@ The TeXbook.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "TeX-katalogoa"
@@ -40086,6 +40042,7 @@ http://www.ctan.org/tex-archive/help/Catalogue/bytopic.html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "LaTeX_MEG"
@@ -40111,6 +40068,7 @@ http://www.tex.ac.uk/cgi-bin/texfaq2html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "BibTeX"
@@ -40148,6 +40106,7 @@ http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxdoc.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "BibTeX-2"
@@ -40185,6 +40144,7 @@ http://www.ctan.org/tex-archive/info/bibtex/tamethebeast/ttb_en.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "makeindex"
@@ -40222,6 +40182,7 @@ http://tug.ctan.org/indexing/makeindex/doc/manpages.dvi
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "xindy"
@@ -40259,6 +40220,7 @@ http://www.xindy.org/documentation.html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "caption"
@@ -40278,7 +40240,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/caption.
 caption
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40306,6 +40268,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/caption.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "fancyhdr"
@@ -40325,7 +40288,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/fancyhdr/fancyhd
 fancyhdr
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40353,6 +40316,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/fancyhdr/fancyhdr.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "hyperref"
@@ -40376,7 +40340,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/hyperre
 hyperref
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40404,6 +40368,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/hyperref.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "nomencl"
@@ -40423,7 +40388,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/nomencl/nomencl.
 nomencl
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40451,6 +40416,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/nomencl/nomencl.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "tipa"
@@ -40470,7 +40436,7 @@ target "http://www.ctan.org/tex-archive/fonts/tipa/tipaman.pdf"
 tipa
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40498,6 +40464,7 @@ http://www.ctan.org/tex-archive/fonts/tipa/tipaman.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "wrapfig"
@@ -40517,7 +40484,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.
 wrapfig
 \series default
  paketea
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40545,6 +40512,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "XeTeX"
@@ -40578,6 +40546,7 @@ http://wiki.lyx.org/LyX/XeTeX
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Arabiera"
@@ -40611,6 +40580,7 @@ http://wiki.lyx.org/Windows/Arabic
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Armeniera"
@@ -40644,6 +40614,7 @@ http://wiki.lyx.org/Windows/Armenian
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Farsiera"
@@ -40677,6 +40648,7 @@ http://wiki.lyx.org/Windows/Farsi
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Hebreera"
@@ -40710,6 +40682,7 @@ http://wiki.lyx.org/Windows/Hebrew
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Japoniera"
@@ -40743,6 +40716,7 @@ http://wiki.lyx.org/Windows/Japanese
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Letoniera"
@@ -40776,6 +40750,7 @@ http://wiki.lyx.org/Windows/Latvian
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Lituaniera"
@@ -40809,6 +40784,7 @@ http://wiki.lyx.org/Windows/Lithuanian
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Mongoliera"
@@ -40842,6 +40818,7 @@ http://wiki.lyx.org/Windows/Mongolian
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Vietnamera"
@@ -40875,6 +40852,7 @@ http://wiki.lyx.org/Windows/Vietnamese
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "LyX_funtzioak"
@@ -40908,6 +40886,7 @@ http://wiki.lyx.org/LyX/LyxFunctionList
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliografia
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "ZerBerriLyX16en"
@@ -41017,6 +40996,7 @@ Arestiko bibliografia BibTeX-eko datu-basearekin sortu da.
 \begin_layout Standard
 \begin_inset CommandInset nomencl_print
 LatexCommand printnomenclature
+set_width "none"
 
 \end_inset
 
@@ -41026,6 +41006,7 @@ LatexCommand printnomenclature
 \begin_layout Standard
 \begin_inset CommandInset index_print
 LatexCommand printindex
+type "idx"
 
 \end_inset
 

@@ -23,11 +23,16 @@
 #include "InsetInclude.h"
 #include "InsetIndex.h"
 #include "InsetLabel.h"
+#include "InsetLine.h"
 #include "InsetNomencl.h"
 #include "InsetRef.h"
 #include "InsetTOC.h"
 
+#include "Encoding.h"
 #include "Lexer.h"
+#include "OutputParams.h"
+
+#include "frontends/alert.h"
 
 #include "support/debug.h"
 #include "support/docstream.h"
@@ -55,7 +60,7 @@ static ParamInfo const & findInfo(InsetCode code, string const & cmdName)
 	case BIBTEX_CODE:
 		return InsetBibtex::findInfo(cmdName);
 	case CITE_CODE:
-		return InsetCitation::findInfo(cmdName);	
+		return InsetCitation::findInfo(cmdName);
 	case FLOAT_LIST_CODE:
 		return InsetFloatList::findInfo(cmdName);
 	case HYPERLINK_CODE:
@@ -65,7 +70,9 @@ static ParamInfo const & findInfo(InsetCode code, string const & cmdName)
 	case INDEX_PRINT_CODE:
 		return InsetPrintIndex::findInfo(cmdName);
 	case LABEL_CODE:
-		return InsetLabel::findInfo(cmdName);	
+		return InsetLabel::findInfo(cmdName);
+	case LINE_CODE:
+		return InsetLine::findInfo(cmdName);
 	case NOMENCL_CODE:
 		return InsetNomencl::findInfo(cmdName);
 	case NOMENCL_PRINT_CODE:
@@ -88,8 +95,9 @@ static ParamInfo const & findInfo(InsetCode code, string const & cmdName)
 //
 /////////////////////////////////////////////////////////////////////
 
-ParamInfo::ParamData::ParamData(std::string const & s, ParamType t)
-	: name_(s), type_(t)
+ParamInfo::ParamData::ParamData(std::string const & s, ParamType t,
+				ParamHandling h)
+	: name_(s), type_(t), handling_(h)
 {}
 
 
@@ -101,7 +109,8 @@ bool ParamInfo::ParamData::isOptional() const
 
 bool ParamInfo::ParamData::operator==(ParamInfo::ParamData const & rhs) const
 {
-	return name() == rhs.name() && type() == rhs.type();
+	return name() == rhs.name() && type() == rhs.type()
+		&& handling() == rhs.handling();
 }
 
 
@@ -117,9 +126,10 @@ bool ParamInfo::hasParam(std::string const & name) const
 }
 
 
-void ParamInfo::add(std::string const & name, ParamType type)
+void ParamInfo::add(std::string const & name, ParamType type,
+		    ParamHandling handling)
 { 
-	info_.push_back(ParamData(name, type)); 
+	info_.push_back(ParamData(name, type, handling)); 
 }
 
 
@@ -193,6 +203,8 @@ string InsetCommandParams::getDefaultCmd(InsetCode code)
 			return InsetPrintIndex::defaultCommand();
 		case LABEL_CODE:
 			return InsetLabel::defaultCommand();
+		case LINE_CODE:
+			return InsetLine::defaultCommand();
 		case NOMENCL_CODE:
 			return InsetNomencl::defaultCommand();
 		case NOMENCL_PRINT_CODE:
@@ -227,6 +239,8 @@ bool InsetCommandParams::isCompatibleCommand(InsetCode code, string const & s)
 			return InsetPrintIndex::isCompatibleCommand(s);
 		case LABEL_CODE:
 			return InsetLabel::isCompatibleCommand(s);
+		case LINE_CODE:
+			return InsetLine::isCompatibleCommand(s);
 		case NOMENCL_CODE:
 			return InsetNomencl::isCompatibleCommand(s);
 		case NOMENCL_PRINT_CODE:
@@ -244,7 +258,7 @@ bool InsetCommandParams::isCompatibleCommand(InsetCode code, string const & s)
 
 void InsetCommandParams::setCmdName(string const & name)
 {
-	if (!isCompatibleCommand(insetCode_, cmdName_)) {
+	if (!isCompatibleCommand(insetCode_, name)) {
 		LYXERR0("InsetCommand: Incompatible command name " << 
 				name << ".");
 		throw ExceptionMessage(WarningException, _("InsetCommand Error: "),
@@ -295,8 +309,8 @@ void InsetCommandParams::read(Lexer & lex)
 		lex.printError("Missing \\end_inset at this point. "
 			       "Read: `$$Token'");
 		throw ExceptionMessage(WarningException,
-			_("Missing \\end_inset at this point."),
-			from_utf8(token));
+			_("InsetCommandParams Error: "),
+			_("Missing \\end_inset at this point: ") + from_utf8(token));
 	}
 }
 
@@ -351,7 +365,59 @@ bool InsetCommandParams::writeEmptyOptional(ParamInfo::const_iterator ci) const
 }
 
 
-docstring InsetCommandParams::getCommand() const
+docstring InsetCommandParams::prepareCommand(OutputParams const & runparams,
+					     docstring const & command,
+					     ParamInfo::ParamHandling handling) const
+{
+	docstring result;
+	switch (handling) {
+	case ParamInfo::HANDLING_LATEXIFY: {
+		docstring uncodable;
+		for (size_t n = 0; n < command.size(); ++n) {
+			try {
+				char_type const c = command[n];
+				docstring const latex = runparams.encoding->latexChar(c);
+				result += latex;
+				if (latex.length() > 1 && latex[latex.length() - 1] != '}') {
+					// Prevent eating of a following
+					// space or command corruption by
+					// following characters
+					result +=  "{}";
+				}
+			} catch (EncodingException & /* e */) {
+				LYXERR0("Uncodable character in command inset!");
+				if (runparams.dryrun) {
+					result += "<" + _("LyX Warning: ")
+						+ _("uncodable character") + " '";
+					result += docstring(1, command[n]);
+					result += "'>";
+				} else
+					uncodable += command[n];
+			}
+		}
+		if (!uncodable.empty()) {
+			// issue a warning about omitted characters
+			// FIXME: should be passed to the error dialog
+			frontend::Alert::warning(_("Uncodable characters"),
+				bformat(_("The following characters that are used in the inset %1$s are not\n"
+					  "representable in the current encoding and therefore have been omitted:\n%2$s."),
+					from_utf8(insetType()), uncodable));
+		}
+		break;
+	} 
+	case ParamInfo::HANDLING_ESCAPE:
+		result = escape(command);
+		break;
+	case ParamInfo::HANDLING_NONE:
+		result = command;
+		break;
+	} // switch
+
+	return result;
+}
+
+
+docstring InsetCommandParams::getCommand(OutputParams const & runparams) const
 {
 	docstring s = '\\' + from_ascii(cmdName_);
 	bool noparam = true;
@@ -364,13 +430,15 @@ docstring InsetCommandParams::getCommand() const
 			break;
 
 		case ParamInfo::LATEX_REQUIRED: {
-			docstring const & data = (*this)[name];
+			docstring const data =
+				prepareCommand(runparams, (*this)[name], it->handling());
 			s += '{' + data + '}';
 			noparam = false;
 			break;
 		}
 		case ParamInfo::LATEX_OPTIONAL: {
-			docstring const & data = (*this)[name];
+			docstring const data =
+				prepareCommand(runparams, (*this)[name], it->handling());
 			if (!data.empty()) {
 				s += '[' + data + ']';
 				noparam = false;

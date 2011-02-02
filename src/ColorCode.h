@@ -13,8 +13,7 @@
 namespace lyx {
 
 /// Names of colors, including all logical colors
-enum ColorCode
-{
+enum ColorCode {
 	/// No particular color---clear or default
 	Color_none,
 	/// The different text colors
@@ -65,6 +64,8 @@ enum ColorCode
 	Color_commentbg,
 	/// Label color for greyedout insets
 	Color_greyedoutlabel,
+	/// Color for greyedout inset text
+	Color_greyedouttext,
 	/// Background color of greyedout inset
 	Color_greyedoutbg,
 	/// Background color of shaded box
@@ -80,6 +81,8 @@ enum ColorCode
 	Color_indexlabel,
 	/// Label color for margin notes
 	Color_marginlabel,
+	/// Text color for phantom insets
+	Color_phantomtext,
 	/// Label color for URL insets
 	Color_urllabel,
 
@@ -128,9 +131,6 @@ enum ColorCode
 	/// Math line color
 	Color_mathline,
 
-	/// Caption frame color
-	Color_captionframe,
-
 	/// Collapsable insets text
 	Color_collapsable,
 	/// Collapsable insets frame
@@ -167,8 +167,6 @@ enum ColorCode
 	Color_changedtextauthor5,
 	/// Deleted text modifying color
 	Color_deletedtextmodifier,
-	/// Top and bottom line color
-	Color_topline,
 	/// Table line color
 	Color_tabularline,
 	/// Table line color
@@ -189,11 +187,15 @@ enum ColorCode
 	Color_buttonhoverbg,
 	/// Color used for the pilcrow sign to mark the end of a paragraph
 	Color_paragraphmarker,
+	/// Preview frame color
+	Color_previewframe,
 
 	// Logical attributes
 
 	/// Color is inherited
 	Color_inherit,
+	/// Color for regexp frame
+	Color_regexpframe,
 	/// For ignoring updates of a color
 	Color_ignore
 };

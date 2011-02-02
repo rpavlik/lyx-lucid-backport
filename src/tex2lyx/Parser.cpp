@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz 
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,6 +12,7 @@
 
 #include "Encoding.h"
 #include "Parser.h"
+#include "support/textutils.h"
 
 #include <iostream>
 
@@ -59,7 +60,7 @@ void catInit()
  * \p c must have catcode catNewline, and it must be the last character read
  * from \p is.
  */
-char getNewline(idocstream & is, char c)
+char_type getNewline(idocstream & is, char_type c)
 {
 	// we have to handle 3 different line endings:
 	// - UNIX (\n)
@@ -110,12 +111,6 @@ ostream & operator<<(ostream & os, Token const & t)
 }
 
 
-string Token::asString() const
-{
-	return cs_;
-}
-
-
 string Token::asInput() const
 {
 	if (cat_ == catComment)
@@ -124,6 +119,37 @@ string Token::asInput() const
 		return '\\' + cs_;
 	return cs_;
 }
+
+
+bool Token::isAlnumASCII() const
+{
+	return cat_ == catLetter ||
+	       (cat_ == catOther && cs_.length() == 1 && isDigitASCII(cs_[0]));
+}
+
+
+#ifdef FILEDEBUG
+void debugToken(std::ostream & os, Token const & t, unsigned int flags)
+{
+	char sep = ' ';
+	os << "t: " << t << " flags: " << flags;
+	if (flags & FLAG_BRACE_LAST) { os << sep << "BRACE_LAST"; sep = '|'; }
+	if (flags & FLAG_RIGHT     ) { os << sep << "RIGHT"     ; sep = '|'; }
+	if (flags & FLAG_END       ) { os << sep << "END"       ; sep = '|'; }
+	if (flags & FLAG_BRACK_LAST) { os << sep << "BRACK_LAST"; sep = '|'; }
+	if (flags & FLAG_TEXTMODE  ) { os << sep << "TEXTMODE"  ; sep = '|'; }
+	if (flags & FLAG_ITEM      ) { os << sep << "ITEM"      ; sep = '|'; }
+	if (flags & FLAG_LEAVE     ) { os << sep << "LEAVE"     ; sep = '|'; }
+	if (flags & FLAG_SIMPLE    ) { os << sep << "SIMPLE"    ; sep = '|'; }
+	if (flags & FLAG_EQUATION  ) { os << sep << "EQUATION"  ; sep = '|'; }
+	if (flags & FLAG_SIMPLE2   ) { os << sep << "SIMPLE2"   ; sep = '|'; }
+	if (flags & FLAG_OPTION    ) { os << sep << "OPTION"    ; sep = '|'; }
+	if (flags & FLAG_BRACED    ) { os << sep << "BRACED"    ; sep = '|'; }
+	if (flags & FLAG_CELL      ) { os << sep << "CELL"      ; sep = '|'; }
+	if (flags & FLAG_TABBING   ) { os << sep << "TABBING"   ; sep = '|'; }
+	os << "\n";
+}
+#endif
 
 
 //
@@ -221,20 +247,24 @@ bool Parser::isParagraph()
 }
 
 
-void Parser::skip_spaces(bool skip_comments)
+bool Parser::skip_spaces(bool skip_comments)
 {
 	// We just silently return if we have no more tokens.
 	// skip_spaces() should be callable at any time,
 	// the caller must check p::good() anyway.
+	bool skipped = false;
 	while (good()) {
 		get_token();
 		if (isParagraph()) {
 			putback();
 			break;
 		}
-		if ( curr_token().cat() == catSpace ||
-		     curr_token().cat() == catNewline ||
-		    (curr_token().cat() == catComment && curr_token().cs().empty()))
+		if (curr_token().cat() == catSpace ||
+		    curr_token().cat() == catNewline) {
+			skipped = true;
+			continue;
+		}
+		if ((curr_token().cat() == catComment && curr_token().cs().empty()))
 			continue;
 		if (skip_comments && curr_token().cat() == catComment)
 			cerr << "  Ignoring comment: " << curr_token().asInput();
@@ -243,6 +273,7 @@ void Parser::skip_spaces(bool skip_comments)
 			break;
 		}
 	}
+	return skipped;
 }
 
 
@@ -269,6 +300,19 @@ void Parser::putback()
 }
 
 
+void Parser::pushPosition()
+{
+	positions_.push_back(pos_);
+}
+
+
+void Parser::popPosition()
+{
+	pos_ = positions_.back();
+	positions_.pop_back();
+}
+
+
 bool Parser::good()
 {
 	if (pos_ < tokens_.size())
@@ -283,6 +327,38 @@ char Parser::getChar()
 	if (!good())
 		error("The input stream is not well...");
 	return get_token().character();
+}
+
+
+bool Parser::hasOpt()
+{
+	// An optional argument can occur in any of the following forms:
+	// - \foo[bar]
+	// - \foo [bar]
+	// - \foo
+	//   [bar]
+	// - \foo %comment
+	//   [bar]
+
+	// remember current position
+	unsigned int oldpos = pos_;
+	// skip spaces and comments
+	while (good()) {
+		get_token();
+		if (isParagraph()) {
+			putback();
+			break;
+		}
+		if (curr_token().cat() == catSpace ||
+		    curr_token().cat() == catNewline ||
+		    curr_token().cat() == catComment)
+			continue;
+		putback();
+		break;
+	}
+	bool const retval = (next_token().asInput() == "[");
+	pos_ = oldpos;
+	return retval;
 }
 
 
@@ -331,10 +407,15 @@ string Parser::getFullOpt()
 }
 
 
-string Parser::getOpt()
+string Parser::getOpt(bool keepws)
 {
 	string const res = getArg('[', ']');
-	return res.empty() ? string() : '[' + res + ']';
+	if (res.empty()) {
+		if (keepws)
+			unskip_spaces(true);
+		return string();
+	}
+	return '[' + res + ']';
 }
 
 
@@ -492,7 +573,7 @@ string Parser::verbatimOption()
 				putback();
 				res += '{' + verbatim_item() + '}';
 			} else
-				res += t.asString();
+				res += t.cs();
 		}
 	}
 	return res;

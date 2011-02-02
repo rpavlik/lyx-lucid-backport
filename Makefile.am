@@ -25,6 +25,15 @@ EXTRA_DIST = ANNOUNCE INSTALL.autoconf RELEASE-NOTES UPGRADING \
 
 man_MANS = lyx.1
 
+#Wait some time for bumping automake 1.11, which can use dist-xz
+#directly without this code, which is to be removed.
+#xz has low compression by default, but can be affected via
+#export XZ_OPT=-9ev put somewhere in the makefile.
+lyxdist: dist
+	bunzip2 $(PACKAGE)-$(VERSION).tar.bz2
+	xz -9 $(PACKAGE)-$(VERSION).tar
+	ls -hl $(PACKAGE)-$(VERSION).tar.*
+
 rpmdist: dist
 	$(LN_S) $(srcdir)/lib/images/lyx.png . ; \
 	if [ -z "`type -path rpmbuild`" ]; \
@@ -37,6 +46,12 @@ rpmdist: dist
 
 doxydoc:
 	cd sourcedoc; make doxydoc
+
+lfundoc:
+	development/tools/gen_lfuns.py src/LyXAction.cpp > lib/doc/LFUNs.lyx
+
+keystest:
+	development/keystest/lyx_make.sh
 
 lgbtags:
 	etags --totals=yes --recurse=yes -o TAGS $(top_srcdir)/*

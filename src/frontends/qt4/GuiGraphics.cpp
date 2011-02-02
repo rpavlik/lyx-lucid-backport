@@ -6,7 +6,7 @@
  * \author Angus Leeming
  * \author John Levon
  * \author Edwin Leuven
- * \author Herbert Voß
+ * \author Herbert VoÃŸ
  * \author Richard Heck
  *
  * Full author contact details are available in file CREDITS.
@@ -24,7 +24,6 @@
 #include "LengthCombo.h"
 #include "Length.h"
 #include "LyXRC.h"
-#include "Undo.h"
 
 #include "graphics/GraphicsCache.h"
 #include "graphics/GraphicsCacheItem.h"
@@ -75,6 +74,8 @@ char const * const rorigin_gui_strs[] = {
 
 size_t const rorigin_size = sizeof(rorigin_lyx_strs) / sizeof(char *);
 
+static string autostr = N_("automatically");
+
 } // namespace anon
 
 
@@ -100,54 +101,11 @@ static void setAutoTextCB(QCheckBox * checkBox, QLineEdit * lineEdit,
 {
 	if (!checkBox->isChecked())
 		lengthToWidgets(lineEdit, lengthCombo,
-				"auto", lengthCombo->currentLengthItem());
-	else if (lineEdit->text() == "auto")
+				_(autostr), lengthCombo->currentLengthItem());
+	else if (lineEdit->text() == qt_(autostr))
 		lengthToWidgets(lineEdit, lengthCombo, string(),
 				lengthCombo->currentLengthItem());
 }
-
-
-template<class Pair>
-vector<typename Pair::first_type> getFirst(vector<Pair> const & pr)
-{
-	size_t const n = pr.size();
-	vector<typename Pair::first_type> tmp(n);
-	for (size_t i = 0; i != n; ++i)
-		tmp[i] = pr[i].first;
-	return tmp;
-}
-
-
-///
-template<class Pair>
-vector<typename Pair::second_type> getSecond(vector<Pair> const & pr)
-{
-	size_t const n = pr.size();
-	vector<typename Pair::second_type> tmp(n);
-	for (size_t i = 0; i != n; ++i)
-		tmp[i] = pr[i].second;
-	return tmp;
-}
-
-
-/// The (tranlated) GUI string and it's LaTeX equivalent.
-typedef pair<docstring, string> RotationOriginPair;
-///
-vector<RotationOriginPair> getRotationOriginData()
-{
-	static vector<RotationOriginPair> data;
-	if (!data.empty())
-		return data;
-
-	data.resize(rorigin_size);
-	for (size_type i = 0; i < rorigin_size; ++i) {
-		data[i] = make_pair(_(rorigin_gui_strs[i]),
-				    rorigin_lyx_strs[i]);
-	}
-
-	return data;
-}
-
 
 
 GuiGraphics::GuiGraphics(GuiView & lv)
@@ -192,33 +150,34 @@ GuiGraphics::GuiGraphics(GuiView & lv)
 	filename->setValidator(new PathValidator(true, filename));
 	setFocusProxy(filename);
 
-	QDoubleValidator * scaleValidator = new DoubleAutoValidator(Scale);
+	QDoubleValidator * scaleValidator = 
+		new DoubleAutoValidator(Scale, qt_(autostr));
 	scaleValidator->setBottom(0);
 	scaleValidator->setDecimals(256); //I guess that will do
 	Scale->setValidator(scaleValidator);
-	Height->setValidator(unsignedLengthAutoValidator(Height));
-	Width->setValidator(unsignedLengthAutoValidator(Width));
+	Height->setValidator(unsignedLengthAutoValidator(Height, qt_(autostr)));
+	Width->setValidator(unsignedLengthAutoValidator(Width, qt_(autostr)));
 	angle->setValidator(new QDoubleValidator(-360, 360, 2, angle));
 
 	//clipping pane
 	connect(clip, SIGNAL(stateChanged(int)),
 		this, SLOT(change_adaptor()));
 	connect(lbY, SIGNAL(textChanged(const QString&)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(lbYunit, SIGNAL(activated(int)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(rtY, SIGNAL(textChanged(const QString&)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(rtYunit, SIGNAL(activated(int)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(lbX, SIGNAL(textChanged(const QString&)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(lbXunit, SIGNAL(activated(int)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(rtX, SIGNAL(textChanged(const QString&)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(rtXunit, SIGNAL(activated(int)),
-		this, SLOT(change_bb()));
+		this, SLOT(changeBB()));
 	connect(getPB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
 
@@ -245,7 +204,7 @@ GuiGraphics::GuiGraphics(GuiView & lv)
 	connect(displayscale, SIGNAL(textChanged(const QString&)),
 		this, SLOT(change_adaptor()));
 	connect(groupCO, SIGNAL(currentIndexChanged(int)),
-		this, SLOT(change_group(int)));
+		this, SLOT(changeGroup(int)));
 
 	displayscale->setValidator(new QIntValidator(displayscale));
 
@@ -291,7 +250,7 @@ void GuiGraphics::change_adaptor()
 }
 
 
-void GuiGraphics::change_group(int /*index*/)
+void GuiGraphics::changeGroup(int /* index */)
 {
 	QString const new_group = groupCO->itemData(
 		groupCO->currentIndex()).toString();
@@ -381,7 +340,7 @@ void GuiGraphics::on_newGroupPB_clicked()
 }
 
 
-void GuiGraphics::change_bb()
+void GuiGraphics::changeBB()
 {
 	bbChanged = true;
 	LYXERR(Debug::GRAPHICS, "[bb_Changed set to true]");
@@ -410,7 +369,7 @@ void GuiGraphics::setAutoText()
 	if (scaleCB->isChecked())
 		return;
 	if (!Scale->isEnabled() && Scale->text() != "100")
-		Scale->setText(QString("auto"));
+		Scale->setText(qt_(autostr));
 
 	setAutoTextCB(WidthCB, Width, widthUnit);
 	setAutoTextCB(HeightCB, Height, heightUnit);
@@ -509,58 +468,45 @@ void GuiGraphics::on_angle_textChanged(const QString & filename)
 				 (filename != "0"));
 }
 
-// returns the number of the string s in the vector v
-static int itemNumber(const vector<string> & v, string const & s)
-{
-	vector<string>::const_iterator cit =
-		    find(v.begin(), v.end(), s);
-	return (cit != v.end()) ? int(cit - v.begin()) : 0;
-}
-
 
 void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 {
 	static char const * const bb_units[] = { "bp", "cm", "mm", "in" };
+	static char const * const bb_units_gui[] = { N_("bp"), N_("cm"), N_("mm"), N_("in[[unit of measure]]") };
 	size_t const bb_size = sizeof(bb_units) / sizeof(bb_units[0]);
 
-	vector<string> const units = vector<string>(bb_units, bb_units + bb_size);
 	lbXunit->clear();
 	lbYunit->clear();
 	rtXunit->clear();
 	rtYunit->clear();
-	for (vector<string>::const_iterator it = units.begin();
-	    it != units.end(); ++it) {
-		lbXunit->addItem(toqstr(*it));
-		lbYunit->addItem(toqstr(*it));
-		rtXunit->addItem(toqstr(*it));
-		rtYunit->addItem(toqstr(*it));
+	
+	for (size_t i = 0; i < bb_size; i++) {
+		lbXunit->addItem(qt_(bb_units_gui[i]),
+			toqstr(bb_units[i]));
+		lbYunit->addItem(qt_(bb_units_gui[i]),
+			toqstr(bb_units[i]));
+		rtXunit->addItem(qt_(bb_units_gui[i]),
+			toqstr(bb_units[i]));
+		rtYunit->addItem(qt_(bb_units_gui[i]),
+			toqstr(bb_units[i]));
 	}
-
+	
 	// set the right default unit
-	Length::UNIT unitDefault = Length::CM;
-	switch (lyxrc.default_papersize) {
-		case PAPER_USLETTER:
-		case PAPER_USLEGAL:
-		case PAPER_USEXECUTIVE:
-			unitDefault = Length::IN;
-			break;
-		default:
-			break;
-	}
+	Length::UNIT const defaultUnit = Length::defaultUnit();
 
-	//lyxerr << bufferFilepath();
+	//lyxerr << bufferFilePath();
 	string const name =
-		igp.filename.outputFilename(fromqstr(bufferFilepath()));
+		igp.filename.outputFileName(fromqstr(bufferFilePath()));
 	filename->setText(toqstr(name));
 
 	// set the bounding box values
 	if (igp.bb.empty()) {
-		string const bb = readBoundingBox(igp.filename.absFilename());
+		string const bb = readBoundingBox(igp.filename.absFileName());
 		// the values from the file always have the bigpoint-unit bp
-		lbX->setText(toqstr(token(bb, ' ', 0)));
-		lbY->setText(toqstr(token(bb, ' ', 1)));
-		rtX->setText(toqstr(token(bb, ' ', 2)));
-		rtY->setText(toqstr(token(bb, ' ', 3)));
+		doubleToWidget(lbX, token(bb, ' ', 0));
+		doubleToWidget(lbY, token(bb, ' ', 1));
+		doubleToWidget(rtX, token(bb, ' ', 2));
+		doubleToWidget(rtY, token(bb, ' ', 3));
 		lbXunit->setCurrentIndex(0);
 		lbYunit->setCurrentIndex(0);
 		rtXunit->setCurrentIndex(0);
@@ -574,30 +520,30 @@ void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 		string const xr = token(igp.bb, ' ', 2);
 		string const yr = token(igp.bb, ' ', 3);
 		if (isValidLength(xl, &anyLength)) {
-			lbX->setText(toqstr(convert<string>(anyLength.value())));
+			doubleToWidget(lbX, anyLength.value());
 			string const unit = unit_name[anyLength.unit()];
-			lbXunit->setCurrentIndex(itemNumber(units, unit));
+			lbXunit->setCurrentIndex(lbXunit->findData(toqstr(unit)));
 		} else {
 			lbX->setText(toqstr(xl));
 		}
 		if (isValidLength(yl, &anyLength)) {
-			lbY->setText(toqstr(convert<string>(anyLength.value())));
+			doubleToWidget(lbY, anyLength.value());
 			string const unit = unit_name[anyLength.unit()];
-			lbYunit->setCurrentIndex(itemNumber(units, unit));
+			lbYunit->setCurrentIndex(lbYunit->findData(toqstr(unit)));
 		} else {
 			lbY->setText(toqstr(xl));
 		}
 		if (isValidLength(xr, &anyLength)) {
-			rtX->setText(toqstr(convert<string>(anyLength.value())));
+			doubleToWidget(rtX, anyLength.value());
 			string const unit = unit_name[anyLength.unit()];
-			rtXunit->setCurrentIndex(itemNumber(units, unit));
+			rtXunit->setCurrentIndex(rtXunit->findData(toqstr(unit)));
 		} else {
 			rtX->setText(toqstr(xl));
 		}
 		if (isValidLength(yr, &anyLength)) {
-			rtY->setText(toqstr(convert<string>(anyLength.value())));
+			doubleToWidget(rtY, anyLength.value());
 			string const unit = unit_name[anyLength.unit()];
-			rtYunit->setCurrentIndex(itemNumber(units, unit));
+			rtYunit->setCurrentIndex(rtYunit->findData(toqstr(unit)));
 		} else {
 			rtY->setText(toqstr(xl));
 		}
@@ -613,7 +559,7 @@ void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 
 	// the output section (width/height)
 
-	Scale->setText(toqstr(igp.scale));
+	doubleToWidget(Scale, igp.scale);
 	//igp.scale defaults to 100, so we treat it as empty
 	bool const scaleChecked = !igp.scale.empty() && igp.scale != "100";
 	scaleCB->blockSignals(true);
@@ -638,20 +584,26 @@ void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 			groupCO->findData(toqstr(igp.groupId), Qt::MatchExactly));
 	groupCO->blockSignals(false);
 
-	lengthAutoToWidgets(Width, widthUnit, igp.width,
-		unitDefault);
+	if (igp.width.value() == 0)
+		lengthToWidgets(Width, widthUnit, _(autostr), defaultUnit);
+	else
+		lengthToWidgets(Width, widthUnit, igp.width, defaultUnit);
+
 	bool const widthChecked = !Width->text().isEmpty() &&
-		Width->text() != "auto";
+		Width->text() != qt_(autostr);
 	WidthCB->blockSignals(true);
 	WidthCB->setChecked(widthChecked);
 	WidthCB->blockSignals(false);
 	Width->setEnabled(widthChecked);
 	widthUnit->setEnabled(widthChecked);
 
-	lengthAutoToWidgets(Height, heightUnit, igp.height,
-		unitDefault);
+	if (igp.height.value() == 0)
+		lengthToWidgets(Height, heightUnit, _(autostr), defaultUnit);
+	else
+		lengthToWidgets(Height, heightUnit, igp.height, defaultUnit);
+
 	bool const heightChecked = !Height->text().isEmpty()
-		&& Height->text() != "auto";
+		&& Height->text() != qt_(autostr);
 	HeightCB->blockSignals(true);
 	HeightCB->setChecked(heightChecked);
 	HeightCB->blockSignals(false);
@@ -665,7 +617,7 @@ void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 
 	setAutoText();
 
-	angle->setText(toqstr(igp.rotateAngle));
+	doubleToWidget(angle, igp.rotateAngle);
 	rotateOrderCB->setChecked(igp.scaleBeforeRotation);
 
 	rotateOrderCB->setEnabled( (widthChecked || heightChecked || scaleChecked)
@@ -673,16 +625,13 @@ void GuiGraphics::paramsToDialog(InsetGraphicsParams const & igp)
 
 	origin->clear();
 
-	vector<RotationOriginPair> origindata = getRotationOriginData();
-	vector<docstring> const origin_lang = getFirst(origindata);
-	origin_ltx = getSecond(origindata);
-
-	for (vector<docstring>::const_iterator it = origin_lang.begin();
-	    it != origin_lang.end(); ++it)
-		origin->addItem(toqstr(*it));
+	for (size_t i = 0; i < rorigin_size; i++) {
+		origin->addItem(qt_(rorigin_gui_strs[i]),
+			toqstr(rorigin_lyx_strs[i]));
+	}
 
 	if (!igp.rotateOrigin.empty())
-		origin->setCurrentIndex(itemNumber(origin_ltx, igp.rotateOrigin));
+		origin->setCurrentIndex(origin->findData(toqstr(igp.rotateOrigin)));
 	else
 		origin->setCurrentIndex(0);
 
@@ -697,16 +646,16 @@ void GuiGraphics::applyView()
 {
 	InsetGraphicsParams & igp = params_;
 
-	igp.filename.set(fromqstr(filename->text()), fromqstr(bufferFilepath()));
+	igp.filename.set(fromqstr(filename->text()), fromqstr(bufferFilePath()));
 
 	// the bb section
 	igp.bb.erase();
 	if (bbChanged) {
 		string bb;
-		string lbXs = fromqstr(lbX->text());
-		string lbYs = fromqstr(lbY->text());
-		string rtXs = fromqstr(rtX->text());
-		string rtYs = fromqstr(rtY->text());
+		string lbXs = widgetToDoubleStr(lbX);
+		string lbYs = widgetToDoubleStr(lbY);
+		string rtXs = widgetToDoubleStr(rtX);
+		string rtYs = widgetToDoubleStr(rtY);
 		int bb_sum =
 			convert<int>(lbXs) + convert<int>(lbYs) +
 			convert<int>(rtXs) + convert<int>(rtXs);
@@ -737,7 +686,7 @@ void GuiGraphics::applyView()
 
 	//the graphics section
 	if (scaleCB->isChecked() && !Scale->text().isEmpty()) {
-		igp.scale = fromqstr(Scale->text());
+		igp.scale = widgetToDoubleStr(Scale);
 		igp.width = Length("0pt");
 		igp.height = Length("0pt");
 		igp.keepAspectRatio = false;
@@ -758,9 +707,9 @@ void GuiGraphics::applyView()
 
 	igp.noUnzip = unzipCB->isChecked();
 	igp.lyxscale = displayscale->text().toInt();
-	igp.rotateAngle = fromqstr(angle->text());
+	igp.rotateAngle = widgetToDoubleStr(angle);
 
-	double rotAngle = convert<double>(igp.rotateAngle);
+	double rotAngle = widgetToDouble(angle);
 	if (abs(rotAngle) > 360.0) {
 		rotAngle -= 360.0 * floor(rotAngle / 360.0);
 		igp.rotateAngle = convert<string>(rotAngle);
@@ -768,7 +717,8 @@ void GuiGraphics::applyView()
 
 	// save the latex name for the origin. If it is the default
 	// then origin_ltx returns ""
-	igp.rotateOrigin = origin_ltx[origin->currentIndex()];
+	igp.rotateOrigin =
+		fromqstr(origin->itemData(origin->currentIndex()).toString());
 	igp.scaleBeforeRotation = rotateOrderCB->isChecked();
 
 	// more latex options
@@ -789,10 +739,10 @@ void GuiGraphics::getBB()
 	bbChanged = false;
 	if (bb.empty())
 		return;
-	lbX->setText(toqstr(token(bb, ' ', 0)));
-	lbY->setText(toqstr(token(bb, ' ', 1)));
-	rtX->setText(toqstr(token(bb, ' ', 2)));
-	rtY->setText(toqstr(token(bb, ' ', 3)));
+	doubleToWidget(lbX, token(bb, ' ', 0));
+	doubleToWidget(lbY, token(bb, ' ', 1));
+	doubleToWidget(rtX, token(bb, ' ', 2));
+	doubleToWidget(rtY, token(bb, ' ', 3));
 	// the default units for the bb values when reading
 	// it from the file
 	lbXunit->setCurrentIndex(0);
@@ -836,14 +786,14 @@ QString GuiGraphics::browse(QString const & in_name) const
 	QString const title = qt_("Select graphics file");
 
 	// Does user clipart directory exist?
-	string clipdir = addName(package().user_support().absFilename(), "clipart");
+	string clipdir = addName(package().user_support().absFileName(), "clipart");
 	FileName clip(clipdir);
 
 	// bail out to system clipart directory
 	if (!clip.isDirectory())
-		clipdir = addName(package().system_support().absFilename(), "clipart");
+		clipdir = addName(package().system_support().absFileName(), "clipart");
 
-	return browseRelFile(in_name, bufferFilepath(),
+	return browseRelFile(in_name, bufferFilePath(),
 		title, fileFilters(QString()), false, 
 		qt_("Clipart|#C#c"), toqstr(clipdir),
 		qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
@@ -852,7 +802,7 @@ QString GuiGraphics::browse(QString const & in_name) const
 
 string GuiGraphics::readBoundingBox(string const & file)
 {
-	FileName const abs_file = support::makeAbsPath(file, fromqstr(bufferFilepath()));
+	FileName const abs_file = support::makeAbsPath(file, fromqstr(bufferFilePath()));
 
 	// try to get it from the file, if possible. Zipped files are
 	// unzipped in the readBB_from_PSFile-Function
@@ -881,7 +831,7 @@ string GuiGraphics::readBoundingBox(string const & file)
 bool GuiGraphics::isFileNameValid(string const & fname) const
 {
 	// It may be that the filename is relative.
-	return support::makeAbsPath(fname, fromqstr(bufferFilepath())).isReadableFile();
+	return support::makeAbsPath(fname, fromqstr(bufferFilePath())).isReadableFile();
 }
 
 
@@ -891,4 +841,4 @@ Dialog * createGuiGraphics(GuiView & lv) { return new GuiGraphics(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiGraphics_moc.cpp"
+#include "moc_GuiGraphics.cpp"

@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author John Levon
  *
@@ -16,35 +16,45 @@
 
 #include "support/strfwd.h"
 
+#include <vector>
+
 namespace lyx {
 
 class BufferList;
 class CmdDef;
 class Converters;
+class DispatchResult;
 class ErrorItem;
 class FuncRequest;
 class FuncStatus;
 class KeyMap;
-class LyXFunc;
 class Messages;
 class Mover;
 class Movers;
 class Server;
 class ServerSocket;
 class Session;
+class SpellChecker;
+
+enum RunMode {
+	NEW_INSTANCE,
+	USE_REMOTE,
+	PREFERRED
+};
 
 enum OverwriteFiles {
 	NO_FILES,
 	MAIN_FILE,
-	ALL_FILES
+	ALL_FILES,
+	UNSPECIFIED
 };
 
 extern bool use_gui;
+extern RunMode run_mode;
 extern OverwriteFiles force_overwrite;
 
 namespace frontend {
 class Application;
-class LyXView;
 }
 
 namespace graphics {
@@ -60,9 +70,6 @@ public:
 
 	/// Execute LyX.
 	int exec(int & argc, char * argv[]);
-
-	///
-	frontend::LyXView * newLyXView();
 
 private:
 	/// noncopyable
@@ -127,14 +134,15 @@ private:
 
 	friend FuncStatus getStatus(FuncRequest const & action);
 	friend void dispatch(FuncRequest const & action);
+	friend void dispatch(FuncRequest const & action, DispatchResult & dr);
+	friend std::vector<std::string> & theFilesToLoad();
 	friend BufferList & theBufferList();
-	friend LyXFunc & theLyXFunc();
 	friend Server & theServer();
 	friend ServerSocket & theServerSocket();
 	friend Converters & theConverters();
 	friend Converters & theSystemConverters();
-	friend Messages & getMessages(std::string const & language);
-	friend Messages & getGuiMessages();
+	friend Messages const & getMessages(std::string const & language);
+	friend Messages const & getGuiMessages();
 	friend KeyMap & theTopLevelKeymap();
 	friend Movers & theMovers();
 	friend Mover const & getMover(std::string  const & fmt);
@@ -144,6 +152,8 @@ private:
 	friend graphics::Previews & thePreviews();
 	friend Session & theSession();
 	friend CmdDef & theTopLevelCmdDef();
+	friend SpellChecker * theSpellChecker();
+	friend void setSpellChecker();
 	friend void setRcGuiLanguage();
 	friend void emergencyCleanup();
 	friend void execBatchCommands();
@@ -162,6 +172,16 @@ void setRcGuiLanguage();
 /// Execute batch commands if available.
 void execBatchCommands();
 
+///
+FuncStatus getStatus(FuncRequest const & action);
+
+///
+void dispatch(FuncRequest const & action);
+
+///
+void dispatch(FuncRequest const & action, DispatchResult & dr);
+
 } // namespace lyx
 
 #endif // LYX_H
+

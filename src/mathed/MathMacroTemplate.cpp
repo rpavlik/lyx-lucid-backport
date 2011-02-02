@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -35,7 +35,6 @@
 #include "FuncStatus.h"
 #include "Lexer.h"
 #include "LyXRC.h" 
-#include "Undo.h"
 
 #include "frontends/Painter.h"
 
@@ -48,6 +47,7 @@
 #include "support/docstream.h"
 #include "support/lstrings.h"
 
+#include <set>
 #include <sstream>
 
 using namespace std;
@@ -93,7 +93,8 @@ InsetLabelBox::InsetLabelBox(Buffer * buf, MathAtom const & atom, docstring labe
 InsetLabelBox::InsetLabelBox(Buffer * buf, docstring label,
 			     MathMacroTemplate const & parent, bool frame)
 	: InsetMathNest(buf, 1), parent_(parent), label_(label), frame_(frame)
-{}
+{
+}
 
 
 Inset * InsetLabelBox::clone() const
@@ -202,7 +203,8 @@ DisplayLabelBox::DisplayLabelBox(Buffer * buf, MathAtom const & atom,
 				 docstring label,
 				 MathMacroTemplate const & parent)
 	: InsetLabelBox(buf, atom, label, parent, true)
-{}
+{
+}
 
 
 
@@ -301,7 +303,8 @@ protected:
 
 InsetColoredCell::InsetColoredCell(Buffer * buf, ColorCode min, ColorCode max)
 	: InsetMathNest(buf, 1), min_(min), max_(max)
-{}
+{
+}
 
 
 InsetColoredCell::InsetColoredCell(Buffer * buf, ColorCode min, ColorCode max, MathAtom const & atom)
@@ -399,14 +402,12 @@ MathMacroTemplate::MathMacroTemplate(Buffer * buf)
 }
 
 
-MathMacroTemplate::MathMacroTemplate(Buffer * buf, docstring const & name,
-				     int numargs, int optionals, MacroType type,
-				     vector<MathData> const & optionalValues,
-				     MathData const & def,
-				     MathData const & display)
-	: InsetMathNest(buf, optionals + 3), numargs_(numargs),
-	  argsInLook_(numargs), optionals_(optionals),
-	  optionalValues_(optionalValues), type_(type), lookOutdated_(true)
+MathMacroTemplate::MathMacroTemplate(Buffer * buf, docstring const & name, int numargs,
+	int optionals, MacroType type, vector<MathData> const & optionalValues,
+	MathData const & def, MathData const & display)
+	: InsetMathNest(buf, optionals + 3), numargs_(numargs), argsInLook_(numargs),
+	  optionals_(optionals), optionalValues_(optionalValues),
+	  type_(type), lookOutdated_(true)
 {
 	initMath();
 
@@ -427,13 +428,13 @@ MathMacroTemplate::MathMacroTemplate(Buffer * buf, docstring const & name,
 
 MathMacroTemplate::MathMacroTemplate(Buffer * buf, docstring const & str)
 	: InsetMathNest(buf, 3), numargs_(0), optionals_(0),
-	  type_(MacroTypeNewcommand), lookOutdated_(true)
+	type_(MacroTypeNewcommand), lookOutdated_(true)
 {
 	buffer_ = buf;
 	initMath();
 
 	MathData ar(buf);
-	mathed_parse_cell(ar, str);
+	mathed_parse_cell(ar, str, Parse::NORMAL);
 	if (ar.size() != 1 || !ar[0]->asMacroTemplate()) {
 		lyxerr << "Cannot read macro from '" << ar << "'" << endl;
 		asArray(from_ascii("invalidmacro"), cell(0));
@@ -591,7 +592,7 @@ void MathMacroTemplate::metrics(MetricsInfo & mi, Dimension & dim) const
 
 void MathMacroTemplate::draw(PainterInfo & pi, int x, int y) const
 {
-	ColorChanger dummy0(pi.base.font, from_ascii("math"));
+	ColorChanger dummy0(pi.base.font, Color_math);
 	FontSetChanger dummy1(pi.base, from_ascii("mathnormal"));
 	StyleChanger dummy2(pi.base, LM_ST_TEXT);
 
@@ -616,7 +617,7 @@ void MathMacroTemplate::draw(PainterInfo & pi, int x, int y) const
 void MathMacroTemplate::edit(Cursor & cur, bool front, EntryDirection entry_from)
 {
 	updateLook();
-	cur.updateFlags(Update::SinglePar);
+	cur.screenUpdateFlags(Update::SinglePar);
 	InsetMathNest::edit(cur, front, entry_from);
 }
 
@@ -625,7 +626,7 @@ bool MathMacroTemplate::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 {
 	commitEditChanges(cur, old);
 	updateLook();
-	cur.updateFlags(Update::Force);
+	cur.screenUpdateFlags(Update::Force);
 	return InsetMathNest::notifyCursorLeaves(old, cur);
 }
 
@@ -633,10 +634,11 @@ bool MathMacroTemplate::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 void MathMacroTemplate::removeArguments(Cursor & cur,
 	DocIterator const & /*inset_pos*/, int from, int to)
 {
-	for (DocIterator it = doc_iterator_begin(*this); it; it.forwardChar()) {
+	DocIterator it = doc_iterator_begin(&buffer(), this);
+	for (; it; it.forwardChar()) {
 		if (!it.nextInset())
 			continue;
-		if (it.nextInset()->lyxCode() != MATHMACROARG_CODE)
+		if (it.nextInset()->lyxCode() != MATH_MACROARG_CODE)
 			continue;
 		MathMacroArgument * arg = static_cast<MathMacroArgument*>(it.nextInset());
 		int n = arg->number() - 1;
@@ -653,11 +655,12 @@ void MathMacroTemplate::removeArguments(Cursor & cur,
 }
 
 
-void MathMacroTemplate::shiftArguments(size_t from, int by) {
-	for (DocIterator it = doc_iterator_begin(*this); it; it.forwardChar()) {
+void MathMacroTemplate::shiftArguments(size_t from, int by)
+{
+	for (DocIterator it = doc_iterator_begin(&buffer(), this); it; it.forwardChar()) {
 		if (!it.nextInset())
 			continue;
-		if (it.nextInset()->lyxCode() != MATHMACROARG_CODE)
+		if (it.nextInset()->lyxCode() != MATH_MACROARG_CODE)
 			continue;
 		MathMacroArgument * arg = static_cast<MathMacroArgument*>(it.nextInset());
 		if (arg->number() >= int(from) + 1)
@@ -670,14 +673,15 @@ void MathMacroTemplate::shiftArguments(size_t from, int by) {
 
 int MathMacroTemplate::maxArgumentInDefinition() const
 {
+	// We don't have a buffer when pasting from the clipboard (bug 6014).
+	Buffer const * macro_buffer = isBufferLoaded() ? &buffer() : 0;
 	int maxArg = 0;
-	MathMacroTemplate * nonConst = const_cast<MathMacroTemplate *>(this);
-	DocIterator it = doc_iterator_begin(*nonConst);
+	DocIterator it = doc_iterator_begin(macro_buffer, this);
 	it.idx() = defIdx();
 	for (; it; it.forwardChar()) {
 		if (!it.nextInset())
 			continue;
-		if (it.nextInset()->lyxCode() != MATHMACROARG_CODE)
+		if (it.nextInset()->lyxCode() != MATH_MACROARG_CODE)
 			continue;
 		MathMacroArgument * arg = static_cast<MathMacroArgument*>(it.nextInset());
 		maxArg = std::max(int(arg->number()), maxArg);
@@ -692,12 +696,12 @@ void MathMacroTemplate::insertMissingArguments(int maxArg)
 	idx_type idx = cell(displayIdx()).empty() ? defIdx() : displayIdx();
 
 	// search for #n macros arguments
-	DocIterator it = doc_iterator_begin(*this);
+	DocIterator it = doc_iterator_begin(&buffer(), this);
 	it.idx() = idx;
 	for (; it && it[0].idx() == idx; it.forwardChar()) {
 		if (!it.nextInset())
 			continue;
-		if (it.nextInset()->lyxCode() != MATHMACROARG_CODE)
+		if (it.nextInset()->lyxCode() != MATH_MACROARG_CODE)
 			continue;
 		MathMacroArgument * arg = static_cast<MathMacroArgument*>(it.nextInset());
 		found[arg->number() - 1] = true;
@@ -718,11 +722,11 @@ void MathMacroTemplate::changeArity(Cursor & cur,
 {
 	// remove parameter which do not appear anymore in the definition
 	for (int i = numargs_; i > newNumArg; --i)
-		removeParameter(cur, inset_pos, numargs_ - 1, false);
+		removeParameter(cur, inset_pos, numargs_ - 1, true);
 	
 	// add missing parameter
 	for (int i = numargs_; i < newNumArg; ++i)
-		insertParameter(cur, inset_pos, numargs_, false, false);
+		insertParameter(cur, inset_pos, numargs_, true, false);
 }
 
 
@@ -733,7 +737,8 @@ public:
 	///
 	AddRemoveMacroInstanceFix(int n, bool insert) : n_(n), insert_(insert) {}
 	///
-	void operator()(MathMacro * macro) {
+	void operator()(MathMacro * macro)
+	{
 		if (macro->folded()) {
 			if (insert_)
 				macro->insertArgument(n_);
@@ -757,7 +762,8 @@ public:
 	///
 	OptionalsMacroInstanceFix(int optionals) : optionals_(optionals) {}
 	///
-	void operator()(MathMacro * macro) {
+	void operator()(MathMacro * macro)
+	{
 		macro->setOptionals(optionals_);
 	}
 
@@ -786,20 +792,17 @@ void fixMacroInstances(Cursor & cur, DocIterator const & inset_pos,
 	dit.top().forwardPos();
 
 	// remember hull to trigger preview reload
-	DocIterator hull(dit);
+	DocIterator hull(dit.buffer());
 	bool preview_reload_needed = false;
+	set<DocIterator> preview_hulls;
 
 	// iterate over all positions until macro is redefined
 	for (; dit; dit.forwardPos()) {
 		// left the outer hull?
 		if (!hull.empty() && dit.depth() == hull.depth()) {
-			// reload the preview if necessary 
+			// schedule reload of the preview if necessary 
 			if (preview_reload_needed) {
-				InsetMathHull * inset_hull =
-					hull.nextInset()->asInsetMath()->asHullInset();
-				LASSERT(inset_hull, /**/);
-				inset_hull->reloadPreview(hull, cur.buffer());
-				cur.updateFlags(Update::Force);
+				preview_hulls.insert(hull);
 				preview_reload_needed = false;
 			}
 			hull.clear();
@@ -834,6 +837,19 @@ void fixMacroInstances(Cursor & cur, DocIterator const & inset_pos,
 			if (RenderPreview::status() == LyXRC::PREVIEW_ON)
 				preview_reload_needed = true;
 		}
+	}
+
+	if (!preview_hulls.empty()) {
+		// reload the scheduled previews
+		set<DocIterator>::const_iterator sit = preview_hulls.begin();
+		set<DocIterator>::const_iterator end = preview_hulls.end();
+		for (; sit != end; ++sit) {
+			InsetMathHull * inset_hull =
+				sit->nextInset()->asInsetMath()->asHullInset();
+			LASSERT(inset_hull, /**/);
+			inset_hull->reloadPreview(*sit);
+		}
+		cur.screenUpdateFlags(Update::Force);
 	}
 }
 
@@ -971,7 +987,7 @@ void MathMacroTemplate::makeNonOptional(Cursor & cur,
 void MathMacroTemplate::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	string const arg = to_utf8(cmd.argument());
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_MATH_MACRO_ADD_PARAM:
 		if (numargs_ < 9) {
@@ -1061,7 +1077,7 @@ bool MathMacroTemplate::getStatus(Cursor & /*cur*/, FuncRequest const & cmd,
 {
 	bool ret = true;
 	string const arg = to_utf8(cmd.argument());
-	switch (cmd.action) {
+	switch (cmd.action()) {
 		case LFUN_MATH_MACRO_ADD_PARAM: {
 			int num = numargs_ + 1;
 			if (arg.size() != 0)
@@ -1076,6 +1092,7 @@ bool MathMacroTemplate::getStatus(Cursor & /*cur*/, FuncRequest const & cmd,
 			flag.setEnabled(numargs_ < 9);
 			break;
 
+		case LFUN_MATH_MACRO_REMOVE_GREEDY_PARAM:
 		case LFUN_MATH_MACRO_REMOVE_PARAM: {
 			int num = numargs_;
 			if (arg.size() != 0)
@@ -1230,6 +1247,11 @@ int MathMacroTemplate::write(WriteStream & os, bool overwriteRedefinition) const
 }
 
 
+docstring MathMacroTemplate::xhtml(XHTMLStream &, OutputParams const &) const
+{
+	return docstring();
+}
+
 int MathMacroTemplate::plaintext(odocstream & os,
 				 OutputParams const &) const
 {
@@ -1345,7 +1367,7 @@ void MathMacroTemplate::infoize(odocstream & os) const
 }
 
 
-docstring MathMacroTemplate::contextMenu(BufferView const &, int, int) const
+docstring MathMacroTemplate::contextMenuName() const
 {
 	return from_ascii("context-math-macro-definition");
 }

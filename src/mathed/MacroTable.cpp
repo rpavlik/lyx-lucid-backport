@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -24,7 +24,6 @@
 #include "Text.h"
 
 #include "support/debug.h"
-
 #include "support/lassert.h"
 
 #include <sstream>
@@ -41,8 +40,8 @@ namespace lyx {
 /////////////////////////////////////////////////////////////////////
 
 MacroData::MacroData(Buffer * buf)
-	: buffer_(buf), queried_(true), numargs_(0), optionals_(0),
-	  lockCount_(0), redefinition_(false), type_(MacroTypeNewcommand)
+	: buffer_(buf), queried_(true), numargs_(0), optionals_(0), lockCount_(0),
+	  redefinition_(false), type_(MacroTypeNewcommand)
 {}
 
 	
@@ -51,12 +50,13 @@ MacroData::MacroData(Buffer * buf, DocIterator const & pos)
 	: buffer_(buf), pos_(pos), queried_(false), numargs_(0),
 	  optionals_(0), lockCount_(0), redefinition_(false),
 	  type_(MacroTypeNewcommand)
-{}
+{
+}
 	
 	
 MacroData::MacroData(Buffer * buf, MathMacroTemplate const & macro)
-	: buffer_(buf), queried_(false), numargs_(0), optionals_(0),
-	  lockCount_(0), redefinition_(false), type_(MacroTypeNewcommand)
+	: buffer_(buf), queried_(false), numargs_(0), optionals_(0), lockCount_(0),
+	  redefinition_(false), type_(MacroTypeNewcommand)
 {
 	queryData(macro);
 }
@@ -69,14 +69,15 @@ void MacroData::expand(vector<MathData> const & args, MathData & to) const
 	// Hack. Any inset with a cell would do.
 	static InsetMathSqrt inset(0);
 	inset.setBuffer(const_cast<Buffer &>(*buffer_));
+
 	// FIXME UNICODE
 	asArray(display_.empty() ? definition_ : display_, inset.cell(0));
 	//lyxerr << "MathData::expand: args: " << args << endl;
 	//lyxerr << "MathData::expand: ar: " << inset.cell(0) << endl;
-	for (DocIterator it = doc_iterator_begin(inset); it; it.forwardChar()) {
+	for (DocIterator it = doc_iterator_begin(buffer_, &inset); it; it.forwardChar()) {
 		if (!it.nextInset())
 			continue;
-		if (it.nextInset()->lyxCode() != MATHMACROARG_CODE)
+		if (it.nextInset()->lyxCode() != MATH_MACROARG_CODE)
 			continue;
 		//it.cell().erase(it.pos());
 		//it.cell().insert(it.pos(), it.nextInset()->asInsetMath()

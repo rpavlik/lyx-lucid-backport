@@ -13,7 +13,6 @@
 #include "support/FileName.h"
 #include "support/FileNameList.h"
 
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/filetools.h"
 #include "support/lassert.h"
@@ -59,19 +58,6 @@
 
 #include <cerrno>
 #include <fcntl.h>
-
-#if defined(HAVE_MKSTEMP) && ! defined(HAVE_DECL_MKSTEMP)
-extern "C" int mkstemp(char *);
-#endif
-
-#if !defined(HAVE_MKSTEMP) && defined(HAVE_MKTEMP)
-# ifdef HAVE_IO_H
-#  include <io.h>
-# endif
-# ifdef HAVE_PROCESS_H
-#  include <process.h>
-# endif
-#endif
 
 // Three implementations of checksum(), depending on having mmap support or not.
 #if defined(HAVE_MMAP) && defined(HAVE_MUNMAP)
@@ -197,7 +183,7 @@ bool FileName::isAbsolute(string const & name)
 }
 
 
-string FileName::absFilename() const
+string FileName::absFileName() const
 {
 	return d->name;
 }
@@ -205,7 +191,7 @@ string FileName::absFilename() const
 
 string FileName::realPath() const
 {
-	return os::real_path(absFilename());
+	return os::real_path(absFileName());
 }
 
 
@@ -295,7 +281,7 @@ string FileName::toSafeFilesystemEncoding(os::file_access how) const
 {
 	// This will work on Windows for non ascii file names.
 	QString const safe_path =
-		toqstr(os::safe_internal_path(absFilename(), how));
+		toqstr(os::safe_internal_path(absFileName(), how));
 	QByteArray const encoded = QFile::encodeName(safe_path);
 	return string(encoded.begin(), encoded.end());
 }
@@ -511,12 +497,12 @@ unsigned long FileName::checksum() const
 	unsigned long result = 0;
 
 	if (!exists()) {
-		//LYXERR0("File \"" << absFilename() << "\" does not exist!");
+		//LYXERR0("File \"" << absFileName() << "\" does not exist!");
 		return result;
 	}
 	// a directory may be passed here so we need to test it. (bug 3622)
 	if (isDirectory()) {
-		LYXERR0('"' << absFilename() << "\" is a directory!");
+		LYXERR0('"' << absFileName() << "\" is a directory!");
 		return result;
 	}
 
@@ -528,7 +514,7 @@ unsigned long FileName::checksum() const
 #if QT_VERSION >= 0x999999
 	// First version of checksum uses Qt4.4 mmap support.
 	// FIXME: This code is not ready with Qt4.4.2,
-	// see http://bugzilla.lyx.org/show_bug.cgi?id=5293
+	// see http://www.lyx.org/trac/ticket/5293
 	// FIXME: should we check if the MapExtension extension is supported?
 	// see QAbstractFileEngine::supportsExtension() and 
 	// QAbstractFileEngine::MapExtension)
@@ -593,7 +579,7 @@ unsigned long FileName::checksum() const
  #endif // SUM_WITH_MMAP
 #endif // QT_VERSION
 
-	LYXERR(Debug::FILES, "Checksumming \"" << absFilename() << "\" "
+	LYXERR(Debug::FILES, "Checksumming \"" << absFileName() << "\" "
 		<< result << " lasted " << t.elapsed() << " ms.");
 	return result;
 }
@@ -714,7 +700,7 @@ docstring const FileName::absoluteFilePath() const
 
 docstring FileName::displayName(int threshold) const
 {
-	return makeDisplayPath(absFilename(), threshold);
+	return makeDisplayPath(absFileName(), threshold);
 }
 
 
@@ -757,7 +743,7 @@ docstring FileName::fileContents(string const & encoding) const
 void FileName::changeExtension(string const & extension)
 {
 	// FIXME: use Qt native methods...
-	string const oldname = absFilename();
+	string const oldname = absFileName();
 	string::size_type const last_slash = oldname.rfind('/');
 	string::size_type last_dot = oldname.rfind('.');
 	if (last_dot < last_slash && last_slash != string::npos)
@@ -980,8 +966,8 @@ bool equivalent(FileName const & l, FileName const & r)
 	// * Long and short file names that refer to the same file on Windows are
 	//   treated as if they referred to different files.
 	// This is supposed to be fixed for Qt5.
-	FileName const lhs(os::internal_path(l.absFilename()));
-	FileName const rhs(os::internal_path(r.absFilename()));
+	FileName const lhs(os::internal_path(l.absFileName()));
+	FileName const rhs(os::internal_path(r.absFileName()));
 
 	if (lhs.empty())
 		// QFileInfo::operator==() returns false if the two QFileInfo are empty.
@@ -993,12 +979,11 @@ bool equivalent(FileName const & l, FileName const & r)
 
 	lhs.d->refresh();
 	rhs.d->refresh();
-	
+
 	if (!lhs.d->fi.isSymLink() && !rhs.d->fi.isSymLink()) {
 		// Qt already checks if the filesystem is case sensitive or not.
-		return lhs.d->fi == rhs.d->fi 
-			// This is needed as in Qt4.5, QFileInfo::operator== compares
-			// the location of the two files and not the files themselves.
+		// see note above why the extra check with fileName is needed.
+		return lhs.d->fi == rhs.d->fi
 			&& lhs.d->fi.fileName() == rhs.d->fi.fileName();
 	}
 
@@ -1009,8 +994,7 @@ bool equivalent(FileName const & l, FileName const & r)
 	QFileInfo fi2(rhs.d->fi);
 	if (fi2.isSymLink())
 		fi2 = QFileInfo(fi2.symLinkTarget());
-	// This is needed as in Qt4.5, QFileInfo::operator== compares
-	// the location of the two files and not the files themselves.
+	// see note above why the extra check with fileName is needed.
 	return fi1 == fi2 && fi1.fileName() == fi2.fileName();
 }
 
@@ -1018,9 +1002,9 @@ bool equivalent(FileName const & l, FileName const & r)
 bool operator==(FileName const & lhs, FileName const & rhs)
 {
 	return os::isFilesystemCaseSensitive()
-		? lhs.absFilename() == rhs.absFilename()
-		: !QString::compare(toqstr(lhs.absFilename()),
-				toqstr(rhs.absFilename()), Qt::CaseInsensitive);
+		? lhs.absFileName() == rhs.absFileName()
+		: !QString::compare(toqstr(lhs.absFileName()),
+				toqstr(rhs.absFileName()), Qt::CaseInsensitive);
 }
 
 
@@ -1032,19 +1016,19 @@ bool operator!=(FileName const & lhs, FileName const & rhs)
 
 bool operator<(FileName const & lhs, FileName const & rhs)
 {
-	return lhs.absFilename() < rhs.absFilename();
+	return lhs.absFileName() < rhs.absFileName();
 }
 
 
 bool operator>(FileName const & lhs, FileName const & rhs)
 {
-	return lhs.absFilename() > rhs.absFilename();
+	return lhs.absFileName() > rhs.absFileName();
 }
 
 
 ostream & operator<<(ostream & os, FileName const & filename)
 {
-	return os << filename.absFilename();
+	return os << filename.absFileName();
 }
 
 
@@ -1076,7 +1060,7 @@ void DocFileName::set(string const & name, string const & buffer_path)
 	if (save_abs_path_)
 		FileName::set(name);
 	else
-		FileName::set(makeAbsPath(name, buffer_path).absFilename());
+		FileName::set(makeAbsPath(name, buffer_path).absFileName());
 	zipped_valid_ = false;
 }
 
@@ -1088,30 +1072,30 @@ void DocFileName::erase()
 }
 
 
-string DocFileName::relFilename(string const & path) const
+string DocFileName::relFileName(string const & path) const
 {
 	// FIXME UNICODE
 	return to_utf8(relPath(path));
 }
 
 
-string DocFileName::outputFilename(string const & path) const
+string DocFileName::outputFileName(string const & path) const
 {
-	return save_abs_path_ ? absFilename() : relFilename(path);
+	return save_abs_path_ ? absFileName() : relFileName(path);
 }
 
 
-string DocFileName::mangledFilename(string const & dir) const
+string DocFileName::mangledFileName(string const & dir) const
 {
 	// We need to make sure that every DocFileName instance for a given
 	// filename returns the same mangled name.
 	typedef map<string, string> MangledMap;
 	static MangledMap mangledNames;
-	MangledMap::const_iterator const it = mangledNames.find(absFilename());
+	MangledMap::const_iterator const it = mangledNames.find(absFileName());
 	if (it != mangledNames.end())
 		return (*it).second;
 
-	string const name = absFilename();
+	string const name = absFileName();
 	// Now the real work
 	string mname = os::internal_path(name);
 	// Remove the extension.
@@ -1125,7 +1109,7 @@ string DocFileName::mangledFilename(string const & dir) const
 	// in the name.
 	static string const keep = "abcdefghijklmnopqrstuvwxyz"
 				   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-				   "+,-0123456789;=";
+				   "+-0123456789;=";
 	string::size_type pos = 0;
 	while ((pos = mname.find_first_not_of(keep, pos)) != string::npos)
 		mname[pos++] = '_';
@@ -1158,7 +1142,7 @@ string DocFileName::mangledFilename(string const & dir) const
 		}
 	}
 
-	mangledNames[absFilename()] = mname;
+	mangledNames[absFileName()] = mname;
 	return mname;
 }
 
@@ -1173,9 +1157,9 @@ bool DocFileName::isZipped() const
 }
 
 
-string DocFileName::unzippedFilename() const
+string DocFileName::unzippedFileName() const
 {
-	return unzippedFileName(absFilename());
+	return support::unzippedFileName(absFileName());
 }
 
 

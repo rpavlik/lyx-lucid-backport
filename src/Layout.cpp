@@ -3,9 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,12 +13,19 @@
 #include <config.h>
 
 #include "Layout.h"
-#include "TextClass.h"
+#include "FontInfo.h"
+#include "Language.h"
 #include "Lexer.h"
-#include "Font.h"
+#include "output_xhtml.h"
+#include "TextClass.h"
 
 #include "support/debug.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
+#include "support/Messages.h"
+#include "support/regex.h"
+#include "support/textutils.h"
+
 
 using namespace std;
 using namespace lyx::support;
@@ -50,6 +57,7 @@ enum LayoutTags {
 	LT_FONT,
 	LT_FREE_SPACING,
 	LT_PASS_THRU,
+	LT_PARBREAK_IS_NEWLINE,
 	//LT_HEADINGS,
 	LT_ITEMSEP,
 	LT_KEEPEMPTY,
@@ -77,6 +85,8 @@ enum LayoutTags {
 	LT_PARSKIP,
 	//LT_PLAIN,
 	LT_PREAMBLE,
+	LT_LANGPREAMBLE,
+	LT_BABELPREAMBLE,
 	LT_REQUIRES,
 	LT_RIGHTMARGIN,
 	LT_SPACING,
@@ -85,6 +95,21 @@ enum LayoutTags {
 	LT_INNERTAG,
 	LT_LABELTAG,
 	LT_ITEMTAG,
+	LT_HTMLTAG,
+	LT_HTMLATTR,
+	LT_HTMLITEM,
+	LT_HTMLITEMATTR,
+	LT_HTMLLABEL,
+	LT_HTMLLABELATTR, 
+	LT_HTMLLABELFIRST,
+	LT_HTMLPREAMBLE,
+	LT_HTMLSTYLE,
+	LT_HTMLFORCECSS,
+	LT_INPREAMBLE,
+	LT_HTMLTITLE,
+	LT_SPELLCHECK,
+	LT_REFPREFIX,
+	LT_REQARGS,
 	LT_INTITLE // keep this last!
 };
 
@@ -96,7 +121,7 @@ Layout::Layout()
 	margintype = MARGIN_STATIC;
 	latextype = LATEX_PARAGRAPH;
 	intitle = false;
-	optionalargs = 0;
+	inpreamble = false;
 	needprotect = false;
 	keepempty = false;
 	font = inherit_font;
@@ -121,8 +146,15 @@ Layout::Layout()
 	newline_allowed = true;
 	free_spacing = false;
 	pass_thru = false;
+	parbreak_is_newline = false;
 	toclevel = NOT_IN_TOC;
 	commanddepth = 0;
+	htmllabelfirst_ = false;
+	htmlforcecss_ = false;
+	htmltitle_ = false;
+	spellcheck = true;
+	optargs = 0;
+	reqargs = 0;
 }
 
 
@@ -132,6 +164,7 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 	LexerKeyword layoutTags[] = {
 		{ "align",          LT_ALIGN },
 		{ "alignpossible",  LT_ALIGNPOSSIBLE },
+		{ "babelpreamble",  LT_BABELPREAMBLE },
 		{ "bottomsep",      LT_BOTTOMSEP },
 		{ "category",       LT_CATEGORY },
 		{ "commanddepth",   LT_COMMANDDEPTH },
@@ -144,7 +177,19 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 		{ "fill_top",       LT_FILL_TOP },
 		{ "font",           LT_FONT },
 		{ "freespacing",    LT_FREE_SPACING },
+		{ "htmlattr",       LT_HTMLATTR },
+		{ "htmlforcecss",   LT_HTMLFORCECSS },
+		{ "htmlitem",       LT_HTMLITEM },
+		{ "htmlitemattr",   LT_HTMLITEMATTR },
+		{ "htmllabel",      LT_HTMLLABEL },
+		{ "htmllabelattr",  LT_HTMLLABELATTR },
+		{ "htmllabelfirst", LT_HTMLLABELFIRST },
+		{ "htmlpreamble",   LT_HTMLPREAMBLE },
+		{ "htmlstyle",      LT_HTMLSTYLE },
+		{ "htmltag",        LT_HTMLTAG },
+		{ "htmltitle",      LT_HTMLTITLE },
 		{ "innertag",       LT_INNERTAG },
+		{ "inpreamble",     LT_INPREAMBLE },
 		{ "intitle",        LT_INTITLE },
 		{ "itemsep",        LT_ITEMSEP },
 		{ "itemtag",        LT_ITEMTAG },
@@ -158,6 +203,7 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 		{ "labelstringappendix", LT_LABELSTRING_APPENDIX },
 		{ "labeltag",       LT_LABELTAG },
 		{ "labeltype",      LT_LABELTYPE },
+		{ "langpreamble",   LT_LANGPREAMBLE },
 		{ "latexname",      LT_LATEXNAME },
 		{ "latexparam",     LT_LATEXPARAM },
 		{ "latextype",      LT_LATEXTYPE },
@@ -168,14 +214,18 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 		{ "nextnoindent",   LT_NEXTNOINDENT },
 		{ "obsoletedby",    LT_OBSOLETEDBY },
 		{ "optionalargs",   LT_OPTARGS },
+		{ "parbreakisnewline", LT_PARBREAK_IS_NEWLINE },
 		{ "parindent",      LT_PARINDENT },
 		{ "parsep",         LT_PARSEP },
 		{ "parskip",        LT_PARSKIP },
 		{ "passthru",       LT_PASS_THRU },
 		{ "preamble",       LT_PREAMBLE },
+		{ "refprefix",      LT_REFPREFIX },
+		{ "requiredargs",   LT_REQARGS },
 		{ "requires",       LT_REQUIRES },
 		{ "rightmargin",    LT_RIGHTMARGIN },
 		{ "spacing",        LT_SPACING },
+		{ "spellcheck",     LT_SPELLCHECK },
 		{ "textfont",       LT_TEXTFONT },
 		{ "toclevel",       LT_TOCLEVEL },
 		{ "topsep",         LT_TOPSEP }
@@ -196,7 +246,9 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 			lex.printError("Unknown layout tag `$$Token'");
 			error = true;
 			continue;
-		default: break;
+
+		default: 
+			break;
 		}
 		switch (static_cast<LayoutTags>(le)) {
 		case LT_END:		// end of structure
@@ -267,12 +319,20 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 			lex >> intitle;
 			break;
 
+		case LT_INPREAMBLE:
+			lex >> inpreamble;
+			break;
+
 		case LT_TOCLEVEL:
 			lex >> toclevel;
 			break;
 
 		case LT_OPTARGS:
-			lex >> optionalargs ;
+			lex >> optargs;
+			break;
+
+		case LT_REQARGS:
+			lex >> reqargs;
 			break;
 
 		case LT_NEED_PROTECT:
@@ -327,6 +387,14 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 
 		case LT_PREAMBLE:
 			preamble_ = from_utf8(lex.getLongString("EndPreamble"));
+			break;
+
+		case LT_LANGPREAMBLE:
+			langpreamble_ = from_utf8(lex.getLongString("EndLangPreamble"));
+			break;
+
+		case LT_BABELPREAMBLE:
+			babelpreamble_ = from_utf8(lex.getLongString("EndBabelPreamble"));
 			break;
 
 		case LT_LABELTYPE:
@@ -404,7 +472,7 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 		case LT_LABELSTRING:	// label string definition
 			// FIXME: this means LT_ENDLABELSTRING may only
 			// occur after LT_LABELSTRING
-			lex >> labelstring_;	
+			lex >> labelstring_;
 			labelstring_ = trim(labelstring_);
 			labelstring_appendix_ = labelstring_;
 			break;
@@ -432,22 +500,90 @@ bool Layout::read(Lexer & lex, TextClass const & tclass)
 			lex >> pass_thru;
 			break;
 
+		case LT_PARBREAK_IS_NEWLINE:
+			lex >> parbreak_is_newline;
+			break;
+
 		case LT_SPACING: // setspace.sty
 			readSpacing(lex);
 			break;
 
-		case LT_REQUIRES:
+		case LT_REQUIRES: {
 			lex.eatLine();
 			vector<string> const req = 
 				getVectorFromString(lex.getString());
 			requires_.insert(req.begin(), req.end());
 			break;
+		}
+			
+		case LT_REFPREFIX: {
+			docstring arg;
+			lex >> arg;
+			if (arg == "OFF")
+				refprefix.clear();
+			else
+				refprefix = arg;
+			break;
+		}
 
+		case LT_HTMLTAG:
+			lex >> htmltag_;
+			break;
+	
+		case LT_HTMLATTR:
+			lex >> htmlattr_;
+			break;
+
+		case LT_HTMLITEM:
+			lex >> htmlitemtag_;
+			break;
+	
+		case LT_HTMLITEMATTR:
+			lex >> htmlitemattr_;
+			break;
+	
+		case LT_HTMLLABEL:
+			lex >> htmllabeltag_;
+			break;
+
+		case LT_HTMLLABELATTR: 
+			lex >> htmllabelattr_;
+			break;
+
+		case LT_HTMLLABELFIRST:
+			lex >> htmllabelfirst_;
+			break;
+			
+		case LT_HTMLSTYLE:
+			htmlstyle_ = from_utf8(lex.getLongString("EndHTMLStyle"));
+			break;
+
+		case LT_HTMLFORCECSS:
+			lex >> htmlforcecss_;
+			break;
+
+		case LT_HTMLPREAMBLE:
+			htmlpreamble_ = from_utf8(lex.getLongString("EndPreamble"));
+			break;
+		
+		case LT_HTMLTITLE:
+			lex >> htmltitle_;
+			break;
+
+		case LT_SPELLCHECK:
+			lex >> spellcheck;
+			break;
 		}
 	}
 	lex.popTable();
+	// make sure we only have inpreamble = true for commands
+	if (inpreamble && latextype != LATEX_COMMAND && latextype != LATEX_PARAGRAPH) {
+		LYXERR0("InPreamble not permitted except with command and paragraph layouts.");
+		LYXERR0("Layout name: " << name());
+		inpreamble = false;
+	}
 
-	return !error;
+	return finished && !error;
 }
 
 
@@ -739,27 +875,220 @@ void Layout::readSpacing(Lexer & lex)
 }
 
 
-docstring const & Layout::name() const
+namespace {
+
+docstring const i18npreamble(Language const * lang, docstring const & templ, bool const polyglossia)
 {
-	return name_;
+	if (templ.empty())
+		return templ;
+
+	string preamble = polyglossia ?
+		subst(to_utf8(templ), "$$lang", lang->polyglossia()) :
+		subst(to_utf8(templ), "$$lang", lang->babel());
+
+#ifdef TEX2LYX
+	// tex2lyx does not have getMessages()
+	LASSERT(false, /**/);
+#else
+	// FIXME UNICODE
+	// lyx::regex is not unicode-safe.
+	// Should use QRegExp or (boost::u32regex, but that requires ICU)
+	static regex const reg("_\\(([^\\)]+)\\)");
+	smatch sub;
+	while (regex_search(preamble, sub, reg)) {
+		string const key = sub.str(1);
+		string translated;
+		if (isAscii(key))
+			translated = to_utf8(getMessages(lang->code()).get(key));
+		else {
+			lyxerr << "Warning: not translating `" << key
+			       << "' because it is not pure ASCII." << endl;
+			translated = key;
+		}
+		preamble = subst(preamble, sub.str(), translated);
+	}
+#endif
+	return from_utf8(preamble);
+}
+
 }
 
 
-void Layout::setName(docstring const & name)
+docstring const Layout::langpreamble(Language const * lang, bool const polyglossia) const
 {
-	name_ = name;
+	return i18npreamble(lang, langpreamble_, polyglossia);
 }
 
 
-docstring const & Layout::obsoleted_by() const
+docstring const Layout::babelpreamble(Language const * lang, bool const polyglossia) const
 {
-	return obsoleted_by_;
+	return i18npreamble(lang, babelpreamble_, polyglossia);
 }
 
 
-docstring const & Layout::depends_on() const
-{
-	return depends_on_;
+string const & Layout::htmltag() const 
+{ 
+	if (htmltag_.empty())
+		htmltag_ =  "div";
+	return htmltag_;
+}
+
+
+string const & Layout::htmlattr() const 
+{ 
+	if (htmlattr_.empty())
+		htmlattr_ = "class=\"" + defaultCSSClass() + "\"";
+	return htmlattr_; 
+}
+
+
+string const & Layout::htmlitemtag() const 
+{ 
+	if (htmlitemtag_.empty())
+		htmlitemtag_ = "div";
+	return htmlitemtag_; 
+}
+
+
+string const & Layout::htmlitemattr() const 
+{ 
+	if (htmlitemattr_.empty())
+		htmlitemattr_ = "class=\"" + defaultCSSItemClass() + "\"";
+	return htmlitemattr_; 
+}
+
+
+string const & Layout::htmllabeltag() const 
+{ 
+	if (htmllabeltag_.empty()) {
+		if (labeltype != LABEL_TOP_ENVIRONMENT &&
+		    labeltype != LABEL_CENTERED_TOP_ENVIRONMENT)
+			htmllabeltag_ = "span";
+		else
+			htmllabeltag_ = "div";
+	}
+	return htmllabeltag_; 
+}
+
+
+string const & Layout::htmllabelattr() const 
+{ 
+	if (htmllabelattr_.empty())
+		htmllabelattr_ = "class=\"" + defaultCSSLabelClass() + "\"";
+	return htmllabelattr_; 
+}
+
+
+docstring Layout::htmlstyle() const {
+	if (!htmlstyle_.empty() && !htmlforcecss_)
+		return htmlstyle_;
+	if (htmldefaultstyle_.empty()) 
+		makeDefaultCSS();
+	docstring retval = htmldefaultstyle_;
+	if (!htmlstyle_.empty())
+		retval += '\n' + htmlstyle_;
+	return retval;
+}
+
+
+string Layout::defaultCSSClass() const
+{ 
+	if (!defaultcssclass_.empty())
+		return defaultcssclass_;
+	docstring d;
+	docstring::const_iterator it = name().begin();
+	docstring::const_iterator en = name().end();
+	for (; it != en; ++it) {
+		char_type const c = *it;
+		if (!isAlphaASCII(c)) {
+			if (d.empty())
+				// make sure we don't start with an underscore,
+				// as that sometimes causes problems.
+				d = from_ascii("lyx_");
+			else
+				d += '_';
+		} else if (islower(c))
+			d += c;
+		else
+			// this is slow, so do it only if necessary
+			d += lowercase(c);
+	}
+	defaultcssclass_ = to_utf8(d);
+	return defaultcssclass_;
+}
+
+
+namespace {
+	string makeMarginValue(char const * side, double d) {
+		ostringstream os;
+		os << "margin-" << side << ": " << d << "ex;\n";
+		return os.str();
+	}
+}
+
+
+void Layout::makeDefaultCSS() const {
+	// this never needs to be redone, since reloading layouts will
+	// wipe out what we did before.
+	if (!htmldefaultstyle_.empty()) 
+		return;
+	
+	// main font
+	htmldefaultstyle_ = font.asCSS();
+	
+	// bottom margins
+	string tmp;
+	if (topsep > 0)
+		tmp += makeMarginValue("top", topsep);
+	if (bottomsep > 0)
+		tmp += makeMarginValue("bottom", bottomsep);
+	if (!leftmargin.empty()) {
+		// we can't really do what LyX does with the margin, so 
+		// we'll just figure out how many characters it is
+		int const len = leftmargin.length();
+		tmp += makeMarginValue("left", len);
+	}
+	if (!rightmargin.empty()) {
+		int const len = rightmargin.length();
+		tmp += makeMarginValue("right", len);
+	}
+		
+	if (!tmp.empty()) {
+		if (!htmldefaultstyle_.empty())
+			htmldefaultstyle_ += from_ascii("\n");
+		htmldefaultstyle_ += from_ascii(tmp);
+	}
+
+// tex2lyx does not see output_xhtml.cpp
+#ifndef TEX2LYX
+	// alignment
+	string where = alignmentToCSS(align);
+	if (!where.empty()) {
+		htmldefaultstyle_ += from_ascii("text-align: " + where + ";\n");
+	}
+#endif
+	
+	// wrap up what we have, if anything
+	if (!htmldefaultstyle_.empty())
+		htmldefaultstyle_ = 
+			from_ascii(htmltag() + "." + defaultCSSClass() + " {\n") +
+			htmldefaultstyle_ + from_ascii("\n}\n");
+	
+	if (labeltype == LABEL_NO_LABEL || htmllabeltag() == "NONE")
+		return;
+	
+	docstring labelCSS;
+	
+	// label font
+	if (labelfont != font)
+		labelCSS = labelfont.asCSS() + from_ascii("\n");
+	if (labeltype == LABEL_CENTERED_TOP_ENVIRONMENT)
+		labelCSS += from_ascii("text-align: center;\n");
+	
+	if (!labelCSS.empty())
+		htmldefaultstyle_ +=
+			from_ascii(htmllabeltag() + "." + defaultCSSLabelClass() + " {\n") +
+			labelCSS + from_ascii("\n}\n");
 }
 
 

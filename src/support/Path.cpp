@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -63,4 +63,30 @@ int PathChanger::pop()
 
 
 #define PathChanger(x) unnamed_PathChanger;
+
+#ifdef __APPLE__
+
+#include <CoreServices/CoreServices.h>
+
+int getPrivateFrameworkPathName(char * buf, unsigned len, char const * framework)
+{
+	// Get our application's main bundle from Core Foundation
+	CFBundleRef myAppsBundle = CFBundleGetMainBundle();
+	int result = 0 ;
+	if (NULL != myAppsBundle) {
+		CFURLRef baseURL = CFBundleCopyPrivateFrameworksURL( myAppsBundle );
+		if (NULL != baseURL) {
+			CFURLRef bundleURL = CFURLCreateCopyAppendingPathComponent( kCFAllocatorSystemDefault, baseURL,
+				CFStringCreateWithCString( kCFAllocatorSystemDefault, framework, CFStringGetSystemEncoding() ),
+				false );
+			if (NULL != bundleURL) {
+				result = CFURLGetFileSystemRepresentation( bundleURL, TRUE, (UInt8*)buf, len );
+			}
+		}
+	}
+	return result;
+}
+
+#endif
+
 // in merged builds this is not the last line.

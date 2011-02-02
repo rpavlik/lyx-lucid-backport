@@ -4,43 +4,30 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Matthias Ettrich
- * \author André Pönitz
- * \author Jürgen Vigna
+ * \author AndrÃ© PÃ¶nitz
+ * \author JÃ¼rgen Vigna
+ * \author Edwin Leuven
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
-
-
-// This is Juergen's rewrite of the tabular (table) support.
 
 // Things to think of when designing the new tabular support:
 // - color support (colortbl, color)
 // - decimal alignment (dcloumn)
 // - custom lines (hhline)
-// - rotation
-// - multicolumn
-// - multirow
 // - column styles
-
-// This is what I have written about tabular support in the LyX3-Tasks file:
-//
-//  o rewrite of table code. Should probably be written as some
-//    kind of an inset. [Done]
-// o enhance longtable support
-
-// Lgb
 
 #ifndef INSET_TABULAR_H
 #define INSET_TABULAR_H
 
 #include "Inset.h"
 #include "InsetText.h"
-#include "Layout.h"
 #include "Length.h"
 
-#include <boost/shared_ptr.hpp>
+#include "support/shared_ptr.h"
 
 #include <iosfwd>
 #include <vector>
@@ -48,21 +35,86 @@
 namespace lyx {
 
 class Buffer;
-class BufferParams;
 class BufferView;
 class CompletionList;
+class Cursor;
 class CursorSlice;
-class InsetTableCell;
 class FuncStatus;
 class Lexer;
-class Paragraph;
-
-namespace frontend { class Painter; }
-
-
-class InsetTabular;
-class Cursor;
 class OutputParams;
+class Paragraph;
+class XHTMLStream;
+
+
+///
+class InsetTableCell : public InsetText
+{
+public:
+	///
+	InsetTableCell(Buffer * buf);
+	///
+	InsetCode lyxCode() const { return CELL_CODE; }
+	///
+	Inset * clone() { return new InsetTableCell(*this); }
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus & status) const;
+	///
+	void toggleFixedWidth(bool fw) { isFixedWidth = fw; }
+	///
+	void setContentAlignment(LyXAlignment al) {contentAlign = al; }
+	/// writes the contents of the cell as a string, optionally
+	/// descending into insets
+	docstring asString(bool intoInsets = true);
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+private:
+	/// unimplemented
+	InsetTableCell();
+	/// unimplemented
+	void operator=(InsetTableCell const &);
+	// FIXME
+	// This boolean is supposed to track whether the cell has had its
+	// width explicitly set. We need to know this to determine whether
+	// layout changes and paragraph customization are allowed---that is,
+	// we need it in forcePlainLayout() and allowParagraphCustomization(). 
+	// Unfortunately, that information is not readily available in 
+	// InsetTableCell. In the case of multicolumn cells, it is present
+	// in CellData, and so would be available here if CellData were to
+	// become a member of InsetTableCell. But in the other case, it isn't
+	// even available there, but is held in Tabular::ColumnData.
+	// So, the present solution uses this boolean to track the information
+	// we need to track, and tries to keep it updated. This is not ideal,
+	// but the other solutions are no better. These are:
+	// (i)  Keep a pointer in InsetTableCell to the table;
+	// (ii) Find the table by iterating over the Buffer's insets.
+	// Solution (i) raises the problem of updating the pointer when an 
+	// InsetTableCell is copied, and we'd therefore need a copy constructor
+	// in InsetTabular and then in Tabular, which seems messy, given how 
+	// complicated those classes are. Solution (ii) involves a lot of 
+	// iterating, since this information is needed quite often, and so may
+	// be quite slow.
+	// So, well, if someone can do better, please do!
+	// --rgh
+	///
+	bool isFixedWidth;
+	// FIXME: Here the thoughts from the comment above also apply.
+	///
+	LyXAlignment contentAlign;
+	/// should paragraph indendation be omitted in any case?
+	bool neverIndent() const { return true; }
+	///
+	LyXAlignment contentAlignment() const { return contentAlign; }
+	///
+	virtual bool usePlainLayout() const { return true; }
+	/// 
+	virtual bool forcePlainLayout(idx_type = 0) const;
+	/// 
+	virtual bool allowParagraphCustomization(idx_type = 0) const;
+	/// Is the width forced to some value?
+	bool hasFixedWidth() const { return isFixedWidth; }
+};
+
 
 //
 // A helper struct for tables
@@ -84,12 +136,20 @@ public:
 		///
 		COPY_COLUMN,
 		///
+		SET_LINE_TOP,
+		///
+		SET_LINE_BOTTOM,
+		///
+		SET_LINE_LEFT,
+		///
+		SET_LINE_RIGHT,
+		///FIXME: remove
 		TOGGLE_LINE_TOP,
-		///
+		///FIXME: remove
 		TOGGLE_LINE_BOTTOM,
-		///
+		///FIXME: remove
 		TOGGLE_LINE_LEFT,
-		///
+		///FIXME: remove
 		TOGGLE_LINE_RIGHT,
 		///
 		ALIGN_LEFT,
@@ -99,6 +159,8 @@ public:
 		ALIGN_CENTER,
 		///
 		ALIGN_BLOCK,
+		///
+		ALIGN_DECIMAL,
 		///
 		VALIGN_TOP,
 		///
@@ -119,6 +181,18 @@ public:
 		M_VALIGN_MIDDLE,
 		///
 		MULTICOLUMN,
+		///
+		SET_MULTICOLUMN,
+		///
+		UNSET_MULTICOLUMN,
+		///
+		MULTIROW,
+		///
+		SET_MULTIROW,
+		///
+		UNSET_MULTIROW,
+		///
+		SET_MROFFSET,
 		///
 		SET_ALL_LINES,
 		///
@@ -162,9 +236,13 @@ public:
 		///
 		TOGGLE_LTCAPTION,
 		///
+		SET_LTCAPTION,
+		///
+		UNSET_LTCAPTION,
+		///
 		SET_SPECIAL_COLUMN,
 		///
-		SET_SPECIAL_MULTI,
+		SET_SPECIAL_MULTICOLUMN,
 		///
 		SET_BOOKTABS,
 		///
@@ -178,6 +256,20 @@ public:
 		///
 		SET_BORDER_LINES,
 		///
+		TABULAR_VALIGN_TOP,
+		///
+		TABULAR_VALIGN_MIDDLE,
+		///
+		TABULAR_VALIGN_BOTTOM,
+		///
+		LONGTABULAR_ALIGN_LEFT,
+		///
+		LONGTABULAR_ALIGN_CENTER,
+		///
+		LONGTABULAR_ALIGN_RIGHT,
+		///
+		SET_DECIMAL_POINT,
+		///
 		LAST_ACTION
 	};
 	///
@@ -187,7 +279,11 @@ public:
 		///
 		CELL_BEGIN_OF_MULTICOLUMN,
 		///
-		CELL_PART_OF_MULTICOLUMN
+		CELL_PART_OF_MULTICOLUMN,
+		///
+		CELL_BEGIN_OF_MULTIROW,
+		///
+		CELL_PART_OF_MULTIROW
 	};
 
 	///
@@ -195,9 +291,19 @@ public:
 		///
 		LYX_VALIGN_TOP = 0,
 		///
-		LYX_VALIGN_BOTTOM = 1,
+		LYX_VALIGN_MIDDLE = 1,
 		///
-		LYX_VALIGN_MIDDLE = 2
+		LYX_VALIGN_BOTTOM = 2
+		
+	};
+	///
+	enum HAlignment {
+		///
+		LYX_LONGTABULAR_ALIGN_LEFT = 0,
+		///
+		LYX_LONGTABULAR_ALIGN_CENTER = 1,
+		///
+		LYX_LONGTABULAR_ALIGN_RIGHT = 2
 	};
 
 	enum BoxType {
@@ -235,7 +341,7 @@ public:
 	static const idx_type npos = static_cast<idx_type>(-1);
 
 	/// constructor
-	Tabular(Buffer &, col_type columns_arg, row_type rows_arg);
+	Tabular(Buffer * buf, col_type columns_arg, row_type rows_arg);
 
 	/// Returns true if there is a topline, returns false if not
 	bool topLine(idx_type cell) const;
@@ -246,26 +352,25 @@ public:
 	/// Returns true if there is a topline, returns false if not
 	bool rightLine(idx_type cell) const;
 
-	///
-	bool topAlreadyDrawn(idx_type cell) const;
-	///
-	bool leftAlreadyDrawn(idx_type cell) const;
-	///
-	bool isLastRow(idx_type cell) const;
-
 	/// return space occupied by the second horizontal line and
 	/// interline space above row \p row in pixels
-	int getAdditionalHeight(row_type row) const;
+	int interRowSpace(row_type row) const;
 	///
-	int getAdditionalWidth(idx_type cell) const;
+	int interColumnSpace(idx_type cell) const;
 
 	/* returns the maximum over all rows */
 	///
-	int columnWidth(idx_type cell) const;
+	int cellWidth(idx_type cell) const;
+	///
+	int cellHeight(idx_type cell) const;
 	///
 	int width() const;
 	///
 	int height() const;
+	///
+	row_type nrows() const {return row_info.size();}
+	///
+	col_type ncols() const {return column_info.size();}
 	///
 	int rowAscent(row_type row) const;
 	///
@@ -274,10 +379,6 @@ public:
 	void setRowAscent(row_type row, int height);
 	///
 	void setRowDescent(row_type row, int height);
-	///
-	void setCellWidth(idx_type cell, int new_width);
-	///
-	void setAllLines(idx_type cell, bool line);
 	///
 	void setTopLine(idx_type cell, bool line);
 	///
@@ -305,6 +406,8 @@ public:
 	///
 	bool setMColumnPWidth(Cursor &, idx_type, Length const &);
 	///
+	bool setMROffset(Cursor &, idx_type, Length const &);
+	///
 	void setAlignSpecial(idx_type cell, docstring const & special,
 			     Feature what);
 	///
@@ -316,9 +419,11 @@ public:
 	///
 	Length const getPWidth(idx_type cell) const;
 	///
-	int cellWidth(idx_type cell) const;
+	Length const getMROffset(idx_type cell) const;
 	///
-	int getBeginningOfTextInCell(idx_type cell) const;
+	int textHOffset(idx_type cell) const;
+	///
+	int textVOffset(idx_type cell) const;
 	///
 	void appendRow(idx_type cell);
 	///
@@ -332,23 +437,21 @@ public:
 	///
 	void copyColumn(col_type);
 	///
-	bool isFirstCellInRow(idx_type cell) const;
-	///
 	idx_type getFirstCellInRow(row_type row) const;
-	///
-	bool isLastCellInRow(idx_type cell) const;
 	///
 	idx_type getLastCellInRow(row_type row) const;
 	///
-	idx_type numberOfCellsInRow(idx_type cell) const;
+	idx_type numberOfCellsInRow(row_type row) const;
 	///
 	void write(std::ostream &) const;
 	///
 	void read(Lexer &);
 	///
 	int latex(odocstream &, OutputParams const &) const;
-	//
+	///
 	int docbook(odocstream & os, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream & os, OutputParams const &) const;
 	///
 	void plaintext(odocstream &,
 		       OutputParams const & runparams, int const depth,
@@ -356,19 +459,23 @@ public:
 	///
 	bool isMultiColumn(idx_type cell) const;
 	///
-	bool isMultiColumnReal(idx_type cell) const;
+	idx_type setMultiColumn(idx_type cell, idx_type number);
 	///
-	void setMultiColumn(idx_type cell, idx_type number);
-	///
-	idx_type unsetMultiColumn(idx_type cell); // returns number of new cells
+	void unsetMultiColumn(idx_type cell);
 	///
 	bool isPartOfMultiColumn(row_type row, col_type column) const;
+	///
+	bool isPartOfMultiRow(row_type row, col_type column) const;
+	///
+	bool isMultiRow(idx_type cell) const;
+	///
+	idx_type setMultiRow(idx_type cell, idx_type number);
+	///
+	void unsetMultiRow(idx_type cell);
 	///
 	row_type cellRow(idx_type cell) const;
 	///
 	col_type cellColumn(idx_type cell) const;
-	///
-	col_type cellRightColumn(idx_type cell) const;
 	///
 	void setRotateCell(idx_type cell, bool);
 	///
@@ -424,13 +531,13 @@ public:
 	///
 	// end longtable support
 	///
-	boost::shared_ptr<InsetTableCell> cellInset(idx_type cell) const;
+	shared_ptr<InsetTableCell> cellInset(idx_type cell) const;
 	///
-	boost::shared_ptr<InsetTableCell> cellInset(row_type row,
+	shared_ptr<InsetTableCell> cellInset(row_type row,
 						  col_type column) const;
 	///
 	void setCellInset(row_type row, col_type column,
-			  boost::shared_ptr<InsetTableCell>) const;
+			  shared_ptr<InsetTableCell>) const;
 	/// Search for \param inset in the tabular, with the
 	///
 	void validate(LaTeXFeatures &) const;
@@ -444,7 +551,7 @@ public:
 	class CellData {
 	public:
 		///
-		CellData(Buffer &);
+		CellData(Buffer *);
 		///
 		CellData(CellData const &);
 		///
@@ -458,9 +565,19 @@ public:
 		///
 		int multicolumn;
 		///
+		int multirow;
+		///
+		Length mroffset;
+		///
 		LyXAlignment alignment;
 		///
 		VAlignment valignment;
+		/// width of the part before the decimal
+		int decimal_hoffset;
+		/// width of the decimal part
+		int decimal_width;
+		///
+		int voffset;
 		///
 		bool top_line;
 		///
@@ -478,7 +595,7 @@ public:
 		///
 		Length p_width; // this is only set for multicolumn!!!
 		///
-		boost::shared_ptr<InsetTableCell> inset;
+		shared_ptr<InsetTableCell> inset;
 	};
 	CellData & cellInfo(idx_type cell) const;
 	///
@@ -539,6 +656,8 @@ public:
 		Length p_width;
 		///
 		docstring align_special;
+		///
+		docstring decimal_point;
 	};
 	///
 	typedef std::vector<ColumnData> column_vector;
@@ -559,8 +678,12 @@ public:
 	bool use_booktabs;
 	///
 	bool rotate;
+	///
+	VAlignment tabular_valignment;
 	//
 	// for long tabulars
+	///
+	HAlignment longtabular_alignment;
 	//
 	bool is_long_tabular;
 	/// endhead data
@@ -573,18 +696,18 @@ public:
 	ltType endlastfoot;
 
 	///
-	void init(Buffer &, row_type rows_arg,
+	void init(Buffer *, row_type rows_arg,
 		  col_type columns_arg);
 	///
 	void updateIndexes();
 	///
 	bool setFixedWidth(row_type r, col_type c);
-	///
-	void updateContentAlignment(row_type r, col_type c);
 	/// return true of update is needed
 	bool updateColumnWidths();
 	///
 	idx_type columnSpan(idx_type cell) const;
+	///
+	idx_type rowSpan(idx_type cell) const;
 	///
 	BoxType useParbox(idx_type cell) const;
 	///
@@ -594,9 +717,9 @@ public:
 	///
 	int TeXBottomHLine(odocstream &, row_type row, std::string const lang) const;
 	///
-	int TeXCellPreamble(odocstream &, idx_type cell, bool & ismulticol) const;
+	int TeXCellPreamble(odocstream &, idx_type cell, bool & ismulticol, bool & ismultirow) const;
 	///
-	int TeXCellPostamble(odocstream &, idx_type cell, bool ismulticol) const;
+	int TeXCellPostamble(odocstream &, idx_type cell, bool ismulticol, bool ismultirow) const;
 	///
 	int TeXLongtableHeaderFooter(odocstream &, OutputParams const &) const;
 	///
@@ -620,6 +743,8 @@ public:
 				bool onlydata) const;
 	/// auxiliary function for docbook
 	int docbookRow(odocstream & os, row_type, OutputParams const &) const;
+	///
+	docstring xhtmlRow(XHTMLStream & xs, row_type, OutputParams const &) const;
 
 	/// change associated Buffer
 	void setBuffer(Buffer & buffer);
@@ -632,79 +757,11 @@ private:
 }; // Tabular
 
 
-///
-class InsetTableCell : public InsetText
-{
-public:
-	///
-	InsetTableCell(Buffer & buf);
-	///
-	InsetCode lyxCode() const { return CELL_CODE; }
-	///
-	Inset * clone() { return new InsetTableCell(*this); }
-	///
-	bool getStatus(Cursor & cur, FuncRequest const & cmd,
-		FuncStatus & status) const;
-	///
-	void toggleFixedWidth(bool fw) { isFixedWidth = fw; }
-	///
-	void setContentAlignment(LyXAlignment al) {contentAlign = al; }
-	/// writes the contents of the cell as a string, optionally
-	/// descending into insets
-	docstring asString(bool intoInsets = true);
-private:
-	/// unimplemented
-	InsetTableCell();
-	/// unimplemented
-	void operator=(InsetTableCell const &);
-	// FIXME
-	// This boolean is supposed to track whether the cell has had its
-	// width explicitly set. We need to know this to determine whether
-	// layout changes and paragraph customization are allowed---that is,
-	// we need it in forcePlainLayout() and allowParagraphCustomization(). 
-	// Unfortunately, that information is not readily available in 
-	// InsetTableCell. In the case of multicolumn cells, it is present
-	// in CellData, and so would be available here if CellData were to
-	// become a member of InsetTableCell. But in the other case, it isn't
-	// even available there, but is held in Tabular::ColumnData.
-	// So, the present solution uses this boolean to track the information
-	// we need to track, and tries to keep it updated. This is not ideal,
-	// but the other solutions are no better. These are:
-	// (i)  Keep a pointer in InsetTableCell to the table;
-	// (ii) Find the table by iterating over the Buffer's insets.
-	// Solution (i) raises the problem of updating the pointer when an 
-	// InsetTableCell is copied, and we'd therefore need a copy constructor
-	// in InsetTabular and then in Tabular, which seems messy, given how 
-	// complicated those classes are. Solution (ii) involves a lot of 
-	// iterating, since this information is needed quite often, and so may
-	// be quite slow.
-	// So, well, if someone can do better, please do!
-	// --rgh
-	///
-	bool isFixedWidth;
-	// FIXME: Here the thoughts from the comment above also apply.
-	///
-	LyXAlignment contentAlign;
-	/// should paragraph indendation be omitted in any case?
-	bool neverIndent() const { return true; }
-	///
-	LyXAlignment contentAlignment() const { return contentAlign; }
-	///
-	virtual bool usePlainLayout() const { return true; }
-	/// 
-	virtual bool forcePlainLayout(idx_type = 0) const;
-	/// 
-	virtual bool allowParagraphCustomization(idx_type = 0) const;
-	/// Is the width forced to some value?
-	bool hasFixedWidth() const { return isFixedWidth; }
-};
-
-
 class InsetTabular : public Inset
 {
 public:
 	///
-	InsetTabular(Buffer &, row_type rows = 1,
+	InsetTabular(Buffer *, row_type rows = 1,
 		     col_type columns = 1);
 	///
 	~InsetTabular();
@@ -726,9 +783,11 @@ public:
 	///
 	void drawSelection(PainterInfo & pi, int x, int y) const;
 	///
-	docstring editMessage() const;
+	void drawBackground(PainterInfo & pi, int x, int y) const;
 	///
-	EDITABLE editable() const { return HIGHLY_EDITABLE; }
+	bool editable() const { return true; }
+	///
+	bool hasSettings() const { return true; }
 	///
 	bool insetAllowed(InsetCode code) const;
 	///
@@ -740,7 +799,7 @@ public:
 	    insets that may contain several paragraphs */
 	bool noFontChange() const { return true; }
 	///
-	DisplayType display() const { return tabular.is_long_tabular ? AlignCenter : Inline; }
+	DisplayType display() const;
 	///
 	int latex(odocstream &, OutputParams const &) const;
 	///
@@ -748,11 +807,15 @@ public:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
 	void validate(LaTeXFeatures & features) const;
 	///
 	InsetCode lyxCode() const { return TABULAR_CODE; }
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenu(BufferView const &, int, int) const;
+	///
+	docstring contextMenuName() const;
 	/// get offset of this cursor slice relative to our upper left corner
 	void cursorPos(BufferView const & bv, CursorSlice const & sl,
 		bool boundary, int & x, int & y) const;
@@ -761,25 +824,21 @@ public:
 	///
 	void tabularFeatures(Cursor & cur, Tabular::Feature feature,
 			     std::string const & val = std::string());
-	///
-	void openLayoutDialog(BufferView *) const;
-	///
-	bool showInsetDialog(BufferView *) const;
 	/// number of cells
 	size_t nargs() const { return tabular.numberofcells; }
 	///
-	boost::shared_ptr<InsetTableCell const> cell(idx_type) const;
+	shared_ptr<InsetTableCell const> cell(idx_type) const;
 	///
-	boost::shared_ptr<InsetTableCell> cell(idx_type);
+	shared_ptr<InsetTableCell> cell(idx_type);
 	///
 	Text * getText(int) const;
 
 	/// set the change for the entire inset
 	void setChange(Change const & change);
 	/// accept the changes within the inset
-	void acceptChanges(BufferParams const & bparams);
+	void acceptChanges();
 	/// reject the changes within the inset
-	void rejectChanges(BufferParams const & bparams);
+	void rejectChanges();
 
 	// this should return true if we have a "normal" cell, otherwise false.
 	// "normal" means without width set!
@@ -787,8 +846,6 @@ public:
 	virtual bool allowParagraphCustomization(idx_type cell = 0) const;
 	///
 	virtual bool forcePlainLayout(idx_type cell = 0) const;
-	///
-	virtual bool usePlainLayout() { return true; }
 	///
 	void addPreview(DocIterator const & inset_pos,
 		graphics::PreviewLoader &) const;
@@ -804,7 +861,7 @@ public:
 	/// can we go further down on mouse click?
 	bool descendable(BufferView const &) const { return true; }
 	/// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void addToToc(DocIterator const &);
 
@@ -830,9 +887,9 @@ public:
 	virtual bool usePlainLayout() const { return true; }
 
 	///
-	virtual InsetTabular * asInsetTabular() { return this; }
+	InsetTabular * asInsetTabular() { return this; }
 	///
-	virtual InsetTabular const * asInsetTabular() const { return this; }
+	InsetTabular const * asInsetTabular() const { return this; }
 	///
 	bool isRightToLeft(Cursor & cur) const;
 	/// writes the cells between stidx and enidx as a string, optionally
@@ -859,8 +916,8 @@ private:
 	Inset * clone() const { return new InsetTabular(*this); }
 
 	///
-	void drawCellLines(frontend::Painter &, int x, int y, row_type row,
-			   idx_type cell, bool erased) const;
+	void drawCellLines(PainterInfo &, int x, int y, row_type row,
+			   idx_type cell) const;
 	///
 	void setCursorFromCoordinates(Cursor & cur, int x, int y) const;
 
@@ -873,9 +930,9 @@ private:
 	///
 	int cellXPos(idx_type cell) const;
 	///
-	void resetPos(Cursor & cur) const;
+	int cellYPos(idx_type cell) const;
 	///
-	void removeTabularRow();
+	void resetPos(Cursor & cur) const;
 	///
 	bool copySelection(Cursor & cur);
 	///
@@ -901,6 +958,9 @@ private:
 	mutable idx_type first_visible_cell;
 	///
 	mutable int scx_;
+	/// The vertical offset of the table due to the vertical
+	/// alignment with respect to the baseline.
+	mutable int offset_valign_;
 	/// true when selecting rows with the mouse
 	bool rowselect_;
 	/// true when selecting columns with the mouse
@@ -908,6 +968,9 @@ private:
 };
 
 std::string const featureAsString(Tabular::Feature feature);
+
+/// Split cell on decimal symbol
+InsetTableCell splitCell(InsetTableCell & head, docstring const decimal_sym, bool & hassep);
 
 } // namespace lyx
 

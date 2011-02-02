@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author various
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,9 +23,11 @@
 #include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 #include "Text.h"
 
 #include "support/debug.h"
+#include "support/docstream.h"
 #include "support/gettext.h"
 #include "support/lassert.h"
 
@@ -47,30 +49,19 @@ int const ADD_TO_VSPACE_WIDTH = 5;
 
 
 InsetVSpace::InsetVSpace(VSpace const & space)
-	: space_(space)
+	: Inset(0), space_(space)
 {}
-
-
-InsetVSpace::~InsetVSpace()
-{
-	hideDialogs("vspace", this);
-}
 
 
 void InsetVSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
+		cur.recordUndo();
 		InsetVSpace::string2params(to_utf8(cmd.argument()), space_);
 		break;
 	}
-
-	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection() && cmd.button() == mouse_button::button1)
-			cur.bv().showDialog("vspace", params2string(space()), 
-				const_cast<InsetVSpace *>(this));
-		break;
 
 	default:
 		Inset::doDispatch(cur, cmd);
@@ -82,7 +73,7 @@ void InsetVSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetVSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "vspace") {
@@ -92,16 +83,10 @@ bool InsetVSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
 		} 
 		status.setEnabled(true);
 		return true;
+	
 	default:
 		return Inset::getStatus(cur, cmd, status);
 	}
-}
-
-
-void InsetVSpace::edit(Cursor & cur, bool, EntryDirection)
-{
-	cur.bv().showDialog("vspace", params2string(space()), 
-		const_cast<InsetVSpace *>(this));
 }
 
 
@@ -237,7 +222,18 @@ int InsetVSpace::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-docstring InsetVSpace::contextMenu(BufferView const &, int, int) const
+docstring InsetVSpace::xhtml(XHTMLStream &, OutputParams const &) const
+{
+	odocstringstream ods;
+	XHTMLStream xds(ods);
+	string const len = space_.asHTMLLength();
+	string const attr = "style='height:" + (len.empty() ? "1em" : len) + "'";
+	xds << html::StartTag("div", attr, true) << html::EndTag("div");
+	return ods.str();
+}
+
+
+docstring InsetVSpace::contextMenuName() const
 {
 	return from_ascii("context-vspace");
 }

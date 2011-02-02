@@ -1,7 +1,7 @@
 # This file is part of
 # ==================================================================
 #
-#                  LyX, the High Level Word Processor
+#		      LyX, the High Level Word Processor
 #
 #         Copyright (C) 1995-1997 Asger Alstrup & The LyX Team
 #
@@ -39,25 +39,30 @@
 \bind "C-M-t"			"master-buffer-view pdf"
 \bind "C-M-d"			"master-buffer-view dvi"
 \bind "C-S-D"			"buffer-update dvi"	# 'd' for dvi
-\bind "C-S-T"			"buffer-update pdf"
-\bind "C-M-S-t"			"master-buffer-update pdf"
-\bind "C-M-S-d"			"master-buffer-update dvi"
+\bind "C-S-T"			"buffer-update pdf"    # (pdflatex; was "ps")
+\bind "C-M-S-T"			"master-buffer-update pdf"
+\bind "C-M-S-D"			"master-buffer-update dvi"
 \bind "C-q"				"lyx-quit"
-\bind "M-Tab"			"buffer-next"
+\bind "M-Tab" 			"buffer-next"
 \bind "M-S-BackTab"		"buffer-previous"
 
 \bind "C-M-b"			"font-boldsymbol"
 \bind "C-b"				"font-bold"
 \bind "C-e"				"font-emph"
-\bind "C-k"				"font-noun"		# 'k' for capitals
+# used below for line-delete-forward
+#\bind "C-k"			"font-noun"		# 'k' for capitals
 \bind "C-u"				"font-underline"
-\bind "C-S-P"			"font-typewriter"		# 'P' for program *****
+\bind "C-S-P"			"font-typewriter" # 'P' for Program
+\bind "C-S-O"			"font-strikeout"
+
 \bind "C-m"				"math-mode"
 \bind "C-S-M"			"math-display"
+\bind "C-S-r"			"regexp-mode"
 \bind "C-M-n"			"command-sequence math-display; math-number-toggle;"
 
 \bind "C-f"				"dialog-show findreplace"
-\bind "C-i"				"next-inset-toggle"		# 'i' for Inset
+\bind "C-S-f"			"dialog-show findreplaceadv"
+\bind "C-i"				"inset-toggle"		# 'i' for Inset
 
 \bind "C-c"				"copy"
 \bind "C-x"				"cut"
@@ -74,7 +79,7 @@
 \bind "C-S-E"			"changes-track"  # it's what MS Word uses
 \bind "~S-M-quotedbl"	"quote-insert single"
 \bind "~S-C-quotedbl"	"self-insert \""
-\bind "C-minus"			"command-alternatives math-macro-fold;specialchar-insert hyphenation"
+\bind "C-S-underscore"			"command-alternatives math-macro-fold;specialchar-insert hyphenation"
 \bind "C-M-minus"		"specialchar-insert nobreakdash"
 \bind "M-C-Right"		"depth-increment"
 \bind "M-C-Left"		"depth-decrement"
@@ -96,10 +101,10 @@
 \bind "S-F7"			"thesaurus-entry"
 
 \bind "M-x"				"command-execute"
+\bind "C-M-o"				"dialog-show toc"
 
-\bind "M-equal"			"buffer-zoom-in"
-\bind "M-plus"			"buffer-zoom-in"
-\bind "M-minus"			"buffer-zoom-out"
+\bind "C-plus"			"buffer-zoom-in"
+\bind "C-minus"		"buffer-zoom-out"
 
 #
 # Motion group
@@ -163,7 +168,10 @@
 \bind "S-C-KP_Next"		"buffer-end-select"
 \bind "C-KP_Insert"		"copy"
 \bind "S-KP_Insert"		"paste"
-\bind "S-KP_Delete"		"cut"
+\bind "S-KP_Delete"
+
+
+"cut"
 
 #
 # bookmarks

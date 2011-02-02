@@ -4,9 +4,9 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
- * \author Herbert Voß
+ * \author Herbert VoÃŸ
  * \author Angus Leeming
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -435,7 +435,7 @@ QString GuiBibtex::browseBib(QString const & in_name) const
 	QString const label1 = qt_("Documents|#o#O");
 	QString const dir1 = toqstr(lyxrc.document_path);
 	QStringList const filter(qt_("BibTeX Databases (*.bib)"));
-	return browseRelFile(in_name, bufferFilepath(),
+	return browseRelFile(in_name, bufferFilePath(),
 		qt_("Select a BibTeX database to add"), filter, false, label1, dir1);
 }
 
@@ -445,7 +445,7 @@ QString GuiBibtex::browseBst(QString const & in_name) const
 	QString const label1 = qt_("Documents|#o#O");
 	QString const dir1 = toqstr(lyxrc.document_path);
 	QStringList const filter(qt_("BibTeX Styles (*.bst)"));
-	return browseRelFile(in_name, bufferFilepath(),
+	return browseRelFile(in_name, bufferFilePath(),
 		qt_("Select a BibTeX style"), filter, false, label1, dir1);
 }
 
@@ -459,7 +459,7 @@ QStringList GuiBibtex::bibStyles() const
 		data = texFileList("bstFiles.lst");
 	}
 	for (int i = 0; i != data.size(); ++i)
-		data[i] = onlyFilename(data[i]);
+		data[i] = onlyFileName(data[i]);
 	// sort on filename only (no path)
 	data.sort();
 	return data;
@@ -475,7 +475,7 @@ QStringList GuiBibtex::bibFiles() const
 		data = texFileList("bibFiles.lst");
 	}
 	for (int i = 0; i != data.size(); ++i)
-		data[i] = onlyFilename(data[i]);
+		data[i] = onlyFileName(data[i]);
 	// sort on filename only (no path)
 	data.sort();
 	return data;
@@ -547,14 +547,14 @@ QString GuiBibtex::styleFile() const
 
 bool GuiBibtex::initialiseParams(std::string const & data)
 {
-	InsetCommand::string2params("bibtex", data, params_);
+	InsetCommand::string2params(data, params_);
 	return true;
 }
 
 
 void GuiBibtex::dispatchParams()
 {
-	std::string const lfun = InsetCommand::params2string("bibtex", params_);
+	std::string const lfun = InsetCommand::params2string(params_);
 	dispatch(FuncRequest(getLfun(), lfun));
 }
 
@@ -566,4 +566,4 @@ Dialog * createGuiBibtex(GuiView & lv) { return new GuiBibtex(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiBibtex_moc.cpp"
+#include "moc_GuiBibtex.cpp"

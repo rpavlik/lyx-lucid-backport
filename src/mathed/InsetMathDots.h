@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -32,6 +32,12 @@ public:
 	docstring name() const;
 	/// request "external features"
 	void validate(LaTeXFeatures & features) const;
+	///
+	InsetCode lyxCode() const { return MATH_DOTS_CODE; }
+	///
+	void mathmlize(MathStream & os) const;
+	///
+	void htmlize(HtmlStream & os) const;
 protected:
 	/// cache for the thing's height
 	mutable int dh_;

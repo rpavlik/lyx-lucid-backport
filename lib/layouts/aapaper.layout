@@ -4,7 +4,7 @@
 # Author: Peter Sütterlin <pit@uni-sw.gwdg.de>
 
 # This is for the old Springer layout of A&A (aa.cls version 4.x)
-# If you still have this, please upgrade to version 5 (see Extended.lyx)
+# If you still have this, please upgrade to version 5 (see Additional.lyx)
 #
 # If you want to keep the layout for old papers I'd suggest to rename
 # the old style file to aa-old and change the second line in this file to
@@ -14,7 +14,7 @@
 # and reconfigure LyX (after running texhash, of course).
 
 
-Format 11
+Format 30
 Columns                 2
 Sides                   2
 SecNumDepth             3
@@ -62,12 +62,15 @@ Style LaTeX
 End
 
 Style Section
+	TocLevel 1
 End
 
 Style Subsection
+	TocLevel 2
 End
 
 Style Subsubsection
+	TocLevel 3
 End
 
 Style Title
@@ -133,6 +136,7 @@ Style Section
 	Font
 	  Size                Normal
 	EndFont
+	TocLevel 1
 End
 
 
@@ -144,6 +148,7 @@ Style Subsection
 	  Size                Normal
 	  Shape               Italic
 	EndFont
+	TocLevel 2
 End
 
 
@@ -154,6 +159,7 @@ Style Subsubsection
 	  Series              Medium
 	  Size                Normal
 	EndFont
+	TocLevel 3
 End
 
 

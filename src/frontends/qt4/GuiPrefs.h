@@ -26,7 +26,6 @@
 
 #include "ui_PrefsUi.h"
 
-#include "ui_PrefPlaintextUi.h"
 #include "ui_PrefOutputUi.h"
 #include "ui_PrefInputUi.h"
 #include "ui_PrefLatexUi.h"
@@ -72,6 +71,9 @@ public:
 public Q_SLOTS:
 	void change_adaptor();
 
+Q_SIGNALS:
+	void prefsApplied(LyXRC const & rc);
+
 public:
 	/// Apply changes
 	void applyView();
@@ -91,7 +93,6 @@ public:
 	QString browsebind(QString const & file) const;
 	QString browseUI(QString const & file) const;
 	QString browsekbmap(QString const & file) const;
-	QString browsedict(QString const & file) const;
 
 	/// general browse
 	QString browse(QString const & file, QString const & title) const;
@@ -158,17 +159,6 @@ Q_SIGNALS:
 };
 
 
-class PrefPlaintext : public PrefModule, public Ui::PrefPlaintextUi
-{
-	Q_OBJECT
-public:
-	PrefPlaintext(GuiPreferences * form);
-
-	virtual void apply(LyXRC & rc) const;
-	virtual void update(LyXRC const & rc);
-};
-
-
 class PrefOutput : public PrefModule, public Ui::PrefOutputUi
 {
 	Q_OBJECT
@@ -196,6 +186,7 @@ private Q_SLOTS:
 	void on_firstKeymapPB_clicked(bool);
 	void on_secondKeymapPB_clicked(bool);
 	void on_keymapCB_toggled(bool);
+	void on_scrollzoomEnableCB_toggled(bool);
 
 private:
 	QString testKeymap(QString const & keymap);
@@ -225,6 +216,17 @@ public:
 
 	virtual void apply(LyXRC & rc) const;
 	virtual void update(LyXRC const & rc);
+
+private Q_SLOTS:
+	void on_latexEncodingCB_stateChanged(int state);
+	void on_latexBibtexCO_activated(int n);
+	void on_latexIndexCO_activated(int n);
+
+private:
+	///
+	std::set<std::string> bibtex_alternatives;
+	///
+	std::set<std::string> index_alternatives;
 };
 
 
@@ -238,9 +240,12 @@ public:
 	virtual void update(LyXRC const & rc);
 
 private Q_SLOTS:
-	void select_roman(const QString&);
-	void select_sans(const QString&);
-	void select_typewriter(const QString&);
+	void selectRoman(const QString&);
+	void selectSans(const QString&);
+	void selectTypewriter(const QString&);
+
+public Q_SLOTS:
+	void updateScreenFontSizes(LyXRC const & rc);
 };
 
 
@@ -254,8 +259,9 @@ public:
 	void update(LyXRC const & rc);
 
 private Q_SLOTS:
-	void change_color();
-	void change_lyxObjects_selection();
+	void changeColor();
+	void changeSysColor();
+	void changeLyxObjectsSelection();
 
 private:
 	std::vector<ColorCode> lcolors_;
@@ -275,6 +281,7 @@ public:
 
 private Q_SLOTS:
 	void on_instantPreviewCO_currentIndexChanged(int);
+	void on_displayGraphicsCB_toggled(bool);
 };
 
 
@@ -288,12 +295,14 @@ public:
 	void update(LyXRC const & rc);
 
 private Q_SLOTS:
-	void select_exampledir();
-	void select_templatedir();
-	void select_tempdir();
-	void select_backupdir();
-	void select_workingdir();
-	void select_lyxpipe();
+	void selectExampledir();
+	void selectTemplatedir();
+	void selectTempdir();
+	void selectBackupdir();
+	void selectWorkingdir();
+	void selectThesaurusdir();
+	void selectHunspelldir();
+	void selectLyxPipe();
 
 };
 
@@ -308,7 +317,7 @@ public:
 	void update(LyXRC const & rc);
 
 private Q_SLOTS:
-	void select_dict();
+	void on_spellcheckerCB_currentIndexChanged(int);
 };
 
 
@@ -325,10 +334,10 @@ public Q_SLOTS:
 	void updateGui();
 
 private Q_SLOTS:
-	void update_converter();
-	void switch_converter();
-	void converter_changed();
-	void remove_converter();
+	void updateConverter();
+	void switchConverter();
+	void removeConverter();
+	void changeConverter();
 	void on_cacheCB_stateChanged(int state);
 
 private:
@@ -361,11 +370,21 @@ private Q_SLOTS:
 	void on_formatsCB_editTextChanged(const QString &);
 	void on_formatNewPB_clicked();
 	void on_formatRemovePB_clicked();
+	void on_viewerCO_currentIndexChanged(int i);
+	void on_editorCO_currentIndexChanged(int i);
 	void setFlags();
 	void updatePrettyname();
 
 private:
 	Format & currentFormat();
+	///
+	void updateViewers();
+	///
+	void updateEditors();
+	///
+	LyXRC::Alternatives viewer_alternatives;
+	///
+	LyXRC::Alternatives editor_alternatives;
 };
 
 
@@ -380,6 +399,7 @@ public:
 
 private Q_SLOTS:
 	void on_uiLanguageCO_currentIndexChanged(int);
+	void on_languagePackageCO_currentIndexChanged(int);
 };
 
 
@@ -404,7 +424,7 @@ public:
 	void update(LyXRC const & rc);
 
 public Q_SLOTS:
-	void select_ui();
+	void selectUi();
 	void on_clearSessionPB_clicked();
 };
 
@@ -445,18 +465,19 @@ public:
 		KeySequence const & shortcut, KeyMap::ItemType tag);
 
 public Q_SLOTS:
-	void select_bind();
+	void selectBind();
 	void on_modifyPB_pressed();
 	void on_newPB_pressed();
 	void on_removePB_pressed();
 	void on_searchLE_textEdited();
 	///
 	void on_shortcutsTW_itemSelectionChanged();
-	void shortcut_okPB_pressed();
-	void shortcut_cancelPB_pressed();
-	void shortcut_clearPB_pressed();
-	void shortcut_removePB_pressed();
 	void on_shortcutsTW_itemDoubleClicked();
+	///
+	void shortcutOkPressed();
+	void shortcutCancelPressed();
+	void shortcutClearPressed();
+	void shortcutRemovePressed();
 
 private:
 	///

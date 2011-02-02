@@ -14,15 +14,16 @@
 
 #include "InsetMath.h"
 
+#include "support/docstring.h"
+
 namespace lyx {
 
 /// The special character inset.
-class InsetMathSpecialChar : public InsetMath {
+class InsetMathSpecialChar : public InsetMath
+{
 public:
 	///
-	explicit InsetMathSpecialChar(docstring name);
-	///
-	void setBuffer(Buffer &) {}
+	explicit InsetMathSpecialChar(docstring const & name);
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
@@ -47,12 +48,16 @@ public:
 	void mathematica(MathematicaStream &) const;
 	///
 	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
 	/// identifies SpecialChar insets
 	InsetMathSpecialChar const * asSpecialCharInset() const { return this; }
 	///
 	docstring name() const { return name_; }
 	///
 	char_type getChar() const { return char_; }
+	///
+	InsetCode lyxCode() const { return MATH_SPECIALCHAR_CODE; }
 
 private:
 	virtual Inset * clone() const;
@@ -66,4 +71,4 @@ private:
 
 } // namespace lyx
 
-#endif
+#endif // MATH_SPECIALCHARINSET_H

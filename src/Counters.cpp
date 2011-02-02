@@ -3,9 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Martin Vermeer
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Richard Heck (roman numerals)
  *
  * Full author contact details are available in file CREDITS.
@@ -14,15 +14,16 @@
 #include <config.h>
 
 #include "Counters.h"
-
+#include "Layout.h"
 #include "Lexer.h"
 
 #include "support/convert.h"
 #include "support/debug.h"
+#include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 
-#include "support/lassert.h"
-
+#include <algorithm>
 #include <sstream>
 
 using namespace std;
@@ -37,8 +38,8 @@ Counter::Counter()
 }
 
 
-Counter::Counter(docstring const & mc, docstring const & ls, 
-		 docstring const & lsa)
+Counter::Counter(docstring const & mc, docstring const & ls,  
+                docstring const & lsa)
 	: master_(mc), labelstring_(ls), labelstringappendix_(lsa)
 {
 	reset();
@@ -51,6 +52,7 @@ bool Counter::read(Lexer & lex)
 		CT_WITHIN = 1,
 		CT_LABELSTRING,
 		CT_LABELSTRING_APPENDIX,
+		CT_PRETTYFORMAT,
 		CT_END
 	};
 
@@ -58,6 +60,7 @@ bool Counter::read(Lexer & lex)
 		{ "end", CT_END },
 		{ "labelstring", CT_LABELSTRING },
 		{ "labelstringappendix", CT_LABELSTRING_APPENDIX },
+		{ "prettyformat", CT_PRETTYFORMAT },
 		{ "within", CT_WITHIN }
 	};
 
@@ -79,6 +82,10 @@ bool Counter::read(Lexer & lex)
 				master_ = lex.getDocString();
 				if (master_ == "none")
 					master_.erase();
+				break;
+			case CT_PRETTYFORMAT:
+				lex.next();
+				prettyformat_ = lex.getDocString();
 				break;
 			case CT_LABELSTRING:
 				lex.next();
@@ -138,15 +145,22 @@ docstring const & Counter::master() const
 }
 
 
-docstring const & Counter::labelString() const
+docstring const & Counter::labelString(bool in_appendix) const
 {
-	return labelstring_;
+	return in_appendix ? labelstringappendix_ : labelstring_;
 }
 
 
-docstring const & Counter::labelStringAppendix() const
+Counter::StringMap & Counter::flatLabelStrings(bool in_appendix) const
 {
-	return labelstringappendix_;
+	return in_appendix ? flatlabelstringappendix_ : flatlabelstring_;
+}
+
+
+Counters::Counters() : appendix_(false), subfloat_(false)
+{
+	layout_stack_.push_back(0);
+	counter_stack_.push_back(from_ascii(""));
 }
 
 
@@ -161,28 +175,30 @@ void Counters::newCounter(docstring const & newc,
 		       << endl;
 		return;
 	}
-	counterList[newc] = Counter(masterc, ls, lsa);
+	counterList_[newc] = Counter(masterc, ls, lsa);
 }
 
 
 bool Counters::hasCounter(docstring const & c) const
 {
-	return counterList.find(c) != counterList.end();
+	return counterList_.find(c) != counterList_.end();
 }
 
 
-bool Counters::read(Lexer & lex, docstring const & name)
+bool Counters::read(Lexer & lex, docstring const & name, bool makenew)
 {
 	if (hasCounter(name)) {
 		LYXERR(Debug::TCLASS, "Reading existing counter " << to_utf8(name));
-		return counterList[name].read(lex);
+		return counterList_[name].read(lex);
 	}
+
 	LYXERR(Debug::TCLASS, "Reading new counter " << to_utf8(name));
 	Counter cnt;
 	bool success = cnt.read(lex);
-	if (success)
-		counterList[name] = cnt;
-	else
+	// if makenew is false, we will just discard what we read
+	if (success && makenew)
+		counterList_[name] = cnt;
+	else if (!success)
 		LYXERR0("Error reading counter `" << name << "'!");
 	return success;
 }
@@ -190,8 +206,8 @@ bool Counters::read(Lexer & lex, docstring const & name)
 
 void Counters::set(docstring const & ctr, int const val)
 {
-	CounterList::iterator const it = counterList.find(ctr);
-	if (it == counterList.end()) {
+	CounterList::iterator const it = counterList_.find(ctr);
+	if (it == counterList_.end()) {
 		lyxerr << "set: Counter does not exist: "
 		       << to_utf8(ctr) << endl;
 		return;
@@ -202,8 +218,8 @@ void Counters::set(docstring const & ctr, int const val)
 
 void Counters::addto(docstring const & ctr, int const val)
 {
-	CounterList::iterator const it = counterList.find(ctr);
-	if (it == counterList.end()) {
+	CounterList::iterator const it = counterList_.find(ctr);
+	if (it == counterList_.end()) {
 		lyxerr << "addto: Counter does not exist: "
 		       << to_utf8(ctr) << endl;
 		return;
@@ -214,8 +230,8 @@ void Counters::addto(docstring const & ctr, int const val)
 
 int Counters::value(docstring const & ctr) const
 {
-	CounterList::const_iterator const cit = counterList.find(ctr);
-	if (cit == counterList.end()) {
+	CounterList::const_iterator const cit = counterList_.find(ctr);
+	if (cit == counterList_.end()) {
 		lyxerr << "value: Counter does not exist: "
 		       << to_utf8(ctr) << endl;
 		return 0;
@@ -224,18 +240,23 @@ int Counters::value(docstring const & ctr) const
 }
 
 
-void Counters::step(docstring const & ctr)
+void Counters::step(docstring const & ctr, UpdateType utype)
 {
-	CounterList::iterator it = counterList.find(ctr);
-	if (it == counterList.end()) {
+	CounterList::iterator it = counterList_.find(ctr);
+	if (it == counterList_.end()) {
 		lyxerr << "step: Counter does not exist: "
 		       << to_utf8(ctr) << endl;
 		return;
 	}
 
 	it->second.step();
-	it = counterList.begin();
-	CounterList::iterator const end = counterList.end();
+	if (utype == OutputUpdate) {
+		LASSERT(!counter_stack_.empty(), /* */);
+		counter_stack_.pop_back();
+		counter_stack_.push_back(ctr);
+	}
+	it = counterList_.begin();
+	CounterList::iterator const end = counterList_.end();
 	for (; it != end; ++it) {
 		if (it->second.master() == ctr) {
 			it->second.reset();
@@ -249,11 +270,14 @@ void Counters::reset()
 	appendix_ = false;
 	subfloat_ = false;
 	current_float_.erase();
-	CounterList::iterator it = counterList.begin();
-	CounterList::iterator const end = counterList.end();
-	for (; it != end; ++it) {
+	CounterList::iterator it = counterList_.begin();
+	CounterList::iterator const end = counterList_.end();
+	for (; it != end; ++it)
 		it->second.reset();
-	}
+	counter_stack_.clear();
+	counter_stack_.push_back(from_ascii(""));
+	layout_stack_.clear();
+	layout_stack_.push_back(0);
 }
 
 
@@ -261,8 +285,8 @@ void Counters::reset(docstring const & match)
 {
 	LASSERT(!match.empty(), /**/);
 
-	CounterList::iterator it = counterList.begin();
-	CounterList::iterator end = counterList.end();
+	CounterList::iterator it = counterList_.begin();
+	CounterList::iterator end = counterList_.end();
 	for (; it != end; ++it) {
 		if (it->first.find(match) != string::npos)
 			it->second.reset();
@@ -272,8 +296,8 @@ void Counters::reset(docstring const & match)
 
 void Counters::copy(Counters & from, Counters & to, docstring const & match)
 {
-	CounterList::iterator it = counterList.begin();
-	CounterList::iterator end = counterList.end();
+	CounterList::iterator it = counterList_.begin();
+	CounterList::iterator end = counterList_.end();
 	for (; it != end; ++it) {
 		if (it->first.find(match) != string::npos || match == "") {
 			to.set(it->first, from.value(it->first));
@@ -315,10 +339,10 @@ char hebrewCounter(int const n)
 
 
 
-//On the special cases, see http://mathworld.wolfram.com/RomanNumerals.html
-//and for a list of roman numerals up to and including 3999, see 
-//http://www.research.att.com/~njas/sequences/a006968.txt. (Thanks to Joost
-//for this info.)
+// On the special cases, see http://mathworld.wolfram.com/RomanNumerals.html
+// and for a list of roman numerals up to and including 3999, see 
+// http://www.research.att.com/~njas/sequences/a006968.txt. (Thanks to Joost
+// for this info.)
 docstring const romanCounter(int const n)
 {
 	static char const * const ones[9] = {
@@ -384,10 +408,10 @@ docstring const lowerromanCounter(int const n)
 
 
 docstring Counters::labelItem(docstring const & ctr,
-			      docstring const & numbertype)
+			      docstring const & numbertype) const
 {
-	CounterList::const_iterator const cit = counterList.find(ctr);
-	if (cit == counterList.end()) {
+	CounterList::const_iterator const cit = counterList_.find(ctr);
+	if (cit == counterList_.end()) {
 		lyxerr << "Counter "
 		       << to_utf8(ctr)
 		       << " does not exist." << endl;
@@ -415,73 +439,101 @@ docstring Counters::labelItem(docstring const & ctr,
 }
 
 
-docstring Counters::theCounter(docstring const & counter)
+docstring Counters::theCounter(docstring const & counter,
+			       string const & lang) const
 {
-	std::set<docstring> callers;
-	return theCounter(counter, callers);
+	CounterList::const_iterator it = counterList_.find(counter); 
+	if (it == counterList_.end())
+		return from_ascii("#");
+	Counter const & ctr = it->second;
+	Counter::StringMap & sm = ctr.flatLabelStrings(appendix());
+	Counter::StringMap::iterator smit = sm.find(lang);
+	if (smit != sm.end())
+		return counterLabel(smit->second, lang);
+
+	vector<docstring> callers;
+	docstring const & fls = flattenLabelString(counter, appendix(),
+						   lang, callers);
+	sm[lang] = fls;
+	return counterLabel(fls, lang);
 }
 
-docstring Counters::theCounter(docstring const & counter,
-                               std::set<docstring> & callers)
-{
-	if (!hasCounter(counter))
-		return from_ascii("??");
 
+docstring Counters::flattenLabelString(docstring const & counter, 
+				       bool in_appendix,
+				       string const & lang,
+				       vector<docstring> & callers) const
+{
 	docstring label;
 
-	if (callers.find(counter) == callers.end()) {
-		
-		pair<std::set<docstring>::iterator, bool> result = callers.insert(counter);
-
-		Counter const & c = counterList[counter];
-		docstring ls = appendix() ? c.labelStringAppendix() : c.labelString();
-
-		if (ls.empty()) {
-			if (!c.master().empty())
-				ls = from_ascii("\\the") + c.master() + from_ascii(".");
-			ls += from_ascii("\\arabic{") + counter + "}";
-		}
-
-		label = counterLabel(ls, &callers);
-
-		callers.erase(result.first);
-	} else {
+	if (find(callers.begin(), callers.end(), counter) != callers.end()) {
 		// recursion detected
 		lyxerr << "Warning: Recursion in label for counter `"
-			   << counter << "' detected"
-			   << endl;
+		       << counter << "' detected"
+		       << endl;
+		return from_ascii("??");
+	}
+		
+	CounterList::const_iterator it = counterList_.find(counter); 
+	if (it == counterList_.end())
+		return from_ascii("#");
+	Counter const & c = it->second;
+
+	docstring ls = translateIfPossible(c.labelString(in_appendix), lang);
+
+	callers.push_back(counter);
+	if (ls.empty()) {
+		if (!c.master().empty())
+			ls = flattenLabelString(c.master(), in_appendix, lang, callers) 
+				+ from_ascii(".");
+		callers.pop_back();
+		return ls + from_ascii("\\arabic{") + counter + "}";
 	}
 
-	return label;
+	while (true) {
+		//lyxerr << "ls=" << to_utf8(ls) << endl;
+		size_t const i = ls.find(from_ascii("\\the"), 0);
+		if (i == docstring::npos)
+			break;
+		size_t const j = i + 4;
+		size_t k = j;
+		while (k < ls.size() && lowercase(ls[k]) >= 'a' 
+		       && lowercase(ls[k]) <= 'z')
+			++k;
+		docstring const newc = ls.substr(j, k - j);
+		docstring const repl = flattenLabelString(newc, in_appendix,
+							  lang, callers);
+		ls.replace(i, k - j + 4, repl);
+	}
+	callers.pop_back();
+
+	return ls;
 }
 
 
 docstring Counters::counterLabel(docstring const & format,
-                                 std::set<docstring> * callers)
+				 string const & lang) const
 {
 	docstring label = format;
 
 	// FIXME: Using regexps would be better, but we compile boost without
 	// wide regexps currently.
-
+	docstring const the = from_ascii("\\the");
 	while (true) {
-		//lyxerr << "label=" << to_utf8(label) << endl;
-		size_t const i = label.find(from_ascii("\\the"), 0);
+		//lyxerr << "label=" << label << endl;
+		size_t const i = label.find(the, 0);
 		if (i == docstring::npos)
 			break;
-		size_t j = i + 4;
+		size_t const j = i + 4;
 		size_t k = j;
 		while (k < label.size() && lowercase(label[k]) >= 'a' 
 		       && lowercase(label[k]) <= 'z')
 			++k;
-		docstring counter = label.substr(j, k - j);
-		docstring repl = callers? theCounter(counter, *callers): 
-			                      theCounter(counter);
-		label.replace(i, k - j + 4, repl);
+		docstring const newc(label, j, k - j);
+		label.replace(i, k - i, theCounter(newc, lang));
 	}
-
 	while (true) {
-		//lyxerr << "label=" << to_utf8(label) << endl;
+		//lyxerr << "label=" << label << endl;
 
 		size_t const i = label.find('\\', 0);
 		if (i == docstring::npos)
@@ -494,12 +546,74 @@ docstring Counters::counterLabel(docstring const & format,
 			break;
 		docstring const numbertype(label, i + 1, j - i - 1);
 		docstring const counter(label, j + 1, k - j - 1);
-		docstring const rep = labelItem(counter, numbertype);
-		label = docstring(label, 0, i) + rep
-			+ docstring(label, k + 1, docstring::npos);
+		label.replace(i, k + 1 - i, labelItem(counter, numbertype));
 	}
-	//lyxerr << "DONE! label=" << to_utf8(label) << endl;
+	//lyxerr << "DONE! label=" << label << endl;
 	return label;
+}
+
+
+docstring Counters::prettyCounter(docstring const & name,
+			       string const & lang) const
+{
+	CounterList::const_iterator it = counterList_.find(name); 
+	if (it == counterList_.end())
+		return from_ascii("#");
+	Counter const & ctr = it->second;
+
+	docstring const value = theCounter(name, lang);
+	docstring const & format = ctr.prettyFormat();
+	if (format.empty())
+		return value;
+	return subst(format, from_ascii("##"), value);
+}
+
+
+docstring Counters::currentCounter() const
+{ 
+	LASSERT(!counter_stack_.empty(), /* */);
+	return counter_stack_.back(); 
+}
+
+
+void Counters::setActiveLayout(Layout const & lay)
+{
+	LASSERT(!layout_stack_.empty(), return);
+	Layout const * const lastlay = layout_stack_.back();
+	// we want to check whether the layout has changed and, if so,
+	// whether we are coming out of or going into an environment.
+	if (!lastlay) { 
+		layout_stack_.pop_back();
+		layout_stack_.push_back(&lay);
+		if (lay.isEnvironment())
+			beginEnvironment();
+	} else if (lastlay->name() != lay.name()) {
+		layout_stack_.pop_back();
+		layout_stack_.push_back(&lay);
+		if (lastlay->isEnvironment()) {
+			// we are coming out of an environment
+			// LYXERR0("Out: " << lastlay->name());
+			endEnvironment();
+		}
+		if (lay.isEnvironment()) {
+			// we are going into a new environment
+			// LYXERR0("In: " << lay.name());
+			beginEnvironment();
+		}
+	} 
+}
+
+
+void Counters::beginEnvironment()
+{
+	counter_stack_.push_back(counter_stack_.back());
+}
+
+
+void Counters::endEnvironment()
+{
+	LASSERT(!counter_stack_.empty(), return);
+	counter_stack_.pop_back();
 }
 
 

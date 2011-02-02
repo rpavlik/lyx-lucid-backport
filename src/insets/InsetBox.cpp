@@ -5,7 +5,7 @@
  *
  * \author Angus Leeming
  * \author Martin Vermeer
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -24,9 +24,11 @@
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
+#include "output_xhtml.h"
 #include "TextClass.h"
 
 #include "support/debug.h"
+#include "support/docstream.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/Translator.h"
@@ -95,21 +97,9 @@ BoxTranslatorLoc const & boxtranslator_loc()
 //
 /////////////////////////////////////////////////////////////////////////
 
-InsetBox::InsetBox(Buffer const & buffer, string const & label)
+InsetBox::InsetBox(Buffer * buffer, string const & label)
 	: InsetCollapsable(buffer), params_(label)
 {}
-
-
-InsetBox::~InsetBox()
-{
-	hideDialogs("box", this);
-}
-
-
-docstring InsetBox::editMessage() const
-{
-	return _("Opened Box Inset");
-}
 
 
 docstring InsetBox::name() const 
@@ -146,6 +136,8 @@ void InsetBox::setButtonLabel()
 	if (params_.inner_box) {
 		if (params_.use_parbox)
 			inner = _("Parbox");
+		else if (params_.use_makebox)
+			inner = _("Makebox");
 		else
 			inner = _("Minipage");
 	}
@@ -190,35 +182,24 @@ void InsetBox::metrics(MetricsInfo & m, Dimension & dim) const
 
 bool InsetBox::forcePlainLayout(idx_type) const
 {
-	return !params_.inner_box && params_.type != "Framed";
-}
-
-
-bool InsetBox::showInsetDialog(BufferView * bv) const
-{
-	bv->showDialog("box", params2string(params_),
-		const_cast<InsetBox *>(this));
-	return true;
+	return (!params_.inner_box || params_.use_makebox) && params_.type != "Shaded";
 }
 
 
 void InsetBox::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
 		//lyxerr << "InsetBox::dispatch MODIFY" << endl;
-		if (cmd.getArg(0) == "changetype")
+		cur.recordUndoInset(ATOMIC_UNDO, this);
+		if (cmd.getArg(0) == "changetype") {
 			params_.type = cmd.getArg(1);
-		else
+		} else
 			string2params(to_utf8(cmd.argument()), params_);
-		setLayout(cur.buffer().params());
+		setButtonLabel();
 		break;
 	}
-
-	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("box", params2string(params_));
-		break;
 
 	default:
 		InsetCollapsable::doDispatch(cur, cmd);
@@ -230,7 +211,7 @@ void InsetBox::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetBox::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "changetype")
@@ -243,7 +224,7 @@ bool InsetBox::getStatus(Cursor & cur, FuncRequest const & cmd,
 		return true;
 
 	case LFUN_BREAK_PARAGRAPH:
-		if (params_.inner_box || params_.type == "Framed")
+		if ((params_.inner_box && !params_.use_makebox) || params_.type == "Shaded")
 			return InsetCollapsable::getStatus(cur, cmd, flag);
 		flag.setEnabled(false);
 		return true;
@@ -304,7 +285,7 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 	case Boxed:
 		os << "\\framebox";
 		if (!params_.inner_box) {
-			// Special widths, see usrguide §3.5
+			// Special widths, see usrguide Â§3.5
 			// FIXME UNICODE
 			if (params_.special != "none") {
 				os << "[" << params_.width.value()
@@ -316,7 +297,6 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 			if (params_.hor_pos != 'c')
 				os << "[" << params_.hor_pos << "]";
 		}
-
 		os << "{";
 		break;
 	case ovalbox:
@@ -339,38 +319,56 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 	if (params_.inner_box) {
 		if (params_.use_parbox)
 			os << "\\parbox";
+		else if (params_.use_makebox) {
+			os << "\\makebox";
+			// FIXME UNICODE
+			// output the width and horizontal position
+			if (params_.special != "none") {
+				os << "[" << params_.width.value()
+				   << '\\' << from_utf8(params_.special)
+				   << ']';
+			} else
+				os << '[' << from_ascii(width_string)
+				   << ']';
+			if (params_.hor_pos != 'c')
+				os << "[" << params_.hor_pos << "]";
+			os << "{";
+		}
 		else
 			os << "\\begin{minipage}";
 
-		os << "[" << params_.pos << "]";
-		if (params_.height_special == "none") {
-			// FIXME UNICODE
-			os << "[" << from_ascii(params_.height.asLatexString()) << "]";
-		} else {
-			// Special heights
-			// set no optional argument when the value is the default "1\height"
-			// (special units like \height are handled as "in")
-			// but when the user has chosen a non-default inner_pos, the height
-			// must be given: \minipage[pos][height][inner-pos]{width}
-			if ((params_.height != Length("1in") ||
-				 params_.height_special != "totalheight") ||
-				params_.inner_pos != params_.pos) {
+		// output parameters for parbox and minipage
+		if (!params_.use_makebox) {
+			os << "[" << params_.pos << "]";
+			if (params_.height_special == "none") {
 				// FIXME UNICODE
-				os << "[" << params_.height.value()
-					<< "\\" << from_utf8(params_.height_special) << "]";
+				os << "[" << from_ascii(params_.height.asLatexString()) << "]";
+			} else {
+				// Special heights
+				// set no optional argument when the value is the default "1\height"
+				// (special units like \height are handled as "in")
+				// but when the user has chosen a non-default inner_pos, the height
+				// must be given: \minipage[pos][height][inner-pos]{width}
+				if ((params_.height != Length("1in") ||
+					params_.height_special != "totalheight") ||
+					params_.inner_pos != params_.pos) {
+						// FIXME UNICODE
+						os << "[" << params_.height.value()
+							<< "\\" << from_utf8(params_.height_special) << "]";
+				}
 			}
+			if (params_.inner_pos != params_.pos)
+				os << "[" << params_.inner_pos << "]";
+			// FIXME UNICODE
+			os << '{' << from_ascii(width_string) << '}';
+			if (params_.use_parbox)
+				os << "{";
 		}
-		if (params_.inner_pos != params_.pos)
-			os << "[" << params_.inner_pos << "]";
 
-		// FIXME UNICODE
-		os << '{' << from_ascii(width_string) << '}';
-
-		if (params_.use_parbox)
-			os << "{";
 		os << "%\n";
 		++i;
-	}
+	} // end if inner_box
+
 	if (btype == Shaded) {
 		os << "\\begin{shaded}%\n";
 		++i;
@@ -382,7 +380,7 @@ int InsetBox::latex(odocstream & os, OutputParams const & runparams) const
 		os << "\\end{shaded}";
 
 	if (params_.inner_box) {
-		if (params_.use_parbox)
+		if (params_.use_parbox || params_.use_makebox)
 			os << "%\n}";
 		else
 			os << "%\n\\end{minipage}";
@@ -481,6 +479,28 @@ int InsetBox::docbook(odocstream & os, OutputParams const & runparams) const
 }
 
 
+docstring InsetBox::xhtml(XHTMLStream & xs, OutputParams const & runparams) const
+{
+	// construct attributes
+	string attrs = "class='" + params_.type + "'";
+	string style;
+	if (!params_.width.empty())
+		style += ("width: " + params_.width.asHTMLString() + "; ");
+	// The special heights don't really mean anything for us.
+	if (!params_.height.empty() && params_.height_special == "none")
+		style += ("height: " + params_.height.asHTMLString() + "; ");
+	if (!style.empty())
+		attrs += " style='" + style + "'";
+
+	xs << html::StartTag("div", attrs);
+	XHTMLOptions const opts = InsetText::WriteLabel | InsetText::WriteInnerTag;
+	docstring defer = InsetText::insetAsXHTML(xs, runparams, opts);
+	xs << html::EndTag("div");
+	xs << defer;
+	return docstring();
+}
+
+
 void InsetBox::validate(LaTeXFeatures & features) const
 {
 	BoxType btype = boxtranslator().find(params_.type);
@@ -505,11 +525,11 @@ void InsetBox::validate(LaTeXFeatures & features) const
 		features.require("framed");
 		break;
 	}
-	InsetText::validate(features);
+	InsetCollapsable::validate(features);
 }
 
 
-docstring InsetBox::contextMenu(BufferView const &, int, int) const
+docstring InsetBox::contextMenuName() const
 {
 	return from_ascii("context-box");
 }
@@ -564,6 +584,7 @@ void InsetBox::string2params(string const & in, InsetBoxParams & params)
 InsetBoxParams::InsetBoxParams(string const & label)
 	: type(label),
 	  use_parbox(false),
+	  use_makebox(false),
 	  inner_box(true),
 	  width(Length("100col%")),
 	  special("none"),
@@ -583,6 +604,7 @@ void InsetBoxParams::write(ostream & os) const
 	os << "has_inner_box " << inner_box << "\n";
 	os << "inner_pos \"" << inner_pos << "\"\n";
 	os << "use_parbox " << use_parbox << "\n";
+	os << "use_makebox " << use_makebox << "\n";
 	os << "width \"" << width.asString() << "\"\n";
 	os << "special \"" << special << "\"\n";
 	os << "height \"" << height.asString() << "\"\n";
@@ -601,6 +623,7 @@ void InsetBoxParams::read(Lexer & lex)
 		inner_box = false;
 	lex >> "inner_pos" >> inner_pos;
 	lex >> "use_parbox" >> use_parbox;
+	lex >> "use_makebox" >> use_makebox;
 	lex >> "width" >> width;
 	lex >> "special" >> special;
 	lex >> "height" >> height;

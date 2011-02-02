@@ -84,7 +84,7 @@ void GuiPrint::change_adaptor()
 void GuiPrint::browseClicked()
 {
 	QString file =
-		browseRelFile(QString(), bufferFilepath(), qt_("Print to file"),
+		browseRelFile(QString(), bufferFilePath(), qt_("Print to file"),
 			     QStringList(qt_("PostScript files (*.ps)")), true);
 	if (!file.isEmpty()) {
 		fileED->setText(file);
@@ -144,9 +144,9 @@ void GuiPrint::updateContents()
 
 	collateCB->setChecked(params_.sorted_copies);
 
-	if (params_.all_pages) {
+	if (params_.all_pages)
 		allRB->setChecked(true);
-	} else {
+	else {
 		rangeRB->setChecked(true);
 		fromED->setText(QString::number(params_.from_page));
 		toED->setText(QString::number(params_.to_page));
@@ -252,4 +252,4 @@ Dialog * createGuiPrint(GuiView & lv) { return new GuiPrint(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiPrint_moc.cpp"
+#include "moc_GuiPrint.cpp"

@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Matthias Ettrich
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  *
  * Full author contact details are available in file CREDITS.
@@ -84,7 +84,7 @@ int TexRow::getRowFromIdPos(int id, int pos) const
 	}
 	if (!foundid)
 		return rowlist.size();
-	return distance(rowlist.begin(), bestrow);
+	return distance(rowlist.begin(), bestrow) + 1;
 }
 
 

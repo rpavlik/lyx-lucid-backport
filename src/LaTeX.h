@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Angus Leeming
  * \author Dekel Tsur
  *
@@ -66,10 +66,10 @@ private:
 };
 
 
-class Aux_Info {
+class AuxInfo {
 public:
 	///
-	Aux_Info() {}
+	AuxInfo() {}
 	///
 	support::FileName aux_file;
 	///
@@ -82,8 +82,8 @@ public:
 
 
 ///
-bool operator==(Aux_Info const &, Aux_Info const &);
-bool operator!=(Aux_Info const &, Aux_Info const &);
+bool operator==(AuxInfo const &, AuxInfo const &);
+bool operator!=(AuxInfo const &, AuxInfo const &);
 
 
 /**
@@ -176,20 +176,19 @@ private:
 				 std::string const &, std::string const &);
 
 	///
-	std::vector<Aux_Info> const scanAuxFiles(support::FileName const &);
+	std::vector<AuxInfo> const scanAuxFiles(support::FileName const &);
 
 	///
-	Aux_Info const scanAuxFile(support::FileName const &);
+	AuxInfo const scanAuxFile(support::FileName const &);
 
 	///
-	void scanAuxFile(support::FileName const &, Aux_Info &);
+	void scanAuxFile(support::FileName const &, AuxInfo &);
 
 	///
-	void updateBibtexDependencies(DepTable &,
-				      std::vector<Aux_Info> const &);
+	void updateBibtexDependencies(DepTable &, std::vector<AuxInfo> const &);
 
 	///
-	bool runBibTeX(std::vector<Aux_Info> const &, OutputParams const &);
+	bool runBibTeX(std::vector<AuxInfo> const &, OutputParams const &);
 
 	///
 	void deleteFilesOnError() const;

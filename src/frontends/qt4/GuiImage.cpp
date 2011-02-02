@@ -79,7 +79,7 @@ bool GuiImage::load(FileName const & filename)
 		LYXERR(Debug::GRAPHICS, "Image is loaded already!");
 		return false;
 	}
-	fname_ = toqstr(filename.absFilename());
+	fname_ = toqstr(filename.absFileName());
 	return load();
 }
 
@@ -165,7 +165,7 @@ bool GuiImage::scale(Params const & params)
 {
 	QImage const & image = is_transformed_ ? transformed_ : original_;
 
-	if (params.scale < 0 || params.scale == 100)
+	if (params.scale == 100)
 		return false;
 
 	qreal scale = qreal(params.scale) / 100.0;

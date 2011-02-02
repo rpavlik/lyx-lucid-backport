@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -20,7 +20,7 @@
 namespace lyx {
 
 
-/// Environtments á la \begin{something}...\end{something}
+/// Environtments Ã¡ la \begin{something}...\end{something}
 class InsetMathEnv : public InsetMathNest {
 public:
 	///
@@ -35,6 +35,8 @@ public:
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
 	void infoize(odocstream & os) const;
+	///
+	InsetCode lyxCode() const { return MATH_ENV_CODE; }
 
 private:
 	virtual Inset * clone() const;

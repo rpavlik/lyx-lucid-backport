@@ -4,8 +4,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
- * \author José Matos
+ * \author Lars Gullik BjÃ¸nnes
+ * \author JosÃ© Matos
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,10 +19,10 @@ namespace lyx {
 
 class Buffer;
 class OutputParams;
-class ParagraphList;
+class Text;
 
 ///
-void docbookParagraphs(ParagraphList const & subset,
+void docbookParagraphs(Text const & text,
 		       Buffer const & buf,
 		       odocstream & os,
 		       OutputParams const & runparams);

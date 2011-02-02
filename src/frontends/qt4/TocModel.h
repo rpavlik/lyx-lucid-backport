@@ -15,9 +15,8 @@
 #include "qt_helpers.h"
 
 #include <QHash>
+#include <QSortFilterProxyModel>
 #include <QStandardItemModel>
-
-class QSortFilterProxyModel;
 
 namespace lyx {
 
@@ -30,7 +29,7 @@ class TocItem;
 namespace frontend {
 
 class TocTypeModel;
-	
+
 /// A class that adapt the TocBackend of a Buffer into standard Qt models for
 /// GUI visualisation.
 /// There is one TocModel per list in the TocBackend.
@@ -80,6 +79,30 @@ private:
 };
 
 
+/// A filter to sort the models alphabetically but with
+/// the table of contents on top.
+class TocModelSortProxyModel : public QSortFilterProxyModel
+{
+public:
+	TocModelSortProxyModel(QObject * w) 
+		: QSortFilterProxyModel(w)
+	{}
+
+	bool lessThan (const QModelIndex & left, const QModelIndex & right) const
+	{
+		if (left.model()->data(left, Qt::UserRole).toString()
+			  == QString("tableofcontents"))
+			return true;
+		else if (right.model()->data(right, Qt::UserRole).toString()
+			  == QString("tableofcontents"))
+			return false;
+		else
+			return QSortFilterProxyModel::lessThan(left, right);
+	}
+};
+
+
+
 /// A container for the different TocModels.
 class TocModels : public QObject
 {
@@ -109,6 +132,9 @@ public:
 	void sort(QString const & type, bool sort_it);
 	///
 	bool isSorted(QString const & type) const;
+	/// the item that is currently selected
+	TocItem const currentItem(QString const & type,
+		QModelIndex const & index) const;
 
 Q_SIGNALS:
 	/// Signal that the internal toc_models_ has been reset.
@@ -126,7 +152,7 @@ private:
 	///
 	TocTypeModel * names_;
 	///
-	QSortFilterProxyModel * names_sorted_;
+	TocModelSortProxyModel * names_sorted_;
 };
 
 } // namespace frontend

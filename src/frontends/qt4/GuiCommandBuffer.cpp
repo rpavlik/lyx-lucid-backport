@@ -21,7 +21,7 @@
 
 #include "BufferView.h"
 #include "Cursor.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXAction.h"
 #include "FuncRequest.h"
 #include "Session.h"
@@ -173,7 +173,7 @@ void GuiCommandBuffer::complete()
 {
 	string const input = fromqstr(edit_->text());
 	string new_input;
-	vector<string> comp = completions(input, new_input);
+	vector<string> const & comp = completions(input, new_input);
 
 	if (comp.empty()) {
 		if (new_input != input)
@@ -195,30 +195,29 @@ void GuiCommandBuffer::showList(vector<string> const & list,
 	// than the number of actual items...
 	vector<string>::const_iterator cit = list.begin();
 	vector<string>::const_iterator end = list.end();
-	if (!reversed) {
-		for (; cit != end; ++cit)
-			listBox ->addItem(toqstr(*cit));
-	} else {
-		for (--end; end != cit; --end)
-			listBox ->addItem(toqstr(*end));
+	for (; cit != end; ++cit) {
+		if (reversed)
+			listBox->insertItem(0, toqstr(*cit));
+		else
+			listBox->addItem(toqstr(*cit));
 	}
 
-	listBox->resize(listBox ->sizeHint());
+	listBox->resize(listBox->sizeHint());
 
 	int const y = max(0, pos.y() - listBox->height());
 	listBox->move(pos.x(), y);
 
 	connect(listBox, SIGNAL(itemClicked(QListWidgetItem *)),
-		this, SLOT(item_selected(QListWidgetItem *)));
+		this, SLOT(itemSelected(QListWidgetItem *)));
 	connect(listBox, SIGNAL(itemActivated(QListWidgetItem *)),
-		this, SLOT(item_selected(QListWidgetItem *)));
+		this, SLOT(itemSelected(QListWidgetItem *)));
 
 	listBox->show();
 	listBox->setFocus();
 }
 
 
-void GuiCommandBuffer::item_selected(QListWidgetItem * item)
+void GuiCommandBuffer::itemSelected(QListWidgetItem * item)
 {
 	QWidget const * widget = static_cast<QWidget const *>(sender());
 	const_cast<QWidget *>(widget)->hide();
@@ -298,14 +297,13 @@ string const GuiCommandBuffer::historyDown()
 
 docstring const GuiCommandBuffer::getCurrentState() const
 {
-	return view_->view()->cursor().currentState();
+	return view_->currentBufferView()->cursor().currentState();
 }
 
 
 void GuiCommandBuffer::hide() const
 {
 	FuncRequest cmd(LFUN_COMMAND_EXECUTE, "off");
-	theLyXFunc().setLyXView(view_);
 	lyx::dispatch(cmd);
 }
 
@@ -315,7 +313,7 @@ GuiCommandBuffer::completions(string const & prefix, string & new_prefix)
 {
 	vector<string> comp;
 
-	copy_if(commands_.begin(), commands_.end(),
+	lyx::copy_if(commands_.begin(), commands_.end(),
 		back_inserter(comp), prefix_p(prefix));
 
 	if (comp.empty()) {
@@ -335,7 +333,7 @@ GuiCommandBuffer::completions(string const & prefix, string & new_prefix)
 		test += tmp[test.length()];
 	while (test.length() < tmp.length()) {
 		vector<string> vtmp;
-		copy_if(comp.begin(), comp.end(),
+		lyx::copy_if(comp.begin(), comp.end(),
 			back_inserter(vtmp), prefix_p(test));
 		if (vtmp.size() != comp.size()) {
 			test.erase(test.length() - 1);
@@ -359,12 +357,11 @@ void GuiCommandBuffer::dispatch(string const & str)
 	upPB->setEnabled(history_pos_ != history_.begin());
 	downPB->setEnabled(history_pos_ != history_.end());
 	FuncRequest func = lyxaction.lookupFunc(str);
-	func.origin = FuncRequest::COMMANDBUFFER;
-	theLyXFunc().setLyXView(view_);
+	func.setOrigin(FuncRequest::COMMANDBUFFER);
 	lyx::dispatch(func);
 }
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiCommandBuffer_moc.cpp"
+#include "moc_GuiCommandBuffer.cpp"

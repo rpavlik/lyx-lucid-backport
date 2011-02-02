@@ -1,5 +1,5 @@
-#LyX 1.6.7svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 410
 \begin_document
 \begin_header
 \textclass scrbook
@@ -29,7 +29,7 @@
   \mainmatter }
 
 % provides caption formatting
-\usepackage[labelfont={bf,sf}, tableposition=top]{caption}[2004/07/16]
+\usepackage[labelfont={bf,sf}]{caption}[2004/07/16]
 
 % provides commands to set caption
 % beside tables/images
@@ -55,9 +55,6 @@
 
 % enables calculation of values,
 \usepackage{calc}
-
-% provides special table cell alignments
-\usepackage{dcolumn}
 
 % increase the bottom float placement fraction
 \renewcommand{\bottomfraction}{0.5}
@@ -85,10 +82,6 @@
  {\usepackage{colortbl}
   \setboolean{colortbl}{true}}
  {\setboolean{colortbl}{false}}
-
-% used for multirows
-\usepackage{multirow}
-%\renewcommand{\multirowsetup}{\centering}
 
 % used for book-style tables
 \usepackage{booktabs}
@@ -122,9 +115,6 @@
 % number algorithm floats within chapters
 \numberwithin{algorithm}{chapter}
 
-% redefine the greyed out note
-\renewenvironment{lyxgreyedout}
- {\textcolor{blue}\bgroup}{\egroup}
 
 % ------------------------------------
 % used to check for needed LaTeX packages
@@ -161,22 +151,29 @@
   {LyX}}
 
 % use normal list environments also in French documents
-\StandardLayout
+\frenchbsetup{StandardLayout}
 \end_preamble
-\options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
+\maintain_unincluded_children false
 \language french
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -198,9 +195,19 @@
 \use_geometry false
 \use_amsmath 2
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\notefontcolor #0000ff
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation skip
@@ -214,8 +221,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -275,7 +282,7 @@ version 1.6.x janvier 2010
 
 
 \family sans
-Version 1.6.x
+Version 2.0.x
 \end_layout
 
 \begin_layout Standard
@@ -403,7 +410,7 @@ http://wiki.lyx.org/LyX/DocumentationDevelopment#EmbeddedObjects
 
 \begin_layout Chapter
 Figures
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -413,7 +420,7 @@ Figures
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -449,7 +456,7 @@ status collapsed
 
 \begin_layout Section
 La fenêtre de dialogue Graphique
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -524,7 +531,7 @@ reference "cha:Unités-de-longueur"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -540,7 +547,7 @@ Vous pouvez faire pivoter vos images dans le sens inverse des aiguilles
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -787,7 +794,7 @@ du
 groupe
 \family default
  vous permet de définir ou de choisir un groupe de paramètres d'image
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -889,7 +896,7 @@ name "sec:Figure-Floats"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -899,7 +906,7 @@ Flottants ! Figures
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1083,7 +1090,7 @@ M.C.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1357,7 +1364,7 @@ name "sec:Image-Formats"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1367,7 +1374,7 @@ Formats d' images
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1479,7 +1486,7 @@ Graphics Interchange Format
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1527,7 +1534,7 @@ Portable Network Graphics, extension
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1587,7 +1594,7 @@ Joint Photographic Expert Group, extension
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1671,7 +1678,7 @@ Scalable Vector Graphics
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1723,7 +1730,7 @@ encapsulated PostScript
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1775,7 +1782,7 @@ Portable Document Format
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1839,7 +1846,7 @@ Windows Metafile
 \end_inset
 
 )
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1914,7 +1921,7 @@ PDF/EPS convenables.
 
 \begin_layout Chapter
 Tableaux
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1928,7 +1935,7 @@ Tableau
 
 \begin_layout Section
 Introduction
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1977,7 +1984,7 @@ Le tableau a implicitementune bordure au dessus et à gauche de chaque case,
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -2147,7 +2154,7 @@ La fenêtre
 Tableau
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2173,13 +2180,69 @@ Vous pouvez agir sur un tableau en cliquant dessus avec le bouton droit
 contenu 
 \emph default
 d'une cellule et sélectionner la cellule elle-même.
- Vous pouvez utiliser les onglets suivants de la fenêtre de dialogue de
- tableaux :
+\begin_inset Newline newline
+\end_inset
+
+En cochant l'option 
+\family sans
+Application
+\begin_inset space ~
+\end_inset
+
+immédiate
+\family default
+ de la fenêtre de dialogue, chaque modification d'un champ de la fenêtre
+ est appliquée directement.
+ Si vous déplacez le curseur vers une autre celule du tableau, la fenêtre
+ s'adapte avec les valeurs des paramètres de la nouvelle cellule.
+ Si vous modifiez les valeurs des longueurs qui se trouvent dans la fenêtre
+ de dialogue, vous devez appuyer sur 
+\family sans
+Entrée
+\family default
+ pour que la modification soit appliquée.
+\begin_inset Newline newline
+\end_inset
+
+Vous pouvez utiliser les onglets suivants de la fenêtre de dialogue de tableaux
+ :
 \end_layout
 
 \begin_layout Description
-Tableau Avec cet onglet, vous pouvez choisir l'alignement horizontal et
+Paramètres
+\begin_inset space ~
+\end_inset
+
+du
+\begin_inset space ~
+\end_inset
+
+tableau Avec cet onglet, vous pouvez choisir l'alignement horizontal et
  la largeur de la colonne courante.
+ L'alignement horizontal 
+\family sans
+Au
+\begin_inset space ~
+\end_inset
+
+séparateur
+\begin_inset space ~
+\end_inset
+
+décimal
+\family default
+ est décrit dans la section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Alignements-de-cellules"
+
+\end_inset
+
+.
  Quand vous avez fixé une largeur, vous pouvez aussi modifier l'alignement
  vertical de la ligne courante.
  Une largeur fixée va permettre aux cellules d'avoir des sauts de lignes
@@ -2209,6 +2272,17 @@ Vous pouvez aussi marquer une ou plusieurs cellules d'une ligne comme étant
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Multicolonnes"
+
+\end_inset
+
+ ou une cellule d'une colonne comme cellule multiligne, voir la section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Multi-lignes"
 
 \end_inset
 
@@ -2282,13 +2356,168 @@ pas
 \end_inset
 
 
-\lang english
+\begin_inset Newline newline
+\end_inset
+
+Le paramètre global d'alignement vertical dans la ligne sert pour les tableaux
+ qui sont incorporés dans une ligne de texte :
+\begin_inset Newline newline
+\end_inset
+
+Une ligne avec des tableaux alignés de différentes manières: 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="top">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="bottom">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
 
 \begin_inset Newline newline
 \end_inset
 
-
-\lang french
 On peut aussi entrer des paramètres LaTeX pour obtenir des mise en formes
  spéciales pour le tableau, voir les sections
 \begin_inset space ~
@@ -2401,15 +2630,9 @@ reference "sec:Questions-sur-tableaux-longs"
  décrivent ces tableaux longs plus en détail.
 \end_layout
 
-\begin_layout Standard
-Quand la barre d'outils tableau est activée, vous pouvez déplacer le curseur
- de cellule en cellule avec les touches de déplacement et voir s'afficher
- les propriétés de la cellule courante dans la fenêtre de dialogue.
-\end_layout
-
 \begin_layout Section
 La barre d'outils tableau
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2615,6 +2838,17 @@ ou colonne ?
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset Graphics
+	filename ../../images/tabular-feature_align-decimal.png
+	scaleBeforeRotation
+
+\end_inset
+
+ aligne le contenu de la colonne courante sur un caractère
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Graphics
 	filename ../../images/tabular-feature_m-valign-top.png
 	scaleBeforeRotation
 
@@ -2679,6 +2913,17 @@ re
  transforme en multi-colonne la cellule ou la sélection courante
 \end_layout
 
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+\begin_inset Graphics
+	filename ../../images/tabular-feature_multirow.png
+	scaleBeforeRotation
+
+\end_inset
+
+ transforme en multiligne la cellule ou la sélection courante
+\end_layout
+
 \begin_layout Standard
 \begin_inset Note Greyedout
 status open
@@ -2699,7 +2944,7 @@ Note :
 
 \begin_layout Section
 Le Menu Éditer Tableau
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2733,7 +2978,7 @@ name "sec:Table-Floats"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2743,7 +2988,7 @@ Flottants ! Tableaux
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2799,7 +3044,7 @@ Un flottant de tableau.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -2880,7 +3125,8 @@ Jean
 \begin_layout Plain Layout
 \begin_inset Formula $\left[\begin{array}{cc}
 a & b\\
-c & d\end{array}\right]$
+c & d
+\end{array}\right]$
 \end_inset
 
 
@@ -2991,7 +3237,7 @@ letter
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3051,7 +3297,7 @@ reference "sec:Formatage-légende"
 
 \begin_layout Standard
 Dans le texte, on fait référence à un tableau
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3123,7 +3369,7 @@ name "sec:Tableaux-longs"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3133,7 +3379,7 @@ Tableaux longs
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3266,7 +3512,7 @@ Vous pouvez aussi préciser une ligne où la table devra être coupée.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="69" columns="3">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -5457,7 +5703,7 @@ name "sub:Notes-dans-tableau-long"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5490,7 +5736,7 @@ reference "tab:Légendes-tableau-différentes"
 
 \begin_layout Subsection
 Alignement des Tableaux Longs
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5503,12 +5749,12 @@ Tableaux longs ! Alignement
 \end_layout
 
 \begin_layout Standard
-Implicitement les Tableaux Longs sont centrés.
- Contrairement à l'alignement dans les colonnes et les lignes, l'alignement
- du tableau ne peut actuellement pas être modifié à partir de la fenêtre
- de dialogue.
- Pour modifier l'alignement d'un tableau long, vous devez modifier les valeurs
- des longueurs 
+L'alignement horizontal des tableaux longs peut être modifié dans la fenêtre
+ de dialogue des paramètres de tableau.
+ Pour les alignements à droite et à gauche, le tableau sera directement
+ au bord de la page.
+ Pour ajouter de l'espace entre le tableau et la marge, on doit choisir
+ l'alignement centré et modifier les valeurs des longueurs 
 \series bold
 
 \backslash
@@ -5575,17 +5821,19 @@ fill
 \end_layout
 
 \begin_layout Standard
-Le tableau long suivant a été aligné à gauche en mettant 
+Le tableau long suivant a été centrée en mettant 
 \series bold
 
 \backslash
 LTleft
 \series default
- à 0
-\begin_inset space \thinspace{}
-\end_inset
-
-pt.
+ à 
+\family sans
+0.1
+\backslash
+columnwidth
+\family default
+:
 \begin_inset ERT
 status collapsed
 
@@ -5595,7 +5843,9 @@ status collapsed
 \backslash
 setlength{
 \backslash
-LTleft}{0pt}
+LTleft}{0.1
+\backslash
+columnwidth}
 \end_layout
 
 \end_inset
@@ -5606,7 +5856,7 @@ LTleft}{0pt}
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="5">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -5907,7 +6157,7 @@ reference "sub:Tableaux-longs-légende"
 
 \begin_layout Subsection
 Légendes et Tableaux longs
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5955,7 +6205,7 @@ Voici un petit Tableau long pour voir comment ça marche :
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="5">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -5970,7 +6220,7 @@ Voici un petit Tableau long pour voir comment ça marche :
 
 \begin_layout Plain Layout
 Tableau long avec une légende
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -6361,7 +6611,7 @@ Note
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6397,7 +6647,7 @@ PDF
 
 \begin_layout Subsubsection
 Références à des tableaux longs
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6412,7 +6662,7 @@ Tableaux longs ! Références
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="5">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -6749,7 +6999,7 @@ La mise en forme de la légende peut être ajustée avec celle de toutes les
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6774,7 +7024,7 @@ reference "sec:Formatage-légende"
 
 \begin_layout Subsubsection
 Largeur de la légende
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6831,20 +7081,13 @@ reference "cha:Unités-de-longueur"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Newpage pagebreak
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 Les tableaux suivants montrent la différence :
 \end_layout
 
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="5">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -6860,7 +7103,7 @@ Les tableaux suivants montrent la différence :
 \begin_layout Plain Layout
 long titre complet avec la largeur implicite long titre complet avec la
  largeur implicite long titre complet avec la largeur implicite
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -7176,7 +7419,7 @@ LTcapwidth}{5cm}
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="5">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -7203,7 +7446,7 @@ cm long titre complet avec la largeur réglée à 5
 \end_inset
 
 cm
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -7545,7 +7788,7 @@ Note:
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7595,7 +7838,7 @@ caption
 
 \begin_layout Subsubsection
 Des Légendes différentes sur chaque page d'un tableau
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -7605,7 +7848,7 @@ Légendes différentes
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7656,7 +7899,7 @@ reference "tab:Légendes-tableau-différentes"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="59" columns="3">
-<features islongtable="true" lastFootEmpty="true">
+<features islongtable="true" lastFootEmpty="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -7676,7 +7919,7 @@ name "tab:Légendes-tableau-différentes"
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -9548,7 +9791,7 @@ Roberto
 
 \begin_layout Section
 Questions particulières concernant les tableaux longs
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -9569,7 +9812,7 @@ name "sec:Questions-sur-tableaux-longs"
 
 \begin_layout Subsection
 Calculs des pages des tableaux longs
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9605,7 +9848,7 @@ setcounter{LTchunksize}{100}
 
 \begin_layout Subsection
 Les Flottants et les Tableaux Longs
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9620,19 +9863,7 @@ Tableaux longs ! Flottants
 \begin_layout Standard
 Il peut y avoir des problèmes quand un flottant apparaît sur la page où
  commence un tableau long.
- Pour éviter une telle situation, 
-\lang english
-insert a 
-\begin_inset Quotes eld
-\end_inset
-
-clear page
-\begin_inset Quotes erd
-\end_inset
-
- (menu
-\lang french
- 
+ Pour éviter une telle situation, insérez un saut de page (menu 
 \family sans
 Insérer\SpecialChar \menuseparator
 Typographie
@@ -9651,7 +9882,7 @@ Saut de page (vide le tampon)
 
 \begin_layout Subsection
 Sauts de pages forcés
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9846,7 +10077,7 @@ au début de la cellule.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="38" columns="3">
-<features islongtable="true" lastFootEmpty="true">
+<features islongtable="true" lastFootEmpty="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0cm">
 <column alignment="left" valignment="top" width="3cm">
 <column alignment="center" valignment="top" width="0pt">
@@ -9866,7 +10097,7 @@ name "tab:Tableau-saut-de-page"
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -11121,7 +11352,7 @@ name "sub:Lignes-multiple-dans-cellule"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11131,7 +11362,7 @@ Plusieurs lignes dans une case de tableau
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11173,7 +11404,7 @@ Tableau avec des lignes multiples dans une cellule
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="2.5cm">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="middle" width="0">
@@ -11377,7 +11608,7 @@ Tableau avec et sans césure.
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="2.5cm">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="middle" width="0">
@@ -11479,7 +11710,7 @@ i
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="2.5cm">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="middle" width="0">
@@ -11599,7 +11830,7 @@ name "sub:Multicolonnes"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11609,7 +11840,7 @@ Multi-colonnes
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11646,9 +11877,7 @@ Multi-colonnes
 \family sans
 Multi-colonnes
 \family default
- 
-\lang english
-in the appearing context menu.
+.
 \end_layout
 
 \begin_layout Standard
@@ -11663,7 +11892,7 @@ Les multi-colonnes ont leurs propres paramètres de cellule.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="4">
-<features firstHeadTopDL="true" firstHeadBottomDL="true">
+<features firstHeadTopDL="true" firstHeadBottomDL="true" tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="top" width="0in">
@@ -11798,7 +12027,7 @@ name "sub:Calculs-multicolonnes"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11834,7 +12063,7 @@ name "tab:Tableau-multicolonne-parfaite"
 
 Tableau avec un texte centré dans une case multicolonne au-dessus de deux
  colonnes qui ont exactement la moitié de la largeur de la case multicolonne.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -11855,7 +12084,7 @@ Tableau avec multicolonne parfaite
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="0" special=">{\centering}m{1.25cm-6.2pt}">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -12040,7 +12269,7 @@ name "tab:Tableau-multicolonne-imparfait"
 
 Tableau où la largeur de colonnes couvertes n'est pas exactement la moitié
  de la largeur de la cellule multicolonne.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -12061,7 +12290,7 @@ Tableau avec multicolonne pas parfaite
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="1.25cm">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -12207,7 +12436,8 @@ n
 
 :
 \begin_inset Formula \begin{equation}
-W_{g\, n}=(W_{g\,\mathrm{multicolonne}}+(1-n)\cdot(12.4\,\mathrm{pt}))/n\label{eq:Wgn}\end{equation}
+W_{g\, n}=(W_{g\,\mathrm{multicolonne}}+(1-n)\cdot(12.4\,\mathrm{pt}))/n\label{eq:Wgn}
+\end{equation}
 
 \end_inset
 
@@ -12236,7 +12466,8 @@ reference "eq:Wgn"
 
  devient
 \begin_inset Formula \begin{equation}
-W_{g\,2}=1.25\,\mathrm{cm}-6.2\,\mathrm{pt}\end{equation}
+W_{g\,2}=1.25\,\mathrm{cm}-6.2\,\mathrm{pt}
+\end{equation}
 
 \end_inset
 
@@ -12250,7 +12481,7 @@ Pour permettre des calculs avec LaTeX, vous devez charger le paquetage LaTeX
 calc
 \series default
  avec la ligne suivante dans le préambule du document
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12375,7 +12606,14 @@ centering}m{2.5cm}
 
 \begin_layout Subsection
 Multi-lignes
-\begin_inset Index
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Multi-lignes"
+
+\end_inset
+
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12385,7 +12623,7 @@ Multi-lignes
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12398,27 +12636,161 @@ Tableau ! Multi-ligne
 \end_layout
 
 \begin_layout Standard
-Au contraire des multi-colonnes, les multi-lignes ne sont pas encore gérés
- par LyX, il faut donc utiliser un peu de code TeX.
- Pour utiliser les multi-lignes, vous devez charger le paquetage LaTeX 
-\series bold
-multirow
-\series default
+Pour faire qu'une cellule couvre plusieurs lignes, marquez les cellules
+ qu'elle doit couvrir et utilisez soit le bouton 
+\begin_inset Graphics
+	filename ../../images/tabular-feature_multirow.png
+	scale 85
+	scaleBeforeRotation
 
-\begin_inset Index
-status collapsed
+\end_inset
+
+de la barre d'outils tableau, ou le menu 
+\family sans
+Éditer\SpecialChar \menuseparator
+Tableau\SpecialChar \menuseparator
+Multi-lignes
+\family default
+, ou encore faites un clic droit sur les cellules sélectionnées et choisissez
+ 
+\family sans
+Multi-lignes
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+Voici un exemple de tableau avec une cellule multiligne en première colonne:
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Plain Layout
-Paquetages LaTeX ! multirow
+un contenu long
 \end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+b
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="3" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+multi-ligne
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+e
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+f
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+h
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+i
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+La largeur de la cellule multiligne est déterminée par la largeur de toute
+ la colonne.
+ L'
+\family sans
+Espacement
+\begin_inset space ~
+\end_inset
+
+vertical
+\family default
+ décale le contenu de la cellule vers le haut ou le bas selon que sa valeur
+ est positive ou négative.
+\end_layout
+
+\begin_layout Standard
+Si la colonne dans laquelle se trouve la multiligne n'a pas de largeur fixée
+ explicitement, la cellule hérite de l'alignement de la colonne.
+ Sinon, elle est alignée par défaut à gauche.Pour passer outre le comportement
+ implicite, vous devez redéfinir la commande 
 \series bold
- 
+
+\backslash
+multirowsetup
 \series default
-dans le préambule de votre document avec la commande 
+ avec la commande
 \end_layout
 
 \begin_layout Standard
@@ -12426,26 +12798,61 @@ dans le préambule de votre document avec la commande
 \series bold
 
 \backslash
-usepackage{multirow}
+renewcommand{
+\backslash
+multirowsetup}{
+\backslash
+centering}
 \end_layout
 
 \begin_layout Standard
-Les cellules multilignes sont créées avec la commande
-\end_layout
-
-\begin_layout Standard
-
+dans le préambule du document.
+ Après ça, tous les contenus de cellules multi-lignes du document seront
+ centrés.
+ Si vous ne souhaitez utiliser des contenus centrés que pour quelques tableaux,
+ vous pouvez redéfinir la commande en l'insérant sous forme de code TeX
+ juste avant le tableau concerné, plutôt que dans le préambule.
+ Si le texte doit être aligné à droite, remplacez 
 \series bold
 
 \backslash
-multirow{number of rows}{cell width}{cell entry}
+centering
+\series default
+ par 
+\series bold
+
+\backslash
+raggedleft
+\series default
+.
+ Pour revenir à l'alignement à gauche utilisez 
+\series bold
+
+\backslash
+raggedright
+\series default
+.
 \end_layout
 
 \begin_layout Standard
-Pour créer le tableau suivant :
+Voici un exemple de tableau avec une cellule multiligne alignée à droite
+ avec un décalage vertical de of -4
+\begin_inset space \thinspace{}
+\end_inset
+
+mm dans une colonne de 3
+\begin_inset space \thinspace{}
+\end_inset
+
+cm de large
+\begin_inset space ~
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Standard
+\noindent
 \align center
 \begin_inset ERT
 status collapsed
@@ -12458,16 +12865,16 @@ renewcommand{
 \backslash
 multirowsetup}{
 \backslash
-centering}
+raggedleft}
 \end_layout
 
 \end_inset
 
 
 \begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0">
+<lyxtabular version="3" rows="4" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="3cm">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -12475,7 +12882,7 @@ centering}
 \begin_inset Text
 
 \begin_layout Plain Layout
-a
+un contenu long
 \end_layout
 
 \end_inset
@@ -12504,30 +12911,36 @@ c
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-multirow{2}{2.5cm}{
+t
 \end_layout
 
 \end_inset
-
-cellule multi-lignes
-\begin_inset ERT
-status collapsed
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Plain Layout
-
-}
+n
 \end_layout
 
 \end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
 
+\begin_layout Plain Layout
+m
+\end_layout
 
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="3" mroffset="-4mm" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+multi-ligne
 \end_layout
 
 \end_inset
@@ -12552,7 +12965,7 @@ f
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+<cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -12604,97 +13017,6 @@ raggedright}
 
 \end_layout
 
-\begin_layout Standard
-créez un tableau 3×3.
- Désactivez la bordure supérieure de la dernière cellule dans la première
- colonne.
- La cellule multi-ligne est ensuite créée dans la deuxième cellule de la
- première colonne en y insérant la commande
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-multirow{2}{2.5cm}{
-\end_layout
-
-\begin_layout Standard
-comme du code TeX.
- Les paramètres de la commande indiquent que la cellule multi-ligne couvre
- deux lignes et a une largeur de 2.5
-\begin_inset space \thinspace{}
-\end_inset
-
-cm.
- Le contenu de la cellule suit le code TeX et on termine la commande en
- ajoutant l'accolade fermante 
-\series bold
-}
-\series default
- dans une nouvelle boîte de code TeX, juste après le texte.
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-multirow
-\series default
- aligne implicitement son contenu à gauche.
- Pour passer outre le comportement implicite, vous devez redéfinir la commande
- 
-\series bold
-
-\backslash
-multirowsetup
-\series default
- avec la commande
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-renewcommand{
-\backslash
-multirowsetup}{
-\backslash
-centering}
-\end_layout
-
-\begin_layout Standard
-dans le préambule du document.
- Après ça, tous les contenus de cellules multi-lignes du document seront
- centrés.
- Si vous ne souhaitez utiliser des contenus centrés que pour quelques tableaux,
- vous pouvez redéfinir la commande en l'insérant sous forme de code TeX
- juste avant le tableau concerné, plutôt que dans le préambule.
- Si le texte doit être aligné à droite, remplacez 
-\series bold
-
-\backslash
-centering
-\series default
- par 
-\series bold
-
-\backslash
-raggedleft
-\series default
-.
- Pour revenir à l'alignement à gauche utilisez 
-\series bold
-
-\backslash
-raggedright
-\series default
-.
-\end_layout
-
 \begin_layout Section
 Les Tableaux Formels
 \begin_inset CommandInset label
@@ -12704,7 +13026,7 @@ name "sec:Tableaux-Formels"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12795,7 +13117,7 @@ Exemple de tableau formel
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="4">
-<features booktabs="true">
+<features booktabs="true" tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -12814,7 +13136,7 @@ Système
 \begin_inset Text
 
 \begin_layout Plain Layout
-Medipix
+Chip
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -12823,11 +13145,11 @@ Medipix
 
 \end_inset
 </cell>
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-Medipix
+Chip
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -12876,7 +13198,7 @@ cmidrule(l){3-4}
 
 \end_inset
 
-Épaisseur du capteur [µm]
+Épaisseur du capteur en µm
 \end_layout
 
 \end_inset
@@ -12914,7 +13236,7 @@ cmidrule(l){3-4}
 \begin_inset Text
 
 \begin_layout Plain Layout
-Angle du biseau [°]
+Angle du biseau en °
 \end_layout
 
 \end_inset
@@ -12952,7 +13274,7 @@ Angle du biseau [°]
 \begin_inset Text
 
 \begin_layout Plain Layout
-Résolution spatiale [µm]
+Résolution spatiale en µm
 \end_layout
 
 \end_inset
@@ -13543,7 +13865,7 @@ key "booktabs"
 \end_inset
 
 .
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13584,7 +13906,7 @@ Tableau formel spécial
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="4">
-<features booktabs="true">
+<features booktabs="true" tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -13603,7 +13925,7 @@ Système
 \begin_inset Text
 
 \begin_layout Plain Layout
-Medipix
+Chip
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -13612,11 +13934,11 @@ Medipix
 
 \end_inset
 </cell>
-<cell multicolumn="1" alignment="center" valignment="top" usebox="none">
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-Medipix
+Chip
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -13691,7 +14013,7 @@ cmidrule{2-4}
 
 \end_inset
 
-Epaisseur du capteur [µm]
+Epaisseur du capteur en µm
 \end_layout
 
 \end_inset
@@ -13729,7 +14051,7 @@ Epaisseur du capteur [µm]
 \begin_inset Text
 
 \begin_layout Plain Layout
-Angle biseau [°]
+Angle biseau en °
 \end_layout
 
 \end_inset
@@ -13767,7 +14089,7 @@ Angle biseau [°]
 \begin_inset Text
 
 \begin_layout Plain Layout
-Résolution spatiale [µm]
+Résolution spatiale en µm
 \end_layout
 
 \end_inset
@@ -13995,7 +14317,7 @@ en % de la taille des pixels
 
 \begin_layout Section
 Alignement Vertical des Tableaux
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14062,6 +14384,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1in"
@@ -14071,7 +14394,7 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -14193,6 +14516,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1in"
@@ -14202,7 +14526,7 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -14324,6 +14648,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1in"
@@ -14333,7 +14658,7 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -14444,6 +14769,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1in"
@@ -14453,7 +14779,7 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -14575,6 +14901,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1in"
@@ -14584,7 +14911,7 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -14794,7 +15121,7 @@ name "sec:Tableaux-Colorés"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14808,7 +15135,7 @@ Tableau ! Coloré
 
 \begin_layout Subsection
 Cellules Colorées
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14818,7 +15145,7 @@ Couleur des tableaux ! Pour les cellules
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14852,7 +15179,7 @@ Tableau coloré sans utiliser le paquetage
 colortbl
 \series default
 
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -14873,7 +15200,7 @@ Tableau sans colortbl
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -15027,7 +15354,7 @@ reference "tab:Tableau-coloré-sans-colortbl"
 colortbl
 \series default
 .
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15430,7 +15757,7 @@ Tableau coloré en utilisant le paquetage
 colortbl
 \series default
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -15451,7 +15778,7 @@ Tableau avec colortbl
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0" special=">{\columncolor{darkgreen}\centering}c">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -15652,7 +15979,7 @@ fi
 
 \begin_layout Subsection
 Les filets colorées
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15662,7 +15989,7 @@ Tableau Coloré ! Pour les filets
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15811,7 +16138,7 @@ Tableau avec filets verticaux colorés
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0" special="Wc">
 <column alignment="center" valignment="top" width="0" special="Wc">
 <column alignment="center" valignment="top" width="0" special="WcW">
@@ -15955,14 +16282,16 @@ hline}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -16042,7 +16371,7 @@ Tableau avec filets horizontaux colorés
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -16206,7 +16535,7 @@ Tableau avec filets horizontaux et verticaux colorés
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0" special="Wc">
 <column alignment="center" valignment="top" width="0" special="Wc">
 <column alignment="center" valignment="top" width="0" special="WcW">
@@ -16349,7 +16678,7 @@ arrayrulewidth}{0.4pt}
 
 \begin_layout Section
 Personnalisation des Tableaux
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16359,7 +16688,7 @@ Tableau ! Personnalisation
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16380,7 +16709,7 @@ name "sub:Espacement-lignes"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16471,7 +16800,7 @@ em.
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="1">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
@@ -16594,7 +16923,7 @@ em.
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="1">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <row>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
@@ -16695,14 +17024,16 @@ Quand vous voulez ajouter de l'espace à toutes les cases de tous les tableaux
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -16824,7 +17155,7 @@ Tableau normal.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="1">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
@@ -16944,7 +17275,7 @@ strut
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="1">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <row>
 <cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
@@ -17105,9 +17436,23 @@ Huger
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Alignements de cellules spéciaux
-\begin_inset Index
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Alignements-de-cellules"
+
+\end_inset
+
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17129,11 +17474,31 @@ On peut parfois améliorer l'aspect d'un tableau en alignant le contenu des
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "tab:Tableau-centré-sur-séparateur"
+reference "tab:Tableau-centré-sur-séparateur-1"
 
 \end_inset
 
 .
+ Cet alignement est obtenu en mettant le curseur dans la colonne et ensuite,
+ soit en appuyant sur le bouton 
+\begin_inset Graphics
+	filename ../../images/tabular-feature_align-decimal.png
+	scale 85
+	scaleBeforeRotation
+
+\end_inset
+
+de la barre d'outils ou en modifiant le paramètre 
+\family sans
+Alignement horizontal
+\family default
+ à 
+\family sans
+Au séparateur décimal
+\family default
+.
+ Le caractère sur lequel se fait l'alignement peut être choisi en le précisant
+ dans les paramètres du tableau.
 \end_layout
 
 \begin_layout Standard
@@ -17149,7 +17514,7 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset label
 LatexCommand label
-name "tab:Tableau-centré-sur-séparateur"
+name "tab:Tableau-centré-sur-séparateur-1"
 
 \end_inset
 
@@ -17164,10 +17529,97 @@ Les cellules d'une colonnes sont centrées sur le séparateur décimal.
 \begin_layout Plain Layout
 \align center
 \begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="1">
+<features booktabs="true" tabularvalignment="middle">
+<column alignment="decimal" decimal_point="," valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+en-tête
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+12,6
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,68
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-123,0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Tableau-centré-sur-séparateur-2"
+
+\end_inset
+
+Les cellules d'une colonnes sont centrées sur les opérateurs.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
-<column alignment="right" valignment="top" width="0">
-<column alignment="left" valignment="top" width="0" special="@{}l">
+<features booktabs="true" tabularvalignment="middle">
+<column alignment="right" valignment="top" width="0pt">
+<column alignment="left" valignment="top" width="0pt" special="@{}l">
 <row>
 <cell multicolumn="1" alignment="center" valignment="top" bottomline="true" usebox="none">
 \begin_inset Text
@@ -17193,7 +17645,10 @@ en-tête
 \begin_inset Text
 
 \begin_layout Plain Layout
-12,
+\begin_inset Formula $12\,+$
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -17202,27 +17657,10 @@ en-tête
 \begin_inset Text
 
 \begin_layout Plain Layout
-6
-\end_layout
-
+\begin_inset Formula $\,6$
 \end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
 
-\begin_layout Plain Layout
-0,
-\end_layout
 
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-68
 \end_layout
 
 \end_inset
@@ -17233,7 +17671,10 @@ en-tête
 \begin_inset Text
 
 \begin_layout Plain Layout
--123,
+\begin_inset Formula $0\,-$
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -17242,7 +17683,36 @@ en-tête
 \begin_inset Text
 
 \begin_layout Plain Layout
-0
+\begin_inset Formula $\,68$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $-123\,/$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\,0$
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -17261,14 +17731,31 @@ en-tête
 \end_layout
 
 \begin_layout Standard
-Ce tableau a été créé comme un tableau 4×2.
+L'alignement sur un caractère ne fonctionne pas avec des formules parce
+ que le champ utilisé pour préciser le caractère voulu n'accepte pas les
+ formules.
+ Dans ce cas on doit utiliser la méthode du tableau
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Tableau-centré-sur-séparateur-2"
+
+\end_inset
+
+.
+ Ce tableau a été créé comme un tableau 4×2.
  L'en-tête est une cellule multicolonne centrée.
- La première colonne est alignée à droite et contient les chiffres qui se
- trouvent avant la virgule ainsi que la virgule elle-même.
- La deuxième colonne est alignée à gauche et contient les chiffres situés
- après la virgule.
+ La première colonne est alignée à droite et contient la première partie
+ et inclue l'opérateur.
+ La seconde colonne contient le reste de la cellule aligné à gauche.
+ Un petit espace a été ajouté au début de toutes les celleules de la deuxième
+ colonne pour obtenir l'espace que l'on a d'habitude autour d'un opérateur.
  Pour éviter l'espace qui est normalement placé entre deux colonnes d'un
- tableau, utilisez le paramètre LaTeX suivant pour la deuxième colonne :
+ tableau, le paramètre LaTeX suivant a été utilisé pour la deuxième colonne
+ :
 \end_layout
 
 \begin_layout Standard
@@ -17290,9 +17777,19 @@ reference "tab:Plusieurs-exemples-alignements"
 \end_inset
 
  montre quelques exemples d'alignements.
- Pour l'alignement sur l'opérateur de relation, vous devez ajouter le deuxième
- plus petit espace mathématique au début de la dernière colonne pour obtenir
- l'espacement correct autour du signe de relation.
+ Pour l'alignement sur l'opérateur de relation, un petit espace a été ajouté
+ comme pour la deuxième colonne du tableau
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Tableau-centré-sur-séparateur-2"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -17323,7 +17820,7 @@ Plusieurs exemples d'alignement de cellules.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="6">
-<features>
+<features tabularvalignment="middle">
 <column alignment="right" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0" special="@{}l">
 <column alignment="right" valignment="top" width="0">
@@ -17615,325 +18112,6 @@ cm
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-Il y a aussi le paquetage LaTeX 
-\series bold
-dcolumn
-\series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Paquetages LaTeX ! dcolumn
-\end_layout
-
-\end_inset
-
- qui fournit des alignements pour les cellules de tableaux.
- Mais malheureusement, il traite le contenu des cellules comme des mathématiques
- et ne permet pas de formules dans les cellules du tableau : Avec 
-\series bold
-dcolumn
-\series default
- la première colonne du tableau
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "tab:Plusieurs-exemples-alignements"
-
-\end_inset
-
- ressemblera à la première colonne du tableau
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "tab:Alignements-avec-dcolumn"
-
-\end_inset
-
-
-\lang english
- and only with some tricks like the expected.
- 
-\lang french
-On ne peut pas aligner la deuxième et la troisième colonne du tableau
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "tab:Plusieurs-exemples-alignements"
-
-\end_inset
-
- avec 
-\series bold
-dcolumn
-\series default
-.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float table
-placement h
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "tab:Alignements-avec-dcolumn"
-
-\end_inset
-
-Alignements quand on utilise le paquetage LaTeX dcolumn.
- Pour toutes les colonnes des astuces d'alignement ont dû être utilisées
- pour obtenir la sortie.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="4" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0" special="D{x}{\times}{-1.0}">
-<column alignment="center" valignment="top" width="0" special="D{x}{\times}{4.11}">
-<column alignment="center" valignment="top" width="0" special="D{+}{\,}{9.9}">
-<row>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-unités
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-unités
-\end_layout
-
-\end_inset
-</cell>
-<cell multicolumn="1" alignment="center" valignment="top" bottomline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-unités
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-12x24
-\begin_inset space \thinspace{}
-\end_inset
-
-bouteilles
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-12x24
-\begin_inset space \thinspace{}
-\end_inset
-
-
-\begin_inset Formula $\mbox{bouteilles}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-12
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-times 
-\end_layout
-
-\end_inset
-
-24+
-\begin_inset Formula $\mbox{bouteilles}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-1024x768
-\begin_inset space \thinspace{}
-\end_inset
-
-Pixels
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-1024x768
-\begin_inset space \thinspace{}
-\end_inset
-
-
-\begin_inset Formula $\mbox{Pixels}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-1024
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-times 
-\end_layout
-
-\end_inset
-
-768+
-\begin_inset Formula $\mbox{Pixels}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-32x6
-\begin_inset space \thinspace{}
-\end_inset
-
-cm
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-32x6
-\begin_inset space \thinspace{}
-\end_inset
-
-
-\begin_inset Formula $\mbox{cm}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-32
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-times 
-\end_layout
-
-\end_inset
-
-6+
-\begin_inset Formula $\mbox{cm}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Subsection
 Formats de cellule et de colonne personnalisés
 \begin_inset CommandInset label
@@ -17943,7 +18121,7 @@ name "sub:Formats-personnalisés"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18098,27 +18276,15 @@ hspace{0pt}}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-phantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 newcolumntype{S}[2]
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -18288,7 +18454,7 @@ Tableau utilisant des formats personnalisés
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="2.5cm" special="M{2.5cm}">
 <column alignment="center" valignment="middle" width="0" special="S{2.5cm}{2}">
 <column alignment="center" valignment="middle" width="0">
@@ -18428,7 +18594,7 @@ name "sub:Epaisseur-filets"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18541,7 +18707,7 @@ pt
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -18823,7 +18989,7 @@ pt
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -19043,7 +19209,7 @@ pt
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0" special="Vc">
 <column alignment="center" valignment="top" width="0" special="Vc">
 <column alignment="center" valignment="top" width="0" special="VcV">
@@ -19148,7 +19314,7 @@ sd
 
 \begin_layout Subsection
 Filets à traits interrompus
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19220,7 +19386,7 @@ Tableau avec des filets à traits interrompus
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0" special=":c">
@@ -19505,7 +19671,7 @@ LyX ne gère pas de façon native les filets à lignes interrompues, vous devez
 arydshln
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19657,7 +19823,7 @@ arydshln
 colortbl
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19743,7 +19909,7 @@ fi
 
 \begin_layout Chapter
 Flottants
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19764,7 +19930,7 @@ name "sec:Flottants-Introduction"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19943,7 +20109,7 @@ Enrobage
 
 \begin_layout Subsection
 Flottant d'algorithme
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20260,7 +20426,7 @@ Document
 
 \begin_layout Subsection
 Flottant d'enrobage
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20329,7 +20495,7 @@ d'enrobage
 wrapfig
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20490,7 +20656,7 @@ Les flottants d'enrobage ne sont pas autorisés dans les en-têtes de sections
 
 \begin_layout Section
 Numérotation des flottants
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20657,7 +20823,7 @@ name "sec:Referencer-les-Flottants"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20667,7 +20833,7 @@ Flottants ! Références
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20804,7 +20970,7 @@ name "sub:Formats-Références-Croisées"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20880,6 +21046,14 @@ reference "fig:Deux-images-déformées"
 \end_layout
 
 \begin_layout Description
+Sur
+\begin_inset space ~
+\end_inset
+
+la
+\begin_inset space ~
+\end_inset
+
 page
 \begin_inset space ~
 \end_inset
@@ -20955,10 +21129,9 @@ forme
 \end_inset
 
 : affiche une référence croisée qui définit son propre format.
+\begin_inset Newline newline
+\end_inset
 
-\lang english
- 
-\lang french
 
 \begin_inset Note Greyedout
 status open
@@ -20973,8 +21146,12 @@ Note:
 \series bold
 prettyref
 \series default
+ ou 
+\series bold
+refstyle
+\series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20983,8 +21160,83 @@ Paquetages LaTeX ! prettyref
 
 \end_inset
 
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! refstyle
+\end_layout
+
+\end_inset
+
 .
 \end_layout
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Le format est précisé en ajoutant la commande 
+\series bold
+
+\backslash
+newrefformat
+\series default
+ (prettyref) ou 
+\series bold
+
+\backslash
+newref
+\series default
+ (refstyle) au préambule du document.
+ Par exemple, pour redéfinir toutes les référence à des figures (qui ont
+ l'étiquette abrégée 'fig') on peut utiliser la commande suivante
+\begin_inset space ~
+\end_inset
+
+:
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+newref{fig}{refcmd={Image sur la page 
+\backslash
+pageref{#1}}}
+\series default
+
+\begin_inset Newline newline
+\end_inset
+
+Pour plus d'information sur le format, jetez un oeil dur la documentation
+ du paquetage, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "prettyref,refstyle"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+Référence
+\begin_inset space ~
+\end_inset
+
+textuelle: affiche la légende de la référence
+\begin_inset space ~
+\end_inset
+
+: 
+\begin_inset CommandInset ref
+LatexCommand nameref
+reference "fig:Deux-images-déformées"
 
 \end_inset
 
@@ -21021,11 +21273,10 @@ page
 \begin_inset space ~
 \end_inset
 
-<page>
+<page> 
 \family default
- 
-\lang english
-will not print anything about the page if the label is on the same page.
+n'affichera rien au sujet de la page si l'étiquette se trouve sur la même
+ page.
 \end_layout
 
 \begin_layout Standard
@@ -21045,12 +21296,26 @@ status open
 \series bold
 Note:
 \series default
- Le paquetage LaTeX 
+ L'utilisation du paquetage LaTeX 
+\series bold
+refstyle
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! refstyle
+\end_layout
+
+\end_inset
+
+ est recommendée parce que 
 \series bold
 prettyref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21078,19 +21343,6 @@ fig:
 \end_inset
 
  et n'est pas internationalisé.
- Pour savoir comment introduire de nouveaux raccourcis ou de nouvelles traductio
-ns dans 
-\series bold
-prettyref
-\series default
-, voir la documentation du paquetage
-\begin_inset CommandInset citation
-LatexCommand cite
-key "prettyref"
-
-\end_inset
-
-.
 \end_layout
 
 \end_inset
@@ -21134,7 +21386,7 @@ target "http://wiki.lyx.org/LaTeX/LatexBugs#toc5"
 
 \begin_layout Subsection
 Nommage automatique des références croisées
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21152,7 +21404,7 @@ Le paquetage LaTeX
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21250,14 +21502,16 @@ sectionautorefname}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -21325,14 +21579,16 @@ equationautorefname}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -21422,7 +21678,7 @@ name "sub:Reference-Position"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21459,7 +21715,7 @@ Paramètres du document,
 hypcap
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21473,7 +21729,7 @@ Paquetages LaTeX ! hypcap
 oberdiek
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21549,7 +21805,7 @@ name "sec:Placement-flottants"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21971,7 +22227,7 @@ Dans certains cas il est demandé de placer toutes les figures et tous les
 endfloat
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22145,7 +22401,7 @@ name "sec:Flottants-renversés"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22262,7 +22518,7 @@ name "tab:Tableau-pivoté"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -22329,7 +22585,7 @@ e
 
 \begin_layout Section
 Sous-flottants
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22457,7 +22713,7 @@ Le sous-tableau a
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -22551,7 +22807,7 @@ Le sous-tableau b.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -22673,7 +22929,7 @@ status collapsed
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -22751,7 +23007,7 @@ status collapsed
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -22823,7 +23079,7 @@ e
 
 \begin_layout Section
 Flottants côte-à-côte
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22924,6 +23180,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "45col%"
 special "none"
 height "1in"
@@ -22974,6 +23231,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "45col%"
 special "none"
 height "1in"
@@ -23023,7 +23281,7 @@ Flottant du côté droit.
 
 \begin_layout Section
 Mise en Forme de la Légende
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23033,7 +23291,7 @@ Légende ! Mise en forme
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23098,7 +23356,7 @@ Pour modifier le format implicite des légendes, il faut charger le paquetage
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23199,25 +23457,20 @@ captionsetup[figure]{labelfont={tt}, textfont=it, indention=1cm,%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
 
 \backslash
-hphantom{
-\backslash
-
-\backslash
-captionsetup[figure]
-\backslash
-{}
+captionsetup[figure]{
 \end_layout
 
 \end_inset
 
- labelsep=period}
+labelsep=period}
 \begin_inset Newline newline
 \end_inset
 
@@ -23244,7 +23497,7 @@ tableposition=top
 KOMA-Script
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23256,7 +23509,7 @@ Paquetages LaTeX ! KOMA-Script
 .
  Dans ce cas on doit utiliser l'option 
 \series bold
-tablecaptionabove
+captions=tableheading
 \series default
  de la classe de document.
 \end_layout
@@ -23344,7 +23597,7 @@ Si vous utilisez un document de classe
 KOMA-Script
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23543,7 +23796,7 @@ Ceci est un exemple de légende de tableau qui est plus longue qu'une ligne
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -23610,7 +23863,7 @@ e
 
 \begin_layout Section
 Positionnement de la Légende
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23620,7 +23873,7 @@ Légende ! Placement
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23724,7 +23977,7 @@ Si vous utilisez une classe de document
 KOMA-Script
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23759,7 +24012,7 @@ caption
 \series default
  l'option 
 \series bold
-tablecaptionabove
+captions=tableheading
 \series default
  de la classe de document.
 \end_layout
@@ -23774,7 +24027,7 @@ On peut aussi mettre la légende à côté d'une figure ou d'un tableau.
 sidecap
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23852,8 +24105,15 @@ Pour pouvoir placer la légende d'un flottant à côté de celui-ci, vous devez
 \end_layout
 
 \begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
 
-\lyxline
+\end_inset
+
 
 \end_layout
 
@@ -23869,14 +24129,16 @@ TabBesBeg}{%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -23892,14 +24154,16 @@ table
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -23915,14 +24179,16 @@ endtable
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -23948,14 +24214,16 @@ TabBesEnd}{%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -23971,14 +24239,16 @@ MyTable
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24004,14 +24274,16 @@ FigBesBeg}{%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24027,14 +24299,16 @@ figure
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24050,14 +24324,16 @@ endfigure
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24083,14 +24359,16 @@ FigBesEnd}{%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24106,14 +24384,16 @@ MyFigure
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -24128,8 +24408,15 @@ MyEndfigure}
 \end_layout
 
 \begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
 
-\lyxline
+\end_inset
+
 
 \end_layout
 
@@ -24328,7 +24615,7 @@ Note:
 hypcap
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24455,7 +24742,7 @@ Une légende à côté d'un tableau.
 \begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -24802,7 +25089,7 @@ fi
 
 \begin_layout Section
 Les Listes de Flottants
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24851,7 +25138,7 @@ Notes
 
 \begin_layout Section
 Les Notes de LyX
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25140,14 +25427,16 @@ renewenvironment{lyxgreyedout}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -25191,7 +25480,7 @@ name "sec:Notes-bas-de-page"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25201,7 +25490,7 @@ Notes ! Notes de bas de page
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25387,21 +25676,138 @@ reference "fn:Note-en-bas"
 \begin_inset VSpace defskip
 \end_inset
 
-Pour utiliser des notes de bas de page dans les tableaux, vous devez utiliser
- des minipages, voyez la section
+
+\end_layout
+
+\begin_layout Standard
+Le notes de bas de page se trouvant dans des tableaux ne sont pas imprimées
+ par LaTeX pour des raisons techniques.
+ Il existe pourtant une autre méthode pour les imprimer : on insère la commande
+ 
+\series bold
+
+\backslash
+footnotemark{}
+\series default
+ en code TeX à la place de la note de bas de page.
+ Le texte de la note est mis en argument de la commande TeX 
+\series bold
+
+\backslash
+footnotetext
+\series default
+ après le tableau.
+\begin_inset Newline newline
+\end_inset
+
+C'est ce qui a été fait pour le tableau qui suit avec la commande
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+footnotetext{
+\series default
+Note de bas de page de tableau imprimée.
+\series bold
+}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="1">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Un exemple de texte
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Cette note ne sera pas imprimée
 \begin_inset space ~
 \end_inset
 
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Minipages"
+!
+\end_layout
 
 \end_inset
 
-.
- Les notes de bas de page dans des tableaux longs sont traitées dans la
- section
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Un autre exemple de texte
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotemark{}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotetext{
+\end_layout
+
+\end_inset
+
+
+\lang french
+Note de bas de page de tableau imprimée.
+\lang english
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Les notes de bas de page dans des tableaux longs sont décrites dans la section
 \begin_inset space ~
 \end_inset
 
@@ -25416,27 +25822,139 @@ reference "sub:Notes-dans-tableau-long"
 \end_layout
 
 \begin_layout Standard
-\begin_inset VSpace defskip
+Les notes de bas de page qui se trouvent à l'intérieur d'une minipage sont
+ imprimées, mais à l'intérieur de la minipage et avec une numérotation différent
+e, vu que la minipage est considérée comme une page se trouvant dans une
+ autre page.
+ Pour plus d'information sur les minipages, voyez la section
+\begin_inset space ~
 \end_inset
 
-Pour créer seulement la marque de note, utilisez la commande 
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Minipages"
+
+\end_inset
+
+.
+ Pour avoir une note de bas de page à l'intérieur d'une minipage et qui
+ s'imprime en bas de page comme une note normale, on doit aussi utiliser
+ la méthode utilisant les commandes 
 \series bold
 
 \backslash
-footnotemark[nombre]
+footnotemark{}
+\series default
+ et 
+\series bold
+
+\backslash
+footnotetext
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+Un exemple de texte dans une minipage.
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Note de bas de page dans la minipage.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+Un autre exemple de texte dans une minipage.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotemark{}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotetext{
+\end_layout
+
+\end_inset
+
+Note de bas de page en denors de la minipage.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pour faire référence plusieurs fois à la même note sans avoir à la dupliquer,
+ utilisez la commande 
+\series bold
+
+\backslash
+footnotemark[number]
 \series default
  en code TeX.
- On utilise cette possibilité quand on a plusieurs fois la même annotation
- dans le texte, mais que l'on ne veut pas répéter le texte de la note de
- bas de page à chaque fois.
 \begin_inset Newline newline
 \end_inset
 
-Comme vous ne connaissez pas le numéro de la note que vous voulez répéter
- au moment où vous tapez votre texte, vous devez enregistrer ce nombre quelque
- part.
- Pour la marque de note qui suit, ces commandes ont été insérées en code
- TeX après la note
+Comme vous ne connaissez pas le numéro de la note au moment où vous écrivez
+ votre texte, vous devez enregistrer son numéro.
+ Dans l'exemple de marque de note de bas de page suivant, ces commandes
+ ont été insérées en code TeX après la note
 \begin_inset space ~
 \end_inset
 
@@ -25447,7 +25965,11 @@ reference "fn:Note-en-bas"
 
 \end_inset
 
- pour enregistrer le numéro de note de bas de page :
+ pour enregistrer son numéro
+\begin_inset space ~
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Standard
@@ -25455,19 +25977,23 @@ reference "fn:Note-en-bas"
 \series bold
 
 \backslash
-newcounter{MyRepeatFoot}
+newcounter{MaNoteDupliquee}
 \begin_inset Newline newline
 \end_inset
 
 
 \backslash
-setcounter{MyRepeatFoot}{
+setcounter{MaNoteDupliquee}{
 \backslash
 thefootnote}
 \end_layout
 
 \begin_layout Standard
-La marque de note a été créée avec la commande suivante :
+La note de bas de page a été créee avec la commande
+\begin_inset space ~
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Standard
@@ -25477,13 +26003,17 @@ La marque de note a été créée avec la commande suivante :
 \backslash
 footnotemark[
 \backslash
-theMyRepeatFoot]
+MaNoteDupliquee]
 \end_layout
 
 \begin_layout Standard
-Voici un exemple de marque de note de bas de page : 
+Voici une note de bas de page dupliquée
+\begin_inset space ~
+\end_inset
+
+:
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -25492,6 +26022,44 @@ status collapsed
 footnotemark[
 \backslash
 theMyRepeatFoot]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si vous voulez dupliquer la note précédente, vous pouvez omettre l'enregistremen
+t du numéro de note et juste utiliser la commande suivante
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+footnotemark[
+\backslash
+thefootnote]
+\end_layout
+
+\begin_layout Standard
+Voici une autre note de bas de page dupliquée
+\begin_inset space ~
+\end_inset
+
+:
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotemark[
+\backslash
+thefootnote]
 \end_layout
 
 \end_inset
@@ -25508,7 +26076,7 @@ name "sub:Numerotation-notes-bas-de-page"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25888,7 +26456,7 @@ Roman{footnote}}
 
 \begin_layout Subsection
 Positionnement de notes de bas de page
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25969,7 +26537,7 @@ reference "fig:Position-note-avec-ftnright"
 ftnright
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26152,7 +26720,7 @@ notes de fin
 \end_inset
 
 .
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26365,7 +26933,7 @@ endnote
 \end_layout
 
 \begin_layout Standard
-Pour seulement créer une marque de note de fin, utilisez la commande 
+Pour les notes de fin, il y a la commande 
 \series bold
 
 \backslash
@@ -26401,7 +26969,7 @@ ent du texte des notes peut être modifié, voyez le paquetage LaTeX
 footmisc
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26434,7 +27002,7 @@ key "latexcompanion,latexguide,latexbook"
 
 \begin_layout Section
 Notes en Marge
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26751,7 +27319,7 @@ Cette restriction peut être évitée en utilisant le paquetage LaTeX
 marginnote
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27073,14 +27641,16 @@ myMarginpar{%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -27098,14 +27668,16 @@ underbar{Attention!}}}%
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -27282,7 +27854,7 @@ Les Boîtes
 
 \begin_layout Section
 Introduction
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27387,7 +27959,12 @@ Boîte
 \end_inset
 
  est alors insérée.
- Le type de la boîte peut être précisé en faisant un clic droit sur la boîte.
+ Le type de la boîte peut être précisé en faisant un clic droit sur la boîte
+ et en choisissant 
+\family sans
+Paramètres
+\family default
+ .
  La fenêtre de dialogue qui apparaît donne accès aux types de
 \family sans
  Boîte
@@ -27443,6 +28020,21 @@ Parbox
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Parboxes"
+
+\end_inset
+
+ et le type 
+\family sans
+Makebox
+\family default
+ est décrit dans la section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Empêcher-césure"
 
 \end_inset
 
@@ -27538,7 +28130,7 @@ name "sec:Boîte-Dialogue"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27552,7 +28144,7 @@ Boîtes ! Fenêtre de dialogue Boîte
 
 \begin_layout Subsection
 Taille
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27636,6 +28228,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1in"
@@ -27674,6 +28267,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "2in"
@@ -27714,6 +28308,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -27746,6 +28341,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1in"
@@ -27768,7 +28364,7 @@ Largeur
 
 \begin_layout Subsection
 Alignement
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27801,6 +28397,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1in"
@@ -27826,6 +28423,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1in"
@@ -27851,6 +28449,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1in"
@@ -27926,6 +28525,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1.5in"
@@ -27951,6 +28551,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1.5in"
@@ -27976,6 +28577,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "b"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1.5in"
@@ -28001,6 +28603,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "s"
 use_parbox 0
+use_makebox 0
 width "12col%"
 special "none"
 height "1.5in"
@@ -28074,6 +28677,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "s"
 use_parbox 0
+use_makebox 0
 width "15col%"
 special "none"
 height "1.25in"
@@ -28121,6 +28725,7 @@ hor_pos "s"
 has_inner_box 0
 inner_pos "s"
 use_parbox 0
+use_makebox 0
 width "90col%"
 special "none"
 height "1.25in"
@@ -28146,7 +28751,7 @@ name "sec:Décorations"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28169,7 +28774,23 @@ Décoration
 \end_layout
 
 \begin_layout Description
+Aucun
+\begin_inset space ~
+\end_inset
+
+cadre
+\begin_inset space ~
+\end_inset
+
+tracé Rien n'est tracé
+\end_layout
+
+\begin_layout Description
 Cadre
+\begin_inset space ~
+\end_inset
+
+rectangulaire
 \begin_inset space ~
 \end_inset
 
@@ -28181,13 +28802,17 @@ simple Ceci dessine un cadre rectangulaire autour de la boîte.
 fboxrule
 \series default
 .
- 
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Box Boxed
 position "c"
 hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -28197,75 +28822,6 @@ status open
 \begin_layout Plain Layout
 \align center
 Boîte rectangulaire
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Description
-Cadre
-\begin_inset space ~
-\end_inset
-
-simple,
-\begin_inset space ~
-\end_inset
-
-sauts
-\begin_inset space ~
-\end_inset
-
-de
-\begin_inset space ~
-\end_inset
-
-page Quand vous utilisez le style de décoration 
-\family sans
-cadre simple
-\family default
- sans boîte intérieure, vous pouvez autoriser les sauts de page à l'intérieur
- de la boîte.
- Notez que dans ce cas, contrairement aux autres boîtes avec cadre, le cadre
- predra toute la largeur de la colonne, la boîte sera considérée comme son
- propre paragraphe et 
-\series bold
-
-\backslash
-fboxrule
-\series default
- et 
-\series bold
-
-\backslash
-fboxsep
-\series default
- n'ont aucun effet sur ce type de boîte.
- L'épaisseur de la ligne du cadre a la valeur de 
-\series bold
-
-\backslash
-FrameRule
-\series default
-.
- 
-\lang english
-
-\begin_inset Box Framed
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status collapsed
-
-\begin_layout Plain Layout
-Boîte avec cadre simple et sauts de page
 \end_layout
 
 \end_inset
@@ -28295,6 +28851,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -28333,6 +28890,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -28377,6 +28935,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -28430,6 +28989,7 @@ hor_pos "c"
 has_inner_box 0
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "50col%"
 special "none"
 height "1in"
@@ -28446,11 +29006,16 @@ Boîte avec fond ombré
 \end_layout
 
 \begin_layout Description
-Double
+Cadre
 \begin_inset space ~
 \end_inset
 
-cadre Ceci dessine un cadre rectangulaire à deux traits autour de la boîte.
+rectangulaire
+\begin_inset space ~
+\end_inset
+
+dédoublé Ceci dessine un cadre rectangulaire à deux traits autour de la
+ boîte.
  L'épaisseur du trait du cadre interne est de 0.75
 \begin_inset space \thinspace{}
 \end_inset
@@ -28502,6 +29067,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "20col%"
 special "none"
 height "1in"
@@ -28530,7 +29096,7 @@ L'étiquette qui se trouve sur la boîte dans LyX s'adapte pour montrer le
 fancybox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28542,9 +29108,64 @@ Paquetages LaTeX ! fancybox
 .
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+Quand vous utilisez le style de décoration 
+\family sans
+cadre rectangulaire simple
+\family default
+ sans boîte intérieure, vous pouvez autoriser les sauts de page à l'intérieur
+ de la boîte.
+ Notez que dans ce cas, contrairement aux autres boîtes avec cadre, le cadre
+ predra toute la largeur de la colonne, la boîte sera considérée comme son
+ propre paragraphe et 
+\series bold
+
+\backslash
+fboxrule
+\series default
+ et 
+\series bold
+
+\backslash
+fboxsep
+\series default
+ n'ont aucun effet sur ce type de boîte.
+ L'épaisseur de la ligne du cadre a la valeur de 
+\series bold
+
+\backslash
+FrameRule
+\series default
+.
+ 
+\begin_inset Box Framed
+position "t"
+hor_pos "c"
+has_inner_box 0
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status collapsed
+
+\begin_layout Plain Layout
+Boîte avec cadre simple et sauts de page
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Personnalisation des boîtes
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28608,6 +29229,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "25col%"
 special "none"
 height "1in"
@@ -28717,6 +29339,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "25col%"
 special "none"
 height "1in"
@@ -28849,6 +29472,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "25col%"
 special "none"
 height "1in"
@@ -28947,6 +29571,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "25col%"
 special "none"
 height "1in"
@@ -29079,6 +29704,7 @@ hor_pos "c"
 has_inner_box 0
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1in"
@@ -29132,7 +29758,7 @@ FrameSep}{9pt}
 \end_layout
 
 \begin_layout Standard
-Pour les bôites à 
+Pour les boîtes à 
 \family sans
 Fond
 \begin_inset space ~
@@ -29281,6 +29907,7 @@ hor_pos "c"
 has_inner_box 0
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1in"
@@ -29354,7 +29981,7 @@ name "sec:Minipages"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29416,6 +30043,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "45col%"
 special "none"
 height "1in"
@@ -29467,6 +30095,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "45col%"
 special "none"
 height "1in"
@@ -29505,319 +30134,6 @@ This is an English footnote.
 
  This is an English Text.
  
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-Une autre application des minipages est l'ajout de notes de bas de page
- à l'intérieur d'un tableau.
- À cause d'une restriction due à LaTeX, les notes de bas de pages insérées
- dans un tableau n'apparaissent pas en bas de la page courante.
- Mais si vous mettez votre tableau dans une minipage, la note de bas de
- page apparaîtra en bas de celle-ci, numérotée avec des lettres latines.
- Le numéro de note est remis à 1 à chaque nouvelle minipage, mais pas en
- dehors des minipages.
-\end_layout
-
-\begin_layout Standard
-Les notes de bas de page de ce tableau n'apparaissent pas : 
-\begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="4">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-1
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-2
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-3
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-Ceci est une note de bas de page à l'intérieur d'un tableau.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-4
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-a
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-b
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-c
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-d
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-e
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-f
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-g
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-h
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Box Frameless
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "c"
-use_parbox 0
-width "30col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Plain Layout
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="4">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-1
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-2
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-3
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-Ceci est une note de bas de page à l'intérieur d'un tableau.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-4
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-a
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-b
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-c
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-d
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-e
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-f
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-g
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-h
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -29882,7 +30198,7 @@ name "sec:Parboxes"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29908,9 +30224,6 @@ En attendant une traduction de parbox (NdT)
 
 Les parboxes ressemblent beaucoup aux minipages à la différence qu'elles
  ne peuvent avoir de note de bas de page.
- La principale différence avec les minipages, c'est que les minipages au
- contraire des parboxes, ne sont pas de vraies boîtes, mais des environnements
- LaTeX.
 \end_layout
 
 \begin_layout Standard
@@ -29921,6 +30234,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 1
+use_makebox 0
 width "33col%"
 special "none"
 height "1in"
@@ -29954,7 +30268,7 @@ Cette note de bas de page est à l'intérieur d'une parbox et donc n'apparaîtra
 
 \begin_layout Section
 Des Boîtes pour les Mots et les Caractères
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29975,7 +30289,7 @@ name "sec:Empêcher-césure"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29988,8 +30302,11 @@ Boîtes ! Pour empêcher la césure
 \end_layout
 
 \begin_layout Standard
-Vous pouvez utiliser un type spécial de boîte pour empêcher qu'un mot ou
- un texte ne soit coupé par une césure.
+Vous pouvez utiliser une boîte de type 
+\family sans
+Makebox
+\family default
+ pour empêcher qu'un mot ou un texte ne soit coupé par une césure.
 \begin_inset Newline newline
 \end_inset
 
@@ -29997,8 +30314,11 @@ Voici un exemple de texte :
 \end_layout
 
 \begin_layout Standard
-Cette ligne est un exemple pour montrer comment vous pouvez empêcher une
- césure dans un 
+Cette ligne est un exemple comment vous pouvez empêcher une césure
+\begin_inset space ~
+\end_inset
+
+: 
 \begin_inset Quotes eld
 \end_inset
 
@@ -30018,32 +30338,15 @@ motTrèsTrèsLong
 \begin_inset Quotes erd
 \end_inset
 
- soit coupé, ajoutez la commande
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-mbox{
-\end_layout
-
-\begin_layout Standard
-en code TeX avant le mot.
- Après le mot, insérez l'accolade fermante 
-\begin_inset Quotes eld
+ soit coupé, mettez le mot dans une boîte, mettez Boîte
+\begin_inset space ~
 \end_inset
 
-
-\series bold
-}
-\series default
-
-\begin_inset Quotes erd
+intérieure à Makebox et sa largeur à 1
+\begin_inset space \thinspace{}
 \end_inset
 
- en code TeX.
+Largeur.
 \end_layout
 
 \begin_layout Standard
@@ -30051,35 +30354,22 @@ Voici le résultat :
 \end_layout
 
 \begin_layout Standard
-Cette ligne est un exemple pour montrer comment vous pouvez empêcher une
- césure dans un
-\begin_inset ERT
-status collapsed
+Cette ligne est un exemple comment vous pouvez empêcher une césure: 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 1
+width "1in"
+special "width"
+height "1in"
+height_special "totalheight"
+status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-mbox{
-\end_layout
-
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
 motTrèsTrèsLong
-\begin_inset Quotes erd
-\end_inset
-
-.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -30106,8 +30396,7 @@ Une autre méthode consiste à mettre la commande
 \end_layout
 
 \begin_layout Standard
-Cette ligne est un exemple pour montrer comment vous pouvez empêcher une
- césure dans un 
+Cette ligne est un exemple comment vous pouvez empêcher une césure: 
 \begin_inset Quotes eld
 \end_inset
 
@@ -30128,7 +30417,7 @@ motTrèsTrèsLong
 \begin_inset Quotes erd
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Standard
@@ -30152,32 +30441,32 @@ la
 Ligne
 \family default
  (raccourci 
-\series bold
+\family sans
 Ctrl-Entrée
-\series default
+\family default
 ) :
 \end_layout
 
 \begin_layout Standard
-Cette ligne est un exemple pour montrer comment vous pouvez empêcher une
- césure dans un
+Cette ligne est un exemple comment vous pouvez empêcher une césure:
 \begin_inset Newline newline
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 1
+width "1in"
+special "width"
+height "1in"
+height_special "totalheight"
+status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-mbox{
-\end_layout
-
-\end_inset
-
-
 \begin_inset Quotes eld
 \end_inset
 
@@ -30185,13 +30474,7 @@ motTrèsTrèsLong
 \begin_inset Quotes erd
 \end_inset
 
-.
-\begin_inset ERT
-status collapsed
 
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -30208,7 +30491,7 @@ name "sub:Alignement-Vertical"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30218,7 +30501,7 @@ Boîtes ! Pour l'alignement vertical
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30228,7 +30511,7 @@ Boîtes ! Boîtes élévatrices
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30571,7 +30854,7 @@ name "sec:Boîtes-colorées"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30585,7 +30868,7 @@ Boîtes ! Couleur
 
 \begin_layout Subsection
 De la couleur pour le texte
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30613,7 +30896,7 @@ colorbox
 color
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30635,14 +30918,16 @@ Paquetages LaTeX ! color
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -30657,7 +30942,7 @@ Le paquetage
 \series bold
 color
 \series default
- sera chargé automatiquement par LyX dès que vous colorez du texte
+ sera chargé automatiquement par LyX dès que vous colorez du texte.
 \begin_inset Foot
 status collapsed
 
@@ -30674,7 +30959,7 @@ C'est pour éviter qu'il soit chargé deux fois que l'on utilise la commande
 
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Standard
@@ -31047,7 +31332,7 @@ name "sub:Couleur-pour-les-Paragraphes"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31112,6 +31397,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1in"
@@ -31144,7 +31430,7 @@ Un autre exemple de note de bas de page
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -31273,7 +31559,7 @@ Pour pouvoir utiliser les commandes décrites dans cette section, vous devez
 graphicx
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31295,14 +31581,16 @@ Paquetages LaTeX ! graphicx
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
+\series bold
+\begin_inset space ~
+\end_inset
 
-\backslash
-hphantom{ }
+
 \end_layout
 
 \end_inset
@@ -31350,7 +31638,7 @@ Note:
 
 \begin_layout Subsection
 Les Boîtes pivotées
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31360,7 +31648,7 @@ Boîtes ! pivotées
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31370,7 +31658,7 @@ Pivoter des objets
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31380,7 +31668,7 @@ Figures ! Pivotées
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31551,6 +31839,7 @@ hor_pos "c"
 has_inner_box 0
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "1in"
 special "width"
 height "1in"
@@ -31658,7 +31947,7 @@ rotatebox[origin=l]{-90}{
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -31721,7 +32010,7 @@ status collapsed
 
 \begin_layout Subsection
 Les boîtes redimensionnées
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31731,7 +32020,7 @@ Boîtes ! Redimensionnées
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31741,7 +32030,7 @@ Redimensionner des objets
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31751,7 +32040,7 @@ Figures ! Redimensionnées
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32223,7 +32512,7 @@ reflectbox{
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -32344,7 +32633,7 @@ fleqn
 
 \begin_layout Chapter
 Trucs Externes
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32415,7 +32704,7 @@ Sous-document Documents LyX ou LaTeX.
 
 \begin_layout Section
 Objets Externes 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32695,7 +32984,7 @@ Comparaison des méthodes d'insertion de la date.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -32946,7 +33235,7 @@ name "sec:Sous-documents"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32956,7 +33245,7 @@ Trucs externes ! Sous-documents
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33070,56 +33359,6 @@ Le préambule du sous-document est tout simplement ignoré, seul le préambule
 \end_layout
 
 \begin_layout Standard
-Si vous travaillez uniquement sur un chapitre particulier d'un document
- important et que vous voulez optimiser le temps de compilation, vous pouvez
- inclure chaque fichier dans une branche
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-Les branches sont décrites dans la section 
-\emph on
-Branches
-\emph default
- du 
-\emph on
-Guide de l'utilisateur
-\emph default
- de LyX.
-\end_layout
-
-\end_inset
-
-.
- En activant ou désactivant une branche, vous pouvez décider les fichiers
- inclus qui doivent apparaître dans la sortie imprimée.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-Note:
-\series default
- À cause d'un bug de LyX, la commande 
-\series bold
-
-\backslash
-includeonly
-\series default
- ne peut actuellement pas être utilisée comme solution alternative pour
- décider quels sont les fichiers qui doivent être inclus.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \begin_inset Note Greyedout
 status open
 
@@ -33181,13 +33420,15 @@ Graphique
 \end_layout
 
 \begin_layout Itemize
-La commande LaTeX 
-\series bold
 
-\backslash
-includeonly
-\series default
- ne peut pas être utilisée.
+\lang english
+You cannot exclude Input files via the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Child Documents
+\family default
+.
 \end_layout
 
 \end_deeper
@@ -33357,6 +33598,92 @@ Note:
 
 \end_layout
 
+\begin_layout Standard
+
+\lang english
+If you want to view/export only selected children of your master document,
+ either because you want to save compiling time or because you want to distribut
+e single chapters of the book you are just writing, you can exclude children
+ from the output.
+ This is done via the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Child Documents
+\family default
+.
+ You can exclude\SpecialChar \slash{}
+include children by double-clicking on the 
+\family sans
+include to output
+\family default
+ column of the respective child document in the list (note that this only
+ works for documents embedded via 
+\begin_inset Quotes eld
+\end_inset
+
+Include
+\begin_inset Quotes erd
+\end_inset
+
+, not with 
+\begin_inset Quotes eld
+\end_inset
+
+Input
+\begin_inset Quotes erd
+\end_inset
+
+).
+ If the option 
+\family sans
+Maintain counters and references
+\family default
+ is enabled, LyX will assure that all page numbers, references etc.
+\begin_inset space ~
+\end_inset
+
+are correct as if the whole document was processed.
+ This is useful if you want the selected sub-documents to look exactly as
+ in the context of the whole document.
+ However, LyX needs to process the whole document in the background for
+ this feature.
+ So if you want to save compile time and if counters and references do not
+ need to be correct, disable this checkbox.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Alternatively
+\lang french
+, vous pouvez inclure chaque fichier dans une branche
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Les branches sont décrites dans la section 
+\emph on
+Branches
+\emph default
+ du 
+\emph on
+Guide de l'utilisateur
+\emph default
+ de LyX.
+\end_layout
+
+\end_inset
+
+.
+ En activant ou désactivant une branche, vous pouvez décider les fichiers
+ inclus qui doivent apparaître dans la sortie imprimée.
+ 
+\lang english
+This has the advantage that it also works with Input'ed sub-documents.
+ However, counters and references will not be maintained with this approach.
+\end_layout
+
 \begin_layout Chapter
 Listings de Code Source
 \begin_inset CommandInset label
@@ -33366,7 +33693,7 @@ name "cha:Program-Code-Listings"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33376,7 +33703,7 @@ Listings
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33386,7 +33713,7 @@ Code Source
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33431,7 +33758,7 @@ Source
 listings
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34017,20 +34344,132 @@ lstparams "breaklines=true,caption={Lignes 10 - 15 de ce fichier LyX},extendedch
 \end_layout
 
 \begin_layout Standard
+L'insertion d'une formule dans un listing peut se faire de la façon suivante
+\begin_inset space ~
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Enumerate
+Ouvrez la fenêtre de dialogue listings et ajoutez
+\begin_inset Newline newline
+\end_inset
+
+
+\family sans
+mathescape=true
+\family default
+
+\begin_inset Newline newline
+\end_inset
+
+dans le champ de l'onglet 
+\family sans
+Avancé
+\family default
+.
+\end_layout
+
+\begin_layout Enumerate
+Créez la formule en dehors du listing.
+\end_layout
+
+\begin_layout Enumerate
+Copiez le contenu de la formule (pas l'insert de formule) vers le presse-papier
+ (raccourci 
+\begin_inset Info
+type  "shortcut"
+arg   "copy"
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Enumerate
+Dans le listing écrivez 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family sans
+$$
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ et copiez le contenu du presse-papier entre les deux signes dollar (raccourci
+ 
+\begin_inset Info
+type  "shortcut"
+arg   "paste"
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=Python,mathescape=true"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Exemple de listing flottant contenant une formule
+\end_layout
+
+\end_inset
+
+# Exemple de listing flottant
+\end_layout
+
+\begin_layout Plain Layout
+
+def func(param):
+\end_layout
+
+\begin_layout Plain Layout
+
+    # $
+\backslash
+prod_{n=1}^{
+\backslash
+infty}
+\backslash
+,
+\backslash
+frac{1}{x^{2}}$
+\end_layout
+
+\begin_layout Plain Layout
+
+    pass
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Les paramètres globaux pour les listings peuvent être modifiés avec la fenêtre
  de dialogue 
 \family sans
 Document\SpecialChar \menuseparator
 Paramètres\SpecialChar \menuseparator
-Format
-\begin_inset space ~
-\end_inset
-
-du
-\begin_inset space ~
-\end_inset
-
-Texte
+Listings
 \family default
 .
  Pour avoir la liste des options disponibles, tapez un point d'interrogation
@@ -34042,19 +34481,7 @@ Texte
 \begin_inset Quotes erd
 \end_inset
 
- dans le champ 
-\family sans
-Paramètres
-\begin_inset space ~
-\end_inset
-
-du
-\begin_inset space ~
-\end_inset
-
-Listing
-\family default
-.
+ dans le champ.
 \end_layout
 
 \begin_layout Standard
@@ -34082,7 +34509,7 @@ key "listings"
 \begin_layout Chapter
 \start_of_appendix
 Unités de longueur utilisables avec LyX
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -34092,7 +34519,7 @@ Unités de longueur
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34160,7 +34587,7 @@ Unités de longueur
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="20" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -34656,7 +35083,7 @@ name "cha:Formats-fichiers-graphiques"
 
 \begin_layout Section
 DVI
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34666,7 +35093,7 @@ Formats de Fichiers! DVI
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34795,7 +35222,7 @@ name "sec:PostScript"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34805,7 +35232,7 @@ Formats de Fichiers ! PostScript
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34952,7 +35379,7 @@ Visualiser
 
 \begin_layout Section
 PDF
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34962,7 +35389,7 @@ Formats de Fichiers ! PDF
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35163,14 +35590,14 @@ Explication de l' Équation
 \begin_inset space ~
 \end_inset
 
-
+(
 \begin_inset CommandInset ref
-LatexCommand eqref
+LatexCommand ref
 reference "eq:Wgn"
 
 \end_inset
 
-
+)
 \begin_inset CommandInset label
 LatexCommand label
 name "cha:Explication-de-l'Equation"
@@ -35194,7 +35621,8 @@ n
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
-W_{\mathrm{tot}\, n}=n\cdot(W_{g\, n}+2\cdot\backslash\mbox{tabcolsep})+(n+1)\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_n}\end{equation}
+W_{\mathrm{tot}\, n}=n\cdot(W_{g\, n}+2\cdot\backslash\mbox{tabcolsep})+(n+1)\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_n}
+\end{equation}
 
 \end_inset
 
@@ -35253,7 +35681,8 @@ reference "eq:Wtot_n"
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
-W_{\mathrm{tot\, mult}}=W_{g\,\mathrm{mult}}+2\cdot\backslash\mbox{tabcolsep}+2\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_mult}\end{equation}
+W_{\mathrm{tot\, mult}}=W_{g\,\mathrm{mult}}+2\cdot\backslash\mbox{tabcolsep}+2\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_mult}
+\end{equation}
 
 \end_inset
 
@@ -35297,7 +35726,8 @@ n
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
-W_{g\, n}=(W_{g\,\mathrm{mult}}+(1-n)\cdot(2\cdot\backslash\mbox{tabcolsep}+\backslash\mbox{arrayrulewidth}))/n\end{equation}
+W_{g\, n}=(W_{g\,\mathrm{mult}}+(1-n)\cdot(2\cdot\backslash\mbox{tabcolsep}+\backslash\mbox{arrayrulewidth}))/n
+\end{equation}
 
 \end_inset
 
@@ -35305,6 +35735,7 @@ W_{g\, n}=(W_{g\,\mathrm{mult}}+(1-n)\cdot(2\cdot\backslash\mbox{tabcolsep}+\bac
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexcompanion"
@@ -35320,6 +35751,7 @@ The LaTeX Companion Second Edition.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexguide"
@@ -35336,6 +35768,7 @@ A Guide to LaTeX Fourth Edition.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexbook"
@@ -35351,6 +35784,7 @@ LaTeX: A Document Preparation System.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "booktabs"
@@ -35370,7 +35804,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/booktabs/booktab
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35383,6 +35817,7 @@ Paquetages LaTeX ! booktabs
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "caption"
@@ -35402,7 +35837,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/caption.
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35415,6 +35850,7 @@ Paquetages LaTeX ! caption
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "endfloat"
@@ -35434,7 +35870,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/endfloat/endfloa
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35447,6 +35883,7 @@ Paquetages LaTeX ! endfloat
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "wrapfig"
@@ -35466,7 +35903,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35492,6 +35929,7 @@ vspace{4mm}
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "footmisc"
@@ -35511,7 +35949,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/footmisc/footmis
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35524,6 +35962,7 @@ Paquetages LaTeX ! footmisc
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "hypcap"
@@ -35543,7 +35982,7 @@ target "http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/hypcap.pdf
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35556,6 +35995,7 @@ Paquetages LaTeX ! hyperref
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "hyperref"
@@ -35575,7 +36015,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/hyperre
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35588,6 +36028,7 @@ Paquetages LaTeX ! hyperref
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "KOMA-Script"
@@ -35607,7 +36048,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/koma-script/scrg
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35620,6 +36061,7 @@ Paquetages LaTeX ! KOMA-Script
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "listings"
@@ -35639,7 +36081,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/listings/listing
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35652,6 +36094,7 @@ Paquetages LaTeX ! listings
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "marginnote"
@@ -35671,7 +36114,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/marginnote/margi
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35684,6 +36127,7 @@ Paquetages LaTeX ! marginnote
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "pstricks"
@@ -35703,7 +36147,7 @@ target "http://tug.org/PSTricks/"
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35716,6 +36160,7 @@ Paquetages LaTeX ! PSTricks
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "sidecap"
@@ -35735,7 +36180,7 @@ target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/sidecap/sidecap.
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35748,6 +36193,7 @@ Paquetages LaTeX ! sidecap
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "prettyref"
@@ -35767,7 +36213,7 @@ target "http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35780,9 +36226,43 @@ Paquetages LaTeX ! prettyref
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "NewInLyX16"
+key "refstyle"
+
+\end_inset
+
+Documentation du paquetage LaTeX
+\series bold
+ 
+\begin_inset CommandInset href
+LatexCommand href
+name "refstyle"
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/refstyle/doc/latex/refstyle/refstyle.pdf"
+
+\end_inset
+
+
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! refstyle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring Bibliographie
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "NewInLyX20"
 
 \end_inset
 
@@ -35790,13 +36270,13 @@ key "NewInLyX16"
 \begin_inset CommandInset href
 LatexCommand href
 name "Page Wiki"
-target "http://wiki.lyx.org/LyX/NewInLyX16"
+target "http://wiki.lyx.org/LyX/NewInLyX20"
 
 \end_inset
 
  au sujet des nouveautés de 
 \family sans
-LyX 1.6.0
+LyX 2.0
 \family default
 .
 \end_layout
@@ -35804,59 +36284,7 @@ LyX 1.6.0
 \begin_layout Standard
 \begin_inset CommandInset index_print
 LatexCommand printindex
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset FloatList figure
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset FloatList table
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-listof{algorithm}{Liste des Algorithmes}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-voir la section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Flottant-d'Algorithme"
-
-\end_inset
-
- pour une description
-\end_layout
+type "idx"
 
 \end_inset
 

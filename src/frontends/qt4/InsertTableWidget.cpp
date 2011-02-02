@@ -18,7 +18,7 @@
 
 #include "FuncStatus.h"
 #include "FuncRequest.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -108,7 +108,6 @@ void InsertTableWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
 {
 	if (underMouse_) {
 		QString const data = QString("%1 %2").arg(bottom_).arg(right_);
-		theLyXFunc().setLyXView(&lyxView_);
 		lyx::dispatch(FuncRequest(LFUN_TABULAR_INSERT, fromqstr(data)));
 	}
 	// emit signal
@@ -156,4 +155,4 @@ void InsertTableWidget::updateParent()
 } // namespace frontend
 } // namespace lyx
 
-#include "InsertTableWidget_moc.cpp"
+#include "moc_InsertTableWidget.cpp"

@@ -218,7 +218,7 @@ void GuiParagraph::applyView()
 		break;
 	case 4:
 		ls = Spacing::Other;
-		other = fromqstr(linespacingValue->text());
+		other = widgetToDoubleStr(linespacingValue);
 		break;
 	}
 
@@ -242,8 +242,7 @@ void GuiParagraph::updateView()
 
 	// label width
 	docstring const & labelwidth = pp.labelWidthString();
-	// FIXME We should not compare translated strings
-	if (labelwidth != _("Senseless with this layout!")) {
+	if (hasLabelwidth()) {
 		labelwidthGB->setEnabled(true);
 		labelWidth->setText(toqstr(labelwidth));
 	} else {
@@ -282,7 +281,7 @@ void GuiParagraph::updateView()
 	}
 	linespacing->setCurrentIndex(ls);
 	if (space.getSpace() == Spacing::Other) {
-		linespacingValue->setText(toqstr(space.getValueAsString()));
+		doubleToWidget(linespacingValue, space.getValue());
 		linespacingValue->setEnabled(true);
 	} else {
 		linespacingValue->setText(QString());
@@ -354,6 +353,14 @@ LyXAlignment GuiParagraph::alignDefault() const
 }
 
 
+bool GuiParagraph::hasLabelwidth() const
+{
+	Layout layout = bufferview()->cursor().innerParagraph().layout();
+	return (layout.margintype == MARGIN_MANUAL
+		|| layout.latextype == LATEX_BIB_ENVIRONMENT);
+}
+
+
 void GuiParagraph::saveSession() const
 {
 	Dialog::saveSession();
@@ -380,4 +387,4 @@ Dialog * createGuiParagraph(GuiView & lv)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiParagraph_moc.cpp"
+#include "moc_GuiParagraph.cpp"

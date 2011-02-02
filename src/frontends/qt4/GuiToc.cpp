@@ -37,6 +37,7 @@ GuiToc::GuiToc(GuiView & parent, Qt::DockWidgetArea area, Qt::WindowFlags flags)
 {
 	widget_ = new TocWidget(parent, this);
 	setWidget(widget_);
+	setFocusProxy(widget_);
 }
 
 
@@ -48,27 +49,8 @@ GuiToc::~GuiToc()
 
 void GuiToc::updateView()
 {
-#ifndef Q_WS_MACX
 	widget_->updateView();
 	return;
-#endif
-
-	widget_->updateView();
-
-	// For Mac: switch to a docked TOC in fullscreen mode.
-	// We use the features() here instead of WindowFlags because
-	// the latter are not reliable (always returns Qt::Drawer).
-	if (!(features() & DockWidgetClosable) && lyxview().isFullScreen()) {
-		setWindowFlags(Qt::Widget);
-		setFeatures(DockWidgetClosable);
-		// Setting features hides the dialog, see Qt's doc.
-		show();
-	} else if ((features() & DockWidgetClosable) && !lyxview().isFullScreen()) {
-		setWindowFlags(Qt::Drawer);
-		setFeatures(NoDockWidgetFeatures);
-		// Setting features hides the dialog, see Qt's doc.
-		show();
-	}
 }
 
 
@@ -100,19 +82,34 @@ void GuiToc::closeEvent(QCloseEvent * /*event*/)
 }
 
 
+void GuiToc::doDispatch(Cursor & cur, FuncRequest const & cmd)
+{
+	widget_->doDispatch(cur, cmd);
+}
+
+
+bool GuiToc::getStatus(Cursor & cur, FuncRequest const & cmd,
+	FuncStatus & status) const
+{
+	return widget_->getStatus(cur, cmd, status);
+}
+
+
 Dialog * createGuiToc(GuiView & lv)
 {
-	GuiView & guiview = static_cast<GuiView &>(lv);
+	GuiToc * toc;
 #ifdef Q_WS_MACX
-	// On Mac show as a drawer at the right
-	return new GuiToc(guiview, Qt::RightDockWidgetArea, Qt::Drawer);
+	// On Mac show at the right and floating
+	toc = new GuiToc(lv, Qt::RightDockWidgetArea);
+	toc->setFloating(true);
 #else
-	return new GuiToc(guiview);
+	toc = new GuiToc(lv);
 #endif
+	return toc;
 }
 
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiToc_moc.cpp"
+#include "moc_GuiToc.cpp"

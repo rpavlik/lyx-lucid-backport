@@ -85,10 +85,6 @@ public:
 	FuncRequest cmd;
 	Timeout timeout;
 	bool restart_timeout;
-	int x_old;
-	int y_old;
-	int min_scrollbar_old;
-	int max_scrollbar_old;
 };
 
 
@@ -103,13 +99,21 @@ class GuiWorkArea : public QAbstractScrollArea, public WorkArea
 
 public:
 	///
-	GuiWorkArea(Buffer & buffer, GuiView & lv);
+	GuiWorkArea(QWidget *);
+	///
+	GuiWorkArea(Buffer & buffer, GuiView & gv);
 	///
 	~GuiWorkArea();
 
 	///
+	void init();
+	///
+	void setBuffer(Buffer &);
+	///
+	void setGuiView(GuiView &);
+	///
 	void setFullScreen(bool full_screen);
-	/// is LyXView in fullscreen mode?
+	/// is GuiView in fullscreen mode?
 	bool isFullScreen();
 	///
 	void scheduleRedraw() { schedule_redraw_ = true; }
@@ -118,7 +122,7 @@ public:
 	///
 	BufferView const & bufferView() const;
 	///
-	void redraw();
+	void redraw(bool update_metrics);
 	///
 	void stopBlinkingCursor();
 	///
@@ -129,9 +133,22 @@ public:
 	///
 	void resizeBufferView();
 
+	bool inDialogMode() const { return dialog_mode_; }
+	void setDialogMode(bool mode) { dialog_mode_ = mode; }
+
 	///
 	GuiCompleter & completer() { return *completer_; }
-	
+
+	Qt::CursorShape cursorShape() const;
+	void setCursorShape(Qt::CursorShape shape);
+
+	/// Change the cursor when the mouse hovers over a clickable inset
+	void updateCursorShape();
+
+	/// Return the GuiView this workArea belongs to
+	GuiView const & view() const { return *lyx_view_; }
+	GuiView & view() { return *lyx_view_; }
+
 Q_SIGNALS:
 	///
 	void titleChanged(GuiWorkArea *);
@@ -168,7 +185,7 @@ private:
 	/// hide the cursor
 	virtual void removeCursor();
 
-	/// This function is called when the buffer readonly status change.
+	/// This function should be called to update the buffer readonly status.
 	void setReadOnly(bool);
 
 	/// Update window titles of all users.
@@ -215,6 +232,8 @@ private:
 
 	///
 	BufferView * buffer_view_;
+	/// Read only Buffer status cache.
+	bool read_only_;
 	///
 	GuiView * lyx_view_;
 	/// is the cursor currently displayed
@@ -240,11 +259,43 @@ private:
 
 	///
 	GuiCompleter * completer_;
+
+	/// Special mode in which Esc and Enter (with or without Shift)
+	/// are ignored
+	bool dialog_mode_;
 	/// store the position of the rightclick when the mouse is
 	/// pressed. This is used to get the correct context menu 
 	/// when the menu is actually shown (after releasing on Windwos).
 	QPoint context_target_pos_;
 }; // GuiWorkArea
+
+
+class EmbeddedWorkArea : public GuiWorkArea
+{
+	Q_OBJECT
+public:
+	///
+	EmbeddedWorkArea(QWidget *);
+	~EmbeddedWorkArea();
+
+	/// Dummy methods for Designer.
+	void setWidgetResizable(bool) {}
+	void setWidget(QWidget *) {}
+
+	QSize sizeHint () const;
+	///
+	void disable();
+
+protected:
+	///
+	void closeEvent(QCloseEvent * ev);
+	///
+	void hideEvent(QHideEvent *ev);
+
+private:
+	/// Embedded Buffer.
+	Buffer * buffer_;
+}; // EmbeddedWorkArea
 
 
 /// A tabbed set of GuiWorkAreas.
@@ -263,6 +314,7 @@ public:
 	bool removeWorkArea(GuiWorkArea *);
 	GuiWorkArea * currentWorkArea();
 	GuiWorkArea * workArea(Buffer & buffer);
+	GuiWorkArea * workArea(int index);
 
 Q_SIGNALS:
 	///
@@ -273,8 +325,10 @@ Q_SIGNALS:
 public Q_SLOTS:
 	/// close current buffer, or the one given by \c clicked_tab_
 	void closeCurrentBuffer();
-	/// close current tab, or the one given by \c clicked_tab_
-	void closeCurrentTab();
+	/// hide current tab, or the one given by \c clicked_tab_
+	void hideCurrentTab();
+	/// close the tab given by \c index
+	void closeTab(int index);
 	///
 	void updateTabTexts();
 	
@@ -285,6 +339,8 @@ private Q_SLOTS:
 	void showContextMenu(const QPoint & pos);
 	///
 	void moveTab(int fromIndex, int toIndex);
+	///
+	void mouseDoubleClickEvent(QMouseEvent * event);
 
 private:
 	///
@@ -325,10 +381,6 @@ private:
 Q_SIGNALS:
 	///
 	void tabMoveRequested(int fromIndex, int toIndex);
-
-private Q_SLOTS:
-	///
-	void on_tabCloseRequested(int index);
 };
 
 } // namespace frontend

@@ -12,12 +12,13 @@
 
 #include "GuiErrorList.h"
 
+#include "GuiView.h"
 #include "qt_helpers.h"
 
 #include "Buffer.h"
-#include "BufferList.h"
 #include "BufferView.h"
 #include "FuncRequest.h"
+#include "BufferList.h"
 #include "ParIterator.h"
 #include "Text.h"
 
@@ -34,16 +35,16 @@ using namespace std;
 using namespace lyx::support;
 
 namespace {
-  
-string const guiErrorType(string const & s)
+
+string const guiErrorType(string const s)
 {
 	if (s == "docbook")
 		return N_("DocBook");
-	if (s == "literate")
+	else if (s == "literate")
 		return N_("Literate");
-	if (s == "platex")
+	else if (s == "platex")
 		return N_("pLaTeX");
-	if (s == "latex")
+	else if (s == "latex")
 		return N_("LaTeX");
 	return s;
 }
@@ -60,6 +61,8 @@ GuiErrorList::GuiErrorList(GuiView & lv)
 
 	connect(closePB, SIGNAL(clicked()),
 		this, SLOT(slotClose()));
+	connect(viewLogPB, SIGNAL(clicked()),
+		this, SLOT(viewLog()));
 	connect(errorsLW, SIGNAL(currentRowChanged(int)),
 		this, SLOT(select()));
 
@@ -87,6 +90,18 @@ void GuiErrorList::select()
 }
 
 
+void GuiErrorList::viewLog()
+{
+	if (&buffer() != buf_) {
+		if (!theBufferList().isLoaded(buf_))
+			return;
+		FuncRequest fr(LFUN_BUFFER_SWITCH, buf_->absFileName());
+		dispatch(fr);
+	}
+	dispatch(FuncRequest(LFUN_DIALOG_SHOW, "latexlog"));
+}
+
+
 void GuiErrorList::paramsToDialog()
 {
 	setTitle(toqstr(name_));
@@ -95,8 +110,8 @@ void GuiErrorList::paramsToDialog()
 
 	ErrorList const & el = errorList();
 	ErrorList::const_iterator it = el.begin();
-	ErrorList::const_iterator end = el.end();
-	for (; it != end; ++it)
+	ErrorList::const_iterator const en = el.end();
+	for (; it != en; ++it)
 		errorsLW->addItem(toqstr(it->error));
 	errorsLW->setCurrentRow(0);
 }
@@ -104,19 +119,28 @@ void GuiErrorList::paramsToDialog()
 
 ErrorList const & GuiErrorList::errorList() const
 {
-	if (bufferview() && &bufferview()->buffer() == buf_)
-		error_list_ = bufferview()->buffer().errorList(error_type_);
+	if (&bufferview()->buffer() == buf_) {
+		error_list_ = from_master_ ?
+			bufferview()->buffer().masterBuffer()->errorList(error_type_)
+			: bufferview()->buffer().errorList(error_type_);
+	}
 	return error_list_;
 }
 
 
-bool GuiErrorList::initialiseParams(string const & error_type)
+bool GuiErrorList::initialiseParams(string const & data)
 {
+	from_master_ = prefixIs(data, "from_master|");
+	string error_type = data;
+	if (from_master_)
+		error_type = split(data, '|');
 	error_type_ = error_type;
-	buf_ = &bufferview()->buffer();
-	name_ = bformat(_("%1$s Errors (%2$s)"),
-			_(guiErrorType(error_type)),
-			from_utf8(buf_->absFileName()));
+	buf_ = from_master_ ?
+		bufferview()->buffer().masterBuffer()
+		: &bufferview()->buffer();
+	name_ = bformat(_("%1$s Errors (%2$s)"), 
+			        _(guiErrorType(error_type)),
+				    from_utf8(buf_->absFileName()));
 	paramsToDialog();
 	return true;
 }
@@ -124,7 +148,7 @@ bool GuiErrorList::initialiseParams(string const & error_type)
 
 bool GuiErrorList::goTo(int item)
 {
-	if (!bufferview() || &buffer() != buf_) {
+	if (&buffer() != buf_) {
 		if (!theBufferList().isLoaded(buf_))
 			return false;
 		FuncRequest fr(LFUN_BUFFER_SWITCH, buf_->absFileName());
@@ -135,11 +159,15 @@ bool GuiErrorList::goTo(int item)
 	if (err.par_id == -1)
 		return false;
 
+	if (from_master_)
+		// FIXME: implement
+		return false;
+
 	DocIterator dit = buf_->getParFromID(err.par_id);
 
-	if (dit == doc_iterator_end(buf_->inset())) {
-        // FIXME: Happens when loading a read-only doc with 
-        // unknown layout. Should this be the case?
+	if (dit == doc_iterator_end(buf_)) {
+		// FIXME: Happens when loading a read-only doc with 
+		// unknown layout. Should this be the case?
 		LYXERR0("par id " << err.par_id << " not found");
 		return false;
 	}
@@ -152,7 +180,8 @@ bool GuiErrorList::goTo(int item)
 	pos_type const range = end - start;
 	dit.pos() = start;
 	BufferView * bv = const_cast<BufferView *>(bufferview());
-	// FIXME: If we used an LFUN, we would not need this line:
+	// FIXME LFUN
+	// If we used an LFUN, we would not need these lines:
 	bv->putSelectionAt(dit, range, false);
 	bv->processUpdateFlags(Update::Force | Update::FitCursor);
 	return true;
@@ -165,4 +194,4 @@ Dialog * createGuiErrorList(GuiView & lv) { return new GuiErrorList(lv); }
 } // namespace lyx
 
 
-#include "GuiErrorList_moc.cpp"
+#include "moc_GuiErrorList.cpp"

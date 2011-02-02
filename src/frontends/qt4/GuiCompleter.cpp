@@ -17,10 +17,9 @@
 #include "CompletionList.h"
 #include "Cursor.h"
 #include "Dimension.h"
-#include "FuncRequest.h"
 #include "GuiWorkArea.h"
 #include "GuiView.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
 #include "Paragraph.h"
 #include "version.h"
@@ -111,8 +110,7 @@ public:
 	{
 		if (list_ == 0)
 			return 0;
-		else
-			return list_->size();
+		return list_->size();
 	}
 
 	///
@@ -130,24 +128,23 @@ public:
 		if (index.column() == 0)
 			return toqstr(list_->data(index.row()));
 
-		if (index.column() == 1) {
-			// get icon from cache
-			QPixmap scaled;
-			QString const name = ":" + toqstr(list_->icon(index.row()));
-			if (!QPixmapCache::find("completion" + name, scaled)) {
-				// load icon from disk
-				QPixmap p = QPixmap(name);
-				if (!p.isNull()) {
-					// scale it to 16x16 or smaller
-					scaled = p.scaled(min(16, p.width()), min(16, p.height()), 
-						Qt::KeepAspectRatio, Qt::SmoothTransformation);
-				}
-
-				QPixmapCache::insert("completion" + name, scaled);
+		if (index.column() != 1)
+			return QVariant();
+	
+		// get icon from cache
+		QPixmap scaled;
+		QString const name = ":" + toqstr(list_->icon(index.row()));
+		if (!QPixmapCache::find("completion" + name, scaled)) {
+			// load icon from disk
+			QPixmap p = QPixmap(name);
+			if (!p.isNull()) {
+				// scale it to 16x16 or smaller
+				scaled = p.scaled(min(16, p.width()), min(16, p.height()), 
+					Qt::KeepAspectRatio, Qt::SmoothTransformation);
 			}
-			return scaled;
+			QPixmapCache::insert("completion" + name, scaled);
 		}
-		return QVariant();
+		return scaled;
 	}
 
 private:
@@ -157,7 +154,7 @@ private:
 
 
 GuiCompleter::GuiCompleter(GuiWorkArea * gui, QObject * parent)
-	: QCompleter(parent), gui_(gui), updateLock_(0),
+	: QCompleter(parent), gui_(gui), old_cursor_(0), updateLock_(0),
 	  inlineVisible_(false), popupVisible_(false),
 	  modelActive_(false)
 {
@@ -165,15 +162,15 @@ GuiCompleter::GuiCompleter(GuiWorkArea * gui, QObject * parent)
 	model_ = new GuiCompletionModel(this, 0);
 	setModel(model_);
 	setCompletionMode(QCompleter::PopupCompletion);
-	setCaseSensitivity(Qt::CaseInsensitive);
+	setCaseSensitivity(Qt::CaseSensitive);
 	setWidget(gui_);
 	
 	// create the popup
 	QTreeView *listView = new QTreeView;
-        listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        listView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        listView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        listView->setSelectionMode(QAbstractItemView::SingleSelection);
+	listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	listView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	listView->setSelectionBehavior(QAbstractItemView::SelectRows);
+	listView->setSelectionMode(QAbstractItemView::SingleSelection);
 	listView->header()->hide();
 	listView->setIndentation(0);
 	listView->setUniformRowHeights(true);
@@ -232,6 +229,24 @@ bool GuiCompleter::popupPossible(Cursor const & cur) const
 bool GuiCompleter::inlinePossible(Cursor const & cur) const
 {
 	return cur.inset().inlineCompletionSupported(cur);
+}
+
+
+bool GuiCompleter::uniqueCompletionAvailable() const
+{
+	if (!modelActive_)
+		return false;
+
+	size_t n = popup()->model()->rowCount();
+	if (n > 1 || n == 0)
+		return false;
+
+	// if there is exactly one, we have to check whether it is a 
+	// real completion, i.e. longer than the current prefix.
+	if (completionPrefix() == currentCompletion())
+		return false;
+
+	return true;
 }
 
 
@@ -298,8 +313,8 @@ void GuiCompleter::updateVisibility(Cursor & cur, bool start, bool keep, bool cu
 		inline_timer_.start(int(lyxrc.completion_inline_delay * 1000));
 	else {
 		// no inline completion, hence a metrics update is needed
-		if (!(cur.disp_.update() & Update::Force))
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+		if (!(cur.result().screenUpdate() & Update::Force))
+			cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 	}
 
 	// update prefix if any completion is possible
@@ -316,12 +331,12 @@ void GuiCompleter::updateVisibility(Cursor & cur, bool start, bool keep, bool cu
 void GuiCompleter::updateVisibility(bool start, bool keep)
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	updateVisibility(cur, start, keep);
 	
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 
@@ -405,7 +420,7 @@ void GuiCompleter::asyncUpdatePopup()
 {
 	Cursor cur = gui_->bufferView().cursor();
 	if (!cur.inset().completionSupported(cur)
-			|| !cur.bv().paragraphVisible(cur)) {
+		  || !cur.bv().paragraphVisible(cur)) {
 		popupVisible_ = false;
 		return;
 	}
@@ -553,7 +568,7 @@ void GuiCompleter::showInline(Cursor & cur)
 
 void GuiCompleter::hideInline(Cursor & cur)
 {
-	gui_->bufferView().setInlineCompletion(cur, DocIterator(), docstring());
+	gui_->bufferView().setInlineCompletion(cur, DocIterator(cur.buffer()), docstring());
 	inlineVisible_ = false;
 	
 	if (inline_timer_.isActive())
@@ -580,61 +595,61 @@ void GuiCompleter::asyncHideInline()
 void GuiCompleter::showPopup()
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	showPopup(cur);
 
 	// redraw if needed
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 
 void GuiCompleter::showInline()
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	showInline(cur);
 
 	// redraw if needed
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 
 void GuiCompleter::hidePopup()
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	hidePopup(cur);
 	
 	// redraw if needed
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 
 void GuiCompleter::hideInline()
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	hideInline(cur);
 	
 	// redraw if needed
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 
 void GuiCompleter::activate()
 {
 	if (!popupVisible() && !inlineVisible())
-		return;
-
-	popupActivated(currentCompletion());
+		tab();
+	else
+		popupActivated(currentCompletion());
 }
 
 
@@ -642,10 +657,10 @@ void GuiCompleter::tab()
 {
 	BufferView * bv = &gui_->bufferView();
 	Cursor cur = bv->cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	// check that inline completion is active
-	if (!inlineVisible()) {
+	if (!inlineVisible() && !uniqueCompletionAvailable()) {
 		// try to activate the inline completion
 		if (cur.inset().inlineCompletionSupported(cur)) {
 			showInline();
@@ -667,6 +682,10 @@ void GuiCompleter::tab()
 		return;
 	}
 	
+	// Make undo possible
+	cur.beginUndoGroup();
+	cur.recordUndo();
+
 	// If completion is active, at least complete by one character
 	docstring prefix = cur.inset().completionPrefix(cur);
 	docstring completion = qstring_to_ucs4(currentCompletion());
@@ -678,11 +697,14 @@ void GuiCompleter::tab()
 		hidePopup(cur);
 		hideInline(cur);
 		updateVisibility(false, false);
+		cur.endUndoGroup();
 		return;
 	}
 	docstring nextchar = completion.substr(prefix.size(), 1);
-	if (!cur.inset().insertCompletion(cur, nextchar, false))
+	if (!cur.inset().insertCompletion(cur, nextchar, false)) {
+		cur.endUndoGroup();
 		return;
+	}
 	updatePrefix(cur);
 
 	// try to complete as far as it is unique
@@ -700,8 +722,9 @@ void GuiCompleter::tab()
 		popup_timer_.start(0);
 
 	// redraw if needed
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
+	cur.endUndoGroup();
 }
 
 
@@ -809,7 +832,7 @@ docstring GuiCompleter::longestUniqueCompletion() const
 	if (n == 0)
 		return docstring();
 	QString s = model.data(model.index(0, 0), Qt::EditRole).toString();
-	
+
 	if (modelSorting() == QCompleter::UnsortedModel) {
 		// For unsorted model we cannot do more than iteration.
 		// Iterate through the completions and cut off where s differs
@@ -856,16 +879,20 @@ docstring GuiCompleter::longestUniqueCompletion() const
 void GuiCompleter::popupActivated(const QString & completion)
 {
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
-	
+	cur.screenUpdateFlags(Update::None);
+
+	cur.beginUndoGroup();
+	cur.recordUndo();
+
 	docstring prefix = cur.inset().completionPrefix(cur);
 	docstring postfix = qstring_to_ucs4(completion.mid(prefix.length()));
 	cur.inset().insertCompletion(cur, postfix, true);
 	hidePopup(cur);
 	hideInline(cur);
 	
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
+	cur.endUndoGroup();
 }
 
 
@@ -875,16 +902,16 @@ void GuiCompleter::popupHighlighted(const QString & completion)
 		return;
 
 	Cursor cur = gui_->bufferView().cursor();
-	cur.updateFlags(Update::None);
+	cur.screenUpdateFlags(Update::None);
 	
 	if (inlineVisible())
 		updateInline(cur, completion);
 	
-	if (cur.disp_.update())
-		gui_->bufferView().processUpdateFlags(cur.disp_.update());
+	if (cur.result().screenUpdate())
+		gui_->bufferView().processUpdateFlags(cur.result().screenUpdate());
 }
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiCompleter_moc.cpp"
+#include "moc_GuiCompleter.cpp"

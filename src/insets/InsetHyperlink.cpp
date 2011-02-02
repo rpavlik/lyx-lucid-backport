@@ -3,8 +3,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author José Matos
- * \author Uwe Stöhr
+ * \author JosÃ© Matos
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,12 +13,18 @@
 
 #include "InsetHyperlink.h"
 
+#include "Buffer.h"
 #include "DispatchResult.h"
+#include "Format.h"
 #include "FuncRequest.h"
+#include "FuncStatus.h"
 #include "LaTeXFeatures.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 
 #include "support/docstream.h"
+#include "support/FileName.h"
+#include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
 
@@ -28,8 +34,8 @@ using namespace lyx::support;
 namespace lyx {
 
 
-InsetHyperlink::InsetHyperlink(InsetCommandParams const & p)
-	: InsetCommand(p, "href")
+InsetHyperlink::InsetHyperlink(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
 {}
 
 
@@ -63,8 +69,47 @@ docstring InsetHyperlink::screenLabel() const
 	return temp + url;
 }
 
+void InsetHyperlink::doDispatch(Cursor & cur, FuncRequest & cmd)
+{
+	switch (cmd.action()) {
 
-int InsetHyperlink::latex(odocstream & os, OutputParams const & runparams) const
+	case LFUN_INSET_EDIT:
+		viewTarget();
+		break;
+
+	default:
+		InsetCommand::doDispatch(cur, cmd);
+		break;
+	}
+}
+
+
+bool InsetHyperlink::getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus & flag) const
+{
+	switch (cmd.action()) {
+	case LFUN_INSET_EDIT:
+		flag.setEnabled(getParam("type").empty() || getParam("type") == "file:");
+		return true;
+
+	default:
+		return InsetCommand::getStatus(cur, cmd, flag);
+	}
+}
+
+
+void InsetHyperlink::viewTarget() const
+{
+	if (getParam("type") == "file:") {
+		FileName url = makeAbsPath(to_utf8(getParam("target")), buffer().filePath());
+		string const format = formats.getFormatFromFile(url);
+		formats.view(buffer(), url, format);
+	}
+}
+
+
+int InsetHyperlink::latex(odocstream & os,
+			  OutputParams const & runparams) const
 {
 	docstring url = getParam("target");
 	docstring name = getParam("name");
@@ -81,9 +126,10 @@ int InsetHyperlink::latex(odocstream & os, OutputParams const & runparams) const
 		name = url;
 
 	if (!url.empty()) {
-		// Replace the "\" character by its ASCII code according to the URL specifications
-		// because "\" is not allowed in URLs and by \href. Only do this when the
-		// following character is not also a "\", because "\\" is valid code
+		// Replace the "\" character by its ASCII code according to the
+		// URL specifications because "\" is not allowed in URLs and by
+		// \href. Only do this when the following character is not also
+		// a "\", because "\\" is valid code
 		for (size_t i = 0, pos;
 			(pos = url.find('\\', i)) != string::npos;
 			i = pos + 2) {
@@ -95,7 +141,7 @@ int InsetHyperlink::latex(odocstream & os, OutputParams const & runparams) const
 		// field because otherwise LaTeX will fail when the hyperlink is
 		// within an argument of another command, e.g. in a \footnote. It
 		// is important that they are escaped as "\#" and not as "\#{}".
-		for (int k = 0;	k < 2; k++)
+		for (int k = 0; k < 2; k++)
 			for (size_t i = 0, pos;
 				(pos = url.find(chars_url[k], i)) != string::npos;
 				i = pos + 2)
@@ -123,18 +169,17 @@ int InsetHyperlink::latex(odocstream & os, OutputParams const & runparams) const
 			if (name[pos + 1] != '\\')
 				name.replace(pos, 1, textbackslash);
 		}
-		// The characters in chars_name[] need to be changed to a command when
-		// they are in the name field.
+		// The characters in chars_name[] need to be changed to a command
+		// when they are in the name field.
 		// Therefore the treatment of "\" must be the first thing
-		for (int k = 0;	k < 6; k++) {
+		for (int k = 0; k < 6; k++)
 			for (size_t i = 0, pos;
 				(pos = name.find(chars_name[k], i)) != string::npos;
-				i = pos + 2) {
+				i = pos + 2)
 				name.replace(pos, 1, backslash + chars_name[k] + braces);
-			}
-		}
-		// replace the tilde by the \sim character as suggested in the LaTeX FAQ
-		// for URLs
+
+		// replace the tilde by the \sim character as suggested in the
+		// LaTeX FAQ for URLs
 		docstring const sim = from_ascii("$\\sim$");
 		for (size_t i = 0, pos;
 			(pos = name.find('~', i)) != string::npos;
@@ -180,15 +225,56 @@ int InsetHyperlink::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-void InsetHyperlink::tocString(odocstream & os) const
+docstring InsetHyperlink::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	docstring const & target = getParam("target");
+	docstring const & name   = getParam("name");
+	xs << html::StartTag("a", to_utf8("href=\"" + target + "\""));
+	xs << (name.empty() ? target : name);
+	xs << html::EndTag("a");
+	return docstring();
+}
+
+
+void InsetHyperlink::toString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
+}
+
+
+void InsetHyperlink::forToc(docstring & os, size_t) const
+{
+	docstring const & n = getParam("name");
+	if (!n.empty()) {
+		os += n;
+		return;
+	}
+	os += getParam("target");
+}
+
+
+docstring InsetHyperlink::toolTip(BufferView const & /*bv*/, int /*x*/, int /*y*/) const
+{
+	docstring url = getParam("target");
+	docstring type = getParam("type");
+	docstring guitype = _("www");
+	if (type == "mailto:")
+		guitype = _("email");
+	else if (type == "file:")
+		guitype = _("file");
+	return bformat(_("Hyperlink (%1$s) to %2$s"), guitype, url);
 }
 
 
 void InsetHyperlink::validate(LaTeXFeatures & features) const
 {
 	features.require("hyperref");
+}
+
+
+docstring InsetHyperlink::contextMenuName() const
+{
+	return from_ascii("context-hyperlink");
 }
 
 

@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,6 +13,10 @@
 #define MATH_HULLINSET_H
 
 #include "InsetMathGrid.h"
+
+#include "Color.h"
+#include "DocIterator.h"
+#include "OutputEnums.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -32,11 +36,11 @@ public:
 	///
 	InsetMathHull(Buffer * buf, HullType type);
 	///
-	~InsetMathHull();
+	virtual ~InsetMathHull();
 	///
 	void setBuffer(Buffer &);
 	///
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void addToToc(DocIterator const &);
 	///
@@ -60,7 +64,7 @@ public:
 	///
 	std::vector<InsetLabel *> const & getLabels() { return label_; }
 	///
-	ColorCode backgroundColor(PainterInfo const & pi) const;
+	ColorCode backgroundColor(PainterInfo const &) const;
 	///
 	void numbered(row_type row, bool num);
 	///
@@ -113,6 +117,10 @@ public:
 	///
 	void write(std::ostream & os) const;
 	///
+	void header_write(WriteStream &) const;
+	///
+	void footer_write(WriteStream &) const;
+	///
 	void read(Lexer & lex);
 	///
 	bool readQuiet(Lexer & lex);
@@ -120,8 +128,12 @@ public:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	/// 
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t) const;
 
 	/// get notification when the cursor leaves this inset
 	bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
@@ -130,21 +142,23 @@ public:
 	///
 	void addPreview(DocIterator const & inset_pos,
 		graphics::PreviewLoader &) const;
-	/// Prepare the preview if preview is enabled.
-	void preparePreview(DocIterator const & pos, Buffer const & buffer) const;
 	/// Recreates the preview if preview is enabled.
-	void reloadPreview(DocIterator const & pos, Buffer const & buffer) const;
+	void reloadPreview(DocIterator const & pos) const;
 	///
 	void initUnicodeMath() const;
 
 	///
 	static int displayMargin() { return 12; }
 	
-	/// Force inset into LTR environment if surroundings are RTL?
+	/// Force inset into LTR environment if surroundings are RTL
 	virtual bool forceLTR() const { return true; }
+	///
+	void recordLocation(DocIterator const & di);
 
 	///
-	virtual docstring contextMenu(BufferView const &, int, int) const;
+	docstring contextMenuName() const;
+	///
+	InsetCode lyxCode() const { return MATH_HULL_CODE; }
 
 protected:
 	InsetMathHull(InsetMathHull const &);
@@ -155,24 +169,29 @@ protected:
 	bool getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & status) const;
 	///
-	docstring eolString(row_type row, bool fragile, bool last_eoln) const;
+	docstring eolString(row_type row, bool fragile, bool latex,
+			bool last_eoln) const;
 
 private:
 	virtual Inset * clone() const;
+	/// Prepare the preview if preview is enabled.
+	/// \param forexport: whether this is intended for export
+	/// If so, we ignore LyXRC and wait for the image to be generated.
+	void preparePreview(DocIterator const & pos,
+	                    bool forexport = false) const;
+	/// like reloadPreview, but forces load 
+	/// used by image export
+	void loadPreview(DocIterator const & pos) const;
 	///
 	void setType(HullType type);
 	///
 	void validate1(LaTeXFeatures & features);
 	///
-	void header_write(WriteStream &) const;
-	///
-	void footer_write(WriteStream &) const;
-	///
 	docstring nicelabel(row_type row) const;
 	///
 	void doExtern(Cursor & cur, FuncRequest & func);
 	///
-	void glueall();
+	void glueall(HullType type);
 	/*!
 	 * split every row at the first relation operator.
 	 * The number of columns must be 1. One column is added.
@@ -192,7 +211,7 @@ private:
 	///
 	docstring standardFont() const;
 	///
-	docstring standardColor() const;
+	ColorCode standardColor() const;
 	/// consistency check
 	void check() const;
 	/// can this change its number of rows?
@@ -203,25 +222,25 @@ private:
 	/// "none", "simple", "display", "eqnarray",...
 	HullType type_;
 	///
-	std::vector<bool> nonum_;
+	std::vector<bool> numbered_;
 	///
 	std::vector<InsetLabel *> label_;
 	///
 	boost::scoped_ptr<RenderPreview> preview_;
 	///
 	mutable bool use_preview_;
+	///
+	DocIterator docit_;
 //
 // Incorporate me
 //
 public:
-	/// what appears in the minibuffer when opening
-	docstring editMessage() const;
 	///
 	virtual void mutateToText();
 	///
 	virtual void revealCodes(Cursor & cur) const;
 	///
-	EDITABLE editable() const { return HIGHLY_EDITABLE; }
+	bool editable() const { return true; }
 	///
 	void edit(Cursor & cur, bool front, 
 		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
@@ -229,8 +248,6 @@ public:
 	Inset * editXY(Cursor & cur, int x, int y);
 	///
 	DisplayType display() const;
-	///
-	InsetCode lyxCode() const;
 
 protected:
 	///

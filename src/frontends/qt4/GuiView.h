@@ -7,7 +7,7 @@
  * \author Lars Gullik Bjornes
  * \author John Levon
  * \author Abdelrazak Younes
- * \author Peter Kümmel
+ * \author Peter KÃ¼mmel
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,7 +16,6 @@
 #define GUI_VIEW_H
 
 #include "frontends/Delegates.h"
-#include "frontends/LyXView.h"
 
 #include "support/strfwd.h"
 
@@ -31,12 +30,20 @@ class QShowEvent;
 
 namespace lyx {
 
+namespace support { class FileName; }
+
+class Buffer;
+class BufferView;
 class Cursor;
+class DispatchResult;
+class FuncStatus;
+class FuncRequest;
+class Inset;
 
 namespace frontend {
 
 class Dialog;
-class GuiLayoutBox;
+class LayoutBox;
 class GuiToolbar;
 class GuiWorkArea;
 class TabWorkArea;
@@ -44,70 +51,121 @@ class TocModels;
 class ToolbarInfo;
 
 /**
- * GuiView - Qt4 implementation of LyXView
+ * GuiView - Qt4 main LyX window
  *
- * qt4-private implementation of the main LyX window.
+ * This class represents the main LyX window and provides
+ * accessor functions to its content.
  *
  * Note: a QObject emits a destroyed(QObject *) Qt signal when it
  * is deleted. This might be useful for closing other dialogs
  * depending on a given GuiView.
  */
-class GuiView : public QMainWindow, public LyXView, public GuiBufferViewDelegate,
+class GuiView : public QMainWindow, public GuiBufferViewDelegate,
 	public GuiBufferDelegate
 {
 	Q_OBJECT
+
 public:
 	/// create a main window of the given dimensions
 	GuiView(int id);
 
 	~GuiView();
 
-	///
+	/// closes the view such that the view knows that is closed
+	/// programmatically and not by the user clicking the x.
+	bool closeScheduled();
+
 	int id() const { return id_; }
-	void setFocus();
+
+	///
 	void setBusy(bool);
-	/// returns true if this view has the focus.
-	bool hasFocus() const;
+	/// are we busy ?
+	bool busy() const;
+
+	void saveCursorShapes();
+	void restoreCursorShapes();
+	void setCursorShapes(Qt::CursorShape shape);
+
+	/// \name Generic accessor functions
+	//@{
+	/// The current BufferView refers to the BufferView that has the focus,
+	/// including for example the one that is created when you use the
+	/// advanced search and replace pane.
+	/// \return the currently selected buffer view.
+	BufferView * currentBufferView();
+	BufferView const * currentBufferView() const;
+
+	/// The document BufferView always refers to the view's main document
+	/// BufferView. So, even if the BufferView in e.g., the advanced
+	/// search and replace pane has the focus.
+	/// \return the current document buffer view.
+	BufferView * documentBufferView();
+	BufferView const * documentBufferView() const;
+
+	void newDocument(std::string const & filename,
+		bool fromTemplate);
+
+	/// display a message in the view
+	/// could be called from any thread
+	void message(docstring const &);
+	
+	bool getStatus(FuncRequest const & cmd, FuncStatus & flag);
+	/// dispatch command.
+	/// \return true if the \c FuncRequest has been dispatched.
+	void dispatch(FuncRequest const & cmd, DispatchResult & dr);
+
+	void restartCursor();
+	/// Update the completion popup and the inline completion state.
+	/// If \c start is true, then a new completion might be started.
+	/// If \c keep is true, an active completion will be kept active
+	/// even though the cursor moved. The update flags of \c cur might
+	/// be changed.
+	void updateCompletion(Cursor & cur, bool start, bool keep);
+
+	///
+	void setFocus();
+
+	///
+	void focusInEvent(QFocusEvent * e);
+	/// set a buffer to the current workarea.
+	void setBuffer(Buffer * b); ///< \c Buffer to set.
+
+	/// load a document into the current workarea.
+	Buffer * loadDocument(
+		support::FileName const &  name, ///< File to load.
+		bool tolastfiles = true  ///< append to the "Open recent" menu?
+		);
 
 	/// add toolbar, if newline==true, add a toolbar break before the toolbar
 	GuiToolbar * makeToolbar(ToolbarInfo const & tbinfo, bool newline);
-	virtual void updateStatusBar();
-	virtual void message(docstring const & str);
+	void updateStatusBar();
 
 	/// updates the possible layouts selectable
 	void updateLayoutList();
 	void updateToolbars();
 	QMenu * createPopupMenu();
-	bool getStatus(FuncRequest const & cmd, FuncStatus & flag);
-	bool dispatch(FuncRequest const & cmd);
 
 	///
-	void setLayoutDialog(GuiLayoutBox *);
+	LayoutBox * getLayoutDialog() const;
 
-	/// \return the buffer currently shown in this window
-	Buffer * buffer();
-	Buffer const * buffer() const;
-	/// set a buffer to the current workarea.
-	void setBuffer(Buffer * b); ///< \c Buffer to set.
-	///
-	bool closeBuffer();
-	/// load a document into the current workarea.
-	Buffer * loadDocument(support::FileName const &  name, ///< File to load.
-		bool tolastfiles = true);  ///< append to the "Open recent" menu?
+	/// hides the workarea and makes sure it is clean
+	bool hideWorkArea(GuiWorkArea * wa);
+	/// closes the workarea
+	bool closeWorkArea(GuiWorkArea * wa);
+	/// closes the buffer
+	bool closeBuffer(Buffer & buf);
 	///
 	void openDocument(std::string const & filename);
 	///
 	void importDocument(std::string const &);
-	///
-	void newDocument(std::string const & filename, bool fromTemplate);
 
-	/// GuiBufferDelegate.
-	///@{
+	/// \name GuiBufferDelegate.
+	//@{
 	void resetAutosaveTimers();
-	void errors(std::string const &);
+	void errors(std::string const &, bool from_master = false);
 	void structureChanged();
 	void updateTocItem(std::string const &, DocIterator const &);
-	///@}
+	//@}
 
 	///
 	TocModels & tocModels();
@@ -115,33 +173,41 @@ public:
 	/// called on timeout
 	void autoSave();
 
-	/// \return the current buffer view.
-	BufferView * view();
+	/// check for external change of any opened buffer, mainly for svn usage
+	void checkExternallyModifiedBuffers();
 
 	/** redraw \c inset in all the BufferViews in which it is currently
 	 *  visible. If successful return a pointer to the owning Buffer.
 	 */
 	Buffer const * updateInset(Inset const *);
-	///
-	void restartCursor();
 
 	/// \return the \c Workarea associated to \p  Buffer
 	/// \retval 0 if no \c WorkArea is found.
 	GuiWorkArea * workArea(Buffer & buffer);
+	/// \return the \c Workarea at index \c index
+	GuiWorkArea * workArea(int index);
 
 	/// Add a \c WorkArea 
 	/// \return the \c Workarea associated to \p  Buffer
 	/// \retval 0 if no \c WorkArea is found.
 	GuiWorkArea * addWorkArea(Buffer & buffer);
-	///
+	/// \param work_area The current \c WorkArea, or \c NULL
 	void setCurrentWorkArea(GuiWorkArea * work_area);
 	///
 	void removeWorkArea(GuiWorkArea * work_area);
 	/// return the current WorkArea (the one that has the focus).
 	GuiWorkArea const * currentWorkArea() const;
+	/// return the current WorkArea (the one that has the focus).
+	GuiWorkArea * currentWorkArea();
+
+	/// return the current document WorkArea (it may not have the focus).
+	GuiWorkArea const * currentMainWorkArea() const;
+	/// return the current document WorkArea (it may not have the focus).
+	GuiWorkArea * currentMainWorkArea();
 
 Q_SIGNALS:
 	void closing(int);
+	void triggerShowDialog(QString const & qname, QString const & qdata, Inset * inset);
 
 public Q_SLOTS:
 	/// idle timeout.
@@ -164,7 +230,28 @@ private Q_SLOTS:
 	void normalSizedIcons();
 	void bigSizedIcons();
 
+	/// For completion of autosave or export threads.
+	void processingThreadStarted();
+	void processingThreadFinished(bool show_errors);
+	void processingThreadFinished();
+	void autoSaveThreadFinished();
+	void indicateProcessing();
+
+	/// must be called in GUI thread
+	void doShowDialog(QString const & qname, QString const & qdata,
+	Inset * inset);
+
+	/// must be called from GUI thread
+	void updateStatusBarMessage(QString const & str);
+	void clearMessageText();
+
 private:
+	/// Open given child document in current buffer directory.
+	void openChildDocument(std::string const & filename);
+	/// Close current document buffer.
+	bool closeBuffer();
+	/// Close all document buffers.
+	bool closeBufferAll();
 	///
 	TabWorkArea * addTabWorkArea();
 
@@ -188,6 +275,9 @@ private:
 	/// in order to catch Tab key press.
 	bool event(QEvent * e);
 	bool focusNextPrevChild(bool);
+
+	///
+	bool goToFileRow(std::string const & argument);
 
 	///
 	struct GuiViewPrivate;
@@ -215,7 +305,8 @@ public:
 	 */
 	void updateDialogs();
 
-	/** \param name == "bibtex", "citation" etc; an identifier used to
+	/** Show dialog could be called from arbitrary threads.
+	    \param name == "bibtex", "citation" etc; an identifier used to
 	    launch a particular dialog.
 	    \param data is a string representation of the Inset contents.
 	    It is often little more than the output from Inset::write.
@@ -244,12 +335,11 @@ public:
 	///
 	void disconnectDialog(std::string const & name);
 
-	///
-	void updateCompletion(Cursor & cur, bool start, bool keep);
-
 private:
-	///
+	/// Saves the layout and geometry of the window
 	void saveLayout() const;
+	/// Saves the settings of toolbars and all dialogs
+	void saveUISettings() const;
 	///
 	bool restoreLayout();
 	///
@@ -259,7 +349,7 @@ private:
 	///
 	void initToolbars();
 	///
-	void lfunUiToggle(FuncRequest const & cmd);
+	bool lfunUiToggle(std::string const & ui_component);
 	///
 	void toggleFullScreen();
 	///
@@ -286,11 +376,28 @@ private:
 	bool renameBuffer(Buffer & b, docstring const & newname);
 	///
 	bool saveBuffer(Buffer & b);
-	///
-	bool closeBuffer(Buffer & buf, bool tolastopened = false,
-		bool mark_active = false);
-	///
-	bool closeBufferAll(bool tolastopened = false);
+	/// save and rename buffer to fn. If fn is empty, the buffer
+	/// is just saved as the filename it already has.
+	bool saveBuffer(Buffer & b, support::FileName const & fn);
+	/// closes a workarea, if close_buffer is true the buffer will
+	/// also be released, otherwise the buffer will be hidden.
+	bool closeWorkArea(GuiWorkArea * wa, bool close_buffer);
+	/// closes the tabworkarea and all tabs. If we are in a close event,
+	/// all buffers will be closed, otherwise they will be hidden.
+	bool closeTabWorkArea(TabWorkArea * twa);
+	/// gives the user the possibility to save his work 
+	/// or to discard the changes. If hiding is true, the
+	/// document will be reloaded.
+	bool saveBufferIfNeeded(Buffer & buf, bool hiding);
+	/// closes all workareas
+	bool closeWorkAreaAll();
+	/// write all open workareas into the session file
+	void writeSession() const;
+	/// is the buffer in this workarea also shown in another tab ?
+	/// This tab can either be in the same view or in another one.
+	bool inMultiTabs(GuiWorkArea * wa);
+	/// is the buffer shown in some other view ?
+	bool inOtherView(Buffer & buf);
 	///
 	enum NextOrPrevious {
 		NEXTBUFFER,
@@ -299,21 +406,32 @@ private:
 	///
 	void gotoNextOrPreviousBuffer(NextOrPrevious np);
 
-	///
-	Inset * getOpenInset(std::string const & name) const;
-
 	/// Is the dialog currently visible?
 	bool isDialogVisible(std::string const & name) const;
 	///
 	Dialog * findOrBuild(std::string const & name, bool hide_it);
 	///
 	Dialog * build(std::string const & name);
+	///
+	bool reloadBuffer(Buffer & buffer);
+	///
+	void dispatchVC(FuncRequest const & cmd, DispatchResult & dr);
+	///
+	void dispatchToBufferView(FuncRequest const & cmd, DispatchResult & dr);
+	///
+	void showMessage();
 
 	/// This view ID.
 	int id_;
 
 	/// flag to avoid two concurrent close events.
 	bool closing_;
+	/// if the view is busy the cursor shouldn't blink for instance.
+	/// This counts the number of times more often we called
+	/// setBusy(true) compared to setBusy(false), so we can nest
+	/// functions that call setBusy;
+	int busy_;
+
 };
 
 } // namespace frontend

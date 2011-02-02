@@ -23,29 +23,33 @@ namespace lyx {
 class InsetFlex : public InsetCollapsable {
 public:
 	///
-	InsetFlex(Buffer const &, std::string const & layoutName);
+	InsetFlex(Buffer *, std::string const & layoutName);
 	///
 	docstring name() const { return from_utf8(name_); }
-
 	///
-	docstring editMessage() const;
+	InsetLayout const & getLayout() const;
 	///
 	InsetCode lyxCode() const { return FLEX_CODE; }
+	/// Default looks
+	InsetLayout::InsetDecoration decoration() const;
 	///
 	void write(std::ostream &) const;
-
-	///
-	int docbook(odocstream &, OutputParams const &) const;
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
-
 	/// should paragraph indendation be ommitted in any case?
-	bool neverIndent() const { return true; }
+	bool neverIndent() const { return true; }	
+	///
+	bool hasSettings() const { return false; }
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd,
+		FuncStatus &) const;
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
 
 protected:
+	///
 	InsetFlex(InsetFlex const &);
 
 private:
+	///
 	Inset * clone() const { return new InsetFlex(*this); }
 	///
 	std::string name_;

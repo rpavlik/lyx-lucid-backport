@@ -15,7 +15,7 @@
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "GuiView.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "qt_helpers.h"
 
 #include "support/debug.h"
@@ -45,10 +45,10 @@ void Action::update()
 {
 	FuncStatus const status = getStatus(func_);
 
-	if (status.onoff(true)) {
+	if (status.onOff(true)) {
 		setCheckable(true);
 		setChecked(true);
-	} else if (status.onoff(false)) {
+	} else if (status.onOff(false)) {
 		setCheckable(true);
 		setChecked(false);
 	} else {
@@ -61,10 +61,7 @@ void Action::update()
 
 void Action::action()
 {
-	//LYXERR(Debug::ACTION, "calling LyXFunc::dispatch: func_: ");
-
-	if (lyxView_)
-		theLyXFunc().setLyXView(lyxView_);
+	//LYXERR(Debug::ACTION, "calling lyx::dispatch: func_: ");
 
 	lyx::dispatch(func_);
 	triggered(this);
@@ -73,4 +70,4 @@ void Action::action()
 } // namespace frontend
 } // namespace lyx
 
-#include "Action_moc.cpp"
+#include "moc_Action.cpp"

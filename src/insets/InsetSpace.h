@@ -6,8 +6,8 @@
  *
  * \author Asger Alstrup Nielsen
  * \author Jean-Marc Lasgouttes
- * \author Lars Gullik Bjønnes
- * \author Jürgen Spitzmüller
+ * \author Lars Gullik BjÃ¸nnes
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,8 +23,7 @@ namespace lyx {
 
 class LaTeXFeatures;
 
-class InsetSpaceParams {
-public:
+struct InsetSpaceParams {
 	/// The different kinds of spaces we support
 	enum Kind {
 		/// Normal space ('\ ')
@@ -81,7 +80,7 @@ public:
 	///
 	Kind kind;
 	///
-	Length length;
+	GlueLength length;
 	/**
 	 * Whether these params are to be used in mathed.
 	 * This determines the set of valid kinds.
@@ -95,22 +94,20 @@ class InsetSpace : public Inset
 {
 public:
 	///
-	InsetSpace() {}
+	InsetSpace() : Inset(0) {}
 	///
 	explicit InsetSpace(InsetSpaceParams const & par);
 	///
-	InsetSpaceParams params() const { return params_; }
+	InsetSpaceParams const & params() const { return params_; }
 	///
 	InsetSpaceParams::Kind kind() const;
-	///
-	~InsetSpace();
 
 	///
 	static void string2params(std::string const &, InsetSpaceParams &);
 	///
 	static std::string params2string(InsetSpaceParams const &);
 	///
-	Length length() const;
+	GlueLength length() const;
 
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
@@ -129,14 +126,15 @@ public:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
 	void validate(LaTeXFeatures & features) const;
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
 	///
-	void edit(Cursor & cur, bool front,
-		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
+	void toString(odocstream &) const;
 	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	void forToc(docstring &, size_t) const;
+	///
+	bool hasSettings() const { return true; }
 	///
 	InsetCode lyxCode() const { return SPACE_CODE; }
 	/// is this an expandible space (rubber length)?
@@ -150,7 +148,9 @@ public:
 	// a line separator)?
 	bool isSpace() const { return true; }
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
+	///
+	bool clickable(int /* x */, int /* y */) const { return true; }
 protected:
 	///
 	Inset * clone() const { return new InsetSpace(*this); }

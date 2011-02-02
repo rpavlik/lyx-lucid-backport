@@ -1,18 +1,18 @@
 <ui version="4.0" >
  <class>HSpaceUi</class>
- <widget class="QDialog" name="HSpaceUi" >
+ <widget class="QWidget" name="HSpaceUi" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>259</width>
-    <height>160</height>
+    <width>239</width>
+    <height>110</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string/>
   </property>
-  <property name="sizeGripEnabled" >
+  <property name="sizeGripEnabled" stdset="0" >
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" >
@@ -137,49 +137,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0" colspan="3" >
-    <layout class="QHBoxLayout" >
-     <property name="margin" >
-      <number>0</number>
-     </property>
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <item>
-      <widget class="QPushButton" name="okPB" >
-       <property name="text" >
-        <string>&amp;OK</string>
-       </property>
-       <property name="autoDefault" >
-        <bool>false</bool>
-       </property>
-       <property name="default" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="applyPB" >
-       <property name="text" >
-        <string>&amp;Apply</string>
-       </property>
-       <property name="autoDefault" >
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="closePB" >
-       <property name="text" >
-        <string>&amp;Close</string>
-       </property>
-       <property name="autoDefault" >
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -192,9 +149,6 @@
  <tabstops>
   <tabstop>spacingCO</tabstop>
   <tabstop>valueLE</tabstop>
-  <tabstop>okPB</tabstop>
-  <tabstop>applyPB</tabstop>
-  <tabstop>closePB</tabstop>
   <tabstop>keepCB</tabstop>
  </tabstops>
  <includes>

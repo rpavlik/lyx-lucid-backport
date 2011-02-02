@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,6 +12,8 @@
 #include <config.h>
 
 #include "InsetMathRoot.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "Cursor.h"
@@ -117,5 +119,25 @@ void InsetMathRoot::mathmlize(MathStream & os) const
 	os << MTag("mroot") << cell(1) << cell(0) << ETag("mroot");
 }
 
+
+void InsetMathRoot::htmlize(HtmlStream & os) const
+{
+	os << MTag("span", "class='root'")
+	   << MTag("sup") << cell(0) << ETag("sup")
+	   << from_ascii("&radic;") 
+	   << MTag("span", "class='rootof'")	<< cell(1) << ETag("span") 
+		 << ETag("span");
+}
+
+
+void InsetMathRoot::validate(LaTeXFeatures & features) const
+{
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.rootof{border-top: thin solid black;}\n"
+			"span.root sup{font-size: 75%;}\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
 
 } // namespace lyx

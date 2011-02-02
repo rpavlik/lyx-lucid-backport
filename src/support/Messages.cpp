@@ -2,7 +2,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,6 +14,7 @@
 #include "support/debug.h"
 #include "support/docstring.h"
 #include "support/environment.h"
+#include "support/lstrings.h"
 #include "support/Package.h"
 #include "support/unicode.h"
 
@@ -105,7 +106,7 @@ void Messages::init()
 	int e = errno;
 	if (e) {
 		LYXERR(Debug::LOCALE, "Error code: " << errno << '\n'
-			<< "Directory : " << package().locale_dir().absFilename() << '\n'
+			<< "Directory : " << package().locale_dir().absFileName() << '\n'
 			<< "Rtn value : " << c);
 	}
 
@@ -121,6 +122,14 @@ void Messages::init()
 }
 
 
+bool Messages::available() const
+{
+	string const test = languageTestString();
+	string const trans = to_utf8(get(test));
+	return !trans.empty() && trans != test;
+}
+
+
 docstring const Messages::get(string const & m) const
 {
 	if (m.empty())
@@ -133,11 +142,13 @@ docstring const Messages::get(string const & m) const
 
 	// The string was not found, use gettext to generate it
 	static string oldLC_ALL;
+	static string oldLANGUAGE;
 	if (!lang_.empty()) {
 		oldLC_ALL = getEnv("LC_ALL");
 		// This GNU extension overrides any language locale
 		// wrt gettext.
 		LYXERR(Debug::LOCALE, "Setting LANGUAGE to " << lang_);
+		oldLANGUAGE = getEnv("LANGUAGE");
 		if (!setEnv("LANGUAGE", lang_))
 			LYXERR(Debug::LOCALE, "\t... failed!");
 		// However, setting LANGUAGE does nothing when the
@@ -157,9 +168,10 @@ docstring const Messages::get(string const & m) const
 	char const * m_c = m.c_str();
 	char const * trans_c = gettext(m_c);
 	docstring trans;
-	if (!trans_c)
-		LYXERR(Debug::LOCALE, "Undefined result from gettext");
-	else if (trans_c == m_c) {
+	if (!trans_c) {
+		LYXERR(Debug::LOCALE, "Undefined result from gettext for `" << m << "'.");
+		trans = from_ascii(m);
+	} else if (trans_c == m_c) {
 		//LYXERR(Debug::LOCALE, "Same as entered returned");
 		trans = from_ascii(m);
 	} else {
@@ -173,9 +185,10 @@ docstring const Messages::get(string const & m) const
 	// Reset environment variables as they were.
 	if (!lang_.empty()) {
 		// Reset everything as it was.
-		LYXERR(Debug::LOCALE, "restoring LANGUAGE from " << getEnv("LANGUAGE")
-			<< " to " << main_lang_);
-		if (!setEnv("LANGUAGE", main_lang_))
+		LYXERR(Debug::LOCALE, "restoring LANGUAGE from " 
+		       << getEnv("LANGUAGE")
+		       << " to " << oldLANGUAGE);
+		if (!setEnv("LANGUAGE", oldLANGUAGE))
 			LYXERR(Debug::LOCALE, "\t... failed!");
 		LYXERR(Debug::LOCALE, "restoring LC_ALL from " << getEnv("LC_ALL")
 			<< " to " << oldLC_ALL);
@@ -201,7 +214,7 @@ docstring const Messages::get(string const & m) const
 
 namespace lyx {
 
-Messages::Messages(string const & l) {}
+Messages::Messages(string const & /* l */) {}
 
 void Messages::init()
 {
@@ -213,6 +226,12 @@ docstring const Messages::get(string const & m) const
 	docstring trans = from_ascii(m);
 	cleanTranslation(trans);
 	return trans;
+}
+
+
+bool Messages::available() const
+{
+	return false;
 }
 
 } // namespace lyx

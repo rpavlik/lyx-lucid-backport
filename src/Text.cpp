@@ -4,14 +4,14 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Dov Feldstern
  * \author Jean-Marc Lasgouttes
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  * \author Dekel Tsur
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -34,12 +34,14 @@
 #include "ErrorList.h"
 #include "FuncRequest.h"
 #include "factory.h"
+#include "InsetList.h"
 #include "Language.h"
+#include "Layout.h"
 #include "Length.h"
 #include "Lexer.h"
+#include "lyxfind.h"
 #include "LyXRC.h"
 #include "Paragraph.h"
-#include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
 #include "ParIterator.h"
 #include "TextClass.h"
@@ -51,19 +53,17 @@
 #include "insets/InsetText.h"
 #include "insets/InsetBibitem.h"
 #include "insets/InsetCaption.h"
-#include "insets/InsetLine.h"
 #include "insets/InsetNewline.h"
 #include "insets/InsetNewpage.h"
-#include "insets/InsetOptArg.h"
+#include "insets/InsetArgument.h"
 #include "insets/InsetSpace.h"
 #include "insets/InsetSpecialChar.h"
 #include "insets/InsetTabular.h"
 
-#include "support/lassert.h"
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/docstream.h"
 #include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
@@ -79,12 +79,249 @@ namespace lyx {
 using cap::cutSelection;
 using cap::pasteParagraphList;
 
-namespace {
+static bool moveItem(Paragraph & fromPar, pos_type fromPos,
+	Paragraph & toPar, pos_type toPos, BufferParams const & params)
+{
+	// Note: moveItem() does not honour change tracking!
+	// Therefore, it should only be used for breaking and merging paragraphs
 
-void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
+	// We need a copy here because the character at fromPos is going to be erased.
+	Font const tmpFont = fromPar.getFontSettings(params, fromPos);
+	Change const tmpChange = fromPar.lookupChange(fromPos);
+
+	if (Inset * tmpInset = fromPar.getInset(fromPos)) {
+		fromPar.releaseInset(fromPos);
+		// The inset is not in fromPar any more.
+		if (!toPar.insertInset(toPos, tmpInset, tmpFont, tmpChange)) {
+			delete tmpInset;
+			return false;
+		}
+		return true;
+	}
+
+	char_type const tmpChar = fromPar.getChar(fromPos);
+	fromPar.eraseChar(fromPos, false);
+	toPar.insertChar(toPos, tmpChar, tmpFont, tmpChange);
+	return true;
+}
+
+
+void breakParagraphConservative(BufferParams const & bparams,
+	ParagraphList & pars, pit_type par_offset, pos_type pos)
+{
+	// create a new paragraph
+	Paragraph & tmp = *pars.insert(boost::next(pars.begin(), par_offset + 1),
+				       Paragraph());
+	Paragraph & par = pars[par_offset];
+
+	tmp.setInsetOwner(&par.inInset());
+	tmp.makeSameLayout(par);
+
+	LASSERT(pos <= par.size(), /**/);
+
+	if (pos < par.size()) {
+		// move everything behind the break position to the new paragraph
+		pos_type pos_end = par.size() - 1;
+
+		for (pos_type i = pos, j = 0; i <= pos_end; ++i) {
+			if (moveItem(par, pos, tmp, j, bparams)) {
+				++j;
+			}
+		}
+		// Move over the end-of-par change information
+		tmp.setChange(tmp.size(), par.lookupChange(par.size()));
+		par.setChange(par.size(), Change(bparams.trackChanges ?
+					   Change::INSERTED : Change::UNCHANGED));
+	}
+}
+
+
+void mergeParagraph(BufferParams const & bparams,
+	ParagraphList & pars, pit_type par_offset)
+{
+	Paragraph & next = pars[par_offset + 1];
+	Paragraph & par = pars[par_offset];
+
+	pos_type pos_end = next.size() - 1;
+	pos_type pos_insert = par.size();
+
+	// the imaginary end-of-paragraph character (at par.size()) has to be
+	// marked as unmodified. Otherwise, its change is adopted by the first
+	// character of the next paragraph.
+	if (par.isChanged(par.size())) {
+		LYXERR(Debug::CHANGES,
+		   "merging par with inserted/deleted end-of-par character");
+		par.setChange(par.size(), Change(Change::UNCHANGED));
+	}
+
+	Change change = next.lookupChange(next.size());
+
+	// move the content of the second paragraph to the end of the first one
+	for (pos_type i = 0, j = pos_insert; i <= pos_end; ++i) {
+		if (moveItem(next, 0, par, j, bparams)) {
+			++j;
+		}
+	}
+
+	// move the change of the end-of-paragraph character
+	par.setChange(par.size(), change);
+
+	pars.erase(boost::next(pars.begin(), par_offset + 1));
+}
+
+
+Text::Text(InsetText * owner, bool use_default_layout)
+	: owner_(owner), autoBreakRows_(false), undo_counter_(0)
+{
+	pars_.push_back(Paragraph());
+	Paragraph & par = pars_.back();
+	par.setInsetOwner(owner);
+	DocumentClass const & dc = owner->buffer().params().documentClass();
+	if (use_default_layout)
+		par.setDefaultLayout(dc);
+	else
+		par.setPlainLayout(dc);
+}
+
+
+Text::Text(InsetText * owner, Text const & text)
+	: owner_(owner), autoBreakRows_(text.autoBreakRows_), undo_counter_(0)
+{
+	pars_ = text.pars_;
+	ParagraphList::iterator const end = pars_.end();
+	ParagraphList::iterator it = pars_.begin();
+	for (; it != end; ++it)
+		it->setInsetOwner(owner);
+}
+
+
+pit_type Text::depthHook(pit_type pit, depth_type depth) const
+{
+	pit_type newpit = pit;
+
+	if (newpit != 0)
+		--newpit;
+
+	while (newpit != 0 && pars_[newpit].getDepth() > depth)
+		--newpit;
+
+	if (pars_[newpit].getDepth() > depth)
+		return pit;
+
+	return newpit;
+}
+
+
+pit_type Text::outerHook(pit_type par_offset) const
+{
+	Paragraph const & par = pars_[par_offset];
+
+	if (par.getDepth() == 0)
+		return pars_.size();
+	return depthHook(par_offset, depth_type(par.getDepth() - 1));
+}
+
+
+bool Text::isFirstInSequence(pit_type par_offset) const
+{
+	Paragraph const & par = pars_[par_offset];
+
+	pit_type dhook_offset = depthHook(par_offset, par.getDepth());
+
+	if (dhook_offset == par_offset)
+		return true;
+
+	Paragraph const & dhook = pars_[dhook_offset];
+
+	return dhook.layout() != par.layout()
+		|| dhook.getDepth() != par.getDepth();
+}
+
+
+Font const Text::outerFont(pit_type par_offset) const
+{
+	depth_type par_depth = pars_[par_offset].getDepth();
+	FontInfo tmpfont = inherit_font;
+
+	// Resolve against environment font information
+	while (par_offset != pit_type(pars_.size())
+	       && par_depth
+	       && !tmpfont.resolved()) {
+		par_offset = outerHook(par_offset);
+		if (par_offset != pit_type(pars_.size())) {
+			tmpfont.realize(pars_[par_offset].layout().font);
+			par_depth = pars_[par_offset].getDepth();
+		}
+	}
+
+	return Font(tmpfont);
+}
+
+
+static void acceptOrRejectChanges(ParagraphList & pars,
+	BufferParams const & bparams, Text::ChangeOp op)
+{
+	pit_type pars_size = static_cast<pit_type>(pars.size());
+
+	// first, accept or reject changes within each individual
+	// paragraph (do not consider end-of-par)
+	for (pit_type pit = 0; pit < pars_size; ++pit) {
+		// prevent assertion failure
+		if (!pars[pit].empty()) {
+			if (op == Text::ACCEPT)
+				pars[pit].acceptChanges(0, pars[pit].size());
+			else
+				pars[pit].rejectChanges(0, pars[pit].size());
+		}
+	}
+
+	// next, accept or reject imaginary end-of-par characters
+	for (pit_type pit = 0; pit < pars_size; ++pit) {
+		pos_type pos = pars[pit].size();
+		if (pars[pit].isChanged(pos)) {
+			// keep the end-of-par char if it is inserted and accepted
+			// or when it is deleted and rejected.
+			if (pars[pit].isInserted(pos) == (op == Text::ACCEPT)) {
+				pars[pit].setChange(pos, Change(Change::UNCHANGED));
+			} else {
+				if (pit == pars_size - 1) {
+					// we cannot remove a par break at the end of the last
+					// paragraph; instead, we mark it unchanged
+					pars[pit].setChange(pos, Change(Change::UNCHANGED));
+				} else {
+					mergeParagraph(bparams, pars, pit);
+					--pit;
+					--pars_size;
+				}
+			}
+		}
+	}
+}
+
+
+void acceptChanges(ParagraphList & pars, BufferParams const & bparams)
+{
+	acceptOrRejectChanges(pars, bparams, Text::ACCEPT);
+}
+
+
+void rejectChanges(ParagraphList & pars, BufferParams const & bparams)
+{
+	acceptOrRejectChanges(pars, bparams, Text::REJECT);
+}
+
+
+InsetText const & Text::inset() const
+{
+	return *owner_;
+}
+
+
+void Text::readParToken(Paragraph & par, Lexer & lex,
 	string const & token, Font & font, Change & change, ErrorList & errorList)
 {
-	BufferParams const & bp = buf.params();
+	Buffer * buf = const_cast<Buffer *>(&owner_->buffer());
+	BufferParams const & bp = buf->params();
 
 	if (token[0] != '\\') {
 		docstring dstr = lex.getDocString();
@@ -102,7 +339,7 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 		if (layoutname.empty())
 			layoutname = tclass.defaultLayoutName();
 
-		if (par.forcePlainLayout()) {
+		if (owner_->forcePlainLayout()) {
 			// in this case only the empty layout is allowed
 			layoutname = tclass.plainLayoutName();
 		} else if (par.usePlainLayout()) {
@@ -170,10 +407,10 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 		}
 	} else if (token == "\\numeric") {
 		lex.next();
-		font.fontInfo().setNumber(font.setLyXMisc(lex.getString()));
+		font.fontInfo().setNumber(setLyXMisc(lex.getString()));
 	} else if (token == "\\emph") {
 		lex.next();
-		font.fontInfo().setEmph(font.setLyXMisc(lex.getString()));
+		font.fontInfo().setEmph(setLyXMisc(lex.getString()));
 	} else if (token == "\\bar") {
 		lex.next();
 		string const tok = lex.getString();
@@ -187,54 +424,53 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 		else
 			lex.printError("Unknown bar font flag "
 				       "`$$Token'");
+	} else if (token == "\\strikeout") {
+		lex.next();
+		font.fontInfo().setStrikeout(setLyXMisc(lex.getString()));
+	} else if (token == "\\uuline") {
+		lex.next();
+		font.fontInfo().setUuline(setLyXMisc(lex.getString()));
+	} else if (token == "\\uwave") {
+		lex.next();
+		font.fontInfo().setUwave(setLyXMisc(lex.getString()));
 	} else if (token == "\\noun") {
 		lex.next();
-		font.fontInfo().setNoun(font.setLyXMisc(lex.getString()));
+		font.fontInfo().setNoun(setLyXMisc(lex.getString()));
 	} else if (token == "\\color") {
 		lex.next();
 		setLyXColor(lex.getString(), font.fontInfo());
 	} else if (token == "\\SpecialChar") {
-			auto_ptr<Inset> inset;
-			inset.reset(new InsetSpecialChar);
-			inset->read(lex);
-			par.insertInset(par.size(), inset.release(),
-					font, change);
+		auto_ptr<Inset> inset;
+		inset.reset(new InsetSpecialChar);
+		inset->read(lex);
+		inset->setBuffer(*buf);
+		par.insertInset(par.size(), inset.release(), font, change);
 	} else if (token == "\\backslash") {
 		par.appendChar('\\', font, change);
 	} else if (token == "\\LyXTable") {
-		auto_ptr<Inset> inset(new InsetTabular(const_cast<Buffer &>(buf)));
+		auto_ptr<Inset> inset(new InsetTabular(buf));
 		inset->read(lex);
 		par.insertInset(par.size(), inset.release(), font, change);
-	} else if (token == "\\lyxline") {
-		par.insertInset(par.size(), new InsetLine, font, change);
 	} else if (token == "\\change_unchanged") {
 		change = Change(Change::UNCHANGED);
-	} else if (token == "\\change_inserted") {
+	} else if (token == "\\change_inserted" || token == "\\change_deleted") {
 		lex.eatLine();
 		istringstream is(lex.getString());
-		unsigned int aid;
+		int aid;
 		time_t ct;
 		is >> aid >> ct;
-		if (aid >= bp.author_map.size()) {
+		BufferParams::AuthorMap const & am = bp.author_map;
+		if (am.find(aid) == am.end()) {
 			errorList.push_back(ErrorItem(_("Change tracking error"),
-					    bformat(_("Unknown author index for insertion: %1$d\n"), aid),
+					    bformat(_("Unknown author index for change: %1$d\n"), aid),
 					    par.id(), 0, par.size()));
 			change = Change(Change::UNCHANGED);
-		} else
-			change = Change(Change::INSERTED, bp.author_map[aid], ct);
-	} else if (token == "\\change_deleted") {
-		lex.eatLine();
-		istringstream is(lex.getString());
-		unsigned int aid;
-		time_t ct;
-		is >> aid >> ct;
-		if (aid >= bp.author_map.size()) {
-			errorList.push_back(ErrorItem(_("Change tracking error"),
-					    bformat(_("Unknown author index for deletion: %1$d\n"), aid),
-					    par.id(), 0, par.size()));
-			change = Change(Change::UNCHANGED);
-		} else
-			change = Change(Change::DELETED, bp.author_map[aid], ct);
+		} else {
+			if (token == "\\change_inserted")
+				change = Change(Change::INSERTED, am.find(aid)->second, ct);
+			else
+				change = Change(Change::DELETED, am.find(aid)->second, ct);
+		}
 	} else {
 		lex.eatLine();
 		errorList.push_back(ErrorItem(_("Unknown token"),
@@ -245,7 +481,7 @@ void readParToken(Buffer const & buf, Paragraph & par, Lexer & lex,
 }
 
 
-void readParagraph(Buffer const & buf, Paragraph & par, Lexer & lex,
+void Text::readParagraph(Paragraph & par, Lexer & lex,
 	ErrorList & errorList)
 {
 	lex.nextToken();
@@ -254,7 +490,7 @@ void readParagraph(Buffer const & buf, Paragraph & par, Lexer & lex,
 	Change change(Change::UNCHANGED);
 
 	while (lex.isOK()) {
-		readParToken(buf, par, lex, token, font, change, errorList);
+		readParToken(par, lex, token, font, change, errorList);
 
 		lex.nextToken();
 		token = lex.getString();
@@ -283,17 +519,19 @@ void readParagraph(Buffer const & buf, Paragraph & par, Lexer & lex,
 
 	// Initialize begin_of_body_ on load; redoParagraph maintains
 	par.setBeginOfBody();
+	
+	// mark paragraph for spell checking on load
+	// par.requestSpellCheck();
 }
 
-
-} // namespace anon
 
 class TextCompletionList : public CompletionList
 {
 public:
 	///
-	TextCompletionList(Cursor const & cur)
-	: buf_(cur.buffer()), pos_(0) {}
+	TextCompletionList(Cursor const & cur, WordList const * list)
+		: buffer_(cur.buffer()), pos_(0), list_(list)
+	{}
 	///
 	virtual ~TextCompletionList() {}
 	
@@ -302,19 +540,21 @@ public:
 	///
 	virtual size_t size() const
 	{
-		return theWordList().size();
+		return list_->size();
 	}
 	///
 	virtual docstring const & data(size_t idx) const
 	{
-		return theWordList().word(idx);
+		return list_->word(idx);
 	}
 	
 private:
 	///
-	Buffer const & buf_;
+	Buffer const * buffer_;
 	///
 	size_t pos_;
+	///
+	WordList const * list_;
 };
 
 
@@ -326,11 +566,109 @@ bool Text::empty() const
 }
 
 
-double Text::spacing(Buffer const & buffer, Paragraph const & par) const
+double Text::spacing(Paragraph const & par) const
 {
 	if (par.params().spacing().isDefault())
-		return buffer.params().spacing().getValue();
+		return owner_->buffer().params().spacing().getValue();
 	return par.params().spacing().getValue();
+}
+
+
+/**
+ * This breaks a paragraph at the specified position.
+ * The new paragraph will:
+ * - Decrease depth by one (or change layout to default layout) when
+ *    keep_layout == false  
+ * - keep current depth and layout when keep_layout == true
+ */
+static void breakParagraph(Text & text, pit_type par_offset, pos_type pos, 
+		    bool keep_layout)
+{
+	BufferParams const & bparams = text.inset().buffer().params();
+	ParagraphList & pars = text.paragraphs();
+	// create a new paragraph, and insert into the list
+	ParagraphList::iterator tmp =
+		pars.insert(boost::next(pars.begin(), par_offset + 1),
+			    Paragraph());
+
+	Paragraph & par = pars[par_offset];
+
+	// remember to set the inset_owner
+	tmp->setInsetOwner(&par.inInset());
+	// without doing that we get a crash when typing <Return> at the
+	// end of a paragraph
+	tmp->setPlainOrDefaultLayout(bparams.documentClass());
+
+	if (keep_layout) {
+		tmp->setLayout(par.layout());
+		tmp->setLabelWidthString(par.params().labelWidthString());
+		tmp->params().depth(par.params().depth());
+	} else if (par.params().depth() > 0) {
+		Paragraph const & hook = pars[text.outerHook(par_offset)];
+		tmp->setLayout(hook.layout());
+		// not sure the line below is useful
+		tmp->setLabelWidthString(par.params().labelWidthString());
+		tmp->params().depth(hook.params().depth());
+	}
+
+	bool const isempty = (par.allowEmpty() && par.empty());
+
+	if (!isempty && (par.size() > pos || par.empty())) {
+		tmp->setLayout(par.layout());
+		tmp->params().align(par.params().align());
+		tmp->setLabelWidthString(par.params().labelWidthString());
+
+		tmp->params().depth(par.params().depth());
+		tmp->params().noindent(par.params().noindent());
+
+		// move everything behind the break position
+		// to the new paragraph
+
+		/* Note: if !keepempty, empty() == true, then we reach
+		 * here with size() == 0. So pos_end becomes - 1. This
+		 * doesn't cause problems because both loops below
+		 * enforce pos <= pos_end and 0 <= pos
+		 */
+		pos_type pos_end = par.size() - 1;
+
+		for (pos_type i = pos, j = 0; i <= pos_end; ++i) {
+			if (moveItem(par, pos, *tmp, j, bparams)) {
+				++j;
+			}
+		}
+	}
+
+	// Move over the end-of-par change information
+	tmp->setChange(tmp->size(), par.lookupChange(par.size()));
+	par.setChange(par.size(), Change(bparams.trackChanges ?
+					   Change::INSERTED : Change::UNCHANGED));
+
+	if (pos) {
+		// Make sure that we keep the language when
+		// breaking paragraph.
+		if (tmp->empty()) {
+			Font changed = tmp->getFirstFontSettings(bparams);
+			Font const & old = par.getFontSettings(bparams, par.size());
+			changed.setLanguage(old.language());
+			tmp->setFont(0, changed);
+		}
+
+		return;
+	}
+
+	if (!isempty) {
+		bool const soa = par.params().startOfAppendix();
+		par.params().clear();
+		// do not lose start of appendix marker (bug 4212)
+		par.params().startOfAppendix(soa);
+		par.setPlainOrDefaultLayout(bparams.documentClass());
+	}
+
+	if (keep_layout) {
+		par.setLayout(tmp->layout());
+		par.setLabelWidthString(tmp->params().labelWidthString());
+		par.params().depth(tmp->params().depth());
+	}
 }
 
 
@@ -341,7 +679,7 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	Paragraph & cpar = cur.paragraph();
 	pit_type cpit = cur.pit();
 
-	DocumentClass const & tclass = cur.buffer().params().documentClass();
+	DocumentClass const & tclass = cur.buffer()->params().documentClass();
 	Layout const & layout = cpar.layout();
 
 	if (cur.lastpos() == 0 && !cpar.allowEmpty()) {
@@ -358,12 +696,13 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	// Always break behind a space
 	// It is better to erase the space (Dekel)
 	if (cur.pos() != cur.lastpos() && cpar.isLineSeparator(cur.pos()))
-		cpar.eraseChar(cur.pos(), cur.buffer().params().trackChanges);
+		cpar.eraseChar(cur.pos(), cur.buffer()->params().trackChanges);
 
 	// What should the layout for the new paragraph be?
-	bool keep_layout = inverse_logic ? 
-		!layout.isEnvironment() 
-		: layout.isEnvironment();
+	bool keep_layout = layout.isEnvironment() 
+		|| (layout.isParagraph() && layout.parbreak_is_newline);
+	if (inverse_logic)
+		keep_layout = !keep_layout;
 
 	// We need to remember this before we break the paragraph, because
 	// that invalidates the layout variable
@@ -372,8 +711,7 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	// we need to set this before we insert the paragraph.
 	bool const isempty = cpar.allowEmpty() && cpar.empty();
 
-	lyx::breakParagraph(cur.buffer().params(), paragraphs(), cpit,
-			 cur.pos(), keep_layout);
+	lyx::breakParagraph(*this, cpit, cur.pos(), keep_layout);
 
 	// After this, neither paragraph contains any rows!
 
@@ -393,14 +731,13 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 	}
 
 	while (!pars_[next_par].empty() && pars_[next_par].isNewline(0)) {
-		if (!pars_[next_par].eraseChar(0, cur.buffer().params().trackChanges))
+		if (!pars_[next_par].eraseChar(0, cur.buffer()->params().trackChanges))
 			break; // the character couldn't be deleted physically due to change tracking
 	}
 
-	updateLabels(cur.buffer());
-
 	// A singlePar update is not enough in this case.
-	cur.updateFlags(Update::Force);
+	cur.screenUpdateFlags(Update::Force);
+	cur.forceBufferUpdate();
 
 	// This check is necessary. Otherwise the new empty paragraph will
 	// be deleted automatically. And it is more friendly for the user!
@@ -408,6 +745,85 @@ void Text::breakParagraph(Cursor & cur, bool inverse_logic)
 		setCursor(cur, cur.pit() + 1, 0);
 	else
 		setCursor(cur, cur.pit(), 0);
+}
+
+
+// needed to insert the selection
+void Text::insertStringAsLines(DocIterator const & dit, docstring const & str,
+		Font const & font)
+{
+	BufferParams const & bparams = owner_->buffer().params();
+	pit_type pit = dit.pit();
+	pos_type pos = dit.pos();
+
+	// insert the string, don't insert doublespace
+	bool space_inserted = true;
+	for (docstring::const_iterator cit = str.begin();
+	    cit != str.end(); ++cit) {
+		Paragraph & par = pars_[pit];
+		if (*cit == '\n') {
+			if (autoBreakRows_ && (!par.empty() || par.allowEmpty())) {
+				lyx::breakParagraph(*this, pit, pos,
+					par.layout().isEnvironment());
+				++pit;
+				pos = 0;
+				space_inserted = true;
+			} else {
+				continue;
+			}
+			// do not insert consecutive spaces if !free_spacing
+		} else if ((*cit == ' ' || *cit == '\t') &&
+			   space_inserted && !par.isFreeSpacing()) {
+			continue;
+		} else if (*cit == '\t') {
+			if (!par.isFreeSpacing()) {
+				// tabs are like spaces here
+				par.insertChar(pos, ' ', font, bparams.trackChanges);
+				++pos;
+				space_inserted = true;
+			} else {
+				par.insertChar(pos, *cit, font, bparams.trackChanges);
+				++pos;
+				space_inserted = true;
+			}
+		} else if (!isPrintable(*cit)) {
+			// Ignore unprintables
+			continue;
+		} else {
+			// just insert the character
+			par.insertChar(pos, *cit, font, bparams.trackChanges);
+			++pos;
+			space_inserted = (*cit == ' ');
+		}
+	}
+}
+
+
+// turn double CR to single CR, others are converted into one
+// blank. Then insertStringAsLines is called
+void Text::insertStringAsParagraphs(DocIterator const & dit, docstring const & str,
+		Font const & font)
+{
+	docstring linestr = str;
+	bool newline_inserted = false;
+
+	for (string::size_type i = 0, siz = linestr.size(); i < siz; ++i) {
+		if (linestr[i] == '\n') {
+			if (newline_inserted) {
+				// we know that \r will be ignored by
+				// insertStringAsLines. Of course, it is a dirty
+				// trick, but it works...
+				linestr[i - 1] = '\r';
+				linestr[i] = '\n';
+			} else {
+				linestr[i] = ' ';
+				newline_inserted = true;
+			}
+		} else if (isPrintable(linestr[i])) {
+			newline_inserted = false;
+		}
+	}
+	insertStringAsLines(dit, linestr, font);
 }
 
 
@@ -420,7 +836,7 @@ void Text::insertChar(Cursor & cur, char_type c)
 	cur.recordUndo(INSERT_UNDO);
 
 	TextMetrics const & tm = cur.bv().textMetrics(this);
-	Buffer const & buffer = cur.buffer();
+	Buffer const & buffer = *cur.buffer();
 	Paragraph & par = cur.paragraph();
 	// try to remove this
 	pit_type const pit = cur.pit();
@@ -434,7 +850,7 @@ void Text::insertChar(Cursor & cur, char_type c)
 		static docstring const number_seperators = from_ascii(".,:");
 
 		if (cur.current_font.fontInfo().number() == FONT_ON) {
-			if (!isDigit(c) && !contains(number_operators, c) &&
+			if (!isDigitASCII(c) && !contains(number_operators, c) &&
 			    !(contains(number_seperators, c) &&
 			      cur.pos() != 0 &&
 			      cur.pos() != cur.lastpos() &&
@@ -442,7 +858,7 @@ void Text::insertChar(Cursor & cur, char_type c)
 			      tm.displayFont(pit, cur.pos() - 1).fontInfo().number() == FONT_ON)
 			   )
 				number(cur); // Set current_font.number to OFF
-		} else if (isDigit(c) &&
+		} else if (isDigitASCII(c) &&
 			   cur.real_current_font.isVisibleRightToLeft()) {
 			number(cur); // Set current_font.number to ON
 
@@ -453,12 +869,12 @@ void Text::insertChar(Cursor & cur, char_type c)
 				     || par.isSeparator(cur.pos() - 2)
 				     || par.isNewline(cur.pos() - 2))
 				  ) {
-					setCharFont(buffer, pit, cur.pos() - 1, cur.current_font,
+					setCharFont(pit, cur.pos() - 1, cur.current_font,
 						tm.font_);
 				} else if (contains(number_seperators, c)
 				     && cur.pos() >= 2
 				     && tm.displayFont(pit, cur.pos() - 2).fontInfo().number() == FONT_ON) {
-					setCharFont(buffer, pit, cur.pos() - 1, cur.current_font,
+					setCharFont(pit, cur.pos() - 1, cur.current_font,
 						tm.font_);
 				}
 			}
@@ -519,32 +935,27 @@ void Text::insertChar(Cursor & cur, char_type c)
 	// disable the double-space checking
 	if (!freeSpacing && isLineSeparatorChar(c)) {
 		if (cur.pos() == 0) {
-			static bool sent_space_message = false;
-			if (!sent_space_message) {
-				cur.message(_("You cannot insert a space at the "
-							   "beginning of a paragraph. Please read the Tutorial."));
-				sent_space_message = true;
-			}
+			cur.message(_(
+					"You cannot insert a space at the "
+					"beginning of a paragraph. Please read the Tutorial."));
 			return;
 		}
 		LASSERT(cur.pos() > 0, /**/);
 		if ((par.isLineSeparator(cur.pos() - 1) || par.isNewline(cur.pos() - 1))
-		    && !par.isDeleted(cur.pos() - 1)) {
-			static bool sent_space_message = false;
-			if (!sent_space_message) {
-				cur.message(_("You cannot type two spaces this way. "
-							   "Please read the Tutorial."));
-				sent_space_message = true;
-			}
+				&& !par.isDeleted(cur.pos() - 1)) {
+			cur.message(_(
+					"You cannot type two spaces this way. "
+					"Please read the Tutorial."));
 			return;
 		}
 	}
 
-	par.insertChar(cur.pos(), c, cur.current_font, cur.buffer().params().trackChanges);
+	par.insertChar(cur.pos(), c, cur.current_font,
+		cur.buffer()->params().trackChanges);
 	cur.checkBufferStructure();
 
-//		cur.updateFlags(Update::Force);
-	bool const boundary = cur.boundary()
+//		cur.screenUpdateFlags(Update::Force);
+	bool boundary = cur.boundary()
 		|| tm.isRTLBoundary(cur.pit(), cur.pos() + 1);
 	setCursor(cur, cur.pit(), cur.pos() + 1, false, boundary);
 	charInserted(cur);
@@ -557,21 +968,20 @@ void Text::charInserted(Cursor & cur)
 
 	// Here we call finishUndo for every 20 characters inserted.
 	// This is from my experience how emacs does it. (Lgb)
-	static unsigned int counter;
-	if (counter < 20) {
-		++counter;
+	if (undo_counter_ < 20) {
+		++undo_counter_;
 	} else {
 		cur.finishUndo();
-		counter = 0;
+		undo_counter_ = 0;
 	}
 
 	// register word if a non-letter was entered
 	if (cur.pos() > 1
-	    && par.isLetter(cur.pos() - 2)
-	    && !par.isLetter(cur.pos() - 1)) {
+	    && !par.isWordSeparator(cur.pos() - 2)
+	    && par.isWordSeparator(cur.pos() - 1)) {
 		// get the word in front of cursor
 		LASSERT(this == cur.text(), /**/);
-		cur.paragraph().updateWords(cur.top());
+		cur.paragraph().updateWords();
 	}
 }
 
@@ -602,14 +1012,14 @@ bool Text::cursorForwardOneWord(Cursor & cur)
                         ++pos;
 
 		// Skip over either a non-char inset or a full word
-		if (pos != lastpos && !par.isLetter(pos))
+		if (pos != lastpos && par.isWordSeparator(pos))
 			++pos;
-		else while (pos != lastpos && par.isLetter(pos))
+		else while (pos != lastpos && !par.isWordSeparator(pos))
 			     ++pos;
 	} else {
 		LASSERT(pos < lastpos, /**/); // see above
-		if (par.isLetter(pos))
-			while (pos != lastpos && par.isLetter(pos))
+		if (!par.isWordSeparator(pos))
+			while (pos != lastpos && !par.isWordSeparator(pos))
 				++pos;
 		else if (par.isChar(pos))
 			while (pos != lastpos && par.isChar(pos))
@@ -644,17 +1054,17 @@ bool Text::cursorBackwardOneWord(Cursor & cur)
 			--pos;
 
 		// Skip over either a non-char inset or a full word
-		if (pos != 0 && !par.isLetter(pos - 1) && !par.isChar(pos - 1))
+		if (pos != 0 && par.isWordSeparator(pos - 1) && !par.isChar(pos - 1))
 			--pos;
-		else while (pos != 0 && par.isLetter(pos - 1))
+		else while (pos != 0 && !par.isWordSeparator(pos - 1))
 			     --pos;
 	} else {
 		// Skip over white space
 		while (pos != 0 && par.isSpace(pos - 1))
 			     --pos;
 
-		if (pos != 0 && par.isLetter(pos - 1))
-			while (pos != 0 && par.isLetter(pos - 1))
+		if (pos != 0 && !par.isWordSeparator(pos - 1))
+			while (pos != 0 && !par.isWordSeparator(pos - 1))
 				--pos;
 		else if (pos != 0 && par.isChar(pos - 1))
 			while (pos != 0 && par.isChar(pos - 1))
@@ -682,9 +1092,9 @@ bool Text::cursorVisLeftOneWord(Cursor & cur)
 		// collect some information about current cursor position
 		temp_cur.getSurroundingPos(left_pos, right_pos);
 		left_is_letter = 
-			(left_pos > -1 ? temp_cur.paragraph().isLetter(left_pos) : false);
+			(left_pos > -1 ? !temp_cur.paragraph().isWordSeparator(left_pos) : false);
 		right_is_letter = 
-			(right_pos > -1 ? temp_cur.paragraph().isLetter(right_pos) : false);
+			(right_pos > -1 ? !temp_cur.paragraph().isWordSeparator(right_pos) : false);
 
 		// if we're not at a letter/non-letter boundary, continue moving
 		if (left_is_letter == right_is_letter)
@@ -693,11 +1103,9 @@ bool Text::cursorVisLeftOneWord(Cursor & cur)
 		// we should stop when we have an LTR word on our right or an RTL word
 		// on our left
 		if ((left_is_letter && temp_cur.paragraph().getFontSettings(
-				temp_cur.bv().buffer().params(), 
-				left_pos).isRightToLeft())
+				temp_cur.buffer()->params(), left_pos).isRightToLeft())
 			|| (right_is_letter && !temp_cur.paragraph().getFontSettings(
-				temp_cur.bv().buffer().params(), 
-				right_pos).isRightToLeft()))
+				temp_cur.buffer()->params(), right_pos).isRightToLeft()))
 			break;
 	}
 
@@ -721,9 +1129,9 @@ bool Text::cursorVisRightOneWord(Cursor & cur)
 		// collect some information about current cursor position
 		temp_cur.getSurroundingPos(left_pos, right_pos);
 		left_is_letter = 
-			(left_pos > -1 ? temp_cur.paragraph().isLetter(left_pos) : false);
+			(left_pos > -1 ? !temp_cur.paragraph().isWordSeparator(left_pos) : false);
 		right_is_letter = 
-			(right_pos > -1 ? temp_cur.paragraph().isLetter(right_pos) : false);
+			(right_pos > -1 ? !temp_cur.paragraph().isWordSeparator(right_pos) : false);
 
 		// if we're not at a letter/non-letter boundary, continue moving
 		if (left_is_letter == right_is_letter)
@@ -732,10 +1140,10 @@ bool Text::cursorVisRightOneWord(Cursor & cur)
 		// we should stop when we have an LTR word on our right or an RTL word
 		// on our left
 		if ((left_is_letter && temp_cur.paragraph().getFontSettings(
-				temp_cur.bv().buffer().params(), 
+				temp_cur.buffer()->params(), 
 				left_pos).isRightToLeft())
 			|| (right_is_letter && !temp_cur.paragraph().getFontSettings(
-				temp_cur.bv().buffer().params(), 
+				temp_cur.buffer()->params(), 
 				right_pos).isRightToLeft()))
 			break;
 	}
@@ -798,8 +1206,11 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 {
 	LASSERT(this == cur.text(), /**/);
 
-	if (!cur.selection())
-		return;
+	if (!cur.selection()) {
+		bool const changed = cur.paragraph().isChanged(cur.pos());
+		if (!(changed && findNextChange(&cur.bv())))
+			return;
+	}
 
 	cur.recordUndoSelection();
 
@@ -834,9 +1245,9 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 		pos_type right = (pit == endPit ? endPos : parSize);
 
 		if (op == ACCEPT) {
-			pars_[pit].acceptChanges(cur.buffer().params(), left, right);
+			pars_[pit].acceptChanges(left, right);
 		} else {
-			pars_[pit].rejectChanges(cur.buffer().params(), left, right);
+			pars_[pit].rejectChanges(left, right);
 		}
 	}
 
@@ -863,7 +1274,7 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 					// instead, we mark it unchanged
 					pars_[pit].setChange(pos, Change(Change::UNCHANGED));
 				} else {
-					mergeParagraph(cur.buffer().params(), pars_, pit);
+					mergeParagraph(cur.buffer()->params(), pars_, pit);
 					--endPit;
 					--pit;
 				}
@@ -876,7 +1287,7 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 					// we mark the par break at the end of the last paragraph unchanged
 					pars_[pit].setChange(pos, Change(Change::UNCHANGED));
 				} else {
-					mergeParagraph(cur.buffer().params(), pars_, pit);
+					mergeParagraph(cur.buffer()->params(), pars_, pit);
 					--endPit;
 					--pit;
 				}
@@ -886,34 +1297,36 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 
 	// finally, invoke the DEPM
 
-	deleteEmptyParagraphMechanism(begPit, endPit, cur.buffer().params().trackChanges);
+	deleteEmptyParagraphMechanism(begPit, endPit, cur.buffer()->params().trackChanges);
 
 	//
 
 	cur.finishUndo();
 	cur.clearSelection();
 	setCursorIntern(cur, begPit, begPos);
-	cur.updateFlags(Update::Force);
-	updateLabels(cur.buffer());
+	cur.screenUpdateFlags(Update::Force);
+	cur.forceBufferUpdate();
 }
 
 
-void Text::acceptChanges(BufferParams const & bparams)
+void Text::acceptChanges()
 {
+	BufferParams const & bparams = owner_->buffer().params();
 	lyx::acceptChanges(pars_, bparams);
 	deleteEmptyParagraphMechanism(0, pars_.size() - 1, bparams.trackChanges);
 }
 
 
-void Text::rejectChanges(BufferParams const & bparams)
+void Text::rejectChanges()
 {
+	BufferParams const & bparams = owner_->buffer().params();
 	pit_type pars_size = static_cast<pit_type>(pars_.size());
 
 	// first, reject changes within each individual paragraph
 	// (do not consider end-of-par)
 	for (pit_type pit = 0; pit < pars_size; ++pit) {
 		if (!pars_[pit].empty())   // prevent assertion failure
-			pars_[pit].rejectChanges(bparams, 0, pars_[pit].size());
+			pars_[pit].rejectChanges(0, pars_[pit].size());
 	}
 
 	// next, reject imaginary end-of-par characters
@@ -1004,7 +1417,7 @@ void Text::changeCase(Cursor & cur, TextCase action)
 		Paragraph & par = pars_[pit];
 		pos_type const pos = (pit == begPit ? begPos : 0);
 		right = (pit == endPit ? endPos : par.size());
-		par.changeCase(cur.buffer().params(), pos, right, action);
+		par.changeCase(cur.buffer()->params(), pos, right, action);
 	}
 
 	// the selection may have changed due to logically-only deleted chars
@@ -1028,7 +1441,7 @@ bool Text::handleBibitems(Cursor & cur)
 	if (cur.pos() != 0)
 		return false;
 
-	BufferParams const & bufparams = cur.buffer().params();
+	BufferParams const & bufparams = cur.buffer()->params();
 	Paragraph const & par = cur.paragraph();
 	Cursor prevcur = cur;
 	if (cur.pit() > 0) {
@@ -1043,9 +1456,9 @@ bool Text::handleBibitems(Cursor & cur)
 		cur.recordUndo(ATOMIC_UNDO, prevcur.pit());
 		mergeParagraph(bufparams, cur.text()->paragraphs(),
 							prevcur.pit());
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		setCursorIntern(cur, prevcur.pit(), prevcur.pos());
-		cur.updateFlags(Update::Force);
+		cur.screenUpdateFlags(Update::Force);
 		return true;
 	} 
 
@@ -1057,7 +1470,7 @@ bool Text::handleBibitems(Cursor & cur)
 
 bool Text::erase(Cursor & cur)
 {
-	LASSERT(this == cur.text(), /**/);
+	LASSERT(this == cur.text(), return false);
 	bool needsUpdate = false;
 	Paragraph & par = cur.paragraph();
 
@@ -1066,12 +1479,12 @@ bool Text::erase(Cursor & cur)
 		// any paragraphs
 		cur.recordUndo(DELETE_UNDO);
 		bool const was_inset = cur.paragraph().isInset(cur.pos());
-		if(!par.eraseChar(cur.pos(), cur.buffer().params().trackChanges))
+		if(!par.eraseChar(cur.pos(), cur.buffer()->params().trackChanges))
 			// the character has been logically deleted only => skip it
 			cur.top().forwardPos();
 
 		if (was_inset)
-			updateLabels(cur.buffer());
+			cur.forceBufferUpdate();
 		else
 			cur.checkBufferStructure();
 		needsUpdate = true;
@@ -1079,7 +1492,7 @@ bool Text::erase(Cursor & cur)
 		if (cur.pit() == cur.lastpit())
 			return dissolveInset(cur);
 
-		if (!par.isMergedOnEndOfParDeletion(cur.buffer().params().trackChanges)) {
+		if (!par.isMergedOnEndOfParDeletion(cur.buffer()->params().trackChanges)) {
 			par.setChange(cur.pos(), Change(Change::DELETED));
 			cur.forwardPos();
 			needsUpdate = true;
@@ -1110,7 +1523,7 @@ bool Text::backspacePos0(Cursor & cur)
 
 	bool needsUpdate = false;
 
-	BufferParams const & bufparams = cur.buffer().params();
+	BufferParams const & bufparams = cur.buffer()->params();
 	DocumentClass const & tclass = bufparams.documentClass();
 	ParagraphList & plist = cur.text()->paragraphs();
 	Paragraph const & par = cur.paragraph();
@@ -1147,7 +1560,7 @@ bool Text::backspacePos0(Cursor & cur)
 	}
 
 	if (needsUpdate) {
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		setCursorIntern(cur, prevcur.pit(), prevcur.pos());
 	}
 
@@ -1165,7 +1578,7 @@ bool Text::backspace(Cursor & cur)
 
 		Paragraph & prev_par = pars_[cur.pit() - 1];
 
-		if (!prev_par.isMergedOnEndOfParDeletion(cur.buffer().params().trackChanges)) {
+		if (!prev_par.isMergedOnEndOfParDeletion(cur.buffer()->params().trackChanges)) {
 			prev_par.setChange(prev_par.size(), Change(Change::DELETED));
 			setCursorIntern(cur, cur.pit() - 1, prev_par.size());
 			return true;
@@ -1185,9 +1598,9 @@ bool Text::backspace(Cursor & cur)
 		setCursorIntern(cur, cur.pit(), cur.pos() - 1,
 				false, cur.boundary());
 		bool const was_inset = cur.paragraph().isInset(cur.pos());
-		cur.paragraph().eraseChar(cur.pos(), cur.buffer().params().trackChanges);
+		cur.paragraph().eraseChar(cur.pos(), cur.buffer()->params().trackChanges);
 		if (was_inset)
-			updateLabels(cur.buffer());
+			cur.forceBufferUpdate();
 		else
 			cur.checkBufferStructure();
 	}
@@ -1198,7 +1611,7 @@ bool Text::backspace(Cursor & cur)
 	needsUpdate |= handleBibitems(cur);
 
 	// A singlePar update is not enough in this case.
-	// cur.updateFlags(Update::Force);
+//		cur.screenUpdateFlags(Update::Force);
 	setCursor(cur.top(), cur.pit(), cur.pos());
 
 	return needsUpdate;
@@ -1209,7 +1622,7 @@ bool Text::dissolveInset(Cursor & cur)
 {
 	LASSERT(this == cur.text(), return false);
 
-	if (isMainText(cur.bv().buffer()) || cur.inset().nargs() != 1)
+	if (isMainText() || cur.inset().nargs() != 1)
 		return false;
 
 	cur.recordUndoInset();
@@ -1226,7 +1639,7 @@ bool Text::dissolveInset(Cursor & cur)
 	if (spit == 0)
 		spos += cur.pos();
 	spit += cur.pit();
-	Buffer & b = cur.buffer();
+	Buffer & b = *cur.buffer();
 	cur.paragraph().eraseChar(cur.pos(), b.params().trackChanges);
 	if (!plist.empty()) {
 		// ERT paragraphs have the Language latex_language.
@@ -1243,10 +1656,8 @@ bool Text::dissolveInset(Cursor & cur)
 		cur.pit() = min(cur.lastpit(), spit);
 		cur.pos() = min(cur.lastpos(), spos);
 	} else
-		// this is the least that needs to be done (bug 6003)
-		// in the above case, pasteParagraphList handles this
-		updateLabels(cur.buffer());
-	
+		cur.forceBufferUpdate();
+
 	// Ensure the current language is set correctly (bug 6292)
 	cur.text()->setCursor(cur, cur.pit(), cur.pos());
 	cur.clearSelection();
@@ -1258,44 +1669,14 @@ bool Text::dissolveInset(Cursor & cur)
 void Text::getWord(CursorSlice & from, CursorSlice & to,
 	word_location const loc) const
 {
-	Paragraph const & from_par = pars_[from.pit()];
-	switch (loc) {
-	case WHOLE_WORD_STRICT:
-		if (from.pos() == 0 || from.pos() == from_par.size()
-		    || !from_par.isLetter(from.pos())
-		    || !from_par.isLetter(from.pos() - 1)) {
-			to = from;
-			return;
-		}
-		// no break here, we go to the next
-
-	case WHOLE_WORD:
-		// If we are already at the beginning of a word, do nothing
-		if (!from.pos() || !from_par.isLetter(from.pos() - 1))
-			break;
-		// no break here, we go to the next
-
-	case PREVIOUS_WORD:
-		// always move the cursor to the beginning of previous word
-		while (from.pos() && from_par.isLetter(from.pos() - 1))
-			--from.pos();
-		break;
-	case NEXT_WORD:
-		LYXERR0("Text::getWord: NEXT_WORD not implemented yet");
-		break;
-	case PARTIAL_WORD:
-		// no need to move the 'from' cursor
-		break;
-	}
 	to = from;
-	Paragraph const & to_par = pars_[to.pit()];
-	while (to.pos() < to_par.size() && to_par.isLetter(to.pos()))
-		++to.pos();
+	pars_[to.pit()].locateWord(from.pos(), to.pos(), loc);
 }
 
 
-void Text::write(Buffer const & buf, ostream & os) const
+void Text::write(ostream & os) const
 {
+	Buffer const & buf = owner_->buffer();
 	ParagraphList::const_iterator pit = paragraphs().begin();
 	ParagraphList::const_iterator end = paragraphs().end();
 	depth_type dth = 0;
@@ -1308,9 +1689,10 @@ void Text::write(Buffer const & buf, ostream & os) const
 }
 
 
-bool Text::read(Buffer const & buf, Lexer & lex, 
+bool Text::read(Lexer & lex, 
 		ErrorList & errorList, InsetText * insetPtr)
 {
+	Buffer const & buf = owner_->buffer();
 	depth_type depth = 0;
 	bool res = true;
 
@@ -1343,15 +1725,10 @@ bool Text::read(Buffer const & buf, Lexer & lex,
 			par.params().depth(depth);
 			par.setFont(0, Font(inherit_font, buf.params().language));
 			pars_.push_back(par);
-
-			// FIXME: goddamn InsetTabular makes us pass a Buffer
-			// not BufferParams
-			lyx::readParagraph(buf, pars_.back(), lex, errorList);
+			readParagraph(pars_.back(), lex, errorList);
 
 			// register the words in the global word list
-			CursorSlice sl = CursorSlice(*insetPtr);
-			sl.pit() = pars_.size() - 1;
-			pars_.back().updateWords(sl);
+			pars_.back().updateWords();
 		} else if (token == "\\begin_deeper") {
 			++depth;
 		} else if (token == "\\end_deeper") {
@@ -1382,7 +1759,7 @@ bool Text::read(Buffer const & buf, Lexer & lex,
 docstring Text::currentState(Cursor const & cur) const
 {
 	LASSERT(this == cur.text(), /**/);
-	Buffer & buf = cur.buffer();
+	Buffer & buf = *cur.buffer();
 	Paragraph const & par = cur.paragraph();
 	odocstringstream os;
 
@@ -1391,7 +1768,7 @@ docstring Text::currentState(Cursor const & cur) const
 
 	Change change = par.lookupChange(cur.pos());
 
-	if (change.type != Change::UNCHANGED) {
+	if (change.changed()) {
 		Author const & a = buf.params().authors().get(change.author);
 		os << _("Change: ") << a.name();
 		if (!a.email().empty())
@@ -1466,10 +1843,11 @@ docstring Text::getPossibleLabel(Cursor const & cur) const
 
 	docstring text;
 	docstring par_text = pars_[pit].asString();
-	string piece;
-	// the return string of math matrices might contain linebreaks
+
+	// The return string of math matrices might contain linebreaks
 	par_text = subst(par_text, '\n', '-');
-	for (int i = 0; i < lyxrc.label_init_length; ++i) {
+	int const numwords = 3;
+	for (int i = 0; i < numwords; ++i) {
 		if (par_text.empty())
 			break;
 		docstring head;
@@ -1479,12 +1857,13 @@ docstring Text::getPossibleLabel(Cursor const & cur) const
 			text += '-';
 		text += head;
 	}
+	
+	// Make sure it isn't too long
+	unsigned int const max_label_length = 32;
+	if (text.size() > max_label_length)
+		text.resize(max_label_length);
 
-	// No need for a prefix if the user said so.
-	if (lyxrc.label_init_length <= 0)
-		return text;
-
-	// Will contain the label type.
+	// Will contain the label prefix.
 	docstring name;
 
 	// For section, subsection, etc...
@@ -1496,40 +1875,31 @@ docstring Text::getPossibleLabel(Cursor const & cur) const
 		}
 	}
 	if (layout->latextype != LATEX_PARAGRAPH)
-		name = from_ascii(layout->latexname());
+		name = layout->refprefix;
 
-	// for captions, we just take the caption type
+	// For captions, we just take the caption type
 	Inset * caption_inset = cur.innerInsetOfType(CAPTION_CODE);
-	if (caption_inset)
-		name = from_ascii(static_cast<InsetCaption *>(caption_inset)->type());
-
-	// If none of the above worked, we'll see if we're inside various
-	// types of insets and take our abbreviation from them.
-	if (name.empty()) {
-		InsetCode const codes[] = {
-			FLOAT_CODE,
-			WRAP_CODE,
-			FOOT_CODE
-		};
-		for (unsigned int i = 0; i < (sizeof codes / sizeof codes[0]); ++i) {
-			Inset * float_inset = cur.innerInsetOfType(codes[i]);
-			if (float_inset) {
-				name = float_inset->name();
-				break;
-			}
+	if (caption_inset) {
+		string const & ftype = static_cast<InsetCaption *>(caption_inset)->type();
+		FloatList const & fl = cur.buffer()->params().documentClass().floats();
+		if (fl.typeExist(ftype)) {
+			Floating const & flt = fl.getType(ftype);
+			name = from_utf8(flt.refPrefix());
 		}
+		if (name.empty())
+			name = from_utf8(ftype.substr(0,3));
 	}
 
-	// Create a correct prefix for prettyref
-	if (name == "theorem")
-		name = from_ascii("thm");
-	else if (name == "Foot")
-		name = from_ascii("fn");
-	else if (name == "listing")
-		name = from_ascii("lst");
+	// If none of the above worked, see if the inset knows.
+	if (name.empty()) {
+		InsetLayout const & il = cur.inset().getLayout();
+		name = il.refprefix();
+	}
 
 	if (!name.empty())
-		text = name.substr(0, 3) + ':' + text;
+		// FIXME refstyle
+		// We should allow customization of the separator or else change it
+		text = name + ':' + text;
 
 	return text;
 }
@@ -1552,6 +1922,15 @@ docstring Text::asString(pit_type beg, pit_type end, int options) const
 	return str;
 }
 
+
+void Text::forToc(docstring & os, size_t maxlen, bool shorten) const
+{
+	LASSERT(maxlen > 10, maxlen = 30);
+	for (size_t i = 0; i != pars_.size() && os.length() < maxlen; ++i)
+		pars_[i].forToc(os, maxlen);
+	if (shorten && os.length() >= maxlen)
+		os = os.substr(0, maxlen - 3) + from_ascii("...");
+}
 
 
 void Text::charsTranspose(Cursor & cur)
@@ -1588,15 +1967,15 @@ void Text::charsTranspose(Cursor & cur)
 	// Store the characters to be transposed (including font information).
 	char_type const char1 = par.getChar(pos1);
 	Font const font1 =
-		par.getFontSettings(cur.buffer().params(), pos1);
+		par.getFontSettings(cur.buffer()->params(), pos1);
 
 	char_type const char2 = par.getChar(pos2);
 	Font const font2 =
-		par.getFontSettings(cur.buffer().params(), pos2);
+		par.getFontSettings(cur.buffer()->params(), pos2);
 
 	// And finally, we are ready to perform the transposition.
 	// Track the changes if Change Tracking is enabled.
-	bool const trackChanges = cur.buffer().params().trackChanges;
+	bool const trackChanges = cur.buffer()->params().trackChanges;
 
 	cur.recordUndo();
 
@@ -1642,14 +2021,15 @@ bool Text::completionSupported(Cursor const & cur) const
 {
 	Paragraph const & par = cur.paragraph();
 	return cur.pos() > 0
-		&& (cur.pos() >= par.size() || !par.isLetter(cur.pos()))
-		&& par.isLetter(cur.pos() - 1);
+		&& (cur.pos() >= par.size() || par.isWordSeparator(cur.pos()))
+		&& !par.isWordSeparator(cur.pos() - 1);
 }
 
 
 CompletionList const * Text::createCompletionList(Cursor const & cur) const
 {
-	return new TextCompletionList(cur);
+	WordList const * list = theWordList(*cur.getFont().language());
+	return new TextCompletionList(cur, list);
 }
 
 
@@ -1658,8 +2038,8 @@ bool Text::insertCompletion(Cursor & cur, docstring const & s, bool /*finished*/
 	LASSERT(cur.bv().cursor() == cur, /**/);
 	cur.insert(s);
 	cur.bv().cursor() = cur;
-	if (!(cur.disp_.update() & Update::Force))
-		cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+	if (!(cur.result().screenUpdate() & Update::Force))
+		cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 	return true;
 }
 	

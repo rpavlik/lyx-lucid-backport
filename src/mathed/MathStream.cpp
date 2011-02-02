@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,7 +17,6 @@
 
 #include "support/textutils.h"
 #include "support/docstring.h"
-#include "support/docstream.h"
 
 #include <algorithm>
 #include <cstring>
@@ -86,26 +85,38 @@ NormalStream & operator<<(NormalStream & ns, int i)
 
 WriteStream & operator<<(WriteStream & ws, docstring const & s)
 {
+	// Skip leading '\n' if we had already output a newline char
+	size_t const first =
+		(s.length() > 0 && (s[0] != '\n' || ws.canBreakLine())) ? 0 : 1;
+
+	// Check whether there's something to output
+	if (s.length() <= first)
+		return ws;
+
 	if (ws.pendingBrace()) {
 		ws.os() << '}';
 		ws.pendingBrace(false);
 		ws.pendingSpace(false);
 		ws.textMode(true);
-	} else if (ws.pendingSpace() && s.length() > 0) {
-		if (isAlphaASCII(s[0]))
+	} else if (ws.pendingSpace()) {
+		if (isAlphaASCII(s[first]))
 			ws.os() << ' ';
-		else if (s[0] == ' ' && ws.textMode())
+		else if (s[first] == ' ' && ws.textMode())
 			ws.os() << '\\';
 		ws.pendingSpace(false);
 	}
-	ws.os() << s;
+	ws.os() << s.substr(first);
 	int lf = 0;
-	docstring::const_iterator dit = s.begin();
+	char_type lastchar = 0;
+	docstring::const_iterator dit = s.begin() + first;
 	docstring::const_iterator end = s.end();
-	for (; dit != end; ++dit)
-		if ((*dit) == '\n')
+	for (; dit != end; ++dit) {
+		lastchar = *dit;
+		if (lastchar == '\n')
 			++lf;
+	}
 	ws.addlines(lf);
+	ws.canBreakLine(lastchar != '\n');
 	return ws;
 }
 
@@ -114,14 +125,16 @@ WriteStream::WriteStream(odocstream & os, bool fragile, bool latex, OutputType o
 			Encoding const * encoding)
 	: os_(os), fragile_(fragile), firstitem_(false), latex_(latex),
 	  output_(output), pendingspace_(false), pendingbrace_(false),
-	  textmode_(false), locked_(0), ascii_(0), line_(0), encoding_(encoding)
+	  textmode_(false), locked_(0), ascii_(0), canbreakline_(true),
+	  line_(0), encoding_(encoding)
 {}
 
 
 WriteStream::WriteStream(odocstream & os)
 	: os_(os), fragile_(false), firstitem_(false), latex_(false),
 	  output_(wsDefault), pendingspace_(false), pendingbrace_(false),
-	  textmode_(false), locked_(0), ascii_(0), line_(0), encoding_(0)
+	  textmode_(false), locked_(0), ascii_(0), canbreakline_(true),
+	  line_(0), encoding_(0)
 {}
 
 
@@ -186,26 +199,16 @@ WriteStream & operator<<(WriteStream & ws, MathData const & ar)
 
 WriteStream & operator<<(WriteStream & ws, char const * s)
 {
-	if (ws.pendingBrace()) {
-		ws.os() << '}';
-		ws.pendingBrace(false);
-		ws.pendingSpace(false);
-		ws.textMode(true);
-	} else if (ws.pendingSpace() && strlen(s) > 0) {
-		if (isAlphaASCII(s[0]))
-			ws.os() << ' ';
-		else if (s[0] == ' ' && ws.textMode())
-			ws.os() << '\\';
-		ws.pendingSpace(false);
-	}
-	ws.os() << s;
-	ws.addlines(int(count(s, s + strlen(s), '\n')));
+	ws << from_utf8(s);
 	return ws;
 }
 
 
 WriteStream & operator<<(WriteStream & ws, char c)
 {
+	if (c == '\n' && !ws.canBreakLine())
+		return ws;
+
 	if (ws.pendingBrace()) {
 		ws.os() << '}';
 		ws.pendingBrace(false);
@@ -221,6 +224,7 @@ WriteStream & operator<<(WriteStream & ws, char c)
 	ws.os() << c;
 	if (c == '\n')
 		ws.addlines(1);
+	ws.canBreakLine(c != '\n');
 	return ws;
 }
 
@@ -233,6 +237,7 @@ WriteStream & operator<<(WriteStream & ws, int i)
 		ws.textMode(true);
 	}
 	ws.os() << i;
+	ws.canBreakLine(true);
 	return ws;
 }
 
@@ -245,6 +250,7 @@ WriteStream & operator<<(WriteStream & ws, unsigned int i)
 		ws.textMode(true);
 	}
 	ws.os() << i;
+	ws.canBreakLine(true);
 	return ws;
 }
 
@@ -253,8 +259,34 @@ WriteStream & operator<<(WriteStream & ws, unsigned int i)
 
 
 MathStream::MathStream(odocstream & os)
-	: os_(os), tab_(0), line_(0), lastchar_(0)
+	: os_(os), tab_(0), line_(0), in_text_(false)
 {}
+
+
+void MathStream::cr()
+{
+	os() << '\n';
+	for (int i = 0; i < tab(); ++i)
+		os() << ' ';
+}
+
+
+void MathStream::defer(docstring const & s)
+{
+	deferred_ << s;
+}
+
+
+void MathStream::defer(string const & s)
+{
+	deferred_ << from_utf8(s);
+}
+
+
+docstring MathStream::deferred() const
+{ 
+	return deferred_.str();
+}
 
 
 MathStream & operator<<(MathStream & ms, MathAtom const & at)
@@ -285,11 +317,21 @@ MathStream & operator<<(MathStream & ms, char c)
 }
 
 
+MathStream & operator<<(MathStream & ms, char_type c)
+{
+	ms.os().put(c);
+	return ms;
+}
+
+
 MathStream & operator<<(MathStream & ms, MTag const & t)
 {
 	++ms.tab();
 	ms.cr();
-	ms.os() << '<' << from_ascii(t.tag_) << '>';
+	ms.os() << '<' << from_ascii(t.tag_);
+	if (!t.attr_.empty())
+		ms.os() << " " << from_ascii(t.attr_);
+	ms << '>';
 	return ms;
 }
 
@@ -304,19 +346,196 @@ MathStream & operator<<(MathStream & ms, ETag const & t)
 }
 
 
-void MathStream::cr()
-{
-	os() << '\n';
-	for (int i = 0; i < tab(); ++i)
-		os() << ' ';
-}
-
-
 MathStream & operator<<(MathStream & ms, docstring const & s)
 {
 	ms.os() << s;
 	return ms;
 }
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+HtmlStream::HtmlStream(odocstream & os)
+	: os_(os), tab_(0), line_(0), in_text_(false)
+{}
+
+
+void HtmlStream::defer(docstring const & s)
+{
+	deferred_ << s;
+}
+
+
+void HtmlStream::defer(string const & s)
+{
+	deferred_ << from_utf8(s);
+}
+
+
+docstring HtmlStream::deferred() const
+{ 
+	return deferred_.str();
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, MathAtom const & at)
+{
+	at->htmlize(ms);
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, MathData const & ar)
+{
+	htmlize(ar, ms);
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, char const * s)
+{
+	ms.os() << s;
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, char c)
+{
+	ms.os() << c;
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, char_type c)
+{
+	ms.os().put(c);
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, MTag const & t)
+{
+	ms.os() << '<' << from_ascii(t.tag_);
+	if (!t.attr_.empty())
+		ms.os() << " " << from_ascii(t.attr_);
+	ms << '>';
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, ETag const & t)
+{
+	ms.os() << "</" << from_ascii(t.tag_) << '>';
+	return ms;
+}
+
+
+HtmlStream & operator<<(HtmlStream & ms, docstring const & s)
+{
+	ms.os() << s;
+	return ms;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+SetMode::SetMode(MathStream & os, bool text)
+	: os_(os), opened_(false)
+{
+	init(text, "");
+}
+
+
+SetMode::SetMode(MathStream & os, bool text, string const & attrs)
+	: os_(os), opened_(false)
+{
+	init(text, attrs);
+}
+
+
+void SetMode::init(bool text, string const & attrs)
+{
+	was_text_ = os_.inText();
+	if (was_text_)
+		os_ << "</mtext>";
+	if (text) {
+		os_.setTextMode();
+		os_ << "<mtext";
+		if (!attrs.empty())
+			os_ << " " << from_utf8(attrs);
+		os_ << ">";
+		opened_ = true;
+	} else {
+		if (!attrs.empty()) {
+			os_ << "<mstyle " << from_utf8(attrs) << ">";
+			opened_ = true;
+		}
+		os_.setMathMode();
+	}
+}
+
+
+SetMode::~SetMode()
+{
+	if (opened_) {
+		if (os_.inText())
+			os_ << "</mtext>";
+		else
+			os_ << "</mstyle>";
+	}
+	if (was_text_) {
+		os_.setTextMode();
+		os_ << "<mtext>";
+	} else {
+		os_.setMathMode();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+SetHTMLMode::SetHTMLMode(HtmlStream & os, bool text)
+	: os_(os), opened_(false)
+{
+	init(text, "");
+}
+
+
+SetHTMLMode::SetHTMLMode(HtmlStream & os, bool text, string attrs)
+	: os_(os), opened_(true)
+{
+	init(text, attrs);
+}
+
+
+void SetHTMLMode::init(bool text, string const & attrs)
+{
+	was_text_ = os_.inText();
+	if (text) {
+		os_.setTextMode();
+		if (attrs.empty())
+			os_ << MTag("span");
+		else
+			os_ << MTag("span", attrs);
+		opened_ = true;
+	} else
+		os_.setMathMode();
+}
+
+
+SetHTMLMode::~SetHTMLMode()
+{
+	if (opened_)
+		os_ << ETag("span");
+	if (was_text_)
+		os_.setTextMode();
+	else
+		os_.setMathMode();
+}
+
 
 //////////////////////////////////////////////////////////////////////
 

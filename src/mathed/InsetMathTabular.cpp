@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,13 +23,13 @@
 namespace lyx {
 
 InsetMathTabular::InsetMathTabular(Buffer * buf, docstring const & name, int m,
-				   int n)
+		int n)
 	: InsetMathGrid(buf, m, n), name_(name)
 {}
 
 
 InsetMathTabular::InsetMathTabular(Buffer * buf, docstring const & name, int m,
-				   int n, char valign, docstring const & halign)
+		int n, char valign, docstring const & halign)
 	: InsetMathGrid(buf, m, n, valign, halign), name_(name)
 {}
 

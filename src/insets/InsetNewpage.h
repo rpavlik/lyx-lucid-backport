@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -69,6 +69,8 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
 	void read(Lexer & lex);
 	///
 	void write(std::ostream & os) const;
@@ -79,7 +81,7 @@ private:
 	///
 	ColorCode ColorName() const;
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 	///
 	Inset * clone() const { return new InsetNewpage(*this); }
 	///

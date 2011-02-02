@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -86,9 +86,15 @@ void InsetMathUnknown::mathematica(MathematicaStream & os) const
 }
 
 
-void InsetMathUnknown::mathmlize(MathStream & os) const
+void InsetMathUnknown::mathmlize(MathStream &) const
 {
-	os << MTag("mi") << name_ << ETag("mi");
+	throw MathExportException();
+}
+
+
+void InsetMathUnknown::htmlize(HtmlStream &) const
+{
+	throw MathExportException();
 }
 
 

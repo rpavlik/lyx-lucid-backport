@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -13,6 +13,7 @@
 #ifndef METRICSINFO_H
 #define METRICSINFO_H
 
+#include "Changes.h"
 #include "ColorCode.h"
 #include "FontInfo.h"
 
@@ -102,14 +103,19 @@ public:
 	/// \param sel whether to take the selection state into account
 	ColorCode backgroundColor(Inset const * inset, bool sel = true) const;
 
+	/// Determines the text color based on the intended color, the
+	/// change tracking state and the selection state. 
+	/// \param color what the color should be by default
+	Color textColor(Color const & color) const;
+
 	///
 	MetricsBase base;
 	///
 	frontend::Painter & pain;
 	/// Whether the text at this point is right-to-left (for InsetNewline)
 	bool ltr_pos;
-	/// Whether the parent is deleted (change tracking)
-	bool erased_;
+	/// The change the parent is part of (change tracking)
+	Change change_;
 	/// Whether the parent is selected as a whole
 	bool selected;
 	///
@@ -224,7 +230,7 @@ public:
 class ColorChanger : public Changer<FontInfo, ColorCode> {
 public:
 	///
-	ColorChanger(FontInfo & font, docstring const & color,
+	ColorChanger(FontInfo & font, ColorCode color,
 		     bool really_change_color = true);
 	///
 	~ColorChanger();

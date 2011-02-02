@@ -33,7 +33,7 @@ public:
 		/// Some formats are both (e.g. pdf), they have this flag set.
 		document = 1,
 		/// Set if this format can contain vector graphics.
-		vector = 2,
+		vector = 2
 	};
 	///
 	Format(std::string const & n, std::string const & e, std::string const & p,
@@ -142,6 +142,8 @@ public:
 	///
 	void setViewer(std::string const & name, std::string const & command);
 	///
+	void setEditor(std::string const & name, std::string const & command);
+	/// View the given file. Buffer used for DVI's paper orientation.
 	bool view(Buffer const & buffer, support::FileName const & filename,
 		  std::string const & format_name) const;
 	///

@@ -7,6 +7,7 @@
  * \author John Levon
  * \author Kalle Dalheimer
  * \author Edwin Leuven
+ * \author Abdelrazak Younes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,102 +15,60 @@
 #ifndef GUISPELLCHECKER_H
 #define GUISPELLCHECKER_H
 
-#include "GuiDialog.h"
-#include "ui_SpellcheckerUi.h"
-#include "Dialog.h"
-#include "WordLangTuple.h"
+#include "DockView.h"
 
 class QListWidgetItem;
 
 namespace lyx {
 
-class SpellBase;
+class docstring_list;
 
 namespace frontend {
 
-class GuiSpellchecker : public GuiDialog, public Ui::SpellcheckerUi
+class GuiSpellchecker : public DockView
 {
 	Q_OBJECT
 
 public:
-	GuiSpellchecker(GuiView & lv);
+	GuiSpellchecker(GuiView & parent);
 	~GuiSpellchecker();
 
-public Q_SLOTS:
-	void suggestionChanged(QListWidgetItem *);
-
 private Q_SLOTS:
-	void accept();
-	void add();
-	void ignore();
-	void replace();
-	void replaceChanged(const QString &);
-	void reject();
+	void on_closePB_clicked();
+	void on_findNextPB_clicked();
+	void on_replaceAllPB_clicked();
+	void on_suggestionsLW_itemClicked(QListWidgetItem *);
+	void on_replaceCO_highlighted(const QString & str);
+	void on_languageCO_activated(int index);
+	void on_ignoreAllPB_clicked();
+	void on_addPB_clicked();
+	void on_ignorePB_clicked();
+	void on_replacePB_clicked();
 
 private:
 	/// update from controller
-	void partialUpdate(int id);
-	///
-	void updateContents();
+	void updateSuggestions(docstring_list & words);
 
-	///
-	bool eventFilter(QObject *obj, QEvent *event);
-
-	///
-	enum State {
-		SPELL_PROGRESSED, //< update progress bar
-		SPELL_FOUND_WORD //< found a bad word
-	};
-
-	///
+	///{
+	void updateView();
 	bool initialiseParams(std::string const & data);
-	///
-	void clearParams();
-	/// Not needed here
+	void clearParams() {}
 	void dispatchParams() {}
-	///
 	bool isBufferDependent() const { return true; }
-	///}
 	bool needBufferOpen() const { return true; }
-	///
-	bool exitEarly() const { return exitEarly_; }
+	///}
 
-	/// replace word with replacement
-	void replace(docstring const &);
-
-	/// replace all occurances of word
-	void replaceAll(docstring const &);
-	/// insert word in personal dictionary
-	void insert();
-	/// ignore all occurances of word
-	void ignoreAll();
+	/// move to next position after current word
+	void forward();
 	/// check text until next misspelled/unknown word
-	/// returns true when finished
 	void check();
-	/// get suggestion
-	docstring getSuggestion() const;
-	/// get word
-	docstring getWord() const;
-	/// returns progress value
-	int getProgress() const { return oldval_; }
-	/// returns word count
-	int getCount() const { return count_; }
-	/// give error message is spellchecker dies
-	bool checkAlive();
 	/// show count of checked words at normal exit
 	void showSummary();
 
-	/// set to true when spellchecking is finished
-	bool exitEarly_;
-	/// current word being checked and lang code
-	WordLangTuple word_;
-	/// values for progress
-	int oldval_;
-	int newvalue_;
-	/// word count
-	int count_;
-	/// The actual spellchecker object
-	SpellBase * speller_;
+	bool eventFilter(QObject *obj, QEvent *event);
+
+	struct Private;
+	Private * const d;
 };
 
 } // namespace frontend

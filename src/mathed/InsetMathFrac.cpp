@@ -4,8 +4,8 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
- * \author Uwe Stöhr
+ * \author AndrÃ© PÃ¶nitz
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -167,9 +167,14 @@ void InsetMathFrac::metrics(MetricsInfo & mi, Dimension & dim) const
 			dim.des = dim1.height() - 5;
 		} else {
 			if (kind_ == CFRAC || kind_ == CFRACLEFT
-			|| kind_ == CFRACRIGHT) {
-				// \cfrac is always in display size
+				  || kind_ == CFRACRIGHT || kind_ == DFRAC) {
+				// \cfrac and \dfrac are always in display size
 				StyleChanger dummy2(mi.base, LM_ST_DISPLAY);
+				cell(0).metrics(mi, dim0);
+				cell(1).metrics(mi, dim1);
+			} else if (kind_ == TFRAC) {
+				// tfrac is in always in text size
+				StyleChanger dummy2(mi.base, LM_ST_SCRIPT);
 				cell(0).metrics(mi, dim0);
 				cell(1).metrics(mi, dim1);
 			}
@@ -187,7 +192,6 @@ void InsetMathFrac::draw(PainterInfo & pi, int x, int y) const
 	setPosCache(pi, x, y);
 	Dimension const dim = dimension(*pi.base.bv);
 	Dimension const dim0 = cell(0).dimension(*pi.base.bv);
-	int m = x + dim.wid / 2;
 	if (kind_ == UNIT || (kind_ == UNITFRAC && nargs() == 3)) {
 		if (nargs() == 1) {
 			ShapeChanger dummy2(pi.base.font, UP_SHAPE);
@@ -211,6 +215,7 @@ void InsetMathFrac::draw(PainterInfo & pi, int x, int y) const
 	} else {
 		FracChanger dummy(pi.base);
 		Dimension const dim1 = cell(1).dimension(*pi.base.bv);
+		int m = x + dim.wid / 2;
 		if (kind_ == NICEFRAC) {
 			cell(0).draw(pi, x + 2,
 					y - dim0.des - 5);
@@ -223,10 +228,15 @@ void InsetMathFrac::draw(PainterInfo & pi, int x, int y) const
 		} else if (kind_ == FRAC || kind_ == ATOP || kind_ == OVER) {
 			cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 2 - 5);
 			cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc + 2 - 5);
+		} else if (kind_ == TFRAC) {
+			// tfrac is in always in text size
+			StyleChanger dummy2(pi.base, LM_ST_SCRIPT);
+			cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 2 - 5);
+			cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc + 2 - 5);
 		} else {
-			// \cfrac is always in display size
+			// \cfrac and \dfrac are always in display size
 			StyleChanger dummy2(pi.base, LM_ST_DISPLAY);
-			if (kind_ == CFRAC)
+			if (kind_ == CFRAC || kind_ == DFRAC)
 				cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 2 - 5);
 			else if (kind_ == CFRACLEFT)
 				cell(0).draw(pi, x + 2, y - dim0.des - 2 - 5);
@@ -247,7 +257,8 @@ void InsetMathFrac::draw(PainterInfo & pi, int x, int y) const
 				y - dim.asc + 2, pi.base.font.color());
 	}
 	if (kind_ == FRAC || kind_ == CFRAC || kind_ == CFRACLEFT
-		|| kind_ == CFRACRIGHT || kind_ == OVER)
+		|| kind_ == CFRACRIGHT || kind_ == DFRAC
+		|| kind_ == TFRAC || kind_ == OVER)
 		pi.pain.line(x + 1, y - 5,
 				x + dim.wid - 2, y - 5, pi.base.font.color());
 	drawMarkers(pi, x, y);
@@ -285,6 +296,8 @@ void InsetMathFrac::write(WriteStream & os) const
 	MathEnsurer ensurer(os);
 	switch (kind_) {
 	case ATOP:
+		// \\atop is only for compatibility, \\binom is the
+		// LaTeX2e successor
 		os << '{' << cell(0) << "\\atop " << cell(1) << '}';
 		break;
 	case OVER:
@@ -292,8 +305,10 @@ void InsetMathFrac::write(WriteStream & os) const
 		os << "\\frac{" << cell(0) << "}{" << cell(1) << '}';
 		break;
 	case FRAC:
-	case CFRAC:
+	case DFRAC:
+	case TFRAC:
 	case NICEFRAC:
+	case CFRAC:
 	case UNITFRAC:
 		if (nargs() == 2)
 			InsetMathNest::write(os);
@@ -325,6 +340,10 @@ docstring InsetMathFrac::name() const
 	case CFRACLEFT:
 	case CFRACRIGHT:
 		return from_ascii("cfrac");
+	case DFRAC:
+		return from_ascii("dfrac");
+	case TFRAC:
+		return from_ascii("tfrac");
 	case OVER:
 		return from_ascii("over");
 	case NICEFRAC:
@@ -367,7 +386,19 @@ void InsetMathFrac::octave(OctaveStream & os) const
 
 void InsetMathFrac::mathmlize(MathStream & os) const
 {
-	os << MTag("mfrac") << cell(0) << cell(1) << ETag("mfrac");
+	os << MTag("mfrac")
+	   << MTag("mrow") << cell(0) << ETag("mrow")
+		 << MTag("mrow") << cell(1) << ETag("mrow")
+		 << ETag("mfrac");
+}
+
+
+void InsetMathFrac::htmlize(HtmlStream & os) const
+{
+	os << MTag("span", "class='frac'")
+		 << MTag("span", "class='numer'") << cell(0) << ETag("span")
+		 << MTag("span", "class='denom'") << cell(1) << ETag("span")
+		 << ETag("span");
 }
 
 
@@ -375,123 +406,16 @@ void InsetMathFrac::validate(LaTeXFeatures & features) const
 {
 	if (kind_ == NICEFRAC || kind_ == UNITFRAC || kind_ == UNIT)
 		features.require("units");
-	if (kind_ == CFRAC || kind_ == CFRACLEFT || kind_ == CFRACRIGHT)
+	if (kind_ == CFRAC || kind_ == CFRACLEFT || kind_ == CFRACRIGHT
+		  || kind_ == DFRAC || kind_ == TFRAC)
 		features.require("amsmath");
-	InsetMathNest::validate(features);
-}
-
-
-/////////////////////////////////////////////////////////////////////
-//
-// InsetMathDFrac
-//
-/////////////////////////////////////////////////////////////////////
-
-
-Inset * InsetMathDFrac::clone() const
-{
-	return new InsetMathDFrac(*this);
-}
-
-
-void InsetMathDFrac::metrics(MetricsInfo & mi, Dimension & dim) const
-{
-	Dimension dim0, dim1;
-	cell(0).metrics(mi, dim0);
-	cell(1).metrics(mi, dim1);
-	dim.wid = max(dim0.wid, dim1.wid) + 2;
-	dim.asc = dim0.height() + 2 + 5;
-	dim.des = dim1.height() + 2 - 5;
-}
-
-
-void InsetMathDFrac::draw(PainterInfo & pi, int x, int y) const
-{
-	Dimension const dim = dimension(*pi.base.bv);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
-	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
-	int m = x + dim.wid / 2;
-	cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 2 - 5);
-	cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc  + 2 - 5);
-	pi.pain.line(x + 1, y - 5, x + dim.wid - 2, y - 5, Color_math);
-	setPosCache(pi, x, y);
-}
-
-
-docstring InsetMathDFrac::name() const
-{
-	return from_ascii("dfrac");
-}
-
-
-void InsetMathDFrac::mathmlize(MathStream & os) const
-{
-	os << MTag("mdfrac") << cell(0) << cell(1) << ETag("mdfrac");
-}
-
-
-void InsetMathDFrac::validate(LaTeXFeatures & features) const
-{
-	features.require("amsmath");
-	InsetMathNest::validate(features);
-}
-
-
-/////////////////////////////////////////////////////////////////////
-//
-// InsetMathTFrac
-//
-/////////////////////////////////////////////////////////////////////
-
-
-Inset * InsetMathTFrac::clone() const
-{
-	return new InsetMathTFrac(*this);
-}
-
-
-void InsetMathTFrac::metrics(MetricsInfo & mi, Dimension & dim) const
-{
-	StyleChanger dummy(mi.base, LM_ST_SCRIPT);
-	Dimension dim0;
-	cell(0).metrics(mi, dim0);
-	Dimension dim1;
-	cell(1).metrics(mi, dim1);
-	dim.wid = max(dim0.width(), dim1.width()) + 2;
-	dim.asc = dim0.height() + 2 + 5;
-	dim.des = dim1.height() + 2 - 5;
-}
-
-
-void InsetMathTFrac::draw(PainterInfo & pi, int x, int y) const
-{
-	StyleChanger dummy(pi.base, LM_ST_SCRIPT);
-	Dimension const dim = dimension(*pi.base.bv);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
-	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
-	int m = x + dim.wid / 2;
-	cell(0).draw(pi, m - dim0.width() / 2, y - dim0.descent() - 2 - 5);
-	cell(1).draw(pi, m - dim1.width() / 2, y + dim1.ascent()  + 2 - 5);
-	pi.pain.line(x + 1, y - 5, x + dim.wid - 2, y - 5, Color_math);
-	setPosCache(pi, x, y);
-}
-
-
-docstring InsetMathTFrac::name() const
-{
-	return from_ascii("tfrac");
-}
-
-
-void InsetMathTFrac::mathmlize(MathStream & os) const
-{
-	os << MTag("mtfrac") << cell(0) << cell(1) << ETag("mtfrac");
-}
-
-
-void InsetMathTFrac::validate(LaTeXFeatures & features) const
-{
-	features.require("amsmath");
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		// CSS adapted from eLyXer
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.frac{display: inline-block; vertical-align: middle; text-align:center;}\n"
+			"span.numer{display: block;}\n"
+			"span.denom{display: block; border-top: thin solid #000040;}\n"
+			"</style>");
 	InsetMathNest::validate(features);
 }
 
@@ -527,13 +451,26 @@ int InsetMathBinom::dw(int height) const
 
 void InsetMathBinom::metrics(MetricsInfo & mi, Dimension & dim) const
 {
-	FracChanger dummy(mi.base);
 	Dimension dim0, dim1;
-	cell(0).metrics(mi, dim0);
-	cell(1).metrics(mi, dim1);
+
+	// FIXME: for an unknown reason the cells must be set directly
+	// after the StyleChanger and cannot be set after the if case
+	if (kind_ == DBINOM) {
+		StyleChanger dummy(mi.base, LM_ST_DISPLAY);
+		cell(0).metrics(mi, dim0);
+		cell(1).metrics(mi, dim1);
+	} else if (kind_ == TBINOM) {
+		StyleChanger dummy(mi.base, LM_ST_SCRIPT);
+		cell(0).metrics(mi, dim0);
+		cell(1).metrics(mi, dim1);
+	} else {
+		FracChanger dummy(mi.base);
+		cell(0).metrics(mi, dim0);
+		cell(1).metrics(mi, dim1);
+	}
 	dim.asc = dim0.height() + 4 + 5;
 	dim.des = dim1.height() + 4 - 5;
-	dim.wid = max(dim0.width(), dim1.wid) + 2 * dw(dim.height()) + 4;
+	dim.wid = max(dim0.wid, dim1.wid) + 2 * dw(dim.height()) + 4;
 	metricsMarkers2(dim);
 }
 
@@ -543,17 +480,33 @@ void InsetMathBinom::draw(PainterInfo & pi, int x, int y) const
 	Dimension const dim = dimension(*pi.base.bv);
 	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
 	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
+	// define the binom brackets
 	docstring const bra = kind_ == BRACE ? from_ascii("{") :
-			      kind_ == BRACK ? from_ascii("[") : from_ascii("(");
+		kind_ == BRACK ? from_ascii("[") : from_ascii("(");
 	docstring const ket = kind_ == BRACE ? from_ascii("}") :
-			      kind_ == BRACK ? from_ascii("]") : from_ascii(")");
+		kind_ == BRACK ? from_ascii("]") : from_ascii(")");
+
 	int m = x + dim.width() / 2;
-	FracChanger dummy(pi.base);
-	cell(0).draw(pi, m - dim0.width() / 2, y - dim0.des - 3 - 5);
-	cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc  + 3 - 5);
-	mathed_draw_deco(pi, x, y - dim.ascent(), dw(dim.height()), dim.height(), bra);
-	mathed_draw_deco(pi, x + dim.width() - dw(dim.height()), y - dim.ascent(),
-		dw(dim.height()), dim.height(), ket);
+	// FIXME: for an unknown reason the cells must be drawn directly
+	// after the StyleChanger and cannot be drawn after the if case
+	if (kind_ == DBINOM) {
+		StyleChanger dummy(pi.base, LM_ST_DISPLAY);
+		cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 3 - 5);
+		cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc + 3 - 5);
+	} else if (kind_ == TBINOM) {
+		StyleChanger dummy(pi.base, LM_ST_SCRIPT);
+		cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 3 - 5);
+		cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc + 3 - 5);
+	} else {
+		FracChanger dummy2(pi.base);
+		cell(0).draw(pi, m - dim0.wid / 2, y - dim0.des - 3 - 5);
+		cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc + 3 - 5);
+	}
+	// draw the brackets and the marker
+	mathed_draw_deco(pi, x, y - dim.ascent(), dw(dim.height()),
+		dim.height(), bra);
+	mathed_draw_deco(pi, x + dim.width() - dw(dim.height()),
+		y - dim.ascent(), dw(dim.height()), dim.height(), ket);
 	drawMarkers2(pi, x, y);
 }
 
@@ -570,6 +523,12 @@ void InsetMathBinom::write(WriteStream & os) const
 	switch (kind_) {
 	case BINOM:
 		os << "\\binom{" << cell(0) << "}{" << cell(1) << '}';
+		break;
+	case DBINOM:
+		os << "\\dbinom{" << cell(0) << "}{" << cell(1) << '}';
+		break;
+	case TBINOM:
+		os << "\\tbinom{" << cell(0) << "}{" << cell(1) << '}';
 		break;
 	case CHOOSE:
 		os << '{' << cell(0) << " \\choose " << cell(1) << '}';
@@ -592,151 +551,78 @@ void InsetMathBinom::normalize(NormalStream & os) const
 
 void InsetMathBinom::mathmlize(MathStream & os) const
 {
-	os << MTag("mbinom") << cell(0) << cell(1) << ETag("mbinom");
+	char ldelim = ' ';
+	char rdelim = ' ';
+	switch (kind_) {
+	case BINOM:
+	case TBINOM:
+	case DBINOM:
+	case CHOOSE:
+		ldelim = '(';
+		rdelim = ')';
+		break;
+	case BRACE:
+		ldelim = '{';
+		rdelim = '}';
+		break;
+	case BRACK:
+		ldelim = '[';
+		rdelim = ']';
+		break;
+	}
+	os << "<mo fence='true' stretchy='true' form='prefix'>" << ldelim << "</mo>"
+	   << "<mfrac linethickness='0'>"
+	   << cell(0) << cell(1)
+	   << "</mfrac>"
+	   << "<mo fence='true' stretchy='true' form='postfix'>" << rdelim << "</mo>";
+}
+
+
+void InsetMathBinom::htmlize(HtmlStream & os) const
+{
+	char ldelim = ' ';
+	char rdelim = ' ';
+	switch (kind_) {
+	case BINOM:
+	case TBINOM:
+	case DBINOM:
+	case CHOOSE:
+		ldelim = '(';
+		rdelim = ')';
+		break;
+	case BRACE:
+		ldelim = '{';
+		rdelim = '}';
+		break;
+	case BRACK:
+		ldelim = '[';
+		rdelim = ']';
+		break;
+	}
+	os << MTag("span", "class='binomdelim'") << ldelim << ETag("span") << '\n'
+	   << MTag("span", "class='binom'") << '\n'
+	   << MTag("span") << cell(0) << ETag("span") << '\n'
+	   << MTag("span") << cell(1) << ETag("span") << '\n'
+	   << ETag("span") << '\n'
+		 << MTag("span", "class='binomdelim'") << rdelim << ETag("span") << '\n';
 }
 
 
 void InsetMathBinom::validate(LaTeXFeatures & features) const
 {
-	if (kind_ == BINOM)
-		features.require("binom");
+	if (features.runparams().isLaTeX()) {
+		if (kind_ == BINOM)
+			features.require("binom");
+		if (kind_ == DBINOM || kind_ == TBINOM)
+			features.require("amsmath");
+	} else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.binom{display: inline-block; vertical-align: bottom; text-align:center;}\n"
+			"span.binom span{display: block;}\n"
+			"span.binomdelim{font-size: 2em;}\n"
+			"</style>");
 	InsetMathNest::validate(features);
 }
 
-
-/////////////////////////////////////////////////////////////////////
-//
-// InsetMathDBinom
-//
-/////////////////////////////////////////////////////////////////////
-
-Inset * InsetMathDBinom::clone() const
-{
-	return new InsetMathDBinom(*this);
-}
-
-
-int InsetMathDBinom::dw(int height) const
-{
-	int w = height / 5;
-	if (w > 15)
-		w = 15;
-	if (w < 6)
-		w = 6;
-	return w;
-}
-
-
-void InsetMathDBinom::metrics(MetricsInfo & mi, Dimension & dim) const
-{
-	Dimension dim0, dim1;
-	cell(0).metrics(mi, dim0);
-	cell(1).metrics(mi, dim1);
-	dim.asc = dim0.height() + 4 + 5;
-	dim.des = dim1.height() + 4 - 5;
-	dim.wid = max(dim0.width(), dim1.wid) + 2 * dw(dim.height()) + 4;
-	metricsMarkers2(dim);
-}
-
-
-void InsetMathDBinom::draw(PainterInfo & pi, int x, int y) const
-{
-	Dimension const dim = dimension(*pi.base.bv);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
-	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
-	int m = x + dim.width() / 2;
-	cell(0).draw(pi, m - dim0.width() / 2, y - dim0.des - 3 - 5);
-	cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc  + 3 - 5);
-	mathed_draw_deco(pi, x, y - dim.ascent(), dw(dim.height()), dim.height(), from_ascii("("));
-	mathed_draw_deco(pi, x + dim.width() - dw(dim.height()), y - dim.ascent(),
-		dw(dim.height()), dim.height(), from_ascii(")"));
-	drawMarkers2(pi, x, y);
-}
-
-
-docstring InsetMathDBinom::name() const
-{
-	return from_ascii("dbinom");
-}
-
-void InsetMathDBinom::mathmlize(MathStream & os) const
-{
-	os << MTag("mdbinom") << cell(0) << cell(1) << ETag("mdbinom");
-}
-
-void InsetMathDBinom::validate(LaTeXFeatures & features) const
-{
-	features.require("amsmath");
-	InsetMathNest::validate(features);
-}
-
-
-/////////////////////////////////////////////////////////////////////
-//
-// InsetMathTBinom
-//
-/////////////////////////////////////////////////////////////////////
-
-Inset * InsetMathTBinom::clone() const
-{
-	return new InsetMathTBinom(*this);
-}
-
-
-int InsetMathTBinom::dw(int height) const
-{
-	int w = height / 5;
-	if (w > 15)
-		w = 15;
-	if (w < 6)
-		w = 6;
-	return w;
-}
-
-
-void InsetMathTBinom::metrics(MetricsInfo & mi, Dimension & dim) const
-{
-	StyleChanger dummy(mi.base, LM_ST_SCRIPT);
-	Dimension dim0, dim1;
-	cell(0).metrics(mi, dim0);
-	cell(1).metrics(mi, dim1);
-	dim.asc = dim0.height() + 4 + 5;
-	dim.des = dim1.height() + 4 - 5;
-	dim.wid = max(dim0.width(), dim1.wid) + 2 * dw(dim.height()) + 4;
-	metricsMarkers2(dim);
-}
-
-
-void InsetMathTBinom::draw(PainterInfo & pi, int x, int y) const
-{
-	StyleChanger dummy(pi.base, LM_ST_SCRIPT);
-	Dimension const dim = dimension(*pi.base.bv);
-	Dimension const & dim0 = cell(0).dimension(*pi.base.bv);
-	Dimension const & dim1 = cell(1).dimension(*pi.base.bv);
-	int m = x + dim.width() / 2;
-	cell(0).draw(pi, m - dim0.width() / 2, y - dim0.des - 3 - 5);
-	cell(1).draw(pi, m - dim1.wid / 2, y + dim1.asc  + 3 - 5);
-	mathed_draw_deco(pi, x, y - dim.ascent(), dw(dim.height()), dim.height(), from_ascii("("));
-	mathed_draw_deco(pi, x + dim.width() - dw(dim.height()), y - dim.ascent(),
-		dw(dim.height()), dim.height(), from_ascii(")"));
-	drawMarkers2(pi, x, y);
-}
-
-
-docstring InsetMathTBinom::name() const
-{
-	return from_ascii("tbinom");
-}
-
-void InsetMathTBinom::mathmlize(MathStream & os) const
-{
-	os << MTag("mtbinom") << cell(0) << cell(1) << ETag("mtbinom");
-}
-
-void InsetMathTBinom::validate(LaTeXFeatures & features) const
-{
-	features.require("amsmath");
-	InsetMathNest::validate(features);
-}
 
 } // namespace lyx

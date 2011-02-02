@@ -15,7 +15,6 @@
 #include "frontends/WorkArea.h"
 
 #include "DocIterator.h"
-#include "FuncRequest.h"
 #include "qt_helpers.h"
 #include "support/docstring.h"
 
@@ -70,6 +69,8 @@ public:
 	QString currentCompletion() const;
 	///
 	docstring longestUniqueCompletion() const;
+	///
+	bool uniqueCompletionAvailable() const;
 	
 public Q_SLOTS:
 	/// Show the popup.

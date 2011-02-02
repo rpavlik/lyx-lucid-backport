@@ -4,9 +4,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author João Luis M. Assirati
+ * \author JoÃ£o Luis M. Assirati
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,7 +17,7 @@
 #include "support/FileName.h"
 #include "support/socktools.h"
 
-#include <boost/shared_ptr.hpp>
+#include "support/shared_ptr.h"
 
 #include <string>
 #include <map>
@@ -26,7 +26,6 @@
 namespace lyx {
 
 class LyXDataSocket;
-class LyXFunc;
 
 
 /** Sockets can be in two states: listening and connected.
@@ -41,7 +40,7 @@ class LyXFunc;
 class ServerSocket {
 public:
 	///
-	ServerSocket(LyXFunc *, support::FileName const &);
+	ServerSocket(support::FileName const &);
 	///
 	~ServerSocket();
 	/// Address of the local socket
@@ -53,8 +52,6 @@ public:
 private:
 	///
 	void writeln(std::string const &);
-	///
-	LyXFunc * func;
 	/// File descriptor for the server socket
 	int fd_;
 	/// Stores the socket filename
@@ -64,7 +61,7 @@ private:
 		MAX_CLIENTS = 10
 	};
 	/// All connections
-	std::map<int, boost::shared_ptr<LyXDataSocket> > clients;
+	std::map<int, shared_ptr<LyXDataSocket> > clients;
 };
 
 

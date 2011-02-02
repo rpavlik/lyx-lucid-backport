@@ -5,11 +5,11 @@
 #DescriptionEnd
 #Requires: theorems-std | theorems-ams
 #Excludes: theorems-chap
+#Category: theorems
 
 # Author: Richard Heck <rgheck@comcast.net>
-# Tweaked by Paul Rubin <rubin@msu.edu> June '09 (added theoremstyle)
 
-Format 11
+Format 30
 
 Counter theorem
 	Within         section
@@ -18,6 +18,6 @@ End
 Style Theorem
 	Preamble
 		\theoremstyle{plain}
-		\newtheorem{thm}{Theorem}[section]
+		\newtheorem{thm}{\protect\theoremname}[section]
 	EndPreamble
 End

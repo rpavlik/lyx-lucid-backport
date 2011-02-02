@@ -4,9 +4,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -59,7 +59,9 @@ enum LyXAlignment {
 	///
 	LYX_ALIGN_LAYOUT = 16,
 	///
-	LYX_ALIGN_SPECIAL = 32
+	LYX_ALIGN_SPECIAL = 32,
+	///
+	LYX_ALIGN_DECIMAL = 64
 };
 
 ///
@@ -138,11 +140,7 @@ enum EndLabelType {
 	///
 	END_LABEL_FILLED_BOX,
 	///
-	END_LABEL_STATIC,
-	///
-	END_LABEL_ENUM_FIRST = END_LABEL_NO_LABEL,
-	///
-	END_LABEL_ENUM_LAST = END_LABEL_STATIC
+	END_LABEL_STATIC
 };
 
 } // namespace lyx

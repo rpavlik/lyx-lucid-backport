@@ -2,15 +2,12 @@
 /**
  * \file debug.h
  *
- * FIXME: It would be nice if, in lyx::use_gui mode, instead of
- * outputting to the console, we would pipe all messages onto a file
- * and visualise the contents dynamically in a Qt window if needed.
- *
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
+ * \author Pavel Sanda
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,7 +16,6 @@
 #define LYXDEBUG_H
 
 #include "support/strfwd.h"
-
 
 namespace std {
 
@@ -99,23 +95,33 @@ namespace Debug {
 		LOCALE     = (1 << 28),
 		///	selection
 		SELECTION  = (1 << 29),
+		/// Find and Replace
+		FIND       = (1 << 30),
 		///
 		DEBUG      = (1 << 31),
 		///
 		ANY = 0xffffffff
 	};
 
-	/** A function to convert symbolic string names on debug levels
-	    to their numerical value.
-	*/
+	/// Return number of levels
+	int levelCount();
+ 
+	/// A function to convert debug level string names numerical values
 	Type value(std::string const & val);
 
-	/** Display the tags and descriptions of the current debug level
-	    of ds
-	*/
+	/// A function to convert index of level to their numerical value
+	Type value(int val);
+
+	/// Return description of level
+	std::string const description(Type val);
+
+	/// Return name of level
+	std::string const name(Type val);
+
+	/// Display the tags and descriptions of the current debug level
 	void showLevel(std::ostream & os, Type level);
 
-	/** show all the possible tags that can be used for debugging */
+	/// Show all the possible tags that can be used for debugging
 	void showTags(std::ostream & os);
 
 } // namespace Debug
@@ -130,34 +136,51 @@ inline void operator|=(Debug::Type & d1, Debug::Type d2)
 class LyXErr
 {
 public:
-	LyXErr(): enabled_(true) {}
+	LyXErr(): enabled_(true), second_enabled_(false) {}
+	
 	/// Disable the stream completely
 	void disable();
 	/// Enable the stream after a possible call of disable()
 	void enable();
-	///
-	bool enabled() const { return enabled_; }
-	/// Returns true if t is part of the current debug level.
-	bool debugging(Debug::Type t = Debug::ANY) const;
+
 	/// Ends output
 	void endl();
-	/// Sets stream
-	void setStream(std::ostream & os) { stream_ = &os; }
-	/// Sets stream
+
+	/// Returns stream
 	std::ostream & stream() { return *stream_; }
-	/// Sets the debug level to t.
-	void level(Debug::Type t) { dt = t; }
-	/// Returns the current debug level.
-	Debug::Type level() const { return dt; }
 	/// Returns stream
 	operator std::ostream &() { return *stream_; }
+	/// Sets stream
+	void setStream(std::ostream & os) { stream_ = &os; }
+	/// Is the stream enabled ?
+	bool enabled() const { return enabled_; }
+
+	/// Returns second stream
+	std::ostream & secondStream() { return *second_stream_; };
+	/// Sets second stream
+	void setSecondStream(std::ostream * os) 
+		{ second_enabled_ = (second_stream_ = os); }
+	/// Is the second stream is enabled?
+	bool secondEnabled() { return second_enabled_; }
+
+	/// Sets the debug level
+	void setLevel(Debug::Type t) { dt_ = t; }
+	/// Returns the current debug level
+	Debug::Type level() const { return dt_; }
+	/// Returns true if t is part of the current debug level
+	bool debugging(Debug::Type t = Debug::ANY) const;
+
 private:
 	/// The current debug level
-	Debug::Type dt;
-	/// Is the stream enabled?
-	bool enabled_;
+	Debug::Type dt_;
 	/// The real stream
 	std::ostream * stream_;
+	/// Is the stream enabled?
+	bool enabled_;
+	/// Next stream for output duplication
+	std::ostream * second_stream_;
+	/// Is the second stream enabled?
+	bool second_enabled_;
 };
 
 namespace support { class FileName; }

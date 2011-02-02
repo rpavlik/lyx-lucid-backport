@@ -6,13 +6,15 @@
  *
  * \author various
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
 
 #ifndef ROWPAINTER_H
 #define ROWPAINTER_H
+
+#include "Changes.h"
 
 #include "support/types.h"
 
@@ -53,18 +55,20 @@ public:
 	void paintLast();
 	void paintText();
 	void paintOnlyInsets();
+	void paintSelection();
 
 private:
 	void paintForeignMark(double orig_x, Language const * lang, int desc = 0);
+	void paintMisspelledMark(double orig_x, bool changed);
 	void paintHebrewComposeChar(pos_type & vpos, FontInfo const & font);
 	void paintArabicComposeChar(pos_type & vpos, FontInfo const & font);
 	void paintChars(pos_type & vpos, FontInfo const & font,
 			bool hebrew, bool arabic);
 	int paintAppendixStart(int y);
-	void paintFromPos(pos_type & vpos);
+	void paintFromPos(pos_type & vpos, bool changed);
 	void paintInset(Inset const * inset, pos_type const pos);
 	void paintInlineCompletion(Font const & font);
-	
+
 	/// return left margin
 	int leftMargin() const;
 
@@ -92,14 +96,16 @@ private:
 	/// one of them is active at a time.
 	Bidi & bidi_;
 
-	/// is row erased? (change tracking)
-	bool erased_;
+	/// row changed? (change tracking)
+	Change const change_;
 
 	// Looks ugly - is
 	double const xo_;
 	int const yo_;    // current baseline
 	double x_;
 	int width_;
+	float line_thickness_;
+	int line_offset_;
 };
 
 } // namespace lyx

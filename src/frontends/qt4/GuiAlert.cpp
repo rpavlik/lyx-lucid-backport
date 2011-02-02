@@ -13,18 +13,18 @@
 #include <config.h>
 
 #include "alert.h"
+#include "InGuiThread.h"
 
 #include "frontends/Application.h"
 
 #include "qt_helpers.h"
 #include "LyX.h" // for lyx::use_gui
-#include "ui_AskForTextUi.h"
-#include "ui_ToggleWarningUi.h"
-#include "support/gettext.h"
 
+#include "support/gettext.h"
 #include "support/debug.h"
 #include "support/docstring.h"
 #include "support/lstrings.h"
+#include "support/ProgressInterface.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -37,6 +37,11 @@
 #include <iomanip>
 #include <iostream>
 
+
+// sync with GuiView.cpp
+#define EXPORT_in_THREAD 1
+
+
 using namespace std;
 using namespace lyx::support;
 
@@ -44,15 +49,6 @@ namespace lyx {
 namespace frontend {
 
 
-class GuiToggleWarningDialog : public QDialog, public Ui::ToggleWarningUi
-{
-public:
-	GuiToggleWarningDialog(QWidget * parent) : QDialog(parent)
-	{
-		Ui::ToggleWarningUi::setupUi(this);
-		QDialog::setModal(true);
-	}
-};
 
 
 static docstring const formatted(docstring const & text)
@@ -115,32 +111,26 @@ static docstring const formatted(docstring const & text)
 }
 
 
-void toggleWarning(docstring const & title, docstring const & msg)
+void noAppDialog(QString const & title, QString const & msg, QMessageBox::Icon mode)
 {
-	if (!use_gui)
-		return;
+	int argc = 1;
+	const char *argv[] = { "lyx", 0 };
 
-	QSettings settings;
-	if (settings.value("hidden_warnings/" + toqstr(msg), false).toBool())
-		return;
-
-	GuiToggleWarningDialog * dlg =
-		new GuiToggleWarningDialog(qApp->focusWidget());
-
-	dlg->setWindowTitle(toqstr(title));
-	dlg->messageLA->setText(toqstr(formatted(msg)));
-	dlg->dontShowAgainCB->setChecked(false);
-
-	if (dlg->exec() == QDialog::Accepted)
-		if (dlg->dontShowAgainCB->isChecked())
-			settings.setValue("hidden_warnings/"
-				+ toqstr(msg), true);
+	QApplication app(argc, (char**)argv);
+	switch (mode)
+	{
+		case QMessageBox::Information: QMessageBox::information(0, title, msg); break;
+		case QMessageBox::Warning: QMessageBox::warning(0, title, msg); break;
+		case QMessageBox::Critical: QMessageBox::critical(0, title, msg); break;
+		default: break;
+	}
 }
 
 
 namespace Alert {
 
-int prompt(docstring const & title0, docstring const & question,
+
+int doPrompt(docstring const & title0, docstring const & question,
 		  int default_button, int cancel_button,
 		  docstring const & b1, docstring const & b2,
 		  docstring const & b3, docstring const & b4)
@@ -194,8 +184,21 @@ int prompt(docstring const & title0, docstring const & question,
 	return res;
 }
 
+int prompt(docstring const & title0, docstring const & question,
+		  int default_button, int cancel_button,
+		  docstring const & b1, docstring const & b2,
+		  docstring const & b3, docstring const & b4)
+{
+#ifdef EXPORT_in_THREAD
+	return InGuiThread<int>().call(&doPrompt,
+#else
+	return doPrompt(
+#endif
+				title0, question, default_button,
+				cancel_button, b1, b2, b3, b4);
+}
 
-void warning(docstring const & title0, docstring const & message,
+void doWarning(docstring const & title0, docstring const & message,
 	     bool const & askshowagain)
 {
 	lyxerr << "Warning: " << title0 << '\n'
@@ -208,30 +211,39 @@ void warning(docstring const & title0, docstring const & message,
 	docstring const title = bformat(_("LyX: %1$s"), title0);
 
 	if (theApp() == 0) {
-		int argc = 1;
-		char * argv[1];
-		QApplication app(argc, argv);
-		QMessageBox::warning(0,
-			toqstr(title),
-			toqstr(formatted(message)));
+		noAppDialog(toqstr(title), toqstr(formatted(message)), QMessageBox::Warning);
 		return;
 	}
 
 	// Don't use a hourglass cursor while displaying the alert
 	qApp->setOverrideCursor(Qt::ArrowCursor);
 
-	if (!askshowagain)
-		QMessageBox::warning(qApp->focusWidget(),
+	if (!askshowagain) {
+		ProgressInterface::instance()->warning(
 				toqstr(title),
 				toqstr(formatted(message)));
-	else
-		toggleWarning(title, message);
+	} else {
+		ProgressInterface::instance()->toggleWarning(
+				toqstr(title),
+				toqstr(message),
+				toqstr(formatted(message)));
+	}
 
 	qApp->restoreOverrideCursor();
 }
 
+void warning(docstring const & title0, docstring const & message,
+	     bool const & askshowagain)
+{
+#ifdef EXPORT_in_THREAD	
+	InGuiThread<void>().call(&doWarning,
+#else
+	doWarning(
+#endif
+				title0, message, askshowagain);
+}
 
-void error(docstring const & title0, docstring const & message)
+void doError(docstring const & title0, docstring const & message)
 {
 	lyxerr << "Error: " << title0 << '\n'
 	       << "----------------------------------------\n"
@@ -241,28 +253,33 @@ void error(docstring const & title0, docstring const & message)
 		return;
 
 	docstring const title = bformat(_("LyX: %1$s"), title0);
+
 	if (theApp() == 0) {
-		int argc = 1;
-		char * argv[1];
-		QApplication app(argc, argv);
-		QMessageBox::critical(0,
-			toqstr(title),
-			toqstr(formatted(message)));
+		noAppDialog(toqstr(title), toqstr(formatted(message)), QMessageBox::Critical);
 		return;
 	}
 
 	// Don't use a hourglass cursor while displaying the alert
 	qApp->setOverrideCursor(Qt::ArrowCursor);
 
-	QMessageBox::critical(qApp->focusWidget(),
-			      toqstr(title),
-			      toqstr(formatted(message)));
+	ProgressInterface::instance()->error(
+		toqstr(title),
+		toqstr(formatted(message)));
 
 	qApp->restoreOverrideCursor();
 }
 
+void error(docstring const & title0, docstring const & message)
+{
+#ifdef EXPORT_in_THREAD
+	InGuiThread<void>().call(&doError, 
+#else
+	doError(
+#endif
+				title0, message);
+}
 
-void information(docstring const & title0, docstring const & message)
+void doInformation(docstring const & title0, docstring const & message)
 {
 	if (!use_gui || lyxerr.debugging())
 		lyxerr << title0 << '\n'
@@ -274,18 +291,32 @@ void information(docstring const & title0, docstring const & message)
 
 	docstring const title = bformat(_("LyX: %1$s"), title0);
 
+	if (theApp() == 0) {
+		noAppDialog(toqstr(title), toqstr(formatted(message)), QMessageBox::Information);
+		return;
+	}
+
 	// Don't use a hourglass cursor while displaying the alert
 	qApp->setOverrideCursor(Qt::ArrowCursor);
 
-	QMessageBox::information(qApp->focusWidget(),
-				 toqstr(title),
-				 toqstr(formatted(message)));
+	ProgressInterface::instance()->information(
+		toqstr(title),
+		toqstr(formatted(message)));
 
 	qApp->restoreOverrideCursor();
 }
 
+void information(docstring const & title0, docstring const & message)
+{
+#ifdef EXPORT_in_THREAD
+	InGuiThread<void>().call(&doInformation,
+#else
+	doInformation(
+#endif
+				title0, message);
+}
 
-bool askForText(docstring & response, docstring const & msg,
+bool doAskForText(docstring & response, docstring const & msg,
 	docstring const & dflt)
 {
 	if (!use_gui || lyxerr.debugging()) {
@@ -316,6 +347,16 @@ bool askForText(docstring & response, docstring const & msg,
 	return false;
 }
 
+bool askForText(docstring & response, docstring const & msg,
+	docstring const & dflt)
+{
+#ifdef EXPORT_in_THREAD
+	return InGuiThread<bool>().call(&doAskForText,
+#else
+	return doAskForText(
+#endif
+				response, msg, dflt);
+}
 
 } // namespace Alert
 } // namespace frontend

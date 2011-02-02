@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -41,7 +41,12 @@ public:
 	bool isScriptable() const;
 	///
 	void validate(LaTeXFeatures & features) const;
-
+	///
+	InsetCode lyxCode() const { return MATH_DECORATION_CODE; }
+	///
+	void mathmlize(MathStream &) const;
+	///
+	void htmlize(HtmlStream &) const;
 private:
 	virtual Inset * clone() const;
 	///
@@ -50,8 +55,6 @@ private:
 	bool protect() const;
 	/// is it a wide decoration?
 	bool wide() const;
-	/// does this need AMS
-	bool ams() const;
 
 	///
 	latexkeys const * key_;

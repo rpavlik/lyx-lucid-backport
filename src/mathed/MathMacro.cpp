@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -28,9 +28,8 @@
 #include "FuncStatus.h"
 #include "FuncRequest.h"
 #include "LaTeXFeatures.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
-#include "Undo.h"
 
 #include "frontends/Painter.h"
 
@@ -59,6 +58,8 @@ public:
 			asArray(def, def_);
 	}
 	///
+	InsetCode lyxCode() const { return ARGUMENT_PROXY_CODE; }
+	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const {
 		mathMacro_.macro()->unlock();
 		mathMacro_.cell(idx_).metrics(mi, dim);
@@ -69,6 +70,11 @@ public:
 
 		mathMacro_.macro()->lock();
 	}
+	// FIXME Other external things need similar treatment.
+	///
+	void mathmlize(MathStream & ms) const { ms << mathMacro_.cell(idx_); }
+	///
+	void htmlize(HtmlStream & ms) const { ms << mathMacro_.cell(idx_); }
 	///
 	void draw(PainterInfo & pi, int x, int y) const {
 		if (mathMacro_.editMetrics(pi.base.bv)) {
@@ -118,9 +124,8 @@ private:
 
 MathMacro::MathMacro(Buffer * buf, docstring const & name)
 	: InsetMathNest(buf, 0), name_(name), displayMode_(DISPLAY_INIT),
-	  expanded_(buf), attachedArgsNum_(0), optionals_(0),
-	  nextFoldMode_(true), macroBackup_(buf), macro_(0),
-	  needsUpdate_(false), appetite_(9)
+		expanded_(buf), attachedArgsNum_(0), optionals_(0), nextFoldMode_(true),
+		macroBackup_(buf), macro_(0), needsUpdate_(false), appetite_(9)
 {}
 
 
@@ -128,7 +133,7 @@ Inset * MathMacro::clone() const
 {
 	MathMacro * copy = new MathMacro(*this);
 	copy->needsUpdate_ = true;
-	copy->expanded_.cell(0).clear();
+	//copy->expanded_.cell(0).clear();
 	return copy;
 }
 
@@ -159,9 +164,12 @@ bool MathMacro::editMode(BufferView const * bv) const {
 			// look if there is no other macro in edit mode above
 			++i;
 			for (; i != cur.depth(); ++i) {
-				MathMacro const * macro = dynamic_cast<MathMacro const *>(&cur[i].inset());
-				if (macro && macro->displayMode() == DISPLAY_NORMAL)
-					return false;
+				InsetMath * im = cur[i].asInsetMath();
+				if (im) {
+					MathMacro const * macro = im->asMacro();
+					if (macro && macro->displayMode() == DISPLAY_NORMAL)
+						return false;
+				}
 			}
 
 			// ok, none found, I am the highest one
@@ -283,7 +291,7 @@ int MathMacro::kerning(BufferView const * bv) const {
 void MathMacro::updateMacro(MacroContext const & mc) 
 {
 	if (validName()) {
-		macro_ = mc.get(name());	    
+		macro_ = mc.get(name());    
 		if (macro_ && macroBackup_ != *macro_) {
 			macroBackup_ = *macro_;
 			needsUpdate_ = true;
@@ -303,14 +311,11 @@ void MathMacro::updateRepresentation()
 	// update requires
 	requires_ = macro_->requires();
 	
-	// non-normal mode? We are done!
-	if (displayMode_ != DISPLAY_NORMAL)
+	if (!needsUpdate_
+		// non-normal mode? We are done!
+		|| (displayMode_ != DISPLAY_NORMAL))
 		return;
 
-	// macro changed?
-	if (!needsUpdate_)
-		return;
-	
 	needsUpdate_ = false;
 	
 	// get default values of macro
@@ -326,10 +331,9 @@ void MathMacro::updateRepresentation()
 			proxy = new ArgumentProxy(*this, i);
 		values[i].insert(0, MathAtom(proxy));
 	}
-	
 	// expanding macro with the values
 	macro_->expand(values, expanded_.cell(0));
-		// get definition for list edit mode
+	// get definition for list edit mode
 	docstring const & display = macro_->display();
 	asArray(display.empty() ? macro_->definition() : display, definition_);
 }
@@ -442,7 +446,7 @@ void MathMacro::draw(PainterInfo & pi, int x, int y) const
 
 	// edit mode changed?
 	if (editing_[pi.base.bv] != editMode(pi.base.bv))
-		pi.base.bv->cursor().updateFlags(Update::SinglePar);
+		pi.base.bv->cursor().screenUpdateFlags(Update::SinglePar);
 }
 
 
@@ -531,7 +535,7 @@ void MathMacro::validate(LaTeXFeatures & features) const
 
 void MathMacro::edit(Cursor & cur, bool front, EntryDirection entry_from)
 {
-	cur.updateFlags(Update::SinglePar);
+	cur.screenUpdateFlags(Update::SinglePar);
 	InsetMathNest::edit(cur, front, entry_from);
 }
 
@@ -540,7 +544,7 @@ Inset * MathMacro::editXY(Cursor & cur, int x, int y)
 {
 	// We may have 0 arguments, but InsetMathNest requires at least one.
 	if (nargs() > 0) {
-		cur.updateFlags(Update::SinglePar);
+		cur.screenUpdateFlags(Update::SinglePar);
 		return InsetMathNest::editXY(cur, x, y);		
 	} else
 		return this;
@@ -612,14 +616,14 @@ void MathMacro::attachArguments(vector<MathData> const & args, size_t arity, int
 
 bool MathMacro::idxFirst(Cursor & cur) const 
 {
-	cur.updateFlags(Update::SinglePar);
+	cur.screenUpdateFlags(Update::SinglePar);
 	return InsetMathNest::idxFirst(cur);
 }
 
 
 bool MathMacro::idxLast(Cursor & cur) const 
 {
-	cur.updateFlags(Update::SinglePar);
+	cur.screenUpdateFlags(Update::SinglePar);
 	return InsetMathNest::idxLast(cur);
 }
 
@@ -638,12 +642,13 @@ bool MathMacro::notifyCursorLeaves(Cursor const & old, Cursor & cur)
 			inset_cursor.pop();
 			inset_cursor.cell().erase(inset_cursor.pos());
 			inset_cursor.cell().insert(inset_cursor.pos(),
-				createInsetMath(unfolded_name, &cur.buffer()));
-			cur.updateFlags(cur.disp_.update() | Update::SinglePar);
+				createInsetMath(unfolded_name, cur.buffer()));
+			cur.resetAnchor();
+			cur.screenUpdateFlags(cur.result().screenUpdate() | Update::SinglePar);
 			return true;
 		}
 	}
-	cur.updateFlags(Update::Force);
+	cur.screenUpdateFlags(Update::Force);
 	return InsetMathNest::notifyCursorLeaves(old, cur);
 }
 
@@ -652,7 +657,7 @@ void MathMacro::fold(Cursor & cur)
 {
 	if (!nextFoldMode_) {
 		nextFoldMode_ = true;
-		cur.updateFlags(Update::SinglePar);
+		cur.screenUpdateFlags(Update::SinglePar);
 	}
 }
 
@@ -661,7 +666,7 @@ void MathMacro::unfold(Cursor & cur)
 {
 	if (nextFoldMode_) {
 		nextFoldMode_ = false;
-		cur.updateFlags(Update::SinglePar);
+		cur.screenUpdateFlags(Update::SinglePar);
 	}
 }
 
@@ -712,7 +717,7 @@ void MathMacro::write(WriteStream & os) const
 	// skip the tailing empty optionals
 	i = optionals_;
 	
-	// Print remaining macros 
+	// Print remaining arguments
 	for (; i < cells_.size(); ++i) {
 		if (cell(i).size() == 1 
 			&& cell(i)[0].nucleus()->asCharInset()
@@ -739,7 +744,13 @@ void MathMacro::maple(MapleStream & os) const
 
 void MathMacro::mathmlize(MathStream & os) const
 {
-	lyx::mathmlize(expanded_.cell(0), os);
+	os << expanded_.cell(0);
+}
+
+
+void MathMacro::htmlize(HtmlStream & os) const
+{
+	os << expanded_.cell(0);
 }
 
 
@@ -837,13 +848,13 @@ bool MathMacro::insertCompletion(Cursor & cur, docstring const & s,
 	docstring newName = name() + s;
 	asArray(newName, cell(0));
 	cur.bv().cursor().pos() = name().size();
-	cur.updateFlags(Update::SinglePar);
+	cur.screenUpdateFlags(Update::SinglePar);
 	
 	// finish macro
 	if (finished) {
 		cur.bv().cursor().pop();
 		++cur.bv().cursor().pos();
-		cur.updateFlags(Update::SinglePar);
+		cur.screenUpdateFlags(Update::SinglePar);
 	}
 	
 	return true;

@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Enrico Forestieri
  *
  * Full author contact details are available in file CREDITS.
@@ -67,6 +67,12 @@ void InsetMathEnsureMath::write(WriteStream & os) const
 {
 	ModeSpecifier specifier(os, MATH_MODE);
 	os << "\\ensuremath{" << cell(0) << "}";
+}
+
+
+void InsetMathEnsureMath::mathmlize(MathStream & os) const
+{
+	os << cell(0);
 }
 
 

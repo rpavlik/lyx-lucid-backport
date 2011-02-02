@@ -23,9 +23,11 @@ using namespace std;
 
 using lyx::ucs4_codeset;
 
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
 std::locale::id numpunct<lyx::char_type>::id;
 #endif
+
 
 namespace {
 
@@ -306,9 +308,9 @@ const char * iconv_codecvt_facet_exception::what() const throw()
 }
 
 
-ifdocstream::ifdocstream(string const & encoding) : base()
+ifdocstream::ifdocstream() : base()
 {
-	setEncoding(*this, encoding, in);
+	setEncoding(*this, "UTF-8", in);
 }
 
 

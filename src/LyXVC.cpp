@@ -3,11 +3,11 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Allan Rae
  *
  * Full author contact details are available in file CREDITS.
@@ -68,6 +68,7 @@ bool LyXVC::file_found_hook(FileName const & fn)
 	}
 
 	// file is not under any VCS.
+	vcs.reset(0);
 	return false;
 }
 
@@ -79,8 +80,22 @@ bool LyXVC::file_not_found_hook(FileName const & fn)
 	// file on disk, but existent in ,v version.
 	// Seems there is no reasonable scenario for adding implementation
 	// of retrieve for cvs or svn.
-	if (!RCS::findFile(fn).empty())
-		return true;
+	if (!RCS::findFile(fn).empty()) {	
+		docstring const file = makeDisplayPath(fn.absFileName(), 20);
+		docstring const text =
+			bformat(_("Do you want to retrieve the document"
+						   " %1$s from version control?"), file);
+		int const ret = Alert::prompt(_("Retrieve from version control?"),
+			text, 0, 1, _("&Retrieve"), _("&Cancel"));
+
+		if (ret == 0) {
+			// How can we know _how_ to do the checkout?
+			// With the current VC support it has to be an RCS
+			// file since CVS and SVN do not have special ,v files.
+			RCS::retrieve(fn);
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -106,8 +121,8 @@ bool LyXVC::registrer()
 	// it is very likely here that the vcs is not created yet...
 	if (!vcs) {
 		//check in the root directory of the document
-		FileName const cvs_entries(onlyPath(filename.absFilename()) + "/CVS/Entries");
-		FileName const svn_entries(onlyPath(filename.absFilename()) + "/.svn/entries");
+		FileName const cvs_entries(onlyPath(filename.absFileName()) + "/CVS/Entries");
+		FileName const svn_entries(onlyPath(filename.absFileName()) + "/.svn/entries");
 
 		if (svn_entries.isReadableFile()) {
 			LYXERR(Debug::LYXVC, "LyXVC: registering "
@@ -134,6 +149,7 @@ bool LyXVC::registrer()
 			_("(no initial description)"));
 	if (!ok) {
 		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
+		vcs.reset(0);
 		return false;
 	}
 	if (response.empty())
@@ -146,13 +162,20 @@ bool LyXVC::registrer()
 string LyXVC::checkIn()
 {
 	LYXERR(Debug::LYXVC, "LyXVC: checkIn");
+	docstring empty(_("(no log message)"));
 	docstring response;
 	string log;
-	bool ok = Alert::askForText(response, _("LyX VC: Log Message"));
+	bool ok = true;
+	if (vcs->isCheckInWithConfirmation())
+		ok = Alert::askForText(response, _("LyX VC: Log Message"));
 	if (ok) {
 		if (response.empty())
-			response = _("(no log message)");
+			response = empty;
 		log = vcs->checkIn(to_utf8(response));
+
+		// Reserve empty string for cancel button
+		if (log.empty())
+			log = to_utf8(empty);
 	} else {
 		LYXERR(Debug::LYXVC, "LyXVC: user cancelled");
 	}
@@ -163,7 +186,8 @@ string LyXVC::checkIn()
 string LyXVC::checkOut()
 {
 	//RCS allows checkOut only in ReadOnly mode
-	if (vcs->toggleReadOnlyEnabled() && !owner_->isReadonly()) return string();
+	if (vcs->toggleReadOnlyEnabled() && !owner_->isReadonly())
+		return string();
 
 	LYXERR(Debug::LYXVC, "LyXVC: checkOut");
 	return vcs->checkOut();
@@ -184,7 +208,7 @@ string LyXVC::lockingToggle()
 }
 
 
-void LyXVC::revert()
+bool LyXVC::revert()
 {
 	LYXERR(Debug::LYXVC, "LyXVC: revert");
 
@@ -192,11 +216,12 @@ void LyXVC::revert()
 	docstring text = bformat(_("Reverting to the stored version of the "
 				"document %1$s will lose all current changes.\n\n"
 				"Do you want to revert to the older version?"), file);
-	int const ret = Alert::prompt(_("Revert to stored version of document?"),
-		text, 0, 1, _("&Revert"), _("&Cancel"));
+	int ret = 0;
+	if (vcs->isRevertWithConfirmation())
+		ret = Alert::prompt(_("Revert to stored version of document?"),
+			text, 0, 1, _("&Revert"), _("&Cancel"));
 
-	if (ret == 0)
-		vcs->revert();
+	return ret == 0 && vcs->revert();
 }
 
 
@@ -226,18 +251,12 @@ void LyXVC::toggleReadOnly()
 }
 
 
-bool LyXVC::inUse()
+bool LyXVC::inUse() const
 {
 	if (vcs)
 		return true;
 	return false;
 }
-
-
-//string const & LyXVC::version() const
-//{
-//	return vcs->version();
-//}
 
 
 string const LyXVC::versionString() const
@@ -246,9 +265,9 @@ string const LyXVC::versionString() const
 }
 
 
-string const & LyXVC::locker() const
+bool LyXVC::locking() const
 {
-	return vcs->locker();
+	return vcs->status() != VCS::NOLOCKING;
 }
 
 
@@ -264,32 +283,58 @@ string const LyXVC::getLogFile() const
 	}
 	LYXERR(Debug::LYXVC, "Generating logfile " << tmpf);
 	vcs->getLog(tmpf);
-	return tmpf.absFilename();
+	return tmpf.absFileName();
 }
 
 
-bool LyXVC::checkOutEnabled()
+string LyXVC::revisionInfo(RevisionInfo const info) const
+{
+	if (!vcs)
+		return string();
+
+	return vcs->revisionInfo(info);
+}
+
+
+bool LyXVC::checkOutEnabled() const
 {
 	return vcs && vcs->checkOutEnabled();
 }
 
 
-bool LyXVC::checkInEnabled()
+bool LyXVC::checkInEnabled() const
 {
 	return vcs && vcs->checkInEnabled();
 }
 
 
-bool LyXVC::lockingToggleEnabled()
+bool LyXVC::lockingToggleEnabled() const
 {
 	return vcs && vcs->lockingToggleEnabled();
 }
 
 
-bool LyXVC::undoLastEnabled()
+bool LyXVC::undoLastEnabled() const
 {
 	return vcs && vcs->undoLastEnabled();
 }
 
+
+bool LyXVC::repoUpdateEnabled() const
+{
+	return vcs && vcs->repoUpdateEnabled();
+}
+	
+	
+bool LyXVC::prepareFileRevision(string const & rev, std::string & f)
+{
+	return vcs && vcs->prepareFileRevision(rev, f);
+}
+
+
+bool LyXVC::prepareFileRevisionEnabled()
+{
+	return vcs && vcs->prepareFileRevisionEnabled();
+}
 
 } // namespace lyx

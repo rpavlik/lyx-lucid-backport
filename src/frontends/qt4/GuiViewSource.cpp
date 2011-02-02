@@ -20,6 +20,7 @@
 #include "BufferView.h"
 #include "Buffer.h"
 #include "Cursor.h"
+#include "Format.h"
 #include "Paragraph.h"
 #include "TexRow.h"
 
@@ -42,17 +43,20 @@ namespace frontend {
 
 ViewSourceWidget::ViewSourceWidget()
 	:	bv_(0), document_(new QTextDocument(this)),
-		highlighter_(new LaTeXHighlighter(document_))
+		highlighter_(new LaTeXHighlighter(document_)),
+		force_getcontent_(true)
 {
 	setupUi(this);
 
 	connect(viewFullSourceCB, SIGNAL(clicked()),
-		this, SLOT(updateView()));
+		this, SLOT(fullSourceChanged()));
 	connect(autoUpdateCB, SIGNAL(toggled(bool)),
 		updatePB, SLOT(setDisabled(bool)));
 	connect(autoUpdateCB, SIGNAL(toggled(bool)),
 		this, SLOT(updateView()));
 	connect(updatePB, SIGNAL(clicked()),
+		this, SLOT(updateView()));
+	connect(outputFormatCO, SIGNAL(activated(int)),
 		this, SLOT(updateView()));
 
 	// setting a document at this point trigger an assertion in Qt
@@ -85,7 +89,8 @@ static size_t crcCheck(docstring const & s)
 	\param fullSource get full source code
 	\return true if the content has changed since last call.
  */
-static bool getContent(BufferView const * view, bool fullSource, QString & qstr)
+static bool getContent(BufferView const * view, bool fullSource,
+		       QString & qstr, string const format, bool force_getcontent)
 {
 	// get the *top* level paragraphs that contain the cursor,
 	// or the selected text
@@ -102,11 +107,11 @@ static bool getContent(BufferView const * view, bool fullSource, QString & qstr)
 	if (par_begin > par_end)
 		swap(par_begin, par_end);
 	odocstringstream ostr;
-	view->buffer().getSourceCode(ostr, par_begin, par_end + 1, fullSource);
+	view->buffer().getSourceCode(ostr, format, par_begin, par_end + 1, fullSource);
 	docstring s = ostr.str();
 	static size_t crc = 0;
 	size_t newcrc = crcCheck(s);
-	if (newcrc == crc)
+	if (newcrc == crc && !force_getcontent)
 		return false;
 	crc = newcrc;
 	qstr = toqstr(s);
@@ -116,8 +121,17 @@ static bool getContent(BufferView const * view, bool fullSource, QString & qstr)
 
 void ViewSourceWidget::setBufferView(BufferView const * bv)
 {
+	if (bv_ != bv)
+		force_getcontent_ = true;
 	bv_ = bv;
 	setEnabled(bv ?  true : false);
+}
+
+
+void ViewSourceWidget::fullSourceChanged()
+{
+	if (autoUpdateCB->isChecked())
+		updateView();
 }
 
 
@@ -128,11 +142,15 @@ void ViewSourceWidget::updateView()
 		setEnabled(false);
 		return;
 	}
-	
+
 	setEnabled(true);
 
+	string const format = fromqstr(outputFormatCO->itemData(
+		outputFormatCO->currentIndex()).toString());
+
 	QString content;
-	if (getContent(bv_, viewFullSourceCB->isChecked(), content))
+	if (getContent(bv_, viewFullSourceCB->isChecked(), content,
+		  format, force_getcontent_))
 		document_->setPlainText(content);
 
 	CursorSlice beg = bv_->cursor().selectionBegin().bottom();
@@ -152,6 +170,26 @@ void ViewSourceWidget::updateView()
 	c.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor,
 		endrow - begrow + 1);
 	viewSourceTV->setTextCursor(c);
+}
+
+
+void ViewSourceWidget::updateDefaultFormat()
+{
+	if (!bv_)
+		return;
+
+	outputFormatCO->blockSignals(true);
+	outputFormatCO->clear();
+	outputFormatCO->addItem(qt_("Default"),
+				QVariant(QString("default")));
+	typedef vector<Format const *> Formats;
+	Formats formats = bv_->buffer().exportableFormats(true);
+	Formats::const_iterator cit = formats.begin();
+	Formats::const_iterator end = formats.end();
+	for (; cit != end; ++cit)
+		outputFormatCO->addItem(qt_((*cit)->prettyname()),
+				QVariant(toqstr((*cit)->name())));
+	outputFormatCO->blockSignals(false);
 }
 
 
@@ -182,6 +220,7 @@ void GuiViewSource::updateView()
 void GuiViewSource::enableView(bool enable)
 {
 	widget_->setBufferView(bufferview());
+	widget_->updateDefaultFormat();
 	if (!enable)
 		// In the opposite case, updateView() will be called anyway.
 		widget_->updateView();
@@ -244,4 +283,4 @@ Dialog * createGuiViewSource(GuiView & lv)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiViewSource_moc.cpp"
+#include "moc_GuiViewSource.cpp"

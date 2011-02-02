@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Angus Leeming
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,10 +14,8 @@
 #define INSET_CITATION_H
 
 #include "InsetCommand.h"
-#include "InsetCode.h"
 
-#include "BiblioInfo.h"
-
+#include "Citation.h"
 
 namespace lyx {
 
@@ -32,13 +30,14 @@ class InsetCitation : public InsetCommand
 {
 public:
 	///
-	explicit InsetCitation(InsetCommandParams const &);
+	InsetCitation(Buffer * buf, InsetCommandParams const &);
+
+	/// \name Public functions inherited from Inset class
+	//@{
 	///
 	bool isLabeled() const { return true; }
 	///
-	docstring screenLabel() const;
-	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	bool hasSettings() const { return true; }
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
@@ -49,15 +48,24 @@ public:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
-	void updateLabels(ParIterator const & it);
+	void updateBuffer(ParIterator const & it, UpdateType);
 	///
 	void addToToc(DocIterator const &);
+	///
+	docstring contextMenuName() const;
+	//@}
 
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	///
 	static ParamInfo const & findInfo(std::string const &);
 	// FIXME This is the locus of the design problem we have.
@@ -67,16 +75,31 @@ public:
 	static std::string defaultCommand() { return "cite"; }
 	///
 	static bool isCompatibleCommand(std::string const & cmd);
-	///
-	virtual docstring contextMenu(BufferView const & bv, int x, int y) const;
+	//@}
+
 private:
+	/// tries to make a pretty label and makes a basic one if not
+	docstring generateLabel(bool for_xhtml = false) const;
+	/// makes a pretty label
+	docstring complexLabel(bool for_xhtml = false) const;
+	/// makes a very basic label, in case we can't make a pretty one
+	docstring basicLabel(bool for_xhtml = false) const;
+
+	/// \name Private functions inherited from Inset class
+	//@{
 	///
 	Inset * clone() const { return new InsetCitation(*this); }
+	//@}
+
+	/// \name Private functions inherited from InsetCommand class
+	//@{
+	///
+	docstring screenLabel() const;
+	//@}
+
 	/// we'll eventually want to be able to get info on this from the 
 	/// various CiteEngines
 	static ParamInfo param_info_;
-	/// This function does the donkey work of creating the pretty label
-	docstring generateLabel() const;
 
 	///
 	class Cache {
@@ -95,6 +118,7 @@ private:
 	///
 	mutable Cache cache;
 };
+
 
 } // namespace lyx
 

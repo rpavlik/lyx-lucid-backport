@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[elsart,amssymb.sty]{article (Elsevier, obsolete version)}
+#  \DeclareLaTeXClass[elsart,amssymb.sty,latexsym.sty]{article (Elsevier, obsolete version)}
 # Author: Rod Pinna <rpinna@civil.uwa.edu.au>
 # The Elsevier doc style also duplicates the theorem
 # environments used by the AMS. The definitions here have been
@@ -22,7 +22,7 @@
 #       numbered sections, as does the class file.
 
 
-Format 11
+Format 30
 Columns                 1
 Sides                   2
 PageStyle               headings
@@ -105,6 +105,7 @@ Style Title
 	  Series              Bold
 	  Size                Largest
 	EndFont
+	HTMLTitle             true
 End
 
 
@@ -148,6 +149,7 @@ Style Author_Email
 	LatexType             Command
 	InTitle               1
 	PassThru              1
+	ParbreakIsNewline     1
 	LatexName             ead
 	Align                 Center
 	Labeltype             Static
@@ -168,6 +170,7 @@ Style Author_URL
 	LatexType             Command
 	InTitle               1
 	PassThru              1
+	ParbreakIsNewline     1
 	LatexName             ead
 	LatexParam            "[url]"
 	Align                 Center
@@ -431,3 +434,5 @@ Style Acknowledgement
 	  Series              Bold
 	EndFont
 End
+
+Input theorems-refprefix.inc

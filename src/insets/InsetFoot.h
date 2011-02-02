@@ -4,8 +4,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@ class InsetFoot : public InsetFootlike
 {
 public:
 	///
-	InsetFoot(Buffer const &);
+	InsetFoot(Buffer *);
 private:
 	///
 	InsetCode lyxCode() const { return FOOT_CODE; }
@@ -37,10 +37,8 @@ private:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	///
-	docstring editMessage() const;
 	/// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void addToToc(DocIterator const &);
 	///

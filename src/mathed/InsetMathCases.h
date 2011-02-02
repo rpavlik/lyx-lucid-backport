@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -43,9 +43,15 @@ public:
 	///
 	void maple(MapleStream &) const;
 	///
+	void mathmlize(MathStream &) const;
+	///
+	void htmlize(HtmlStream &) const;
+	///
 	void write(WriteStream & os) const;
 	///
 	void validate(LaTeXFeatures & features) const;
+	///
+	InsetCode lyxCode() const { return MATH_CASES_CODE; }
 private:
 	virtual Inset * clone() const;
 };

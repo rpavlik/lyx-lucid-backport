@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,13 +23,12 @@ namespace lyx {
 class InsetFloatList : public InsetCommand {
 public:
 	///
-	InsetFloatList();
+	InsetFloatList(Buffer *);
 	///
-	InsetFloatList(std::string const & type);
-	///
-	docstring screenLabel() const;
-	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	InsetFloatList(Buffer *, std::string const & type);
+
+	/// \name Public functions inherited from Inset class
+	//@{
 	///
 	InsetCode lyxCode() const { return FLOAT_LIST_CODE; }
 	///
@@ -45,16 +44,34 @@ public:
 	///
 	int plaintext(odocstream &, OutputParams const & runparams) const;
 	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
 	void validate(LaTeXFeatures & features) const;
+	//@}
+
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	///
 	static ParamInfo const & findInfo(std::string const &);
 	///
-	static std::string defaultCommand() { return "listoftables"; };
+	static std::string defaultCommand() { return "listoftables"; }
 	///
 	static bool isCompatibleCommand(std::string const & s);
+	//@}
+
 private:
+	/// \name Private functions inherited from Inset class
+	//@{
 	///
 	Inset * clone() const { return new InsetFloatList(*this); }
+	//@}
+
+	/// \name Private functions inherited from InsetCommand class
+	//@{
+	///
+	docstring screenLabel() const;
+	//@}
+
 	///
 	static ParamInfo param_info_;
 };

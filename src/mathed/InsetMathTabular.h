@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@ public:
 	InsetMathTabular(Buffer * buf, docstring const &, int m, int n);
 	///
 	InsetMathTabular(Buffer * buf, docstring const &, int m, int n,
-			 char valign, docstring const & halign);
+		char valign, docstring const & halign);
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
@@ -45,6 +45,8 @@ public:
 	void normalize(NormalStream &) const;
 	///
 	void maple(MapleStream &) const;
+	///
+	InsetCode lyxCode() const { return MATH_TABULAR_CODE; }
 
 private:
 	Inset * clone() const;

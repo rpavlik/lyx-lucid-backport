@@ -4,12 +4,12 @@ EXTRA_DIST = README.Documentation
 
 docdir = $(pkgdatadir)/doc
 dist_doc_DATA = \
+	Additional.lyx \
 	Customization.lyx \
 	DummyTextDocument.txt \
 	DummyDocument1.lyx \
 	DummyDocument2.lyx \
 	EmbeddedObjects.lyx \
-	Extended.lyx \
 	Formula-numbering.lyx \
 	Intro.lyx \
 	LaTeXConfig.lyx \
@@ -47,7 +47,6 @@ dist_clipartdoc_DATA = \
 	clipart/macrobox.png \
 	clipart/MacroToolbar.png \
 	clipart/macrouse.png \
-	clipart/mbox.png \
 	clipart/referenceQt4.png \
 	clipart/SpaceMarker.png \
 	clipart/StandardToolbar.png \
@@ -70,12 +69,12 @@ dist_dadoc_DATA = \
 
 dedocdir = $(docdir)/de
 dist_dedoc_DATA = \
+	de/Additional.lyx \
 	de/Customization.lyx \
 	de/DummyDocument1.lyx \
 	de/DummyDocument2.lyx \
 	de/DummyTextDocument.txt \
 	de/EmbeddedObjects.lyx \
-	de/Extended.lyx \
 	de/Formelnummerierung.lyx \
 	de/Intro.lyx \
 	de/Math.lyx \
@@ -103,12 +102,12 @@ dist_eldoc_DATA = \
 
 esdocdir = $(docdir)/es
 dist_esdoc_DATA = \
+	es/Additional.lyx \
 	es/Customization.lyx \
 	es/DocumentoPostizo1.lyx \
 	es/DocumentoPostizo2.lyx \
 	es/DocumentoTextoPostizo.txt \
 	es/EmbeddedObjects.lyx \
-	es/Extended.lyx \
 	es/Formula-numbering.lyx \
 	es/Intro.lyx \
 	es/Math.lyx \
@@ -135,19 +134,19 @@ dist_esclipartdoc_DATA = \
 eudocdir = $(docdir)/eu
 dist_eudoc_DATA = \
 	eu/Customization.lyx \
-	eu/Extended.lyx \
+	eu/Additional.lyx \
 	eu/Intro.lyx \
 	eu/Tutorial.lyx \
 	eu/UserGuide.lyx
 
 frdocdir = $(docdir)/fr
 dist_frdoc_DATA = \
+	fr/Additional.lyx \
 	fr/Customization.lyx \
 	fr/DocumentBidon1.lyx \
 	fr/DocumentBidon2.lyx \
 	fr/DocumentTexteBidon.txt \
 	fr/EmbeddedObjects.lyx \
-	fr/Extended.lyx \
 	fr/Formula-numbering.lyx \
 	fr/Intro.lyx \
 	fr/Math.lyx \
@@ -184,7 +183,9 @@ dist_hudoc_DATA = \
 iddocdir = $(docdir)/id
 dist_iddoc_DATA = \
 	id/Intro.lyx \
-	id/Tutorial.lyx
+	id/Shortcuts.lyx \
+	id/Tutorial.lyx \
+	id/UserGuide.lyx
 
 idclipartdocdir = $(iddocdir)/clipart
 dist_idclipartdoc_DATA = \
@@ -206,11 +207,11 @@ dist_itclipartdoc_DATA = \
 
 jadocdir = $(docdir)/ja
 dist_jadoc_DATA = \
+	ja/Additional.lyx \
 	ja/Customization.lyx \
 	ja/DummyDocument1.lyx \
 	ja/DummyDocument2.lyx \
 	ja/EmbeddedObjects.lyx \
-	ja/Extended.lyx \
 	ja/Formula-numbering.lyx \
 	ja/Intro.lyx \
 	ja/LaTeXConfig.lyx \
@@ -240,7 +241,7 @@ dist_nbdoc_DATA = \
 
 pldocdir = $(docdir)/pl
 dist_pldoc_DATA = \
-	pl/Extended.lyx \
+	pl/Additional.lyx \
 	pl/Intro.lyx \
 	pl/Tutorial.lyx
 

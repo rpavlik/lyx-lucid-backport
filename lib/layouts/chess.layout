@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[article,lyxskak.sty]{article (Chess)}
+#  \DeclareLaTeXClass[article,calc.sty,lambda.sty,lyxskak.sty]{article (Chess)}
 # chess article textclass definition file.
 
 # This layout file was designed to allow easy access to all
@@ -16,7 +16,7 @@
 # \vspace*{-0.5in})
 #
 
-Format 11
+Format 30
 
 Requires	chess
 
@@ -42,6 +42,7 @@ Style Mainline
 	LabelString           "Mainline:"
 	Newline               0
 	PassThru              1
+	ParbreakIsNewline     1
 	TopSep                0.0
 	ParSep                0.0
 	LabelFont

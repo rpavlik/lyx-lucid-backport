@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -26,6 +26,8 @@ public:
 	Messages(std::string const & l = std::string());
 	///
 	docstring const get(std::string const & msg) const;
+	/// Is an (at least partial) translation of this language available?
+	bool available() const;
 	///
 	static void init();
 	///
@@ -43,17 +45,17 @@ private:
 	///
 	typedef std::map<std::string, docstring> TranslationCache;
 	/// Internal cache for gettext translated strings.
-	/// This is needed for performance reason within \c updateLabels()
+	/// This is needed for performance reason within \c updateBuffer()
 	/// under Windows.
 	mutable TranslationCache cache_;
 };
 
 /// Access to the unique Messages object for the passed \p language.
 /// Implementation is in LyX.cpp.
-extern Messages & getMessages(std::string const & language);
+extern Messages const & getMessages(std::string const & language);
 /// Access to the unique Messages object used for GUI element.
 /// Implementation is in LyX.cpp.
-extern Messages & getGuiMessages();
+extern Messages const & getGuiMessages();
 
 } // namespace lyx
 

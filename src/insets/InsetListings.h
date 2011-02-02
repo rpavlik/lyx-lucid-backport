@@ -12,12 +12,12 @@
 #ifndef INSET_LISTINGS_H
 #define INSET_LISTINGS_H
 
-#include "LaTeXFeatures.h"
-#include "InsetERT.h"
 #include "InsetListingsParams.h"
 
 
 namespace lyx {
+
+class LaTeXFeatures;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -30,7 +30,7 @@ class InsetListings : public InsetCollapsable
 {
 public:
 	///
-	InsetListings(Buffer const &, InsetListingsParams const & par = InsetListingsParams());
+	InsetListings(Buffer *, InsetListingsParams const & par = InsetListingsParams());
 	///
 	~InsetListings();
 	///
@@ -49,15 +49,15 @@ private:
 	///
 	docstring name() const { return from_ascii("Listings"); }
 	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void write(std::ostream & os) const;
 	///
 	void read(Lexer & lex);
 	///
-	docstring editMessage() const;
-	///
 	int latex(odocstream &, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
@@ -67,7 +67,7 @@ private:
 	///
 	InsetListingsParams & params() { return params_; }
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
@@ -78,6 +78,8 @@ private:
 	docstring const buttonLabel(BufferView const & bv) const;
 	///
 	docstring getCaption(OutputParams const &) const;
+	///
+	bool insetAllowed(InsetCode c) const { return c == CAPTION_CODE; } 
 
 	///
 	InsetListingsParams params_;

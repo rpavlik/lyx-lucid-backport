@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -76,9 +76,37 @@ void InsetMathXArrow::normalize(NormalStream & os) const
 }
 
 
+void InsetMathXArrow::mathmlize(MathStream & ms) const
+{
+	char const * const arrow = name_ == "xleftarrow" 
+			? "&larr;" : "&rarr;";
+	ms << "<munderover accent='false' accentunder='false'>"
+	   << arrow << cell(1) << cell(0)
+	   << "</munderover>";
+}
+
+
+void InsetMathXArrow::htmlize(HtmlStream & os) const
+{
+	char const * const arrow = name_ == "xleftarrow" 
+			? "&larr;" : "&rarr;";
+	os << MTag("span", "class='xarrow'")
+		 << MTag("span", "class='xatop'") << cell(0) << ETag("span")
+		 << MTag("span", "class='xabottom'") << arrow << ETag("span")
+		 << ETag("span");
+}
+
+
 void InsetMathXArrow::validate(LaTeXFeatures & features) const
 {
 	features.require("amsmath");
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		// CSS adapted from eLyXer
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.xarrow{display: inline-block; vertical-align: middle; text-align:center;}\n"
+			"span.xatop{display: block;}\n"
+			"span.xabottom{display: block;}\n"
+			"</style>");
 	InsetMathNest::validate(features);
 }
 

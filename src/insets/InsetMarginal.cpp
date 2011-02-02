@@ -3,8 +3,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -24,27 +24,9 @@
 namespace lyx {
 
 
-InsetMarginal::InsetMarginal(Buffer const & buf)
+InsetMarginal::InsetMarginal(Buffer * buf)
 	: InsetFootlike(buf)
 {}
-
-
-docstring InsetMarginal::editMessage() const
-{
-	return _("Opened Marginal Note Inset");
-}
-
-
-int InsetMarginal::latex(odocstream & os, OutputParams const & runparams) const
-{
-	os << "%\n";
-	if (runparams.moving_arg)
-		os << "\\protect";
-	os << "\\marginpar{";
-	int const i = InsetText::latex(os, runparams);
-	os << "%\n}";
-	return i + 2;
-}
 
 
 int InsetMarginal::plaintext(odocstream & os,
@@ -76,8 +58,8 @@ void InsetMarginal::addToToc(DocIterator const & cpit)
 
 	Toc & toc = buffer().tocBackend().toc("marginalnote");
 	docstring str;
-	str = text().getPar(0).asString();
-	toc.push_back(TocItem(pit, 0, str, toolTipText()));
+	text().forToc(str, TOC_ENTRY_LENGTH);
+	toc.push_back(TocItem(pit, 0, str, toolTipText(docstring(), 3, 60)));
 	// Proceed with the rest of the inset.
 	InsetFootlike::addToToc(cpit);
 }

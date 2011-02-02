@@ -1,14 +1,14 @@
 /**
- * \file text3.cpp
+ * \file Text3.cpp
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Alfredo Braunstein
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,6 +25,7 @@
 #include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "Changes.h"
 #include "Cursor.h"
 #include "CutAndPaste.h"
 #include "DispatchResult.h"
@@ -36,16 +37,18 @@
 #include "Language.h"
 #include "Layout.h"
 #include "LyXAction.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "Lexer.h"
 #include "LyXRC.h"
 #include "Paragraph.h"
-#include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
+#include "SpellChecker.h"
 #include "TextClass.h"
 #include "TextMetrics.h"
 #include "VSpace.h"
+#include "WordLangTuple.h"
 
+#include "frontends/Application.h"
 #include "frontends/Clipboard.h"
 #include "frontends/Selection.h"
 
@@ -53,9 +56,9 @@
 #include "insets/InsetCommand.h"
 #include "insets/InsetExternal.h"
 #include "insets/InsetFloat.h"
+#include "insets/InsetFloatList.h"
 #include "insets/InsetGraphics.h"
 #include "insets/InsetGraphicsParams.h"
-#include "insets/InsetFloatList.h"
 #include "insets/InsetNewline.h"
 #include "insets/InsetQuotes.h"
 #include "insets/InsetSpecialChar.h"
@@ -88,6 +91,8 @@ using cap::pasteFromStack;
 using cap::pasteClipboardText;
 using cap::pasteClipboardGraphics;
 using cap::replaceSelection;
+using cap::grabAndEraseSelection;
+using cap::selClearOrDel;
 
 // globals...
 static Font freefont(ignore_font, ignore_language);
@@ -138,7 +143,7 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 #ifdef ENABLE_ASSERTIONS
 		const int old_pos = cur.pos();
 #endif
-		cur.insert(new InsetMathHull(&cur.buffer(), hullSimple));
+		cur.insert(new InsetMathHull(cur.buffer(), hullSimple));
 #ifdef ENABLE_ASSERTIONS
 		LASSERT(old_pos == cur.pos(), /**/);
 #endif
@@ -162,7 +167,7 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 				&& sel.find(from_ascii("\\newlyxcommand")) == string::npos
 				&& sel.find(from_ascii("\\def")) == string::npos)
 		{
-			InsetMathHull * formula = new InsetMathHull(&cur.buffer());
+			InsetMathHull * formula = new InsetMathHull(cur.buffer());
 			string const selstr = to_utf8(sel);
 			istringstream is(selstr);
 			Lexer lex;
@@ -181,13 +186,34 @@ static void mathDispatch(Cursor & cur, FuncRequest const & cmd, bool display)
 			} else
 				cur.insert(formula);
 		} else {
-			cur.insert(new MathMacroTemplate(&cur.buffer(), sel));
+			cur.insert(new MathMacroTemplate(cur.buffer(), sel));
 		}
 	}
 	if (valid)
 		cur.message(from_utf8(N_("Math editor mode")));
 	else
 		cur.message(from_utf8(N_("No valid math formula")));
+}
+
+
+void regexpDispatch(Cursor & cur, FuncRequest const & cmd)
+{
+	LASSERT(cmd.action() == LFUN_REGEXP_MODE, return);
+	if (cur.inRegexped()) {
+		cur.message(_("Already in regular expression mode"));
+		return;
+	}
+	cur.recordUndo();
+	docstring sel = cur.selectionAsString(false);
+
+	// It may happen that sel is empty but there is a selection
+	replaceSelection(cur);
+
+	cur.insert(new InsetMathHull(cur.buffer(), hullRegexp));
+	cur.nextInset()->edit(cur, true);
+	cur.niceInsert(sel);
+
+	cur.message(_("Regexp editor mode"));
 }
 
 
@@ -205,22 +231,22 @@ static bool doInsertInset(Cursor & cur, Text * text,
 {
 	Buffer & buffer = cur.bv().buffer();
 	BufferParams const & bparams = buffer.params();
-	Inset * inset = createInset(buffer, cmd);
+	Inset * inset = createInset(&buffer, cmd);
 	if (!inset)
 		return false;
 
 	if (InsetCollapsable * ci = inset->asInsetCollapsable())
-		ci->setLayout(bparams);
+		ci->setButtonLabel();
 
 	cur.recordUndo();
-	if (cmd.action == LFUN_INDEX_INSERT) {
+	if (cmd.action() == LFUN_INDEX_INSERT) {
 		docstring ds = subst(text->getStringToIndex(cur), '\n', ' ');
 		text->insertInset(cur, inset);
 		if (edit)
 			inset->edit(cur, true);
 		// Now put this into inset
-		static_cast<InsetCollapsable *>(inset)->
-				text().insertStringAsParagraphs(cur, ds);
+		cur.text()->insertStringAsLines(cur, ds, cur.current_font);
+		cur.leaveInset(*inset);
 		return true;
 	}
 
@@ -238,26 +264,14 @@ static bool doInsertInset(Cursor & cur, Text * text,
 	if (!gotsel || !pastesel)
 		return true;
 
-	pasteFromStack(cur, cur.buffer().errorList("Paste"), 0);
-	cur.buffer().errors("Paste");
+	pasteFromStack(cur, cur.buffer()->errorList("Paste"), 0);
+	cur.buffer()->errors("Paste");
 	cur.clearSelection(); // bug 393
 	cur.finishUndo();
-	InsetText * insetText = dynamic_cast<InsetText *>(inset);
-	if (insetText) {
-		if (insetText->getLayout(bparams).isPassThru()) {
-			// Fix the font of all paragraphs
-			Font font(inherit_font, bparams.language);
-			font.setLanguage(latex_language);
-			ParagraphList::iterator par = insetText->paragraphs().begin();
-			ParagraphList::iterator const end = insetText->paragraphs().end();
-			while (par != end) {
-				par->resetFonts(font);
-				par->params().clear();
-				++par;
-			}
-		}
-
-		if (!insetText->allowMultiPar() || cur.lastpit() == 0) {
+	InsetText * inset_text = inset->asInsetText();
+	if (inset_text) {
+		inset_text->fixParagraphsFont();
+		if (!inset_text->allowMultiPar() || cur.lastpit() == 0) {
 			// reset first par to default
 			cur.text()->paragraphs().begin()
 				->setPlainOrDefaultLayout(bparams.documentClass());
@@ -298,15 +312,15 @@ enum OutlineOp {
 
 static void outline(OutlineOp mode, Cursor & cur)
 {
-	Buffer & buf = cur.buffer();
+	Buffer & buf = *cur.buffer();
 	pit_type & pit = cur.pit();
 	ParagraphList & pars = buf.text().paragraphs();
-	ParagraphList::iterator bgn = pars.begin();
+	ParagraphList::iterator const bgn = pars.begin();
 	// The first paragraph of the area to be copied:
 	ParagraphList::iterator start = boost::next(bgn, pit);
 	// The final paragraph of area to be copied:
 	ParagraphList::iterator finish = start;
-	ParagraphList::iterator end = pars.end();
+	ParagraphList::iterator const end = pars.end();
 
 	DocumentClass const & tc = buf.params().documentClass();
 
@@ -316,12 +330,12 @@ static void outline(OutlineOp mode, Cursor & cur)
 	// Move out (down) from this section header
 	if (finish != end)
 		++finish;
+
 	// Seek the one (on same level) below
 	for (; finish != end; ++finish) {
 		toclevel = finish->layout().toclevel;
-		if (toclevel != Layout::NOT_IN_TOC && toclevel <= thistoclevel) {
+		if (toclevel != Layout::NOT_IN_TOC && toclevel <= thistoclevel)
 			break;
-		}
 	}
 
 	switch (mode) {
@@ -347,11 +361,9 @@ static void outline(OutlineOp mode, Cursor & cur)
 			pit_type const len = distance(start, finish);
 			pit_type const deletepit = pit + len;
 			buf.undo().recordUndo(cur, ATOMIC_UNDO, newpit, deletepit - 1);
-			pars.insert(dest, start, finish);
-			start = boost::next(pars.begin(), deletepit);
-			pit = newpit;
-			pars.erase(start, finish);
-			return;
+			pars.splice(dest, start, finish);
+			cur.pit() = newpit;
+			break;
 		}
 		case OutlineDown: {
 			if (finish == end)
@@ -363,19 +375,16 @@ static void outline(OutlineOp mode, Cursor & cur)
 			for (; dest != end; ++dest) {
 				toclevel = dest->layout().toclevel;
 				if (toclevel != Layout::NOT_IN_TOC
-				    && toclevel <= thistoclevel) {
+				      && toclevel <= thistoclevel)
 					break;
-				}
 			}
 			// One such was found:
 			pit_type newpit = distance(bgn, dest);
-			pit_type const len = distance(start, finish);
 			buf.undo().recordUndo(cur, ATOMIC_UNDO, pit, newpit - 1);
-			pars.insert(dest, start, finish);
-			start = boost::next(bgn, pit);
-			pit = newpit - len;
-			pars.erase(start, finish);
-			return;
+			pit_type const len = distance(start, finish);
+			pars.splice(dest, start, finish);
+			cur.pit() = newpit - len;
+			break;
 		}
 		case OutlineIn: {
 			pit_type const len = distance(start, finish);
@@ -394,7 +403,7 @@ static void outline(OutlineOp mode, Cursor & cur)
 					}
 				}
 			}
-			return;
+			break;
 		}
 		case OutlineOut: {
 			pit_type const len = distance(start, finish);
@@ -413,7 +422,7 @@ static void outline(OutlineOp mode, Cursor & cur)
 					}
 				}
 			}
-			return;
+			break;
 		}
 	}
 }
@@ -427,8 +436,9 @@ void Text::number(Cursor & cur)
 }
 
 
-bool Text::isRTL(Buffer const & buffer, Paragraph const & par) const
+bool Text::isRTL(Paragraph const & par) const
 {
+	Buffer const & buffer = owner_->buffer();
 	return par.isRTL(buffer.params());
 }
 
@@ -436,6 +446,13 @@ bool Text::isRTL(Buffer const & buffer, Paragraph const & par) const
 void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 {
 	LYXERR(Debug::ACTION, "Text::dispatch: cmd: " << cmd);
+
+	// Dispatch if the cursor is inside the text. It is not the
+	// case for context menus (bug 5797).
+	if (cur.text() != this) {
+		cur.undispatched();
+		return;
+	}
 
 	BufferView * bv = &cur.bv();
 	TextMetrics * tm = &bv->textMetrics(this);
@@ -447,7 +464,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	// FIXME: We use the update flag to indicates wether a singlePar or a
 	// full screen update is needed. We reset it here but shall we restore it
 	// at the end?
-	cur.noUpdate();
+	cur.noScreenUpdate();
 
 	LASSERT(cur.text() == this, /**/);
 	CursorSlice oldTopSlice = cur.top();
@@ -455,21 +472,25 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	bool sel = cur.selection();
 	// Signals that, even if needsUpdate == false, an update of the
 	// cursor paragraph is required
-	bool singleParUpdate = lyxaction.funcHasFlag(cmd.action,
+	bool singleParUpdate = lyxaction.funcHasFlag(cmd.action(),
 		LyXAction::SingleParUpdate);
 	// Signals that a full-screen update is required
-	bool needsUpdate = !(lyxaction.funcHasFlag(cmd.action,
+	bool needsUpdate = !(lyxaction.funcHasFlag(cmd.action(),
 		LyXAction::NoUpdate) || singleParUpdate);
-
-	switch (cmd.action) {
+	int const last_pid = cur.paragraph().id();
+	pos_type const last_pos = cur.pos();
+	bool const last_misspelled = lyxrc.spellcheck_continuously && cur.paragraph().isMisspelled(cur.pos());
+	
+	FuncCode const act = cmd.action();
+	switch (act) {
 
 	case LFUN_PARAGRAPH_MOVE_DOWN: {
 		pit_type const pit = cur.pit();
 		recUndo(cur, pit, pit + 1);
 		cur.finishUndo();
-		swap(pars_[pit], pars_[pit + 1]);
-		updateLabels(cur.buffer());
+		pars_.swap(pit, pit + 1);
 		needsUpdate = true;
+		cur.forceBufferUpdate();
 		++cur.pit();
 		break;
 	}
@@ -478,10 +499,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		pit_type const pit = cur.pit();
 		recUndo(cur, pit - 1, pit);
 		cur.finishUndo();
-		swap(pars_[pit], pars_[pit - 1]);
-		updateLabels(cur.buffer());
+		pars_.swap(pit, pit - 1);
 		--cur.pit();
 		needsUpdate = true;
+		cur.forceBufferUpdate();
 		break;
 	}
 
@@ -505,74 +526,72 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		par.params().startOfAppendix(start);
 
 		// we can set the refreshing parameters now
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		break;
 	}
 
 	case LFUN_WORD_DELETE_FORWARD:
-		if (cur.selection()) {
+		if (cur.selection())
 			cutSelection(cur, true, false);
-		} else
+		else
 			deleteWordForward(cur);
 		finishChange(cur, false);
 		break;
 
 	case LFUN_WORD_DELETE_BACKWARD:
-		if (cur.selection()) {
+		if (cur.selection())
 			cutSelection(cur, true, false);
-		} else
+		else
 			deleteWordBackward(cur);
 		finishChange(cur, false);
 		break;
 
 	case LFUN_LINE_DELETE:
-		if (cur.selection()) {
+		if (cur.selection())
 			cutSelection(cur, true, false);
-		} else
+		else
 			tm->deleteLineForward(cur);
 		finishChange(cur, false);
 		break;
 
 	case LFUN_BUFFER_BEGIN:
 	case LFUN_BUFFER_BEGIN_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_BUFFER_BEGIN_SELECT);
-		if (cur.depth() == 1) {
+		needsUpdate |= cur.selHandle(act == LFUN_BUFFER_BEGIN_SELECT);
+		if (cur.depth() == 1)
 			needsUpdate |= cursorTop(cur);
-		} else {
+		else
 			cur.undispatched();
-		}
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_BUFFER_END:
 	case LFUN_BUFFER_END_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_BUFFER_END_SELECT);
-		if (cur.depth() == 1) {
+		needsUpdate |= cur.selHandle(act == LFUN_BUFFER_END_SELECT);
+		if (cur.depth() == 1)
 			needsUpdate |= cursorBottom(cur);
-		} else {
+		else
 			cur.undispatched();
-		}
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_INSET_BEGIN:
 	case LFUN_INSET_BEGIN_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_BEGIN_SELECT);
+		needsUpdate |= cur.selHandle(act == LFUN_INSET_BEGIN_SELECT);
 		if (cur.depth() == 1 || !cur.top().at_begin())
 			needsUpdate |= cursorTop(cur);
 		else
 			cur.undispatched();
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_INSET_END:
 	case LFUN_INSET_END_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_INSET_END_SELECT);
+		needsUpdate |= cur.selHandle(act == LFUN_INSET_END_SELECT);
 		if (cur.depth() == 1 || !cur.top().at_end())
 			needsUpdate |= cursorBottom(cur);
 		else
 			cur.undispatched();
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_INSET_SELECT_ALL:
@@ -584,13 +603,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			needsUpdate |= cursorBottom(cur);
 		} else 
 			cur.undispatched();
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_CHAR_FORWARD:
 	case LFUN_CHAR_FORWARD_SELECT:
 		//LYXERR0(" LFUN_CHAR_FORWARD[SEL]:\n" << cur);
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_CHAR_FORWARD_SELECT);
+		needsUpdate |= cur.selHandle(act == LFUN_CHAR_FORWARD_SELECT);
 		needsUpdate |= cursorForward(cur);
 
 		if (!needsUpdate && oldTopSlice == cur.top()
@@ -608,7 +627,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				// provide it with two different cursors.
 				Cursor dummy = cur;
 				dummy.pos() = dummy.pit() = 0;
-				cur.bv().checkDepm(dummy, cur);
+				if (cur.bv().checkDepm(dummy, cur))
+					cur.forceBufferUpdate();
 			}
 		}
 		break;
@@ -616,7 +636,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_CHAR_BACKWARD:
 	case LFUN_CHAR_BACKWARD_SELECT:
 		//lyxerr << "handle LFUN_CHAR_BACKWARD[_SELECT]:\n" << cur << endl;
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_CHAR_BACKWARD_SELECT);
+		needsUpdate |= cur.selHandle(act == LFUN_CHAR_BACKWARD_SELECT);
 		needsUpdate |= cursorBackward(cur);
 
 		if (!needsUpdate && oldTopSlice == cur.top()
@@ -634,7 +654,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				Cursor dummy = cur;
 				dummy.pos() = cur.lastpos();
 				dummy.pit() = cur.lastpit();
-				cur.bv().checkDepm(dummy, cur);
+				if (cur.bv().checkDepm(dummy, cur))
+					cur.forceBufferUpdate();
 			}
 		}
 		break;
@@ -642,7 +663,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_CHAR_LEFT:
 	case LFUN_CHAR_LEFT_SELECT:
 		if (lyxrc.visual_cursor) {
-			needsUpdate |= cur.selHandle(cmd.action == LFUN_CHAR_LEFT_SELECT);
+			needsUpdate |= cur.selHandle(act == LFUN_CHAR_LEFT_SELECT);
 			needsUpdate |= cursorVisLeft(cur);
 			if (!needsUpdate && oldTopSlice == cur.top()
 					&& cur.boundary() == oldBoundary) {
@@ -651,11 +672,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ?
-					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD;
+				cmd.setAction(cmd.action() == LFUN_CHAR_LEFT_SELECT ?
+					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD);
 			} else {
-				cmd.action = cmd.action == LFUN_CHAR_LEFT_SELECT ?
-					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD;
+				cmd.setAction(cmd.action() == LFUN_CHAR_LEFT_SELECT ?
+					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD);
 			}
 			dispatch(cur, cmd);
 			return;
@@ -665,7 +686,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_CHAR_RIGHT:
 	case LFUN_CHAR_RIGHT_SELECT:
 		if (lyxrc.visual_cursor) {
-			needsUpdate |= cur.selHandle(cmd.action == LFUN_CHAR_RIGHT_SELECT);
+			needsUpdate |= cur.selHandle(cmd.action() == LFUN_CHAR_RIGHT_SELECT);
 			needsUpdate |= cursorVisRight(cur);
 			if (!needsUpdate && oldTopSlice == cur.top()
 					&& cur.boundary() == oldBoundary) {
@@ -674,11 +695,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ?
-					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD;
+				cmd.setAction(cmd.action() == LFUN_CHAR_RIGHT_SELECT ?
+					LFUN_CHAR_BACKWARD_SELECT : LFUN_CHAR_BACKWARD);
 			} else {
-				cmd.action = cmd.action == LFUN_CHAR_RIGHT_SELECT ?
-					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD;
+				cmd.setAction(cmd.action() == LFUN_CHAR_RIGHT_SELECT ?
+					LFUN_CHAR_FORWARD_SELECT : LFUN_CHAR_FORWARD);
 			}
 			dispatch(cur, cmd);
 			return;
@@ -691,11 +712,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_UP:
 	case LFUN_DOWN: {
 		// stop/start the selection
-		bool select = cmd.action == LFUN_DOWN_SELECT ||
-			cmd.action == LFUN_UP_SELECT;
+		bool select = cmd.action() == LFUN_DOWN_SELECT ||
+			cmd.action() == LFUN_UP_SELECT;
 
 		// move cursor up/down
-		bool up = cmd.action == LFUN_UP_SELECT || cmd.action == LFUN_UP;
+		bool up = cmd.action() == LFUN_UP_SELECT || cmd.action() == LFUN_UP;
 		bool const atFirstOrLastRow = cur.atFirstOrLastRow(up);
 
 		if (!atFirstOrLastRow) {
@@ -717,32 +738,67 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_PARAGRAPH_UP:
 	case LFUN_PARAGRAPH_UP_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_PARAGRAPH_UP_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_PARAGRAPH_UP_SELECT);
 		needsUpdate |= cursorUpParagraph(cur);
 		break;
 
 	case LFUN_PARAGRAPH_DOWN:
 	case LFUN_PARAGRAPH_DOWN_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_PARAGRAPH_DOWN_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_PARAGRAPH_DOWN_SELECT);
 		needsUpdate |= cursorDownParagraph(cur);
 		break;
 
 	case LFUN_LINE_BEGIN:
 	case LFUN_LINE_BEGIN_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_LINE_BEGIN_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_LINE_BEGIN_SELECT);
 		needsUpdate |= tm->cursorHome(cur);
 		break;
 
 	case LFUN_LINE_END:
 	case LFUN_LINE_END_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_LINE_END_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_LINE_END_SELECT);
 		needsUpdate |= tm->cursorEnd(cur);
 		break;
+
+	case LFUN_SECTION_SELECT: {
+		Buffer const & buf = *cur.buffer();
+		pit_type const pit = cur.pit();
+		ParagraphList & pars = buf.text().paragraphs();
+		ParagraphList::iterator bgn = pars.begin();
+		// The first paragraph of the area to be selected:
+		ParagraphList::iterator start = boost::next(bgn, pit);
+		// The final paragraph of area to be selected:
+		ParagraphList::iterator finish = start;
+		ParagraphList::iterator end = pars.end();
+
+		int const thistoclevel = start->layout().toclevel;
+		if (thistoclevel == Layout::NOT_IN_TOC)
+			break;
+
+		cur.pos() = 0;
+		Cursor const old_cur = cur;
+		needsUpdate |= cur.selHandle(true);
+
+		// Move out (down) from this section header
+		if (finish != end)
+			++finish;
+
+		// Seek the one (on same level) below
+		for (; finish != end; ++finish, ++cur.pit()) {
+			int const toclevel = finish->layout().toclevel;
+			if (toclevel != Layout::NOT_IN_TOC && toclevel <= thistoclevel)
+				break;
+		}
+		cur.pos() = cur.lastpos();
+		
+		needsUpdate |= cur != old_cur;
+		break;
+	}
 
 	case LFUN_WORD_RIGHT:
 	case LFUN_WORD_RIGHT_SELECT:
 		if (lyxrc.visual_cursor) {
-			needsUpdate |= cur.selHandle(cmd.action == LFUN_WORD_RIGHT_SELECT);
+			needsUpdate |= cur.selHandle(cmd.action() == LFUN_WORD_RIGHT_SELECT);
 			needsUpdate |= cursorVisRightOneWord(cur);
 			if (!needsUpdate && oldTopSlice == cur.top()
 					&& cur.boundary() == oldBoundary) {
@@ -751,11 +807,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_WORD_RIGHT_SELECT ?
-						LFUN_WORD_BACKWARD_SELECT : LFUN_WORD_BACKWARD;
+				cmd.setAction(cmd.action() == LFUN_WORD_RIGHT_SELECT ?
+						LFUN_WORD_BACKWARD_SELECT : LFUN_WORD_BACKWARD);
 			} else {
-				cmd.action = cmd.action == LFUN_WORD_RIGHT_SELECT ?
-						LFUN_WORD_FORWARD_SELECT : LFUN_WORD_FORWARD;
+				cmd.setAction(cmd.action() == LFUN_WORD_RIGHT_SELECT ?
+						LFUN_WORD_FORWARD_SELECT : LFUN_WORD_FORWARD);
 			}
 			dispatch(cur, cmd);
 			return;
@@ -764,14 +820,34 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_WORD_FORWARD:
 	case LFUN_WORD_FORWARD_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_WORD_FORWARD_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_WORD_FORWARD_SELECT);
 		needsUpdate |= cursorForwardOneWord(cur);
+
+		if (!needsUpdate && oldTopSlice == cur.top()
+				&& cur.boundary() == oldBoundary) {
+			cur.undispatched();
+			cmd = FuncRequest(LFUN_FINISHED_FORWARD);
+		
+			// we will probably be moving out the inset, so we should execute
+			// the depm-mechanism, but only when the cursor has a place to 
+			// go outside this inset, i.e. in a slice above.
+			if (cur.depth() > 1 && cur.pos() == cur.lastpos() 
+				  && cur.pit() == cur.lastpit()) {
+				// The cursor hasn't changed yet. To give the 
+				// DEPM the possibility of doing something we must
+				// provide it with two different cursors.
+				Cursor dummy = cur;
+				dummy.pos() = dummy.pit() = 0;
+				if (cur.bv().checkDepm(dummy, cur))
+					cur.forceBufferUpdate();
+			}
+		}
 		break;
 
 	case LFUN_WORD_LEFT:
 	case LFUN_WORD_LEFT_SELECT:
 		if (lyxrc.visual_cursor) {
-			needsUpdate |= cur.selHandle(cmd.action == LFUN_WORD_LEFT_SELECT);
+			needsUpdate |= cur.selHandle(cmd.action() == LFUN_WORD_LEFT_SELECT);
 			needsUpdate |= cursorVisLeftOneWord(cur);
 			if (!needsUpdate && oldTopSlice == cur.top()
 					&& cur.boundary() == oldBoundary) {
@@ -780,11 +856,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			}
 		} else {
 			if (reverseDirectionNeeded(cur)) {
-				cmd.action = cmd.action == LFUN_WORD_LEFT_SELECT ?
-						LFUN_WORD_FORWARD_SELECT : LFUN_WORD_FORWARD;
+				cmd.setAction(cmd.action() == LFUN_WORD_LEFT_SELECT ?
+						LFUN_WORD_FORWARD_SELECT : LFUN_WORD_FORWARD);
 			} else {
-				cmd.action = cmd.action == LFUN_WORD_LEFT_SELECT ?
-						LFUN_WORD_BACKWARD_SELECT : LFUN_WORD_BACKWARD;
+				cmd.setAction(cmd.action() == LFUN_WORD_LEFT_SELECT ?
+						LFUN_WORD_BACKWARD_SELECT : LFUN_WORD_BACKWARD);
 			}
 			dispatch(cur, cmd);
 			return;
@@ -793,8 +869,29 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_WORD_BACKWARD:
 	case LFUN_WORD_BACKWARD_SELECT:
-		needsUpdate |= cur.selHandle(cmd.action == LFUN_WORD_BACKWARD_SELECT);
+		needsUpdate |= cur.selHandle(cmd.action() == LFUN_WORD_BACKWARD_SELECT);
 		needsUpdate |= cursorBackwardOneWord(cur);
+	
+		if (!needsUpdate && oldTopSlice == cur.top()
+				&& cur.boundary() == oldBoundary) {
+			cur.undispatched();
+			cmd = FuncRequest(LFUN_FINISHED_BACKWARD);
+		
+			// we will probably be moving out the inset, so we should execute
+			// the depm-mechanism, but only when the cursor has a place to 
+			// go outside this inset, i.e. in a slice above.
+			if (cur.depth() > 1 && cur.pos() == 0 
+				  && cur.pit() == 0) {
+				// The cursor hasn't changed yet. To give the 
+				// DEPM the possibility of doing something we must
+				// provide it with two different cursors.
+				Cursor dummy = cur;
+				dummy.pos() = cur.lastpos();
+				dummy.pit() = cur.lastpit();
+				if (cur.bv().checkDepm(dummy, cur))
+					cur.forceBufferUpdate();
+			}
+		}
 		break;
 
 	case LFUN_WORD_SELECT: {
@@ -818,6 +915,89 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		cur.insert(new InsetNewline(inp));
 		cur.posForward();
 		moveCursor(cur, false);
+		break;
+	}
+
+	case LFUN_TAB_INSERT: {
+		bool const multi_par_selection = cur.selection() &&
+			cur.selBegin().pit() != cur.selEnd().pit();
+		if (multi_par_selection) {
+			// If there is a multi-paragraph selection, a tab is inserted
+			// at the beginning of each paragraph.
+			cur.recordUndoSelection();
+			pit_type const pit_end = cur.selEnd().pit();
+			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
+				pars_[pit].insertChar(0, '\t', 
+						      bv->buffer().params().trackChanges);
+				// Update the selection pos to make sure the selection does not
+				// change as the inserted tab will increase the logical pos.
+				if (cur.realAnchor().pit() == pit)
+					cur.realAnchor().forwardPos();
+				if (cur.pit() == pit)
+					cur.forwardPos();
+			}
+			cur.finishUndo();
+		} else {
+			// Maybe we shouldn't allow tabs within a line, because they
+			// are not (yet) aligned as one might do expect.
+			FuncRequest cmd(LFUN_SELF_INSERT, from_ascii("\t"));
+			dispatch(cur, cmd);	
+		}
+		break;
+	}
+
+	case LFUN_TAB_DELETE: {
+		bool const tc = bv->buffer().params().trackChanges;
+		if (cur.selection()) {
+			// If there is a selection, a tab (if present) is removed from
+			// the beginning of each paragraph.
+			cur.recordUndoSelection();
+			pit_type const pit_end = cur.selEnd().pit();
+			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
+				Paragraph & par = paragraphs()[pit];
+				if (par.empty())
+					continue;
+				char_type const c = par.getChar(0);
+				if (c == '\t' || c == ' ') {
+					// remove either 1 tab or 4 spaces.
+					int const n = (c == ' ' ? 4 : 1);
+					for (int i = 0; i < n 
+						  && !par.empty() && par.getChar(0) == c; ++i) {
+						if (cur.pit() == pit)
+							cur.posBackward();
+						if (cur.realAnchor().pit() == pit 
+							  && cur.realAnchor().pos() > 0 )
+							cur.realAnchor().backwardPos();
+						par.eraseChar(0, tc);
+					}
+				}
+			}
+			cur.finishUndo();
+		} else {
+			// If there is no selection, try to remove a tab or some spaces 
+			// before the position of the cursor.
+			Paragraph & par = paragraphs()[cur.pit()];
+			pos_type const pos = cur.pos();
+			
+			if (pos == 0)
+				break;
+			
+			char_type const c = par.getChar(pos - 1);
+			cur.recordUndo();
+			if (c == '\t') {
+				cur.posBackward();
+				par.eraseChar(cur.pos(), tc);
+			} else
+				for (int n_spaces = 0; 
+				     cur.pos() > 0
+					     && par.getChar(cur.pos() - 1) == ' ' 
+					     && n_spaces < 4;
+				     ++n_spaces) {
+					cur.posBackward();
+					par.eraseChar(cur.pos(), tc);
+				}
+			cur.finishUndo();
+		}
 		break;
 	}
 
@@ -860,49 +1040,6 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		cur.resetAnchor();
 		break;
 
-	// TODO
-	// With the creation of LFUN_PARAGRAPH_PARAMS, this is now redundant,
-	// as its duties can be performed there. Should it be removed??
-	// FIXME For now, it can just dispatch LFUN_PARAGRAPH_PARAMS...
-	case LFUN_PARAGRAPH_SPACING: {
-		Paragraph & par = cur.paragraph();
-		Spacing::Space cur_spacing = par.params().spacing().getSpace();
-		string cur_value = "1.0";
-		if (cur_spacing == Spacing::Other)
-			cur_value = par.params().spacing().getValueAsString();
-
-		istringstream is(to_utf8(cmd.argument()));
-		string tmp;
-		is >> tmp;
-		Spacing::Space new_spacing = cur_spacing;
-		string new_value = cur_value;
-		if (tmp.empty()) {
-			lyxerr << "Missing argument to `paragraph-spacing'"
-			       << endl;
-		} else if (tmp == "single") {
-			new_spacing = Spacing::Single;
-		} else if (tmp == "onehalf") {
-			new_spacing = Spacing::Onehalf;
-		} else if (tmp == "double") {
-			new_spacing = Spacing::Double;
-		} else if (tmp == "other") {
-			new_spacing = Spacing::Other;
-			string tmpval = "0.0";
-			is >> tmpval;
-			lyxerr << "new_value = " << tmpval << endl;
-			if (tmpval != "0.0")
-				new_value = tmpval;
-		} else if (tmp == "default") {
-			new_spacing = Spacing::Default;
-		} else {
-			lyxerr << to_utf8(_("Unknown spacing argument: "))
-			       << to_utf8(cmd.argument()) << endl;
-		}
-		if (cur_spacing != new_spacing || cur_value != new_value)
-			par.params().spacing(Spacing(new_spacing, new_value));
-		break;
-	}
-
 	case LFUN_INSET_INSERT: {
 		cur.recordUndo();
 
@@ -910,13 +1047,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// before inserting into the document. See bug #5626.
 		bool loaded = bv->buffer().isFullyLoaded();
 		bv->buffer().setFullyLoaded(false);
-		Inset * inset = createInset(bv->buffer(), cmd);
+		Inset * inset = createInset(&bv->buffer(), cmd);
 		bv->buffer().setFullyLoaded(loaded);
 
 		if (inset) {
 			// FIXME (Abdel 01/02/2006):
 			// What follows would be a partial fix for bug 2154:
-			//   http://bugzilla.lyx.org/show_bug.cgi?id=2154
+			//   http://www.lyx.org/trac/ticket/2154
 			// This automatically put the label inset _after_ a
 			// numbered section. It should be possible to extend the mechanism
 			// to any kind of LateX environement.
@@ -939,7 +1076,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			if (cur.selection())
 				cutSelection(cur, true, false);
 			cur.insert(inset);
-			cur.posForward();
+			if (inset->editable() && inset->asInsetText())
+				inset->edit(cur, true);
+			else
+				cur.posForward();
 
 			// trigger InstantPreview now
 			if (inset->lyxCode() == EXTERNAL_CODE) {
@@ -953,44 +1093,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_INSET_DISSOLVE: {
-		// first, try if there's an inset at cursor
-		// FIXME: this first part should be moved to
-		// a LFUN_NEXT_INSET_DISSOLVE, or be called via
-		// some generic "next-inset inset-dissolve"
-		Inset * inset = cur.nextInset();
-		if (inset && inset->isActive()) {
-			Cursor tmpcur = cur;
-			tmpcur.pushBackward(*inset);
-			inset->dispatch(tmpcur, cmd);
-			if (tmpcur.result().dispatched()) {
-				cur.dispatched();
-				break;
-			}
-		}
-		// if it did not work, try the underlying inset
 		if (dissolveInset(cur)) {
 			needsUpdate = true;
-			break;
+			cur.forceBufferUpdate();
 		}
-		// if it did not work, do nothing.
-		break;
-	}
-
-	case LFUN_INSET_SETTINGS: {
-		Inset & inset = cur.inset();
-		if (cmd.getArg(0) == insetName(inset.lyxCode())) {
-			// This inset dialog has been explicitely requested.
-			inset.showInsetDialog(bv);
-			break;
-		}
-		// else, if there is an inset at the cursor, access this
-		Inset * next_inset = cur.nextInset();
-		if (next_inset) {
-			next_inset->showInsetDialog(bv);
-			break;
-		}
-		// if not then access the underlying inset.
-		inset.showInsetDialog(bv);
 		break;
 	}
 
@@ -1155,7 +1261,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (layout.empty())
 			layout = tclass.defaultLayoutName();
 
-		if (para.forcePlainLayout())
+		if (owner_->forcePlainLayout())
 			// in this case only the empty layout is allowed
 			layout = tclass.plainLayoutName();
 		else if (para.usePlainLayout()) {
@@ -1242,33 +1348,37 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_QUOTE_INSERT: {
-		Paragraph & par = cur.paragraph();
+		// this avoids a double undo
+		// FIXME: should not be needed, ideally
+		if (!cur.selection())
+			cur.recordUndo();
+		cap::replaceSelection(cur);
+
+		Paragraph const & par = cur.paragraph();
 		pos_type pos = cur.pos();
-		BufferParams const & bufparams = bv->buffer().params();
+
 		Layout const & style = par.layout();
-		InsetLayout const & ilayout = cur.inset().getLayout(bufparams);
-		if (!style.pass_thru && !ilayout.isPassThru()
-		    && par.getFontSettings(bufparams, pos).language()->lang() != "hebrew") {
-			// this avoids a double undo
-			// FIXME: should not be needed, ideally
-			if (!cur.selection())
-				cur.recordUndo();
-			cap::replaceSelection(cur);
-			pos = cur.pos();
-			char_type c;
-			if (pos == 0)
-				c = ' ';
-			else if (cur.prevInset() && cur.prevInset()->isSpace())
-				c = ' ';
-			else
+		InsetLayout const & ilayout = cur.inset().getLayout();
+		BufferParams const & bufparams = bv->buffer().params();
+		bool const hebrew = 
+			par.getFontSettings(bufparams, pos).language()->lang() == "hebrew";
+		bool const allow_inset_quote = 
+			!(style.pass_thru || ilayout.isPassThru() || hebrew);
+		
+		if (allow_inset_quote) {
+			char_type c = ' ';
+			if (pos > 0 && (!cur.prevInset() || !cur.prevInset()->isSpace()))
 				c = par.getChar(pos - 1);
-			string arg = to_utf8(cmd.argument());
-			cur.insert(new InsetQuotes(bv->buffer(), c, (arg == "single")
-				? InsetQuotes::SingleQuotes : InsetQuotes::DoubleQuotes));
+			string const arg = to_utf8(cmd.argument());
+			InsetQuotes::QuoteTimes const quote_type = (arg == "single")
+				? InsetQuotes::SingleQuotes : InsetQuotes::DoubleQuotes;
+			cur.insert(new InsetQuotes(cur.buffer(), c, quote_type));
 			cur.posForward();
-		}
-		else
+		} else {
+			// The cursor might have been invalidated by the replaceSelection.
+			cur.buffer()->changed(true);
 			lyx::dispatch(FuncRequest(LFUN_SELF_INSERT, "\""));
+		}			
 		break;
 	}
 
@@ -1306,7 +1416,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		case mouse_button::button1:
 			// Set the cursor
 			if (!bv->mouseSetCursor(cur, cmd.argument() == "region-select"))
-				cur.updateFlags(Update::SinglePar | Update::FitCursor);
+				cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 			if (bvcur.wordSelection())
 				selectWord(bvcur, WHOLE_WORD);
 			break;
@@ -1317,7 +1427,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			lyx::dispatch(
 				FuncRequest(LFUN_COMMAND_ALTERNATIVES,
 					    "selection-paste ; primary-selection-paste paragraph"));
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			break;
 
 		case mouse_button::button3: {
@@ -1325,11 +1435,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			// selection, a context menu will popup.
 			if (bvcur.selection() && cur >= bvcur.selectionBegin()
 			    && cur < bvcur.selectionEnd()) {
-				cur.noUpdate();
+				cur.noScreenUpdate();
 				return;
 			}
 			if (!bv->mouseSetCursor(cur, false))
-				cur.updateFlags(Update::SinglePar | Update::FitCursor);
+				cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 			break;
 		}
 
@@ -1341,31 +1451,31 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_MOTION: {
 		// Mouse motion with right or middle mouse do nothing for now.
 		if (cmd.button() != mouse_button::button1) {
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			return;
 		}
 		// ignore motions deeper nested than the real anchor
 		Cursor & bvcur = cur.bv().cursor();
-		if (!bvcur.anchor_.hasPart(cur)) {
+		if (!bvcur.realAnchor().hasPart(cur)) {
 			cur.undispatched();
 			break;
 		}
 		CursorSlice old = bvcur.top();
 
 		int const wh = bv->workHeight();
-		int const y = max(0, min(wh - 1, cmd.y));
+		int const y = max(0, min(wh - 1, cmd.y()));
 
-		tm->setCursorFromCoordinates(cur, cmd.x, y);
-		cur.setTargetX(cmd.x);
-		if (cmd.y >= wh)
+		tm->setCursorFromCoordinates(cur, cmd.x(), y);
+		cur.setTargetX(cmd.x());
+		if (cmd.y() >= wh)
 			lyx::dispatch(FuncRequest(LFUN_DOWN_SELECT));
-		else if (cmd.y < 0)
+		else if (cmd.y() < 0)
 			lyx::dispatch(FuncRequest(LFUN_UP_SELECT));
 		// This is to allow jumping over large insets
 		if (cur.top() == old) {
-			if (cmd.y >= wh)
+			if (cmd.y() >= wh)
 				lyx::dispatch(FuncRequest(LFUN_DOWN_SELECT));
-			else if (cmd.y < 0)
+			else if (cmd.y() < 0)
 				lyx::dispatch(FuncRequest(LFUN_UP_SELECT));
 		}
 		// We continue with our existing selection or start a new one, so don't
@@ -1374,8 +1484,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		bvcur.setSelection(true);
 		if (cur.top() == old) {
 			// We didn't move one iota, so no need to update the screen.
-			cur.updateFlags(Update::SinglePar | Update::FitCursor);
-			//cur.noUpdate();
+			cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
+			//cur.noScreenUpdate();
 			return;
 		}
 		break;
@@ -1396,23 +1506,23 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				cur.bv().cursor().setSelection();
 				// We might have removed an empty but drawn selection
 				// (probably a margin)
-				cur.updateFlags(Update::SinglePar | Update::FitCursor);
+				cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 			} else
-				cur.noUpdate();
+				cur.noScreenUpdate();
 			// FIXME: We could try to handle drag and drop of selection here.
 			return;
 
 		case mouse_button::button2:
 			// Middle mouse pasting is handled at mouse press time,
 			// see LFUN_MOUSE_PRESS.
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			return;
 
 		case mouse_button::button3:
 			// Cursor was set at LFUN_MOUSE_PRESS time.
 			// FIXME: If there is a selection we could try to handle a special
 			// drag & drop context menu.
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			return;
 
 		case mouse_button::none:
@@ -1458,7 +1568,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		p["target"] = (cmd.argument().empty()) ?
 			content : cmd.argument();
-		string const data = InsetCommand::params2string("href", p);
+		string const data = InsetCommand::params2string(p);
 		if (p["target"].empty()) {
 			bv->showDialog("href", data);
 		} else {
@@ -1474,7 +1584,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		p["name"] = (cmd.argument().empty()) ?
 			cur.getPossibleLabel() :
 			cmd.argument();
-		string const data = InsetCommand::params2string("label", p);
+		string const data = InsetCommand::params2string(p);
 
 		if (cmd.argument().empty()) {
 			bv->showDialog("label", data);
@@ -1492,9 +1602,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			docstring ds = cur.selectionAsString(false);
 			cutSelection(cur, true, false);
 			FuncRequest cmd0(cmd, ds);
-			inset = createInset(cur.bv().buffer(), cmd0);
+			inset = createInset(cur.buffer(), cmd0);
 		} else {
-			inset = createInset(cur.bv().buffer(), cmd);
+			inset = createInset(cur.buffer(), cmd);
 		}
 		if (!inset)
 			break;
@@ -1509,18 +1619,21 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_FLEX_INSERT:
 	case LFUN_BOX_INSERT:
 	case LFUN_BRANCH_INSERT:
+	case LFUN_PHANTOM_INSERT:
 	case LFUN_ERT_INSERT:
 	case LFUN_LISTING_INSERT:
 	case LFUN_MARGINALNOTE_INSERT:
-	case LFUN_OPTIONAL_INSERT:
+	case LFUN_ARGUMENT_INSERT:
 	case LFUN_INDEX_INSERT:
+	case LFUN_PREVIEW_INSERT:
+	case LFUN_SCRIPT_INSERT:
 		// Open the inset, and move the current selection
 		// inside it.
 		doInsertInset(cur, this, cmd, true, true);
 		cur.posForward();
 		// Some insets are numbered, others are shown in the outline pane so
 		// let's update the labels and the toc backend.
-		updateLabels(bv->buffer());
+		cur.forceBufferUpdate();
 		break;
 
 	case LFUN_TABULAR_INSERT:
@@ -1553,7 +1666,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 		// add a separate paragraph for the caption inset
 		pars.push_back(Paragraph());
-		pars.back().setInsetOwner(&pars[0].inInset());
+		pars.back().setInsetOwner(&cur.text()->inset());
 		pars.back().setPlainOrDefaultLayout(tclass);
 		int cap_pit = pars.size() - 1;
 
@@ -1562,7 +1675,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// the graphics (or table).
 		if (!content) {
 			pars.push_back(Paragraph());
-			pars.back().setInsetOwner(&pars[0].inInset());
+			pars.back().setInsetOwner(&cur.text()->inset());
 			pars.back().setPlainOrDefaultLayout(tclass);
 		}
 
@@ -1574,8 +1687,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// date metrics.
 		FuncRequest cmd_caption(LFUN_CAPTION_INSERT);
 		doInsertInset(cur, cur.text(), cmd_caption, true, false);
-		updateLabels(bv->buffer());
-		cur.updateFlags(Update::Force);
+		cur.forceBufferUpdate();
+		cur.screenUpdateFlags(Update::Force);
 		// FIXME: When leaving the Float (or Wrap) inset we should
 		// delete any empty paragraph left above or below the
 		// caption.
@@ -1588,15 +1701,24 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			p["symbol"] = bv->cursor().innerText()->getStringToIndex(bv->cursor());
 		else
 			p["symbol"] = cmd.argument();
-		string const data = InsetCommand::params2string("nomenclature", p);
+		string const data = InsetCommand::params2string(p);
 		bv->showDialog("nomenclature", data);
 		break;
 	}
 
-	case LFUN_INDEX_PRINT:
+	case LFUN_INDEX_PRINT: {
+		InsetCommandParams p(INDEX_PRINT_CODE);
+		if (cmd.argument().empty())
+			p["type"] = from_ascii("idx");
+		else
+			p["type"] = cmd.argument();
+		string const data = InsetCommand::params2string(p);
+		FuncRequest fr(LFUN_INSET_INSERT, data);
+		dispatch(cur, fr);
+		break;
+	}
+	
 	case LFUN_NOMENCL_PRINT:
-	case LFUN_TOC_INSERT:
-	case LFUN_LINE_INSERT:
 	case LFUN_NEWPAGE_INSERT:
 		// do nothing fancy
 		doInsertInset(cur, this, cmd, false, false);
@@ -1615,9 +1737,14 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		mathDispatch(cur, cmd, true);
 		break;
 
+	case LFUN_REGEXP_MODE:
+		regexpDispatch(cur, cmd);
+		break;
+
 	case LFUN_MATH_MODE:
 		if (cmd.argument() == "on")
 			// don't pass "on" as argument
+			// (it would appear literally in the first cell)
 			mathDispatch(cur, FuncRequest(LFUN_MATH_MODE), false);
 		else
 			mathDispatch(cur, cmd, false);
@@ -1627,6 +1754,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (cmd.argument().empty())
 			cur.errorMessage(from_utf8(N_("Missing argument")));
 		else {
+			cur.recordUndo();
 			string s = to_utf8(cmd.argument());
 			string const s1 = token(s, ' ', 1);
 			int const nargs = s1.empty() ? 0 : convert<int>(s1);
@@ -1634,7 +1762,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			MacroType type = MacroTypeNewcommand;
 			if (s2 == "def")
 				type = MacroTypeDef;
-			MathMacroTemplate * inset = new MathMacroTemplate(&cur.buffer(),
+			MathMacroTemplate * inset = new MathMacroTemplate(cur.buffer(),
 				from_utf8(token(s, ' ', 0)), nargs, false, type);
 			inset->setBuffer(bv->buffer());
 			insertInset(cur, inset);
@@ -1657,12 +1785,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_MATH_INSERT:
+	case LFUN_MATH_AMS_MATRIX:
 	case LFUN_MATH_MATRIX:
 	case LFUN_MATH_DELIM:
 	case LFUN_MATH_BIGDELIM: {
 		cur.recordUndo();
 		cap::replaceSelection(cur);
-		cur.insert(new InsetMathHull(&cur.buffer(), hullSimple));
+		cur.insert(new InsetMathHull(cur.buffer(), hullSimple));
 		checkAndActivateInset(cur, true);
 		LASSERT(cur.inMathed(), /**/);
 		cur.dispatch(cmd);
@@ -1672,6 +1801,13 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_FONT_EMPH: {
 		Font font(ignore_font, ignore_language);
 		font.fontInfo().setEmph(FONT_TOGGLE);
+		toggleAndShow(cur, this, font);
+		break;
+	}
+
+	case LFUN_FONT_ITAL: {
+		Font font(ignore_font, ignore_language);
+		font.fontInfo().setShape(ITALIC_SHAPE);
 		toggleAndShow(cur, this, font);
 		break;
 	}
@@ -1714,6 +1850,27 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_FONT_DEFAULT: {
 		Font font(inherit_font, ignore_language);
+		toggleAndShow(cur, this, font);
+		break;
+	}
+
+	case LFUN_FONT_STRIKEOUT: {
+		Font font(ignore_font, ignore_language);
+		font.fontInfo().setStrikeout(FONT_TOGGLE);
+		toggleAndShow(cur, this, font);
+		break;
+	}
+
+	case LFUN_FONT_UULINE: {
+		Font font(ignore_font, ignore_language);
+		font.fontInfo().setUuline(FONT_TOGGLE);
+		toggleAndShow(cur, this, font);
+		break;
+	}
+
+	case LFUN_FONT_UWAVE: {
+		Font font(ignore_font, ignore_language);
+		font.fontInfo().setUwave(FONT_TOGGLE);
 		toggleAndShow(cur, this, font);
 		break;
 	}
@@ -1831,10 +1988,11 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_ACCENT_HUNGARIAN_UMLAUT:
 	case LFUN_ACCENT_CIRCLE:
 	case LFUN_ACCENT_OGONEK:
-		theLyXFunc().handleKeyFunc(cmd.action);
+		theApp()->handleKeyFunc(cmd.action());
 		if (!cmd.argument().empty())
 			// FIXME: Are all these characters encoded in one byte in utf8?
 			bv->translateAndInsert(cmd.argument()[0], this, cur);
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_FLOAT_LIST_INSERT: {
@@ -1860,7 +2018,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 			setParagraphs(cur, p);
 			// FIXME This should be simplified when InsetFloatList takes a
 			// Buffer in its constructor.
-			InsetFloatList * ifl = new InsetFloatList(to_utf8(cmd.argument()));
+			InsetFloatList * ifl = new InsetFloatList(cur.buffer(), to_utf8(cmd.argument()));
 			ifl->setBuffer(bv->buffer());
 			insertInset(cur, ifl);
 			cur.posForward();
@@ -1890,9 +2048,67 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 				// Get word or selection
 				selectWordWhenUnderCursor(cur, WHOLE_WORD);
 				arg = cur.selectionAsString(false);
+				arg += " lang=" + from_ascii(cur.getFont().language()->lang());
 			}
 		}
 		bv->showDialog("thesaurus", to_utf8(arg));
+		break;
+	}
+
+	case LFUN_SPELLING_ADD: {
+		docstring word = from_utf8(cmd.getArg(0));
+		Language * lang;
+		if (word.empty()) {
+			word = cur.selectionAsString(false);
+			// FIXME
+			if (word.size() > 100 || word.empty()) {
+				// Get word or selection
+				selectWordWhenUnderCursor(cur, WHOLE_WORD);
+				word = cur.selectionAsString(false);
+			}
+			lang = const_cast<Language *>(cur.getFont().language());
+		} else
+			lang = const_cast<Language *>(languages.getLanguage(cmd.getArg(1)));
+		WordLangTuple wl(word, lang);
+		theSpellChecker()->insert(wl);
+		break;
+	}
+
+	case LFUN_SPELLING_IGNORE: {
+		docstring word = from_utf8(cmd.getArg(0));
+		Language * lang;
+		if (word.empty()) {
+			word = cur.selectionAsString(false);
+			// FIXME
+			if (word.size() > 100 || word.empty()) {
+				// Get word or selection
+				selectWordWhenUnderCursor(cur, WHOLE_WORD);
+				word = cur.selectionAsString(false);
+			}
+			lang = const_cast<Language *>(cur.getFont().language());
+		} else
+			lang = const_cast<Language *>(languages.getLanguage(cmd.getArg(1)));
+		WordLangTuple wl(word, lang);
+		theSpellChecker()->accept(wl);
+		break;
+	}
+
+	case LFUN_SPELLING_REMOVE: {
+		docstring word = from_utf8(cmd.getArg(0));
+		Language * lang;
+		if (word.empty()) {
+			word = cur.selectionAsString(false);
+			// FIXME
+			if (word.size() > 100 || word.empty()) {
+				// Get word or selection
+				selectWordWhenUnderCursor(cur, WHOLE_WORD);
+				word = cur.selectionAsString(false);
+			}
+			lang = const_cast<Language *>(cur.getFont().language());
+		} else
+			lang = const_cast<Language *>(languages.getLanguage(cmd.getArg(1)));
+		WordLangTuple wl(word, lang);
+		theSpellChecker()->remove(wl);
 		break;
 	}
 
@@ -1932,26 +2148,26 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_OUTLINE_UP:
 		outline(OutlineUp, cur);
 		setCursor(cur, cur.pit(), 0);
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		needsUpdate = true;
 		break;
 
 	case LFUN_OUTLINE_DOWN:
 		outline(OutlineDown, cur);
 		setCursor(cur, cur.pit(), 0);
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		needsUpdate = true;
 		break;
 
 	case LFUN_OUTLINE_IN:
 		outline(OutlineIn, cur);
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		needsUpdate = true;
 		break;
 
 	case LFUN_OUTLINE_OUT:
 		outline(OutlineOut, cur);
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		needsUpdate = true;
 		break;
 
@@ -1963,12 +2179,26 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 
 	needsUpdate |= (cur.pos() != cur.lastpos()) && cur.selection();
 
+	if (lyxrc.spellcheck_continuously && !needsUpdate) {
+		// Check for misspelled text
+		// The redraw is useful because of the painting of
+		// misspelled markers depends on the cursor position.
+		// Trigger a redraw for cursor moves inside misspelled text.
+		if (!cur.inTexted()) {
+			// move from regular text to math
+			needsUpdate = last_misspelled;
+		} else if (cur.paragraph().id() != last_pid || cur.pos() != last_pos) {
+			// move inside regular text
+			needsUpdate = last_misspelled || cur.paragraph().isMisspelled(cur.pos());
+		}
+	}
+
 	// FIXME: The cursor flag is reset two lines below
 	// so we need to check here if some of the LFUN did touch that.
 	// for now only Text::erase() and Text::backspace() do that.
 	// The plan is to verify all the LFUNs and then to remove this
 	// singleParUpdate boolean altogether.
-	if (cur.result().update() & Update::Force) {
+	if (cur.result().screenUpdate() & Update::Force) {
 		singleParUpdate = false;
 		needsUpdate = true;
 	}
@@ -1979,27 +2209,26 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		// Inserting characters does not change par height in general. So, try
 		// to update _only_ this paragraph. BufferView will detect if a full
 		// metrics update is needed anyway.
-		cur.updateFlags(Update::SinglePar | Update::FitCursor);
+		cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 		return;
 	}
-
 	if (!needsUpdate
 	    && &oldTopSlice.inset() == &cur.inset()
 	    && oldTopSlice.idx() == cur.idx()
-	    && !sel // sel is a backup of cur.selection() at the biginning of the function.
+	    && !sel // sel is a backup of cur.selection() at the beginning of the function.
 	    && !cur.selection())
 		// FIXME: it would be better if we could just do this
 		//
 		//if (cur.result().update() != Update::FitCursor)
-		//	cur.noUpdate();
+		//	cur.noScreenUpdate();
 		//
 		// But some LFUNs do not set Update::FitCursor when needed, so we
 		// do it for all. This is not very harmfull as FitCursor will provoke
 		// a full redraw only if needed but still, a proper review of all LFUN
 		// should be done and this needsUpdate boolean can then be removed.
-		cur.updateFlags(Update::FitCursor);
+		cur.screenUpdateFlags(Update::FitCursor);
 	else
-		cur.updateFlags(Update::Force | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Force | Update::FitCursor);
 }
 
 
@@ -2012,7 +2241,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	bool enable = true;
 	InsetCode code = NO_CODE;
 
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_DEPTH_DECREMENT:
 		enable = changeDepthAllowed(cur, DEC_DEPTH);
@@ -2054,12 +2283,20 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 			code = INCLUDE_CODE;
 		else if (cmd.argument() == "index")
 			code = INDEX_CODE;
+		else if (cmd.argument() == "index_print")
+			code = INDEX_PRINT_CODE;
 		else if (cmd.argument() == "nomenclature")
 			code = NOMENCL_CODE;
+		else if (cmd.argument() == "nomencl_print")
+			code = NOMENCL_PRINT_CODE;
 		else if (cmd.argument() == "label")
 			code = LABEL_CODE;
+		else if (cmd.argument() == "line")
+			code = LINE_CODE;
 		else if (cmd.argument() == "note")
 			code = NOTE_CODE;
+		else if (cmd.argument() == "phantom")
+			code = PHANTOM_CODE;
 		else if (cmd.argument() == "ref")
 			code = REF_CODE;
 		else if (cmd.argument() == "space")
@@ -2129,11 +2366,24 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		// not allowed in description items
 		enable = !inDescriptionItem(cur);
 		break;
-	case LFUN_FLOAT_LIST_INSERT:
+	case LFUN_FLOAT_LIST_INSERT: {
 		code = FLOAT_LIST_CODE;
 		// not allowed in description items
 		enable = !inDescriptionItem(cur);
+		if (enable) {
+			FloatList const & floats = cur.buffer()->params().documentClass().floats();
+			FloatList::const_iterator cit = floats[to_ascii(cmd.argument())];
+			// make sure we know about such floats
+			if (cit == floats.end() ||
+					// and that we know how to generate a list of them
+			    (!cit->second.needsFloatPkg() && cit->second.listCommand().empty())) {
+				flag.setUnknown(true);
+				// probably not necessary, but...
+				enable = false;
+			}
+		}
 		break;
+	}
 	case LFUN_CAPTION_INSERT:
 		code = CAPTION_CODE;
 		// not allowed in description items
@@ -2151,7 +2401,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		code = FLEX_CODE;
 		string s = cmd.getArg(0);
 		InsetLayout il =
-			cur.buffer().params().documentClass().insetLayout(from_utf8(s));
+			cur.buffer()->params().documentClass().insetLayout(from_utf8(s));
 		if (il.lyxtype() != InsetLayout::CHARSTYLE &&
 		    il.lyxtype() != InsetLayout::CUSTOM &&
 		    il.lyxtype() != InsetLayout::ELEMENT &&
@@ -2164,9 +2414,12 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_BRANCH_INSERT:
 		code = BRANCH_CODE;
-		if (cur.buffer().masterBuffer()->params().branchlist().empty()
-		    && cur.buffer().params().branchlist().empty())
+		if (cur.buffer()->masterBuffer()->params().branchlist().empty()
+		    && cur.buffer()->params().branchlist().empty())
 			enable = false;
+		break;
+	case LFUN_PHANTOM_INSERT:
+		code = PHANTOM_CODE;
 		break;
 	case LFUN_LABEL_INSERT:
 		code = LABEL_CODE;
@@ -2174,11 +2427,13 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_INFO_INSERT:
 		code = INFO_CODE;
 		break;
-	case LFUN_OPTIONAL_INSERT:
-		code = OPTARG_CODE;
-		enable = cur.paragraph().insetList().count(OPTARG_CODE)
-			< cur.paragraph().layout().optionalargs;
+	case LFUN_ARGUMENT_INSERT: {
+		code = ARG_CODE;
+		Layout const & lay = cur.paragraph().layout();
+		int const numargs = lay.reqargs + lay.optargs;
+		enable = cur.paragraph().insetList().count(ARG_CODE) < numargs;
 		break;
+	}
 	case LFUN_INDEX_INSERT:
 		code = INDEX_CODE;
 		break;
@@ -2196,11 +2451,6 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	case LFUN_NOMENCL_PRINT:
 		code = NOMENCL_PRINT_CODE;
-		// not allowed in description items
-		enable = !inDescriptionItem(cur);
-		break;
-	case LFUN_TOC_INSERT:
-		code = TOC_CODE;
 		// not allowed in description items
 		enable = !inDescriptionItem(cur);
 		break;
@@ -2223,6 +2473,30 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		if (cur.inTexted())
 			code = SPACE_CODE;
 		break;
+	case LFUN_PREVIEW_INSERT:
+		code = PREVIEW_CODE;
+		break;
+	case LFUN_SCRIPT_INSERT:
+		code = SCRIPT_CODE;
+		break;
+
+	case LFUN_MATH_INSERT:
+	case LFUN_MATH_AMS_MATRIX:
+	case LFUN_MATH_MATRIX:
+	case LFUN_MATH_DELIM:
+	case LFUN_MATH_BIGDELIM:
+	case LFUN_MATH_DISPLAY:
+	case LFUN_MATH_MODE:
+	case LFUN_MATH_MACRO:
+	case LFUN_MATH_SUBSCRIPT:
+	case LFUN_MATH_SUPERSCRIPT:
+		code = MATH_HULL_CODE;
+		break;
+
+	case LFUN_REGEXP_MODE:
+		code = MATH_HULL_CODE;
+		enable = cur.buffer()->isInternal() && !cur.inRegexped();
+		break;
 
 	case LFUN_INSET_MODIFY:
 		// We need to disable this, because we may get called for a
@@ -2234,27 +2508,38 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_FONT_EMPH:
 		flag.setOnOff(fontinfo.emph() == FONT_ON);
+		enable = !cur.inset().getLayout().isPassThru();
+		break;
+
+	case LFUN_FONT_ITAL:
+		flag.setOnOff(fontinfo.shape() == ITALIC_SHAPE);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_FONT_NOUN:
 		flag.setOnOff(fontinfo.noun() == FONT_ON);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_FONT_BOLD:
 	case LFUN_FONT_BOLDSYMBOL:
 		flag.setOnOff(fontinfo.series() == BOLD_SERIES);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_FONT_SANS:
 		flag.setOnOff(fontinfo.family() == SANS_FAMILY);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_FONT_ROMAN:
 		flag.setOnOff(fontinfo.family() == ROMAN_FAMILY);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_FONT_TYPEWRITER:
 		flag.setOnOff(fontinfo.family() == TYPEWRITER_FAMILY);
+		enable = !cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_CUT:
@@ -2317,30 +2602,19 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		enable = cur.pit() < cur.lastpit() && !cur.selection();
 		break;
 
-	case LFUN_INSET_DISSOLVE:
-		if (!cmd.argument().empty()) {
-			InsetLayout const & il = cur.inset().getLayout(cur.buffer().params());
-			InsetLayout::InsetLyXType const type = 
-					translateLyXType(to_utf8(cmd.argument()));
-			enable = cur.inset().lyxCode() == FLEX_CODE
-			         && il.lyxtype() == type;
-		} else {
-			enable = ((!isMainText(cur.bv().buffer())
-			              && cur.inset().nargs() == 1)
-				  || (cur.nextInset()
-				      && cur.nextInset()->nargs() == 1));
-		}
-		break;
-
 	case LFUN_CHANGE_ACCEPT:
 	case LFUN_CHANGE_REJECT:
-		// TODO: context-sensitive enabling of LFUN_CHANGE_ACCEPT/REJECT
 		// In principle, these LFUNs should only be enabled if there
 		// is a change at the current position/in the current selection.
 		// However, without proper optimizations, this will inevitably
 		// result in unacceptable performance - just imagine a user who
 		// wants to select the complete content of a long document.
-		enable = true;
+		if (!cur.selection())
+			enable = cur.paragraph().isChanged(cur.pos());
+		else
+			// TODO: context-sensitive enabling of LFUN_CHANGE_ACCEPT/REJECT
+			// for selections.
+			enable = true;
 		break;
 
 	case LFUN_OUTLINE_UP:
@@ -2348,13 +2622,18 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_OUTLINE_IN:
 	case LFUN_OUTLINE_OUT:
 		// FIXME: LyX is not ready for outlining within inset.
-		enable = isMainText(cur.bv().buffer())
+		enable = isMainText()
 			&& cur.paragraph().layout().toclevel != Layout::NOT_IN_TOC;
 		break;
 
 	case LFUN_NEWLINE_INSERT:
 		// LaTeX restrictions (labels or empty par)
 		enable = (cur.pos() > cur.paragraph().beginOfBody());
+		break;
+
+	case LFUN_TAB_INSERT:
+	case LFUN_TAB_DELETE:
+		enable = cur.inset().getLayout().isPassThru();
 		break;
 
 	case LFUN_SET_GRAPHICS_GROUP: {
@@ -2368,17 +2647,8 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_NEWPAGE_INSERT:
 		// not allowed in description items
+		code = NEWPAGE_CODE;
 		enable = !inDescriptionItem(cur);
-		break;
-
-	case LFUN_MATH_INSERT:
-	case LFUN_MATH_MATRIX:
-	case LFUN_MATH_DELIM:
-	case LFUN_MATH_BIGDELIM:
-	case LFUN_MATH_SUBSCRIPT:
-	case LFUN_MATH_SUPERSCRIPT:
-		// not allowed in ERT, for example.
-		enable = cur.inset().insetAllowed(MATH_CODE);
 		break;
 
 	case LFUN_DATE_INSERT: {
@@ -2387,6 +2657,62 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 		enable = support::os::is_valid_strftime(format);
 		break;
 	}
+
+	case LFUN_LANGUAGE:
+		enable = !cur.inset().getLayout().isPassThru();
+		flag.setOnOff(to_utf8(cmd.argument()) == cur.real_current_font.language()->lang());
+		break;
+
+	case LFUN_BREAK_PARAGRAPH:
+		enable = cur.inset().getLayout().isMultiPar();
+		break;
+	
+	case LFUN_SPELLING_ADD:
+	case LFUN_SPELLING_IGNORE:
+	case LFUN_SPELLING_REMOVE:
+		enable = theSpellChecker();
+		break;
+
+	case LFUN_LAYOUT:
+		enable = !cur.inset().forcePlainLayout();
+		break;
+		
+	case LFUN_LAYOUT_PARAGRAPH:
+	case LFUN_PARAGRAPH_PARAMS:
+	case LFUN_PARAGRAPH_PARAMS_APPLY:
+	case LFUN_PARAGRAPH_UPDATE:
+		enable = cur.inset().allowParagraphCustomization();
+		break;
+
+	// FIXME: why are accent lfuns forbidden with pass_thru layouts?
+	case LFUN_ACCENT_ACUTE:
+	case LFUN_ACCENT_BREVE:
+	case LFUN_ACCENT_CARON:
+	case LFUN_ACCENT_CEDILLA:
+	case LFUN_ACCENT_CIRCLE:
+	case LFUN_ACCENT_CIRCUMFLEX:
+	case LFUN_ACCENT_DOT:
+	case LFUN_ACCENT_GRAVE:
+	case LFUN_ACCENT_HUNGARIAN_UMLAUT:
+	case LFUN_ACCENT_MACRON:
+	case LFUN_ACCENT_OGONEK:
+	case LFUN_ACCENT_TIE:
+	case LFUN_ACCENT_TILDE:
+	case LFUN_ACCENT_UMLAUT:
+	case LFUN_ACCENT_UNDERBAR:
+	case LFUN_ACCENT_UNDERDOT:
+	case LFUN_FONT_DEFAULT:
+	case LFUN_FONT_FRAK:
+	case LFUN_FONT_SIZE:
+	case LFUN_FONT_STATE:
+	case LFUN_FONT_UNDERLINE:
+	case LFUN_FONT_STRIKEOUT:
+	case LFUN_FONT_UULINE:
+	case LFUN_FONT_UWAVE:
+	case LFUN_TEXTSTYLE_APPLY:
+	case LFUN_TEXTSTYLE_UPDATE:
+		enable = !cur.inset().getLayout().isPassThru();
+		break;
 
 	case LFUN_WORD_DELETE_FORWARD:
 	case LFUN_WORD_DELETE_BACKWARD:
@@ -2416,56 +2742,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_WORD_RIGHT_SELECT:
 	case LFUN_WORD_LEFT_SELECT:
 	case LFUN_WORD_SELECT:
-	case LFUN_PARAGRAPH_UP:
-	case LFUN_PARAGRAPH_DOWN:
-	case LFUN_LINE_BEGIN:
-	case LFUN_LINE_END:
-	case LFUN_CHAR_DELETE_FORWARD:
-	case LFUN_CHAR_DELETE_BACKWARD:
-	case LFUN_BREAK_PARAGRAPH:
-	case LFUN_PARAGRAPH_SPACING:
-	case LFUN_INSET_INSERT:
-	case LFUN_WORD_UPCASE:
-	case LFUN_WORD_LOWCASE:
-	case LFUN_WORD_CAPITALIZE:
-	case LFUN_CHARS_TRANSPOSE:
-	case LFUN_SERVER_GET_XY:
-	case LFUN_SERVER_SET_XY:
-	case LFUN_SERVER_GET_LAYOUT:
-	case LFUN_LAYOUT:
-	case LFUN_SELF_INSERT:
-	case LFUN_LINE_INSERT:
-	case LFUN_MATH_DISPLAY:
-	case LFUN_MATH_MODE:
-	case LFUN_MATH_MACRO:
-	case LFUN_FONT_DEFAULT:
-	case LFUN_FONT_UNDERLINE:
-	case LFUN_FONT_SIZE:
-	case LFUN_LANGUAGE:
-	case LFUN_TEXTSTYLE_APPLY:
-	case LFUN_TEXTSTYLE_UPDATE:
-	case LFUN_LAYOUT_PARAGRAPH:
-	case LFUN_PARAGRAPH_UPDATE:
-	case LFUN_ACCENT_UMLAUT:
-	case LFUN_ACCENT_CIRCUMFLEX:
-	case LFUN_ACCENT_GRAVE:
-	case LFUN_ACCENT_ACUTE:
-	case LFUN_ACCENT_TILDE:
-	case LFUN_ACCENT_CEDILLA:
-	case LFUN_ACCENT_MACRON:
-	case LFUN_ACCENT_DOT:
-	case LFUN_ACCENT_UNDERDOT:
-	case LFUN_ACCENT_UNDERBAR:
-	case LFUN_ACCENT_CARON:
-	case LFUN_ACCENT_BREVE:
-	case LFUN_ACCENT_TIE:
-	case LFUN_ACCENT_HUNGARIAN_UMLAUT:
-	case LFUN_ACCENT_CIRCLE:
-	case LFUN_ACCENT_OGONEK:
-	case LFUN_THESAURUS_ENTRY:
-	case LFUN_PARAGRAPH_PARAMS_APPLY:
-	case LFUN_PARAGRAPH_PARAMS:
-	case LFUN_ESCAPE:
+	case LFUN_SECTION_SELECT:
 	case LFUN_BUFFER_BEGIN:
 	case LFUN_BUFFER_END:
 	case LFUN_BUFFER_BEGIN_SELECT:
@@ -2475,17 +2752,48 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_INSET_BEGIN_SELECT:
 	case LFUN_INSET_END_SELECT:
 	case LFUN_INSET_SELECT_ALL:
+	case LFUN_PARAGRAPH_UP:
+	case LFUN_PARAGRAPH_DOWN:
+	case LFUN_LINE_BEGIN:
+	case LFUN_LINE_END:
+	case LFUN_CHAR_DELETE_FORWARD:
+	case LFUN_CHAR_DELETE_BACKWARD:
+	case LFUN_WORD_UPCASE:
+	case LFUN_WORD_LOWCASE:
+	case LFUN_WORD_CAPITALIZE:
+	case LFUN_CHARS_TRANSPOSE:
+	case LFUN_SERVER_GET_XY:
+	case LFUN_SERVER_SET_XY:
+	case LFUN_SERVER_GET_LAYOUT:
+	case LFUN_SELF_INSERT:
 	case LFUN_UNICODE_INSERT:
+	case LFUN_THESAURUS_ENTRY:
+	case LFUN_ESCAPE:
 		// these are handled in our dispatch()
 		enable = true;
 		break;
+
+	case LFUN_INSET_INSERT: {
+		string const type = cmd.getArg(0);
+		if (type == "toc") {
+			code = TOC_CODE;
+			// not allowed in description items
+			//FIXME: couldn't this be merged in Inset::insetAllowed()?
+			enable = !inDescriptionItem(cur);
+		} else {
+			enable = true;
+		}
+		break;
+	}
 
 	default:
 		return false;
 	}
 
 	if (code != NO_CODE
-	    && (cur.empty() || !cur.inset().insetAllowed(code)))
+	    && (cur.empty() 
+		|| !cur.inset().insetAllowed(code)
+		|| cur.paragraph().layout().pass_thru))
 		enable = false;
 
 	flag.setEnabled(enable);
@@ -2500,9 +2808,9 @@ void Text::pasteString(Cursor & cur, docstring const & clip,
 	if (!clip.empty()) {
 		cur.recordUndo();
 		if (asParagraphs)
-			insertStringAsParagraphs(cur, clip);
+			insertStringAsParagraphs(cur, clip, cur.current_font);
 		else
-			insertStringAsLines(cur, clip);
+			insertStringAsLines(cur, clip, cur.current_font);
 	}
 }
 

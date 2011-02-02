@@ -3,8 +3,10 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bj�nnes
+ * \author Lars Gullik Bjønnes
  * \author O. U. Baran
+ * \author Uwe Stöhr
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,12 +16,22 @@
 #include "InsetNote.h"
 
 #include "Buffer.h"
+#include "Cursor.h"
 #include "DispatchResult.h"
+#include "Font.h"
+#include "Encoding.h"
 #include "FuncRequest.h"
+#include "FuncStatus.h"
 #include "InsetIterator.h"
+#include "InsetList.h"
 #include "LaTeXFeatures.h"
-#include "MetricsInfo.h"
+#include "Length.h"
+#include "LyX.h"
+#include "OutputParams.h"
+#include "output_xhtml.h"
 #include "sgml.h"
+
+#include "frontends/FontMetrics.h"
 
 #include "support/docstream.h"
 #include "support/gettext.h"
@@ -37,8 +49,8 @@ namespace lyx {
 //
 /////////////////////////////////////////////////////////////////////
 
-InsetNomencl::InsetNomencl(InsetCommandParams const & p)
-	: InsetCommand(p, "nomenclature"),
+InsetNomencl::InsetNomencl(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p),
 	  nomenclature_entry_id(sgml::uniqueID(from_ascii("nomen")))
 {}
 
@@ -48,8 +60,10 @@ ParamInfo const & InsetNomencl::findInfo(string const & /* cmdName */)
 	static ParamInfo param_info_;
 	if (param_info_.empty()) {
 		param_info_.add("prefix", ParamInfo::LATEX_OPTIONAL);
-		param_info_.add("symbol", ParamInfo::LATEX_REQUIRED);
-		param_info_.add("description", ParamInfo::LATEX_REQUIRED);
+		param_info_.add("symbol", ParamInfo::LATEX_REQUIRED,
+				ParamInfo::HANDLING_LATEXIFY);
+		param_info_.add("description", ParamInfo::LATEX_REQUIRED,
+				ParamInfo::HANDLING_LATEXIFY);
 	}
 	return param_info_;
 }
@@ -89,6 +103,12 @@ int InsetNomencl::docbook(odocstream & os, OutputParams const &) const
 }
 
 
+docstring InsetNomencl::xhtml(XHTMLStream &, OutputParams const &) const
+{
+	return docstring();
+}
+
+
 int InsetNomencl::docbookGlossary(odocstream & os) const
 {
 	os << "<glossentry id=\"" << nomenclature_entry_id << "\">\n"
@@ -115,16 +135,23 @@ void InsetNomencl::validate(LaTeXFeatures & features) const
 //
 /////////////////////////////////////////////////////////////////////
 
-InsetPrintNomencl::InsetPrintNomencl(InsetCommandParams const & p)
-	: InsetCommand(p, string())
+InsetPrintNomencl::InsetPrintNomencl(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
 {}
 
 
 ParamInfo const & InsetPrintNomencl::findInfo(string const & /* cmdName */)
 {
+	// The symbol width is set via nomencl's \nomlabelwidth in 
+	// InsetPrintNomencl::latex and not as optional parameter of
+	// \printnomenclature
 	static ParamInfo param_info_;
 	if (param_info_.empty()) {
-		param_info_.add("labelwidth", ParamInfo::LATEX_REQUIRED);
+		// how is the width set?
+		// values: none|auto|custom
+		param_info_.add("set_width", ParamInfo::LYX_INTERNAL);
+		// custom width
+		param_info_.add("width", ParamInfo::LYX_INTERNAL);
 	}
 	return param_info_;
 }
@@ -136,6 +163,55 @@ docstring InsetPrintNomencl::screenLabel() const
 }
 
 
+void InsetPrintNomencl::doDispatch(Cursor & cur, FuncRequest & cmd)
+{
+	switch (cmd.action()) {
+
+	case LFUN_INSET_MODIFY: {
+		InsetCommandParams p(NOMENCL_PRINT_CODE);
+		// FIXME UNICODE
+		InsetCommand::string2params(to_utf8(cmd.argument()), p);
+		if (p.getCmdName().empty()) {
+			cur.noScreenUpdate();
+			break;
+		}
+
+		cur.recordUndo();
+		setParams(p);
+		break;
+	}
+
+	default:
+		InsetCommand::doDispatch(cur, cmd);
+		break;
+	}
+}
+
+
+bool InsetPrintNomencl::getStatus(Cursor & cur, FuncRequest const & cmd,
+	FuncStatus & status) const
+{
+	switch (cmd.action()) {
+
+	case LFUN_INSET_DIALOG_UPDATE:
+	case LFUN_INSET_MODIFY:
+		status.setEnabled(true);
+		return true;
+
+	default:
+		return InsetCommand::getStatus(cur, cmd, status);
+	}
+}
+
+
+docstring InsetPrintNomencl::xhtml(XHTMLStream &, OutputParams const &) const
+{
+	return docstring();
+}
+
+
+// FIXME This should be changed to use the TOC. Perhaps
+// that could be done when XHTML output is added.
 int InsetPrintNomencl::docbook(odocstream & os, OutputParams const &) const
 {
 	os << "<glossary>\n";
@@ -160,6 +236,95 @@ int InsetPrintNomencl::docbook(odocstream & os, OutputParams const &) const
 }
 
 
+namespace {
+docstring nomenclWidest(Buffer const & buffer, OutputParams const & runparams)
+{
+	// nomenclWidest() determines and returns the widest used
+	// nomenclature symbol in the document
+
+	int w = 0;
+	docstring symb;
+	InsetNomencl const * nomencl = 0;
+	ParagraphList::const_iterator it = buffer.paragraphs().begin();
+	ParagraphList::const_iterator end = buffer.paragraphs().end();
+
+	for (; it != end; ++it) {
+		if (it->insetList().empty())
+			continue;
+		InsetList::const_iterator iit = it->insetList().begin();
+		InsetList::const_iterator eend = it->insetList().end();
+		for (; iit != eend; ++iit) {
+			Inset * inset = iit->inset;
+			if (inset->lyxCode() != NOMENCL_CODE)
+				continue;
+			nomencl = static_cast<InsetNomencl const *>(inset);
+			docstring const symbol =
+				nomencl->getParam("symbol");
+			// This is only an approximation,
+			// but the best we can get.
+			int const wx = use_gui ?
+				theFontMetrics(Font()).width(symbol) :
+				symbol.size();
+			if (wx > w) {
+				w = wx;
+				symb = symbol;
+			}
+		}
+	}
+	// return the widest (or an empty) string
+	if (symb.empty())
+		return symb;
+
+	// we have to encode the string properly
+	docstring latex_symb;
+	for (size_t n = 0; n < symb.size(); ++n) {
+		try {
+			latex_symb += runparams.encoding->latexChar(symb[n]);
+		} catch (EncodingException & /* e */) {
+			if (runparams.dryrun) {
+				latex_symb += "<" + _("LyX Warning: ")
+					   + _("uncodable character") + " '";
+				latex_symb += docstring(1, symb[n]);
+				latex_symb += "'>";
+			}
+		}
+	}
+	return latex_symb;
+}
+} // namespace anon
+
+
+int InsetPrintNomencl::latex(odocstream & os, OutputParams const & runparams_in) const
+{
+	OutputParams runparams = runparams_in;
+	int lines = 0;
+	if (getParam("set_width") == "auto") {
+		docstring widest = nomenclWidest(buffer(), runparams);
+		// Set the label width via nomencl's command \nomlabelwidth.
+		// This must be output before the command \printnomenclature
+		if (!widest.empty()) {
+			os << "\\settowidth{\\nomlabelwidth}{"
+			   << widest
+			   << "}\n";
+			++lines;
+		}
+	} else if (getParam("set_width") == "custom") {
+		// custom length as optional arg of \printnomenclature
+		string const width =
+			Length(to_ascii(getParam("width"))).asLatexString();
+		os << '\\'
+		   << from_ascii(getCmdName())
+		   << '['
+		   << from_ascii(width)
+		   << "]{}";
+		return lines;
+	}
+	// output the command \printnomenclature
+	os << getCommand(runparams);
+	return lines;
+}
+
+
 void InsetPrintNomencl::validate(LaTeXFeatures & features) const
 {
 	features.require("nomencl");
@@ -169,6 +334,12 @@ void InsetPrintNomencl::validate(LaTeXFeatures & features) const
 InsetCode InsetPrintNomencl::lyxCode() const
 {
 	return NOMENCL_PRINT_CODE;
+}
+
+
+docstring InsetPrintNomencl::contextMenuName() const
+{
+	return from_ascii("context-nomenclprint");
 }
 
 

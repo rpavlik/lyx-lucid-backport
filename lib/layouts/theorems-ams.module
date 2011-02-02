@@ -6,14 +6,15 @@
 #changed by loading one of the 'Theorems (Numbered by ...)' modules.
 #DescriptionEnd
 #Excludes: theorems-std | theorems-starred
+#Category: theorems
 
 # Original Author : David L. Johnson <dlj0@lehigh.edu>
 # Probably broken by Jean-Marc Lasgouttes <Jean-Marc.Lasgouttes@inria.fr>
 # modified and modularized by Emmanuel GUREGHIAN <gureghia@boston.bertin.fr>
-# Tinkered with Sep. '07 and June '09 by Paul Rubin <rubin@msu.edu>
+# Tinkered with Sep. '07 by Paul Rubin <rubin@msu.edu>
 # Modularized Jan 08 by Richard Heck <rgheck@comcast.net>
 
-Format 11
+Format 30
 
 Requires	amsmath,amsthm
 

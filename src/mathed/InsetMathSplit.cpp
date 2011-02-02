@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -32,9 +32,11 @@ namespace lyx {
 using support::bformat;
 
 
-InsetMathSplit::InsetMathSplit(Buffer * buf, docstring const & name, char valign)
+InsetMathSplit::InsetMathSplit(Buffer * buf, docstring const & name,
+	char valign)
 	: InsetMathGrid(buf, 1, 1, valign, docstring()), name_(name)
-{}
+{
+}
 
 
 Inset * InsetMathSplit::clone() const
@@ -67,20 +69,26 @@ void InsetMathSplit::draw(PainterInfo & pi, int x, int y) const
 bool InsetMathSplit::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE: {
-		docstring const & s = cmd.argument();
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY: {
+		istringstream is(to_utf8(cmd.argument()));
+		string s;
+		is >> s;
+		if (s != "tabular")
+			break;
+		is >> s;
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.message(bformat(
 				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),	name_));
 			flag.setEnabled(false);
 			return true;
 		}
-		return InsetMathGrid::getStatus(cur, cmd, flag);
+		break;
 	}
 	default:
-		return InsetMathGrid::getStatus(cur, cmd, flag);
+		break;
 	}
+	return InsetMathGrid::getStatus(cur, cmd, flag);
 }
 
 
@@ -106,6 +114,31 @@ void InsetMathSplit::infoize(odocstream & os) const
 	docstring name = name_;
 	name[0] = support::uppercase(name[0]);
 	os << name << ' ';
+}
+
+
+void InsetMathSplit::mathmlize(MathStream & ms) const
+{
+	// split, gathered, aligned, alignedat
+	// At the moment, those seem to display just fine without any
+	// special treatment.
+	// FIXME
+	// lgathered and rgathered could use the proper alignment, but
+	// it's not clear how to do that without copying a lot of code.
+	// One idea would be to wrap the table in an <mrow>, and set the
+	// alignment there via CSS.
+	InsetMathGrid::mathmlize(ms);
+}
+
+
+void InsetMathSplit::htmlize(HtmlStream & ms) const
+{
+	// split, gathered, aligned, alignedat
+	// At the moment, those seem to display just fine without any
+	// special treatment.
+	// FIXME
+	// lgathered and rgathered could use the proper alignment.
+	InsetMathGrid::htmlize(ms);
 }
 
 

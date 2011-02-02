@@ -25,7 +25,6 @@
 #include "BufferView.h"
 #include "Changes.h"
 #include "FuncRequest.h"
-#include "lyxfind.h"
 #include "LyXRC.h"
 
 #include <QTextBrowser>
@@ -129,4 +128,4 @@ Dialog * createGuiChanges(GuiView & lv) { return new GuiChanges(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiChanges_moc.cpp"
+#include "moc_GuiChanges.cpp"

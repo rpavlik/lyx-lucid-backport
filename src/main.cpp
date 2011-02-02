@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean Marc Lasgouttes
  *
  * Full author contact details are available in file CREDITS.
@@ -14,7 +14,6 @@
 #include "LyX.h"
 
 #include "support/debug.h"
-#include "support/gettext.h"
 #include "support/os.h"
 
 #include <iostream>
@@ -37,9 +36,6 @@ int main(int argc, char * argv[])
 	lyx::lyxerr.setStream(cerr);
 
 	lyx::support::os::init(argc, argv);
-
-	// initialize for internationalized version *EK*
-	lyx::locale_init();
 
 	lyx::LyX the_lyx_instance;
 

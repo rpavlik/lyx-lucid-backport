@@ -12,6 +12,8 @@
 #include <config.h>
 
 #include "Toolbars.h"
+#include "Converter.h"
+#include "Format.h"
 #include "FuncRequest.h"
 #include "Lexer.h"
 #include "LyXAction.h"
@@ -21,7 +23,7 @@
 #include "support/gettext.h"
 #include "support/lstrings.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <algorithm>
 
@@ -30,10 +32,6 @@ using namespace lyx::support;
 
 namespace lyx {
 namespace frontend {
-
-namespace {
-
-} // namespace anon
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -57,7 +55,7 @@ ToolbarItem::ToolbarItem(Type type, string const & name, docstring const & label
 void ToolbarInfo::add(ToolbarItem const & item)
 {
 	items.push_back(item);
-	items.back().func_.origin = FuncRequest::TOOLBAR;
+	items.back().func_.setOrigin(FuncRequest::TOOLBAR);
 }
 
 
@@ -71,18 +69,28 @@ ToolbarInfo & ToolbarInfo::read(Lexer & lex)
 		TO_MINIBUFFER,
 		TO_TABLEINSERT,
 		TO_POPUPMENU,
+		TO_STICKYPOPUPMENU,
 		TO_ICONPALETTE,
+		TO_EXPORTFORMATS,
+		TO_IMPORTFORMATS,
+		TO_UPDATEFORMATS,
+		TO_VIEWFORMATS
 	};
 
 	struct LexerKeyword toolTags[] = {
 		{ "end", TO_ENDTOOLBAR },
+		{ "exportformats", TO_EXPORTFORMATS },
 		{ "iconpalette", TO_ICONPALETTE },
+		{ "importformats", TO_IMPORTFORMATS },
 		{ "item", TO_COMMAND },
 		{ "layouts", TO_LAYOUTS },
 		{ "minibuffer", TO_MINIBUFFER },
 		{ "popupmenu", TO_POPUPMENU },
 		{ "separator", TO_SEPARATOR },
-		{ "tableinsert", TO_TABLEINSERT }
+		{ "stickypopupmenu", TO_STICKYPOPUPMENU },
+		{ "tableinsert", TO_TABLEINSERT },
+		{ "updateformats", TO_UPDATEFORMATS },
+		{ "viewformats", TO_VIEWFORMATS },
 	};
 
 	//consistency check
@@ -112,7 +120,8 @@ ToolbarInfo & ToolbarInfo::read(Lexer & lex)
 		lex.printTable(lyxerr);
 
 	while (lex.isOK() && !quit) {
-		switch (lex.lex()) {
+		int const code = lex.lex();
+		switch (code) {
 		case TO_COMMAND:
 			if (lex.next(true)) {
 				docstring const tooltip = translateIfPossible(lex.getDocString());
@@ -146,6 +155,15 @@ ToolbarInfo & ToolbarInfo::read(Lexer & lex)
 			}
 			break;
 
+		case TO_STICKYPOPUPMENU:
+			if (lex.next(true)) {
+				string const name = lex.getString();
+				lex.next(true);
+				docstring const label = lex.getDocString();
+				add(ToolbarItem(ToolbarItem::STICKYPOPUPMENU, name, label));
+			}
+			break;
+
 		case TO_ICONPALETTE:
 			if (lex.next(true)) {
 				string const name = lex.getString();
@@ -171,6 +189,53 @@ ToolbarInfo & ToolbarInfo::read(Lexer & lex)
 		case TO_ENDTOOLBAR:
 			quit = true;
 			break;
+
+		case TO_EXPORTFORMATS:
+		case TO_IMPORTFORMATS:
+		case TO_UPDATEFORMATS:
+		case TO_VIEWFORMATS: {
+			vector<Format const *> formats = (code == TO_IMPORTFORMATS) ?
+				theConverters().importableFormats() :
+				theConverters().exportableFormats(code != TO_EXPORTFORMATS);
+			sort(formats.begin(), formats.end());
+			vector<Format const *>::const_iterator fit = formats.begin();
+			vector<Format const *>::const_iterator end = formats.end();
+			for (; fit != end ; ++fit) {
+				if ((*fit)->dummy())
+					continue;
+				if (code != TO_IMPORTFORMATS &&
+				    !(*fit)->documentFormat())
+					continue;
+
+				docstring const prettyname =
+					from_utf8((*fit)->prettyname());
+				docstring tooltip;
+				FuncCode lfun = LFUN_NOACTION;
+				switch (code) {
+				case TO_EXPORTFORMATS:
+					lfun = LFUN_BUFFER_EXPORT;
+					tooltip = _("Export %1$s");
+					break;
+				case TO_IMPORTFORMATS:
+					lfun = LFUN_BUFFER_IMPORT;
+					tooltip = _("Import %1$s");
+					break;
+				case TO_UPDATEFORMATS:
+					lfun = LFUN_BUFFER_UPDATE;
+					tooltip = _("Update %1$s");
+					break;
+				case TO_VIEWFORMATS:
+					lfun = LFUN_BUFFER_VIEW;
+					tooltip = _("View %1$s");
+					break;
+				}
+				FuncRequest func(lfun, (*fit)->name(),
+						FuncRequest::TOOLBAR);
+				add(ToolbarItem(ToolbarItem::COMMAND, func,
+						bformat(tooltip, prettyname)));
+			}
+			break;
+		}
 
 		default:
 			lex.printError("ToolbarInfo::read: "
@@ -202,7 +267,7 @@ void Toolbars::readToolbars(Lexer & lex)
 {
 	enum {
 		TO_TOOLBAR = 1,
-		TO_ENDTOOLBARSET,
+		TO_ENDTOOLBARSET
 	};
 
 	struct LexerKeyword toolTags[] = {
@@ -293,6 +358,8 @@ void Toolbars::readToolbarSettings(Lexer & lex)
 				flag = RIGHT;
 			else if (!compare_ascii_no_case(*cit, "auto"))
 				flag = AUTO;
+			else if (!compare_ascii_no_case(*cit, "samerow"))
+				flag = SAMEROW;
 			else {
 				LYXERR(Debug::ANY,
 					"Toolbars::readToolbarSettings: unrecognised token:`"
@@ -303,7 +370,7 @@ void Toolbars::readToolbarSettings(Lexer & lex)
 		}
 		toolbar_visibility_[name] = visibility;
 
-		if (visibility >= MATH) {
+		if (visibility & ALLOWAUTO) {
 			if (ToolbarInfo const * ti = info(name))
 				const_cast<ToolbarInfo *>(ti)->gui_name +=
 					" (" + _("auto") + ")";

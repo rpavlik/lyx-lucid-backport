@@ -2,7 +2,7 @@ include $(top_srcdir)/config/common.am
 
 ############################### Core  ##############################
 
-DISTCLEANFILES += config.h libintl.h
+DISTCLEANFILES += libintl.h
 
 AM_CPPFLAGS += $(PCH_FLAGS) -I$(top_srcdir)/src $(BOOST_INCLUDES) $(ENCHANT_CFLAGS)
 AM_CPPFLAGS += $(QT4_CPPFLAGS) $(QT4_CORE_INCLUDES)
@@ -13,28 +13,25 @@ endif
 
 SUBDIRS = support frontends . $(CLIENT) tex2lyx
 
-EXTRA_DIST = Section.h \
-	Section.cpp \
-	Variables.cpp \
-	Variables.h \
-	paper.h \
-	pch.h
+EXTRA_DIST = pch.h
 
-OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) $(ENCHANT_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBPSAPI)
+OTHERLIBS = $(BOOST_LIBS) $(INTLLIBS) $(MYTHES_LIBS) $(AIKSAURUS_LIBS) \
+		 $(ENCHANT_LIBS) @LIBS@ $(SOCKET_LIBS) $(LIBSHLWAPI) $(LIBPSAPI)
 
-noinst_LTLIBRARIES = liblyxcore.la
+noinst_LIBRARIES = liblyxcore.a
 bin_PROGRAMS = lyx
 
 lyx_LDADD = \
-	liblyxcore.la \
-	liblyxmathed.la \
-	liblyxinsets.la \
-	frontends/liblyxfrontends.la \
-	frontends/qt4/liblyxqt4.la \
-	liblyxgraphics.la \
-	support/liblyxsupport.la \
+	liblyxcore.a \
+	liblyxmathed.a \
+	liblyxinsets.a \
+	frontends/liblyxfrontends.a \
+	frontends/qt4/liblyxqt4.a \
+	liblyxgraphics.a \
+	support/liblyxsupport.a \
 	$(OTHERLIBS) \
-	$(QT4_LIB) 
+	$(QT4_LDFLAGS) \
+	$(QT4_LIB)
 
 if LYX_WIN_RESOURCE
 .rc.o:
@@ -46,17 +43,23 @@ endif
 
 BUILT_SOURCES = $(PCH_FILE)
 
-if USE_ENCHANT
-ENCHANT = Enchant.cpp Enchant.h
+if INSTALL_MACOSX
+APPLESPELL = AppleSpellChecker.cpp AppleSpellChecker.h
 endif
+
 if USE_ASPELL
-ASPELL = ASpell.cpp ASpell_local.h
+ASPELL = AspellChecker.cpp AspellChecker.h
+PWL = PersonalWordList.cpp PersonalWordList.h
 endif
-if USE_PSPELL
-PSPELL = PSpell.cpp PSpell.h
+
+if USE_ENCHANT
+ENCHANT = EnchantChecker.cpp EnchantChecker.h
+PWL = PersonalWordList.cpp PersonalWordList.h
 endif
-if USE_ISPELL
-ISPELL = ISpell.cpp ISpell.h
+
+if USE_HUNSPELL
+HUNSPELL = HunspellChecker.cpp HunspellChecker.h
+PWL = PersonalWordList.cpp PersonalWordList.h
 endif
 
 # These four objects are linked as object files as they are not
@@ -65,13 +68,19 @@ endif
 # and in fact libtools seems not able to do that.
 lyx_SOURCES = \
 	main.cpp \
-	$(ENCHANT) $(ASPELL) $(PSPELL) $(ISPELL) SpellBase.cpp \
+	$(APPLESPELL) \
+	$(ASPELL) \
 	BiblioInfo.h \
 	BiblioInfo.cpp \
 	Box.cpp \
 	Box.h \
+	Compare.cpp \
+	Compare.h \
 	Dimension.cpp \
 	Dimension.h \
+	$(ENCHANT) \
+	$(HUNSPELL) \
+	$(PWL) \
 	PrinterParams.cpp \
 	PrinterParams.h \
 	Thesaurus.cpp \
@@ -118,6 +127,8 @@ SOURCEFILESCORE = \
 	FuncRequest.cpp \
 	FuncStatus.cpp \
 	Graph.cpp \
+	HSpace.cpp \
+	IndicesList.cpp \
 	InsetIterator.cpp \
 	InsetList.cpp \
 	Intl.cpp \
@@ -127,13 +138,13 @@ SOURCEFILESCORE = \
 	LaTeX.cpp \
 	LaTeXFeatures.cpp \
 	LayoutFile.cpp \
+	LayoutModuleList.cpp \
 	Length.cpp \
 	lengthcommon.cpp \
 	Lexer.cpp \
 	LyX.cpp \
 	LyXAction.cpp \
 	lyxfind.cpp \
-	LyXFunc.cpp \
 	LyXRC.cpp \
 	LyXVC.cpp \
 	MetricsInfo.cpp \
@@ -142,10 +153,10 @@ SOURCEFILESCORE = \
 	output_docbook.cpp \
 	output.cpp \
 	output_latex.cpp \
+	output_xhtml.cpp \
 	OutputParams.cpp \
 	output_plaintext.cpp \
 	Paragraph.cpp \
-	paragraph_funcs.cpp \
 	ParagraphMetrics.cpp \
 	ParagraphParameters.cpp \
 	ParIterator.cpp \
@@ -215,6 +226,8 @@ HEADERFILESCORE = \
 	FuncRequest.h \
 	FuncStatus.h \
 	Graph.h \
+	HSpace.h \
+	IndicesList.h \
 	InsetIterator.h \
 	InsetList.h \
 	Intl.h \
@@ -226,11 +239,11 @@ HEADERFILESCORE = \
 	Layout.h \
 	LayoutEnums.h \
 	LayoutFile.h \
+	LayoutModuleList.h \
 	Length.h \
 	Lexer.h \
 	LyXAction.h \
 	lyxfind.h \
-	LyXFunc.h \
 	LyX.h \
 	LyXRC.h \
 	LyXVC.h \
@@ -239,11 +252,12 @@ HEADERFILESCORE = \
 	Mover.h \
 	output_docbook.h \
 	output.h \
+	OutputEnums.h \
 	output_latex.h \
+	output_xhtml.h \
 	OutputParams.h \
 	output_plaintext.h \
 	paper.h \
-	paragraph_funcs.h \
 	Paragraph.h \
 	ParagraphList.h \
 	ParagraphMetrics.h \
@@ -257,7 +271,7 @@ HEADERFILESCORE = \
 	Session.h \
 	sgml.h \
 	Spacing.h \
-	SpellBase.h \
+	SpellChecker.h \
 	TexRow.h \
 	TexStream.h \
 	Text.h \
@@ -285,35 +299,40 @@ if MONOLITHIC_CORE
 BUILT_SOURCES += lyxcore.cpp $(STANDALONEFILES)
 CLEANFILES += lyxcore.cpp
 
-liblyxcore_la_SOURCES = lyxcore.cpp $(STANDALONEFILES) $(HEADERFILESCORE)
+liblyxcore_a_SOURCES = lyxcore.cpp $(STANDALONEFILES) $(HEADERFILESCORE)
 
 else
 
-liblyxcore_la_SOURCES = $(SOURCEFILESCORE) $(STANDALONEFILES) $(HEADERFILESCORE)
+liblyxcore_a_SOURCES = $(SOURCEFILESCORE) $(STANDALONEFILES) $(HEADERFILESCORE)
 
 endif
 
+#########################  Qt stuff  ##############################
+
+MOCHEADER = Compare.h
+
 if INSTALL_WINDOWS
 
-MOCHEADER = Server.h
+MOCHEADER += Server.h
+MOCFLAG = -D_WIN32
 
-MOCEDFILES = $(MOCHEADER:%.h=%_moc.cpp)
+endif
+
+MOCEDFILES = $(MOCHEADER:%.h=moc_%.cpp)
 
 BUILT_SOURCES += $(MOCEDFILES)
 CLEANFILES += $(MOCEDFILES)
 
-%_moc.cpp: %.h
-	$(MOC4) -D_WIN32 -o $@ $<
+moc_%.cpp: %.h
+	$(MOC4) $(MOCFLAG) -o $@ $<
 
-liblyxcore_la_DEPENDENCIES = $(MOCEDFILES)
-
-endif
+liblyxcore_a_DEPENDENCIES = $(MOCEDFILES)
 
 ############################### Graphics ##############################
 
-noinst_LTLIBRARIES += liblyxgraphics.la
+noinst_LIBRARIES += liblyxgraphics.a
 
-liblyxgraphics_la_SOURCES = \
+liblyxgraphics_a_SOURCES = \
 	graphics/GraphicsCache.h \
 	graphics/GraphicsCache.cpp \
 	graphics/GraphicsCacheItem.h \
@@ -338,7 +357,7 @@ liblyxgraphics_la_SOURCES = \
 
 EXTRA_DIST += mathed/InsetFormulaMacro.cpp
 
-noinst_LTLIBRARIES += liblyxmathed.la
+noinst_LIBRARIES += liblyxmathed.a
 
 SOURCEFILESMATHED = \
 	mathed/InsetMathAMSArray.cpp \
@@ -394,6 +413,7 @@ SOURCEFILESMATHED = \
 	mathed/InsetMathUnknown.cpp \
 	mathed/InsetMathXArrow.cpp \
 	mathed/InsetMathXYMatrix.cpp \
+	mathed/InsetMathDiagram.cpp \
 	mathed/MathAtom.cpp \
 	mathed/MathAutoCorrect.cpp \
 	mathed/MathData.cpp \
@@ -459,6 +479,7 @@ HEADERFILESMATHED = \
 	mathed/InsetMathUnknown.h \
 	mathed/InsetMathXArrow.h \
 	mathed/InsetMathXYMatrix.h \
+	mathed/InsetMathDiagram.h \
 	mathed/MathAtom.h \
 	mathed/MathAutoCorrect.h \
 	mathed/MathData.h \
@@ -474,7 +495,7 @@ HEADERFILESMATHED = \
 	mathed/ReplaceData.h \
 	mathed/MathStream.h \
 	mathed/MathSupport.h \
-	mathed/TextPainter.h 
+	mathed/TextPainter.h
 
 lyxmathed.cpp:
 	@echo -e '$(SOURCEFILESMATHED:%=\n#include "%")\n' > $@
@@ -484,17 +505,17 @@ if MONOLITHIC_MATHED
 BUILT_SOURCES += lyxmathed.cpp
 CLEANFILES += lyxmathed.cpp
 
-liblyxmathed_la_SOURCES = lyxmathed.cpp $(HEADERFILESMATHED)
+liblyxmathed_a_SOURCES = lyxmathed.cpp $(HEADERFILESMATHED)
 
 else
 
-liblyxmathed_la_SOURCES = $(SOURCEFILESMATHED) $(HEADERFILESMATHED) 
+liblyxmathed_a_SOURCES = $(SOURCEFILESMATHED) $(HEADERFILESMATHED)
 
 endif
 
 ############################### Insets  ##############################
 
-noinst_LTLIBRARIES += liblyxinsets.la
+noinst_LIBRARIES += liblyxinsets.a
 
 SOURCEFILESINSETS = \
 	insets/ExternalSupport.cpp \
@@ -504,6 +525,7 @@ SOURCEFILESINSETS = \
 	insets/RenderGraphic.cpp \
 	insets/RenderPreview.cpp \
 	insets/Inset.cpp \
+	insets/InsetArgument.cpp \
 	insets/InsetBibitem.cpp \
 	insets/InsetBibtex.cpp \
 	insets/InsetBox.cpp \
@@ -536,9 +558,11 @@ SOURCEFILESINSETS = \
 	insets/InsetNewpage.cpp \
 	insets/InsetNomencl.cpp \
 	insets/InsetNote.cpp \
-	insets/InsetOptArg.cpp \
+	insets/InsetPhantom.cpp \
+	insets/InsetPreview.cpp \
 	insets/InsetQuotes.cpp \
 	insets/InsetRef.cpp \
+	insets/InsetScript.cpp \
 	insets/InsetSpace.cpp \
 	insets/InsetSpecialChar.cpp \
 	insets/InsetTabular.cpp \
@@ -556,6 +580,7 @@ HEADERFILESINSETS = \
 	insets/RenderGraphic.h \
 	insets/RenderPreview.h \
 	insets/Inset.h \
+	insets/InsetArgument.h \
 	insets/InsetBibitem.h \
 	insets/InsetBibtex.h \
 	insets/InsetBox.h \
@@ -579,6 +604,7 @@ HEADERFILESINSETS = \
 	insets/InsetInclude.h \
 	insets/InsetIndex.h \
 	insets/InsetInfo.h \
+	insets/InsetPreview.h \
 	insets/InsetLabel.h \
 	insets/InsetLayout.h \
 	insets/InsetLine.h \
@@ -589,9 +615,10 @@ HEADERFILESINSETS = \
 	insets/InsetNewpage.h \
 	insets/InsetNomencl.h \
 	insets/InsetNote.h \
-	insets/InsetOptArg.h \
+	insets/InsetPhantom.h \
 	insets/InsetQuotes.h \
 	insets/InsetRef.h \
+	insets/InsetScript.h \
 	insets/InsetSpace.h \
 	insets/InsetSpecialChar.h \
 	insets/InsetTabular.h \
@@ -613,10 +640,10 @@ if MONOLITHIC_INSETS
 BUILT_SOURCES += lyxinsets.cpp
 CLEANFILES += lyxinsets.cpp
 
-liblyxinsets_la_SOURCES = lyxinsets.cpp $(HEADERFILESINSETS)
+liblyxinsets_a_SOURCES = lyxinsets.cpp $(HEADERFILESINSETS)
 
 else
 
-liblyxinsets_la_SOURCES = $(SOURCEFILESINSETS) $(HEADERFILESINSETS)
+liblyxinsets_a_SOURCES = $(SOURCEFILESINSETS) $(HEADERFILESINSETS)
 
 endif

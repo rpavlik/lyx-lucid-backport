@@ -38,6 +38,7 @@ public:
 		CONGLOMERATE,
 		DEFAULT
 	};
+	///
 	enum InsetLyXType {
 		NOLYXTYPE,
 		CHARSTYLE,
@@ -46,6 +47,7 @@ public:
 		END,
 		STANDARD
 	};
+	///
 	enum InsetLaTeXType {
 		NOLATEXTYPE,
 		COMMAND,
@@ -55,48 +57,100 @@ public:
 	///
 	bool read(Lexer & lexrc, TextClass const & tclass);
 	///
-	docstring name() const { return name_; };
+	docstring name() const { return name_; }
 	///
 	void setName(docstring const & n) { name_ = n; }
 	///
-	InsetLyXType lyxtype() const { return lyxtype_; };
+	InsetLyXType lyxtype() const { return lyxtype_; }
 	///
-	docstring labelstring() const { return labelstring_; };
+	docstring labelstring() const { return labelstring_; }
 	///
-	InsetDecoration decoration() const { return decoration_; };
+	bool contentaslabel() const { return contentaslabel_; }
 	///
-	InsetLaTeXType latextype() const { return latextype_; };
+	InsetDecoration decoration() const { return decoration_; }
 	///
-	std::string latexname() const { return latexname_; };
+	InsetLaTeXType latextype() const { return latextype_; }
 	///
-	std::string latexparam() const { return latexparam_; };
+	std::string latexname() const { return latexname_; }
 	///
-	FontInfo font() const { return font_; };
+	std::string latexparam() const { return latexparam_; }
 	///
-	FontInfo labelfont() const { return labelfont_; };
+	FontInfo font() const { return font_; }
 	///
-	ColorCode bgcolor() const { return bgcolor_; };
+	FontInfo labelfont() const { return labelfont_; }
 	///
-	std::string preamble() const { return preamble_; };
+	ColorCode bgcolor() const { return bgcolor_; }
 	///
-	std::set<std::string> requires() const { return requires_; };
+	docstring preamble() const { return preamble_; }
 	///
-	bool isMultiPar() const { return multipar_; };
+	docstring counter() const { return counter_; }
+	///
+	docstring refprefix() const { return refprefix_; }
+	/// The tag enclosing all the material in this inset. Default is "span".
+	std::string const & htmltag() const;
+	/// Additional attributes for inclusion with the start tag. Default (if
+	/// a tag is provided) is: class="name".
+	std::string const & htmlattr() const;
+	/// Tag for individual paragraphs in the inset. Default is none.
+	std::string const & htmlinnertag() const { return htmlinnertag_; }
+	/// Attributes for that tag. Default (if a tag is provided) is: 
+	/// class="name_inner".
+	std::string const & htmlinnerattr() const;
+	/// A label for this environment, possibly including a reference
+	/// to a counter. E.g., for footnote, it might be:
+	///    \arabic{footnote}
+	/// No default.
+	/// FIXME Could we get this from the layout?
+	std::string const & htmllabel() const { return htmllabel_; }
+	///
+	inline std::string htmllabeltag() const { return "span"; }
+	///
+	std::string htmllabelattr() const 
+		{ return "class=\"" + defaultCSSClass() + "_label\""; }
+	/// CSS associated with this inset.
+	docstring htmlstyle() const;
+	/// Additional material for the header.
+	docstring htmlpreamble() const { return htmlpreamble_; }
+	/// Whether this inset represents a "block" of material, i.e., a set
+	/// of paragraphs of its own (true), or should be run into the previous
+	/// paragraph (false). Examples:
+	///   For branches, this is false.
+	///   For footnotes, this is true.
+	/// Defaults to true.
+	bool htmlisblock() const { return htmlisblock_; }
+	///
+	std::set<std::string> requires() const { return requires_; }
+	///
+	bool isMultiPar() const { return multipar_; }
 	///
 	bool forcePlainLayout() const { return forceplain_; }
 	///
 	bool allowParagraphCustomization() const { return custompars_; }
 	///
-	bool isPassThru() const { return passthru_; };
+	bool isPassThru() const { return passthru_; }
 	///
-	bool isNeedProtect() const { return needprotect_; };
+	bool parbreakIsNewline() const { return parbreakisnewline_; }
 	///
-	bool isFreeSpacing() const { return freespacing_; };
+	bool isNeedProtect() const { return needprotect_; }
 	///
-	bool isKeepEmpty() const { return keepempty_; };
+	bool isFreeSpacing() const { return freespacing_; }
 	///
-	bool isForceLtr() const { return forceltr_; };
+	bool isKeepEmpty() const { return keepempty_; }
+	///
+	bool forceLTR() const { return forceltr_; }
+	///
+	bool isInToc() const { return intoc_; }
+	///
+	bool spellcheck() const { return spellcheck_; }
+	///
+	bool resetsFont() const { return resetsfont_; }
 private:
+	///
+	void makeDefaultCSS() const;
+	///
+	std::string defaultCSSClass() const;
+	///
+	std::string defaultCSSLabelClass() const { return defaultCSSClass() + "_label"; }
 	///
 	docstring name_;
 	/**
@@ -107,6 +161,8 @@ private:
 	InsetLyXType lyxtype_;
 	///
 	docstring labelstring_;
+	///
+	bool contentaslabel_;
 	///
 	InsetDecoration decoration_;
 	///
@@ -122,7 +178,34 @@ private:
 	///
 	ColorCode bgcolor_;
 	///
-	std::string preamble_;
+	docstring counter_;
+	///
+	docstring preamble_;
+	///
+	docstring refprefix_;
+	///
+	mutable std::string htmltag_;
+	///
+	mutable std::string htmlattr_;
+	///
+	std::string htmlinnertag_;
+	///
+	mutable std::string htmlinnerattr_;
+	///
+	std::string htmllabel_;
+	///
+	docstring htmlstyle_;
+	/// Cache for default CSS info for this inset.
+	mutable docstring htmldefaultstyle_;
+	/// Cache for default CSS class.
+	mutable std::string defaultcssclass_;
+	/// Whether to force generation of default CSS even if some is given.
+	/// False by default.
+	bool htmlforcecss_;
+	///
+	docstring htmlpreamble_;
+	///
+	bool htmlisblock_;
 	///
 	std::set<std::string> requires_;
 	///
@@ -134,13 +217,21 @@ private:
 	///
 	bool passthru_;
 	///
-	bool needprotect_;
+	bool parbreakisnewline_;
 	///
 	bool freespacing_;
 	///
 	bool keepempty_;
 	///
 	bool forceltr_;
+	///
+	bool needprotect_;
+	/// should the contents be written to TOC strings?
+	bool intoc_;
+	/// check spelling of this inset?
+	bool spellcheck_;
+	///
+	bool resetsfont_;
 };
 
 ///

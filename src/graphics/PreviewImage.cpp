@@ -17,7 +17,7 @@
 
 #include "support/FileName.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 using namespace std;
 using namespace lyx::support;
@@ -70,6 +70,12 @@ string const & PreviewImage::snippet() const
 }
 
 
+support::FileName const & PreviewImage::filename() const
+{
+	return pimpl_->iloader_.filename();
+}
+
+
 Dimension PreviewImage::dim() const
 {
 	Dimension dim;
@@ -97,7 +103,7 @@ PreviewImage::Impl::Impl(PreviewImage & p, PreviewLoader & l,
 	: parent_(p), ploader_(l), iloader_(bf),
 	  snippet_(s), ascent_frac_(af)
 {
-	iloader_.connect(boost::bind(&Impl::statusChanged, this));
+	iloader_.connect(bind(&Impl::statusChanged, this));
 }
 
 

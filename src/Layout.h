@@ -4,9 +4,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -24,15 +24,16 @@
 
 namespace lyx {
 
+class Language;
 class Lexer;
 class TextClass;
 
-/* Fix labels are printed flushright, manual labels flushleft.
+/* Fixed labels are printed flushright, manual labels flushleft.
  * MARGIN_MANUAL and MARGIN_FIRST_DYNAMIC are *only* for LABEL_MANUAL,
  * MARGIN_DYNAMIC and MARGIN_STATIC are *not* for LABEL_MANUAL.
  * This seems a funny restriction, but I think other combinations are
  * not needed, so I will not change it yet.
- * Correction: MARGIN_FIRST_DYNAMIC also usable with LABEL_STATIC
+ * Correction: MARGIN_FIRST_DYNAMIC also usable with LABEL_STATIC.
  */
 
 
@@ -72,23 +73,32 @@ public:
 	///
 	void readSpacing(Lexer &);
 	///
-	docstring const & name() const;
+	docstring const & name() const { return name_; }
 	///
-	void setName(docstring const & n);
+	void setName(docstring const & n) { name_ = n; }
 	///
-	docstring const & obsoleted_by() const;
+	docstring const & obsoleted_by() const { return obsoleted_by_; }
 	///
-	docstring const & depends_on() const;
+	docstring const & depends_on() const { return depends_on_; }
 	///
 	std::string const & latexname() const { return latexname_; }
 	///
-	docstring const & labelstring() const { return labelstring_; }
+	void setLatexName(std::string const & n) { latexname_ = n; }
+	///
+	docstring const & labelstring(bool in_appendix) const 
+	{ return in_appendix ? labelstring_appendix_ : labelstring_; }
 	///
 	docstring const & endlabelstring() const { return endlabelstring_; }
 	///
 	docstring const & category() const { return category_; }
 	///
 	docstring const & preamble() const { return preamble_; }
+	/// Get language dependent macro definitions needed for this layout
+	/// for language \p lang
+	docstring const langpreamble(Language const * lang, bool const polyglossia) const;
+	/// Get language and babel dependent macro definitions needed for
+	/// this layout for language \p lang
+	docstring const babelpreamble(Language const * lang, bool const polyglossia) const;
 	///
 	std::set<std::string> const & requires() const { return requires_; }
 	///
@@ -99,10 +109,28 @@ public:
 	std::string const & labeltag() const { return labeltag_; }
 	///
 	std::string const & itemtag() const { return itemtag_; }
+	/// 
+	std::string const & htmltag() const;
+	/// 
+	std::string const & htmlattr() const;
+	/// 
+	std::string const & htmlitemtag() const;
+	/// 
+	std::string const & htmlitemattr() const;
+	/// 
+	std::string const & htmllabeltag() const;
+	/// 
+	std::string const & htmllabelattr() const;
 	///
-	docstring const & labelstring_appendix() const {
-		return labelstring_appendix_;
-	}
+	std::string defaultCSSClass() const;
+	///
+	bool htmllabelfirst() const { return htmllabelfirst_; }
+	/// 
+	docstring htmlstyle() const;
+	/// 
+	docstring const & htmlpreamble() const { return htmlpreamble_; }
+	///
+	bool htmltitle() const { return htmltitle_; }
 	///
 	bool isParagraph() const { return latextype == LATEX_PARAGRAPH; }
 	///
@@ -124,11 +152,6 @@ public:
 	////////////////////////////////////////////////////////////////
 	// members
 	////////////////////////////////////////////////////////////////
-	/** Is this layout the default layout for an unknown layout? If
-	 * so, its name will be displayed as xxx (unknown).
-	 */
-	bool unknown_;
-
 	/** Default font for this layout/environment.
 	    The main font for this kind of environment. If an attribute has
 	    INHERITED_*, it means that the value is specified by
@@ -202,6 +225,8 @@ public:
 	bool free_spacing;
 	///
 	bool pass_thru;
+	///
+	bool parbreak_is_newline;
 	/// show this in toc
 	int toclevel;
 	/// special value of toclevel for non-section layouts
@@ -216,10 +241,21 @@ public:
 	LatexType latextype;
 	/// Does this object belong in the title part of the document?
 	bool intitle;
-	/// Does this layout allow for an optional parameter?
-	int optionalargs;
+	/// Is the content to go in the preamble rather than the body?
+	bool inpreamble;
+	/// Number of requried arguments for this command or environment
+	unsigned int reqargs;
+	/// Number of optional arguments for this command or environment
+	/// These MUST come at the beginning, so:
+	///  \cmd[opt1][opt2]{req1}{here is the text from LyX}
+	/// is fine. But:
+	///  \cmd[opt1]{req1}[opt2]{here is the text from LyX}
+	/// is not.
+	unsigned int optargs;
 	/// Which counter to step
 	docstring counter;
+	/// Prefix to use when creating labels
+	docstring refprefix;
 	/// Depth of XML command
 	int commanddepth;
 
@@ -228,12 +264,29 @@ public:
 	/// until it has proper support for the caption inset (JMarc)
 	static Layout * forCaption();
 
+	/// Is this spellchecked?
+	bool spellcheck;
+
+
+private:
+	/// generates the default CSS for this layout
+	void makeDefaultCSS() const;
+	///
+	std::string defaultCSSItemClass() const { return defaultCSSClass() + "_item"; }
+	///
+	std::string defaultCSSLabelClass() const { return defaultCSSClass() + "_label"; }
+	
 	/// Name of the layout/paragraph environment
 	docstring name_;
+
 	/// LaTeX name for environment
 	std::string latexname_;
 
-private:
+	/** Is this layout the default layout for an unknown layout? If
+	 * so, its name will be displayed as xxx (unknown).
+	 */
+	bool unknown_;
+
 	/** Name of an layout that has replaced this layout.
 	    This is used to rename a layout, while keeping backward
 	    compatibility
@@ -256,16 +309,74 @@ private:
 	std::string latexparam_;
 	/// Internal tag to use (e.g., <title></title> for sect header)
 	std::string innertag_;
-	/// Internal tag to use e.g. to surround varlistentry label)
+	/// Internal tag to use (e.g. to surround varentrylist label)
 	std::string labeltag_;
-	/// Internal tag to surround the item text in a list)
+	/// Internal tag to surround the item text in a list.
 	std::string itemtag_;
+	/// The interpretation of this tag varies depending upon the latextype.
+	/// In an environment, it is the tag enclosing all content for this set of 
+	/// paragraphs. So for quote, e.g,. it would be: blockquote. For itemize, 
+	/// it would be: ul. (You get the idea.)
+	///
+	/// For a command, it is the tag enclosing the content of the command.
+	/// So, for section, it might be: h2.
+	/// 
+	/// For the paragraph type, it is the tag that will enclose each paragraph.
+	///
+	/// Defaults to "div".
+	mutable std::string htmltag_;
+	/// Additional attributes for inclusion with the start tag. Defaults
+	/// to: class="layoutname".
+	mutable std::string htmlattr_;
+	/// Tag for individual paragraphs in an environment. In lists, this
+	/// would be something like "li". But it also needs to be set for
+	/// quotation, e.g., since the paragraphs in a quote need to be 
+	/// in "p" tags. Default is "div".
+	/// Note that when I said "environment", I meant it: This has no
+	/// effect for LATEX_PARAGRAPH type layouts.
+	mutable std::string htmlitemtag_;
+	/// Attributes for htmlitemtag_. Default is: class="layoutname_item".
+	mutable std::string htmlitemattr_;
+	/// Tag for labels, of whatever sort. One use for this is in setting
+	/// descriptions, in which case it would be: dt. Another use is to
+	/// customize the display of, say, the auto-generated label for 
+	/// sections. Defaults to "span".
+	/// If set to "NONE", this suppresses the printing of the label.
+	mutable std::string htmllabeltag_;
+	/// Attributes for the label. Defaults to: class="layoutname_label".
+	mutable std::string htmllabelattr_;
+	/// Whether to put the label before the item, or within the item.
+	/// I.e., do we have (true):
+	///    <label>...</label><item>...</item>
+	/// or instead (false):
+	///    <item><label>...</label>...</item>
+	/// The latter is the default.
+	bool htmllabelfirst_;
+	/// CSS information needed by this layout.
+	docstring htmlstyle_;
+	/// Should we generate the default CSS for this layout, even if HTMLStyle
+	/// has been given? Default is false.
+	/// Note that the default CSS is output first, then the user CSS, so it is
+	/// possible to override what one does not want.
+	bool htmlforcecss_;
+	/// A cache for the default style info so generated.
+	mutable docstring htmldefaultstyle_;
+	/// Any other info for the HTML header.
+	docstring htmlpreamble_;
+	/// Whether this is the <title> paragraph.
+	bool htmltitle_;
+	/// calculating this is expensive, so we cache it.
+	mutable std::string defaultcssclass_;
 	/// This is the `category' for this layout. The following are
 	/// recommended basic categories: FrontMatter, BackMatter, MainText,
 	/// Section, Starred, List, Theorem.
 	docstring category_;
 	/// Macro definitions needed for this layout
 	docstring preamble_;
+	/// Language dependent macro definitions needed for this layout
+	docstring langpreamble_;
+	/// Language and babel dependent macro definitions needed for this layout
+	docstring babelpreamble_;
 	/// Packages needed for this layout
 	std::set<std::string> requires_;
 };

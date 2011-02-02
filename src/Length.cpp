@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Matthias Ettrich
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
@@ -96,15 +96,57 @@ string const Length::asLatexString() const
 	case PLW:
 		os << val_ / 100.0 << "\\linewidth";
 		break;
-	case PPH:
-		os << val_ / 100.0 << "\\paperheight";
-		break;
 	case PTH:
 		os << val_ / 100.0 << "\\textheight";
+		break;
+	case PPH:
+		os << val_ / 100.0 << "\\paperheight";
 		break;
 	default:
 		os << val_ << unit_name[unit_];
 	  break;
+	}
+	return os.str();
+}
+
+
+string const Length::asHTMLString() const
+{
+	ostringstream os;
+	switch (unit_) {
+	case PT:
+ 	case BP:
+	case DD:
+		// close enough
+		os << val_ << "pt";
+		break;
+ 	case MM:
+	case CM:
+	case PC:
+	case IN:
+	case EX:
+	case EM:
+		os << val_ << unit_name[unit_];
+		break;
+	case CC:
+		os << val_/12.0 << "pt";
+		break;
+ 	case MU:
+		os << val_/18.0 << "em";
+		break;
+	case PTW:
+	case PPW:
+	case PLW:
+	case PCW:
+	case PTH:
+	case PPH:
+		// what it's a percentage of probably won't make sense for HTML,
+		// so we'll assume people have chosen these appropriately
+		os << val_ << '%';
+		break;
+	case SP:
+	case UNIT_NONE:
+		break;
 	}
 	return os.str();
 }
@@ -276,6 +318,26 @@ int Length::inBP() const
 }
 
 
+Length::UNIT Length::defaultUnit()
+{
+	// FIXME user a proper pref, since we should get rid of
+	// default_papersize in lyxrc.
+	UNIT u = Length::CM;
+	switch (lyxrc.default_papersize) {
+		case PAPER_USLETTER:
+		case PAPER_USLEGAL:
+		case PAPER_USEXECUTIVE:
+			u = Length::IN;
+			break;
+		default:
+			break;
+	}
+
+	return u;
+}
+
+
+
 bool operator==(Length const & l1, Length const & l2)
 {
 	return l1.value() == l2.value() && l1.unit() == l2.unit();
@@ -365,13 +427,12 @@ string const GlueLength::asString() const
 string const GlueLength::asLatexString() const
 {
 	ostringstream buffer;
-
-	buffer << len_.value() << unit_name[len_.unit()];
-
+	// use Length::asLatexString() to handle also the percent lengths
+	buffer << len_.Length::asLatexString();
 	if (!plus_.zero())
-		buffer << " plus " << plus_.value() << unit_name[plus_.unit()];
+		buffer << " plus " << plus_.Length::asLatexString();
 	if (!minus_.zero())
-		buffer << " minus " << minus_.value() << unit_name[minus_.unit()];
+		buffer << " minus " << minus_.Length::asLatexString();
 	return buffer.str();
 }
 

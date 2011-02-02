@@ -24,6 +24,7 @@
 #include "FuncStatus.h"
 #include "Lexer.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 #include "TextClass.h"
 #include "TocBackend.h"
 
@@ -40,31 +41,16 @@ using namespace std;
 
 namespace lyx {
 
-InsetBranch::InsetBranch(Buffer const & buf, InsetBranchParams const & params)
-	: InsetCollapsable(buf), params_(params)
-{
-	// override the default for InsetCollapsable, which is to
-	// use the plain layout.
-	DocumentClass const & dc = buf.params().documentClass();
-	paragraphs().back().setDefaultLayout(dc);
-}
-
-
-InsetBranch::~InsetBranch()
-{
-	hideDialogs("branch", this);
-}
-
-
-docstring InsetBranch::editMessage() const
-{
-	return _("Opened Branch Inset");
-}
+InsetBranch::InsetBranch(Buffer * buf, InsetBranchParams const & params)
+	: InsetCollapsable(buf, InsetText::DefaultLayout), params_(params)
+{}
 
 
 void InsetBranch::write(ostream & os) const
 {
+	os << "Branch ";
 	params_.write(os);
+	os << '\n';
 	InsetCollapsable::write(os);
 }
 
@@ -76,17 +62,15 @@ void InsetBranch::read(Lexer & lex)
 }
 
 
-docstring InsetBranch::toolTip(BufferView const & bv, int x, int y) const
+docstring InsetBranch::toolTip(BufferView const & bv, int, int) const
 {
 	docstring const status = isBranchSelected() ? 
 		_("active") : _("non-active");
 	docstring const heading = 
 		support::bformat(_("Branch (%1$s): %2$s"), status, params_.branch);
-	docstring const contents = InsetCollapsable::toolTip(bv, x, y);
-	if (isOpen(bv) || contents.empty())
+	if (isOpen(bv))
 		return heading;
-	else
-		return heading + from_ascii("\n") + contents;
+	return toolTipText(heading + from_ascii("\n"));
 }
 
 
@@ -98,6 +82,8 @@ docstring const InsetBranch::buttonLabel(BufferView const & bv) const
 	if (!branchlist.find(params_.branch)
 	    && buffer().params().branchlist().find(params_.branch))
 		s = _("Branch (child only): ") + params_.branch;
+	else if (!branchlist.find(params_.branch))
+		s = _("Branch (undefined): ") + params_.branch;
 	if (!params_.branch.empty()) {
 		// FIXME UNICODE
 		ColorCode c = lcolor.getFromLyXName(to_utf8(params_.branch));
@@ -124,44 +110,42 @@ ColorCode InsetBranch::backgroundColor(PainterInfo const & pi) const
 }
 
 
-bool InsetBranch::showInsetDialog(BufferView * bv) const
-{
-	bv->showDialog("branch", params2string(params()),
-			const_cast<InsetBranch *>(this));
-	return true;
-}
-
-
 void InsetBranch::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_MODIFY: {
 		InsetBranchParams params;
 		InsetBranch::string2params(to_utf8(cmd.argument()), params);
+
+		cur.recordUndoInset(ATOMIC_UNDO, this);
 		params_.branch = params.branch;
-		setLayout(cur.buffer().params());
+		// what we really want here is a TOC update, but that means
+		// a full buffer update
+		cur.forceBufferUpdate();
 		break;
 	}
-
-	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("branch", params2string(params()));
-		break;
-
-	case LFUN_INSET_TOGGLE:
-		if (cmd.argument() == "assign") {
-			// The branch inset uses "assign".
-			if (isBranchSelected()) {
-				if (status(cur.bv()) != Open)
-					setStatus(cur, Open);
-				else
-					cur.undispatched();
-			} else {
-				if (status(cur.bv()) != Collapsed)
-					setStatus(cur, Collapsed);
-				else
-					cur.undispatched();
-			}
+	case LFUN_BRANCH_ACTIVATE:
+	case LFUN_BRANCH_DEACTIVATE: {
+		// FIXME: I do not like this cast, but have no other idea...
+		Buffer const * buf = buffer().masterBuffer();
+		BranchList const & branchlist = buf->params().branchlist();
+		Branch * our_branch = const_cast<Branch *>(branchlist.find(params_.branch));
+		if (!our_branch) {
+			// child only?
+			our_branch = buffer().params().branchlist().find(params_.branch);
+			if (!our_branch)
+				break;
 		}
+		bool const activate = (cmd.action() == LFUN_BRANCH_ACTIVATE);
+		if (our_branch->isSelected() != activate) {
+			our_branch->setSelected(activate);
+			cur.forceBufferUpdate();
+		}
+		break;
+	}
+	case LFUN_INSET_TOGGLE:
+		if (cmd.argument() == "assign")
+			setStatus(cur, isBranchSelected() ? Open : Collapsed);
 		else
 			InsetCollapsable::doDispatch(cur, cmd);
 		break;
@@ -176,23 +160,24 @@ void InsetBranch::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetBranch::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_MODIFY:
-	case LFUN_INSET_DIALOG_UPDATE:
 		flag.setEnabled(true);
 		break;
 
+	case LFUN_BRANCH_ACTIVATE:
+		flag.setEnabled(!isBranchSelected());
+		break;
+
+	case LFUN_BRANCH_DEACTIVATE:
+		flag.setEnabled(isBranchSelected());
+		break;
+
 	case LFUN_INSET_TOGGLE:
-		if (cmd.argument() == "open" || cmd.argument() == "close" ||
-		    cmd.argument() == "toggle")
+		if (cmd.argument() == "assign")
 			flag.setEnabled(true);
-		else if (cmd.argument() == "assign" || cmd.argument().empty()) {
-			if (isBranchSelected())
-				flag.setEnabled(status(cur.bv()) != Open);
-			else
-				flag.setEnabled(status(cur.bv()) != Collapsed);
-		} else
-			flag.setEnabled(true);
+		else
+			return InsetCollapsable::getStatus(cur, cmd, flag);	
 		break;
 
 	default:
@@ -207,8 +192,13 @@ bool InsetBranch::isBranchSelected() const
 	Buffer const & realbuffer = *buffer().masterBuffer();
 	BranchList const & branchlist = realbuffer.params().branchlist();
 	Branch const * ourBranch = branchlist.find(params_.branch);
-	if (!ourBranch)
-		return false;
+
+	if (!ourBranch) {
+		// this branch is defined in child only
+		ourBranch = buffer().params().branchlist().find(params_.branch);
+		if (!ourBranch)
+			return false;
+	}
 	return ourBranch->isSelected();
 }
 
@@ -240,16 +230,38 @@ int InsetBranch::docbook(odocstream & os,
 }
 
 
-void InsetBranch::tocString(odocstream & os) const
+docstring InsetBranch::xhtml(XHTMLStream & xs, OutputParams const & rp) const
 {
 	if (isBranchSelected())
-		os << text().asString(0, 1, AS_STR_LABEL | AS_STR_INSETS);
+		 return InsetText::xhtml(xs, rp);
+	return docstring();
+}
+
+
+void InsetBranch::toString(odocstream & os) const
+{
+	if (isBranchSelected())
+		InsetCollapsable::toString(os);
+}
+
+
+void InsetBranch::forToc(docstring & os, size_t maxlen) const
+{
+	if (isBranchSelected())
+		InsetCollapsable::forToc(os, maxlen);
 }
 
 
 void InsetBranch::validate(LaTeXFeatures & features) const
 {
-	InsetText::validate(features);
+	if (isBranchSelected())
+		InsetCollapsable::validate(features);
+}
+
+
+docstring InsetBranch::contextMenuName() const
+{
+	return from_ascii("context-branch");
 }
 
 
@@ -263,7 +275,6 @@ bool InsetBranch::isMacroScope() const
 string InsetBranch::params2string(InsetBranchParams const & params)
 {
 	ostringstream data;
-	data << "branch" << ' ';
 	params.write(data);
 	return data.str();
 }
@@ -279,7 +290,6 @@ void InsetBranch::string2params(string const & in, InsetBranchParams & params)
 	Lexer lex;
 	lex.setStream(data);
 	lex.setContext("InsetBranch::string2params");
-	lex >> "branch" >> "Branch";
 	params.read(lex);
 }
 
@@ -290,8 +300,9 @@ void InsetBranch::addToToc(DocIterator const & cpit)
 	pit.push_back(CursorSlice(*this));
 
 	Toc & toc = buffer().tocBackend().toc("branch");
-	docstring const str = params_.branch + ": " + text().getPar(0).asString();
-	toc.push_back(TocItem(pit, 0, str, toolTipText()));
+	docstring str = params_.branch + ": ";
+	text().forToc(str, TOC_ENTRY_LENGTH);
+	toc.push_back(TocItem(pit, 0, str, toolTipText(docstring(), 3, 60)));
 	// Proceed with the rest of the inset.
 	InsetCollapsable::addToToc(cpit);
 }
@@ -299,14 +310,13 @@ void InsetBranch::addToToc(DocIterator const & cpit)
 
 void InsetBranchParams::write(ostream & os) const
 {
-	os << "Branch " << to_utf8(branch) << '\n';
+	os << to_utf8(branch);
 }
 
 
 void InsetBranchParams::read(Lexer & lex)
 {
-	lex.eatLine();
-	branch = lex.getDocString();
+	lex >> branch;
 }
 
 } // namespace lyx

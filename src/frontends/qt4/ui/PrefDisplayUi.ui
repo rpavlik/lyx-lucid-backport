@@ -26,15 +26,15 @@
      </property>
     </widget>
    </item>
-   <item rowspan="3" row="0" column="4" >
+   <item rowspan="4" row="0" column="4" >
     <spacer>
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="sizeHint" >
       <size>
-       <width>67</width>
-       <height>88</height>
+       <width>57</width>
+       <height>20</height>
       </size>
      </property>
     </spacer>

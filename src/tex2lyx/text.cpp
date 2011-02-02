@@ -3,9 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Jean-Marc Lasgouttes
- * \author Uwe Stöhr
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -95,7 +95,8 @@ char const * const known_ref_commands[] = { "ref", "pageref", "vref",
 
 /*!
  * natbib commands.
- * The starred forms are also known.
+ * The starred forms are also known except for "citefullauthor",
+ * "citeyear" and "citeyearpar".
  */
 char const * const known_natbib_commands[] = { "cite", "citet", "citep",
 "citealt", "citealp", "citeauthor", "citeyear", "citeyearpar",
@@ -111,7 +112,7 @@ char const * const known_jurabib_commands[] = { "cite", "citet", "citep",
 // "fullcite",
 // "footcite", "footcitet", "footcitep", "footcitealt", "footcitealp",
 // "footciteauthor", "footciteyear", "footciteyearpar",
-"citefield", "citetitle", "cite*", 0 };
+"citefield", "citetitle", 0 };
 
 /// LaTeX names for quotes
 char const * const known_quotes[] = { "dq", "guillemotleft", "flqq", "og",
@@ -129,8 +130,8 @@ char const * const known_coded_quotes[] = { "prd", "ard", "ard", "ard",
 char const * const known_sizes[] = { "tiny", "scriptsize", "footnotesize",
 "small", "normalsize", "large", "Large", "LARGE", "huge", "Huge", 0};
 
-/// the same as known_sizes with .lyx names plus a default entry
-char const * const known_coded_sizes[] = { "default", "tiny", "scriptsize", "footnotesize",
+/// the same as known_sizes with .lyx names
+char const * const known_coded_sizes[] = { "tiny", "scriptsize", "footnotesize",
 "small", "normal", "large", "larger", "largest", "huge", "giant", 0};
 
 /// LaTeX 2.09 names for font families
@@ -191,27 +192,36 @@ char const * const known_tex_extensions[] = {"tex", 0};
 
 /// spaces known by InsetSpace
 char const * const known_spaces[] = { " ", "space", ",", "thinspace", "quad",
-"qquad", "enspace", "enskip", "negthinspace", 0};
+"qquad", "enspace", "enskip", "negthinspace", "hfill", "dotfill", "hrulefill",
+"leftarrowfill", "rightarrowfill", "upbracefill", "downbracefill", 0};
 
 /// the same as known_spaces with .lyx names
 char const * const known_coded_spaces[] = { "space{}", "space{}",
 "thinspace{}", "thinspace{}", "quad{}", "qquad{}", "enspace{}", "enskip{}",
-"negthinspace{}", 0};
+"negthinspace{}", "hfill{}", "dotfill{}", "hrulefill{}", "leftarrowfill{}",
+"rightarrowfill{}", "upbracefill{}", "downbracefill{}", 0};
+
+/// These are translated by LyX to commands like "\\LyX{}", so we have to put
+/// them in ERT. "LaTeXe" must come before "LaTeX"!
+char const * const known_phrases[] = {"LyX", "TeX", "LaTeXe", "LaTeX", 0};
+char const * const known_coded_phrases[] = {"LyX", "TeX", "LaTeX2e", "LaTeX", 0};
+int const known_phrase_lengths[] = {3, 5, 7, 0};
 
 
-/// splits "x=z, y=b" into a map
-map<string, string> split_map(string const & s)
+/// splits "x=z, y=b" into a map and an ordered keyword vector
+void split_map(string const & s, map<string, string> & res, vector<string> & keys)
 {
-	map<string, string> res;
 	vector<string> v;
 	split(s, v);
+	res.clear();
+	keys.resize(v.size());
 	for (size_t i = 0; i < v.size(); ++i) {
 		size_t const pos   = v[i].find('=');
-		string const index = v[i].substr(0, pos);
-		string const value = v[i].substr(pos + 1, string::npos);
-		res[trim(index)] = trim(value);
+		string const index = trim(v[i].substr(0, pos));
+		string const value = trim(v[i].substr(pos + 1, string::npos));
+		res[index] = value;
+		keys[i] = index;
 	}
-	return res;
 }
 
 
@@ -355,22 +365,31 @@ void begin_inset(ostream & os, string const & name)
 }
 
 
+void begin_command_inset(ostream & os, string const & name,
+                         string const & latexname)
+{
+	begin_inset(os, "CommandInset ");
+	os << name << "\nLatexCommand " << latexname << '\n';
+}
+
+
 void end_inset(ostream & os)
 {
 	os << "\n\\end_inset\n\n";
 }
 
 
-void skip_braces(Parser & p)
+bool skip_braces(Parser & p)
 {
 	if (p.next_token().cat() != catBegin)
-		return;
+		return false;
 	p.get_token();
 	if (p.next_token().cat() == catEnd) {
 		p.get_token();
-		return;
+		return true;
 	}
 	p.putback();
+	return false;
 }
 
 
@@ -428,13 +447,62 @@ Layout const * findLayout(TextClass const & textclass, string const & name)
 }
 
 
+InsetLayout const * findInsetLayout(TextClass const & textclass, string const & name, bool command)
+{
+	DocumentClass::InsetLayouts::const_iterator it = textclass.insetLayouts().begin();
+	DocumentClass::InsetLayouts::const_iterator en = textclass.insetLayouts().end();
+	for (; it != en; ++it)
+		if (it->second.latexname() == name &&
+		    ((command && it->second.latextype() == InsetLayout::COMMAND) ||
+		     (!command && it->second.latextype() == InsetLayout::ENVIRONMENT)))
+			return &(it->second);
+	return 0;
+}
+
+
 void eat_whitespace(Parser &, ostream &, Context &, bool);
+
+
+/*!
+ * Skips whitespace and braces.
+ * This should be called after a command has been parsed that is not put into
+ * ERT, and where LyX adds "{}" if needed.
+ */
+void skip_spaces_braces(Parser & p, bool keepws = false)
+{
+	/* The following four examples produce the same typeset output and
+	   should be handled by this function:
+	   - abc \j{} xyz
+	   - abc \j {} xyz
+	   - abc \j 
+	     {} xyz
+	   - abc \j %comment
+	     {} xyz
+	 */
+	// Unfortunately we need to skip comments, too.
+	// We can't use eat_whitespace since writing them after the {}
+	// results in different output in some cases.
+	bool const skipped_spaces = p.skip_spaces(true);
+	bool const skipped_braces = skip_braces(p);
+	if (keepws && skipped_spaces && !skipped_braces)
+		// put back the space (it is better handled by check_space)
+		p.unskip_spaces(true);
+}
 
 
 void output_command_layout(ostream & os, Parser & p, bool outer,
 			   Context & parent_context,
 			   Layout const * newlayout)
 {
+	TeXFont const oldFont = parent_context.font;
+	// save the current font size
+	string const size = oldFont.size;
+	// reset the font size to default, because the font size switches
+	// don't affect section headings and the like
+	parent_context.font.size = Context::normalfont.size;
+	// we only need to write the font change if we have an open layout
+	if (!parent_context.atParagraphStart())
+		output_font_change(os, oldFont, parent_context.font);
 	parent_context.check_end_layout(os);
 	Context context(true, parent_context.textclass, newlayout,
 			parent_context.layout, parent_context.font);
@@ -446,16 +514,32 @@ void output_command_layout(ostream & os, Parser & p, bool outer,
 	}
 	context.check_deeper(os);
 	context.check_layout(os);
-	if (context.layout->optionalargs > 0) {
+	unsigned int optargs = 0;
+	while (optargs < context.layout->optargs) {
 		eat_whitespace(p, os, context, false);
-		if (p.next_token().character() == '[') {
-			p.get_token(); // eat '['
-			begin_inset(os, "OptArg\n");
-			os << "status collapsed\n\n";
-			parse_text_in_inset(p, os, FLAG_BRACK_LAST, outer, context);
-			end_inset(os);
-			eat_whitespace(p, os, context, false);
-		}
+		if (p.next_token().cat() == catEscape ||
+		    p.next_token().character() != '[') 
+			break;
+		p.get_token(); // eat '['
+		begin_inset(os, "OptArg\n");
+		os << "status collapsed\n\n";
+		parse_text_in_inset(p, os, FLAG_BRACK_LAST, outer, context);
+		end_inset(os);
+		eat_whitespace(p, os, context, false);
+		++optargs;
+	}
+	unsigned int reqargs = 0;
+	while (LYX_FORMAT >= 392 && reqargs < context.layout->reqargs) {
+		eat_whitespace(p, os, context, false);
+		if (p.next_token().cat() != catBegin)
+			break;
+		p.get_token(); // eat '{'
+		begin_inset(os, "OptArg\n");
+		os << "status collapsed\n\n";
+		parse_text_in_inset(p, os, FLAG_BRACE_LAST, outer, context);
+		end_inset(os);
+		eat_whitespace(p, os, context, false);
+		++reqargs;
 	}
 	parse_text(p, os, FLAG_ITEM, outer, context);
 	context.check_end_layout(os);
@@ -468,6 +552,9 @@ void output_command_layout(ostream & os, Parser & p, bool outer,
 	// We don't need really a new paragraph, but
 	// we must make sure that the next item gets a \begin_layout.
 	parent_context.new_paragraph(os);
+	// Set the font size to the original value. No need to output it here
+	// (Context::begin_layout() will do that if needed)
+	parent_context.font.size = size;
 }
 
 
@@ -525,12 +612,22 @@ void parse_arguments(string const & command,
 			parse_text(p, os, FLAG_ITEM, outer, context);
 			ert = "}";
 			break;
+		case item:
+			// This argument consists only of a single item.
+			// The presence of '{' or not must be preserved.
+			p.skip_spaces();
+			if (p.next_token().cat() == catBegin)
+				ert += '{' + p.verbatim_item() + '}';
+			else
+				ert += p.verbatim_item();
+			break;
 		case verbatim:
 			// This argument may contain special characters
 			ert += '{' + p.verbatim_item() + '}';
 			break;
 		case optional:
-			ert += p.getOpt();
+			// true because we must not eat whitespace
+			ert += p.getOpt(true);
 			break;
 		}
 	}
@@ -567,17 +664,17 @@ void parse_box(Parser & p, ostream & os, unsigned flags, bool outer,
 	string height_unit = "in";
 	string height_special = "totalheight";
 	string latex_height;
-	if (p.next_token().asInput() == "[") {
+	if (p.hasOpt()) {
 		position = p.getArg('[', ']');
 		if (position != "t" && position != "c" && position != "b") {
 			position = "c";
 			cerr << "invalid position for minipage/parbox" << endl;
 		}
-		if (p.next_token().asInput() == "[") {
+		if (p.hasOpt()) {
 			latex_height = p.getArg('[', ']');
 			translate_box_len(latex_height, height_value, height_unit, height_special);
 
-			if (p.next_token().asInput() == "[") {
+			if (p.hasOpt()) {
 				inner_pos = p.getArg('[', ']');
 				if (inner_pos != "c" && inner_pos != "t" &&
 				    inner_pos != "b" && inner_pos != "s") {
@@ -651,7 +748,8 @@ void parse_box(Parser & p, ostream & os, unsigned flags, bool outer,
 			p.skip_spaces();
 			// We add a protected space if something real follows
 			if (p.good() && p.next_token().cat() != catComment) {
-				os << "\\InsetSpace ~\n";
+				begin_inset(os, "space ~\n");
+				end_inset(os);
 			}
 		}
 #endif
@@ -687,7 +785,7 @@ void parse_unknown_environment(Parser & p, string const & name, ostream & os,
 
 
 void parse_environment(Parser & p, ostream & os, bool outer,
-		       Context & parent_context)
+                       string & last_env, Context & parent_context)
 {
 	Layout const * newlayout;
 	string const name = p.getArg('{', '}');
@@ -717,9 +815,8 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		eat_whitespace(p, os, parent_context, false);
 		parent_context.check_layout(os);
 		begin_inset(os, "Float " + unstarred_name + "\n");
-		if (p.next_token().asInput() == "[") {
+		if (p.hasOpt())
 			os << "placement " << p.getArg('[', ']') << '\n';
-		}
 		os << "wide " << convert<string>(is_starred)
 		   << "\nsideways false"
 		   << "\nstatus open\n\n";
@@ -758,21 +855,23 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		p.skip_spaces();
 	}
 
-	else if (name == "framed") {
+	else if (name == "framed" || name == "shaded") {
 		eat_whitespace(p, os, parent_context, false);
 		parent_context.check_layout(os);
-		begin_inset(os, "Note Framed\n");
-		os << "status open\n";
-		parse_text_in_inset(p, os, FLAG_END, outer, parent_context);
-		end_inset(os);
-		p.skip_spaces();
-	}
-
-	else if (name == "shaded") {
-		eat_whitespace(p, os, parent_context, false);
-		parent_context.check_layout(os);
-		begin_inset(os, "Note Shaded\n");
-		os << "status open\n";
+		if (name == "framed")
+			begin_inset(os, "Box Framed\n");
+		else
+			begin_inset(os, "Box Shaded\n");
+		os << "position \"t\"\n"
+		      "hor_pos \"c\"\n"
+		      "has_inner_box 0\n"
+		      "inner_pos \"t\"\n"
+		      "use_parbox 0\n"
+		      "width \"100col%\"\n"
+		      "special \"none\"\n"
+		      "height \"1in\"\n"
+		      "height_special \"totalheight\"\n"
+		      "status open\n";
 		parse_text_in_inset(p, os, FLAG_END, outer, parent_context);
 		end_inset(os);
 		p.skip_spaces();
@@ -834,6 +933,28 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 			context.need_end_deeper = true;
 		}
 		parent_context.check_end_layout(os);
+		if (last_env == name) {
+			// we need to output a separator since LyX would export
+			// the two environments as one otherwise (bug 5716)
+			docstring const sep = from_ascii("--Separator--");
+			TeX2LyXDocClass const & textclass(parent_context.textclass);
+			if (textclass.hasLayout(sep)) {
+				Context newcontext(parent_context);
+				newcontext.layout = &(textclass[sep]);
+				newcontext.check_layout(os);
+				newcontext.check_end_layout(os);
+			} else {
+				parent_context.check_layout(os);
+				begin_inset(os, "Note Note\n");
+				os << "status closed\n";
+				Context newcontext(true, textclass,
+						&(textclass.defaultLayout()));
+				newcontext.check_layout(os);
+				newcontext.check_end_layout(os);
+				end_inset(os);
+				parent_context.check_end_layout(os);
+			}
+		}
 		switch (context.layout->latextype) {
 		case  LATEX_LIST_ENVIRONMENT:
 			context.add_par_extra_stuff("\\labelwidthstring "
@@ -908,6 +1029,7 @@ void parse_environment(Parser & p, ostream & os, bool outer,
 		parse_unknown_environment(p, name, os, FLAG_END, outer,
 					  parent_context);
 
+	last_env = name;
 	active_environments.pop_back();
 }
 
@@ -1033,7 +1155,7 @@ void fix_relative_filename(string & name)
 	if (FileName::isAbsolute(name))
 		return;
 
-	name = to_utf8(makeRelPath(from_utf8(makeAbsPath(name, getMasterFilePath()).absFilename()),
+	name = to_utf8(makeRelPath(from_utf8(makeAbsPath(name, getMasterFilePath()).absFileName()),
 				   from_utf8(getParentFilePath())));
 }
 
@@ -1081,8 +1203,12 @@ void parse_noweb(Parser & p, ostream & os, Context & context)
 		// at all.
 		if (t.cat() == catEscape)
 			os << subst(t.asInput(), "\\", "\n\\backslash\n");
-		else
-			os << subst(t.asInput(), "\n", "\n\\newline\n");
+		else {
+			ostringstream oss;
+			begin_inset(oss, "Newline newline");
+			end_inset(oss);
+			os << subst(t.asInput(), "\n", oss.str());
+		}
 		// The scrap chunk is ended by an @ at the beginning of a line.
 		// After the @ the line may contain a comment and/or
 		// whitespace, but nothing else.
@@ -1106,6 +1232,114 @@ void parse_noweb(Parser & p, ostream & os, Context & context)
 	newcontext.check_end_layout(os);
 }
 
+
+/// detects \\def, \\long\\def and \\global\\long\\def with ws and comments
+bool is_macro(Parser & p)
+{
+	Token first = p.curr_token();
+	if (first.cat() != catEscape || !p.good())
+		return false;
+	if (first.cs() == "def")
+		return true;
+	if (first.cs() != "global" && first.cs() != "long")
+		return false;
+	Token second = p.get_token();
+	int pos = 1;
+	while (p.good() && !p.isParagraph() && (second.cat() == catSpace ||
+	       second.cat() == catNewline || second.cat() == catComment)) {
+		second = p.get_token();
+		pos++;
+	}
+	bool secondvalid = second.cat() == catEscape;
+	Token third;
+	bool thirdvalid = false;
+	if (p.good() && first.cs() == "global" && secondvalid &&
+	    second.cs() == "long") {
+		third = p.get_token();
+		pos++;
+		while (p.good() && !p.isParagraph() &&
+		       (third.cat() == catSpace ||
+		        third.cat() == catNewline ||
+		        third.cat() == catComment)) {
+			third = p.get_token();
+			pos++;
+		}
+		thirdvalid = third.cat() == catEscape;
+	}
+	for (int i = 0; i < pos; ++i)
+		p.putback();
+	if (!secondvalid)
+		return false;
+	if (!thirdvalid)
+		return (first.cs() == "global" || first.cs() == "long") &&
+		       second.cs() == "def";
+	return first.cs() == "global" && second.cs() == "long" &&
+	       third.cs() == "def";
+}
+
+
+/// Parse a macro definition (assumes that is_macro() returned true)
+void parse_macro(Parser & p, ostream & os, Context & context)
+{
+	context.check_layout(os);
+	Token first = p.curr_token();
+	Token second;
+	Token third;
+	string command = first.asInput();
+	if (first.cs() != "def") {
+		p.get_token();
+		eat_whitespace(p, os, context, false);
+		second = p.curr_token();
+		command += second.asInput();
+		if (second.cs() != "def") {
+			p.get_token();
+			eat_whitespace(p, os, context, false);
+			third = p.curr_token();
+			command += third.asInput();
+		}
+	}
+	eat_whitespace(p, os, context, false);
+	string const name = p.get_token().cs();
+	eat_whitespace(p, os, context, false);
+
+	// parameter text
+	bool simple = true;
+	string paramtext;
+	int arity = 0;
+	while (p.next_token().cat() != catBegin) {
+		if (p.next_token().cat() == catParameter) {
+			// # found
+			p.get_token();
+			paramtext += "#";
+
+			// followed by number?
+			if (p.next_token().cat() == catOther) {
+				char c = p.getChar();
+				paramtext += c;
+				// number = current arity + 1?
+				if (c == arity + '0' + 1)
+					++arity;
+				else
+					simple = false;
+			} else
+				paramtext += p.get_token().cs();
+		} else {
+			paramtext += p.get_token().cs();
+			simple = false;
+		}
+	}
+
+	// only output simple (i.e. compatible) macro as FormulaMacros
+	string ert = '\\' + name + ' ' + paramtext + '{' + p.verbatim_item() + '}';
+	if (simple) {
+		context.check_layout(os);
+		begin_inset(os, "FormulaMacro");
+		os << "\n\\def" << ert;
+		end_inset(os);
+	} else
+		handle_ert(os, command + ert, context);
+}
+
 } // anonymous namespace
 
 
@@ -1113,15 +1347,19 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		Context & context)
 {
 	Layout const * newlayout = 0;
-	// Store the latest bibliographystyle (needed for bibtex inset)
+	InsetLayout const * newinsetlayout = 0;
+	// Store the latest bibliographystyle and nocite{*} option
+	// (needed for bibtex inset)
+	string btprint;
 	string bibliographystyle;
 	bool const use_natbib = used_packages.find("natbib") != used_packages.end();
 	bool const use_jurabib = used_packages.find("jurabib") != used_packages.end();
+	string last_env;
 	while (p.good()) {
 		Token const & t = p.get_token();
 
 #ifdef FILEDEBUG
-		cerr << "t: " << t << " flags: " << flags << "\n";
+		debugToken(cerr, t, flags);
 #endif
 
 		if (flags & FLAG_ITEM) {
@@ -1140,8 +1378,17 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			flags |= FLAG_LEAVE;
 		}
 
-		if (t.character() == ']' && (flags & FLAG_BRACK_LAST))
+		if (t.cat() != catEscape && t.character() == ']' &&
+		    (flags & FLAG_BRACK_LAST))
 			return;
+		if (t.cat() == catEnd && (flags & FLAG_BRACE_LAST))
+			return;
+
+		// If there is anything between \end{env} and \begin{env} we
+		// don't need to output a separator.
+		if (t.cat() != catSpace && t.cat() != catNewline &&
+		    t.asInput() != "\\begin")
+			last_env = "";
 
 		//
 		// cat codes
@@ -1231,8 +1478,33 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			handle_ert(os, s, context);
 		}
 
-		else if (t.cat() == catLetter ||
-			       t.cat() == catOther ||
+		else if (t.cat() == catLetter) {
+			context.check_layout(os);
+			// Workaround for bug 4752.
+			// FIXME: This whole code block needs to be removed
+			//        when the bug is fixed and tex2lyx produces
+			//        the updated file format.
+			// The replacement algorithm in LyX is so stupid that
+			// it even translates a phrase if it is part of a word.
+			bool handled = false;
+			for (int const * l = known_phrase_lengths; *l; ++l) {
+				string phrase = t.cs();
+				for (int i = 1; i < *l && p.next_token().isAlnumASCII(); ++i)
+					phrase += p.get_token().cs();
+				if (is_known(phrase, known_coded_phrases)) {
+					handle_ert(os, phrase, context);
+					handled = true;
+					break;
+				} else {
+					for (size_t i = 1; i < phrase.length(); ++i)
+						p.putback();
+				}
+			}
+			if (!handled)
+				os << t.cs();
+		}
+
+		else if (t.cat() == catOther ||
 			       t.cat() == catAlign ||
 			       t.cat() == catParameter) {
 			// This translates "&" to "\\&" which may be wrong...
@@ -1253,8 +1525,10 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			if (t.character() == '~') {
 				if (context.layout->free_spacing)
 					os << ' ';
-				else
-					os << "\\InsetSpace ~\n";
+				else {
+					begin_inset(os, "space ~\n");
+					end_inset(os);
+				}
 			} else
 				os << t.cs();
 		}
@@ -1387,7 +1661,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		}
 
 		else if (t.cs() == "begin")
-			parse_environment(p, os, outer, context);
+			parse_environment(p, os, outer, last_env, context);
 
 		else if (t.cs() == "end") {
 			if (flags & FLAG_END) {
@@ -1405,7 +1679,8 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			p.skip_spaces();
 			string s;
 			bool optarg = false;
-			if (p.next_token().character() == '[') {
+			if (p.next_token().cat() != catEscape &&
+			    p.next_token().character() == '[') {
 				p.get_token(); // eat '['
 				s = parse_text_snippet(p, FLAG_BRACK_LAST,
 						       outer, context);
@@ -1441,56 +1716,14 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		else if (t.cs() == "bibitem") {
 			context.set_item();
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "bibitem", "bibitem");
 			os << "label \"" << p.getOptContent() << "\"\n";
 			os << "key \"" << p.verbatim_item() << "\"\n";
 			end_inset(os);
 		}
 
-		else if (t.cs() == "def") {
-			context.check_layout(os);
-			eat_whitespace(p, os, context, false);
-			string name = p.get_token().cs();
-			eat_whitespace(p, os, context, false);
-
-			// parameter text
-			bool simple = true;
-			string paramtext;
-			int arity = 0;
-			while (p.next_token().cat() != catBegin) {
-				if (p.next_token().cat() == catParameter) {
-					// # found
-					p.get_token();
-					paramtext += "#";
-
-					// followed by number?
-					if (p.next_token().cat() == catOther) {
-						char c = p.getChar();
-						paramtext += c;
-						// number = current arity + 1?
-						if (c == arity + '0' + 1)
-							++arity;
-						else
-							simple = false;
-					} else
-						paramtext += p.get_token().asString();
-				} else {
-					paramtext += p.get_token().asString();
-					simple = false;
-				}
-			}
-
-			// only output simple (i.e. compatible) macro as FormulaMacros
-			string ert = "\\def\\" + name + ' ' + paramtext + '{' + p.verbatim_item() + '}';
-			if (simple) {
-				context.check_layout(os);
-				begin_inset(os, "FormulaMacro");
-				os << "\n" << ert;
-				end_inset(os);
-			} else
-				handle_ert(os, ert, context);
-		}
+		else if (is_macro(p))
+			parse_macro(p, os, context);
 
 		else if (t.cs() == "noindent") {
 			p.skip_spaces();
@@ -1526,20 +1759,9 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			 context.new_layout_allowed &&
 			 (newlayout = findLayout(context.textclass, t.cs() + '*')) &&
 			 newlayout->isCommand()) {
-			TeXFont const oldFont = context.font;
-			// save the current font size
-			string const size = oldFont.size;
-			// reset the font size to default, because the
-			// font size switches don't affect section
-			// headings and the like
-			context.font.size = known_coded_sizes[0];
-			output_font_change(os, oldFont, context.font);
 			// write the layout
 			p.get_token();
 			output_command_layout(os, p, outer, context, newlayout);
-			// set the font size to the original value
-			context.font.size = size;
-			output_font_change(os, oldFont, context.font);
 			p.skip_spaces();
 		}
 
@@ -1547,33 +1769,21 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		else if (context.new_layout_allowed &&
 			 (newlayout = findLayout(context.textclass, t.cs())) &&
 			 newlayout->isCommand()) {
-			TeXFont const oldFont = context.font;
-			// save the current font size
-			string const size = oldFont.size;
-			// reset the font size to default, because the font size switches don't
-			// affect section headings and the like
-			context.font.size = known_coded_sizes[0];
-			output_font_change(os, oldFont, context.font);
 			// write the layout
 			output_command_layout(os, p, outer, context, newlayout);
-			// set the font size to the original value
-			context.font.size = size;
-			output_font_change(os, oldFont, context.font);
 			p.skip_spaces();
 		}
 
 		else if (t.cs() == "caption") {
-			// FIXME: this should get some cleanup. All
-			// the \begin_layout:s are output by the
-			// Context class!
 			p.skip_spaces();
 			context.check_layout(os);
 			p.skip_spaces();
 			begin_inset(os, "Caption\n\n");
-			os << "\\begin_layout " 
-			   << to_utf8(context.textclass.defaultLayout().name()) 
-			   << '\n';
-			if (p.next_token().character() == '[') {
+			Context newcontext(true, context.textclass);
+			newcontext.font = context.font;
+			newcontext.check_layout(os);
+			if (p.next_token().cat() != catEscape &&
+			    p.next_token().character() == '[') {
 				p.get_token(); // eat '['
 				begin_inset(os, "OptArg\n");
 				os << "status collapsed\n";
@@ -1588,14 +1798,17 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			context.new_paragraph(os);
 			end_inset(os);
 			p.skip_spaces();
-			os << "\\end_layout\n";
+			newcontext.check_end_layout(os);
 		}
 
 		else if (t.cs() == "includegraphics") {
 			bool const clip = p.next_token().asInput() == "*";
 			if (clip)
 				p.get_token();
-			map<string, string> opts = split_map(p.getArg('[', ']'));
+			string const arg = p.getArg('[', ']');
+			map<string, string> opts;
+			vector<string> keys;
+			split_map(arg, opts, keys);
 			if (clip)
 				opts["clip"] = string();
 			string name = normalize_filename(p.verbatim_item());
@@ -1629,8 +1842,10 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 						     << endl;
 					}
 					name = dvips_name;
-				} else if (!pdftex_name.empty())
+				} else if (!pdftex_name.empty()) {
 					name = pdftex_name;
+					pdflatex = true;
+				}
 			}
 
 			if (makeAbsPath(name, path).exists())
@@ -1655,9 +1870,20 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				val = val*100;
 				os << "\tscale " << val << '\n';
 			}
-			if (opts.find("angle") != opts.end())
+			if (opts.find("angle") != opts.end()) {
 				os << "\trotateAngle "
 				   << opts["angle"] << '\n';
+				vector<string>::const_iterator a =
+					find(keys.begin(), keys.end(), "angle");
+				vector<string>::const_iterator s =
+					find(keys.begin(), keys.end(), "width");
+				if (s == keys.end())
+					s = find(keys.begin(), keys.end(), "height");
+				if (s == keys.end())
+					s = find(keys.begin(), keys.end(), "scale");
+				if (s != keys.end() && distance(s, a) > 0)
+					os << "\tscaleBeforeRotation\n";
+			}
 			if (opts.find("origin") != opts.end()) {
 				ostringstream ss;
 				string const opt = opts["origin"];
@@ -1765,48 +1991,37 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					   context);
 		}
 
-		else if (t.cs() == "hfill") {
-			context.check_layout(os);
-			os << "\n\\hfill\n";
-			skip_braces(p);
-			p.skip_spaces();
-		}
-
 		else if (t.cs() == "makeindex" || t.cs() == "maketitle") {
 			// FIXME: Somehow prevent title layouts if
 			// "maketitle" was not found
-			p.skip_spaces();
-			skip_braces(p); // swallow this
+			// swallow this
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "tableofcontents") {
-			p.skip_spaces();
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "toc", "tableofcontents");
 			end_inset(os);
-			skip_braces(p); // swallow this
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "listoffigures") {
-			p.skip_spaces();
 			context.check_layout(os);
 			begin_inset(os, "FloatList figure\n");
 			end_inset(os);
-			skip_braces(p); // swallow this
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "listoftables") {
-			p.skip_spaces();
 			context.check_layout(os);
 			begin_inset(os, "FloatList table\n");
 			end_inset(os);
-			skip_braces(p); // swallow this
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "listof") {
 			p.skip_spaces(true);
-			string const name = p.get_token().asString();
+			string const name = p.get_token().cs();
 			if (context.textclass.floats().typeExist(name)) {
 				context.check_layout(os);
 				begin_inset(os, "FloatList ");
@@ -1919,10 +2134,17 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			os << "\\lyxline";
 		}
 
+		else if (is_known(t.cs(), known_phrases)) {
+			// FIXME: This needs to be changed when bug 4752 is fixed.
+			char const * const * where = is_known(t.cs(), known_phrases);
+			context.check_layout(os);
+			os << known_coded_phrases[where - known_phrases];
+			skip_spaces_braces(p);
+		}
+
 		else if (is_known(t.cs(), known_ref_commands)) {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "ref", t.cs());
 			// LyX cannot handle newlines in a latex command
 			// FIXME: Move the substitution into parser::getOpt()?
 			os << subst(p.getOpt(), "\n", " ");
@@ -1982,8 +2204,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				// LyX cannot handle newlines in the parameter
 				before = subst(before, "\n", " ");
 			}
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "citation", command);
 			os << "after " << '"' << after << '"' << "\n";
 			os << "before " << '"' << before << '"' << "\n";
 			os << "key " << '"' << p.verbatim_item() << '"' << "\n";
@@ -1991,9 +2212,14 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		}
 
 		else if (use_jurabib &&
-			 is_known(t.cs(), known_jurabib_commands)) {
+			 is_known(t.cs(), known_jurabib_commands) &&
+		         (t.cs() == "cite" || p.next_token().asInput() != "*")) {
 			context.check_layout(os);
-			string const command = t.cs();
+			string command = t.cs();
+			if (p.next_token().asInput() == "*") {
+				command += '*';
+				p.get_token();
+			}
 			char argumentOrder = '\0';
 			vector<string> const & options = used_packages["jurabib"];
 			if (find(options.begin(), options.end(),
@@ -2027,38 +2253,41 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				before.erase(0, 1);
 				before.erase(before.length() - 1, 1);
 			}
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "citation", command);
 			os << "after " << '"' << after << '"' << "\n";
 			os << "before " << '"' << before << '"' << "\n";
 			os << "key " << '"' << citation << '"' << "\n";
 			end_inset(os);
 		}
 
-		else if (t.cs() == "cite") {
+		else if (t.cs() == "cite"
+			|| t.cs() == "nocite") {
 			context.check_layout(os);
 			// LyX cannot handle newlines in a latex command
 			string after = subst(p.getOptContent(), "\n", " ");
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
-			os << "after " << '"' << after << '"' << "\n";
-			os << "key " << '"' << subst(p.verbatim_item(), "\n", " ") << '"' << "\n";
-			end_inset(os);
+			string key = subst(p.verbatim_item(), "\n", " ");
+			// store the case that it is "\nocite{*}" to use it later for
+			// the BibTeX inset
+			if (key != "*") {
+				begin_command_inset(os, "citation", t.cs());
+				os << "after " << '"' << after << '"' << "\n";
+				os << "key " << '"' << key << '"' << "\n";
+				end_inset(os);
+			} else if (t.cs() == "nocite")
+				btprint = key;
 		}
 
 		else if (t.cs() == "index") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
-			// LyX cannot handle newlines in a latex command
-			os << "name " << '"' << subst(p.verbatim_item(), "\n", " ") << '"' << "\n";
+			begin_inset(os, "Index\n");
+			os << "status collapsed\n";
+			parse_text_in_inset(p, os, FLAG_ITEM, false, context);
 			end_inset(os);
 		}
 
 		else if (t.cs() == "nomenclature") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "nomenclature", "nomenclature");
 			// LyX cannot handle newlines in a latex command
 			string prefix = subst(p.getOptContent(), "\n", " ");
 			if (!prefix.empty())
@@ -2070,8 +2299,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		
 		else if (t.cs() == "label") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "label", "label");
 			// LyX cannot handle newlines in a latex command
 			os << "name " << '"' << subst(p.verbatim_item(), "\n", " ") << '"' << "\n";
 			end_inset(os);
@@ -2079,26 +2307,32 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "printindex") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "index_print", "printindex");
 			end_inset(os);
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "printnomenclature") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
+			begin_command_inset(os, "nomencl_print", "printnomenclature");
 			end_inset(os);
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "url") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << t.cs() << "\n";
-			// LyX cannot handle newlines in a latex command
-			os << "target " << '"' << subst(p.verbatim_item(), "\n", " ") << '"' << "\n";
+			begin_inset(os, "Flex URL\n");
+			os << "status collapsed\n";
+			parse_text_in_inset(p, os, FLAG_ITEM, false, context);
+			end_inset(os);
+		}
+
+		else if (LYX_FORMAT >= 408 &&
+		         (t.cs() == "textsuperscript" || t.cs() == "textsubscript")) {
+			context.check_layout(os);
+			begin_inset(os, "script ");
+			os << t.cs().substr(4) << '\n';
+			parse_text_in_inset(p, os, FLAG_ITEM, false, context);
 			end_inset(os);
 		}
 
@@ -2120,9 +2354,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			char const * const * where = is_known(t.cs(), known_sizes);
 			context.check_layout(os);
 			TeXFont const oldFont = context.font;
-			// the font size index differs by 1, because the known_coded_sizes
-			// has additionally a "default" entry
-			context.font.size = known_coded_sizes[where - known_sizes + 1];
+			context.font.size = known_coded_sizes[where - known_sizes];
 			output_font_change(os, oldFont, context.font);
 			eat_whitespace(p, os, context, false);
 		}
@@ -2209,12 +2441,14 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			// save the language for the case that a
 			// \foreignlanguage is used 
 
+			// FIXME: \lang needs a LyX name, but we set a LaTeX name
 			context.font.language = subst(p.verbatim_item(), "\n", " ");
 			os << "\\lang " << context.font.language << "\n";
 		}
 
 		else if (t.cs() == "foreignlanguage") {
 			context.check_layout(os);
+			// FIXME: \lang needs a LyX name, but we set a LaTeX name
 			os << "\n\\lang " << subst(p.verbatim_item(), "\n", " ") << "\n";
 			os << subst(p.verbatim_item(), "\n", " ");
 			// FIXME: the second argument of selectlanguage
@@ -2230,35 +2464,34 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			p.setEncoding(enc);
 		}
 
-		else if (t.cs() == "LyX" || t.cs() == "TeX"
-			 || t.cs() == "LaTeX") {
-			context.check_layout(os);
-			os << t.cs();
-			skip_braces(p); // eat {}
-		}
-
-		else if (t.cs() == "LaTeXe") {
-			context.check_layout(os);
-			os << "LaTeX2e";
-			skip_braces(p); // eat {}
-		}
-
 		else if (t.cs() == "ldots") {
 			context.check_layout(os);
-			skip_braces(p);
 			os << "\\SpecialChar \\ldots{}\n";
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "lyxarrow") {
 			context.check_layout(os);
 			os << "\\SpecialChar \\menuseparator\n";
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "textcompwordmark") {
 			context.check_layout(os);
 			os << "\\SpecialChar \\textcompwordmark{}\n";
-			skip_braces(p);
+			skip_spaces_braces(p);
+		}
+
+		else if (t.cs() == "slash") {
+			context.check_layout(os);
+			os << "\\SpecialChar \\slash{}\n";
+			skip_spaces_braces(p);
+		}
+
+		else if (t.cs() == "nobreakdash" && p.next_token().asInput() == "-") {
+			context.check_layout(os);
+			os << "\\SpecialChar \\nobreakdash-\n";
+			p.get_token();
 		}
 
 		else if (t.cs() == "textquotedbl") {
@@ -2281,19 +2514,19 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		else if (t.cs() == "textasciitilde") {
 			context.check_layout(os);
 			os << '~';
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "textasciicircum") {
 			context.check_layout(os);
 			os << '^';
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "textbackslash") {
 			context.check_layout(os);
 			os << "\n\\backslash\n";
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "_" || t.cs() == "&" || t.cs() == "#"
@@ -2357,32 +2590,37 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 
 		else if (t.cs() == "\\") {
 			context.check_layout(os);
-			string const next = p.next_token().asInput();
-			if (next == "[")
+			if (p.hasOpt())
 				handle_ert(os, "\\\\" + p.getOpt(), context);
-			else if (next == "*") {
+			else if (p.next_token().asInput() == "*") {
 				p.get_token();
+				// getOpt() eats the following space if there
+				// is no optional argument, but that is OK
+				// here since it has no effect in the output.
 				handle_ert(os, "\\\\*" + p.getOpt(), context);
 			}
 			else {
-				os << "\n\\newline\n";
+				begin_inset(os, "Newline newline");
+				end_inset(os);
 			}
 		}
 
-		else if (t.cs() == "newline") {
+		else if (t.cs() == "newline" ||
+		         (t.cs() == "linebreak" && !p.hasOpt())) {
 			context.check_layout(os);
-			os << "\n\\" << t.cs() << "\n";
-			skip_braces(p); // eat {}
+			begin_inset(os, "Newline ");
+			os << t.cs();
+			end_inset(os);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "input" || t.cs() == "include"
 			 || t.cs() == "verbatiminput") {
-			string name = '\\' + t.cs();
+			string name = t.cs();
 			if (t.cs() == "verbatiminput"
 			    && p.next_token().asInput() == "*")
 				name += p.get_token().asInput();
 			context.check_layout(os);
-			begin_inset(os, "Include ");
 			string filename(normalize_filename(p.getArg('{', '}')));
 			string const path = getMasterFilePath();
 			// We want to preserve relative / absolute filenames,
@@ -2397,42 +2635,129 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				if (!tex_name.empty())
 					filename = tex_name;
 			}
+			bool external = false;
+			string outname;
 			if (makeAbsPath(filename, path).exists()) {
 				string const abstexname =
-					makeAbsPath(filename, path).absFilename();
+					makeAbsPath(filename, path).absFileName();
 				string const abslyxname =
 					changeExtension(abstexname, ".lyx");
+				string const absfigname =
+					changeExtension(abstexname, ".fig");
 				fix_relative_filename(filename);
 				string const lyxname =
 					changeExtension(filename, ".lyx");
-				if (t.cs() != "verbatiminput" &&
+				bool xfig = false;
+				external = FileName(absfigname).exists();
+				if (t.cs() == "input") {
+					string const ext = getExtension(abstexname);
+
+					// Combined PS/LaTeX:
+					// x.eps, x.pstex_t (old xfig)
+					// x.pstex, x.pstex_t (new xfig, e.g. 3.2.5)
+					FileName const absepsname(
+						changeExtension(abstexname, ".eps"));
+					FileName const abspstexname(
+						changeExtension(abstexname, ".pstex"));
+					bool const xfigeps =
+						(absepsname.exists() ||
+						 abspstexname.exists()) &&
+						ext == "pstex_t";
+
+					// Combined PDF/LaTeX:
+					// x.pdf, x.pdftex_t (old xfig)
+					// x.pdf, x.pdf_t (new xfig, e.g. 3.2.5)
+					FileName const abspdfname(
+						changeExtension(abstexname, ".pdf"));
+					bool const xfigpdf =
+						abspdfname.exists() &&
+						(ext == "pdftex_t" || ext == "pdf_t");
+					if (xfigpdf)
+						pdflatex = true;
+
+					// Combined PS/PDF/LaTeX:
+					// x_pspdftex.eps, x_pspdftex.pdf, x.pspdftex
+					string const absbase2(
+						removeExtension(abstexname) + "_pspdftex");
+					FileName const abseps2name(
+						addExtension(absbase2, ".eps"));
+					FileName const abspdf2name(
+						addExtension(absbase2, ".pdf"));
+					bool const xfigboth =
+						abspdf2name.exists() &&
+						abseps2name.exists() && ext == "pspdftex";
+
+					xfig = xfigpdf || xfigeps || xfigboth;
+					external = external && xfig;
+				}
+				if (external) {
+					outname = changeExtension(filename, ".fig");
+				} else if (xfig) {
+					// Don't try to convert, the result
+					// would be full of ERT.
+					outname = filename;
+				} else if (t.cs() != "verbatiminput" &&
 				    tex2lyx(abstexname, FileName(abslyxname),
 					    p.getEncoding())) {
-					os << name << '{' << lyxname << "}\n";
+					outname = lyxname;
 				} else {
-					os << name << '{' << filename << "}\n";
+					outname = filename;
 				}
 			} else {
 				cerr << "Warning: Could not find included file '"
 				     << filename << "'." << endl;
-				os << name << '{' << filename << "}\n";
+				outname = filename;
 			}
-			os << "preview false\n";
+			if (external) {
+				begin_inset(os, "External\n");
+				os << "\ttemplate XFig\n"
+				   << "\tfilename " << outname << '\n';
+			} else {
+				begin_command_inset(os, "include", name);
+				os << "preview false\n"
+				      "filename \"" << outname << "\"\n";
+			}
 			end_inset(os);
 		}
 
 		else if (t.cs() == "bibliographystyle") {
 			// store new bibliographystyle
 			bibliographystyle = p.verbatim_item();
-			// output new bibliographystyle.
-			// This is only necessary if used in some other macro than \bibliography.
-			handle_ert(os, "\\bibliographystyle{" + bibliographystyle + "}", context);
+			// If any other command than \bibliography and
+			// \nocite{*} follows, we need to output the style
+			// (because it might be used by that command).
+			// Otherwise, it will automatically be output by LyX.
+			p.pushPosition();
+			bool output = true;
+			for (Token t2 = p.get_token(); p.good(); t2 = p.get_token()) {
+				if (t2.cat() == catBegin)
+					break;
+				if (t2.cat() != catEscape)
+					continue;
+				if (t2.cs() == "nocite") {
+					if (p.getArg('{', '}') == "*")
+						continue;
+				} else if (t2.cs() == "bibliography")
+					output = false;
+				break;
+			}
+			p.popPosition();
+			if (output) {
+				handle_ert(os,
+					"\\bibliographystyle{" + bibliographystyle + '}',
+					context);
+			}
 		}
 
 		else if (t.cs() == "bibliography") {
 			context.check_layout(os);
-			begin_inset(os, "LatexCommand ");
-			os << "bibtex" << "\n";
+			begin_command_inset(os, "bibtex", "bibtex");
+			if (!btprint.empty()) {
+				os << "btprint " << '"' << "btPrintAll" << '"' << "\n";
+				// clear the string because the next BibTeX inset can be without the
+				// \nocite{*} option
+				btprint.clear();
+			}
 			os << "bibfiles " << '"' << p.verbatim_item() << '"' << "\n";
 			// Do we have a bibliographystyle set?
 			if (!bibliographystyle.empty())
@@ -2464,15 +2789,16 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			begin_inset(os, "VSpace ");
 			os << t.cs();
 			end_inset(os);
-			skip_braces(p);
+			skip_spaces_braces(p);
 		}
 
 		else if (is_known(t.cs(), known_spaces)) {
 			char const * const * where = is_known(t.cs(), known_spaces);
 			context.check_layout(os);
-			os << "\\InsetSpace ";
+			begin_inset(os, "space ");
 			os << '\\' << known_coded_spaces[where - known_spaces]
 			   << '\n';
+			end_inset(os);
 			// LaTeX swallows whitespace after all spaces except
 			// "\\,". We have to do that here, too, because LyX
 			// adds "{}" which would make the spaces significant.
@@ -2487,18 +2813,21 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 		}
 
 		else if (t.cs() == "newpage" ||
-			t.cs() == "clearpage" ||
-			t.cs() == "cleardoublepage") {
+		         (t.cs() == "pagebreak" && !p.hasOpt()) ||
+		         t.cs() == "clearpage" ||
+		         t.cs() == "cleardoublepage") {
 			context.check_layout(os);
-			os << "\n\\" << t.cs() << "\n";
-			skip_braces(p); // eat {}
+			begin_inset(os, "Newpage ");
+			os << t.cs();
+			end_inset(os);
+			skip_spaces_braces(p);
 		}
 
 		else if (t.cs() == "newcommand" ||
 			 t.cs() == "providecommand" ||
 			 t.cs() == "renewcommand") {
-			// these could be handled by parse_command(), but
-			// we need to call add_known_command() here.
+			// providecommand could be handled by parse_command(),
+			// but we need to call add_known_command() here.
 			string name = t.asInput();
 			if (p.next_token().asInput() == "*") {
 				// Starred form. Eat '*'
@@ -2513,22 +2842,60 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					   opt1 + opt2 +
 					   '{' + p.verbatim_item() + '}';
 
-			context.check_layout(os);
-			begin_inset(os, "FormulaMacro");
-			os << "\n" << ert;
-			end_inset(os);
+			if (t.cs() == "providecommand" ||
+			    name[name.length()-1] == '*')
+				handle_ert(os, ert, context);
+			else {
+				context.check_layout(os);
+				begin_inset(os, "FormulaMacro");
+				os << "\n" << ert;
+				end_inset(os);
+			}
 		}
-		
-		else if (t.cs() == "vspace") {
+
+		else if (t.cs() == "let" && p.next_token().asInput() != "*") {
+			// let could be handled by parse_command(),
+			// but we need to call add_known_command() here.
+			string ert = t.asInput();
+			string name;
+			p.skip_spaces();
+			if (p.next_token().cat() == catBegin) {
+				name = p.verbatim_item();
+				ert += '{' + name + '}';
+			} else {
+				name = p.verbatim_item();
+				ert += name;
+			}
+			string command;
+			p.skip_spaces();
+			if (p.next_token().cat() == catBegin) {
+				command = p.verbatim_item();
+				ert += '{' + command + '}';
+			} else {
+				command = p.verbatim_item();
+				ert += command;
+			}
+			// If command is known, make name known too, to parse
+			// its arguments correctly. For this reason we also
+			// have commands in syntax.default that are hardcoded.
+			CommandMap::iterator it = known_commands.find(command);
+			if (it != known_commands.end())
+				known_commands[t.asInput()] = it->second;
+			handle_ert(os, ert, context);
+		}
+
+		else if (t.cs() == "hspace" || t.cs() == "vspace") {
 			bool starred = false;
 			if (p.next_token().asInput() == "*") {
 				p.get_token();
 				starred = true;
 			}
+			string name = t.asInput();
 			string const length = p.verbatim_item();
 			string unit;
 			string valstring;
 			bool valid = splitLatexLength(length, valstring, unit);
+			bool known_hspace = false;
 			bool known_vspace = false;
 			bool known_unit = false;
 			double value;
@@ -2536,21 +2903,31 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				istringstream iss(valstring);
 				iss >> value;
 				if (value == 1.0) {
-					if (unit == "\\smallskipamount") {
-						unit = "smallskip";
-						known_vspace = true;
-					} else if (unit == "\\medskipamount") {
-						unit = "medskip";
-						known_vspace = true;
-					} else if (unit == "\\bigskipamount") {
-						unit = "bigskip";
-						known_vspace = true;
-					} else if (unit == "\\fill") {
-						unit = "vfill";
-						known_vspace = true;
+					if (t.cs()[0] == 'h') {
+						if (unit == "\\fill") {
+							if (!starred) {
+								unit = "";
+								name = "\\hfill";
+							}
+							known_hspace = true;
+						}
+					} else {
+						if (unit == "\\smallskipamount") {
+							unit = "smallskip";
+							known_vspace = true;
+						} else if (unit == "\\medskipamount") {
+							unit = "medskip";
+							known_vspace = true;
+						} else if (unit == "\\bigskipamount") {
+							unit = "bigskip";
+							known_vspace = true;
+						} else if (unit == "\\fill") {
+							unit = "vfill";
+							known_vspace = true;
+						}
 					}
 				}
-				if (!known_vspace) {
+				if (!known_hspace && !known_vspace) {
 					switch (unitFromString(unit)) {
 					case Length::SP:
 					case Length::PT:
@@ -2572,8 +2949,23 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 				}
 			}
 
-			if (known_unit || known_vspace) {
-				// Literal length or known variable
+			if (t.cs()[0] == 'h' && (known_unit || known_hspace)) {
+				// Literal horizontal length or known variable
+				context.check_layout(os);
+				begin_inset(os, "space ");
+				os << name;
+				if (starred)
+					os << '*';
+				os << '{';
+				if (known_hspace)
+					os << unit;
+				os << "}";
+				if (known_unit && !known_hspace)
+					os << "\n\\length "
+					   << translate_len(length);
+				end_inset(os);
+			} else if (known_unit || known_vspace) {
+				// Literal vertical length or known variable
 				context.check_layout(os);
 				begin_inset(os, "VSpace ");
 				if (known_unit)
@@ -2583,8 +2975,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					os << '*';
 				end_inset(os);
 			} else {
-				// LyX can't handle other length variables in Inset VSpace
-				string name = t.asInput();
+				// LyX can't handle other length variables in Inset VSpace/space
 				if (starred)
 					name += '*';
 				if (valid) {
@@ -2599,10 +2990,24 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 			}
 		}
 
+		// The single '=' is meant here.
+		else if ((newinsetlayout = findInsetLayout(context.textclass, t.cs(), true))) {
+			p.skip_spaces();
+			context.check_layout(os);
+			begin_inset(os, "Flex ");
+			os << to_utf8(newinsetlayout->name()) << '\n'
+			   << "status collapsed\n";
+			parse_text_in_inset(p, os, FLAG_ITEM, false, context);
+			end_inset(os);
+		}
+
 		else {
 			// try to see whether the string is in unicodesymbols
+			// Only use text mode commands, since we are in text mode here,
+			// and math commands may be invalid (bug 6797)
 			docstring rem;
-			docstring s = encodings.fromLaTeXCommand(from_utf8(t.asInput()), rem);
+			docstring s = encodings.fromLaTeXCommand(from_utf8(t.asInput()),
+			                                         rem, Encodings::TEXT_CMD);
 			if (!s.empty()) {
 				if (!rem.empty())
 					cerr << "When parsing " << t.cs() 
@@ -2610,8 +3015,7 @@ void parse_text(Parser & p, ostream & os, unsigned flags, bool outer,
 					     << "+" << to_utf8(rem) << endl;
 				context.check_layout(os);
 				os << to_utf8(s);
-				p.skip_spaces();
-				skip_braces(p); // eat {}
+				skip_spaces_braces(p);
 			}
 			//cerr << "#: " << t << " mode: " << mode << endl;
 			// heuristic: read up to next non-nested space

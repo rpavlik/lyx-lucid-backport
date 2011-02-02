@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass{article (REVTeX 4)}
+#  \DeclareLaTeXClass[revtex4,natbib.sty,revsymb.sty]{article (REVTeX 4)}
 # RevTeX 4 textclass definition file. Based on:
 # AMS-Article textclass definition file. Taken from initial LyX source code
 # and from the Article textclass definition file, following the AMS sample
@@ -10,7 +10,7 @@
 #          Amir Karger (RevTeX 4 beta) 9/1999, 7/2000
 
 
-Format 11
+Format 30
 Columns                 1
 Sides                   1
 PageStyle               Headers
@@ -64,6 +64,7 @@ Style Section
 	  Shape               Smallcaps
 	  Size                Large
 	EndFont
+	TocLevel 1
 End
 
 
@@ -72,6 +73,7 @@ Style Subsection
 	  Series              Bold
 	  Size                Normal
 	EndFont
+	TocLevel 2
 End
 
 
@@ -80,6 +82,7 @@ Style Subsubsection
 	  Shape               Italic
 	  Size                Normal
 	EndFont
+	TocLevel 3
 End
 
 
@@ -90,6 +93,7 @@ Style Paragraph
 	  Shape               Italic
 	  Size                Normal
 	EndFont
+	TocLevel 4
 End
 
 # then define the unumbered sections, based on the numbered ones.
@@ -167,6 +171,7 @@ End
 Style AltAffiliation
 	CopyStyle             Affiliation
 	PassThru              1
+	ParbreakIsNewline     1
 	LatexName             altaffiliation
 	OptionalArgs          1
 	LabelString           "AltAffiliation"
@@ -192,6 +197,7 @@ End
 Style Author_Email
 	CopyStyle             Affiliation
 	PassThru              1
+	ParbreakIsNewline     1
 	LatexName             email
 	OptionalArgs          1
 	LabelString           "Electronic Address:"
@@ -207,6 +213,7 @@ End
 Style Author_URL
 	CopyStyle             Author_Email
 	PassThru              1
+	ParbreakIsNewline     1
 	LatexName             homepage
 	OptionalArgs          1
 	LabelString           "URL:"

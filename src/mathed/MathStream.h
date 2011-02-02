@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -59,6 +59,10 @@ public:
 	bool & firstitem() { return firstitem_; }
 	///
 	void addlines(unsigned int);
+	/// record whether we can write an immediately following newline char
+	void canBreakLine(bool breakline) { canbreakline_ = breakline; }
+	/// tell whether we can write an immediately following newline char
+	bool canBreakLine() const { return canbreakline_; }
 	/// writes space if next thing is isalpha()
 	void pendingSpace(bool how);
 	/// writes space if next thing is isalpha()
@@ -102,6 +106,8 @@ private:
 	bool locked_;
 	/// should we use only ascii chars when producing latex code?
 	bool ascii_;
+	/// are we allowed to output an immediately following newline?
+	bool canbreakline_;
 	///
 	int line_;
 	///
@@ -245,9 +251,12 @@ private:
 class MTag {
 public:
 	///
-	MTag(char const * const tag) : tag_(tag) {}
+	MTag(char const * const tag, std::string attr = "") 
+		: tag_(tag), attr_(attr) {}
 	///
 	char const * const tag_;
+	///
+	std::string attr_;
 };
 
 class ETag {
@@ -257,6 +266,14 @@ public:
 	///
 	char const * const tag_;
 };
+
+
+/// Throw MathExportException to signal that the attempt to export
+/// some math in the current format did not succeed. E.g., we can't
+/// export xymatrix as MathML, so that will throw, and we'll fall back
+/// to images.
+class MathExportException : public std::exception {};
+
 
 class MathStream {
 public:
@@ -272,7 +289,19 @@ public:
 	int & tab() { return tab_; }
 	///
 	friend MathStream & operator<<(MathStream &, char const *);
+	///
+	void defer(docstring const &);
+	///
+	void defer(std::string const &);
+	///
+	docstring deferred() const;
+	///
+	bool inText() const { return in_text_; }
 private:
+	///
+	void setTextMode() { in_text_ = true; }
+	///
+	void setMathMode() { in_text_ = false; }
 	///
 	odocstream & os_;
 	///
@@ -280,7 +309,11 @@ private:
 	///
 	int line_;
 	///
-	char lastchar_;
+	bool in_text_;
+	///
+	odocstringstream deferred_;
+	///
+	friend class SetMode;
 };
 
 ///
@@ -294,10 +327,119 @@ MathStream & operator<<(MathStream &, char const *);
 ///
 MathStream & operator<<(MathStream &, char);
 ///
+MathStream & operator<<(MathStream &, char_type);
+///
 MathStream & operator<<(MathStream &, MTag const &);
 ///
 MathStream & operator<<(MathStream &, ETag const &);
 
+
+/// A simpler version of ModeSpecifier, for MathML
+// FIXME There are still problems here with nesting, at least
+// potentially. The problem is that true nesting of text mode isn't
+// actually possible. I.e., we can't have: 
+//		<mtext><mtext></mtext></mtext>
+// So we have to have:
+//		<mtext></mtext><mtext></mtext><mtext></mtext>
+// instead, where the last is really a continuation of the first.
+// We'll need some kind of stack to remember all that.
+class SetMode {
+public:
+	///
+	explicit SetMode(MathStream & os, bool text, std::string const & attrs);
+	///
+	explicit SetMode(MathStream & os, bool text);
+	///
+	~SetMode();
+private:
+	///
+	void init(bool, std::string const &);
+	///
+	MathStream & os_;
+	///
+	bool opened_;
+	///
+	bool was_text_;
+};
+
+
+class HtmlStream {
+public:
+	///
+	explicit HtmlStream(odocstream & os);
+	///
+	void cr();
+	///
+	odocstream & os() { return os_; }
+	///
+	int line() const { return line_; }
+	///
+	int & tab() { return tab_; }
+	///
+	friend HtmlStream & operator<<(HtmlStream &, char const *);
+	///
+	void defer(docstring const &);
+	///
+	void defer(std::string const &);
+	///
+	docstring deferred() const;
+	///
+	bool inText() const { return in_text_; }
+private:
+	///
+	void setTextMode() { in_text_ = true; }
+	///
+	void setMathMode() { in_text_ = false; }
+	///
+	odocstream & os_;
+	///
+	int tab_;
+	///
+	int line_;
+	///
+	bool in_text_;
+	///
+	odocstringstream deferred_;
+	///
+	friend class SetHTMLMode;
+};
+
+///
+HtmlStream & operator<<(HtmlStream &, MathAtom const &);
+///
+HtmlStream & operator<<(HtmlStream &, MathData const &);
+///
+HtmlStream & operator<<(HtmlStream &, docstring const &);
+///
+HtmlStream & operator<<(HtmlStream &, char const *);
+///
+HtmlStream & operator<<(HtmlStream &, char);
+///
+HtmlStream & operator<<(HtmlStream &, char_type);
+///
+HtmlStream & operator<<(HtmlStream &, MTag const &);
+///
+HtmlStream & operator<<(HtmlStream &, ETag const &);
+
+
+class SetHTMLMode {
+public:
+	///
+	explicit SetHTMLMode(HtmlStream & os, bool text, std::string attrs);
+	///
+	explicit SetHTMLMode(HtmlStream & os, bool text);
+	///
+	~SetHTMLMode();
+private:
+	///
+	void init(bool, std::string const &);
+	///
+	HtmlStream & os_;
+	///
+	bool opened_;
+	///
+	bool was_text_;
+};
 
 
 //

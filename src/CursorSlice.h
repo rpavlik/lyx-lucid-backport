@@ -4,12 +4,12 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Matthias Ettrich
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Dekel Tsur
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -38,11 +38,11 @@ class Paragraph;
 
 class CursorSlice {
 public:
-	/// Those needs inset_ access.
-	///@{
+	/// \name Those needs inset_ access.
+	//@{
 	friend class DocIterator;
 	friend class StableDocIterator;
-	///@}
+	//@}
 
 	/// type for cell number in inset
 	typedef size_t idx_type;
@@ -56,7 +56,7 @@ public:
 	///
 	explicit CursorSlice(Inset &);
 
-	/// comparison operators.
+	/// \name Comparison operators.
 	//@{
 	friend bool operator==(CursorSlice const &, CursorSlice const &);
 	friend bool operator!=(CursorSlice const &, CursorSlice const &);

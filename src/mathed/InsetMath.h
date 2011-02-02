@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -31,7 +31,8 @@ enum HullType {
 	hullXXAlignAt,
 	hullFlAlign,
 	hullMultline,
-	hullGather
+	hullGather,
+	hullRegexp
 };
 
 HullType hullType(docstring const & name);
@@ -72,6 +73,7 @@ class InsetMathUnknown;
 
 class InsetMathRef;
 
+class HtmlStream;
 class NormalStream;
 class OctaveStream;
 class MapleStream;
@@ -96,6 +98,8 @@ public:
 	InsetMath(Buffer * buf = 0) : Inset(buf) {}
 	/// identification as math inset
 	InsetMath * asInsetMath() { return this; }
+	/// identification as math inset
+	InsetMath const * asInsetMath() const { return this; }
 	/// this is overridden in math text insets (i.e. mbox)
 	bool inMathed() const { return true; }
 
@@ -183,8 +187,13 @@ public:
 	virtual void maxima(MaximaStream &) const;
 	/// write content as something readable by Mathematica
 	virtual void mathematica(MathematicaStream &) const;
-	/// write content as something resembling MathML
+	/// write content as MathML
 	virtual void mathmlize(MathStream &) const;
+	/// write content as HTML, best we can.
+	/// the idea for this, and some of the details, come from
+	/// eLyXer, written by Alex Fernandez. no code is borrowed. rather,
+	/// we try to mimic how eLyXer outputs some math.
+	virtual void htmlize(HtmlStream &) const;
 	/// write content as something readable by Octave
 	virtual void octave(OctaveStream &) const;
 
@@ -206,6 +215,10 @@ public:
 
 	/// superscript kerning
 	virtual int kerning(BufferView const *) const { return 0; }
+	///
+	bool isInToc() const { return true; }
+	///
+	InsetCode lyxCode() const { return MATH_CODE; }
 };
 
 ///

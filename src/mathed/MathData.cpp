@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Stefan Schimanski
  *
  * Full author contact details are available in file CREDITS.
@@ -377,6 +377,16 @@ void MathData::drawT(TextPainter & pain, int x, int y) const
 }
 
 
+void MathData::updateBuffer(ParIterator const & it, UpdateType utype)
+{
+	// pass down
+	for (size_t i = 0, n = size(); i != n; ++i) {
+		MathAtom & at = operator[](i);
+		at.nucleus()->updateBuffer(it, utype);
+	}
+}
+
+
 void MathData::updateMacros(Cursor * cur, MacroContext const & mc)
 {
 	// If we are editing a macro, we cannot update it immediately,
@@ -689,7 +699,7 @@ void MathData::collectOptionalParameters(Cursor * cur,
 	size_t & pos, MathAtom & scriptToPutAround,
 	const pos_type macroPos, const int thisPos, const int thisSlice)
 {
-	Buffer * buf = cur ? &cur->buffer() : 0;
+	Buffer * buf = cur ? cur->buffer() : 0;
 	// insert optional arguments?
 	while (params.size() < numOptionalParams 
 	       && pos < size()

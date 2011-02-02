@@ -2,13 +2,13 @@ include $(top_srcdir)/config/common.am
 
 EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
 
-#noinst_LTLIBRARIES = libtexparser.la
+#noinst_LIBRARIES = libtexparser.a
 #
-#libtexparser_la_SOURCES = \
+#libtexparser_a_SOURCES = \
 #	Parser.cpp \
 #	Parser.h
 #
-#tex2lyx_LDADD = libtexparser.la
+#tex2lyx_LDADD = libtexparser.a
 
 man_MANS = tex2lyx.1
 
@@ -29,41 +29,40 @@ TEST_FILES = \
 	test/test-structure.tex
 
 LINKED_FILES = \
+	../Color.cpp \
+	../Counters.cpp \
+	../Encoding.cpp \
 	../FloatList.cpp \
 	../Floating.cpp \
-	../Counters.cpp \
+	../FontInfo.cpp \
 	../insets/InsetLayout.cpp \
-	../LayoutFile.h \
-	../Layout.h \
 	../Layout.cpp \
-	../TextClass.cpp \
-	../TextClass.h \
-	../Lexer.cpp \
+	../LayoutModuleList.cpp \
 	../lengthcommon.cpp \
-	../Color.cpp \
-	../Color.h \
-	../Encoding.cpp
+	../Lexer.cpp \
+	../ModuleList.cpp \
+	../Spacing.cpp \
+	../TextClass.cpp \
+	../TextClass.h
 
 BUILT_SOURCES = $(PCH_FILE)
 
 tex2lyx_SOURCES = \
 	$(LINKED_FILES) \
-	Spacing.h \
 	boost.cpp \
 	Context.cpp \
 	Context.h \
-	Font.cpp \
-	Font.h \
-	gettext.cpp \
+	math.cpp \
 	Parser.cpp \
 	Parser.h \
+	preamble.cpp \
+	table.cpp \
 	tex2lyx.cpp \
 	tex2lyx.h \
-	preamble.cpp \
-	math.cpp \
-	table.cpp \
 	text.cpp
 
 tex2lyx_LDADD = \
-	$(top_builddir)/src/support/liblyxsupport.la \
-	$(LIBICONV) $(BOOST_LIBS) @LIBS@ $(LIBPSAPI)
+	$(top_builddir)/src/support/liblyxsupport.a \
+	$(INTLLIBS) $(LIBICONV) $(BOOST_LIBS) \
+	$(QT4_LIB) $(QT4_LDFLAGS) \
+	@LIBS@ $(LIBSHLWAPI) $(LIBPSAPI)

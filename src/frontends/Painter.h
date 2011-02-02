@@ -55,11 +55,9 @@ namespace frontend {
 class Painter {
 public:
 	Painter() : drawing_enabled_(true) {}
-	/// possible line widths
-	enum line_width {
-		line_thin, //< thin line
-		line_thick //< thick line
-	};
+
+	float line_width;
+	static const float thin_line;
 
 	/// possible line styles
 	enum line_style {
@@ -79,7 +77,7 @@ public:
 
 	/// draw a line from point to point
 	virtual void line(int x1, int y1, int x2, int y2, Color,
-		line_style = line_solid, line_width = line_thin) = 0;
+		line_style = line_solid, float line_width = thin_line) = 0;
 
 	/**
 	 * lines -  draw a set of lines
@@ -88,11 +86,11 @@ public:
 	 * @param np size of the points array
 	 */
 	virtual void lines(int const * xp, int const * yp, int np, Color,
-		line_style = line_solid, line_width = line_thin) = 0;
+		line_style = line_solid, float line_width = thin_line) = 0;
 
 	/// draw a rectangle
 	virtual void rectangle(int x, int y, int w, int h, Color,
-		line_style = line_solid, line_width = line_thin) = 0;
+		line_style = line_solid, float line_width = thin_line) = 0;
 
 	/// draw a filled rectangle
 	virtual void fillRectangle(int x, int y, int w, int h, Color) = 0;
@@ -151,7 +149,8 @@ public:
 		Color const & max) = 0;
 	/// leave monochrome painting mode
 	virtual void leaveMonochromeMode() = 0;
-
+	/// draws a wavy line that can be used for underlining.
+	virtual void wavyHorizontalLine(int x, int y, int width, ColorCode col) = 0;
 private:
 	///
 	bool drawing_enabled_;

@@ -4,10 +4,10 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -15,17 +15,15 @@
 #ifndef BUFFERPARAMS_H
 #define BUFFERPARAMS_H
 
-#include "Font.h"
 #include "Citation.h"
+#include "LayoutModuleList.h"
 #include "paper.h"
 
 #include "insets/InsetQuotes.h"
 
 #include "support/copied_ptr.h"
 
-#include <list>
-#include <set>
-#include <vector>
+#include <map>
 
 namespace lyx {
 
@@ -36,6 +34,9 @@ class BranchList;
 class Bullet;
 class DocumentClass;
 class Encoding;
+class Font;
+class HSpace;
+class IndicesList;
 class Language;
 class LatexFeatures;
 class LayoutFile;
@@ -53,8 +54,6 @@ class VSpace;
  */
 class BufferParams {
 public:
-	///
-	typedef std::list<std::string> LayoutModuleList;
 	///
 	enum ParagraphSeparation {
 		///
@@ -80,16 +79,21 @@ public:
 	void validate(LaTeXFeatures &) const;
 
 	/** \returns true if the babel package is used (interogates
-	 *  the BufferParams and a LyXRC variable).
+	 *  the BufferParams, a LyXRC variable, and the document class).
 	 *  This returned value can then be passed to the insets...
 	 */
-	bool writeLaTeX(odocstream &, LaTeXFeatures &, TexRow &) const;
+	bool writeLaTeX(odocstream &, LaTeXFeatures &, TexRow &,
+			support::FileName const &) const;
 
 	///
 	void useClassDefaults();
 	///
 	bool hasClassDefaults() const;
 
+	///
+	HSpace const & getIndentation() const;
+	///
+	void setIndentation(HSpace const & indent);
 	///
 	VSpace const & getDefSkip() const;
 	///
@@ -105,7 +109,7 @@ public:
 	InsetQuotes::QuoteTimes quotes_times;
 	///
 	std::string fontsize;
-	///Get the LayoutFile this document is using.
+	/// Get the LayoutFile this document is using.
 	LayoutFile const * baseClass() const;
 	///
 	LayoutFileIndex const & baseClassID() const;
@@ -128,10 +132,10 @@ public:
 	/// but it seems to be needed by CutAndPaste::putClipboard().
 	void setDocumentClass(DocumentClass const * const);
 	/// List of modules in use
-	LayoutModuleList const & getModules() const { return layoutModules_; }
+	LayoutModuleList const & getModules() const { return layout_modules_; }
 	/// List of default modules the user has removed
-	std::set<std::string> const & getRemovedModules() const 
-			{ return removedModules_; }
+	std::list<std::string> const & getRemovedModules() const 
+			{ return removed_modules_; }
 	///
 	/// Add a module to the list of modules in use. This checks only that the
 	/// module is not already in the list, so use moduleIsCompatible first if
@@ -143,16 +147,28 @@ public:
 	bool moduleCanBeAdded(std::string const & modName) const;
 	///
 	void addRemovedModule(std::string const & modName) 
-			{ removedModules_.insert(modName); }
+			{ removed_modules_.push_back(modName); }
 	/// Clear the list
-	void clearLayoutModules() { layoutModules_.clear(); }
+	void clearLayoutModules() { layout_modules_.clear(); }
 	/// Clear the removed module list
-	void clearRemovedModules() { removedModules_.clear(); }
+	void clearRemovedModules() { removed_modules_.clear(); }
+
+	/// List of included children (for includeonly)
+	std::list<std::string> const & getIncludedChildren() const 
+			{ return included_children_; }
+	///
+	void addIncludedChildren(std::string const & child) 
+			{ included_children_.push_back(child); }
+	/// Clear the list of included children
+	void clearIncludedChildren() { included_children_.clear(); }
+
+	/// update aux files of unincluded children (with \includeonly)
+	bool maintain_unincluded_children;
 
 	/// returns the main font for the buffer (document)
 	Font const getFont() const;
 
-	/* this are for the PaperLayout */
+	/* these are for the PaperLayout */
 	/// the papersize
 	PAPER_SIZE papersize;
 	///
@@ -182,25 +198,35 @@ public:
 
 	/* some LaTeX options */
 	/// The graphics driver
-	std::string graphicsDriver;
+	std::string graphics_driver;
+	/// The default output format
+	std::string default_output_format;
+	/// customized bibliography processor
+	std::string bibtex_command;
+	/// customized index processor
+	std::string index_command;
+	/// font encoding
+	std::string fontenc;
 	/// the rm font
-	std::string fontsRoman;
+	std::string fonts_roman;
 	/// the sf font
-	std::string fontsSans;
+	std::string fonts_sans;
 	/// the tt font
-	std::string fontsTypewriter;
+	std::string fonts_typewriter;
 	/// the default family (rm, sf, tt)
-	std::string fontsDefaultFamily;
+	std::string fonts_default_family;
+	/// use the fonts of the OS (OpenType, True Type) directly
+	bool useNonTeXFonts;
 	/// use expert Small Caps
-	bool fontsSC;
+	bool fonts_expert_sc;
 	/// use Old Style Figures
-	bool fontsOSF;
+	bool fonts_old_figures;
 	/// the scale factor of the sf font
-	int fontsSansScale;
+	int fonts_sans_scale;
 	/// the scale factor of the tt font
-	int fontsTypewriterScale;
+	int fonts_typewriter_scale;
 	/// the font used by the CJK command
-	std::string fontsCJK;
+	std::string fonts_cjk;
 	///
 	Spacing & spacing();
 	Spacing const & spacing() const;
@@ -213,6 +239,9 @@ public:
 	/// BranchList:
 	BranchList & branchlist();
 	BranchList const & branchlist() const;
+	/// IndicesList:
+	IndicesList & indiceslist();
+	IndicesList const & indiceslist() const;
 	/**
 	 * The input encoding for LaTeX. This can be one of
 	 * - \c auto: find out the input encoding from the used languages
@@ -243,6 +272,8 @@ public:
 	///
 	std::string master;
 	///
+	bool suppress_date;
+	///
 	std::string float_placement;
 	///
 	unsigned int columns;
@@ -252,6 +283,18 @@ public:
 	PageSides sides;
 	///
 	std::string pagestyle;
+	///
+	RGBColor backgroundcolor;
+	///
+	bool isbackgroundcolor;
+	///
+	RGBColor fontcolor;
+	///
+	bool isfontcolor;
+	///
+	RGBColor notefontcolor;
+	///
+	RGBColor boxbgcolor;
 	/// \param index should lie in the range 0 <= \c index <= 3.
 	Bullet & temp_bullet(size_type index);
 	Bullet const & temp_bullet(size_type index) const;
@@ -274,8 +317,14 @@ public:
 	Package use_amsmath;
 	/// Whether and how to load esint
 	Package use_esint;
-	///
+	/// Whether and how to load mhchem
+	Package use_mhchem;
+	/// Whether and how to load mathdots
+	Package use_mathdots;
+	/// Split bibliography?
 	bool use_bibtopic;
+	/// Split the index?
+	bool use_indices;
 	/// revision tracking for this buffer ?
 	bool trackChanges;
 	/** This param decides whether change tracking marks should be used
@@ -290,8 +339,11 @@ public:
 	AuthorList & authors();
 	AuthorList const & authors() const;
 
-	/// map of the file's author IDs to buffer author IDs
-	std::vector<unsigned int> author_map;
+	/// map of the file's author IDs to AuthorList indexes
+	typedef std::map<int, int> AuthorMap;
+	AuthorMap author_map;
+	/// the buffer's font encoding
+	std::string const font_encoding() const;
 	///
 	std::string const dvips_options() const;
 	/** The return value of paperSizeName() depends on the
@@ -309,17 +361,20 @@ public:
 	///
 	std::string paperSizeName(PapersizePurpose purpose) const;
 	/// set up if and how babel is called
-	std::string babelCall(std::string const & lang_opts) const;
+	std::string babelCall(std::string const & lang_opts, bool const langoptions) const;
 	/// return supported drivers for specific packages
 	docstring getGraphicsDriver(std::string const & package) const;
 	/// handle inputenc etc.
 	void writeEncodingPreamble(odocstream & os, LaTeXFeatures & features,
 					      TexRow & texrow) const;
+	///
+	std::string const parseFontName(std::string const & name) const;
 	/// set up the document fonts
 	std::string const loadFonts(std::string const & rm,
 				     std::string const & sf, std::string const & tt,
 				     bool const & sc, bool const & osf,
-				     int const & sfscale, int const & ttscale) const;
+				     int const & sfscale, int const & ttscale,
+				     bool const & use_nonlatexfonts) const;
 
 	/// get the appropriate cite engine (natbib handling)
 	CiteEngine citeEngine() const;
@@ -329,6 +384,31 @@ public:
 	/// options for pdf output
 	PDFOptions & pdfoptions();
 	PDFOptions const & pdfoptions() const;
+
+	// do not change these values. we rely upon them.
+	enum MathOutput {
+		MathML = 0,
+		HTML = 1,
+		Images = 2,
+		LaTeX = 3
+	};
+	/// what to use for math output. present choices are above
+	MathOutput html_math_output;
+	/// whether to attempt to be XHTML 1.1 compliant or instead be
+	/// a little more mellow
+	bool html_be_strict;
+	///
+	double html_math_img_scale;
+	///
+	std::string html_latex_start;
+	///
+	std::string html_latex_end;
+	/// generate output usable for reverse/forward search
+	bool output_sync;
+	/// custom LaTeX macro from user instead our own
+	std::string output_sync_macro;
+	/// use refstyle? or prettyref?
+	bool use_refstyle;
 
 private:
 	///
@@ -347,29 +427,20 @@ private:
 	void readModules(Lexer &);
 	///
 	void readRemovedModules(Lexer &);
-	/// Called when the document class changes. Removes modules
-	/// excluded by, provided by, etc, the document class.
-	/// \return true if modules were consistent, false if changes had
-	/// to be made.
-	bool removeBadModules();
-	/// Adds default modules, if they're addable.
-	void addDefaultModules();
-	/// checks for consistency among modules: makes sure requirements
-	/// are met, no modules exclude one another, etc, and resolves any
-	/// such conflicts, leaving us with a consistent collection.
-	/// \return true if modules were consistent, false if changes had
-	/// to be made.
-	bool checkModuleConsistency();
-
+	///
+	void readIncludeonly(Lexer &);
 	/// for use with natbib
 	CiteEngine cite_engine_;
 	///
 	DocumentClass * doc_class_;
 	/// 
-	LayoutModuleList layoutModules_;
+	LayoutModuleList layout_modules_;
 	/// this is for modules that are required by the document class but that
 	/// the user has chosen not to use
-	std::set<std::string> removedModules_;
+	std::list<std::string> removed_modules_;
+
+	/// the list of included children (for includeonly)
+	std::list<std::string> included_children_;
 
 	/** Use the Pimpl idiom to hide those member variables that would otherwise
 	 *  drag in other header files.

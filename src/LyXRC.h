@@ -4,11 +4,11 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Allan Rae
  * \author Dekel Tsur
  *
@@ -22,7 +22,10 @@
 
 #include "support/strfwd.h"
 
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 
 namespace lyx {
@@ -38,13 +41,13 @@ public:
 	enum LyXRCTags {
 		RC_ACCEPT_COMPOUND = 1,
 		RC_ALT_LANG,
-		RC_PLAINTEXT_ROFF_COMMAND,
-		RC_PLAINTEXT_LINELEN,
+		RC_AUTOCORRECTION_MATH,
 		RC_AUTOREGIONDELETE,
 		RC_AUTORESET_OPTIONS,
 		RC_AUTOSAVE,
 		RC_AUTO_NUMBER,
 		RC_BACKUPDIR_PATH,
+		RC_BIBTEX_ALTERNATIVES,
 		RC_BIBTEX_COMMAND,
 		RC_BINDFILE,
 		RC_CHECKLASTFILES,
@@ -62,29 +65,34 @@ public:
 		RC_CONVERTER_CACHE_MAXAGE,
 		RC_COPIER,
 		RC_CURSOR_FOLLOWS_SCROLLBAR,
-		RC_MAC_LIKE_WORD_MOVEMENT,
-		RC_CUSTOM_EXPORT_COMMAND,
-		RC_CUSTOM_EXPORT_FORMAT,
 		RC_DATE_INSERT_FORMAT,
-		RC_DEFFILE,
+		RC_DEFAULT_DECIMAL_POINT,
 		RC_DEFAULT_LANGUAGE,
-		RC_GUI_LANGUAGE,
+		RC_DEFAULT_VIEW_FORMAT,
 		RC_DEFAULT_PAPERSIZE,
+		RC_DEFFILE,
 		RC_DIALOGS_ICONIFY_WITH_MAIN,
 		RC_DISPLAY_GRAPHICS,
 		RC_DOCUMENTPATH,
+		RC_EDITOR_ALTERNATIVES,
 		RC_ESC_CHARS,
 		RC_EXAMPLEPATH,
 		RC_EXPORT_OVERWRITE,
 		RC_FONT_ENCODING,
 		RC_FORMAT,
+		RC_FORWARD_SEARCH_DVI,
+		RC_FORWARD_SEARCH_PDF,
 		RC_FULL_SCREEN_LIMIT,
 		RC_FULL_SCREEN_SCROLLBAR,
 		RC_FULL_SCREEN_TABBAR,
+		RC_FULL_SCREEN_MENUBAR,
 		RC_FULL_SCREEN_TOOLBARS,
 		RC_FULL_SCREEN_WIDTH,
 		RC_GEOMETRY_SESSION,
 		RC_GROUP_LAYOUTS,
+		RC_GUI_LANGUAGE,
+		RC_HUNSPELLDIR_PATH,
+		RC_INDEX_ALTERNATIVES,
 		RC_INDEX_COMMAND,
 		RC_INPUT,
 		RC_JBIBTEX_COMMAND,
@@ -92,25 +100,29 @@ public:
 		RC_KBMAP,
 		RC_KBMAP_PRIMARY,
 		RC_KBMAP_SECONDARY,
-		RC_LABEL_INIT_LENGTH,
 		RC_LANGUAGE_AUTO_BEGIN,
 		RC_LANGUAGE_AUTO_END,
 		RC_LANGUAGE_COMMAND_BEGIN,
 		RC_LANGUAGE_COMMAND_END,
 		RC_LANGUAGE_COMMAND_LOCAL,
 		RC_LANGUAGE_GLOBAL_OPTIONS,
-		RC_LANGUAGE_PACKAGE,
-		RC_LANGUAGE_USE_BABEL,
+		RC_LANGUAGE_CUSTOM_PACKAGE,
+		RC_LANGUAGE_PACKAGE_SELECTION,
 		RC_LOADSESSION,
 		RC_MACRO_EDIT_STYLE,
+		RC_MAC_DONTSWAP_CTRL_META,
+		RC_MAC_LIKE_WORD_MOVEMENT,
 		RC_MAKE_BACKUP,
 		RC_MARK_FOREIGN_LANGUAGE,
 		RC_MOUSE_WHEEL_SPEED,
 		RC_NOMENCL_COMMAND,
 		RC_NUMLASTFILES,
+		RC_OPEN_BUFFERS_IN_TABS,
 		RC_PARAGRAPH_MARKERS,
 		RC_PATH_PREFIX,
 		RC_PERS_DICT,
+		RC_PLAINTEXT_LINELEN,
+		RC_PLAINTEXT_ROFF_COMMAND,
 		RC_PREVIEW,
 		RC_PREVIEW_HASHED_LABELS,
 		RC_PREVIEW_SCALE_FACTOR,
@@ -133,6 +145,7 @@ public:
 		RC_PRINT_ADAPTOUTPUT,
 		RC_PRINT_COMMAND,
 		RC_RTL_SUPPORT,
+		RC_SAVE_COMPRESSED,
 		RC_SCREEN_DPI,
 		RC_SCREEN_FONT_ROMAN,
 		RC_SCREEN_FONT_ROMAN_FOUNDRY,
@@ -143,17 +156,24 @@ public:
 		RC_SCREEN_FONT_TYPEWRITER,
 		RC_SCREEN_FONT_TYPEWRITER_FOUNDRY,
 		RC_SCREEN_ZOOM,
+		RC_SCROLL_BELOW_DOCUMENT,
+		RC_SCROLL_WHEEL_ZOOM,
 		RC_SERVERPIPE,
 		RC_SET_COLOR,
 		RC_SHOW_BANNER,
 		RC_SINGLE_CLOSE_TAB_BUTTON,
-		RC_OPEN_BUFFERS_IN_TABS,
+		RC_SINGLE_INSTANCE,
 		RC_SORT_LAYOUTS,
 		RC_SPELL_COMMAND,
+		RC_SPELLCHECK_CONTINUOUSLY,
+		RC_SPELLCHECK_NOTES,
+		RC_SPELLCHECKER,
+		RC_SPLITINDEX_COMMAND,
 		RC_TEMPDIRPATH,
 		RC_TEMPLATEPATH,
 		RC_TEX_ALLOWS_SPACES,
 		RC_TEX_EXPECTS_WINDOWS_PATHS,
+		RC_THESAURUSDIRPATH,
 		RC_UIFILE,
 		RC_USELASTFILEPOS,
 		RC_USER_EMAIL,
@@ -164,11 +184,13 @@ public:
 		RC_USE_ESC_CHARS,
 		RC_USE_INP_ENC,
 		RC_USE_PERS_DICT,
+		RC_USE_SYSTEM_COLORS,
 		RC_USE_TOOLTIP,
 		RC_USE_PIXMAP_CACHE,
 		RC_USE_SPELL_LIB,
 		RC_VIEWDVI_PAPEROPTION,
 		RC_VIEWER,
+		RC_VIEWER_ALTERNATIVES,
 		RC_VISUAL_CURSOR,
 		RC_LAST
 	};
@@ -185,6 +207,11 @@ private:
 	///
 	int read(Lexer &);
 public:
+	/// 
+	typedef std::set<std::string> CommandSet;
+	/// maps a format to a set of commands that can be used to 
+	/// edit or view it.
+	typedef std::map<std::string, CommandSet> Alternatives;
 	///
 	void write(support::FileName const & filename,
 		   bool ignore_system_lyxrc) const;
@@ -238,24 +265,26 @@ public:
 	std::string print_paper_flag;
 	///
 	std::string print_paper_dimension_flag;
-	///
-	std::string custom_export_command;
-	///
-	std::string custom_export_format;
 	/// option for telling the dvi viewer about the paper size
 	std::string view_dvi_paper_option;
 	/// default paper size for local xdvi/dvips/ghostview/whatever
 	PAPER_SIZE default_papersize;
 	/// command to run chktex incl. options
 	std::string chktex_command;
+	/// all available commands to run bibtex incl. options
+	CommandSet bibtex_alternatives;
 	/// command to run bibtex incl. options
 	std::string bibtex_command;
 	/// command to run japanese bibtex incl. options
 	std::string jbibtex_command;
+	/// all available index commands incl. options
+	CommandSet index_alternatives;
 	/// command to run makeindex incl. options or other index programs
 	std::string index_command;
 	/// command to run japanese index program incl. options
 	std::string jindex_command;
+	/// command to generate multiple indices
+	std::string splitindex_command;
 	/// command to run makeindex incl. options for nomencl
 	std::string nomencl_command;
 	///
@@ -266,6 +295,10 @@ public:
 	std::string template_path;
 	///
 	std::string tempdir_path;
+	///
+	std::string thesaurusdir_path;
+	///
+	std::string hunspelldir_path;
 	///
 	bool auto_region_delete;
 	/// flag telling whether lastfiles should be checked for existance
@@ -278,6 +311,8 @@ public:
 	bool use_lastfilepos;
 	/// load files from last session automatically
 	bool load_session;
+	/// do we save new documents as compressed by default
+	bool save_compressed;
 	/// shall a backup file be created
 	bool make_backup;
 	/// A directory for storing backup files
@@ -312,35 +347,27 @@ public:
 	///
 	unsigned int autosave;
 	///
-	std::string plaintext_roff_command;
-	///
 	unsigned int plaintext_linelen;
-	/// use library instead of process
-	bool use_spell_lib;
-	/// Ispell command
-	std::string isp_command;
 	/// Accept compound words in spellchecker?
-	bool isp_accept_compound;
-	/// Pass input encoding switch to ispell?
-	bool isp_use_input_encoding;
-	/// Use alternate language?
-	bool isp_use_alt_lang;
-	/// Use personal dictionary?
-	bool isp_use_pers_dict;
+	bool spellchecker_accept_compound;
 	/// End of paragraph markers?
 	bool paragraph_markers;
 	/// Use tooltips?
 	bool use_tooltip;
+	/// Use the colors from current system theme?
+	bool use_system_colors;
 	/// Use pixmap cache?
 	bool use_pixmap_cache;
-	/// Use escape chars?
-	bool isp_use_esc_chars;
-	/// Alternate language for ispell
-	std::string isp_alt_lang;
-	/// Alternate personal dictionary file for ispell
-	std::string isp_pers_dict;
+	/// Spellchecker engine: aspell, hunspell, etc
+	std::string spellchecker;
+	/// Alternate language for spellchecker
+	std::string spellchecker_alt_lang;
 	/// Escape characters
-	std::string isp_esc_chars;
+	std::string spellchecker_esc_chars;
+	/// spellcheck continuously?
+	bool spellcheck_continuously;
+	/// spellcheck notes and comments?
+	bool spellcheck_notes;
 	///
 	bool use_kbmap;
 	///
@@ -352,7 +379,7 @@ public:
 	///
 	std::string date_insert_format;
 	///
-	std::string language_package;
+	std::string language_custom_package;
 	///
 	bool language_auto_begin;
 	///
@@ -366,7 +393,14 @@ public:
 	///
 	bool language_global_options;
 	///
-	bool language_use_babel;
+	enum LangPackageSelection {
+		LP_AUTO = 0,
+		LP_BABEL,
+		LP_CUSTOM,
+		LP_NONE
+	};
+	///
+	LangPackageSelection language_package_selection;
 	///
 	bool rtl_support;
 	/// bidi cursor movement: true = visual, false = logical
@@ -380,9 +414,19 @@ public:
 	///
 	std::string gui_language;
 	///
+	std::string default_view_format;
+	/// all available viewers
+	Alternatives viewer_alternatives;
+	/// all available editors
+	Alternatives editor_alternatives;
+	///
+	bool mac_dontswap_ctrl_meta;
+	///
 	bool mac_like_word_movement;
 	///
 	bool cursor_follows_scrollbar;
+	///
+	bool scroll_below_document;
 	///
 	enum MacroEditStyle {
 		MACRO_EDIT_INLINE_BOX = 0,
@@ -393,8 +437,6 @@ public:
 	MacroEditStyle macro_edit_style;
 	///
 	bool dialogs_iconify_with_main;
-	///
-	int label_init_length;
 	///
 	bool display_graphics;
 	///
@@ -437,6 +479,8 @@ public:
 	bool full_screen_scrollbar;
 	/// Toggle tabbar in fullscreen mode?
 	bool full_screen_tabbar;
+	/// Toggle menubar in fullscreen mode?
+	bool full_screen_menubar;
 	/// Limit the text width?
 	bool full_screen_limit;
 	/// Width of limited screen (in pixels) in fullscreen mode
@@ -452,6 +496,8 @@ public:
 	///
 	int completion_inline_dots;
 	///
+	bool autocorrection_math;
+	///
 	double completion_popup_delay;
 	///
 	bool completion_popup_math;
@@ -464,7 +510,24 @@ public:
 	///
 	bool single_close_tab_button;
 	///
+	bool single_instance;
+	///
+	std::string forward_search_dvi;
+	///
+	std::string forward_search_pdf;
+	///
 	int export_overwrite;
+	/// Default decimal point when aligning table columns on decimal
+	std::string default_decimal_point;
+	///
+	enum ScrollWheelZoom {
+		SCROLL_WHEEL_ZOOM_OFF,
+		SCROLL_WHEEL_ZOOM_CTRL,
+		SCROLL_WHEEL_ZOOM_SHIFT,
+		SCROLL_WHEEL_ZOOM_ALT
+	};
+	///
+	ScrollWheelZoom scroll_wheel_zoom;
 };
 
 
@@ -479,6 +542,7 @@ public:
 	operator LyXRC::PreviewStatus() const { return val_; }
 };
 
+void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new);
 
 ///
 extern LyXRC lyxrc;

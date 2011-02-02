@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,8 +25,8 @@ class InsetMathFontOld : public InsetMathNest {
 public:
 	///
 	explicit InsetMathFontOld(Buffer * buf, latexkeys const * key);
-	/// we are in text mode.
-	mode_type currentMode() const { return TEXT_MODE; }
+	/// we inherit the mode
+	mode_type currentMode() const { return current_mode_; }
 	/// we write extra braces in any case...
 	bool extraBraces() const { return true; }
 	///
@@ -45,11 +45,15 @@ public:
 	void infoize(odocstream & os) const;
 	///
 	int kerning(BufferView const * bv) const { return cell(0).kerning(bv); }
+	///
+	InsetCode lyxCode() const { return MATH_FONTOLD_CODE; }
 
 private:
 	virtual Inset * clone() const;
 	/// the font to be used on screen
 	latexkeys const * key_;
+	/// the inherited mode
+	mutable mode_type current_mode_;
 };
 
 

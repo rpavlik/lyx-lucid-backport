@@ -41,7 +41,7 @@
 
 #undef KeyPress
 
-#include <boost/regex.hpp>
+#include "support/regex.h"
 
 #include <algorithm>
 #include <string>
@@ -195,20 +195,12 @@ void GuiCitation::updateControls()
 // such as when addPB is pressed, as the list of fields, entries, etc,
 // will not have changed. At the moment, however, the division between
 // fillStyles() and updateStyle() doesn't lend itself to dividing the
-// two methods, though they should be divisible.
+// two methods, though they should be divisible. That is, we should
+// not have to call fillStyles() every time through here.
 void GuiCitation::updateControls(BiblioInfo const & bi)
 {
-	if (selectionManager->selectedFocused()) { 
-		if (selectedLV->selectionModel()->selectedIndexes().isEmpty())
-			updateInfo(bi, availableLV->currentIndex());
-		else
-			updateInfo(bi, selectedLV->currentIndex());
-	} else {
-		if (availableLV->selectionModel()->selectedIndexes().isEmpty())
-			updateInfo(bi, QModelIndex());
-		else
-			updateInfo(bi, availableLV->currentIndex());
-	}
+	QModelIndex idx = selectionManager->getSelectedIndex();
+	updateInfo(bi, idx);
 	setButtons();
 
 	textBeforeED->setText(toqstr(params_["before"]));
@@ -259,59 +251,65 @@ void GuiCitation::updateStyle()
 	vector<CiteStyle>::const_iterator cit =
 		std::find(styles.begin(), styles.end(), cs.style);
 
-	// restore the latest natbib style
-	if (style_ >= 0 && style_ < citationStyleCO->count())
-		citationStyleCO->setCurrentIndex(style_);
-	else
-		citationStyleCO->setCurrentIndex(0);
-
 	if (cit != styles.end()) {
-		int const i = int(cit - styles.begin());
-		citationStyleCO->setCurrentIndex(i);
 		fulllistCB->setChecked(cs.full);
 		forceuppercaseCB->setChecked(cs.forceUpperCase);
 	} else {
+		// restore the last used natbib style
+		if (style_ >= 0 && style_ < citationStyleCO->count()) {
+			// the necessary update will be performed later
+			citationStyleCO->blockSignals(true);
+			citationStyleCO->setCurrentIndex(style_);
+			citationStyleCO->blockSignals(false);
+		}
 		fulllistCB->setChecked(false);
 		forceuppercaseCB->setChecked(false);
 	}
 	updateFormatting(cs.style);
 }
 
+
 // This one needs to be called whenever citationStyleCO needs
 // to be updated---and this would be on anything that changes the
 // selection in selectedLV, or on a general update.
 void GuiCitation::fillStyles(BiblioInfo const & bi)
 {
-	int const oldIndex = citationStyleCO->currentIndex();
-
-	citationStyleCO->clear();
-
 	QStringList selected_keys = selected_model_.stringList();
-	if (selected_keys.empty()) {
+	int curr = selectedLV->model()->rowCount() - 1;
+
+	if (curr < 0 || selected_keys.empty()) {
+		citationStyleCO->clear();
 		citationStyleCO->setEnabled(false);
 		citationStyleLA->setEnabled(false);
 		return;
 	}
-
-	int curr = selectedLV->model()->rowCount() - 1;
-	if (curr < 0)
-		return;
 
 	if (!selectedLV->selectionModel()->selectedIndexes().empty())
 		curr = selectedLV->selectionModel()->selectedIndexes()[0].row();
 
 	QStringList sty = citationStyles(bi, curr);
 
-	citationStyleCO->setEnabled(!sty.isEmpty());
-	citationStyleLA->setEnabled(!sty.isEmpty());
-
-	if (sty.isEmpty())
+	if (sty.isEmpty()) { 
+		// some error
+		citationStyleCO->setEnabled(false);
+		citationStyleLA->setEnabled(false);
+		citationStyleCO->clear();
 		return;
-
+	}
+	
+	citationStyleCO->blockSignals(true);
+	
+	// save old index
+	int const oldIndex = citationStyleCO->currentIndex();
+	citationStyleCO->clear();
 	citationStyleCO->insertItems(0, sty);
-
+	citationStyleCO->setEnabled(true);
+	citationStyleLA->setEnabled(true);
+	// restore old index
 	if (oldIndex != -1 && oldIndex < citationStyleCO->count())
 		citationStyleCO->setCurrentIndex(oldIndex);
+
+	citationStyleCO->blockSignals(false);
 }
 
 
@@ -321,7 +319,7 @@ void GuiCitation::fillFields(BiblioInfo const & bi)
 	int const oldIndex = fieldsCO->currentIndex();
 	fieldsCO->clear();
 	QStringList const fields = to_qstring_list(bi.getFields());
-	fieldsCO->insertItem(0, qt_("All Fields"));
+	fieldsCO->insertItem(0, qt_("All fields"));
 	fieldsCO->insertItem(1, qt_("Keys"));
 	fieldsCO->insertItems(2, fields);
 	if (oldIndex != -1 && oldIndex < fieldsCO->count())
@@ -336,7 +334,7 @@ void GuiCitation::fillEntries(BiblioInfo const & bi)
 	int const oldIndex = entriesCO->currentIndex();
 	entriesCO->clear();
 	QStringList const entries = to_qstring_list(bi.getEntries());
-	entriesCO->insertItem(0, qt_("All Entry Types"));
+	entriesCO->insertItem(0, qt_("All entry types"));
 	entriesCO->insertItems(1, entries);
 	if (oldIndex != -1 && oldIndex < entriesCO->count())
 		entriesCO->setCurrentIndex(oldIndex);
@@ -344,7 +342,7 @@ void GuiCitation::fillEntries(BiblioInfo const & bi)
 }
 
 
-bool GuiCitation::isSelected(const QModelIndex & idx)
+bool GuiCitation::isSelected(QModelIndex const & idx)
 {
 	QString const str = idx.data().toString();
 	return selected_model_.stringList().contains(str);
@@ -368,8 +366,8 @@ void GuiCitation::updateInfo(BiblioInfo const & bi, QModelIndex const & idx)
 	}
 
 	QString const keytxt = toqstr(
-		bi.getInfo(qstring_to_ucs4(idx.data().toString())));
-	infoML->document()->setPlainText(keytxt);
+		bi.getInfo(qstring_to_ucs4(idx.data().toString()), buffer(), true));
+	infoML->document()->setHtml(keytxt);
 }
 
 
@@ -528,6 +526,30 @@ void GuiCitation::init()
 	else
 		cited_keys_ = str.split(",");
 	selected_model_.setStringList(cited_keys_);
+	if (selected_model_.rowCount()) {
+		selectedLV->blockSignals(true);
+		selectedLV->setFocus();
+		QModelIndex idx = selected_model_.index(0, 0);
+		selectedLV->selectionModel()->select(idx, 
+				QItemSelectionModel::ClearAndSelect);
+		selectedLV->blockSignals(false);
+		
+		// set the style combo appropriately
+		string const & command = params_.getCmdName();
+		vector<CiteStyle> const & styles = citeStyles_;
+		CitationStyle const cs = citationStyleFromString(command);
+	
+		vector<CiteStyle>::const_iterator cit =
+			std::find(styles.begin(), styles.end(), cs.style);
+		if (cit != styles.end()) {
+			int const i = int(cit - styles.begin());
+			// the necessary update will be performed later
+			citationStyleCO->blockSignals(true);
+			citationStyleCO->setCurrentIndex(i);
+			citationStyleCO->blockSignals(false);
+		}
+	} else
+		availableLV->setFocus();
 	fillFields(bi);
 	fillEntries(bi);
 	updateControls(bi);
@@ -602,7 +624,7 @@ void GuiCitation::setCitedKeys()
 
 bool GuiCitation::initialiseParams(string const & data)
 {
-	InsetCommand::string2params("citation", data, params_);
+	InsetCommand::string2params(data, params_);
 	CiteEngine const engine = buffer().params().citeEngine();
 	citeStyles_ = citeStyles(engine);
 	init();
@@ -653,9 +675,9 @@ static docstring escape_special_chars(docstring const & expr)
 {
 	// Search for all chars '.|*?+(){}[^$]\'
 	// Note that '[' and '\' must be escaped.
-	// This is a limitation of boost::regex, but all other chars in BREs
+	// This is a limitation of lyx::regex, but all other chars in BREs
 	// are assumed literal.
-	static const boost::regex reg("[].|*?+(){}^$\\[\\\\]");
+	static const lyx::regex reg("[].|*?+(){}^$\\[\\\\]");
 
 	// $& is a perl-like expression that expands to all
 	// of the current match
@@ -663,7 +685,7 @@ static docstring escape_special_chars(docstring const & expr)
 	// boost to treat it as a literal.
 	// Thus, to prefix a matched expression with '\', we use:
 	// FIXME: UNICODE
-	return from_utf8(boost::regex_replace(to_utf8(expr), reg, "\\\\$&"));
+	return from_utf8(lyx::regex_replace(to_utf8(expr), reg, string("\\\\$&")));
 }
 
 
@@ -680,15 +702,15 @@ vector<docstring> GuiCitation::searchKeys(BiblioInfo const & bi,
 
 	if (!regex)
 		// We must escape special chars in the search_expr so that
-		// it is treated as a simple string by boost::regex.
+		// it is treated as a simple string by lyx::regex.
 		expr = escape_special_chars(expr);
 
-	boost::regex reg_exp;
+	lyx::regex reg_exp;
 	try {
 		reg_exp.assign(to_utf8(expr), case_sensitive ?
-			boost::regex_constants::normal : boost::regex_constants::icase);
-	} catch (boost::regex_error & e) {
-		// boost::regex throws an exception if the regular expression is not
+			lyx::regex_constants::ECMAScript : lyx::regex_constants::icase);
+	} catch (lyx::regex_error & e) {
+		// lyx::regex throws an exception if the regular expression is not
 		// valid.
 		LYXERR(Debug::GUI, e.what());
 		return vector<docstring>();
@@ -707,17 +729,17 @@ vector<docstring> GuiCitation::searchKeys(BiblioInfo const & bi,
 			data = to_utf8(*it);
 		else if (field.empty())
 			data = to_utf8(*it) + ' ' + to_utf8(kvm.allData());
-		else if (kvm.hasField(field))
+		else 
 			data = to_utf8(kvm[field]);
 		
 		if (data.empty())
 			continue;
 
 		try {
-			if (boost::regex_search(data, reg_exp))
+			if (lyx::regex_search(data, reg_exp))
 				foundKeys.push_back(*it);
 		}
-		catch (boost::regex_error & e) {
+		catch (lyx::regex_error & e) {
 			LYXERR(Debug::GUI, e.what());
 			return vector<docstring>();
 		}
@@ -728,14 +750,16 @@ vector<docstring> GuiCitation::searchKeys(BiblioInfo const & bi,
 
 void GuiCitation::dispatchParams()
 {
-	std::string const lfun = InsetCommand::params2string("citation", params_);
+	std::string const lfun = InsetCommand::params2string(params_);
 	dispatch(FuncRequest(getLfun(), lfun));
 }
 
 
 BiblioInfo const & GuiCitation::bibInfo() const
 {
-	return buffer().masterBibInfo();
+	Buffer const & buf = buffer();
+	buf.reloadBibInfoCache();
+	return buf.masterBibInfo();
 }
 
 
@@ -771,5 +795,5 @@ Dialog * createGuiCitation(GuiView & lv) { return new GuiCitation(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiCitation_moc.cpp"
+#include "moc_GuiCitation.cpp"
 

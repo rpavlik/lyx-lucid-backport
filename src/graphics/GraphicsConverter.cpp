@@ -24,7 +24,7 @@
 #include "support/lstrings.h"
 #include "support/os.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <sstream>
 #include <fstream>
@@ -162,7 +162,7 @@ Converter::Impl::Impl(FileName const & from_file, string const & to_file_base,
 	// Note: 'python ' is absolutely essential, or execvp will fail.
 	script_command_ = os::python() + ' ' +
 		quoteName(script_file_.toFilesystemEncoding()) + ' ' +
-		quoteName(onlyFilename(from_file.toFilesystemEncoding())) + ' ' +
+		quoteName(onlyFileName(from_file.toFilesystemEncoding())) + ' ' +
 		quoteName(to_format);
 	// All is ready to go
 	valid_process_ = true;
@@ -178,7 +178,7 @@ void Converter::Impl::startConversion()
 
 	ForkedCall::SignalTypePtr ptr =
 		ForkedCallQueue::add(script_command_);
-	ptr->connect(boost::bind(&Impl::converted, this, _1, _2));
+	ptr->connect(bind(&Impl::converted, this, _1, _2));
 }
 
 
@@ -260,7 +260,7 @@ static void build_script(FileName const & from_file,
 {
 	LASSERT(from_format != to_format, /**/);
 	LYXERR(Debug::GRAPHICS, "build_script ... ");
-	typedef Converters::EdgePath EdgePath;
+	typedef Graph::EdgePath EdgePath;
 
 	script << "#!/usr/bin/env python\n"
 		  "# -*- coding: utf-8 -*-\n"
@@ -297,9 +297,9 @@ static void build_script(FileName const & from_file,
 	// problematic characters like ' or ". We can work around that problem
 	// in python, but the converters might be shell scripts and have more
 	// troubles with it.
-	string outfile = addExtension(to_base.absFilename(), getExtension(from_file.absFilename()));
+	string outfile = addExtension(to_base.absFileName(), getExtension(from_file.absFileName()));
 	script << "infile = toUnicode("
-			<< quoteName(from_file.absFilename(), quote_python)
+			<< quoteName(from_file.absFileName(), quote_python)
 			<< ")\n"
 		  "outfile = toUnicode("
 			<< quoteName(outfile, quote_python) << ")\n"
@@ -342,10 +342,11 @@ static void build_script(FileName const & from_file,
 	}
 
 	// The conversion commands may contain these tokens that need to be
-	// changed to infile, infile_base, outfile respectively.
-	string const token_from = "$$i";
-	string const token_base = "$$b";
-	string const token_to   = "$$o";
+	// changed to infile, infile_base, outfile and output directory respectively.
+	string const token_from  = "$$i";
+	string const token_base  = "$$b";
+	string const token_to    = "$$o";
+	string const token_todir = "$$d";
 
 	EdgePath::const_iterator it  = edgepath.begin();
 	EdgePath::const_iterator end = edgepath.end();
@@ -356,7 +357,7 @@ static void build_script(FileName const & from_file,
 		// Build the conversion command
 		string const infile      = outfile;
 		string const infile_base = changeExtension(infile, string());
-		outfile = addExtension(to_base.absFilename(), conv.To->extension());
+		outfile = addExtension(to_base.absFileName(), conv.To->extension());
 
 		// Store these names in the python script
 		script << "infile = toUnicode("
@@ -364,14 +365,16 @@ static void build_script(FileName const & from_file,
 			  "infile_base = toUnicode("
 				<< quoteName(infile_base, quote_python) << ")\n"
 			  "outfile = toUnicode("
-				<< quoteName(outfile, quote_python) << ")\n";
+				<< quoteName(outfile, quote_python) << ")\n"
+			  "outdir  = os.path.dirname(outfile)\n" ;
 
 		// See comment about extra " quotes above (although that
 		// applies only for the first loop run here).
 		string command = conv.command;
-		command = subst(command, token_from, "' + '\"' + infile + '\"' + '");
-		command = subst(command, token_base, "' + '\"' + infile_base + '\"' + '");
-		command = subst(command, token_to,   "' + '\"' + outfile + '\"' + '");
+		command = subst(command, token_from,  "' + '\"' + infile + '\"' + '");
+		command = subst(command, token_base,  "' + '\"' + infile_base + '\"' + '");
+		command = subst(command, token_to,    "' + '\"' + outfile + '\"' + '");
+		command = subst(command, token_todir, "' + '\"' + outdir + '\"' + '");
 		command = libScriptSearch(command, quote_python);
 
 		build_conversion_command(command, script);

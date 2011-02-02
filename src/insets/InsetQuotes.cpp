@@ -16,12 +16,14 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "Dimension.h"
+#include "Font.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "LyXRC.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
@@ -40,7 +42,7 @@ namespace {
 
 /* codes used to read/write quotes to LyX files
  * e    ``english''
- * s    ''spanish''
+ * s    ''swedish''
  * g    ,,german``
  * p    ,,polish''
  * f    <<french>>
@@ -88,25 +90,27 @@ char const * const latex_quote_babel[2][5] = {
 } // namespace anon
 
 
-InsetQuotes::InsetQuotes(Buffer const & buf, string const & str)
+InsetQuotes::InsetQuotes(Buffer * buf, string const & str) : Inset(buf)
 {
 	parseString(str);
-	setBuffer(const_cast<Buffer &>(buf));
 }
 
-InsetQuotes::InsetQuotes(Buffer const & buf, char_type c)
-	: language_(buf.params().quotes_language), times_(buf.params().quotes_times)
+InsetQuotes::InsetQuotes(Buffer * buf, char_type c) : Inset(buf)
 {
+	if (buf) {
+		language_ = buf->params().quotes_language;
+		times_ = buf->params().quotes_times;
+	}
 	setSide(c);
-	setBuffer(const_cast<Buffer &>(buf));
 }
 
 
-InsetQuotes::InsetQuotes(Buffer const & buf, char_type c, QuoteTimes t)
-	: language_(buf.params().quotes_language), times_(t)
+InsetQuotes::InsetQuotes(Buffer * buf, char_type c, QuoteTimes t)
+	: Inset(buf), times_(t)
 {
+	if (buf)
+		language_ = buf->params().quotes_language;
 	setSide(c);
-	setBuffer(const_cast<Buffer &>(buf));
 }
 
 
@@ -182,12 +186,14 @@ void InsetQuotes::parseString(string const & s)
 
 docstring InsetQuotes::displayString() const
 {
-	Language const * loclang = buffer().params().language;
+	Language const * loclang = 
+		isBufferValid() ? buffer().params().language : 0;
 	int const index = quote_index[side_][language_];
 	docstring retdisp = docstring(1, display_quote_char[times_][index]);
 
 	// in french, spaces are added inside double quotes
-	if (times_ == DoubleQuotes && prefixIs(loclang->code(), "fr")) {
+	// FIXME: this should be done by a separate quote type.
+	if (times_ == DoubleQuotes && loclang && prefixIs(loclang->code(), "fr")) {
 		if (side_ == LeftQuote)
 			retdisp += ' ';
 		else
@@ -261,18 +267,20 @@ int InsetQuotes::latex(odocstream & os, OutputParams const & runparams) const
 	string qstr;
 
 	if (language_ == FrenchQuotes && times_ == DoubleQuotes
-	    && prefixIs(runparams.local_font->language()->code(), "fr")) {
+	    && prefixIs(runparams.local_font->language()->code(), "fr")
+	    && !runparams.use_polyglossia) {
 		if (side_ == LeftQuote)
 			qstr = "\\og "; //the spaces are important here
 		else
 			qstr = " \\fg{}"; //and here
-	} else if (lyxrc.fontenc == "T1") {
+	} else if (lyxrc.fontenc == "T1" && !runparams.use_polyglossia) {
 		qstr = latex_quote_t1[times_][quoteind];
 #ifdef DO_USE_DEFAULT_LANGUAGE
 	} else if (doclang == "default") {
 #else
 	} else if (!runparams.use_babel) {
 #endif
+		// these are also used by polyglossia
 		qstr = latex_quote_ot1[times_][quoteind];
 	} else {
 		qstr = latex_quote_babel[times_][quoteind];
@@ -312,9 +320,22 @@ int InsetQuotes::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-void InsetQuotes::tocString(odocstream & os) const
+docstring InsetQuotes::xhtml(XHTMLStream & xs, OutputParams const & op) const
+{
+	docbook(xs.os(), op);
+	return docstring();
+}
+
+
+void InsetQuotes::toString(odocstream & os) const
 {
 	os << displayString();
+}
+
+
+void InsetQuotes::forToc(docstring & os, size_t) const
+{
+	os += displayString();
 }
 
 

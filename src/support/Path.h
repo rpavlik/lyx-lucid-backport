@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,8 @@ namespace support {
  * change to a directory as the cwd, for example :
  *
  * if (blah) {
- *	Path p("/tmp/blah");
+ *	FileName pp("/tmp/blah");
+ *	PathChanger p(pp);
  *	...
  * }
  *
@@ -61,5 +62,19 @@ private:
 
 } // namespace support
 } // namespace lyx
+
+#ifdef __APPLE__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int getPrivateFrameworkPathName(char * buf, unsigned len, char const * framework);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
 
 #endif // PATH_H

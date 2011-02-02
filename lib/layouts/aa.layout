@@ -16,7 +16,7 @@
 # 2008-10-26  Updated for aa.cls version 6.1
 
 
-Format 11
+Format 30
 Columns                 2
 Sides                   2
 SecNumDepth             3
@@ -40,12 +40,15 @@ End
 # Therefore I'll define the entries first, then fill them
 
 Style Section
+	TocLevel 1
 End
 
 Style Subsection
+	TocLevel 2
 End
 
 Style Subsubsection
+	TocLevel 3
 End
 
 Style Itemize
@@ -226,6 +229,7 @@ Style Section
 	  Family		Sans
 	  Size			Large
 	EndFont
+	TocLevel 1
 End
 
 
@@ -238,6 +242,7 @@ Style Subsection
 	  Size			Large
 	  Shape			Slanted
 	EndFont
+	TocLevel 2
 End
 
 
@@ -248,6 +253,7 @@ Style Subsubsection
 	  Series		Medium
 	  Size			Normal
 	EndFont
+	TocLevel 3
 End
 
 
@@ -376,7 +382,7 @@ Style Bibliography
 End
 
 
-InsetLayout CharStyle:Institute
+InsetLayout Flex:Institute
   LyXType			charstyle
   LatexType			command
   LatexName			inst
@@ -386,7 +392,7 @@ InsetLayout CharStyle:Institute
 End
 
 
-InsetLayout CharStyle:E-Mail
+InsetLayout Flex:E-Mail
   LyXType			charstyle
   LatexType			command
   LatexName			email

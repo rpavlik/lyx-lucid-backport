@@ -14,7 +14,6 @@
 
 #include "GuiView.h"
 #include "qt_helpers.h"
-#include "FuncRequest.h"
 
 #include "support/debug.h"
 
@@ -26,7 +25,7 @@ namespace lyx {
 namespace frontend {
 
 GuiDialog::GuiDialog(GuiView & lv, QString const & name, QString const & title)
-	: QDialog(&lv), Dialog(lv, name, "LyX: " + title), updating_(false),
+	: QDialog(&lv), Dialog(lv, name, "LyX: " + title), updating_(false), 
 	  is_closing_(false)
 {}
 
@@ -48,6 +47,13 @@ void GuiDialog::slotApply()
 {
 	apply();
 	bc().apply();
+}
+
+
+void GuiDialog::slotAutoApply()
+{
+	apply();
+	bc().autoApply();
 }
 
 
@@ -114,4 +120,4 @@ void GuiDialog::updateView()
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiDialog_moc.cpp"
+#include "moc_GuiDialog.cpp"

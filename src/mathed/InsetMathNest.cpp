@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,6 +13,7 @@
 #include "InsetMathNest.h"
 
 #include "InsetMathArray.h"
+#include "InsetMathAMSArray.h"
 #include "InsetMathBig.h"
 #include "InsetMathBox.h"
 #include "InsetMathBrace.h"
@@ -27,6 +28,7 @@
 #include "InsetMathSpace.h"
 #include "InsetMathSymbol.h"
 #include "InsetMathUnknown.h"
+#include "MathAutoCorrect.h"
 #include "MathCompletionList.h"
 #include "MathData.h"
 #include "MathFactory.h"
@@ -46,7 +48,7 @@
 #include "Encoding.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
 #include "OutputParams.h"
 #include "Text.h"
@@ -78,25 +80,45 @@ using cap::selClearOrDel;
 
 
 InsetMathNest::InsetMathNest(Buffer * buf, idx_type nargs)
-	: InsetMath(buf), cells_(nargs), lock_(false), mouse_hover_(false)
+	: InsetMath(buf), cells_(nargs), lock_(false)
 {
 	setBuffer(*buf);
 }
 
 
 InsetMathNest::InsetMathNest(InsetMathNest const & inset)
-	: InsetMath(inset), cells_(inset.cells_), lock_(inset.lock_),
-	  mouse_hover_(false)
+	: InsetMath(inset), cells_(inset.cells_), lock_(inset.lock_)
 {}
+
+
+InsetMathNest::~InsetMathNest()
+{
+	map<BufferView const *, bool>::iterator it = mouse_hover_.begin();
+	map<BufferView const *, bool>::iterator end = mouse_hover_.end();
+	for (; it != end; ++it)
+		if (it->second)
+			it->first->clearLastInset(this);
+}
 
 
 InsetMathNest & InsetMathNest::operator=(InsetMathNest const & inset)
 {
 	cells_ = inset.cells_;
 	lock_ = inset.lock_;
-	mouse_hover_ = false;
+	mouse_hover_.clear();
 	InsetMath::operator=(inset);
 	return *this;
+}
+
+
+void InsetMathNest::setBuffer(Buffer & buffer)
+{
+	InsetMath::setBuffer(buffer);
+	for (idx_type i = 0, n = nargs(); i != n; ++i) {
+		MathData & data = cell(i);
+		for (size_t j = 0; j != data.size(); ++j)
+			data[j].nucleus()->setBuffer(buffer);
+	}
 }
 
 
@@ -158,6 +180,14 @@ void InsetMathNest::metrics(MetricsInfo const & mi) const
 		cell(i).metrics(m, dim);
 	}
 }
+
+
+void InsetMathNest::updateBuffer(ParIterator const & it, UpdateType utype)
+{
+	for (idx_type i = 0, n = nargs(); i != n; ++i)
+		cell(i).updateBuffer(it, utype);
+}
+
 
 
 bool InsetMathNest::idxNext(Cursor & cur) const
@@ -374,9 +404,9 @@ int InsetMathNest::latex(odocstream & os, OutputParams const & runparams) const
 }
 
 
-bool InsetMathNest::setMouseHover(bool mouse_hover)
+bool InsetMathNest::setMouseHover(BufferView const * bv, bool mouse_hover)
 {
-	mouse_hover_ = mouse_hover;
+	mouse_hover_[bv] = mouse_hover;
 	return true;
 }
 
@@ -429,7 +459,7 @@ void InsetMathNest::handleFont(Cursor & cur, docstring const & arg,
 	if (cur.inset().asInsetMath()->name() == font)
 		cur.handleFont(to_utf8(font));
 	else
-		handleNest(cur, createInsetMath(font, &cur.buffer()), arg);
+		handleNest(cur, createInsetMath(font, cur.buffer()), arg);
 }
 
 
@@ -517,11 +547,12 @@ void InsetMathNest::handleFont2(Cursor & cur, docstring const & arg)
 
 void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	//lyxerr << "InsetMathNest: request: " << cmd << endl;
+	//LYXERR0("InsetMathNest: request: " << cmd);
 
 	Parse::flags parseflg = Parse::QUIET | Parse::USETEXT;
 
-	switch (cmd.action) {
+	FuncCode const act = cmd.action();
+	switch (act) {
 
 	case LFUN_CLIPBOARD_PASTE:
 		parseflg |= Parse::VERBATIM;
@@ -543,6 +574,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		cur.niceInsert(topaste, parseflg, false);
 		cur.clearSelection(); // bug 393
+		cur.forceBufferUpdate();
 		cur.finishUndo();
 		break;
 	}
@@ -554,6 +586,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		// Prevent stale position >= size crash
 		// Probably not necessary anymore, see eraseSelection (gb 2005-10-09)
 		cur.normalize();
+		cur.forceBufferUpdate();
 		break;
 
 	case LFUN_COPY:
@@ -588,16 +621,16 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_CHAR_LEFT:
 	case LFUN_CHAR_BACKWARD:
 	case LFUN_CHAR_FORWARD:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 	case LFUN_CHAR_RIGHT_SELECT:
 	case LFUN_CHAR_LEFT_SELECT:
 	case LFUN_CHAR_BACKWARD_SELECT:
 	case LFUN_CHAR_FORWARD_SELECT: {
 		// are we in a selection?
-		bool select = (cmd.action == LFUN_CHAR_RIGHT_SELECT
-					   || cmd.action == LFUN_CHAR_LEFT_SELECT
-					   || cmd.action == LFUN_CHAR_BACKWARD_SELECT
-					   || cmd.action == LFUN_CHAR_FORWARD_SELECT);
+		bool select = (act == LFUN_CHAR_RIGHT_SELECT
+					   || act == LFUN_CHAR_LEFT_SELECT
+					   || act == LFUN_CHAR_BACKWARD_SELECT
+					   || act == LFUN_CHAR_FORWARD_SELECT);
 		// are we moving forward or backwards?
 		// If the command was RIGHT or LEFT, then whether we're moving forward
 		// or backwards depends on the cursor movement mode (logical or visual):
@@ -609,19 +642,19 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		bool forward;
 		FuncCode finish_lfun;
 
-		if (cmd.action == LFUN_CHAR_FORWARD
-				|| cmd.action == LFUN_CHAR_FORWARD_SELECT) {
+		if (act == LFUN_CHAR_FORWARD
+				|| act == LFUN_CHAR_FORWARD_SELECT) {
 			forward = true;
 			finish_lfun = LFUN_FINISHED_FORWARD;
 		}
-		else if (cmd.action == LFUN_CHAR_BACKWARD
-				|| cmd.action == LFUN_CHAR_BACKWARD_SELECT) {
+		else if (act == LFUN_CHAR_BACKWARD
+				|| act == LFUN_CHAR_BACKWARD_SELECT) {
 			forward = false;
 			finish_lfun = LFUN_FINISHED_BACKWARD;
 		}
 		else {
-			bool right = (cmd.action == LFUN_CHAR_RIGHT_SELECT
-						  || cmd.action == LFUN_CHAR_RIGHT);
+			bool right = (act == LFUN_CHAR_RIGHT_SELECT
+						  || act == LFUN_CHAR_RIGHT);
 			if (lyxrc.visual_cursor || !reverseDirectionNeeded(cur))
 				forward = right;
 			else
@@ -634,7 +667,6 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 		// Now that we know exactly what we want to do, let's do it!
 		cur.selHandle(select);
-		cur.autocorrect() = false;
 		cur.clearTargetX();
 		cur.macroModeClose();
 		// try moving forward or backwards as necessary...
@@ -649,7 +681,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_DOWN:
 	case LFUN_UP:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 	case LFUN_DOWN_SELECT:
 	case LFUN_UP_SELECT: {
 		// close active macro
@@ -659,12 +691,12 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		}
 
 		// stop/start the selection
-		bool select = cmd.action == LFUN_DOWN_SELECT ||
-			cmd.action == LFUN_UP_SELECT;
+		bool select = act == LFUN_DOWN_SELECT ||
+			act == LFUN_UP_SELECT;
 		cur.selHandle(select);
 
 		// go up/down
-		bool up = cmd.action == LFUN_UP || cmd.action == LFUN_UP_SELECT;
+		bool up = act == LFUN_UP || act == LFUN_UP_SELECT;
 		bool successful = cur.upDownInMath(up);
 		if (successful)
 			break;
@@ -692,7 +724,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_PARAGRAPH_UP:
 	case LFUN_PARAGRAPH_DOWN:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 	case LFUN_PARAGRAPH_UP_SELECT:
 	case LFUN_PARAGRAPH_DOWN_SELECT:
 		break;
@@ -700,13 +732,13 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_LINE_BEGIN:
 	case LFUN_WORD_BACKWARD:
 	case LFUN_WORD_LEFT:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 	case LFUN_LINE_BEGIN_SELECT:
 	case LFUN_WORD_BACKWARD_SELECT:
 	case LFUN_WORD_LEFT_SELECT:
-		cur.selHandle(cmd.action == LFUN_WORD_BACKWARD_SELECT ||
-				cmd.action == LFUN_WORD_LEFT_SELECT ||
-				cmd.action == LFUN_LINE_BEGIN_SELECT);
+		cur.selHandle(act == LFUN_WORD_BACKWARD_SELECT ||
+				act == LFUN_WORD_LEFT_SELECT ||
+				act == LFUN_LINE_BEGIN_SELECT);
 		cur.macroModeClose();
 		if (cur.pos() != 0) {
 			cur.pos() = 0;
@@ -725,13 +757,13 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_WORD_FORWARD:
 	case LFUN_WORD_RIGHT:
 	case LFUN_LINE_END:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 	case LFUN_WORD_FORWARD_SELECT:
 	case LFUN_WORD_RIGHT_SELECT:
 	case LFUN_LINE_END_SELECT:
-		cur.selHandle(cmd.action == LFUN_WORD_FORWARD_SELECT ||
-				cmd.action == LFUN_WORD_RIGHT_SELECT ||
-				cmd.action == LFUN_LINE_END_SELECT);
+		cur.selHandle(act == LFUN_WORD_FORWARD_SELECT ||
+				act == LFUN_WORD_RIGHT_SELECT ||
+				act == LFUN_LINE_END_SELECT);
 		cur.macroModeClose();
 		cur.clearTargetX();
 		if (cur.pos() != cur.lastpos()) {
@@ -749,12 +781,12 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_CELL_FORWARD:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 		cur.inset().idxNext(cur);
 		break;
 
 	case LFUN_CELL_BACKWARD:
-		cur.updateFlags(Update::Decoration | Update::FitCursor);
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor);
 		cur.inset().idxPrev(cur);
 		break;
 
@@ -945,7 +977,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	case LFUN_FONT_UNDERLINE:
 		cur.recordUndo();
-		cur.handleNest(createInsetMath("underline", &cur.buffer()));
+		cur.handleNest(createInsetMath("underline", cur.buffer()));
 		break;
 	case LFUN_MATH_MODE: {
 #if 1
@@ -964,16 +996,37 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		cur.posBackward();
 		cur.pushBackward(*cur.nextInset());
 		cur.niceInsert(save_selection);
+		cur.forceBufferUpdate();
 #else
 		if (currentMode() == Inset::TEXT_MODE) {
 			cur.recordUndoSelection();
-			cur.niceInsert(MathAtom(new InsetMathHull("simple", &cur.buffer())));
+			cur.niceInsert(MathAtom(new InsetMathHull("simple", cur.buffer())));
 			cur.message(_("create new math text environment ($...$)"));
 		} else {
 			handleFont(cur, cmd.argument(), "textrm");
 			cur.message(_("entered math text mode (textrm)"));
 		}
 #endif
+		break;
+	}
+
+	case LFUN_REGEXP_MODE: {
+		InsetMath * im = cur.inset().asInsetMath();
+		if (im) {
+			InsetMathHull * i = im->asHullInset();		
+			if (i && i->getType() == hullRegexp) {
+				cur.message(_("Already in regular expression mode"));
+				break;
+			}
+		}
+		cur.macroModeClose();
+		docstring const save_selection = grabAndEraseSelection(cur);
+		selClearOrDel(cur);
+		cur.plainInsert(MathAtom(new InsetMathHull(buffer_, hullRegexp)));
+		cur.posBackward();
+		cur.pushBackward(*cur.nextInset());
+		cur.niceInsert(save_selection);
+		cur.message(_("Regular expression editor mode"));
 		break;
 	}
 
@@ -1004,6 +1057,22 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		v_align += 'c';
 		cur.niceInsert(MathAtom(new InsetMathArray(buffer_,
 			from_ascii("array"), m, n, (char)v_align[0], h_align)));
+		break;
+	}
+
+	case LFUN_MATH_AMS_MATRIX: {
+		cur.recordUndo();
+		unsigned int m = 1;
+		unsigned int n = 1;
+		docstring name;
+		idocstringstream is(cmd.argument());
+		is >> m >> n >> name;
+		if (m < 1)
+			m = 1;
+		if (n < 1)
+			n = 1;
+		cur.niceInsert(
+			MathAtom(new InsetMathAMSArray(buffer_, name, m, n)));
 		break;
 	}
 
@@ -1040,10 +1109,14 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 			if (have_l)
 				cur.insert(MathAtom(new InsetMathBig(lname,
 								ldelim)));
-			cur.niceInsert(selection);
-			if (have_r)
+			// first insert the right delimiter and then go back
+			// and re-insert the selection (bug 7088)
+			if (have_r) {
 				cur.insert(MathAtom(new InsetMathBig(rname,
 								rdelim)));
+				cur.posBackward();
+			}
+			cur.niceInsert(selection);
 		}
 		// Don't call cur.undispatched() if we did nothing, this would
 		// lead to infinite recursion via Text::dispatch().
@@ -1087,7 +1160,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MATH_MACRO_FOLD:
 	case LFUN_MATH_MACRO_UNFOLD: {
 		Cursor it = cur;
-		bool fold = cmd.action == LFUN_MATH_MACRO_FOLD;
+		bool fold = act == LFUN_MATH_MACRO_FOLD;
 		bool found = findMacroToFoldUnfold(it, fold);
 		if (found) {
 			MathMacro * macro = it.nextInset()->asInsetMath()->asMacro();
@@ -1124,19 +1197,34 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 				cur.niceInsert(cmd.argument());
 		}
 		break;
+	}
+
+	case LFUN_UNICODE_INSERT: {
+		if (cmd.argument().empty())
+			break;
+		docstring hexstring = cmd.argument();
+		if (isHex(hexstring)) {
+			char_type c = hexToInt(hexstring);
+			if (c >= 32 && c < 0x10ffff) {
+				docstring s = docstring(1, c);
+				FuncCode code = currentMode() == MATH_MODE ?
+					LFUN_MATH_INSERT : LFUN_SELF_INSERT;
+				lyx::dispatch(FuncRequest(code, s));
+			}
 		}
+		break;
+	}
 
 	case LFUN_DIALOG_SHOW_NEW_INSET: {
 		docstring const & name = cmd.argument();
 		string data;
 		if (name == "ref") {
 			InsetMathRef tmp(buffer_, name);
-			data = tmp.createDialogStr(to_utf8(name));
-		} else if (name == "mathspace") {
-			InsetMathSpace tmp;
 			data = tmp.createDialogStr();
+			cur.bv().showDialog(to_utf8(name), data);
+		} else if (name == "mathspace") {
+			cur.bv().showDialog(to_utf8(name));
 		}
-		cur.bv().showDialog(to_utf8(name), data);
 		break;
 	}
 
@@ -1145,6 +1233,7 @@ void InsetMathNest::doDispatch(Cursor & cur, FuncRequest & cmd)
 		if (createInsetMath_fromDialogStr(cmd.argument(), ar)) {
 			cur.recordUndoSelection();
 			cur.insert(ar);
+			cur.forceBufferUpdate();			
 		} else
 			cur.undispatched();
 		break;
@@ -1204,12 +1293,12 @@ bool InsetMathNest::getStatus(Cursor & cur, FuncRequest const & cmd,
 	//string tc = "mathnormal";
 	bool ret = true;
 	string const arg = to_utf8(cmd.argument());
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE:
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY:
 		flag.setEnabled(false);
 		break;
 #if 0
-	case LFUN_TABULAR_FEATURE:
+	case LFUN_INSET_MODIFY:
 		// FIXME: check temporarily disabled
 		// valign code
 		char align = mathcursor::valign();
@@ -1266,10 +1355,17 @@ bool InsetMathNest::getStatus(Cursor & cur, FuncRequest const & cmd,
 		break;
 	}
 
+	case LFUN_MATH_MODE:
+		// forbid "math-mode on" in math mode to prevent irritating
+		// behaviour of menu entries (bug 6709)
+		flag.setEnabled(currentMode() == TEXT_MODE || arg != "on");
+		break;
+
 	case LFUN_MATH_INSERT:
 		flag.setEnabled(currentMode() != TEXT_MODE);
 		break;
 
+	case LFUN_MATH_AMS_MATRIX:
 	case LFUN_MATH_MATRIX:
 		flag.setEnabled(currentMode() == MATH_MODE);
 		break;
@@ -1292,12 +1388,13 @@ bool InsetMathNest::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_MATH_MACRO_FOLD:
 	case LFUN_MATH_MACRO_UNFOLD: {
 		Cursor it = cur;
-		bool found = findMacroToFoldUnfold(it, cmd.action == LFUN_MATH_MACRO_FOLD);
+		bool found = findMacroToFoldUnfold(it, cmd.action() == LFUN_MATH_MACRO_FOLD);
 		flag.setEnabled(found);
 		break;
 	}
 
 	case LFUN_SPECIALCHAR_INSERT:
+	case LFUN_SCRIPT_INSERT:
 		// FIXME: These would probably make sense in math-text mode
 		flag.setEnabled(false);
 		break;
@@ -1370,8 +1467,8 @@ void InsetMathNest::lfunMousePress(Cursor & cur, FuncRequest & cmd)
 		// Update::FitCursor: adjust the screen to the cursor
 		//                    position if needed
 		// cur.result().update(): don't overwrite previously set flags.
-		cur.updateFlags(Update::Decoration | Update::FitCursor
-				| cur.result().update());
+		cur.screenUpdateFlags(Update::Decoration | Update::FitCursor
+				| cur.result().screenUpdate());
 	} else if (cmd.button() == mouse_button::button2) {
 		if (cap::selection()) {
 			// See comment in Text::dispatch why we do this
@@ -1392,7 +1489,7 @@ void InsetMathNest::lfunMouseMotion(Cursor & cur, FuncRequest & cmd)
 	// only select with button 1
 	if (cmd.button() == mouse_button::button1) {
 		Cursor & bvcur = cur.bv().cursor();
-		if (bvcur.anchor_.hasPart(cur)) {
+		if (bvcur.realAnchor().hasPart(cur)) {
 			//lyxerr << "## lfunMouseMotion: cursor: " << cur << endl;
 			bvcur.setCursor(cur);
 			bvcur.setSelection(true);
@@ -1409,7 +1506,7 @@ void InsetMathNest::lfunMouseRelease(Cursor & cur, FuncRequest & cmd)
 
 	if (cmd.button() == mouse_button::button1) {
 		if (!cur.selection())
-			cur.noUpdate();
+			cur.noScreenUpdate();
 		else {
 			Cursor & bvcur = cur.bv().cursor();
 			bvcur.setSelection(true);
@@ -1421,7 +1518,7 @@ void InsetMathNest::lfunMouseRelease(Cursor & cur, FuncRequest & cmd)
 }
 
 
-bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
+bool InsetMathNest::interpretChar(Cursor & cur, char_type const c)
 {
 	//lyxerr << "interpret 2: '" << c << "'" << endl;
 	docstring save_selection;
@@ -1429,7 +1526,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 		save_selection = grabAndEraseSelection(cur);
 
 	cur.clearTargetX();
-	Buffer * buf = &cur.buffer();
+	Buffer * buf = cur.buffer();
 
 	// handle macroMode
 	if (cur.inMacroMode()) {
@@ -1448,7 +1545,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 		MathWordList const & mwl = mathedWordList();
 		bool star_macro = c == '*'
 			&& (mwl.find(name.substr(1) + "*") != mwl.end()
-			    || cur.buffer().getMacro(name.substr(1) + "*", cur, true));
+			    || cur.buffer()->getMacro(name.substr(1) + "*", cur, true));
 		if (isAlphaASCII(c) || star_macro) {
 			cur.activeMacro()->setName(name + docstring(1, c));
 			return true;
@@ -1527,16 +1624,18 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 		return true;
 	}
 
-	// This is annoying as one has to press <space> far too often.
-	// Disable it.
 
-#if 0
-		// leave autocorrect mode if necessary
-		if (autocorrect() && c == ' ') {
-			autocorrect() = false;
-			return true;
-		}
-#endif
+	// leave autocorrect mode if necessary
+	if (lyxrc.autocorrection_math && c == ' ' && cur.autocorrect()) {
+		cur.autocorrect() = false;
+		cur.message(_("Autocorrect Off ('!' to enter)"));
+		return true;
+	} 
+	if (lyxrc.autocorrection_math && c == '!' && !cur.autocorrect()) {
+		cur.autocorrect() = true;
+		cur.message(_("Autocorrect On (<space> to exit)"));
+		return true;
+	}
 
 	// just clear selection on pressing the space bar
 	if (cur.selection() && c == ' ') {
@@ -1574,7 +1673,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 				// visual box corners that define the inset. If we know for
 				// sure that we stay within the same cell we can optimize for
 				// that using:
-				//cur.updateFlags(Update::SinglePar | Update::FitCursor);
+				//cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 			}
 			return true;
 		}
@@ -1584,7 +1683,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 			// visual box corners that define the inset. If we know for
 			// sure that we stay within the same cell we can optimize for
 			// that using:
-			//cur.updateFlags(Update::SinglePar | Update::FitCursor);
+			//cur.screenUpdateFlags(Update::SinglePar | Update::FitCursor);
 			return true;
 		}
 
@@ -1593,7 +1692,7 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 			// visual box corners that define the inset. If we know for
 			// sure that we stay within the same cell we can optimize for
 			// that using:
-			//cur.updateFlags(Update::FitCursor);
+			//cur.screenUpdateFlags(Update::FitCursor);
 			return true;
 		}
 
@@ -1641,12 +1740,18 @@ bool InsetMathNest::interpretChar(Cursor & cur, char_type c)
 
 
 	// try auto-correction
-	//if (autocorrect() && hasPrevAtom() && math_autocorrect(prevAtom(), c))
-	//	return true;
+	if (lyxrc.autocorrection_math && cur.autocorrect() && cur.pos() != 0
+		  && math_autocorrect(cur.prevAtom(), c))
+		return true;
 
 	// no special circumstances, so insert the character without any fuss
 	cur.insert(c);
-	cur.autocorrect() = true;
+	if (lyxrc.autocorrection_math) {
+		if (!cur.autocorrect())
+			cur.message(_("Autocorrect Off ('!' to enter)"));
+		else
+			cur.message(_("Autocorrect On (<space> to exit)"));
+	}
 	return true;
 }
 
@@ -1687,7 +1792,7 @@ bool InsetMathNest::script(Cursor & cur, bool up,
 	//lyxerr << "handling script: up: " << up << endl;
 	if (cur.inMacroMode() && cur.macroName() == "\\") {
 		if (up)
-			cur.niceInsert(createInsetMath("mathcircumflex", &cur.buffer()));
+			cur.niceInsert(createInsetMath("mathcircumflex", cur.buffer()));
 		else
 			interpretChar(cur, '_');
 		return true;
@@ -1818,8 +1923,7 @@ void InsetMathNest::completionPosAndDim(Cursor const & cur, int & x, int & y,
 	dim.asc += 3;
 
 	// and position
-	Point xy
-	= cur.bv().coordCache().insets().xy(inset);
+	Point xy = cur.bv().coordCache().insets().xy(inset);
 	x = xy.x_;
 	y = xy.y_;
 }
@@ -1868,10 +1972,10 @@ MathCompletionList::MathCompletionList(Cursor const & cur)
 {
 	// fill it with macros from the buffer
 	MacroNameSet macros;
-	cur.buffer().listMacroNames(macros);
+	cur.buffer()->listMacroNames(macros);
 	MacroNameSet::const_iterator it;
 	for (it = macros.begin(); it != macros.end(); ++it) {
-		if (cur.buffer().getMacro(*it, cur, false))
+		if (cur.buffer()->getMacro(*it, cur, false))
 			locals.push_back("\\" + *it);
 	}
 	sort(locals.begin(), locals.end());
@@ -1904,6 +2008,7 @@ MathCompletionList::MathCompletionList(Cursor const & cur)
 	globals.push_back(from_ascii("\\cases"));
 	globals.push_back(from_ascii("\\substack"));
 	globals.push_back(from_ascii("\\xymatrix"));
+	globals.push_back(from_ascii("\\Diagram"));
 	globals.push_back(from_ascii("\\subarray"));
 	globals.push_back(from_ascii("\\array"));
 	globals.push_back(from_ascii("\\sqrt"));

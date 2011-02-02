@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -159,14 +159,79 @@ void InsetMathChar::octave(OctaveStream & os) const
 }
 
 
+// We have a bit of a problem here. MathML wants to know whether the
+// character represents an "identifier" or an "operator", and we have
+// no general way of telling. So we shall guess: If it's alpha or 
+// mathalpha, then we'll treat it as an identifier, otherwise as an 
+// operator.
+// Worst case: We get bad spacing, or bad italics.
 void InsetMathChar::mathmlize(MathStream & ms) const
 {
+	std::string entity;
 	switch (char_) {
-		case '<': ms << "&lt;"; break;
-		case '>': ms << "&gt;"; break;
-		case '&': ms << "&amp;"; break;
-		default: ms.os().put(char_); break;
+		case '<': entity = "&lt;"; break;
+		case '>': entity = "&gt;"; break;
+		case '&': entity = "&amp;"; break;
+		case ' ': 
+			if (!ms.inText())
+				break;
+			entity = "&ThinSpace;";
+			break;
+		default: break;
 	}
+	
+	if (ms.inText()) {
+		if (entity.empty())
+			ms.os().put(char_);
+		else 
+			ms << from_ascii(entity);
+		return;
+	}
+	
+	if (!entity.empty()) {
+		ms << "<mo>" << from_ascii(entity) << "</mo>";
+		return;
+	}		
+
+	char const * type = 
+		(isalpha(char_) || Encodings::isMathAlpha(char_))
+			? "mi" : "mo";
+	// we don't use MTag and ETag because we do not want the spacing
+	ms << "<" << type << ">" << char_type(char_) << "</" << type << ">";	
+}
+
+
+void InsetMathChar::htmlize(HtmlStream & ms) const
+{
+	std::string entity;
+	switch (char_) {
+		case '<': entity = "&lt;"; break;
+		case '>': entity = "&gt;"; break;
+		case '&': entity = "&amp;"; break;
+		default: break;
+	}
+	
+	bool have_entity = !entity.empty();
+	
+	if (ms.inText()) {
+		if (have_entity)
+			ms << from_ascii(entity);
+		else
+			ms.os().put(char_);
+		return;
+	}
+	
+	if (have_entity) {
+		ms << ' ' << from_ascii(entity) << ' ';
+		return;
+	}		
+
+	if (isalpha(char_) || Encodings::isMathAlpha(char_))
+		// we don't use MTag and ETag because we do not want the spacing
+		ms << MTag("i") << char_type(char_) << ETag("i");
+	else
+		// an operator, so give some space
+		ms << " " << char_type(char_) << " ";
 }
 
 

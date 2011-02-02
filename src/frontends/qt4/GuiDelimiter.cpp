@@ -173,6 +173,9 @@ GuiDelimiter::GuiDelimiter(GuiView & lv)
 	leftLW->setViewMode(QListView::IconMode);
 	rightLW->setViewMode(QListView::IconMode);
 
+	leftLW->setDragDropMode(QAbstractItemView::NoDragDrop);
+	rightLW->setDragDropMode(QAbstractItemView::NoDragDrop);
+
 	initMathSymbols();
 
 	typedef map<char_type, QListWidgetItem *> ListItems;
@@ -347,4 +350,4 @@ Dialog * createGuiDelimiter(GuiView & lv) { return new GuiDelimiter(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiDelimiter_moc.cpp"
+#include "moc_GuiDelimiter.cpp"

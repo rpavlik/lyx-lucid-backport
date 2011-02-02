@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -18,6 +18,7 @@
 #include "MathStream.h"
 #include "MetricsInfo.h"
 
+#include "Buffer.h"
 #include "BufferView.h"
 #include "CutAndPaste.h"
 #include "FuncStatus.h"
@@ -39,6 +40,7 @@
 
 using namespace std;
 using namespace lyx::support;
+
 
 
 namespace lyx {
@@ -65,9 +67,9 @@ static int extractInt(istream & is)
 static void resetGrid(InsetMathGrid & grid)
 {
 	while (grid.ncols() > 1)
-		grid.delCol(grid.ncols());
+		grid.delCol(grid.ncols() - 1);
 	while (grid.nrows() > 1)
-		grid.delRow(grid.nrows());
+		grid.delRow(grid.nrows() - 1);
 	grid.cell(0).erase(0, grid.cell(0).size());
 	grid.setDefaults();
 }
@@ -135,7 +137,7 @@ InsetMathGrid::InsetMathGrid(Buffer * buf, col_type m, row_type n)
 
 
 InsetMathGrid::InsetMathGrid(Buffer * buf, col_type m, row_type n, char v,
-			     docstring const & h)
+	docstring const & h)
 	: InsetMathNest(buf, m * n),
 	  rowinfo_(n + 1),
 	  colinfo_(m + 1),
@@ -379,8 +381,8 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 	// compute vertical offsets
 	rowinfo_[0].offset_ = 0;
 	for (row_type row = 1; row <= nrows(); ++row) {
-		rowinfo_[row].offset_  =
-			rowinfo_[row - 1].offset_  +
+		rowinfo_[row].offset_ =
+			rowinfo_[row - 1].offset_ +
 			rowinfo_[row - 1].descent_ +
 			rowinfo_[row - 1].skipPixels(mi) +
 			rowsep() +
@@ -425,20 +427,20 @@ void InsetMathGrid::metrics(MetricsInfo & mi, Dimension & dim) const
 	}
 
 
-	dim.wid   =   colinfo_[ncols() - 1].offset_
-		       + colinfo_[ncols() - 1].width_
-		 + vlinesep() * colinfo_[ncols()].lines_
-		       + border();
+	dim.wid = colinfo_[ncols() - 1].offset_
+		+ colinfo_[ncols() - 1].width_
+		+ vlinesep() * colinfo_[ncols()].lines_
+		+ border();
 
-	dim.asc  = - rowinfo_[0].offset_
-		       + rowinfo_[0].ascent_
-		 + hlinesep() * rowinfo_[0].lines_
-		       + border();
+	dim.asc = - rowinfo_[0].offset_
+		+ rowinfo_[0].ascent_
+		+ hlinesep() * rowinfo_[0].lines_
+		+ border();
 
-	dim.des =   rowinfo_[nrows() - 1].offset_
-		       + rowinfo_[nrows() - 1].descent_
-		 + hlinesep() * rowinfo_[nrows()].lines_
-		       + border();
+	dim.des = rowinfo_[nrows() - 1].offset_
+		+ rowinfo_[nrows() - 1].descent_
+		+ hlinesep() * rowinfo_[nrows()].lines_
+		+ border();
 
 
 /*
@@ -634,7 +636,16 @@ void InsetMathGrid::drawT(TextPainter & /*pain*/, int /*x*/, int /*y*/) const
 }
 
 
-docstring InsetMathGrid::eolString(row_type row, bool fragile, bool last_eoln) const
+void InsetMathGrid::updateBuffer(ParIterator const & it, UpdateType utype)
+{
+	// pass down
+	for (idx_type idx = 0; idx < nargs(); ++idx)
+		cell(idx).updateBuffer(it, utype);
+}
+
+
+docstring InsetMathGrid::eolString(row_type row, bool fragile,
+		bool /*latex*/, bool last_eoln) const
 {
 	docstring eol;
 
@@ -969,29 +980,74 @@ void InsetMathGrid::normalize(NormalStream & os) const
 
 void InsetMathGrid::mathmlize(MathStream & os) const
 {
-	os << MTag("mtable");
+	bool const havetable = nrows() > 1 || ncols() > 1;
+	if (havetable)
+		os << MTag("mtable");
+	char const * const celltag = havetable ? "mtd" : "mrow";
 	for (row_type row = 0; row < nrows(); ++row) {
-		os << MTag("mtr");
-		for (col_type col = 0; col < ncols(); ++col)
+		if (havetable)
+			os << MTag("mtr");
+		for (col_type col = 0; col < ncols(); ++col) {
+			os << MTag(celltag);
 			os << cell(index(row, col));
-		os << ETag("mtr");
+			os << ETag(celltag);
+		}
+		if (havetable)
+			os << ETag("mtr");
 	}
-	os << ETag("mtable");
+	if (havetable)
+		os << ETag("mtable");
+}
+
+
+// FIXME XHTML
+// We need to do something about alignment here.
+void InsetMathGrid::htmlize(HtmlStream & os, string attrib) const
+{
+	bool const havetable = nrows() > 1 || ncols() > 1;
+	if (!havetable) {
+		os << cell(index(0, 0));
+		return;
+	}
+	os << MTag("table", attrib);
+	for (row_type row = 0; row < nrows(); ++row) {
+		os << MTag("tr");
+		for (col_type col = 0; col < ncols(); ++col) {
+			os << MTag("td");
+			os << cell(index(row, col));
+			os << ETag("td");
+		}
+		os << ETag("tr");
+	}
+	os << ETag("table");
+}
+
+
+void InsetMathGrid::htmlize(HtmlStream & os) const
+{
+	htmlize(os, "class='mathtable'");
 }
 
 
 void InsetMathGrid::write(WriteStream & os) const
 {
+	write(os, 0, 0, nrows(), ncols());
+}
+
+void InsetMathGrid::write(WriteStream & os,
+			  row_type beg_row, col_type beg_col,
+			  row_type end_row, col_type end_col) const
+{
 	MathEnsurer ensurer(os, false);
 	docstring eol;
-	for (row_type row = 0; row < nrows(); ++row) {
+	for (row_type row = beg_row; row < end_row; ++row) {
 		os << verboseHLine(rowinfo_[row].lines_);
 		// don't write & and empty cells at end of line,
 		// unless there are vertical lines
 		col_type lastcol = 0;
 		bool emptyline = true;
 		bool last_eoln = true;
-		for (col_type col = 0; col < ncols(); ++col) {
+		for (col_type col = beg_col; col < end_col; ++col) {
 			bool const empty_cell = cell(index(row, col)).empty();
 			if (!empty_cell)
 				last_eoln = false;
@@ -1000,19 +1056,21 @@ void InsetMathGrid::write(WriteStream & os) const
 				emptyline = false;
 			}
 		}
-		for (col_type col = 0; col < lastcol; ++col) {
+		for (col_type col = beg_col; col < lastcol; ++col) {
 			os << cell(index(row, col));
 			if (os.pendingBrace())
 				ModeSpecifier specifier(os, TEXT_MODE);
 			os << eocString(col, lastcol);
 		}
-		eol = eolString(row, os.fragile(), last_eoln);
+		eol = eolString(row, os.fragile(), os.latex(), last_eoln);
 		os << eol;
 		// append newline only if line wasn't completely empty
-		// and this was not the last line in the grid
-		if (!emptyline && row + 1 < nrows())
+		// and the formula is not written on a single line
+		bool const empty = emptyline && eol.empty();
+		if (!empty && nrows() > 1)
 			os << "\n";
 	}
+	// @TODO use end_row instead of nrows() ?
 	docstring const s = verboseHLine(rowinfo_[nrows()].lines_);
 	if (!s.empty()) {
 		if (eol.empty()) {
@@ -1074,7 +1132,8 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 
 	Parse::flags parseflg = Parse::QUIET | Parse::USETEXT;
 
-	switch (cmd.action) {
+	FuncCode const act = cmd.action();
+	switch (act) {
 
 	// insert file functions
 	case LFUN_LINE_DELETE:
@@ -1138,11 +1197,16 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 	}
 
-	case LFUN_TABULAR_FEATURE: {
+	case LFUN_INSET_MODIFY: {
 		cur.recordUndoInset();
 		//lyxerr << "handling tabular-feature " << to_utf8(cmd.argument()) << endl;
 		istringstream is(to_utf8(cmd.argument()));
 		string s;
+		is >> s;
+		if (s != "tabular") {
+			InsetMathNest::doDispatch(cur, cmd);
+			return;
+		}
 		is >> s;
 		if (s == "valign-top")
 			setVerticalAlignment('t');
@@ -1276,8 +1340,7 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 			if ((topaste.size() == 1 && topaste.at(0) < 0x80)
 			    || !mathed_parse_normal(grid, topaste, parseflg)) {
 				resetGrid(grid);
-				mathed_parse_normal(grid, topaste,
-						parseflg | Parse::VERBATIM);
+				mathed_parse_normal(grid, topaste, parseflg | Parse::VERBATIM);
 			}
 
 		if (grid.nargs() == 1) {
@@ -1309,6 +1372,9 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 					cell(i).append(grid.cell(grid.index(r, c)));
 		}
 		cur.clearSelection(); // bug 393
+		// FIXME audit setBuffer calls
+		cur.inset().setBuffer(*buffer_);
+		cur.forceBufferUpdate();
 		cur.finishUndo();
 		break;
 	}
@@ -1319,9 +1385,9 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_WORD_BACKWARD:
 	case LFUN_WORD_LEFT_SELECT:
 	case LFUN_WORD_LEFT:
-		cur.selHandle(cmd.action == LFUN_WORD_BACKWARD_SELECT ||
-				cmd.action == LFUN_WORD_LEFT_SELECT ||
-				cmd.action == LFUN_LINE_BEGIN_SELECT);
+		cur.selHandle(act == LFUN_WORD_BACKWARD_SELECT ||
+				act == LFUN_WORD_LEFT_SELECT ||
+				act == LFUN_LINE_BEGIN_SELECT);
 		cur.macroModeClose();
 		if (cur.pos() != 0) {
 			cur.pos() = 0;
@@ -1343,9 +1409,9 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_WORD_RIGHT:
 	case LFUN_LINE_END_SELECT:
 	case LFUN_LINE_END:
-		cur.selHandle(cmd.action == LFUN_WORD_FORWARD_SELECT ||
-				cmd.action == LFUN_WORD_RIGHT_SELECT ||
-				cmd.action == LFUN_LINE_END_SELECT);
+		cur.selHandle(act == LFUN_WORD_FORWARD_SELECT ||
+				act == LFUN_WORD_RIGHT_SELECT ||
+				act == LFUN_LINE_END_SELECT);
 		cur.macroModeClose();
 		cur.clearTargetX();
 		if (cur.pos() != cur.lastpos()) {
@@ -1371,9 +1437,23 @@ void InsetMathGrid::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & status) const
 {
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE: {
-		string const s = to_utf8(cmd.argument());
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY: {
+		istringstream is(to_utf8(cmd.argument()));
+		string s;
+		is >> s;
+		if (s != "tabular") {
+			// We only now about table actions here.
+			break;
+		}
+		if (&cur.inset() != this) {
+			// Table actions requires that the cursor is _inside_ the
+			// table.
+			status.setEnabled(false);
+			status.message(from_utf8(N_("Cursor not in table")));
+			return true;
+		}
+		is >> s;
 		if (nrows() <= 1 && (s == "delete-row" || s == "swap-row")) {
 			status.setEnabled(false);
 			status.message(from_utf8(N_("Only one row")));
@@ -1454,7 +1534,7 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 	}
 
 	case LFUN_CELL_SPLIT:
-		status.setEnabled(true);
+		status.setEnabled(cur.idx() != cur.lastidx());
 		return true;
 
 	case LFUN_CELL_BACKWARD:
@@ -1463,8 +1543,9 @@ bool InsetMathGrid::getStatus(Cursor & cur, FuncRequest const & cmd,
 		return true;
 
 	default:
-		return InsetMathNest::getStatus(cur, cmd, status);
+		break;
 	}
+	return InsetMathNest::getStatus(cur, cmd, status);
 }
 
 

@@ -4,7 +4,8 @@
 # in most LyX layouts.
 
 
-Format 11
+Format 30
+
 Float
 	Type                  table
 	GuiName               Table
@@ -13,7 +14,9 @@ Float
 	NumberWithin          none
 	Style                 plain
 	ListName              "List of Tables"
-	LaTeXBuiltin          true
+	NeedsFloatPkg         false
+	ListCommand           listoftables
+	RefPrefix             tab
 End
 
 
@@ -25,7 +28,9 @@ Float
 	NumberWithin          none
 	Style                 plain
 	ListName              "List of Figures"
-	LaTeXBuiltin          true
+	NeedsFloatPkg         false
+	ListCommand           listoffigures
+	RefPrefix             fig
 End
 
 
@@ -37,5 +42,6 @@ Float
 	NumberWithin          none
 	Style                 ruled
 	ListName              "List of Algorithms"
-	LaTeXBuiltin          false
+	NeedsFloatPkg         true
+	RefPrefix             alg
 End

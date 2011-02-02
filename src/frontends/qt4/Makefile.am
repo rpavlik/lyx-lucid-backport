@@ -13,16 +13,16 @@ UIC4FLAGS=-tr lyx::qt_
 ui_%.h: ui/%.ui
 	$(AM_V_GEN)$(UIC4) $(UIC4FLAGS) $< -o $@
 
-MOCEDFILES = $(MOCHEADER:%.h=%_moc.cpp)
+MOCEDFILES = $(MOCHEADER:%.h=moc_%.cpp)
 
-%_moc.cpp: %.h
+moc_%.cpp: %.h
 	$(AM_V_GEN)$(MOC4) -o $@ $<
 
 Resources.qrc: Makefile
-	$(AM_V_GEN)echo "<!DOCTYPE RCC><RCC version='1.0'><qresource>" > $@
+	$(AM_V_GEN)echo "<!DOCTYPE RCC><RCC version='1.0'><qresource>" > $@ ; \
 	find $(top_srcdir)/lib/images -name '*.png' \
 		| sed -e 's:$(top_srcdir)/lib/\(.*\):<file alias="\1">&</file>:' \
-		>> $@
+		>> $@ ;\
 	echo "</qresource></RCC>" >> $@
 
 Resources.cpp: Resources.qrc
@@ -31,11 +31,9 @@ Resources.cpp: Resources.qrc
 
 #########################  LIBRARIES  #############################
 
-noinst_LTLIBRARIES = liblyxqt4.la
+noinst_LIBRARIES = liblyxqt4.a
 
-liblyxqt4_la_DEPENDENCIES = $(MOCEDFILES)
-liblyxqt4_la_LDFLAGS = $(QT4_LDFLAGS)
-liblyxqt4_la_LIBADD = $(QT4_LIB) 
+liblyxqt4_a_DEPENDENCIES = $(MOCEDFILES)
 
 AM_CPPFLAGS += \
 	$(QT4_CPPFLAGS) \
@@ -59,6 +57,7 @@ SOURCEFILES = \
 	CustomizedWidgets.cpp \
 	EmptyTable.cpp \
 	FileDialog.cpp \
+	FindAndReplace.cpp \
 	FloatPlacement.cpp \
 	GuiAbout.cpp \
 	GuiAlert.cpp \
@@ -74,6 +73,8 @@ SOURCEFILES = \
 	GuiClipboard.cpp \
 	GuiCommandBuffer.cpp \
 	GuiCommandEdit.cpp \
+	GuiCompare.cpp \
+	GuiCompareHistory.cpp \
 	GuiCompleter.cpp \
 	GuiDelimiter.cpp \
 	GuiDialog.cpp \
@@ -81,7 +82,6 @@ SOURCEFILES = \
 	GuiErrorList.cpp \
 	GuiERT.cpp \
 	GuiExternal.cpp \
-	GuiFloat.cpp \
 	GuiFontExample.cpp \
 	GuiFontLoader.cpp \
 	GuiFontMetrics.cpp \
@@ -91,18 +91,26 @@ SOURCEFILES = \
 	GuiIdListModel.cpp \
 	GuiImage.cpp \
 	GuiInclude.cpp \
+	GuiIndex.cpp \
+	GuiIndices.cpp \
 	GuiInfo.cpp \
 	GuiKeySymbol.cpp \
 	GuiLabel.cpp \
+	GuiLine.cpp \
 	GuiListings.cpp \
 	GuiLog.cpp \
 	GuiMathMatrix.cpp \
-	GuiNomencl.cpp \
+	GuiNomenclature.cpp \
 	GuiNote.cpp \
 	GuiPainter.cpp \
 	GuiParagraph.cpp \
+	GuiPhantom.cpp \
 	GuiPrefs.cpp \
 	GuiPrint.cpp \
+	GuiPrintindex.cpp \
+	GuiPrintNomencl.cpp \
+	GuiProgress.cpp \
+	GuiProgressView.cpp \
 	GuiRef.cpp \
 	GuiSearch.cpp \
 	GuiSelection.cpp \
@@ -124,10 +132,14 @@ SOURCEFILES = \
 	GuiWorkArea.cpp \
 	GuiWrap.cpp \
 	IconPalette.cpp \
+	InGuiThread.cpp \
 	InsertTableWidget.cpp \
+	InsetParamsDialog.cpp \
+	InsetParamsWidget.cpp \
 	LengthCombo.cpp \
 	LyXFileDialog.cpp \
 	LaTeXHighlighter.cpp \
+	LayoutBox.cpp \
 	Menus.cpp \
 	PanelStack.cpp \
 	qt_helpers.cpp \
@@ -159,6 +171,7 @@ MOCHEADER = \
 	BulletsModule.h \
 	CustomizedWidgets.h \
 	EmptyTable.h \
+	FindAndReplace.h \
 	FloatPlacement.h \
 	GuiAbout.h \
 	GuiApplication.h \
@@ -173,6 +186,8 @@ MOCHEADER = \
 	GuiClipboard.h \
 	GuiCommandBuffer.h \
 	GuiCommandEdit.h \
+	GuiCompare.h \
+	GuiCompareHistory.h \
 	GuiCompleter.h \
 	GuiDelimiter.h \
 	GuiDialog.h \
@@ -180,21 +195,28 @@ MOCHEADER = \
 	GuiErrorList.h \
 	GuiERT.h \
 	GuiExternal.h \
-	GuiFloat.h \
 	GuiGraphics.h \
 	GuiHSpace.h \
 	GuiHyperlink.h \
 	GuiInclude.h \
+	GuiIndex.h \
+	GuiIndices.h \
 	GuiInfo.h \
 	GuiLabel.h \
+	GuiLine.h \
 	GuiListings.h \
 	GuiLog.h \
 	GuiMathMatrix.h \
-	GuiNomencl.h \
+	GuiNomenclature.h \
 	GuiNote.h \
 	GuiParagraph.h \
+	GuiPhantom.h \
 	GuiPrefs.h \
 	GuiPrint.h \
+	GuiPrintindex.h \
+	GuiPrintNomencl.h \
+	GuiProgress.h \
+	GuiProgressView.h \
 	GuiRef.h \
 	GuiSearch.h \
 	GuiSelection.h \
@@ -216,7 +238,11 @@ MOCHEADER = \
 	GuiWorkArea.h \
 	GuiWrap.h \
 	IconPalette.h \
+	InGuiThread.h \
 	InsertTableWidget.h \
+	InsetParamsDialog.h \
+	InsetParamsWidget.h \
+	LayoutBox.h \
 	LengthCombo.h \
 	LyXFileDialog.h \
 	Menus.h \
@@ -227,50 +253,63 @@ MOCHEADER = \
 
 UIFILES = \
 	AboutUi.ui \
-	AskForTextUi.ui \
 	BibitemUi.ui \
 	BiblioUi.ui \
 	BibtexAddUi.ui \
 	BibtexUi.ui \
 	BoxUi.ui \
 	BranchesUi.ui \
+	BranchesUnknownUi.ui \
 	BranchUi.ui \
 	BulletsUi.ui \
 	ChangesUi.ui \
 	CharacterUi.ui \
 	CitationUi.ui \
+	ColorUi.ui \
+	CompareUi.ui \
+	CompareHistoryUi.ui \
 	DelimiterUi.ui \
 	DocumentUi.ui \
 	ErrorListUi.ui \
 	ERTUi.ui \
 	ExternalUi.ui \
+	FindAndReplaceUi.ui \
 	FloatPlacementUi.ui \
-	FloatUi.ui \
 	FontUi.ui \
 	GraphicsUi.ui \
 	HSpaceUi.ui \
 	HyperlinkUi.ui \
 	IncludeUi.ui \
+	IndexUi.ui \
+	IndicesUi.ui \
 	InfoUi.ui \
+	InsetParamsUi.ui \
 	LabelUi.ui \
 	LanguageUi.ui \
 	LaTeXUi.ui \
+	LineUi.ui \
 	ListingsUi.ui \
+	ListingsSettingsUi.ui \
+	LocalLayoutUi.ui \
 	LogUi.ui \
 	MarginsUi.ui \
+	MasterChildUi.ui \
 	MathMatrixUi.ui \
 	MathsUi.ui \
 	ModulesUi.ui \
 	NomenclUi.ui \
 	NoteUi.ui \
 	NumberingUi.ui \
+	OutputUi.ui \
 	PageLayoutUi.ui \
 	ParagraphUi.ui \
 	PDFSupportUi.ui \
+	PhantomUi.ui \
 	PreambleUi.ui \
 	PrefColorsUi.ui \
 	PrefCompletionUi.ui \
 	PrefConvertersUi.ui \
+	PrefOutputUi.ui \
 	PrefDisplayUi.ui \
 	PrefEditUi.ui \
 	PrefFileformatsUi.ui \
@@ -278,9 +317,7 @@ UIFILES = \
 	PrefInputUi.ui \
 	PrefLanguageUi.ui \
 	PrefLatexUi.ui \
-	PrefOutputUi.ui \
 	PrefPathsUi.ui \
-	PrefPlaintextUi.ui \
 	PrefPrinterUi.ui \
 	PrefScreenFontsUi.ui \
 	PrefShortcutsUi.ui \
@@ -288,6 +325,9 @@ UIFILES = \
 	PrefsUi.ui \
 	PrefUi.ui \
 	PrintUi.ui \
+	PrintindexUi.ui \
+	PrintNomenclUi.ui \
+	ProgressViewUi.ui \
 	RefUi.ui \
 	SearchUi.ui \
 	SendtoUi.ui \
@@ -312,7 +352,7 @@ liblyxqt4.cpp:
 
 if MONOLITHIC_FRONTEND_QT4
 
-liblyxqt4_la_SOURCES = \
+liblyxqt4_a_SOURCES = \
 	liblyxqt4.cpp \
 	$(MOCHEADER) \
 	$(NOMOCHEADER)
@@ -322,12 +362,12 @@ CLEANFILES += liblyxqt4.cpp
 
 else
 
-liblyxqt4_la_SOURCES = \
+liblyxqt4_a_SOURCES = \
 	$(SOURCEFILES) \
 	$(MOCHEADER) \
 	$(NOMOCHEADER)
 
-EXTRA_DIST = pch.h ui/compile_uic.sh $(UIFILES:%=ui/%)
+EXTRA_DIST = pch.h $(UIFILES:%=ui/%)
 BUILT_SOURCES += $(PCH_FILE)
 AM_CPPFLAGS += $(PCH_FLAGS)
 

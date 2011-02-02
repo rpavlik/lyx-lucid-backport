@@ -7,7 +7,7 @@
 
 # Author: Jürgen Spitzmüller <spitz@lyx.org>
 
-Format 11
+Format 30
 
 # single numbered example with covington.sty
 Style Numbered_Example_(multiline)
@@ -62,7 +62,7 @@ End
 
 # glosse (2 lines) with covington.sty
 # mandatory translation must be entered verbatim!
-InsetLayout Custom:Glosse
+InsetLayout Flex:Glosse
 	LyXType               custom
 	LabelString           Glosse
 	LatexType             environment
@@ -75,6 +75,7 @@ InsetLayout Custom:Glosse
 	CustomPars            false
 	ForcePlain            true
 	PassThru              true
+	ParbreakIsNewline     true
 	FreeSpacing           true
 	ForceLTR              true
 	Requires	      covington
@@ -84,12 +85,13 @@ InsetLayout Custom:Glosse
 			\gll #1}
 		{\glend}}{}
 	EndPreamble
+	InToc                 true
 End
 
 
 # glosse (3 lines) with covington.sty
 # mandatory translation must be entered verbatim!
-InsetLayout Custom:Tri-Glosse
+InsetLayout Flex:Tri-Glosse
 	LyXType               custom
 	LabelString           Tri-Glosse
 	LatexType             environment
@@ -102,8 +104,10 @@ InsetLayout Custom:Tri-Glosse
 	CustomPars            false
 	ForcePlain            true
 	PassThru              true
+	ParbreakIsNewline     true
 	FreeSpacing           true
 	ForceLTR              true
+	InToc                 true
 	Requires	      covington
 	Preamble
 		\@ifundefined{lingglosss}{%
@@ -115,7 +119,7 @@ End
 
 
 # Some semantik markup for Semantics
-InsetLayout CharStyle:Expression
+InsetLayout Flex:Expression
 	LyxType               charstyle
 	LabelString           expr.
 	LatexType             command
@@ -126,10 +130,11 @@ InsetLayout CharStyle:Expression
 	Preamble
 		\newcommand{\lingexpr}[1]{\emph{#1}}
 	EndPreamble
+	InToc                 true
 End
 
 
-InsetLayout CharStyle:Concepts
+InsetLayout Flex:Concepts
 	LyxType               charstyle
 	LabelString           concept
 	LatexType             command
@@ -140,18 +145,20 @@ InsetLayout CharStyle:Concepts
 	Preamble
 		\newcommand{\lingconcept}[1]{\textsc{#1}}
 	EndPreamble
+	InToc                 true
 End
 
 
-InsetLayout CharStyle:Meaning
+InsetLayout Flex:Meaning
 	LyxType               charstyle
 	LabelString           meaning
 	LatexType             command
 	LatexName             lingmeaning
-	Requires	      csquotes
+	Requires              csquotes
 	Preamble
 		\newcommand{\lingmeaning}[1]{\enquote*{#1}}
 	EndPreamble
+	InToc                 true
 End
 
 
@@ -164,6 +171,6 @@ Float
 	NumberWithin          none
 	Style                 plain
 	ListName              "List of Tableaux"
-	LaTeXBuiltin          false
+	NeedsFloatPkg         true
 End
 

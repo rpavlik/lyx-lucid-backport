@@ -1,256 +1,277 @@
-This file lists known problems in LyX 1.6.6, interface changes that might
-affect users of 1.6.x, some known problems in the 1.6.x series and some
-things you have to take into account when upgrading from earlier versions
-to a version of the 1.6.x series.
-
+This file lists interface changes that might affect users in 2.0.0, some 
+known problems in LyX 2.0.0 and some things you have to take into account
+when upgrading from earlier versions to a version of the 2.0.x series.
 Note that fixes are available for some of these, but they have not yet
 been applied because of incomplete testing.
 
 
-Interface changes as of LyX 1.6.0
----------------------------------
+Interface changes
+-----------------
 
-The external template format recognize now a new tag: 'Preview'. This
-tag is used to define how an external material should be previewed in
-LyX. For more detail, see the 'external_templates' file in the resource
-directory of LyX.
+There have been some changes to the LyX command line. There is a new option 
+"--batch" that causes LyX to run the given commands without opening a GUI 
+window. Thus, something like:
+    lyx -batch -x "buffer-print printer default dvips" myfile.lyx
+will cause LyX to print myfile.lyx to the default printer, using dvips and 
+the default print settings (which, of course, have to have been configured 
+already). At present, not many commands can be used this way, but there will
+be more eventually.
 
-LyX 1.6.0 introduces support for the pLaTeX distribution which provides
-extended language and script support for Japanese. The language
-"Japanese" now uses this new method. Japanese support via the CJK
-package is still available, but has been renamed to "Japanese (CJK)".
-Old documents continue to use the CJK method.  Also cf. the "known
-issues" section for some remaining problems.
+Bash completion script was added to the tarball.
 
-Some of the LyX functions have changed names:
+The following pref variables were changed in 2.0:
 
-- A new LFUN_SPECIALCHAR_INSERT has been implemented that obsoletes the
-  different LFUNs for single special characters:
+- \language_package was renamed to \language_custom_package
 
-  * LFUN_HYPHENATION_POINT_INSERT: removed. "hyphenation-point-insert" 
-    has been replaced by "specialchar-insert hyphenation-point"
-  * LFUN_LIGATURE_BREAK_INSERT: removed. "ligature-break-insert" 
-    has been replaced by "specialchar-insert ligature-break"
-  * LFUN_DOTS_INSERT: removed. "dots-insert" 
-    has been replaced by "specialchar-insert dots"
-  * LFUN_END_OF_SENTENCE_PERIOD_INSERT: removed.
-    "end-of-sentence-period-insert" has been replaced by
-    "specialchar-insert end-of-sentence"
-  * LFUN_MENU_SEPARATOR_INSERT: removed. "menu-separator-insert" 
-    has been replaced by "specialchar-insert menu-separator"
+- \language_use_babel (bool) has been replaced by 
+  \language_package_selection, which can be
+  0 (automatic selection)
+  1 (always use babel)
+  2 custom (use the custom package defined by
+    \language_custom_package)
+  3 none (equivalent to former \language_use_babel false)
 
-- The function LFUN_BREAK_LINE, "break-line" has been renamed to
-  LFUN_NEWLINE_INSERT, "newline-insert", and it now allows two options:
-  "newline-insert newline" inserts a \newline, "newline-insert linebreak"
-  inserts a \linebreak.
+The following pref variables are obsoleted in 2.0:
 
-- The function LFUN_PAGEBREAK_INSERT, "pagebreak-insert" has been renamed to
-  LFUN_NEWPAGE_INSERT, "newpage-insert". It obsololetes the following functions:
+- \plaintext_roff_command (was not used anymore)
 
-  * LFUN_PAGEBREAK_INSERT: removed. "pagebreak-insert" has been replaced by
-    "newpage-insert pagebreak"
+- \personal_dictionary, \spell_command, \use_input_encoding,
+  \use_personal_dictionary and \use_spell_lib (ispell support has been
+  removed)
 
-  * LFUN_CLEARPAGE_INSERT: removed. "clearpage-insert" has been replaced by
-    "newpage-insert clearpage"
+- \spellchecker_use_alt_lang and \use_escape_chars (actually not used
+  by the UI, and it is as simple to check whether the relevant
+  variable is empty)
 
-  * LFUN_CLEARDOUBLEPAGE_INSERT: removed. "clearpage-insert" has been replaced
-    by "newpage-insert cleardoublepage"
-
-- The function LFUN_WORDS_COUNT, "words-count", has been replaced by
-  LFUN_STATISTICS, "statistics", which counts more than words.
-
-- The function LFUN_MATH_NUMBER, "math-number", has been renamed to
-  LFUN_MATH_NUMBER_TOGGLE.
-
-- The function LFUN_MATH_NONUMBER, "math-nonumber", has been renamed to
-  LFUN_MATH_NUMBER_LINE_TOGGLE.
-
-- The function LFUN_CHARSTYLE_INSERT, "charstyle-insert", has been renamed to
-  LFUN_FLEX_INSERT, "flex-insert". It now handles beside charstyles, also
-  custom insets and XML short element insets.
-
-- The function LFUN_TOGGLE_CURSOR_FOLLOWS_SCROLLBAR,
-  "toggle-cursor-follows-scrollbar"
-  has been renamed to LFUN_CURSOR_FOLLOWS_SCROLLBAR_TOGGLE,
-  "cursor-follows-scrollbar-toggle".
-
-- The function LFUN_FONT_CODE, "font-code", has been renamed to
-  LFUN_FONT_TYPEWRITER, "font-typewriter".
-
-- The functions LFUN_HTML_INSERT, "html-insert", LFUN_URL_INSERT,
-  "url-insert" was superseded by LFUN_HYPERLINK_INSERT, "href-insert".
-
-- The function LFUN_FLOAT_LIST has been renamed to LFUN_FLOAT_LIST_INSERT.
-
-- The functions delete-back/forward has been renamed to
-  char-delete-back/forward.
-
-- The functions LFUN_FONT_FREE_APPLY/UPDATE has been renamed to
-  LFUN_TEXTSTYLE_APPLY/UPDATE.
-
-- The functions LFUN_SERVER_GET_NAME has been renamed to
-  LFUN_SERVER_GET_FILENAME.
+- \custom_export_command and \custom_export_format
 
 
 The following new LyX functions have been introduced:
 
-- LFUN_SPECIALCHAR_INSERT, "specialchar-insert" (see above).
+- LFUN_WORD_FINDAD ("word-findadv").
 
-- LFUN_COMPLETION_INLINE, "completion-inline".
+- LFUN_REGEXP_MODE ("regexp-mode").
 
-- LFUN_COMPLETION_POPUP, "completion-popup".
+- LFUN_PHANTOM_INSERT ("phantom-insert").
 
-- LFUN_COMPLETION_COMPLETE, "complete".
+- LFUN_INSET_BEGIN ("inset-begin").
 
-- LFUN_COMPLETION_CANCEL, "completion-cancel"
+- LFUN_INSET_END (""inset-end"").
 
-- LFUN_COMPLETION_ACCEPT, "completion-accept"
+- LFUN_INSET_BEGIN_SELECT ("inset-begin-select").
 
-- LFUN_CLOSE_TAB_GROUP, "close-tab-group".
+- LFUN_INSET_END_SELECT ("inset-end-select").
 
-- LFUN_SPLIT_VIEW, "split-view".
+- LFUN_CHANGE_PREVIOUS ("change-previous").
 
-- LFUN_UI_TOGGLE, "ui-toggle".
+- LFUN_LABEL_INSERT_AS_REF ("label-insert-as-reference").
 
-- LFUN_SCROLL, "scroll".
+- LFUN_SECTION_SELECT ("section-select").
 
-- LFUN_MATH_MACRO, "math-macro".
+- LFUN_FONT_UNDERLINE ("font-underline").
 
-- LFUN_MATH_MACRO_UNFOLD, "math-macro-unfold".
+- LFUN_FONT_STRIKEOUT ("font-strikeout").
 
-- LFUN_MATH_MACRO_FOLD, "math-macro-fold".
+- LFUN_FONT_UULINE ("font-underunderline").
 
-- LFUN_MATH_MACRO_ADD_PARAM, "math-macro-add-param".
+- LFUN_FONT_UWAVE ("font-underwave").
 
-- LFUN_MATH_MACRO_REMOVE_PARAM, "math-macro-remove-param".
+- LFUN_BRANCHES_RENAME ("branches-rename").
 
-- LFUN_MATH_MACRO_APPEND_GREEDY_PARAM, "math-macro-append-greedy-param".
+- LFUN_BRANCH_ADD_INSERT ("branch-add-insert").
 
-- LFUN_MATH_MACRO_REMOVE_GREEDY_PARAM, "math-macro-remove-greedy-param".
+- LFUN_BUFFER_CLOSE_ALL ("buffer-close-all").
 
-- LFUN_MATH_MACRO_MAKE_OPTIONAL, "math-macro-make-optional".
+- LFUN_INSET_FORALL ("inset-forall").
 
-- LFUN_MATH_MACRO_MAKE_NONOPTIONAL, "math-macro-make-nonoptional".
+- LFUN_DEBUG_LEVEL_SET ("debug-level-set").
 
-- LFUN_MATH_MACRO_ADD_OPTIONAL_PARAM, "math-macro-add-optional-param".
+- LFUN_INSET_SELECT_ALL ("inset-select-all").
 
-- LFUN_MATH_MACRO_REMOVE_OPTIONAL_PARAM, "math-macro-remove-optional-param".
+- LFUN_MATH_AMS_MATRIX ("math-ams-matrix").
 
-- LFUN_MATH_MACRO_ADD_GREEDY_OPTIONAL_PARAM, "math-macro-add-greedy-optional-param".
+- LFUN_VC_COMPARE ("vc-compare").
 
-- LFUN_WORD_LEFT, "word-left".
+- LFUN_SPELLING_ADD ("spelling-add").
 
-- LFUN_WORD_LEFT_SELECT, "word-left-select".
+- LFUN_SPELLING_IGNORE ("spelling-ignore").
 
-- LFUN_WORD_RIGHT, "word-right".
+- LFUN_SPELLING_REMOVE ("spelling-remove").
 
-- LFUN_WORD_RIGHT_SELECT, "word-right-select".
+- LFUN_PREVIEW_INSERT ("preview-insert").
 
-- LFUN_CHAR_LEFT, "char-left".
+- LFUN_FORWARD_SEARCH ("forward-search").
 
-- LFUN_CHAR_LEFT_SELECT, "char-left-select".
+- LFUN_INSET_COPY_AS ("inset-copy-as").
 
-- LFUN_CHAR_RIGHT, "char-right".
-
-- LFUN_CHAR_RIGHT_SELECT, "char-right-select".
-
-- LFUN_FINISHED_FORWARD, "".
-
-- LFUN_FINISHED_BACKWARD, "".
-
-- LFUN_INFO_INSERT, "info-insert".
-
-- LFUN_LAYOUT_RELOAD, "layout-reload".
-
-- LFUN_LAYOUT_MODULES_CLEAR, "layout-modules-clear".
-
-- LFUN_LAYOUT_MODULE_ADD, "layout-module-add".
-
-- LFUN_NEXT_INSET_MODIFY, "next-inset-modify"
-
-- LFUN_INSET_EDIT, "inset-edit"
-
-- LFUN_SET_GRAPHICS_GROUP, "set-graphics-group"
-
-- LFUN_BRANCH_ACTIVATE, "branch-activate"
-
-- LFUN_BRANCH_DEACTIVATE, "branch-deactivate" 
-  These can be used in export mode to turn branches on and off. 
-  Thus, something like:
-    lyx -e pdf2 -x "branch-activate answers" finalexam.lyx
-  could be used to export a pdf with the answers branch included, without 
-  one's having to open LyX and activate the branch manually.
-
-- LFUN_NOTES_MUTATE, "notes-mutate"
-
-- LFUN_FONT_BOLDSYMBOL, "font-boldsymbol"
-  This is the same as LFUN_FONT_BOLD except that in math mode \boldsymbol
-  is used instead of \mathbf.
-
-- LFUN_COMMAND_ALTERNATIVES, "command-alternatives"
-  This works similarly to command-sequence, except that instead of running
-  each of the commands, it only runs the first one that is enabled. This can
-  be used to bind multiple functions to a single key, and then which one is
-  used will depend upon the context.
+- LFUN_BUFFER_TOGGLE_OUTPUT_SYNC ("buffer-toggle-output-sync").
 
 
 The following LyX functions have been removed:
 
-- LFUN_FILE_NEW.
+- LFUN_NEXT_INSET_TOGGLE ("next-inset-toggle"): use "inset-toggle" instead.
 
-- LFUN_BREAK_PARAGRAPH_KEEP_LAYOUT.
+- LFUN_NEXT_INSET_MODIFY ("next-inset-modify"): use "inset-modify" instead.
 
-- LFUN_FONT_CODE.
+- LFUN_PARAGRAPH_SPACING ("paragraph-spacing"): use "paragraph-params" instead.
 
-- LFUN_HFILL_INSERT. HFills are now part of InsetSpace and have to be inserted
-  via "space-insert hfill".
+- LFUN_NOTES_MUTATE ("notes-mutate"): replace
+    notes-mutate <SOURCE> <TARGET>
+  with the more general function inset-forall
+    inset-forall Note:<SOURCE> inset-modify note Note <TARGET>
 
-- LFUN_CLEARPAGE_INSERT. Now part of LFUN_NEWPAGE_INSERT (see above).
+- LFUN_ALL_INSETS_TOGGLE ("all-insets-toggle"): replace
+    all-insets-toggle <ACTION> <TARGET>
+    all-insets-toggle <ACTION>
+  with the more generic function inset-forall
+    inset-forall <TARGET> inset-toggle <ACTION>
+    inset-forall * inset-toggle <ACTION>
+  There is a difference in the <TARGET> parameter, which is would be
+  like "note" in the first case and "Note" in the second.
 
-- LFUN_CLEARDOUBLEPAGE_INSERT. Now part of LFUN_NEWPAGE_INSERT (see above).
+- LFUN_TABULAR_FEATURE ("tabular-feature"): use "inset-modify" instead.
+  I.e., "tabular-feature FEATURE <ARGS>" becomes:
+    inset-modify tabular FEATURE <ARGS>
 
-- LFUN_SERVER_GET_FONT.
+- LFUN_LINE_INSERT ("line-insert"): use "inset-insert line" instead. For
+  something close to the previous default, use:
+    inset-insert line rule height 0.25ex width 100col% \\end_inset
+  This is necessary because the line inset now takes various arguments.
 
-- LFUN_EXTERNAL_EDIT. Superseded by the more general LFUN_INSET_EDIT.
-
-- LFUN_GRAPHICS_EDIT. Superseded by the more general LFUN_INSET_EDIT.
-
-- LFUN_ACCENT_SPECIAL_CARON.
-
-- LFUN_INSET_REFRESH.
-
-- LFUN_BREAK_PARAGRAPH_SKIP, LFUN_DELETE_BACKWARD_SKIP, LFUN_DELETE_FORWARD_SKIP.
-
-- LFUN_ERROR_NEXT.
-
-- LFUN_MATH_IMPORT_SELECTION. Use LFUN_MATH_MODE instead.
-
-- LFUN_BIBITEM_INSERT.
-
-For the detailed description of LyX functions look under the Help menu.
+- LFUN_TOC_INSERT ("toc-insert"): use "inset-insert toc" instead.
 
 
-Known issues in version 1.6.x
-------------------------------------
+The following LyX functions have been changed:
 
-- New pLaTeX support for Japanese:
-  * Documents using this method can be backported to 1.5 in principal, but
-    the backported documents are not guaranteed to work, since 1.5 falls
-    back to the CJK package; expect the output to differ.
+- LFUN_INSET_TOGGLE ("inset-toggle"): For some insets, this function was used 
+  to show the settings dialog. This is no longer possible and one should use
+  inset-settings for this purpose.
+ 
+- LFUN_WORD_REPLACE ("word-replace"): The replacement and searched strings
+  arguments have been inverted in order to allow the replacement of the word
+  at current cursor position, even if it is not selected.
+
+- LFUN_OPTIONAL_INSERT ("optional-insert") has been renamed LFUN_ARGUMENT_INSERT
+  ("argument-insert").
 
 
-Caveats when upgrading from earlier versions to 1.6.x
+The following LyX key bindings have been changed:
+
+- LFUN_MATH_MACRO_FOLD ("math-macro-fold")
+  The binding to "C-minus" has changed to "C-S-underscore".
+
+- LFUN_MATH_MACRO_UNFOLD ("math-macro-unfold")
+  The binding to "C-plus" has changed to "C-S-asterisk".
+
+
+New external programs and libaries:
+-----------------------------------
+
+LyX 2.0 introduces support for some new external helper programs/libraries,
+while the support for some existing programs has been dropped. This
+particularly applies to spell checking and the thesaurus.
+
+1.) SPELLCHECKING:
+
+* Direct support for ispell and hspell has been dropped. However, ispell
+  and hspell are still accessible via the enchant wrapper (see below).
+
+* Support for the aspell command line program has been dropped. Note that
+  the aspell library (aspell 0.60.x) is still supported.
+  
+* As well as the aspell library, LyX now also supports hunspell (the spell
+  checker used by OpenOffice and Firefox) and enchant, a wrapper that
+  provides automatic access to many spell checking libraries (ispell,
+  aspell, hspell, hunspell, etc.).
+
+* On Mac OSX, Apple's Spell Server is preconfigured as the "native" spell 
+  checker.
+
+LyX 2.0 is configured for any and all of these three possibilities,
+given that the various libraries are installed on the machine where LyX is 
+configured. The actual spell checker can be selected in Tools > Preferences.
+Packagers are advised to pre-select whatever is most common on their
+platform/distribution.
+
+2.) THESAURUS:
+
+* Support for the aiksaurus library has been dropped in favour of the
+  MyThes thesaurus library (the thesaurus library used by OpenOffice).
+  
+* LyX ships the MyThes library itself, so unlike in LyX 1.6.x, no extra 
+  thesaurus library needs to be installed. However, LyX does not ship any 
+  thesaurus dictionaries, and those do have to be installed separately.
+
+* The OpenOffice thesaurus dictionaries can be used, but the path to those
+  dictionaries needs to be set in Tools > Preferences. Please refer to the
+  UserGuide, sec. 6.13, for further instructions.
+
+Packagers are advised to preset the thesaurus for their distribution/
+platform. Packagers of installation bundles (on Windows and the Mac)
+are advised to provide automatic installation of thesaurus dictionaries
+in the installation process (analoguous to the spellchecker installation).
+
+3.) LILYPOND:
+
+There is now direct support for Lilypond-book. Note that LyX requires at
+least version 2.14 for proper work.
+
+
+Known issues in version 2.0.0
+-----------------------------
+
+- LyX needs to be run under Python 2 and will not work properly on systems
+  where Python 3 is the default binary. See bug #7030 to know how to fix
+  this properly, since simple sheebang conversion in *.py files will not
+  be enough.
+
+Caveats when upgrading from earlier versions to 2.0.x
 -------------------------------------------------------
 
-- Since several lyx functions have been renamed (see above), old
-  configuration files (*.ui, *.bind) may no longer work. If some
-  functions (such as Shift-right for selecting text) fail to work
-  after the upgrade from previous versions, make sure you do not
-  have any old configuration files in your LyX user directory, or
-  adapt these files to the new functions. If anything else fails,
-  try if deleting your LyX user directory helps.
+- The syntax of the languages file has been changed. If you use a modified
+  languages file, you will need to adapt it to the new syntax, as LyX 2.0
+  is not able to read old languages file anymore.
+  Please refer to the beginning of the languages file for an explanation
+  of the new syntax.
+
+- There has been a large change in how Flex insets are named. Previously,
+  they tended to have names like "CharStyle:Noun". Now, they just have
+  names like "Flex:Noun" (where "Flex" is a namespace that is optional).
+  When LyX 2.0 reads older files, it silently converts the old-style names
+  to new-style names; this direction works perfectly. It will also silently
+  revert new-style names to old-style names, when exporting to 1.6.x format,
+  but only for the pre-defined LyX insets. This means that user-defined flex
+  insets will not be properly reverted.
+  To solve this problem, you can modify the file $LYXDIR/lyx2lyx/lyx_2_0.py.
+  In that file, you will find the following:
+    flex_insets = {
+      "Alert" : "CharStyle:Alert",
+      "Code" : "CharStyle:Code",
+      "Concepts" : "CharStyle:Concepts",
+      "E-Mail" : "CharStyle:E-Mail",
+      "Emph" : "CharStyle:Emph",
+      "Expression" : "CharStyle:Expression",
+      "Initial" : "CharStyle:Initial",
+      "Institute" : "CharStyle:Institute",
+      "Meaning" : "CharStyle:Meaning",
+      "Noun" : "CharStyle:Noun",
+      "Strong" : "CharStyle:Strong",
+      "Structure" : "CharStyle:Structure",
+      "ArticleMode" : "Custom:ArticleMode",
+      "Endnote" : "Custom:Endnote",
+      "Glosse" : "Custom:Glosse",
+      "PresentationMode" : "Custom:PresentationMode",
+      "Tri-Glosse" : "Custom:Tri-Glosse"
+    }
+  This is a map form new-style names (minux "Flex") to old-style names (and
+  there is a similar for DocBook elements). To get a user-defined CharStyle
+  to revert properly, it simply needs to be added to this list.
 
 
 Note: There may later be an updated list of known issues online at
 	http://wiki.lyx.org/LyX/ReleaseNotes
 
+TODO
+----
+- Somebody should create a rc2rc script...
+  http://www.lyx.org/trac/changeset/27531

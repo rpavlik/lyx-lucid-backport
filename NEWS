@@ -1,3 +1,31 @@
+What's new in version 2.0.0?
+-------------------------------
+
+The new features in LyX 2.0 are detailed in
+http://wiki.lyx.org/LyX/NewInLyX20
+
+* Advanced Search Facility
+* Spell-checking on the Fly
+* Compare Documents Feature
+* XHTML Output
+* Multilingual Thesaurus
+* XeTeX Backend
+* Multiple Indices Support
+* Progress View and Debugging Pane
+* Enhanced Instant Preview
+* Forward Search for DVI/PDF Files
+* Enhanced Version Control Features
+
+
+What's new in version 1.6.8?
+-----------------------------
+
+LyX 1.6.8 is the result of our ongoing efforts to make our stable version
+even more reliable and stable. We have fixed crashes that have been
+reported to us, ironed out many small glitches, further polished the user
+interface, updated the documentation and added some new layouts.
+
+
 What's new in version 1.6.7?
 -----------------------------
 
@@ -113,6 +141,30 @@ What's new in version 1.6.0?
 
 The new features in LyX 1.6 are detailed in
 http://wiki.lyx.org/LyX/NewInLyX16
+
+* Multiple Work Areas
+* Split Views
+* User-formattable Collapsable Insets
+* Layout Modules
+* Layout combobox changes
+* Support for the LaTeX package hyperref
+* Support for hyperlinks and URLs
+* Improved floats
+* New implementation of math macros
+* Completion popup
+* Inset Tooltip
+* Context Menu
+* Symbols dialog
+* Shortcut Configuration dialog
+* Paste Graphics from the Clipboard
+* "Visual mode" for bidirectional cursor movement
+* Fullscreen mode
+* Extended Outliner
+* Session management
+* Subversion support 
+* Graphics parameters groups
+* LyX functions manual
+* Multi-LFUN Keybindings
 
 
 What's new in version 1.5.7?

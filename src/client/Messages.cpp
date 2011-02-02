@@ -2,7 +2,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -115,7 +115,7 @@ public:
 			LYXERR(Debug::DEBUG, "Messages::get()" << '\n'
 				<< "Error code: " << errno << '\n'
 				<< "Lang, mess: " << lang_ << " " << m << '\n'
-				<< "Directory : " << package().locale_dir().absFilename() << '\n'
+				<< "Directory : " << package().locale_dir().absFileName() << '\n'
 				<< "Rtn value : " << c);
 		}
 

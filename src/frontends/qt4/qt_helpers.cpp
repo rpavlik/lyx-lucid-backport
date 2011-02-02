@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Dekel Tsur
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  * \author Richard Heck
  *
  * Full author contact details are available in file CREDITS.
@@ -25,6 +25,7 @@
 #include "Length.h"
 #include "TextClass.h"
 
+#include "support/convert.h"
 #include "support/debug.h"
 #include "support/filetools.h"
 #include "support/foreach.h"
@@ -39,6 +40,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLineEdit>
+#include <QLocale>
 #include <QPalette>
 #include <QSet>
 
@@ -48,7 +50,7 @@
 
 // for FileFilter.
 // FIXME: Remove
-#include <boost/regex.hpp>
+#include "support/regex.h"
 #include <boost/tokenizer.hpp>
 
 
@@ -78,7 +80,7 @@ string widgetsToLength(QLineEdit const * input, LengthCombo const * combo)
 
 	Length::UNIT const unit = combo->currentLengthItem();
 
-	return Length(length.toDouble(), unit).asString();
+	return Length(length.trimmed().toDouble(), unit).asString();
 }
 
 
@@ -101,7 +103,7 @@ Length widgetsToLength(QLineEdit const * input, QComboBox const * combo)
 		}
 	}
 
-	return Length(length.toDouble(), unit);
+	return Length(length.trimmed().toDouble(), unit);
 }
 
 
@@ -109,7 +111,9 @@ void lengthToWidgets(QLineEdit * input, LengthCombo * combo,
                      Length const & len, Length::UNIT /*defaultUnit*/)
 {
 	combo->setCurrentItem(len.unit());
-	input->setText(QString::number(Length(len).value()));
+	QLocale loc;
+	loc.setNumberOptions(QLocale::OmitGroupSeparator);
+	input->setText(loc.toString(Length(len).value()));
 }
 
 
@@ -130,13 +134,44 @@ void lengthToWidgets(QLineEdit * input, LengthCombo * combo,
 }
 
 
-void lengthAutoToWidgets(QLineEdit * input, LengthCombo * combo,
-	Length const & len, Length::UNIT defaultUnit)
+void lengthToWidgets(QLineEdit * input, LengthCombo * combo,
+	docstring const & len, Length::UNIT defaultUnit)
 {
-	if (len.value() == 0)
-		lengthToWidgets(input, combo, "auto", defaultUnit);
-	else
-		lengthToWidgets(input, combo, len, defaultUnit);
+	lengthToWidgets(input, combo, to_utf8(len), defaultUnit);
+}
+
+
+double widgetToDouble(QLineEdit const * input)
+{
+	QString const text = input->text();
+	if (text.isEmpty())
+		return 0.0;
+	
+	return text.trimmed().toDouble();
+}
+
+
+string widgetToDoubleStr(QLineEdit const * input)
+{
+	QString const text = input->text();
+	if (text.isEmpty())
+		return string();
+	
+	return convert<string>(text.trimmed().toDouble());
+}
+
+
+void doubleToWidget(QLineEdit * input, double const & value, char f, int prec)
+{
+	QLocale loc;
+	loc.setNumberOptions(QLocale::OmitGroupSeparator);
+	input->setText(loc.toString(value, f, prec));
+}
+
+
+void doubleToWidget(QLineEdit * input, string const & value, char f, int prec)
+{
+	doubleToWidget(input, convert<double>(value), f, prec);
 }
 
 
@@ -178,7 +213,7 @@ void rescanTexStyles()
 		return;
 	// FIXME UNICODE
 	frontend::Alert::error(_("Could not update TeX information"),
-		bformat(_("The script `%1$s' failed."), from_utf8(command.absFilename())));
+		bformat(_("The script `%1$s' failed."), from_utf8(command.absFileName())));
 }
 
 
@@ -236,9 +271,9 @@ QString internalPath(const QString & str)
 }
 
 
-QString onlyFilename(const QString & str)
+QString onlyFileName(const QString & str)
 {
-	return toqstr(support::onlyFilename(fromqstr(str)));
+	return toqstr(support::onlyFileName(fromqstr(str)));
 }
 
 
@@ -283,7 +318,7 @@ QString getExtension(QString const & name)
 QString makeAbsPath(QString const & relpath, QString const & base)
 {
 	return toqstr(support::makeAbsPath(fromqstr(relpath),
-		fromqstr(base)).absFilename());
+		fromqstr(base)).absFileName());
 }
 
 
@@ -303,17 +338,17 @@ static string const convert_brace_glob(string const & glob)
 {
 	// Matches " *.{abc,def,ghi}", storing "*." as group 1 and
 	// "abc,def,ghi" as group 2.
-	static boost::regex const glob_re(" *([^ {]*)\\{([^ }]+)\\}");
+	static lyx::regex const glob_re(" *([^ {]*)\\{([^ }]+)\\}");
 	// Matches "abc" and "abc,", storing "abc" as group 1.
-	static boost::regex const block_re("([^,}]+),?");
+	static lyx::regex const block_re("([^,}]+),?");
 
 	string pattern;
 
 	string::const_iterator it = glob.begin();
 	string::const_iterator const end = glob.end();
 	while (true) {
-		boost::match_results<string::const_iterator> what;
-		if (!boost::regex_search(it, end, what, glob_re)) {
+		match_results<string::const_iterator> what;
+		if (!regex_search(it, end, what, glob_re)) {
 			// Ensure that no information is lost.
 			pattern += string(it, end);
 			break;
@@ -330,7 +365,7 @@ static string const convert_brace_glob(string const & glob)
 		// Split the ','-separated chunks of tail so that
 		// $head{$chunk1,$chunk2} becomes "$head$chunk1 $head$chunk2".
 		string const fmt = " " + head + "$1";
-		pattern += boost::regex_merge(tail, block_re, fmt);
+		pattern += regex_replace(tail, block_re, fmt);
 
 		// Increment the iterator to the end of the match.
 		it += distance(it, what[0].second);
@@ -439,14 +474,14 @@ FileFilterList::FileFilterList(docstring const & qt_style_filter)
 
 	// Split data such as "TeX documents (*.tex);;LyX Documents (*.lyx)"
 	// into individual filters.
-	static boost::regex const separator_re(";;");
+	static lyx::regex const separator_re(";;");
 
 	string::const_iterator it = filter.begin();
 	string::const_iterator const end = filter.end();
 	while (true) {
-		boost::match_results<string::const_iterator> what;
+		match_results<string::const_iterator> what;
 
-		if (!boost::regex_search(it, end, what, separator_re)) {
+		if (!lyx::regex_search(it, end, what, separator_re)) {
 			parse_filter(string(it, end));
 			break;
 		}
@@ -465,10 +500,10 @@ void FileFilterList::parse_filter(string const & filter)
 {
 	// Matches "TeX documents (*.tex)",
 	// storing "TeX documents " as group 1 and "*.tex" as group 2.
-	static boost::regex const filter_re("([^(]*)\\(([^)]+)\\) *$");
+	static lyx::regex const filter_re("([^(]*)\\(([^)]+)\\) *$");
 
-	boost::match_results<string::const_iterator> what;
-	if (!boost::regex_search(filter, what, filter_re)) {
+	match_results<string::const_iterator> what;
+	if (!lyx::regex_search(filter, what, filter_re)) {
 		// Just a glob, no description.
 		filters_.push_back(Filter(docstring(), trim(filter)));
 	} else {
