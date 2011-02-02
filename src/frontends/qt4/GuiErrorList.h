@@ -31,6 +31,8 @@ public:
 public Q_SLOTS:
 	/// select an entry
 	void select();
+	/// open the LaTeX log
+	void viewLog();
 
 private:
 	///
@@ -55,12 +57,14 @@ private:
 private:
 	///
 	std::string error_type_;
+	///
+	mutable ErrorList error_list_;
+	///
+	Buffer const * buf_;
 	/// the parent document name
 	docstring name_;
 	///
-	Buffer const * buf_;
-	///
-	mutable ErrorList error_list_;
+	bool from_master_;
 };
 
 } // namespace frontend

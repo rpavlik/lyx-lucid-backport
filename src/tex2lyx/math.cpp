@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -58,7 +58,7 @@ void parse_math(Parser & p, ostream & os, unsigned flags, const mode_type mode)
 		//
 		if (t.cat() == catMath) {
 			if (mode == MATHTEXT_MODE) {
-				// we are inside some text mode thingy, so opening new math is allowed
+				// we are inside some text mode thing, so opening new math is allowed
 				Token const & n = p.get_token();
 				if (n.cat() == catMath) {
 					// TeX's $$...$$ syntax for displayed math

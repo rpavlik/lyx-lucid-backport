@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -20,7 +20,7 @@
 namespace lyx {
 
 InsetMathLim::InsetMathLim(Buffer * buf, MathData const & f, MathData const & x,
-			   MathData const & x0)
+	MathData const & x0)
 	: InsetMathNest(buf, 3)
 {
 	cell(0) = f;
@@ -68,12 +68,6 @@ void InsetMathLim::maxima(MaximaStream & os) const
 void InsetMathLim::mathematica(MathematicaStream & os) const
 {
 	os << "Limit[" << cell(0) << ',' << cell(1) << "-> " << cell(2) << ']';
-}
-
-
-void InsetMathLim::mathmlize(MathStream & os) const
-{
-	os << "lim(" << cell(0) << ',' << cell(1) << ',' << cell(2) << ')';
 }
 
 

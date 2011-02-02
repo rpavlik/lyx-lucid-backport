@@ -37,7 +37,7 @@
 #include "support/ForkedCalls.h"
 #include "support/lstrings.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <sstream>
 #include <fstream>
@@ -46,7 +46,7 @@
 using namespace std;
 using namespace lyx::support;
 
-using boost::bind;
+
 
 namespace {
 
@@ -89,7 +89,7 @@ lyx::Converter const * setConverter(string const from)
 	if (first) {
 		first = false;
 		LYXERR0("PreviewLoader::startLoading()\n"
-		  << "No converter from \"lyxpreview\" format has been defined.");
+			<< "No converter from \"" << from << "\" format has been defined.");
 	}
 	return 0;
 }
@@ -203,8 +203,9 @@ public:
 	void add(string const & latex_snippet);
 	///
 	void remove(string const & latex_snippet);
-	///
-	void startLoading();
+	/// \p wait whether to wait for the process to complete or, instead,
+	/// to do it in the background.
+	void startLoading(bool wait = false);
 
 	/// Emit this signal when an image is ready for display.
 	boost::signal<void(PreviewImage const &)> imageReady;
@@ -222,7 +223,7 @@ private:
 	/** cache_ allows easy retrieval of already-generated images
 	 *  using the LaTeX snippet as the identifier.
 	 */
-	typedef boost::shared_ptr<PreviewImage> PreviewImagePtr;
+	typedef shared_ptr<PreviewImage> PreviewImagePtr;
 	///
 	typedef map<string, PreviewImagePtr> Cache;
 	///
@@ -291,9 +292,9 @@ void PreviewLoader::remove(string const & latex_snippet) const
 }
 
 
-void PreviewLoader::startLoading() const
+void PreviewLoader::startLoading(bool wait) const
 {
-	pimpl_->startLoading();
+	pimpl_->startLoading(wait);
 }
 
 
@@ -387,12 +388,12 @@ namespace graphics {
 PreviewLoader::Impl::Impl(PreviewLoader & p, Buffer const & b)
 	: parent_(p), buffer_(b)
 {
-	if (!pconverter_){
-		if (b.params().encoding().package() == Encoding::japanese)
-			pconverter_ = setConverter("lyxpreview-platex");
-		else
-			pconverter_ = setConverter("lyxpreview");
-	}
+	if (b.bufferFormat() == "lilypond-book")
+		pconverter_ = setConverter("lyxpreview-lytex");
+	else if (b.params().encoding().package() == Encoding::japanese)
+		pconverter_ = setConverter("lyxpreview-platex");
+	else
+		pconverter_ = setConverter("lyxpreview");
 }
 
 
@@ -520,7 +521,7 @@ void PreviewLoader::Impl::remove(string const & latex_snippet)
 }
 
 
-void PreviewLoader::Impl::startLoading()
+void PreviewLoader::Impl::startLoading(bool wait)
 {
 	if (pending_.empty() || !pconverter_)
 		return;
@@ -582,18 +583,40 @@ void PreviewLoader::Impl::startLoading()
 		return;
 	}
 
-	double font_scaling_factor = 0.01 * lyxrc.dpi * lyxrc.zoom
-		* lyxrc.preview_scale_factor;
+	double const font_scaling_factor = 
+		buffer_.isExporting() ? 75.0 * buffer_.params().html_math_img_scale 
+			: 0.01 * lyxrc.dpi * lyxrc.zoom * lyxrc.preview_scale_factor;
 
+	// FIXME XHTML 
+	// The colors should be customizable.
+	ColorCode const bg = buffer_.isExporting() 
+	               ? Color_white : PreviewLoader::backgroundColor();
+	ColorCode const fg = buffer_.isExporting() 
+	               ? Color_black : PreviewLoader::foregroundColor();
 	// The conversion command.
 	ostringstream cs;
 	cs << pconverter_->command << ' ' << pconverter_->to << ' '
 	   << quoteName(latexfile.toFilesystemEncoding()) << ' '
 	   << int(font_scaling_factor) << ' '
-	   << theApp()->hexName(Color_preview) << ' '
-	   << theApp()->hexName(Color_background);
+	   << theApp()->hexName(fg) << ' '
+	   << theApp()->hexName(bg);
+	// FIXME what about LuaTeX?
+	if (buffer_.bufferFormat() == "xetex")
+		cs << " xelatex";
 
 	string const command = libScriptSearch(cs.str());
+
+	if (wait) {
+		ForkedCall call;
+		int ret = call.startScript(ForkedProcess::Wait, command);
+		static int fake = (2^20) + 1;
+		int pid = fake++;
+		inprogress.pid = pid;
+		inprogress.command = command;
+		in_progress_[pid] = inprogress;
+		finishedGenerating(pid, ret);
+		return;
+	}
 
 	// Initiate the conversion from LaTeX to bitmap images files.
 	ForkedCall::SignalTypePtr
@@ -674,9 +697,7 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
 {
 	// Dump the preamble only.
-	// We don't need an encoding for runparams since it is not used by
-	// the preamble.
-	OutputParams runparams(0);
+	OutputParams runparams(&buffer_.params().encoding());
 	runparams.flavor = OutputParams::LATEX;
 	runparams.nice = true;
 	runparams.moving_arg = true;
@@ -704,17 +725,27 @@ void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
 	// Use the preview style file to ensure that each snippet appears on a
 	// fresh page.
 	// Also support PDF output (automatically generated e.g. when
-	// \usepackage[pdftex]{hyperref} is used.
+	// \usepackage[pdftex]{hyperref} is used and XeTeX.
 	os << "\n"
+	   << "\\newif\\ifxetex\n"
+	   << "\\expandafter\\ifx\\csname XeTeXrevision\\endcsname\\relax\n"
+	   << "   \\xetexfalse\n"
+	   << "\\else\n"
+	   << "    \\xetextrue\n"
+	   << "\\fi\n"
 	   << "\\newif\\ifpdf\n"
 	   << "\\ifx\\pdfoutput\\undefined\n"
 	   << "\\else\\ifx\\pdfoutput\\relax\n"
 	   << "\\else\\ifnum0=\\pdfoutput\n"
 	   << "\\else\\pdftrue\\fi\\fi\\fi\n"
+	   << "\\ifxetex\n"
+	   << "  \\usepackage[active,delayed,tightpage,showlabels,lyx,xetex]{preview}\n"
+	   << "\\else\n"
 	   << "\\ifpdf\n"
 	   << "  \\usepackage[active,delayed,tightpage,showlabels,lyx,pdftex]{preview}\n"
 	   << "\\else\n"
 	   << "  \\usepackage[active,delayed,showlabels,lyx,dvips]{preview}\n"
+	   << "\\fi\n"
 	   << "\\fi\n"
 	   << "\n";
 }

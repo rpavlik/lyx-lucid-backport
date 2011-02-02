@@ -4,13 +4,14 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
+ * \author Richard Heck (XHTML output)
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Dekel Tsur
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -35,27 +36,29 @@
 #include "LyXRC.h"
 #include "OutputParams.h"
 #include "output_latex.h"
-#include "paragraph_funcs.h"
+#include "output_xhtml.h"
 #include "ParagraphParameters.h"
+#include "SpellChecker.h"
 #include "sgml.h"
 #include "TextClass.h"
 #include "TexRow.h"
 #include "Text.h"
 #include "VSpace.h"
+#include "WordLangTuple.h"
 #include "WordList.h"
 
 #include "frontends/alert.h"
 
 #include "insets/InsetBibitem.h"
 #include "insets/InsetLabel.h"
+#include "insets/InsetSpecialChar.h"
 
-#include "support/lassert.h"
-#include "support/convert.h"
 #include "support/debug.h"
+#include "support/docstring_list.h"
 #include "support/ExceptionMessage.h"
 #include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
-#include "support/Messages.h"
 #include "support/textutils.h"
 
 #include <sstream>
@@ -69,6 +72,199 @@ namespace lyx {
 namespace {
 /// Inset identifier (above 0x10ffff, for ucs-4)
 char_type const META_INSET = 0x200001;
+}
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// SpellResultRange
+//
+/////////////////////////////////////////////////////////////////////
+
+class SpellResultRange {
+public:
+	SpellResultRange(FontSpan range, SpellChecker::Result result)
+	: range_(range), result_(result)
+	{}
+	///
+	FontSpan const & range() const { return range_; }
+	///
+	void range(FontSpan const & r) { range_ = r; }
+	///
+	SpellChecker::Result result() const { return result_; }
+	///
+	void result(SpellChecker::Result r) { result_ = r; }
+	///
+	bool inside(pos_type pos) const { return range_.inside(pos); }
+	///
+	bool covered(FontSpan const & r) const
+	{
+		// 1. first of new range inside current range or
+		// 2. last of new range inside current range or
+		// 3. first of current range inside new range or
+		// 4. last of current range inside new range
+		return range_.inside(r.first) || range_.inside(r.last) ||
+			r.inside(range_.first) || r.inside(range_.last);
+	}
+	///
+	void shift(pos_type pos, int offset)
+	{
+		if (range_.first > pos) {
+			range_.first += offset;
+			range_.last += offset;
+		} else if (range_.last > pos) {
+			range_.last += offset;
+		}
+	}
+private:
+	FontSpan range_ ;
+	SpellChecker::Result result_ ;
+};
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// SpellCheckerState
+//
+/////////////////////////////////////////////////////////////////////
+
+class SpellCheckerState {
+public:
+	SpellCheckerState() {
+		needs_refresh_ = true;
+		current_change_number_ = 0;
+	}
+
+	void setRange(FontSpan const fp, SpellChecker::Result state)
+	{
+		Ranges result;
+		RangesIterator et = ranges_.end();
+		RangesIterator it = ranges_.begin();
+		for (; it != et; ++it) {
+			if (!it->covered(fp))
+				result.push_back(SpellResultRange(it->range(), it->result()));
+			else if (state == SpellChecker::WORD_OK) {
+				// trim or split the current misspelled range
+				// store misspelled ranges only
+				FontSpan range = it->range();
+				if (fp.first > range.first) {
+					// misspelled area in front of WORD_OK
+					range.last = fp.first - 1;
+					result.push_back(SpellResultRange(range, it->result()));
+					range = it->range();
+				}
+				if (fp.last < range.last) {
+					// misspelled area after WORD_OK range
+					range.first = fp.last + 1;
+					result.push_back(SpellResultRange(range, it->result()));
+				}
+			}
+		}
+		ranges_ = result;
+		if (state != SpellChecker::WORD_OK)
+			ranges_.push_back(SpellResultRange(fp, state));
+	}
+
+	void increasePosAfterPos(pos_type pos)
+	{
+		correctRangesAfterPos(pos, 1);
+		needsRefresh(pos);
+	}
+
+	void decreasePosAfterPos(pos_type pos)
+	{
+		correctRangesAfterPos(pos, -1);
+		needsRefresh(pos);
+	}
+
+	void refreshLast(pos_type pos)
+	{
+		if (pos < refresh_.last)
+			refresh_.last = pos;
+	}
+
+	SpellChecker::Result getState(pos_type pos) const
+	{
+		SpellChecker::Result result = SpellChecker::WORD_OK;
+		RangesIterator et = ranges_.end();
+		RangesIterator it = ranges_.begin();
+		for (; it != et; ++it) {
+			if(it->inside(pos)) {
+				return it->result();
+			}
+		}
+		return result;
+	}
+
+	FontSpan const & getRange(pos_type pos) const
+	{
+		/// empty span to indicate mismatch
+		static FontSpan empty_;
+		RangesIterator et = ranges_.end();
+		RangesIterator it = ranges_.begin();
+		for (; it != et; ++it) {
+			if(it->inside(pos)) {
+				return it->range();
+			}
+		}
+		return empty_;
+	}
+
+	bool needsRefresh() const {
+		return needs_refresh_;
+	}
+
+	SpellChecker::ChangeNumber currentChangeNumber() const {
+		return current_change_number_;
+	}
+
+	void refreshRange(pos_type & first, pos_type & last) const {
+		first = refresh_.first;
+		last = refresh_.last;
+	}
+
+	void needsRefresh(pos_type pos) {
+		if (needs_refresh_ && pos != -1) {
+			if (pos < refresh_.first)
+				refresh_.first = pos;
+			if (pos > refresh_.last)
+				refresh_.last = pos;
+		} else if (pos != -1) {
+			// init request check for neighbour positions too
+			refresh_.first = pos > 0 ? pos - 1 : 0;
+			// no need for special end of paragraph check
+			refresh_.last = pos + 1;
+		}
+		needs_refresh_ = pos != -1;
+	}
+
+	void needsCompleteRefresh(SpellChecker::ChangeNumber change_number) {
+		needs_refresh_ = true;
+		refresh_.first = 0;
+		refresh_.last = -1;
+		current_change_number_ = change_number;
+	}
+
+private:
+	typedef vector<SpellResultRange> Ranges;
+	typedef Ranges::const_iterator RangesIterator;
+	Ranges ranges_;
+	/// the area of the paragraph with pending spell check
+	FontSpan refresh_;
+	bool needs_refresh_;
+	/// spell state cache version number
+	SpellChecker::ChangeNumber current_change_number_;
+
+
+	void correctRangesAfterPos(pos_type pos, int offset)
+	{
+		RangesIterator et = ranges_.end();
+		Ranges::iterator it = ranges_.begin();
+		for (; it != et; ++it) {
+			it->shift(pos, offset);
+		}
+	}
+
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -162,8 +358,7 @@ public:
 		OutputParams const & runparams);
 
 	///
-	void validate(LaTeXFeatures & features,
-		      Layout const & layout) const;
+	void validate(LaTeXFeatures & features) const;
 
 	/// Checks if the paragraph contains only text and no inset or font change.
 	bool onlyText(Buffer const & buf, Font const & outerfont,
@@ -171,7 +366,92 @@ public:
 
 	/// match a string against a particular point in the paragraph
 	bool isTextAt(string const & str, pos_type pos) const;
+
+	/// a vector of speller skip positions
+	typedef vector<FontSpan> SkipPositions;
+	typedef SkipPositions::const_iterator SkipPositionsIterator;
+
+	void appendSkipPosition(SkipPositions & skips, pos_type const pos) const;
 	
+	Language * getSpellLanguage(pos_type const from) const;
+
+	Language * locateSpellRange(pos_type & from, pos_type & to,
+								SkipPositions & skips) const;
+
+	bool hasSpellerChange() const {
+		SpellChecker::ChangeNumber speller_change_number = 0;
+		if (theSpellChecker())
+			speller_change_number = theSpellChecker()->changeNumber();
+		return speller_change_number > speller_state_.currentChangeNumber();
+	}
+
+	bool ignoreWord(docstring const & word) const ;
+	
+	void setMisspelled(pos_type from, pos_type to, SpellChecker::Result state)
+	{
+		pos_type textsize = owner_->size();
+		// check for sane arguments
+		if (to < from || from >= textsize)
+			return;
+		FontSpan fp = FontSpan(from, to);
+		// don't mark end of paragraph
+		if (fp.last >= textsize)
+			fp.last = textsize - 1;
+		speller_state_.setRange(fp, state);
+	}
+
+	void requestSpellCheck(pos_type pos) {
+		speller_state_.needsRefresh(pos);
+	}
+
+	void readySpellCheck() {
+		speller_state_.needsRefresh(-1);
+	}
+
+	bool needsSpellCheck() const
+	{
+		return speller_state_.needsRefresh();
+	}
+
+	void rangeOfSpellCheck(pos_type & first, pos_type & last) const
+	{
+		speller_state_.refreshRange(first, last);
+		if (last == -1) {
+			last = owner_->size();
+			return;
+		}
+		pos_type endpos = last;
+		owner_->locateWord(first, endpos, WHOLE_WORD);
+		if (endpos < last) {
+			endpos = last;
+			owner_->locateWord(last, endpos, WHOLE_WORD);
+		}
+		last = endpos;
+	}
+
+	int countSkips(SkipPositionsIterator & it, SkipPositionsIterator const et,
+			    int & start) const
+	{
+		int numskips = 0;
+		while (it != et && it->first < start) {
+			int skip = it->last - it->first + 1;
+			start += skip;
+			numskips += skip;
+			++it;
+		}
+		return numskips;
+	}
+
+	void markMisspelledWords(pos_type const & first, pos_type const & last,
+							 SpellChecker::Result result,
+							 docstring const & word,
+							 SkipPositions const & skips);
+
+	InsetCode ownerCode() const
+	{
+		return inset_owner_ ? inset_owner_->lyxCode() : NO_CODE;
+	}
+
 	/// Which Paragraph owns us?
 	Paragraph * owner_;
 
@@ -182,9 +462,8 @@ public:
 	FontList fontlist_;
 
 	///
-	unsigned int id_;
-	///
-	static unsigned int paragraph_id;
+	int id_;
+
 	///
 	ParagraphParameters params_;
 
@@ -200,17 +479,17 @@ public:
 	typedef docstring TextContainer;
 	///
 	TextContainer text_;
-	
-	typedef std::set<docstring> Words;
+
+	typedef set<docstring> Words;
+	typedef map<Language, Words> LangWordsMap;
 	///
-	Words words_;
+	LangWordsMap words_;
 	///
 	Layout const * layout_;
+	///
+	SpellCheckerState speller_state_;
 };
 
-
-// Initialization of the counter for the paragraph id's,
-unsigned int Paragraph::Private::paragraph_id = 0;
 
 namespace {
 
@@ -233,20 +512,27 @@ size_t const phrases_nr = sizeof(special_phrases)/sizeof(special_phrase);
 
 
 Paragraph::Private::Private(Paragraph * owner, Layout const & layout)
-	: owner_(owner), inset_owner_(0), begin_of_body_(0), layout_(&layout)
+	: owner_(owner), inset_owner_(0), id_(-1), begin_of_body_(0), layout_(&layout)
 {
-	id_ = paragraph_id++;
 	text_.reserve(100);
 }
 
 
+// Initialization of the counter for the paragraph id's,
+//
+// FIXME: There should be a more intelligent way to generate and use the
+// paragraph ids per buffer instead a global static counter for all InsetText
+// in the running program.
+static int paragraph_id = -1;
+
 Paragraph::Private::Private(Private const & p, Paragraph * owner)
-	: owner_(owner), inset_owner_(p.inset_owner_), fontlist_(p.fontlist_), 
+	: owner_(owner), inset_owner_(p.inset_owner_), fontlist_(p.fontlist_),
 	  params_(p.params_), changes_(p.changes_), insetlist_(p.insetlist_),
 	  begin_of_body_(p.begin_of_body_), text_(p.text_), words_(p.words_),
 	  layout_(p.layout_)
 {
-	id_ = paragraph_id++;
+	id_ = ++paragraph_id;
+	requestSpellCheck(p.text_.size());
 }
 
 
@@ -258,7 +544,7 @@ Paragraph::Private::Private(Private const & p, Paragraph * owner,
 	  begin_of_body_(p.begin_of_body_), words_(p.words_),
 	  layout_(p.layout_)
 {
-	id_ = paragraph_id++;
+	id_ = ++paragraph_id;
 	if (beg >= pos_type(p.text_.size()))
 		return;
 	text_ = p.text_.substr(beg, end - beg);
@@ -276,6 +562,7 @@ Paragraph::Private::Private(Private const & p, Paragraph * owner,
 		// Add a new entry in the fontlist_.
 		fontlist_.set(fcit->pos() - beg, fcit->font());
 	}
+	requestSpellCheck(p.text_.size());
 }
 
 
@@ -286,12 +573,12 @@ void Paragraph::addChangesToToc(DocIterator const & cdit,
 }
 
 
-bool Paragraph::isFullyDeleted(pos_type start, pos_type end) const
+bool Paragraph::isDeleted(pos_type start, pos_type end) const
 {
 	LASSERT(start >= 0 && start <= size(), /**/);
 	LASSERT(end > start && end <= size() + 1, /**/);
 
-	return d->changes_.isFullyDeleted(start, end);
+	return d->changes_.isDeleted(start, end);
 }
 
 
@@ -311,7 +598,7 @@ bool Paragraph::isMergedOnEndOfParDeletion(bool trackChanges) const
 		return true;
 
 	Change const change = d->changes_.lookup(size());
-	return change.type == Change::INSERTED && change.author == 0;
+	return change.inserted() && change.currentAuthor();
 }
 
 
@@ -332,7 +619,7 @@ void Paragraph::setChange(Change const & change)
 	 * Conclusion: An inset's content should remain untouched if you delete it
 	 */
 
-	if (change.type != Change::DELETED) {
+	if (!change.deleted()) {
 		for (pos_type pos = 0; pos < size(); ++pos) {
 			if (Inset * inset = getInset(pos))
 				inset->setChange(change);
@@ -347,7 +634,7 @@ void Paragraph::setChange(pos_type pos, Change const & change)
 	d->changes_.set(change, pos);
 
 	// see comment in setChange(Change const &) above
-	if (change.type != Change::DELETED && pos < size())
+	if (!change.deleted() && pos < size())
 			if (Inset * inset = getInset(pos))
 				inset->setChange(change);
 }
@@ -360,8 +647,7 @@ Change const & Paragraph::lookupChange(pos_type pos) const
 }
 
 
-void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start,
-		pos_type end)
+void Paragraph::acceptChanges(pos_type start, pos_type end)
 {
 	LASSERT(start >= 0 && start <= size(), /**/);
 	LASSERT(end > start && end <= size() + 1, /**/);
@@ -371,14 +657,14 @@ void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start,
 			case Change::UNCHANGED:
 				// accept changes in nested inset
 				if (Inset * inset = getInset(pos))
-					inset->acceptChanges(bparams);
+					inset->acceptChanges();
 				break;
 
 			case Change::INSERTED:
 				d->changes_.set(Change(Change::UNCHANGED), pos);
 				// also accept changes in nested inset
 				if (Inset * inset = getInset(pos))
-					inset->acceptChanges(bparams);
+					inset->acceptChanges();
 				break;
 
 			case Change::DELETED:
@@ -396,8 +682,7 @@ void Paragraph::acceptChanges(BufferParams const & bparams, pos_type start,
 }
 
 
-void Paragraph::rejectChanges(BufferParams const & bparams,
-		pos_type start, pos_type end)
+void Paragraph::rejectChanges(pos_type start, pos_type end)
 {
 	LASSERT(start >= 0 && start <= size(), /**/);
 	LASSERT(end > start && end <= size() + 1, /**/);
@@ -407,7 +692,7 @@ void Paragraph::rejectChanges(BufferParams const & bparams,
 			case Change::UNCHANGED:
 				// reject changes in nested inset
 				if (Inset * inset = getInset(pos))
-						inset->rejectChanges(bparams);
+						inset->rejectChanges();
 				break;
 
 			case Change::INSERTED:
@@ -445,6 +730,8 @@ void Paragraph::Private::insertChar(pos_type pos, char_type c,
 	if (pos == pos_type(text_.size())) {
 		// when appending characters, no need to update tables
 		text_.push_back(c);
+		// but we want spell checking
+		requestSpellCheck(pos);
 		return;
 	}
 
@@ -455,6 +742,9 @@ void Paragraph::Private::insertChar(pos_type pos, char_type c,
 
 	// Update the insets
 	insetlist_.increasePosAfterPos(pos);
+
+	// Update list of misspelled positions
+	speller_state_.increasePosAfterPos(pos);
 }
 
 
@@ -474,6 +764,9 @@ bool Paragraph::insertInset(pos_type pos, Inset * inset,
 
 	// Add a new entry in the insetlist_.
 	d->insetlist_.insert(inset, pos);
+
+	// Some insets require run of spell checker
+	requestSpellCheck(pos);
 	return true;
 }
 
@@ -491,13 +784,15 @@ bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
 		//  a) it was previously unchanged or
 		//  b) it was inserted by a co-author
 
-		if (change.type == Change::UNCHANGED ||
-		    (change.type == Change::INSERTED && change.author != 0)) {
+		if (!change.changed() ||
+		      (change.inserted() && !change.currentAuthor())) {
 			setChange(pos, Change(Change::DELETED));
+			// request run of spell checker
+			requestSpellCheck(pos);
 			return false;
 		}
 
-		if (change.type == Change::DELETED)
+		if (change.deleted())
 			return false;
 	}
 
@@ -522,6 +817,10 @@ bool Paragraph::eraseChar(pos_type pos, bool trackChanges)
 
 	// Update the insetlist_
 	d->insetlist_.decreasePosAfterPos(pos);
+
+	// Update list of misspelled positions
+	d->speller_state_.decreasePosAfterPos(pos);
+	d->speller_state_.refreshLast(size());
 
 	return true;
 }
@@ -558,8 +857,8 @@ int Paragraph::Private::latexSurrogatePair(odocstream & os, char_type c,
 		// the encoding supports the combination
 		os << latex2 << latex1;
 		return latex1.length() + latex2.length();
-	} else if (runparams.local_font
-		   && runparams.local_font->language()->lang() == "polutonikogreek") {
+	} else if (runparams.local_font &&
+		   runparams.local_font->language()->lang() == "polutonikogreek") {
 		// polutonikogreek only works without the brackets
 		os << latex1 << latex2;
 		return latex1.length() + latex2.length();
@@ -576,7 +875,7 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 				       Font const & font,
 				       Layout const & style)
 {
-	if (style.pass_thru || runparams.verbatim)
+	if (style.pass_thru || runparams.pass_thru)
 		return false;
 
 	if (i + 1 < int(text_.size())) {
@@ -588,8 +887,8 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 		}
 	}
 
-	if (lyxrc.plaintext_linelen > 0
-	    && column > lyxrc.plaintext_linelen
+	if (runparams.linelen > 0
+	    && column > runparams.linelen
 	    && i
 	    && text_[i - 1] != ' '
 	    && (i + 1 < int(text_.size()))
@@ -708,19 +1007,18 @@ bool Paragraph::Private::isTextAt(string const & str, pos_type pos) const
 }
 
 
-void Paragraph::Private::latexInset(
-					     BufferParams const & bparams,
-					     odocstream & os,
-					     TexRow & texrow,
-					     OutputParams & runparams,
-					     Font & running_font,
-					     Font & basefont,
-					     Font const & outerfont,
-					     bool & open_font,
-					     Change & running_change,
-					     Layout const & style,
-					     pos_type & i,
-					     unsigned int & column)
+void Paragraph::Private::latexInset(BufferParams const & bparams,
+				    odocstream & os,
+				    TexRow & texrow,
+				    OutputParams & runparams,
+				    Font & running_font,
+				    Font & basefont,
+				    Font const & outerfont,
+				    bool & open_font,
+				    Change & running_change,
+				    Layout const & style,
+				    pos_type & i,
+				    unsigned int & column)
 {
 	Inset * inset = owner_->getInset(i);
 	LASSERT(inset, /**/);
@@ -759,7 +1057,7 @@ void Paragraph::Private::latexInset(
 		column = 0;
 	}
 
-	if (owner_->lookupChange(i).type == Change::DELETED) {
+	if (owner_->isDeleted(i)) {
 		if( ++runparams.inDeletedInset == 1)
 			runparams.changeOfDeletedInset = owner_->lookupChange(i);
 	}
@@ -773,11 +1071,12 @@ void Paragraph::Private::latexInset(
 	bool close = false;
 	odocstream::pos_type const len = os.tellp();
 
-	if (inset->forceLTR() 
+	if (inset->forceLTR()
 	    && running_font.isRightToLeft()
-		// ERT is an exception, it should be output with no decorations at all
-		&& inset->lyxCode() != ERT_CODE) {
-	    	if (running_font.language()->lang() == "farsi")
+	    // ERT is an exception, it should be output with no
+	    // decorations at all
+	    && inset->lyxCode() != ERT_CODE) {
+		if (running_font.language()->lang() == "farsi")
 			os << "\\beginL{}";
 		else
 			os << "\\L{";
@@ -802,10 +1101,10 @@ void Paragraph::Private::latexInset(
 		unsigned int count = running_font.latexWriteEndChanges(os,
 			bparams, runparams, basefont, basefont, closeLanguage);
 		column += count;
-		// if any font properties were closed, update the running_font, 
+		// if any font properties were closed, update the running_font,
 		// making sure, however, to leave the language as it was
 		if (count > 0) {
-			// FIXME: probably a better way to keep track of the old 
+			// FIXME: probably a better way to keep track of the old
 			// language, than copying the entire font?
 			Font const copy_font(running_font);
 			basefont = owner_->getLayoutFont(bparams, outerfont);
@@ -838,16 +1137,14 @@ void Paragraph::Private::latexInset(
 	}
 
 	if (tmp) {
-		for (int j = 0; j < tmp; ++j)
-			texrow.newline();
-
+		texrow.newlines(tmp);
 		texrow.start(owner_->id(), i + 1);
 		column = 0;
 	} else {
-		column += os.tellp() - len;
+		column += (unsigned int)(os.tellp() - len);
 	}
 
-	if (owner_->lookupChange(i).type == Change::DELETED)
+	if (owner_->isDeleted(i))
 		--runparams.inDeletedInset;
 }
 
@@ -863,18 +1160,11 @@ void Paragraph::Private::latexSpecialChar(
 {
 	char_type const c = text_[i];
 
-	if (style.pass_thru) {
+	if (style.pass_thru || runparams.pass_thru) {
 		if (c != '\0')
 			// FIXME UNICODE: This can fail if c cannot
 			// be encoded in the current encoding.
 			os.put(c);
-		return;
-	}
-
-	if (runparams.verbatim) {
-		// FIXME UNICODE: This can fail if c cannot
-		// be encoded in the current encoding.
-		os.put(c);
 		return;
 	}
 
@@ -1064,15 +1354,52 @@ bool Paragraph::Private::latexSpecialPhrase(odocstream & os, pos_type & i,
 }
 
 
-void Paragraph::Private::validate(LaTeXFeatures & features,
-				Layout const & layout) const
+void Paragraph::Private::validate(LaTeXFeatures & features) const
 {
+	if (layout_->inpreamble && inset_owner_) {
+		bool const is_command = layout_->latextype == LATEX_COMMAND;
+		Buffer const & buf = inset_owner_->buffer();
+		BufferParams const & bp = buf.params();
+		Font f;
+		TexRow tr;
+		// Using a string stream here circumvents the encoding
+		// switching machinery of odocstream. Therefore the
+		// output is wrong if this paragraph contains content
+		// that needs to switch encoding.
+		odocstringstream ods;
+		if (is_command) {
+			ods << '\\' << from_ascii(layout_->latexname());
+			// we have to provide all the optional arguments here, even though
+			// the last one is the only one we care about.
+			// Separate handling of optional argument inset.
+			if (layout_->optargs != 0 || layout_->reqargs != 0)
+				latexArgInsets(*owner_, ods, features.runparams(),
+											 layout_->reqargs, layout_->optargs);
+			else
+				ods << from_ascii(layout_->latexparam());
+		}
+		docstring::size_type const length = ods.str().length();
+		// this will output "{" at the beginning, but not at the end
+		owner_->latex(bp, f, ods, tr, features.runparams(), 0, -1, true);
+		if (ods.str().length() > length) {
+			if (is_command)
+				ods << '}';
+			string const snippet = to_utf8(ods.str());
+			features.addPreambleSnippet(snippet);
+		}
+	}
+
+	if (features.runparams().flavor == OutputParams::HTML
+	    && layout_->htmltitle()) {
+		features.setHTMLTitle(owner_->asString(AS_STR_INSETS));
+	}
+
 	// check the params.
 	if (!params_.spacing().isDefault())
 		features.require("setspace");
 
 	// then the layouts
-	features.useLayout(layout.name());
+	features.useLayout(layout_->name());
 
 	// then the fonts
 	fontlist_.validate(features);
@@ -1087,7 +1414,7 @@ void Paragraph::Private::validate(LaTeXFeatures & features,
 	for (; icit != iend; ++icit) {
 		if (icit->inset) {
 			icit->inset->validate(features);
-			if (layout.needprotect &&
+			if (layout_->needprotect &&
 			    icit->inset->lyxCode() == FOOT_CODE)
 				features.require("NeedLyXFootnoteCode");
 		}
@@ -1116,7 +1443,7 @@ namespace {
 	Layout const emptyParagraphLayout;
 }
 
-Paragraph::Paragraph() 
+Paragraph::Paragraph()
 	: d(new Paragraph::Private(this, emptyParagraphLayout))
 {
 	itemdepth = 0;
@@ -1162,6 +1489,18 @@ Paragraph::~Paragraph()
 }
 
 
+namespace {
+
+// this shall be called just before every "os << ..." action.
+void flushString(ostream & os, docstring & s)
+{
+	os << to_utf8(s);
+	s.erase();
+}
+
+}
+
+
 void Paragraph::write(ostream & os, BufferParams const & bparams,
 	depth_type & dth) const
 {
@@ -1189,19 +1528,26 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 
 	Change running_change = Change(Change::UNCHANGED);
 
+	// this string is used as a buffer to avoid repetitive calls
+	// to to_utf8(), which turn out to be expensive (JMarc)
+	docstring write_buffer;
+
 	int column = 0;
 	for (pos_type i = 0; i <= size(); ++i) {
 
-		Change change = lookupChange(i);
-		Changes::lyxMarkChange(os, column, running_change, change);
+		Change const change = lookupChange(i);
+		if (change != running_change)
+			flushString(os, write_buffer);
+		Changes::lyxMarkChange(os, bparams, column, running_change, change);
 		running_change = change;
 
 		if (i == size())
 			break;
 
 		// Write font changes
-		Font const & font2 = getFontSettings(bparams, i);
+		Font font2 = getFontSettings(bparams, i);
 		if (font2 != font1) {
+			flushString(os, write_buffer);
 			font2.lyxWriteChanges(font1, os);
 			column = 0;
 			font1 = font2;
@@ -1211,6 +1557,7 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 		switch (c) {
 		case META_INSET:
 			if (Inset const * inset = getInset(i)) {
+				flushString(os, write_buffer);
 				if (inset->directWrite()) {
 					// international char, let it write
 					// code directly so it's shorter in
@@ -1227,10 +1574,12 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 			}
 			break;
 		case '\\':
+			flushString(os, write_buffer);
 			os << "\n\\backslash\n";
 			column = 0;
 			break;
 		case '.':
+			flushString(os, write_buffer);
 			if (i + 1 < size() && d->text_[i + 1] == ' ') {
 				os << ".\n";
 				column = 0;
@@ -1240,13 +1589,14 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 		default:
 			if ((column > 70 && c == ' ')
 			    || column > 79) {
+				flushString(os, write_buffer);
 				os << '\n';
 				column = 0;
 			}
 			// this check is to amend a bug. LyX sometimes
 			// inserts '\0' this could cause problems.
 			if (c != '\0')
-				os << to_utf8(docstring(1, c));
+				write_buffer.push_back(c);
 			else
 				LYXERR0("NUL char in structure.");
 			++column;
@@ -1254,13 +1604,14 @@ void Paragraph::write(ostream & os, BufferParams const & bparams,
 		}
 	}
 
+	flushString(os, write_buffer);
 	os << "\n\\end_layout\n";
 }
 
 
 void Paragraph::validate(LaTeXFeatures & features) const
 {
-	d->validate(features, *d->layout_);
+	d->validate(features);
 }
 
 
@@ -1297,7 +1648,7 @@ void Paragraph::appendString(docstring const & s, Font const & font,
 	d->text_.append(s);
 
 	// FIXME: Optimize this!
-	for (pos_type i = oldsize; i != newsize; ++i) {
+	for (size_t i = oldsize; i != newsize; ++i) {
 		// track change
 		d->changes_.insert(change, i);
 	}
@@ -1522,7 +1873,7 @@ void Paragraph::setFont(pos_type pos, Font const & font)
 	// First, reduce font against layout/label font
 	// Update: The setCharFont() routine in text2.cpp already
 	// reduces font, so we don't need to do that here. (Asger)
-	
+
 	d->fontlist_.set(pos, font);
 }
 
@@ -1593,7 +1944,8 @@ docstring const & Paragraph::labelString() const
 // the next two functions are for the manual labels
 docstring const Paragraph::getLabelWidthString() const
 {
-	if (d->layout_->margintype == MARGIN_MANUAL)
+	if (d->layout_->margintype == MARGIN_MANUAL
+	    || d->layout_->latextype == LATEX_BIB_ENVIRONMENT)
 		return d->params_.labelWidthString();
 	else
 		return _("Senseless with this layout!");
@@ -1606,35 +1958,31 @@ void Paragraph::setLabelWidthString(docstring const & s)
 }
 
 
-docstring const Paragraph::translateIfPossible(docstring const & s,
+docstring Paragraph::expandLabel(Layout const & layout,
 		BufferParams const & bparams) const
 {
-	if (!isAscii(s) || s.empty()) {
-		// This must be a user defined layout. We cannot translate
-		// this, since gettext accepts only ascii keys.
-		return s;
-	}
-	// Probably standard layout, try to translate
-	Messages & m = getMessages(getParLanguage(bparams)->code());
-	return m.get(to_ascii(s));
+	return expandParagraphLabel(layout, bparams, true);
 }
 
 
-docstring Paragraph::expandLabel(Layout const & layout,
+docstring Paragraph::expandDocBookLabel(Layout const & layout,
+		BufferParams const & bparams) const
+{
+	return expandParagraphLabel(layout, bparams, false);
+}
+
+
+docstring Paragraph::expandParagraphLabel(Layout const & layout,
 		BufferParams const & bparams, bool process_appendix) const
 {
 	DocumentClass const & tclass = bparams.documentClass();
+	string const & lang = getParLanguage(bparams)->code();
+	bool const in_appendix = process_appendix && d->params_.appendix();
+	docstring fmt = translateIfPossible(layout.labelstring(in_appendix), lang);
 
-	docstring fmt;
-	if (process_appendix && d->params_.appendix())
-		fmt = translateIfPossible(layout.labelstring_appendix(),
-			bparams);
-	else
-		fmt = translateIfPossible(layout.labelstring(), bparams);
-
-	if (fmt.empty() && layout.labeltype == LABEL_COUNTER 
+	if (fmt.empty() && layout.labeltype == LABEL_COUNTER
 	    && !layout.counter.empty())
-		fmt = "\\the" + layout.counter;
+		return tclass.counters().theCounter(layout.counter, lang);
 
 	// handle 'inherited level parts' in 'fmt',
 	// i.e. the stuff between '@' in   '@Section@.\arabic{subsection}'
@@ -1645,14 +1993,14 @@ docstring Paragraph::expandLabel(Layout const & layout,
 			docstring parent(fmt, i + 1, j - i - 1);
 			docstring label = from_ascii("??");
 			if (tclass.hasLayout(parent))
-				docstring label = expandLabel(tclass[parent], bparams,
+				docstring label = expandParagraphLabel(tclass[parent], bparams,
 						      process_appendix);
-			fmt = docstring(fmt, 0, i) + label 
+			fmt = docstring(fmt, 0, i) + label
 				+ docstring(fmt, j + 1, docstring::npos);
 		}
 	}
 
-	return tclass.counters().counterLabel(fmt);
+	return tclass.counters().counterLabel(fmt, lang);
 }
 
 
@@ -1660,9 +2008,9 @@ void Paragraph::applyLayout(Layout const & new_layout)
 {
 	d->layout_ = &new_layout;
 	LyXAlignment const oldAlign = d->params_.align();
-	
+
 	if (!(oldAlign & d->layout_->alignpossible)) {
-		frontend::Alert::warning(_("Alignment not permitted"), 
+		frontend::Alert::warning(_("Alignment not permitted"),
 			_("The new layout does not permit the alignment previously used.\nSetting to default."));
 		d->params_.align(LYX_ALIGN_LAYOUT);
 	}
@@ -1707,12 +2055,6 @@ void Paragraph::setBeginOfBody()
 	}
 
 	d->begin_of_body_ = i;
-}
-
-
-bool Paragraph::forcePlainLayout() const
-{
-	return inInset().forcePlainLayout();
 }
 
 
@@ -1799,7 +2141,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 		os << "\\noindent ";
 		column += 10;
 	}
-	
+
 	LyXAlignment const curAlign = params_.align();
 
 	if (curAlign == layout_->align)
@@ -1810,6 +2152,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
 	case LYX_ALIGN_SPECIAL:
+	case LYX_ALIGN_DECIMAL:
 		break;
 	case LYX_ALIGN_LEFT:
 	case LYX_ALIGN_RIGHT:
@@ -1822,7 +2165,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 	}
 
 	string const begin_tag = "\\begin";
-	InsetCode code = owner_->ownerCode();
+	InsetCode code = ownerCode();
 	bool const lastpar = runparams.isLastPar;
 
 	switch (curAlign) {
@@ -1830,6 +2173,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
 	case LYX_ALIGN_SPECIAL:
+	case LYX_ALIGN_DECIMAL:
 		break;
 	case LYX_ALIGN_LEFT: {
 		string output;
@@ -1878,6 +2222,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
 	case LYX_ALIGN_SPECIAL:
+	case LYX_ALIGN_DECIMAL:
 		break;
 	case LYX_ALIGN_LEFT:
 	case LYX_ALIGN_RIGHT:
@@ -1890,7 +2235,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	}
 
 	string const end_tag = "\n\\par\\end";
-	InsetCode code = owner_->ownerCode();
+	InsetCode code = ownerCode();
 	bool const lastpar = runparams.isLastPar;
 
 	switch (curAlign) {
@@ -1898,6 +2243,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 	case LYX_ALIGN_BLOCK:
 	case LYX_ALIGN_LAYOUT:
 	case LYX_ALIGN_SPECIAL:
+	case LYX_ALIGN_DECIMAL:
 		break;
 	case LYX_ALIGN_LEFT: {
 		string output;
@@ -1931,21 +2277,23 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 
 
 // This one spits out the text of the paragraph
-bool Paragraph::latex(BufferParams const & bparams,
-				Font const & outerfont,
-				odocstream & os, TexRow & texrow,
-				OutputParams const & runparams) const
+void Paragraph::latex(BufferParams const & bparams,
+	Font const & outerfont,
+	odocstream & os, TexRow & texrow,
+	OutputParams const & runparams,
+	int start_pos, int end_pos, bool force) const
 {
 	LYXERR(Debug::LATEX, "Paragraph::latex...     " << this);
 
-	bool return_value = false;
-
-	bool const allowcust = allowParagraphCustomization();
-
 	// FIXME This check should not be needed. Perhaps issue an
 	// error if it triggers.
-	Layout const & style = forcePlainLayout() ?
+	Layout const & style = inInset().forcePlainLayout() ?
 		bparams.documentClass().plainLayout() : *d->layout_;
+
+	if (!force && style.inpreamble)
+		return;
+
+	bool const allowcust = allowParagraphCustomization();
 
 	// Current base font for all inherited font changes, without any
 	// change caused by an individual character, except for the language:
@@ -2024,7 +2372,7 @@ bool Paragraph::latex(BufferParams const & bparams,
 		}
 
 		Change const & change = runparams.inDeletedInset ? runparams.changeOfDeletedInset
-		                                                 : lookupChange(i);
+								 : lookupChange(i);
 
 		if (bparams.outputChanges && runningChange != change) {
 			if (open_font) {
@@ -2042,7 +2390,7 @@ bool Paragraph::latex(BufferParams const & bparams,
 
 		// do not output text which is marked deleted
 		// if change tracking output is disabled
-		if (!bparams.outputChanges && change.type == Change::DELETED) {
+		if (!bparams.outputChanges && change.deleted()) {
 			continue;
 		}
 
@@ -2065,18 +2413,22 @@ bool Paragraph::latex(BufferParams const & bparams,
 			open_font = false;
 		}
 
+		string const running_lang = runparams.use_polyglossia ?
+			running_font.language()->polyglossia() : running_font.language()->babel();
 		// close babel's font environment before opening CJK.
-		if (!running_font.language()->babel().empty() &&
+		string const lang_end_command = runparams.use_polyglossia ?
+			"\\end{$$lang}" : lyxrc.language_command_end;
+		if (!running_lang.empty() &&
 		    font.language()->encoding()->package() == Encoding::CJK) {
-				string end_tag = subst(lyxrc.language_command_end,
+				string end_tag = subst(lang_end_command,
 							"$$lang",
-							running_font.language()->babel());
+							running_lang);
 				os << from_ascii(end_tag);
 				column += end_tag.length();
 		}
 
 		// Switch file encoding if necessary (and allowed)
-		if (!runparams.verbatim && 
+		if (!runparams.pass_thru && !style.pass_thru &&
 		    runparams.encoding->package() != Encoding::none &&
 		    font.language()->encoding()->package() != Encoding::none) {
 			pair<bool, int> const enc_switch = switchEncoding(os, bparams,
@@ -2101,21 +2453,22 @@ bool Paragraph::latex(BufferParams const & bparams,
 			running_font = font;
 			open_font = true;
 			docstring fontchange = ods.str();
-			docstring const last_modifier = rsplit(fontchange, '\\');
 			// check whether the fontchange ends with a \\textcolor
 			// modifier and the text starts with a space (bug 4473)
+			docstring const last_modifier = rsplit(fontchange, '\\');
 			if (prefixIs(last_modifier, from_ascii("textcolor")) && c == ' ')
 				os << fontchange << from_ascii("{}");
 			// check if the fontchange ends with a trailing blank
 			// (like "\small " (see bug 3382)
 			else if (suffixIs(fontchange, ' ') && c == ' ')
-				os << fontchange.substr(0, fontchange.size() - 1) 
+				os << fontchange.substr(0, fontchange.size() - 1)
 				   << from_ascii("{}");
 			else
 				os << fontchange;
 		}
 
-		if (c == ' ') {
+		// FIXME: think about end_pos implementation...
+		if (c == ' ' && i >= start_pos && (end_pos == -1 || i < end_pos)) {
 			// FIXME: integrate this case in latexSpecialChar
 			// Do not print the separation of the optional argument
 			// if style.pass_thru is false. This works because
@@ -2143,16 +2496,19 @@ bool Paragraph::latex(BufferParams const & bparams,
 		// Two major modes:  LaTeX or plain
 		// Handle here those cases common to both modes
 		// and then split to handle the two modes separately.
-		if (c == META_INSET)
-			d->latexInset(bparams, os,
-					texrow, rp, running_font,
-					basefont, outerfont, open_font,
-					runningChange, style, i, column);
-		else {
-			try {
-				d->latexSpecialChar(os, rp, running_font, runningChange,
-					style, i, column);
-			} catch (EncodingException & e) {
+		if (c == META_INSET) {
+			if (i >= start_pos && (end_pos == -1 || i < end_pos)) {
+				d->latexInset(bparams, os,
+						texrow, rp, running_font,
+						basefont, outerfont, open_font,
+						runningChange, style, i, column);
+			}
+		} else {
+			if (i >= start_pos && (end_pos == -1 || i < end_pos)) {
+				try {
+					d->latexSpecialChar(os, rp, running_font, runningChange,
+						style, i, column);
+				} catch (EncodingException & e) {
 				if (runparams.dryrun) {
 					os << "<" << _("LyX Warning: ")
 					   << _("uncodable character") << " '";
@@ -2166,6 +2522,7 @@ bool Paragraph::latex(BufferParams const & bparams,
 				}
 			}
 		}
+		}
 
 		// Set the encoding to that returned from latexSpecialChar (see
 		// comment for encoding member in OutputParams.h)
@@ -2176,9 +2533,8 @@ bool Paragraph::latex(BufferParams const & bparams,
 	if (open_font) {
 #ifdef FIXED_LANGUAGE_END_DETECTION
 		if (next_) {
-			running_font
-				.latexWriteEndChanges(os, bparams, runparams,
-					basefont,
+			running_font.latexWriteEndChanges(os, bparams,
+					runparams, basefont,
 					next_->getFont(bparams, 0, outerfont));
 		} else {
 			running_font.latexWriteEndChanges(os, bparams,
@@ -2199,17 +2555,16 @@ bool Paragraph::latex(BufferParams const & bparams,
 	// Needed if there is an optional argument but no contents.
 	if (body_pos > 0 && body_pos == size()) {
 		os << "}]~";
-		return_value = false;
 	}
 
 	if (allowcust && d->endTeXParParams(bparams, os, texrow, runparams)
 	    && runparams.encoding != prev_encoding) {
 		runparams.encoding = prev_encoding;
-		os << setEncoding(prev_encoding->iconvName());
+		if (!runparams.isFullUnicode())
+			os << setEncoding(prev_encoding->iconvName());
 	}
 
 	LYXERR(Debug::LATEX, "Paragraph::latex... done " << this);
-	return return_value;
 }
 
 
@@ -2218,6 +2573,8 @@ bool Paragraph::emptyTag() const
 	for (pos_type i = 0; i < size(); ++i) {
 		if (Inset const * inset = getInset(i)) {
 			InsetCode lyx_code = inset->lyxCode();
+			// FIXME testing like that is wrong. What is
+			// the intent?
 			if (lyx_code != TOC_CODE &&
 			    lyx_code != INCLUDE_CODE &&
 			    lyx_code != GRAPHICS_CODE &&
@@ -2254,7 +2611,7 @@ string Paragraph::getID(Buffer const & buf, OutputParams const & runparams)
 }
 
 
-pos_type Paragraph::firstWord(odocstream & os, OutputParams const & runparams)
+pos_type Paragraph::firstWordDocBook(odocstream & os, OutputParams const & runparams)
 	const
 {
 	pos_type i;
@@ -2266,6 +2623,24 @@ pos_type Paragraph::firstWord(odocstream & os, OutputParams const & runparams)
 			if (c == ' ')
 				break;
 			os << sgml::escapeChar(c);
+		}
+	}
+	return i;
+}
+
+
+pos_type Paragraph::firstWordLyXHTML(XHTMLStream & xs, OutputParams const & runparams)
+	const
+{
+	pos_type i;
+	for (i = 0; i < size(); ++i) {
+		if (Inset const * inset = getInset(i)) {
+			inset->xhtml(xs, runparams);
+		} else {
+			char_type c = d->text_[i];
+			if (c == ' ')
+				break;
+			xs << c;
 		}
 	}
 	return i;
@@ -2343,6 +2718,103 @@ void Paragraph::simpleDocBookOnePar(Buffer const & buf,
 }
 
 
+docstring Paragraph::simpleLyXHTMLOnePar(Buffer const & buf,
+				    XHTMLStream & xs,
+				    OutputParams const & runparams,
+				    Font const & outerfont,
+				    pos_type initial) const
+{
+	docstring retval;
+
+	bool emph_flag = false;
+	bool bold_flag = false;
+	string closing_tag;
+
+	Layout const & style = *d->layout_;
+
+	if (!runparams.for_toc && runparams.html_make_pars) {
+		// generate a magic label for this paragraph
+		string const attr = "id='" + magicLabel() + "'";
+		xs << html::CompTag("a", attr);
+	}
+
+	FontInfo font_old =
+		style.labeltype == LABEL_MANUAL ? style.labelfont : style.font;
+
+	// parsing main loop
+	for (pos_type i = initial; i < size(); ++i) {
+		// let's not show deleted material in the output
+		if (isDeleted(i))
+			continue;
+
+		Font font = getFont(buf.params(), i, outerfont);
+
+		// emphasis
+		if (font_old.emph() != font.fontInfo().emph()) {
+			if (font.fontInfo().emph() == FONT_ON) {
+				xs << html::StartTag("em");
+				emph_flag = true;
+			} else if (emph_flag && i != initial) {
+				xs << html::EndTag("em");
+				emph_flag = false;
+			}
+		}
+		// bold
+		if (font_old.series() != font.fontInfo().series()) {
+			if (font.fontInfo().series() == BOLD_SERIES) {
+				xs << html::StartTag("strong");
+				bold_flag = true;
+			} else if (bold_flag && i != initial) {
+				xs << html::EndTag("strong");
+				bold_flag = false;
+			}
+		}
+		// FIXME XHTML
+		// Other such tags? What about the other text ranges?
+
+		Inset const * inset = getInset(i);
+		if (inset) {
+			if (!runparams.for_toc || inset->isInToc()) {
+				OutputParams np = runparams;
+				if (!inset->getLayout().htmlisblock())
+					np.html_in_par = true;
+				retval += inset->xhtml(xs, np);
+			}
+		} else {
+			char_type c = d->text_[i];
+
+			if (style.pass_thru)
+				xs << c;
+			else if (c == '-') {
+				docstring str;
+				int j = i + 1;
+				if (j < size() && d->text_[j] == '-') {
+					j += 1;
+					if (j < size() && d->text_[j] == '-') {
+						str += from_ascii("&mdash;");
+						i += 2;
+					} else {
+						str += from_ascii("&ndash;");
+						i += 1;
+					}
+				}
+				else
+					str += c;
+				// We don't want to escape the entities. Note that
+				// it is safe to do this, since str can otherwise
+				// only be "-". E.g., it can't be "<".
+				xs << XHTMLStream::ESCAPE_NONE << str;
+			} else
+				xs << c;
+		}
+		font_old = font.fontInfo();
+	}
+
+	xs.closeFontTags();
+	return retval;
+}
+
+
 bool Paragraph::isHfill(pos_type pos) const
 {
 	Inset const * inset = getInset(pos);
@@ -2368,13 +2840,22 @@ bool Paragraph::isLineSeparator(pos_type pos) const
 }
 
 
-/// Used by the spellchecker
-bool Paragraph::isLetter(pos_type pos) const
+bool Paragraph::isWordSeparator(pos_type pos) const
 {
 	if (Inset const * inset = getInset(pos))
-		return inset->isLetter();
+		return !inset->isLetter();
 	char_type const c = d->text_[pos];
-	return isLetterChar(c) || isDigit(c);
+	// We want to pass the ' and escape chars to the spellchecker
+	static docstring const quote = from_utf8(lyxrc.spellchecker_esc_chars + '\'');
+	return (!isLetterChar(c) && !isDigitASCII(c) && !contains(quote, c))
+		|| pos == size();
+}
+
+
+bool Paragraph::isSameSpellRange(pos_type pos1, pos_type pos2) const
+{
+	return pos1 == pos2
+		|| d->speller_state_.getRange(pos1) == d->speller_state_.getRange(pos2);
 }
 
 
@@ -2383,7 +2864,7 @@ bool Paragraph::isChar(pos_type pos) const
 	if (Inset const * inset = getInset(pos))
 		return inset->isChar();
 	char_type const c = d->text_[pos];
-	return !isLetterChar(c) && !isDigit(c) && !lyx::isSpace(c);
+	return !isLetterChar(c) && !isDigitASCII(c) && !lyx::isSpace(c);
 }
 
 
@@ -2410,8 +2891,7 @@ bool Paragraph::isRTL(BufferParams const & bparams) const
 {
 	return lyxrc.rtl_support
 		&& getParLanguage(bparams)->rightToLeft()
-		&& ownerCode() != ERT_CODE
-		&& ownerCode() != LISTINGS_CODE;
+		&& !inInset().getLayout().forceLTR();
 }
 
 
@@ -2426,12 +2906,13 @@ void Paragraph::changeLanguage(BufferParams const & bparams,
 			setFont(i, font);
 		}
 	}
+	d->requestSpellCheck(size());
 }
 
 
 bool Paragraph::isMultiLingual(BufferParams const & bparams) const
 {
-	Language const * doc_language =	bparams.language;
+	Language const * doc_language = bparams.language;
 	FontList::const_iterator cit = d->fontlist_.begin();
 	FontList::const_iterator end = d->fontlist_.end();
 
@@ -2441,6 +2922,20 @@ bool Paragraph::isMultiLingual(BufferParams const & bparams) const
 		    cit->font().language() != doc_language)
 			return true;
 	return false;
+}
+
+
+void Paragraph::getLanguages(std::set<Language const *> & languages) const
+{
+	FontList::const_iterator cit = d->fontlist_.begin();
+	FontList::const_iterator end = d->fontlist_.end();
+
+	for (; cit != end; ++cit) {
+		Language const * lang = cit->font().language();
+		if (lang != ignore_language &&
+		    lang != latex_language)
+			languages.insert(lang);
+	}
 }
 
 
@@ -2454,7 +2949,52 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 {
 	odocstringstream os;
 
-	if (beg == 0 
+	if (beg == 0
+	    && options & AS_STR_LABEL
+	    && !d->params_.labelString().empty())
+		os << d->params_.labelString() << ' ';
+
+	for (pos_type i = beg; i < end; ++i) {
+		if ((options & AS_STR_SKIPDELETE) && isDeleted(i))
+			continue;
+		char_type const c = d->text_[i];
+		if (isPrintable(c) || c == '\t'
+		    || (c == '\n' && (options & AS_STR_NEWLINES)))
+			os.put(c);
+		else if (c == META_INSET && (options & AS_STR_INSETS)) {
+			getInset(i)->toString(os);
+			if (getInset(i)->asInsetMath())
+				os << " ";
+		}
+	}
+
+	return os.str();
+}
+
+
+void Paragraph::forToc(docstring & os, size_t maxlen) const
+{
+	if (!d->params_.labelString().empty())
+		os += d->params_.labelString() + ' ';
+	for (pos_type i = 0; i < size() && os.length() < maxlen; ++i) {
+		if (isDeleted(i))
+			continue;
+		char_type const c = d->text_[i];
+		if (isPrintable(c))
+			os += c;
+		else if (c == '\t' || c == '\n')
+			os += ' ';
+		else if (c == META_INSET)
+			getInset(i)->forToc(os, maxlen);
+	}
+}
+
+
+docstring Paragraph::stringify(pos_type beg, pos_type end, int options, OutputParams & runparams) const
+{
+	odocstringstream os;
+
+	if (beg == 0
 		&& options & AS_STR_LABEL
 		&& !d->params_.labelString().empty())
 		os << d->params_.labelString() << ' ';
@@ -2462,10 +3002,11 @@ docstring Paragraph::asString(pos_type beg, pos_type end, int options) const
 	for (pos_type i = beg; i < end; ++i) {
 		char_type const c = d->text_[i];
 		if (isPrintable(c) || c == '\t'
-		    || (c == '\n' && options & AS_STR_NEWLINES))
+		    || (c == '\n' && (options & AS_STR_NEWLINES)))
 			os.put(c);
-		else if (c == META_INSET && options & AS_STR_INSETS)
-			getInset(i)->tocString(os);
+		else if (c == META_INSET && (options & AS_STR_INSETS)) {
+			getInset(i)->plaintext(os, runparams);
+		}
 	}
 
 	return os.str();
@@ -2484,6 +3025,12 @@ int Paragraph::id() const
 }
 
 
+void Paragraph::setId(int id)
+{
+	d->id_ = id;
+}
+
+
 Layout const & Paragraph::layout() const
 {
 	return *d->layout_;
@@ -2497,14 +3044,14 @@ void Paragraph::setLayout(Layout const & layout)
 
 
 void Paragraph::setDefaultLayout(DocumentClass const & tc)
-{ 
-	setLayout(tc.defaultLayout()); 
+{
+	setLayout(tc.defaultLayout());
 }
 
 
 void Paragraph::setPlainLayout(DocumentClass const & tc)
-{ 
-	setLayout(tc.plainLayout()); 
+{
+	setLayout(tc.plainLayout());
 }
 
 
@@ -2522,12 +3069,6 @@ Inset const & Paragraph::inInset() const
 	LASSERT(d->inset_owner_, throw ExceptionMessage(BufferException,
 		_("Memory problem"), _("Paragraph not properly initialized")));
 	return *d->inset_owner_;
-}
-
-
-InsetCode Paragraph::ownerCode() const
-{
-	return d->inset_owner_ ? d->inset_owner_->lyxCode() : NO_CODE;
 }
 
 
@@ -2603,7 +3144,7 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 {
 	// FIXME From JS:
 	// This is getting more and more a mess. ...We really should clean
-	// up this bibitem issue for 1.6. See also bug 2743.
+	// up this bibitem issue for 1.6.
 
 	// Add bibitem insets if necessary
 	if (d->layout_->labeltype != LABEL_BIBLIO)
@@ -2629,8 +3170,8 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 	InsetList::iterator end = d->insetlist_.end();
 	for (; it != end; ++it)
 		if (it->inset->lyxCode() == BIBITEM_CODE
-		    && it->pos > 0) {
-			InsetBibitem * olditem = static_cast<InsetBibitem *>(it->inset);
+		      && it->pos > 0) {
+			InsetCommand * olditem = it->inset->asInsetCommand();
 			oldkey = olditem->getParam("key");
 			oldlabel = olditem->getParam("label");
 			erasedInsetPosition = it->pos;
@@ -2646,8 +3187,7 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 	// There was an InsetBibitem at the beginning and we did have to
 	// erase one. So we give its properties to the beginning inset.
 	if (hasbibitem) {
-		InsetBibitem * inset =
-			static_cast<InsetBibitem *>(d->insetlist_.begin()->inset);
+		InsetCommand * inset = d->insetlist_.begin()->inset->asInsetCommand();
 		if (!oldkey.empty())
 			inset->setParam("key", oldkey);
 		inset->setParam("label", oldlabel);
@@ -2656,13 +3196,13 @@ int Paragraph::checkBiblio(Buffer const & buffer)
 
 	// There was no inset at the beginning, so we need to create one with
 	// the key and label of the one we erased.
-	InsetBibitem * inset = 
-		new InsetBibitem(buffer, InsetCommandParams(BIBITEM_CODE));
+	InsetBibitem * inset =
+		new InsetBibitem(const_cast<Buffer *>(&buffer), InsetCommandParams(BIBITEM_CODE));
 	// restore values of previously deleted item in this par.
 	if (!oldkey.empty())
 		inset->setParam("key", oldkey);
 	inset->setParam("label", oldlabel);
-	insertInset(0, static_cast<Inset *>(inset),
+	insertInset(0, inset,
 		    Change(track_changes ? Change::INSERTED : Change::UNCHANGED));
 
 	return 1;
@@ -2675,21 +3215,21 @@ void Paragraph::checkAuthors(AuthorList const & authorList)
 }
 
 
-bool Paragraph::isUnchanged(pos_type pos) const
+bool Paragraph::isChanged(pos_type pos) const
 {
-	return lookupChange(pos).type == Change::UNCHANGED;
+	return lookupChange(pos).changed();
 }
 
 
 bool Paragraph::isInserted(pos_type pos) const
 {
-	return lookupChange(pos).type == Change::INSERTED;
+	return lookupChange(pos).inserted();
 }
 
 
 bool Paragraph::isDeleted(pos_type pos) const
 {
-	return lookupChange(pos).type == Change::DELETED;
+	return lookupChange(pos).deleted();
 }
 
 
@@ -2762,67 +3302,74 @@ void Paragraph::changeCase(BufferParams const & bparams, pos_type pos,
 			}
 		}
 
-		if (!isLetter(pos) || isDeleted(pos)) {
+		if (isWordSeparator(pos) || isDeleted(pos)) {
 			// permit capitalization again
 			capitalize = true;
 		}
 
-		if (oldChar != newChar)
+		if (oldChar != newChar) {
 			changes += newChar;
-
-		if (oldChar == newChar || pos == right - 1) {
-			if (oldChar != newChar) {
-				// step behind the changing area
-				pos++;
-			}
-			int erasePos = pos - changes.size();
-			for (size_t i = 0; i < changes.size(); i++) {
-				insertChar(pos, changes[i],
-					getFontSettings(bparams,
-					erasePos),
-					trackChanges);
-				if (!eraseChar(erasePos, trackChanges)) {
-					++erasePos;
-					++pos; // advance
-					++right; // expand selection
-				}
-			}
-			changes.clear();
+			if (pos != right - 1)
+				continue;
+			// step behind the changing area
+			pos++;
 		}
+
+		int erasePos = pos - changes.size();
+		for (size_t i = 0; i < changes.size(); i++) {
+			insertChar(pos, changes[i],
+				   getFontSettings(bparams,
+						   erasePos),
+				   trackChanges);
+			if (!eraseChar(erasePos, trackChanges)) {
+				++erasePos;
+				++pos; // advance
+				++right; // expand selection
+			}
+		}
+		changes.clear();
 	}
 }
 
 
-bool Paragraph::find(docstring const & str, bool cs, bool mw,
-		pos_type pos, bool del) const
+int Paragraph::find(docstring const & str, bool cs, bool mw,
+		pos_type start_pos, bool del) const
 {
+	pos_type pos = start_pos;
 	int const strsize = str.length();
 	int i = 0;
 	pos_type const parsize = d->text_.size();
-	for (i = 0; pos + i < parsize; ++i) {
-		if (i >= strsize)
+	for (i = 0; i < strsize && pos < parsize; ++i, ++pos) {
+		// Ignore ligature break and hyphenation chars while searching
+		while (pos < parsize - 1 && isInset(pos)) {
+			const InsetSpecialChar *isc = dynamic_cast<const InsetSpecialChar*>(getInset(pos));
+			if (isc == 0
+			    || (isc->kind() != InsetSpecialChar::HYPHENATION
+				&& isc->kind() != InsetSpecialChar::LIGATURE_BREAK))
+				break;
+			pos++;
+		}
+		if (cs && str[i] != d->text_[pos])
 			break;
-		if (cs && str[i] != d->text_[pos + i])
+		if (!cs && uppercase(str[i]) != uppercase(d->text_[pos]))
 			break;
-		if (!cs && uppercase(str[i]) != uppercase(d->text_[pos + i]))
-			break;
-		if (!del && isDeleted(pos + i))
+		if (!del && isDeleted(pos))
 			break;
 	}
 
 	if (i != strsize)
-		return false;
+		return 0;
 
 	// if necessary, check whether string matches word
 	if (mw) {
-		if (pos > 0 && isLetter(pos - 1))
-			return false;
-		if (pos + strsize < parsize
-			&& isLetter(pos + strsize))
-			return false;
+		if (start_pos > 0 && !isWordSeparator(start_pos - 1))
+			return 0;
+		if (pos < parsize
+			&& !isWordSeparator(pos))
+			return 0;
 	}
 
-	return true;
+	return pos - start_pos;
 }
 
 
@@ -2859,64 +3406,372 @@ bool Paragraph::isSeparator(pos_type pos) const
 
 void Paragraph::deregisterWords()
 {
-	Private::Words::const_iterator it;
-	WordList & wl = theWordList();
-	for (it = d->words_.begin(); it != d->words_.end(); ++it)
-		wl.remove(*it);
+	Private::LangWordsMap::const_iterator itl = d->words_.begin();
+	Private::LangWordsMap::const_iterator ite = d->words_.end();
+	for (; itl != ite; ++itl) {
+		WordList * wl = theWordList(itl->first);
+		Private::Words::const_iterator it = (itl->second).begin();
+		Private::Words::const_iterator et = (itl->second).end();
+		for (; it != et; ++it)
+			wl->remove(*it);
+	}
 	d->words_.clear();
 }
 
 
-void Paragraph::collectWords(CursorSlice const & sl)
+void Paragraph::locateWord(pos_type & from, pos_type & to,
+	word_location const loc) const
 {
-	// find new words
-	bool inword = false;
-
-	//lyxerr << "Words: ";
-	pos_type n = size();
-	for (pos_type pos = 0; pos != n; ++pos) {
-		if (isDeleted(pos))
-			continue;
-
-		if (!isLetter(pos)) {
-			inword = false;
-			continue;
+	switch (loc) {
+	case WHOLE_WORD_STRICT:
+		if (from == 0 || from == size()
+		    || isWordSeparator(from)
+		    || isWordSeparator(from - 1)) {
+			to = from;
+			return;
 		}
+		// no break here, we go to the next
 
-		if (inword)
-			continue;
+	case WHOLE_WORD:
+		// If we are already at the beginning of a word, do nothing
+		if (!from || isWordSeparator(from - 1))
+			break;
+		// no break here, we go to the next
 
-		inword = true;
-		CursorSlice from = sl;
-		CursorSlice to = sl;
-		from.pos() = pos;
-		to.pos() = pos;
-		from.text()->getWord(from, to, WHOLE_WORD);
-		if (to.pos() - from.pos() < 6)
-			continue;
-		docstring word = asString(from.pos(), to.pos(), false);
-		d->words_.insert(word);
-		//lyxerr << word << " ";
+	case PREVIOUS_WORD:
+		// always move the cursor to the beginning of previous word
+		while (from && !isWordSeparator(from - 1))
+			--from;
+		break;
+	case NEXT_WORD:
+		LYXERR0("Paragraph::locateWord: NEXT_WORD not implemented yet");
+		break;
+	case PARTIAL_WORD:
+		// no need to move the 'from' cursor
+		break;
 	}
-	//lyxerr << std::endl;
+	to = from;
+	while (to < size() && !isWordSeparator(to))
+		++to;
+}
+
+
+void Paragraph::collectWords()
+{
+	// This is the value that needs to be exposed in the preferences
+	// to resolve bug #6760.
+	static int minlength = 6;
+	pos_type n = size();
+	for (pos_type pos = 0; pos < n; ++pos) {
+		if (isWordSeparator(pos))
+			continue;
+		pos_type from = pos;
+		locateWord(from, pos, WHOLE_WORD);
+		if (pos - from >= minlength) {
+			docstring word = asString(from, pos, AS_STR_NONE);
+			FontList::const_iterator cit = d->fontlist_.fontIterator(pos);
+			if (cit == d->fontlist_.end())
+				return;
+			Language const * lang = cit->font().language();
+			d->words_[*lang].insert(word);
+		}
+	}
 }
 
 
 void Paragraph::registerWords()
 {
-	Private::Words::const_iterator it;
-	WordList & wl = theWordList();
-	for (it = d->words_.begin(); it != d->words_.end(); ++it)
-		wl.insert(*it);
+	Private::LangWordsMap::const_iterator itl = d->words_.begin();
+	Private::LangWordsMap::const_iterator ite = d->words_.end();
+	for (; itl != ite; ++itl) {
+		WordList * wl = theWordList(itl->first);
+		Private::Words::const_iterator it = (itl->second).begin();
+		Private::Words::const_iterator et = (itl->second).end();
+		for (; it != et; ++it)
+			wl->insert(*it);
+	}
 }
 
 
-void Paragraph::updateWords(CursorSlice const & sl)
+void Paragraph::updateWords()
 {
-	LASSERT(&sl.paragraph() == this, /**/);
 	deregisterWords();
-	collectWords(sl);
+	collectWords();
 	registerWords();
 }
+
+
+void Paragraph::Private::appendSkipPosition(SkipPositions & skips, pos_type const pos) const
+{
+	SkipPositionsIterator begin = skips.begin();
+	SkipPositions::iterator end = skips.end();
+	if (pos > 0 && begin < end) {
+		--end;
+		if (end->last == pos - 1) {
+			end->last = pos;
+			return;
+		}
+	}
+	skips.insert(end, FontSpan(pos, pos));
+}
+
+
+Language * Paragraph::Private::locateSpellRange(
+	pos_type & from, pos_type & to,
+	SkipPositions & skips) const
+{
+	// skip leading white space
+	while (from < to && owner_->isWordSeparator(from))
+		++from;
+	// don't check empty range
+	if (from >= to)
+		return 0;
+	// get current language
+	Language * lang = getSpellLanguage(from);
+	pos_type last = from;
+	bool samelang = true;
+	bool sameinset = true;
+	while (last < to && samelang && sameinset) {
+		// hop to end of word
+		while (last < to && !owner_->isWordSeparator(last)) {
+			if (owner_->getInset(last)) {
+				appendSkipPosition(skips, last);
+			} else if (owner_->isDeleted(last)) {
+				appendSkipPosition(skips, last);
+			}
+			++last;
+		}
+		// hop to next word while checking for insets
+		while (sameinset && last < to && owner_->isWordSeparator(last)) {
+			if (Inset const * inset = owner_->getInset(last))
+				sameinset = inset->isChar() && inset->isLetter();
+			if (sameinset && owner_->isDeleted(last)) {
+				appendSkipPosition(skips, last);
+			}
+			if (sameinset)
+				last++;
+		}
+		if (sameinset && last < to) {
+			// now check for language change
+			samelang = lang == getSpellLanguage(last);
+		}
+	}
+	// if language change detected backstep is needed
+	if (!samelang)
+		--last;
+	to = last;
+	return lang;
+}
+
+
+Language * Paragraph::Private::getSpellLanguage(pos_type const from) const
+{
+	Language * lang =
+		const_cast<Language *>(owner_->getFontSettings(
+			inset_owner_->buffer().params(), from).language());
+	if (lang == inset_owner_->buffer().params().language
+		&& !lyxrc.spellchecker_alt_lang.empty()) {
+		string lang_code;
+		string const lang_variety =
+			split(lyxrc.spellchecker_alt_lang, lang_code, '-');
+		lang->setCode(lang_code);
+		lang->setVariety(lang_variety);
+	}
+	return lang;
+}
+
+
+void Paragraph::requestSpellCheck(pos_type pos)
+{
+	d->requestSpellCheck(pos == -1 ? size() : pos);
+}
+
+
+bool Paragraph::needsSpellCheck() const
+{
+	SpellChecker::ChangeNumber speller_change_number = 0;
+	if (theSpellChecker())
+		speller_change_number = theSpellChecker()->changeNumber();
+	if (speller_change_number > d->speller_state_.currentChangeNumber()) {
+		d->speller_state_.needsCompleteRefresh(speller_change_number);
+	}
+	return d->needsSpellCheck();
+}
+
+
+bool Paragraph::Private::ignoreWord(docstring const & word) const
+{
+	// Ignore words with digits
+	// FIXME: make this customizable
+	// (note that some checkers ignore words with digits by default)
+	docstring::const_iterator cit = word.begin();
+	docstring::const_iterator const end = word.end();
+	for (; cit != end; ++cit) {
+		if (isNumber((*cit)))
+			return true;
+	}
+	return false;
+}
+
+
+SpellChecker::Result Paragraph::spellCheck(pos_type & from, pos_type & to,
+	WordLangTuple & wl, docstring_list & suggestions,
+	bool do_suggestion, bool check_learned) const
+{
+	SpellChecker::Result result = SpellChecker::WORD_OK;
+	SpellChecker * speller = theSpellChecker();
+	if (!speller)
+		return result;
+
+	if (!d->layout_->spellcheck || !inInset().allowSpellCheck())
+		return result;
+
+	locateWord(from, to, WHOLE_WORD);
+	if (from == to || from >= size())
+		return result;
+
+	docstring word = asString(from, to, AS_STR_INSETS | AS_STR_SKIPDELETE);
+	Language * lang = d->getSpellLanguage(from);
+
+	wl = WordLangTuple(word, lang);
+
+	if (!word.size())
+		return result;
+
+	if (needsSpellCheck() || check_learned) {
+		if (!d->ignoreWord(word)) {
+			bool const trailing_dot = to < size() && d->text_[to] == '.';
+			result = speller->check(wl);
+			if (SpellChecker::misspelled(result) && trailing_dot) {
+				wl = WordLangTuple(word.append(from_ascii(".")), lang);
+				result = speller->check(wl);
+				if (!SpellChecker::misspelled(result)) {
+					LYXERR(Debug::GUI, "misspelled word is correct with dot: \"" <<
+					   word << "\" [" <<
+					   from << ".." << to << "]");
+				} else {
+					// spell check with dot appended failed
+					// restore original word/lang value
+					word = asString(from, to, AS_STR_INSETS | AS_STR_SKIPDELETE);
+					wl = WordLangTuple(word, lang);
+				}
+			}
+		}
+		d->setMisspelled(from, to, result);
+	} else {
+		result = d->speller_state_.getState(from);
+	}
+
+	bool const misspelled_ = SpellChecker::misspelled(result) ;
+	if (misspelled_ && do_suggestion)
+		speller->suggest(wl, suggestions);
+	else if (misspelled_)
+		LYXERR(Debug::GUI, "misspelled word: \"" <<
+			   word << "\" [" <<
+			   from << ".." << to << "]");
+	else
+		suggestions.clear();
+
+	return result;
+}
+
+
+void Paragraph::Private::markMisspelledWords(
+	pos_type const & first, pos_type const & last,
+	SpellChecker::Result result,
+	docstring const & word,
+	SkipPositions const & skips)
+{
+	if (!SpellChecker::misspelled(result)) {
+		setMisspelled(first, last, SpellChecker::WORD_OK);
+		return;
+	}
+	int snext = first;
+	SpellChecker * speller = theSpellChecker();
+	// locate and enumerate the error positions
+	int nerrors = speller->numMisspelledWords();
+	int numskipped = 0;
+	SkipPositionsIterator it = skips.begin();
+	SkipPositionsIterator et = skips.end();
+	for (int index = 0; index < nerrors; ++index) {
+		int wstart;
+		int wlen = 0;
+		speller->misspelledWord(index, wstart, wlen);
+		/// should not happen if speller supports range checks
+		if (!wlen) continue;
+		docstring const misspelled = word.substr(wstart, wlen);
+		wstart += first + numskipped;
+		if (snext < wstart) {
+			/// mark the range of correct spelling
+			numskipped += countSkips(it, et, wstart);
+			setMisspelled(snext,
+				wstart - 1, SpellChecker::WORD_OK);
+		}
+		snext = wstart + wlen;
+		numskipped += countSkips(it, et, snext);
+		/// mark the range of misspelling
+		setMisspelled(wstart, snext, result);
+		LYXERR(Debug::GUI, "misspelled word: \"" <<
+			   misspelled << "\" [" <<
+			   wstart << ".." << (snext-1) << "]");
+		++snext;
+	}
+	if (snext <= last) {
+		/// mark the range of correct spelling at end
+		setMisspelled(snext, last, SpellChecker::WORD_OK);
+	}
+}
+
+
+void Paragraph::spellCheck() const
+{
+	SpellChecker * speller = theSpellChecker();
+	if (!speller || !size() ||!needsSpellCheck())
+		return;
+	pos_type start;
+	pos_type endpos;
+	d->rangeOfSpellCheck(start, endpos);
+	if (speller->canCheckParagraph()) {
+		// loop until we leave the range
+		for (pos_type first = start; first < endpos; ) {
+			pos_type last = endpos;
+			Private::SkipPositions skips;
+			Language * lang = d->locateSpellRange(first, last, skips);
+			if (first >= endpos)
+				break;
+			// start the spell checker on the unit of meaning
+			docstring word = asString(first, last, AS_STR_INSETS + AS_STR_SKIPDELETE);
+			WordLangTuple wl = WordLangTuple(word, lang);
+			SpellChecker::Result result = word.size() ?
+				speller->check(wl) : SpellChecker::WORD_OK;
+			d->markMisspelledWords(first, last, result, word, skips);
+			first = ++last;
+		}
+	} else {
+		static docstring_list suggestions;
+		pos_type to = endpos;
+		while (start < endpos) {
+			WordLangTuple wl;
+			spellCheck(start, to, wl, suggestions, false);
+			start = to + 1;
+		}
+	}
+	d->readySpellCheck();
+}
+
+
+bool Paragraph::isMisspelled(pos_type pos) const
+{
+	return SpellChecker::misspelled(d->speller_state_.getState(pos));
+}
+
+
+string Paragraph::magicLabel() const
+{
+	stringstream ss;
+	ss << "magicparlabel-" << id();
+	return ss.str();
+}
+
 
 } // namespace lyx

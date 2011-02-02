@@ -1,5 +1,5 @@
-#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 410
 \begin_document
 \begin_header
 \textclass scrartcl
@@ -41,11 +41,13 @@
 \AtBeginDocument{\renewcommand{\ref}[1]{\mbox{\autoref{#1}}}}
 \newlength{\abc}
 \settowidth{\abc}{\space}
+\AtBeginDocument{%
 \addto\extrasngerman{
  \renewcommand{\equationautorefname}{\hspace{-\abc}}
  \renewcommand{\sectionautorefname}{Kap.\negthinspace}
  \renewcommand{\subsectionautorefname}{Kap.\negthinspace}
  \renewcommand{\subsubsectionautorefname}{Kap.\negthinspace}}
+}
 
 % Makros damit Pakete nicht doppelt geladen werden.
 % siehe erste Fußnote in Kap. 9.3
@@ -69,14 +71,13 @@
 % provides caption formatting
 \setkomafont{captionlabel}{\bfseries}
 
-% benutzt in Kap. 22.6
+% benutzt in Kap. 23.6
 \usepackage[samesize]{cancel}
 
-% enables calculation of values,
+% enables calculation of values
 \usepackage{calc}
 
-% für Mehrfachzeilen und -spalten
-\usepackage{multirow}
+% für Mehrfachzeilen, benutzt in Kap. 23.7
 \usepackage{multicol}
 
 % benutzt in Kap. 19.4
@@ -84,9 +85,6 @@
 
 % für das Fourier-Transformationssymbol
 \usepackage{mathrsfs}
-
-%Mehrfachzeilen zentriert ausrichten (z.B. in Kap. 13.3)
-\renewcommand{\multirowsetup}{\centering}
 
 % Farbdefinition aus Kap. 9.3
 \definecolor{dunkelgruen}{cmyk}{0.5, 0, 1, 0.5}
@@ -111,10 +109,6 @@
 \def\clap#1{\hbox to 0pt{\hss #1\hss}}
 \def\mathclap {\mathpalette \mathclapinternal}
 \def\mathclapinternal #1#2{\clap{$\mathsurround =0pt #1{#2}$}}
-
-% Grauschrift Notiz umdefinieren
-\renewenvironment{lyxgreyedout}
- {\textcolor{blue}\bgroup}{\egroup}
 
 % Damit der Index einen anderen Namen erhält.
 \addto\captionsngerman
@@ -159,20 +153,27 @@
 \IfFileExists{icomma.sty}
  {\usepackage{icomma}}{}
 \end_preamble
-\options bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\options bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
+\maintain_unincluded_children false
 \language ngerman
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -189,14 +190,24 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 2
 \use_esint 1
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\notefontcolor #0000ff
+\index Stichwortverzeichnis
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 4
 \tocdepth 3
 \paragraph_separation skip
@@ -210,8 +221,8 @@
 \bullet 3 2 7 -1
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -263,7 +274,7 @@ Verfasser: Uwe Stöhr
 
 
 \family sans
-Version 1.6.x
+Version 2.0.x
 \end_layout
 
 \begin_layout Standard
@@ -287,7 +298,7 @@ braket, cancel, eurosym,
 \series default
  
 \series bold
-mhchem, multirow
+mhchem
 \series default
  und 
 \series bold
@@ -475,7 +486,7 @@ Allgemeine Hinweise
 
 \begin_layout Standard
 Um eine in einer Textzeile eingebettete Formel
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -500,7 +511,7 @@ Strg+M
 \end_inset
 
 Um eine abgesetzte Formel
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -546,7 +557,7 @@ Um Teile einer eingebetteten Formel in der Größe einer abgesetzten darzustelle
 displaystyle
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -630,7 +641,7 @@ Mathe
 
 \begin_layout Standard
 In den TeX-Modus
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -699,7 +710,7 @@ Um zu verhindern, dass diese Wörter als Eigennamen erkannt werden, fügt
 
 \begin_layout Standard
 In den LaTeX-Vorspann
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -792,7 +803,7 @@ reference "sub:Text-in-mehrzeiligen"
 mathematischen Textmodus
 \emph default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -802,7 +813,7 @@ Text ! in Formeln
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -824,7 +835,7 @@ M
 
 \backslash
 text
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -888,7 +899,7 @@ Ein Befehl muss immer mit einem Backslash
  Möchte man ein optionales Argument nicht angeben, müssen auch die zugehörigen
  eckigen Klammern weggelassen werden.
  Die geschweiften Klammern werden in diesem Dokument als TeX-Klammern
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -954,7 +965,7 @@ Dieses sichtbare Leerzeichen erhält man über den Befehl
 textvisiblespace
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1038,7 +1049,7 @@ Verfügbare Einheiten
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="13" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -1406,7 +1417,7 @@ Grundlegende Funktionen
 
 \begin_layout Subsection
 Exponenten
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1416,7 +1427,7 @@ Exponenten
 \end_inset
 
  und Indizes
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1426,7 +1437,7 @@ Indizes
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1458,7 +1469,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1516,7 +1527,7 @@ Indizes werden mit dem Unterstrich _ oder mit dem Mathe-Werkzeugleistenknopf
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -1670,7 +1681,7 @@ name "sub:Brüche"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1690,7 +1701,7 @@ Brüche werden mit dem Befehl
 frac
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1727,7 +1738,9 @@ Mit dem Befehl
 
 \backslash
 dfrac
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1738,8 +1751,6 @@ dfrac
 
 \end_inset
 
-
-\series default
  kann man einen Bruch erzeugen, der immer in der Größe einer abgesetzten
  Formel erscheint.
  Mit 
@@ -1747,7 +1758,9 @@ dfrac
 
 \backslash
 tfrac
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1758,8 +1771,6 @@ tfrac
 
 \end_inset
 
-
-\series default
  erscheint der Bruch immer in der Größe einer eingebetteten Formel.
  Ein Beispiel:
 \end_layout
@@ -1796,7 +1807,7 @@ dfrac
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -2015,7 +2026,7 @@ Für Mehrfachbrüche gibt es den Befehl
 cfrac
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2037,7 +2048,8 @@ cfrac
 \begin_layout Standard
 \begin_inset Formula \begin{align*}
 \textrm{mit \textbf{\textbackslash frac} erstellt} &  & \textrm{mit \textbf{\textbackslash cfrac} erstellt}\\
-\frac{A}{B+\frac{C+\frac{E}{F}}{D}} &  & \cfrac{A}{B+\cfrac{C+\cfrac{E}{F}}{D}}\end{align*}
+\frac{A}{B+\frac{C+\frac{E}{F}}{D}} &  & \cfrac{A}{B+\cfrac{C+\cfrac{E}{F}}{D}}
+\end{align*}
 
 \end_inset
 
@@ -2225,7 +2237,8 @@ frac
 \series default
  zu kombinieren:
 \begin_inset Formula \[
-\cfrac{A}{B+\cfrac{C+\frac{E}{F}}{D}}\]
+\cfrac{A}{B+\cfrac{C+\frac{E}{F}}{D}}
+\]
 
 \end_inset
 
@@ -2240,7 +2253,7 @@ Um Brüche mit schrägem Bruchstrich zu erzeugen, kann der Befehl
 nicefrac
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2262,7 +2275,7 @@ nicefrac
 unitfrac
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2339,7 +2352,7 @@ reference "sub:Selbstdefinierte-Brüche"
 
 \begin_layout Subsection
 Wurzeln
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2359,7 +2372,7 @@ Quadratwurzeln werden mit
 sqrt
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2384,7 +2397,7 @@ sqrt
 root
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2409,7 +2422,7 @@ root
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -2567,7 +2580,7 @@ Das
 leftroot
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2585,7 +2598,7 @@ leftroot
 uproot
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2676,7 +2689,7 @@ eine korrekt gesetzte Formel:
 
 \begin_layout Subsection
 Binomialkoeffizienten
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2696,7 +2709,7 @@ Binomialkoeffizienten können mit dem Befehl
 binom
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2732,7 +2745,9 @@ binom
 
 \backslash
 dbinom
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2743,8 +2758,6 @@ dbinom
 
 \end_inset
 
-
-\series default
  und 
 \series bold
 
@@ -2752,7 +2765,7 @@ dbinom
 tbinom
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2771,7 +2784,7 @@ tbinom
 brace
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2789,7 +2802,7 @@ brace
 brack
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2807,7 +2820,7 @@ brack
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -3065,7 +3078,7 @@ B
 
 \begin_layout Subsection
 Fallunterscheidungen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3081,7 +3094,7 @@ Fallunterscheidungen
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -3129,7 +3142,7 @@ A
 \end_inset
 
 B>0
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3190,7 +3203,8 @@ Strg+Enter
 \begin_layout Plain Layout
 \begin_inset Formula $\begin{cases}
 A & \textrm{für }x>0\\
-B & \textrm{für }x=0\end{cases}$
+B & \textrm{für }x=0
+\end{cases}$
 \end_inset
 
 
@@ -3269,7 +3283,7 @@ Cases-Umgebung
 
 \begin_layout Subsection
 Verneinungen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3289,7 +3303,7 @@ Durch die Eingabe von
 not
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3308,7 +3322,7 @@ not
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -3445,7 +3459,7 @@ name "sub:Platzhalter"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3455,7 +3469,7 @@ Platzhalter
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3465,7 +3479,7 @@ chemische Zeichen ! Isotope
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3529,7 +3543,7 @@ reference "sub:Chemische-Symbole-und"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -3615,7 +3629,7 @@ Der kürzere Index wird standardmäßig unter oder über das erste Zeichen des
 phantom
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3673,7 +3687,7 @@ phantom
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -3933,7 +3947,7 @@ Des Weiteren gibt es noch die Befehle
 vphantom
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3962,7 +3976,7 @@ vphantom
 hphantom
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4063,9 +4077,38 @@ reference "sub:Mehrzeilige-Klammern"
  zu finden.
 \end_layout
 
+\begin_layout Standard
+Platzhalter können auch für Text verwendet werden, wenn sie über das Menü
+ 
+\family sans
+Einfügen\SpecialChar \menuseparator
+Formatierung\SpecialChar \menuseparator
+Phantom
+\family default
+ eingefügt werden:
+\end_layout
+
+\begin_layout Standard
+Dies ist ein Satz.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Phantom Phantom
+status open
+
+\begin_layout Plain Layout
+Dies
+\end_layout
+
+\end_inset
+
+ ist ein Satz.
+\end_layout
+
 \begin_layout Subsection
 Linien
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4075,7 +4118,7 @@ Linien
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4091,7 +4134,7 @@ Formel ! unterstrichene
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -4151,7 +4194,7 @@ leer
 \end_inset
 
 A+B
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4201,7 +4244,7 @@ leer
 \end_inset
 
 A+B
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4335,7 +4378,7 @@ Benutzerdefinierte Linien können mit dem Befehl
 rule
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4402,7 +4445,30 @@ Dies ist ein Satz
 \backslash
 rule
 \series default
- kann auch für Text verwendet werden, wenn er als TeX-Code eingegeben wird.
+ kann auch für Text verwendet werden, wenn eine Linie über das Menü 
+\family sans
+Einfügen\SpecialChar \menuseparator
+Formatierung\SpecialChar \menuseparator
+Horizontale
+\begin_inset space ~
+\end_inset
+
+Line
+\family default
+ eingefügt wird:
+\end_layout
+
+\begin_layout Standard
+Dies ist ein Satz 
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "3cm"
+height "1pt"
+
+\end_inset
+
+ mit einer Linie.
 \end_layout
 
 \begin_layout Subsection
@@ -4414,7 +4480,7 @@ name "sub:Fortsetzungspunkte"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4451,7 +4517,7 @@ In der Mathe-Werkzeugleiste zu finden im Untermenü des Knopfs
 ldots
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4470,7 +4536,7 @@ ldots
 cdots
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4489,7 +4555,7 @@ cdots
 dots
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4507,8 +4573,8 @@ dots
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="8" columns="2">
-<features>
+<lyxtabular version="3" rows="9" columns="2">
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -4761,7 +4827,7 @@ vdots
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -4772,11 +4838,36 @@ ddots
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 \begin_inset Formula $\ddots$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+iddots
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\iddots$
 \end_inset
 
 
@@ -4810,7 +4901,8 @@ Matrix mit obigen Befehlen
 \begin_inset Formula $\begin{array}{ccc}
 A_{11} & \cdots & A_{1m}\\
 \vdots & \ddots & \vdots\\
-A_{n1} & \cdots & A_{nm}\end{array}$
+A_{n1} & \cdots & A_{nm}
+\end{array}$
 \end_inset
 
 
@@ -4842,6 +4934,40 @@ ldots
 \end_layout
 
 \begin_layout Standard
+
+\lang english
+\begin_inset VSpace medskip
+\end_inset
+
+
+\lang ngerman
+Um 
+\series bold
+
+\backslash
+iddots
+\series default
+ nutzen zu können, muss eine der Optionen 
+\family sans
+Mathdots Paket (automatisch) verwenden 
+\family default
+in den Dokumenteinstellungen unter 
+\family sans
+Mathe-Optionen
+\family default
+ gewählt sein.
+\begin_inset Newline newline
+\end_inset
+
+Die Option 
+\family sans
+Mathdots Paket verwenden
+\family default
+ verbessert das Aussehen aller Fortsetzungspunkte des Dokuments wenn deren
+ Schriftstil oder die Schriftgröße nicht Standard sind.
+\end_layout
+
+\begin_layout Standard
 \begin_inset VSpace medskip
 \end_inset
 
@@ -4854,7 +4980,7 @@ Speziell für Matrizen gibt es Fortsetzungspunkte, die sich über mehrere
 hdotsfor
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4902,7 +5028,9 @@ dots
 \left(\begin{array}{cccc}
 A & B & C & D\\
 \hdotsfor[2]{4}\\
-q & w & e & r\end{array}\right)\]
+q & w & e & r
+\end{array}\right)
+\]
 
 \end_inset
 
@@ -4921,7 +5049,7 @@ Des Weiteren kann man mit dem Befehl
 dotfill
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4990,7 +5118,7 @@ Analog dazu gibt es für eine Linie den Befehl
 hrulefill
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5025,7 +5153,7 @@ name "sec:Matrizen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5056,7 +5184,8 @@ Mathe\SpecialChar \menuseparator
 Matrix
 \family default
  eingefügt werden.
- Sie werden nach der Spalten- und Zeilenanzahl und der Ausrichtung gefragt.
+ Sie werden nach der Spalten- und Zeilenanzahl, der Ausrichtung und der
+ Verzierung gefragt.
  Die vertikale Ausrichtung ist dabei nur bei Matrizen in eingebetteten Formeln
  von Bedeutung:
 \end_layout
@@ -5066,21 +5195,24 @@ Die erste Matrix ist oben
 \begin_inset Formula $\begin{array}[t]{cccc}
 A & D & G & J\\
 B & E & H & K\\
-C & F & I & L\end{array}$
+C & F & I & L
+\end{array}$
 \end_inset
 
 , die zweite mittig 
 \begin_inset Formula $\begin{array}{cccc}
 A & D & G & J\\
 B & E & H & K\\
-C & F & I & L\end{array}$
+C & F & I & L
+\end{array}$
 \end_inset
 
  und die dritte unten 
 \begin_inset Formula $\begin{array}[b]{cccc}
 A & D & G & J\\
 B & E & H & K\\
-C & F & I & L\end{array}$
+C & F & I & L
+\end{array}$
 \end_inset
 
  ausgerichtet.
@@ -5144,7 +5276,8 @@ lll
 \begin_inset Formula $\begin{array}{lll}
 10000 & D & G\\
 B & 10000 & H\\
-C & F & 10000\end{array}$
+C & F & 10000
+\end{array}$
 \end_inset
 
  , 
@@ -5155,7 +5288,8 @@ ccc
 \begin_inset Formula $\begin{array}{ccc}
 10000 & D & G\\
 B & 10000 & H\\
-C & F & 10000\end{array}$
+C & F & 10000
+\end{array}$
 \end_inset
 
  , 
@@ -5166,7 +5300,8 @@ rrr
 \begin_inset Formula $\begin{array}{rrr}
 10000 & D & G\\
 B & 10000 & H\\
-C & F & 10000\end{array}$
+C & F & 10000
+\end{array}$
 \end_inset
 
 
@@ -5209,14 +5344,19 @@ Strg+Enter
 \begin_inset VSpace bigskip
 \end_inset
 
-Klammern um eine Matrix können entweder mit den Befehlen 
+Die 
+\family sans
+Verzierung
+\family default
+ fügt Klammern um die Matrix in der ausgewählten Art hinzu.
+ Alternativ können Klammern entweder mit den Befehlen 
 \series bold
 
 \backslash
 left
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5234,7 +5374,7 @@ left
 right
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5274,7 +5414,7 @@ reference "sub:Automatische-Klammergrößen"
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -5336,7 +5476,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{bmatrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{bmatrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{bmatrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5384,7 +5525,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{Bmatrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{Bmatrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{Bmatrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5432,7 +5574,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{pmatrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{pmatrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{pmatrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5452,7 +5595,7 @@ Matrix
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -5514,7 +5657,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{vmatrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{vmatrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{vmatrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5562,7 +5706,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{Vmatrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{Vmatrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{Vmatrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5610,7 +5755,8 @@ Matrix
 \begin_layout Plain Layout
 \begin_inset Formula $\raisebox{7.5mm}{}\begin{matrix}\begin{array}{cc}
 0 & \textrm{-}\mathrm{i}\\
-\mathrm{i} & 0\end{array}\end{matrix}\raisebox{-5.3mm}{}$
+\mathrm{i} & 0
+\end{array}\end{matrix}\raisebox{-5.3mm}{}$
 \end_inset
 
 
@@ -5647,6 +5793,10 @@ vmatrix
 \series default
  eingegeben, erscheint ein blaues Kästchen zwischen zwei senkrechten Strichen,
  in das die Matrix eingefügt wird.
+\begin_inset Newline newline
+\end_inset
+
+Man beachte, dass verzierte Matrizen die vertikale Ausrichtung ignorieren.
 \end_layout
 
 \begin_layout Standard
@@ -5667,7 +5817,7 @@ reference "sub:Spaltenabstand"
 arraycolsep
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5689,7 +5839,7 @@ Möchte man den Zeilenabstand ändern, verwendet man den Befehl
 arraystretch
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5712,7 +5862,7 @@ arraystretch
 renewcommand{
 \backslash
 arraystretch}{Dehnungsfaktor}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5764,7 +5914,7 @@ Um Matrizen in eine Textzeile zu setzen, benutzt man den Befehl
 smallmatrix
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5803,7 +5953,8 @@ Strg+Enter
 \begin_layout Standard
 Dies ist eine Matrix 
 \begin_inset Formula $\left(\begin{smallmatrix}A & B\\
-C & D\end{smallmatrix}\right)$
+C & D
+\end{smallmatrix}\right)$
 \end_inset
 
  in einer Textzeile.
@@ -5818,7 +5969,7 @@ C & D\end{smallmatrix}\right)$
 
 \begin_layout Section
 Klammern und Begrenzungszeichen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5828,7 +5979,7 @@ Klammern
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5842,7 +5993,7 @@ Begrenzungszeichen
 
 \begin_layout Subsection
 Vertikale Klammern und Begrenzungszeichen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5861,7 +6012,7 @@ Klammern ! vertikale
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -6085,7 +6236,7 @@ lfloor
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -6333,7 +6484,7 @@ Achtung:
 textbackslash
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6387,7 +6538,7 @@ name "sub:Manuelle-Klammergrößen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6408,7 +6559,7 @@ Möchte man die Klammergröße manuell festlegen, kann man dies mittels der
 big
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6461,7 +6612,7 @@ Diese Befehle werden benutzt um Klammerebenen optisch hervorzuheben:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -6654,7 +6805,7 @@ big
 bigm
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6679,7 +6830,7 @@ bigl
 bigr
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6721,7 +6872,7 @@ In der folgenden Tabelle sind die Varianten miteinander verglichen:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="middle" width="0">
 <row>
@@ -6943,7 +7094,7 @@ name "sub:Automatische-Klammergrößen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6963,7 +7114,7 @@ Klammern variabler Größe können mit den Befehlen
 left
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6981,7 +7132,7 @@ left
 right
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7062,7 +7213,8 @@ leer
 \series default
  ergibt
 \begin_inset Formula \[
-\ln(\frac{A}{C})\]
+\ln(\frac{A}{C})
+\]
 
 \end_inset
 
@@ -7115,7 +7267,8 @@ right)
 \series default
  ergibt
 \begin_inset Formula \[
-\ln\left(\frac{A}{C}\right)\]
+\ln\left(\frac{A}{C}\right)
+\]
 
 \end_inset
 
@@ -7235,7 +7388,8 @@ right}
 \series bold
 
 \begin_inset Formula \[
-\left.\frac{A}{B}\right\} \]
+\left.\frac{A}{B}\right\} 
+\]
 
 \end_inset
 
@@ -7271,7 +7425,7 @@ Da alle gängigen LaTeX-Distributionen eTeX, eine Erweiterung von LaTeX,
 middle
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7291,7 +7445,8 @@ middle
 B.
  für physikalische Vektoren von Nutzen ist:
 \begin_inset Formula \[
-\left\langle \phi\:\middle|\: J=\frac{3}{2}\,,\, M_{J}\right\rangle \]
+\left\langle \phi\:\middle|\: J=\frac{3}{2}\,,\, M_{J}\right\rangle 
+\]
 
 \end_inset
 
@@ -7307,7 +7462,7 @@ reference "sub:Physikalische-Vektoren"
 
 \begin_layout Subsection
 Horizontale Klammern
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7323,7 +7478,7 @@ Klammern ! horizontale
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -7432,7 +7587,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7518,7 +7673,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7702,7 +7857,8 @@ reference "sec:Mehrzeilige-Formeln"
  beschriebenen mehrzeiligen Formeln verwenden:
 \begin_inset Formula \begin{eqnarray*}
 A & = & \underbrace{gggg+bbqq}_{r}+\: dddd\\
- &  & \hphantom{gggg+\:}\underbrace{\hphantom{bbqq+dddd}}_{s}\end{eqnarray*}
+ &  & \hphantom{gggg+\:}\underbrace{\hphantom{bbqq+dddd}}_{s}
+\end{eqnarray*}
 
 \end_inset
 
@@ -7837,7 +7993,8 @@ jot}{-6pt}
 
 \begin_inset Formula \begin{eqnarray*}
  &  & \hphantom{gggg+\:}\overbrace{\hphantom{bbqq+dddd}}^{s}\\
-A & = & \underbrace{gggg+bbqq}_{r}+\: dddd\end{eqnarray*}
+A & = & \underbrace{gggg+bbqq}_{r}+\: dddd
+\end{eqnarray*}
 
 \end_inset
 
@@ -7887,7 +8044,7 @@ target "http://www.lyx.org/trac/ticket/1505"
 jot
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7934,7 +8091,7 @@ reference "sub:Zeilenabstand"
 
 \begin_layout Section
 Pfeile
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7960,7 +8117,7 @@ Pfeile können über den Mathe-Werkzeugleistenknopf
 
 \begin_layout Subsection
 Horizontale Pfeile
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7979,7 +8136,7 @@ Pfeile ! horizontale
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8188,7 +8345,7 @@ hookleftarrow
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8404,7 +8561,7 @@ hookrightarrow
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8568,7 +8725,7 @@ rightleftharpoons
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8726,7 +8883,7 @@ reference "sec:Akzente"
 \end_inset
 
 Des Weiteren gibt es die beschriftbaren Pfeile
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8742,7 +8899,7 @@ Pfeile ! beschriftbare
 xleftarrow
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8760,7 +8917,7 @@ xleftarrow
 xrightarrow
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8794,7 +8951,7 @@ vspace{4mm}
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -8934,7 +9091,7 @@ F(a)
 
 \begin_layout Subsection
 Vertikale und diagonale Pfeile
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8944,7 +9101,7 @@ Pfeile ! diagonale
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8963,7 +9120,7 @@ Pfeile ! vertikale
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -9147,7 +9304,7 @@ downarrow
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -9312,7 +9469,7 @@ name "sec:Akzente"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9419,7 +9576,7 @@ name "sub:Akzente-für-ein"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9438,7 +9595,7 @@ Akzente ! für ein Zeichen
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -9598,7 +9755,20 @@ A
 \begin_layout Plain Layout
 
 \backslash
-ddddot{A
+ddddot
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+A
 \end_layout
 
 \end_inset
@@ -9637,7 +9807,7 @@ leer
 \end_inset
 
 A
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9751,7 +9921,7 @@ A
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -10021,7 +10191,7 @@ Akzente wie z.B.
  é können direkt in Formeln eingegeben werden.
  LyX transformiert sie dann in den entsprechenden Akzentbefehl.
  Für Umlaute
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10064,7 +10234,7 @@ echte
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -10205,7 +10375,7 @@ Im mathematischen Textmodus können Umlaute und andere akzentuierten Zeichen
 
 \begin_layout Subsection
 Akzente für Operatoren
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10225,7 +10395,7 @@ Zum Akzentuieren von Operatoren gibt es die Befehle
 overset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10243,7 +10413,7 @@ overset
 underset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10263,7 +10433,7 @@ underset
 sideset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10366,7 +10536,8 @@ n
 \series default
  :
 \begin_inset Formula \[
-\sideset{}{'}\sum_{k=1}^{n}\]
+\sideset{}{'}\sum_{k=1}^{n}
+\]
 
 \end_inset
 
@@ -10418,7 +10589,8 @@ a
 \series default
  ergibt:
 \begin_inset Formula \[
-\overset{a}{\maltese}\]
+\overset{a}{\maltese}
+\]
 
 \end_inset
 
@@ -10446,7 +10618,7 @@ sideset
 
 \begin_layout Subsection
 Akzente für mehrere Zeichen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10465,7 +10637,7 @@ Akzente ! für mehrere Zeichen
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -10667,7 +10839,7 @@ A=B
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -10877,7 +11049,8 @@ widehat
  werden aber im Ausdruck nur mit einer Länge von etwa drei Zeichen gesetzt,
  was folgendes Beispiel verdeutlicht:
 \begin_inset Formula \[
-\widetilde{A+B=C-D}\]
+\widetilde{A+B=C-D}
+\]
 
 \end_inset
 
@@ -10892,7 +11065,7 @@ Mit den im vorigen Kapitel beschriebenen Befehlen
 overset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10910,7 +11083,7 @@ overset
 underset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10947,7 +11120,8 @@ A=B
 \series default
  ergibt:
 \begin_inset Formula \[
-\underset{***}{A=B}\]
+\underset{***}{A=B}
+\]
 
 \end_inset
 
@@ -10963,7 +11137,7 @@ name "sub:Leerraum"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10984,7 +11158,7 @@ name "sub:Vordefinierter-Leerraum"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11046,7 +11220,7 @@ leer
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="7">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="6.8cm">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -11297,7 +11471,7 @@ Die letzte Größe scheint überhaupt keinen Leerraum zu produzieren.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="middle" width="6.8cm">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -11419,7 +11593,7 @@ B.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -11563,7 +11737,7 @@ B.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -11680,7 +11854,7 @@ Ein Beispiel zur Veranschaulichung:
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -11825,7 +11999,7 @@ name "sub:Variabler-Leerraum"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11845,7 +12019,7 @@ Leerraum mit vorgegebener Länge lässt sich mit dem Befehl
 hspace
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11919,7 +12093,7 @@ leer
 hfill
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11944,7 +12118,7 @@ hfill
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -12183,7 +12357,7 @@ maximalem Leerraum.
 
 \begin_layout Subsection
 Leerraum neben eingebetteten Formeln
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12201,7 +12375,9 @@ Leerraum ! neben eingebetteten Formeln
 
 \backslash
 mathsurround
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12212,8 +12388,6 @@ mathsurround
 
 \end_inset
 
-
-\series default
  lässt sich der Leerraum einstellen, der neben eingebettete Formeln gesetzt
  wird.
  Der Wert einer Länge wird mit dem Befehl 
@@ -12221,7 +12395,9 @@ mathsurround
 
 \backslash
 setlength
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12232,8 +12408,6 @@ setlength
 
 \end_inset
 
-
-\series default
  gesetzt.
  Dieser besitzt folgendes Befehlsschema:
 \end_layout
@@ -12337,7 +12511,7 @@ pt.
 
 \begin_layout Section
 Boxen und Rahmen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12347,7 +12521,7 @@ Boxen
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12406,7 +12580,7 @@ name "sub:Boxen-mit-Rahmen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12426,7 +12600,7 @@ Es ist möglich Formeln oder Teile davon mit den Befehlen
 fbox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12444,7 +12618,7 @@ fbox
 boxed
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12515,7 +12689,7 @@ fbox
 framebox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12601,7 +12775,7 @@ fbox
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -12944,7 +13118,8 @@ fboxsep 3mm
 
 
 \begin_inset Formula \[
-\boxed{A+B=C}\]
+\boxed{A+B=C}
+\]
 
 \end_inset
 
@@ -13031,7 +13206,7 @@ name "sub:Boxen-ohne-Rahmen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13051,7 +13226,7 @@ Für Boxen ohne Rahmen gibt es folgende Box-Befehle:
 mbox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13069,7 +13244,7 @@ mbox
 makebox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13091,7 +13266,7 @@ makebox
 raisebox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13178,7 +13353,7 @@ raisebox
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -13365,7 +13540,7 @@ name "sub:Farbige-Boxen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13398,7 +13573,7 @@ color
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13461,7 +13636,7 @@ Um Boxen einzufärben, verwendet man den Befehl
 colorbox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13560,7 +13735,7 @@ yellow
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -13789,7 +13964,8 @@ Ein Beispiel:
 
 \color red
 \begin_inset Formula \begin{equation}
-\int A=B\label{eq:rot}\end{equation}
+\int A=B\label{eq:rot}
+\end{equation}
 
 \end_inset
 
@@ -13797,7 +13973,8 @@ Ein Beispiel:
 \color green
 
 \begin_inset Formula \begin{equation}
-\textcolor{red}{\int A=B}\label{eq:rotgruen}\end{equation}
+\textcolor{red}{\int A=B}\label{eq:rotgruen}
+\end{equation}
 
 \end_inset
 
@@ -13839,7 +14016,7 @@ Möchte man den Rahmen anders als den Rest der Box färben, verwendet man
 fcolorbox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -13911,7 +14088,8 @@ fboxsep 1mm
 
 
 \begin_inset Formula \[
-\fcolorbox{cyan}{magenta}{A=B}\]
+\fcolorbox{cyan}{magenta}{A=B}
+\]
 
 \end_inset
 
@@ -14023,7 +14201,7 @@ definecolor{dunkelgruen}{cmyk}{0.5,
 0.5}
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14113,7 +14291,8 @@ yellow
 \series default
  gewählt wurde:
 \begin_inset Formula \begin{equation}
-\colorbox{dunkelgruen}{\color{yellow}\boxed{\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}}\end{equation}
+\colorbox{dunkelgruen}{\color{yellow}\boxed{\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}}
+\end{equation}
 
 \end_inset
 
@@ -14128,7 +14307,7 @@ Selbst definierte Farben können mit dem Befehl
 textcolor
 \series default
  auch für Text
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14183,7 +14362,7 @@ status collapsed
 textcolor
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14220,7 +14399,7 @@ name "sub:Absatzboxen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14268,6 +14447,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 1
+use_makebox 0
 width "5cm"
 special "none"
 height "1in"
@@ -14342,7 +14522,7 @@ In LaTeX wird eine Absatzbox mit dem Befehl
 parbox
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14427,7 +14607,9 @@ fboxrule}{
 
 \backslash
 linewidth
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14438,8 +14620,6 @@ linewidth
 
 \end_inset
 
-
-\series default
  für die im Dokument eingestellte Zeilenbreite.
  Da sich der Rahmen außerhalb der Absatzbox befindet, muss man von der Zeilenbre
 ite zweimal die Rahmendicke und den Rahmenabstand abziehen.
@@ -14481,7 +14661,7 @@ calc
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14549,7 +14729,8 @@ fboxrule}{
 
 
 \begin_inset Formula \begin{equation}
-\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}\end{equation}
+\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}
+\end{equation}
 
 \end_inset
 
@@ -14787,7 +14968,8 @@ kommentiert
 
  wurde:
 \begin_inset Formula \[
-5x-7b=3b\textrm{Dies ist eine Beschreibung. Sie ist nicht von der Formel getrennt ...}\]
+5x-7b=3b\textrm{Dies ist eine Beschreibung. Sie ist nicht von der Formel getrennt ...}
+\]
 
 \end_inset
 
@@ -14796,7 +14978,7 @@ kommentiert
 
 \begin_layout Section
 Operatoren
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14817,7 +14999,7 @@ name "sub:Große-Operatoren"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14827,7 +15009,7 @@ Operatoren ! große
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14837,7 +15019,7 @@ Summen
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -14869,7 +15051,7 @@ Mathe-Optionen
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -14900,7 +15082,7 @@ Ergebnis
 
 \backslash
 int
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15168,7 +15350,7 @@ bigcup
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -15199,7 +15381,7 @@ Ergebnis
 
 \backslash
 sum
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15236,7 +15418,7 @@ sum
 
 \backslash
 prod
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15592,14 +15774,11 @@ inkorrekt:
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-hphantom{in}
+in
 \end_layout
 
 \end_inset
@@ -15629,7 +15808,7 @@ Für Mehrfachintegrale gibt es folgende Befehle:
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -15754,7 +15933,7 @@ sqiint
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -15872,7 +16051,7 @@ name "sub:Operatorgrenzen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15893,7 +16072,7 @@ Grenzen werden durch Hoch- bzw.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -16022,13 +16201,15 @@ L
 \begin_layout Standard
 Die normalen Grenzen sehen so aus:
 \begin_inset Formula \[
-\sum_{x=0}^{\infty}\frac{1}{x^{2}}\]
+\sum_{x=0}^{\infty}\frac{1}{x^{2}}
+\]
 
 \end_inset
 
 So sieht die Formel aus, wenn man die Grenzen neben das Summenzeichen setzt:
 \begin_inset Formula \[
-\sum\nolimits _{x=0}^{\infty}\frac{1}{x^{2}}\]
+\sum\nolimits _{x=0}^{\infty}\frac{1}{x^{2}}
+\]
 
 \end_inset
 
@@ -16057,7 +16238,8 @@ Anzeige
 \series default
  gesetzt und damit unter die Integrale geschrieben:
 \begin_inset Formula \begin{equation}
-\iiint\limits _{V}X\,\mathrm{d}V=U\label{eq:VolInt}\end{equation}
+\iiint\limits _{V}X\,\mathrm{d}V=U\label{eq:VolInt}
+\end{equation}
 
 \end_inset
 
@@ -16075,7 +16257,7 @@ Um Bedingungen für Grenzen anzugeben, gibt es die Befehle
 subarray
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16093,7 +16275,7 @@ subarray
 substack
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16114,7 +16296,10 @@ B.
 \begin_inset Formula \begin{equation}
 \sum_{\begin{subarray}{c}
 0<k<1000\\
-\\k\,\in\,\mathbb{N}\end{subarray}}^{n}k^{-2}\label{eq:substack}\end{equation}
+\\
+k\,\in\,\mathbb{N}
+\end{subarray}}^{n}k^{-2}\label{eq:substack}
+\end{equation}
 
 \end_inset
 
@@ -16305,7 +16490,7 @@ Dadurch wird der Befehl
 mathclap
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16377,8 +16562,11 @@ ein, um die untere Grenze zu erstellen.
  Der Summand befindet sich nun direkt hinter dem Summenzeichen:
 \begin_inset Formula \[
 \sum_{\mathclap{\substack{0<k<1000\\
-\\k\,\in\,\mathbb{N}}
-}}^{n}k^{-2}\]
+\\
+k\,\in\,\mathbb{N}
+}
+}}^{n}k^{-2}
+\]
 
 \end_inset
 
@@ -16408,7 +16596,7 @@ name "sub:Binäre-Operatoren"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16436,7 +16624,7 @@ Binäre Operatoren sind von Leerraum umgeben, wenn sich vor und hinter ihnen
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="13" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -16803,7 +16991,7 @@ bullet
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="13" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -17137,7 +17325,7 @@ vee
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="13" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -17541,7 +17729,7 @@ name "sub:Selbstdefinierte-Operatoren"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17561,7 +17749,7 @@ Mit Hilfe des Befehls
 DeclareMathOperator
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17639,7 +17827,8 @@ reference "sub:Sonstige-Symbole"
 
  besteht:
 \begin_inset Formula \[
-\Raute_{n=1}^{\infty}\]
+\Raute_{n=1}^{\infty}
+\]
 
 \end_inset
 
@@ -17672,7 +17861,7 @@ Benötigt man eigene Operatoren nicht mehrfach im Dokument, kann man diese
 mathop
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17690,7 +17879,7 @@ mathop
 mathbin
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17749,7 +17938,8 @@ mathop
 B.
  nutzen, um eine Grenze für mehrere Operatoren zu verwenden:
 \begin_inset Formula \[
-\mathop{\sum\negmedspace\sum}_{i,j=1}^{N}\]
+\mathop{\sum\negmedspace\sum}_{i,j=1}^{N}
+\]
 
 \end_inset
 
@@ -17814,7 +18004,7 @@ _i,j=1
 
 \begin_layout Section
 Schriften
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17835,7 +18025,7 @@ name "sub:Schriftstile"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17859,8 +18049,8 @@ Lateinische Buchstaben in einer Formel können in folgenden Schriftstilen
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="6" columns="3">
-<features>
+<lyxtabular version="3" rows="7" columns="3">
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -18098,7 +18288,7 @@ Alt+Z H
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -18126,11 +18316,62 @@ AbC
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 \begin_inset Formula $\mathfrak{AbC}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+mathscr
+\series bold
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leer 
+\end_layout
+
+\end_inset
+
+
+\series default
+AbC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\mathscr{AbC}$
 \end_inset
 
 
@@ -18159,7 +18400,7 @@ AbC
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -18445,7 +18686,8 @@ mathnormal
 \begin_layout Standard
 Die Stilbefehle wirken auch auf Buchstaben in mathematischen Konstruktionen:
 \begin_inset Formula \[
-\mathfrak{A=\frac{b}{C}}\]
+\mathfrak{A=\frac{b}{C}}
+\]
 
 \end_inset
 
@@ -18508,7 +18750,7 @@ name "sub:Fett-gedruckte-Formeln"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18535,7 +18777,8 @@ mathbf
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathbf{\int_{n}^{2}f(\theta)=\Gamma}\qquad\textrm{Formel mit \textbackslash mathbf}\]
+\mathbf{\int_{n}^{2}f(\theta)=\Gamma}\qquad\textrm{Formel mit \textbackslash mathbf}
+\]
 
 \end_inset
 
@@ -18551,7 +18794,8 @@ boldsymbol
 \series default
 :
 \begin_inset Formula \[
-\boldsymbol{\int_{n}^{2}f(\theta)=\Gamma\qquad\textrm{Formel mit \textbackslash boldsymbol}}\]
+\boldsymbol{\int_{n}^{2}f(\theta)=\Gamma\qquad\textrm{Formel mit \textbackslash boldsymbol}}
+\]
 
 \end_inset
 
@@ -18565,7 +18809,9 @@ boldmath-Umgebung
 
 \backslash
 boldmath
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18576,15 +18822,15 @@ boldmath
 
 \end_inset
 
-
-\series default
  eingibt.
  Um die Umgebung wieder zu beenden, gibt man im TeX-Modus den Befehl 
 \series bold
 
 \backslash
 unboldmath
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18595,8 +18841,6 @@ unboldmath
 
 \end_inset
 
-
-\series default
  ein.
 \begin_inset ERT
 status collapsed
@@ -18612,7 +18856,8 @@ boldmath
 
 
 \begin_inset Formula \[
-\int_{n}^{2}f(\theta)=\Gamma\qquad\textrm{Formel in boldmath-Umgebung}\]
+\int_{n}^{2}f(\theta)=\Gamma\qquad\textrm{Formel in boldmath-Umgebung}
+\]
 
 \end_inset
 
@@ -18634,7 +18879,7 @@ unboldmath
 
 \begin_layout Subsection
 Farbige Formeln
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18655,7 +18900,8 @@ Textstil
  Dialog.
  Hier ist eine Formel in Magenta:
 \begin_inset Formula \[
-{\color{magenta}\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}\]
+{\color{magenta}\int A\,\mathrm{d}x=\frac{\sqrt[5]{B}}{\ln\left(\frac{1}{3}\right)}}
+\]
 
 \end_inset
 
@@ -18678,7 +18924,7 @@ reference "sub:Farbige-Boxen"
 textcolor
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18719,7 +18965,8 @@ textcolor{dunkelgruen}{
 
 
 \begin_inset Formula \[
-\int A\,\mathrm{d}x=\frac{{\color{red}\sqrt[5]{B}}}{\ln\left(\frac{1}{3}\right)}\]
+\int A\,\mathrm{d}x=\frac{{\color{red}\sqrt[5]{B}}}{\ln\left(\frac{1}{3}\right)}
+\]
 
 \end_inset
 
@@ -18768,7 +19015,7 @@ name "sub:Schriftgrößen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18923,7 +19170,7 @@ Innerhalb einer Formel kann die Größe mit den folgenden Größenbefehlen geän
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -18970,7 +19217,7 @@ raisebox
 
 \backslash
 displaystyle
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19115,13 +19362,15 @@ huge
 
 
 \begin_inset Formula \[
-A=\frac{B}{c}\cdot\maltese\]
+A=\frac{B}{c}\cdot\maltese
+\]
 
 \end_inset
 
 
 \begin_inset Formula \[
-\maltese A\textrm{\Large\maltese\textit{A}}\textrm{\tiny\maltese\textit{A}}\]
+\maltese A\textrm{\Large\maltese\textit{A}}\textrm{\tiny\maltese\textit{A}}
+\]
 
 \end_inset
 
@@ -19301,7 +19550,7 @@ Kann ein Symbol nicht in verschiedenen Größen dargestellt werden, wird es
 
 \begin_layout Section
 Griechische Buchstaben
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19314,7 +19563,7 @@ griechische Buchstaben
 \end_layout
 
 \begin_layout Standard
-Alle griechischen Buchstaben können auch über den Mathe-Werkzeugleistenknopf
+Griechischen Buchstaben können auch über den Mathe-Werkzeugleistenknopf
  
 \begin_inset Graphics
 	filename ../../images/math/alpha.png
@@ -19323,11 +19572,18 @@ Alle griechischen Buchstaben können auch über den Mathe-Werkzeugleistenknopf
 \end_inset
 
  eingefügt werden.
+ Alle internationalen Schriftsatz-Normen geben vor, dass griechische Buchstaben
+ in Formeln aufrecht gesetzt werden.
+ In einigen Sprachen, wie z.
+\begin_inset space \thinspace{}
+\end_inset
+
+B: Französisch oder Russisch, werden sie dennoch manchmal aufrecht gesetzt.
 \end_layout
 
 \begin_layout Subsection
 Kleine Buchstaben
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19346,7 +19602,7 @@ griechische Buchstaben ! kleine
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -19630,7 +19886,7 @@ vartheta
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="12" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -19937,7 +20193,7 @@ rho
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -20225,7 +20481,7 @@ omega
 \begin_inset VSpace medskip
 \end_inset
 
-Wie man aufrechte griechische Buchstaben erstellt, ist in 
+Wie man spezielle, aufrechte griechische Buchstaben erstellt, ist in 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Aufrechte-kleine-griechische"
@@ -20237,7 +20493,7 @@ reference "sub:Aufrechte-kleine-griechische"
 
 \begin_layout Subsection
 Große Buchstaben
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20256,7 +20512,7 @@ griechische Buchstaben ! große
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -20440,7 +20696,7 @@ Pi
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -20622,16 +20878,85 @@ B.
 \backslash
 varGamma
 \series default
-: 
+ 
 \begin_inset Formula $\varGamma$
+\end_inset
+
+.
+ Eine andere Methode ist das Laden des Pakets 
+\series bold
+fixmath
+\series default
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\series bold
+fixmath
+\series default
+ ist Teil des LaTeX-Paketes 
+\series bold
+was
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Pakete ! was
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+vspace{4mm}
+\end_layout
+
 \end_inset
 
 
 \end_layout
 
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Pakete ! fixmath
+\end_layout
+
+\end_inset
+
+ mit der LaTeX-Vorspannzeile
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+usepackage{fixmath}
+\end_layout
+
+\begin_layout Standard
+Dann werden alle großen griechischen Buchstaben im Dokument automatisch
+ kursiv ausgegeben.
+\end_layout
+
 \begin_layout Subsection
 Fett gedruckte Buchstaben
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20653,7 +20978,7 @@ Griechische lassen sich nicht wie lateinische Buchstaben in verschiedenen
 boldsymbol
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20671,7 +20996,7 @@ boldsymbol
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -20836,7 +21161,7 @@ reference "sub:Formeln-in-Überschriften"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20877,7 +21202,7 @@ name "sub:Mathematische-Symbole"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20896,7 +21221,7 @@ Symbole ! mathematische
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -21155,7 +21480,7 @@ jmath
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -21454,7 +21779,7 @@ Bbbk
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -21713,6 +22038,13 @@ bot
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Sonstige Symbole
 \begin_inset CommandInset label
@@ -21722,7 +22054,7 @@ name "sub:Sonstige-Symbole"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21735,11 +22067,18 @@ Symbole ! sonstige
 \end_layout
 
 \begin_layout Standard
+\begin_inset VSpace -7mm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \noindent
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -21990,7 +22329,7 @@ $
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -22245,7 +22584,7 @@ bullet
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -22528,7 +22867,7 @@ reference "sub:Schriftgrößen"
 
 \begin_layout Subsection
 Das Euro-Symbol €
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22538,7 +22877,7 @@ Symbole ! Euro-Symbol
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22572,7 +22911,7 @@ t
 eurosym
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22601,7 +22940,7 @@ aktivieren.
 euro
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22640,7 +22979,7 @@ euro
 officialeuro
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22692,7 +23031,7 @@ Eine Übersicht der verschiedenen Euro-Symbole:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -22895,6 +23234,13 @@ fi
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Relationen
 \begin_inset CommandInset label
@@ -22904,7 +23250,7 @@ name "sec:Relationen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22914,7 +23260,7 @@ Relationen
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22967,7 +23313,7 @@ Alle griechischen Buchstaben können auch über den Mathe-Werkzeugleistenknopf
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -23399,7 +23745,7 @@ nmid
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -23831,7 +24177,7 @@ widehat=
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -24312,7 +24658,7 @@ Relationen mit Beschriftungen können mit Hilfe des Befehls
 stackrel
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24330,7 +24676,7 @@ stackrel
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -24476,7 +24822,7 @@ name "sub:Vordefinierte-Funktionen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -24511,7 +24857,7 @@ en etwas abgesetzt sind.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -24622,7 +24968,7 @@ Folgende Funktionen sind vordefiniert:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -25053,7 +25399,7 @@ Sie können auch über den Mathe-Werkzeugleistenknopf
 
 \begin_layout Subsection
 Selbst definierte Funktionen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25097,7 +25443,7 @@ DeclareMathOperator{
 sgn}{sgn}
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25184,7 +25530,7 @@ Selbst definierte Funktionen werden in LyX rot, vordefinierte schwarz angezeigt.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -25275,7 +25621,7 @@ Die erste Methode ist besser geeignet, wenn die selbst definierte Funktion
 
 \begin_layout Subsection
 Grenzwerte
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25295,7 +25641,7 @@ Für Grenzwerte sind außer
 lim
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25325,7 +25671,7 @@ limsup
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -25487,7 +25833,7 @@ Der Grenzwert wird durch Tiefstellen erzeugt.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -25593,7 +25939,8 @@ x=B
 \begin_layout Standard
 In einer abgesetzten Formel steht der Grenzwert wie gewohnt darunter:
 \begin_inset Formula \[
-\lim_{x\to A}x=B\]
+\lim_{x\to A}x=B
+\]
 
 \end_inset
 
@@ -25602,7 +25949,7 @@ In einer abgesetzten Formel steht der Grenzwert wie gewohnt darunter:
 
 \begin_layout Subsection
 Modulo-Funktionen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25626,7 +25973,8 @@ Die Varianten in einer abgesetzten Formel:
 \mathrm{a\backslash mod\textrm{\leer}b} &  & a\mod b\\
 \mathrm{a\backslash pmod\textrm{\leer}b} &  & a\pmod b\\
 \mathrm{a\backslash bmod\textrm{\leer}b} &  & a\bmod b\\
-\mathrm{a\backslash pod\textrm{\leer}b} &  & a\pod b\end{align*}
+\mathrm{a\backslash pod\textrm{\leer}b} &  & a\pod b
+\end{align*}
 
 \end_inset
 
@@ -25638,9 +25986,16 @@ In einer eingebetteten Formel wird bei allen Varianten vor den Funktionsnamen
  weniger Leerraum gesetzt.
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Sonderzeichen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25668,7 +26023,7 @@ Die folgenden Befehle können nur im mathematischen Textmodus oder im TeX-Modus
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="block" valignment="top" width="0">
 <column alignment="block" valignment="top" width="0">
 <row>
@@ -25824,7 +26179,7 @@ aa
 
 \backslash
 AA
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -25904,7 +26259,7 @@ i
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="block" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -26210,7 +26565,7 @@ name "sub:Sonderzeichen-Akzente"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26234,7 +26589,7 @@ Man kann mit den folgenden Befehlen sämtliche Buchstaben akzentuieren.
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="block" valignment="top" width="0">
 <column alignment="block" valignment="top" width="0">
 <row>
@@ -26562,7 +26917,7 @@ t ee
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="block" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -26674,7 +27029,7 @@ status collapsed
 
 \backslash
 ~e
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27053,7 +27408,7 @@ Des Weiteren kann man mit dem Befehl
 textcircled
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27072,7 +27427,7 @@ textcircled
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -27264,7 +27619,7 @@ reference "sub:Boxen-ohne-Rahmen"
 
 \begin_layout Subsection
 Minuskelziffern
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27284,7 +27639,7 @@ Minuskelziffern werden mit dem Befehl
 oldstylenums
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27331,7 +27686,7 @@ name "sub:Sonstige-Sonderzeichen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27351,7 +27706,7 @@ Folgende Zeichen können in eine Formel nur mit Befehlen eingegeben werden:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -27458,7 +27813,7 @@ leer
 
 \backslash
 circ
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27543,7 +27898,7 @@ name "sec:Formelstile"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27593,7 +27948,7 @@ Eingerückt
 mathindent
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27701,7 +28056,7 @@ name "sec:Mehrzeilige-Formeln"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27807,7 +28162,7 @@ name "sub:Zeilenabstand"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27823,7 +28178,8 @@ Formel ! mehrzeilige ! Zeilenabstand
 Bei mehrzeiligen Formeln fehlt manchmal etwas Platz zwischen den Zeilen:
 \begin_inset Formula \begin{eqnarray*}
 B^{2}(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2})+4x_{0}^{2}x^{2}+4x_{0}xD & = & \textrm{-}4x^{2}B^{2}+4x_{0}xB^{2}\\
-4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right) & = & 0\end{eqnarray*}
+4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right) & = & 0
+\end{eqnarray*}
 
 \end_inset
 
@@ -27926,7 +28282,7 @@ Möchte man den Zeilenabstand für alle Zeilen einer Formel festlegen, veränder
 jot
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27992,7 +28348,7 @@ calc
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28035,7 +28391,8 @@ jot}{3mm+3pt}
 
 \begin_inset Formula \begin{eqnarray*}
 B^{2}(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2})+4x_{0}^{2}x^{2}+4x_{0}xD & = & \textrm{-}4x^{2}B^{2}+4x_{0}xB^{2}\\
-4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right) & = & 0\end{eqnarray*}
+4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right) & = & 0
+\end{eqnarray*}
 
 \end_inset
 
@@ -28079,7 +28436,7 @@ name "sub:Spaltenabstand"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28111,7 +28468,7 @@ Der Spaltenabstand wird mit der Länge
 arraycolsep
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28195,7 +28552,8 @@ arraycolsep}{1cm}
 
 \begin_inset Formula \begin{eqnarray*}
 A & = & B\\
-C & \ne & A\end{eqnarray*}
+C & \ne & A
+\end{eqnarray*}
 
 \end_inset
 
@@ -28221,15 +28579,9 @@ arraycolsep}{5pt}
 
 \begin_inset Formula \begin{eqnarray*}
 A & = & B\\
-C & \ne & A\end{eqnarray*}
+C & \ne & A
+\end{eqnarray*}
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
 \end_inset
 
 
@@ -28237,7 +28589,7 @@ C & \ne & A\end{eqnarray*}
 
 \begin_layout Subsubsection
 Lange Formeln
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28258,7 +28610,8 @@ Ist eine Seite der Gleichung deutlich kürzer als die Zeilenbreite, wählt
  man man diese als linke Seite und schreibt die rechte über zwei Zeilen:
 \begin_inset Formula \begin{eqnarray}
 H & = & W_{SB}+W_{mv}+W_{D}-\frac{\hbar^{2}}{2m_{0}}\Delta-\frac{\hbar^{2}}{2m_{1}}\Delta_{1}-\frac{\hbar^{2}}{2m_{2}}\Delta_{2}-\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{1}|}\nonumber \\
- &  & -\hspace{3pt}\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{2}|}+\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{R}_{1}-\mathbf{R}_{2}|}\label{eq:kurzlang}\end{eqnarray}
+ &  & -\hspace{3pt}\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{2}|}+\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{R}_{1}-\mathbf{R}_{2}|}\label{eq:kurzlang}
+\end{eqnarray}
 
 \end_inset
 
@@ -28300,7 +28653,7 @@ reference "sub:Variabler-Leerraum"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28322,7 +28675,7 @@ Sind beide Seiten der Gleichung zu lang, verwendet man den Befehl
 lefteqn
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28339,7 +28692,8 @@ lefteqn
 \begin_inset Formula \begin{eqnarray}
 \lefteqn{4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right)+D^{2}}\nonumber \\
  &  & -\hspace{3pt}B^{2}-2B\sqrt{r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}}+r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}\nonumber \\
- &  & =B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}\label{eq:lefteqn}\end{eqnarray}
+ &  & =B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}\label{eq:lefteqn}
+\end{eqnarray}
 
 \end_inset
 
@@ -28446,7 +28800,7 @@ name "sub:Mehrzeilige-Klammern"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28462,7 +28816,8 @@ Klammern ! mehrzeilige
 Bei Klammern, die über mehrere Zeilen gehen, tritt folgendes Problem auf:
 \begin_inset Formula \begin{eqnarray*}
 A & = & \sin(x)\left[\prod_{R=1}^{\infty}\frac{1}{R}+\cdots\right.\\
- &  & \left.\cdots+B-D\right]\end{eqnarray*}
+ &  & \left.\cdots+B-D\right]
+\end{eqnarray*}
 
 \end_inset
 
@@ -28483,7 +28838,7 @@ Um die Größe für die Klammer der zweiten Zeile anzupassen, beendet man die
 right.
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28530,7 +28885,7 @@ reference "sub:Automatische-Klammergrößen"
 
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28615,7 +28970,7 @@ leer
 _R=1}
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28634,7 +28989,8 @@ vphantom
 Das Ergebnis sieht so aus:
 \begin_inset Formula \begin{eqnarray*}
 A & = & \sin(x)\left[\prod_{R=1}^{\infty}\frac{1}{R}+\cdots\right.\\
- &  & \left.\vphantom{\prod_{R=1}^{\infty}}\cdots+B-D\right]\end{eqnarray*}
+ &  & \left.\vphantom{\prod_{R=1}^{\infty}}\cdots+B-D\right]
+\end{eqnarray*}
 
 \end_inset
 
@@ -28715,7 +29071,7 @@ name "sub:Standard-align-Umgebung"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28747,7 +29103,8 @@ Ein Beispiel für zwei nebeneinander stehende Formeln, die mit einer vierspaltig
 n align-Umgebung erzeugt wurden:
 \begin_inset Formula \begin{align*}
 A & =\sin(B) & C & =D\\
-C & \ne A & B & \ne D\end{align*}
+C & \ne A & B & \ne D
+\end{align*}
 
 \end_inset
 
@@ -28814,7 +29171,7 @@ hfill
 
 \begin_layout Subsubsection
 Alignat-Umgebung
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28847,7 +29204,8 @@ Das vorige Beispiel in der alignat-Umgebung, bei dem zu Beginn der zweiten
 cm Leerraum eingefügt wurde:
 \begin_inset Formula \begin{alignat*}{2}
 A & =\sin(B) & \hspace{1cm}C & =D\\
-C & \ne A & B & \ne D\end{alignat*}
+C & \ne A & B & \ne D
+\end{alignat*}
 
 \end_inset
 
@@ -28865,7 +29223,7 @@ name "sub:Flalign-Umgebung"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28883,7 +29241,8 @@ Bei dieser Umgebung werden die ersten beiden Spalten immer so weit links
  Dazu ein Beispiel:
 \begin_inset Formula \begin{flalign*}
 A & =1 & B & =2 & C & =3\\
-X & =\textrm{-}1 & Y & =\textrm{-}2 & Z & =4\end{flalign*}
+X & =\textrm{-}1 & Y & =\textrm{-}2 & Z & =4
+\end{flalign*}
 
 \end_inset
 
@@ -28907,7 +29266,8 @@ reference "eq:VolInt"
 
 :
 \begin_inset Formula \begin{flalign}
-\hspace{30pt}\iiint\limits _{V}X\,\mathrm{d}V & =U & {}\end{flalign}
+\hspace{30pt}\iiint\limits _{V}X\,\mathrm{d}V & =U & {}
+\end{flalign}
 
 \end_inset
 
@@ -28932,7 +29292,7 @@ name "sub:Eqnarray-Umgebung"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28953,7 +29313,8 @@ Hat man diese Umgebung erzeugt, erscheinen drei blaue Kästchen.
 \begin_inset Formula \begin{eqnarray*}
 \frac{ABC}{D} & \frac{ABC}{D} & \frac{ABC}{D}\\
 AB & AB & AB\\
-A & = & A\end{eqnarray*}
+A & = & A
+\end{eqnarray*}
 
 \end_inset
 
@@ -28962,7 +29323,7 @@ A & = & A\end{eqnarray*}
 
 \begin_layout Subsection
 Gather-Umgebung
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28979,7 +29340,8 @@ Diese Umgebung besteht nur aus einer Spalte, deren Inhalt zentriert ist.
  Jede Zeile kann nummeriert werden.
 \begin_inset Formula \begin{gather}
 A=1\\
-X=\textrm{-}1\end{gather}
+X=\textrm{-}1
+\end{gather}
 
 \end_inset
 
@@ -28995,7 +29357,7 @@ name "sub:Multline-Umgebung"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29023,7 +29385,8 @@ reference "eq:lefteqn"
 \begin_inset Formula \begin{multline}
 4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right)+D^{2}\\
 -B^{2}-2B\sqrt{r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}}+r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}\\
-=B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}\end{multline}
+=B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}
+\end{multline}
 
 \end_inset
 
@@ -29058,7 +29421,9 @@ Mit den Befehlen
 
 \backslash
 shoveright
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29069,14 +29434,14 @@ shoveright
 
 \end_inset
 
-
-\series default
  und 
 \series bold
 
 \backslash
 shoveleft
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29087,8 +29452,6 @@ shoveleft
 
 \end_inset
 
-
-\series default
  kann eine zentrierte Zeile rechts bzw.
  links ausgerichtet werden.
  Die Befehle werden folgendermaßen verwendet:
@@ -29118,7 +29481,9 @@ Die Länge
 
 \backslash
 multlinegap
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29129,8 +29494,6 @@ multlinegap
 
 \end_inset
 
-
-\series default
  legt den Abstand der ersten Zeile vom linken Seitenrand fest.
  Voreingestellt ist die Länge 0
 \begin_inset space \thinspace{}
@@ -29173,7 +29536,8 @@ multlinegap}{2cm}
 \begin_inset Formula \begin{multline}
 4x^{2}\left(B^{2}+x_{0}^{2}\right)+4x_{0}x\left(D-B^{2}\right)+B^{2}\left(B^{2}-2r_{g}^{2}+2x_{0}^{2}-2r_{k}^{2}\right)+D^{2}\\
 \shoveleft{-B^{2}-2B\sqrt{r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}}+r_{g}^{2}-x^{2}+2x_{0}x-x_{0}^{2}}\\
-=B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}\end{multline}
+=B^{2}+2\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)+\frac{\left(r_{g}^{2}+2x_{0}x-x_{0}^{2}-r_{k}^{2}\right)^{2}}{B^{2}}
+\end{multline}
 
 \end_inset
 
@@ -29214,7 +29578,7 @@ name "sub:Mehrzeilige-Formelteile"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29261,8 +29625,10 @@ umgebungen.
  Dazu ein Beispiel:
 \begin_inset Formula \[
 \left.\begin{aligned}\Delta x\Delta p & \ge\frac{\hbar}{2}\\
-\Delta E\Delta t & \ge\frac{\hbar}{2}\end{aligned}
-\right\} \textrm{Unbestimmtheitsrelationen}\]
+\Delta E\Delta t & \ge\frac{\hbar}{2}
+\end{aligned}
+\right\} \textrm{Unbestimmtheitsrelationen}
+\]
 
 \end_inset
 
@@ -29276,7 +29642,9 @@ Um diese Formel zu erhalten, wird eine abgesetzte Formel erstellt, in die
 
 \backslash
 aligned
-\begin_inset Index
+\series default
+
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29287,8 +29655,6 @@ aligned
 
 \end_inset
 
-
-\series default
  eingegeben wird.
  Es erscheint eine lila Box um das blaue Formelkästchen in der man nun Spalten
  und Zeilen hinzufügen kann.
@@ -29311,7 +29677,8 @@ reference "eq:kurzlang"
  in der aligned-Umgebung:
 \begin_inset Formula \begin{equation}
 \begin{aligned}H=\; & W_{SB}+W_{mv}+W_{D}-\frac{\hbar^{2}}{2m_{0}}\Delta-\frac{\hbar^{2}}{2m_{1}}\Delta_{1}-\frac{\hbar^{2}}{2m_{2}}\Delta_{2}-\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{1}|}\\
- & -\hspace{3pt}\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{2}|}+\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{R}_{1}-\mathbf{R}_{2}|}\end{aligned}
+ & -\hspace{3pt}\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{r}-\mathbf{R}_{2}|}+\frac{e^{2}}{4\pi\varepsilon_{0}|\mathbf{R}_{1}-\mathbf{R}_{2}|}
+\end{aligned}
 \end{equation}
 
 \end_inset
@@ -29339,7 +29706,7 @@ split
 alignedat
 \series default
 ,
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29357,7 +29724,7 @@ alignedat
 gathered
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29376,7 +29743,7 @@ gathered
 split
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29401,7 +29768,7 @@ name "sub:Text-in-mehrzeiligen"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29411,7 +29778,7 @@ Text ! in Formeln
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29432,7 +29799,7 @@ Bei den Align-Umgebungen sowie der multline- und gather-Umgebung besteht
 
 \backslash
 intertext
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29478,7 +29845,8 @@ intertext
  Ein Beispiel bei dem der Text zu Beginn der zweiten Zeile eingegeben wurde:
 \begin_inset Formula \begin{align}
 I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
-\intertext{\text{Integrand ist symmetrisch zu \ensuremath{\phi=\pi}, daher}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\end{align}
+\intertext{\text{Integrand ist symmetrisch zu \ensuremath{\phi=\pi}, daher}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi
+\end{align}
 
 \end_inset
 
@@ -29487,7 +29855,7 @@ I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
 
 \begin_layout Section
 Formelnummerierung
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29497,7 +29865,7 @@ Formelnummerierung
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29612,7 +29980,7 @@ reference "sec:Formelstile"
 
 \begin_layout Subsection
 Querverweise
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29787,7 +30155,7 @@ reference "sub:Absatzboxen"
 
 \begin_layout Subsection
 Unternummerierung
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29824,7 +30192,8 @@ end{subequations}
 \begin_layout Standard
 Dazu ein Beispiel:
 \begin_inset Formula \begin{equation}
-A=C-B\label{eq:a}\end{equation}
+A=C-B\label{eq:a}
+\end{equation}
 
 \end_inset
 
@@ -29860,13 +30229,15 @@ begin{subequations}
 
 
 \begin_inset Formula \begin{equation}
-B=C-A\label{eq:b}\end{equation}
+B=C-A\label{eq:b}
+\end{equation}
 
 \end_inset
 
 
 \begin_inset Formula \begin{equation}
-C=A+B\label{eq:c}\end{equation}
+C=A+B\label{eq:c}
+\end{equation}
 
 \end_inset
 
@@ -29905,7 +30276,7 @@ erste Formel eingeben
 addtocounter{equation}{-1} 
 \backslash
 begin{subequations}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30081,7 +30452,8 @@ begin{subequations}
 \begin_inset Formula \begin{eqnarray}
 A & = & (B-Z)^{2}=(B-Z)(B-Z)\label{eq:d}\\
  & = & B^{2}-ZB-BZ+Z^{²}\nonumber \\
- & = & B^{2}-2BZ+Z^{2}\label{eq:f}\end{eqnarray}
+ & = & B^{2}-2BZ+Z^{2}\label{eq:f}
+\end{eqnarray}
 
 \end_inset
 
@@ -30110,7 +30482,7 @@ name "sub:Benutzerdefinierte-Nummerierung"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30123,7 +30495,7 @@ Formelnummerierung ! benutzerdefinierte
 \end_layout
 
 \begin_layout Standard
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30190,7 +30562,7 @@ Soll statt einer fortlaufenden Nummer ein beliebiger Ausdruck in den Klammern
 tag
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30203,7 +30575,8 @@ tag
 
 :
 \begin_inset Formula \begin{equation}
-A+B=C\tag{etwas}\label{eq:tag}\end{equation}
+A+B=C\tag{etwas}\label{eq:tag}
+\end{equation}
 
 \end_inset
 
@@ -30259,7 +30632,8 @@ etwas
 \series default
  ein, verhindert der Stern die Klammern um den Ausdruck:
 \begin_inset Formula \[
-A+B=C\tag*{etwas}\]
+A+B=C\tag*{etwas}
+\]
 
 \end_inset
 
@@ -30322,7 +30696,7 @@ mbox
 @addtoreset{equation}{part}
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30487,7 +30861,7 @@ remreset
 carlisle
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30502,7 +30876,7 @@ Pakete ! carlisle
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30531,7 +30905,7 @@ geladen werden.
 @removefromreset
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30620,7 +30994,7 @@ Für diesen Fall gibt es den Befehl
 numberwithin
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30676,7 +31050,8 @@ numberwithin{equation}{section}
 
 
 \begin_inset Formula \begin{equation}
-A+B=C\end{equation}
+A+B=C
+\end{equation}
 
 \end_inset
 
@@ -30715,7 +31090,7 @@ renewcommand{
 theequation}{
 \backslash
 arabic{equation}}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30813,7 +31188,7 @@ makeatother
 
 \begin_layout Subsection
 Nummerierung mit römischen Zahlen und Buchstaben
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30823,7 +31198,7 @@ Formelnummerierung ! mit Buchstaben
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30868,7 +31243,7 @@ ein.
 renewcommand
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30954,7 +31329,7 @@ theequation
 
 \backslash
 roman{equation}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30992,7 +31367,7 @@ roman
 Roman
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31021,7 +31396,7 @@ Nummerierung
 alph
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31039,7 +31414,7 @@ alph
 Alph
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31095,7 +31470,8 @@ roman{equation}}
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
-A=\textrm{römisch}\end{equation}
+A=\textrm{römisch}
+\end{equation}
 
 \end_inset
 
@@ -31118,7 +31494,8 @@ Roman{equation}}
 
 
 \begin_inset Formula \begin{equation}
-B=\textrm{Römisch}\label{eq:Roem}\end{equation}
+B=\textrm{Römisch}\label{eq:Roem}
+\end{equation}
 
 \end_inset
 
@@ -31141,7 +31518,8 @@ alph{equation}}
 
 
 \begin_inset Formula \begin{equation}
-C=\textrm{lateinisch}\end{equation}
+C=\textrm{lateinisch}
+\end{equation}
 
 \end_inset
 
@@ -31164,7 +31542,8 @@ Alph{equation}}
 
 
 \begin_inset Formula \begin{equation}
-D=\textrm{Lateinisch}\label{eq:Lat}\end{equation}
+D=\textrm{Lateinisch}\label{eq:Lat}
+\end{equation}
 
 \end_inset
 
@@ -31186,7 +31565,7 @@ renewcommand{
 theequation}{
 \backslash
 arabic{equation}}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31219,7 +31598,8 @@ arabic{equation}}
 
 
 \begin_inset Formula \begin{equation}
-E=\textrm{arabisch}\end{equation}
+E=\textrm{arabisch}
+\end{equation}
 
 \end_inset
 
@@ -31254,7 +31634,7 @@ name "sub:Chemische-Symbole-und"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31264,7 +31644,7 @@ chemische Zeichen ! Symbole
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31274,7 +31654,7 @@ Reaktionsgleichungen
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31306,7 +31686,8 @@ Das
 .
  Die Reaktionsgleichung dazu lautet:
 \begin_inset Formula \begin{equation}
-\mathrm{2\, Na^{+}+SO_{4}^{2-}\longrightarrow Na_{2}SO_{4}}\label{eq:chemische-Reaktion}\end{equation}
+\mathrm{2\, Na^{+}+SO_{4}^{2-}\longrightarrow Na_{2}SO_{4}}\label{eq:chemische-Reaktion}
+\end{equation}
 
 \end_inset
 
@@ -31352,7 +31733,7 @@ Eine komfortablerer Weg chemische Formeln zu setzen, ist es den Befehl
 ce
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31369,7 +31750,7 @@ ce
 mhchem
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31393,7 +31774,7 @@ ce
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -32107,7 +32488,8 @@ reference "eq:TEOS-Reaktion-2"
  Gleichung eine eigene Nummer hat.
 \begin_inset Formula \begin{eqnarray}
 \ce{TEOS + 4O} & \ce{->} & \ce{Si(OH)4 + 4C2H4O}\label{eq:TEOS-Reaktion-1}\\
-\ce{Si(OH)4} & \ce{->} & \ce{SiO2 + 2H2O}\label{eq:TEOS-Reaktion-2}\end{eqnarray}
+\ce{Si(OH)4} & \ce{->} & \ce{SiO2 + 2H2O}\label{eq:TEOS-Reaktion-2}
+\end{eqnarray}
 
 \end_inset
 
@@ -32132,7 +32514,7 @@ mhchem
 cf
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32182,7 +32564,7 @@ xymatrix
 
 \begin_layout Subsection
 amscd Diagramme
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32200,7 +32582,9 @@ Diagramme dieses Typs stellen Beziehungen mittels horizontaler und vertikaler
 \begin_inset Formula \[
 \begin{CD}A@>>>B@>>>C\\
 @AAA@.@VVV\\
-F@<<<E@<<<D\end{CD}\]
+F@<<<E@<<<D
+\end{CD}
+\]
 
 \end_inset
 
@@ -32213,7 +32597,7 @@ Um sie zu erstellen, gibt man in einer Formel den Befehl
 
 \backslash
 CD
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32341,7 +32725,9 @@ Als Beispiel ein Diagramm mit allen möglichen Beziehungen:
 \begin_inset Formula \[
 \begin{CD}A@>j>>B@>>k>C@=F\\
 @AmAA@.@VV{V}V@|\\
-D@<<j<E@>k>>F@=C\end{CD}\]
+D@<<j<E@>k>>F@=C
+\end{CD}
+\]
 
 \end_inset
 
@@ -32375,18 +32761,12 @@ A@>j>>B@>>k>C@=F Strg+Enter
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 CD
@@ -32403,12 +32783,6 @@ leer
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -32428,18 +32802,12 @@ V@| Strg+Enter
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 CD
@@ -32456,12 +32824,6 @@ leer
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -32471,7 +32833,7 @@ D@<<j<E@>k>>F@=C
 
 \begin_layout Subsection
 xymatrix Diagramme
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32522,17 +32884,80 @@ Spezielle
 \begin_inset space ~
 \end_inset
 
-Handbücher\SpecialChar \menuseparator
-XY-pic-Handbuch
+Handbücher
 \family default
  zu finden ist.
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
+\begin_layout Subsection
+
+\noun on
+Feynman
+\noun default
+ Diagramme
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Diagramme ! Feynman
+\end_layout
+
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Um 
+\noun on
+Feynman-
+\noun default
+Diagrammen nutzen zu können, muss das LaTeX-Paket 
+\series bold
+feyn
+\series default
+ installiert sein.
+ Ein 
+\noun on
+Feynman-
+\noun default
+Diagramm wird erstellt, indem der Befehl 
+\series bold
+
+\backslash
+Diagram
+\series default
+ in eine Formel eingegeben wird.
+ Dann können Sie neue Matrixspalten und -zeilen wie bei normalen Matrizen
+ hinzufügen, siehe 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Matrizen"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Beispiele wie man in LyX 
+\noun on
+Feynman-
+\noun default
+Diagramme erstellt sind im 
+\emph on
+Feynman-Diagramm Handbuch
+\emph default
+ gegeben, dass im Menü 
+\family sans
+Hilfe\SpecialChar \menuseparator
+Spezielle
+\begin_inset space ~
+\end_inset
+
+Handbücher
+\family default
+ zu finden ist.
 \end_layout
 
 \begin_layout Section
@@ -32544,7 +32969,7 @@ name "sec:Benutzerdefinierte-Befehle"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32585,7 +33010,7 @@ name "sub:Der-Befehl-newcommand"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32597,7 +33022,7 @@ newcommand
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32646,27 +33071,15 @@ Wert]
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-phantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 newcommand
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -32945,7 +33358,7 @@ Ein Test der neu definierten Befehle:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -33202,7 +33615,7 @@ A=B
 
 \begin_layout Subsection
 Mathe-Makros
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33212,7 +33625,7 @@ benutzerdefinierte Befehle ! Mathe-Makros
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33235,13 +33648,15 @@ B.
  auf.
  Die allgemeine Form einer quadratischen Gleichung ist
 \begin_inset Formula \[
-0=\lambda^{2}+p\lambda+q\]
+0=\lambda^{2}+p\lambda+q
+\]
 
 \end_inset
 
 Die allgemeine Form der Lösung lautet
 \begin_inset Formula \[
-\lambda_{1,2}=-\frac{p}{2}\pm\sqrt{\frac{p²}{4}-q}\]
+\lambda_{1,2}=-\frac{p}{2}\pm\sqrt{\frac{p²}{4}-q}
+\]
 
 \end_inset
 
@@ -33287,27 +33702,15 @@ pm
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 newcommand
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -33599,7 +34002,8 @@ Hier ist unser Makro-Beispiel mit den Argumenten
 
 \begin_layout Standard
 \begin_inset Formula \[
-\qG x{\ln(x)}B\]
+\qG x{\ln(x)}B
+\]
 
 \end_inset
 
@@ -33725,7 +34129,7 @@ Wenn der Cursor in einer Makrodefinitionsbox ist, wird die Makro-Werkzeugleiste
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33758,7 +34162,7 @@ Die Makro-Werkzeugleiste enthält von links nach rechts die folgenden Knöpfe:
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="85col%">
 <row interlinespace="2.5mm">
@@ -33768,7 +34172,6 @@ Die Makro-Werkzeugleiste enthält von links nach rechts die folgenden Knöpfe:
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-remove-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -33800,7 +34203,6 @@ Letztes Argument entfernen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-add-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -33832,7 +34234,6 @@ Argument hinzufügen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-make-optional.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -33856,28 +34257,16 @@ Das erste nicht-optionale
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\family sans
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -33887,28 +34276,16 @@ Argument in einen optionales
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\family sans
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -33926,7 +34303,6 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-make-nonoptional.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -33950,28 +34326,16 @@ Das letzte optionale Argument in
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\family sans
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -33989,7 +34353,6 @@ einen nicht-optionales ändern
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-remove-optional-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34021,7 +34384,6 @@ Optionales Argument entfernen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-add-optional-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34053,7 +34415,6 @@ Optionales Argument einfügen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-remove-greedy-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34085,7 +34446,6 @@ Letztes Argument rechts entfernen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-append-greedy-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34117,7 +34477,6 @@ Argument von rechts hinzufügen
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro-add-greedy-optional-param.png
-	BoundingBox 0bp 5bp 20bp 25bp
 	rotateOrigin center
 
 \end_inset
@@ -34141,28 +34500,16 @@ Optionales Argument von rechts
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-hphantom{
-\end_layout
-
-\end_inset
-
+\family sans
 Bearbeiten\SpecialChar \menuseparator
 Mathe\SpecialChar \menuseparator
 Makro-Definition\SpecialChar \menuseparator
 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -34180,6 +34527,143 @@ hinzufügen
 
 \end_layout
 
+\begin_layout Section
+Computeralgebrasysteme
+\end_layout
+
+\begin_layout Standard
+Mit LyX ist es möglich, mathematische Ausdrücke mit externen Anwendungen
+ oder benutzerdefinierten Skripten auszutauschen.
+ Momentan werden folgende Anwendungen unterstützt: 
+\family typewriter
+Maple
+\family default
+, 
+\family typewriter
+Mathematica
+\family default
+, 
+\family typewriter
+Maxima
+\family default
+ und 
+\family typewriter
+Octave
+\family default
+.
+ Beachten Sie aber, dass die unterstützten mathematischen Ausdrücke auf
+ sehr einfache Fälle beschränkt sind.
+\end_layout
+
+\begin_layout Subsection
+Verwendung
+\end_layout
+
+\begin_layout Standard
+Schreiben Sie einen Ausdruck in eine Formel, öffnen Sie das Menü 
+\family sans
+Bearbeiten\SpecialChar \menuseparator
+Mathe\SpecialChar \menuseparator
+Computer-Algebra-System verwenden
+\family default
+ und wählen Sie die Anwendung, die Sie auf ihrem Computer installiert haben.
+ Danach sollte das Ergebnis der Berechnung auf der rechten Seite zusammen
+ mit dem 
+\begin_inset Quotes gld
+\end_inset
+
+=
+\begin_inset Quotes grd
+\end_inset
+
+ Operator erscheinen.
+\end_layout
+
+\begin_layout Standard
+Hier sind ein paar einfache Beispiele (mit Resultaten von 
+\family typewriter
+Maxima
+\family default
+) um zu zeigen, welche Berechnungen durchgeführt werden können:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\frac{37}{3}*2-\sum_{i=1}^{3}i^{i}=-\frac{22}{3}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\frac{37.0}{3}=12.33333333333333$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\int_{1}^{2}\sin(x)dx=\cos1-\cos2$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\det\left[\begin{array}{ccc}
+1 & 6 & 7\\
+2 & 5 & 8\\
+3 & 4 & 17
+\end{array}\right]=-56$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\lim_{x\rightarrow0}\left(\frac{\sin(x)}{x}\right)=1$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Tastenkürzel
+\end_layout
+
+\begin_layout Standard
+Momentan gibt es kein Tastenkürzel um Computeralgebrasysteme aufzurufen.
+ Sie können aber einfach ein Tastenkürzel mit der LyX-Funktion 
+\family sans
+math-extern
+\family default
+ verknüpfen (siehe das 
+\emph on
+LyX-Funktionen
+\emph default
+ Handbuch).
+ Man kann z.
+\begin_inset space \thinspace{}
+\end_inset
+
+B.
+ die 
+\family sans
+Enter
+\family default
+-Taste in Formeln verknüpfen.
+ Um sie mit 
+\family typewriter
+Maxima
+\family default
+ zu verknüpfen, würde man diesen Tastenkürzel-Definitionsbefehl verwenden:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+command-alternatives break-paragraph;math-extern maxima
+\end_layout
+
 \begin_layout Standard
 \begin_inset Newpage newpage
 \end_inset
@@ -34189,7 +34673,7 @@ hinzufügen
 
 \begin_layout Section
 Tipps
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34203,7 +34687,7 @@ Tipps
 
 \begin_layout Subsection
 Negative Zahlen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34236,7 +34720,7 @@ Ein Beispiel zur Veranschaulichung der Problematik:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="right" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -34314,7 +34798,7 @@ Lösung:
 
 \begin_layout Subsection
 Komma als Dezimaltrennzeichen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34366,7 +34850,7 @@ icomma
 was
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34394,7 +34878,7 @@ vspace{4mm}
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34423,7 +34907,7 @@ name "sub:Physikalische-Vektoren"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34441,7 +34925,7 @@ Vordefinierte Vektoren bietet das LaTeX-Paket
 braket
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34507,7 +34991,7 @@ Folgende Befehle sind definiert:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -34630,7 +35114,8 @@ Braket
  stellt sicher, dass alle senkrechten Striche in der Größe der umgebenden
  Klammern gesetzt werden:
 \begin_inset Formula \[
-\Braket{\phi|J=\frac{3}{2}\,,\, M_{J}}\]
+\Braket{\phi|J=\frac{3}{2}\,,\, M_{J}}
+\]
 
 \end_inset
 
@@ -34720,7 +35205,7 @@ name "sub:Selbstdefinierte-Brüche"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34740,7 +35225,7 @@ Um eigene Befehle für Brüche zu definieren, verwendet man den Befehl
 genfrac
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34772,27 +35257,15 @@ Klammer}{Bruchstrichdicke}{Ansichtsstil}
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
 
-
-\backslash
-phantom{
-\end_layout
-
-\end_inset
-
+\series bold
 
 \backslash
 genfrac
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-}
 \end_layout
 
 \end_inset
@@ -34816,7 +35289,7 @@ Der Ansichtsstil wird mit einer ganzen Zahl im Bereich 0
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -35024,7 +35497,8 @@ genfrac{}{}{#1}{}{#2}{#3}}
 Dazu ein Test:
 \begin_inset Formula \begin{align*}
 \text{Befehl} &  & \mathrm{\backslash fracS[1mm]\backslash\{A\to\backslash\{B} &  & \mathrm{\backslash fracS[5mm]\backslash\{A\to\backslash\{B}\\
-\text{Ergebnis} &  & \fracS[1mm]{A}{B} &  & \fracS[5mm]{A}{B}\end{align*}
+\text{Ergebnis} &  & \fracS[1mm]{A}{B} &  & \fracS[5mm]{A}{B}
+\end{align*}
 
 \end_inset
 
@@ -35034,7 +35508,7 @@ Wie man sieht, entspricht der Abstand des Zählers und Nenners vom Strich
 
 \begin_layout Subsection
 Durchgestrichene Formeln
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35052,7 +35526,7 @@ Um Formeln oder Formelteile durchzustreichen, muss das LaTeX-Paket
 cancel
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35114,7 +35588,7 @@ Es gibt vier verschiedene Arten durchzustreichen:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -35336,7 +35810,8 @@ cancelto
  eignet sich besonders, wenn man das Kürzen innerhalb einer Formel darstellen
  will:
 \begin_inset Formula \[
-\frac{\left(x_{0}+bB\right)^{2}}{\left(1+b^{2}\right)^{\cancelto{2}{3}}}=\frac{x_{0}^{2}+B^{2}-r_{g}^{2}}{\cancel{1+b^{2}}}\]
+\frac{\left(x_{0}+bB\right)^{2}}{\left(1+b^{2}\right)^{\cancelto{2}{3}}}=\frac{x_{0}^{2}+B^{2}-r_{g}^{2}}{\cancel{1+b^{2}}}
+\]
 
 \end_inset
 
@@ -35406,7 +35881,7 @@ name "sub:Formeln-in-Überschriften"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35432,7 +35907,7 @@ Verwendet man
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35485,7 +35960,7 @@ hyperref
 
 \backslash
 texorpdfstring{Teil}{Alternative}
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35533,7 +36008,7 @@ boldmath
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -35628,7 +36103,7 @@ reference "sub:Fett-gedruckte-Formeln"
 
 \begin_layout Subsection
 Formeln im mehrspaltigen Text
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35662,7 +36137,7 @@ multicol
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35843,7 +36318,8 @@ end{multicols}
 
 
 \begin_inset Formula \begin{equation}
-S(t)=S_{0}(t)\int_{-\infty}^{\infty}P(\phi,t)\mathrm{e}^{\mathrm{i}\phi}\,\mathrm{d}\phi\end{equation}
+S(t)=S_{0}(t)\int_{-\infty}^{\infty}P(\phi,t)\mathrm{e}^{\mathrm{i}\phi}\,\mathrm{d}\phi
+\end{equation}
 
 \end_inset
 
@@ -35906,7 +36382,7 @@ end{multicols}
 
 \begin_layout Subsection
 Formeln mit Beschreibung der Variablen
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36075,7 +36551,9 @@ reference "eq:innerhalb"
 \hspace{30pt}F_{A} & =\rho·V·g & \footnotesize\begin{array}{ll}
 \rho & \textrm{Dichte}\\
 V & \textrm{Volumen}\\
-g & \textrm{Fallbeschleunigung}\end{array} &  & {}\label{eq:innerhalb}\end{flalign}
+g & \textrm{Fallbeschleunigung}
+\end{array} &  & {}\label{eq:innerhalb}
+\end{flalign}
 
 \end_inset
 
@@ -36091,7 +36569,7 @@ name "sub:Aufrechte-kleine-griechische"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36126,7 +36604,7 @@ upgreek
 was
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36154,7 +36632,7 @@ vspace{4mm}
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36230,7 +36708,8 @@ uptau
 \begin_layout Standard
 Damit kann man Elementarteilchenreaktionen erstellen:
 \begin_inset Formula \[
-\uppi^{+}\to\upmu^{+}+\upnu_{\upmu}\]
+\uppi^{+}\to\upmu^{+}+\upnu_{\upmu}
+\]
 
 \end_inset
 
@@ -36313,7 +36792,7 @@ name "sub:Textzeichen-in-Formeln"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36464,7 +36943,7 @@ i}
 \begin_layout Section
 \start_of_appendix
 Typographische Hinweise
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36716,22 +37195,8 @@ leer
 
 \end_inset
 
-
-\backslash
-{F
+F
 \series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Befehle ! M ! 
-\backslash
-mathscr
-\end_layout
-
-\end_inset
-
  oder über das Menü 
 \family sans
 Einfügen\SpecialChar \menuseparator
@@ -36748,36 +37213,6 @@ Symbole
 \end_inset
 
 
-\begin_inset Newline newline
-\end_inset
-
-Um den Befehl 
-\series bold
-
-\backslash
-mathscr
-\series default
- benutzen zu können, muss das LaTeX-Paket 
-\series bold
-mathrsfs
-\series default
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Pakete ! mathrsfs
-\end_layout
-
-\end_inset
-
- mit der LaTeX-Vorspannzeile 
-\series bold
-
-\backslash
-usepackage{mathrsfs}
-\series default
- geladen werden.
 \end_layout
 
 \begin_layout Standard
@@ -36789,7 +37224,7 @@ usepackage{mathrsfs}
 
 \begin_layout Section
 Synonyme
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36817,7 +37252,7 @@ Einige Zeichen und Symbole können mit mehreren Befehlen erstellt werden.
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="12" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -37144,7 +37579,7 @@ vert
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="12" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -37448,6 +37883,7 @@ Vert
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "TLC2"
@@ -37468,6 +37904,7 @@ The LaTeX Companion
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Mathmode"
@@ -37486,6 +37923,7 @@ target "ftp://ftp.dante.de/tex-archive/info/math/voss/mathmode/Mathmode.pdf"
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "AMS"
@@ -37517,6 +37955,7 @@ AmS
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Symbole"
@@ -37535,6 +37974,7 @@ target "ftp://ftp.dante.de/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "hyperref"
@@ -37554,7 +37994,7 @@ target "http://www.tug.org/applications/hyperref/ftp/doc/manual.pdf"
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37567,6 +38007,7 @@ Pakete ! hyperref
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "mhchem"
@@ -37586,7 +38027,7 @@ target "http://www.ctan.org/tex-archive/macros/latex/contrib/mhchem/mhchem.pdf"
 mhchem
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37599,6 +38040,7 @@ Pakete ! mhchem
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Mathclap"
@@ -37627,7 +38069,7 @@ reference "sub:Operatorgrenzen"
 mathclap
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -37642,6 +38084,7 @@ mathclap
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Duden"
@@ -37658,6 +38101,7 @@ Duden Band 1
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Referenzen
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Checklist"
@@ -37777,6 +38221,7 @@ captions<Dokumentsprache>
 
 \begin_inset CommandInset index_print
 LatexCommand printindex
+type "idx"
 
 \end_inset
 

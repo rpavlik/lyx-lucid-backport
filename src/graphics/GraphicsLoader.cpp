@@ -20,7 +20,7 @@
 #include "support/debug.h"
 #include "support/Timeout.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <set>
 #include <queue>
@@ -107,7 +107,7 @@ void LoaderQueue::loadNext()
 LoaderQueue::LoaderQueue() : timer(s_millisecs_, Timeout::ONETIME),
 			     running_(false)
 {
-	timer.timeout.connect(boost::bind(&LoaderQueue::loadNext, this));
+	timer.timeout.connect(bind(&LoaderQueue::loadNext, this));
 }
 
 
@@ -159,7 +159,7 @@ void LoaderQueue::touch(Cache::ItemPtr const & item)
 //
 /////////////////////////////////////////////////////////////////////
 
-typedef boost::shared_ptr<Image> ImagePtr;
+typedef shared_ptr<Image> ImagePtr;
 
 class Loader::Impl : public boost::signals::trackable {
 public:
@@ -388,7 +388,7 @@ void Loader::Impl::resetFile(FileName const & file)
 	if (continue_monitoring && !cached_item_->monitoring())
 		cached_item_->startMonitoring();
 
-	sc_ = cached_item_->connect(boost::bind(&Impl::statusChanged, this));
+	sc_ = cached_item_->connect(bind(&Impl::statusChanged, this));
 }
 
 

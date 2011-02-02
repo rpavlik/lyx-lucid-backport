@@ -1,3 +1,6 @@
+@bRonen Abravanel
+@iE-mail: ronena () gmail ! com
+   Support for feyn diagrams
 @bMaarten Afman
 @iE-mail: info () afman ! net
    Dutch translation team member
@@ -12,7 +15,7 @@
    External style definition files, linuxdoc sgml support and more ftp-site ftp.lyx.org
 @bLiviu Andronic
 @iE-mail: landronimirc () gmail ! com
-   Romanian localization
+   Romanian localization and support for the frletter document class
 @bJoão Luis Meloni Assirati
 @iE-mail: assirati () nonada ! if ! usp ! br
    Added support for unix sockets and thence the 'inverse DVI' feature
@@ -37,6 +40,9 @@
 @bKornel Benko
 @iE-mail: Kornel.Benko () berlin ! de
    small bugfixes, CMake build system, Slovak translation
+@bPunyashloka Biswal
+@iE-mail: punya.biswal () gmail ! com
+   Bug fixes
 @bGraham Biswell
 @iE-mail: graham () gbiswell ! com
    Small bugfixes that were very hard to find
@@ -55,6 +61,9 @@
 @bFrancesc Burrull i Mestres
 @iE-mail: fburrull () mat ! upc ! es
    Catalan translation
+@bSergiu Carpov
+@iE-mail: ssmiler () gmail ! com
+   Bug fixes
 @bHumberto Nicolás Castejón
 @iE-mail: beconico () gmail ! com
    Spanish translation of the Windows installer
@@ -79,6 +88,12 @@
 @bUlysse Danglis
 @iE-mail: o2d () freemail ! gr
    Greek translations
+@bEwan Davies
+@iE-mail: ewan.davies () googlemail ! com
+   doxygen to LFUNs.lyx conversion
+@bJack Dessert
+@iE-mail: jackdesert556 () gmail ! com
+   Patches for configure.py
 @bAnders Ekberg
 @iE-mail: anek () chalmers ! se
    Improvements to the Swedish translation of the Windows Installer
@@ -133,6 +148,9 @@
 @bHartmut Goebel
 @iE-mail: h.goebel () crazy-compilers ! com
    Improvements to Koma-Script classes
+@bRiccardo Gori
+@iE-mail: goriccardo () gmail ! com
+   Fixing tabular code
 @bPeter Gumm
 @iE-mail: gumm () mathematik ! uni-marburg ! de
    XY-pic manual
@@ -146,11 +164,14 @@
 @iE-mail: helgehaf () aitel ! hist ! no
    Norwegian documentation and localization
 @bRichard Heck
-@iE-mail: rgheck () brown ! edu
-   Bug fixes, layout modules, BibTeX code
+@iE-mail: rgheck () comcast ! net
+   Bug fixes, layout modules, BibTeX code, XHTML export
 @bBennett Helm
 @iE-mail: bennett.helm () fandm ! edu
    Maintainer of the OSX ports, taking over from Ronald Florence
+@bKevin B. Hendricks
+@iE-mail: kevin.hendricks () sympatico ! ca
+   Author of the MyThes thesaurus library
 @bClaus Hentschel
 @iE-mail: claus.hentschel () mbau ! fh-hannover ! de
    Win32 port of LyX 1.1.x
@@ -253,6 +274,9 @@
 @bRoman Maurer
 @iE-mail: roman.maurer () amis ! net
    Slovenian translation coordinator
+@bJohn McCabe-Dansted
+@iE-mail: gmatht () gmail ! com
+   Keys-test module, bug fixing
 @bCaolán McNamara
 @iE-mail: caolanm () redhat ! com
    Support for the enchant spell checking library
@@ -280,6 +304,12 @@
 @bDirk Niggemann
 @iE-mail: dabn100 () cam ! ac ! uk
    config. handling enhancements, bugfixes, printer enhancements path mingling
+@bJens Nöckel
+@iE-mail: noeckel () uoregon !edu
+   Mac OS X enhancements
+@bRob Oakes
+@iE-mail: lyx-devel () oak-tree ! us>
+   Improvements to the outliner.
 @bCarl Ollivier-Gooch
 @iE-mail: cfog () mech ! ubc ! ca
    Support for two-column figure (figure*) and table (table*) environments.  Fixed minibuffer entry of floats.
@@ -289,12 +319,12 @@
 @bAndrey V. Panov
 @iE-mail: panov () canopus ! iacp ! dvo ! ru
    Russian translation of the user interface
-@bSanda Pavel
-@iE-mail: ps () ucw ! cz
-   Czech translation, support for the LaTeX package hyperref, fullscreen support, lfuns docs/review
 @bBo Peng
 @iE-mail: ben.bob () gmail ! com
    Conversion of all shell scripts to Python, shortcuts dialog, session, view-source, auto-view, embedding features and scons build system.
+@bJohn Perry
+@iE-mail: john.perry () usm ! edu
+   Named theorems module.
 @bJoacim Persson
 @iE-mail: sp2joap1 () ida ! his ! se
    po-file for Swedish, a tool for picking shortcuts, bug reports and hacking atrandom
@@ -321,6 +351,9 @@
 @bAllan Rae
 @iE-mail: rae () itee ! uq ! edu ! au
    GUI-I architect, LyX PR head, LDN, bug reports/fixes, Itemize Bullet Selection, xforms-0.81 + gcc-2.6.3 compatibility
+@bManoj Rajagopalan
+@iE-mail: rmanoj () umich ! edu
+   reference dialog tweaks
 @bVincent van Ravesteijn
 @iE-mail: V.F.vanRavesteijn () tudelft ! nl
    lots of fixes
@@ -346,6 +379,9 @@
 @iE-mail: christian.ridderstrom () gmail ! com
    The driving force behind, and maintainer of, the LyX wiki wiki.
    Swedish translation of the Windows installer
+@bJulien Rioux
+@iE-mail: jrioux () physics ! utoronto ! ca
+   Bug fixes, lilypond support
 @bBernhard Roider
 @iE-mail: bernhard.roider () sonnenkinder ! org
    Various bug fixes
@@ -355,6 +391,9 @@
 @bRan Rutenberg
 @iE-mail: ran.rutenberg () gmail ! com
    Hebrew translation
+@bPavel Sanda
+@iE-mail: ps () ucw ! cz
+   Czech translation, support for the LaTeX package hyperref, fullscreen support, lfuns docs/review
 @bSzõke Sándor
 @iE-mail: alex () lyx ! hu
    Hungarian translation
@@ -420,7 +459,7 @@
    Russian translation of the user interface
 @bReuben Thomas
 @iE-mail: rrt () sc3d ! org
-   encts document class lots of useful bug reports
+   ENTCS document class and lots of useful bug reports
 @bDekel Tsur
 @iE-mail: dtsur () cs ! ucsd ! edu
    Hebrew support, general file converter, many many bug fixes
@@ -454,6 +493,9 @@
 @bAndreas Vox
 @iE-mail: avox () arcor ! de
    Bug fixes, feedback on LyX behaviour on the Mac, and improvements to DocBook export
+@bvenom00
+@iE-mail: venom00 () arcadiaclub ! com
+   Bug fixing
 @bJason Waskiewicz
 @iE-mail: jason.waskiewicz () sendit ! nodak ! edu
    Layouts for the Tufte document classes
@@ -472,6 +514,9 @@
 @bStephan Witt
 @iE-mail: stephan.witt () beusen ! de
    support for page selection for printing support for number of copies
+@bRuss Woodroofe
+@iE-mail: paranoia () math ! cornell ! edu
+   question layout environment
 @bHuang Ying
 @iE-mail: huangy () sh ! necas ! nec ! com ! cn
    Gtk frontend
@@ -484,6 +529,9 @@
 @bHenner Zeller
 @iE-mail: henner.zeller () freiheit ! com
    rotation of wysiwyg figures
+@bZiegler & Partner GmbH
+@iE-mail: info () transsib ! com
+   photo for banner
 @bXiaokun Zhu
 @iE-mail: xiaokun () aero ! gla ! ac ! uk
    bug reports and small fixes

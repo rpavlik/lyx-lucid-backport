@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -21,7 +21,17 @@
 
 namespace lyx {
 
-// cell(0) is stuff before the 'd', cell(1) the stuff after
+// for integrals:
+//   cell(0) is stuff before the 'd'
+//   cell(1) is the stuff after the 'd'
+//   cell(2) is the lower bound
+//   cell(3) is the upper bound
+// for sums: 
+//   cell(0) is the main body
+//   cell(1) is the index (e.g., i), if the lower bound is "i = ..."
+//      or the whole lower bound if not
+//   cell(2) is what follows the "=" in the first case
+//   cell(3) is the upper bound
 class InsetMathExInt : public InsetMathNest {
 public:
 	///
@@ -44,7 +54,11 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void write(WriteStream & os) const;
+	///
+	InsetCode lyxCode() const { return MATH_EXINT_CODE; }
 private:
 	virtual Inset * clone() const;
 	///

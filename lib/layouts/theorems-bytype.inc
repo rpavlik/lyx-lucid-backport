@@ -21,7 +21,7 @@
 # - Proof
 # - Case (regular only -- defined as an enumeration)
 
-Format 11
+Format 30
 
 Style Theorem
 	Category              Theorem
@@ -234,4 +234,7 @@ Style Case
 	   \usecounter{casectr}}
 	  {\end{list}}
 	EndPreamble
+	RefPrefix OFF
 End
+
+Input theorems-refprefix.inc

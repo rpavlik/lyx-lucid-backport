@@ -27,6 +27,7 @@
 #include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
+#include "support/lyxtime.h"
 
 #ifdef Q_WS_MACX
 #include "support/linkback/LinkBackProxy.h"
@@ -44,8 +45,11 @@
 #include <QString>
 #include <QStringList>
 
+#include <boost/crc.hpp>
+
 #include <memory>
 #include <map>
+#include <iostream>
 
 using namespace std;
 using namespace lyx::support;
@@ -54,6 +58,43 @@ using namespace lyx::support;
 namespace lyx {
 
 namespace frontend {
+
+static QMimeData const * read_clipboard() 
+{
+	LYXERR(Debug::ACTION, "Getting Clipboard");
+	QMimeData const * source =
+		qApp->clipboard()->mimeData(QClipboard::Clipboard);
+	if (!source) {
+		LYXERR0("0 bytes (no QMimeData)");
+		return new QMimeData();
+	}
+	// It appears that doing IO between getting a mimeData object
+	// and using it can cause a crash (maybe Qt used IO
+	// as an excuse to free() it? Anyway let's not introduce
+	// any new IO here, so e.g. leave the following line commented.
+	// lyxerr << "Got Clipboard (" << (long) source << ")\n" ;
+	return source;
+}
+
+
+void CacheMimeData::update()
+{
+	time_t const start_time = current_time();
+	LYXERR(Debug::ACTION, "Creating CacheMimeData object");
+	cached_formats_ = read_clipboard()->formats();
+
+	// Qt times out after 5 seconds if it does not recieve a response.
+	if (current_time() - start_time > 3) {
+		LYXERR0("No timely response from clipboard, perhaps process "
+			<< "holding clipboard is frozen?");
+	}
+}
+
+
+QByteArray CacheMimeData::data(QString const & mimeType) const 
+{
+	return read_clipboard()->data(mimeType);
+}
 
 
 QString const lyxMimeType(){ return "application/x-lyx"; }
@@ -76,16 +117,9 @@ string const GuiClipboard::getAsLyX() const
 	LYXERR(Debug::ACTION, "GuiClipboard::getAsLyX(): `");
 	// We don't convert encodings here since the encoding of the
 	// clipboard contents is specified in the data itself
-	QMimeData const * source =
-		qApp->clipboard()->mimeData(QClipboard::Clipboard);
-	if (!source) {
-		LYXERR(Debug::ACTION, "' (no QMimeData)");
-		return string();
-	}
-
-	if (source->hasFormat(lyxMimeType())) {
+	if (cache_.hasFormat(lyxMimeType())) {
 		// data from ourself or some other LyX instance
-		QByteArray const ar = source->data(lyxMimeType());
+		QByteArray const ar = cache_.data(lyxMimeType());
 		string const s(ar.data(), ar.count());
 		LYXERR(Debug::ACTION, s << "'");
 		return s;
@@ -138,7 +172,7 @@ FileName GuiClipboard::getPastedGraphicsFileName(Cursor const & cur,
 	typeNames[Clipboard::JpegGraphicsType] = _("JPEG");
 	
 	// find unused filename with primary extension
-	string document_path = cur.buffer().fileName().onlyPath().absFilename();
+	string document_path = cur.buffer()->fileName().onlyPath().absFileName();
 	unsigned newfile_number = 0;
 	FileName filename;
 	do {
@@ -165,7 +199,7 @@ FileName GuiClipboard::getPastedGraphicsFileName(Cursor const & cur,
 		// show save dialog for the graphic
 		FileDialog dlg(qt_("Choose a filename to save the pasted graphic as"));
 		FileDialog::Result result =
-		dlg.save(toqstr(filename.onlyPath().absFilename()), filter,
+		dlg.save(toqstr(filename.onlyPath().absFileName()), filter,
 			 toqstr(filename.onlyFileName()));
 		
 		if (result.first == FileDialog::Later)
@@ -179,12 +213,12 @@ FileName GuiClipboard::getPastedGraphicsFileName(Cursor const & cur,
 		filename.set(newFilename);
 		
 		// check the extension (the user could have changed it)
-		if (!suffixIs(ascii_lowercase(filename.absFilename()),
+		if (!suffixIs(ascii_lowercase(filename.absFileName()),
 			      "." + extensions[type])) {
 			// the user changed the extension. Check if the type is available
 			size_t i;
 			for (i = 1; i != types.size(); ++i) {
-				if (suffixIs(ascii_lowercase(filename.absFilename()),
+				if (suffixIs(ascii_lowercase(filename.absFileName()),
 					     "." + extensions[types[i]])) {
 					type = types[i];
 					break;
@@ -205,7 +239,7 @@ FileName GuiClipboard::getPastedGraphicsFileName(Cursor const & cur,
 		int ret = frontend::Alert::prompt(
 			_("Overwrite external file?"),
 			bformat(_("File %1$s already exists, do you want to overwrite it?"),
-			from_utf8(filename.absFilename())), 1, 1, _("&Overwrite"), _("&Cancel"));
+			from_utf8(filename.absFileName())), 1, 1, _("&Overwrite"), _("&Cancel"));
 		if (ret == 0)
 			// overwrite, hence break the dialog loop
 			break;
@@ -238,21 +272,13 @@ FileName GuiClipboard::getAsGraphics(Cursor const & cur, GraphicsType type) cons
 		QBuffer buffer(&ar);
 		buffer.open(QIODevice::WriteOnly);
 		if (type == PngGraphicsType)
-			image.save(toqstr(filename.absFilename()), "PNG");
+			image.save(toqstr(filename.absFileName()), "PNG");
 		else if (type == JpegGraphicsType)
-			image.save(toqstr(filename.absFilename()), "JPEG");
+			image.save(toqstr(filename.absFileName()), "JPEG");
 		else
 			LASSERT(false, /**/);
 		
 		return filename;
-	}
-	
-	// get mime data
-	QMimeData const * source =
-	qApp->clipboard()->mimeData(QClipboard::Clipboard);
-	if (!source) {
-		LYXERR(Debug::ACTION, "0 bytes (no QMimeData)");
-		return FileName();
 	}
 	
 	// get mime for type
@@ -266,17 +292,17 @@ FileName GuiClipboard::getAsGraphics(Cursor const & cur, GraphicsType type) cons
 	}
 	
 	// get data
-	if (!source->hasFormat(mime))
+	if (!cache_.hasFormat(mime))
 		return FileName();
 	// data from ourself or some other LyX instance
-	QByteArray const ar = source->data(mime);
+	QByteArray const ar = cache_.data(mime);
 	LYXERR(Debug::ACTION, "Getting from clipboard: mime = " << mime.data()
 	       << "length = " << ar.count());
 	
-	QFile f(toqstr(filename.absFilename()));
+	QFile f(toqstr(filename.absFileName()));
 	if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
 		LYXERR(Debug::ACTION, "Error opening file "
-		       << filename.absFilename() << " for writing");
+		       << filename.absFileName() << " for writing");
 		return FileName();
 	}
 	
@@ -325,6 +351,13 @@ void GuiClipboard::put(string const & lyx, docstring const & text)
 	if (!lyx.empty()) {
 		QByteArray const qlyx(lyx.c_str(), lyx.size());
 		data->setData(lyxMimeType(), qlyx);
+		// If the OS has not the concept of clipboard ownership,
+		// we recognize internal data through its checksum.
+		if (!hasInternal()) {
+			boost::crc_32_type crc32;
+			crc32.process_bytes(lyx.c_str(), lyx.size());
+			checksum = crc32.checksum();
+		}
 	}
 	// Don't test for text.empty() since we want to be able to clear the
 	// clipboard.
@@ -336,17 +369,13 @@ void GuiClipboard::put(string const & lyx, docstring const & text)
 
 bool GuiClipboard::hasLyXContents() const
 {
-	QMimeData const * const source =
-		qApp->clipboard()->mimeData(QClipboard::Clipboard);
-	return source && source->hasFormat(lyxMimeType());
+	return cache_.hasFormat(lyxMimeType());
 }
 
 
 bool GuiClipboard::hasTextContents() const
 {
-	QMimeData const * const source =
-		qApp->clipboard()->mimeData(QClipboard::Clipboard);
-	return source && source->hasText();	
+	return cache_.hasText();
 }
 
 
@@ -361,12 +390,9 @@ bool GuiClipboard::hasGraphicsContents(Clipboard::GraphicsType type) const
 			|| hasGraphicsContents(LinkBackGraphicsType);
 	}
 
-	QMimeData const * const source =
-	qApp->clipboard()->mimeData(QClipboard::Clipboard);
-
 	// handle image cases first
 	if (type == PngGraphicsType || type == JpegGraphicsType)
-		return source->hasImage();
+		return cache_.hasImage();
 
 	// handle LinkBack for Mac
 	if (type == LinkBackGraphicsType)
@@ -377,7 +403,7 @@ bool GuiClipboard::hasGraphicsContents(Clipboard::GraphicsType type) const
 #endif // Q_WS_MACX
 	
 	// get mime data
-	QStringList const & formats = source->formats();
+	QStringList const & formats = cache_.formats();
 	LYXERR(Debug::ACTION, "We found " << formats.size() << " formats");
 	for (int i = 0; i < formats.size(); ++i)
 		LYXERR(Debug::ACTION, "Found format " << formats[i]);
@@ -391,17 +417,28 @@ bool GuiClipboard::hasGraphicsContents(Clipboard::GraphicsType type) const
 	default: LASSERT(false, /**/);
 	}
 	
-	return source && source->hasFormat(mime);
+	return cache_.hasFormat(mime);
 }
 
 
 bool GuiClipboard::isInternal() const
 {
+	if (!hasLyXContents())
+		return false;
+
 	// ownsClipboard() is also true for stuff coming from dialogs, e.g.
-	// the preamble dialog
-	// FIXME: This does only work on X11, since ownsClipboard() is
-	// hardwired to return false on Windows and OS X.
-	return qApp->clipboard()->ownsClipboard() && hasLyXContents();
+	// the preamble dialog. This does only work on X11 and Windows, since
+	// ownsClipboard() is hardwired to return false on OS X.
+	if (hasInternal())
+		return qApp->clipboard()->ownsClipboard();
+
+	// We are running on OS X: Check whether clipboard data is from
+	// ourself by comparing its checksum with the stored one.
+	QByteArray const ar = cache_.data(lyxMimeType());
+	string const data(ar.data(), ar.count());
+	boost::crc_32_type crc32;
+	crc32.process_bytes(data.c_str(), data.size());
+	return checksum == crc32.checksum();
 }
 
 
@@ -409,8 +446,10 @@ bool GuiClipboard::hasInternal() const
 {
 	// Windows and Mac OS X does not have the concept of ownership;
 	// the clipboard is a fully global resource so all applications 
-	// are notified of changes.
-#if (defined(Q_WS_X11))
+	// are notified of changes. However, on Windows ownership is
+	// emulated by Qt through the OleIsCurrentClipboard() API, while
+	// on Mac OS X we deal with this issue by ourself.
+#if (defined(Q_WS_X11) || defined(Q_WS_WIN))
 	return true;
 #else
 	return false;
@@ -420,9 +459,14 @@ bool GuiClipboard::hasInternal() const
 
 void GuiClipboard::on_dataChanged()
 {
-	QMimeData const * const source =
-	qApp->clipboard()->mimeData(QClipboard::Clipboard);
-	QStringList l = source->formats();
+	//Note: we do not really need to run cache_.update() unless the
+	//data has been changed *and* the GuiClipboard has been queried.
+	//However if run cache_.update() the moment a process grabs the
+	//clipboard, the process holding the clipboard presumably won't
+	//yet be frozen, and so we won't need to wait 5 seconds for Qt
+	//to time-out waiting for the clipboard.
+	cache_.update();
+	QStringList l = cache_.formats();
 	LYXERR(Debug::ACTION, "Qt Clipboard changed. We found the following mime types:");
 	for (int i = 0; i < l.count(); i++)
 		LYXERR(Debug::ACTION, l.value(i));
@@ -449,4 +493,4 @@ bool GuiClipboard::empty() const
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiClipboard_moc.cpp"
+#include "moc_GuiClipboard.cpp"

@@ -1,10 +1,12 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[scrlttr2]{letter (KOMA-Script v.2)}
+#  \DeclareLaTeXClass{letter (KOMA-Script v.2)}
 # KOMA scrlettr2 textclass definition file.
 # Juergen Spitzmueller <j.spitzmueller@gmx.de>, 2003/2/17.
 # Uwe Stöhr <uwestoehr@web.de>, 2008/2/03.
 
-Format 11
+Format 30
+Provides subscript 1
+
 Style Standard
 	LatexName             dummy
 	ParSep                0.4
@@ -271,6 +273,7 @@ Style Title
 	LatexName             setkomavar
 	LatexParam            {title}
 	LabelString           "Title:"
+	HTMLTitle             true
 End
 
 

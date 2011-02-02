@@ -13,7 +13,11 @@
 #include <config.h>
 
 #include "GuiERT.h"
-#include "FuncRequest.h"
+
+#include "GuiApplication.h"
+#include "GuiView.h"
+
+#include "insets/InsetERT.h"
 
 #include "support/gettext.h"
 
@@ -25,69 +29,36 @@ using namespace std;
 namespace lyx {
 namespace frontend {
 
-GuiERT::GuiERT(GuiView & lv)
-	: GuiDialog(lv, "ert", qt_("TeX Code Settings")), status_(InsetERT::Collapsed)
+GuiERT::GuiERT(QWidget * parent) : InsetParamsWidget(parent)
 {
 	setupUi(this);
 
-	connect(okPB, SIGNAL(clicked()), this, SLOT(slotOK()));
-	connect(closePB, SIGNAL(clicked()), this, SLOT(slotClose()));
-	connect(collapsedRB, SIGNAL(clicked()), this, SLOT(change_adaptor()));
-	connect(openRB, SIGNAL(clicked()), this, SLOT(change_adaptor()));
-
-	bc().setPolicy(ButtonPolicy::NoRepeatedApplyReadOnlyPolicy);
-	bc().setOK(okPB);
-	bc().setCancel(closePB);
+	connect(collapsedRB, SIGNAL(clicked()), this, SIGNAL(changed()));
+	connect(openRB, SIGNAL(clicked()), this, SIGNAL(changed()));
 }
 
 
-void GuiERT::change_adaptor()
+docstring GuiERT::dialogToParams() const
 {
-	changed();
+	InsetCollapsable::CollapseStatus const status = openRB->isChecked()
+		? InsetCollapsable::Open : InsetCollapsable::Collapsed;
+	return from_ascii(InsetERT::params2string(status));
 }
 
 
-void GuiERT::applyView()
+void GuiERT::paramsToDialog(Inset const * inset)
 {
-	if (openRB->isChecked())
-		status_ = Inset::Open;
-	else
-		status_ = Inset::Collapsed;
-}
-
-
-void GuiERT::updateContents()
-{
-	switch (status_) {
-		case InsetERT::Open: openRB->setChecked(true); break;
-		case InsetERT::Collapsed: collapsedRB->setChecked(true); break;
+	InsetERT const * ert = static_cast<InsetERT const *>(inset);
+	// FIXME: This dialog has absolutely no value...
+	BufferView const * bv = guiApp->currentView()->currentBufferView();
+	InsetCollapsable::CollapseStatus status = ert->status(*bv);
+	switch (status) {
+		case InsetCollapsable::Open: openRB->setChecked(true); break;
+		case InsetCollapsable::Collapsed: collapsedRB->setChecked(true); break;
 	}
 }
-
-
-bool GuiERT::initialiseParams(string const & data)
-{
-	status_ = InsetERT::string2params(data);
-	return true;
-}
-
-
-void GuiERT::clearParams()
-{
-	status_ = InsetERT::Collapsed;
-}
-
-
-void GuiERT::dispatchParams()
-{
-	dispatch(FuncRequest(getLfun(), InsetERT::params2string(status_)));
-}
-
-
-Dialog * createGuiERT(GuiView & lv) { return new GuiERT(lv); }
-
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiERT_moc.cpp"
+#include "moc_GuiERT.cpp"

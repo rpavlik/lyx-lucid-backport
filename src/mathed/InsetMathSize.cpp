@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,14 +12,18 @@
 
 #include "InsetMathSize.h"
 
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathParser.h"
 #include "MathStream.h"
+#include "output_xhtml.h"
 
 #include "support/convert.h"
 
+#include <string>
 #include <ostream>
 
+using namespace std;
 
 namespace lyx {
 
@@ -57,6 +61,38 @@ void InsetMathSize::write(WriteStream & os) const
 }
 
 
+// From the MathML documentation:
+//	MathML uses two attributes, displaystyle and scriptlevel, to control 
+//	orthogonal presentation features that TeX encodes into one "style" 
+//	attribute with values \displaystyle, \textstyle, \scriptstyle, and 
+//	\scriptscriptstyle. The corresponding values of displaystyle and scriptlevel 
+//	for those TeX styles would be "true" and "0", "false" and "0", "false" and "1", 
+//	and "false" and "2", respectively. 
+void InsetMathSize::mathmlize(MathStream & ms) const
+{
+	string const & name = to_utf8(key_->name);
+	bool dispstyle = (name == "displaystyle");
+	int scriptlevel = 0;
+	if (name == "scriptstyle")
+		scriptlevel = 1;
+	else if (name == "scriptscriptstyle")
+		scriptlevel = 2;
+	stringstream attrs;
+	attrs << "displaystyle='" << (dispstyle ? "true" : "false")
+		<< "' scriptlevel='" << scriptlevel << "'";
+	ms << MTag("mstyle", attrs.str()) << ">"
+	   << cell(0) << ETag("mstyle");
+}
+
+
+void InsetMathSize::htmlize(HtmlStream & os) const
+{
+	string const & name = to_utf8(key_->name);
+	os <<	MTag("span", "class='" + name + "'")
+			<< cell(0) << ETag("span");
+}
+
+
 void InsetMathSize::normalize(NormalStream & os) const
 {
 	os << '[' << key_->name << ' ' << cell(0) << ']';
@@ -68,5 +104,16 @@ void InsetMathSize::infoize(odocstream & os) const
 	os << "Size: " << key_->name;
 }
 
+
+void InsetMathSize::validate(LaTeXFeatures & features) const
+{
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.displaystyle, span.textstyle{font-size: normal;}\n"
+			"span.scriptstyle {font-size: small;}\n"
+			"span.scriptscriptstyle {font-size: x-small;}\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
 
 } // namespace lyx

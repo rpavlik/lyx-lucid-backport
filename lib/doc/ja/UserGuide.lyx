@@ -1,5 +1,5 @@
-#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 410
 \begin_document
 \begin_header
 \textclass jbook
@@ -52,10 +52,6 @@
 % macro for italic page numbers in the index
 \newcommand{\IndexDef}[1]{\textit{#1}}
 
-% redefine the greyed out note
-\renewenvironment{lyxgreyedout}
- {\textcolor{blue}\bgroup}{\egroup}
-
 \usepackage{t1enc}
 \renewcommand{\seename}{→}
 
@@ -67,20 +63,27 @@
 %\AtBeginDvi{\special{pdf:tounicode 90ms-RKSJ-UCS2}}\fi
 %\AtBeginDvi{\special{pdf:tounicode EUC-UCS2}}
 \end_preamble
-\options intoc,bibtotoc,idxtotoc,BCOR7mm,tablecaptionabove
+\options intoc,bibliography=totoc,index=totoc,BCOR7.5mm,captions=tableheading
 \use_default_options false
+\maintain_unincluded_children false
 \language japanese
 \inputencoding EUC-JP-pLaTeX
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref true
@@ -97,34 +100,46 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "unicode=false,linkcolor=black,citecolor=black,urlcolor=blue,filecolor=blue,pdfpagelayout=OneColumn,pdfnewwindow=true,pdfstartview=XYZ,plainpages=false,pdfpagelabels"
+\pdf_quoted_options "unicode=false, linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\notefontcolor #0000ff
 \branch 質問
 \selected 1
+\filename_suffix 0
 \color #00ff00
 \end_branch
 \branch 解答
 \selected 0
+\filename_suffix 0
 \color #aa55ff
 \end_branch
+\index 索引
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 2
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -160,7 +175,7 @@ type "mailto:"
 \begin_inset Newline newline
 \end_inset
 
-第1.6.x版
+第2.0.x版
 \end_layout
 
 \begin_layout Standard
@@ -415,7 +430,7 @@ aTeXパッケージが、システムに備わっているかを検査するこ�
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -431,7 +446,7 @@ status collapsed
 再設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -455,9 +470,32 @@ name "sec:LaTeXの設定"
 \end_layout
 
 \begin_layout Standard
-LyXが正常に動作するためには、いくつかのLaTeXパッケージを必要とします。LyXがシステム上で検出したパッケージは、
+
+\lang english
+You can edit documents in LyX without having LaTeX installed, but you will
+ not to able to create PDFs or print your documents unless you do have it
+ installed.
+ However, some LyX documents use DocBook as the `backend' that can produce
+ PDFs and the like, and every LyX document can always be output as plain
+ text or as XHTML.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Some document classes may depend upon specific LaTeX or DocBook classes
+ or packages.
+ Such document classes can be used even if you do not have the required
+ files installed, but you will not be able to produce certain kinds of output.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The LaTeX packages that LyX has found on your system are listed in a file
+ you can view from the menu 
 \family sans
-ヘルプ\SpecialChar \menuseparator
+Help\SpecialChar \menuseparator
 LaT
 \begin_inset ERT
 status collapsed
@@ -469,34 +507,22 @@ status collapsed
 
 \end_inset
 
-eXの設定
+eX
+\begin_inset space ~
+\end_inset
+
+Configuration
 \family default
-メニューを使用したときに生成される「
-\emph on
-LaT
-\begin_inset ERT
-status collapsed
+.
+ If you are missing packages you need, then you must install them and then
+ reconfigure LyX (menu 
+\family sans
+Tools\SpecialChar \menuseparator
+Reconfigure
+\family default
+).
+\lang japanese
 
-\begin_layout Plain Layout
-
-{}
-\end_layout
-
-\end_inset
-
-eXの設定
-\emph default
-」というファイルに一覧表示されます。導入されていない必須パッケージがあれば導入して、LyXを再設定
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-さいせってい@再設定
-\end_layout
-
-\end_inset
-
-すべきです。
 \begin_inset Note Note
 status collapsed
 
@@ -522,6 +548,28 @@ reference "sub:LyXの固有名称"
 \end_inset
 
 
+\lang english
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Reconfiguration of LyX
+\end_layout
+
+\end_inset
+
+
+\lang japanese
+ 
+\lang english
+See section 5.1 of the 
+\emph on
+Customization
+\emph default
+ manual for more information on installing additional LaTeX packages.
 \end_layout
 
 \begin_layout Chapter
@@ -530,7 +578,7 @@ LyXでの作業のしかた
 
 \begin_layout Section
 基本的なファイル操作
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -563,6 +611,8 @@ status collapsed
 新規 
 \begin_inset Graphics
 	filename ../../images/buffer-new.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -581,6 +631,8 @@ status collapsed
 開く 
 \begin_inset Graphics
 	filename ../../images/file-open.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -599,6 +651,8 @@ status collapsed
 保存 
 \begin_inset Graphics
 	filename ../../images/buffer-write.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -641,6 +695,8 @@ status collapsed
 印刷 
 \begin_inset Graphics
 	filename ../../images/dialog-show_print.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -720,8 +776,26 @@ reference "sec:文書クラス"
 \bar no
 \noun off
 \color none
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
 （註）「既定ファイル」や「無題」、「下書き」というファイル名のファイルはありません。LyXにファイルを開くか新しいファイルを作るのを知らせるまでは、大きな何もな
 いスペースがあるだけです。
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -838,7 +912,7 @@ status collapsed
 
 \begin_layout Section
 基本的な編集機能
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -918,6 +992,8 @@ name "sec:基本的な編集機能"
 切り取り 
 \begin_inset Graphics
 	filename ../../images/cut.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -930,6 +1006,8 @@ name "sec:基本的な編集機能"
 コピー 
 \begin_inset Graphics
 	filename ../../images/copy.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -942,6 +1020,8 @@ name "sec:基本的な編集機能"
 貼り付け 
 \begin_inset Graphics
 	filename ../../images/paste.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -966,6 +1046,8 @@ name "sec:基本的な編集機能"
 検索／置換 
 \begin_inset Graphics
 	filename ../../images/dialog-show_findreplace.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1024,7 +1106,7 @@ Backspace
 \end_layout
 
 \begin_layout Standard
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1055,7 +1137,7 @@ status collapsed
 \end_layout
 
 \begin_layout Standard
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1065,7 +1147,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1217,6 +1299,35 @@ status collapsed
 \color none
 オプションを使うと、完全な単語として一致するもののみに一致するように、LyXに強制することができます。つまり、「star」で検索すると「starlet」には一致
 しなくなります。
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+LyX offers also an advanced 
+\family sans
+\lang japanese
+検索／置換
+\family default
+\lang english
+ feature that is described in sec.
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Advanced-Find"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -1234,7 +1345,7 @@ Delete
 
 \begin_layout Section
 元に戻すとやり直す
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1244,7 +1355,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1296,6 +1407,8 @@ LyXでは、何か失敗をしても、簡単にもとに戻すことができ�
 かツールバーボタン
 \begin_inset Graphics
 	filename ../../images/undo.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1321,6 +1434,8 @@ LyXでは、何か失敗をしても、簡単にもとに戻すことができ�
 あるいはツールバーボタン
 \begin_inset Graphics
 	filename ../../images/redo.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1394,7 +1509,7 @@ LyXでは、何か失敗をしても、簡単にもとに戻すことができ�
 
 \begin_layout Section
 マウス操作
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1619,7 +1734,7 @@ name "sec:移動"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1652,6 +1767,8 @@ LyXでは、文書内を動き回るのに二つの方法があります。
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/dialog-toggle_toc.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1693,37 +1810,51 @@ reference "sec:図・表・アルゴリズム一覧"
 
 \begin_layout Standard
 文書構造ウィンドウ下部の
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Graphics
 	filename ../../images/down.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
 
-\begin_inset space \hspace{}
-\length -3mm
+\begin_inset space ~
 \end_inset
 
 および
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Graphics
 	filename ../../images/up.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
 
-\begin_inset space \hspace{}
-\length -3mm
+\begin_inset space ~
 \end_inset
 
 を使うと、例えば、第2.5節を第2.4節の前に持っていったりするなど、節の文書内での位置を変えることができます。すると、LyXは、自動的に節番号を新しい順序に振り直
 してくれます。
 \begin_inset Graphics
 	filename ../../images/promote.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
 ないし
 \begin_inset Graphics
 	filename ../../images/demote.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1742,6 +1873,8 @@ Shift+Tab
 ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -1758,7 +1891,7 @@ name "sec:入力補完"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1768,7 +1901,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1858,7 +1991,7 @@ reference "sub:入力補完-附録"
 
 \begin_layout Section
 基本的なキー割り当て
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1886,7 +2019,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1918,7 +2051,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -1950,7 +2083,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2101,7 +2234,7 @@ Down
 のようないくつかのキーは、予想どおりの動作をしますが、そうでないキーもあります。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2220,7 +2353,7 @@ reference "sec:箇条書き"
 』を参照してください。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2246,7 +2379,7 @@ description "エスケープキー"
 これは「取り消しキー」です。これは、一般的に、操作を取り消す場合に使います。詳しくは、この取扱説明書の他の場所で説明されます。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2282,7 +2415,7 @@ End
 これらはカーソルを行の先頭または最後に移動させます。ただし、Emacsキーバインドを使っている場合には、文章の先頭または最後にカーソルを移動させます。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family roman
@@ -2296,7 +2429,7 @@ End
 修飾キーは3つあります。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2441,7 +2574,7 @@ End
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2485,7 +2618,7 @@ description "シフトキー"
 で表されます。）これをどの移動キーと一緒に使っても、前のカーソルの位置と新しいカーソルの位置の間のテキストを選択できます。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -2847,7 +2980,7 @@ reference "sub:短絡キーの編集"
 
 \begin_layout Chapter
 LyXの基本
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2861,7 +2994,7 @@ Lyx@LyX ! きほん@基本
 
 \begin_layout Section
 文書型
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2940,7 +3073,7 @@ LyXで使える文書クラスの情報、そしてそれをどう変えるか�
 
 \begin_layout Subsection
 文書クラス
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -2984,7 +3117,7 @@ name "sec:文書クラス"
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3130,20 +3263,20 @@ Astronomy and Astrophysics
 \begin_layout Description
 
 \family sans
-AAST
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-{}
+ACS 
+\family default
+\lang english
+For submissions to the journals published by the American Chemistry Society
 \end_layout
 
-\end_inset
+\begin_layout Description
 
-eX
+\family sans
+AGU
 \family default
- アメリカ天文学会（American Astronomical Society）が発行する学術誌への提出用
+ 
+\lang english
+For submissions to the journals published by the American Geophysical Union
 \end_layout
 
 \begin_layout Description
@@ -3231,7 +3364,7 @@ Beamer
 
 \family sans
 \series bold
-broadway
+Broadway
 \family default
 \series default
  戯曲を書くためのレイアウト。既存のLaTeXの文書クラスではなく、LyXとともに新たに頒布されているものです。
@@ -3240,7 +3373,17 @@ broadway
 \begin_layout Description
 
 \family sans
-curiculum
+Chess
+\family default
+ 
+\lang english
+Layout to write about chess games
+\end_layout
+
+\begin_layout Description
+
+\family sans
+Curiculum
 \begin_inset space ~
 \end_inset
 
@@ -3260,16 +3403,8 @@ Dinbrief
 \begin_layout Description
 
 \family sans
-dtk
-\family default
- ドイツTeXユーザーグループ（Dante）誌「Die TeXnische Komödie」向けのレイアウト
-\end_layout
-
-\begin_layout Description
-
-\family sans
 \series bold
-Elsevier
+Elsarticle
 \family default
 \series default
  Elsevier出版グループの学術誌向けのレイアウト
@@ -3286,15 +3421,7 @@ Foils
 \begin_layout Description
 
 \family sans
-g-brief
-\family default
- DIN（ドイツ産業規格）書式の書簡
-\end_layout
-
-\begin_layout Description
-
-\family sans
-hollywood
+Hollywood
 \family default
  アメリカ映画産業向けのスペック・スクリプト（持ち込み原稿）を書くのに使われます。既存のLaTeXの文書クラスではなく、LyXとともに新たに頒布されているもので
 す。
@@ -3338,27 +3465,6 @@ KOMA-Script
 Memoir
 \family default
  もう一つの標準クラスの代替クラス
-\end_layout
-
-\begin_layout Description
-
-\family sans
-paper
-\family default
- 
-\family typewriter
-paper
-\family default
- 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-LaTeX文書クラスで使用
 \end_layout
 
 \begin_layout Description
@@ -3441,14 +3547,6 @@ Springer
  Springer出版グループの学術誌向けのレイアウト
 \end_layout
 
-\begin_layout Description
-
-\family sans
-TUGboat
-\family default
- 国際TeXユーザーグループ（TUG）の『TUGboat』誌向けのレイアウト
-\end_layout
-
 \begin_layout Standard
 
 \family roman
@@ -3483,6 +3581,129 @@ TUGboat
 \end_layout
 
 \begin_layout Subsubsection
+
+\lang english
+Availability
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+New users are sometimes puzzled by the fact that many of the document classes
+ listed under 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Document Class
+\family default
+\lang japanese
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+ぶんしょ@文書 ! せってい@設定
+\end_layout
+
+\end_inset
+
+
+\lang english
+are marked as 
+\begin_inset Quotes eld
+\end_inset
+
+Unavailable
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Or they are surprised that, when they open e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space ~
+\end_inset
+
+the 
+\family sans
+iop-article
+\family default
+ template, they receive a warning saying that the document requires files
+ that are not installed to produce output.
+ So it seems that something is wrong.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+But nothing is wrong.
+ LyX includes many more document classes than you will ever need to use,
+ and some of them, like 
+\family sans
+IOP
+\family default
+, are highly specialized.LyX tries to support as many different types of
+ documents as possible, and it includes almost one hundred different layout
+ files, with a growing number.
+ No LaTeX distribution will install by default all files that might be needed
+ by some document class.
+ There are just too many of them.
+ That is why some of the document classes are unavailable.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+If there is a document class you would like to use that is marked as `Unavailabl
+e', you need to install the appropriate package files.
+ The easiest way to find out which files you need to install is to use that
+ document class for a new file.
+ LyX will display a dialog that will list the missing files.
+ See section 
+\begin_inset Quotes eld
+\end_inset
+
+Installing new LaTeX files
+\begin_inset Quotes erd
+\end_inset
+
+ of the 
+\emph on
+Customization
+\emph default
+ manual for information on how to install them.
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Although LyX provides support for many different sorts of documents, it
+ does not include support for every document class people might want to
+ use.
+ For example, many universities provide LaTeX class files to be used for
+ dissertations submitted to those universities.
+ The LyX team cannot write layout files to support every one of these.
+ There are too many.
+ Fortunately, users can write their own layout files, and many users have
+ done so.
+ Chapter
+\begin_inset space ~
+\end_inset
+
+5 of the 
+\emph on
+Customization
+\emph default
+ manual contains information on how to create layout files.
+\end_layout
+
+\begin_layout Subsubsection
 モジュール
 \begin_inset CommandInset label
 LatexCommand label
@@ -3491,7 +3712,7 @@ name "sub:モジュール"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3511,7 +3732,7 @@ status collapsed
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -3528,34 +3749,60 @@ status collapsed
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Greyedout
-status open
+
+\lang english
+Some modules require LaTeX packages that are not always installed by default.
+ LyX will warn you if you do not have the needed package.
+ You can still use the module while editing your file, but you will not
+ be able to export to PDF or print your document, since LyX will not be
+ able to compile the LaTeX file without the missing package.
+ If you want to be able to produce output, then you need to install the
+ missing package and then reconfigure LyX by selecting 
+\family sans
+Tools\SpecialChar \menuseparator
+Reconfigure
+\family default
+.
+\begin_inset Index idx
+status collapsed
 
 \begin_layout Plain Layout
 
-\series bold
-（註）
-\series default
-モジュールによっては、既定では装備されているとは限らないLaTeXパッケージを必須としているものがありますので、注意してください。必要なパッケージが導入されてい
-ない場合には、LyXは警告を発します。
+\lang english
+Reconfiguration of LyX
 \end_layout
 
 \end_inset
 
+ See section 
+\begin_inset Quotes eld
+\end_inset
 
+Installing new LaTeX files
+\begin_inset Quotes erd
+\end_inset
+
+ of the 
+\emph on
+Customization
+\emph default
+ manual for more information on installing needed packages.
 \end_layout
 
 \begin_layout Standard
+
+\lang english
 \begin_inset Note Greyedout
 status open
 
 \begin_layout Plain Layout
 
 \series bold
-（追註）
+\lang english
+Note:
 \series default
-モジュールの中には他のモジュールを必要とするものがあります。さらに、組み合わせによっては、お互いに衝突を起こす可能性もあります。LyXはこれらの情報を通知します
-。
+ Some modules require other modules, and some pairs of modules are incompatible.
+ LyX will advise you about these things.
 \end_layout
 
 \end_inset
@@ -3591,7 +3838,7 @@ status open
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -4200,7 +4447,7 @@ name "sub:文書レイアウト"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4210,7 +4457,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4318,7 +4565,7 @@ status collapsed
 以下の5つの選択肢があります。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4336,7 +4583,7 @@ status collapsed
 現在のクラスの既定のページ形式を使います。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4354,7 +4601,7 @@ status collapsed
 ページ番号もヘッダーもつけません。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4372,7 +4619,7 @@ status collapsed
 ページ番号だけつけます。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4408,7 +4655,7 @@ status collapsed
 に依存します。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4419,7 +4666,7 @@ status collapsed
 fancyhdr
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4497,7 +4744,7 @@ reference "sec:段落の字下げと分け方"
 
 \begin_layout Subsection
 用紙寸法と方向
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4543,7 +4790,7 @@ name "sub:用紙寸法と方向"
 ページレイアウト
 \family default
 メニューには、以下のオプションがあります。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4555,7 +4802,7 @@ status collapsed
 
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4619,7 +4866,7 @@ USエグゼクティブ
 任意設定
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4673,7 +4920,7 @@ USエグゼクティブ
 に印刷するかを選ぶ2つの切替ボタンです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -4693,7 +4940,7 @@ USエグゼクティブ
 
 \begin_layout Subsection
 余白
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4710,7 +4957,7 @@ name "sub:余白"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4727,7 +4974,7 @@ status collapsed
 \family sans
 文書\SpecialChar \menuseparator
 設定
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4793,7 +5040,7 @@ KOMA-Script文書クラスをお使いの時は、既定値で使って構いま
 
 \begin_layout Section
 段落の字下げと分け方
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -4987,7 +5234,7 @@ LaTeXが行います。
 
 \begin_layout Subsection
 段落の分け方
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5029,7 +5276,7 @@ status collapsed
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5207,7 +5454,7 @@ ptです。
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5251,7 +5498,7 @@ status collapsed
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5300,7 +5547,7 @@ name "sec:段落環境"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5310,7 +5557,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -5798,7 +6045,7 @@ arg   "break-paragraph inverse"
 
 \begin_layout Subsection
 文書タイトル
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6086,7 +6333,7 @@ date{}
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6138,7 +6385,7 @@ name "sub:見出し"
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6529,7 +6776,7 @@ status open
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6726,7 +6973,7 @@ name "sub:番号の付け方-深度"
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6786,7 +7033,7 @@ status collapsed
 
 \begin_layout Subsubsection
 見出しの短縮タイトル
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -6796,7 +7043,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -7025,7 +7272,7 @@ name "sec:引用"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7284,7 +7531,7 @@ status collapsed
 詩句
 \family sans
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7294,7 +7541,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -7677,7 +7924,7 @@ reference "sec:入れ子"
 箇条書き（記号）
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8159,7 +8406,7 @@ reference "sec:入れ子"
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8222,7 +8469,7 @@ reference "sec:入れ子"
 
 \family sans
 箇条書き（連番）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -8677,7 +8924,7 @@ reference "sec:入れ子"
 
 \family sans
 箇条書き（記述）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9064,7 +9311,7 @@ Example:
 LyX
 \family sans
 リスト
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -9151,7 +9398,7 @@ name "sec:LyXリスト"
 環境と他の3つの環境の違いを説明しましょう。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 項目ラベル 
 \family roman
@@ -9180,7 +9427,7 @@ LyXは項目の最初の「単語」をラベルに使います。最初の行�
 を使って下さい。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family roman
@@ -9211,7 +9458,7 @@ LyXは項目の最初の「単語」をラベルに使います。最初の行�
 のになっています。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family roman
@@ -9242,7 +9489,7 @@ LyXは項目の最初の「単語」をラベルに使います。最初の行�
 行目はそれ以降の行と異なる左余白になります。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family roman
@@ -9553,7 +9800,7 @@ reference "sub:水平方向の空白"
 
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family roman
@@ -9601,7 +9848,7 @@ reference "sub:水平方向の空白"
 項目のラベルです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset space \hfill{}
 \end_inset
@@ -9652,7 +9899,7 @@ reference "sub:水平方向の空白"
 を一つ入れると右揃えになります。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 \begin_inset space \hfill{}
 \end_inset
@@ -9680,7 +9927,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10332,7 +10579,7 @@ arg   "newline-insert newline"
 
 \begin_layout Subsubsection
 概要
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10529,7 +10776,7 @@ reference "cap:概要環境内の段落"
 
 \begin_layout Subsubsection
 参考文献
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -10746,7 +10993,7 @@ reference "sec:参考文献"
 
 \family sans
 LyXコード
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11392,7 +11639,7 @@ LyXコード
 \color none
 の目的はただ一つ、プログラムソースやシェルスクリプト、rcファイルなどのコードを植字することです。この環境は、タイプライタを使ったような文字列を生成する必要があ
 るような、非常に特別な場合にのみ使って下さい。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11415,7 +11662,7 @@ status collapsed
 
 \begin_layout Section
 環境を入れ子にする
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -11572,12 +11819,16 @@ LyXは、本文を特定の文脈と性質をもった統合されたかたま�
 を選びます（ステータスバーに入れ子の階層が表示されます）。メニューの代わりに、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/depth-increment.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
 ないし
 \begin_inset Graphics
 	filename ../../images/depth-decrement.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -11921,7 +12172,7 @@ status open
 
 \begin_layout Subsection
 他のものを入れ子にする：表・数式・フロートなど
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12132,7 +12383,7 @@ LyXはこれら3つのオブジェクトを、単語または段落として扱�
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -12305,7 +12556,7 @@ LyXはこれら3つのオブジェクトを、単語または段落として扱�
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -12488,7 +12739,7 @@ LyXはこれら3つのオブジェクトを、単語または段落として扱�
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -12780,7 +13031,7 @@ name "sub:入れ子−使い方"
 
 \begin_layout Subsection
 いくつかの例
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -12810,7 +13061,7 @@ status collapsed
 例1： 6段階の入れ子と異なった環境の入れ子
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #1-a 
 \family roman
@@ -12843,7 +13094,7 @@ status collapsed
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #2-a 
 \family roman
@@ -12906,7 +13157,7 @@ arg   "depth-increment"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #3-a 
 \family roman
@@ -13191,7 +13442,7 @@ arg   "break-paragraph inverse"
 を押して作りました。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #4-a 
 \family roman
@@ -13287,7 +13538,7 @@ arg   "break-paragraph inverse"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #5-a 
 \family roman
@@ -13312,7 +13563,7 @@ arg   "break-paragraph inverse"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #6-a \SpecialChar \ldots{}
 
@@ -13328,7 +13579,7 @@ arg   "break-paragraph inverse"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #5-b 
 \family roman
@@ -13373,7 +13624,7 @@ arg   "depth-decrement"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #4-b 
 \family roman
@@ -13418,7 +13669,7 @@ arg   "depth-decrement"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #3
 \family roman
@@ -13453,7 +13704,7 @@ arg   "depth-decrement"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #2-b 
 \family roman
@@ -13468,7 +13719,7 @@ arg   "depth-decrement"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 #1-b 
 \family roman
@@ -13675,7 +13926,7 @@ arg   "depth-decrement"
 
 \begin_layout Subsubsection
 例3：ラベルと階層、および箇条書き（連番）と箇条書き（記号）環境
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -14498,7 +14749,7 @@ arg   "break-paragraph inverse"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -15004,7 +15255,7 @@ Moosegroin, MT 00100
 
 \begin_layout Section
 余白取りとページ付けおよび改行
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15031,7 +15282,7 @@ name "sub:保護された空白"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15107,7 +15358,7 @@ name "sub:水平方向の空白"
 \end_inset
 
  
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15145,7 +15396,7 @@ name "sub:単語間の空白"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15187,7 +15438,7 @@ name "sub:小空白"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15417,7 +15668,7 @@ name "tab:空白の幅"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="8" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -15645,7 +15896,7 @@ name "sub:水平フィル"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15925,7 +16176,7 @@ name "sub:埋め草"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -15962,15 +16213,12 @@ Edge would have been jumps the gun.
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-phantom{Mr.
- Edge }
+Mr.
+ Edge 
 \end_layout
 
 \end_inset
@@ -15980,15 +16228,12 @@ has to be jumped
 \end_inset
 
 
-\begin_inset ERT
-status collapsed
+\begin_inset Phantom HPhantom
+status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-phantom{Mr.
- Edge }
+Mr.
+ Edge 
 \end_layout
 
 \end_inset
@@ -16001,7 +16246,13 @@ jumps
 \end_layout
 
 \begin_layout Standard
-ここでは、選択肢が「Mr.
+
+\lang english
+So that the choices appear exactly after the phrase 
+\begin_inset Quotes eld
+\end_inset
+
+Mr.
 \begin_inset space ~
 \end_inset
 
@@ -16009,67 +16260,57 @@ Edge
 \begin_inset space ~
 \end_inset
 
-」というフレーズのちょうど後に現れるようにしています。これを実現するには、TeXコードボックスで
-\series bold
 
-\backslash
+\begin_inset Quotes erd
+\end_inset
+
+.
+ To get this, you can use the phantom insets available via the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Formatting\SpecialChar \menuseparator
+Phantom
+\family default
+.
+ In our case insert a horizontal phantom at the beginning of the last two
+ lines and insert 
+\begin_inset Quotes eld
+\end_inset
+
+Mr.
+\begin_inset space ~
+\end_inset
+
+Edge
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ into the phantom inset (note the space after 
+\begin_inset Quotes eld
+\end_inset
+
+Edge
+\begin_inset Quotes erd
+\end_inset
+
+).
+ A phantom insets prints only the space of its content (like a placeholder).
+ That is why it is named 
+\begin_inset Quotes eld
+\end_inset
+
 phantom
-\series default
-というLaTeXコマンドを使用します
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-TeXコードについての詳細は、第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:TeXコード"
-
+\begin_inset Quotes erd
 \end_inset
 
-節をご覧ください。
-\end_layout
-
-\end_inset
-
-。この例では、
-\series bold
-
-\backslash
-phantom{Mr.
- Edge }
-\series default
-というコマンド（「Edge」の後に空白があることに注意してください）を最後の2行の頭に挿入します。このコマンドは、中括弧にはさまれたフレーズを印字しますが、印字
-は見えません。ですからこの空白は「phantom（幽霊）」と命名されているのです
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\series bold
-
-\backslash
-hphantom
-\series default
-や
-\series bold
-
-\backslash
-vphantom
-\series default
-というコマンドもありますが、LyXユーザーの手引きとしては高度すぎます。これをもう少し知りたい場合には、
-\begin_inset CommandInset citation
-LatexCommand cite
-key "latexcompanion,latexguide"
-
-\end_inset
-
-を参照してください。
-\end_layout
-
-\end_inset
-
-。
+.
+ The normal phantom ouputs the width and heigth of the content as space,
+ while the horizontal and vertical variant only outputs the corresponding
+ dimension.
 \end_layout
 
 \begin_layout Subsection
@@ -16081,7 +16322,7 @@ name "sub:垂直方向の空白"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16212,7 +16453,7 @@ status collapsed
 \noun off
 \color none
 ダイアログ
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16282,7 +16523,7 @@ status collapsed
 \noun off
 \color none
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16545,7 +16786,7 @@ arg   "paragraph-params \\align default"
 
 \begin_layout Subsection
 強制改頁
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16641,7 +16882,7 @@ name "sub:改段改頁"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16677,7 +16918,7 @@ status collapsed
 
 \begin_layout Subsection
 強制改行
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16790,7 +17031,7 @@ name "sub:水平線"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16803,20 +17044,50 @@ status collapsed
 \end_layout
 
 \begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
 
-\lyxline
+\end_inset
 
-\family sans
-挿入\SpecialChar \menuseparator
-整形\SpecialChar \menuseparator
-水平線
-\family default
-ダイアログで、文書の列幅全体に亙る水平線を挿入することができます。
+
 \end_layout
 
 \begin_layout Standard
 
-\lyxline
+\lang english
+In the dialog 
+\family sans
+Insert\SpecialChar \menuseparator
+Formatting\SpecialChar \menuseparator
+Horizontal
+\begin_inset space ~
+\end_inset
+
+Line
+\family default
+ you can insert horizontal lines.
+ The line offset is the vertical distance between the line and the baseline
+ of the current text line or the paragraph.
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
@@ -16881,7 +17152,7 @@ name "sec:フォントと文字形式"
 
 \begin_layout Subsection
 フォントの種類
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16899,7 +17170,7 @@ status collapsed
 
 \begin_layout Description
 ベクターフォント
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16941,7 +17212,7 @@ Type
 
 \begin_layout Description
 ビットマップフォント
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -16995,6 +17266,112 @@ PDF文書でどのフォントが用いられているかを確かめるため�
 \end_layout
 
 \begin_layout Subsection
+
+\lang english
+LaTeX font support
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:LaTeX-font-support"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Traditionally, LaTeX uses its own fonts.
+ That is to say, you cannot directly access the fonts installed on your
+ operating system, but you have to use specific fonts provided by your LaTeX
+ distribution.
+ The reason is that LaTeX needs some extra information about the fonts,
+ which have to be provided by additional files and packages.
+ The downside of this is that your font choice is somewhat limited, compared
+ to usual word processors.
+ On the other hand this comes with the advantage that the provided fonts
+ are generally of very good quality, and that LaTeX files are very portable
+ across different machines.
+ Also, the range of fonts supported by traditional LaTeX was increased a
+ lot meanwhile so that you can find packages for many free and commercial
+ fonts.
+ In LyX, only a subset of these are directly selectable via the user interface
+ (see section
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:文書フォント"
+
+\end_inset
+
+
+\lang english
+ for details).
+ However, all others are available if you enter the respective LaTeX code
+ in the document preamble (please refer to the documentation of your desired
+ font).
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Furthermore, recent developments brought some new LaTeX engines that are
+ also able to directly access fonts that are installed for your operating
+ system (OS), namely XeTeX and LuaTeX.
+ Both engines are now supported by LyX.
+ By using them, you can use theoretically any OpenType or TrueType font
+ that is installed on your system.
+ The next section describes how to use these OS fonts.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ In practice, some fonts might fail due to bad metrics and other font deficienci
+es; so you might have to experiment.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ XeTeX and especially LuaTeX, are still rather new and thus not as mature
+ as traditional LaTeX or PDFLaTeX.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 文書フォントとフォント寸法
 \begin_inset CommandInset label
 LatexCommand label
@@ -17003,7 +17380,7 @@ name "sub:文書フォント"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17022,7 +17399,7 @@ status collapsed
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17032,15 +17409,125 @@ status collapsed
 \end_inset
 
 ダイアログで設定することができます。
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-ここで、ローマン（セリフ）体・サンセリフ体・タイプライタ体の3つのフォント体に使用するフォントと、その伸縮設定を指定することができます。
+\lang english
+In the 
+\family sans
+Fonts
+\family default
+ section of the dialog, you can specify which font should be used for the
+ three different font shapes — roman (serif), 
+\family sans
+sans
+\begin_inset space ~
+\end_inset
+
+serif
+\family default
+ and 
+\family typewriter
+typewriter
+\family default
+ (monospaced) — you can specify the base font size and scaling factors for
+ (some) sans serif and typewriter fonts if this is necessary to fit with
+ the roman font.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+If you select 
+\family sans
+Use non-T
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX fonts
+\family default
+, you will have access to the fonts installed on your operating system.
+ This requires that you use 
+\family sans
+PDF (XeT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX)
+\family default
+, 
+\family sans
+PDF (LuaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX)
+\family default
+ or 
+\family sans
+DVI (LuaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX)
+\family default
+ as output format, i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+you will have to have either XeTeX or LuaTeX installed (see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:LaTeX-font-support"
+
+\end_inset
+
+).
+ You will then not have access to TeX's own fonts (the selection described
+ below).
+ Note that LyX lists all available fonts in either of the three lists (roman,
+ sans
+\begin_inset space ~
+\end_inset
+
+serif, and typewriter), since LyX cannot determine the family.
+ Also note that the output might fail with some of the listed fonts, due
+ to the encoding of the fonts and\SpecialChar \slash{}
+or font failures.
+ Again, LyX cannot determine this in advance, so you might need to experiment.
 \end_layout
 
 \begin_layout Standard
@@ -17182,11 +17669,69 @@ ec
 \end_layout
 
 \begin_layout Itemize
+もっともよい方法は、
+\family typewriter
+Latin Modern (lm)
+\family default
+フォントを使うことです。このフォントは、LaTeXコミュニティにおいて、
+\family typewriter
+cm
+\family default
+に代わる既定フォントとして開発されたもので、ほとんどの場合
+\family typewriter
+cm
+\family default
+と同じに見えますが
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+ひとつの違いは、lmフォントでは合字が改善されていることです。
+\end_layout
+
+\end_inset
+
+、
+\family typewriter
+lm
+\family default
+は
+\family typewriter
+cm
+\family default
+と
+\family typewriter
+ec
+\family default
+の2つのファミリよりも広い範囲の文字を収録しています。
+\end_layout
+
+\begin_layout Itemize
 一つの方法は、
 \family typewriter
 AE
 \family default
-フォントを使うことです。
+ (
+\family typewriter
+Almost European
+\family default
+) 
+\lang english
+in (the rare) case that 
+\family typewriter
+Latin Modern
+\family default
+ is not available to you or does not work, and you still want to emulate
+ the look of 
+\family typewriter
+cm
+\family default
+/
+\family typewriter
+ec
+\family default
+\lang japanese
+。
 \family typewriter
 AE
 \family default
@@ -17204,7 +17749,7 @@ LaTeXパッケージの
 aeguill
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17249,64 +17794,87 @@ AE
 \end_layout
 
 \begin_layout Itemize
-もう一つの方法は、以下の3つの各輪郭フォントを使用する
+
+\lang english
+If you do not like the look of 
+\family typewriter
+cm
+\family default
+/
+\family typewriter
+ec
+\family default
+, you can of course select one of the other provided vector fonts, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space ~
+\end_inset
+
+
+\family sans
+Times Roman
+\family default
+ or
+\family typewriter
+ 
+\family sans
+Palatino
+\family default
+.
+ Most roman vector fonts will automatically select matching sans
+\begin_inset space ~
+\end_inset
+
+serif and typewriter fonts
 \begin_inset Foot
 status collapsed
 
 \begin_layout Plain Layout
 
+\lang english
+These are sometimes just matching other fonts (e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g., 
+\family sans
+Times Roman
+\family default
+ selects 
+\family sans
+Helvetiva
+\family default
+ for sans serif text), and sometimes, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+ with 
 \family typewriter
 Latin Modern
 \family default
-や
+ or 
 \family typewriter
 Computer Modern
 \family default
-のような他のフォントでは、これらの3つの主要フォント体、
-\family sans
-サンセリフ
-\family default
-・
-\family sans
-タイプライタ
-\family default
-・
-\family sans
-セリフ
-\family default
-は、一つのフォントの中に含まれています。
+, different shapes of the same font, i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+ a real font 
+\emph on
+family
+\emph default
+.
 \end_layout
 
 \end_inset
 
-方法です。まず
-\family sans
-Times
-\begin_inset space ~
-\end_inset
-
-Roman
-\family default
-フォントをローマン体フォントとし、92
-\begin_inset space \thinspace{}
-\end_inset
-
-%から95
-\begin_inset space \thinspace{}
-\end_inset
-
-%に縮小した
-\family sans
-Helvetica
-\family default
-フォントをサンセリフ体フォント、
-\family sans
-Courier
-\family default
-フォントをタイプライタ体フォントとして指定します。
-\begin_inset Newline newline
-\end_inset
-
+, but you can also select your own.
+\lang japanese
 ローマン体・
 \family sans
 サンセリフ
@@ -17343,44 +17911,6 @@ Times
 Roman
 \family default
 は書籍のような大規模な文書には適していません。
-\end_layout
-
-\begin_layout Itemize
-もっともよい方法は、
-\family typewriter
-Latin Modern (lm)
-\family default
-フォントを使うことです。このフォントは、LaTeXコミュニティにおいて、
-\family typewriter
-cm
-\family default
-に代わる既定フォントとして開発されたもので、ほとんどの場合
-\family typewriter
-cm
-\family default
-と同じに見えますが
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-ひとつの違いは、lmフォントでは合字が改善されていることです。
-\end_layout
-
-\end_inset
-
-、
-\family typewriter
-lm
-\family default
-は
-\family typewriter
-cm
-\family default
-と
-\family typewriter
-ec
-\family default
-の2つのファミリよりも広い範囲の文字を収録しています。
 \end_layout
 
 \begin_layout Standard
@@ -17470,7 +18000,34 @@ ec
 \bar no
 \noun off
 \color none
-の4つの値を選ぶことができます。
+。
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+Some classes provide additional sizes.
+ The size of 
+\family sans
+Default
+\family default
+ depends on the class you are using.
+ In the standard classes it is equal to the font size 10.
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+\lang japanese
+ の4つの値を選ぶことができます。
 \family sans
 \series default
 \shape default
@@ -17545,6 +18102,122 @@ reference "sub:文字微調整"
 \end_inset
 
 節に述べてあります。
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The 
+\family sans
+Default Family
+\family default
+ selection lets you specify whether the base font of your document should
+ be roman, sans
+\begin_inset space ~
+\end_inset
+
+serif or typewriter.
+ The 
+\family sans
+Default
+\family default
+ selection uses what is preset by the class, the other selections override
+ this.
+ In most cases, 
+\family sans
+Default
+\family default
+ is equal to 
+\family sans
+roman
+\family default
+, but some classes (such as presentation classes) also use other defaults.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The
+\family typewriter
+ 
+\family sans
+LaTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X font encoding
+\family default
+ selection is an expert setting which lets you change the value passed to
+ the LaTeX-package
+\emph on
+ fontenc
+\emph default
+ (see also sec.
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:LaTeX-設定"
+
+\end_inset
+
+
+\lang english
+).
+ Normally, you do not need to change (or even understand) this.
+ Unless you have specific reasons use 
+\family sans
+Default
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+With some fonts, the checkboxes 
+\family sans
+Use Old Style Figures
+\family default
+ and 
+\family sans
+Use True Small Caps
+\family default
+ are enabled.
+ These are extra features some fonts provide.
+ If 
+\family sans
+Use Old Style Figures
+\family default
+ is checked, the font uses old style (also known as medieval or text) figures,
+ i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+figures with varying height that fit nicely with lower letters.
+ 
+\family sans
+Use True Small Caps
+\family default
+ determines that real small caps are used instead of faked small caps made
+ of scaled capitals.
+ Real small caps are often part of expert font sets; they generally look
+ better than faked small caps but might have to be purchased separately.
 \end_layout
 
 \begin_layout Standard
@@ -17736,7 +18409,7 @@ reference "sub:画面フォント"
 
 \begin_layout Subsection
 異なる文字形式を使う
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17746,7 +18419,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -17844,6 +18517,8 @@ status collapsed
 
 \begin_inset Graphics
 	filename ../../images/font-noun.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -18050,6 +18725,8 @@ Matthias Ettrich
 ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/font-emph.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -18228,7 +18905,7 @@ name "sub:文字微調整"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -18400,7 +19077,7 @@ status collapsed
 以外の）選択肢は以下の通りです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18419,7 +19096,7 @@ status collapsed
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18435,7 +19112,7 @@ arg   "font-roman"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18455,7 +19132,7 @@ arg   "font-sans"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18476,7 +19153,7 @@ arg   "font-typewriter"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18495,7 +19172,7 @@ arg   "font-typewriter"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18514,7 +19191,7 @@ arg   "font-typewriter"
  これがミディアム体の太さです。これが既定の太さです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18535,7 +19212,7 @@ arg   "font-bold"
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18554,7 +19231,7 @@ arg   "font-bold"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18564,7 +19241,7 @@ arg   "font-bold"
  これがアップライト体の字形です。またこれが既定の字形になっています。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18585,7 +19262,7 @@ s the Italic font shape
  これがイタリック体の字形です。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18601,7 +19278,7 @@ This is the Slanted font shape.
 これが斜体の字形です。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18616,7 +19293,7 @@ This is the Small caps font shape
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18636,7 +19313,7 @@ yXに詳細な指定をわたすようにはなっておらず、何をしたい
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18669,7 +19346,7 @@ arg   "font-size tiny"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18702,7 +19379,7 @@ arg   "font-size scriptsize"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18735,7 +19412,7 @@ arg   "font-size footnotesize"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18768,7 +19445,7 @@ arg   "font-size small"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18801,7 +19478,7 @@ arg   "font-size normal"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18834,7 +19511,7 @@ arg   "font-size large"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18869,7 +19546,7 @@ arg   "font-size larger"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18904,7 +19581,7 @@ arg   "font-size largest"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18939,7 +19616,7 @@ arg   "font-size huge"
 ）
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -18993,7 +19670,7 @@ arg   "font-size giant"
 ようにしてください。この機能は、微調整のためだけにあるにすぎません。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19012,7 +19689,7 @@ arg   "font-size giant"
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19069,7 +19746,7 @@ This is text with emphasize on —これは強調された文章です—。
 。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19111,7 +19788,7 @@ arg   "font-underline"
 しれないからです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19155,7 +19832,7 @@ This is text with Noun on（これは名詞体の文章です）。
 \end_layout
 
 \end_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19235,7 +19912,7 @@ This is text with Noun on（これは名詞体の文章です）。
 \noun off
 \color none
 が選べます。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19256,7 +19933,7 @@ status collapsed
 
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -19276,6 +19953,8 @@ status collapsed
 ダイアログで新しい文字形式を選択すると、その設定は保存されます。それを有効にするには、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/textstyle-apply.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -19668,7 +20347,7 @@ LaTeX
 
 \begin_layout Subsection
 出力ファイル形式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19688,8 +20367,12 @@ name "sub:出力ファイル形式"
 \end_layout
 
 \begin_layout Subsubsection
-ASCII
-\begin_inset Index
+
+\lang english
+Simple text
+\lang japanese
+ (ASCII)
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19716,12 +20399,30 @@ status collapsed
 エクスポート\SpecialChar \menuseparator
 平文
 \family default
-を用います。
+を用います 
+\lang english
+or 
+\family sans
+File\SpecialChar \menuseparator
+Export\SpecialChar \menuseparator
+Simple
+\begin_inset space ~
+\end_inset
+
+text
+\begin_inset space ~
+\end_inset
+
+(ps2ascii)
+\family default
+.
+ The latter will first internally export to PostScript and then do the conversio
+n to ASCII.
 \end_layout
 
 \begin_layout Subsubsection
 LaTeX
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19766,7 +20467,7 @@ X
 
 \begin_layout Subsubsection
 DVI
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19817,12 +20518,62 @@ DVIをスクロールする際には、DVIビューアは、画像を表示す�
 エクスポート\SpecialChar \menuseparator
 DVI
 \family default
-を使用します。
+を使用します 
+\lang english
+or
+\lang japanese
+ 
+\family sans
+ファイル\SpecialChar \menuseparator
+エクスポート\SpecialChar \menuseparator
+DVI
+\begin_inset space ~
+\end_inset
+
+(LuaTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X)
+\family default
+。
+\lang english
+ The latter option uses the program 
+\family typewriter
+LuaTeX
+\family default
+.
+ 
+\family typewriter
+LuaTeX
+\family default
+ is an engine that provides direct Unicode support and support for direct
+ font access (see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:LaTeX-font-support"
+
+\end_inset
+
+).
+ LuaTeX is still work in progress, but it might develop into the next standard
+ TeX processor.
 \end_layout
 
 \begin_layout Subsubsection
 PostScript
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19850,7 +20601,7 @@ status collapsed
 pstricks
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19890,7 +20641,7 @@ PostScript
 
 \begin_layout Subsubsection
 PDF
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19900,7 +20651,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -19998,6 +20749,97 @@ pdftex
 プログラムが、直接お使いのファイルをPDFに変換します。
 \end_layout
 
+\begin_layout Description
+PDF
+\begin_inset space ~
+\end_inset
+
+(XeTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X) 
+\lang english
+This uses the program 
+\family typewriter
+XeTeX
+\family default
+ that converts your file directly to PDF.
+ 
+\family typewriter
+XeTeX
+\family default
+ is a new engine that provides direct Unicode support and support for direct
+ font access (see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:LaTeX-font-support"
+
+\end_inset
+
+).
+ It is particularly good at typesetting different scripts.
+\end_layout
+
+\begin_layout Description
+PDF
+\begin_inset space ~
+\end_inset
+
+(LuaTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X) 
+\lang english
+This uses the program 
+\family typewriter
+LuaTeX
+\family default
+ that converts your file directly to PDF.
+ 
+\family typewriter
+LuaTeX
+\family default
+ is an even newer engine, derived from 
+\family typewriter
+pdflatex
+\family default
+, that also provides direct Unicode support and support for direct font
+ access (see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:LaTeX-font-support"
+
+\end_inset
+
+).
+ LuaTeX is still work in progress, but it might develop into the next standard
+ tex processor.
+\end_layout
+
 \begin_layout Standard
 
 \family typewriter
@@ -20032,8 +20874,8 @@ PDF
 \bar no
 \noun off
 \color none
-を使用することをおすすめします。
-\family typewriter
+を使用することをおすすめします。 
+\family default
 \series default
 \shape default
 \size default
@@ -20041,16 +20883,53 @@ PDF
 \bar default
 \noun default
 \color inherit
-dvipdfm
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-プログラムは、すでに開発を終了しており、若干時代遅れとなっています。
+\lang english
+If you rely on multiscript support and\SpecialChar \slash{}
+or specific OpenType fonts, you might
+ want to try out 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(XeTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X)
+\family default
+ or 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(LuaTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X)
+\family default
+ instead, bearing in mind that these two programs are not yet as mature
+ as 
+\family typewriter
+pdflatex
+\family default
+.
 \end_layout
 
 \begin_layout Subsection
@@ -20064,7 +20943,7 @@ dvipdfm
 \noun off
 \color none
 プレビュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20126,6 +21005,8 @@ DVI
 の代わりには、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/buffer-view_dvi.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -20161,6 +21042,8 @@ PDF
 の代わりにはツールバーボタン
 \begin_inset Graphics
 	filename ../../images/buffer-export_pdf2.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -20168,6 +21051,8 @@ PDF
 PostScriptの代わりには、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/buffer-view_ps.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -20237,6 +21122,8 @@ name "sub:ファイルを印刷"
 メニューを選択するか、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/dialog-show_print.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -20293,7 +21180,7 @@ Ghostscript
 ボックスのパラメータを以下のように設定することができます。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -20370,7 +21257,7 @@ reference "sub:プリンタ"
 。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -20390,7 +21277,7 @@ reference "sub:プリンタ"
 
 \begin_layout Section
 その他組版について
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20404,7 +21291,7 @@ status collapsed
 
 \begin_layout Subsection
 ハイフン
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20489,7 +21376,7 @@ LyXには、
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
@@ -20805,7 +21692,7 @@ Oh — there's a dash.
 
 \begin_layout Subsection
 ハイフネーション
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20836,7 +21723,7 @@ name "sub:ハイフネーション"
 \color none
 LyX内では単語のハイフネーション（行末におけるハイフン区切り）は行われませんが、出力においては自動的になされます。ハイフネーションは、LaTeXパッケージのb
 abel
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -20925,38 +21812,48 @@ LaTeXは、ハイフネーションをほとんど完璧にこなしますが、
 \end_layout
 
 \begin_layout Standard
-ときには、単語や複合語がハイフンで区切られることを避けたい場合があるかもしれません。たとえば文書中で、キー割り当てや短絡キーを「A-b c」のように表すものとし
-ましょう。するとLaTeXは、ハイフン「-」をハイフネーション位置の候補として考えます。しかし、この場所でのハイフネーションは醜悪です。この短絡キー表記がハイフ
-ンで区切られるのを避けるには、それをLaTeXのボックスコマンド
-\backslash
-mboxの引数に入れると、LaTeXボックス内の字句はハイフンネーションの対象とならないので、うまく回避できます。LyXは
-\backslash
-mboxをサポートしていないので、TeXコードを使わなくてはなりません。その結果、以下のような外観になるでしょう。
-\end_layout
 
-\begin_layout Standard
-\begin_inset Graphics
-	filename ../clipart/mbox.png
-
+\lang english
+Sometimes you want to prevent words or constructs to be hyphenated.
+ Imagine that you are describing keybindings/shortcuts in your document
+ in the form 
+\begin_inset Quotes eld
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-TeXコードの詳細に関しては、第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:TeXコード"
-
+A-b c
+\begin_inset Quotes erd
 \end_inset
 
-節を参照してください。
+.
+ LaTeX would then see the hyphen 
+\begin_inset Quotes eld
+\end_inset
+
+-
+\begin_inset Quotes erd
+\end_inset
+
+ as hyphenation possibility.
+ Hyphenating at this point would look ugly.
+ To prevent the shortcut from being hyphenated, you can put it into a makebox
+ as described in section 
+\begin_inset Quotes eld
+\end_inset
+
+Prevent Hyphenation
+\begin_inset Quotes erd
+\end_inset
+
+ of the 
+\emph on
+EmbeddedObjects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Subsection
 句読点
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21152,7 +22049,7 @@ reference "sub:単語間の空白"
 \end_inset
 
 節を参照）。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21218,7 +22115,7 @@ reference "sub:小空白"
 \noun off
 \color none
 節参照）。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21325,7 +22222,7 @@ TeX
 
 \begin_layout Subsubsection
 引用符
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21335,7 +22232,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21522,7 +22419,7 @@ LyX
 つです。
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21582,7 +22479,7 @@ single
 という引用符を用います
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21610,7 +22507,7 @@ this
 という引用符を用います
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21642,7 +22539,7 @@ this
 という引用符を用います
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21674,7 +22571,7 @@ this
 という引用符を用います
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21734,7 +22631,7 @@ this
 という引用符を用います
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -21828,7 +22725,7 @@ this
 
 \begin_layout Subsection
 合字
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21838,7 +22735,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -21995,7 +22892,7 @@ fest」のようになります。
 
 \begin_layout Subsection
 LyXの固有名称
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22136,7 +23033,7 @@ reference "sec:TeXコード"
 
 \begin_layout Subsection
 単位
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22172,7 +23069,7 @@ arg   "space-insert thin"
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="2" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -22240,7 +23137,7 @@ h
 
 \begin_layout Subsection
 孤立行
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22408,7 +23305,7 @@ name "cha:フロートと注釈"
 
 \begin_layout Section
 注釈
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22519,7 +23416,7 @@ status collapsed
 \begin_inset Graphics
 	filename ../../images/note-insert.png
 	scale 85
-	scaleBeforeRotation
+	groupId toolbarbutton
 
 \end_inset
 
@@ -22533,7 +23430,7 @@ status collapsed
 
 \begin_layout Section
 脚注
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22595,6 +23492,8 @@ LyXは、脚注をボックスを使って表示します。
 
 \begin_inset Graphics
 	filename ../../images/footnote-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -22730,7 +23629,7 @@ status open
 
 \begin_layout Section
 傍注
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22780,6 +23679,8 @@ name "sec:傍注"
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/marginalnote-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -22806,7 +23707,7 @@ status open
 
 \begin_layout Section
 図と画像
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22816,7 +23717,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22839,6 +23740,8 @@ name "sec:図"
 文書に図を挿入するには、カーソルを希望する本文中の位置に合わせて、ツールバーアイコン
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -22940,7 +23843,7 @@ reference "sub:図フロート"
 
 \begin_layout Subsection
 画像形式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -22993,7 +23896,7 @@ reference "sub:出力ファイル形式"
 .gif
 \family default
 」）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23029,7 +23932,7 @@ status collapsed
 .png
 \family default
 」）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23069,7 +23972,7 @@ status collapsed
 .jpeg
 \family default
 」）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23142,7 +24045,7 @@ PDFの場合には、元の画像を圧縮することもあります。
 
 \begin_layout Subsection
 画像設定のグループ化
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23171,7 +24074,7 @@ status collapsed
 
 \begin_layout Section
 表
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23204,6 +24107,7 @@ name "sec:表"
 \begin_inset Graphics
 	filename ../../images/tabular-insert.png
 	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -23227,7 +24131,7 @@ name "sec:表"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="4">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -23481,15 +24385,25 @@ reference "sub:表のセル"
 
 \begin_layout Standard
 
+\lang english
+You can mark multiple cells of one row/column as a multicolumn/row cell
+ using the check box 
 \family sans
-連結列
+Multicolumn
 \family default
-チェックボックスを使用すれば、同一行内の複数のセルを連結列として指定することができます。このようにすると、複数のセルを
+ or 
+\family sans
+Multirow
+\family default
+.
+ This will merge the cells to 
 \emph on
-一つの
+one
 \emph default
-セルに連結し、このセルが複数列にわたって広がることになります。連結列はそれ自体独立した行として取り扱われるので、連結列における水平揃えや列幅や罫線などの設定は、
-連結列のセルのみに有効です。
+ cell, spread over more than one column/row.
+
+\lang japanese
+ 連結列はそれ自体独立した行として取り扱われるので、連結列における水平揃えや列幅や罫線などの設定は、連結列のセルのみに有効です。
 \family roman
 \series medium
 \shape up
@@ -23505,7 +24419,7 @@ reference "sub:表のセル"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="4">
-<features firstHeadTopDL="true" firstHeadBottomDL="true">
+<features firstHeadTopDL="true" firstHeadBottomDL="true" tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="middle" width="0">
 <column alignment="center" valignment="top" width="0in">
@@ -23632,9 +24546,8 @@ reference "sub:表のセル"
 \end_layout
 
 \begin_layout Standard
-LyXは、いまのところ連結「行」セルのサポートはしていません。熟練ユーザーは、特別なLaTeX引数を表に宣言することができます。これは、取扱説明書『高度な機能篇
-』の表の節に説明されているように、連結行セルのように表に特別な整形を行うときに必要になるでしょう。また、現在のセルや表全体を90度左向きに回転させることもできま
-す。この回転はLyX上には表示されませんが、出力では正しく表示されます。
+これは、取扱説明書『高度な機能篇』の表の節に説明されているように、連結行セルのように表に特別な整形を行うときに必要になるでしょう。また、現在のセルや表全体を90
+度左向きに回転させることもできます。この回転はLyX上には表示されませんが、出力では正しく表示されます。
 \end_layout
 
 \begin_layout Standard
@@ -23672,7 +24585,7 @@ status open
 
 \begin_layout Subsection
 長尺表
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23682,7 +24595,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23692,7 +24605,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -23869,7 +24782,7 @@ status collapsed
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="69" columns="3">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="block" valignment="top" width="5cm">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="right" valignment="top" width="0pt">
@@ -26015,7 +26928,7 @@ Franz
 
 \begin_layout Subsection
 表のセル
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26084,7 +26997,7 @@ name "sub:表のセル"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="4" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="block" valignment="top" width="4cm">
 <column alignment="center" valignment="top" width="0pt">
@@ -26340,7 +27253,7 @@ status collapsed
 
 \begin_layout Section
 フロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26405,7 +27318,7 @@ reference "sec:相互参照"
 \end_inset
 
 #:」（#は実際には番号）というキャプションの付いたボックスが挿入されます。ラベルは、出力時に自動的に文書言語に翻訳されます。ラベルの後にはキャプション文
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26434,7 +27347,7 @@ status collapsed
 
 \begin_layout Subsubsection
 図フロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26518,7 +27431,6 @@ status open
 \align center
 \begin_inset Graphics
 	filename ../clipart/platypus.eps
-	rotateOrigin center
 
 \end_inset
 
@@ -26577,7 +27489,6 @@ name "cap:エッシャー"
 \align center
 \begin_inset Graphics
 	filename ../clipart/escher-lsd.eps
-	rotateOrigin center
 
 \end_inset
 
@@ -26853,7 +27764,7 @@ reference "sec:図・表・アルゴリズム一覧"
 
 \begin_layout Subsubsection
 表フロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -26923,7 +27834,7 @@ name "cap:表フロート"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -27049,7 +27960,8 @@ name "cap:表フロート"
 \color none
 \begin_inset Formula $\left[\begin{array}{cc}
 a & b\\
-c & d\end{array}\right]$
+c & d
+\end{array}\right]$
 \end_inset
 
 
@@ -27093,7 +28005,7 @@ c & d\end{array}\right]$
 
 \begin_layout Subsubsection
 アルゴリズムフロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27173,7 +28085,7 @@ algorithm
 
 \begin_layout Subsubsection
 折返しフロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27197,7 +28109,6 @@ status open
 \begin_inset Graphics
 	filename ../clipart/mobius.eps
 	width 40col%
-	rotateOrigin center
 
 \end_inset
 
@@ -27233,7 +28144,7 @@ name "cap:折返し図"
 wrapfig
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27326,7 +28237,7 @@ status open
 
 \begin_layout Subsection
 回転フロート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27418,7 +28329,7 @@ name "cap:回転した表"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="5">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -27485,7 +28396,7 @@ name "cap:回転した表"
 
 \begin_layout Subsection
 フロートの配置
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27731,7 +28642,7 @@ key "latexcompanion,latexguide,latexbook"
 
 \begin_layout Section
 ミニページ
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27771,6 +28682,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "30col%"
 special "none"
 height "1pt"
@@ -27823,6 +28735,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -27846,6 +28759,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -27879,7 +28793,7 @@ status open
 
 \begin_layout Chapter
 数式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27889,7 +28803,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27936,7 +28850,7 @@ name "cha:数式"
 
 \begin_layout Section
 数式編集の基本
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -27952,6 +28866,8 @@ status collapsed
 数式を作成するには、ツールバーアイコン
 \begin_inset Graphics
 	filename ../../images/math-mode.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -27991,7 +28907,8 @@ status collapsed
 \begin_layout Standard
 もう一つの別行建て数式は、本文の外側に単独の段落であるかのように表現されるもので、以下のようにみえます：
 \begin_inset Formula \[
-A=B\]
+A=B
+\]
 
 \end_inset
 
@@ -28018,7 +28935,7 @@ alpha
 
 \begin_layout Subsection
 数式内の移動
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28114,7 +29031,8 @@ LyXは、何かを挿入できる場所を小さな箱で示します。矢印�
 
 \begin_inset Formula $\left[\begin{array}{cc}
 1 & 2\\
-3 & 4\end{array}\right]$
+3 & 4
+\end{array}\right]$
 \end_inset
 
 
@@ -28365,7 +29283,9 @@ spce
 \left(\begin{array}{ccc}
 \lambda_{1}\\
  & \ddots\\
- &  & \lambda_{n}\end{array}\right)\]
+ &  & \lambda_{n}
+\end{array}\right)
+\]
 
 \end_inset
 
@@ -28419,7 +29339,7 @@ spce
 
 \begin_layout Subsection
 指数と下付き文字
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28429,7 +29349,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28734,7 +29654,7 @@ spce
 
 \begin_layout Subsection
 分数
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28850,7 +29770,9 @@ frac
 \begin_inset Formula \[
 \left[\frac{1}{\left(\begin{array}{cc}
 2 & 3\\
-4 & 5\end{array}\right)}\right]\]
+4 & 5
+\end{array}\right)}\right]
+\]
 
 \end_inset
 
@@ -28859,7 +29781,7 @@ frac
 
 \begin_layout Subsection
 根号
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28875,6 +29797,8 @@ status collapsed
 根号は、数式パネルの
 \begin_inset Graphics
 	filename ../../images/math/sqrt.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -28907,7 +29831,7 @@ sqrt
 
 \begin_layout Subsection
 範囲付き演算子
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -28917,7 +29841,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29025,7 +29949,8 @@ name "sub:範囲付き演算子"
 \color inherit
 表記され、別行建て数式では
 \begin_inset Formula \[
-\sum_{n=1}^{\infty}\frac{1}{n!}=e\]
+\sum_{n=1}^{\infty}\frac{1}{n!}=e
+\]
 
 \end_inset
 
@@ -29088,7 +30013,7 @@ arg   "math-limits"
 \noun default
 \color inherit
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29098,7 +30023,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29131,7 +30056,8 @@ status collapsed
 
 
 \begin_inset Formula \[
-\lim_{x\rightarrow\infty}f(x),\]
+\lim_{x\rightarrow\infty}f(x),
+\]
 
 \end_inset
 
@@ -29239,7 +30165,7 @@ reference "sub:関数"
 
 \begin_layout Subsection
 数式記号
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29276,7 +30202,7 @@ status collapsed
 
 \begin_layout Subsection
 余白を変更する
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29286,7 +30212,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29375,6 +30301,8 @@ arg   "space-insert protected"
 のボタン
 \begin_inset Graphics
 	filename ../../images/math/space.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -29462,7 +30390,7 @@ Space
 
 \begin_layout Subsection
 関数
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29496,6 +30424,8 @@ name "sub:関数"
 の
 \begin_inset Graphics
 	filename ../../images/math/functions.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -29622,7 +30552,7 @@ reference "sub:範囲付き演算子"
 
 \begin_layout Subsection
 アクセント
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -29749,7 +30679,7 @@ name "tab:アクセント名とそれに対応するコマンド"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="11" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -30355,6 +31285,8 @@ vec
 記号設定ボタン
 \begin_inset Graphics
 	filename ../../images/math/hat.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -30363,7 +31295,7 @@ vec
 
 \begin_layout Section
 括弧と区分記号
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30373,7 +31305,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30427,6 +31359,8 @@ LyXで使える括弧には、いくつかのものがあります。ほとん�
 の区分記号アイコン
 \begin_inset Graphics
 	filename ../../images/math/delim.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -30443,7 +31377,9 @@ LyXで使える括弧には、いくつかのものがあります。ほとん�
 \begin_inset Formula \[
 \left[\begin{array}{cc}
 1 & 2\\
-3 & 4\end{array}\right]\]
+3 & 4
+\end{array}\right]
+\]
 
 \end_inset
 
@@ -30467,7 +31403,8 @@ LyXで使える括弧には、いくつかのものがあります。ほとん�
 \color inherit
 
 \begin_inset Formula \[
-\frac{1}{\left(1+\left(\frac{1}{1+\left(\frac{1}{1+x}\right)}\right)\right)}\]
+\frac{1}{\left(1+\left(\frac{1}{1+\left(\frac{1}{1+x}\right)}\right)\right)}
+\]
 
 \end_inset
 
@@ -30544,7 +31481,7 @@ LyXで使える括弧には、いくつかのものがあります。ほとん�
 
 \begin_layout Section
 配列と多行数式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30554,7 +31491,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30564,7 +31501,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30589,6 +31526,8 @@ status collapsed
 LyXでは、行列は数式パネルの行列ボタン
 \begin_inset Graphics
 	filename ../../images/math/matrix.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -30607,7 +31546,9 @@ LyXでは、行列は数式パネルの行列ボタン
 \left(\begin{array}{ccc}
 1 & 2 & 3\\
 4 & 5 & 6\\
-7 & 8 & 9\end{array}\right)\]
+7 & 8 & 9
+\end{array}\right)
+\]
 
 \end_inset
 
@@ -30646,11 +31587,11 @@ l
 \family default
 」「
 \family sans
-r
+c
 \family default
 」「
 \family sans
-c
+r
 \family default
 」の各文字を入力することで指定できます。LyXの既定値は各列とも「
 \family sans
@@ -30666,7 +31607,9 @@ lrc
 \begin{array}{lcr}
 \mbox{この} & \mbox{この} & \mbox{この}\\
 \mbox{列は} & \mbox{列は} & \mbox{列は}\\
-\mbox{左揃えです} & \mbox{中央揃えです} & \mbox{右揃えです}\end{array}\]
+\mbox{左揃えです} & \mbox{中央揃えです} & \mbox{右揃えです}
+\end{array}
+\]
 
 \end_inset
 
@@ -30724,7 +31667,9 @@ cases
 f(x)=\begin{cases}
 -1 & x<0\\
 0 & x=0\\
-1 & x>0\end{cases}\]
+1 & x>0
+\end{cases}
+\]
 
 \end_inset
 
@@ -30774,7 +31719,8 @@ arg   "newline-insert newline"
  
 \begin_inset Formula \begin{eqnarray}
 a^{2} & = & (b^{2}+c^{2})(b^{2}-c^{2})\nonumber \\
-a & = & \sqrt{b^{4}-c^{4}}\label{eq:asquared}\end{eqnarray}
+a & = & \sqrt{b^{4}-c^{4}}\label{eq:asquared}
+\end{eqnarray}
 
 \end_inset
 
@@ -30817,7 +31763,8 @@ Ctrl+Tab
 \color inherit
 注意してください。
 \begin_inset Formula \begin{eqnarray*}
-\frac{A}{B} & \frac{A}{B} & \frac{A}{B}\end{eqnarray*}
+\frac{A}{B} & \frac{A}{B} & \frac{A}{B}
+\end{eqnarray*}
 
 \end_inset
 
@@ -30871,7 +31818,7 @@ reference "sub:AMS数式型"
 
 \begin_layout Section
 数式番号と参照
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30881,7 +31828,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -30948,7 +31895,8 @@ arg   "math-number-toggle"
 \color inherit
 
 \begin_inset Formula \begin{equation}
-1+1=2.\end{equation}
+1+1=2.
+\end{equation}
 
 \end_inset
 
@@ -31020,7 +31968,8 @@ arg   "math-number-line-toggle"
 \begin_inset Formula \begin{eqnarray}
 1 & = & 3-2\\
 2 & = & 4-2\nonumber \\
-4 & \leq & 7\end{eqnarray}
+4 & \leq & 7
+\end{eqnarray}
 
 \end_inset
 
@@ -31093,7 +32042,8 @@ p」というラベルをつけています。
 
 \begin_inset Formula \begin{eqnarray}
 \tanh(x) & = & \frac{\sinh(x)}{\cosh(x)}\nonumber \\
- & = & \frac{\mathrm{e}^{2x}-1}{\mathrm{e}^{2x}+1}\label{eq:tanhExp}\end{eqnarray}
+ & = & \frac{\mathrm{e}^{2x}-1}{\mathrm{e}^{2x}+1}\label{eq:tanhExp}
+\end{eqnarray}
 
 \end_inset
 
@@ -31168,7 +32118,7 @@ status collapsed
 
 \begin_layout Section
 ユーザー定義の数式マクロ
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31235,7 +32185,7 @@ LyXでは、数式用に自前のマクロを定義することができるの�
 
 \begin_layout Subsection
 書体
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31269,6 +32219,8 @@ status collapsed
 であり、数字の標準フォントはローマン体です。数式中でフォントを指定するには、数式パネルの
 \begin_inset Graphics
 	filename ../../images/math/font.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -31310,7 +32262,7 @@ name "tab:書体とそれに対応するコマンド"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -31682,7 +32634,8 @@ Blackboard体
 \color none
 の「N」が使用されている例です。
 \begin_inset Formula \[
-f(x)=\sqrt{x}\;;\; x\in\mathbb{N}\]
+f(x)=\sqrt{x}\;;\; x\in\mathbb{N}
+\]
 
 \end_inset
 
@@ -31745,7 +32698,7 @@ boldsymbol
 
 \begin_layout Subsection
 数式内文章
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31765,6 +32718,8 @@ status collapsed
 の中の
 \begin_inset Graphics
 	filename ../../images/math/font.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -31785,7 +32740,9 @@ M
 \begin_inset Formula \[
 f(x)=\begin{cases}
 x & \mbox{もし私がそう言った場合}\\
--x & \textrm{unter Umständen（場合によっては）}\end{cases}\]
+-x & \textrm{unter Umständen（場合によっては）}
+\end{cases}
+\]
 
 \end_inset
 
@@ -31794,7 +32751,7 @@ x & \mbox{もし私がそう言った場合}\\
 
 \begin_layout Subsection
 フォント寸法
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -31905,6 +32862,8 @@ displaystyle
 ン
 \begin_inset Graphics
 	filename ../../images/math/style.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -32004,7 +32963,7 @@ displaystyle
 
 \begin_layout Standard
 LyX 1.6の時点において、定理型環境を有効にするには、文書クラスで指定するのではなく、レイアウトモジュール
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32026,7 +32985,7 @@ reference "sub:モジュール"
 
 \begin_layout Section
 AMS-LaTeX
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32036,7 +32995,7 @@ AMSすうしき@AMS 数式
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32063,7 +33022,7 @@ AMSサポートを有効にする
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32097,7 +33056,7 @@ name "sub:AMS数式型"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32139,7 +33098,7 @@ multline
 
 \begin_layout Section
 相互参照
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32232,6 +33191,7 @@ name "enu:第2項目"
 \begin_inset Graphics
 	filename ../../images/label-insert.png
 	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -32334,6 +33294,7 @@ sec:
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_ref.png
 	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -32472,10 +33433,24 @@ reference "cap:歪められた二つの像"
 
 \begin_layout Description
 (<参照>) フロート番号をかっこの中に印字します。これは通常、数式を参照するのに使われる形式で、特に参照接頭辞「式」を省略するときに使われます。（例）
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "cap:歪められた二つの像"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
 <参照ページ> ページ番号を印字します。（例）
+\begin_inset CommandInset ref
+LatexCommand pageref
+reference "cap:歪められた二つの像"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -32488,6 +33463,13 @@ page
 \end_inset
 
 <参照ページ> 「on page」という文とページ番号を印字します。（例）
+\begin_inset CommandInset ref
+LatexCommand vpageref
+reference "cap:歪められた二つの像"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -32504,6 +33486,13 @@ page
 \end_inset
 
 <参照ページ> フロート番号、「on page」という文、ページ番号の順に印字します。（例）
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "cap:歪められた二つの像"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -32512,30 +33501,69 @@ page
 \end_inset
 
 
+\lang english
+
 \begin_inset Note Greyedout
 status open
 
 \begin_layout Plain Layout
 
 \series bold
-（註）
+\lang english
+Note:
 \series default
-この機能は、LaTeXパッケージ
+ This feature is only available when you have the LaTeX-package 
 \series bold
 prettyref
 \series default
+ or 
+\series bold
+refstyle
+\series default
+\lang japanese
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
-Latexぱっけーじ@LaTeXパッケージ ! prettyref
+LaTeXぱっけーじ@LaTeXパッケージ! prettyref
 \end_layout
 
 \end_inset
 
-が導入されているときのみ使用可能です。
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+LaTeXぱっけーじ@LaTeXパッケージ ! refstyle
 \end_layout
+
+\end_inset
+
+
+\lang english
+ installed.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Textual
+\begin_inset space ~
+\end_inset
+
+reference: prints the caption of the reference
+\lang japanese
+: 
+\begin_inset CommandInset ref
+LatexCommand nameref
+reference "cap:歪められた二つの像"
 
 \end_inset
 
@@ -32619,6 +33647,8 @@ reference "sec:数式番号と参照"
 前に持っていくことができ、ツールバーボタンの
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -32639,12 +33669,28 @@ reference "sec:数式番号と参照"
 \emph on
 埋込オブジェクト篇
 \emph default
-』に詳述されています。
+』に詳述されています 
+\lang english
+in sec
+\lang japanese
+.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset Quotes eld
+\end_inset
+
+フロートの参照
+\begin_inset Quotes erd
+\end_inset
+
+。
 \end_layout
 
 \begin_layout Section
 目次と他の一覧
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32654,7 +33700,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32664,7 +33710,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32848,7 +33894,7 @@ name "sec:図・表・アルゴリズム一覧"
 
 \begin_layout Section
 URLとハイパーリンク
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32858,7 +33904,7 @@ URL
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -32946,6 +33992,8 @@ name "sub:ハイパーリンク"
 メニューか、ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/href-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -33025,7 +34073,7 @@ urlcolor=blue
 
 \begin_layout Section
 付録
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33078,7 +34126,7 @@ reference "sub:書き出し"
 
 \begin_layout Section
 参考文献
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33153,6 +34201,8 @@ reference "sub:参考文献環境"
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_citation.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -33192,7 +34242,7 @@ key "lyxcredit"
 
 \begin_layout Subsection
 文献データベース（BibTeX）
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33202,7 +34252,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33212,7 +34262,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33430,7 +34480,7 @@ alphadin.bst
 
 \begin_layout Subsection
 文献レイアウト
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33449,7 +34499,7 @@ status collapsed
 設定
 \family default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33488,7 +34538,7 @@ key "latexcompanion"
 
 \begin_layout Section
 索引
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33516,6 +34566,8 @@ name "sec:索引"
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/index-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -33558,7 +34610,7 @@ key "latexcompanion,latexguide,latexbook"
 
 \begin_layout Subsection
 索引項目のグループ化
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33654,7 +34706,7 @@ reference "sub:索引項目の整序"
 
 \begin_layout Subsection
 ページ範囲
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33720,7 +34772,7 @@ reference "sub:LyXコード"
 
 \begin_layout Subsection
 相互参照
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33782,7 +34834,7 @@ seename}{→}」と宣言します。
 
 \begin_layout Subsection
 索引項目の整序
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -33862,7 +34914,7 @@ status collapsed
 \end_inset
 
 itre」
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -33885,7 +34937,7 @@ is
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -33908,7 +34960,7 @@ itre
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -34102,7 +35154,7 @@ OrgIndex{#1}}
 
 \begin_layout Subsection
 索引項目のレイアウト
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34116,7 +35168,7 @@ status collapsed
 
 \begin_layout Standard
 索引項目の外観は、文字形式ダイアログを使用して変更することができます。
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -34140,7 +35192,7 @@ status open
 \end_inset
 
 と書くと、イタリック体のページ番号を得ることができます。
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -34247,7 +35299,7 @@ textit{#1}}
 \end_inset
 
 と書いてください。
-\begin_inset Index
+\begin_inset Index idx
 status open
 
 \begin_layout Plain Layout
@@ -34290,7 +35342,7 @@ key "makeindex,xindy"
 
 \begin_layout Subsection
 索引プログラム
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34358,7 +35410,7 @@ xindy
 
 \begin_layout Section
 記号一覧／用語集
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34390,7 +35442,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34400,7 +35452,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34432,7 +35484,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34483,7 +35535,7 @@ name "sec:用語集"
 nomencl
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34511,6 +35563,8 @@ key "TeXCatalogue"
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/nomencl-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -34540,7 +35594,7 @@ status open
 
 \begin_layout Subsection
 用語の定義とレイアウト
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34665,7 +35719,7 @@ emph
 
 \begin_layout Subsection
 用語集項目の整序順
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34769,7 +35823,7 @@ key "nomencl"
 
 \begin_layout Subsection
 用語集オプション
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -34946,7 +36000,7 @@ nomnorefeqpage 対応するオプションを解除する
 
 \begin_layout Subsection
 用語集の出力
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35030,7 +36084,7 @@ cmです。
 
 \begin_layout Subsection
 用語集プログラム
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35077,7 +36131,7 @@ key "nomencl,makeindex"
 
 \begin_layout Section
 派生枝
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35087,7 +36141,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35112,8 +36166,46 @@ name "sec:派生枝"
 \end_layout
 
 \begin_layout Standard
-このような場合に、LyXでは、文を派生枝に分けて置いておくことができます。すると当該文は、その派生枝が有効にされたときのみ出力に現れるようになります。派生枝を作
-成するには、
+このような場合に、LyXでは、文を派生枝に分けて置いておくことができます。すると当該文は、その派生枝が有効にされたときのみ出力に現れるようになります。
+\lang english
+To create a branch, either select the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Branch\SpecialChar \menuseparator
+Insert New Branch
+\family default
+ (if you just want to specify a new branch) or go in the 
+\family sans
+Document\SpecialChar \menuseparator
+Settings
+\family default
+ dialog to 
+\family sans
+Branches
+\family default
+, where you can specify and change the name of the branch, its activation
+ state (whether the content of the branch is shown in the output or not),
+ its background color inside LyX and whether the name of the branch should
+ be appended to the document file name on export if the branch is active
+ (see below for an example).
+ Furthermore, the dialog lets you merge two branches (just rename one branch
+ to the name of the other) and to add 
+\begin_inset Quotes eld
+\end_inset
+
+unknown branches
+\begin_inset Quotes erd
+\end_inset
+
+ (i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e., branches that were added to the document via copy and paste from other
+ documents, without having being defined) to the document's branch list.
+
+\lang japanese
+ 派生枝を作成するには、
 \family sans
 文書\SpecialChar \menuseparator
 設定
@@ -35174,6 +36266,108 @@ ontgenです。
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+If you activate 
+\family sans
+Filename Suffix
+\family default
+ in 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Branches
+\family default
+, the name of the active branches will be appended to the file name at export.
+ Consider for example a file 
+\begin_inset Quotes eld
+\end_inset
+
+Exam.lyx
+\begin_inset Quotes erd
+\end_inset
+
+ which has the above branches.
+ If 
+\begin_inset Quotes eld
+\end_inset
+
+Filename Suffix
+\begin_inset Quotes erd
+\end_inset
+
+ is active, the PDF export file would be called 
+\begin_inset Quotes eld
+\end_inset
+
+Exam.pdf
+\begin_inset Quotes erd
+\end_inset
+
+ if both the 
+\begin_inset Quotes eld
+\end_inset
+
+Question
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+Answer
+\begin_inset Quotes erd
+\end_inset
+
+ branch were inactive, 
+\begin_inset Quotes eld
+\end_inset
+
+Exam-Question.pdf
+\begin_inset Quotes erd
+\end_inset
+
+ if only the 
+\begin_inset Quotes eld
+\end_inset
+
+Question
+\begin_inset Quotes erd
+\end_inset
+
+ branch was active, likewise 
+\begin_inset Quotes eld
+\end_inset
+
+Exam-Answer.pdf
+\begin_inset Quotes erd
+\end_inset
+
+ if only the 
+\begin_inset Quotes eld
+\end_inset
+
+Answer
+\begin_inset Quotes erd
+\end_inset
+
+ branch was active, and 
+\begin_inset Quotes eld
+\end_inset
+
+Exam-Question-Answer.pdf
+\begin_inset Quotes erd
+\end_inset
+
+ if both branches were active.
+ This helps you to easily export different versions of your document without
+ much hassle.
+\lang japanese
 
 \begin_inset VSpace bigskip
 \end_inset
@@ -35354,7 +36548,8 @@ question
 \series default
 部分のみが現れます。
 \begin_inset Formula \[
-x^{2}-2x-2\Rightarrow\question{x_{1}}\answer{x_{2}}=1\question{+\sqrt{3}}\answer{-\sqrt{3}}\]
+x^{2}-2x-2\Rightarrow\question{x_{1}}\answer{x_{2}}=1\question{+\sqrt{3}}\answer{-\sqrt{3}}
+\]
 
 \end_inset
 
@@ -35381,7 +36576,7 @@ name "sec:PDF特性"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35400,7 +36595,7 @@ PDFとくせい@PDF特性
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35485,7 +36680,7 @@ name "sec:TeXコード"
 
 \begin_layout Subsection
 TeXコード枠
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35520,6 +36715,8 @@ TeXコード
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/ert-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -35612,7 +36809,7 @@ status open
 
 \begin_layout Subsection
 簡単なLaTeX文法入門
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -35622,7 +36819,7 @@ LaTeX文法
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35667,7 +36864,7 @@ key "Catalogue"
 caption
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35799,7 +36996,7 @@ name "sec:文書の断片プレビュー"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35809,7 +37006,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35836,7 +37033,7 @@ DVI
 preview-latex
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -35930,6 +37127,642 @@ yXのメインウィンドウで文書の一部を選択すれば、（1段落�
 \end_layout
 
 \begin_layout Section
+
+\lang english
+Advanced Find and Replace
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Advanced-Find"
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+ちかん@置換
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+けんさく@検索
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Introduction
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The advanced find and replace feature of LyX allows for searching of complex,
+ format-sensitive text segments and mathematics contents within LyX documents.
+ It is an enhancement of the standard (quick) find and replace feature.
+ The key-features are:
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+Both searching of text and of mathematical formulas is allowed, where the
+ latter is done by entering mathematics in the usual way; not only entire
+ mathematical formulas are found, but also parts occurring within more complex
+ formulas
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+Search may be format-insensitive, so that the searched text is found in
+ any context/style (standard text, section headings, notes, and even mathematics
+), or it may be format-sensitive, so that, for example, a word entered with
+ a section heading will only be found within section headings
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+Search may be widened to a specific 
+\emph on
+scope
+\emph default
+, i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+a set of files which may be all the children of the document being edited,
+ all the open files, or all the manuals available from the 
+\family sans
+Help
+\family default
+ menu
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+Replace may optionally preserve capitalization, so that the replaced text
+ capitalization is adapted to the matching text (i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+all lowercase, all uppercase, first uppercase followed by lowercase)
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Basic usage
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The advanced find and replace feature of LyX is activated through the menu
+ 
+\family sans
+Edit\SpecialChar \menuseparator
+Find & Replace
+\noun on
+ (
+\noun default
+Advanced
+\noun on
+)
+\family default
+\noun default
+ (shortcut 
+\begin_inset Info
+type  "shortcut"
+arg   "dialog-show findreplaceadv"
+\end_inset
+
+) or the toolbar button 
+\begin_inset Graphics
+	filename ../../images/dialog-toggle_findreplaceadv.png
+	scale 85
+	groupId toolbarbutton
+
+\end_inset
+
+.
+ This opens the 
+\family sans
+Advanced Find and Replace
+\family default
+ dialog.
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Searching for text
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Enter into the 
+\family sans
+Find
+\family default
+ LyX mini-editor a simple word, and search for occurrences of it by clicking
+ on the 
+\family sans
+Find Next
+\family default
+ button at the bottom of the dialog (or just press the 
+\family sans
+Return
+\family default
+ key).
+ The entered word is found both in text mode and in math mode, and in emphasized
+, bold or normal face, and in both in section titles and in standard text.
+ Pressing repeatedly 
+\family sans
+Enter
+\family default
+ keeps searching forward.
+ Similarly, pressing 
+\family sans
+Shift+Enter
+\family default
+ searches for the entered text backwards.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+While searching, the 
+\family sans
+Case sensitive
+\family default
+ option allows matches to occur only with the same case as entered in the
+ 
+\family sans
+Find
+\family default
+ editor.
+ The 
+\family sans
+Whole words
+\family default
+ option allows matches to occur only at word boundaries.
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Searching for mathematics
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Mathematical formulas may be searched for by typing in the 
+\family sans
+Find
+\family default
+ editor a mathematical formula, such as 
+\begin_inset Formula $x^{2}$
+\end_inset
+
+ or also something more complex like 
+\begin_inset Formula $\frac{x^{2}}{1+x^{2}}$
+\end_inset
+
+.
+ When searching for a formula, it is found both when it is alone and when
+ it occurs in sub-formulas and nested parts of sub-formulas, for example
+ the mentioned segments would be found in something like 
+\begin_inset Formula $\frac{x^{2}}{\sqrt{\frac{x^{2}}{1+x^{2}}}}.$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Style-aware search
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+It is also possible to search for text with specific styles.
+ This is done by switching to the 
+\family sans
+Advanced
+\family default
+ tab of the dialog and unchecking the 
+\family sans
+Ignore format
+\family default
+ option.
+ This way, entering in the 
+\family sans
+Find
+\family default
+ editor
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+a plain word and searching for it would not find instances of the word occurring
+ in emphasized or boldface.
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+an emphasized or boldface word and searching for it would find the respective
+ instances with same face only, and within the same text style only.
+ Note that, for example, an emphasized text is found not only when occurring
+ alone, but also when it is contained in a longer emphasized sentence.
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+a plain word in a section heading, and searching for it, finds occurrences
+ of if only within section headings.
+ Also, if the text to search is given an emphasized or bold face, in addition
+ to a section style, then it is found only when occurring with the same
+ style.
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+some mathematics in a displayed formula will only find instances of this
+ formula that are also displayed formulas (and not inline formulas).
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Replace
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The text segments matching the text entered in the 
+\family sans
+Find
+\family default
+ editor may be replaced with the text segments entered in the 
+\family sans
+Replace
+\family default
+\noun on
+ 
+\noun default
+editor.
+ In order to find the next occurrence and replace it, click on the 
+\family sans
+Replace
+\family default
+ button or alternatively
+\noun on
+ 
+\noun default
+press 
+\family sans
+Enter
+\family default
+ or 
+\family sans
+Shift+Enter
+\family default
+ while being in the 
+\family sans
+Replace
+\family default
+\noun on
+ 
+\noun default
+editor.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can replace full-featured formatted LyX segments in place of the matching
+ text segments in your document.
+ Typical scenarios in which to use this capability may be (just to mention
+ a few):
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+replacing occurrences of a word with a customized formatted version of the
+ same word, for example replacing occurrences of a name like 
+\begin_inset Quotes eld
+\end_inset
+
+func()
+\begin_inset Quotes erd
+\end_inset
+
+ with its typewriter version 
+\family typewriter
+
+\begin_inset Quotes eld
+\end_inset
+
+func()
+\begin_inset Quotes erd
+\end_inset
+
+;
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+performing a notation rework of mathematical symbols, for example replacing
+ occurrences of 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $R$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ with 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\mathbb{R}$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ (you may want to enable the 
+\family sans
+Whole words
+\family default
+ and 
+\family sans
+Case sensitive
+\family default
+ options and disable the 
+\family sans
+Ignore format
+\family default
+ option in the 
+\family sans
+Advanced
+\family default
+ tab, in order to avoid replacing all 
+\begin_inset Quotes eld
+\end_inset
+
+R
+\begin_inset Quotes erd
+\end_inset
+
+ letters occurring in normal text), or occurrences of 
+\begin_inset Formula $x_{j}^{i}$
+\end_inset
+
+ with 
+\begin_inset Formula $x_{i,\, j}$
+\end_inset
+
+, or occurrences of 
+\begin_inset Formula $x[k]$
+\end_inset
+
+ with 
+\begin_inset Formula $x_{k}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Advanced usage
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+There is a regular expression (regexp) based searching facility.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+A good explanation of regular expressions is given in this Wikipedia entry:
+ 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://en.wikipedia.org/wiki/Regular_expression"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ You can search for regular expression by inserting a regexp inset into
+ the 
+\family sans
+Find
+\family default
+ editor.
+ This is done via the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Insert Regular Expression
+\family default
+ (shortcut 
+\begin_inset Info
+type  "shortcut"
+arg   "regexp-mode"
+\end_inset
+
+) while the cursor is in the 
+\family sans
+Find
+\family default
+ editor.
+ Characters entered within regexp insets are matched according to the regular
+ expression matching rules
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Under the constraint that any (sub)expression must match a well-formed LyX
+ text segment, i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+when matching LaTeX code, no segments with unbalanced {} braces are allowed
+ to match expressions.
+\end_layout
+
+\end_inset
+
+, while text entered outside regexp insets is matched exactly against the
+ same text in the document.
+ Note that it is allowed to cut and paste regexp-mode insets as usual.
+ Examples of using such a feature may be:
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+Searching for all fractions with a given denominator: for example, entering
+ in the 
+\family sans
+Find
+\family default
+ editor the fraction 
+\begin_inset Formula $\frac{.*}{1+x^{2}}$
+\end_inset
+
+ (where the 
+\begin_inset Formula $.*$
+\end_inset
+
+ on the numerator is the match-everything regular expression) finds all
+ fractions with the given denominator.
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+Searching for all text with a given style: for example, after unchecking
+ the 
+\family sans
+Ignore format
+\family default
+ option from the 
+\family sans
+Advanced
+\family default
+ tab, entering a 
+\series bold
+
+\begin_inset Formula $.*$
+\end_inset
+
+
+\series default
+ regular expression and adding for it an emphasized or bold face, finds
+ all emphasized and bold face text, respectively.
+ Also, inserting a 
+\begin_inset Formula $.*$
+\end_inset
+
+ regular expression in a bullet or enumerated list or a section heading,
+ you can find all bullet or enumerated lists or section headings.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Finally, references to (sub)expressions in regexp may be used as usual,
+ enclosing parts of the expression within round braces 
+\begin_inset Formula $()$
+\end_inset
+
+, and referring back to them through 
+\begin_inset Formula $\backslash1$
+\end_inset
+
+, 
+\begin_inset Formula $\backslash2$
+\end_inset
+
+, etc., where a 
+\begin_inset Formula $\backslash$
+\end_inset
+
+ symbol is entered in regexp mode by pressing twice the backslash key.
+ For example, try searching for the regexp 
+\begin_inset Formula $([a-z]+)[[:blank:]]\backslash1$
+\end_inset
+
+ in order to find word repetitions, if there are any.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Note that back references work both when occurring within the same regexp,
+ and when occurring in multiple different regexps, where the numbering of
+ back-referenced sub-expressions is absolute, i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e.
+\begin_inset space ~
+\end_inset
+
+ 
+\begin_inset Formula $\backslash1$
+\end_inset
+
+ always refers to the first occurrence of 
+\begin_inset Formula $()$
+\end_inset
+
+ in all entered regexps.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Note also that the use of back references in the replaced text is not (yet)
+ implemented.
+\end_layout
+
+\begin_layout Section
 スペルチェック
 \begin_inset CommandInset label
 LatexCommand label
@@ -35938,7 +37771,7 @@ name "sec:スペルチェック"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36159,7 +37992,7 @@ ispell
 
 \begin_layout Section
 類語辞典
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36169,7 +38002,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36223,6 +38056,8 @@ name "sec:類語辞典"
 メニューかツールバーボタン
 \begin_inset Graphics
 	filename ../../images/thesaurus-entry.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36241,7 +38076,7 @@ ort」ならば、結果が表示されます。対策として、結果を得�
 
 \begin_layout Section
 変更追跡機能
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36251,7 +38086,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36288,15 +38123,17 @@ name "sec:変更追跡機能"
 \bar default
 \color inherit
 、削除部分は
+\strikeout on
 \color blue
 取り消し文章
+\strikeout default
 \color inherit
 のように表示されるようになります。色は、変更した執筆者によって異なります。色は、LyX設定ダイアログの
 \family sans
 操作性・色
 \family default
 面で変更できます
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36308,6 +38145,8 @@ status collapsed
 。執筆者と変更の日時は、カーソルを変更箇所にあわせると、LyXのステータスバーに表示されます。ツールバーボタン
 \begin_inset Graphics
 	filename ../../images/changes-merge.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36316,7 +38155,7 @@ status collapsed
 
 \begin_layout Standard
 変更追跡が有効にされると、以下のような校閲ツールバーがLyXに表示されるようになります。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36356,7 +38195,7 @@ status collapsed
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="10" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -36366,6 +38205,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-track.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36395,6 +38236,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-output.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36424,6 +38267,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-next.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36449,6 +38294,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-accept.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36478,6 +38325,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/change-reject.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36507,6 +38356,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/changes-merge.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36536,6 +38387,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/all-changes-accept.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36565,6 +38418,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/all-changes-reject.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36594,6 +38449,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-insert.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36623,6 +38480,8 @@ LyX注釈
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-next.png
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -36671,7 +38530,7 @@ LyX注釈
 dvipost
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36692,7 +38551,7 @@ key "TeXCatalogue"
 
 \begin_layout Section
 国際化サポート
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36729,7 +38588,7 @@ reference "sub:特殊文字"
 
 \begin_layout Subsection
 言語オプション
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36739,7 +38598,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36749,7 +38608,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -36963,7 +38822,7 @@ latin1文字セット
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="17" columns="17">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
@@ -39922,7 +41781,7 @@ name "cha:ユーザーインタフェース"
 
 \begin_layout Section
 ファイルメニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40283,7 +42142,7 @@ reference "sec:LaTeXの設定"
 \end_inset
 
 節をご覧ください。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40376,7 +42235,7 @@ LyXの新規インスタンスを開いたり閉じたりします。
 
 \begin_layout Section
 編集メニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40466,7 +42325,7 @@ reference "sub:文字微調整"
 
 \begin_layout Subsection
 段落設定
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40542,7 +42401,7 @@ reference "sub:番号の付け方-深度"
 
 \begin_layout Section
 表示メニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40588,7 +42447,7 @@ reference "sec:LaTeXの設定"
 \end_inset
 
 節をご覧ください。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40698,7 +42557,7 @@ reference "sec:文書の断片プレビュー"
 
 \begin_layout Subsection
 ツールバー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40776,7 +42635,7 @@ reference "sec:ツールバー"
 
 \begin_layout Section
 挿入メニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40910,7 +42769,7 @@ reference "sub:略語"
 
 \begin_layout Description
 発音記号
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40920,7 +42779,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -40934,7 +42793,7 @@ status collapsed
 tipa
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41254,7 +43113,7 @@ Flex insets and InsetLayout
 
 \begin_layout Subsection
 ファイル
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41280,7 +43139,7 @@ External Stuff
 
 \begin_layout Subsection
 ボックス
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41358,7 +43217,7 @@ reference "sec:相互参照"
 
 \begin_layout Subsection
 キャプション
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41368,7 +43227,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41551,7 +43410,7 @@ reference "sub:TeXコード枠"
 
 \begin_layout Subsection
 プログラムリスト
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41593,7 +43452,7 @@ External Material
 
 \begin_layout Section
 移動メニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41699,7 +43558,7 @@ status open
 
 \begin_layout Section
 文書メニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41816,7 +43675,7 @@ reference "cha:文書設定"
 
 \begin_layout Section
 ツールメニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41860,7 +43719,7 @@ reference "sec:類語辞典"
 
 \begin_layout Subsection
 統計
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41870,7 +43729,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41888,7 +43747,7 @@ status collapsed
 
 \begin_layout Subsection
 TeX情報
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41906,7 +43765,7 @@ Texじょうほう@TeX情報
 
 \begin_layout Subsection
 再設定
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41938,7 +43797,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -41978,7 +43837,7 @@ reference "cha:設定ダイアログ"
 
 \begin_layout Section
 ヘルプメニュー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -42041,7 +43900,7 @@ reference "sub:ツールバー"
 
 \begin_layout Subsection
 標準ツールバー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -42100,7 +43959,7 @@ status collapsed
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="1" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -42139,7 +43998,7 @@ status collapsed
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="21" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -42151,7 +44010,8 @@ status collapsed
 \family sans
 \begin_inset Graphics
 	filename ../../images/buffer-new.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42180,7 +44040,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/file-open.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42209,7 +44070,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-write.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42238,7 +44100,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_print.png
-	BoundingBox 0bp 5bp 24bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42267,7 +44130,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_spellchecker.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42296,7 +44160,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/undo.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42325,7 +44190,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/redo.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42354,7 +44220,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/cut.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42383,7 +44250,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/copy.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42412,7 +44280,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/paste.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42441,8 +44310,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_findreplace.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42471,8 +44340,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/bookmark-goto_0.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42502,7 +44371,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/font-emph.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42533,7 +44403,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/font-noun.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42564,7 +44435,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/font-free-apply.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42595,7 +44467,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-mode.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42625,8 +44498,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_graphics.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42655,8 +44528,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/tabular-insert.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42685,8 +44558,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-toggle_toc.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42717,8 +44590,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/toolbar-toggle_math.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42744,8 +44617,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/toolbar-toggle_table.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42773,7 +44646,7 @@ status collapsed
 
 \begin_layout Subsection
 追加ツールバー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -42807,7 +44680,7 @@ status collapsed
 
 \begin_inset Tabular
 <lyxtabular version="3" rows="25" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -42817,8 +44690,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42844,8 +44717,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Enumerate.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42871,8 +44744,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Itemize.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42898,8 +44771,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_List.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42925,8 +44798,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout_Description.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42952,8 +44825,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/depth-increment.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -42982,8 +44855,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/depth-decrement.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43012,7 +44885,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/float-insert_figure.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43042,7 +44916,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/float-insert_table.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43072,7 +44947,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/label-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43101,7 +44977,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_ref.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43130,7 +45007,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_citation.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43159,7 +45037,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/index-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43188,7 +45067,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/nomencl-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43217,7 +45097,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/footnote-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43246,8 +45127,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/marginalnote-insert.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43276,7 +45157,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/note-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43306,7 +45188,8 @@ LyX注釈
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/box-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43335,7 +45218,8 @@ LyX注釈
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/url-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43364,7 +45248,8 @@ URL
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/ert-insert.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43408,7 +45293,8 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/math-macro_newmacroname_newcommand.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43438,7 +45324,8 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_include.png
-	BoundingBox 0bp 5bp 20bp 20bp
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43468,8 +45355,8 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/dialog-show_character.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43498,8 +45385,8 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/layout-paragraph.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43528,8 +45415,8 @@ eX
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/thesaurus-entry.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43560,7 +45447,7 @@ eX
 
 \begin_layout Subsection
 表示／更新ツールバー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -43602,7 +45489,7 @@ status collapsed
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features islongtable="true">
+<features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row interlinespace="2.5mm">
@@ -43612,8 +45499,8 @@ status collapsed
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_dvi.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43642,8 +45529,8 @@ DVI
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_dvi.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43673,8 +45560,8 @@ DVI
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_pdf2.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43703,8 +45590,8 @@ PDF
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_pdf2.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43734,8 +45621,8 @@ PDF
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-view_ps.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43764,8 +45651,8 @@ Postscript
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename ../../images/buffer-update_ps.png
-	BoundingBox 0bp 5bp 20bp 25bp
-	rotateOrigin center
+	scale 85
+	groupId toolbarbutton
 
 \end_inset
 
@@ -43808,7 +45695,7 @@ reference "sec:変更追跡機能"
 \end_inset
 
 節に説明があります。表ツールバー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -43837,7 +45724,7 @@ name "cha:文書設定"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -43926,6 +45813,27 @@ target "http://tug.ctan.org/get/macros/latex/required/graphics/grfguide.pdf"
 Child Documents
 \emph default
 の節に説明されています。
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Child Documents
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+This submenu is only visible when your document includes child documents.
+ Please refer to the section 
+\emph on
+Child Documents
+\emph default
+ of the 
+\emph on
+Embedded Objects
+\emph default
+ manual for details.
 \end_layout
 
 \begin_layout Section
@@ -44018,7 +45926,7 @@ reference "sub:余白"
 
 \begin_layout Section
 言語
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44054,28 +45962,8 @@ status collapsed
 \family default
 オプションを選択すると、本文の言語から本文部分の文字コードを決定します。このとき、文書が二つ以上の言語を含んでいると、LaTeXファイルに二つ以上の文字コードを
 含ませることになるかもしれません。このオプションを使用しないときには、文書全体はつねに一つの文字コードだけを使用することになります。
-\family sans
-XeTeX
-\family default
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-XeTeXは、LaTeXに代わるTeX植字エンジンです。XeTeXはネイティブにUnicodeをサポートし、インプットファイルはUTF-8文字コードであるものと
-仮定します。LyXをXeTeXとともに使う詳しい方法は、
-\begin_inset CommandInset citation
-LatexCommand cite
-key "XeTeX"
-
-\end_inset
-
-に記載があります。
-\end_layout
-
-\end_inset
-
-を使っているとき以外は、このオプションを有効にすることが推奨されます（以下参照）。
+\lang english
+Checking this option is the preferred setting.
 \end_layout
 
 \begin_layout Standard
@@ -44087,6 +45975,72 @@ XのUnicodeサポートははなはだ不完全であるため、たくさんの
 \family default
 の文字コードで動くものの（このとき、LyXは既知のLaTeXコマンド一覧を使用します）、utf8文字コード固定では動かないということは、珍しいことではありません
 （このとき、LyXは既知のLaTeXコマンド一覧を使用しません。なぜならUnicode記号はすべてutf8でコード化できるからです）。
+\lang english
+The situation is much better with XeTeX and LuaTeX, two new alternative
+ engines to standard LaTeX.
+ Both engines support Unicode natively.
+ LyX now also supports these two engines (via the output formats 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(XeTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X)
+\family default
+, 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(LuaTe
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X)
+\family default
+ and 
+\family sans
+DVI
+\begin_inset space ~
+\end_inset
+
+(LuaTeX)
+\family default
+; see section
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:出力ファイル形式"
+
+\end_inset
+
+
+\lang english
+), so if the above options fail, you might try out one of these new engines.
 \end_layout
 
 \begin_layout Standard
@@ -44103,7 +46057,7 @@ LaTeX既定値（inputenc不使用） 文字コードに
 inputenc
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44235,7 +46189,7 @@ LaTeXコマンドが必要な場合には、ファイルが大きくなる可能
  CJK
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44252,28 +46206,23 @@ Latexぱっけーじ@LaTeXパッケージ ! CJK
 \family sans
 XeTeX
 \family default
-とともに使用することを意図したUnicode utf8。
+ 
+\lang english
+and
+\lang japanese
+ 
+\family sans
+LuaTeX
+\family default
+ とともに使用することを意図したUnicode utf8。
 \series bold
 inputenc
 \series default
- LaTeXパッケージの助けを借りずにUnicodeを直接使用します 
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-LyXをXeTeXと使う方法に関しては、
-\begin_inset CommandInset citation
-LatexCommand cite
-key "XeTeX"
-
-\end_inset
-
-に記載があります。
-\end_layout
-
-\end_inset
-
-。
+ LaTeXパッケージの助けを借りずにUnicodeを直接使用します 。
+\lang english
+LyX automatically selects this encoding if you export or preview XeTeX or
+ LuaTeX.
+ Normally you do not need to set this encoding manually.
 \end_layout
 
 \begin_layout Description
@@ -44282,7 +46231,7 @@ key "XeTeX"
 ucs
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44300,7 +46249,7 @@ LaTeXパッケージに基づいたUnicode utf8（包括的。ラテン文字・
 inputenc
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44370,7 +46319,7 @@ Latexぱっけーじ@LaTeXパッケージ ! inputenc
 CJK
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44404,7 +46353,7 @@ CJK
 japanese
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44438,7 +46387,7 @@ japanese
 japanese
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44526,7 +46475,7 @@ reference "sub:番号の付け方-深度"
 natbib
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44540,7 +46489,7 @@ Latexぱっけーじ@LaTeXパッケージ ! natbib
 jurabib
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44584,7 +46533,7 @@ reference "sec:PDF特性"
 amsmath
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44598,7 +46547,7 @@ Latexぱっけーじ@LaTeXパッケージ ! amsmath
 esint
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44711,7 +46660,7 @@ name "cha:設定ダイアログ"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44738,7 +46687,7 @@ status collapsed
 
 \begin_layout Subsection
 操作画面
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44748,7 +46697,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44762,7 +46711,7 @@ status collapsed
 
 \begin_layout Subsubsection
 操作画面設定ファイル
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44772,7 +46721,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -44895,14 +46844,20 @@ LyX関数
 \begin_inset VSpace smallskip*
 \end_inset
 
-全LyX関数は
-\begin_inset CommandInset citation
-LatexCommand cite
-key "LyX-func"
 
+\lang english
+All LyX-functions are listed in the menu 
+\family sans
+Help\SpecialChar \menuseparator
+LyX
+\begin_inset space ~
 \end_inset
 
-に挙げてあります。
+Functions
+\family default
+.
+\lang japanese
+
 \begin_inset VSpace medskip
 \end_inset
 
@@ -44999,7 +46954,7 @@ name "sub:文書のバックアップ"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45038,7 +46993,7 @@ status collapsed
 
 \begin_layout Subsection
 画面フォント
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45162,7 +47117,7 @@ OSとWindowsでのみ使うことができ、また意味があることにご�
 
 \begin_layout Subsection
 色
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45172,7 +47127,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45194,7 +47149,7 @@ status collapsed
 
 \begin_layout Subsection
 表示
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45295,7 +47250,7 @@ reference "sec:文書の断片プレビュー"
 
 \begin_layout Subsection
 短絡キー
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45305,7 +47260,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45337,7 +47292,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45419,7 +47374,7 @@ name "sub:短絡キーの編集"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45515,7 +47470,7 @@ name "sub:キーボード配置表"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45525,7 +47480,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45580,7 +47535,7 @@ name "sub:入力補完-附録"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45613,7 +47568,7 @@ name "sec:パス"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45623,7 +47578,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45693,7 +47648,7 @@ MacOSやWindowsシステムでLyXを使用しているときには、用例ボ�
 
 \begin_layout Description
 バックアップディレクトリ
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45776,7 +47731,7 @@ reference "sec:変更追跡機能"
 
 \begin_layout Section
 言語設定
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45786,7 +47741,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45962,7 +47917,7 @@ name "sub:プリンタ"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -45972,7 +47927,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46033,7 +47988,7 @@ dvips
 
 \begin_layout Subsection
 日付書式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46043,7 +47998,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46133,7 +48088,7 @@ name "sub:LaTeX-設定"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46146,7 +48101,13 @@ status collapsed
 \end_layout
 
 \begin_layout Description
-Te
+
+\lang english
+Use
+\begin_inset space ~
+\end_inset
+
+LaTe
 \begin_inset ERT
 status collapsed
 
@@ -46157,7 +48118,17 @@ status collapsed
 
 \end_inset
 
-X文字コード これは文書フォントの既定文字コードです。
+X
+\begin_inset space ~
+\end_inset
+
+font
+\begin_inset space ~
+\end_inset
+
+encoding
+\lang japanese
+ これは文書フォントの既定文字コードです。
 \family sans
 T1
 \family default
@@ -46289,7 +48260,7 @@ xdvi
 LaTeXファイルでWindows流のパス表記を使う Windowsのパス記法を使用します。すなわち、フォルダを区切るのに「/」ではなく「
 \backslash
 」を使用します。このオプションは、LyXをWindows上で使用する際には、既定で有効化されています。
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46299,7 +48270,7 @@ status collapsed
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46322,7 +48293,7 @@ status collapsed
 
 \begin_layout Section
 ファイル処理
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46343,7 +48314,7 @@ name "sub:変換子"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46411,7 +48382,7 @@ Converters
 
 \begin_layout Subsection
 ファイル形式
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46473,7 +48444,7 @@ name "cha:LyXで使用できる単位"
 \end_inset
 
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -46532,7 +48503,7 @@ name "cap:単位"
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="20" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -47193,6 +49164,7 @@ key "lyxcredit"
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 label "Credits"
@@ -47227,6 +49199,7 @@ http://www.lyx.org/trac/browser/lyx-devel/trunk/lib/CREDITS
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexcompanion"
@@ -47242,6 +49215,7 @@ The LaTeX Companion Second Edition.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexguide"
@@ -47258,6 +49232,7 @@ A Guide to LaTeX Fourth Edition.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "latexbook"
@@ -47274,6 +49249,7 @@ LaTeX: A Document Preparation System.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "texbook"
@@ -47291,6 +49267,7 @@ The TeXbook.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "TeXCatalogue"
@@ -47316,6 +49293,7 @@ http://www.ctan.org/tex-archive/help/Catalogue/bytopic.html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "LaTeXFAQ"
@@ -47341,6 +49319,7 @@ http://www.tex.ac.uk/cgi-bin/texfaq2html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "BibTeX"
@@ -47378,6 +49357,7 @@ http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxdoc.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "BibTeX-2"
@@ -47411,6 +49391,7 @@ http://www.ctan.org/tex-archive/info/bibtex/tamethebeast/ttb_en.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "makeindex"
@@ -47448,6 +49429,7 @@ http://tug.ctan.org/indexing/makeindex/doc/manpages.dvi
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "xindy"
@@ -47485,6 +49467,7 @@ http://www.xindy.org/documentation.html
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "caption"
@@ -47522,6 +49505,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/caption.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "fancyhdr"
@@ -47533,7 +49517,7 @@ LaTeXパッケージ
 fancyhdr
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -47569,6 +49553,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/fancyhdr/fancyhdr.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "hyperref"
@@ -47580,7 +49565,7 @@ key "hyperref"
 hyperref
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -47620,6 +49605,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/hyperref/hyperref.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "nomencl"
@@ -47631,7 +49617,7 @@ LaTeXパッケージ
 nomencl
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -47667,6 +49653,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/nomencl/nomencl.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "tipa"
@@ -47678,7 +49665,7 @@ LaTeXパッケージ
 tipa
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -47714,6 +49701,7 @@ http://www.ctan.org/tex-archive/fonts/tipa/tipaman.pdf
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "wrapfig"
@@ -47725,7 +49713,7 @@ LaTeXパッケージ
 wrapfig
 \series default
 
-\begin_inset Index
+\begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
@@ -47761,39 +49749,7 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "XeTeX"
-
-\end_inset
-
-LyXをXeTeXで使う方法を述べた
-\begin_inset CommandInset href
-LatexCommand href
-name "Wikiページ"
-target "http://wiki.lyx.org/LyX/XeTeX"
-
-\end_inset
-
-:
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://wiki.lyx.org/LyX/XeTeX
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Arabic"
@@ -47827,6 +49783,7 @@ http://wiki.lyx.org/Windows/Arabic
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Armenian"
@@ -47860,6 +49817,7 @@ http://wiki.lyx.org/Windows/Armenian
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Farsi"
@@ -47893,6 +49851,7 @@ http://wiki.lyx.org/Windows/Farsi
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Hebrew"
@@ -47926,6 +49885,7 @@ http://wiki.lyx.org/Windows/Hebrew
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Japanese"
@@ -47959,6 +49919,7 @@ http://wiki.lyx.org/Windows/Japanese
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "Vietnamese"
@@ -47992,54 +49953,22 @@ http://wiki.lyx.org/Windows/Vietnamese
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-key "LyX-func"
-
-\end_inset
-
-使用可能なLyX関数の一覧を載せた
-\begin_inset CommandInset href
-LatexCommand href
-name "Wikiページ"
-target "http://wiki.lyx.org/LyX/LyxFunctionList"
-
-\end_inset
-
-:
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://wiki.lyx.org/LyX/LyxFunctionList
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "NewInLyX16"
+key "NewInLyX20"
 
 \end_inset
 
 
 \family sans
-LyX 1.6.0
+LyX 2.0
 \family default
 の新機能に関する
 \begin_inset CommandInset href
 LatexCommand href
 name "Wikiページ"
-target "http://wiki.lyx.org/LyX/NewInLyX16"
+target "http://wiki.lyx.org/LyX/NewInLyX20"
 
 \end_inset
 
@@ -48053,7 +49982,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://wiki.lyx.org/LyX/NewInLyX16
+http://wiki.lyx.org/LyX/NewInLyX20
 \end_layout
 
 \end_inset
@@ -48134,12 +50063,14 @@ options "../biblio/alphadin"
 
 \begin_inset CommandInset nomencl_print
 LatexCommand printnomenclature
+set_width "none"
 
 \end_inset
 
 
 \begin_inset CommandInset index_print
 LatexCommand printindex
+type "idx"
 
 \end_inset
 

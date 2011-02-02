@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Dekel Tsur
  *
@@ -554,10 +554,11 @@ void Encodings::initUnicodeMath(Buffer const & buffer, bool clear_sets)
 		it->initUnicodeMath();
 
 	// Check children
-	std::vector<Buffer *> clist = buffer.getChildren();
-	for (vector<Buffer *>::const_iterator cit = clist.begin();
-	     cit != clist.end(); ++cit) 
-		initUnicodeMath(**cit, false);
+	BufferList::iterator bit = theBufferList().begin();
+	BufferList::iterator const bend = theBufferList().end();
+	for (; bit != bend; ++bit)
+		if (buffer.isChild(*bit))
+			initUnicodeMath(**bit, false);
 #endif
 }
 
@@ -824,7 +825,7 @@ void Encodings::read(FileName const & encfile, FileName const & symbolsfile)
 	// Now read the encodings
 	enum {
 		et_encoding = 1,
-		et_end,
+		et_end
 	};
 
 	LexerKeyword encodingtags[] = {

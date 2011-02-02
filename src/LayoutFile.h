@@ -4,7 +4,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
+ * \author Richard Heck (typedefs and such)
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -12,6 +13,7 @@
 #ifndef BASECLASSLIST_H
 #define BASECLASSLIST_H
 
+#include "LayoutModuleList.h"
 #include "TextClass.h"
 
 #include "support/strfwd.h"
@@ -26,10 +28,6 @@
 namespace lyx {
 
 class Layout;
-
-/// Reads the style files
-extern bool LyXSetStyle();
-
 
 /// Index into LayoutFileList. Basically a 'strong typedef'.
 class LayoutFileIndex {
@@ -62,20 +60,23 @@ private:
 class LayoutFile : public TextClass, boost::noncopyable {
 public:
 	/// check whether the TeX class is available
-	bool isTeXClassAvailable() const { return texClassAvail_; }
+	bool isTeXClassAvailable() const { return tex_class_avail_; }
 	///
-	std::list<std::string> const & defaultModules() const 
+	LayoutModuleList const & defaultModules() const 
 			{ return default_modules_; }
- 	std::list<std::string> const & providedModules() const 
+	///
+ 	LayoutModuleList const & providedModules() const 
  			{ return provided_modules_; }
- 	std::list<std::string> const & excludedModules() const 
+	///
+ 	LayoutModuleList const & excludedModules() const 
  			{ return excluded_modules_; }
 private:
 	/// Construct a layout with default values. Actual values loaded later.
 	explicit LayoutFile(std::string const & filename,
 			std::string const & className = std::string(),
 			std::string const & description = std::string(),
-			bool texClassAvail = false);
+			std::string const & prerequisites = std::string(),
+			bool texclassavail = false);
 	/// The only class that should create a LayoutFile is
 	/// LayoutFileList, which calls the private constructor.
 	friend class LayoutFileList;
@@ -91,6 +92,7 @@ class LayoutFileList {
 public:
 	///
 	LayoutFileList() {}
+	///
 	~LayoutFileList();
 	/// \return The sole instance of this class.
 	static LayoutFileList & get();
@@ -98,16 +100,20 @@ public:
 	bool empty() const { return classmap_.empty(); }
 	///
 	bool haveClass(std::string const & classname) const;
-	///
+	/// Note that this will assert if we don't have classname, so
+	/// check via haveClass() first.
 	LayoutFile const & operator[](std::string const & classname) const;
-	///
+	/// Note that this will assert if we don't have classname, so
+	/// check via haveClass() first.
 	LayoutFile & operator[](std::string const & classname);
 	/// Read textclass list. Returns false if this fails.
 	bool read();
 	/// Clears the textclass so as to force it to be reloaded
 	void reset(LayoutFileIndex const & tc);
 
-	/// add a default textclass with all standard layouts.
+	/// Add a default textclass with all standard layouts.
+	/// Note that this will over-write any information we may have
+	/// gotten from textclass.lst about this class.
 	LayoutFileIndex addEmptyClass(std::string const & textclass);
 
 	/// add a textclass from user local directory.
@@ -117,6 +123,10 @@ public:
 		addLocalLayout(std::string const & textclass, std::string const & path);
 	/// a list of the available classes
 	std::vector<LayoutFileIndex> classList() const;
+
+	///
+	bool load(std::string const & name, std::string const & buf_path);
+
 private:
 	///
 	typedef std::map<std::string, LayoutFile *> ClassMap;

@@ -6,7 +6,7 @@
  *
  * \author John Levon
  * \author Edwin Leuven
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -37,7 +37,7 @@ public Q_SLOTS:
 	void slotOK();
 	void slotClose();
 	void columnsChanged(int);
-	void rowsChanged(int);
+	void decorationChanged(int);
 	void change_adaptor();
 };
 

@@ -2,12 +2,13 @@
 #DescriptionBegin
 #Defines some character styles for logical markup: noun, emph, strong, and code.
 #DescriptionEnd
+#Category: charstyles
 
 # Author : Martin vermeer <martin.vermeer@hut.fi>
 
-Format 11
+Format 30
 
-InsetLayout CharStyle:Noun
+InsetLayout Flex:Noun
 	LyxType               charstyle
 	LabelString           noun
 	LatexType             command
@@ -16,10 +17,18 @@ InsetLayout CharStyle:Noun
 	  Shape               Smallcaps
 	EndFont
 	Requires              noun
+	InToc                 true
+	HTMLTag               span
+	HTMLAttr              class='noun'
+	HTMLStyle
+		span.noun {
+			font-family: sans-serif;
+		}
+	EndHTMLStyle
 End
 
 
-InsetLayout CharStyle:Emph
+InsetLayout Flex:Emph
 	LyxType               charstyle
 	LabelString           emph
 	LatexType             command
@@ -27,10 +36,12 @@ InsetLayout CharStyle:Emph
 	Font
 	  Shape               Italic
 	EndFont
+	InToc                 true
+	HTMLTag               em
 End
 
 
-InsetLayout CharStyle:Strong
+InsetLayout Flex:Strong
 	LyxType               charstyle
 	LabelString           strong
 	LatexType             command
@@ -41,10 +52,12 @@ InsetLayout CharStyle:Strong
 	Preamble
 	\newcommand{\strong}[1]{\textbf{#1}}
 	EndPreamble
+	InToc                 true
+	HTMLTag               strong
 End
 
 
-InsetLayout CharStyle:Code
+InsetLayout Flex:Code
 	LyxType               charstyle
 	LabelString           code
 	LatexType             command
@@ -55,5 +68,6 @@ InsetLayout CharStyle:Code
 	Preamble
 	\newcommand{\code}[1]{\texttt{#1}}
 	EndPreamble
+	InToc                 true
+	HTMLTag               code
 End
-

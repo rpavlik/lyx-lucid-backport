@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -434,7 +434,7 @@ void GuiSymbols::updateSymbolList(bool update_combo)
 		if (cat == QChar::Other_Control || cat == QChar::Separator_Space)
 			continue;
 		++numItem;
-		if (show_all || c >= range_start && c <= range_end)
+		if (show_all || (c >= range_start && c <= range_end))
 			s.append(c);
 		if (update_combo) {
 			QString block = getBlock(c);
@@ -479,4 +479,4 @@ Dialog * createGuiSymbols(GuiView & lv)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiSymbols_moc.cpp"
+#include "moc_GuiSymbols.cpp"

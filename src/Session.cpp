@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Bo Peng
  *
  * Full author contact details are available in file CREDITS.
@@ -85,7 +85,7 @@ void LastFilesSection::add(FileName const & file)
 	LastFiles::iterator it = find(lastfiles.begin(), lastfiles.end(), file);
 	if (it != lastfiles.end())
 		lastfiles.erase(it);
-	lastfiles.push_front(file);
+	lastfiles.insert(lastfiles.begin(), file);
 	if (lastfiles.size() > num_lastfiles)
 		lastfiles.pop_back();
 }
@@ -278,7 +278,7 @@ void BookmarksSection::read(istream & is)
 void BookmarksSection::write(ostream & os) const
 {
 	os << '\n' << sec_bookmarks << '\n';
-	for (size_t i = 1; i <= max_bookmarks; ++i) {
+	for (size_t i = 0; i <= max_bookmarks; ++i) {
 		if (isValid(i))
 			os << i << ", "
 			   << bookmarks[i].bottom_pit << ", "
@@ -301,6 +301,16 @@ void BookmarksSection::save(FileName const & fname,
 bool BookmarksSection::isValid(unsigned int i) const
 {
 	return i <= max_bookmarks && !bookmarks[i].filename.empty();
+}
+
+
+bool BookmarksSection::hasValid() const
+{
+	for (size_t i = 1; i <= size(); ++i) {
+		if (isValid(i))
+			return true;
+	}
+	return false;
 }
 
 
@@ -371,7 +381,7 @@ Session::Session(unsigned int num_last_files, unsigned int num_last_commands) :
 {
 	// locate the session file
 	// note that the session file name 'session' is hard-coded
-	session_file = FileName(addName(package().user_support().absFilename(), "session"));
+	session_file = FileName(addName(package().user_support().absFileName(), "session"));
 	//
 	readFile();
 }

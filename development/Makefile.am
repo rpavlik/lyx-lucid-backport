@@ -8,11 +8,12 @@ if INSTALL_CYGWIN
 SUBDIRS = cygwin
 endif
 
-EXTRA_DIST = boostworkaround.txt coding/Rules coding/Recommendations \
+EXTRA_DIST = coding/Rules coding/Recommendations \
 	FORMAT lyx.rpm.README \
-	lyxserver lyx.spec.in lyx.spec Seminar.txt \
-	\
+	lyxserver lyx.spec.in lyx.spec \
+	LyX-Mac-binary-release.sh \
 tools/convert_kmap.py \
+tools/gen_lfuns.py \
 tools/generate_symbols_list.py \
 tools/unicodesymbols.py \
 tools/x-font \
@@ -91,7 +92,6 @@ Win32/packaging/AltInstaller/icons/lyx.svg \
 Win32/packaging/AltInstaller/icons/lyx_32x32.ico \
 Win32/packaging/AltInstaller/icons/lyx_doc.svg \
 Win32/packaging/AltInstaller/icons/lyx_logo_hi.bmp \
-Win32/packaging/AltInstaller/icons/lyx_logo_vert167.bmp \
 Win32/packaging/AltInstaller/informations/InstallerStructure.odg \
 Win32/packaging/AltInstaller/informations/InstallerStructure.pdf \
 Win32/packaging/AltInstaller/informations/ISO_3166.html \
@@ -156,7 +156,6 @@ cmake/LyX_description.txt \
 cmake/LyX_license.txt \
 cmake/LyX_summary.txt \
 cmake/PyCompile.cmake \
-cmake/build-debug.bat \
 cmake/build.bat \
 cmake/config.cpp.cmake \
 cmake/config.h.cmake \
@@ -173,11 +172,14 @@ cmake/lyx2lyx/CMakeLists.txt \
 cmake/man/CMakeLists.txt \
 cmake/modules/FindASPELL.cmake \
 cmake/modules/FindAiksaurusLIB.cmake \
+cmake/modules/FindEnchant.cmake \
 cmake/modules/FindGNUWIN32.cmake \
+cmake/modules/FindHunspell.cmake \
 cmake/modules/FindICONV.cmake \
 cmake/modules/FindLibintl.cmake \
 cmake/modules/FindLyXGettext.cmake \
 cmake/modules/FindMyThesLIB.cmake \
+cmake/modules/FindOpenSSL.cmake \
 cmake/modules/FindQt4.cmake \
 cmake/modules/FindZLIB.cmake \
 cmake/modules/LyXMacros.cmake \
@@ -202,4 +204,3 @@ cmake/src/tex2lyx/CMakeLists.txt \
 cmake/boost/libs/regex/CMakeLists.txt \
 cmake/boost/libs/signals/CMakeLists.txt \
 cmake/src/frontends/qt4/CMakeLists.txt
-

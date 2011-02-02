@@ -5,8 +5,8 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
- * \author Uwe Stöhr
+ * \author AndrÃ© PÃ¶nitz
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -43,13 +43,14 @@ public:
 		CFRAC,
 		CFRACLEFT,
 		CFRACRIGHT,
+		DFRAC,
+		TFRAC,
 		OVER,
 		ATOP,
 		NICEFRAC,
 		UNITFRAC,
 		UNIT
 	};
-
 	///
 	explicit InsetMathFrac(Buffer * buf, Kind kind = FRAC, idx_type ncells = 2);
 	///
@@ -72,7 +73,6 @@ public:
 	docstring name() const;
 	///
 	bool extraBraces() const;
-
 	///
 	void write(WriteStream & os) const;
 	///
@@ -84,6 +84,8 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void validate(LaTeXFeatures & features) const;
 public:
 	Inset * clone() const;
@@ -92,45 +94,6 @@ public:
 };
 
 
-/// \dfrac support
-class InsetMathDFrac : public InsetMathFrac {
-public:
-	///
-	InsetMathDFrac(Buffer * buf) : InsetMathFrac(buf) {}
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo &, int x, int y) const;
-	///
-	docstring name() const;
-	///
-	void mathmlize(MathStream &) const;
-	///
-	void validate(LaTeXFeatures & features) const;
-private:
-	Inset * clone() const;
-};
-
-
-/// \tfrac support
-class InsetMathTFrac : public InsetMathFrac {
-public:
-	///
-	InsetMathTFrac(Buffer * buf) : InsetMathFrac(buf) {}
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo &, int x, int y) const;
-	///
-	docstring name() const;
-	///
-	void mathmlize(MathStream &) const;
-	///
-	void validate(LaTeXFeatures & features) const;
-private:
-	Inset * clone() const;
-};
-
 
 /// Binom like objects
 class InsetMathBinom : public InsetMathFracBase {
@@ -138,11 +101,12 @@ public:
 	///
 	enum Kind {
 		BINOM,
+		DBINOM,
+		TBINOM,
 		CHOOSE,
 		BRACE,
 		BRACK
 	};
-
 	///
 	explicit InsetMathBinom(Buffer * buf, Kind kind = BINOM);
 	///
@@ -161,7 +125,11 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void validate(LaTeXFeatures & features) const;
+	///
+	InsetCode lyxCode() const { return MATH_FRAC_CODE; }
 private:
 	Inset * clone() const;
 	///
@@ -170,49 +138,6 @@ private:
 	Kind kind_;
 };
 
-
-/// \dbinom support
-class InsetMathDBinom : public InsetMathFracBase {
-public:
-	///
-	InsetMathDBinom(Buffer * buf) : InsetMathFracBase(buf) {}
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo &, int x, int y) const;
-	///
-	docstring name() const;
-	///
-	void mathmlize(MathStream &) const;
-	///
-	void validate(LaTeXFeatures & features) const;
-private:
-	Inset * clone() const;
-	///
-	int dw(int height) const;
-};
-
-
-/// \tbinom support
-class InsetMathTBinom : public InsetMathFracBase {
-public:
-	///
-	InsetMathTBinom(Buffer * buf) : InsetMathFracBase(buf) {}
-	///
-	void metrics(MetricsInfo & mi, Dimension & dim) const;
-	///
-	void draw(PainterInfo &, int x, int y) const;
-	///
-	docstring name() const;
-	///
-	void mathmlize(MathStream &) const;
-	///
-	void validate(LaTeXFeatures & features) const;
-private:
-	Inset * clone() const;
-	///
-	int dw(int height) const;
-};
 
 
 } // namespace lyx

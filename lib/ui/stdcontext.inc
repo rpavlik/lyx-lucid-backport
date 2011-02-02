@@ -26,11 +26,11 @@ Menuset
 #
 	Menu "insert_math_context"
 		Item "Array Environment|y" "math-matrix 2 2"
-		Item "Cases Environment|C" "command-sequence math-mode on; math-insert \cases"
-		Item "Aligned Environment|l" "command-sequence math-mode on; math-insert \aligned; tabular-feature append-column"
-		Item "AlignedAt Environment|v" "command-sequence math-mode on; math-insert \alignedat; tabular-feature append-column"
-		Item "Gathered Environment|h" "command-sequence math-mode on; math-insert \gathered"
-		Item "Split Environment|S" "command-sequence math-mode on; math-insert \split; tabular-feature append-column"
+		Item "Cases Environment|C" "math-insert \cases"
+		Item "Aligned Environment|l" "command-sequence math-insert \aligned; inset-modify tabular append-column"
+		Item "AlignedAt Environment|v" "command-sequence math-insert \alignedat; inset-modify tabular append-column"
+		Item "Gathered Environment|h" "math-insert \gathered"
+		Item "Split Environment|S" "command-sequence math-insert \split; inset-modify tabular append-column"
 		Separator
 		Item "Delimiters...|r" "dialog-show mathdelimiter"
 		Item "Matrix...|x" "dialog-show mathmatrix"
@@ -51,28 +51,30 @@ Menuset
 		Item "Eqnarray Environment|E" "math-mutate eqnarray"
 		Submenu "AMS Environment|A" "ams_environment"
 		Separator
-		OptItem "Equation Label|L" "label-insert"
-		OptItem "Copy as Reference|R" "copy-label-as-reference"
 		OptItem "Number Whole Formula|N" "math-number-toggle"
 		OptItem "Number This Line|u" "math-number-line-toggle"
+		OptItem "Equation Label|L" "label-insert"
+		OptItem "Copy as Reference|R" "copy-label-as-reference"
 		Separator
 		Item "Split Cell|C" "cell-split"
 		Separator
-		Submenu "Insert|n" "insert_math_context"
+		Submenu "Insert|s" "insert_math_context"
 		Separator
-		OptItem "Add Line Above|o" "tabular-feature add-hline-above"
-		OptItem "Add Line Below|B" "tabular-feature add-hline-below"
-		OptItem "Delete Line Above|D" "tabular-feature delete-hline-above"
-		OptItem "Delete Line Below|e" "tabular-feature delete-hline-below"
+		OptItem "Add Line Above|o" "inset-modify tabular add-hline-above"
+		OptItem "Add Line Below|B" "inset-modify tabular add-hline-below"
+		OptItem "Delete Line Above|v" "inset-modify tabular delete-hline-above"
+		OptItem "Delete Line Below|w" "inset-modify tabular delete-hline-below"
 		Separator
-		OptItem "Add Line to Left" "tabular-feature add-vline-left"
-		OptItem "Add Line to Right" "tabular-feature add-vline-right"
-		OptItem "Delete Line to Left" "tabular-feature delete-vline-left"
-		OptItem "Delete Line to Right" "tabular-feature delete-vline-right"
+		OptItem "Add Line to Left" "inset-modify tabular add-vline-left"
+		OptItem "Add Line to Right" "inset-modify tabular add-vline-right"
+		OptItem "Delete Line to Left" "inset-modify tabular delete-vline-left"
+		OptItem "Delete Line to Right" "inset-modify tabular delete-vline-right"
 		Separator
 		Item "Show Math Toolbar" "toolbar-toggle math toggle"
 		Item "Show Math-Panels Toolbar" "toolbar-toggle math_panels toggle"
 		Item "Show Table Toolbar" "toolbar-toggle table toggle"
+		Separator
+		Submenu "Use Computer Algebra System|m" "edit_math_extern"
 	End
 
 
@@ -83,14 +85,15 @@ Menuset
 		Item "Next Cross-Reference|N" "reference-next"
 		Item "Go to Label|G" "label-goto"
 		Separator
-		Item "<Reference>|R" "next-inset-modify changetype ref"
-		Item "(<Reference>)|e" "next-inset-modify changetype eqref"
-		Item "<Page>|P" "next-inset-modify changetype pageref"
-		Item "On Page <Page>|O" "next-inset-modify changetype vpageref"
-		Item "<Reference> on Page <Page>|f" "next-inset-modify changetype vref"
-		Item "Formatted Reference|t" "next-inset-modify changetype prettyref"
+		Item "<Reference>|R" "inset-modify changetype ref"
+		Item "(<Reference>)|e" "inset-modify changetype eqref"
+		Item "<Page>|P" "inset-modify changetype pageref"
+		Item "On Page <Page>|O" "inset-modify changetype vpageref"
+		Item "<Reference> on Page <Page>|f" "inset-modify changetype vref"
+		Item "Formatted Reference|t" "inset-modify changetype formatted"
+		Item "Textual Reference|x" "inset-modify changetype nameref"
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 	End
 
 #
@@ -102,7 +105,7 @@ Menuset
 		Separator
 		Item "Copy as Reference|C" "copy-label-as-reference"
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 	End
 
 
@@ -112,7 +115,7 @@ Menuset
 	Menu "context-citation"
 		CiteStyles
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 	End
 
 
@@ -120,7 +123,7 @@ Menuset
 # InsetBibtex context menu
 #
 	Menu "context-bibtex"
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 		Separator
 		Item "Edit Database(s) Externally...|x" "inset-edit"
 	End
@@ -130,15 +133,15 @@ Menuset
 # InsetCollapsable context menu
 #
 	Menu "context-collapsable"
-		OptItem "Open Inset|O" "next-inset-toggle open"
-		OptItem "Close Inset|C" "next-inset-toggle close"
+		OptItem "Open Inset|O" "inset-toggle open"
+		OptItem "Close Inset|C" "inset-toggle close"
 		Separator
 		Item "Dissolve Inset|D" "inset-dissolve"
 		OptItem "Settings...|S" "inset-settings"
 	End
 
 	Menu "context-conglomerate"
-		Item "Show Label|L" "next-inset-toggle"
+		Item "Show Label|L" "inset-toggle"
 		Item "Dissolve Inset|D" "inset-dissolve charstyle"
 		Separator
 		OptItem "Settings...|S" "inset-settings"
@@ -149,20 +152,14 @@ Menuset
 #
 
 	Menu "context-box"
-		Item "Frameless|l" "next-inset-modify changetype Frameless"
-		Item "Simple Frame|F" "next-inset-modify changetype Boxed"
-		Item "Simple Frame, Page Breaks|P" "next-inset-modify changetype Framed"
-		Item "Oval, Thin|a" "next-inset-modify changetype ovalbox"
-		Item "Oval, Thick|v" "next-inset-modify changetype Ovalbox"
-		Item "Drop Shadow|w" "next-inset-modify changetype Shadowbox"
-		Item "Shaded Background|B" "next-inset-modify changetype Shaded"
-		Item "Double Frame|u" "next-inset-modify changetype Doublebox"
-		Separator
-		OptItem "Open Inset|O" "next-inset-toggle open"
-		OptItem "Close Inset|C" "next-inset-toggle close"
-		Separator
-		Item "Dissolve Inset|D" "inset-dissolve"
-		Item "Settings...|S" "inset-settings box"
+		Item "Frameless|l" "inset-modify changetype Frameless"
+		Item "Simple Frame|F" "inset-modify changetype Boxed"
+		Item "Simple Frame, Page Breaks|P" "inset-modify changetype Framed"
+		Item "Oval, Thin|a" "inset-modify changetype ovalbox"
+		Item "Oval, Thick|v" "inset-modify changetype Ovalbox"
+		Item "Drop Shadow|w" "inset-modify changetype Shadowbox"
+		Item "Shaded Background|B" "inset-modify changetype Shaded"
+		Item "Double Frame|u" "inset-modify changetype Doublebox"
 	End
 
 #
@@ -170,88 +167,94 @@ Menuset
 #
 
 	Menu "context-note"
-		Item "LyX Note|N" "next-inset-modify note Note Note"
-		Item "Comment|m" "next-inset-modify note Note Comment"
-		Item "Greyed Out|G" "next-inset-modify note Note Greyedout"
+		Item "LyX Note|N" "inset-modify note Note Note"
+		Item "Comment|m" "inset-modify note Note Comment"
+		Item "Greyed Out|G" "inset-modify note Note Greyedout"
 		Separator
-		OptItem "Open Inset|O" "next-inset-toggle open"
-		OptItem "Close Inset|C" "next-inset-toggle close"
-		Separator
-		Item "Open All Notes|A" "all-insets-toggle open note"
-		Item "Close All Notes|l" "all-insets-toggle close note"
+		Item "Open All Notes|A" "inset-forall Note inset-toggle open"
+		Item "Close All Notes|l" "inset-forall Note inset-toggle close"
+	End
+
+#
+# InsetPhantom context menu
+#
+
+	Menu "context-phantom"
+		Item "Phantom|P" "inset-modify phantom Phantom Phantom"
+		Item "Horizontal Phantom|H" "inset-modify phantom Phantom HPhantom"
+		Item "Vertical Phantom|V" "inset-modify phantom Phantom VPhantom"
 		Separator
 		Item "Dissolve Inset|D" "inset-dissolve"
 	End
-
 
 #
 # InsetSpace context menu
 #
 	Menu "context-space"
-		Item "Interword Space|w" "next-inset-modify space \space{}"
-		Item "Protected Space|o" "next-inset-modify space ~"
-		Item "Thin Space|T" "next-inset-modify space \thinspace{}"
-		Item "Negative Thin Space|N" "next-inset-modify space \negthinspace{}"
-		Item "Half Quad Space (Enskip)|k" "next-inset-modify space \enskip{}"
-		Item "Protected Half Quad Space (Enspace)|E" "next-inset-modify space \enspace{}"
-		Item "Quad Space|Q" "next-inset-modify space \quad{}"
-		Item "Double Quad Space|u" "next-inset-modify space \qquad{}"
-		Item "Horizontal Fill|F" "next-inset-modify space \hfill{}"
-		Item "Protected Horizontal Fill|i" "next-inset-modify space \hspace*{\fill}"
-		Item "Horizontal Fill (Dots)|D" "next-inset-modify space \dotfill{}"
-		Item "Horizontal Fill (Rule)|R" "next-inset-modify space \hrulefill{}"
-		Item "Horizontal Fill (Left Arrow)|L" "next-inset-modify space \leftarrowfill{}"
-		Item "Horizontal Fill (Right Arrow)|g" "next-inset-modify space \rightarrowfill{}"
-		Item "Horizontal Fill (Up Brace)|p" "next-inset-modify space \upbracefill{}"
-		Item "Horizontal Fill (Down Brace)|B" "next-inset-modify space \downbracefill{}"
-		Item "Custom Length|C" "command-sequence next-inset-modify space \hspace{} \length 1in; next-inset-toggle"
+		Item "Interword Space|w" "inset-modify space \space{}"
+		Item "Protected Space|o" "inset-modify space ~"
+		Item "Thin Space|T" "inset-modify space \thinspace{}"
+		Item "Negative Thin Space|N" "inset-modify space \negthinspace{}"
+		Item "Half Quad Space (Enskip)|k" "inset-modify space \enskip{}"
+		Item "Protected Half Quad Space (Enspace)|E" "inset-modify space \enspace{}"
+		Item "Quad Space|Q" "inset-modify space \quad{}"
+		Item "Double Quad Space|u" "inset-modify space \qquad{}"
+		Item "Horizontal Fill|F" "inset-modify space \hfill{}"
+		Item "Protected Horizontal Fill|i" "inset-modify space \hspace*{\fill}"
+		Item "Horizontal Fill (Dots)|D" "inset-modify space \dotfill{}"
+		Item "Horizontal Fill (Rule)|R" "inset-modify space \hrulefill{}"
+		Item "Horizontal Fill (Left Arrow)|L" "inset-modify space \leftarrowfill{}"
+		Item "Horizontal Fill (Right Arrow)|g" "inset-modify space \rightarrowfill{}"
+		Item "Horizontal Fill (Up Brace)|p" "inset-modify space \upbracefill{}"
+		Item "Horizontal Fill (Down Brace)|B" "inset-modify space \downbracefill{}"
+		Item "Custom Length|C" "command-sequence inset-modify space \hspace{} \length 1in; inset-settings"
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 	End
 
 #
 # InsetMathSpace context menu
 #
 	Menu "context-mathspace"
-		Item "Thin Space|T" "next-inset-modify mathspace \thinspace{}"
-		Item "Medium Space|M" "next-inset-modify mathspace \medspace{}"
-		Item "Thick Space|h" "next-inset-modify mathspace \thickspace{}"
-		Item "Negative Thin Space|N" "next-inset-modify mathspace \negthinspace{}"
-		Item "Negative Medium Space|u" "next-inset-modify mathspace \negmedspace{}"
-		Item "Negative Thick Space|i" "next-inset-modify mathspace \negthickspace{}"
-		Item "Half Quad Space (Enskip)|k" "next-inset-modify mathspace \enskip{}"
-		Item "Quad Space|Q" "next-inset-modify mathspace \quad{}"
-		Item "Double Quad Space|u" "next-inset-modify mathspace \qquad{}"
-		Item "Custom Length|C" "command-sequence next-inset-modify mathspace \hspace{} \length 1in; next-inset-toggle"
+		Item "Thin Space|T" "inset-modify mathspace \thinspace{}"
+		Item "Medium Space|M" "inset-modify mathspace \medspace{}"
+		Item "Thick Space|h" "inset-modify mathspace \thickspace{}"
+		Item "Negative Thin Space|N" "inset-modify mathspace \negthinspace{}"
+		Item "Negative Medium Space|u" "inset-modify mathspace \negmedspace{}"
+		Item "Negative Thick Space|i" "inset-modify mathspace \negthickspace{}"
+		Item "Half Quad Space (Enskip)|k" "inset-modify mathspace \enskip{}"
+		Item "Quad Space|Q" "inset-modify mathspace \quad{}"
+		Item "Double Quad Space|u" "inset-modify mathspace \qquad{}"
+		Item "Custom Length|C" "command-sequence inset-modify mathspace \hspace{} \length 1in; inset-settings"
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 	End
 
 #
 # InsetVSpace context menu
 #
 	Menu "context-vspace"
-		Item "DefSkip|D" "next-inset-modify vspace defskip"
-		Item "SmallSkip|S" "next-inset-modify vspace smallskip"
-		Item "MedSkip|M" "next-inset-modify vspace medskip"
-		Item "BigSkip|B" "next-inset-modify vspace bigskip"
-		Item "VFill|F" "next-inset-modify vspace vfill"
-		Item "Custom|C" "command-sequence next-inset-modify vspace 1in; next-inset-toggle"
+		Item "DefSkip|D" "inset-modify vspace defskip"
+		Item "SmallSkip|S" "inset-modify vspace smallskip"
+		Item "MedSkip|M" "inset-modify vspace medskip"
+		Item "BigSkip|B" "inset-modify vspace bigskip"
+		Item "VFill|F" "inset-modify vspace vfill"
+		Item "Custom|C" "command-sequence inset-modify vspace 1in; inset-settings"
 		Separator
-		Item "Settings...|e" "next-inset-toggle"
+		Item "Settings...|e" "inset-settings"
 	End
 
 #
 # InsetInclude context menu
 #
 	Menu "context-include"
-		Item "Include|c" "next-inset-modify changetype include"
-		Item "Input|p" "next-inset-modify changetype input"
-		Item "Verbatim|V" "next-inset-modify changetype verbatiminput"
-		Item "Verbatim (marked blanks)|b" "next-inset-modify changetype verbatiminput*"
-		Item "Listing|L" "next-inset-modify changetype lstinputlisting"
+		Item "Include|c" "inset-modify changetype include"
+		Item "Input|p" "inset-modify changetype input"
+		Item "Verbatim|V" "inset-modify changetype verbatiminput"
+		Item "Verbatim (marked blanks)|b" "inset-modify changetype verbatiminput*"
+		Item "Listing|L" "inset-modify changetype lstinputlisting"
 		Separator
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 		Separator
 		Item "Edit Included File...|E" "inset-edit"
 	End
@@ -260,30 +263,33 @@ Menuset
 # InsetNewpage context menu
 #
 	Menu "context-newpage"
-		Item "New Page|N" "next-inset-modify newpage newpage"
-		Item "Page Break|a" "next-inset-modify newpage pagebreak"
-		Item "Clear Page|C" "next-inset-modify newpage clearpage"
-		Item "Clear Double Page|D" "next-inset-modify newpage cleardoublepage"
+		Item "New Page|N" "inset-modify newpage newpage"
+		Item "Page Break|a" "inset-modify newpage pagebreak"
+		Item "Clear Page|C" "inset-modify newpage clearpage"
+		Item "Clear Double Page|D" "inset-modify newpage cleardoublepage"
 	End
 
 #
 # InsetNewline context menu
 #
 	Menu "context-newline"
-		Item "Ragged Line Break|R" "next-inset-modify newline newline"
-		Item "Justified Line Break|J" "next-inset-modify newline linebreak"
+		Item "Ragged Line Break|R" "inset-modify newline newline"
+		Item "Justified Line Break|J" "inset-modify newline linebreak"
 	End
 
 #
 # Edit context menu
 #
 	Menu "context-edit"
+		spellingsuggestions
+		Separator
 		Item "Cut" "cut"
 		Item "Copy" "copy"
 		Item "Paste" "paste"
 		Submenu "Paste Recent|e" "edit_pasterecent"
 		Separator
 		Item "Jump Back to Saved Bookmark|B" "bookmark-goto 0"
+		OptItem "Forward search|F" "forward-search"
 		Separator
 		Item "Move Paragraph Up|o" "paragraph-move-up"
 		Item "Move Paragraph Down|v" "paragraph-move-down"
@@ -292,14 +298,32 @@ Menuset
 		OptItem "Demote Section|m" "outline-in"
 		OptItem "Move Section Down|D" "outline-down"
 		OptItem "Move Section Up|U" "outline-up"
-		OptItem "Insert Short Title|T" "optional-insert"
+		OptItem "Insert Short Title|T" "argument-insert"
+		OptSubMenu "Insert Regular Expression..." "context-edit-regexp"
+		Separator
+		OptItem "Accept Change|c" "change-accept"
+		OptItem "Reject Change|j" "change-reject"
 		Separator
 		Item "Apply Last Text Style|A" "textstyle-apply"
 		Submenu "Text Style|S" "edit_textstyles"
 		Item "Paragraph Settings...|P" "layout-paragraph"
+		LanguageSelector
 		Separator
 		Item "Fullscreen Mode" "ui-toggle fullscreen"
 	End
+
+
+#
+# Regular Expression context menu
+#
+	Menu "context-edit-regexp"
+		Item "Anything|A" "command-sequence regexp-mode; self-insert .*"
+		Item "Anything Non-Empty|o" "command-sequence regexp-mode; self-insert .+"
+		Item "Any Word|W" "command-sequence regexp-mode; self-insert [a-z]+"
+		Item "Any Number|N" "command-sequence regexp-mode; self-insert [0-9]+"
+		Item "User Defined|U" "regexp-mode"
+	End
+
 
 #
 # Math Macro context menu
@@ -320,28 +344,11 @@ Menuset
 	End
 
 #
-# InsetListing context menu
-#
-
-	Menu "context-listings"
-		Item "Cut" "cut"
-		Item "Copy" "copy"
-		Item "Paste" "paste"
-		Submenu "Paste Recent|e" "edit_pasterecent"
-		Separator
-		OptItem "Open Inset|O" "next-inset-toggle open"
-		OptItem "Close Inset|C" "next-inset-toggle close"
-		Separator
-		Item "Dissolve Inset|D" "inset-dissolve"
-		Item "Settings...|S" "inset-settings listings"
-	End
-
-#
 # InsetGraphics context menu
 #
 
 	Menu "context-graphics"
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 		Item "Reload|R" "graphics-reload"
 		Separator
 		Item "Edit Externally...|x" "inset-edit"
@@ -354,7 +361,7 @@ Menuset
 #
 
 	Menu "context-external"
-		Item "Settings...|S" "next-inset-toggle"
+		Item "Settings...|S" "inset-settings"
 		Separator
 		Item "Edit Externally...|x" "inset-edit"
 	End
@@ -364,41 +371,229 @@ Menuset
 #
 
 	Menu "context-tabular"
-		Item "Multicolumn|M" "tabular-feature multicolumn"
+		Item "Multicolumn|u" "inset-modify tabular multicolumn"
+		Item "Multirow|w" "inset-modify tabular multirow"
 		Separator
-		Item "Top Line|T" "tabular-feature toggle-line-top"
-		Item "Bottom Line|B" "tabular-feature toggle-line-bottom"
-		Item "Left Line|L" "tabular-feature toggle-line-left"
-		Item "Right Line|R" "tabular-feature toggle-line-right"
+		Item "Top Line|n" "inset-modify tabular toggle-line-top"
+		Item "Bottom Line|i" "inset-modify tabular toggle-line-bottom"
+		Item "Left Line|L" "inset-modify tabular toggle-line-left"
+		Item "Right Line|R" "inset-modify tabular toggle-line-right"
 		Separator
-		Item "Left|L" "tabular-feature align-left"
-		Item "Center|C" "tabular-feature align-center"
-		Item "Right|R" "tabular-feature align-right"
+		Item "Left|f" "command-alternatives inset-modify tabular m-align-left;inset-modify tabular align-left"
+		Item "Center|C" "command-alternatives inset-modify tabular m-align-center;inset-modify tabular align-center"
+		Item "Right|h" "command-alternatives inset-modify tabular m-align-right;inset-modify tabular align-right"
+		Item "Decimal" "inset-modify tabular align-decimal"
 		Separator
-		Item "Top|T" "tabular-feature valign-top"
-		Item "Middle|M" "tabular-feature valign-middle"
-		Item "Bottom|B" "tabular-feature valign-bottom"
+		Item "Top|T" "inset-modify tabular valign-top"
+		Item "Middle|M" "inset-modify tabular valign-middle"
+		Item "Bottom|B" "inset-modify tabular valign-bottom"
 		Separator
-		Item "Add Row|A" "tabular-feature append-row"
-		Item "Delete Row|D" "tabular-feature delete-row"
-		Item "Copy Row|o" "tabular-feature copy-row"
-		# Item "Swap Rows|S" "tabular-feature swap-row" # currently broken
+		Item "Append Row|A" "inset-modify tabular append-row"
+		Item "Delete Row|D" "inset-modify tabular delete-row"
+		Item "Copy Row|o" "inset-modify tabular copy-row"
+		# Item "Swap Rows|S" "inset-modify tabular swap-row" # currently broken
 		Separator
-		Item "Add Column|u" "tabular-feature append-column"
-		Item "Delete Column|e" "tabular-feature delete-column"
-		Item "Copy Column|p" "tabular-feature copy-column"
-		# Item "Swap Columns|w" "tabular-feature swap-column" # currently broken
+		Item "Append Column|p" "inset-modify tabular append-column"
+		Item "Delete Column|e" "inset-modify tabular delete-column"
+		Item "Copy Column|y" "inset-modify tabular copy-column"
+		# Item "Swap Columns|w" "inset-modify tabular swap-column" # currently broken
 		Separator
-		Item "Settings...|S" "inset-settings tabular"
+		Item "Settings...|g" "inset-settings tabular"
 	End
-
 
 #
 # InsetInfo context menu
 #
 
+	Menu "buffer-info"
+		Item "File|F" "inset-modify buffer name"
+		Item "Path|P" "inset-modify buffer path"
+		Item "Class|C" "inset-modify buffer class"
+		Separator
+		Item "File Revision|R" "inset-modify buffer vcs-revision"
+		Item "Tree Revision|T" "inset-modify buffer vcs-tree-revision"
+		Item "Revision Author|A" "inset-modify buffer vcs-author"
+		Item "Revision Date|D" "inset-modify buffer vcs-date"
+		Item "Revision Time|i" "inset-modify buffer vcs-time"
+		Separator
+		Item "LyX Version|X" "inset-modify lyxinfo version"
+	End
+
 	Menu "context-info"
+		Submenu "Document Info|D" "buffer-info"
+		Separator
+		Item "Copy Text|o" "inset-copy-as"
 		Item "Settings...|S" "inset-settings info"
+	End
+
+#
+# InsetBranch context menu
+#
+
+	Menu "context-branch"
+		OptItem "Activate Branch|A" "branch-activate"
+		OptItem "Deactivate Branch|e" "branch-deactivate"
+	End
+
+#
+# Toc Labels and References context menu
+#
+
+	Menu "context-toc-label"
+		OptItem "Copy as Reference|C" "copy-label-as-reference"
+		OptItem "Insert Reference at Cursor Position|I" "label-insert-as-reference"
+		Separator
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Branches context menu
+#
+
+	Menu "context-toc-branch"
+		OptItem "Activate Branch|A" "branch-activate"
+		OptItem "Deactivate Branch|e" "branch-deactivate"
+		Separator
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Graphics context menu
+#
+
+	Menu "context-toc-graphics"
+		Item "Settings...|S" "inset-settings"
+		Separator
+		Item "Edit Externally...|x" "inset-edit"
+	End
+
+#
+# Toc Citation context menu
+#
+
+	Menu "context-toc-citation"
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Figures context menu
+#
+
+	Menu "context-toc-figure"
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Listings context menu
+#
+
+	Menu "context-toc-listing"
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Tables context menu
+#
+
+	Menu "context-toc-table"
+		Item "Settings...|S" "inset-settings"
+	End
+
+#
+# Toc Childs context menu
+#
+	Menu "context-toc-child"
+		Item "Include|c" "inset-modify changetype include"
+		Item "Input|p" "inset-modify changetype input"
+		Item "Verbatim|V" "inset-modify changetype verbatiminput"
+		Item "Verbatim (marked blanks)|b" "inset-modify changetype verbatiminput*"
+		Item "Listing|L" "inset-modify changetype lstinputlisting"
+		Separator
+		Item "Settings...|S" "inset-settings"
+		Separator
+		Item "Edit Included File...|E" "inset-edit"
+	End
+
+#
+# Toc Indices context menu
+#
+
+	Menu "context-toc-index"
+		OptItem "Settings...|S" "inset-settings"
+	End
+
+#
+# Index context menu
+#
+
+	Menu "context-index"
+		IndicesContext
+	End
+
+#
+# Index Lists context menu
+#
+
+	Menu "context-indexprint"
+		Item "All Indexes|A" "inset-modify check-printindex*"
+		IndicesListsContext
+		Separator
+		Item "Subindex|b" "inset-modify toggle-subindex"
+		Separator
+		OptItem "Settings...|S" "inset-settings"
+	End
+
+#
+# Nomencl List context menu
+#
+
+	Menu "context-nomenclprint"
+		OptItem "Settings...|S" "inset-settings"
+	End
+
+
+# InsetPreview context menu
+#
+
+	Menu "context-preview"
+		Item "Dissolve Inset|D" "inset-dissolve"
+	End
+
+
+#
+# Toc Changes context menu
+#
+
+	Menu "context-toc-change"
+		Item "Accept Change|c" "change-accept"
+		Item "Reject Change|R" "change-reject"
+	End	
+	
+#
+# Toc Table of Context context menu
+#
+
+	Menu "context-toc-tableofcontents"
+		Item "Promote Section|P" "outline-out"
+		Item "Demote Section|D" "outline-in"
+		Item "Move Section Up|U" "outline-up"
+		Item "Move Section Down|w" "outline-down"
+		Separator
+		Item "Select Section|S" "section-select"
+	End	
+
+#
+# InsetERT context menu
+#
+	Menu "context-ert"
+		Item "Wrap by Preview|P" "command-sequence inset-toggle;char-forward;char-backward;char-forward-select;preview-insert;char-backward;char-backward;inset-toggle"
+	End
+
+#
+# InsetHyperlink context menu
+#
+	Menu "context-hyperlink"
+		Item "Settings...|S" "inset-settings"
 	End
 
 End

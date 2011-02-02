@@ -4,6 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Martin Vermeer
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,6 +15,8 @@
 #include "Color.h"
 
 #include "frontends/Application.h"
+
+#include "support/lstrings.h"
 
 #include <algorithm>
 
@@ -39,11 +42,14 @@ private:
 }
 
 
-Branch::Branch() : selected_(false)
+Branch::Branch()
+	: selected_(false), filenameSuffix_(false)
 {
 	// no theApp() with command line export
 	if (theApp())
 		theApp()->getRgbColor(Color_background, color_);
+	else
+		frontend::Application::getRgbColorUncached(Color_background, color_);
 }
 
 
@@ -74,6 +80,18 @@ bool Branch::setSelected(bool b)
 }
 
 
+bool Branch::hasFileNameSuffix() const
+{
+	return filenameSuffix_;
+}
+
+
+void Branch::setFileNameSuffix(bool b)
+{
+	filenameSuffix_ = b;
+}
+
+
 RGBColor const & Branch::color() const
 {
 	return color_;
@@ -90,9 +108,14 @@ void Branch::setColor(string const & str)
 {
 	if (str.size() == 7 && str[0] == '#')
 		color_ = rgbFromHexName(str);
-	else
+	else {
 		// no color set or invalid color - use normal background
-		theApp()->getRgbColor(Color_background, color_);
+		// no theApp() with command line export
+		if (theApp())
+			theApp()->getRgbColor(Color_background, color_);
+		else
+			frontend::Application::getRgbColorUncached(Color_background, color_);
+	}
 }
 
 
@@ -132,6 +155,7 @@ bool BranchList::add(docstring const & s)
 			Branch br;
 			br.setBranch(name);
 			br.setSelected(false);
+			br.setFileNameSuffix(false);
 			list.push_back(br);
 		}
 		if (j == docstring::npos)
@@ -149,5 +173,37 @@ bool BranchList::remove(docstring const & s)
 	return size != list.size();
 }
 
+
+bool BranchList::rename(docstring const & oldname,
+	docstring const & newname, bool const merge)
+{
+	if (newname.empty())
+		return false;
+	if (find_if(list.begin(), list.end(),
+		    BranchNamesEqual(newname)) != list.end()) {
+		// new name already taken
+		if (merge)
+		      return remove(oldname);
+		return false;
+	}
+
+	Branch * branch = find(oldname);
+	if (!branch)
+		return false;
+	branch->setBranch(newname);
+	return true;
+}
+
+
+docstring BranchList::getFileNameSuffix() const
+{
+	docstring result;
+	List::const_iterator it = list.begin();
+	for (; it != list.end(); ++it) {
+		if (it->isSelected() && it->hasFileNameSuffix())
+			result += "-" + it->branch();
+	}
+	return support::subst(result, from_ascii("/"), from_ascii("_"));
+}
 
 } // namespace lyx

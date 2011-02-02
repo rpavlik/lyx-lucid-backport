@@ -16,10 +16,9 @@
 #include "support/FileName.h"
 #include "support/types.h"
 
-#include <string>
-#include <deque>
-#include <vector>
 #include <map>
+#include <string>
+#include <vector>
 
 /** This session file maintains
   1. the latest documents loaded (lastfiles)
@@ -58,7 +57,7 @@ class LastFilesSection : SessionSection
 {
 public:
 	///
-	typedef std::deque<support::FileName> LastFiles;
+	typedef std::vector<support::FileName> LastFiles;
 
 public:
 	///
@@ -70,10 +69,10 @@ public:
 	///
 	void write(std::ostream & os) const;
 
-	/// Return lastfiles container (deque)
+	/// Return lastfiles container (vector)
 	LastFiles const lastFiles() const { return lastfiles; }
 
-	/** Insert #file# into the lastfile dequeue.
+	/** Insert #file# into the lastfile vector.
 	    This funtion inserts #file# into the last files list. If the file
 	    already exists it is moved to the top of the list, else exist it
 	    is placed on the top of the list. If the list is full the last
@@ -168,7 +167,7 @@ public:
 
 	/** add cursor position to the fname entry in the filepos map
 	    @param fname file entry for which to save position information
-	    @param pos position of the cursor when the file is closed.
+	    @param pos position of the cursor when the BufferView is closed.
 	*/
 	void save(support::FileName const & fname, FilePos const & pos);
 
@@ -243,6 +242,9 @@ public:
 
 	/// does the given bookmark have a saved position ?
 	bool isValid(unsigned int i) const;
+
+	/// is there at least one bookmark that has a saved position ?
+	bool hasValid() const;
 
 	///
 	unsigned int size() const { return max_bookmarks; }

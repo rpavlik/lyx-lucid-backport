@@ -30,7 +30,7 @@ Invocation:
 # modify this when you change branch
 # Note that an empty lyx_branch variable (ie svn trunk)
 # will "do the right thing".
-lyx_branch="BRANCH_1_6_X"
+lyx_branch=""
 # these po-files will be skipped:
 ommitted = ('en.po')
 

@@ -13,10 +13,10 @@
 #define INSET_INFO_H
 
 #include "InsetCollapsable.h"
-#include "Cursor.h"
 
-#include "support/gettext.h"
-#include "support/Translator.h"
+namespace lyx {
+
+class Cursor;
 
 /* InsetInfo displays shortcuts, lyxrc, package and textclass
 availability and menu information in a non-editable boxed InsetText.
@@ -60,6 +60,9 @@ icon: argument is the name of the LFUN such as "paste". The syntax is the same
 
 buffer: argument can be one of "name", "path", "class". This inset output the
     filename, path, and textclass of this buffer.
+		
+lyxinfo: argument must (presently) be "version". This inset outputs information 
+		about the version of LyX currently in use.
 
 There is currently no GUI, no menu entry for this inset. A user can define a
 shortcut for "info-insert" (e.g. C-S-I), and
@@ -73,10 +76,6 @@ the command buffer (view->Toolbar->Command Buffer).
 
 */
 
-namespace lyx {
-
-/** Used to insert index labels
-  */
 class InsetInfo : public InsetCollapsable {
 public:
 	enum info_type {
@@ -89,10 +88,11 @@ public:
 		MENU_INFO,      // Which menu item is used for certain function
 		ICON_INFO,      // which toolbar icon is used for certain function
 		BUFFER_INFO,    // Buffer related information
+		LYX_INFO        // LyX version information
 	};
 
 	///
-	InsetInfo(Buffer const & buf, std::string const & info = std::string());
+	InsetInfo(Buffer * buf, std::string const & info = std::string());
 	///
 	InsetCode lyxCode() const { return INFO_CODE; }
 	///
@@ -100,7 +100,9 @@ public:
 	///
 	Inset * editXY(Cursor & cur, int x, int y);
 	///
-	EDITABLE editable() const { return NOT_EDITABLE; }
+	bool editable() const { return false; }
+	///
+	bool hasSettings() const { return true; }
 	///
 	void read(Lexer & lex);
 	///
@@ -110,7 +112,7 @@ public:
 	///
 	std::string infoName() const { return name_; }
 	///
-	bool validate(docstring const & argument) const;
+	bool validateModifyArgument(docstring const & argument) const;
 	///
 	bool showInsetDialog(BufferView * bv) const;
 	///
@@ -125,6 +127,8 @@ public:
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
 	docstring contextMenu(BufferView const &, int, int) const;
+	///
+	docstring contextMenuName() const;
 	/// should paragraph indendation be ommitted in any case?
 	bool neverIndent() const { return true; }
 
@@ -142,7 +146,6 @@ private:
 	///
 	std::string name_;
 };
-
 
 
 } // namespace lyx

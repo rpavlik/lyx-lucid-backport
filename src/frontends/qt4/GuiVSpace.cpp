@@ -3,12 +3,12 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
- * \author Jürgen Vigna
+ * \author AndrÃ© PÃ¶nitz
+ * \author JÃ¼rgen Vigna
  * \author Rob Lahaye
  * \author Angus Leeming
  * \author Edwin Leuven
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -21,9 +21,8 @@
 #include "qt_helpers.h"
 #include "Validator.h"
 
-#include "LyXRC.h" // to set the default length values
 #include "Spacing.h"
-#include "FuncRequest.h"
+#include "VSpace.h"
 
 #include "insets/InsetVSpace.h"
 
@@ -40,51 +39,24 @@ using namespace std;
 namespace lyx {
 namespace frontend {
 
-GuiVSpace::GuiVSpace(GuiView & lv)
-	: GuiDialog(lv, "vspace", qt_("Vertical Space Settings"))
+GuiVSpace::GuiVSpace(QWidget * parent) : InsetParamsWidget(parent)
 {
 	setupUi(this);
 
-	connect(okPB, SIGNAL(clicked()), this, SLOT(slotOK()));
-	connect(applyPB, SIGNAL(clicked()), this, SLOT(slotApply()));
-	connect(closePB, SIGNAL(clicked()), this, SLOT(slotClose()));
-
-	connect(spacingCO, SIGNAL(highlighted(QString)),
-		this, SLOT(change_adaptor()));
 	connect(valueLE, SIGNAL(textChanged(QString)),
-		this, SLOT(change_adaptor()));
+		this, SIGNAL(changed()));
+	connect(keepCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(unitCO, SIGNAL(selectionChanged(lyx::Length::UNIT)),
+		this, SIGNAL(changed()));
+
 	connect(spacingCO, SIGNAL(activated(int)),
 		this, SLOT(enableCustom(int)));
-	connect(keepCB, SIGNAL(clicked()),
-		this, SLOT(change_adaptor()));
-	connect(unitCO, SIGNAL(selectionChanged(lyx::Length::UNIT)),
-		this, SLOT(change_adaptor()));
 
 	valueLE->setValidator(unsignedGlueLengthValidator(valueLE));
 
-	// Manage the ok, apply, restore and cancel/close buttons
-	bc().setPolicy(ButtonPolicy::OkApplyCancelReadOnlyPolicy);
-	bc().setOK(okPB);
-	bc().setApply(applyPB);
-	bc().setCancel(closePB);
-
-	// disable for read-only documents
-	bc().addReadOnly(spacingCO);
-	bc().addReadOnly(valueLE);
-	bc().addReadOnly(unitCO);
-	bc().addReadOnly(keepCB);
-
 	// initialize the length validator
-	bc().addCheckedLineEdit(valueLE, valueL);
-
-	// remove the %-items from the unit choice
-	unitCO->noPercents();
-}
-
-
-void GuiVSpace::change_adaptor()
-{
-	changed();
+	addCheckedWidget(valueLE, valueL);
 }
 
 
@@ -114,8 +86,7 @@ static void setWidgetsFromVSpace(VSpace const & space,
 	spacing->setCurrentIndex(item);
 	keep->setChecked(space.keep());
 
-	Length::UNIT default_unit =
-			(lyxrc.default_papersize > 3) ? Length::CM : Length::IN;
+	Length::UNIT const default_unit = Length::defaultUnit();
 	bool const custom_vspace = space.kind() == VSpace::LENGTH;
 	if (custom_vspace) {
 		value->setEnabled(true);
@@ -149,49 +120,28 @@ static VSpace setVSpaceFromWidgets(int spacing,
 }
 
 
-void GuiVSpace::applyView()
+docstring GuiVSpace::dialogToParams() const
 {
 	// If a vspace choice is "Length" but there's no text in
 	// the input field, do not insert a vspace at all.
 	if (spacingCO->currentIndex() == 5 && valueLE->text().isEmpty())
-		return;
+		return docstring();
 
-	params_ = setVSpaceFromWidgets(spacingCO->currentIndex(),
-			valueLE, unitCO, keepCB->isChecked()); 
+	VSpace const params = setVSpaceFromWidgets(spacingCO->currentIndex(),
+			valueLE, unitCO, keepCB->isChecked());
+	return from_ascii(InsetVSpace::params2string(params));
 }
 
 
-void GuiVSpace::updateContents()
+void GuiVSpace::paramsToDialog(Inset const * inset)
 {
-	setWidgetsFromVSpace(params_, spacingCO, valueLE, unitCO, keepCB);
+	InsetVSpace const * vs = static_cast<InsetVSpace const *>(inset);
+	VSpace const & params = vs->space();
+	setWidgetsFromVSpace(params, spacingCO, valueLE, unitCO, keepCB);
 }
-
-
-bool GuiVSpace::initialiseParams(string const & data)
-{
-	InsetVSpace::string2params(data, params_);
-	setButtonsValid(true);
-	return true;
-}
-
-
-void GuiVSpace::clearParams()
-{
-	params_ = VSpace();
-}
-
-
-void GuiVSpace::dispatchParams()
-{
-	dispatch(FuncRequest(getLfun(), InsetVSpace::params2string(params_)));
-}
-
-
-Dialog * createGuiVSpace(GuiView & lv) { return new GuiVSpace(lv); }
-
 
 } // namespace frontend
 } // namespace lyx
 
 
-#include "GuiVSpace_moc.cpp"
+#include "moc_GuiVSpace.cpp"

@@ -3,8 +3,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
- * \author Uwe Stöhr
+ * \author AndrÃ© PÃ¶nitz
+ * \author Uwe StÃ¶hr
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@
 #include "support/filetools.h"
 #include "support/lstrings.h"
 
-#include <boost/regex.hpp>
+#include "support/regex.h"
 
 #include <algorithm>
 #include <iostream>
@@ -36,8 +36,7 @@
 
 using namespace std;
 using namespace lyx::support;
-using boost::regex;
-using boost::smatch;
+
 
 namespace lyx {
 
@@ -51,22 +50,31 @@ bool one_language = true;
 
 namespace {
 
+//add this to known_languages when updating to lyxformat 266:
+// "armenian"
 //add these to known_languages when updating to lyxformat 268:
 //"chinese-simplified", "chinese-traditional", "japanese", "korean"
-const char * const known_languages[] = { "afrikaans", "american", "arabic",
-"austrian", "bahasa", "basque", "belarusian", "brazil", "brazilian", "breton",
-"british", "bulgarian", "canadian", "canadien", "catalan", "croatian", "czech",
-"danish", "dutch", "english", "esperanto", "estonian", "finnish", "francais",
-"french", "frenchb", "frenchle", "frenchpro", "galician", "german", "germanb",
-"greek", "hebrew", "icelandic", "irish", "italian", "kazakh", "lsorbian", "magyar",
-"naustrian", "ngerman", "ngermanb", "norsk", "nynorsk", "polish", "portuges",
-"portuguese", "romanian", "russian", "russianb", "scottish", "serbian", "slovak",
-"slovene", "spanish", "swedish", "thai", "turkish", "ukraineb", "ukrainian",
-"usorbian", "welsh", 0};
+// Both changes require first that support for non-babel languages (CJK,
+// armtex) is added.
+// add turkmen for lyxformat 383
+const char * const known_languages[] = { "afrikaans", "albanian", "american",
+"arabic", "arabtex", "austrian", "bahasa", "bahasai", "bahasam", "basque",
+"belarusian", "brazil", "brazilian", "breton", "british", "bulgarian",
+"canadian", "canadien", "catalan", "croatian", "czech", "danish", "dutch",
+"english", "esperanto", "estonian", "finnish", "francais", "french",
+"frenchb", "frenchle", "frenchpro", "galician", "german", "germanb", "greek",
+"hebrew", "icelandic", "indon", "indonesian", "interlingua", "irish",
+"italian", "kazakh", "latin", "latvian", "lithuanian", "lsorbian", "magyar",
+"malay", "meyalu", "mongolian", "naustrian", "ngerman", "ngermanb", "norsk",
+"nynorsk", "polutonikogreek", "polish", "portuges", "portuguese", "romanian",
+"russian", "russianb", "samin", "scottish", "serbian", "serbian-latin",
+"slovak", "slovene", "spanish", "swedish", "thai", "turkish", "ukraineb",
+"ukrainian", "usorbian", "vietnam", "welsh", 0};
 
-//add this when updating to lyxformat 305:
-//bahasai, indonesian, and indon = equal to bahasa
-//malay and meyalu = equal to bahasam
+const char * const known_bahasa_languages[] = {"bahasa", "bahasai",
+						"indon", "indonesian", 0};
+const char * const known_bahasam_languages[] = {"bahasam", "malay",
+						"meyalu", 0};
 const char * const known_brazilian_languages[] = {"brazil", "brazilian", 0};
 const char * const known_french_languages[] = {"french", "frenchb", "francais",
 						"frenchle", "frenchpro", 0};
@@ -78,14 +86,16 @@ const char * const known_ukrainian_languages[] = {"ukrainian", "ukraineb", 0};
 
 //add these to known_english_quotes_languages when updating to lyxformat 268:
 //"chinese-simplified", "korean"
+// This requires first that support for non-babel languages (CJK) is added.
 const char * const known_english_quotes_languages[] = {"american", "canadian",
 "english", "esperanto", "hebrew", "irish", "scottish", "thai", 0};
 
-//add this to known_french_quotes_languages when updating to lyxformat 327:
-//"spanish-mexico"
+//add this to known_french_quotes_languages when updating to
+//lyxformat 383: "turkmen"
 const char * const known_french_quotes_languages[] = {"albanian", "arabic",
 "basque", "canadien", "catalan", "galician", "greek", "italian", "norsk",
-"nynorsk", "spanish", "turkish", 0};
+"nynorsk", "polutonikogreek", "spanish", "spanish-mexico", "turkish",
+"vietnam", 0};
 
 const char * const known_german_quotes_languages[] = {"austrian", "bulgarian",
 "czech", "icelandic", "lithuanian", "lsorbian", "naustrian", "serbian",
@@ -94,7 +104,7 @@ const char * const known_german_quotes_languages[] = {"austrian", "bulgarian",
 const char * const known_polish_quotes_languages[] = {"afrikaans", "croatian",
 "dutch", "estonian", "magyar", "polish", "romanian", 0};
 
-const char * const known_swedish_quotes_languages[] = {"bahasa", "finnish", 
+const char * const known_swedish_quotes_languages[] = {"finnish",
 "swedish", 0};
 
 char const * const known_fontsizes[] = { "10pt", "11pt", "12pt", 0 };
@@ -126,6 +136,7 @@ const char * const known_coded_paper_margins[] = { "leftmargin", "topmargin",
 // default settings
 ostringstream h_preamble;
 string h_textclass               = "article";
+string h_use_default_options     = "false";
 string h_options                 = string();
 string h_language                = "english";
 string h_inputencoding           = "auto";
@@ -138,8 +149,25 @@ string h_font_osf                = "false";
 string h_font_sf_scale           = "100";
 string h_font_tt_scale           = "100";
 string h_graphics                = "default";
+string h_float_placement;
 string h_paperfontsize           = "default";
 string h_spacing                 = "single";
+string h_use_hyperref            = "0";
+string h_pdf_title;
+string h_pdf_author;
+string h_pdf_subject;
+string h_pdf_keywords;
+string h_pdf_bookmarks           = "1";
+string h_pdf_bookmarksnumbered   = "0";
+string h_pdf_bookmarksopen       = "0";
+string h_pdf_bookmarksopenlevel  = "1";
+string h_pdf_breaklinks          = "0";
+string h_pdf_pdfborder           = "0";
+string h_pdf_colorlinks          = "0";
+string h_pdf_backref             = "section";
+string h_pdf_pdfusetitle         = "1";
+string h_pdf_pagemode;
+string h_pdf_quoted_options;
 string h_papersize               = "default";
 string h_use_geometry            = "false";
 string h_use_amsmath             = "1";
@@ -151,20 +179,39 @@ string h_secnumdepth             = "3";
 string h_tocdepth                = "3";
 string h_paragraph_separation    = "indent";
 string h_defskip                 = "medskip";
+string h_paragraph_indentation   = "default";
 string h_quotes_language         = "english";
 string h_papercolumns            = "1";
 string h_papersides              = string();
 string h_paperpagestyle          = "default";
+string h_listings_params;
 string h_tracking_changes        = "false";
 string h_output_changes          = "false";
 string h_margins                 = "";
 
 
-void handle_opt(vector<string> & opts, char const * const * what, string & target)
+/// translates a babel language name to a LyX language name
+string babel2lyx(string language)
+{
+	if (language == "arabtex")
+		return "arabic_arabtex";
+	if (language == "arabic")
+		return "arabic_arabi";
+	if (language == "lsorbian")
+		return "lowersorbian";
+	if (language == "usorbian")
+		return "uppersorbian";
+	return language;
+}
+
+
+// returns true if at least one of the options in what has been found
+bool handle_opt(vector<string> & opts, char const * const * what, string & target)
 {
 	if (opts.empty())
-		return;
+		return false;
 
+	bool found = false;
 	// the last language option is the document language (for babel and LyX)
 	// the last size option is the document font size
 	vector<string>::iterator it;
@@ -173,11 +220,13 @@ void handle_opt(vector<string> & opts, char const * const * what, string & targe
 		it = find(opts.begin(), opts.end(), *what);
 		if (it != opts.end()) {
 			if (it >= position) {
+				found = true;
 				target = *what;
 				position = it;
 			}
 		}
 	}
+	return found;
 }
 
 
@@ -232,6 +281,28 @@ vector<string> split_options(string const & input)
 
 
 /*!
+ * Retrieve a keyval option "name={value with=sign}" named \p name from
+ * \p options and return the value.
+ * The found option is also removed from \p options.
+ */
+string process_keyval_opt(vector<string> & options, string name)
+{
+	for (size_t i = 0; i < options.size(); ++i) {
+		vector<string> option;
+		split(options[i], option, '=');
+		if (option.size() < 2)
+			continue;
+		if (option[0] == name) {
+			options.erase(options.begin() + i);
+			option.erase(option.begin());
+			return join(option, "=");
+		}
+	}
+	return "";
+}
+
+
+/*!
  * Add package \p name with options \p options to used_packages.
  * Remove options from \p options that we don't want to output.
  */
@@ -266,6 +337,100 @@ string const scale_as_percentage(string const & scale)
 	// If the input string didn't match our expectations.
 	// return the default value "100"
 	return "100";
+}
+
+
+string remove_braces(string const & value)
+{
+	if (value.empty())
+		return value;
+	if (value[0] == '{' && value[value.length()-1] == '}')
+		return value.substr(1, value.length()-2);
+	return value;
+}
+
+
+void handle_hyperref(vector<string> & options)
+{
+	// FIXME swallow inputencoding changes that might surround the
+	//       hyperref setup if it was written by LyX
+	h_use_hyperref = "1";
+	// swallow "unicode=true", since LyX does always write that
+	vector<string>::iterator it =
+		find(options.begin(), options.end(), "unicode=true");
+	if (it != options.end())
+		options.erase(it);
+	it = find(options.begin(), options.end(), "pdfusetitle");
+	if (it != options.end()) {
+		h_pdf_pdfusetitle = "1";
+		options.erase(it);
+	}
+	string bookmarks = process_keyval_opt(options, "bookmarks");
+	if (bookmarks == "true")
+		h_pdf_bookmarks = "1";
+	else if (bookmarks == "false")
+		h_pdf_bookmarks = "0";
+	if (h_pdf_bookmarks == "1") {
+		string bookmarksnumbered =
+			process_keyval_opt(options, "bookmarksnumbered");
+		if (bookmarksnumbered == "true")
+			h_pdf_bookmarksnumbered = "1";
+		else if (bookmarksnumbered == "false")
+			h_pdf_bookmarksnumbered = "0";
+		string bookmarksopen =
+			process_keyval_opt(options, "bookmarksopen");
+		if (bookmarksopen == "true")
+			h_pdf_bookmarksopen = "1";
+		else if (bookmarksopen == "false")
+			h_pdf_bookmarksopen = "0";
+		if (h_pdf_bookmarksopen == "1") {
+			string bookmarksopenlevel =
+				process_keyval_opt(options, "bookmarksopenlevel");
+			if (!bookmarksopenlevel.empty())
+				h_pdf_bookmarksopenlevel = bookmarksopenlevel;
+		}
+	}
+	string breaklinks = process_keyval_opt(options, "breaklinks");
+	if (breaklinks == "true")
+		h_pdf_breaklinks = "1";
+	else if (breaklinks == "false")
+		h_pdf_breaklinks = "0";
+	string pdfborder = process_keyval_opt(options, "pdfborder");
+	if (pdfborder == "{0 0 0}")
+		h_pdf_pdfborder = "1";
+	else if (pdfborder == "{0 0 1}")
+		h_pdf_pdfborder = "0";
+	string backref = process_keyval_opt(options, "backref");
+	if (!backref.empty())
+		h_pdf_backref = backref;
+	string colorlinks = process_keyval_opt(options, "colorlinks");
+	if (colorlinks == "true")
+		h_pdf_colorlinks = "1";
+	else if (colorlinks == "false")
+		h_pdf_colorlinks = "0";
+	string pdfpagemode = process_keyval_opt(options, "pdfpagemode");
+	if (!pdfpagemode.empty())
+		h_pdf_pagemode = pdfpagemode;
+	string pdftitle = process_keyval_opt(options, "pdftitle");
+	if (!pdftitle.empty()) {
+		h_pdf_title = remove_braces(pdftitle);
+	}
+	string pdfauthor = process_keyval_opt(options, "pdfauthor");
+	if (!pdfauthor.empty()) {
+		h_pdf_author = remove_braces(pdfauthor);
+	}
+	string pdfsubject = process_keyval_opt(options, "pdfsubject");
+	if (!pdfsubject.empty())
+		h_pdf_subject = remove_braces(pdfsubject);
+	string pdfkeywords = process_keyval_opt(options, "pdfkeywords");
+	if (!pdfkeywords.empty())
+		h_pdf_keywords = remove_braces(pdfkeywords);
+	if (!options.empty()) {
+		if (!h_pdf_quoted_options.empty())
+			h_pdf_quoted_options += ',';
+		h_pdf_quoted_options += join(options, ",");
+		options.clear();
+	}
 }
 
 
@@ -375,6 +540,9 @@ void handle_package(Parser &p, string const & name, string const & opts,
 	else if (name == "url")
 		; // ignore this
 
+	else if (LYX_FORMAT >= 408 && name == "subscript")
+		; // ignore this
+
 	else if (name == "color") {
 		// with the following command this package is only loaded when needed for
 		// undefined colors, since we only support the predefined colors
@@ -412,6 +580,9 @@ void handle_package(Parser &p, string const & name, string const & opts,
 	else if (name == "jurabib")
 		h_cite_engine = "jurabib";
 
+	else if (name == "hyperref")
+		handle_hyperref(options);
+
 	else if (!in_lyx_preamble) {
 		if (options.empty())
 			h_preamble << "\\usepackage{" << name << "}";
@@ -436,7 +607,11 @@ void handle_package(Parser &p, string const & name, string const & opts,
 void end_preamble(ostream & os, TextClass const & /*textclass*/)
 {
 	// merge synonym languages
-	if (is_known(h_language, known_brazilian_languages))
+	if (is_known(h_language, known_bahasa_languages))
+		h_language = "bahasa";
+	else if (is_known(h_language, known_bahasam_languages))
+		h_language = "bahasam";
+	else if (is_known(h_language, known_brazilian_languages))
 		h_language = "brazilian";
 	else if (is_known(h_language, known_french_languages))
 		h_language = "french";
@@ -481,13 +656,17 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 		h_quotes_language = "swedish";
 	//english
 	else if (is_known(h_language, known_english_quotes_languages)
+		|| is_known(h_language, known_bahasa_languages)
+		|| is_known(h_language, known_bahasam_languages)
 		|| is_known(h_language, known_brazilian_languages)
 		|| is_known(h_language, known_portuguese_languages))
 		h_quotes_language = "english";
 
+	h_language = babel2lyx(h_language);
+
 	// output the LyX file settings
 	os << "#LyX file created by tex2lyx " << PACKAGE_VERSION << "\n"
-	   << "\\lyxformat 264\n"
+	   << "\\lyxformat " << LYX_FORMAT << '\n'
 	   << "\\begin_document\n"
 	   << "\\begin_header\n"
 	   << "\\textclass " << h_textclass << "\n";
@@ -495,7 +674,8 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 		os << "\\begin_preamble\n" << h_preamble.str() << "\n\\end_preamble\n";
 	if (!h_options.empty())
 		os << "\\options " << h_options << "\n";
-	os << "\\language " << h_language << "\n"
+	os << "\\use_default_options " << h_use_default_options << "\n"
+	   << "\\language " << h_language << "\n"
 	   << "\\inputencoding " << h_inputencoding << "\n"
 	   << "\\font_roman " << h_font_roman << "\n"
 	   << "\\font_sans " << h_font_sans << "\n"
@@ -505,10 +685,36 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 	   << "\\font_osf " << h_font_osf << "\n"
 	   << "\\font_sf_scale " << h_font_sf_scale << "\n"
 	   << "\\font_tt_scale " << h_font_tt_scale << "\n"
-	   << "\\graphics " << h_graphics << "\n"
-	   << "\\paperfontsize " << h_paperfontsize << "\n"
+	   << "\\graphics " << h_graphics << "\n";
+	if (!h_float_placement.empty())
+		os << "\\float_placement " << h_float_placement << "\n";
+	os << "\\paperfontsize " << h_paperfontsize << "\n"
 	   << "\\spacing " << h_spacing << "\n"
-	   << "\\papersize " << h_papersize << "\n"
+	   << "\\use_hyperref " << h_use_hyperref << '\n';
+	if (h_use_hyperref == "1") {
+		if (!h_pdf_title.empty())
+			os << "\\pdf_title \"" << h_pdf_title << "\"\n";
+		if (!h_pdf_author.empty())
+			os << "\\pdf_author \"" << h_pdf_author << "\"\n";
+		if (!h_pdf_subject.empty())
+			os << "\\pdf_subject \"" << h_pdf_subject << "\"\n";
+		if (!h_pdf_keywords.empty())
+			os << "\\pdf_keywords \"" << h_pdf_keywords << "\"\n";
+		os << "\\pdf_bookmarks " << h_pdf_bookmarks << "\n"
+		      "\\pdf_bookmarksnumbered " << h_pdf_bookmarksnumbered << "\n"
+		      "\\pdf_bookmarksopen " << h_pdf_bookmarksopen << "\n"
+		      "\\pdf_bookmarksopenlevel " << h_pdf_bookmarksopenlevel << "\n"
+		      "\\pdf_breaklinks " << h_pdf_breaklinks << "\n"
+		      "\\pdf_pdfborder " << h_pdf_pdfborder << "\n"
+		      "\\pdf_colorlinks " << h_pdf_colorlinks << "\n"
+		      "\\pdf_backref " << h_pdf_backref << "\n"
+		      "\\pdf_pdfusetitle " << h_pdf_pdfusetitle << '\n';
+		if (!h_pdf_pagemode.empty())
+			os << "\\pdf_pagemode " << h_pdf_pagemode << '\n';
+		if (!h_pdf_quoted_options.empty())
+			os << "\\pdf_quoted_options \"" << h_pdf_quoted_options << "\"\n";
+	}
+	os << "\\papersize " << h_papersize << "\n"
 	   << "\\use_geometry " << h_use_geometry << "\n"
 	   << "\\use_amsmath " << h_use_amsmath << "\n"
 	   << "\\use_esint " << h_use_esint << "\n"
@@ -518,13 +724,18 @@ void end_preamble(ostream & os, TextClass const & /*textclass*/)
 	   << h_margins
 	   << "\\secnumdepth " << h_secnumdepth << "\n"
 	   << "\\tocdepth " << h_tocdepth << "\n"
-	   << "\\paragraph_separation " << h_paragraph_separation << "\n"
-	   << "\\defskip " << h_defskip << "\n"
-	   << "\\quotes_language " << h_quotes_language << "\n"
+	   << "\\paragraph_separation " << h_paragraph_separation << "\n";
+	if (LYX_FORMAT < 365 || h_paragraph_separation == "skip")
+		os << "\\defskip " << h_defskip << "\n";
+	else
+		os << "\\paragraph_indentation " << h_paragraph_indentation << "\n";
+	os << "\\quotes_language " << h_quotes_language << "\n"
 	   << "\\papercolumns " << h_papercolumns << "\n"
 	   << "\\papersides " << h_papersides << "\n"
-	   << "\\paperpagestyle " << h_paperpagestyle << "\n"
-	   << "\\tracking_changes " << h_tracking_changes << "\n"
+	   << "\\paperpagestyle " << h_paperpagestyle << "\n";
+	if (!h_listings_params.empty())
+		os << "\\listings_params " << h_listings_params << "\n";
+	os << "\\tracking_changes " << h_tracking_changes << "\n"
 	   << "\\output_changes " << h_output_changes << "\n"
 	   << "\\end_header\n\n"
 	   << "\\begin_body\n";
@@ -582,11 +793,12 @@ void parse_preamble(Parser & p, ostream & os,
 			h_preamble << t.asInput();
 
 		else if (t.cat() == catComment) {
+			// regex to parse comments (currently not used)
 			static regex const islyxfile("%% LyX .* created this file");
 			static regex const usercommands("User specified LaTeX commands");
-			
+
 			string const comment = t.asInput();
-			
+
 			// magically switch encoding default if it looks like XeLaTeX
 			static string const magicXeLaTeX =
 				"% This document must be compiled with XeLaTeX ";
@@ -596,7 +808,6 @@ void parse_preamble(Parser & p, ostream & os,
 				cerr << "XeLaTeX comment found, switching to UTF8\n";
 				h_inputencoding = "utf8";
 			}
-
 			smatch sub;
 			if (regex_search(comment, sub, islyxfile)) {
 				is_lyx_file = true;
@@ -612,16 +823,12 @@ void parse_preamble(Parser & p, ostream & os,
 			h_paperpagestyle = p.verbatim_item();
 
 		else if (t.cs() == "makeatletter") {
-			if (!is_lyx_file || !in_lyx_preamble
-			    || p.getCatCode('@') != catLetter)
-				h_preamble << "\\makeatletter";
+			// LyX takes care of this
 			p.setCatCode('@', catLetter);
 		}
 
 		else if (t.cs() == "makeatother") {
-			if (!is_lyx_file || !in_lyx_preamble
-			    || p.getCatCode('@') != catOther)
-				h_preamble << "\\makeatother";
+			// LyX takes care of this
 			p.setCatCode('@', catOther);
 		}
 
@@ -747,7 +954,6 @@ void parse_preamble(Parser & p, ostream & os,
 		else if (t.cs() == "newenvironment") {
 			string const name = p.getArg('{', '}');
 			ostringstream ss;
-			// only non LyX specific stuff is output
 			ss << "\\newenvironment{" << name << "}";
 			ss << p.getOpt();
 			ss << p.getOpt();
@@ -760,7 +966,7 @@ void parse_preamble(Parser & p, ostream & os,
 		else if (t.cs() == "def") {
 			string name = p.get_token().cs();
 			while (p.next_token().cat() != catBegin)
-				name += p.get_token().asString();
+				name += p.get_token().cs();
 			if (!in_lyx_preamble)
 				h_preamble << "\\def\\" << name << '{'
 					   << p.verbatim_item() << "}";
@@ -800,6 +1006,11 @@ void parse_preamble(Parser & p, ostream & os,
 			if (name == "\\parindent" && content != "") {
 				if (content[0] == '0')
 					h_paragraph_separation = "skip";
+				else if (LYX_FORMAT >= 365)
+					h_paragraph_indentation = translate_len(content);
+				else
+					h_preamble << "\\setlength{" << name
+					           << "}{" << content << "}";
 			} else if (name == "\\parskip") {
 				if (content == "\\smallskipamount")
 					h_defskip = "smallskip";
@@ -859,6 +1070,9 @@ void parse_preamble(Parser & p, ostream & os,
 		}
 
 		else if (t.cs() == "jurabibsetup") {
+			// FIXME p.getArg('{', '}') is most probably wrong (it
+			//       does not handle nested braces).
+			//       Use p.verbatim_item() instead.
 			vector<string> jurabibsetup =
 				split_options(p.getArg('{', '}'));
 			// add jurabibsetup to the jurabib package options
@@ -867,6 +1081,27 @@ void parse_preamble(Parser & p, ostream & os,
 				h_preamble << "\\jurabibsetup{"
 					   << join(jurabibsetup, ",") << '}';
 			}
+		}
+
+		else if (t.cs() == "hypersetup") {
+			vector<string> hypersetup =
+				split_options(p.verbatim_item());
+			// add hypersetup to the hyperref package options
+			handle_hyperref(hypersetup);
+			if (!hypersetup.empty()) {
+				h_preamble << "\\hypersetup{"
+				           << join(hypersetup, ",") << '}';
+			}
+		}
+
+		else if (t.cs() == "@ifundefined") {
+			// prevent misparsing of \usepackage if it is used
+			// as an argument (see e.g. our own output of
+			// \@ifundefined above)
+			h_preamble << t.asInput();
+			h_preamble << '{' << p.verbatim_item() << '}';
+			h_preamble << '{' << p.verbatim_item() << '}';
+			h_preamble << '{' << p.verbatim_item() << '}';
 		}
 
 		else if (!t.cs().empty() && !in_lyx_preamble)

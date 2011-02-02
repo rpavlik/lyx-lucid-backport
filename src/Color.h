@@ -5,12 +5,12 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Matthias Ettrich
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Martin Vermeer
  *
  * Full author contact details are available in file CREDITS.
@@ -41,8 +41,8 @@ class Color
 public:
 	///
 	Color(ColorCode base_color = Color_none);
-	
-	/// comparison operators.
+
+	/// \name Comparison operators
 	//@{
 	bool operator==(Color const & color) const;
 	bool operator!=(Color const & color) const;
@@ -61,6 +61,7 @@ std::ostream & operator<<(std::ostream & os, Color color);
 
 std::string const X11hexname(RGBColor const & col);
 RGBColor rgbFromHexName(std::string const & x11hexname);
+std::string const outputLaTeXColor(RGBColor const & color);
 
 } // namespace lyx
 

@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Angus Leeming
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,13 +13,14 @@
 
 #include "InsetCitation.h"
 
+#include "BiblioInfo.h"
 #include "Buffer.h"
 #include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "DispatchResult.h"
-#include "FuncRequest.h"
 #include "LaTeXFeatures.h"
+#include "output_xhtml.h"
 #include "ParIterator.h"
 #include "TocBackend.h"
 
@@ -35,6 +36,29 @@ using namespace std;
 using namespace lyx::support;
 
 namespace lyx {
+
+ParamInfo InsetCitation::param_info_;
+
+
+InsetCitation::InsetCitation(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
+{}
+
+
+ParamInfo const & InsetCitation::findInfo(string const & /* cmdName */)
+{
+	// standard cite does only take one argument if jurabib is
+	// not used, but jurabib extends this to two arguments, so
+	// we have to allow both here. InsetCitation takes care that
+	// LaTeX output is nevertheless correct.
+	if (param_info_.empty()) {
+		param_info_.add("after", ParamInfo::LATEX_OPTIONAL);
+		param_info_.add("before", ParamInfo::LATEX_OPTIONAL);
+		param_info_.add("key", ParamInfo::LATEX_REQUIRED);
+	}
+	return param_info_;
+}
+
 
 namespace {
 
@@ -64,6 +88,50 @@ vector<string> const & possibleCiteCommands()
 }
 
 
+} // anon namespace
+
+
+bool InsetCitation::isCompatibleCommand(string const & cmd)
+{
+	vector<string> const & possibles = possibleCiteCommands();
+	vector<string>::const_iterator const end = possibles.end();
+	return find(possibles.begin(), end, cmd) != end;
+}
+
+
+docstring InsetCitation::toolTip(BufferView const & bv, int, int) const
+{
+	Buffer const & buf = bv.buffer();
+	// Only after the buffer is loaded from file...
+	if (!buf.isFullyLoaded())
+		return docstring();
+
+	BiblioInfo const & bi = buf.masterBibInfo();
+	if (bi.empty())
+		return _("No bibliography defined!");
+
+	docstring const & key = getParam("key");
+	if (key.empty())
+		return _("No citations selected!");
+
+	vector<docstring> keys = getVectorFromString(key);
+	vector<docstring>::const_iterator it = keys.begin();
+	vector<docstring>::const_iterator en = keys.end();
+	docstring tip;
+	for (; it != en; ++it) {
+		docstring const key_info = bi.getInfo(*it, buffer());
+		if (key_info.empty())
+			continue;
+		if (!tip.empty())
+			tip += "\n";
+		tip += wrap(key_info, -4);
+	}
+	return tip;
+}
+
+
+namespace {
+	
 // FIXME See the header for the issue.
 string defaultCiteCommand(CiteEngine engine)
 {
@@ -132,16 +200,40 @@ string asValidLatexCommand(string const & input, CiteEngine const engine)
 }
 
 
-docstring complexLabel(Buffer const & buffer,
-			    string const & citeType, docstring const & keyList,
-			    docstring const & before, docstring const & after,
-			    CiteEngine engine)
+inline docstring wrapCitation(docstring const & key, 
+		docstring const & content, bool for_xhtml)
 {
+	if (!for_xhtml)
+		return content;
+	// we have to do the escaping here, because we will ultimately
+	// write this as a raw string, so as not to escape the tags.
+	return "<a href='#" + key + "'>" +
+			html::htmlize(content, XHTMLStream::ESCAPE_ALL) + "</a>";
+}
+
+} // anonymous namespace
+
+docstring InsetCitation::generateLabel(bool for_xhtml) const
+{
+	docstring label;
+	label = complexLabel(for_xhtml);
+
+	// Fallback to fail-safe
+	if (label.empty())
+		label = basicLabel(for_xhtml);
+
+	return label;
+}
+
+
+docstring InsetCitation::complexLabel(bool for_xhtml) const
+{
+	Buffer const & buf = buffer();
 	// Only start the process off after the buffer is loaded from file.
-	if (!buffer.isFullyLoaded())
+	if (!buf.isFullyLoaded())
 		return docstring();
 
-	BiblioInfo const & biblist = buffer.masterBibInfo();
+	BiblioInfo const & biblist = buf.masterBibInfo();
 	if (biblist.empty())
 		return docstring();
 
@@ -156,15 +248,17 @@ docstring complexLabel(Buffer const & buffer,
 	// jurabib supports these plus
 	// CITE:	author/<before field>
 
+	CiteEngine const engine = buffer().params().citeEngine();
 	// We don't currently use the full or forceUCase fields.
-	string cite_type = asValidLatexCommand(citeType, engine);
+	string cite_type = asValidLatexCommand(getCmdName(), engine);
 	if (cite_type[0] == 'C')
-		//If we were going to use them, this would mean ForceUCase
+		// If we were going to use them, this would mean ForceUCase
 		cite_type = string(1, 'c') + cite_type.substr(1);
 	if (cite_type[cite_type.size() - 1] == '*')
-		//and this would mean FULL
+		// and this would mean FULL
 		cite_type = cite_type.substr(0, cite_type.size() - 1);
 
+	docstring const & before = getParam("before");
 	docstring before_str;
 	if (!before.empty()) {
 		// In CITET and CITEALT mode, the "before" string is
@@ -185,6 +279,7 @@ docstring complexLabel(Buffer const & buffer,
 			before_str = '/' + before;
 	}
 
+	docstring const & after = getParam("after");
 	docstring after_str;
 	// The "after" key is appended only to the end of the whole.
 	if (cite_type == "nocite")
@@ -195,7 +290,7 @@ docstring complexLabel(Buffer const & buffer,
 
 	// One day, these might be tunable (as they are in BibTeX).
 	char op, cp;	// opening and closing parenthesis.
-	char * sep;	// punctuation mark separating citation entries.
+	const char * sep;	// punctuation mark separating citation entries.
 	if (engine == ENGINE_BASIC) {
 		op  = '[';
 		cp  = ']';
@@ -211,89 +306,96 @@ docstring complexLabel(Buffer const & buffer,
 	docstring const sep_str = from_ascii(sep) + ' ';
 
 	docstring label;
-	vector<docstring> keys = getVectorFromString(keyList);
+	vector<docstring> keys = getVectorFromString(getParam("key"));
 	vector<docstring>::const_iterator it  = keys.begin();
 	vector<docstring>::const_iterator end = keys.end();
 	for (; it != end; ++it) {
 		// get the bibdata corresponding to the key
-		docstring const author(biblist.getAbbreviatedAuthor(*it));
-		docstring const year(biblist.getYear(*it));
+		docstring const author = biblist.getAbbreviatedAuthor(*it);
+		docstring const year = biblist.getYear(*it, for_xhtml);
+		docstring const citenum = for_xhtml ? biblist.getCiteNumber(*it) : *it;
 
-		// Something isn't right. Fail safely.
 		if (author.empty() || year.empty())
+			// We can't construct a "complex" label without that info.
+			// So fail safely.
 			return docstring();
 
 		// authors1/<before>;  ... ;
 		//  authors_last, <after>
 		if (cite_type == "cite") {
 			if (engine == ENGINE_BASIC) {
-				label += *it + sep_str;
+				label += wrapCitation(*it, citenum, for_xhtml) + sep_str;
 			} else if (engine == ENGINE_JURABIB) {
 				if (it == keys.begin())
-					label += author + before_str + sep_str;
+					label += wrapCitation(*it, author, for_xhtml) + before_str + sep_str;
 				else
-					label += author + sep_str;
+					label += wrapCitation(*it, author, for_xhtml) + sep_str;
 			}
-
+		} 
 		// nocite
-		} else if (cite_type == "nocite") {
+		else if (cite_type == "nocite") {
 			label += *it + sep_str;
-
+		} 
 		// (authors1 (<before> year);  ... ;
 		//  authors_last (<before> year, <after>)
-		} else if (cite_type == "citet") {
+		else if (cite_type == "citet") {
 			switch (engine) {
 			case ENGINE_NATBIB_AUTHORYEAR:
 				label += author + op_str + before_str +
-					year + cp + sep_str;
+					wrapCitation(*it, year, for_xhtml) + cp + sep_str;
 				break;
 			case ENGINE_NATBIB_NUMERICAL:
-				label += author + op_str + before_str + '#' + *it + cp + sep_str;
+				label += author + op_str + before_str + 
+					wrapCitation(*it, citenum, for_xhtml) + cp + sep_str;
 				break;
 			case ENGINE_JURABIB:
 				label += before_str + author + op_str +
-					year + cp + sep_str;
+					wrapCitation(*it, year, for_xhtml) + cp + sep_str;
 				break;
 			case ENGINE_BASIC:
 				break;
 			}
-
-		// author, year; author, year; ...
-		} else if (cite_type == "citep" ||
+		} 
+		// author, year; author, year; ...	
+		else if (cite_type == "citep" ||
 			   cite_type == "citealp") {
 			if (engine == ENGINE_NATBIB_NUMERICAL) {
-				label += *it + sep_str;
+				label += wrapCitation(*it, citenum, for_xhtml) + sep_str;
 			} else {
-				label += author + ", " + year + sep_str;
+				label += wrapCitation(*it, author + ", " + year, for_xhtml) + sep_str;
 			}
 
+		} 
 		// (authors1 <before> year;
 		//  authors_last <before> year, <after>)
-		} else if (cite_type == "citealt") {
+		else if (cite_type == "citealt") {
 			switch (engine) {
 			case ENGINE_NATBIB_AUTHORYEAR:
 				label += author + ' ' + before_str +
-					year + sep_str;
+					wrapCitation(*it, year, for_xhtml) + sep_str;
 				break;
 			case ENGINE_NATBIB_NUMERICAL:
-				label += author + ' ' + before_str + '#' + *it + sep_str;
+				label += author + ' ' + before_str + '#' + 
+					wrapCitation(*it, citenum, for_xhtml) + sep_str;
 				break;
 			case ENGINE_JURABIB:
-				label += before_str + author + ' ' +
-					year + sep_str;
+				label += before_str + 
+					wrapCitation(*it, author + ' ' + year, for_xhtml) + sep_str;
 				break;
 			case ENGINE_BASIC:
 				break;
 			}
 
+		
+		} 
 		// author; author; ...
-		} else if (cite_type == "citeauthor") {
-			label += author + sep_str;
-
+		else if (cite_type == "citeauthor") {
+			label += wrapCitation(*it, author, for_xhtml) + sep_str;
+		}
 		// year; year; ...
-		} else if (cite_type == "citeyear" ||
+		else if (cite_type == "citeyear" ||
 			   cite_type == "citeyearpar") {
-			label += year + sep_str;
+			label += wrapCitation(*it, year, for_xhtml) + sep_str;
 		}
 	}
 	label = rtrim(rtrim(label), sep);
@@ -326,112 +428,28 @@ docstring complexLabel(Buffer const & buffer,
 }
 
 
-docstring basicLabel(docstring const & keyList, docstring const & after)
+docstring InsetCitation::basicLabel(bool for_xhtml) const
 {
-	docstring keys = keyList;
+	docstring keys = getParam("key");
 	docstring label;
 
-	if (contains(keys, ',')) {
-		// Final comma allows while loop to cover all keys
-		keys = ltrim(split(keys, label, ',')) + ',';
-		while (contains(keys, ',')) {
-			docstring key;
-			keys = ltrim(split(keys, key, ','));
-			label += ", " + key;
-		}
-	} else {
-		label = keys;
-	}
+	docstring key;
+	do {
+		// if there is no comma, then everything goes into key
+		// and keys will be empty.
+		keys = trim(split(keys, key, ','));
+		key = trim(key);
+		if (!label.empty())
+			label += ", ";
+		label += wrapCitation(key, key, for_xhtml);
+	} while (!keys.empty());
 
+	docstring const & after = getParam("after");
 	if (!after.empty())
 		label += ", " + after;
 
 	return '[' + label + ']';
 }
-
-} // anon namespace
-
-
-ParamInfo InsetCitation::param_info_;
-
-
-InsetCitation::InsetCitation(InsetCommandParams const & p)
-	: InsetCommand(p, "citation")
-{}
-
-
-ParamInfo const & InsetCitation::findInfo(string const & /* cmdName */)
-{
-	// standard cite does only take one argument if jurabib is
-	// not used, but jurabib extends this to two arguments, so
-	// we have to allow both here. InsetCitation takes care that
-	// LaTeX output is nevertheless correct.
-	if (param_info_.empty()) {
-		param_info_.add("after", ParamInfo::LATEX_OPTIONAL);
-		param_info_.add("before", ParamInfo::LATEX_OPTIONAL);
-		param_info_.add("key", ParamInfo::LATEX_REQUIRED);
-	}
-	return param_info_;
-}
-
-
-bool InsetCitation::isCompatibleCommand(string const & cmd)
-{
-	vector<string> const & possibles = possibleCiteCommands();
-	vector<string>::const_iterator const end = possibles.end();
-	return find(possibles.begin(), end, cmd) != end;
-}
-
-
-docstring InsetCitation::toolTip(BufferView const & bv, int, int) const
-{
-	Buffer const & buf = bv.buffer();
-	// Only after the buffer is loaded from file...
-	if (!buf.isFullyLoaded())
-		return docstring();
-
-	BiblioInfo const & bi = buf.masterBibInfo();
-	if (bi.empty())
-		return _("No bibliography defined!");
-
-	docstring const & key = getParam("key");
-	if (key.empty())
-		return _("No citations selected!");
-
-	vector<docstring> keys = getVectorFromString(key);
-	vector<docstring>::const_iterator it = keys.begin();
-	vector<docstring>::const_iterator en = keys.end();
-	docstring tip;
-	for (; it != en; ++it) {
-		docstring const key_info = bi.getInfo(*it);
-		if (key_info.empty())
-			continue;
-		if (!tip.empty())
-			tip += "\n";
-		tip += wrap(key_info, -4);
-	}
-	return tip;
-}
-
-
-
-docstring InsetCitation::generateLabel() const
-{
-	docstring const before = getParam("before");
-	docstring const after  = getParam("after");
-
-	docstring label;
-	CiteEngine const engine = buffer().params().citeEngine();
-	label = complexLabel(buffer(), getCmdName(), getParam("key"),
-			       before, after, engine);
-
-	// Fallback to fail-safe
-	if (label.empty())
-		label = basicLabel(getParam("key"), after);
-
-	return label;
-}
-
 
 docstring InsetCitation::screenLabel() const
 {
@@ -439,7 +457,7 @@ docstring InsetCitation::screenLabel() const
 }
 
 
-void InsetCitation::updateLabels(ParIterator const &)
+void InsetCitation::updateBuffer(ParIterator const &, UpdateType)
 {
 	CiteEngine const engine = buffer().params().citeEngine();
 	if (cache.params == params() && cache.engine == engine)
@@ -452,7 +470,7 @@ void InsetCitation::updateLabels(ParIterator const &)
 
 	docstring label = glabel;
 	if (label.size() > maxLabelChars) {
-		label.erase(maxLabelChars-3);
+		label.erase(maxLabelChars - 3);
 		label += "...";
 	}
 
@@ -465,8 +483,13 @@ void InsetCitation::updateLabels(ParIterator const &)
 
 void InsetCitation::addToToc(DocIterator const & cpit)
 {
+	// NOTE
+	// XHTML output uses the TOC to collect the citations
+	// from the document. So if this gets changed, then we
+	// will need to change how the citations are collected.
+	docstring const tocitem = getParam("key");
 	Toc & toc = buffer().tocBackend().toc("citation");
-	toc.push_back(TocItem(cpit, 0, cache.screen_label));
+	toc.push_back(TocItem(cpit, 0, tocitem));
 }
 
 
@@ -504,9 +527,28 @@ int InsetCitation::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-void InsetCitation::tocString(odocstream & os) const
+docstring InsetCitation::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	string const & cmd = getCmdName();
+	if (cmd == "nocite")
+		return docstring();
+
+	// have to output this raw, because generateLabel() will include tags
+	xs << XHTMLStream::ESCAPE_NONE << generateLabel(true);
+
+	return docstring();
+}
+
+
+void InsetCitation::toString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
+}
+
+
+void InsetCitation::forToc(docstring & os, size_t) const
+{
+	os += screenLabel();
 }
 
 
@@ -514,13 +556,16 @@ void InsetCitation::tocString(odocstream & os) const
 // the \cite command is valid. Eg, the user has natbib enabled, inputs some
 // citations and then changes his mind, turning natbib support off. The output
 // should revert to \cite[]{}
-int InsetCitation::latex(odocstream & os, OutputParams const &) const
+int InsetCitation::latex(odocstream & os, OutputParams const & runparams) const
 {
 	CiteEngine cite_engine = buffer().params().citeEngine();
 	BiblioInfo const & bi = buffer().masterBibInfo();
 	// FIXME UNICODE
 	docstring const cite_str = from_utf8(
 		asValidLatexCommand(getCmdName(), cite_engine));
+
+	if (runparams.inulemcmd)
+		os << "\\mbox{";
 
 	os << "\\" << cite_str;
 
@@ -536,6 +581,9 @@ int InsetCitation::latex(odocstream & os, OutputParams const &) const
 		os << '{' << escape(cleanupWhitespace(getParam("key"))) << '}';
 	else
 		os << '{' << cleanupWhitespace(getParam("key")) << '}';
+
+	if (runparams.inulemcmd)
+		os << "}";
 
 	return 0;
 }
@@ -557,7 +605,7 @@ void InsetCitation::validate(LaTeXFeatures & features) const
 }
 
 
-docstring InsetCitation::contextMenu(BufferView const &, int, int) const
+docstring InsetCitation::contextMenuName() const
 {
 	return from_ascii("context-citation");
 }

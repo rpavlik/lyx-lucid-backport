@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -70,48 +70,60 @@ void InsetMathCases::draw(PainterInfo & pi, int x, int y) const
 void InsetMathCases::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
 	//lyxerr << "*** InsetMathCases: request: " << cmd << endl;
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE: {
-		docstring const & s = cmd.argument();
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY: {
+		istringstream is(to_utf8(cmd.argument()));
+		string s;
+		is >> s;
+		if (s != "tabular")
+			break;
+		is >> s;
 		// vertical lines and adding/deleting columns is not allowed for \cases
 		if (s == "append-column" || s == "delete-column"
-			|| s == "add-vline-left" || s == "add-vline-right") {
+		    || s == "add-vline-left" || s == "add-vline-right") {
 			cur.undispatched();
 			break;
 		}
 		cur.recordUndo();
 	}
 	default:
-		InsetMathGrid::doDispatch(cur, cmd);
+		break;
 	}
+	InsetMathGrid::doDispatch(cur, cmd);
 }
 
 
 bool InsetMathCases::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE: {
-		docstring const & s = cmd.argument();
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY: {
+		istringstream is(to_utf8(cmd.argument()));
+		string s;
+		is >> s;
+		if (s != "tabular")
+			break;
+		is >> s;
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.setEnabled(false);
 			flag.message(bformat(
 				from_utf8(N_("No vertical grid lines in 'cases': feature %1$s")),
-				s));
+				from_utf8(s)));
 			return true;
 		}
 		if (s == "append-column" || s == "delete-column") {
 			flag.setEnabled(false);
 			flag.message(bformat(
 				from_utf8(N_("Changing number of columns not allowed in "
-					     "'cases': feature %1$s")),
-				s));
+					     "'cases': feature %1$s")), from_utf8(s)));
 			return true;
 		}
+		break;
 	}
 	default:
-		return InsetMathGrid::getStatus(cur, cmd, flag);
+		break;
 	}
+	return InsetMathGrid::getStatus(cur, cmd, flag);
 }
 
 
@@ -144,6 +156,21 @@ void InsetMathCases::maple(MapleStream & os) const
 }
 
 
+void InsetMathCases::mathmlize(MathStream & ms) const
+{
+	ms << "<mo form='prefix' fence='true' stretchy='true' symmetric='true'>{</mo>";
+	InsetMathGrid::mathmlize(ms);
+}
+
+
+// FIXME XHTML
+// We need a brace here, somehow.
+void InsetMathCases::htmlize(HtmlStream & ms) const
+{
+	InsetMathGrid::htmlize(ms, "class='cases'");
+}
+
+
 void InsetMathCases::infoize(odocstream & os) const
 {
 	os << "Cases ";
@@ -154,6 +181,13 @@ void InsetMathCases::validate(LaTeXFeatures & features) const
 {
 	features.require("amsmath");
 	InsetMathGrid::validate(features);
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		// CSS based on eLyXer's
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"table.cases{display: inline-block; text-align: center;"
+			"border-left: thin solid black; vertical-align: middle; padding-left: 0.5ex;}\n"
+			"table.cases td {text-align: left;}\n"
+			"</style>");
 }
 
 

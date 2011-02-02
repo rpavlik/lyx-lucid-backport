@@ -15,6 +15,7 @@
 
 #include "BiblioInfo.h"
 #include "Buffer.h"
+#include "Cursor.h"
 #include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferView.h"
@@ -24,10 +25,13 @@
 #include "FuncRequest.h"
 #include "InsetIterator.h"
 #include "InsetList.h"
+#include "Language.h" 
 #include "Lexer.h"
+#include "output_xhtml.h"
 #include "OutputParams.h"
 #include "Paragraph.h"
 #include "ParagraphList.h"
+#include "ParIterator.h"
 #include "TextClass.h"
 
 #include "frontends/alert.h"
@@ -48,11 +52,10 @@ int InsetBibitem::key_counter = 0;
 docstring const key_prefix = from_ascii("key-");
 
 
-InsetBibitem::InsetBibitem(Buffer const & buf, InsetCommandParams const & p)
-	: InsetCommand(p, "bibitem")
+InsetBibitem::InsetBibitem(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
 {
-	Inset::setBuffer(const_cast<Buffer &>(buf));
-	buffer_->invalidateBibinfoCache();
+	buffer().invalidateBibinfoCache();
 	if (getParam("key").empty())
 		setParam("key", key_prefix + convert<docstring>(++key_counter));
 }
@@ -60,8 +63,8 @@ InsetBibitem::InsetBibitem(Buffer const & buf, InsetCommandParams const & p)
 
 InsetBibitem::~InsetBibitem()
 {
-	if (isBufferValid())
-		buffer_->invalidateBibinfoCache();
+	if (isBufferLoaded())
+		buffer().invalidateBibinfoCache();
 }
 
 
@@ -73,7 +76,6 @@ void InsetBibitem::initView()
 
 void InsetBibitem::updateCommand(docstring const & new_key, bool)
 {
-	docstring const old_key = getParam("key");
 	docstring key = new_key;
 
 	vector<docstring> bibkeys = buffer().masterBibInfo().getKeys();
@@ -92,8 +94,7 @@ void InsetBibitem::updateCommand(docstring const & new_key, bool)
 			"it will be changed to %2$s."), new_key, key));
 	}
 	setParam("key", key);
-
-	lyx::updateLabels(buffer());
+	buffer().invalidateBibinfoCache();
 }
 
 
@@ -101,8 +102,10 @@ ParamInfo const & InsetBibitem::findInfo(string const & /* cmdName */)
 {
 	static ParamInfo param_info_;
 	if (param_info_.empty()) {
-		param_info_.add("label", ParamInfo::LATEX_OPTIONAL);
-		param_info_.add("key", ParamInfo::LATEX_REQUIRED);
+		param_info_.add("label", ParamInfo::LATEX_OPTIONAL,
+				ParamInfo::HANDLING_LATEXIFY);
+		param_info_.add("key", ParamInfo::LATEX_REQUIRED,
+				ParamInfo::HANDLING_ESCAPE);
 	}
 	return param_info_;
 }
@@ -110,23 +113,75 @@ ParamInfo const & InsetBibitem::findInfo(string const & /* cmdName */)
 
 void InsetBibitem::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
 		InsetCommandParams p(BIBITEM_CODE);
-		InsetCommand::string2params("bibitem", to_utf8(cmd.argument()), p);
+		InsetCommand::string2params(to_utf8(cmd.argument()), p);
 		if (p.getCmdName().empty()) {
-			cur.noUpdate();
+			cur.noScreenUpdate();
 			break;
 		}
+
+		cur.recordUndo();
+
 		docstring const & old_key = params()["key"];
+		docstring const & old_label = params()["label"];
+		docstring label = p["label"];
+
+		// definitions for escaping
+		int previous;
+		static docstring const backslash = from_ascii("\\");
+		static docstring const lbrace = from_ascii("{");
+		static docstring const rbrace = from_ascii("}");
+		static char_type const chars_escape[6] = {
+			'&', '_', '$', '%', '#', '^'};
+		static char_type const brackets_escape[2] = {'[', ']'};
+
+		if (!label.empty()) {
+			// The characters in chars_name[] need to be changed to a command when
+			// they are in the name field.
+			for (int k = 0; k < 6; k++)
+				for (size_t i = 0, pos;
+					(pos = label.find(chars_escape[k], i)) != string::npos;
+					i = pos + 2) {
+						if (pos == 0)
+							previous = 0;
+						else
+							previous = pos - 1;
+						// only if not already escaped
+						if (label[previous] != '\\')
+							label.replace(pos, 1, backslash + chars_escape[k] + lbrace + rbrace);
+				}
+			// The characters '[' and ']' need to be put into braces
+			for (int k = 0; k < 2; k++)
+				for (size_t i = 0, pos;
+					(pos = label.find(brackets_escape[k], i)) != string::npos;
+					i = pos + 2) {
+						if (pos == 0)
+							previous = 0;
+						else
+							previous = pos - 1;
+						// only if not already escaped
+						if (label[previous] != '{')
+							label.replace(pos, 1, lbrace + brackets_escape[k] + rbrace);
+				}
+
+			if (old_label != label) {
+				p["label"] = label;
+				cur.forceBufferUpdate();
+				buffer().invalidateBibinfoCache();
+			}
+		}
+
 		setParam("label", p["label"]);
 		if (p["key"] != old_key) {
 			updateCommand(p["key"]);
 			cur.bv().buffer().changeRefsIfUnique(old_key,
 				params()["key"], CITE_CODE);
+			cur.forceBufferUpdate();
+			buffer().invalidateBibinfoCache();
 		}
-		buffer_->invalidateBibinfoCache();
 		break;
 	}
 
@@ -173,46 +228,6 @@ int InsetBibitem::plaintext(odocstream & os, OutputParams const &) const
 }
 
 
-int InsetBibitem::latex(odocstream & os, OutputParams const & runparams) const
-{
-	docstring cmd = '\\' + from_ascii(defaultCommand());
-	docstring uncodable;
-	if (!getParam("label").empty()) {
-		cmd += '[';
-		docstring orig = getParam("label");
-		for (size_t n = 0; n < orig.size(); ++n) {
-			try {
-				cmd += runparams.encoding->latexChar(orig[n]);
-			} catch (EncodingException & /* e */) {
-				LYXERR0("Uncodable character in bibitem!");
-				if (runparams.dryrun) {
-					cmd += "<" + _("LyX Warning: ")
-					    + _("uncodable character") + " '";
-					cmd += docstring(1, orig[n]);
-					cmd += "'>";
-				} else
-					uncodable += orig[n];
-			}
-		}
-		cmd += ']';
-	}
-	cmd += '{' + escape(getParam("key")) + '}';
-
-	os << cmd;
-
-	if (!uncodable.empty()) {
-		// issue a warning about omitted characters
-		// FIXME: should be passed to the error dialog
-		frontend::Alert::warning(_("Uncodable characters in bibliography item"),
-			bformat(_("The following characters in one of the bibliography items are\n"
-				  "not representable in the current encoding and have been omitted:\n%1$s."),
-			uncodable));
-	}
-	
-	return 0;
-}
-
-
 // ale070405
 docstring bibitemWidest(Buffer const & buffer, OutputParams const & runparams)
 {
@@ -225,7 +240,7 @@ docstring bibitemWidest(Buffer const & buffer, OutputParams const & runparams)
 	/*
 	bibitemWidest() is supposed to find the bibitem with the widest label in the
 	output, because that is needed as an argument of the bibliography
-	environment to dtermine the correct indentation. To be 100% correct we
+	environment to determine the correct indentation. To be 100% correct we
 	would need the metrics of the font that is used in the output, but usually
 	we don't have access to these.
 	In practice, any proportional font is probably good enough, since we don't
@@ -241,6 +256,8 @@ docstring bibitemWidest(Buffer const & buffer, OutputParams const & runparams)
 	metrics replacement, e.g. by hardcoding the metrics of the standard TeX
 	font.
 	*/
+
+	docstring lbl;
 
 	ParagraphList::const_iterator it = buffer.paragraphs().begin();
 	ParagraphList::const_iterator end = buffer.paragraphs().end();
@@ -267,25 +284,26 @@ docstring bibitemWidest(Buffer const & buffer, OutputParams const & runparams)
 		// potentially the wrong one.
 		int const wx = label.size();
 
-		if (wx > w)
+		if (wx > w) {
 			w = wx;
-	}
-
-	if (bitem && !bitem->bibLabel().empty()) {
-		docstring lbl = bitem->bibLabel();
-		docstring latex_lbl;
-		for (size_t n = 0; n < lbl.size(); ++n) {
-		try {
-			latex_lbl += runparams.encoding->latexChar(lbl[n]);
-		} catch (EncodingException & /* e */) {
-			if (runparams.dryrun) {
-				latex_lbl += "<" + _("LyX Warning: ")
-					  + _("uncodable character") + " '";
-				latex_lbl += docstring(1, lbl[n]);
-				latex_lbl += "'>";
- 			}
+			lbl = label;
 		}
 	}
+
+	if (!lbl.empty()) {
+		docstring latex_lbl;
+		for (size_t n = 0; n < lbl.size(); ++n) {
+			try {
+				latex_lbl += runparams.encoding->latexChar(lbl[n]);
+			} catch (EncodingException & /* e */) {
+				if (runparams.dryrun) {
+					latex_lbl += "<" + _("LyX Warning: ")
+						  + _("uncodable character") + " '";
+					latex_lbl += docstring(1, lbl[n]);
+					latex_lbl += "'>";
+				}
+			}
+		}
 		return latex_lbl;
 	}
 
@@ -293,29 +311,49 @@ docstring bibitemWidest(Buffer const & buffer, OutputParams const & runparams)
 }
 
 
-void InsetBibitem::fillWithBibKeys(BiblioInfo & keys, InsetIterator const & it) const
+void InsetBibitem::collectBibKeys(InsetIterator const & it) const
 {
 	docstring const key = getParam("key");
 	BibTeXInfo keyvalmap(false);
-	keyvalmap[from_ascii("label")] = getParam("label");
+	keyvalmap.label(bibLabel());
 	DocIterator doc_it(it); 
 	doc_it.forwardPos();
 	keyvalmap[from_ascii("ref")] = doc_it.paragraph().asString();
-	keys[key] = keyvalmap;
+	buffer().addBibTeXInfo(key, keyvalmap);
 }
 
 
-/// Update the counters of this inset and of its contents
-void InsetBibitem::updateLabels(ParIterator const &) 
+// Update the counters of this inset and of its contents
+void InsetBibitem::updateBuffer(ParIterator const & it, UpdateType utype)
 {
-	Counters & counters = buffer().masterBuffer()->params().documentClass().counters();
+	BufferParams const & bp = buffer().masterBuffer()->params();
+	Counters & counters = bp.documentClass().counters();
 	docstring const bibitem = from_ascii("bibitem");
-	if (counters.hasCounter(bibitem) && getParam("label").empty()) {
-		counters.step(bibitem);
-		autolabel_ = counters.theCounter(bibitem);
+	if (getParam("label").empty()) {
+		if (counters.hasCounter(bibitem))
+			counters.step(bibitem, utype);
+		string const & lang = it.paragraph().getParLanguage(bp)->code();
+		autolabel_ = counters.theCounter(bibitem, lang);
 	} else {
 		autolabel_ = from_ascii("??");
 	}
+}
+
+
+docstring InsetBibitem::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	// FIXME XHTML
+	// XHTML 1.1 doesn't have the "name" attribute for <a>, so we have to use
+	// the "id" atttribute to get the document to validate. Probably, we will
+	// need to use "name" anyway, eventually, because some browsers do not
+	// handle jumping to ids. If we don't do that, though, we can just put the
+	// id into the span tag.
+	string const attrs = "id='" + to_utf8(getParam("label")) + "'";
+	xs << html::CompTag("a", attrs);
+	xs << html::StartTag("span", "class='bibitemlabel'");
+	xs << bibLabel();
+	xs << html::EndTag("span");
+	return docstring();
 }
 
 

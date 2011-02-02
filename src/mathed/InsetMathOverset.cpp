@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -84,9 +84,32 @@ void InsetMathOverset::normalize(NormalStream & os) const
 }
 
 
+void InsetMathOverset::mathmlize(MathStream & ms) const
+{
+	ms << "<mover accent='false'>" << cell(1) << cell(0) << "</mover>";
+}
+
+
+void InsetMathOverset::htmlize(HtmlStream & os) const
+{
+	os << MTag("span", "class='overset'")
+		 << MTag("span", "class='top'") << cell(0) << ETag("span")
+		 << MTag("span") << cell(1) << ETag("span")
+		 << ETag("span");
+}
+
+
 void InsetMathOverset::validate(LaTeXFeatures & features) const
 {
-	features.require("amsmath");
+	if (features.runparams().isLaTeX())
+		features.require("amsmath");
+	else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.overset{display: inline-block; vertical-align: bottom; text-align:center;}\n"
+			"span.overset span {display: block;}\n"
+			"span.top{font-size: 66%;}\n"
+			"</style>");
+
 	InsetMathNest::validate(features);
 }
 

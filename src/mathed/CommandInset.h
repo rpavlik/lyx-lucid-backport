@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -26,7 +26,7 @@ class CommandInset : public InsetMathNest {
 public:
 	///
 	explicit CommandInset(Buffer * buf, docstring const & name,
-			      bool needs_math_mode = true);
+		bool needs_math_mode = true);
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///

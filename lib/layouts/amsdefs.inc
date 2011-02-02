@@ -5,7 +5,7 @@
 # Modularized Jan '08 by Richard Heck <rgheck@brown.edu>
 
 # Including the maths stuff
-Format 11
+Format 30
 
 # The AMS documentclasses use the package amsmath and provide the
 # functionality of makeidx.sty.
@@ -46,6 +46,7 @@ Style Title
 	  Series              Bold
 	  Size                Larger
 	EndFont
+	HTMLTitle             true
 End
 
 

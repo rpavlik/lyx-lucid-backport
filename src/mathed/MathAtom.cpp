@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,8 +23,8 @@ MathAtom::MathAtom()
 {}
 
 
-MathAtom::MathAtom(Inset * p)
-	: nucleus_(static_cast<InsetMath *>(p))
+MathAtom::MathAtom(InsetMath * p)
+	: nucleus_(p)
 {}
 
 

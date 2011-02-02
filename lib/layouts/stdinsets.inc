@@ -2,58 +2,9 @@
 # Author : Martin vermeer <martin.vermeer@hut.fi>
 # Inset layouts definition
 #
-# More detailled format description is available in the customization manual
-# FIXME: create the contents in the manual and put the link here.  
-#
-#InsetLayout <string identifier used by LyX>
-#	LabelString           used for the inset decoration (either the inset button
-#	                      or the text underneath the inset).
-#	LatexType             associated LateX type: command, environment, or none.
-#	LatexName             associated LateX command.
-#	BgColor               Color of the inset background within LyX.
-#                         FIXME: link to a doc file describing the different
-#                         color codes as defined in 'ColorCode.h'
-#	Font                  Nothing to put here, below are descriptions of the different
-#                         allowable adjustments for the font used to draw the text
-#                         appearing within the inset text. All these items are optional.
-#	  Color               Color of text
-#	  Size                Font size of the textallowed value: Small, Smaller, ...
-#                         FIXME defined in FontSize in FontEnums.h
-#	  Family              FIXME defined in FontFamily in FontEnums.h
-#	  Shape               FIXME defined in FontShape in FontEnums.h
-#	  Series              FIXME defined in FontSeries in FontEnums.h
-#	  Misc                FIXME defined in FontMisc in FontEnums.h
-#	EndFont               Nothing to put here, it's just a markup to indicate that we are
-#                         finished with the Font definition.
-#	LabelFont             Nothing to put here, below are descriptions of the different
-#                         allowable adjustments for the font used to draw the text
-#                         appearing within the inset decoration. All these items are
-#                         optional.
-#	  Color               see definition above (in the Font node).
-#	  Size                see definition above (in the Font node).
-#
-#	EndFont               Nothing to put here, it's just a markup to indicate that we are
-#                         finished with the LabelFont definition.
-#	MultiPar              Indicates that multiple paragraphs are allowed within the inset
-#                         or not. Defaults to false. Sets CustomPars, as well, to the same
-#                         value, and sets ForcePlain to the opposite value. If you want
-#                         those to be different, then, you must set them after you set 
-#                         MultiPar.
-# CustomPars            Whether to allow the use of the Paragraph Settings dialog. Default is
-#                         false.
-# ForcePlain            Whether to force the PlainLayout. Default is true.
-#	Decoration:           Classic, Minimalistic, Conglomerate. Decoration styles
-#	PassThru              Do not do various LaTeX conversions, like the phrases
-#	                        LaTeX, LyX, quote commands, etc.
-#	KeepEmpty             Do not delete empty paragraphs (?)
-#	FreeSpacing           Preserve multiple spaces etc.
-#	ForceLTR              Force the "latex" language, leading to Left-to-Right
-#	                        (latin) output, e.g., in ERT or URL. A kludge.
-#	Requires              Require a given (supported) feature. Multiple features must
-#                         be comma-separated.
-#End
+# Detailled format description is available in the customization manual
 
-Format 11
+Format 30
 
 Provides stdinsets 1
 
@@ -69,12 +20,26 @@ InsetLayout Marginal
 	  Size                Small
 	EndFont
 	MultiPar              true
+	NeedProtect           true
+	HTMLStyle
+		div.marginal {
+			border: 2px solid black; 
+			padding: 1ex; 
+			margin: 1ex; 
+			background-color: #F0F0F0; 
+			float:right;
+			font-size: small;
+			font-weight: medium;
+			font-family: serif;
+			font-variant: normal;
+			font-style: normal;
+		}
+	EndHTMLStyle
 End
 
 InsetLayout Foot
 	LabelString           foot
-	LatexType             command
-	LatexName             footnote
+	Counter               footnote
 	Font
 	  Size                Small
 	EndFont
@@ -83,10 +48,36 @@ InsetLayout Foot
 	  Size                Small
 	EndFont
 	MultiPar              true
+	RefPrefix             fn
+	HTMLLabel             \arabic{footnote}
+	HTMLInnerTag          div
+	HTMLStyle
+		span.foot_label {
+			vertical-align: super;
+			font-size: smaller;
+			font-weight: bold;
+			text-decoration: underline;
+		}
+		div.foot { 
+			display: inline; 
+			font-size: small;
+			font-weight: medium;
+			font-family: serif;
+			font-variant: normal;
+			font-style: normal;
+		}
+		div.foot_inner { display: none; }
+		div.foot:hover div.foot_inner { 
+			display: block; 
+			border: 1px double black; 
+			margin: 0em 1em;
+			padding: 1em;
+		}
+	EndHTMLStyle
 End
 
 InsetLayout Note:Comment
-	LabelString           comment
+	LabelString           Comment
 	LatexType             environment
 	LatexName             comment
 	BgColor               commentbg
@@ -95,11 +86,13 @@ InsetLayout Note:Comment
 	  Size                Small
 	EndFont
 	MultiPar              true
+	HTMLTag               !--
+	HTMLIsBlock           false
 End
 
 
 InsetLayout Note:Note
-	LabelString           note
+	LabelString           Note
 	LatexType             command
 	LatexName             note
 	BgColor               notebg
@@ -108,18 +101,33 @@ InsetLayout Note:Note
 	  Size                Small
 	EndFont
 	MultiPar              true
+	HTMLIsBlock           false
+# FIXME HTML Need CSS
 End
 
+
 InsetLayout Note:Greyedout
-	LabelString           greyedout
+	LabelString           Greyedout
 	LatexType             environment
 	LatexName             lyxgreyedout
 	BgColor               greyedoutbg
+	Font
+	  Color               greyedouttext
+	EndFont
 	LabelFont
 	  Color               greyedout
 	  Size                Small
 	EndFont
 	MultiPar              true
+	HTMLStyle
+		div.note_greyedout { 
+			display: inline;
+			color: #A0A0A0; 
+			padding-left: 1ex;
+			padding-right: 1ex;
+		}
+	EndHTMLStyle
+	HTMLIsBlock           false
 End
 
 InsetLayout ERT
@@ -138,9 +146,20 @@ InsetLayout ERT
 	CustomPars            false
 	ForcePlain            true
 	PassThru              true
+	ParbreakIsNewline     true
 	KeepEmpty             true
 	FreeSpacing           true
 	ForceLTR              true
+End
+
+InsetLayout Phantom
+	Decoration            minimalistic
+	Font
+	  Color               phantomtext
+	EndFont
+	MultiPar              false
+	CustomPars            false
+	ForcePlain            true
 End
 
 InsetLayout Listings
@@ -158,9 +177,11 @@ InsetLayout Listings
 	BgColor               listingsbg
 	MultiPar              true
 	PassThru              true
+	ParbreakIsNewline     true
 	KeepEmpty             true
 	FreeSpacing           true
 	ForceLTR              true
+	RefPrefix             lst
 End
 
 InsetLayout Branch
@@ -170,12 +191,12 @@ InsetLayout Branch
 	  Size                Small
 	EndFont
 	MultiPar              true
+	InToc                 true
+	HTMLIsBlock           false
 End
 
 InsetLayout Index
 	LabelString           Idx
-	LatexType             command
-	LatexName             index
 	Decoration            classic
 	Font
 	  Size                Small
@@ -187,7 +208,7 @@ InsetLayout Index
 	MultiPar              false
 	CustomPars            false
 	ForcePlain            true
-	NeedProtect           true
+	ContentAsLabel        true
 End
 
 InsetLayout Box
@@ -196,6 +217,9 @@ InsetLayout Box
 	  Size                Small
 	EndFont
 	MultiPar              true
+	HTMLStyle
+		div.Frameless { font-family: sans-serif; }
+	EndHTMLStyle
 End
 
 InsetLayout Box:Shaded
@@ -213,6 +237,12 @@ InsetLayout Float
 	  Size                Small
 	EndFont
 	MultiPar              true
+	HTMLStyle
+		div.float {
+			border: 2px solid black;
+			text-align: center;
+		}
+	EndHTMLStyle
 End
 
 InsetLayout Wrap
@@ -221,15 +251,30 @@ InsetLayout Wrap
 	  Size                Small
 	EndFont
 	MultiPar              true
+	RefPrefix             wrap
+	HTMLStyle
+		div.wrap { 
+			float: right;
+			border: 2px solid black;
+			padding: 1ex;
+			margin: 1ex;
+		}
+	EndHTMLStyle
 End
 
 InsetLayout URL
 	LyXType               standard
-	LatexName             url
-	LatexType             command
 	Decoration            classic
 	LabelString           URL
+	ContentAsLabel        true
+	LatexName             url
+	LatexType             command
+	Requires              url
+	MultiPar              false
+	CustomPars            false
+	ForcePlain            true
 	PassThru              true
+	FreeSpacing           true
 	ForceLTR              true
 	Font
 	  Family              Typewriter
@@ -240,10 +285,10 @@ InsetLayout URL
 	  Color               urllabel
 	  Size                Small
 	EndFont
-	Requires              url
+	HTMLIsBlock           false
 End
 
-InsetLayout OptArg
+InsetLayout Argument
 	LabelString           opt
 	LabelFont
 	  Color               collapsable
@@ -254,9 +299,15 @@ End
 
 InsetLayout Info
 	Decoration	      conglomerate
+	HTMLStyle
+		span.info { font-family: sans-serif; }
+	EndHTMLStyle
+	HTMLTag            span
+	MultiPar           false
 End
 
 InsetLayout Info:menu
+	CopyStyle             Info
 	LatexType             command
 	LatexName             menuitem
 	Preamble
@@ -266,9 +317,14 @@ InsetLayout Info:menu
 	Font
 	  Family              sans
 	EndFont
+	HTMLAttr          "class='info menu'"
+	HTMLStyle
+		span.menu { font-family: sans-serif; }
+	EndHTMLStyle
 End
 
 InsetLayout Info:shortcut
+	CopyStyle             Info
 	LatexType             command
 	LatexName             shortcut
 	Preamble
@@ -278,9 +334,14 @@ InsetLayout Info:shortcut
 	Font
 	  Family              sans
 	EndFont
+	HTMLAttr          "class='info shortcut'"
+	HTMLStyle
+		span.shortcut { font-family: sans-serif; }
+	EndHTMLStyle
 End
 
 InsetLayout Info:shortcuts
+	CopyStyle             Info
 	LatexType             command
 	LatexName             shortcut
 	Preamble
@@ -290,4 +351,26 @@ InsetLayout Info:shortcuts
 	Font
 	  Family              sans
 	EndFont
+	HTMLAttr          "class='info shortcut'"
+	HTMLStyle
+		span.shortcuts { font-family: sans-serif; }
+	EndHTMLStyle
+End
+
+InsetLayout Caption
+	HTMLStyle
+		div.float-caption {
+			text-align: center;
+			border: 2px solid black;
+			padding: 1ex;
+			margin: 1ex;
+		}
+	EndHTMLStyle
+End
+
+
+InsetLayout Preview
+	LabelString           Preview
+	Decoration            minimalistic
+	MultiPar              true
 End

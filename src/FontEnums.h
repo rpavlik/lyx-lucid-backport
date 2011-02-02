@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author Dekel Tsur
@@ -46,6 +46,8 @@ enum FontFamily {
 	MSB_FAMILY,
 	///
 	EUFRAK_FAMILY,
+	///
+	RSFS_FAMILY,
 	///
 	WASY_FAMILY,
 	///

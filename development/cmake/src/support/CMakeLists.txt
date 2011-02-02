@@ -1,30 +1,33 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
+# Copyright (c) 2006, Peter K�mmel, <syntheticpp@gmx.net>
 #
 
 project(support)
 
 file(GLOB support_sources ${TOP_SRC_DIR}/src/support/${LYX_CPP_FILES})
+file(GLOB moc_files ${TOP_SRC_DIR}/src/support/${LYX_MOC_FILES})
+list(REMOVE_ITEM support_sources ${moc_files} .)
+if(APPLE)
+	list(APPEND dont_merge ${TOP_SRC_DIR}/src/support/AppleSpeller.m)
+endif()
+
 file(GLOB support_headers ${TOP_SRC_DIR}/src/support/${LYX_HPP_FILES})
 
-file(GLOB support_minizip_sources ${TOP_SRC_DIR}/src/support/minizip/*.c)
-file(GLOB support_minizip_cpp_sources ${TOP_SRC_DIR}/src/support/minizip/*.cpp)
-file(GLOB support_minizip_headers ${TOP_SRC_DIR}/src/support/minizip/*.h)
+file(GLOB support_mythes_sources ${TOP_SRC_DIR}/src/support/mythes/*.cxx)
+file(GLOB support_mythes_headers ${TOP_SRC_DIR}/src/support/mythes/*.hxx)
 
 file(GLOB support_linkback_sources ${TOP_SRC_DIR}/src/support/linkback/*.m*)
 file(GLOB support_linkback_headers ${TOP_SRC_DIR}/src/support/linkback/*.h)
 
-list(REMOVE_ITEM support_sources 	
+list(REMOVE_ITEM support_sources
 	${TOP_SRC_DIR}/src/support/os_win32.cpp
 	${TOP_SRC_DIR}/src/support/os_unix.cpp
 	${TOP_SRC_DIR}/src/support/os_cygwin.cpp
 	${TOP_SRC_DIR}/src/support/os_os2.C
 	${TOP_SRC_DIR}/src/support/atexit.c
 	${TOP_SRC_DIR}/src/support/strerror.c
-	${TOP_SRC_DIR}/src/support/minizip/iowin32.h
-	${TOP_SRC_DIR}/src/support/minizip/iowin32.c
 	${TOP_SRC_DIR}/src/support/gettext.cpp)
 
 if(APPLE)
@@ -35,23 +38,23 @@ else()
 endif()
 
 # needed to compile tex2lyx in merged mode
-set(dont_merge ${TOP_SRC_DIR}/src/support/gettext.cpp)
+set(dont_merge ${dont_merge} ${TOP_SRC_DIR}/src/support/gettext.cpp)
 
 lyx_add_msvc_pch(support)
 
 lyx_automoc(${support_sources})
-	
+
 include_directories(${TOP_SRC_DIR}/src/support
 	${CMAKE_BINARY_DIR}/src/support
-	${TOP_SRC_DIR}/src/support/minizip
+	${TOP_SRC_DIR}/src/support/mythes
 	${QT_INCLUDES}
 	${ICONV_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIR})
 
 
 if(NOT LYX_MERGE_FILES)
-	set(support_sources ${support_sources} ${support_minizip_sources} ${support_minizip_cpp_sources} ${support_linkback_sources})
-	set(support_headers ${support_headers} ${support_minizip_headers} ${support_linkback_headers})
+	set(support_sources ${support_sources} ${support_mythes_sources} ${support_linkback_sources})
+	set(support_headers ${support_headers} ${support_mythes_headers} ${support_linkback_headers})
 	add_library(support ${library_type} ${support_sources} ${support_headers} ${dont_merge})
 else()
 	# GCC bug: gcc resolves ::bind as boost::bind

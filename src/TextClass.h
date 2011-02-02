@@ -16,6 +16,7 @@
 #include "FontInfo.h"
 #include "Layout.h"
 #include "LayoutEnums.h"
+#include "LayoutModuleList.h"
 
 #include "insets/InsetLayout.h"
 
@@ -24,10 +25,11 @@
 
 #include <boost/noncopyable.hpp>
 
+#include <list>
 #include <map>
 #include <set>
+#include <string>
 #include <vector>
-#include <list>
 
 namespace lyx {
 
@@ -47,7 +49,7 @@ class ProtectCopy
 protected:
 	ProtectCopy() {}
 	~ProtectCopy() {}
-	ProtectCopy(const ProtectCopy &) {};
+	ProtectCopy(const ProtectCopy &) {}
 private:
 	const ProtectCopy & operator=(const ProtectCopy &);
 };
@@ -76,26 +78,24 @@ private:
 class TextClass : protected ProtectCopy {
 public:
 	///
-	virtual ~TextClass() {};
+	virtual ~TextClass() {}
 	///////////////////////////////////////////////////////////////////
 	// typedefs
 	///////////////////////////////////////////////////////////////////
-	/// The individual paragraph layouts comprising the document class
 	// NOTE Do NOT try to make this a container of Layout pointers, e.g.,
-	// std::vector<Layout *>. This will lead to problems. The reason is
+	// std::list<Layout *>. This will lead to problems. The reason is
 	// that DocumentClass objects are generally created by copying a 
 	// LayoutFile, which serves as a base for the DocumentClass. If the
 	// LayoutList is a container of pointers, then every DocumentClass
 	// that derives from a given LayoutFile (e.g., article) will SHARE
 	// a basic set of layouts. So if one Buffer were to modify a layout
 	// (say, Standard), that would modify that layout for EVERY Buffer
-	// that was based upon the same DocumentClass. (Of course, if you 
-	// really, REALLY want to make LayoutList a vector<Layout *>, then
-	// you can implement custom assignment and copy constructors.)
+	// that was based upon the same DocumentClass.
 	//
 	// NOTE: Layout pointers are directly assigned to paragraphs so a
 	// container that does not invalidate these pointers after insertion
 	// is needed.
+	/// The individual paragraph layouts comprising the document class
 	typedef std::list<Layout> LayoutList;
 	/// The inset layouts available to this class
 	typedef std::map<docstring, InsetLayout> InsetLayouts;
@@ -125,7 +125,7 @@ public:
 	/// returns a special layout for use when we don't really want one,
 	/// e.g., in table cells
 	Layout const & plainLayout() const 
-			{ return operator[](plain_layout_); };
+			{ return operator[](plain_layout_); }
 	/// the name of the plain layout
 	docstring const & plainLayoutName() const 
 			{ return plain_layout_; }
@@ -138,7 +138,7 @@ public:
 	///
 	Layout const & operator[](docstring const & vname) const;
 	/// Inset layouts of this doc class
-	InsetLayouts const & insetLayouts() const { return insetlayoutlist_; };
+	InsetLayouts const & insetLayouts() const { return insetlayoutlist_; }
 
 	///////////////////////////////////////////////////////////////////
 	// reading routines
@@ -183,11 +183,17 @@ public:
 	// accessors
 	///////////////////////////////////////////////////////////////////
 	///
-	std::string const & name() const { return name_; };
+	std::string const & name() const { return name_; }
 	///
-	std::string const & description() const {	return description_; };
+	std::string const & description() const { return description_; }
 	///
 	std::string const & latexname() const { return latexname_; }
+	///
+	std::string const & prerequisites() const;
+	/// Can be LaTeX, DocBook, etc.
+	OutputType outputType() const { return outputType_; }
+	/// Can be latex, docbook ... (the name of a format)
+	std::string outputFormat() const { return outputFormat_; }
 protected:
 	/// Protect construction
 	TextClass();
@@ -232,7 +238,9 @@ protected:
 	/// Has this layout file been loaded yet?
 	mutable bool loaded_;
 	/// Is the TeX class available?
-	bool texClassAvail_;
+	bool tex_class_avail_;
+	/// document class prerequisites
+	mutable std::string prerequisites_;
 	///
 	std::string opt_fontsize_;
 	///
@@ -249,16 +257,21 @@ protected:
 	static const docstring plain_layout_;
 	/// preamble text to support layout styles
 	docstring preamble_;
+	/// same, but for HTML output
+	/// this is output as is to the header
+	docstring htmlpreamble_;
+	/// the paragraph style to use for TOCs, Bibliography, etc
+	mutable docstring html_toc_section_;
 	/// latex packages loaded by document class.
 	std::set<std::string> provides_;
 	/// latex packages requested by document class.
 	std::set<std::string> requires_;
 	/// default modules wanted by document class
-	std::list<std::string> default_modules_;
+	LayoutModuleList default_modules_;
 	/// modules provided by document class
-	std::list<std::string> provided_modules_;
+	LayoutModuleList provided_modules_;
 	/// modules excluded by document class
-	std::list<std::string> excluded_modules_;
+	LayoutModuleList excluded_modules_;
 	///
 	unsigned int columns_;
 	///
@@ -269,6 +282,8 @@ protected:
 	int tocdepth_;
 	/// Can be LaTeX, DocBook, etc.
 	OutputType outputType_;
+	/// Can be latex, docbook ... (the name of a format)
+	std::string outputFormat_;
 	/** Base font. The paragraph and layout fonts are resolved against
 	    this font. This has to be fully instantiated. Attributes
 	    FONT_INHERIT, FONT_IGNORE, and FONT_TOGGLE are
@@ -289,6 +304,10 @@ protected:
 	int min_toclevel_;
 	/// The maximal TocLevel of sectioning layouts
 	int max_toclevel_;
+	/// Citation formatting information
+	std::map<std::string, std::string> cite_formats_;
+	/// Citation macros
+	std::map<std::string, std::string> cite_macros_;
 private:
 	///////////////////////////////////////////////////////////////////
 	// helper routines for reading layout files
@@ -297,6 +316,8 @@ private:
 	bool deleteLayout(docstring const &);
 	///
 	bool convertLayoutFormat(support::FileName const &, ReadType);
+	/// Reads the layout file without running layout2layout.
+	ReturnValues readWithoutConv(support::FileName const & filename, ReadType rt);
 	/// \return true for success.
 	bool readStyle(Lexer &, Layout &) const;
 	///
@@ -310,7 +331,9 @@ private:
 	///
 	void readCharStyle(Lexer &, std::string const &);
 	///
-	void readFloat(Lexer &);
+	bool readFloat(Lexer &);
+	///
+	void readCiteFormat(Lexer &);
 };
 
 
@@ -371,6 +394,11 @@ public:
 	std::string const & pagestyle() const { return pagestyle_; }
 	///
 	docstring const & preamble() const { return preamble_; }
+	///
+	docstring const & htmlpreamble() const { return htmlpreamble_; }
+	/// the paragraph style to use for TOCs, Bibliography, etc
+	/// we will attempt to calculate this if it was not given
+	Layout const & htmlTOCLayout() const;
 	/// is this feature already provided by the class?
 	bool provides(std::string const & p) const;
 	/// features required by the class?
@@ -390,9 +418,9 @@ public:
 	/// Text that dictates how wide the right margin is on the screen
 	docstring const & rightmargin() const { return rightmargin_; }
 	/// The type of command used to produce a title
-	TitleLatexType titletype() const { return titletype_; };
+	TitleLatexType titletype() const { return titletype_; }
 	/// The name of the title command
-	std::string const & titlename() const { return titlename_; };
+	std::string const & titlename() const { return titlename_; }
 	///
 	int size() const { return layoutlist_.size(); }
 	/// The minimal TocLevel of sectioning layouts
@@ -401,8 +429,10 @@ public:
 	int max_toclevel() const { return max_toclevel_; }
 	/// returns true if the class has a ToC structure
 	bool hasTocLevels() const;
-	/// Can be LaTeX, DocBook, etc.
-	OutputType outputType() const { return outputType_; }
+	///
+	std::string const & getCiteFormat(std::string const & entry_type) const;
+	///
+	std::string const & getCiteMacro(std::string const & macro) const;
 protected:
 	/// Constructs a DocumentClass based upon a LayoutFile.
 	DocumentClass(LayoutFile const & tc);
@@ -429,15 +459,19 @@ private:
 /// DocumentClassBundle::get().
 class DocumentClassBundle : boost::noncopyable {
 public:
-	/// \return Pointer to a new class equal to baseClass
-	DocumentClass & newClass(LayoutFile const & baseClass);
 	/// \return The sole instance of this class.
 	static DocumentClassBundle & get();
+	/// \return A new DocumentClass based on baseClass, with info added
+	/// from the modules in modlist.
+	DocumentClass & makeDocumentClass(LayoutFile const & baseClass, 
+			LayoutModuleList const & modlist);
 private:
 	/// control instantiation
 	DocumentClassBundle() {}
 	/// clean up
 	~DocumentClassBundle();
+	/// \return Reference to a new DocumentClass equal to baseClass
+	DocumentClass & newClass(LayoutFile const & baseClass);
 	///
 	std::vector<DocumentClass *> documentClasses_;
 };
@@ -445,6 +479,9 @@ private:
 
 /// convert page sides option to text 1 or 2
 std::ostream & operator<<(std::ostream & os, PageSides p);
+
+/// current format of layout files
+extern int const LAYOUT_FORMAT;
 
 
 } // namespace lyx

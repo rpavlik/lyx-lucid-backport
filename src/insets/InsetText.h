@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,15 +17,15 @@
 #include "ColorCode.h"
 #include "Text.h"
 
+#include "insets/InsetLayout.h"
+
 namespace lyx {
 
-class Buffer;
-class BufferParams;
-class BufferView;
 class CompletionList;
 class CursorSlice;
 class Dimension;
 class ParagraphList;
+class InsetCaption;
 class InsetTabular;
 
 /**
@@ -34,8 +34,15 @@ class InsetTabular;
  */
 class InsetText : public Inset {
 public:
-	///
-	explicit InsetText(Buffer const & buffer);
+	enum UsePlain {
+		DefaultLayout,
+		PlainLayout
+	};
+	/// \param buffer
+	/// \param useplain whether to use the plain layout
+	/// This is needed because we cannot call the virtual function
+	/// usePlainLayout() from within the constructor.
+	explicit InsetText(Buffer * buffer, UsePlain type = DefaultLayout);
 	///
 	InsetText(InsetText const &);
 	///
@@ -55,9 +62,7 @@ public:
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
-	docstring editMessage() const;
-	///
-	EDITABLE editable() const { return HIGHLY_EDITABLE; }
+	bool editable() const { return true; }
 	///
 	bool canTrackChanges() const { return true; }
 	///
@@ -73,6 +78,19 @@ public:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
+	enum XHTMLOptions {
+		JustText = 0,
+		WriteOuterTag = 1,
+		WriteLabel = 2,
+		WriteInnerTag = 4,
+		WriteEverything = 7
+	};
+	///
+	docstring insetAsXHTML(XHTMLStream &, OutputParams const &, 
+	                       XHTMLOptions) const;
 	///
 	void validate(LaTeXFeatures & features) const;
 
@@ -94,20 +112,21 @@ public:
 	///
 	void setFrameColor(ColorCode);
 	///
-	bool showInsetDialog(BufferView *) const;
-	///
 	Text * getText(int i) const {
 		return (i == 0) ? const_cast<Text*>(&text_) : 0;
 	}
 	///
 	virtual bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 
+	///
+	void fixParagraphsFont();
+
 	/// set the change for the entire inset
 	void setChange(Change const & change);
 	/// accept the changes within the inset
-	void acceptChanges(BufferParams const & bparams);
+	void acceptChanges();
 	/// reject the changes within the inset
-	void rejectChanges(BufferParams const & bparams);
+	void rejectChanges();
 
 	/// append text onto the existing text
 	void appendParagraphs(ParagraphList &);
@@ -127,16 +146,27 @@ public:
 	///
 	ParagraphList const & paragraphs() const;
 	///
-	bool insetAllowed(InsetCode) const { return true; }
+	bool insetAllowed(InsetCode) const { return !getLayout().isPassThru(); }
 	///
-	bool allowSpellCheck() const { return true; }
+	bool allowSpellCheck() const { return getLayout().spellcheck() && !getLayout().isPassThru(); }
 	///
 	virtual bool isMacroScope() const { return false; }
 	///
-	virtual bool allowMultiPar() const { return true; }
+	virtual bool allowMultiPar() const { return getLayout().isMultiPar(); }
+	///
+	/// should paragraphs be forced to use the empty layout?
+	virtual bool forcePlainLayout(idx_type = 0) const 
+		{ return getLayout().forcePlainLayout(); }
+	/// should the user be allowed to customize alignment, etc.?
+	virtual bool allowParagraphCustomization(idx_type = 0) const 
+		{ return getLayout().allowParagraphCustomization(); }
 
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	/// Update the counters of this inset and of its contents
+	virtual void updateBuffer(ParIterator const &, UpdateType);
+	/// 
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t) const;
 	///
 	void addToToc(DocIterator const &);
 	///
@@ -163,17 +193,27 @@ public:
 	///
 	void completionPosAndDim(Cursor const &, int & x, int & y, Dimension & dim) const;
 	/// returns the text to be used as tooltip
-	docstring toolTipText() const;
+	/// \param prefix: a string that will preced the tooltip,
+	/// e.g., "Index: ".
+	/// \param numlines: the number of lines in the tooltip
+	/// \param len: length of those lines
+	docstring toolTipText(docstring prefix = empty_docstring(),
+			size_t numlines = 5, size_t len = 80) const;
 
 	///
-	virtual docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenu(BufferView const &, int, int) const;
+	///
+	docstring contextMenuName() const;
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
+protected:
+	///
+	InsetCaption const * getCaptionInset() const;
+	///
+	docstring getCaptionText(OutputParams const &) const;
+	///
+	docstring getCaptionHTML(OutputParams const &) const;
 private:
-	///
-	void initParagraphs();
-	///
-	void setParagraphOwner();
 	///
 	bool drawFrame_;
 	///
@@ -183,6 +223,9 @@ private:
 	///
 	mutable Text text_;
 };
+
+
+InsetText::XHTMLOptions operator|(InsetText::XHTMLOptions a1, InsetText::XHTMLOptions a2);
 
 } // namespace lyx
 

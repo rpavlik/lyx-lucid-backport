@@ -5,9 +5,9 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alfredo Braustein
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -31,7 +31,9 @@ class Buffer;
 class Change;
 class CoordCache;
 class Cursor;
+class DispatchResult;
 class DocIterator;
+class DocumentClass;
 class FuncRequest;
 class FuncStatus;
 class Intl;
@@ -157,12 +159,12 @@ public:
 	/// This method will automatically scroll and update the BufferView
 	/// if needed.
 	/// \param recenter Whether the cursor should be centered on screen
-	void showCursor(DocIterator const & dit, bool recenter = false);
+	void showCursor(DocIterator const & dit, bool recenter,
+		bool update);
 	/// Scroll to the cursor.
 	void scrollToCursor();
 	/// Scroll to the cursor.
 	/// \param recenter Whether the cursor should be centered on screen
-	/// \return Whether the view was scrolled
 	bool scrollToCursor(DocIterator const & dit, bool recenter);
 	/// LFUN_SCROLL Helper.
 	void lfunScroll(FuncRequest const & cmd);
@@ -173,7 +175,7 @@ public:
 	/// scroll document by the given number of pixels.
 	int scroll(int pixels);
 	/// Scroll the view by a number of pixels.
-	void scrollDocView(int pixels);
+	void scrollDocView(int pixels, bool update);
 	/// Set the cursor position based on the scrollbar one.
 	void setCursorFromScrollbar();
 
@@ -188,6 +190,8 @@ public:
 	size_t const & inlineCompletionUniqueChars() const;
 	/// return the position in the buffer of the inline completion postfix.
 	DocIterator const & inlineCompletionPos() const;
+	/// make sure inline completion position is OK
+	bool fixInlineCompletionPos();
 	/// set the inline completion postfix and its position in the buffer.
 	/// Updates the updateFlags in \c cur.
 	void setInlineCompletion(Cursor & cur, DocIterator const & pos,
@@ -196,11 +200,10 @@ public:
 	/// translate and insert a character, using the correct keymap.
 	void translateAndInsert(char_type c, Text * t, Cursor & cur);
 
-	/// return true for events that will handle.
-	FuncStatus getStatus(FuncRequest const & cmd);
+	/// \return true if we've made a decision
+	bool getStatus(FuncRequest const & cmd, FuncStatus & flag);
 	/// execute the given function.
-	/// \return true if the function has been processed.
-	bool dispatch(FuncRequest const & argument);
+	void dispatch(FuncRequest const & cmd, DispatchResult & dr);
 
 	/// request an X11 selection.
 	/// \return the selected string.
@@ -259,7 +262,7 @@ public:
 	CoordCache const & coordCache() const;
 
 	///
-	Point getPos(DocIterator const & dit, bool boundary) const;
+	Point getPos(DocIterator const & dit) const;
 	/// is the paragraph of the cursor visible ?
 	bool paragraphVisible(DocIterator const & dit) const;
 	/// is the cursor currently visible in the view
@@ -304,17 +307,29 @@ public:
 	void insertLyXFile(support::FileName const & f);
 	/// save temporary bookmark for jump back navigation
 	void bookmarkEditPosition();
+	/// Find and return the inset associated with given dialog name.
+	Inset * editedInset(std::string const & name) const;
+	/// Associate an inset associated with given dialog name.
+	void editInset(std::string const & name, Inset * inset);
+	///
+	void clearLastInset(Inset * inset) const;
+	/// Is the mouse hovering a clickable inset or element?
+	bool clickableInset() const;
 
 private:
 	/// noncopyable
 	BufferView(BufferView const &);
 	void operator=(BufferView const &);
 
-	// the position relative to (0, baseline) of outermost paragraph
-	Point coordOffset(DocIterator const & dit, bool boundary) const;
+	/// the position relative to (0, baseline) of outermost paragraph
+	Point coordOffset(DocIterator const & dit) const;
 	/// Update current paragraph metrics.
 	/// \return true if no further update is needed.
 	bool singleParUpdate();
+
+	/// The minimal size of the document that is visible. Used
+	/// when it is allowed to scroll below the document.
+	int minVisiblePart();
 
 	/// Search recursively for the the innermost inset that covers (x, y) position.
 	/// \retval 0 if no inset is found.
@@ -324,6 +339,12 @@ private:
 		int y  //< y-coordinate on screen
 		) const;
 
+	/// Update the hovering status of the insets. This is called when
+	/// either the screen is updated or when the buffer has scolled.
+	void updateHoveredInset() const;
+
+	///
+	void updateDocumentClass(DocumentClass const * const olddc);
 	///
 	int width_;
 	///

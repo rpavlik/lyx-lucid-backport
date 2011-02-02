@@ -6,7 +6,7 @@
 # feel free to contribute missing features!
 
 
-Format 11
+Format 30
 Columns            1
 Sides              2
 SecNumDepth        1
@@ -15,6 +15,7 @@ DefaultStyle       Standard
 PageStyle          Headings
 Provides makeidx   1
 Provides framed    1
+Provides subscript 1
 # Memoir has support for line spacing, but uses different names from
 # what setspace.sty does.  
 Provides SetSpace  1
@@ -48,9 +49,18 @@ Input stdstarsections.inc
 Input numreport.inc
 
 
+Style Part
+	OptionalArgs         1
+	TocLevel 	     -1
+End
+      	
+
+
 Style Chapter
 	OptionalArgs         2
+	TocLevel 	     0
 End
+
 
 Style Chapter*
 	OptionalArgs         1
@@ -59,26 +69,31 @@ End
 
 Style Section
 	OptionalArgs         2
+	TocLevel 1
 End
 
 
 Style Subsection
 	OptionalArgs         2
+	TocLevel 2
 End
 
 
 Style Subsubsection
 	OptionalArgs         2
+	TocLevel 3
 End
 
 
 Style Paragraph
 	OptionalArgs         2
+	TocLevel 4
 End
 
 
 Style Subparagraph
 	OptionalArgs         2
+	TocLevel 5
 End
 
 
@@ -101,8 +116,9 @@ Style Chapterprecis
 	EndFont
 End
 
-
+#FIXME: this takes two parameters!!!
 Style Epigraph
+	Category              Maintext
 	Margin                Right_Address_Box
 	LatexType             Command
 	LatexName             epigraph
@@ -112,8 +128,10 @@ Style Epigraph
 	Align                 Left
 End
 
-
+#FIXME: what is actually documented is \PoemTitle
+#but \poemtitle is defined nevertheless. Weird.
 Style Poemtitle
+	Category              Section
 	LatexType             Command
 	LatexName             poemtitle
 	NeedProtect           1
@@ -132,6 +150,7 @@ End
 
 Style Poemtitle*
 	CopyStyle             Poemtitle
+	Category              Unnumbered
 	LatexName             poemtitle*
 	OptionalArgs          0
 End
@@ -155,6 +174,7 @@ Input lyxmacros.inc
 Input stdlayouts.inc
 
 Style Legend
+	Category            Maintext
 	LatexType           Command
 	LatexName           legend
 	NeedProtect         1

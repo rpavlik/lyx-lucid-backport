@@ -47,7 +47,7 @@ class InsetNote : public InsetCollapsable
 {
 public:
 	///
-	InsetNote(Buffer const &, std::string const &);
+	InsetNote(Buffer *, std::string const &);
 	///
 	~InsetNote();
 	///
@@ -58,8 +58,6 @@ public:
 	InsetNoteParams const & params() const { return params_; }
 private:
 	///
-	docstring editMessage() const;
-	///
 	InsetCode lyxCode() const { return NOTE_CODE; }
 	///
 	docstring name() const;
@@ -67,19 +65,15 @@ private:
 	DisplayType display() const;
 	///
 	bool noFontChange() const { return params_.type != InsetNoteParams::Note; }
-	/*!
-	 * Is the content of this inset part of the output document?
-	 *
-	 * Note that Note insets are not considered part of the
-	 * document, even in their 'greyed out' incarnation.
-	 */
-	bool producesOutput() const { return false; }
+	/// Is the content of this inset part of the output document?
+	bool producesOutput() const
+		{ return params_.type == InsetNoteParams::Greyedout; }
+	///
+	bool allowSpellCheck() const;
 	///
 	void write(std::ostream &) const;
 	///
 	void read(Lexer & lex);
-	///
-	void setButtonLabel();
 	/// show the note dialog
 	bool showInsetDialog(BufferView * bv) const;
 	///
@@ -90,6 +84,8 @@ private:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	void validate(LaTeXFeatures &) const;
 	///
@@ -103,19 +99,13 @@ private:
 	/// used by the constructors
 	void init();
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 	///
 	friend class InsetNoteParams;
 
 	///
 	InsetNoteParams params_;
 };
-
-/**
- * Mutate all NoteInsets of "source" type to the "target" type in the document.
- * Returns true when some inset was changed.
- */
-bool mutateNotes(lyx::Cursor & cur, std::string const & source, std::string const &target);
 
 } // namespace lyx
 

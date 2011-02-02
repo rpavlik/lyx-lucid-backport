@@ -76,6 +76,9 @@ static QList<BarPair> barData()
 	bars << BarPair(qt_("No change"), IGNORE);
 	bars << BarPair(qt_("Emph"),      EMPH_TOGGLE);
 	bars << BarPair(qt_("Underbar"),  UNDERBAR_TOGGLE);
+	bars << BarPair(qt_("Double underbar"),  UULINE_TOGGLE);
+	bars << BarPair(qt_("Wavy underbar"),  UWAVE_TOGGLE);
+	bars << BarPair(qt_("Strikeout"),  STRIKEOUT_TOGGLE);
 	bars << BarPair(qt_("Noun"),      NOUN_TOGGLE);
 	bars << BarPair(qt_("Reset"),     INHERIT);
 	return bars;
@@ -164,6 +167,8 @@ GuiCharacter::GuiCharacter(GuiView & lv)
 	connect(okPB, SIGNAL(clicked()), this, SLOT(slotOK()));
 	connect(applyPB, SIGNAL(clicked()), this, SLOT(slotApply()));
 	connect(closePB, SIGNAL(clicked()), this, SLOT(slotClose()));
+	connect(autoapplyCB, SIGNAL(stateChanged(int)), this,
+		SLOT(slotAutoApply()));
 
 	connect(miscCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
 	connect(sizeCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
@@ -173,8 +178,6 @@ GuiCharacter::GuiCharacter(GuiView & lv)
 	connect(colorCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
 	connect(langCO, SIGNAL(activated(int)), this, SLOT(change_adaptor()));
 	connect(toggleallCB, SIGNAL(clicked()), this, SLOT(change_adaptor()));
-	connect(autoapplyCB, SIGNAL(stateChanged(int)), this,
-		SLOT(change_adaptor()));
 
 	family = familyData();
 	series = seriesData();
@@ -195,10 +198,11 @@ GuiCharacter::GuiCharacter(GuiView & lv)
 	fillCombo(colorCO, color);
 	fillCombo(langCO, language);
 
-	bc().setPolicy(ButtonPolicy::OkApplyCancelReadOnlyPolicy);
+	bc().setPolicy(ButtonPolicy::OkApplyCancelAutoReadOnlyPolicy);
 	bc().setOK(okPB);
 	bc().setApply(applyPB);
 	bc().setCancel(closePB);
+	bc().setAutoApply(autoapplyCB);
 	bc().addReadOnly(familyCO);
 	bc().addReadOnly(seriesCO);
 	bc().addReadOnly(sizeCO);
@@ -252,8 +256,10 @@ static int findPos2nd(QList<P> const & vec, B const & val)
 
 void GuiCharacter::updateContents()
 {
-	if (!autoapplyCB->isChecked())
+	if (!autoapplyCB->isChecked()) {
+		bc().setValid(true);
 		return;
+	}
 	if (bufferview()->cursor().selection()) {
 		//FIXME: it would be better to check if each font attribute is constant
 		// for the selection range.
@@ -273,6 +279,15 @@ static FontState getBar(FontInfo const & fi)
 	if (fi.underbar() == FONT_TOGGLE)
 		return UNDERBAR_TOGGLE;
 
+	if (fi.strikeout() == FONT_TOGGLE)
+		return STRIKEOUT_TOGGLE;
+
+	if (fi.uuline() == FONT_TOGGLE)
+		return UULINE_TOGGLE;
+
+	if (fi.uwave() == FONT_TOGGLE)
+		return UWAVE_TOGGLE;
+
 	if (fi.noun() == FONT_TOGGLE)
 		return NOUN_TOGGLE;
 
@@ -291,6 +306,7 @@ static void setBar(FontInfo & fi, FontState val)
 	case IGNORE:
 		fi.setEmph(FONT_IGNORE);
 		fi.setUnderbar(FONT_IGNORE);
+		fi.setStrikeout(FONT_IGNORE);
 		fi.setNoun(FONT_IGNORE);
 		break;
 
@@ -302,6 +318,18 @@ static void setBar(FontInfo & fi, FontState val)
 		fi.setUnderbar(FONT_TOGGLE);
 		break;
 
+	case STRIKEOUT_TOGGLE:
+		fi.setStrikeout(FONT_TOGGLE);
+		break;
+
+	case UULINE_TOGGLE:
+		fi.setUuline(FONT_TOGGLE);
+		break;
+
+	case UWAVE_TOGGLE:
+		fi.setUwave(FONT_TOGGLE);
+		break;
+
 	case NOUN_TOGGLE:
 		fi.setNoun(FONT_TOGGLE);
 		break;
@@ -309,6 +337,9 @@ static void setBar(FontInfo & fi, FontState val)
 	case INHERIT:
 		fi.setEmph(FONT_INHERIT);
 		fi.setUnderbar(FONT_INHERIT);
+		fi.setStrikeout(FONT_INHERIT);
+		fi.setUuline(FONT_INHERIT);
+		fi.setUwave(FONT_INHERIT);
 		fi.setNoun(FONT_INHERIT);
 		break;
 	}
@@ -405,4 +436,4 @@ Dialog * createGuiCharacter(GuiView & lv) { return new GuiCharacter(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiCharacter_moc.cpp"
+#include "moc_GuiCharacter.cpp"

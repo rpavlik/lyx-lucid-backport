@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -48,10 +48,10 @@ class InsetMath;
 class MathAtom {
 public:
 	/// default constructor, object is useless, but we need it to put it into
-	// std::containers
+	/// std::containers
 	MathAtom();
 	/// the "real constructor"
-	explicit MathAtom(Inset * p);
+	explicit MathAtom(InsetMath * p);
 	/// copy constructor, invokes nucleus_->clone()
 	MathAtom(MathAtom const &);
 	/// we really need to clean up

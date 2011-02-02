@@ -1,10 +1,10 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[article]{article (Hebrew)}
+#  \DeclareLaTeXClass[article,theorem.sty]{article (Hebrew)}
 # Hebrew article textclass definition file.
 # Author: Dekel Tsur <dekel@math.tau.ac.il>
 # Few changes by Baruch Even <baruch.even@writeme.com>
 
-Format 11
+Format 30
 Input article
 
 Preamble
@@ -123,3 +123,5 @@ Style Proof
 			{\hfill\rule{2mm}{2mm}\par\vspace{2mm}}
 	EndPreamble
 End
+
+Input theorems-refprefix.inc

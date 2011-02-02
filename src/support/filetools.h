@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -64,13 +64,19 @@ FileName const fileSearch(std::string const & path,
 			     search_mode mode = must_exist);
 
 ///
-bool isLyXFilename(std::string const & filename);
+bool isLyXFileName(std::string const & filename);
 
 ///
-bool isSGMLFilename(std::string const & filename);
+bool isSGMLFileName(std::string const & filename);
 
-///
-bool isValidLaTeXFilename(std::string const & filename);
+/// check for characters in filenames not allowed by LaTeX
+bool isValidLaTeXFileName(std::string const & filename);
+
+/** check for characters in filenames that might lead to
+  problems when manually compiling the LaTeX export of LyX
+  and opening the result with some older DVI-viewers
+*/
+bool isValidDVIFileName(std::string const & filename);
 
 /** Returns the path of a library data file.
     Search the file name.ext in the subdirectory dir of
@@ -225,7 +231,7 @@ makeRelPath(docstring const & abspath, docstring const & basepath);
 std::string const onlyPath(std::string const & fname);
 
 /// Strips path from filename
-std::string const onlyFilename(std::string const & fname);
+std::string const onlyFileName(std::string const & fname);
 
 /** Check and Replace Environmentvariables ${NAME} in Path.
     Replaces all occurences of these, if they are found in the

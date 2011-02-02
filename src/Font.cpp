@@ -3,10 +3,10 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Dekel Tsur
  *
  * Full author contact details are available in file CREDITS.
@@ -40,6 +40,16 @@ using namespace lyx::support;
 namespace lyx {
 
 //
+// Strings used to read and write .lyx format files
+//
+// These are defined in FontInfo.cpp
+extern char const * LyXFamilyNames[NUM_FAMILIES + 2];
+extern char const * LyXSeriesNames[4];
+extern char const * LyXShapeNames[6];
+extern char const * LyXSizeNames[14];
+extern char const * LyXMiscNames[5];
+
+//
 // Names for the GUI
 //
 
@@ -47,7 +57,7 @@ namespace {
 
 char const * GUIFamilyNames[NUM_FAMILIES + 2 /* default & error */] =
 { N_("Roman"), N_("Sans Serif"), N_("Typewriter"), N_("Symbol"),
-  "cmr", "cmsy", "cmm", "cmex", "msa", "msb", "eufrak", "wasy", "esint",
+  "cmr", "cmsy", "cmm", "cmex", "msa", "msb", "eufrak", "rsfs", "wasy", "esint",
   N_("Inherit"), N_("Ignore") };
 
 char const * GUISeriesNames[4] =
@@ -64,29 +74,6 @@ char const * GUISizeNames[14] =
 
 char const * GUIMiscNames[5] =
 { N_("Off"), N_("On"), N_("Toggle"), N_("Inherit"), N_("Ignore") };
-
-
-//
-// Strings used to read and write .lyx format files
-//
-char const * LyXFamilyNames[NUM_FAMILIES + 2 /* default & error */] =
-{ "roman", "sans", "typewriter", "symbol",
-  "cmr", "cmsy", "cmm", "cmex", "msa", "msb", "eufrak", "wasy", "esint",
-  "default", "error" };
-
-char const * LyXSeriesNames[4] =
-{ "medium", "bold", "default", "error" };
-
-char const * LyXShapeNames[6] =
-{ "up", "italic", "slanted", "smallcaps", "default", "error" };
-
-char const * LyXSizeNames[14] =
-{ "tiny", "scriptsize", "footnotesize", "small", "normal", "large",
-  "larger", "largest", "huge", "giant",
-  "increase", "decrease", "default", "error" };
-
-char const * LyXMiscNames[5] =
-{ "off", "on", "toggle", "default", "error" };
 
 //
 // Strings used to write LaTeX files
@@ -175,6 +162,15 @@ docstring const stateText(FontInfo const & f)
 	if (f.underbar() != FONT_INHERIT)
 		os << bformat(_("Underline %1$s, "),
 			      _(GUIMiscNames[f.underbar()]));
+	if (f.strikeout() != FONT_INHERIT)
+		os << bformat(_("Strikeout %1$s, "),
+			      _(GUIMiscNames[f.strikeout()]));
+	if (f.uuline() != FONT_INHERIT)
+		os << bformat(_("Double underline %1$s, "),
+			      _(GUIMiscNames[f.uuline()]));
+	if (f.uwave() != FONT_INHERIT)
+		os << bformat(_("Wavy underline %1$s, "),
+			      _(GUIMiscNames[f.uwave()]));
 	if (f.noun() != FONT_INHERIT)
 		os << bformat(_("Noun %1$s, "),
 			      _(GUIMiscNames[f.noun()]));
@@ -193,95 +189,9 @@ docstring const Font::stateText(BufferParams * params) const
 		os << bformat(_("Language: %1$s, "),
 			      _(language()->display()));
 	if (bits_.number() != FONT_OFF)
-		os << bformat(_("  Number %1$s"),
+		os << "  " << bformat(_("Number %1$s"),
 			      _(GUIMiscNames[bits_.number()]));
 	return rtrim(os.str(), ", ");
-}
-
-
-// Set family according to lyx format string
-void setLyXFamily(string const & fam, FontInfo & f)
-{
-	string const s = ascii_lowercase(fam);
-
-	int i = 0;
-	while (LyXFamilyNames[i] != s &&
-	       LyXFamilyNames[i] != string("error"))
-		++i;
-	if (s == LyXFamilyNames[i])
-		f.setFamily(FontFamily(i));
-	else
-		lyxerr << "setLyXFamily: Unknown family `"
-		       << s << '\'' << endl;
-}
-
-
-// Set series according to lyx format string
-void setLyXSeries(string const & ser, FontInfo & f)
-{
-	string const s = ascii_lowercase(ser);
-
-	int i = 0;
-	while (LyXSeriesNames[i] != s &&
-	       LyXSeriesNames[i] != string("error")) ++i;
-	if (s == LyXSeriesNames[i]) {
-		f.setSeries(FontSeries(i));
-	} else
-		lyxerr << "setLyXSeries: Unknown series `"
-		       << s << '\'' << endl;
-}
-
-
-// Set shape according to lyx format string
-void setLyXShape(string const & sha, FontInfo & f)
-{
-	string const s = ascii_lowercase(sha);
-
-	int i = 0;
-	while (LyXShapeNames[i] != s && LyXShapeNames[i] != string("error"))
-			++i;
-	if (s == LyXShapeNames[i])
-		f.setShape(FontShape(i));
-	else
-		lyxerr << "Font::setLyXShape: Unknown shape `"
-		       << s << '\'' << endl;
-}
-
-
-// Set size according to lyx format string
-void setLyXSize(string const & siz, FontInfo & f)
-{
-	string const s = ascii_lowercase(siz);
-	int i = 0;
-	while (LyXSizeNames[i] != s && LyXSizeNames[i] != string("error"))
-		++i;
-	if (s == LyXSizeNames[i]) {
-		f.setSize(FontSize(i));
-	} else
-		lyxerr << "Font::setLyXSize: Unknown size `"
-		       << s << '\'' << endl;
-}
-
-
-// Set size according to lyx format string
-FontState Font::setLyXMisc(string const & siz)
-{
-	string const s = ascii_lowercase(siz);
-	int i = 0;
-	while (LyXMiscNames[i] != s &&
-	       LyXMiscNames[i] != string("error")) ++i;
-	if (s == LyXMiscNames[i])
-		return FontState(i);
-	lyxerr << "Font::setLyXMisc: Unknown misc flag `"
-	       << s << '\'' << endl;
-	return FONT_OFF;
-}
-
-
-/// Sets color after LyX text format
-void setLyXColor(string const & col, FontInfo & f)
-{
-	f.setColor(lcolor.getFromLyXName(col));
 }
 
 
@@ -289,69 +199,6 @@ void setLyXColor(string const & col, FontInfo & f)
 string const Font::latexSize() const
 {
 	return LaTeXSizeNames[bits_.size()];
-}
-
-
-// Read a font definition from given file in lyx format
-// Used for layouts
-FontInfo lyxRead(Lexer & lex, FontInfo const & fi)
-{
-	FontInfo f = fi;
-	bool error = false;
-	bool finished = false;
-	while (!finished && lex.isOK() && !error) {
-		lex.next();
-		string const tok = ascii_lowercase(lex.getString());
-
-		if (tok.empty()) {
-			continue;
-		} else if (tok == "endfont") {
-			finished = true;
-		} else if (tok == "family") {
-			lex.next();
-			string const ttok = lex.getString();
-			setLyXFamily(ttok, f);
-		} else if (tok == "series") {
-			lex.next();
-			string const ttok = lex.getString();
-			setLyXSeries(ttok, f);
-		} else if (tok == "shape") {
-			lex.next();
-			string const ttok = lex.getString();
-			setLyXShape(ttok, f);
-		} else if (tok == "size") {
-			lex.next();
-			string const ttok = lex.getString();
-			setLyXSize(ttok, f);
-		} else if (tok == "misc") {
-			lex.next();
-			string const ttok = ascii_lowercase(lex.getString());
-
-			if (ttok == "no_bar") {
-				f.setUnderbar(FONT_OFF);
-			} else if (ttok == "no_emph") {
-				f.setEmph(FONT_OFF);
-			} else if (ttok == "no_noun") {
-				f.setNoun(FONT_OFF);
-			} else if (ttok == "emph") {
-				f.setEmph(FONT_ON);
-			} else if (ttok == "underbar") {
-				f.setUnderbar(FONT_ON);
-			} else if (ttok == "noun") {
-				f.setNoun(FONT_ON);
-			} else {
-				lex.printError("Illegal misc type");
-			}
-		} else if (tok == "color") {
-			lex.next();
-			string const ttok = lex.getString();
-			setLyXColor(ttok, f);
-		} else {
-			lex.printError("Unknown tag");
-			error = true;
-		}
-	}
-	return f;
 }
 
 
@@ -388,6 +235,15 @@ void Font::lyxWriteChanges(Font const & orgfont,
 		break;
 		}
 	}
+	if (orgfont.fontInfo().strikeout() != bits_.strikeout()) {
+		os << "\\strikeout " << LyXMiscNames[bits_.strikeout()] << "\n";
+	}
+	if (orgfont.fontInfo().uuline() != bits_.uuline()) {
+		os << "\\uuline " << LyXMiscNames[bits_.uuline()] << "\n";
+	}
+	if (orgfont.fontInfo().uwave() != bits_.uwave()) {
+		os << "\\uwave " << LyXMiscNames[bits_.uwave()] << "\n";
+	}
 	if (orgfont.fontInfo().noun() != bits_.noun()) {
 		os << "\\noun " << LyXMiscNames[bits_.noun()] << "\n";
 	}
@@ -416,7 +272,20 @@ int Font::latexWriteStartChanges(odocstream & os, BufferParams const & bparams,
 	bool env = false;
 
 	int count = 0;
-	if (language()->babel() != base.language()->babel() &&
+
+	// polyglossia or babel?
+	if (runparams.use_polyglossia
+	    && language()->lang() != base.language()->lang()
+	    && language() != prev.language()) {
+		if (!language()->polyglossia().empty()) {
+			string tmp = "\\text" + language()->polyglossia();
+			if (!language()->polyglossiaOpts().empty())
+				tmp += "[" + language()->polyglossiaOpts() + "]";
+			tmp += "{";
+			os << from_ascii(tmp);
+			count += tmp.length();
+		}
+	} else if (language()->babel() != base.language()->babel() &&
 	    language() != prev.language()) {
 		if (language()->lang() == "farsi") {
 			os << "\\textFR{";
@@ -522,8 +391,27 @@ int Font::latexWriteStartChanges(odocstream & os, BufferParams const & bparams,
 		env = true; //We have opened a new environment
 	}
 	if (f.underbar() == FONT_ON) {
-		os << "\\underbar{";
+		os << "\\uline{";
 		count += 10;
+		runparams.inulemcmd = true;
+		env = true; //We have opened a new environment
+	}
+	if (f.strikeout() == FONT_ON) {
+		os << "\\sout{";
+		count += 9;
+		runparams.inulemcmd = true;
+		env = true; //We have opened a new environment
+	}
+	if (f.uuline() == FONT_ON) {
+		os << "\\uuline{";
+		count += 11;
+		runparams.inulemcmd = true;
+		env = true; //We have opened a new environment
+	}
+	if (f.uwave() == FONT_ON) {
+		os << "\\uwave{";
+		count += 10;
+		runparams.inulemcmd = true;
 		env = true; //We have opened a new environment
 	}
 	// \noun{} is a LyX special macro
@@ -593,6 +481,25 @@ int Font::latexWriteEndChanges(odocstream & os, BufferParams const & bparams,
 	if (f.underbar() == FONT_ON) {
 		os << '}';
 		++count;
+		runparams.inulemcmd = false;
+		env = true; // Size change need not bother about closing env.
+	}
+	if (f.strikeout() == FONT_ON) {
+		os << '}';
+		++count;
+		runparams.inulemcmd = false;
+		env = true; // Size change need not bother about closing env.
+	}
+	if (f.uuline() == FONT_ON) {
+		os << '}';
+		++count;
+		runparams.inulemcmd = false;
+		env = true; // Size change need not bother about closing env.
+	}
+	if (f.uwave() == FONT_ON) {
+		os << '}';
+		++count;
+		runparams.inulemcmd = false;
 		env = true; // Size change need not bother about closing env.
 	}
 	if (f.noun() == FONT_ON) {
@@ -654,6 +561,9 @@ string Font::toString(bool const toggle) const
 	   << "size " << bits_.size() << '\n'
 	   << "emph " << bits_.emph() << '\n'
 	   << "underbar " << bits_.underbar() << '\n'
+	   << "strikeout " << bits_.strikeout() << '\n'
+	   << "uuline " << bits_.uuline() << '\n'
+	   << "uwave " << bits_.uwave() << '\n'
 	   << "noun " << bits_.noun() << '\n'
 	   << "number " << bits_.number() << '\n'
 	   << "color " << bits_.color() << '\n'
@@ -695,7 +605,9 @@ bool Font::fromString(string const & data, bool & toggle)
 			bits_.setSize(FontSize(next));
 
 		} else if (token == "emph" || token == "underbar" ||
-			   token == "noun" || token == "number") {
+			   token == "noun" || token == "number" ||
+			   token == "uuline" || token == "uwave" ||
+			   token == "strikeout") {
 
 			int const next = lex.getInteger();
 			FontState const misc = FontState(next);
@@ -704,6 +616,12 @@ bool Font::fromString(string const & data, bool & toggle)
 				bits_.setEmph(misc);
 			else if (token == "underbar")
 				bits_.setUnderbar(misc);
+			else if (token == "strikeout")
+				bits_.setStrikeout(misc);
+			else if (token == "uuline")
+				bits_.setUuline(misc);
+			else if (token == "uwave")
+				bits_.setUwave(misc);
 			else if (token == "noun")
 				bits_.setNoun(misc);
 			else if (token == "number")
@@ -746,6 +664,26 @@ void Font::validate(LaTeXFeatures & features) const
 		LYXERR(Debug::LATEX, "font.noun: " << bits_.noun());
 		features.require("noun");
 		LYXERR(Debug::LATEX, "Noun enabled. Font: " << to_utf8(stateText(0)));
+	}
+	if (bits_.underbar() == FONT_ON) {
+		LYXERR(Debug::LATEX, "font.underline: " << bits_.underbar());
+		features.require("ulem");
+		LYXERR(Debug::LATEX, "Underline enabled. Font: " << to_utf8(stateText(0)));
+	}
+	if (bits_.strikeout() == FONT_ON) {
+		LYXERR(Debug::LATEX, "font.strikeout: " << bits_.strikeout());
+		features.require("ulem");
+		LYXERR(Debug::LATEX, "Strikeout enabled. Font: " << to_utf8(stateText(0)));
+	}
+	if (bits_.uuline() == FONT_ON) {
+		LYXERR(Debug::LATEX, "font.uuline: " << bits_.uuline());
+		features.require("ulem");
+		LYXERR(Debug::LATEX, "Double underline enabled. Font: " << to_utf8(stateText(0)));
+	}
+	if (bits_.uwave() == FONT_ON) {
+		LYXERR(Debug::LATEX, "font.uwave: " << bits_.uwave());
+		features.require("ulem");
+		LYXERR(Debug::LATEX, "Wavy underline enabled. Font: " << to_utf8(stateText(0)));
 	}
 	switch (bits_.color()) {
 		case Color_none:
@@ -791,6 +729,9 @@ ostream & operator<<(ostream & os, FontInfo const & f)
 		//<< " background " << f.background()
 		<< " emph " << f.emph()
 		<< " underbar " << f.underbar()
+		<< " strikeout " << f.strikeout()
+		<< " uuline " << f.uuline()
+		<< " uwave " << f.uwave()
 		<< " noun " << f.noun()
 		<< " number " << f.number();
 }

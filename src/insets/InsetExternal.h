@@ -13,11 +13,10 @@
 #define INSET_EXTERNAL_H
 
 #include "Inset.h"
+
 #include "ExternalTemplate.h"
-#include "ExternalTransforms.h"
 
 #include "support/FileName.h"
-#include "support/Translator.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/signals/trackable.hpp>
@@ -94,7 +93,7 @@ class RenderBase;
 class InsetExternal : public Inset, public boost::signals::trackable
 {
 public:
-	InsetExternal(Buffer &);
+	InsetExternal(Buffer *);
 	///
 	~InsetExternal();
 	///
@@ -112,15 +111,18 @@ public:
 	/// \returns the number of rows (\n's) of generated code.
 	int latex(odocstream &, OutputParams const &) const;
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
-
+	docstring contextMenuName() const;
+	///
+	bool setMouseHover(BufferView const * bv, bool mouse_hover);
+	///
+	bool clickable(int, int) const { return true; }
 private:
 	///
 	InsetExternal(InsetExternal const &);
 	///
 	InsetCode lyxCode() const { return EXTERNAL_CODE; }
 	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	bool hasSettings() const { return true; }
 	///
 	void metrics(MetricsInfo &, Dimension &) const;
 	///
@@ -133,12 +135,15 @@ private:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	/// For now, this does nothing. Someone who knows about this
+	/// should see what needs doing for XHTML output.
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	/// Update needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
 	///
 	void addPreview(DocIterator const &, graphics::PreviewLoader &) const;
 	///
-	void edit(Cursor & cur, bool front, EntryDirection entry_from);
+	bool showInsetDialog(BufferView * bv) const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	///
@@ -158,6 +163,8 @@ private:
 	InsetExternalParams params_;
 	/// The thing that actually draws the image on LyX's screen.
 	boost::scoped_ptr<RenderBase> renderer_;
+	/// changes color of the button when mouse enters/leaves this inset
+	mutable std::map<BufferView const *, bool> mouse_hover_;
 };
 
 } // namespace lyx

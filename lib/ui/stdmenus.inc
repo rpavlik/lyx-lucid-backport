@@ -72,9 +72,10 @@ Menuset
 		OptItem "Register...|R" "vc-register"
 		OptItem "Check In Changes...|I" "vc-check-in"
 		OptItem "Check Out for Edit|O" "vc-check-out"
-		OptItem "Update local directory from repository|d" "vc-repo-update"
-		OptItem "Revert to Repository Version|R" "vc-revert"
+		OptItem "Update Local Directory From Repository|d" "vc-repo-update"
+		OptItem "Revert to Repository Version|v" "vc-revert"
 		OptItem "Undo Last Check In|U" "vc-undo-last"
+		OptItem "Compare with Older Revision...|C" "vc-compare"
 		OptItem "Show History...|H" "dialog-show vclog"
 		OptItem "Use Locking Property|L" "vc-locking-toggle"
 	End
@@ -104,12 +105,14 @@ Menuset
 		Separator
 		Item "Select All" "command-sequence buffer-begin ; buffer-end-select"
 		Separator
-		Item "Find & Replace...|F" "dialog-show findreplace"
+		Item "Find & Replace (Quick)...|F" "dialog-show findreplace"
+		Item "Find & Replace (Advanced)..." "dialog-show findreplaceadv"
 		Separator
 		Item "Move Paragraph Up|o" "paragraph-move-up"
 		Item "Move Paragraph Down|v" "paragraph-move-down"
 		Separator
 		Submenu "Text Style|S" "edit_textstyles"
+		LanguageSelector
 		Item "Paragraph Settings...|P" "layout-paragraph"
 		Separator
 # Mathed b0rkage means these don't work properly
@@ -124,14 +127,18 @@ Menuset
 # obvious what the context is for the others)
 		OptItem "Increase List Depth|I" "depth-increment"
 		OptItem "Decrease List Depth|D" "depth-decrement"
-		OptItem "Dissolve Inset|l" "inset-dissolve"
+		OptItem "Dissolve Inset" "inset-dissolve"
 		OptItem "TeX Code Settings...|C" "inset-settings ert"
 # 'a' shortcut to match Insert entry, shouldn't clash with Table Settings
 		OptItem "Float Settings...|a" "inset-settings float"
 		OptItem "Text Wrap Settings...|W" "inset-settings wrap"
 		OptItem "Note Settings...|N" "inset-settings note"
+		OptItem "Phantom Settings...|h" "inset-settings phantom"
 		OptItem "Branch Settings...|B" "inset-settings branch"
 		OptItem "Box Settings...|x" "inset-settings box"
+		OptItem "Index Entry Settings...|y" "inset-settings index"
+		OptItem "Index Settings...|x" "inset-settings index_print"
+		OptItem "Info Settings...|n" "inset-settings info"
 		OptItem "Listings Settings...|g" "inset-settings listings"
 # Hey, guess what's broken ? Surprise surprise, it's tabular stuff
 # This is in the Table submenu instead for now.
@@ -170,33 +177,37 @@ Menuset
 
 # not much we can do to help here
 	Menu "edit_tabular"
-		Item "Multicolumn|M" "tabular-feature multicolumn"
+		Item "Multicolumn|M" "inset-modify tabular multicolumn"
+		Item "Multirow|u" "inset-modify tabular multirow"
 		Separator
-		Item "Top Line|T" "tabular-feature toggle-line-top"
-		Item "Bottom Line|B" "tabular-feature toggle-line-bottom"
-		Item "Left Line|L" "tabular-feature toggle-line-left"
-		Item "Right Line|R" "tabular-feature toggle-line-right"
+		Item "Top Line|T" "inset-modify tabular toggle-line-top"
+		Item "Bottom Line|B" "inset-modify tabular toggle-line-bottom"
+		Item "Left Line|L" "inset-modify tabular toggle-line-left"
+		Item "Right Line|R" "inset-modify tabular toggle-line-right"
 		Separator
+		Item "Top|p" "inset-modify tabular tabular-valign-top"
+		Item "Middle|i" "inset-modify tabular tabular-valign-middle"
+		Item "Bottom|o" "inset-modify tabular tabular-valign-bottom"
 	End
 
 	Menu "edit_tabular_features"
-		Item "Left|L" "tabular-feature align-left"
-		Item "Center|C" "tabular-feature align-center"
-		Item "Right|R" "tabular-feature align-right"
+		Item "Left|L" "inset-modify tabular align-left"
+		Item "Center|C" "inset-modify tabular align-center"
+		Item "Right|R" "inset-modify tabular align-right"
 		Separator
-		Item "Top|T" "tabular-feature valign-top"
-		Item "Middle|M" "tabular-feature valign-middle"
-		Item "Bottom|B" "tabular-feature valign-bottom"
+		Item "Top|T" "inset-modify tabular valign-top"
+		Item "Middle|M" "inset-modify tabular valign-middle"
+		Item "Bottom|B" "inset-modify tabular valign-bottom"
 		Separator
-		Item "Add Row|A" "tabular-feature append-row"
-		Item "Delete Row|D" "tabular-feature delete-row"
-		Item "Copy Row|o" "tabular-feature copy-row"
-		# Item "Swap Rows|S" "tabular-feature swap-row" # currently broken
+		Item "Add Row|A" "inset-modify tabular append-row"
+		Item "Delete Row|D" "inset-modify tabular delete-row"
+		Item "Copy Row|o" "inset-modify tabular copy-row"
+		# Item "Swap Rows|S" "inset-modify tabular swap-row" # currently broken
 		Separator
-		Item "Add Column|u" "tabular-feature append-column"
-		Item "Delete Column|e" "tabular-feature delete-column"
-		Item "Copy Column|p" "tabular-feature copy-column"
-		# Item "Swap Columns|w" "tabular-feature swap-column" # currently broken
+		Item "Add Column|u" "inset-modify tabular append-column"
+		Item "Delete Column|e" "inset-modify tabular delete-column"
+		Item "Copy Column|p" "inset-modify tabular copy-column"
+		# Item "Swap Columns|w" "inset-modify tabular swap-column" # currently broken
 	End
 
 	Menu "edit_math"
@@ -213,15 +224,15 @@ Menuset
 		Separator
 		Item "Split Cell|C" "cell-split"
 		Separator
-		Item "Add Line Above|A" "tabular-feature add-hline-above"
-		Item "Add Line Below|B" "tabular-feature add-hline-below"
-		Item "Delete Line Above|D" "tabular-feature delete-hline-above"
-		Item "Delete Line Below|e" "tabular-feature delete-hline-below"
+		Item "Add Line Above|A" "inset-modify tabular add-hline-above"
+		Item "Add Line Below|B" "inset-modify tabular add-hline-below"
+		Item "Delete Line Above|D" "inset-modify tabular delete-hline-above"
+		Item "Delete Line Below|e" "inset-modify tabular delete-hline-below"
 		Separator
-		Item "Add Line to Left" "tabular-feature add-vline-left"
-		Item "Add Line to Right" "tabular-feature add-vline-right"
-		Item "Delete Line to Left" "tabular-feature delete-vline-left"
-		Item "Delete Line to Right" "tabular-feature delete-vline-right"
+		Item "Add Line to Left" "inset-modify tabular add-vline-left"
+		Item "Add Line to Right" "inset-modify tabular add-vline-right"
+		Item "Delete Line to Left" "inset-modify tabular delete-vline-left"
+		Item "Delete Line to Right" "inset-modify tabular delete-vline-right"
 	End
 
 	Menu "edit_math_macro_definition"
@@ -248,6 +259,7 @@ Menuset
 		Item "Math Normal Font|N" "math-font-style mathnormal"
 		Separator
 		Item "Math Calligraphic Family|C" "math-font-style mathcal"
+		Item "Math Formal Script Family|o" "math-font-style mathscr"
 		Item "Math Fraktur Family|F" "math-font-style mathfrak"
 		Item "Math Roman Family|R" "math-font-style mathrm"
 		Item "Math Sans Serif Family|S" "math-font-style mathsf"
@@ -296,27 +308,26 @@ Menuset
 #
 
 	Menu "view"
-		Item "Open All Insets|O" "all-insets-toggle open"
-		Item "Close All Insets|C" "all-insets-toggle close"
+		Item "Open All Insets|O" "inset-forall * inset-toggle open"
+		Item "Close All Insets|C" "inset-forall * inset-toggle close"
 		Separator
-		Item "Unfold Math Macro" "math-macro-unfold"
-		Item "Fold Math Macro" "math-macro-fold"
+		Item "Unfold Math Macro|n" "math-macro-unfold"
+		Item "Fold Math Macro|d" "math-macro-fold"
 		Separator
 		Item "View Source|S" "dialog-toggle view-source"
-		Submenu "Update|U" "view_update"
+		Item "View Messages|g" "dialog-toggle progress"
 		ViewFormats
+		UpdateFormats
+		OptItem "View Master Document|M" "master-buffer-view"
+		OptItem "Update Master Document|a" "master-buffer-update"
 		Separator
 		Item "Split View Into Left and Right Half|i" "split-view horizontal"
-		Item "Split View Into Upper and Lower Half|V" "split-view vertical"
+		Item "Split View Into Upper and Lower Half|e" "split-view vertical"
 		Item "Close Current View|w" "close-tab-group"
-		Item "Fullscreen|l" "ui-toggle fullscreen"
+		Item "Fullscreen|l" "ui-toggle fullscreen"	
 		Submenu "Toolbars|b" "toolbars"
 		Separator
 		Documents
-	End
-
-	Menu "view_update"
-		UpdateFormats
 	End
 
 	Menu "toolbars"
@@ -338,13 +349,14 @@ Menuset
 		Submenu "Branch|B" "insert_branches"
 		Submenu "Custom Insets" "insert_custom"
 		Submenu "File|e" "insert_file"
-		Item "Box[[Menu]]" "box-insert Frameless"
+		Submenu "Box[[Menu]]" "insert_box"
+		OptSubMenu "Insert Regular Expression" "context-edit-regexp"
 		Separator
 		Item "Citation...|C" "dialog-show-new-inset citation"
 		Item "Cross-Reference...|R" "dialog-show-new-inset ref"
 		Item "Label...|L" "label-insert"
 		Item "Caption" "caption-insert"
-		Item "Index Entry|d" "index-insert"
+		Indices
 		Item "Nomenclature Entry...|y" "nomencl-insert"
 		Separator
 		Item "Table...|T" "tabular-insert"
@@ -353,10 +365,11 @@ Menuset
 		Item "Hyperlink...|k" "href-insert"
 		Item "Footnote|F" "footnote-insert"
 		Item "Marginal Note|M" "marginalnote-insert"
-		Item "Short Title|S" "optional-insert"
+		Item "Short Title|S" "argument-insert"
 		Item "TeX Code|X" "ert-insert"
 		Item "Program Listing[[Menu]]" "listing-insert"
 		Item "Date" "date-insert"
+		Item "Preview|w" "preview-insert"
 	End
 
 	Menu "insert_special"
@@ -368,19 +381,20 @@ Menuset
 		Item "Protected Hyphen|y" "specialchar-insert nobreakdash"
 		Item "Breakable Slash|a" "specialchar-insert slash"
 		Item "Menu Separator|M" "specialchar-insert menu-separator"
-		Item "Phonetic Symbols|P" "command-sequence math-mode on; math-insert \text\textipa ; char-forward ;"
+		Item "Phonetic Symbols|P" "command-sequence math-insert \text\textipa ; char-forward ;"
 	End
 
 	Menu "insert_formatting"
-		Item "Superscript|S" "command-sequence math-mode on; math-superscript; math-insert \text;"
-		Item "Subscript|u" "command-sequence math-mode on; math-subscript; math-insert \text;"
+		Item "Superscript|S" "script-insert superscript"
+		Item "Subscript|u" "script-insert subscript"
 		Separator
 		Item "Protected Space|P" "space-insert protected"
-		Item "Inter-word Space|w" "space-insert normal"
+		Item "Interword Space|w" "space-insert normal"
 		Item "Thin Space|T" "space-insert thin"
 		Item "Horizontal Space...|o" "dialog-show-new-inset space"
-		Item "Horizontal Line|L" "line-insert"
+		Item "Horizontal Line...|L" "dialog-show-new-inset line"
 		Item "Vertical Space...|V" "dialog-show-new-inset vspace"
+		Submenu "Phantom|m" "insert_phantom"
 		Separator
 		Item "Hyphenation Point|H" "specialchar-insert hyphenation"
 		Item "Ligature Break|k" "specialchar-insert ligature-break"
@@ -394,9 +408,10 @@ Menuset
 	End
 
 	Menu "insert_math"
+# Always use "math-mode on" instead of "math-display" etc. because this disables the commands in math mode
 		Item "Inline Formula|I" "math-mode on"
-		Item "Display Formula|D" "math-display"
-		Item "Numbered Formula|N" "command-sequence math-display; math-number-toggle;"
+		Item "Display Formula|D" "command-sequence math-mode on; math-mutate equation"
+		Item "Numbered Formula|N" "command-sequence math-mode on; math-mutate equation; math-number-toggle;"
 		Item "Eqnarray Environment|E" "command-sequence math-mode on; math-mutate eqnarray;"
 		Item "AMS align Environment|a" "command-sequence math-mode on; math-mutate align;"
 		Item "AMS alignat Environment|t" "command-sequence math-mode on; math-mutate alignat;"
@@ -404,12 +419,13 @@ Menuset
 		Item "AMS gather Environment|g" "command-sequence math-mode on; math-mutate gather;"
 		Item "AMS multline Environment|m" "command-sequence math-mode on; math-mutate multline;"
 		Separator
+# "math-matrix" and "math-insert" create an inline formula first if called from text mode
 		Item "Array Environment|y" "math-matrix 2 2"
-		Item "Cases Environment|C" "command-sequence math-mode on; math-insert \cases"
-		Item "Aligned Environment|l" "command-sequence math-mode on; math-insert \aligned; tabular-feature append-column"
-		Item "AlignedAt Environment|v" "command-sequence math-mode on; math-insert \alignedat; tabular-feature append-column"
-		Item "Gathered Environment|h" "command-sequence math-mode on; math-insert \gathered"
-		Item "Split Environment|S" "command-sequence math-mode on; math-insert \split; tabular-feature append-column"
+		Item "Cases Environment|C" "math-insert \cases"
+		Item "Aligned Environment|l" "command-sequence math-insert \aligned; inset-modify tabular append-column"
+		Item "AlignedAt Environment|v" "command-sequence math-insert \alignedat; inset-modify tabular append-column"
+		Item "Gathered Environment|h" "math-insert \gathered"
+		Item "Split Environment|S" "command-sequence math-insert \split; inset-modify tabular append-column"
 		Separator
 		Item "Delimiters...|r" "dialog-show mathdelimiter"
 		Item "Matrix...|x" "dialog-show mathmatrix"
@@ -424,9 +440,9 @@ Menuset
 	End
 
 	Menu "insert_toc"
-		Item "Table of Contents|C" "toc-insert"
+		Item "Table of Contents|C" "inset-insert toc"
 		FloatListInsert
-		Item "Index List|I" "index-print"
+		IndicesLists
 		Item "Nomenclature|N" "nomencl-print"
 		Item "BibTeX Bibliography...|B" "dialog-show-new-inset bibtex"
 	End
@@ -440,6 +456,16 @@ Menuset
 		Item "Child Document...|d" "dialog-show-new-inset include"
 	End
 
+	Menu "insert_box"
+		Item "Frameless|l" "box-insert Frameless"
+		Item "Simple Frame|F" "box-insert Boxed"
+		Item "Oval, Thin|a" "box-insert ovalbox"
+		Item "Oval, Thick|v" "box-insert Ovalbox"
+		Item "Drop Shadow|w" "box-insert Shadowbox"
+		Item "Shaded Background|B" "box-insert Shaded"
+		Item "Double Frame|u" "box-insert Doublebox"
+	End
+
 	Menu "insert_note"
 		Item "LyX Note|N" "note-insert Note"
 		Item "Comment|C" "note-insert Comment"
@@ -448,6 +474,14 @@ Menuset
 
 	Menu "insert_branches"
 		Branches
+		Separator
+		Item "Insert New Branch...|I" "branch-add-insert"
+	End
+	
+	Menu "insert_phantom"
+		Item "Phantom|P" "phantom-insert Phantom"
+		Item "Horizontal Phantom|H" "phantom-insert HPhantom"
+		Item "Vertical Phantom|V" "phantom-insert VPhantom"
 	End
 
 	Menu "insert_custom"
@@ -489,6 +523,7 @@ Menuset
 		Item "Next Change|C" "change-next"
 		Item "Next Cross-Reference|R" "reference-next"
 		OptItem "Go to Label|L" "label-goto"
+		Item "Forward search|F" "forward-search"
 		Separator
 		Toc
 	End
@@ -515,6 +550,7 @@ Menuset
 		Item "Statistics...|a" "statistics"
 		OptItem "Check TeX|h" "buffer-chktex"
 		Item "TeX Information|I" "dialog-show texinfo"
+		Item "Compare...|C" "dialog-show compare"
 		Separator
 # A LOT of applications have Tools->Prefs. Remember this
 # should be rarely used - Edit menu is not a good place to
@@ -530,7 +566,7 @@ Menuset
 		Item "Introduction|I" "help-open Intro"
 		Item "Tutorial|T" "help-open Tutorial"
 		Item "User's Guide|U" "help-open UserGuide"
-		Item "Additional Features|F" "help-open Extended"
+		Item "Additional Features|F" "help-open Additional"
 		Item "Embedded Objects|O" "help-open EmbeddedObjects"
 		Item "Math|M" "help-open Math"
 		Item "Customization|C" "help-open Customization"
@@ -547,6 +583,7 @@ Menuset
 		Item "Braille Manual|B" "help-open Braille"
 		Item "XY-pic Manual|X" "help-open xypic"
 		Item "Multicolumn Manual|M" "help-open multicol"
+		Item "Feynman-diagram Manual|F" "help-open FeynmanDiagrams"
 	End
 
 

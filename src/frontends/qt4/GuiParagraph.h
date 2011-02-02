@@ -23,7 +23,6 @@
 #include "ParagraphParameters.h"
 
 #include <QDialog>
-#include <QSettings>
 #include <QShowEvent>
 #include <QGridLayout>
 
@@ -64,6 +63,8 @@ private:
 	bool haveMultiParSelection() const;
 	///
 	bool canIndent() const;
+	///
+	bool hasLabelwidth() const;
 	///
 	LyXAlignment alignPossible() const;
 	///

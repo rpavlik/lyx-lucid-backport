@@ -20,6 +20,7 @@
 
 #include <boost/signal.hpp>
 
+#include "ColorCode.h"
 
 namespace lyx {
 
@@ -67,7 +68,7 @@ public:
 	/** We have accumulated several latex snippets with status "InQueue".
 	 *  Initiate their transformation into bitmap images.
 	 */
-	void startLoading() const;
+	void startLoading(bool wait = false) const;
 
 	/** Connect and you'll be informed when the bitmap image file
 	 *  has been created and is ready for loading through
@@ -85,6 +86,10 @@ public:
 
 	/// Which buffer owns this loader.
 	Buffer const & buffer() const;
+	/// The background color used
+	static ColorCode backgroundColor() { return Color_background; }
+	/// The foreground color used
+	static ColorCode foregroundColor() { return Color_preview; }
 
 private:
 	/// noncopyable

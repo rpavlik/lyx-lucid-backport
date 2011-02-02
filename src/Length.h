@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Matthias Ettrich
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author John Levon
  *
@@ -38,24 +38,24 @@ class Length {
 public:
 	/// length units
 	enum UNIT {
-		SP, ///< Scaled point (65536sp = 1pt) TeX's smallest unit.
-		PT, ///< Point = 1/72.27in = 0.351mm
 		BP, ///< Big point (72bp = 1in), also PostScript point
-		DD, ///< Didot point = 1/72 of a French inch, = 0.376mm
-		MM, ///< Millimeter = 2.845pt
-		PC, ///< Pica = 12pt = 4.218mm
 		CC, ///< Cicero = 12dd = 4.531mm
 		CM, ///< Centimeter = 10mm = 2.371pc
-		IN, ///< Inch = 25.4mm = 72.27pt = 6.022pc
-		EX, ///< Height of a small "x" for the current font.
+		DD, ///< Didot point = 1/72 of a French inch, = 0.376mm
 		EM, ///< Width of capital "M" in current font.
+		EX, ///< Height of a small "x" for the current font.
+		IN, ///< Inch = 25.4mm = 72.27pt = 6.022pc
+		MM, ///< Millimeter = 2.845pt
 		MU, ///< Math unit (18mu = 1em) for positioning in math mode
+		PC, ///< Pica = 12pt = 4.218mm
+		PT, ///< Point = 1/72.27in = 0.351mm
+		SP, ///< Scaled point (65536sp = 1pt) TeX's smallest unit.
 		PTW, //< Percent of TextWidth
 		PCW, //< Percent of ColumnWidth
 		PPW, //< Percent of PageWidth
 		PLW, //< Percent of LineWidth
-		PTH, //< Percent of TextHeight		// Herbert 2002-05-16
-		PPH, //< Percent of PaperHeight		// Herbert 2002-05-16
+		PTH, //< Percent of TextHeight          // Herbert 2002-05-16
+		PPH, //< Percent of PaperHeight         // Herbert 2002-05-16
 		UNIT_NONE ///< no unit
 	};
 
@@ -87,10 +87,15 @@ public:
 	docstring const asDocstring() const;
 	/// return string representation for LaTeX
 	std::string const asLatexString() const;
+	/// return string representation for HTML
+	std::string const asHTMLString() const;
 	/// return the on-screen size of this length
 	int inPixels(int text_width, int em_width = 0) const;
 	/// return the value in Big Postscript points.
 	int inBP() const;
+
+	/// return the default unit (centimeter or inch)
+	static UNIT defaultUnit();
 
 	friend bool isValidLength(std::string const & data, Length * result);
 

@@ -12,10 +12,9 @@
 #ifndef INSETLISTINGSPARAMS_H
 #define INSETLISTINGSPARAMS_H
 
-#include <map>
-#include <exception>
-#include "Lexer.h"
 #include "InsetCollapsable.h"
+
+#include <map>
 
 namespace lyx {
 

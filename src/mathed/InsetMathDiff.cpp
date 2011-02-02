@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -92,18 +92,6 @@ void InsetMathDiff::mathematica(MathematicaStream & os) const
 		os << cell(idx);
 	}
 	os << ']';
-}
-
-
-void InsetMathDiff::mathmlize(MathStream & os) const
-{
-	os << "diff(";
-	for (idx_type idx = 0; idx < nargs(); ++idx) {
-		if (idx != 0)
-			os << ',';
-		os << cell(idx);
-	}
-	os << ')';
 }
 
 

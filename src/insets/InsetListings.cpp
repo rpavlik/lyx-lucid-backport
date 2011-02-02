@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Bo Peng
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -23,10 +23,12 @@
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "InsetCaption.h"
-#include "InsetList.h"
 #include "Language.h"
-#include "MetricsInfo.h"
+#include "LaTeXFeatures.h"
+#include "Lexer.h"
 #include "output_latex.h"
+#include "output_xhtml.h"
+#include "OutputParams.h"
 #include "TextClass.h"
 
 #include "support/debug.h"
@@ -38,7 +40,7 @@
 #include "frontends/alert.h"
 #include "frontends/Application.h"
 
-#include <boost/regex.hpp>
+#include "support/regex.h"
 
 #include <sstream>
 
@@ -47,12 +49,11 @@ using namespace lyx::support;
 
 namespace lyx {
 
-using boost::regex;
 
 char const lstinline_delimiters[] =
 	"!*()-=+|;:'\"`,<.>/?QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
 
-InsetListings::InsetListings(Buffer const & buf, InsetListingsParams const & par)
+InsetListings::InsetListings(Buffer * buf, InsetListingsParams const & par)
 	: InsetCollapsable(buf)
 {
 	status_ = par.status();
@@ -71,15 +72,16 @@ Inset::DisplayType InsetListings::display() const
 }
 
 
-void InsetListings::updateLabels(ParIterator const & it)
+void InsetListings::updateBuffer(ParIterator const & it, UpdateType utype)
 {
-	Counters & cnts = buffer().masterBuffer()->params().documentClass().counters();
+	Counters & cnts =
+		buffer().masterBuffer()->params().documentClass().counters();
 	string const saveflt = cnts.current_float();
 
 	// Tell to captions what the current float is
 	cnts.current_float("listing");
 
-	InsetCollapsable::updateLabels(it);
+	InsetCollapsable::updateBuffer(it, utype);
 
 	//reset afterwards
 	cnts.current_float(saveflt);
@@ -124,19 +126,13 @@ void InsetListings::read(Lexer & lex)
 }
 
 
-docstring InsetListings::editMessage() const
-{
-	return _("Opened Listing Inset");
-}
-
-
 int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 {
 	string param_string = params().params();
 	// NOTE: I use {} to quote text, which is an experimental feature
 	// of the listings package (see page 25 of the manual)
 	int lines = 0;
-	bool isInline = params().isInline();
+	bool const isInline = params().isInline();
 	// get the paragraphs. We can not output them directly to given odocstream
 	// because we can not yet determine the delimiter character of \lstinline
 	docstring code;
@@ -147,9 +143,12 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 	bool encoding_switched = false;
 	Encoding const * const save_enc = runparams.encoding;
 
-	if (!runparams.encoding->hasFixedWidth()) {
-		// We need to switch to a singlebyte encoding, since the listings
-		// package cannot deal with multiple-byte-encoded glyphs
+	if (!runparams.isFullUnicode()
+	    && !runparams.encoding->hasFixedWidth()) {
+		// We need to switch to a singlebyte encoding, since the
+		// listings package cannot deal with multi-byte-encoded
+		// glyphs (not needed with full-unicode aware backends
+		// such as XeTeX).
 		Language const * const outer_language =
 			(runparams.local_font != 0) ?
 				runparams.local_font->language()
@@ -274,7 +273,43 @@ int InsetListings::latex(odocstream & os, OutputParams const & runparams) const
 }
 
 
-docstring InsetListings::contextMenu(BufferView const &, int, int) const
+docstring InsetListings::xhtml(XHTMLStream & os, OutputParams const & rp) const
+{
+	odocstringstream ods;
+	XHTMLStream out(ods);
+
+	bool const isInline = params().isInline();
+	if (isInline) 
+		out << html::CompTag("br");
+	else {
+		out << html::StartTag("div", "class='float float-listings'");
+		docstring caption = getCaptionHTML(rp);
+		if (!caption.empty())
+			out << html::StartTag("div", "class='float-caption'") 
+			    << caption << html::EndTag("div");
+	}
+
+	out << html::StartTag("pre");
+	OutputParams newrp = rp;
+	newrp.html_disable_captions = true;
+	docstring def = InsetText::insetAsXHTML(out, newrp, InsetText::JustText);
+	out << html::EndTag("pre");
+
+	if (isInline) {
+		out << html::CompTag("br");
+		// escaping will already have been done
+		os << XHTMLStream::ESCAPE_NONE << ods.str();
+	} else {
+		out << html::EndTag("div");
+		// In this case, this needs to be deferred, but we'll put it
+		// before anything the text itself deferred.
+		def = ods.str() + '\n' + def;
+	}
+	return def;
+}
+
+
+docstring InsetListings::contextMenuName() const
 {
 	return from_ascii("context-listings");
 }
@@ -282,9 +317,10 @@ docstring InsetListings::contextMenu(BufferView const &, int, int) const
 
 void InsetListings::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
+		cur.recordUndoInset(ATOMIC_UNDO, this);
 		InsetListings::string2params(to_utf8(cmd.argument()), params());
 		break;
 	}
@@ -293,86 +329,6 @@ void InsetListings::doDispatch(Cursor & cur, FuncRequest & cmd)
 		cur.bv().updateDialog("listings", params2string(params()));
 		break;
 
-	case LFUN_TAB_INSERT: {
-		bool const multi_par_selection = cur.selection() &&
-			cur.selBegin().pit() != cur.selEnd().pit();
-		if (multi_par_selection) {
-			// If there is a multi-paragraph selection, a tab is inserted
-			// at the beginning of each paragraph.
-			cur.recordUndoSelection();
-			pit_type const pit_end = cur.selEnd().pit();
-			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
-				paragraphs()[pit].insertChar(0, '\t', 
-					buffer().params().trackChanges);
-				// Update the selection pos to make sure the selection does not
-				// change as the inserted tab will increase the logical pos.
-				if (cur.anchor_.pit() == pit)
-					cur.anchor_.forwardPos();
-				if (cur.pit() == pit)
-					cur.forwardPos();
-			}
-			cur.finishUndo();
-		} else {
-			// Maybe we shouldn't allow tabs within a line, because they
-			// are not (yet) aligned as one might do expect.
-			FuncRequest cmd(LFUN_SELF_INSERT, from_ascii("\t"));
-			dispatch(cur, cmd);	
-		}
-		break;
-	}
-
-	case LFUN_TAB_DELETE:
-		if (cur.selection()) {
-			// If there is a selection, a tab (if present) is removed from
-			// the beginning of each paragraph.
-			cur.recordUndoSelection();
-			pit_type const pit_end = cur.selEnd().pit();
-			for (pit_type pit = cur.selBegin().pit(); pit <= pit_end; pit++) {
-				Paragraph & par = paragraphs()[pit];
-				if (par.getChar(0) == '\t') {
-					if (cur.pit() == pit)
-						cur.posBackward();
-					if (cur.anchor_.pit() == pit && cur.anchor_.pos() > 0 )
-						cur.anchor_.backwardPos();
-
-					par.eraseChar(0, buffer().params().trackChanges);
-				} else 
-					// If no tab was present, try to remove up to four spaces.
-					for (int n_spaces = 0;
-						par.getChar(0) == ' ' && n_spaces < 4; ++n_spaces) {
-							if (cur.pit() == pit)
-								cur.posBackward();
-							if (cur.anchor_.pit() == pit && cur.anchor_.pos() > 0 )
-								cur.anchor_.backwardPos();
-
-							par.eraseChar(0, buffer().params().trackChanges);
-					}
-			}
-			cur.finishUndo();
-		} else {
-			// If there is no selection, try to remove a tab or some spaces 
-			// before the position of the cursor.
-			Paragraph & par = paragraphs()[cur.pit()];
-			pos_type const pos = cur.pos();
-
-			if (pos == 0)
-				break;
-
-			char_type const c = par.getChar(pos - 1);
-			cur.recordUndo();
-			if (c == '\t') {
-				cur.posBackward();
-				par.eraseChar(cur.pos(), buffer().params().trackChanges);
-			} else
-				for (int n_spaces = 0; cur.pos() > 0
-					&& par.getChar(cur.pos() - 1) == ' ' && n_spaces < 4;
-					++n_spaces) {
-						cur.posBackward();
-						par.eraseChar(cur.pos(), buffer().params().trackChanges);
-				}
-				cur.finishUndo();
-		}
-		break;
 	default:
 		InsetCollapsable::doDispatch(cur, cmd);
 		break;
@@ -383,7 +339,7 @@ void InsetListings::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 		case LFUN_INSET_MODIFY:
 		case LFUN_INSET_DIALOG_UPDATE:
 			status.setEnabled(true);
@@ -391,10 +347,6 @@ bool InsetListings::getStatus(Cursor & cur, FuncRequest const & cmd,
 		case LFUN_CAPTION_INSERT:
 			status.setEnabled(!params().isInline());
 			return true;
-			case LFUN_TAB_INSERT:
-			case LFUN_TAB_DELETE:
-				status.setEnabled(true);
-				return true;
 		default:
 			return InsetCollapsable::getStatus(cur, cmd, status);
 	}
@@ -434,37 +386,29 @@ docstring InsetListings::getCaption(OutputParams const & runparams) const
 	if (paragraphs().empty())
 		return docstring();
 
-	ParagraphList::const_iterator pit = paragraphs().begin();
-	for (; pit != paragraphs().end(); ++pit) {
-		InsetList::const_iterator it = pit->insetList().begin();
-		for (; it != pit->insetList().end(); ++it) {
-			Inset & inset = *it->inset;
-			if (inset.lyxCode() == CAPTION_CODE) {
-				odocstringstream ods;
-				InsetCaption * ins =
-					static_cast<InsetCaption *>(it->inset);
-				ins->getOptArg(ods, runparams);
-				ins->getArgument(ods, runparams);
-				// the caption may contain \label{} but the listings
-				// package prefer caption={}, label={}
-				docstring cap = ods.str();
-				if (!contains(to_utf8(cap), "\\label{"))
-					return cap;
-				// convert from
-				//     blah1\label{blah2} blah3
-				// to
-				//     blah1 blah3},label={blah2
-				// to form options
-				//     caption={blah1 blah3},label={blah2}
-				//
-				// NOTE that } is not allowed in blah2.
-				regex const reg("(.*)\\\\label\\{(.*?)\\}(.*)");
-				string const new_cap("\\1\\3},label={\\2");
-				return from_utf8(regex_replace(to_utf8(cap), reg, new_cap));
-			}
-		}
-	}
-	return docstring();
+	InsetCaption const * ins = getCaptionInset();
+	if (ins == 0)
+		return docstring();
+
+	odocstringstream ods;
+	ins->getOptArg(ods, runparams);
+	ins->getArgument(ods, runparams);
+	// the caption may contain \label{} but the listings
+	// package prefer caption={}, label={}
+	docstring cap = ods.str();
+	if (!contains(to_utf8(cap), "\\label{"))
+		return cap;
+	// convert from
+	//     blah1\label{blah2} blah3
+	// to
+	//     blah1 blah3},label={blah2
+	// to form options
+	//     caption={blah1 blah3},label={blah2}
+	//
+	// NOTE that } is not allowed in blah2.
+	regex const reg("(.*)\\\\label\\{(.*?)\\}(.*)");
+	string const new_cap("\\1\\3},label={\\2");
+	return from_utf8(regex_replace(to_utf8(cap), reg, new_cap));
 }
 
 

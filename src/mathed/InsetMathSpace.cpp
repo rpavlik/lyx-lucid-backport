@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -104,12 +104,6 @@ InsetMathSpace::InsetMathSpace(Length const & length)
 }
 
 
-InsetMathSpace::~InsetMathSpace()
-{
-	hideDialogs("mathspace", this);
-}
-
-
 Inset * InsetMathSpace::clone() const
 {
 	return new InsetMathSpace(*this);
@@ -192,6 +186,61 @@ void InsetMathSpace::octave(OctaveStream & os) const
 }
 
 
+void InsetMathSpace::mathmlize(MathStream & ms) const
+{
+	SpaceInfo const & si = space_info[space_];
+	if (si.negative || !si.visible)
+		return;
+	string l;
+	if (si.custom)
+		l = length_.asHTMLString();
+	else if (si.kind != InsetSpaceParams::MEDIUM) {
+		stringstream ss;
+		ss << si.width;
+		l = ss.str() + "px";
+	}
+	
+	ms << "<mspace";
+	if (!l.empty())
+		ms << " width=\"" << from_ascii(l) << "\"";
+	ms << " />";
+}
+
+	
+void InsetMathSpace::htmlize(HtmlStream & ms) const
+{
+	SpaceInfo const & si = space_info[space_];
+	switch (si.kind) {
+	case InsetSpaceParams::THIN:
+		ms << from_ascii("&thinsp;");
+		break;
+	case InsetSpaceParams::MEDIUM:
+		ms << from_ascii("&nbsp;");
+		break;
+	case InsetSpaceParams::THICK:
+		ms << from_ascii("&emsp;");
+		break;
+	case InsetSpaceParams::ENSKIP:
+		ms << from_ascii("&ensp;");
+		break;
+	case InsetSpaceParams::QUAD:
+		ms << from_ascii("&emsp;");
+		break;
+	case InsetSpaceParams::QQUAD:
+		ms << from_ascii("&emsp;&emsp;");
+		break;
+	case InsetSpaceParams::CUSTOM: {
+		string l = length_.asHTMLString();
+		ms << MTag("span", "width='" + l + "'") 
+		   << from_ascii("&nbsp;") << ETag("span");
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+	
 void InsetMathSpace::normalize(NormalStream & os) const
 {
 	os << "[space " << int(space_) << "] ";
@@ -209,17 +258,17 @@ void InsetMathSpace::write(WriteStream & os) const
 }
 
 
-string const InsetMathSpace::createDialogStr() const
+InsetSpaceParams InsetMathSpace::params() const
 {
 	LASSERT(space_info[space_].visible, /**/);
 	InsetSpaceParams isp(true);
 	isp.kind = space_info[space_].kind;
-	isp.length = length_;
-	return InsetSpace::params2string(isp);
+	isp.length = GlueLength(length_);
+	return isp;
 }
 
 
-docstring InsetMathSpace::contextMenu(BufferView const &, int, int) const
+docstring InsetMathSpace::contextMenuName() const
 {
 	return from_ascii("context-mathspace");
 }
@@ -228,7 +277,7 @@ docstring InsetMathSpace::contextMenu(BufferView const &, int, int) const
 bool InsetMathSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
                                FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
@@ -246,11 +295,12 @@ bool InsetMathSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 void InsetMathSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "mathspace") {
 			MathData ar;
 			if (createInsetMath_fromDialogStr(cmd.argument(), ar)) {
+				cur.recordUndo();
 				*this = *ar[0].nucleus()->asSpaceInset();
 				break;
 			}
@@ -258,14 +308,9 @@ void InsetMathSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 		cur.undispatched();
 		break;
 
-	case LFUN_INSET_DIALOG_UPDATE:
-		cur.bv().updateDialog("mathspace", createDialogStr());
-		break;
-
 	case LFUN_MOUSE_RELEASE:
 		if (cmd.button() == mouse_button::button1) {
-			string const data = createDialogStr();
-			cur.bv().showDialog("mathspace", data, this);
+			showInsetDialog(&cur.bv());
 			break;
 		}
 		cur.undispatched();

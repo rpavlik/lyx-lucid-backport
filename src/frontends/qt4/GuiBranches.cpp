@@ -18,10 +18,17 @@
 #include "Validator.h"
 #include "qt_helpers.h"
 
+#include "ui_BranchesUnknownUi.h"
+
+#include "frontends/alert.h"
+
+#include "Buffer.h"
 #include "BufferParams.h"
 
+#include "support/gettext.h"
 #include "support/lstrings.h"
 
+#include <QListWidget>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QPixmap>
@@ -42,7 +49,27 @@ GuiBranches::GuiBranches(QWidget * parent)
 	branchesTW->headerItem()->setText(0, qt_("Branch"));
 	branchesTW->headerItem()->setText(1, qt_("Activated"));
 	branchesTW->headerItem()->setText(2, qt_("Color"));
+	branchesTW->headerItem()->setText(3, qt_("Filename Suffix"));
 	branchesTW->setSortingEnabled(true);
+	branchesTW->resizeColumnToContents(1);
+	branchesTW->resizeColumnToContents(2);
+
+	undef_ = new BranchesUnknownDialog(this);
+	undef_bc_.setPolicy(ButtonPolicy::OkCancelPolicy);
+	undef_bc_.setCancel(undef_->cancelPB);
+
+	connect(undef_->branchesLW, SIGNAL(itemSelectionChanged()),
+		this, SLOT(unknownBranchSelChanged()));
+	connect(undef_->addSelectedPB, SIGNAL(clicked()),
+		this, SLOT(addUnknown()));
+	connect(undef_->addAllPB, SIGNAL(clicked()),
+		this, SLOT(addAllUnknown()));
+	connect(undef_->addSelectedPB, SIGNAL(clicked()),
+		undef_, SLOT(accept()));
+	connect(undef_->addAllPB, SIGNAL(clicked()),
+		undef_, SLOT(accept()));
+	connect(undef_->cancelPB, SIGNAL(clicked()),
+		undef_, SLOT(reject()));
 }
 
 void GuiBranches::update(BufferParams const & params)
@@ -77,12 +104,21 @@ void GuiBranches::updateView()
 			coloritem.fill(itemcolor);
 			newItem->setIcon(2, QIcon(coloritem));
 		}
+		newItem->setText(3, it->hasFileNameSuffix() ? qt_("Yes") : qt_("No"));
 		// restore selected branch
 		if (bname == sel_branch) {
 			branchesTW->setCurrentItem(newItem);
 			branchesTW->setItemSelected(newItem, true);
 		}
 	}
+	unknownPB->setEnabled(!unknown_branches_.isEmpty());
+	bool const have_sel =
+		!branchesTW->selectedItems().isEmpty();
+	removePB->setEnabled(have_sel);
+	renamePB->setEnabled(have_sel);
+	colorPB->setEnabled(have_sel);
+	activatePB->setEnabled(have_sel);
+	suffixPB->setEnabled(have_sel);
 	// emit signal
 	changed();
 }
@@ -119,9 +155,52 @@ void GuiBranches::on_removePB_pressed()
 }
 
 
+void GuiBranches::on_renamePB_pressed()
+{
+	QTreeWidgetItem * selItem = branchesTW->currentItem();
+	QString sel_branch;
+	if (selItem != 0)
+		sel_branch = selItem->text(0);
+	if (!sel_branch.isEmpty()) {
+		docstring newname;
+		docstring const oldname = qstring_to_ucs4(sel_branch);
+		bool success = false;
+		if (Alert::askForText(newname, _("Enter new branch name"), oldname)) {
+			if (newname.empty() || oldname == newname)
+				return;
+			if (branchlist_.find(newname)) {
+				docstring text = support::bformat(
+					_("A branch with the name \"%1$s\" already exists.\n"
+					  "Do you want to merge branch \"%2$s\" with that one?"),
+					newname, oldname);
+				if (frontend::Alert::prompt(_("Branch already exists"),
+					  text, 0, 1, _("&Merge"), _("&Cancel")) == 0)
+					success = branchlist_.rename(oldname, newname, true);
+			} else
+				success = branchlist_.rename(oldname, newname);
+			newBranchLE->clear();
+			updateView();
+
+			if (!success)
+				Alert::error(_("Renaming failed"), 
+				      _("The branch could not be renamed."));
+			else
+				// emit signal
+				renameBranches(oldname, newname);
+		}
+	}
+}
+
+
 void GuiBranches::on_activatePB_pressed()
 {
 	toggleBranch(branchesTW->currentItem());
+}
+
+
+void GuiBranches::on_suffixPB_pressed()
+{
+	toggleSuffix(branchesTW->currentItem());
 }
 
 
@@ -129,8 +208,22 @@ void GuiBranches::on_branchesTW_itemDoubleClicked(QTreeWidgetItem * item, int co
 {
 	if (col < 2)
 		toggleBranch(item);
-	else
+	else if (col == 2)
 		toggleColor(item);
+	else if (col == 3)
+		toggleSuffix(item);
+}
+
+
+void GuiBranches::on_branchesTW_itemSelectionChanged()
+{
+	bool const have_sel =
+		!branchesTW->selectedItems().isEmpty();
+	removePB->setEnabled(have_sel);
+	renamePB->setEnabled(have_sel);
+	colorPB->setEnabled(have_sel);
+	activatePB->setEnabled(have_sel);
+	suffixPB->setEnabled(have_sel);
 }
 
 
@@ -143,9 +236,8 @@ void GuiBranches::toggleBranch(QTreeWidgetItem * item)
 	if (sel_branch.isEmpty())
 		return;
 
-	bool const selected = (item->text(1) == qt_("Yes"));
 	Branch * branch = branchlist_.find(qstring_to_ucs4(sel_branch));
-	if (branch && branch->setSelected(!selected)) {
+	if (branch && branch->setSelected(!branch->isSelected())) {
 		newBranchLE->clear();
 		updateView();
 	}
@@ -183,7 +275,68 @@ void GuiBranches::toggleColor(QTreeWidgetItem * item)
 	updateView();
 }
 
+
+void GuiBranches::toggleSuffix(QTreeWidgetItem * item)
+{
+	if (item == 0)
+		return;
+
+	QString sel_branch = item->text(0);
+	if (sel_branch.isEmpty())
+		return;
+
+	Branch * branch = branchlist_.find(qstring_to_ucs4(sel_branch));
+	if (branch) {
+		branch->setFileNameSuffix(!branch->hasFileNameSuffix());
+		newBranchLE->clear();
+		updateView();
+	}
+}
+
+
+void GuiBranches::on_unknownPB_pressed()
+{
+	undef_->branchesLW->clear();
+	for (int i = 0; i != unknown_branches_.count(); ++i) {
+		if (branchesTW->findItems(unknown_branches_[i], Qt::MatchExactly, 0).empty())
+			undef_->branchesLW->addItem(unknown_branches_[i]);
+	}
+	unknownBranchSelChanged();
+	undef_->exec();
+}
+
+
+void GuiBranches::addUnknown()
+{
+	QList<QListWidgetItem *> selItems =
+		undef_->branchesLW->selectedItems();
+	
+	QList<QListWidgetItem *>::const_iterator it = selItems.begin();
+	for (; it != selItems.end() ; ++it) {
+		QListWidgetItem const * new_branch = *it;
+		if (new_branch) {
+			branchlist_.add(qstring_to_ucs4(new_branch->text()));
+			updateView();
+		}
+	}
+}
+
+
+void GuiBranches::addAllUnknown()
+{
+	undef_->branchesLW->selectAll();
+	addUnknown();
+}
+
+
+void GuiBranches::unknownBranchSelChanged()
+{
+	undef_->addSelectedPB->setEnabled(
+		!undef_->branchesLW->selectedItems().isEmpty());
+}
+
+
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiBranches_moc.cpp"
+#include "moc_GuiBranches.cpp"

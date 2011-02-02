@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -32,14 +32,12 @@
 #include "support/Package.h"
 
 #include "support/lassert.h"
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #include <memory>
-
-using boost::bind;
 
 using namespace std;
 using namespace lyx::support;
@@ -121,7 +119,7 @@ Buffer * BufferList::newBuffer(string const & s, bool const ronly)
 		}
 	}
 	tmpbuf->params().useClassDefaults();
-	if (tmpbuf->fileName().extension() == "internal") {
+	if (tmpbuf->isInternal()) {
 		binternal.push_back(tmpbuf.get());
 	} else {
 		LYXERR(Debug::INFO, "Assigning to buffer " << bstore.size());
@@ -142,9 +140,12 @@ FileNameList const & BufferList::fileNames() const
 {
 	static FileNameList nvec;
 	nvec.clear();
-	transform(bstore.begin(), bstore.end(),
-		  back_inserter(nvec),
-		  boost::bind(&Buffer::fileName, _1));
+	BufferStorage::const_iterator it = bstore.begin();
+	BufferStorage::const_iterator end = bstore.end();
+	for (; it != end; ++it) {
+		Buffer * buf = *it;
+		nvec.push_back(buf->fileName());
+	}
 	return nvec;
 }
 
@@ -234,8 +235,10 @@ bool BufferList::exists(FileName const & fname) const
 }
 
 
-bool BufferList::isLoaded(Buffer const * b) const
+ bool BufferList::isLoaded(Buffer const * b) const
 {
+	if (!b)
+		return false;
 	BufferStorage::const_iterator cit =
 		find(bstore.begin(), bstore.end(), b);
 	return cit != bstore.end();
@@ -255,12 +258,12 @@ Buffer * BufferList::getBuffer(support::FileName const & fname) const
 {
 	// 1) cheap test, using string comparison of file names
 	BufferStorage::const_iterator it = find_if(bstore.begin(), bstore.end(),
-		bind(equal_to<FileName>(), bind(&Buffer::fileName, _1), fname));
+		lyx::bind(equal_to<FileName>(), lyx::bind(&Buffer::fileName, _1), fname));
 	if (it != bstore.end())
 			return *it;
-	// 2) possibly expensive test, using quivalence test of file names
+	// 2) possibly expensive test, using equivalence test of file names
 	it = find_if(bstore.begin(), bstore.end(),
-		bind(equivalent_to(), bind(&Buffer::fileName, _1), fname));
+		lyx::bind(equivalent_to(), lyx::bind(&Buffer::fileName, _1), fname));
 	return it != bstore.end() ? (*it) : 0;
 }
 
@@ -276,13 +279,13 @@ Buffer * BufferList::getBufferFromTmp(string const & s)
 			if (suffixIs(s, master_name))
 				return *it;
 			// if not, try with the children
-			vector<Buffer *> clist = (*it)->getChildren();
-			vector<Buffer *>::const_iterator cit = clist.begin();
-			vector<Buffer *>::const_iterator cend = clist.end();
-			for (; cit < cend; ++cit) {
+			ListOfBuffers clist = (*it)->getDescendents();
+			ListOfBuffers::const_iterator cit = clist.begin();
+			ListOfBuffers::const_iterator cend = clist.end();
+			for (; cit != cend; ++cit) {
 				string const mangled_child_name = DocFileName(
 					changeExtension((*cit)->absFileName(),
-						".tex")).mangledFilename();
+						".tex")).mangledFileName();
 				if (suffixIs(s, mangled_child_name))
 					return *cit;
 			}
@@ -292,12 +295,12 @@ Buffer * BufferList::getBufferFromTmp(string const & s)
 }
 
 
-void BufferList::setCurrentAuthor(docstring const & name, docstring const & email)
+void BufferList::recordCurrentAuthor(Author const & author)
 {
 	BufferStorage::iterator it = bstore.begin();
 	BufferStorage::iterator end = bstore.end();
 	for (; it != end; ++it)
-		(*it)->params().authors().record(0, Author(name, email));
+		(*it)->params().authors().recordCurrentAuthor(author);
 }
 
 
@@ -319,7 +322,8 @@ bool BufferList::releaseChild(Buffer * parent, Buffer * child)
 	LASSERT(parent->isChild(child), return false);
 
 	// Child document has a different parent, don't close it.
-	if (child->parent() != parent)
+	Buffer const * parent_ = child->parent();
+	if (parent_ && parent_ != parent)
 		return false;
 
 	BufferStorage::iterator it = bstore.begin();
@@ -333,6 +337,19 @@ bool BufferList::releaseChild(Buffer * parent, Buffer * child)
 	}
 	release(child);
 	return true;
+}
+
+
+void BufferList::changed(bool update_metrics) const
+{
+	BufferStorage::const_iterator it = bstore.begin();
+	BufferStorage::const_iterator end = bstore.end();
+	for (; it != end; ++it)
+		(*it)->changed(update_metrics);
+	it = binternal.begin();
+	end = binternal.end();
+	for (; it != end; ++it)
+		(*it)->changed(update_metrics);
 }
 
 

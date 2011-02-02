@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -22,9 +22,12 @@
 #include "LaTeXFeatures.h"
 
 #include "support/debug.h"
+#include "support/docstring.h"
+#include "support/lassert.h"
 
 #include <ostream>
 
+using namespace std;
 
 namespace lyx {
 
@@ -88,16 +91,6 @@ bool InsetMathDecoration::wide() const
 			key_->name == "overleftrightarrow" ||
 			key_->name == "widehat" ||
 			key_->name == "widetilde" ||
-			key_->name == "underleftarrow" ||
-			key_->name == "underrightarrow" ||
-			key_->name == "underleftrightarrow";
-}
-
-
-bool InsetMathDecoration::ams() const
-{
-	return
-			key_->name == "overleftrightarrow" ||
 			key_->name == "underleftarrow" ||
 			key_->name == "underrightarrow" ||
 			key_->name == "underleftrightarrow";
@@ -174,12 +167,131 @@ void InsetMathDecoration::infoize(odocstream & os) const
 }
 
 
-void InsetMathDecoration::validate(LaTeXFeatures & features) const
-{
-	if (ams())
-		features.require("amsmath");
-	InsetMathNest::validate(features);
+namespace {
+	struct Attributes {
+		Attributes() {}
+		Attributes(bool o, string t)
+			: over(o), tag(t) {}
+		bool over;
+		string tag;
+	};
+
+	typedef map<string, Attributes> TranslationMap;
+
+	void buildTranslationMap(TranslationMap & t) {
+		// the decorations we need to support are listed in lib/symbols
+		t["acute"] = Attributes(true, "&acute;");
+		t["bar"]   = Attributes(true, "&OverBar;");
+		t["breve"] = Attributes(true, "&breve;");
+		t["check"] = Attributes(true, "&caron;");
+		t["ddddot"] = Attributes(true, "&DotDot;");
+		t["dddot"] = Attributes(true, "&TripleDot;");
+		t["ddot"] = Attributes(true, "&Dot;");
+		t["dot"] = Attributes(true, "&dot;");
+		t["grave"] = Attributes(true, "&grave;");
+		t["hat"] = Attributes(true, "&circ;");
+		t["mathring"] = Attributes(true, "&ring;");
+		t["overbrace"] = Attributes(true, "&OverBrace;");
+		t["overleftarrow"] = Attributes(true, "&xlarr;");
+		t["overleftrightarrow"] = Attributes(true, "&xharr;");
+		t["overline"] = Attributes(true, "&macr;");
+		t["overrightarrow"] = Attributes(true, "&xrarr;");
+		t["tilde"] = Attributes(true, "&tilde;");
+		t["underbar"] = Attributes(false, "&UnderBar;");
+		t["underbrace"] = Attributes(false, "&UnderBrace;");
+		t["underleftarrow"] = Attributes(false, "&xlarr;");
+		t["underleftrightarrow"] = Attributes(false, "&xharr;");
+		// this is the macron, again, but it works
+		t["underline"] = Attributes(false, "&macr;");
+		t["underrightarrow"] = Attributes(false, "&xrarr;");
+		t["vec"] = Attributes(true, "&rarr;");
+		t["widehat"] = Attributes(true, "&Hat;");
+		t["widetilde"] = Attributes(true, "&Tilde;");
+	}
+
+	TranslationMap const & translationMap() {
+		static TranslationMap t;
+		if (t.empty())
+			buildTranslationMap(t);
+		return t;
+	}
 }
 
+void InsetMathDecoration::mathmlize(MathStream & os) const
+{
+	TranslationMap const & t = translationMap();
+	TranslationMap::const_iterator cur = t.find(to_utf8(key_->name));
+	LASSERT(cur != t.end(), return);
+	char const * const outag = cur->second.over ? "mover" : "munder";
+	os << MTag(outag)
+		 << MTag("mrow") << cell(0) << ETag("mrow")
+		 << from_ascii("<mo stretchy=\"true\">" + cur->second.tag + "</mo>")
+		 << ETag(outag);
+}
+
+
+void InsetMathDecoration::htmlize(HtmlStream & os) const
+{
+	string const name = to_utf8(key_->name);
+	if (name == "bar") {
+		os << MTag("span", "class='overbar'") << cell(0) << ETag("span");
+		return;
+	}
+	
+	if (name == "underbar" || name == "underline") {
+		os << MTag("span", "class='underbar'") << cell(0) << ETag("span");
+		return;
+	}
+
+	TranslationMap const & t = translationMap();
+	TranslationMap::const_iterator cur = t.find(name);
+	LASSERT(cur != t.end(), return);
+	
+	bool symontop = cur->second.over;
+	string const symclass = symontop ? "symontop" : "symonbot";
+	os << MTag("span", "class='symbolpair " + symclass + "'")
+	   << '\n';
+	
+	if (symontop)
+		os << MTag("span", "class='symbol'") << from_ascii(cur->second.tag);
+	else
+		os << MTag("span", "class='base'") << cell(0);
+	os << ETag("span") << '\n';
+	if (symontop)
+		os << MTag("span", "class='base'") << cell(0);
+	else
+		os << MTag("span", "class='symbol'") << from_ascii(cur->second.tag);
+	os << ETag("span") << '\n' << ETag("span") << '\n';
+}
+
+
+// ideas borrowed from the eLyXer code
+void InsetMathDecoration::validate(LaTeXFeatures & features) const
+{
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML) {
+		string const name = to_utf8(key_->name);
+		if (name == "bar") {
+			features.addPreambleSnippet("<style type=\"text/css\">\n"
+				"span.overbar{border-top: thin black solid;}\n"
+				"</style>");
+		} else if (name == "underbar" || name == "underline") {
+			features.addPreambleSnippet("<style type=\"text/css\">\n"
+				"span.underbar{border-bottom: thin black solid;}\n"
+				"</style>");
+		} else {
+			features.addPreambleSnippet("<style type=\"text/css\">\n"
+				"span.symbolpair{display: inline-block; text-align:center;}\n"
+				"span.symontop{vertical-align: top;}\n"
+				"span.symonbot{vertical-align: bottom;}\n"
+				"span.symbolpair span{display: block;}\n"			
+				"span.symbol{height: 0.5ex;}\n"
+				"</style>");
+		}
+	} else {
+		if (!key_->requires.empty())
+			features.require(to_utf8(key_->requires));
+	}
+	InsetMathNest::validate(features);
+}
 
 } // namespace lyx

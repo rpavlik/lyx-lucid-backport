@@ -88,11 +88,11 @@ string const doSubstitution(InsetExternalParams const & params,
 		masterBuffer->temppath() :
 		buffer.filePath();
 	string const filename = external_in_tmpdir ?
-		params.filename.mangledFilename() :
-		params.filename.outputFilename(parentpath);
+		params.filename.mangledFileName() :
+		params.filename.outputFileName(parentpath);
 	string const basename = changeExtension(
-			onlyFilename(filename), string());
-	string const absname = makeAbsPath(filename, parentpath).absFilename();
+			onlyFileName(filename), string());
+	string const absname = makeAbsPath(filename, parentpath).absFileName();
 
 	string result = s;
 	if (what != ALL_BUT_PATHS) {
@@ -160,9 +160,9 @@ string const doSubstitution(InsetExternalParams const & params,
 			    PROTECT_EXTENSION, ESCAPE_DOTS);
 	result = subst_path(result, "$$Extension",
 			'.' + getExtension(filename), use_latex_path);
-	result = subst_path(result, "$$Tempname", params.tempname().absFilename(), use_latex_path);
+	result = subst_path(result, "$$Tempname", params.tempname().absFileName(), use_latex_path);
 	result = subst_path(result, "$$Sysdir",
-				package().system_support().absFilename(), use_latex_path);
+				package().system_support().absFileName(), use_latex_path);
 
 	// Handle the $$Contents(filename) syntax
 	if (contains(result, "$$Contents(\"")) {
@@ -246,7 +246,7 @@ void updateExternal(InsetExternalParams const & params,
 	// We copy the source file to the temp dir and do the conversion
 	// there if necessary
 	FileName const temp_file(
-		makeAbsPath(params.filename.mangledFilename(),
+		makeAbsPath(params.filename.mangledFileName(),
 				     masterBuffer->temppath()));
 	if (!params.filename.empty() && !params.filename.isDirectory()) {
 		unsigned long const from_checksum = params.filename.checksum();
@@ -297,7 +297,7 @@ void updateExternal(InsetExternalParams const & params,
 				// if file is a relative name, it is interpreted
 				// relative to the master document.
 				if (makeAbsPath(file, masterBuffer->filePath()) !=
-					params.filename.absFilename())
+					params.filename.absFileName())
 						exportdata.addExternalFile(rit->first, source, file);
 			}
 		}
@@ -361,13 +361,22 @@ int writeExternal(InsetExternalParams const & params,
 				    use_latex_path, external_in_tmpdir);
 
 	string const absname = makeAbsPath(
-		params.filename.outputFilename(buffer.filePath()), buffer.filePath()).absFilename();
+		params.filename.outputFileName(buffer.filePath()), buffer.filePath()).absFileName();
 
-	if (!external_in_tmpdir && !isValidLaTeXFilename(absname)) {
-		lyx::frontend::Alert::warning(_("Invalid filename"),
-					      _("The following filename is likely to cause trouble "
-						"when running the exported file through LaTeX: ") +
-					      from_utf8(absname));
+	if (!dryrun && !external_in_tmpdir) {
+		if (!isValidLaTeXFileName(absname)) {
+			lyx::frontend::Alert::warning(_("Invalid filename"),
+				         _("The following filename will cause troubles "
+					       "when running the exported file through LaTeX: ") +
+					     from_utf8(absname));
+		}
+		if (!isValidDVIFileName(absname)) {
+			lyx::frontend::Alert::warning(_("Problematic filename for DVI"),
+				         _("The following filename can cause troubles "
+					       "when running the exported file through LaTeX "
+						   "and opening the resulting DVI: ") +
+					     from_utf8(absname), true);
+		}
 	}
 
 	str = substituteCommands(params, str, format);

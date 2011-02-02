@@ -16,12 +16,44 @@
 
 #include "frontends/Clipboard.h"
 
+#include <QMimeData>
 #include <QObject>
+#include <QStringList>
+
+#include <boost/cstdint.hpp>
 
 namespace lyx {
 namespace frontend {
 
 class QMacPasteboardMimeGraphics;
+
+/**
+ *  \class CacheMimeData 
+ * 
+ *  This class is used in order to query the clipboard only once on 
+ *  startup and once each time the contents of the clipboard changes.
+ */
+class CacheMimeData : public QMimeData
+{
+	Q_OBJECT
+public:
+	// LyX calls "on_dataChanged" on startup, so it is not necessary to
+	// query the clipboard here.
+	CacheMimeData()
+	{}
+
+	/// reads the clipboard and updates the cached_formats_
+	void update();
+	/// returns the cached list of formats supported by the object
+	virtual QStringList formats() const { return cached_formats_; }
+	/// reads the clipboard and returns the data
+	QByteArray data(QString const & mimeType) const;
+
+private:
+	/// the cached list of formats supported by the object
+	QStringList cached_formats_;
+};
+
 
 /**
  * The Qt4 version of the Clipboard.
@@ -57,6 +89,11 @@ private:
 	bool text_clipboard_empty_;
 	bool has_lyx_contents_;
 	bool has_graphics_contents_;
+	/// the cached mime data used to describe the information
+	/// that can be stored in the clipboard
+	CacheMimeData cache_;
+	/// checksum for internal clipboard data (used on Mac) 
+	boost::uint32_t checksum;
 };
 
 QString const lyxMimeType();

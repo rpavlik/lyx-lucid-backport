@@ -1,5 +1,5 @@
-#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0beta3 created this file. For more info see http://www.lyx.org/
+\lyxformat 410
 \begin_document
 \begin_header
 \textclass book
@@ -36,18 +36,25 @@
   {LyX}}
 \end_preamble
 \use_default_options false
+\maintain_unincluded_children false
 \language ngerman
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -64,14 +71,23 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue,  filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry true
 \use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Stichwortverzeichnis
+\shortcut idx
+\color #008000
+\end_index
 \leftmargin 3.5cm
 \topmargin 3.5cm
 \rightmargin 3.5cm
@@ -79,27 +95,21 @@
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language german
 \papercolumns 1
 \papersides 2
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
 
 \begin_layout Title
 Das LyX-Tutorium
-\begin_inset Newline newline
-\end_inset
-
-
-\size large
-Version LyX 1.6.x
 \end_layout
 
 \begin_layout Author
@@ -145,11 +155,6 @@ type "mailto:"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Date
-letzte Änderung: 17.
- Januar 2010
 \end_layout
 
 \begin_layout Standard
@@ -582,8 +587,6 @@ DVI
 	filename ../../images/buffer-view_dvi.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
-	clip
 
 \end_inset
 
@@ -626,7 +629,6 @@ DVI
 	filename ../../images/buffer-update_dvi.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -708,7 +710,6 @@ Rückgängig
 \begin_inset Graphics
 	filename ../../images/undo.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -723,7 +724,6 @@ Wiederholen
 \begin_inset Graphics
 	filename ../../images/redo.png
 	scale 70
-	BoundingBox 0bp 4bp 22bp 22bp
 
 \end_inset
 
@@ -749,7 +749,6 @@ den (
 \begin_inset Graphics
 	filename ../../images/cut.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -766,7 +765,6 @@ Kopieren
 \begin_inset Graphics
 	filename ../../images/copy.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -779,7 +777,6 @@ Einfügen
 \begin_inset Graphics
 	filename ../../images/paste.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -810,7 +807,6 @@ Ersetzen\SpecialChar \ldots{}
 \begin_inset Graphics
 	filename ../../images/dialog-show_findreplace.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -834,7 +830,6 @@ Textstil
 \begin_inset Graphics
 	filename ../../images/dialog-show_character.png
 	scale 70
-	BoundingBox 0bp 2bp 20bp 20bp
 
 \end_inset
 
@@ -1022,7 +1017,6 @@ Leerzeichen
 	filename ../../images/math/space.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -1659,7 +1653,6 @@ Auflistung
 \begin_inset Graphics
 	filename ../../images/layout_Itemize.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -1735,7 +1728,6 @@ Aufzählung
 \begin_inset Graphics
 	filename ../../images/layout_Enumerate.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -2105,7 +2097,7 @@ Handbuchergänzungen
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="left" valignment="top" width="0pt">
 <row>
@@ -2352,14 +2344,6 @@ der-Adresse
 .
  Andere, wie etwa 
 \family sans
-Zitat
-\begin_inset space \space{}
-\end_inset
-
-(kurz)
-\family default
- oder 
-\family sans
 Beschreibung
 \family default
  sind ähnlich wie in den anderen Dokumentklassen.
@@ -2551,7 +2535,6 @@ Marke\SpecialChar \ldots{}
 	filename ../../images/label-insert.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -2683,7 +2666,6 @@ Querverweis
 	filename ../../images/dialog-show-new-inset_ref.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -2875,7 +2857,6 @@ Fußnote
 \begin_inset Graphics
 	filename ../../images/footnote-insert.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -2980,7 +2961,6 @@ Kopieren
  Sie den Cursor vor den Fußnotentext stellen und die 
 \begin_inset Graphics
 	filename ../../images/math/leftarrow.png
-	BoundingBox 0bp 4bp 10bp 10bp
 
 \end_inset
 
@@ -3005,7 +2985,6 @@ Randnotiz
 \begin_inset Graphics
 	filename ../../images/marginalnote-insert.png
 	scale 70
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -3073,8 +3052,8 @@ Zumindest in den exakten Wissenschaften ist ein Literaturverzeichnis in
  des Dokumentes, auf die vom Dokument aus verwiesen werden kann.
  Wie auch bei den Kapitelüberschriften vereinfachen LyX und LaTeX die Arbeit
  mit Literaturverzeichnissen dadurch, dass die Einträge automatisch nummeriert
- werden und die Zitate entsprechend verändert werden, wenn sich die Nummerierung
- ändert.
+ werden und die Literaturverweise entsprechend verändert werden, wenn sich
+ die Nummerierung ändert.
 \end_layout
 
 \begin_layout Standard
@@ -3110,30 +3089,29 @@ lyxtutorium
 \end_layout
 
 \begin_layout Standard
-Gehen Sie nun an eine Stelle im Dokument, an der Sie ein Zitat einfügen
- wollen.
+Gehen Sie nun an eine Stelle im Dokument, an der Sie einen Literaturverweis
+ einfügen wollen.
  Tun Sie dies über den Menüpunkt 
 \family sans
 Einfügen\SpecialChar \menuseparator
-Zitat
+Literaturverweis
 \family default
-\SpecialChar \ldots{}
  (
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_citation.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
  ).
  Das Dialogfenster 
 \family sans
-Zitat
+Literaturverweis
 \family default
  wird geöffnet.
- Wenn Sie dann eins der verfügbaren Zitate auswählen und auf 
+ Wenn Sie dann einen der verfügbaren Literaturverweise auswählen und auf
+ 
 \family sans
 Hinzufügen
 \family default
@@ -3143,7 +3121,7 @@ Ausgewählte
 \begin_inset space \space{}
 \end_inset
 
-Zitate:
+Verweise:
 \family default
  geschrieben und mit 
 \family sans
@@ -3174,12 +3152,12 @@ lyxtutorium
 \family typewriter
 DVI
 \family default
--Vorschau zeigt Ihnen, dass das Zitat in eckigen Klammern erscheint und
- auf den Eintrag in der Bibliographie am Textende verweist.
+-Vorschau zeigt Ihnen, dass der Literaturverweis in eckigen Klammern erscheint
+ und auf den Eintrag in der Bibliographie am Textende verweist.
 \end_layout
 
 \begin_layout Standard
-Und die anderen Felder in den Dialogfenstern? Mit dem Eintrag 
+Mit dem Eintrag 
 \family sans
 Text
 \begin_inset space \space{}
@@ -3189,14 +3167,14 @@ danach
 \family default
  im Dialog 
 \family sans
-Zitat
+Literaturverweis
 \family default
  können Sie eine zusätzliche Bemerkung, wie etwa einen Hinweis auf eine
  besondere Seite im referenzierten Dokument, angeben.
  Diese wird, durch ein Komma getrennt, nach der eigentlichen Referenz innerhalb
  der Klammern eingefügt.
- Wenn Sie Ihre Zitate in einer anderen Form anstelle der Nummern haben wollen
- (einige Journale verwenden etwa 
+ Wenn Sie Ihre Literaturverweise in einer anderen Form anstelle der Nummern
+ haben wollen (einige Journale verwenden etwa 
 \begin_inset Quotes gld
 \end_inset
 
@@ -3226,7 +3204,8 @@ Benutzerhandbuch
 \series bold
 Übung:
 \series default
- Korrigieren Sie Literaturverzeichnis und Zitate in der Datei 
+ Korrigieren Sie Literaturverzeichnis und Literaturverweise in der Datei
+ 
 \family typewriter
 bei\SpecialChar \-
 spiel_roh.lyx
@@ -3288,7 +3267,6 @@ Innerhalb von LyX selber wird das Inhaltsverzeichnis in einem Unterfenster
 	filename ../../images/dialog-toggle_toc.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -3415,7 +3393,6 @@ matik-Modus.
 	filename ../../images/math-mode.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -3570,7 +3547,6 @@ Rückgängig
 	filename ../../images/undo.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -3602,7 +3578,6 @@ Rückgängig
 \begin_inset Graphics
 	filename ../../images/undo.png
 	scale 70
-	BoundingBox 0bp 4bp 22bp 22bp
 
 \end_inset
 
@@ -3879,7 +3854,6 @@ Mathe
 	filename ../../images/toolbar-toggle_math.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 22bp 22bp
 
 \end_inset
 
@@ -3901,7 +3875,6 @@ Mathe
 	filename ../../images/toolbar-toggle_math.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 22bp 22bp
 
 \end_inset
 
@@ -3956,7 +3929,6 @@ Wenn Sie auf den Schalter
 	filename ../../images/math/sqrt.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 0bp 20bp 20bp
 
 \end_inset
 
@@ -3987,7 +3959,6 @@ Eine Variable (
 	filename ../../images/math/hat.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 2bp 20bp 20bp
 
 \end_inset
 
@@ -4009,7 +3980,6 @@ Gruppensymbole wie Trennungsstriche, Klammern und Pfeile werden ähnlich,
 	filename ../../images/dialog-show_mathdelimiter.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -4078,11 +4048,11 @@ Sie können auch bereits geschriebene Formeln oder sonstige Ausdrücke mit
  Markieren Sie diese dazu und wählen Sie dann die gewünschten Symbole aus
  dem Menü aus.
  Versuchen Sie doch einmal, so die Gleichung 
-\begin_inset Formula $f=ma$
+\begin_inset Formula $F=ma$
 \end_inset
 
  in ihre vektorielle Form 
-\begin_inset Formula $\overrightarrow{f}=m\overrightarrow{a}$
+\begin_inset Formula $\vec{F}=m\vec{a}$
 \end_inset
 
  umzuschreiben.
@@ -4104,7 +4074,6 @@ Brüche
 	filename ../../images/math/frac-square.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 2bp 12bp 20bp
 
 \end_inset
 
@@ -4153,7 +4122,6 @@ Kontrollfläche
 	filename ../../images/math/frac.png
 	scale 50
 	scaleBeforeRotation
-	BoundingBox 0bp 10bp 12bp 22bp
 
 \end_inset
 
@@ -4185,7 +4153,7 @@ tik-Modus.
 
 \begin_layout Subsection
 TeX-Modus: Grenzwerte, Logarithmen, Trigonometrische Funktionen und anderes
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -4381,7 +4349,6 @@ Um eine Matrix zu erstellen, klicken Sie auf den Schalter
 	filename ../../images/math-matrix.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -4447,7 +4414,6 @@ Spalten
 	filename ../../images/tabular-feature_append-row.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -4456,7 +4422,6 @@ Spalten
 	filename ../../images/tabular-feature_delete-row.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -4465,7 +4430,6 @@ Spalten
 	filename ../../images/tabular-feature_append-column.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -4474,7 +4438,6 @@ Spalten
 	filename ../../images/tabular-feature_delete-column.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -4546,7 +4509,6 @@ Anzeige
 \begin_inset Graphics
 	filename ../../images/math/equation.png
 	scale 70
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -4648,7 +4610,9 @@ beispiel_roh.lyx
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
-\sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0\end{array}\right.\]
+\sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
+\end{array}\right.
+\]
 
 \end_inset
 
@@ -4678,7 +4642,8 @@ DVI
 
 \begin_layout Standard
 \begin_inset Formula \[
-x=y+y+y+y+y\]
+x=y+y+y+y+y
+\]
 
 \end_inset
 
@@ -4687,7 +4652,8 @@ x=y+y+y+y+y\]
 
 \begin_layout Standard
 \begin_inset Formula \[
-=5y\]
+=5y
+\]
 
 \end_inset
 
@@ -4703,7 +4669,8 @@ szeichen untereinander stehen; dies ist besonders wichtig, wenn in der zweiten
 glichkeiten hinsichtlich der Ausrichtung: 
 \begin_inset Formula \begin{eqnarray*}
 x & = & y+y+y+y+y\\
- & = & 5y\end{eqnarray*}
+ & = & 5y
+\end{eqnarray*}
 
 \end_inset
 
@@ -4787,7 +4754,8 @@ Benutzerhandbuch
 
 \begin_inset Formula \begin{eqnarray*}
 x & = & a+b+c+d\\
- &  & +e+f+g\end{eqnarray*}
+ &  & +e+f+g
+\end{eqnarray*}
 
 \end_inset
 
@@ -4847,7 +4815,8 @@ Strg+Tab
 \begin_layout Standard
 \begin_inset Formula \begin{eqnarray*}
 E & = & mc^{2}\\
- & = & mc\times c\end{eqnarray*}
+ & = & mc\times c
+\end{eqnarray*}
 
 \end_inset
 
@@ -5027,7 +4996,6 @@ le\SpecialChar \ldots{}
 \begin_inset Graphics
 	filename ../../images/tabular-insert.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -5051,7 +5019,6 @@ Einstellungen
 	filename ../../images/toolbar-toggle_table.png
 	scale 70
 	scaleBeforeRotation
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -5070,7 +5037,6 @@ Grafik
 \begin_inset Graphics
 	filename ../../images/dialog-show-new-inset_graphics.png
 	scale 70
-	BoundingBox 0bp 4bp 20bp 20bp
 
 \end_inset
 
@@ -5285,7 +5251,6 @@ X
 \begin_inset Graphics
 	filename ../../images/ert-insert.png
 	scale 70
-	BoundingBox 0bp 6bp 20bp 20bp
 
 \end_inset
 
@@ -5776,6 +5741,7 @@ de LaTeX-Meldung ausgegeben und der Cursor im LyX-Fenster in etwa an die
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring Literaturverzeichnis
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "lyxtutorium"

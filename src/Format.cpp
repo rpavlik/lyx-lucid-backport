@@ -24,6 +24,9 @@
 #include "support/lstrings.h"
 #include "support/os.h"
 #include "support/Systemcall.h"
+#include "support/textutils.h"
+
+#include <algorithm>
 
 // FIXME: Q_WS_MACX is not available, it's in Qt
 #ifdef USE_MACOSX_PACKAGING
@@ -100,7 +103,7 @@ bool Format::isChildFormat() const
 {
 	if (name_.empty())
 		return false;
-	return isdigit(name_[name_.length() - 1]);
+	return isDigitASCII(name_[name_.length() - 1]);
 }
 
 
@@ -134,7 +137,7 @@ string Formats::getFormatFromFile(FileName const & filename) const
 		return format;
 
 	// try to find a format from the file extension.
-	string const ext = getExtension(filename.absFilename());
+	string const ext = getExtension(filename.absFileName());
 	if (!ext.empty()) {
 		// this is ambigous if two formats have the same extension,
 		// but better than nothing
@@ -246,13 +249,24 @@ void Formats::setViewer(string const & name, string const & command)
 }
 
 
+void Formats::setEditor(string const & name, string const & command)
+{
+	add(name);
+	FormatList::iterator it =
+		find_if(formatlist.begin(), formatlist.end(),
+			FormatNamesEqual(name));
+	if (it != formatlist.end())
+		it->setEditor(command);
+}
+
+
 bool Formats::view(Buffer const & buffer, FileName const & filename,
 		   string const & format_name) const
 {
 	if (filename.empty() || !filename.exists()) {
 		Alert::error(_("Cannot view file"),
 			bformat(_("File does not exist: %1$s"),
-				from_utf8(filename.absFilename())));
+				from_utf8(filename.absFileName())));
 		return false;
 	}
 
@@ -270,12 +284,12 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 	}
 	// viewer is 'auto'
 	if (format->viewer() == "auto") {
-		if (os::autoOpenFile(filename.absFilename(), os::VIEW))
+		if (os::autoOpenFile(filename.absFileName(), os::VIEW))
 			return true;
 		else {
 			Alert::error(_("Cannot view file"),
 				bformat(_("Auto-view file %1$s failed"),
-					from_utf8(filename.absFilename())));
+					from_utf8(filename.absFileName())));
 			return false;
 		}
 	}
@@ -305,14 +319,9 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 	buffer.message(_("Executing command: ") + from_utf8(command));
 
 	Systemcall one;
-	int const res = one.startscript(Systemcall::DontWait, command);
+	one.startscript(Systemcall::DontWait, command);
 
-	if (res) {
-		Alert::error(_("Cannot view file"),
-			     bformat(_("An error occurred whilst running %1$s"),
-			       makeDisplayPath(command, 50)));
-		return false;
-	}
+	// we can't report any sort of error, since we aren't waiting
 	return true;
 }
 
@@ -323,15 +332,15 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 	if (filename.empty() || !filename.exists()) {
 		Alert::error(_("Cannot edit file"),
 			bformat(_("File does not exist: %1$s"),
-				from_utf8(filename.absFilename())));
+				from_utf8(filename.absFileName())));
 		return false;
 	}
 
 	// LinkBack files look like PDF, but have the .linkback extension
-	string const ext = getExtension(filename.absFilename());
+	string const ext = getExtension(filename.absFileName());
 	if (format_name == "pdf" && ext == "linkback") {
 #ifdef USE_MACOSX_PACKAGING
-		return editLinkBackFile(filename.absFilename().c_str());
+		return editLinkBackFile(filename.absFileName().c_str());
 #else
 		Alert::error(_("Cannot edit file"),
 			     _("LinkBack files can only be edited on Apple Mac OSX."));
@@ -354,12 +363,12 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 	
 	// editor is 'auto'
 	if (format->editor() == "auto") {
-		if (os::autoOpenFile(filename.absFilename(), os::EDIT))
+		if (os::autoOpenFile(filename.absFileName(), os::EDIT))
 			return true;
 		else {
 			Alert::error(_("Cannot edit file"),
 				bformat(_("Auto-edit file %1$s failed"),
-					from_utf8(filename.absFilename())));
+					from_utf8(filename.absFileName())));
 			return false;
 		}
 	}
@@ -377,14 +386,9 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 	buffer.message(_("Executing command: ") + from_utf8(command));
 
 	Systemcall one;
-	int const res = one.startscript(Systemcall::DontWait, command);
+	one.startscript(Systemcall::DontWait, command);
 
-	if (res) {
-		Alert::error(_("Cannot edit file"),
-			     bformat(_("An error occurred whilst running %1$s"),
-			       makeDisplayPath(command, 50)));
-		return false;
-	}
+	// we can't report any sort of error, since we aren't waiting
 	return true;
 }
 

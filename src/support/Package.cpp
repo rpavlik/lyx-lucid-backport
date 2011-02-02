@@ -18,6 +18,7 @@
 #include "support/ExceptionMessage.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
+#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 
@@ -56,10 +57,6 @@ void init_package(string const & command_line_arg0,
 		  string const & command_line_user_support_dir,
 		  exe_build_dir_to_top_build_dir top_build_dir_location)
 {
-	// Can do so only once.
-	if (initialised_)
-		return;
-
 	package_ = Package(command_line_arg0,
 			   command_line_system_support_dir,
 			   command_line_user_support_dir,
@@ -70,10 +67,7 @@ void init_package(string const & command_line_arg0,
 
 Package const & package()
 {
-	// Commented out because package().locale_dir() can be called
-	// from the message translation code in Messages.cpp before
-	// init_package() is called. Lars is on the case...
-	// LASSERT(initialised_, /**/);
+	LASSERT(initialised_, /**/);
 	return package_;
 }
 
@@ -120,12 +114,7 @@ Package::Package(string const & command_line_arg0,
 	document_dir_ = get_document_dir(home_dir_);
 
 	FileName const abs_binary = abs_path_from_binary_name(command_line_arg0);
-	string const bdir = onlyPath(abs_binary.absFilename());
-	// We may be using libtools
-	if (suffixIs(bdir, ".libs/"))
-		binary_dir_ = FileName(addPath(bdir, "../"));
-	else
-		binary_dir_ = FileName(bdir);
+	binary_dir_ = FileName(onlyPath(abs_binary.absFileName()));
 
 	// Is LyX being run in-place from the build tree?
 	buildDirs(abs_binary, top_build_dir_location,
@@ -136,6 +125,24 @@ Package::Package(string const & command_line_arg0,
 			get_system_support_dir(abs_binary,
 					       command_line_system_support_dir);
 
+	// The LyX executable is one level above binary_dir_ if we are running
+	// tex2lyx in place. Otherwise it is in binary_dir_.
+	string abs_lyx_dir;
+	if (build_support_dir_.empty() ||
+	    top_build_dir_location == top_build_dir_is_one_level_up)
+		abs_lyx_dir = binary_dir_.absFileName();
+	else {
+		FileName fn(addPath(binary_dir_.absFileName(), "../"));
+		abs_lyx_dir = fn.realPath();
+	}
+	// The LyX executable may have a package suffix if we are not running
+	// in place.
+	if (build_support_dir_.empty())
+		lyx_binary_ = FileName(addName(abs_lyx_dir,
+		                               "lyx" + string(PROGRAM_SUFFIX)));
+	else
+		lyx_binary_ = FileName(addName(abs_lyx_dir, "lyx"));
+
 	locale_dir_ = get_locale_dir(system_support_dir_);
 
 	FileName const default_user_support_dir =
@@ -144,20 +151,20 @@ Package::Package(string const & command_line_arg0,
 	explicit_user_support_dir_ = userSupportDir(default_user_support_dir,
 				     command_line_user_support_dir, user_support_dir_);
 
-	FileName const configure_script(addName(system_support().absFilename(), "configure.py"));
+	FileName const configure_script(addName(system_support().absFileName(), "configure.py"));
 	configure_command_ = os::python() + ' ' +
-			quoteName(configure_script.toFilesystemEncoding()) +
+			quoteName(configure_script.toFilesystemEncoding(), quote_python) +
 			with_version_suffix();
 
 	LYXERR(Debug::INIT, "<package>\n"
-		<< "\tbinary_dir " << binary_dir().absFilename() << '\n'
-		<< "\tsystem_support " << system_support().absFilename() << '\n'
-		<< "\tbuild_support " << build_support().absFilename() << '\n'
-		<< "\tuser_support " << user_support().absFilename() << '\n'
-		<< "\tlocale_dir " << locale_dir().absFilename() << '\n'
-		<< "\tdocument_dir " << document_dir().absFilename() << '\n'
-		<< "\ttemp_dir " << temp_dir().absFilename() << '\n'
-		<< "\thome_dir " << home_dir().absFilename() << '\n'
+		<< "\tbinary_dir " << binary_dir().absFileName() << '\n'
+		<< "\tsystem_support " << system_support().absFileName() << '\n'
+		<< "\tbuild_support " << build_support().absFileName() << '\n'
+		<< "\tuser_support " << user_support().absFileName() << '\n'
+		<< "\tlocale_dir " << locale_dir().absFileName() << '\n'
+		<< "\tdocument_dir " << document_dir().absFileName() << '\n'
+		<< "\ttemp_dir " << temp_dir().absFileName() << '\n'
+		<< "\thome_dir " << home_dir().absFileName() << '\n'
 		<< "</package>\n");
 }
 
@@ -275,17 +282,14 @@ void buildDirs(FileName const & abs_binary,
 	FileName binary = abs_binary;
 	while (true) {
 		// Try and find "lyxrc.defaults".
-		string binary_dir = onlyPath(binary.absFilename());
-		// We may be using libtools with static linking.
-		if (suffixIs(binary_dir, ".libs/"))
-			binary_dir = addPath(binary_dir, "../");
+		string binary_dir = onlyPath(binary.absFileName());
 		build_support_dir = buildSupportDir(binary_dir, top_build_dir_location);
-		if (!fileSearch(build_support_dir.absFilename(), "Makefile").empty()) {
+		if (!fileSearch(build_support_dir.absFileName(), "Makefile").empty()) {
 			// Try and find "chkconfig.ltx".
 			system_support_dir =
-				FileName(addPath(Package::top_srcdir().absFilename(), "lib"));
+				FileName(addPath(Package::top_srcdir().absFileName(), "lib"));
 
-			if (!fileSearch(system_support_dir.absFilename(), "chkconfig.ltx").empty()) {
+			if (!fileSearch(system_support_dir.absFileName(), "chkconfig.ltx").empty()) {
 				LYXERR(Debug::INIT, check_text << " yes");
 				return;
 			}
@@ -352,7 +356,7 @@ FileName const get_locale_dir(FileName const & system_support_dir)
 	// 2. Search for system_support_dir / <relative locale dir>
 	// The <relative locale dir> is OS-dependent. (On Unix, it will
 	// be "../locale/".)
-	FileName path(addPath(system_support_dir.absFilename(),
+	FileName path(addPath(system_support_dir.absFileName(),
 		relative_locale_dir()));
 
 	if (path.exists() && path.isDirectory())
@@ -402,7 +406,7 @@ FileName const get_binary_path(string const & exe)
 
 	// 2. exe must be the name of the binary only and it
 	// can be found on the PATH.
-	string const exe_name = onlyFilename(exe_path);
+	string const exe_name = onlyFileName(exe_path);
 	if (exe_name != exe_path)
 		return FileName();
 
@@ -411,7 +415,7 @@ FileName const get_binary_path(string const & exe)
 	vector<string>::const_iterator const end = path.end();
 	for (; it != end; ++it) {
 		// This will do nothing if *it is already absolute.
-		string const exe_dir = makeAbsPath(*it).absFilename();
+		string const exe_dir = makeAbsPath(*it).absFileName();
 
 		FileName const exe_path(addName(exe_dir, exe_name));
 		if (exe_path.exists())
@@ -455,7 +459,7 @@ get_system_support_dir(FileName const & abs_binary,
 	FileName path = abs_path_from_command_line(command_line_system_support_dir);
 	if (!path.empty()) {
 		searched_dirs.push_back(path);
-		if (check_command_line_dir(path.absFilename(), chkconfig_ltx, "-sysdir"))
+		if (check_command_line_dir(path.absFileName(), chkconfig_ltx, "-sysdir"))
 			return path;
 	}
 
@@ -479,12 +483,12 @@ get_system_support_dir(FileName const & abs_binary,
 	FileName binary = abs_binary;
 	while (true) {
 		// Try and find "chkconfig.ltx".
-		string const binary_dir = onlyPath(binary.absFilename());
+		string const binary_dir = onlyPath(binary.absFileName());
 
 		FileName const lyxdir(addPath(binary_dir, relative_lyxdir));
 		searched_dirs.push_back(lyxdir);
 
-		if (!fileSearch(lyxdir.absFilename(), chkconfig_ltx).empty()) {
+		if (!fileSearch(lyxdir.absFileName(), chkconfig_ltx).empty()) {
 			// Success! "chkconfig.ltx" has been found.
 			return lyxdir;
 		}
@@ -504,7 +508,7 @@ get_system_support_dir(FileName const & abs_binary,
 	}
 
 	// 4. Repeat the exercise on the directory itself.
-	FileName binary_dir(onlyPath(abs_binary.absFilename()));
+	FileName binary_dir(onlyPath(abs_binary.absFileName()));
 	while (true) {
 		// This time test whether the directory is a symbolic link
 		// *before* looking for "chkconfig.ltx".
@@ -521,11 +525,11 @@ get_system_support_dir(FileName const & abs_binary,
 		}
 
 		// Try and find "chkconfig.ltx".
-		FileName const lyxdir(addPath(binary_dir.absFilename(),
+		FileName const lyxdir(addPath(binary_dir.absFileName(),
 			relative_lyxdir));
 		searched_dirs.push_back(lyxdir);
 
-		if (!fileSearch(lyxdir.absFilename(), chkconfig_ltx).empty()) {
+		if (!fileSearch(lyxdir.absFileName(), chkconfig_ltx).empty()) {
 			// Success! "chkconfig.ltx" has been found.
 			return lyxdir;
 		}
@@ -533,7 +537,7 @@ get_system_support_dir(FileName const & abs_binary,
 
 	// 5. In desparation, try the hard-coded system support dir.
 	path = hardcoded_system_support_dir();
-	if (!fileSearch(path.absFilename(), chkconfig_ltx).empty())
+	if (!fileSearch(path.absFileName(), chkconfig_ltx).empty())
 		return path;
 
 	// Everything has failed :-(
@@ -545,7 +549,7 @@ get_system_support_dir(FileName const & abs_binary,
 	for (iterator it = begin; it != end; ++it) {
 		if (it != begin)
 			searched_dirs_str += "\n\t";
-		searched_dirs_str += it->absFilename();
+		searched_dirs_str += it->absFileName();
 	}
 
 	// FIXME UNICODE
@@ -617,7 +621,7 @@ FileName const get_default_user_support_dir(FileName const & home_dir)
 	return FileName(addPath(reinterpret_cast<char const *>(store), PACKAGE));
 
 #else // USE_POSIX_PACKAGING
-	return FileName(addPath(home_dir.absFilename(), string(".") + PACKAGE));
+	return FileName(addPath(home_dir.absFileName(), string(".") + PACKAGE));
 #endif
 }
 
@@ -655,13 +659,13 @@ bool check_env_var_dir(FileName const & dir,
 		       string const & file,
 		       string const & env_var)
 {
-	FileName const abs_path = fileSearch(dir.absFilename(), file);
+	FileName const abs_path = fileSearch(dir.absFileName(), file);
 	if (abs_path.empty()) {
 		// FIXME UNICODE
 		throw ExceptionMessage(WarningException, _("File not found"), bformat(
 			_("Invalid %1$s environment variable.\n"
 				"Directory %2$s does not contain %3$s."),
-			from_utf8(env_var), from_utf8(dir.absFilename()),
+			from_utf8(env_var), from_utf8(dir.absFileName()),
 			from_utf8(file)));
 	}
 
@@ -686,7 +690,7 @@ bool check_env_var_dir(FileName const & dir,
 			_("Invalid %1$s environment variable.\n%2$s is not a directory.");
 
 		throw ExceptionMessage(WarningException, _("Directory not found"), bformat(
-			fmt, from_utf8(env_var), from_utf8(dir.absFilename())));
+			fmt, from_utf8(env_var), from_utf8(dir.absFileName())));
 	}
 
 	return success;

@@ -31,10 +31,10 @@ void WorkAreaManager::remove(WorkArea * wa)
 }
 
 
-void WorkAreaManager::redrawAll()
+void WorkAreaManager::redrawAll(bool update_metrics)
 {
 	for (iterator it = work_areas_.begin(); it != work_areas_.end(); ++it)
-		(*it)->redraw();
+		(*it)->redraw(update_metrics);
 }
 
 
@@ -43,13 +43,6 @@ void WorkAreaManager::closeAll()
 	while (!work_areas_.empty())
 		// WorkArea is de-registering itself.
 		(*work_areas_.begin())->close();
-}
-
-
-void WorkAreaManager::setReadOnly(bool on)
-{
-	for (iterator it = work_areas_.begin(); it != work_areas_.end(); ++it)
-		(*it)->setReadOnly(on);
 }
 
 

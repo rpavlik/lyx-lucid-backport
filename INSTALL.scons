@@ -30,13 +30,13 @@ Prerequisites:
 --------------
 
 * Python:
-  Python >= 1.5.2 is required to run scons, but Python >= 2.3 is used by
+  Python >= 2.6.0 is required to run scons, but Python >= 2.3.4 is used by
   lyx itself so the newer version is needed. Python is widely
   available on non-windows systems. Windows users can download and install
   python from http://www.python.org.
 
 * SCons:
-  scons >= 0.96.92 is needed. You can either use a full system-wide scons
+  scons >= 1.1.0 is needed. You can either use a full system-wide scons
   distribution or a light-weight one (called scons-local) installed along
   with the lyx source tree. Both variants of scons are freely available
   from http://www.scons.org. Note that LyX source may ship with scons-base
@@ -92,7 +92,7 @@ Components to use/build:
     one.
   * gettext=included/system/auto
   * nls=yes/no whether or not enable natural language support.
-  * spell=aspell/pspell/ispell/auto: spell engine
+  * spell=aspell/auto: spell engine
 
 
 Paths: Most of them will be probed if not specified.
@@ -256,21 +256,15 @@ extra_inc_path etc is needed.
 4. Windows/cygwin
 =================
 
-LyX should be easy to compile, but you must use the most recent cygwin
-dll (version 1.5.20-1 as of July 2006) because qt library in older
-cygwin distribution does not work with previous versions due to broken
-threading support.
-
 To build lyx for cygwin, you should
 
   * install (using the cygwin setup program) at least the following
     packages and all other packages pulled in by dependencies:
 
-    aspell        gzip       libiconv     qt4-bin
-    aspell-dev    jpeg       libpng       qt4-devel
-    gcc           libintl    libpng2
-    gettext       libintl1   jpeg
-    gettext-devel libintl2   python
+    aspell        gzip             libiconv           libQtGui4
+    aspell-dev    gettext          libpng             libQtGui4-devel
+    gcc           gettext-devel    libQtCore4         pkg-config
+    gcc4          libintl8         libQtCore4-devel   python
 
   * install aiksaurus (http://aiksaurus.sourceforge.net/, optional):
     There is no cygwin package for aiksaurus, so you should build it from

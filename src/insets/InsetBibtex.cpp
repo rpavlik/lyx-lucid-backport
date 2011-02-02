@@ -13,16 +13,20 @@
 
 #include "InsetBibtex.h"
 
+#include "BiblioInfo.h"
 #include "Buffer.h"
 #include "BufferParams.h"
+#include "Cursor.h"
 #include "DispatchResult.h"
 #include "Encoding.h"
 #include "Format.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "Language.h"
 #include "LaTeXFeatures.h"
-#include "MetricsInfo.h"
+#include "output_xhtml.h"
 #include "OutputParams.h"
+#include "PDFOptions.h"
 #include "TextClass.h"
 
 #include "frontends/alert.h"
@@ -31,6 +35,7 @@
 #include "support/debug.h"
 #include "support/docstream.h"
 #include "support/ExceptionMessage.h"
+#include "support/FileNameList.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
@@ -49,18 +54,17 @@ namespace Alert = frontend::Alert;
 namespace os = support::os;
 
 
-InsetBibtex::InsetBibtex(Buffer const & buf, InsetCommandParams const & p)
-	: InsetCommand(p, "bibtex")
+InsetBibtex::InsetBibtex(Buffer * buf, InsetCommandParams const & p)
+	: InsetCommand(buf, p)
 {
-	Inset::setBuffer(const_cast<Buffer &>(buf));
-	buffer_->invalidateBibinfoCache();
+	buffer().invalidateBibinfoCache();
 }
 
 
 InsetBibtex::~InsetBibtex()
 {
-	if (isBufferValid())
-		buffer_->invalidateBibinfoCache();
+	if (isBufferLoaded())
+		buffer().invalidateBibfileCache();
 }
 
 
@@ -78,7 +82,7 @@ ParamInfo const & InsetBibtex::findInfo(string const & /* cmdName */)
 
 void InsetBibtex::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_EDIT:
 		editDatabases();
@@ -87,22 +91,23 @@ void InsetBibtex::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_MODIFY: {
 		InsetCommandParams p(BIBTEX_CODE);
 		try {
-			if (!InsetCommand::string2params("bibtex", 
-					to_utf8(cmd.argument()), p)) {
-				cur.noUpdate();
+			if (!InsetCommand::string2params(to_utf8(cmd.argument()), p)) {
+				cur.noScreenUpdate();
 				break;
 			}
 		} catch (ExceptionMessage const & message) {
 			if (message.type_ == WarningException) {
 				Alert::warning(message.title_, message.details_);
-				cur.noUpdate();
+				cur.noScreenUpdate();
 			} else 
 				throw message;
 			break;
 		}
-		//
+
+		cur.recordUndo();
 		setParams(p);
-		buffer().updateBibfilesCache();
+		buffer().invalidateBibfileCache();
+		cur.forceBufferUpdate();
 		break;
 	}
 
@@ -116,7 +121,7 @@ void InsetBibtex::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetBibtex::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_EDIT:
 		flag.setEnabled(true);
 		return true;
@@ -149,7 +154,7 @@ void InsetBibtex::editDatabases() const
 	vector<docstring>::const_iterator it = bibfilelist.begin();
 	vector<docstring>::const_iterator en = bibfilelist.end();
 	for (; it != en; ++it) {
-		FileName bibfile = getBibTeXPath(*it, buffer());
+		FileName const bibfile = getBibTeXPath(*it, buffer());
 		formats.edit(buffer(), bibfile,
 		     formats.getFormatFromFile(bibfile));
 	}
@@ -218,7 +223,7 @@ docstring InsetBibtex::toolTip(BufferView const & /*bv*/, int /*x*/, int /*y*/) 
 static string normalizeName(Buffer const & buffer,
 	OutputParams const & runparams, string const & name, string const & ext)
 {
-	string const fname = makeAbsPath(name, buffer.filePath()).absFilename();
+	string const fname = makeAbsPath(name, buffer.filePath()).absFileName();
 	if (FileName::isAbsolute(name) || !FileName(fname + ext).isReadableFile())
 		return name;
 	if (!runparams.nice)
@@ -268,10 +273,9 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 
 		if (!runparams.inComment && !runparams.dryrun && !runparams.nice &&
 		    not_from_texmf) {
-
-			// mangledFilename() needs the extension
+			// mangledFileName() needs the extension
 			DocFileName const in_file = DocFileName(try_in_file);
-			database = removeExtension(in_file.mangledFilename());
+			database = removeExtension(in_file.mangledFileName());
 			FileName const out_file = makeAbsPath(database + ".bib",
 					buffer().masterBuffer()->temppath());
 
@@ -281,12 +285,20 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 				       << "' to '" << out_file << "'"
 				       << endl;
 			}
-		} else if (!runparams.inComment && runparams.nice && not_from_texmf &&
-			   !isValidLaTeXFilename(database)) {
+		} else if (!runparams.inComment && runparams.nice && not_from_texmf) {
+			if (!isValidLaTeXFileName(database)) {
 				frontend::Alert::warning(_("Invalid filename"),
-						         _("The following filename is likely to cause trouble "
-							   "when running the exported file through LaTeX: ") +
-							    from_utf8(database));
+				         _("The following filename will cause troubles "
+					       "when running the exported file through LaTeX: ") +
+					     from_utf8(database));
+			}
+			if (!isValidDVIFileName(database)) {
+				frontend::Alert::warning(_("Problematic filename for DVI"),
+				         _("The following filename can cause troubles "
+					       "when running the exported file through LaTeX "
+						   "and opening the resulting DVI: ") +
+					     from_utf8(database), true);
+			}
 		}
 
 		if (didone)
@@ -303,7 +315,6 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 	if (!warned_about_spaces &&
 	    runparams.nice && db_out.find(' ') != docstring::npos) {
 		warned_about_spaces = true;
-
 		Alert::warning(_("Export Warning!"),
 			       _("There are spaces in the paths to your BibTeX databases.\n"
 					      "BibTeX will be unable to find them."));
@@ -316,7 +327,6 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 		if (contains(style, ','))
 			style = split(style, bibtotoc, ',');
 	}
-
 
 	// line count
 	int nlines = 0;
@@ -334,7 +344,7 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 		    not_from_texmf) {
 			// use new style name
 			DocFileName const in_file = DocFileName(try_in_file);
-			base = removeExtension(in_file.mangledFilename());
+			base = removeExtension(in_file.mangledFileName());
 			FileName const out_file = makeAbsPath(base + ".bst",
 					buffer().masterBuffer()->temppath());
 			bool const success = in_file.copyTo(out_file);
@@ -373,16 +383,12 @@ int InsetBibtex::latex(odocstream & os, OutputParams const & runparams) const
 
 	// bibtotoc-Option
 	if (!bibtotoc.empty() && !buffer().params().use_bibtopic) {
-		if (buffer().params().documentClass().hasLaTeXLayout("chapter")) {
-			if (buffer().params().sides == OneSide) {
-				// oneside
-				os << "\\clearpage";
-			} else {
-				// twoside
-				os << "\\cleardoublepage";
-			}
+		// set label for hyperref, see http://www.lyx.org/trac/ticket/6470
+		if (buffer().params().pdfoptions().use_hyperref)
+				os << "\\phantomsection";
+		if (buffer().params().documentClass().hasLaTeXLayout("chapter"))
 			os << "\\addcontentsline{toc}{chapter}{\\bibname}";
-		} else if (buffer().params().documentClass().hasLaTeXLayout("section"))
+		else if (buffer().params().documentClass().hasLaTeXLayout("section"))
 			os << "\\addcontentsline{toc}{section}{\\refname}";
 	}
 
@@ -477,7 +483,7 @@ namespace {
 	/// @return true if a string of length > 0 could be read.
 	///
 	bool readTypeOrKey(docstring & val, ifdocstream & ifs,
-		docstring const & delimChars, docstring const &illegalChars, 
+		docstring const & delimChars, docstring const & illegalChars, 
 		charCase chCase) {
 
 		char_type ch;
@@ -550,13 +556,13 @@ namespace {
 				return false;
 
 			// check for field type
-			if (isDigit(ch)) {
+			if (isDigitASCII(ch)) {
 
 				// read integer value
 				do {
 					val += ch;
 					ifs.get(ch);
-				} while (ifs && isDigit(ch));
+				} while (ifs && isDigitASCII(ch));
 
 				if (!ifs)
 					return false;
@@ -605,16 +611,19 @@ namespace {
 							break;
 						case '}':
 							--nestLevel;
-							if (nestLevel < 0) return false;
+							if (nestLevel < 0) 
+								return false;
 							break;
 					}
 
-					ifs.get(ch);
+					if (ifs)
+						ifs.get(ch);
 				}
 
 				if (!ifs)
 					return false;
 
+				// FIXME Why is this here?
 				ifs.get(ch);
 
 				if (!ifs)
@@ -661,9 +670,13 @@ namespace {
 }
 
 
-// This method returns a comma separated list of Bibtex entries
-void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
-	InsetIterator const & /*di*/) const
+void InsetBibtex::collectBibKeys(InsetIterator const & /*di*/) const
+{
+	parseBibTeXFiles();
+}
+
+
+void InsetBibtex::parseBibTeXFiles() const
 {
 	// This bibtex parser is a first step to parse bibtex files
 	// more precisely.
@@ -683,6 +696,9 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 	// We don't restrict keys to ASCII in LyX, since our own
 	// InsetBibitem can generate non-ASCII keys, and nonstandard
 	// 8bit clean bibtex forks exist.
+
+	BiblioInfo keylist;
+
 	support::FileNameList const files = getBibFiles();
 	support::FileNameList::const_iterator it = files.begin();
 	support::FileNameList::const_iterator en = files.end();
@@ -705,12 +721,12 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 			docstring entryType;
 
 			if (!readTypeOrKey(entryType, ifs, from_ascii("{("), docstring(), makeLowerCase)) {
-				lyxerr << "InsetBibtex::fillWithBibKeys: Error reading entry type." << std::endl;
+				lyxerr << "BibTeX Parser: Error reading entry type." << std::endl;
 				continue;
 			}
 
 			if (!ifs) {
-				lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+				lyxerr << "BibTeX Parser: Unexpected end of file." << std::endl;
 				continue;
 			}
 
@@ -721,12 +737,12 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 
 			ifs.get(ch);
 			if (!ifs) {
-				lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+				lyxerr << "BibTeX Parser: Unexpected end of file." << std::endl;
 				break;
 			}
 
 			if ((ch != '(') && (ch != '{')) {
-				lyxerr << "InsetBibtex::fillWithBibKeys: Invalid entry delimiter." << std::endl;
+				lyxerr << "BibTeX Parser: Invalid entry delimiter." << std::endl;
 				ifs.putback(ch);
 				continue;
 			}
@@ -740,25 +756,25 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 				docstring value;
 
 				if (!readTypeOrKey(name, ifs, from_ascii("="), from_ascii("#{}(),"), makeLowerCase)) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Error reading string name." << std::endl;
+					lyxerr << "BibTeX Parser: Error reading string name." << std::endl;
 					continue;
 				}
 
 				if (!ifs) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+					lyxerr << "BibTeX Parser: Unexpected end of file." << std::endl;
 					continue;
 				}
 
 				// next char must be an equal sign
 				ifs.get(ch);
 				if (!ifs || ch != '=') {
-					lyxerr << "InsetBibtex::fillWithBibKeys: No `=' after string name: " << 
+					lyxerr << "BibTeX Parser: No `=' after string name: " << 
 							name << "." << std::endl;
 					continue;
 				}
 
 				if (!readValue(value, ifs, strings)) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read value for string: " << 
+					lyxerr << "BibTeX Parser: Unable to read value for string: " << 
 							name << "." << std::endl;
 					continue;
 				}
@@ -772,7 +788,7 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 				docstring value;
 
 				if (!readValue(value, ifs, strings)) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read preamble value." << std::endl;
+					lyxerr << "BibTeX Parser: Unable to read preamble value." << std::endl;
 					continue;
 				}
 
@@ -782,13 +798,13 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 				docstring key;
 
 				if (!readTypeOrKey(key, ifs, from_ascii(","), from_ascii("}"), keepCase)) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read key for entry type:" << 
+					lyxerr << "BibTeX Parser: Unable to read key for entry type:" << 
 							entryType << "." << std::endl;
 					continue;
 				}
 
 				if (!ifs) {
-					lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+					lyxerr << "BibTeX Parser: Unexpected end of file." << std::endl;
 					continue;
 				}
 
@@ -800,10 +816,8 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
  				// all items must be separated by a comma. If
  				// it is missing the scanning of this entry is
  				// stopped and the next is searched.
-				docstring fields;
 				docstring name;
 				docstring value;
-				docstring commaNewline;
 				docstring data;
 				BibTeXInfo keyvalmap(key, entryType);
 				
@@ -817,13 +831,14 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 						break;
 
 					// next char must be an equal sign
+					// FIXME Whitespace??
 					ifs.get(ch);
 					if (!ifs) {
-						lyxerr << "InsetBibtex::fillWithBibKeys: Unexpected end of file." << std::endl;
+						lyxerr << "BibTeX Parser: Unexpected end of file." << std::endl;
 						break;
 					}
 					if (ch != '=') {
-						lyxerr << "InsetBibtex::fillWithBibKeys: Missing `=' after field name: " <<
+						lyxerr << "BibTeX Parser: Missing `=' after field name: " <<
 								name << ", for key: " << key << "." << std::endl;
 						ifs.putback(ch);
 						break;
@@ -831,7 +846,7 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 
 					// read field value
 					if (!readValue(value, ifs, strings)) {
-						lyxerr << "InsetBibtex::fillWithBibKeys: Unable to read value for field: " <<
+						lyxerr << "BibTeX Parser: Unable to read value for field: " <<
 								name << ", for key: " << key << "." << std::endl;
 						break;
 					}
@@ -849,6 +864,8 @@ void InsetBibtex::fillWithBibKeys(BiblioInfo & keylist,
 			} //< else (citation entry)
 		} //< searching '@'
 	} //< for loop over files
+
+	buffer().addBiblioInfo(keylist);
 }
 
 
@@ -900,10 +917,87 @@ void InsetBibtex::validate(LaTeXFeatures & features) const
 {
 	if (features.bufferParams().use_bibtopic)
 		features.require("bibtopic");
+	// FIXME XHTML
+	// It'd be better to be able to get this from an InsetLayout, but at present
+	// InsetLayouts do not seem really to work for things that aren't InsetTexts.
+	if (features.runparams().flavor == OutputParams::HTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"div.bibtexentry { margin-left: 2em; text-indent: -2em; }\n"
+			"span.bibtexlabel:before{ content: \"[\"; }\n"
+			"span.bibtexlabel:after{ content: \"] \"; }\n"
+			"</style>");
 }
 
 
-docstring InsetBibtex::contextMenu(BufferView const &, int, int) const
+// FIXME 
+// docstring InsetBibtex::entriesAsXHTML(vector<docstring> const & entries)
+// And then here just: entriesAsXHTML(buffer().masterBibInfo().citedEntries())
+docstring InsetBibtex::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	BiblioInfo const & bibinfo = buffer().masterBibInfo();
+	vector<docstring> const & cites = bibinfo.citedEntries();
+	CiteEngine const engine = buffer().params().citeEngine();
+	bool const numbers = 
+		(engine == ENGINE_BASIC || engine == ENGINE_NATBIB_NUMERICAL);
+
+	docstring reflabel = from_ascii("References");
+	Language const * l = buffer().params().language;
+	if (l)
+		reflabel = translateIfPossible(reflabel, l->code());
+		
+	xs << html::StartTag("h2", "class='bibtex'")
+		<< reflabel
+		<< html::EndTag("h2")
+		<< html::StartTag("div", "class='bibtex'");
+
+	// Now we loop over the entries
+	vector<docstring>::const_iterator vit = cites.begin();
+	vector<docstring>::const_iterator const ven = cites.end();
+	for (; vit != ven; ++vit) {
+		BiblioInfo::const_iterator const biit = bibinfo.find(*vit);
+		if (biit == bibinfo.end())
+			continue;
+		BibTeXInfo const & entry = biit->second;
+		xs << html::StartTag("div", "class='bibtexentry'");
+		// FIXME XHTML
+		// The same name/id problem we have elsewhere.
+		string const attr = "id='" + to_utf8(entry.key()) + "'";
+		xs << html::CompTag("a", attr);
+		docstring citekey;
+		if (numbers)
+			citekey = entry.citeNumber();
+		else {
+			docstring const auth = entry.getAbbreviatedAuthor();
+			// we do it this way so as to access the xref, if necessary
+			// note that this also gives us the modifier
+			docstring const year = bibinfo.getYear(*vit, true);
+			if (!auth.empty() && !year.empty())
+				citekey = auth + ' ' + year;
+		}
+		if (citekey.empty()) {
+			citekey = entry.label();
+			if (citekey.empty())
+				citekey = entry.key();
+		}
+		xs << html::StartTag("span", "class='bibtexlabel'")
+			<< citekey
+			<< html::EndTag("span");
+		// FIXME Right now, we are calling BibInfo::getInfo on the key,
+		// which will give us all the cross-referenced info. But for every
+		// entry, so there's a lot of repitition. This should be fixed.
+		xs << html::StartTag("span", "class='bibtexinfo'") 
+			<< XHTMLStream::ESCAPE_AND
+			<< bibinfo.getInfo(entry.key(), buffer(), true)
+			<< html::EndTag("span")
+			<< html::EndTag("div");
+		xs.cr();
+	}
+	xs << html::EndTag("div");
+	return docstring();
+}
+
+
+docstring InsetBibtex::contextMenuName() const
 {
 	return from_ascii("context-bibtex");
 }

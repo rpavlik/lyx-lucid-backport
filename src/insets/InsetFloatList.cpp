@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -17,10 +17,12 @@
 #include "DispatchResult.h"
 #include "Floating.h"
 #include "FloatList.h"
-#include "FuncRequest.h"
+#include "Font.h"
+#include "Language.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
-#include "MetricsInfo.h"
+#include "Paragraph.h"
+#include "output_xhtml.h"
 #include "TextClass.h"
 #include "TocBackend.h"
 
@@ -36,13 +38,13 @@ using namespace lyx::support;
 namespace lyx {
 
 
-InsetFloatList::InsetFloatList()
-	: InsetCommand(InsetCommandParams(FLOAT_LIST_CODE), "toc")
+InsetFloatList::InsetFloatList(Buffer * buf)
+	: InsetCommand(buf, InsetCommandParams(FLOAT_LIST_CODE))
 {}
 
 
-InsetFloatList::InsetFloatList(string const & type)
-	: InsetCommand(InsetCommandParams(FLOAT_LIST_CODE), "toc")
+InsetFloatList::InsetFloatList(Buffer * buf, string const & type)
+	: InsetCommand(buf, InsetCommandParams(FLOAT_LIST_CODE))
 {
 	setParam("type", from_ascii(type));
 }
@@ -117,23 +119,21 @@ int InsetFloatList::latex(odocstream & os, OutputParams const &) const
 	FloatList::const_iterator cit = floats[to_ascii(getParam("type"))];
 
 	if (cit != floats.end()) {
-		if (cit->second.builtin()) {
-			// Only two different types allowed here:
-			string const type = cit->second.type();
-			if (type == "table") {
-				os << "\\listoftables\n";
-			} else if (type == "figure") {
-				os << "\\listoffigures\n";
-			} else {
-				os << "%% unknown builtin float\n";
-			}
-		} else {
+		Floating const & fl = cit->second;
+		if (fl.needsFloatPkg())
 			os << "\\listof{" << getParam("type") << "}{"
-			   << buffer().B_(cit->second.listName()) << "}\n";
+			   << buffer().B_(fl.listName()) << "}\n"; 
+		else {
+			if (!fl.listCommand().empty())
+				os << "\\" << from_ascii(fl.listCommand()) << "\n";
+			else 
+				os << "%% "
+				   << bformat(_("LyX cannot generate a list of %1$s"), getParam("type"))
+				   << "\n";
 		}
 	} else {
 		os << "%%\\listof{" << getParam("type") << "}{"
-		   << bformat(_("List of %1$s"), from_utf8(cit->second.name()))
+		   << bformat(_("List of %1$s"), getParam("type"))
 		   << "}\n";
 	}
 	return 1;
@@ -147,6 +147,100 @@ int InsetFloatList::plaintext(odocstream & os, OutputParams const &) const
 	buffer().tocBackend().writePlaintextTocList(to_ascii(getParam("type")), os);
 
 	return PLAINTEXT_NEWLINE;
+}
+
+
+docstring InsetFloatList::xhtml(XHTMLStream &, OutputParams const &) const {
+	FloatList const & floats = buffer().params().documentClass().floats();
+	FloatList::const_iterator cit = floats[to_ascii(getParam("type"))];
+
+	if (cit == floats.end()) {
+		LYXERR0("Unknown float type `" << getParam("type") << "' in IFL::xhtml.");
+		return docstring();
+	}
+
+	string toctype;
+	docstring toclabel;
+	// FIXME
+	// Other builtin floats should be handled here. But I'm not sure if that is
+	// even possible yet, since I'm not sure if we have a TOC for such things.
+	// If so, then they should define ListName, as non-builtin floats do, and
+	// then we can use that. 
+	// Really, all floats should define that.
+	if (!cit->second.needsFloatPkg()) {
+		// Only two different types allowed here:
+		string const type = cit->second.floattype();
+		if (type == "table") {
+			toctype = "table";
+			toclabel = _("List of Tables");
+		} else if (type == "figure") {
+			toctype = "figure";
+			toclabel = _("List of Figures");
+		} else {
+			LYXERR0("Unknown Builtin Float!");
+			return docstring();
+		}
+	} else {
+		toctype = to_utf8(getParam("type"));
+		toclabel = buffer().B_(cit->second.listName());
+	}
+
+	// FIXME Do we need to check if it exists? If so, we need a new
+	// routine in TocBackend to do that.
+	Toc const & toc = buffer().tocBackend().toc(toctype);
+	if (toc.empty())
+		return docstring();
+
+	// we want to look like a chapter, section, or whatever.
+	// so we're going to look for the layout with the minimum toclevel
+	// number > 0---because we don't want Part. 
+	// we'll take the first one, just because.
+	// FIXME This could be specified in the layout file.
+	DocumentClass const & dc = buffer().params().documentClass();
+	TextClass::LayoutList::const_iterator lit = dc.begin();
+	TextClass::LayoutList::const_iterator len = dc.end();
+	int minlevel = 1000;
+	Layout const * lay = NULL;
+	for (; lit != len; ++lit) {
+		int const level = lit->toclevel;
+		if (level > 0 && (level == Layout::NOT_IN_TOC || level >= minlevel))
+			continue;
+		lay = &*lit;
+		minlevel = level;
+	}
+	
+	string const tocclass = lay ? " " + lay->defaultCSSClass(): "";
+	string const tocattr = "class='tochead + toc-" + toctype + " " + tocclass + "'";
+	
+	// we'll use our own stream, because we are going to defer everything.
+	// that's how we deal with the fact that we're probably inside a standard
+	// paragraph, and we don't want to be.
+	odocstringstream ods;
+	XHTMLStream xs(ods);
+
+	xs << html::StartTag("div", "class='toc'");
+	xs << html::StartTag("div", tocattr) 
+		 << toclabel 
+		 << html::EndTag("div");
+	
+	Toc::const_iterator it = toc.begin();
+	Toc::const_iterator const en = toc.end();
+	for (; it != en; ++it) {
+		Paragraph const & par = it->dit().innerParagraph();
+		string const attr = "class='lyxtoc-" + toctype + "'";
+		Font const dummy;
+		xs << html::StartTag("div", attr);
+		string const parattr = "href='#" + par.magicLabel() + "' class='tocarrow'";
+		xs << it->str() << " "
+		   << html::StartTag("a", parattr)
+		   // FIXME XHTML 
+		   // There ought to be a simple way to customize this.
+		   << XHTMLStream::ESCAPE_NONE << "&gt;"
+		   << html::EndTag("a");
+		xs << html::EndTag("div");
+	}
+	xs << html::EndTag("div");
+	return ods.str();
 }
 
 

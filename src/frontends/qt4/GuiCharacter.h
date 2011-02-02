@@ -37,6 +37,12 @@ enum FontState {
 	///
 	NOUN_TOGGLE,
 	///
+	STRIKEOUT_TOGGLE,
+	///
+	UULINE_TOGGLE,
+	///
+	UWAVE_TOGGLE,
+	///
 	INHERIT
 };
 
@@ -60,7 +66,7 @@ protected Q_SLOTS:
 	void change_adaptor();
 
 private:
-	/// Dialog inherited methods
+	/// \name Dialog inherited methods
 	//@{
 	void applyView();
 	void updateContents();

@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -35,9 +35,15 @@ public:
 	///
 	void normalize(NormalStream & ns) const;
 	///
+	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
+	///
 	void infoize(odocstream & os) const;
 	///
 	void validate(LaTeXFeatures & features) const;
+	///
+	InsetCode lyxCode() const { return MATH_BOX_CODE; }
 
 private:
 	Inset * clone() const { return new InsetMathBox(*this); }
@@ -62,7 +68,13 @@ public:
 	/// write normalized content
 	void normalize(NormalStream & ns) const;
 	///
+	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
+	///
 	void infoize(odocstream & os) const;
+	///
+	void validate(LaTeXFeatures & features) const;
 private:
 	///
 	Inset * clone() const { return new InsetMathFBox(*this); }
@@ -83,9 +95,15 @@ public:
 	/// write normalized content
 	void normalize(NormalStream & ns) const;
 	///
+	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
+	///
 	mode_type currentMode() const { return TEXT_MODE; }
 	///
 	void infoize(odocstream & os) const;
+	///
+	void validate(LaTeXFeatures & features) const;
 private:
 	Inset * clone() const { return new InsetMathMakebox(*this); }
 	///
@@ -107,6 +125,10 @@ public:
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
 	void write(WriteStream & os) const;
+	///
+	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
 	/// write normalized content
 	void normalize(NormalStream & ns) const;
 	///

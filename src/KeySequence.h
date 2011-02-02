@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  *
  * Full author contact details are available in file CREDITS.
@@ -82,9 +82,6 @@ public:
 	 */
 	docstring const printOptions(bool forgui) const;
 
-	/// Mark the sequence as deleted.
-	void mark_deleted();
-
 	/// Reset sequence to become "deleted"
 	void reset();
 
@@ -99,13 +96,13 @@ public:
 	/// length of sequence
 	size_t length() const { return sequence.size(); }
 
+private:
 	/// Keymap to use if a new sequence is starting
 	KeyMap * stdmap;
 
 	/// Keymap to use for the next key
 	KeyMap * curmap;
 
-private:
 	/**
 	 * Array holding the current key sequence as KeySyms.
 	 * If sequence[length - 1] < 0xff it can be used as ISO8859 char

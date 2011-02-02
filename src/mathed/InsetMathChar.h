@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -21,8 +21,6 @@ class InsetMathChar : public InsetMath {
 public:
 	///
 	explicit InsetMathChar(char_type c);
-	///
-	void setBuffer(Buffer &) {}
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
@@ -44,12 +42,16 @@ public:
 	void octave(OctaveStream & os) const;
 	///
 	void mathmlize(MathStream & ms) const;
+	///
+	void htmlize(HtmlStream & ms) const;
 	/// identifies Charinsets
 	InsetMathChar const * asCharInset() const { return this; }
 	///
 	char_type getChar() const { return char_; }
 	///
 	bool isRelOp() const;
+	///
+	InsetCode lyxCode() const { return MATH_CHAR_CODE; }
 
 private:
 	virtual Inset * clone() const;

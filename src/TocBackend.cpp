@@ -25,7 +25,7 @@
 #include "ParIterator.h"
 #include "TextClass.h"
 
-#include "insets/InsetOptArg.h"
+#include "insets/InsetArgument.h"
 
 #include "support/convert.h"
 #include "support/debug.h"
@@ -77,6 +77,12 @@ docstring const & TocItem::tooltip() const
 docstring const TocItem::asString() const
 {
 	return docstring(4 * depth_, ' ') + str_;
+}
+
+
+DocIterator const & TocItem::dit() const
+{
+	return dit_;
 }
 
 
@@ -136,11 +142,11 @@ bool TocBackend::updateItem(DocIterator const & dit)
 	InsetList::const_iterator end = par.insetList().end();
 	for (; it != end; ++it) {
 		Inset & inset = *it->inset;
-		if (inset.lyxCode() == OPTARG_CODE) {
+		if (inset.lyxCode() == ARG_CODE) {
 			if (!tocstring.empty())
 				break;
 			Paragraph const & inset_par =
-				*static_cast<InsetOptArg&>(inset).paragraphs().begin();
+				*static_cast<InsetArgument&>(inset).paragraphs().begin();
 			if (!par.labelString().empty())
 				tocstring = par.labelString() + ' ';
 			tocstring += inset_par.asString(AS_STR_INSETS);
@@ -163,8 +169,10 @@ bool TocBackend::updateItem(DocIterator const & dit)
 void TocBackend::update()
 {
 	tocs_.clear();
-	DocIterator dit;
-	buffer_->inset().addToToc(dit);
+	if (!buffer_->isInternal()) {
+		DocIterator dit;
+		buffer_->inset().addToToc(dit);
+	}
 }
 
 

@@ -30,34 +30,56 @@ class Lexer;
 class Language {
 public:
 	///
-	Language() : rightToLeft_(false) {}
-	///
+	Language() : rightToLeft_(false), translated_(false) {}
+	/// LyX language name
 	std::string const & lang() const { return lang_; }
-	///
+	/// Babel language name
 	std::string const & babel() const { return babel_; }
-	///
+	/// polyglossia language name
+	std::string const & polyglossia() const { return polyglossia_name_; }
+	/// polyglossia language options
+	std::string const & polyglossiaOpts() const { return polyglossia_opts_; }
+	/// translatable GUI name
 	std::string const & display() const { return display_; }
-	///
+	/// is this a RTL language?
 	bool rightToLeft() const { return rightToLeft_; }
-	///
+	/// Is an (at least partial) translation of this language available?
+	bool translated() const { return translated_; }
+	/// default encoding
 	Encoding const * encoding() const { return encoding_; }
 	///
 	std::string const & encodingStr() const { return encodingStr_; }
-	///
+	/// language code
 	std::string const & code() const { return code_; }
-	///
+	/// set code (needed for rc.spellchecker_alt_lang)
+	void setCode(std::string const c) { code_ = c; }
+	/// language variety (needed by aspell checker)
 	std::string const & variety() const { return variety_; }
-	///
-	std::string const & latex_options() const { return latex_options_; }
-	///
-	bool internalFontEncoding() const;
+	/// set variety (needed for rc.spellchecker_alt_lang)
+	void setVariety(std::string const v) { variety_ = v; }
+	/// preamble settings after babel was called
+	std::string const & babel_postsettings() const { return babel_postsettings_; }
+	/// preamble settings before babel is called
+	std::string const & babel_presettings() const { return babel_presettings_; }
+	/// This language internally sets a font encoding
+	bool internalFontEncoding() const { return internal_enc_; }
+	/// This language needs to be passed to babel itself (not the class)
+	bool asBabelOptions() const { return as_babel_options_; }
 	///
 	bool read(Lexer & lex);
+	///
+	bool readLanguage(Lexer & lex);
+	// for the use in std::map
+	friend bool operator<(Language const & p, Language const & q);
 private:
 	///
 	std::string lang_;
 	///
 	std::string babel_;
+	///
+	std::string polyglossia_name_;
+	///
+	std::string polyglossia_opts_;
 	///
 	std::string display_;
 	///
@@ -67,14 +89,27 @@ private:
 	///
 	Encoding const * encoding_;
 	///
-	std::string codeStr_;
-	///
 	std::string code_;
 	///
 	std::string variety_;
 	///
-	std::string latex_options_;
+	std::string babel_postsettings_;
+	///
+	std::string babel_presettings_;
+	///
+	bool internal_enc_;
+	///
+	bool as_babel_options_;
+	///
+	bool translated_;
 };
+
+
+inline bool operator<(Language const & p, Language const & q)
+{
+	return q.lang() > p.lang();
+}
+
 
 class Languages
 {

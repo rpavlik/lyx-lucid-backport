@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -21,15 +21,19 @@ namespace lyx {
 class InsetCaption : public InsetText {
 public:
 	///
-	InsetCaption(Buffer const &);
+	InsetCaption(Buffer *);
 	///
 	std::string const & type() const { return type_; }
+	///
+	docstring name() const;
 	/// return the mandatory argument (LaTeX format) only
 	int getArgument(odocstream & os, OutputParams const &) const;
 	/// return the optional argument(s) only
 	int getOptArg(odocstream & os, OutputParams const &) const;
 	/// return the caption text
-	int getCaptionText(odocstream & os, OutputParams const &) const;
+	int getCaptionAsPlaintext(odocstream & os, OutputParams const &) const;
+	/// return the caption text as HTML
+	docstring getCaptionAsHTML(XHTMLStream & os, OutputParams const &) const;
 private:
 	///
 	void write(std::ostream & os) const;
@@ -42,14 +46,14 @@ private:
 	///
 	InsetCode lyxCode() const { return CAPTION_CODE; }
 	///
-	docstring editMessage() const;
-	///
 	void cursorPos(BufferView const & bv,
 		CursorSlice const & sl, bool boundary, int & x, int & y) const;
 	///
 	bool descendable(BufferView const &) const { return true; }
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
+	///	
+	void drawBackground(PainterInfo & pi, int x, int y) const;
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -61,13 +65,15 @@ private:
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	int latex(odocstream & os, OutputParams const &) const;
 	///
 	int plaintext(odocstream & os, OutputParams const & runparams) const;
 	///
 	int docbook(odocstream & os, OutputParams const & runparams) const;
+	/// 
+	docstring xhtml(XHTMLStream & os, OutputParams const & runparams) const;
 	///
 	void setCustomLabel(docstring const & label);
 	///

@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  * \author Abdelrazak Younes
  *
@@ -45,9 +45,6 @@ public:
 	std::pair<pit_type, ParagraphMetrics const *> first() const;
 	///
 	std::pair<pit_type, ParagraphMetrics const *> last() const;
-
-	///
-	int parPosition(pit_type pit) const;
 
 	///
 	Dimension const & dimension() const { return dim_; }
@@ -102,7 +99,7 @@ public:
 	int descent() const { return dim_.des; }
 	/// current text width.
 	int width() const { return dim_.wid; }
-	/// current text heigth.
+	/// current text height.
 	int height() const { return dim_.height(); }
 
 	///
@@ -144,10 +141,10 @@ private:
 
 	/// sets row.end to the pos value *after* which a row should break.
 	/// for example, the pos after which isNewLine(pos) == true
-	pit_type rowBreakPoint(
+	pos_type rowBreakPoint(
 		int width,
 		pit_type const pit,
-		pit_type first
+		pos_type first
 		) const;
 
 	/// returns the minimum space a row needs on the screen in pixel
@@ -157,10 +154,6 @@ private:
 		pos_type const first,
 		pos_type const end
 		) const;
-
-	/// draw selection for a single row
-	void drawRowSelection(PainterInfo & pi, int x, Row const & row,
-		Cursor const & cur, pit_type const pit) const;
 
 // Temporary public:
 public:
@@ -195,7 +188,7 @@ public:
 	\param x,y are absolute screen coordinates.
 	\param assert_in_view if true the cursor will be set on a row
            that is completely visible
-	\param up whether we are going up or down (only used when
+    \param up whether we are going up or down (only used when
            assert_in_view is true
 	\retval inset is non-null if the cursor is positionned inside
 	*/

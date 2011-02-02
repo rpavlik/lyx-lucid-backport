@@ -6,13 +6,13 @@
     February 2007
 
 This file is mainly intended for those who have no or little experience using 
-.po files, but want to contribute by translating the LyX interface into their 
-native language.
+.po files, but want to contribute by translating the LyX interface (i.e. menu
+and dialog items, console messages) into their native language.
 
 
 1) WHERE DO I START?
 
-The file you need to edit it an xx.po file where xx stands for your language's
+The file you need to edit is an xx.po file where xx stands for your language's
 two letter code. For a list of languages codes look at:
 
   http://www.gnu.org/software/gettext/manual/html_mono/gettext.html#Language-Codes
@@ -21,6 +21,12 @@ If you want to start from scratch then you should obtain a copy of the lyx.pot
 and name it after your language. German would be for example de.po and Polish
 pl.po. This file is generated in the "po" directory of the source tree during
 the compilation.
+
+There are basically two source trees you can start to work with - trunk
+(development version) and branch (stable version). Unless the development
+version is shortly before release it is better idea to start your translating
+work on the stable version. If you have no idea how to get those trees you
+can follow http://www.lyx.org/HowToUseSVN page.
 
 
 2) HOW DO I EDIT PO FILES?
@@ -105,9 +111,8 @@ files run make update-po.
 
 Send your edited xx.po file to po-updates@lyx.org.
 
-Also you can check
-http://www.lyx.org/trac/browser/lyx-devel/branches/BRANCH_1_6_X/po
-to track changes or watch updates.
+Also you can check http://www.lyx.org/trac/browser/lyx-devel/trunk to track
+changes or watch updates.
 
 
 8) REFERENCES

@@ -31,7 +31,7 @@
  *   parameters);
  * - with Qt/Mac or Qt/Win, the dialogs native to the environment are used.
  * - with Qt/Win and Qt <= 4.3.0, there was a number of bugs with our own
- *   file dialog (http://bugzilla.lyx.org/show_bug.cgi?id=3907).
+ *   file dialog (http://www.lyx.org/trac/ticket/3907).
  *
  * Therefore there is a tradeoff in enabling or disabling this (JMarc)
  */
@@ -170,7 +170,7 @@ FileDialog::Result FileDialog::opendir(QString const & path,
 
 #ifdef USE_NATIVE_FILEDIALOG
 	QString const startsWith = toqstr(makeAbsPath(fromqstr(suggested),
-		fromqstr(path)).absFilename());
+		fromqstr(path)).absFileName());
 	QString const dir = QFileDialog::getExistingDirectory(qApp->focusWidget(),
 		title_, startsWith);
 	if (dir.isNull())

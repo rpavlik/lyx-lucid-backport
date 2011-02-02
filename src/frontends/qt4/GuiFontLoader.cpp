@@ -36,7 +36,7 @@ using namespace std;
 using namespace lyx::support;
 
 QString const math_fonts[] = {"cmex10", "cmmi10", "cmr10", "cmsy10",
-	"eufm10", "msam10", "msbm10", "wasy10", "esint10"};
+	"esint10", "eufm10", "msam10", "msbm10", "rsfs10", "wasy10"};
 int const num_math_fonts = sizeof(math_fonts) / sizeof(*math_fonts);
 
 namespace lyx {
@@ -77,6 +77,7 @@ SymbolFont symbol_fonts[] = {
 	{ MSA_FAMILY,   "msam10", "-*-msam10-*-*-*-*-*-*-*-*-*-*-*-*" },
 	{ MSB_FAMILY,   "msbm10", "-*-msbm10-*-*-*-*-*-*-*-*-*-*-*-*" },
 	{ EUFRAK_FAMILY,"eufm10", "-*-eufm10-medium-*-*-*-*-*-*-*-*-*-*-*" },
+	{ RSFS_FAMILY,  "rsfs10", "-*-rsfs10-medium-*-*-*-*-*-*-*-*-*-*-*" },
 	{ WASY_FAMILY,  "wasy10", "-*-wasy10-medium-*-*-*-*-*-*-*-*-*-*-*" },
 	{ ESINT_FAMILY, "esint10","-*-esint10-medium-*-*-*-*-*-*-*-*-*-*-*" }
 };
@@ -199,7 +200,7 @@ QFont symbolFont(QString const & family, bool * ok)
 FontLoader::FontLoader()
 {
 	QString const fonts_dir =
-		toqstr(addPath(package().system_support().absFilename(), "fonts"));
+		toqstr(addPath(package().system_support().absFileName(), "fonts"));
 
 	for (int i = 0 ; i < num_math_fonts; ++i) {
 		QString const font_file = fonts_dir + '/' + math_fonts[i] + ".ttf";
@@ -258,13 +259,13 @@ GuiFontInfo::GuiFontInfo(FontInfo const & f)
 		switch (f.family()) {
 		case ROMAN_FAMILY: {
 			QString family = makeFontName(toqstr(lyxrc.roman_font_name),
-																		toqstr(lyxrc.roman_font_foundry)); 
+				toqstr(lyxrc.roman_font_foundry)); 
 			font.setFamily(family);
 #ifdef Q_WS_MACX
-#if QT_VERSION >= 0x040300
-			// Workaround for a Qt bug, see http://bugzilla.lyx.org/show_bug.cgi?id=3684
-			// It is reported to Trolltech at 02/06/07 against 4.3 final.
-			// FIXME: Add an upper version limit as soon as the bug is fixed in Qt.
+#if QT_VERSION >= 0x040300 //&& QT_VERSION < 0x040800
+			// Workaround for a Qt bug, see http://www.lyx.org/trac/ticket/3684
+			// and http://bugreports.qt.nokia.com/browse/QTBUG-11145.
+			// FIXME: Check whether this is really fixed in Qt 4.8
 			if (family == "Times" && !font.exactMatch())
 				font.setFamily("Times New Roman");
 #endif

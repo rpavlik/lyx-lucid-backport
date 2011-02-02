@@ -29,6 +29,7 @@
 #include "LyXRC.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_latex.h"
 
 #include "frontends/alert.h"
 #include "frontends/Application.h"
@@ -44,7 +45,7 @@
 #include "support/lyxlib.h"
 #include "support/Translator.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <sstream>
 
@@ -70,7 +71,7 @@ TempName::TempName()
 {
 	FileName const tempname = FileName::tempName("lyxext");
 	// must have an extension for the converter code to work correctly.
-	tempname_ = FileName(tempname.absFilename() + ".tmp");
+	tempname_ = FileName(tempname.absFileName() + ".tmp");
 }
 
 
@@ -160,7 +161,7 @@ void InsetExternalParams::write(Buffer const & buf, ostream & os) const
 	   << "\ttemplate " << templatename() << '\n';
 
 	if (!filename.empty())
-		os << "\tfilename " << filename.outputFilename(buf.filePath()) << '\n';
+		os << "\tfilename " << filename.outputFileName(buf.filePath()) << '\n';
 
 	if (!display)
 		os << "\tdisplay false\n";
@@ -364,13 +365,13 @@ bool InsetExternalParams::read(Buffer const & buffer, Lexer & lex)
 }
 
 
-InsetExternal::InsetExternal(Buffer & buf)
-	: renderer_(new RenderButton)
+InsetExternal::InsetExternal(Buffer * buf)
+	: Inset(buf), renderer_(new RenderButton)
 {
-	Inset::setBuffer(buf);
 }
 
 
+// Mouse hover is not copied and remains empty
 InsetExternal::InsetExternal(InsetExternal const & other)
 	: Inset(other),
 	  boost::signals::trackable(),
@@ -382,6 +383,19 @@ InsetExternal::InsetExternal(InsetExternal const & other)
 InsetExternal::~InsetExternal()
 {
 	hideDialogs("external", this);
+
+	map<BufferView const *, bool>::iterator it = mouse_hover_.begin();
+	map<BufferView const *, bool>::iterator end = mouse_hover_.end();
+	for (; it != end; ++it)
+		if (it->second)
+			it->first->clearLastInset(this);
+}
+
+
+bool InsetExternal::setMouseHover(BufferView const * bv, bool mouse_hover)
+{
+	mouse_hover_[bv] = mouse_hover;
+	return true;
 }
 
 
@@ -393,7 +407,7 @@ void InsetExternal::statusChanged() const
 
 void InsetExternal::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_EDIT: {
 		InsetExternalParams p =  params();
@@ -406,6 +420,7 @@ void InsetExternal::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_MODIFY: {
 		InsetExternalParams p;
 		string2params(to_utf8(cmd.argument()), buffer(), p);
+		cur.recordUndo();
 		setParams(p);
 		break;
 	}
@@ -413,13 +428,6 @@ void InsetExternal::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_INSET_DIALOG_UPDATE:
 		cur.bv().updateDialog("external",
 			params2string(params(), cur.bv().buffer()));
-		break;
-
-	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection() && cmd.button() == mouse_button::button1)
-			cur.bv().showDialog("external",
-				params2string(params(), cur.bv().buffer()),
-				this);
 		break;
 
 	default:
@@ -431,7 +439,7 @@ void InsetExternal::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetExternal::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_EDIT:
 	case LFUN_INSET_MODIFY:
@@ -445,11 +453,11 @@ bool InsetExternal::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-void InsetExternal::edit(Cursor & cur, bool, EntryDirection)
+bool InsetExternal::showInsetDialog(BufferView * bv) const
 {
-	cur.bv().showDialog("external",
-		params2string(params(), cur.bv().buffer()),
-		this);
+	bv->showDialog("external", params2string(params(), bv->buffer()),
+		const_cast<InsetExternal *>(this));
+	return true;
 }
 
 
@@ -461,6 +469,8 @@ void InsetExternal::metrics(MetricsInfo & mi, Dimension & dim) const
 
 void InsetExternal::draw(PainterInfo & pi, int x, int y) const
 {
+	if (renderer_->asButton())
+		renderer_->setRenderState(mouse_hover_[pi.base.bv]);
 	renderer_->draw(pi, x, y);
 }
 
@@ -578,7 +588,7 @@ void InsetExternal::setParams(InsetExternalParams const & p)
 		RenderMonitoredPreview * preview_ptr = renderer_->asMonitoredPreview();
 		renderer_.reset(new RenderMonitoredPreview(this));
 		preview_ptr = renderer_->asMonitoredPreview();
-		preview_ptr->fileChanged(boost::bind(&InsetExternal::fileChanged, this));
+		preview_ptr->fileChanged(bind(&InsetExternal::fileChanged, this));
 		if (preview_ptr->monitoring())
 			preview_ptr->stopMonitoring();
 		add_preview_and_start_loading(*preview_ptr, *this, buffer());
@@ -630,7 +640,7 @@ int InsetExternal::latex(odocstream & os, OutputParams const & runparams) const
 	if (params_.draft) {
 		// FIXME UNICODE
 		os << "\\fbox{\\ttfamily{}"
-		   << from_utf8(params_.filename.outputFilename(buffer().filePath()))
+		   << from_utf8(params_.filename.outputFileName(buffer().filePath()))
 		   << "}\n";
 		return 1;
 	}
@@ -690,6 +700,16 @@ int InsetExternal::docbook(odocstream & os,
 }
 
 
+docstring InsetExternal::xhtml(XHTMLStream  & /*xs*/,
+			OutputParams const & /*rp*/) const
+{
+//	external::writeExternal(params_, "XHTML", buffer(), os,
+//				       *(runparams.exportdata), false,
+//				       runparams.dryrun || runparams.inComment);
+	return docstring();
+}
+
+
 void InsetExternal::validate(LaTeXFeatures & features) const
 {
 	if (params_.draft)
@@ -706,11 +726,19 @@ void InsetExternal::validate(LaTeXFeatures & features) const
 	case OutputParams::LATEX:
 		format = "LaTeX";
 		break;
+	case OutputParams::LUATEX:
 	case OutputParams::PDFLATEX:
+	case OutputParams::XETEX:
 		format = "PDFLaTeX";
 		break;
 	case OutputParams::XML:
 		format = "DocBook";
+		break;
+	case OutputParams::HTML:
+		format = "html";
+		break;
+	case OutputParams::TEXT:
+		format = "text";
 		break;
 	}
 	external::Template::Formats::const_iterator cit =
@@ -762,7 +790,7 @@ void InsetExternal::addPreview(DocIterator const & /*inset_pos*/,
 }
 
 
-docstring InsetExternal::contextMenu(BufferView const &, int, int) const
+docstring InsetExternal::contextMenuName() const
 {
 	return from_ascii("context-external");
 }

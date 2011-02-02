@@ -14,7 +14,6 @@
 
 #include "InsetCollapsable.h"
 
-
 namespace lyx {
 
 class InsetBranchParams {
@@ -43,18 +42,18 @@ class InsetBranch : public InsetCollapsable
 {
 public:
 	///
-	InsetBranch(Buffer const &, InsetBranchParams const &);
-	///
-	~InsetBranch();
+	InsetBranch(Buffer *, InsetBranchParams const &);
 
 	///
 	static std::string params2string(InsetBranchParams const &);
 	///
 	static void string2params(std::string const &, InsetBranchParams &);
+	///
+	docstring branch() const { return params_.branch; }
+	///
+	void rename(docstring const & newname) { params_.branch = newname; }
 
 private:
-	///
-	docstring editMessage() const;
 	///
 	InsetCode lyxCode() const { return BRANCH_CODE; }
 	///
@@ -66,25 +65,27 @@ private:
 	///
 	ColorCode backgroundColor(PainterInfo const &) const;
 	///
-	bool showInsetDialog(BufferView *) const;
-	///
 	int latex(odocstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
-	void tocString(odocstream &) const;
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t) const;
 	///
 	void validate(LaTeXFeatures &) const;
+	///
+	docstring contextMenuName() const;
 	///
 	void addToToc(DocIterator const &);
 	///
 	InsetBranchParams const & params() const { return params_; }
 	///
 	void setParams(InsetBranchParams const & params) { params_ = params; }
-	///
-	virtual bool usePlainLayout() { return false; }
 
 	/** \returns true if params_.branch is listed as 'selected' in
 	    \c buffer. This handles the case of child documents.

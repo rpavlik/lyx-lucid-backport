@@ -1,9 +1,9 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[broadway]{broadway}
+#  \DeclareLaTeXClass[broadway,extramarks.sty,fancyhdr.sty,lastpage.sty]{broadway}
 
 # For theater plays
 
-Format 11
+Format 30
 Columns                 1
 Sides                   1
 SecNumDepth             2
@@ -192,6 +192,7 @@ Style Title
 	ParSep                1.5
 	Align                 Center
 	AlignPossible         Left, Right, Center
+	HTMLTitle             true
 End
 
 
@@ -221,7 +222,5 @@ Style Right_Address
 End
 
 
-
-NoStyle Abstract
 NoStyle Bibliography
-NoStyle Date
+

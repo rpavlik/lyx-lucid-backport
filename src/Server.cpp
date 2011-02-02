@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
@@ -34,30 +34,35 @@
 	   received LyX will inform the client that it's listening its
 	   messages, and 'bye' will inform that lyx is closing.
 
-	   See development/server_monitor.c for an example client.
+	   See development/lyxserver/server_monitor.cpp for an example client.
   Purpose: implement a client/server lib for LyX
 */
 
 #include <config.h>
 
 #include "Server.h"
+
+#include "DispatchResult.h"
 #include "FuncRequest.h"
+#include "LyX.h"
 #include "LyXAction.h"
-#include "LyXFunc.h"
 
 #include "frontends/Application.h"
 
 #include "support/debug.h"
 #include "support/FileName.h"
+#include "support/filetools.h"
 #include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/os.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #ifdef _WIN32
+#include <io.h>
 #include <QCoreApplication>
 #endif
+#include <QThread>
 
 #include <cerrno>
 #ifdef HAVE_SYS_STAT_H
@@ -138,6 +143,7 @@ LyXComm::LyXComm(string const & pip, Server * cli, ClientCallbackfct ccb)
 		pipe_[i].handle = INVALID_HANDLE_VALUE;
 	}
 	ready_ = false;
+	deferred_loading_ = false;
 	openConnection();
 }
 
@@ -513,8 +519,14 @@ void LyXComm::openConnection()
 		return;
 	}
 
-	// Check whether the pipe name is being used by some other program.
+	// Check whether the pipe name is being used by some other instance.
 	if (!stopserver_ && WaitNamedPipe(inPipeName().c_str(), 0)) {
+		// Tell the running instance to load the files
+		if (run_mode == USE_REMOTE && loadFilesInOtherInstance()) {
+			deferred_loading_ = true;
+			pipename_.erase();
+			return;
+		}
 		lyxerr << "LyXComm: Pipe " << external_path(inPipeName())
 		       << " already exists.\nMaybe another instance of LyX"
 			  " is using it." << endl;
@@ -719,6 +731,7 @@ LyXComm::LyXComm(string const & pip, Server * cli, ClientCallbackfct ccb)
 	: pipename_(pip), client_(cli), clientcb_(ccb)
 {
 	ready_ = false;
+	deferred_loading_ = false;
 	openConnection();
 }
 
@@ -796,6 +809,12 @@ int LyXComm::startPipe(string const & file, bool write)
 			if (fd >= 0) {
 				// Another LyX instance is using it.
 				::close(fd);
+				// Tell the running instance to load the files
+				if (run_mode == USE_REMOTE && loadFilesInOtherInstance()) {
+					deferred_loading_ = true;
+					pipename_.erase();
+					return -1;
+				}
 			} else if (errno == ENXIO) {
 				// No process is reading from the other end.
 				stalepipe = true;
@@ -838,7 +857,7 @@ int LyXComm::startPipe(string const & file, bool write)
 
 	if (!write) {
 		theApp()->registerSocketCallback(fd,
-			boost::bind(&LyXComm::read_ready, this));
+			bind(&LyXComm::read_ready, this));
 	}
 
 	return fd;
@@ -962,6 +981,48 @@ void LyXComm::send(string const & msg)
 
 #endif // defined (HAVE_MKFIFO)
 
+namespace {
+
+struct Sleep : QThread
+{
+	static void millisec(unsigned long ms)
+	{
+		QThread::usleep(ms * 1000);
+	}
+};
+
+} // namespace anon
+
+
+bool LyXComm::loadFilesInOtherInstance()
+{
+	int pipefd;
+	int loaded_files = 0;
+	FileName const pipe(inPipeName());
+	vector<string>::iterator it = theFilesToLoad().begin();
+	while (it != theFilesToLoad().end()) {
+		FileName fname = fileSearch(string(), os::internal_path(*it),
+						"lyx", may_not_exist);
+		if (fname.empty()) {
+			++it;
+			continue;
+		}
+		// Wait a while to allow time for the other
+		// instance to reset the connection
+		Sleep::millisec(200);
+		pipefd = ::open(pipe.toFilesystemEncoding().c_str(), O_WRONLY);
+		if (pipefd < 0)
+			break;
+		string const cmd = "LYXCMD:pipe:file-open:" +
+					fname.absFileName() + '\n';
+		::write(pipefd, cmd.c_str(), cmd.length());
+		::close(pipefd);
+		++loaded_files;
+		it = theFilesToLoad().erase(it);
+	}
+	return loaded_files > 0;
+}
+
 
 string const LyXComm::inPipeName() const
 {
@@ -986,8 +1047,8 @@ void ServerCallback(Server * server, string const & msg)
 	server->callback(msg);
 }
 
-Server::Server(LyXFunc * f, string const & pipes)
-	: numclients_(0), func_(f), pipes_(pipes, this, &ServerCallback)
+Server::Server(string const & pipes)
+	: numclients_(0), pipes_(pipes, this, &ServerCallback)
 {}
 
 
@@ -1108,17 +1169,19 @@ void Server::callback(string const & msg)
 			// The correct solution would be to have a
 			// specialized (non-gui) BufferView. But how do
 			// we do it now? Probably we should just let it
-			// connect to the lyxfunc in the single LyXView we
+			// connect to the lyxfunc in the single GuiView we
 			// support currently. (Lgb)
 
-			func_->dispatch(FuncRequest(lyxaction.lookupFunc(cmd), arg));
-			string const rval = to_utf8(func_->getMessage());
+			FuncRequest const fr(lyxaction.lookupFunc(cmd), arg);
+			DispatchResult dr;
+			theApp()->dispatch(fr, dr);
+			string const rval = to_utf8(dr.message());
 
 			// all commands produce an INFO or ERROR message
 			// in the output pipe, even if they do not return
 			// anything. See chapter 4 of Customization doc.
 			string buf;
-			if (func_->errorStat())
+			if (dr.error())
 				buf = "ERROR:";
 			else
 				buf = "INFO:";
@@ -1147,5 +1210,5 @@ void Server::notifyClient(string const & s)
 } // namespace lyx
 
 #ifdef _WIN32
-#include "Server_moc.cpp"
+#include "moc_Server.cpp"
 #endif

@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Ling Li (InsetMathMakebox)
  *
  * Full author contact details are available in file CREDITS.
@@ -52,6 +52,20 @@ void InsetMathBox::normalize(NormalStream & os) const
 }
 
 
+void InsetMathBox::mathmlize(MathStream & ms) const
+{	
+	SetMode textmode(ms, true, "class='mathbox'");
+	ms << cell(0);
+}
+
+
+void InsetMathBox::htmlize(HtmlStream & ms) const
+{
+	SetHTMLMode textmode(ms, true);
+	ms << cell(0);
+}
+
+
 void InsetMathBox::metrics(MetricsInfo & mi, Dimension & dim) const
 {
 	FontSetChanger dummy(mi.base, "textnormal");
@@ -69,7 +83,7 @@ void InsetMathBox::draw(PainterInfo & pi, int x, int y) const
 
 
 void InsetMathBox::infoize(odocstream & os) const
-{
+{	
 	os << "Box: " << name_;
 }
 
@@ -78,6 +92,7 @@ void InsetMathBox::validate(LaTeXFeatures & features) const
 {
 	if (name_ == "tag" || name_ == "tag*")
 		features.require("amsmath");
+
 	cell(0).validate(features);
 }
 
@@ -127,10 +142,42 @@ void InsetMathFBox::normalize(NormalStream & os) const
 }
 
 
+void InsetMathFBox::mathmlize(MathStream & ms) const
+{	
+	SetMode textmode(ms, true, "class='fbox'");
+	ms << cell(0);
+}
+
+
+void InsetMathFBox::htmlize(HtmlStream & ms) const
+{
+	SetHTMLMode textmode(ms, true, "class='fbox'");
+	ms << cell(0);
+}
+
+
 void InsetMathFBox::infoize(odocstream & os) const
 {
 	os << "FBox: ";
 }
+
+
+void InsetMathFBox::validate(LaTeXFeatures & features) const
+{
+	// FIXME XHTML
+	// It'd be better to be able to get this from an InsetLayout, but at present
+	// InsetLayouts do not seem really to work for things that aren't InsetTexts.
+	if (features.runparams().math_flavor == OutputParams::MathAsMathML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"mtext.fbox { border: 1px solid black; }\n"
+			"</style>");
+	else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.fbox { border: 1px solid black; }\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
+
 
 
 /////////////////////////////////////////////////////////////////////
@@ -239,6 +286,41 @@ void InsetMathMakebox::infoize(odocstream & os) const
 }
 
 
+void InsetMathMakebox::mathmlize(MathStream & ms) const
+{
+	// FIXME We could do something with the other arguments.
+	std::string const cssclass = framebox_ ? "framebox" : "makebox";
+	SetMode textmode(ms, true, "class='" + cssclass + "'");
+	ms << cell(2);
+}
+
+
+void InsetMathMakebox::htmlize(HtmlStream & ms) const
+{
+	// FIXME We could do something with the other arguments.
+	std::string const cssclass = framebox_ ? "framebox" : "makebox";
+	SetHTMLMode textmode(ms, true, "class='" + cssclass + "'");
+	ms << cell(2);
+}
+
+
+void InsetMathMakebox::validate(LaTeXFeatures & features) const
+{
+	// FIXME XHTML
+	// It'd be better to be able to get this from an InsetLayout, but at present
+	// InsetLayouts do not seem really to work for things that aren't InsetTexts.
+	if (features.runparams().math_flavor == OutputParams::MathAsMathML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.framebox { border: 1px solid black; }\n"
+			"</style>");
+	else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.framebox { border: 1px solid black; }\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
+
+
 /////////////////////////////////////////////////////////////////////
 //
 // InsetMathBoxed
@@ -286,9 +368,36 @@ void InsetMathBoxed::infoize(odocstream & os) const
 }
 
 
+void InsetMathBoxed::mathmlize(MathStream & ms) const
+{
+	SetMode mathmode(ms, false, "class='boxed'");
+	ms << cell(0);
+}
+
+
+void InsetMathBoxed::htmlize(HtmlStream & ms) const
+{
+	SetHTMLMode mathmode(ms, false, "class='boxed'");
+	ms << cell(0);
+}
+
+
 void InsetMathBoxed::validate(LaTeXFeatures & features) const
 {
 	features.require("amsmath");
+
+	// FIXME XHTML
+	// It'd be better to be able to get this from an InsetLayout, but at present
+	// InsetLayouts do not seem really to work for things that aren't InsetTexts.
+	if (features.runparams().math_flavor == OutputParams::MathAsMathML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"mstyle.boxed { border: 1px solid black; }\n"
+			"</style>");
+	else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.boxed { border: 1px solid black; }\n"
+			"</style>");
+	
 	InsetMathNest::validate(features);
 }
 

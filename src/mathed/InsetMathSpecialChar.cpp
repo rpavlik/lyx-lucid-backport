@@ -29,7 +29,7 @@
 namespace lyx {
 
 
-InsetMathSpecialChar::InsetMathSpecialChar(docstring name)
+InsetMathSpecialChar::InsetMathSpecialChar(docstring const & name)
 	: name_(name), kerning_(0)
 {
 	if (name.size() != 1) {
@@ -148,6 +148,19 @@ void InsetMathSpecialChar::octave(OctaveStream & os) const
 
 
 void InsetMathSpecialChar::mathmlize(MathStream & ms) const
+{
+	switch (char_) {
+	case '&':
+		ms << "&amp;";
+		break;
+	default:
+		ms.os().put(char_);
+		break;
+	}
+}
+
+
+void InsetMathSpecialChar::htmlize(HtmlStream & ms) const
 {
 	switch (char_) {
 	case '&':

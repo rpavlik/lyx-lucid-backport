@@ -135,7 +135,7 @@ void GuiTexInfo::updateStyles(TexFileType type)
 
 	if (!pathCB->isChecked()) {
 		for (int i = 0; i != data.size(); ++i)
-			data[i] = onlyFilename(data[i]);
+			data[i] = onlyFileName(data[i]);
 	}
 	// sort on filename only (no path)
 	data.sort();
@@ -192,4 +192,4 @@ Dialog * createGuiTexInfo(GuiView & lv) { return new GuiTexInfo(lv); }
 } // namespace lyx
 
 
-#include "GuiTexinfo_moc.cpp"
+#include "moc_GuiTexinfo.cpp"

@@ -4,8 +4,8 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
- * \author Jürgen Spitzmüller
- * \author Herbert Voß
+ * \author JÃ¼rgen SpitzmÃ¼ller
+ * \author Herbert VoÃŸ
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -24,10 +24,17 @@
 LengthCombo::LengthCombo(QWidget * parent)
 	: QComboBox(parent)
 {
-	reset();
+	for (int i = 0; i < lyx::num_units; i++) {
+		// mu does not make sense usually
+		// so it must be added manually, if needed
+		if (QLatin1String(lyx::unit_name[i]) == "mu")
+			continue;
+		QComboBox::addItem(lyx::qt_(lyx::unit_name_gui[i]),
+			lyx::toqstr(lyx::unit_name[i]));
+	}
 
 	connect(this, SIGNAL(activated(int)),
-		this, SLOT(has_activated(int)));
+		this, SLOT(hasActivated(int)));
 }
 
 
@@ -38,7 +45,7 @@ lyx::Length::UNIT LengthCombo::currentLengthItem() const
 }
 
 
-void LengthCombo::has_activated(int)
+void LengthCombo::hasActivated(int)
 {
   // emit signal
 	selectionChanged(currentLengthItem());
@@ -47,10 +54,15 @@ void LengthCombo::has_activated(int)
 
 void LengthCombo::setCurrentItem(lyx::Length::UNIT unit)
 {
-	QString const val = lyx::toqstr(lyx::stringFromUnit(unit));
+	setCurrentItem(lyx::toqstr(lyx::stringFromUnit(unit)));
+}
+
+
+void LengthCombo::setCurrentItem(QString const item)
+{
 	int num = QComboBox::count();
 	for (int i = 0; i < num; i++) {
-		if (QComboBox::itemData(i).toString() == val) {
+		if (QComboBox::itemData(i).toString() == item) {
 			QComboBox::setCurrentIndex(i);
 			break;
 		}
@@ -83,7 +95,7 @@ void LengthCombo::noPercents()
 }
 
 
-void LengthCombo::removeItem(lyx::Length::UNIT unit)
+void LengthCombo::removeUnit(lyx::Length::UNIT unit)
 {
 	QString const val = lyx::toqstr(lyx::stringFromUnit(unit));
 	int num = QComboBox::count();
@@ -96,13 +108,7 @@ void LengthCombo::removeItem(lyx::Length::UNIT unit)
 }
 
 
-void LengthCombo::removeItem(int item)
-{
-	QComboBox::removeItem(item);
-}
-
-
-void LengthCombo::addItem(lyx::Length::UNIT unit)
+void LengthCombo::addUnit(lyx::Length::UNIT unit)
 {
 	QString const val = lyx::toqstr(lyx::stringFromUnit(unit));
 	int num = QComboBox::count();
@@ -117,23 +123,4 @@ void LengthCombo::addItem(lyx::Length::UNIT unit)
 }
 
 
-void LengthCombo::addItem(QString const item)
-{
-	QComboBox::addItem(item);
-}
-
-
-void LengthCombo::reset()
-{
-	clear();
-	for (int i = 0; i < lyx::num_units; i++) {
-		// mu does not make sense usually
-		// so it must be added manually, if needed
-		if (QLatin1String(lyx::unit_name[i]) == "mu")
-			continue;
-		QComboBox::addItem(lyx::qt_(lyx::unit_name_gui[i]),
-			lyx::toqstr(lyx::unit_name[i]));
-	}
-}
-
-#include "LengthCombo_moc.cpp"
+#include "moc_LengthCombo.cpp"

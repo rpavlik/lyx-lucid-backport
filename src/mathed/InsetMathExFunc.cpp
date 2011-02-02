@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -124,9 +124,8 @@ void InsetMathExFunc::mathematica(MathematicaStream & os) const
 
 void InsetMathExFunc::mathmlize(MathStream & os) const
 {
-	++os.tab(); os.cr(); os.os() << '<' << name_ << '>';
+	os << "<mi>" << name_ << "</mi><mo>&af;</mo>";
 	os << cell(0);
-	os.cr(); --os.tab(); os.os() << "</" << name_ << '>';
 }
 
 

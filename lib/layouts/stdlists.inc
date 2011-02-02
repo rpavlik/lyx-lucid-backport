@@ -7,7 +7,8 @@
 # This include files contains various standard environments for lists.
 
 
-Format 11
+Format 30
+
 Style Itemize
 	Category              List
 	Margin                Static
@@ -24,6 +25,9 @@ Style Itemize
 	AlignPossible         Block, Left
 	LabelType             Itemize
 	LabelString           "*"
+	HTMLTag               ul
+	HTMLItem              li
+	HTMLLabel             NONE
 End
 
 
@@ -43,8 +47,12 @@ Style Enumerate
 	Align                 Block
 	AlignPossible         Block, Left
 	LabelType             Enumerate
+	LabelCounter          "enum"
+	HTMLTag               ol
+	HTMLItem              li
+	HTMLLabel             NONE
+	RefPrefix             enu
 End
-
 
 Style Description
 	Category              List
@@ -66,10 +74,18 @@ Style Description
 	LabelFont
 	  Series              Bold
 	EndFont
+	HTMLTag               dl
+	HTMLAttr              class='description'
+	HTMLItem              dd
+	HTMLLabel             dt
+	HTMLLabelFirst        1
+	HTMLStyle
+		dl.description dt { font-weight: bold; }
+	EndHTMLStyle
 End
 
 
-Style List
+Style Labeling
 	Category              List
 	Margin                Manual
 	LatexType             List_Environment
@@ -84,6 +100,11 @@ Style List
 	AlignPossible         Block, Left
 	LabelType             Manual
 	LabelString           "00.00.0000"
+	HTMLTag               ol
+	HTMLAttr              class='lyxlist'
+	HTMLItem              li
+	HTMLLabel             span
+	HTMLLabelAttr         class='lyxlist'
 
 	#define the environment lyxlist
 	Preamble
@@ -95,4 +116,22 @@ Style List
 				 \renewcommand{\makelabel}[1]{##1\hfil}}}
 			{\end{list}}
 	EndPreamble
+
+	HTMLStyle
+		ol.lyxlist {
+			list-style-type: none;
+		}
+		li.labeling_item {
+			text-indent: -5em;
+			margin-left: 5em;
+		}
+		span.lyxlist {
+			margin-right: 1em;
+		}
+	EndHTMLStyle
+End
+
+
+Style List
+  Obsoletedby           Labeling
 End

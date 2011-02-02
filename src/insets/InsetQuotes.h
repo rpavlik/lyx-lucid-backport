@@ -62,11 +62,11 @@ public:
 	    \item etc.
 	  \end{itemize}
 	  */
-	explicit InsetQuotes(Buffer const & buf, std::string const & str = "eld");
+	explicit InsetQuotes(Buffer * buf, std::string const & str = "eld");
 	/// Create the right quote inset after character c
-	InsetQuotes(Buffer const & buffer, char_type c);
+	InsetQuotes(Buffer * buffer, char_type c);
 	/// Direct access to inner/outer quotation marks
-	InsetQuotes(Buffer const & buf, char_type c, QuoteTimes t);
+	InsetQuotes(Buffer * buf, char_type c, QuoteTimes t);
 	///
 	docstring name() const;
 	///
@@ -83,9 +83,13 @@ public:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
+	/// 
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t maxlen) const;
 
 	///
 	void validate(LaTeXFeatures &) const;

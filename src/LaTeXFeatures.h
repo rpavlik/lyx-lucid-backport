@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  *
  * Full author contact details are available in file CREDITS.
@@ -19,13 +19,13 @@
 #include <set>
 #include <list>
 #include <map>
-#include <string>
 
 
 namespace lyx {
 
 class Buffer;
 class BufferParams;
+class InsetLayout;
 class Language;
 
 /** The packages and commands that a buffer needs. This class
@@ -51,11 +51,23 @@ public:
 	/// The packages needed by the document
 	std::string const getPackages() const;
 	/// The macros definitions needed by the document
-	std::string const getMacros() const;
-	///
-	std::string const getBabelOptions() const;
+	docstring const getMacros() const;
+	/// Extra preamble code before babel is called
+	std::string const getBabelPresettings() const;
+	/// Extra preamble code after babel is called
+	std::string const getBabelPostsettings() const;
+	/// Do we need to pass the languages to babel directly? 
+	bool needBabelLangOptions() const;
+	/// Load AMS packages when appropriate
+	std::string const loadAMSPackages() const;
 	/// The definitions needed by the document's textclass
 	docstring const getTClassPreamble() const;
+	/// The language dependent definitions needed by the document's textclass
+	docstring const getTClassI18nPreamble(bool use_babel, bool use_polyglossia) const;
+	///
+	docstring const getTClassHTMLStyles() const;
+	///
+	docstring const getTClassHTMLPreamble() const;
 	/// The sgml definitions needed by the document (docbook)
 	docstring const getLyXSGMLEntities() const;
 	/// The SGML Required to include the files added with includeFile();
@@ -63,11 +75,13 @@ public:
 	/// Include a file for use with the SGML entities
 	void includeFile(docstring const & key, std::string const & name);
 	/// The float definitions.
-	void getFloatDefinitions(std::ostream & os) const;
+	void getFloatDefinitions(odocstream & os) const;
 	/// Print requirements to lyxerr
 	void showStruct() const;
 	///
 	void addPreambleSnippet(std::string const &);
+	///
+	std::string getPreambleSnippets() const;
 	/// Add a feature name requirements
 	void require(std::string const & name);
 	/// Add a set of feature names requirements
@@ -89,12 +103,18 @@ public:
 	void useLanguage(Language const *);
 	///
 	bool hasLanguages() const;
+	/// check if all used languages are supported by polyglossia
+	bool hasPolyglossiaLanguages() const;
 	///
 	std::string getLanguages() const;
+	///
+	std::map<std::string, std::string> getPolyglossiaLanguages() const;
 	///
 	std::set<std::string> getEncodingSet(std::string const & doc_encoding) const;
 	///
 	void useLayout(docstring const & lyt);
+	///
+	void useInsetLayout(InsetLayout const & lay);
 	///
 	Buffer const & buffer() const;
 	///
@@ -103,21 +123,29 @@ public:
 	BufferParams const & bufferParams() const;
 	/// the return value is dependent upon both LyXRC and LaTeXFeatures.
 	bool useBabel() const;
+	///
+	bool usePolyglossia() const;
 	/// are we in a float?
 	bool inFloat() const { return in_float_; }
 	/// are we in a float?
 	void inFloat(bool const b) { in_float_ = b; }
 	/// Runparams that will be used for exporting this file.
 	OutputParams const & runparams() const { return runparams_; }
+	///
+	void setHTMLTitle(docstring const & t) { htmltitle_ = t; }
+	///
+	docstring const & htmlTitle() const { return htmltitle_; }
 
 private:
+	///
 	std::list<docstring> usedLayouts_;
-
+	///
+	std::list<docstring> usedInsetLayouts_;
 	/// The features that are needed by the document
 	typedef std::set<std::string> Features;
 	///
 	Features features_;
-	/// Static preamble bits from the external material insets
+	/// Static preamble bits, from external templates, or anywhere else
 	typedef std::list<std::string> SnippetList;
 	///
 	SnippetList preamble_snippets_;
@@ -151,6 +179,8 @@ private:
 	OutputParams const & runparams_;
 	///
 	bool in_float_;
+	///
+	docstring htmltitle_;
 };
 
 

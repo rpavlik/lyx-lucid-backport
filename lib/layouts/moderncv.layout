@@ -1,11 +1,11 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass{curriculum vitae (modern)}
+#  \DeclareLaTeXClass[moderncv,color.sty,fancyhdr.sty,hyperref.sty,ifpdf.sty,marvosym.sty]{curriculum vitae (modern)}
 # modern CV textclass definition file.
 # Author : Uwe Stöhr (uwestoehr@web.de)
 
 
 # General textclass parameters
-Format 11
+Format 30
 	Columns			1
 	Sides			1
 	SecNumDepth		-1
@@ -47,6 +47,7 @@ Style Section
 	  Family		Sans
 	  Series		Bold
 	EndFont
+		TocLevel 1
 End
 
 Style Subsection
@@ -59,6 +60,7 @@ Style Subsection
 	  Family		Sans
 	  Series		Medium
 	EndFont
+	TocLevel 2
 End
 
 Style Entry

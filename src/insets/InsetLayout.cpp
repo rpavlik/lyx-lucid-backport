@@ -15,7 +15,6 @@
 #include "InsetLayout.h"
 
 #include "ColorSet.h"
-#include "Font.h"
 #include "Lexer.h"
 #include "TextClass.h"
 
@@ -32,12 +31,15 @@ namespace lyx {
 
 InsetLayout::InsetLayout() :
 	name_(from_ascii("undefined")), lyxtype_(STANDARD),
-	labelstring_(from_ascii("UNDEFINED")), decoration_(DEFAULT),
-	latextype_(NOLATEXTYPE), font_(sane_font), 
+	labelstring_(from_ascii("UNDEFINED")), contentaslabel_(false),
+	decoration_(DEFAULT), latextype_(NOLATEXTYPE), font_(sane_font), 
 	labelfont_(sane_font), bgcolor_(Color_error), 
-	multipar_(false), custompars_(false), forceplain_(true), 
-	passthru_(false), needprotect_(false), freespacing_(false), 
-	keepempty_(false), forceltr_(false)
+	htmlforcecss_ (false), htmlisblock_(true),
+	multipar_(true), custompars_(true), forceplain_(false), 
+	passthru_(false), parbreakisnewline_(false), freespacing_(false), 
+	keepempty_(false), forceltr_(false), 
+	needprotect_(false), intoc_(false), spellcheck_(true), 
+	resetsfont_(true)
 { 
 	labelfont_.setColor(Color_error);
 }
@@ -74,13 +76,25 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 {
 	enum {
 		IL_BGCOLOR,
+		IL_CONTENTASLABEL,
 		IL_COPYSTYLE,
+		IL_COUNTER,
 		IL_CUSTOMPARS,
 		IL_DECORATION,
 		IL_FONT,
 		IL_FORCELTR,
 		IL_FORCEPLAIN,
 		IL_FREESPACING,
+		IL_HTMLTAG,
+		IL_HTMLATTR,
+		IL_HTMLFORCECSS,
+		IL_HTMLINNERTAG,
+		IL_HTMLINNERATTR,
+		IL_HTMLISBLOCK,
+		IL_HTMLLABEL,
+		IL_HTMLSTYLE,
+		IL_HTMLPREAMBLE,
+		IL_INTOC,
 		IL_LABELFONT,
 		IL_LABELSTRING,
 		IL_LATEXNAME,
@@ -91,15 +105,21 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 		IL_MULTIPAR,
 		IL_NEEDPROTECT,
 		IL_PASSTHRU,
+		IL_PARBREAKISNEWLINE,
 		IL_PREAMBLE,
 		IL_REQUIRES,
+		IL_SPELLCHECK,
+		IL_REFPREFIX,
+		IL_RESETSFONT,
 		IL_END
 	};
 
 
 	LexerKeyword elementTags[] = {
 		{ "bgcolor", IL_BGCOLOR },
+		{ "contentaslabel", IL_CONTENTASLABEL },
 		{ "copystyle", IL_COPYSTYLE }, 
+		{ "counter", IL_COUNTER},
 		{ "custompars", IL_CUSTOMPARS },
 		{ "decoration", IL_DECORATION },
 		{ "end", IL_END },
@@ -107,6 +127,16 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 		{ "forceltr", IL_FORCELTR },
 		{ "forceplain", IL_FORCEPLAIN },
 		{ "freespacing", IL_FREESPACING },
+		{ "htmlattr", IL_HTMLATTR },
+		{ "htmlforcecss", IL_HTMLFORCECSS },
+		{ "htmlinnerattr", IL_HTMLINNERATTR},
+		{ "htmlinnertag", IL_HTMLINNERTAG},
+		{ "htmlisblock", IL_HTMLISBLOCK},
+		{ "htmllabel", IL_HTMLLABEL },
+		{ "htmlpreamble", IL_HTMLPREAMBLE },
+		{ "htmlstyle", IL_HTMLSTYLE },
+		{ "htmltag", IL_HTMLTAG },
+		{ "intoc", IL_INTOC },
 		{ "keepempty", IL_KEEPEMPTY },
 		{ "labelfont", IL_LABELFONT },
 		{ "labelstring", IL_LABELSTRING },
@@ -116,9 +146,13 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 		{ "lyxtype", IL_LYXTYPE },
 		{ "multipar", IL_MULTIPAR },
 		{ "needprotect", IL_NEEDPROTECT },
+		{ "parbreakisnewline", IL_PARBREAKISNEWLINE },
 		{ "passthru", IL_PASSTHRU },
 		{ "preamble", IL_PREAMBLE },
-		{ "requires", IL_REQUIRES }
+		{ "refprefix", IL_REFPREFIX },
+		{ "requires", IL_REQUIRES },
+		{ "resetsfont", IL_RESETSFONT },
+		{ "spellcheck", IL_SPELLCHECK }
 	};
 
 	lex.pushTable(elementTags);
@@ -152,6 +186,8 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 			lyxtype_ = translateLyXType(lt);
 			if (lyxtype_  == NOLYXTYPE)
 				LYXERR0("Unknown LyXType `" << lt << "'.");
+			if (lyxtype_ == CHARSTYLE)
+				multipar_ = false;
 			break;
 		}
 		case IL_LATEXTYPE:  {
@@ -182,6 +218,9 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 		case IL_FORCELTR:
 			lex >> forceltr_;
 			break;
+		case IL_INTOC:
+			lex >> intoc_;
+			break;
 		case IL_MULTIPAR:
 			lex >> multipar_;
 			// the defaults for these depend upon multipar_
@@ -192,16 +231,22 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 			custompars_ = multipar_;
 			forceplain_ = !multipar_;
 			break;
+		case IL_COUNTER:
+			lex >> counter_;
+			break;
 		case IL_CUSTOMPARS:
 			lex >> custompars_;
 			readCustomOrPlain = true;
 			break;
 		case IL_FORCEPLAIN:
 			lex >> forceplain_;
+			readCustomOrPlain = true;
 			break;
 		case IL_PASSTHRU:
 			lex >> passthru_;
-			readCustomOrPlain = true;
+			break;
+		case IL_PARBREAKISNEWLINE:
+			lex >> parbreakisnewline_;
 			break;
 		case IL_KEEPEMPTY:
 			lex >> keepempty_;
@@ -212,7 +257,11 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 		case IL_NEEDPROTECT:
 			lex >> needprotect_;
 			break;
-		case IL_COPYSTYLE: {     // initialize with a known style
+		case IL_CONTENTASLABEL:
+			lex >> contentaslabel_;
+			break;
+		case IL_COPYSTYLE: {
+			// initialize with a known style
 			docstring style;
 			lex >> style;
 			style = support::subst(style, '_', ' ');
@@ -251,7 +300,37 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 			bgcolor_ = lcolor.getFromLyXName(tmp);
 			break;
 		case IL_PREAMBLE:
-			preamble_ = lex.getLongString("EndPreamble");
+			preamble_ = from_utf8(lex.getLongString("EndPreamble"));
+			break;
+		case IL_REFPREFIX:
+			lex >> refprefix_;
+			break;
+		case IL_HTMLTAG:
+			lex >> htmltag_;
+			break;
+		case IL_HTMLATTR:
+			lex >> htmlattr_;
+			break;
+		case IL_HTMLFORCECSS:
+			lex >> htmlforcecss_;
+			break;
+		case IL_HTMLINNERTAG:
+			lex >> htmlinnertag_;
+			break;
+		case IL_HTMLINNERATTR:
+			lex >> htmlinnerattr_;
+			break;
+		case IL_HTMLLABEL:
+			lex >> htmllabel_;
+			break;
+		case IL_HTMLISBLOCK:
+			lex >> htmlisblock_;
+			break;
+		case IL_HTMLSTYLE:
+			htmlstyle_ = from_utf8(lex.getLongString("EndHTMLStyle"));
+			break;
+		case IL_HTMLPREAMBLE:
+			htmlpreamble_ = from_utf8(lex.getLongString("EndPreamble"));
 			break;
 		case IL_REQUIRES: {
 			lex.eatLine();
@@ -260,6 +339,12 @@ bool InsetLayout::read(Lexer & lex, TextClass const & tclass)
 			requires_.insert(req.begin(), req.end());
 			break;
 		}
+		case IL_SPELLCHECK:
+			lex >> spellcheck_;
+			break;
+		case IL_RESETSFONT:
+			lex >> resetsfont_;
+			break;
 		case IL_END:
 			getout = true;
 			break;
@@ -294,5 +379,77 @@ InsetLayout::InsetLyXType translateLyXType(std::string const & str)
 		return InsetLayout::STANDARD;
 	return InsetLayout::NOLYXTYPE;
 }
+
+
+string const & InsetLayout::htmltag() const
+{
+	if (htmltag_.empty())
+		htmltag_ = multipar_ ? "div" : "span";
+	return htmltag_; 
+}
+
+
+string const & InsetLayout::htmlattr() const
+{
+	if (htmlattr_.empty())
+		htmlattr_ = "class=\"" + defaultCSSClass() + "\"";
+	return htmlattr_; 
+}
+
+
+string const & InsetLayout::htmlinnerattr() const
+{
+	if (htmlinnerattr_.empty())
+		htmlinnerattr_ = "class=\"" + defaultCSSClass() + "_inner\"";
+	return htmlinnerattr_; 
+}
+
+
+string InsetLayout::defaultCSSClass() const
+{ 
+	if (!defaultcssclass_.empty())
+		return defaultcssclass_;
+	string d;
+	string n = to_utf8(name());
+	string::const_iterator it = n.begin();
+	string::const_iterator en = n.end();
+	for (; it != en; ++it) {
+		if (!isalpha(*it))
+			d += "_";
+		else if (islower(*it))
+			d += *it;
+		else
+			d += support::lowercase(*it);
+	}
+	// are there other characters we need to remove?
+	defaultcssclass_ = d;
+	return defaultcssclass_;
+}
+
+
+void InsetLayout::makeDefaultCSS() const
+{
+	if (!htmldefaultstyle_.empty()) 
+		return;
+	docstring const mainfontCSS = font_.asCSS();
+	if (!mainfontCSS.empty())
+		htmldefaultstyle_ = 
+				from_ascii(htmltag() + "." + defaultCSSClass() + " {\n") +
+				mainfontCSS + from_ascii("\n}\n");
+}
+
+
+docstring InsetLayout::htmlstyle() const 
+{ 
+	if (!htmlstyle_.empty() && !htmlforcecss_)
+		return htmlstyle_;
+	if (htmldefaultstyle_.empty())
+		makeDefaultCSS();
+	docstring retval = htmldefaultstyle_;
+	if (!htmlstyle_.empty())
+		retval += '\n' + htmlstyle_ + '\n';
+	return retval;
+}
+
 
 } //namespace lyx

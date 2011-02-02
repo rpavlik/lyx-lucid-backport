@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -25,7 +25,7 @@ class InsetMathLim : public InsetMathNest {
 public:
 	///
 	InsetMathLim(Buffer * buf, MathData const & f, MathData const & x,
-		     MathData const & x0);
+		MathData const & x0);
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
 	///
@@ -40,9 +40,10 @@ public:
 	///
 	void mathematica(MathematicaStream &) const;
 	///
-	void mathmlize(MathStream &) const;
-	///
 	void write(WriteStream & os) const;
+	///
+	InsetCode lyxCode() const { return MATH_LIM_CODE; }
+
 private:
 	virtual Inset * clone() const;
 };

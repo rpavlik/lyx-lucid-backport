@@ -39,7 +39,7 @@ macro(add_gettext_python  _par _dir)
     OUTPUT "${_dst}"
     PRE_BUILD
     COMMAND ${LYX_PYTHON_EXECUTABLE}
-    ARGS "${TOP_SRC_DIR}/po/lyx_pot.py" -b "${TOP_SRC_DIR}" -o "${_dst}" -t ${_par1} ${_sources}
+    ARGS "${TOP_SRC_DIR}/po/lyx_pot.py" -b "${TOP_SRC_DIR}" -o "${_dst}" -t ${_par1} "--src_file=${_src_files}"
     DEPENDS ${_sources} ${_src_files}
     )
   SET_SOURCE_FILES_PROPERTIES("${_dst}" GENERATED)
@@ -58,9 +58,6 @@ add_gettext_python(encodings lib encodings)
 add_gettext_python(ui lib/ui *.ui *.inc)
 add_gettext_python(external lib external_templates)
 add_gettext_python(formats lib configure.py)
-
-FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
-FIND_PROGRAM(GETTEXT_MSGUNIQ_EXECUTABLE msguniq)
 
 ADD_CUSTOM_COMMAND(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${_lyxname}.cat.pot"
@@ -105,6 +102,9 @@ ADD_CUSTOM_COMMAND(
 # This makes the "svn up" on po-files work again
 file(GLOB LYX_BASE_PO_FILES RELATIVE ${TOP_SRC_DIR}/po ${TOP_SRC_DIR}/po/*.po)
 set(LYX_PO_FILES)
+SET(LYX_UPDATED_PO_FILES)
+SET(LYX_DEST_PO ${TOP_SRC_DIR}/po)
+
 foreach(_pofile ${LYX_BASE_PO_FILES})
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_pofile}
@@ -114,7 +114,24 @@ foreach(_pofile ${LYX_BASE_PO_FILES})
   list(APPEND LYX_PO_FILES ${CMAKE_CURRENT_BINARY_DIR}/${_pofile})
 endforeach(_pofile)
 
-GETTEXT_CREATE_TRANSLATIONS(${CMAKE_CURRENT_BINARY_DIR}/${_lyxname}.pot ALL ${LYX_PO_FILES})
+foreach(_pofile ${LYX_BASE_PO_FILES})
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_pofile}.copied
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/${_pofile} ${LYX_DEST_PO}/${_pofile}
+    COMMAND ${CMAKE_COMMAND} -E touch ${_pofile}.copied
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${_pofile}
+    )
+  list(APPEND LYX_UPDATED_PO_FILES ${CMAKE_CURRENT_BINARY_DIR}/${_pofile}.copied)
+endforeach(_pofile)
+
+if(LYX_CPACK OR LYX_INSTALL)
+  set(_addALLOption ALL)
+endif()
+GETTEXT_CREATE_TRANSLATIONS(${CMAKE_CURRENT_BINARY_DIR}/${_lyxname}.pot ${_addALLOption} ${LYX_PO_FILES})
+
+# ALL omitted here, to prevent from automatic creation
+ADD_CUSTOM_TARGET(update_po_files DEPENDS ${LYX_UPDATED_PO_FILES})
+add_dependencies(update_po_files translations)
 
 # ADD_POFILES("lyx")
 

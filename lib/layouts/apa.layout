@@ -1,8 +1,8 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[apa,apacite.sty]{article (APA)}
+#  \DeclareLaTeXClass[apa,apacite.sty,endfloat.sty,endnotes.sty]{article (APA)}
 # Author: Randy Gobbel <gobbel@andrew.cmu.edu>
 
-Format 11
+Format 30
 Columns                 1
 Sides                   1
 PageStyle               Headers
@@ -44,6 +44,7 @@ Style Title
 	  Size                Huge
 	EndFont
 	Align                 Center
+	HTMLTitle             true
 End
 
 
@@ -311,6 +312,7 @@ Style Section
 	  Series              Bold
 	  Size                Huge
 	EndFont
+		TocLevel 1
 End
 
 
@@ -320,6 +322,7 @@ Style Subsection
 	  Series              Bold
 	  Size                Larger
 	EndFont
+		TocLevel 2
 End
 
 
@@ -329,6 +332,7 @@ Style Subsubsection
 	  Series              Bold
 	  Size                Large
 	EndFont
+		TocLevel 3
 End
 
 
@@ -338,6 +342,7 @@ Style Paragraph
 	  Series              Bold
 	  Size                Normal
 	EndFont
+		TocLevel 4
 End
 
 
@@ -348,6 +353,7 @@ Style Subparagraph
 	  Size                Normal
 	  Shape               Italic
 	EndFont
+		TocLevel 5
 End
 
 
@@ -364,7 +370,7 @@ Style Itemize
 	ParSep                0.3
 	Align                 Block
 	AlignPossible         Block, Left
-	LabelType             Static
+	LabelType             Itemize
 	LabelString           "*"
 End
 
@@ -384,6 +390,7 @@ Style Enumerate
 	Align                 Block
 	AlignPossible         Block, Left
 	LabelType             Enumerate
+	RefPrefix             enu
 End
 
 
@@ -405,5 +412,6 @@ Style Seriate
 	LabelCounter          enumii
 	LabelString           "(\alph{enumii})"
 	LabelStringAppendix   "(\alph{enumii})"
+	RefPrefix             ser
 End
 

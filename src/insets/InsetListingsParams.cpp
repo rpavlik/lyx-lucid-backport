@@ -18,7 +18,6 @@
 
 #include "support/convert.h"
 #include "support/gettext.h"
-#include "support/lassert.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
@@ -37,7 +36,7 @@ enum param_type {
 	INTEGER, // accept an integer
 	LENGTH,  // accept a latex length
 	ONEOF,  // accept one of a few values
-	SUBSETOF, // accept a string composed of given characters
+	SUBSETOF // accept a string composed of given characters
 };
 
 
@@ -437,6 +436,8 @@ ParValidator::ParValidator()
 		ListingsParam("", false, TRUEFALSE, "", empty_hint);
 	all_params_["breaklines"] =
 		ListingsParam("", false, TRUEFALSE, "", empty_hint);
+	all_params_["breakatwhitespace"] =
+		ListingsParam("", false, TRUEFALSE, "", empty_hint);
 	all_params_["prebreak"] =
 		ListingsParam("", false, ALL, "", empty_hint);
 	all_params_["postbreak"] =
@@ -715,7 +716,7 @@ void InsetListingsParams::write(ostream & os) const
 void InsetListingsParams::read(Lexer & lex)
 {
 	lex >> inline_;
-	int s = Inset::Collapsed;
+	int s = InsetCollapsable::Collapsed;
 	lex >> s;
 	status_ = static_cast<InsetCollapsable::CollapseStatus>(s);
 	string par;
@@ -767,7 +768,7 @@ void InsetListingsParams::addParam(string const & key,
 	else {
 		bool has_special_char = false;
 		for (size_t i = 0; i < value.size(); ++i)
-			if (!isAlphaASCII(value[i]) && !isDigit(value[i])) {
+			if (!isAlnumASCII(value[i])) {
 				has_special_char = true;
 				break;
 			}

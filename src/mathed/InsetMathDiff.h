@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -39,11 +39,11 @@ public:
 	///
 	void mathematica(MathematicaStream &) const;
 	///
-	void mathmlize(MathStream &) const;
-	///
 	void maxima(MaximaStream &) const;
 	///
 	void write(WriteStream & os) const;
+	///
+	InsetCode lyxCode() const { return MATH_DIFF_CODE; }
 private:
 	virtual Inset * clone() const;
 };

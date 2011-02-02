@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -36,7 +36,7 @@ namespace lyx {
 
 
 InsetFormulaMacro::InsetFormulaMacro()
-	: InsetMathNest(2), name_("unknownA")
+	: InsetMathNest(2), name_(from_ascii("unknownA"))
 {}
 
 

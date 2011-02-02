@@ -44,7 +44,8 @@ public:
 	///
 	InsetNewline();
 	///
-	InsetNewline(InsetNewlineParams par) { params_.kind = par.kind; }
+	InsetNewline(InsetNewlineParams par) : Inset(0)
+	{ params_.kind = par.kind; }
 	///
 	static void string2params(std::string const &, InsetNewlineParams &);
 	///
@@ -65,6 +66,8 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
 	void read(Lexer & lex);
 	///
 	void write(std::ostream & os) const;
@@ -74,7 +77,7 @@ private:
 	///
 	ColorCode ColorName() const;
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 	///
 	Inset * clone() const { return new InsetNewline(*this); }
 	///

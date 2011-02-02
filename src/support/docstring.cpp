@@ -25,6 +25,7 @@
 
 using namespace std;
 
+using lyx::support::isHexChar;
 
 namespace lyx {
 
@@ -149,6 +150,22 @@ string const to_filesystem8bit(docstring const & s)
 {
 	QByteArray const encoded = QFile::encodeName(toqstr(s));
 	return string(encoded.begin(), encoded.end());
+}
+
+
+string const to_iconv_encoding(docstring const & s, string const & encoding)
+{
+	std::vector<char> const encoded =
+		ucs4_to_eightbit(s.data(), s.length(), encoding);
+	return string(encoded.begin(), encoded.end());
+}
+
+
+docstring const from_iconv_encoding(string const & s, string const & encoding)
+{
+	std::vector<char_type> const ucs4 =
+		eightbit_to_ucs4(s.data(), s.length(), encoding);
+	return docstring(ucs4.begin(), ucs4.end());
 }
 
 
@@ -737,9 +754,9 @@ private:
 	bool isNumpunct(lyx::char_type const c) const
 	{
 		/// Only account for the standard numpunct "C" locale facet.
-		return c < 0x80 && (c == '-' || c == '+' || isdigit(c)
-			|| ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')
-			|| c == 'x' || c == 'X');
+		return c == '-' || c == '+'
+			|| c == 'x' || c == 'X'
+			|| isHexChar(c);
 	}
 
 	template <typename ValueType>

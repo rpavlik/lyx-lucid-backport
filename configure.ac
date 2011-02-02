@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,1.6.7,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,2.0.0beta3,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2010-07-10"])
+AC_SUBST(LYX_DATE, ["2011-01-10"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -19,7 +19,7 @@ LYX_USE_PACKAGING
 # AM_INIT_AUTOMAKE above because we alter $PACKAGE in LYX_USE_PACKAGING.
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of package])
 
-dnl default maintainer mode to true for development versions
+dnl Default maintainer mode to true for development versions
 if test "${enable_maintainer_mode+set}" != set; then
   enable_maintainer_mode=$lyx_devel_version
 fi
@@ -30,27 +30,35 @@ AM_INIT_AUTOMAKE([foreign dist-bzip2 no-define 1.8])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 PACKAGE=$save_PACKAGE
 
+# Allow to build some parts of the code as one big chunk
+m4_define([ALLPARTS],[boost,client,insets,mathed,core,tex2lyx,frontend_qt4])
+AC_ARG_ENABLE(monolithic-build,
+  AC_HELP_STRING([--enable-monolithic-build@<:@=LIST@:>@],
+		[Use monolithic build for modules in LIST (default: ALLPARTS)]),
+  [test "$enable_monolithic_build" = yes && enable_monolithic_build="ALLPARTS"
+   test "$enable_monolithic_build" = no && enable_monolithic_build=
+   IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=" ,"
+   for i in $enable_monolithic_build ; do
+       eval "enable_monolithic_$i=yes"
+   done
+   IFS="$ac_save_ifs"],
+  [enable_monolithic_build=])
+
+AM_CONDITIONAL(MONOLITHIC_BOOST, test "x$enable_monolithic_boost" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_CLIENT, test "x$enable_monolithic_client" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_INSETS, test "x$enable_monolithic_insets" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_MATHED, test "x$enable_monolithic_mathed" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_CORE, test "x$enable_monolithic_core" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_TEX2LYX, test "x$enable_monolithic_tex2lyx" = "xyes")
+AM_CONDITIONAL(MONOLITHIC_FRONTEND_QT4, test "x$enable_monolithic_frontend_qt4" = "xyes")
+
 ### Set the execute permissions of the various scripts correctly
-for file in config/install-sh config/mkinstalldirs ; do
+for file in config/install-sh ; do
   chmod 755 ${srcdir}/${file}
 done
 
-### Check for programs
-dnl AC_PROG_MAKE_SET
-dnl AC_PROG_INSTALL
-
 # Check for installed python
 AM_PATH_PYTHON(2.3.4,, :)
-
-# Work around a problem in automake 1.4: when invoking install-strip,
-# INSTALL_PROGRAM is changed to 'install -s', and since
-# INSTALL_SCRIPT==INSTALL_PROGRAM, we get errors with fileutils-4.0
-# which returns an error condition when stripping fails.
-INSTALL_SCRIPT='${INSTALL}'
-
-### we will also need a C compiler to compile GNU gettext
-AC_PROG_CC
-AC_USE_SYSTEM_EXTENSIONS
 
 ### we need to know the byte order for unicode conversions
 AC_C_BIGENDIAN
@@ -60,39 +68,10 @@ LYX_USE_FRONTENDS
 
 ### Check for a C++ compiler
 LYX_PROG_CXX
-### Some checks on what the C++ compiler can(not) do
-AC_LANG(C++)
-dnl we do not need that currently (and probably all our supported
-dnl compiler allow that)
-dnl LYX_CXX_PARTIAL
-dnl LYX_CXX_EXPLICIT
-dnl LYX_CXX_GLOBAL_CSTD
-dnl LYX_STD_COUNT
-dnl we disable rtti for now
-dnl LYX_CXX_RTTI
-dnl AC_CHECK_HEADERS(ostream istream sstream locale limits ios)
-dnl LYX_CXX_STL_MODERN_STREAMS
 
 ### Objective-C compiler
 AC_PROG_OBJC
 _AM_DEPENDENCIES([OBJC])
-
-### and now some special lyx flags.
-AC_ARG_ENABLE(assertions,
-  AC_HELP_STRING([--enable-assertions],[add runtime sanity checks in the program]),,
-  [if test $lyx_devel_version = yes -o $lyx_prerelease = yes ; then
-	enable_assertions=yes;
-    else
-	enable_assertions=no;
-    fi;])
-if test "x$enable_assertions" = xyes ; then
-   lyx_flags="assertions $lyx_flags"
-   AC_DEFINE(ENABLE_ASSERTIONS,1,
-    [Define if you want assertions to be enabled in the code])
-fi
-
-### Library Files
-dnl AC_CHECK_LIB(m, sin)
 
 ### Add extra directories to check for libraries.
 LYX_WITH_DIR([extra-lib],[extra library directory],extra_lib, NONE)
@@ -117,42 +96,10 @@ AC_CHECK_LIB(psapi, main, [LIBPSAPI=-lpsapi])
 AC_SUBST(LIBPSAPI)
 AC_CHECK_LIB(gdi32, main)
 
-AC_ARG_WITH(aiksaurus,
-  [  --without-aiksaurus     do not use the Aiksaurus library],
-  [lyx_use_aiksaurus=$withval])
-if test x$lyx_use_aiksaurus != xno; then
-AC_CHECK_LIB(Aiksaurus, main,
-	[AC_DEFINE(HAVE_LIBAIKSAURUS,1,[Define this if you have the AikSaurus library])
-	 AIKSAURUS_LIBS="-lAiksaurus"
-	 lyx_flags="aiksaurus $lyx_flags"
-	])
-AC_CHECK_HEADER(Aiksaurus.h,[
-  ac_cv_header_aiksaurus_h=yes
-  lyx_cv_aiksaurus_h_location="<Aiksaurus.h>"])
-AC_CHECK_HEADER(Aiksaurus/Aiksaurus.h,[
-  ac_cv_header_aiksaurus_h=yes
-  lyx_cv_aiksaurus_h_location="<Aiksaurus/Aiksaurus.h>"])
-AC_DEFINE_UNQUOTED(AIKSAURUS_H_LOCATION,$lyx_cv_aiksaurus_h_location,[Location of Aiksaurus.h])
-fi
-AC_SUBST(AIKSAURUS_LIBS)
-
 LYX_USE_INCLUDED_BOOST
 
 # Needed for our char_type
 AC_CHECK_SIZEOF(wchar_t)
-
-### Setup libtool
-dnl Dirty trick ahead: disable libtool checking for a fortran compiler
-dnl see http://permalink.gmane.org/gmane.comp.gnu.libtool.general/6699
-dnl Note that this will reportedly not be needed with libtool 2.0
-m4_undefine([AC_PROG_F77])
-m4_defun([AC_PROG_F77],[])
-
-AC_DISABLE_SHARED
-#AC_DISABLE_STATIC
-AC_LIBTOOL_WIN32_DLL
-#AM_PROG_LIBTOOL
-LYX_PROG_LIBTOOL
 
 ### We need iconv for unicode support (Qt4 frontend requires it too)
 AM_ICONV
@@ -171,7 +118,7 @@ AC_CHECK_HEADERS(zlib.h,
 ### check which frontend we want to use
 
 dnl The code below is not in a macro, because this would cause big
-dnl problems with the AC_REQUIRE contained in QT_DO_IT_ALL.
+dnl problems with the AC_REQUIRE contained in QT4_DO_IT_ALL.
 for frontend in $FRONTENDS ; do
   case "$frontend" in
     qt4)
@@ -216,14 +163,13 @@ dnl Dirty trick ahead: disable macro AC_GNU_SOURCE because it triggers a bug wit
 dnl this can be removed if gettext is been updated to avoid that.
 m4_undefine([AC_GNU_SOURCE])
 m4_defun([AC_GNU_SOURCE],[])
-AM_GNU_GETTEXT
+AM_GNU_GETTEXT([no-libtool])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AC_LANG_POP(C)
 
 # some standard header files
-AC_HEADER_DIRENT
 AC_HEADER_MAJOR
-AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h strings.h locale.h io.h process.h utime.h sys/utime.h)
+AC_CHECK_HEADERS(sys/time.h sys/types.h sys/select.h locale.h utime.h sys/utime.h)
 
 # some standard structures
 AC_HEADER_STAT
@@ -237,20 +183,12 @@ AC_TYPE_SIGNAL
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 
-AC_CHECK_FUNCS(strerror)
-LYX_CHECK_DECL(istreambuf_iterator, iterator)
-LYX_CHECK_DECL(mkstemp,[unistd.h stdlib.h])
+LYX_CHECK_DEF(PATH_MAX, limits.h, [int n = PATH_MAX;])
 
+AC_CHECK_FUNCS(chmod close _close fork getpid _getpid lstat mkfifo open _open pclose _pclose popen _popen readlink strerror)
 # Check the form of mkdir()
 AC_FUNC_MKDIR
-
-dnl This is a slight hack: the tests generated by autoconf 2.52 do not
-dnl work correctly because of some conflict with stdlib.h with g++ 2.96
-dnl We aim to remove this eventually, since we should test as much as
-dnl possible with the compiler which will use the functions (JMarc)
-AC_LANG_PUSH(C)
-AC_CHECK_FUNCS(chmod close _close getpid _getpid lstat mkfifo mkstemp mktemp open _open pclose _pclose popen _popen readlink)
-AC_LANG_POP(C)
+AC_FUNC_SELECT_ARGTYPES
 
 LYX_CHECK_SPELL_ENGINES
 
@@ -277,7 +215,6 @@ esac
 AM_CONDITIONAL(LYX_WIN_RESOURCE, $lyx_win_res)
 LYX_SET_VERSION_INFO
 
-AC_FUNC_SELECT_ARGTYPES
 
 ### Some information on what just happened
 real_bindir=`eval "echo \`eval \"echo ${bindir}\"\`"`
@@ -354,6 +291,13 @@ char * strerror(int n);
 #define BOOST_NO_WREGEX 1
 #define BOOST_NO_WSTRING 1
 
+// TR1 regex not supported in GCC <= 4.5
+#ifndef LYX_USE_TR1
+#  if __GNUC__ == 4 
+#    define LYX_USE_TR1
+#  endif
+#endif
+
 #ifdef __CYGWIN__
 #  define NOMINMAX
 #  define BOOST_POSIX 1
@@ -377,27 +321,6 @@ char * strerror(int n);
 
 #endif
 ])
-
-m4_define([ALLPARTS],[boost,client,insets,mathed,core,tex2lyx,frontend_qt4])
-AC_ARG_ENABLE(monolithic-build,
-  AC_HELP_STRING([--enable-monolithic-build@<:@=LIST@:>@],
-		[Use monolithic build for modules in LIST (default: ALLPARTS)]),
-  [test "$enable_monolithic_build" = yes && enable_monolithic_build="ALLPARTS"
-   test "$enable_monolithic_build" = no && enable_monolithic_build=
-   IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=" ,"
-   for i in $enable_monolithic_build ; do
-       eval "enable_monolithic_$i=yes"
-   done
-   IFS="$ac_save_ifs"],
-  [enable_monolithic_build=])
-
-AM_CONDITIONAL(MONOLITHIC_BOOST, test "x$enable_monolithic_boost" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_CLIENT, test "x$enable_monolithic_client" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_INSETS, test "x$enable_monolithic_insets" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_MATHED, test "x$enable_monolithic_mathed" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_CORE, test "x$enable_monolithic_core" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_TEX2LYX, test "x$enable_monolithic_tex2lyx" = "xyes")
-AM_CONDITIONAL(MONOLITHIC_FRONTEND_QT4, test "x$enable_monolithic_frontend_qt4" = "xyes")
 
 MSYS_AC_CANONICAL_PATH(lyx_abs_top_srcdir, ${srcdir})
 MSYS_AC_CANONICAL_PATH(lyx_abs_installed_localedir, ${real_localedir})

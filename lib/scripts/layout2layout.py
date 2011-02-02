@@ -9,7 +9,7 @@
 
 # Full author contact details are available in file CREDITS
 
-# This script will update a .layout file to format 6
+# This script will update a .layout file to current format
 
 
 import os, re, string, sys
@@ -39,7 +39,82 @@ import os, re, string, sys
 # Incremented to format 11, 14 October 2008 by rgh
 # Add ProvidesModule, ExcludesModule tags
 
-currentFormat = 11
+# Incremented to format 12, 10 January 2009 by gb
+# Add I18NPreamble tag
+
+# Incremented to format 13, 5 February 2009 by rgh
+# Add InToc tag for InsetLayout
+
+# Incremented to format 14, 14 February 2009 by gb
+# Rename I18NPreamble to BabelPreamble and add LangPreamble
+
+# Incremented to format 15, 28 May 2009 by lasgouttes
+# Add new tag OutputFormat; modules can be conditioned on feature 
+# "from->to".
+
+# Incremented to format 16, 5 June 2009 by rgh
+# Add new tags for Text Class:
+#   HTMLPreamble, HTMLAddToPreamble
+# For Layout:
+#   HTMLTag, HTMLAttr, HTMLLabel, HTMLLabelAttr, HTMLItem, HTMLItemAttr
+#   HTMLStyle, and HTMLPreamble
+# For InsetLayout:
+#   HTMLTag, HTMLAttr, HTMLStyle, and HTMLPreamble
+# For Floats:
+#   HTMLType, HTMLClass, HTMLStyle
+
+# Incremented to format 17, 12 August 2009 by rgh
+# Add IfStyle and IfCounter tags for layout.
+
+# Incremented to format 18, 27 October 2009 by rgh
+# Added some new tags for HTML output.
+
+# Incremented to format 19, 17 November 2009 by rgh
+# Added InPreamble tag.
+
+# Incremented to format 20, 17 December 2009 by rgh
+# Added ContentAsLabel tag.
+
+# Incremented to format 21, 12 January 2010 by rgh
+# Added HTMLTocLayout and HTMLTitle tags.
+
+# Incremented to format 22, 20 January 2010 by rgh
+# Added HTMLFormat tag to Counters.
+
+# Incremented to format 23, 13 February 2010 by spitz
+# Added Spellcheck tag.
+
+# Incremented to format 24, 5 March 2010 by rgh
+# Changed LaTeXBuiltin tag to NeedsFloatPkg and
+# added new tag ListCommand.
+
+# Incremented to format 25, 12 March 2010 by rgh
+# Added RefPrefix tag for layouts and floats.
+
+# Incremented to format 26, 29 March 2010 by rgh
+# Added CiteFormat.
+
+# Incremented to format 27, 4 June 2010 by rgh
+# Added RequiredArgs tag.
+
+# Incremented to format 28, 6 August 2010 by lasgouttes
+# Added ParbreakIsNewline tag for Layout and InsetLayout.
+
+# Incremented to format 29, 10 August 2010 by rgh
+# Changed Custom:Style, CharStyle:Style, and Element:Style
+# uniformly to Flex:Style.
+
+# Incremented to format 30, 13 August 2010 by rgh
+# Introduced ResetsFont tag for InsetLayout.
+
+# Do not forget to document format change in Customization
+# Manual (section "Declaring a new text class").
+
+# You might also want to consider running the
+# development/tools/updatelayouts.sh script to update all
+# layout files to the new format.
+
+currentFormat = 30
 
 
 def usage(prog_name):
@@ -98,6 +173,10 @@ def convert(lines):
     re_Format = re.compile(r'^(\s*)(Format)(\s+)(\S+)', re.IGNORECASE)
     re_Preamble = re.compile(r'^(\s*)Preamble', re.IGNORECASE)
     re_EndPreamble = re.compile(r'^(\s*)EndPreamble', re.IGNORECASE)
+    re_LangPreamble = re.compile(r'^(\s*)LangPreamble', re.IGNORECASE)
+    re_EndLangPreamble = re.compile(r'^(\s*)EndLangPreamble', re.IGNORECASE)
+    re_BabelPreamble = re.compile(r'^(\s*)BabelPreamble', re.IGNORECASE)
+    re_EndBabelPreamble = re.compile(r'^(\s*)EndBabelPreamble', re.IGNORECASE)
     re_MaxCounter = re.compile(r'^(\s*)(MaxCounter)(\s+)(\S+)', re.IGNORECASE)
     re_LabelType = re.compile(r'^(\s*)(LabelType)(\s+)(\S+)', re.IGNORECASE)
     re_LabelString = re.compile(r'^(\s*)(LabelString)(\s+)(("[^"]+")|(\S+))', re.IGNORECASE)
@@ -112,6 +191,16 @@ def convert(lines):
     re_AMSMaths = re.compile(r'^\s*Input ams(?:math|def)s.inc\s*')
     re_AMSMathsPlain = re.compile(r'^\s*Input amsmaths-plain.inc\s*')
     re_AMSMathsSeq = re.compile(r'^\s*Input amsmaths-seq.inc\s*')
+    re_TocLevel = re.compile(r'^(\s*)(TocLevel)(\s+)(\S+)', re.IGNORECASE)
+    re_I18nPreamble = re.compile(r'^(\s*)I18nPreamble', re.IGNORECASE)
+    re_EndI18nPreamble = re.compile(r'^(\s*)EndI18nPreamble', re.IGNORECASE)
+    re_Float = re.compile(r'^\s*Float\s*$', re.IGNORECASE)
+    re_Type = re.compile(r'\s*Type\s+(\w+)', re.IGNORECASE)
+    re_Builtin = re.compile(r'^(\s*)LaTeXBuiltin\s+(\w*)', re.IGNORECASE)
+    re_True = re.compile(r'^\s*(?:true|1)\s*$', re.IGNORECASE)
+    re_InsetLayout = re.compile(r'^\s*InsetLayout\s+(?:Custom|CharStyle|Element):(\S+)\s*$')
+    # with quotes
+    re_QInsetLayout = re.compile(r'^\s*InsetLayout\s+"(?:Custom|CharStyle|Element):([^"]+)"\s*$')
 
     # counters for sectioning styles (hardcoded in 1.3)
     counters = {"part"          : "\\Roman{part}",
@@ -142,6 +231,7 @@ def convert(lines):
     i = 0
     only_comment = 1
     counter = ""
+    toclevel = ""
     label = ""
     labelstring = ""
     labelstringappendix = ""
@@ -188,6 +278,102 @@ def convert(lines):
             while i < len(lines) and not re_EndPreamble.match(lines[i]):
                 i += 1
             continue
+        if re_LangPreamble.match(lines[i]):
+            i += 1
+            while i < len(lines) and not re_EndLangPreamble.match(lines[i]):
+                i += 1
+            continue
+        if re_BabelPreamble.match(lines[i]):
+            i += 1
+            while i < len(lines) and not re_EndBabelPreamble.match(lines[i]):
+                i += 1
+            continue
+        
+        # Only new features
+        if format == 29:
+          i += 1
+          continue
+
+        if format == 28:
+          match = re_InsetLayout.match(lines[i])
+          if match:
+            lines[i] = "InsetLayout Flex:" + match.group(1)
+          else:
+            match = re_QInsetLayout.match(lines[i])
+            if match:
+              lines[i] = "InsetLayout \"Flex:" + match.group(1) + "\""
+          i += 1
+          continue
+        
+        # Only new features
+        if format >= 24 and format <= 27:
+          i += 1
+          continue
+
+        if format == 23:
+          match = re_Float.match(lines[i])
+          i += 1
+          if not match:
+            continue
+          # we need to do two things:
+          # (i)  Convert Builtin to NeedsFloatPkg
+          # (ii) Write ListCommand lines for the builtin floats table and figure
+          builtin = False
+          cmd = ""
+          while True and i < len(lines):
+            m1 = re_End.match(lines[i])
+            if m1:
+              if builtin and cmd:
+                line = "    ListCommand " + cmd
+                lines.insert(i, line)
+                i += 1
+              break
+            m2 = re_Builtin.match(lines[i])
+            if m2:
+              builtin = True
+              ws1 = m2.group(1)
+              arg = m2.group(2)
+              newarg = ""
+              if re_True.match(arg):
+                newarg = "false"
+              else:
+                newarg = "true"
+              lines[i] = ws1 + "NeedsFloatPkg " + newarg
+            m3 = re_Type.match(lines[i])
+            if m3:
+              fltype = m3.group(1)
+              fltype = fltype.lower()
+              if fltype == "table":
+                cmd = "listoftables"
+              elif fltype == "figure":
+                cmd = "listoffigures"
+              # else unknown, which is why we're doing this
+            i += 1
+          continue              
+          
+        # This just involved new features, not any changes to old ones
+        if format >= 14 and format <= 22:
+          i += 1
+          continue
+
+        # Rename I18NPreamble to BabelPreamble
+        if format == 13:
+            match = re_I18nPreamble.match(lines[i])
+            if match:
+                lines[i] = match.group(1) + "BabelPreamble"
+                i += 1
+                match = re_EndI18nPreamble.match(lines[i])
+                while i < len(lines) and not match:
+                    i += 1
+                    match = re_EndI18nPreamble.match(lines[i])
+                lines[i] = match.group(1) + "EndBabelPreamble"
+                i += 1
+                continue
+
+        # These just involved new features, not any changes to old ones
+        if format == 11 or format == 12:
+          i += 1
+          continue
 
         if format == 10:
             match = re_UseMod.match(lines[i])
@@ -392,11 +578,17 @@ def convert(lines):
             latextype = string.lower(match.group(4))
             latextype_line = i
 
+        # Remember the TocLevel line
+        match = re_TocLevel.match(lines[i])
+        if match:
+            toclevel = string.lower(match.group(4))
+
         # Reset variables at the beginning of a style definition
         match = re_Style.match(lines[i])
         if match:
             style = string.lower(match.group(4))
             counter = ""
+            toclevel = ""
             label = ""
             space1 = ""
             labelstring = ""
@@ -464,8 +656,8 @@ def convert(lines):
                 i += 1
 
             # Add the TocLevel setting for sectioning styles
-            if toclevels.has_key(style) and maxcounter <= toclevels[style]:
-                lines.insert(i, '%sTocLevel %d' % (space1, toclevels[style]))
+            if toclevel == "" and toclevels.has_key(style) and maxcounter <= toclevels[style]:
+                lines.insert(i, '%s\tTocLevel %d' % (space1, toclevels[style]))
                 i += 1
 
         i += 1

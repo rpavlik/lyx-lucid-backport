@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  *
  * Full author contact details are available in file CREDITS.
@@ -18,14 +18,17 @@
 #include "Lexer.h"
 #include "TextClass.h"
 
-#include "support/lassert.h"
+#include "frontends/alert.h"
+
 #include "support/debug.h"
 #include "support/FileName.h"
 #include "support/filetools.h"
 #include "support/gettext.h"
+#include "support/lassert.h"
+#include "support/lstrings.h"
 
-#include <boost/bind.hpp>
-#include <boost/regex.hpp>
+#include "support/bind.h"
+#include "support/regex.h"
 
 #include <fstream>
 
@@ -34,18 +37,19 @@ using namespace lyx::support;
 
 namespace lyx {
 
-using boost::bind;
-using boost::regex;
-using boost::smatch;
+
 
 LayoutFile::LayoutFile(string const & fn, string const & cln,
-			   string const & desc, bool texClassAvail )
+			   string const & desc, string const & prereq,
+				 bool texclassavail) 
 {
 	name_ = fn;
 	latexname_ = cln;
 	description_ = desc;
-	texClassAvail_ = texClassAvail;
+	prerequisites_ = prereq;
+	tex_class_avail_ = texclassavail;
 }
+
 
 LayoutFileList::~LayoutFileList()
 {
@@ -55,6 +59,7 @@ LayoutFileList::~LayoutFileList()
 		delete it->second;
 	}
 }
+
 
 LayoutFileList & LayoutFileList::get() 
 {
@@ -82,8 +87,7 @@ LayoutFile const & LayoutFileList::operator[](string const & classname) const
 }
 
 
-LayoutFile & 
-	LayoutFileList::operator[](string const & classname)
+LayoutFile & LayoutFileList::operator[](string const & classname)
 {
 	LASSERT(haveClass(classname), /**/);
 	return *classmap_[classname];
@@ -93,82 +97,72 @@ LayoutFile &
 // Reads LyX textclass definitions according to textclass config file
 bool LayoutFileList::read()
 {
+	bool success = false;
 	Lexer lex;
 	FileName const real_file = libFileSearch("", "textclass.lst");
-	LYXERR(Debug::TCLASS, "Reading textclasses from `" << real_file << '\'');
+	LYXERR(Debug::TCLASS, "Reading textclasses from `" << real_file << "'.");
 
 	if (real_file.empty()) {
-		lyxerr << "LayoutFileList::Read: unable to find "
-			  "textclass file  `"
-		       << to_utf8(makeDisplayPath(real_file.absFilename(), 1000))
-		       << "'. Exiting." << endl;
-		return false;
-		// This causes LyX to end... Not a desirable behaviour. Lgb
-		// What do you propose? That the user gets a file dialog
-		// and is allowed to hunt for the file? (Asger)
-		// more that we have a layout for minimal.cls statically
-		// compiled in... (Lgb)
-	}
-
-	if (!lex.setFile(real_file)) {
-		lyxerr << "LayoutFileList::Read: "
-			"lyxlex was not able to set file: "
-		       << real_file << endl;
-	}
-
-	if (!lex.isOK()) {
-		lyxerr << "LayoutFileList::Read: unable to open "
-			  "textclass file  `"
-		       << to_utf8(makeDisplayPath(real_file.absFilename(), 1000))
-		       << "'\nCheck your installation. LyX can't continue."
-		       << endl;
-		return false;
-	}
-
-	bool finished = false;
-	// Parse config-file
-	LYXERR(Debug::TCLASS, "Starting parsing of textclass.lst");
-	while (lex.isOK() && !finished) {
-		LYXERR(Debug::TCLASS, "\tline by line");
-		switch (lex.lex()) {
-		case Lexer::LEX_FEOF:
-			finished = true;
-			break;
-		default:
-			string const fname = lex.getString();
-			LYXERR(Debug::TCLASS, "Fname: " << fname);
-			if (lex.next()) {
+		LYXERR0("LayoutFileList::Read: unable to find textclass file  "
+		    << "`textclass.lst'.");
+	} else if (!lex.setFile(real_file)) {
+		LYXERR0("LayoutFileList::Read: lyxlex was not able to set file: "
+		       << real_file << '.');
+	} else if (!lex.isOK()) {
+		LYXERR0("LayoutFileList::Read: unable to open textclass file  `"
+		       << makeDisplayPath(real_file.absFileName(), 1000)
+		       << "'\nCheck your installation.");
+	} else {
+		// we have a file we can read.
+		bool finished = false;
+		LYXERR(Debug::TCLASS, "Starting parsing of textclass.lst");
+		while (lex.isOK() && !finished) {
+			LYXERR(Debug::TCLASS, "\tline by line");
+			switch (lex.lex()) {
+			case Lexer::LEX_FEOF:
+				finished = true;
+				break;
+			default:
+				string const fname = lex.getString();
+				LYXERR(Debug::TCLASS, "Fname: " << fname);
+				if (!lex.next()) 
+					break;
 				string const clname = lex.getString();
 				LYXERR(Debug::TCLASS, "Clname: " << clname);
-				if (lex.next()) {
-					string const desc = lex.getString();
-					LYXERR(Debug::TCLASS, "Desc: " << desc);
-					if (lex.next()) {
-						bool avail = lex.getBool();
-						LYXERR(Debug::TCLASS, "Avail: " << avail);
-						// This code is run when we have
-						// fname, clname, desc, and avail
-						LayoutFile * tmpl = new LayoutFile(fname, clname, desc, avail);
-						if (lyxerr.debugging(Debug::TCLASS)) {
-							// only system layout files are loaded here so no
-							// buffer path is needed.
-							tmpl->load();
-						}
-						classmap_[fname] = tmpl;
-					}
+				if (!lex.next()) 
+					break;
+				string const desc = lex.getString();
+				LYXERR(Debug::TCLASS, "Desc: " << desc);
+				if (!lex.next()) 
+					break;
+				bool avail = lex.getBool();
+				LYXERR(Debug::TCLASS, "Avail: " << avail);
+				if (!lex.next()) 
+					break;
+				string const prereq = lex.getString();
+				LYXERR(Debug::TCLASS, "Prereq: " << prereq);
+				// This code is run when we have
+				// fname, clname, desc, prereq, and avail
+				LayoutFile * tmpl = new LayoutFile(fname, clname, desc, prereq, avail);
+				if (lyxerr.debugging(Debug::TCLASS)) {
+					// only system layout files are loaded here so no
+					// buffer path is needed.
+					tmpl->load();
 				}
-			}
-		}
-	}
-	LYXERR(Debug::TCLASS, "End of parsing of textclass.lst");
+				classmap_[fname] = tmpl;
+			} // end of switch
+		} // end of while loop
+		LYXERR(Debug::TCLASS, "End parsing of textclass.lst");
+		success = true;
+	} // end of else
 
-	// lyx will start with an empty classmap_, but only reconfigure is allowed
-	// in this case. This gives users a second chance to configure lyx if
-	// initial configuration fails. (c.f. bug 2829)
+	// LyX will start with an empty classmap_. This is OK because
+	// (a) we will give the user a chance to reconfigure (see bug 2829) and
+	// (b) even if that fails, we can use addEmptyClass() to get some basic
+	// functionality.
 	if (classmap_.empty())
-		lyxerr << "LayoutFileList::Read: no textclasses found!"
-		       << endl;
-	return true;
+		LYXERR0("LayoutFileList::Read: no textclasses found!");
+	return success;
 }
 
 
@@ -188,27 +182,19 @@ void LayoutFileList::reset(LayoutFileIndex const & classname) {
 	LayoutFile * tc = classmap_[classname];
 	LayoutFile * tmpl = 
 		new LayoutFile(tc->name(), tc->latexname(), tc->description(),
-		               tc->isTeXClassAvailable());
+		               tc->prerequisites(), tc->isTeXClassAvailable());
 	classmap_[classname] = tmpl;
 	delete tc;
 }
 
 
-LayoutFileIndex LayoutFileList::addEmptyClass(string const & textclass)
-{
-	if (haveClass(textclass))
-		return textclass;
+namespace {
 
-	FileName const tempLayout = FileName::tempName();
-	ofstream ofs(tempLayout.toFilesystemEncoding().c_str());
-	ofs << "# This layout is automatically generated\n"
-		"# \\DeclareLaTeXClass{" << textclass << "}\n\n"
-		"Format		7\n"
-		"Input stdclass.inc\n\n"
-		"Columns		1\n"
-		"Sides			1\n"
-		"SecNumDepth	2\n"
-		"TocDepth		2\n"
+string layoutpost =			
+		"Columns      1\n"
+		"Sides        1\n"
+		"SecNumDepth  2\n"
+		"TocDepth     2\n"
 		"DefaultStyle	Standard\n\n"
 		"Style Standard\n"
 		"	Category              MainText\n"
@@ -221,16 +207,44 @@ LayoutFileIndex LayoutFileList::addEmptyClass(string const & textclass)
 		"	AlignPossible         Block, Left, Right, Center\n"
 		"	LabelType             No_Label\n"
 		"End\n";
+	
+}
+
+LayoutFileIndex LayoutFileList::addEmptyClass(string const & textclass)
+{
+	FileName const tempLayout = FileName::tempName();
+	ofstream ofs(tempLayout.toFilesystemEncoding().c_str());
+	// This writes a very basic class, but it also attempts to include 
+	// stdclass.inc. That would give us something moderately usable.
+	ofs << "# This layout is automatically generated\n"
+	       "# \\DeclareLaTeXClass{" << textclass << "}\n\n"
+	       "Format " << LAYOUT_FORMAT << "\n"
+	       "Input stdclass.inc\n\n"
+	    << layoutpost;
 	ofs.close();
 
 	// We do not know if a LaTeX class is available for this document, but setting
 	// the last parameter to true will suppress a warning message about missing
 	// tex class.
-	LayoutFile * tc = new LayoutFile(textclass, textclass, "Unknown text class " + textclass, true);
-	if (!tc->load(tempLayout.absFilename()))
-		// The only way this happens is because the hardcoded layout file above
-		// is wrong.
-		LASSERT(false, /**/);
+	LayoutFile * tc = new LayoutFile(textclass, textclass, 
+			"Unknown text class " + textclass, textclass + ".cls", true);
+
+	if (!tc->load(tempLayout.absFileName())) {
+		// The only way this happens is because the hardcoded layout file 
+		// above is wrong or stdclass.inc cannot be found. So try again 
+		// without stdclass.inc.
+		ofstream ofs2(tempLayout.toFilesystemEncoding().c_str());
+		ofs2 << "# This layout is automatically generated\n"
+		        "# \\DeclareLaTeXClass{" << textclass << "}\n\n"
+		        "Format " << LAYOUT_FORMAT << "\n"
+		     << layoutpost;
+		ofs2.close();
+		if (!tc->load(tempLayout.absFileName())) {
+			// This can only happen if the hardcoded file above is wrong.
+			LASSERT(false, /* */);
+		}
+	}
+
 	classmap_[textclass] = tc;
 	return textclass;
 }
@@ -265,9 +279,13 @@ LayoutFileIndex
 				// returns: whole string, classtype (not used here), class name, description
 				LASSERT(sub.size() == 4, /**/);
 				// now, create a TextClass with description containing path information
-				string className(sub.str(2) == "" ? textclass : sub.str(2));
+				string class_name(sub.str(2) == "" ? textclass : sub.str(2));
+				string class_prereq(class_name + ".cls");
 				LayoutFile * tmpl = 
-					new LayoutFile(textclass, className, textclass, true);
+					new LayoutFile(textclass, class_name, textclass, class_prereq, true);
+				//FIXME: The prerequisites are available from the layout file and
+				//       can be extracted from the above regex, but for now this
+				//       field is simply set to class_name + ".cls"
 				// This textclass is added on request so it will definitely be
 				// used. Load it now because other load() calls may fail if they
 				// are called in a context without buffer path information.
@@ -288,31 +306,27 @@ LayoutFileIndex
 }
 
 
+bool LayoutFileList::load(string const & name, string const & buf_path)
+{
+	if (!haveClass(name)) {
+		LYXERR0("Document class \"" << name << "\" does not exist.");
+		return false;
+	}
+
+	LayoutFile * tc = classmap_[name];
+	return tc->load(buf_path);
+}
+
+
 LayoutFileIndex defaultBaseclass()
 {
 	if (LayoutFileList::get().haveClass("article"))
 		return string("article");
 	if (LayoutFileList::get().empty())
-		return string();
+		// we'll call it that, since this gives the user a chance to
+		// have a functioning document when things improve.
+		return string("article");
 	return LayoutFileList::get().classList().front();
 }
-
-
-
-// Reads the style files
-bool LyXSetStyle()
-{
-	LYXERR(Debug::TCLASS, "LyXSetStyle: parsing configuration...");
-
-	if (!LayoutFileList::get().read()) {
-		LYXERR(Debug::TCLASS, "LyXSetStyle: an error occured "
-			"during parsing.\n             Exiting.");
-		return false;
-	}
-
-	LYXERR(Debug::TCLASS, "LyXSetStyle: configuration parsed.");
-	return true;
-}
-
 
 } // namespace lyx

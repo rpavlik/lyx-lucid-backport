@@ -3,11 +3,11 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author João Luis M. Assirati
+ * \author JoÃ£o Luis M. Assirati
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,9 +16,10 @@
 
 #include "ServerSocket.h"
 
+#include "DispatchResult.h"
 #include "FuncRequest.h"
+#include "LyX.h"
 #include "LyXAction.h"
-#include "LyXFunc.h"
 
 #include "frontends/Application.h"
 
@@ -27,7 +28,7 @@
 #include "support/FileName.h"
 #include "support/socktools.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <cerrno>
 #include <ostream>
@@ -39,16 +40,15 @@
 using namespace std;
 using namespace lyx::support;
 
-using boost::shared_ptr;
+
 
 namespace lyx {
 
 // Address is the unix address for the socket.
 // MAX_CLIENTS is the maximum number of clients
 // that can connect at the same time.
-ServerSocket::ServerSocket(LyXFunc * f, FileName const & addr)
-	: func(f),
-	  fd_(socktools::listen(addr, 3)),
+ServerSocket::ServerSocket(FileName const & addr)
+	: fd_(socktools::listen(addr, 3)),
 	  address_(addr)
 {
 	if (fd_ == -1) {
@@ -60,15 +60,15 @@ ServerSocket::ServerSocket(LyXFunc * f, FileName const & addr)
 	// Needed by xdvi
 	setEnv("XEDITOR", "lyxclient -g %f %l");
 	// Needed by lyxclient
-	setEnv("LYXSOCKET", address_.absFilename());
+	setEnv("LYXSOCKET", address_.absFileName());
 
 	theApp()->registerSocketCallback(
 		fd_,
-		boost::bind(&ServerSocket::serverCallback, this)
+		bind(&ServerSocket::serverCallback, this)
 		);
 
 	LYXERR(Debug::LYXSERVER, "lyx: New server socket "
-				 << fd_ << ' ' << address_.absFilename());
+				 << fd_ << ' ' << address_.absFileName());
 }
 
 
@@ -90,7 +90,7 @@ ServerSocket::~ServerSocket()
 
 string const ServerSocket::address() const
 {
-	return address_.absFilename();
+	return address_.absFileName();
 }
 
 
@@ -115,7 +115,7 @@ void ServerSocket::serverCallback()
 		shared_ptr<LyXDataSocket>(new LyXDataSocket(client_fd));
 	theApp()->registerSocketCallback(
 		client_fd,
-		boost::bind(&ServerSocket::dataCallback,
+		bind(&ServerSocket::dataCallback,
 			    this, client_fd)
 		);
 }
@@ -141,13 +141,13 @@ void ServerSocket::dataCallback(int fd)
 		string const key = line.substr(0, pos);
 		if (key == "LYXCMD") {
 			string const cmd = line.substr(pos + 1);
-			func->dispatch(lyxaction.lookupFunc(cmd));
-			string const rval = to_utf8(func->getMessage());
-			if (func->errorStat()) {
+			DispatchResult dr;
+			theApp()->dispatch(lyxaction.lookupFunc(cmd), dr);
+			string const rval = to_utf8(dr.message());
+			if (dr.error())
 				client->writeln("ERROR:" + cmd + ':' + rval);
-			} else {
+			else
 				client->writeln("INFO:" + cmd + ':' + rval);
-			}
 		} else if (key == "HELLO") {
 			// no use for client name!
 			client->writeln("HELLO:");
@@ -189,7 +189,7 @@ void ServerSocket::writeln(string const & line)
 // void ServerSocket::dump() const
 // {
 //	lyxerr << "ServerSocket debug dump.\n"
-//	     << "fd = " << fd_ << ", address = " << address_.absFilename() << ".\n"
+//	     << "fd = " << fd_ << ", address = " << address_.absFileName() << ".\n"
 //	     << "Clients: " << clients.size() << ".\n";
 //	map<int, shared_ptr<LyXDataSocket> >::const_iterator client = clients.begin();
 //	map<int, shared_ptr<LyXDataSocket> >::const_iterator end = clients.end();

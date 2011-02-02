@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -11,6 +11,8 @@
 #include <config.h>
 
 #include "InsetMathSqrt.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "TextPainter.h"
@@ -112,5 +114,23 @@ void InsetMathSqrt::mathmlize(MathStream & os) const
 	os << MTag("msqrt") << cell(0) << ETag("msqrt");
 }
 
+
+void InsetMathSqrt::htmlize(HtmlStream & os) const
+{
+	os << MTag("span", "class='sqrt'")
+	   << from_ascii("&radic;") 
+	   << MTag("span", "class='sqrtof'")	<< cell(0) << ETag("span") 
+		 << ETag("span");
+}
+
+
+void InsetMathSqrt::validate(LaTeXFeatures & features) const
+{
+	if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.sqrtof{border-top: thin solid black;}\n"
+			"</style>");
+	InsetMathNest::validate(features);
+}
 
 } // namespace lyx

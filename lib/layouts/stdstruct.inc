@@ -8,7 +8,7 @@
 # a document, like abstract, bibliography and such.
 
 
-Format 11
+Format 30
 Style Abstract
 	Margin                Static
 	LatexType             Environment
@@ -33,6 +33,20 @@ Style Abstract
 	  Series              Bold
 	  Size                Large
 	EndFont
+	HTMLLabelFirst        1
+	HTMLForceCSS          1
+	HTMLStyle
+		div.abstract {
+			margin: 4ex;
+		}
+		div.abstract_item {
+			font-size: small;
+			padding-top: 1ex;
+		}
+		div.abstract_label {
+			font-weight: bold;	
+		}
+	EndHTMLStyle
 End
 
 
@@ -57,4 +71,12 @@ Style Bibliography
 	  Series              Bold
 	  Size                Larger
 	EndFont
+	HTMLStyle
+		div.bibliography {
+			margin-left: 2em;
+			text-indent: -2em;
+		}
+		span.bibitemlabel:before { content: "["; }
+		span.bibitemlabel:after { content: "] "; }
+	EndHTMLStyle
 End

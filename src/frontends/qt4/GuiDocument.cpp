@@ -15,6 +15,7 @@
 
 #include "GuiApplication.h"
 #include "GuiBranches.h"
+#include "GuiIndices.h"
 #include "GuiSelectionManager.h"
 #include "LaTeXHighlighter.h"
 #include "LengthCombo.h"
@@ -28,18 +29,24 @@
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "Color.h"
+#include "ColorCache.h"
 #include "Encoding.h"
 #include "FloatPlacement.h"
+#include "Format.h"
 #include "FuncRequest.h"
+#include "HSpace.h"
+#include "IndicesList.h"
 #include "Language.h"
 #include "LaTeXFeatures.h"
 #include "Layout.h"
-#include "LyXRC.h" // defaultUnit
+#include "LayoutModuleList.h"
+#include "LyXRC.h"
 #include "ModuleList.h"
 #include "OutputParams.h"
 #include "PDFOptions.h"
 #include "qt_helpers.h"
 #include "Spacing.h"
+#include "TextClass.h"
 
 #include "insets/InsetListingsParams.h"
 
@@ -52,7 +59,11 @@
 #include "frontends/alert.h"
 
 #include <QAbstractItemModel>
+#include <QHeaderView>
+#include <QColor>
+#include <QColorDialog>
 #include <QCloseEvent>
+#include <QFontDatabase>
 #include <QScrollBar>
 #include <QTextCursor>
 
@@ -62,6 +73,19 @@
 #ifdef IN
 #undef IN
 #endif
+
+
+// a style sheet for buttons
+// this is for example used for the background color setting button
+static inline QString colorButtonStyleSheet(QColor const & bgColor)
+{
+	if (bgColor.isValid()) {
+		QString rc = QLatin1String("background-color:");
+		rc += bgColor.name();
+		return rc;
+	}
+	return QString();
+}
 
 
 using namespace std;
@@ -154,6 +178,13 @@ vector<pair<string, QString> > pagestyles;
 
 namespace lyx {
 
+RGBColor set_backgroundcolor;
+bool is_backgroundcolor;
+RGBColor set_fontcolor;
+bool is_fontcolor;
+RGBColor set_notefontcolor;
+RGBColor set_boxbgcolor;
+
 namespace {
 // used when sorting the textclass list.
 class less_textclass_avail_desc
@@ -174,6 +205,7 @@ public:
 			(tc1.isTeXClassAvailable() == tc2.isTeXClassAvailable() && order < 0);
 	}
 };
+
 }
 
 namespace frontend {
@@ -181,7 +213,7 @@ namespace {
 
 vector<string> getRequiredList(string const & modName) 
 {
-	LyXModule const * const mod = moduleList[modName];
+	LyXModule const * const mod = theModuleList[modName];
 	if (!mod)
 		return vector<string>(); //empty such thing
 	return mod->getRequiredModules();
@@ -190,7 +222,7 @@ vector<string> getRequiredList(string const & modName)
 
 vector<string> getExcludedList(string const & modName)
 {
-	LyXModule const * const mod = moduleList[modName];
+	LyXModule const * const mod = theModuleList[modName];
 	if (!mod)
 		return vector<string>(); //empty such thing
 	return mod->getExcludedModules();
@@ -199,7 +231,7 @@ vector<string> getExcludedList(string const & modName)
 
 docstring getModuleDescription(string const & modName)
 {
-	LyXModule const * const mod = moduleList[modName];
+	LyXModule const * const mod = theModuleList[modName];
 	if (!mod)
 		return _("Module not found!");
 	// FIXME Unicode
@@ -209,7 +241,7 @@ docstring getModuleDescription(string const & modName)
 
 vector<string> getPackageList(string const & modName)
 {
-	LyXModule const * const mod = moduleList[modName];
+	LyXModule const * const mod = theModuleList[modName];
 	if (!mod)
 		return vector<string>(); //empty such thing
 	return mod->getPackageList();
@@ -218,7 +250,7 @@ vector<string> getPackageList(string const & modName)
 
 bool isModuleAvailable(string const & modName)
 {
-	LyXModule * mod = moduleList[modName];
+	LyXModule const * const mod = theModuleList[modName];
 	if (!mod)
 		return false;
 	return mod->isAvailable();
@@ -239,7 +271,7 @@ class ModuleSelectionManager : public GuiSelectionManager
 public:
 	///
 	ModuleSelectionManager(
-		QListView * availableLV, 
+		QTreeView * availableLV,
 		QListView * selectedLV,
 		QPushButton * addPB, 
 		QPushButton * delPB, 
@@ -252,11 +284,11 @@ public:
 				upPB, downPB, availableModel, selectedModel), container_(container)
 		{}
 	///
-	void updateProvidedModules(std::list<std::string> const & pm) 
-			{ provided_modules_ = pm; }
+	void updateProvidedModules(LayoutModuleList const & pm) 
+			{ provided_modules_ = pm.list(); }
 	///
-	void updateExcludedModules(std::list<std::string> const & em) 
-			{ excluded_modules_ = em; }
+	void updateExcludedModules(LayoutModuleList const & em) 
+			{ excluded_modules_ = em.list(); }
 private:
 	///
 	virtual void updateAddPB();
@@ -277,9 +309,9 @@ private:
 		return dynamic_cast<GuiIdListModel *>(selectedModel);
 	}
 	/// keeps a list of the modules the text class provides
-	std::list<std::string> provided_modules_;
+	list<string> provided_modules_;
 	/// similarly...
-	std::list<std::string> excluded_modules_;
+	list<string> excluded_modules_;
 	/// 
 	GuiDocument const * container_;
 };
@@ -408,26 +440,26 @@ void ModuleSelectionManager::updateDelPB()
 		// required module. There would be more flexible ways to proceed,
 		// but that would be a lot more complicated, and the logic here is
 		// already complicated. (That's why I've left the debugging code.)
-		// lyxerr << "Testing " << thisMod << std::endl;
+		// lyxerr << "Testing " << thisMod << endl;
 		bool foundone = false;
 		for (int j = 0; j < curRow; ++j) {
 			string const mod = getSelectedModel()->getIDString(j);
-			// lyxerr << "In loop: Testing " << mod << std::endl;
+			// lyxerr << "In loop: Testing " << mod << endl;
 			// do we satisfy the require? 
 			if (find(reqs.begin(), reqs.end(), mod) != reqs.end()) {
-				// lyxerr << mod << " does the trick." << std::endl;
+				// lyxerr << mod << " does the trick." << endl;
 				foundone = true;
 				break;
 			}
 		}
 		// did we find a module to satisfy the require?
 		if (!foundone) {
-			// lyxerr << "No matching module found." << std::endl;
+			// lyxerr << "No matching module found." << endl;
 			deletePB->setEnabled(false);
 			return;
 		}
 	}
-	// lyxerr << "All's well that ends well." << std::endl;	
+	// lyxerr << "All's well that ends well." << endl;
 	deletePB->setEnabled(true);
 }
 
@@ -496,6 +528,82 @@ void PreambleModule::closeEvent(QCloseEvent * e)
 
 /////////////////////////////////////////////////////////////////////
 //
+// LocalLayout
+//
+/////////////////////////////////////////////////////////////////////
+
+
+LocalLayout::LocalLayout() : current_id_(0), is_valid_(false)
+{
+	connect(locallayoutTE, SIGNAL(textChanged()), this, SLOT(textChanged()));
+	connect(validatePB, SIGNAL(clicked()), this, SLOT(validatePressed()));
+}
+
+
+void LocalLayout::update(BufferParams const & params, BufferId id)
+{
+	QString layout = toqstr(params.local_layout);
+	// Nothing to do if the params and preamble are unchanged.
+	if (id == current_id_
+		&& layout == locallayoutTE->document()->toPlainText())
+		return;
+
+	// Save the params address for further use.
+	current_id_ = id;
+	locallayoutTE->document()->setPlainText(layout);
+	validate();
+}
+
+
+void LocalLayout::apply(BufferParams & params)
+{
+	string const layout = fromqstr(locallayoutTE->document()->toPlainText());
+	params.local_layout = layout;
+}
+
+
+void LocalLayout::textChanged()
+{
+	static const QString unknown = qt_("Press button to check validity...");
+
+	is_valid_ = false;
+	infoLB->setText(unknown);
+	validatePB->setEnabled(true);
+	changed();
+}
+
+
+void LocalLayout::validate() {
+	static const QString valid = qt_("Layout is valid!");
+	static const QString vtext =
+		toqstr("<p style=\"font-weight: bold; \">") 
+		  + valid + toqstr("</p>");
+	static const QString invalid = qt_("Layout is invalid!");
+	static const QString ivtext =
+		toqstr("<p style=\"color: #c00000; font-weight: bold; \">") 
+		  + invalid + toqstr("</p>");
+
+	string const layout = 
+		fromqstr(locallayoutTE->document()->toPlainText().trimmed());
+	if (layout.empty()) {
+		is_valid_ = true;
+		infoLB->setText("");
+	} else {
+		is_valid_ = TextClass::validate(layout);
+		infoLB->setText(is_valid_ ? vtext : ivtext);
+	}
+	validatePB->setEnabled(false);
+}
+
+
+void LocalLayout::validatePressed() {
+	validate();
+	changed();
+}
+
+
+/////////////////////////////////////////////////////////////////////
+//
 // DocumentDialog
 //
 /////////////////////////////////////////////////////////////////////
@@ -521,53 +629,65 @@ GuiDocument::GuiDocument(GuiView & lv)
 	bc().setCancel(closePB);
 	bc().setRestore(restorePB);
 
-	textLayoutModule = new UiWidget<Ui::TextLayoutUi>;
+
 	// text layout
+	textLayoutModule = new UiWidget<Ui::TextLayoutUi>;
 	connect(textLayoutModule->lspacingCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
 	connect(textLayoutModule->lspacingCO, SIGNAL(activated(int)),
 		this, SLOT(setLSpacing(int)));
 	connect(textLayoutModule->lspacingLE, SIGNAL(textChanged(const QString &)),
 		this, SLOT(change_adaptor()));
-	connect(textLayoutModule->skipRB, SIGNAL(clicked()),
-		this, SLOT(change_adaptor()));
+
 	connect(textLayoutModule->indentRB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
+	connect(textLayoutModule->indentRB, SIGNAL(toggled(bool)),
+		textLayoutModule->indentCO, SLOT(setEnabled(bool)));
+	connect(textLayoutModule->indentCO, SIGNAL(activated(int)),
+		this, SLOT(change_adaptor()));
+	connect(textLayoutModule->indentCO, SIGNAL(activated(int)),
+		this, SLOT(setIndent(int)));
+	connect(textLayoutModule->indentLE, SIGNAL(textChanged(const QString &)),
+		this, SLOT(change_adaptor()));
+	connect(textLayoutModule->indentLengthCO, SIGNAL(activated(int)),
+		this, SLOT(change_adaptor()));
+
+	connect(textLayoutModule->skipRB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(textLayoutModule->skipRB, SIGNAL(toggled(bool)),
+		textLayoutModule->skipCO, SLOT(setEnabled(bool)));
 	connect(textLayoutModule->skipCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
+	connect(textLayoutModule->skipCO, SIGNAL(activated(int)),
+		this, SLOT(setSkip(int)));
 	connect(textLayoutModule->skipLE, SIGNAL(textChanged(const QString &)),
 		this, SLOT(change_adaptor()));
 	connect(textLayoutModule->skipLengthCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
-	connect(textLayoutModule->skipCO, SIGNAL(activated(int)),
-		this, SLOT(setSkip(int)));
+
+	connect(textLayoutModule->indentRB, SIGNAL(toggled(bool)),
+		this, SLOT(enableIndent(bool)));
 	connect(textLayoutModule->skipRB, SIGNAL(toggled(bool)),
 		this, SLOT(enableSkip(bool)));
+
 	connect(textLayoutModule->twoColumnCB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
 	connect(textLayoutModule->twoColumnCB, SIGNAL(clicked()),
 		this, SLOT(setColSep()));
-	connect(textLayoutModule->listingsED, SIGNAL(textChanged()),
-		this, SLOT(change_adaptor()));
-	connect(textLayoutModule->bypassCB, SIGNAL(clicked()), 
-		this, SLOT(change_adaptor()));
-	connect(textLayoutModule->bypassCB, SIGNAL(clicked()), 
-		this, SLOT(setListingsMessage()));
-	connect(textLayoutModule->listingsED, SIGNAL(textChanged()),
-		this, SLOT(setListingsMessage()));
-	textLayoutModule->listingsTB->setPlainText(
-		qt_("Input listings parameters on the right. Enter ? for a list of parameters."));
+
 	textLayoutModule->lspacingLE->setValidator(new QDoubleValidator(
 		textLayoutModule->lspacingLE));
+	textLayoutModule->indentLE->setValidator(unsignedLengthValidator(
+		textLayoutModule->indentLE));
 	textLayoutModule->skipLE->setValidator(unsignedGlueLengthValidator(
 		textLayoutModule->skipLE));
 
+	textLayoutModule->indentCO->addItem(qt_("Default"));
+	textLayoutModule->indentCO->addItem(qt_("Custom"));
 	textLayoutModule->skipCO->addItem(qt_("SmallSkip"));
 	textLayoutModule->skipCO->addItem(qt_("MedSkip"));
 	textLayoutModule->skipCO->addItem(qt_("BigSkip"));
-	textLayoutModule->skipCO->addItem(qt_("Length"));
-	// remove the %-items from the unit choice
-	textLayoutModule->skipLengthCO->noPercents();
+	textLayoutModule->skipCO->addItem(qt_("Custom"));
 	textLayoutModule->lspacingCO->insertItem(
 		Spacing::Single, qt_("Single"));
 	textLayoutModule->lspacingCO->insertItem(
@@ -576,12 +696,60 @@ GuiDocument::GuiDocument(GuiView & lv)
 		Spacing::Double, qt_("Double"));
 	textLayoutModule->lspacingCO->insertItem(
 		Spacing::Other, qt_("Custom"));
-
 	// initialize the length validator
+	bc().addCheckedLineEdit(textLayoutModule->indentLE);
 	bc().addCheckedLineEdit(textLayoutModule->skipLE);
 
-	fontModule = new UiWidget<Ui::FontUi>;
+
+	// master/child handling
+	masterChildModule = new UiWidget<Ui::MasterChildUi>;
+
+	connect(masterChildModule->childrenTW, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
+		this, SLOT(includeonlyClicked(QTreeWidgetItem *, int)));
+	connect(masterChildModule->includeonlyRB, SIGNAL(toggled(bool)),
+		masterChildModule->childrenTW, SLOT(setEnabled(bool)));
+	connect(masterChildModule->includeonlyRB, SIGNAL(toggled(bool)),
+		masterChildModule->maintainAuxCB, SLOT(setEnabled(bool)));
+	connect(masterChildModule->includeallRB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(masterChildModule->includeonlyRB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(masterChildModule->maintainAuxCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	masterChildModule->childrenTW->setColumnCount(2);
+	masterChildModule->childrenTW->headerItem()->setText(0, qt_("Child Document"));
+	masterChildModule->childrenTW->headerItem()->setText(1, qt_("Include to Output"));
+	masterChildModule->childrenTW->resizeColumnToContents(1);
+	masterChildModule->childrenTW->resizeColumnToContents(2);
+
+
+	// output
+	outputModule = new UiWidget<Ui::OutputUi>;
+
+	connect(outputModule->defaultFormatCO, SIGNAL(activated(int)),
+		this, SLOT(change_adaptor()));
+	connect(outputModule->mathimgSB, SIGNAL(valueChanged(double)),
+		this, SLOT(change_adaptor()));
+	connect(outputModule->strictCB, SIGNAL(stateChanged(int)),
+		this, SLOT(change_adaptor()));
+	connect(outputModule->mathoutCB, SIGNAL(currentIndexChanged(int)),
+		this, SLOT(change_adaptor()));
+
+	connect(outputModule->outputsyncCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(outputModule->synccustomCB, SIGNAL(editTextChanged(QString)),
+		this, SLOT(change_adaptor()));
+	outputModule->synccustomCB->addItem("");
+	outputModule->synccustomCB->addItem("\\synctex=1");
+	outputModule->synccustomCB->addItem("\\synctex=-1");
+	outputModule->synccustomCB->addItem("\\usepackage[active]{srcltx}");
+
 	// fonts
+	fontModule = new UiWidget<Ui::FontUi>;
+	connect(fontModule->osFontsCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(fontModule->osFontsCB, SIGNAL(toggled(bool)),
+		this, SLOT(osFontsChanged(bool)));
 	connect(fontModule->fontsRomanCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
 	connect(fontModule->fontsRomanCO, SIGNAL(activated(int)),
@@ -596,6 +764,12 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(ttChanged(int)));
 	connect(fontModule->fontsDefaultCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
+	connect(fontModule->fontencCO, SIGNAL(activated(int)),
+		this, SLOT(change_adaptor()));
+	connect(fontModule->fontencCO, SIGNAL(activated(int)),
+		this, SLOT(fontencChanged(int)));
+	connect(fontModule->fontencLE, SIGNAL(textChanged(const QString &)),
+		this, SLOT(change_adaptor()));
 	connect(fontModule->fontsizeCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
 	connect(fontModule->cjkFontLE, SIGNAL(textChanged(const QString &)),
@@ -609,37 +783,24 @@ GuiDocument::GuiDocument(GuiView & lv)
 	connect(fontModule->fontOsfCB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
 
-	for (int n = 0; tex_fonts_roman[n][0]; ++n) {
-		QString font = qt_(tex_fonts_roman_gui[n]);
-		if (!isFontAvailable(tex_fonts_roman[n]))
-			font += qt_(" (not installed)");
-		fontModule->fontsRomanCO->addItem(font);
-	}
-	for (int n = 0; tex_fonts_sans[n][0]; ++n) {
-		QString font = qt_(tex_fonts_sans_gui[n]);
-		if (!isFontAvailable(tex_fonts_sans[n]))
-			font += qt_(" (not installed)");
-		fontModule->fontsSansCO->addItem(font);
-	}
-	for (int n = 0; tex_fonts_monospaced[n][0]; ++n) {
-		QString font = qt_(tex_fonts_monospaced_gui[n]);
-		if (!isFontAvailable(tex_fonts_monospaced[n]))
-			font += qt_(" (not installed)");
-		fontModule->fontsTypewriterCO->addItem(font);
-	}
+	updateFontlist();
 
 	fontModule->fontsizeCO->addItem(qt_("Default"));
 	fontModule->fontsizeCO->addItem(qt_("10"));
 	fontModule->fontsizeCO->addItem(qt_("11"));
 	fontModule->fontsizeCO->addItem(qt_("12"));
 
+	fontModule->fontencCO->addItem(qt_("Default"));
+	fontModule->fontencCO->addItem(qt_("Custom"));
+	fontModule->fontencCO->addItem(qt_("None (no fontenc)"));
+
 	for (int n = 0; GuiDocument::fontfamilies_gui[n][0]; ++n)
 		fontModule->fontsDefaultCO->addItem(
 			qt_(GuiDocument::fontfamilies_gui[n]));
 
 
-	pageLayoutModule = new UiWidget<Ui::PageLayoutUi>;
 	// page layout
+	pageLayoutModule = new UiWidget<Ui::PageLayoutUi>;
 	connect(pageLayoutModule->papersizeCO, SIGNAL(activated(int)),
 		this, SLOT(papersizeChanged(int)));
 	connect(pageLayoutModule->papersizeCO, SIGNAL(activated(int)),
@@ -664,7 +825,7 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(pageLayoutModule->pagestyleCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
-
+	
 	pageLayoutModule->pagestyleCO->addItem(qt_("Default"));
 	pageLayoutModule->pagestyleCO->addItem(qt_("empty"));
 	pageLayoutModule->pagestyleCO->addItem(qt_("plain"));
@@ -675,19 +836,40 @@ GuiDocument::GuiDocument(GuiView & lv)
 	bc().addCheckedLineEdit(pageLayoutModule->paperwidthLE,
 		pageLayoutModule->paperwidthL);
 
-	// paper
 	QComboBox * cb = pageLayoutModule->papersizeCO;
 	cb->addItem(qt_("Default"));
 	cb->addItem(qt_("Custom"));
 	cb->addItem(qt_("US letter"));
 	cb->addItem(qt_("US legal"));
 	cb->addItem(qt_("US executive"));
+	cb->addItem(qt_("A0"));
+	cb->addItem(qt_("A1"));
+	cb->addItem(qt_("A2"));
 	cb->addItem(qt_("A3"));
 	cb->addItem(qt_("A4"));
 	cb->addItem(qt_("A5"));
+	cb->addItem(qt_("A6"));
+	cb->addItem(qt_("B0"));
+	cb->addItem(qt_("B1"));
+	cb->addItem(qt_("B2"));
 	cb->addItem(qt_("B3"));
 	cb->addItem(qt_("B4"));
 	cb->addItem(qt_("B5"));
+	cb->addItem(qt_("B6"));
+	cb->addItem(qt_("C0"));
+	cb->addItem(qt_("C1"));
+	cb->addItem(qt_("C2"));
+	cb->addItem(qt_("C3"));
+	cb->addItem(qt_("C4"));
+	cb->addItem(qt_("C5"));
+	cb->addItem(qt_("C6"));
+	cb->addItem(qt_("JIS B0"));
+	cb->addItem(qt_("JIS B1"));
+	cb->addItem(qt_("JIS B2"));
+	cb->addItem(qt_("JIS B3"));
+	cb->addItem(qt_("JIS B4"));
+	cb->addItem(qt_("JIS B5"));
+	cb->addItem(qt_("JIS B6"));
 	// remove the %-items from the unit choice
 	pageLayoutModule->paperwidthUnitCO->noPercents();
 	pageLayoutModule->paperheightUnitCO->noPercents();
@@ -697,8 +879,8 @@ GuiDocument::GuiDocument(GuiView & lv)
 		pageLayoutModule->paperwidthLE));
 
 
-	marginsModule = new UiWidget<Ui::MarginsUi>;
 	// margins
+	marginsModule = new UiWidget<Ui::MarginsUi>;
 	connect(marginsModule->marginCB, SIGNAL(toggled(bool)),
 		this, SLOT(setCustomMargins(bool)));
 	connect(marginsModule->marginCB, SIGNAL(clicked()),
@@ -770,8 +952,8 @@ GuiDocument::GuiDocument(GuiView & lv)
 		marginsModule->columnsepL);
 
 
-	langModule = new UiWidget<Ui::LanguageUi>;
 	// language & quote
+	langModule = new UiWidget<Ui::LanguageUi>;
 	connect(langModule->languageCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
 	connect(langModule->defaultencodingRB, SIGNAL(clicked()),
@@ -782,11 +964,12 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(langModule->quoteStyleCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
-	// language & quotes
+
 	QAbstractItemModel * language_model = guiApp->languageModel();
 	// FIXME: it would be nice if sorting was enabled/disabled via a checkbox.
 	language_model->sort(0);
 	langModule->languageCO->setModel(language_model);
+	langModule->languageCO->setModelColumn(0);
 
 	// Always put the default encoding in the first position.
 	langModule->encodingCO->addItem(qt_("Language Default (no inputenc)"));
@@ -806,8 +989,28 @@ GuiDocument::GuiDocument(GuiView & lv)
 	langModule->quoteStyleCO->addItem(qt_(">>text<<"));
 
 
-	numberingModule = new UiWidget<Ui::NumberingUi>;
+	// color
+	colorModule = new UiWidget<Ui::ColorUi>;
+	connect(colorModule->fontColorPB, SIGNAL(clicked()),
+		this, SLOT(changeFontColor()));
+	connect(colorModule->delFontColorTB, SIGNAL(clicked()),
+		this, SLOT(deleteFontColor()));
+	connect(colorModule->noteFontColorPB, SIGNAL(clicked()),
+		this, SLOT(changeNoteFontColor()));
+	connect(colorModule->delNoteFontColorTB, SIGNAL(clicked()),
+		this, SLOT(deleteNoteFontColor()));
+	connect(colorModule->backgroundPB, SIGNAL(clicked()),
+		this, SLOT(changeBackgroundColor()));
+	connect(colorModule->delBackgroundTB, SIGNAL(clicked()),
+		this, SLOT(deleteBackgroundColor()));
+	connect(colorModule->boxBackgroundPB, SIGNAL(clicked()),
+		this, SLOT(changeBoxBackgroundColor()));
+	connect(colorModule->delBoxBackgroundTB, SIGNAL(clicked()),
+		this, SLOT(deleteBoxBackgroundColor()));
+
+
 	// numbering
+	numberingModule = new UiWidget<Ui::NumberingUi>;
 	connect(numberingModule->depthSL, SIGNAL(valueChanged(int)),
 		this, SLOT(change_adaptor()));
 	connect(numberingModule->tocSL, SIGNAL(valueChanged(int)),
@@ -822,12 +1025,12 @@ GuiDocument::GuiDocument(GuiView & lv)
 	numberingModule->tocTW->headerItem()->setText(2, qt_("Appears in TOC"));
 
 
+	// biblio
 	biblioModule = new UiWidget<Ui::BiblioUi>;
 	connect(biblioModule->citeNatbibRB, SIGNAL(toggled(bool)),
 		biblioModule->citationStyleL, SLOT(setEnabled(bool)));
 	connect(biblioModule->citeNatbibRB, SIGNAL(toggled(bool)),
 		biblioModule->citeStyleCO, SLOT(setEnabled(bool)));
-	// biblio
 	connect(biblioModule->citeDefaultRB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
 	connect(biblioModule->citeNatbibRB, SIGNAL(clicked()),
@@ -838,18 +1041,41 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(biblioModule->bibtopicCB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
-	// biblio
+	connect(biblioModule->bibtexCO, SIGNAL(activated(int)),
+		this, SLOT(bibtexChanged(int)));
+	connect(biblioModule->bibtexOptionsED, SIGNAL(textChanged(QString)),
+		this, SLOT(change_adaptor()));
+
 	biblioModule->citeStyleCO->addItem(qt_("Author-year"));
 	biblioModule->citeStyleCO->addItem(qt_("Numerical"));
 	biblioModule->citeStyleCO->setCurrentIndex(0);
+	
+	biblioModule->bibtexCO->clear();
+	biblioModule->bibtexCO->addItem(qt_("Default"), QString("default"));
+	for (set<string>::const_iterator it = lyxrc.bibtex_alternatives.begin();
+			     it != lyxrc.bibtex_alternatives.end(); ++it) {
+		QString const command = toqstr(*it).left(toqstr(*it).indexOf(" "));
+		biblioModule->bibtexCO->addItem(command, command);
+	}
+	
+
+	// indices
+	indicesModule = new GuiIndices;
+	connect(indicesModule, SIGNAL(changed()),
+		this, SLOT(change_adaptor()));
 
 
+	// maths
 	mathsModule = new UiWidget<Ui::MathsUi>;
 	connect(mathsModule->amsautoCB, SIGNAL(toggled(bool)),
 		mathsModule->amsCB, SLOT(setDisabled(bool)));
 	connect(mathsModule->esintautoCB, SIGNAL(toggled(bool)),
 		mathsModule->esintCB, SLOT(setDisabled(bool)));
-	// maths
+	connect(mathsModule->mhchemautoCB, SIGNAL(toggled(bool)),
+		mathsModule->mhchemCB, SLOT(setDisabled(bool)));
+	connect(mathsModule->mathdotsautoCB, SIGNAL(toggled(bool)),
+		mathsModule->mathdotsCB, SLOT(setDisabled(bool)));
+	
 	connect(mathsModule->amsCB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
 	connect(mathsModule->amsautoCB, SIGNAL(clicked()),
@@ -858,9 +1084,18 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(mathsModule->esintautoCB, SIGNAL(clicked()),
 		this, SLOT(change_adaptor()));
+	connect(mathsModule->mhchemCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(mathsModule->mhchemautoCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(mathsModule->mathdotsCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(mathsModule->mathdotsautoCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	
 
-	latexModule = new UiWidget<Ui::LaTeXUi>;
 	// latex class
+	latexModule = new UiWidget<Ui::LaTeXUi>;
 	connect(latexModule->optionsLE, SIGNAL(textChanged(QString)),
 		this, SLOT(change_adaptor()));
 	connect(latexModule->defaultOptionsCB, SIGNAL(clicked()),
@@ -881,6 +1116,10 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(latexModule->childDocPB, SIGNAL(clicked()),
 		this, SLOT(browseMaster()));
+	connect(latexModule->suppressDateCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
+	connect(latexModule->refstyleCB, SIGNAL(clicked()),
+		this, SLOT(change_adaptor()));
 
 	// postscript drivers
 	for (int n = 0; tex_graphics[n][0]; ++n) {
@@ -903,24 +1142,35 @@ GuiDocument::GuiDocument(GuiView & lv)
 		classes_model_.insertRow(i, toqstr(item), *cit);
 	}
 
+
 	// branches
 	branchesModule = new GuiBranches;
 	connect(branchesModule, SIGNAL(changed()),
 		this, SLOT(change_adaptor()));
+	connect(branchesModule, SIGNAL(renameBranches(docstring const &, docstring const &)),
+		this, SLOT(branchesRename(docstring const &, docstring const &)));
+	updateUnknownBranches();
+
 
 	// preamble
 	preambleModule = new PreambleModule;
 	connect(preambleModule, SIGNAL(changed()),
 		this, SLOT(change_adaptor()));
+	
+	localLayout = new LocalLayout;
+	connect(localLayout, SIGNAL(changed()),
+		this, SLOT(change_adaptor()));
+
 
 	// bullets
 	bulletsModule = new BulletsModule;
 	connect(bulletsModule, SIGNAL(changed()),
 		this, SLOT(change_adaptor()));
 
+
 	// Modules
 	modulesModule = new UiWidget<Ui::ModulesUi>;
-
+	modulesModule->availableLV->header()->setVisible(false);
 	selectionManager =
 		new ModuleSelectionManager(modulesModule->availableLV,
 			modulesModule->selectedLV,
@@ -934,9 +1184,9 @@ GuiDocument::GuiDocument(GuiView & lv)
 	connect(selectionManager, SIGNAL(selectionChanged()),
 		this, SLOT(modulesChanged()));
 
+
 	// PDF support
 	pdfSupportModule = new UiWidget<Ui::PDFSupportUi>;
-
 	connect(pdfSupportModule->use_hyperrefGB, SIGNAL(toggled(bool)),
 		this, SLOT(change_adaptor()));
 	connect(pdfSupportModule->titleLE, SIGNAL(textChanged(QString)),
@@ -973,25 +1223,48 @@ GuiDocument::GuiDocument(GuiView & lv)
 	for (int i = 0; backref_opts[i][0]; ++i)
 		pdfSupportModule->backrefCO->addItem(qt_(backref_opts_gui[i]));
 
+
 	// float
 	floatModule = new FloatPlacement;
 	connect(floatModule, SIGNAL(changed()),
 		this, SLOT(change_adaptor()));
 
+
+	// listings
+	listingsModule = new UiWidget<Ui::ListingsSettingsUi>;
+	connect(listingsModule->listingsED, SIGNAL(textChanged()),
+		this, SLOT(change_adaptor()));
+	connect(listingsModule->bypassCB, SIGNAL(clicked()), 
+		this, SLOT(change_adaptor()));
+	connect(listingsModule->bypassCB, SIGNAL(clicked()), 
+		this, SLOT(setListingsMessage()));
+	connect(listingsModule->listingsED, SIGNAL(textChanged()),
+		this, SLOT(setListingsMessage()));
+	listingsModule->listingsTB->setPlainText(
+		qt_("Input listings parameters below. Enter ? for a list of parameters."));
+
+
+	// add the panels
 	docPS->addPanel(latexModule, qt_("Document Class"));
+	docPS->addPanel(masterChildModule, qt_("Child Documents"));
 	docPS->addPanel(modulesModule, qt_("Modules"));
+	docPS->addPanel(localLayout, qt_("Local Layout"));
 	docPS->addPanel(fontModule, qt_("Fonts"));
 	docPS->addPanel(textLayoutModule, qt_("Text Layout"));
 	docPS->addPanel(pageLayoutModule, qt_("Page Layout"));
 	docPS->addPanel(marginsModule, qt_("Page Margins"));
 	docPS->addPanel(langModule, qt_("Language"));
+	docPS->addPanel(colorModule, qt_("Colors"));
 	docPS->addPanel(numberingModule, qt_("Numbering & TOC"));
 	docPS->addPanel(biblioModule, qt_("Bibliography"));
+	docPS->addPanel(indicesModule, qt_("Indexes"));
 	docPS->addPanel(pdfSupportModule, qt_("PDF Properties"));
 	docPS->addPanel(mathsModule, qt_("Math Options"));
 	docPS->addPanel(floatModule, qt_("Float Placement"));
+	docPS->addPanel(listingsModule, qt_("Listings"));
 	docPS->addPanel(bulletsModule, qt_("Bullets"));
 	docPS->addPanel(branchesModule, qt_("Branches"));
+	docPS->addPanel(outputModule, qt_("Output"));
 	docPS->addPanel(preambleModule, qt_("LaTeX Preamble"));
 	docPS->setCurrentPanel(qt_("Document Class"));
 // FIXME: hack to work around resizing bug in Qt >= 4.2
@@ -999,12 +1272,6 @@ GuiDocument::GuiDocument(GuiView & lv)
 #if QT_VERSION >= 0x040200
 	docPS->updateGeometry();
 #endif
-}
-
-
-void GuiDocument::showPreamble()
-{
-	docPS->setCurrentPanel(qt_("LaTeX Preamble"));
 }
 
 
@@ -1026,6 +1293,26 @@ void GuiDocument::change_adaptor()
 }
 
 
+void GuiDocument::includeonlyClicked(QTreeWidgetItem * item, int)
+{
+	if (item == 0)
+		return;
+
+	string child = fromqstr(item->text(0));
+	if (child.empty())
+		return;
+
+	if (std::find(includeonlys_.begin(),
+		      includeonlys_.end(), child) != includeonlys_.end())
+		includeonlys_.remove(child);
+	else
+		includeonlys_.push_back(child);
+	
+	updateIncludeonlys();
+	changed();
+}
+
+
 QString GuiDocument::validateListingsParameters()
 {
 	// use a cache here to avoid repeated validation
@@ -1033,10 +1320,10 @@ QString GuiDocument::validateListingsParameters()
 	static string param_cache;
 	static QString msg_cache;
 	
-	if (textLayoutModule->bypassCB->isChecked())
+	if (listingsModule->bypassCB->isChecked())
 		return QString();
 
-	string params = fromqstr(textLayoutModule->listingsED->toPlainText());
+	string params = fromqstr(listingsModule->listingsED->toPlainText());
 	if (params != param_cache) {
 		param_cache = params;
 		msg_cache = toqstr(InsetListingsParams(params).validate());
@@ -1054,13 +1341,13 @@ void GuiDocument::setListingsMessage()
 			return;
 		isOK = true;
 		// listingsTB->setTextColor("black");
-		textLayoutModule->listingsTB->setPlainText(
-			qt_("Input listings parameters on the right. "
+		listingsModule->listingsTB->setPlainText(
+			qt_("Input listings parameters below. "
                 "Enter ? for a list of parameters."));
 	} else {
 		isOK = false;
 		// listingsTB->setTextColor("red");
-		textLayoutModule->listingsTB->setPlainText(msg);
+		listingsModule->listingsTB->setPlainText(msg);
 	}
 }
 
@@ -1071,19 +1358,39 @@ void GuiDocument::setLSpacing(int item)
 }
 
 
+void GuiDocument::setIndent(int item)
+{
+	bool const enable = (item == 1);
+	textLayoutModule->indentLE->setEnabled(enable);
+	textLayoutModule->indentLengthCO->setEnabled(enable);
+	textLayoutModule->skipLE->setEnabled(false);
+	textLayoutModule->skipLengthCO->setEnabled(false);
+	isValid();
+}
+
+
+void GuiDocument::enableIndent(bool indent)
+{
+	textLayoutModule->skipLE->setEnabled(!indent);
+	textLayoutModule->skipLengthCO->setEnabled(!indent);
+	if (indent)
+		setIndent(textLayoutModule->indentCO->currentIndex());
+}
+
+
 void GuiDocument::setSkip(int item)
 {
 	bool const enable = (item == 3);
 	textLayoutModule->skipLE->setEnabled(enable);
 	textLayoutModule->skipLengthCO->setEnabled(enable);
+	isValid();
 }
 
 
 void GuiDocument::enableSkip(bool skip)
 {
-	textLayoutModule->skipCO->setEnabled(skip);
-	textLayoutModule->skipLE->setEnabled(skip);
-	textLayoutModule->skipLengthCO->setEnabled(skip);
+	textLayoutModule->indentLE->setEnabled(!skip);
+	textLayoutModule->indentLengthCO->setEnabled(!skip);
 	if (skip)
 		setSkip(textLayoutModule->skipCO->currentIndex());
 }
@@ -1166,6 +1473,157 @@ void GuiDocument::setCustomMargins(bool custom)
 }
 
 
+void GuiDocument::changeBackgroundColor()
+{
+	QColor const & newColor = QColorDialog::getColor(
+		rgb2qcolor(set_backgroundcolor), asQWidget());
+	if (!newColor.isValid())
+		return;
+	// set the button color and text
+	colorModule->backgroundPB->setStyleSheet(
+		colorButtonStyleSheet(newColor));
+	colorModule->backgroundPB->setText(toqstr("Change..."));
+	// save color
+	set_backgroundcolor = rgbFromHexName(fromqstr(newColor.name()));
+	is_backgroundcolor = true;
+	changed();
+}
+
+
+void GuiDocument::deleteBackgroundColor()
+{
+	// set the button color back to default by setting an epmty StyleSheet
+	colorModule->backgroundPB->setStyleSheet(QLatin1String(""));
+	// change button text
+	colorModule->backgroundPB->setText(toqstr("Default..."));
+	// save default color (white)
+	set_backgroundcolor = rgbFromHexName("#ffffff");
+	is_backgroundcolor = false;
+	changed();
+}
+
+
+void GuiDocument::changeFontColor()
+{
+	QColor const & newColor = QColorDialog::getColor(
+		rgb2qcolor(set_fontcolor), asQWidget());
+	if (!newColor.isValid())
+		return;
+	// set the button color and text
+	colorModule->fontColorPB->setStyleSheet(
+		colorButtonStyleSheet(newColor));
+	colorModule->fontColorPB->setText(toqstr("Change..."));
+	// save color
+	set_fontcolor = rgbFromHexName(fromqstr(newColor.name()));
+	is_fontcolor = true;
+	changed();
+}
+
+
+void GuiDocument::deleteFontColor()
+{
+	// set the button color back to default by setting an epmty StyleSheet
+	colorModule->fontColorPB->setStyleSheet(QLatin1String(""));
+	// change button text
+	colorModule->fontColorPB->setText(toqstr("Default..."));
+	// save default color (black)
+	set_fontcolor = rgbFromHexName("#000000");
+	is_fontcolor = false;
+	changed();
+}
+
+
+void GuiDocument::changeNoteFontColor()
+{
+	QColor const & newColor = QColorDialog::getColor(
+		rgb2qcolor(set_notefontcolor), asQWidget());
+	if (!newColor.isValid())
+		return;
+	// set the button color
+	colorModule->noteFontColorPB->setStyleSheet(
+		colorButtonStyleSheet(newColor));
+	// save color
+	set_notefontcolor = rgbFromHexName(fromqstr(newColor.name()));
+	changed();
+}
+
+
+void GuiDocument::deleteNoteFontColor()
+{
+	// set the button color back to light gray
+	colorModule->noteFontColorPB->setStyleSheet(
+		colorButtonStyleSheet(QColor(204, 204, 204, 255)));
+	// save light gray as the set color
+	set_notefontcolor = rgbFromHexName("#cccccc");
+	changed();
+}
+
+
+void GuiDocument::changeBoxBackgroundColor()
+{
+	QColor const & newColor = QColorDialog::getColor(
+		rgb2qcolor(set_boxbgcolor), asQWidget());
+	if (!newColor.isValid())
+		return;
+	// set the button color
+	colorModule->boxBackgroundPB->setStyleSheet(
+		colorButtonStyleSheet(newColor));
+	// save color
+	set_boxbgcolor = rgbFromHexName(fromqstr(newColor.name()));
+	changed();
+}
+
+
+void GuiDocument::deleteBoxBackgroundColor()
+{
+	// set the button color back to red
+	colorModule->boxBackgroundPB->setStyleSheet(
+		colorButtonStyleSheet(QColor(Qt::red)));
+	// save red as the set color
+	set_boxbgcolor = rgbFromHexName("#ff0000");
+	changed();
+}
+
+
+void GuiDocument::osFontsChanged(bool nontexfonts)
+{
+	bool const tex_fonts = !nontexfonts;
+	updateFontlist();
+	updateDefaultFormat();
+	langModule->encodingCO->setEnabled(tex_fonts &&
+		!langModule->defaultencodingRB->isChecked());
+	langModule->defaultencodingRB->setEnabled(tex_fonts);
+	langModule->otherencodingRB->setEnabled(tex_fonts);
+
+	fontModule->fontsDefaultCO->setEnabled(tex_fonts);
+	fontModule->fontsDefaultLA->setEnabled(tex_fonts);
+	fontModule->cjkFontLE->setEnabled(tex_fonts);
+	fontModule->cjkFontLA->setEnabled(tex_fonts);
+	string font;
+	if (tex_fonts)
+		font = tex_fonts_sans[fontModule->fontsSansCO->currentIndex()];
+	bool scaleable = providesScale(font);
+	fontModule->scaleSansSB->setEnabled(scaleable);
+	fontModule->scaleSansLA->setEnabled(scaleable);
+	if (tex_fonts)
+		font = tex_fonts_monospaced[fontModule->fontsTypewriterCO->currentIndex()];
+	scaleable = providesScale(font);
+	fontModule->scaleTypewriterSB->setEnabled(scaleable);
+	fontModule->scaleTypewriterLA->setEnabled(scaleable);
+	if (tex_fonts)
+		font = tex_fonts_roman[fontModule->fontsRomanCO->currentIndex()];
+	fontModule->fontScCB->setEnabled(providesSC(font));
+	fontModule->fontOsfCB->setEnabled(providesOSF(font));
+	
+	fontModule->fontencLA->setEnabled(tex_fonts);
+	fontModule->fontencCO->setEnabled(tex_fonts);
+	if (!tex_fonts)
+		fontModule->fontencLE->setEnabled(false);
+	else
+		fontencChanged(fontModule->fontencCO->currentIndex());
+}
+
+
 void GuiDocument::updateFontsize(string const & items, string const & sel)
 {
 	fontModule->fontsizeCO->clear();
@@ -1184,8 +1642,59 @@ void GuiDocument::updateFontsize(string const & items, string const & sel)
 }
 
 
+void GuiDocument::updateFontlist()
+{
+	fontModule->fontsRomanCO->clear();
+	fontModule->fontsSansCO->clear();
+	fontModule->fontsTypewriterCO->clear();
+
+	// With XeTeX, we have access to all system fonts, but not the LaTeX fonts
+	if (fontModule->osFontsCB->isChecked()) {
+		fontModule->fontsRomanCO->addItem(qt_("Default"));
+		fontModule->fontsSansCO->addItem(qt_("Default"));
+		fontModule->fontsTypewriterCO->addItem(qt_("Default"));
+	
+		QFontDatabase fontdb;
+		QStringList families(fontdb.families());
+		for (QStringList::Iterator it = families.begin(); it != families.end(); ++it) {
+			fontModule->fontsRomanCO->addItem(*it);
+			fontModule->fontsSansCO->addItem(*it);
+			fontModule->fontsTypewriterCO->addItem(*it);
+		}
+		return;
+	}
+
+	for (int n = 0; tex_fonts_roman[n][0]; ++n) {
+		QString font = qt_(tex_fonts_roman_gui[n]);
+		if (!isFontAvailable(tex_fonts_roman[n]))
+			font += qt_(" (not installed)");
+		fontModule->fontsRomanCO->addItem(font);
+	}
+	for (int n = 0; tex_fonts_sans[n][0]; ++n) {
+		QString font = qt_(tex_fonts_sans_gui[n]);
+		if (!isFontAvailable(tex_fonts_sans[n]))
+			font += qt_(" (not installed)");
+		fontModule->fontsSansCO->addItem(font);
+	}
+	for (int n = 0; tex_fonts_monospaced[n][0]; ++n) {
+		QString font = qt_(tex_fonts_monospaced_gui[n]);
+		if (!isFontAvailable(tex_fonts_monospaced[n]))
+			font += qt_(" (not installed)");
+		fontModule->fontsTypewriterCO->addItem(font);
+	}
+}
+
+
+void GuiDocument::fontencChanged(int item)
+{
+	fontModule->fontencLE->setEnabled(item == 1);
+}
+
+
 void GuiDocument::romanChanged(int item)
 {
+	if (fontModule->osFontsCB->isChecked())
+		return;
 	string const font = tex_fonts_roman[item];
 	fontModule->fontScCB->setEnabled(providesSC(font));
 	fontModule->fontOsfCB->setEnabled(providesOSF(font));
@@ -1194,6 +1703,8 @@ void GuiDocument::romanChanged(int item)
 
 void GuiDocument::sansChanged(int item)
 {
+	if (fontModule->osFontsCB->isChecked())
+		return;
 	string const font = tex_fonts_sans[item];
 	bool scaleable = providesScale(font);
 	fontModule->scaleSansSB->setEnabled(scaleable);
@@ -1203,6 +1714,8 @@ void GuiDocument::sansChanged(int item)
 
 void GuiDocument::ttChanged(int item)
 {
+	if (fontModule->osFontsCB->isChecked())
+		return;
 	string const font = tex_fonts_monospaced[item];
 	bool scaleable = providesScale(font);
 	fontModule->scaleTypewriterSB->setEnabled(scaleable);
@@ -1244,7 +1757,7 @@ void GuiDocument::browseLayout()
 	QString const label1 = qt_("Layouts|#o#O");
 	QString const dir1 = toqstr(lyxrc.document_path);
 	QStringList const filter(qt_("LyX Layout (*.layout)"));
-	QString file = browseRelFile(QString(), bufferFilepath(),
+	QString file = browseRelFile(QString(), bufferFilePath(),
 		qt_("Local layout file"), filter, false,
 		label1, dir1);
 
@@ -1252,7 +1765,7 @@ void GuiDocument::browseLayout()
 		return;
 
 	FileName layoutFile = support::makeAbsPath(fromqstr(file),
-		fromqstr(bufferFilepath()));
+		fromqstr(bufferFilePath()));
 	
 	int const ret = Alert::prompt(_("Local layout file"),
 		_("The layout file you have selected is a local layout\n"
@@ -1269,7 +1782,7 @@ void GuiDocument::browseLayout()
 	// this will update an existing layout if that layout has been loaded before.
 	LayoutFileIndex name = bcl.addLocalLayout(
 		classname.substr(0, classname.size() - 7),
-		layoutFile.onlyPath().absFilename());
+		layoutFile.onlyPath().absFileName());
 
 	if (name.empty()) {
 		Alert::error(_("Error"),
@@ -1364,7 +1877,17 @@ void GuiDocument::classChanged()
 }
 
 
+void GuiDocument::bibtexChanged(int n)
+{
+	biblioModule->bibtexOptionsED->setEnabled(n != 0);
+	changed();
+}
+
+
 namespace {
+	// FIXME unicode 
+	// both of these should take a vector<docstring>
+	
 	// This is an insanely complicated attempt to make this sort of thing
 	// work with RTL languages.
 	docstring formatStrVec(vector<string> const & v, docstring const & s) 
@@ -1373,22 +1896,24 @@ namespace {
 		if (v.size() == 0)
 			return docstring();
 		if (v.size() == 1) 
-			return from_utf8(v[0]);
+			return translateIfPossible(from_utf8(v[0]));
 		if (v.size() == 2) {
 			docstring retval = _("%1$s and %2$s");
 			retval = subst(retval, _("and"), s);
-			return bformat(retval, from_utf8(v[0]), from_utf8(v[1]));
+			return bformat(retval, translateIfPossible(from_utf8(v[0])),
+				       translateIfPossible(from_utf8(v[1])));
 		}
 		// The idea here is to format all but the last two items...
 		int const vSize = v.size();
 		docstring t2 = _("%1$s, %2$s");
-		docstring retval = from_utf8(v[0]);
+		docstring retval = translateIfPossible(from_utf8(v[0]));
 		for (int i = 1; i < vSize - 2; ++i)
-			retval = bformat(t2, retval, from_utf8(v[i])); 
+			retval = bformat(t2, retval, translateIfPossible(from_utf8(v[i]))); 
 		//...and then to  plug them, and the last two, into this schema
 		docstring t = _("%1$s, %2$s, and %3$s");
 		t = subst(t, _("and"), s);
-		return bformat(t, retval, from_utf8(v[vSize - 2]), from_utf8(v[vSize - 1]));
+		return bformat(t, retval, translateIfPossible(from_utf8(v[vSize - 2])),
+			       translateIfPossible(from_utf8(v[vSize - 1])));
 	}
 	
 	vector<string> idsToNames(vector<string> const & idList)
@@ -1397,15 +1922,16 @@ namespace {
 		vector<string>::const_iterator it  = idList.begin();
 		vector<string>::const_iterator end = idList.end();
 		for (; it != end; ++it) {
-			LyXModule const * const mod = moduleList[*it];
+			LyXModule const * const mod = theModuleList[*it];
 			if (!mod)
-				retval.push_back(*it + " (Unavailable)");
+				retval.push_back(to_utf8(bformat(_("%1$s (unavailable)"), 
+						translateIfPossible(from_utf8(*it)))));
 			else
 				retval.push_back(mod->getName());
 		}
 		return retval;
 	}
-}
+} // end anonymous namespace
 
 
 void GuiDocument::modulesToParams(BufferParams & bp)
@@ -1418,7 +1944,7 @@ void GuiDocument::modulesToParams(BufferParams & bp)
 
 	// update the list of removed modules
 	bp.clearRemovedModules();
-	list<string> const & reqmods = bp.baseClass()->defaultModules();
+	LayoutModuleList const & reqmods = bp.baseClass()->defaultModules();
 	list<string>::const_iterator rit = reqmods.begin();
 	list<string>::const_iterator ren = reqmods.end();
 
@@ -1454,8 +1980,11 @@ void GuiDocument::updateModuleInfo()
 	
 	//Module description
 	bool const focus_on_selected = selectionManager->selectedFocused();
-	QListView const * const lv = 
-			focus_on_selected ? modulesModule->selectedLV : modulesModule->availableLV;
+	QAbstractItemView * lv;
+	if (focus_on_selected)
+		lv = modulesModule->selectedLV;
+	else
+		lv= modulesModule->availableLV;
 	if (lv->selectionModel()->selectedIndexes().isEmpty()) {
 		modulesModule->infoML->document()->clear();
 		return;
@@ -1466,7 +1995,7 @@ void GuiDocument::updateModuleInfo()
 	string const modName = id_model.getIDString(idx.row());
 	docstring desc = getModuleDescription(modName);
 
-	list<string> const & provmods = bp_.baseClass()->providedModules();
+	LayoutModuleList const & provmods = bp_.baseClass()->providedModules();
 	if (std::find(provmods.begin(), provmods.end(), modName) != provmods.end()) {
 		if (!desc.empty())
 			desc += "\n";
@@ -1487,7 +2016,7 @@ void GuiDocument::updateModuleInfo()
 		pkgdesc = formatStrVec(reqdescs, _("or"));
 		if (!desc.empty())
 			desc += "\n";
-		desc += bformat(_("Module required: %1$s."), pkgdesc);
+		desc += bformat(_("Modules required: %1$s."), pkgdesc);
 	}
 
 	pkglist = getExcludedList(modName);
@@ -1539,10 +2068,55 @@ void GuiDocument::updateNumbering()
 }
 
 
+void GuiDocument::updateDefaultFormat()
+{
+	if (!bufferview())
+		return;
+	// make a copy in order to consider unapplied changes
+	Buffer * tmpbuf = buffer().clone();
+	tmpbuf->params().useNonTeXFonts =
+		fontModule->osFontsCB->isChecked();
+	int idx = latexModule->classCO->currentIndex();
+	if (idx >= 0) {
+		string const classname = classes_model_.getIDString(idx);
+		tmpbuf->params().setBaseClass(classname);
+		tmpbuf->params().makeDocumentClass();
+	}
+	outputModule->defaultFormatCO->blockSignals(true);
+	outputModule->defaultFormatCO->clear();
+	outputModule->defaultFormatCO->addItem(qt_("Default"),
+				QVariant(QString("default")));
+	typedef vector<Format const *> Formats;
+	Formats formats = tmpbuf->exportableFormats(true);
+	Formats::const_iterator cit = formats.begin();
+	Formats::const_iterator end = formats.end();
+	for (; cit != end; ++cit)
+		outputModule->defaultFormatCO->addItem(qt_((*cit)->prettyname()),
+				QVariant(toqstr((*cit)->name())));
+	outputModule->defaultFormatCO->blockSignals(false);
+	// delete the copy
+	delete tmpbuf;
+}
+
+
+bool GuiDocument::isChildIncluded(string const & child)
+{
+	if (includeonlys_.empty())
+		return false;
+	return (std::find(includeonlys_.begin(),
+			  includeonlys_.end(), child) != includeonlys_.end());
+}
+
+
 void GuiDocument::applyView()
 {
 	// preamble
 	preambleModule->apply(bp_);
+	localLayout->apply(bp_);
+
+	// date
+	bp_.suppress_date = latexModule->suppressDateCB->isChecked();
+	bp_.use_refstyle  = latexModule->refstyleCB->isChecked();
 
 	// biblio
 	bp_.setCiteEngine(ENGINE_BASIC);
@@ -1560,6 +2134,19 @@ void GuiDocument::applyView()
 
 	bp_.use_bibtopic =
 		biblioModule->bibtopicCB->isChecked();
+
+	string const bibtex_command =
+		fromqstr(biblioModule->bibtexCO->itemData(
+			biblioModule->bibtexCO->currentIndex()).toString());
+	string const bibtex_options =
+		fromqstr(biblioModule->bibtexOptionsED->text());
+	if (bibtex_command == "default" || bibtex_options.empty())
+		bp_.bibtex_command = bibtex_command;
+	else
+		bp_.bibtex_command = bibtex_command + " " + bibtex_options;
+
+	// Indices
+	indicesModule->apply(bp_);
 
 	// language & quotes
 	if (langModule->defaultencodingRB->isChecked()) {
@@ -1616,6 +2203,14 @@ void GuiDocument::applyView()
 		langModule->languageCO->currentIndex()).toString();
 	bp_.language = lyx::languages.getLanguage(fromqstr(lang));
 
+	//color
+	bp_.backgroundcolor = set_backgroundcolor;
+	bp_.isbackgroundcolor = is_backgroundcolor;
+	bp_.fontcolor = set_fontcolor;
+	bp_.isfontcolor = is_fontcolor;
+	bp_.notefontcolor = set_notefontcolor;
+	bp_.boxbgcolor = set_boxbgcolor;
+
 	// numbering
 	if (bp_.documentClass().hasTocLevels()) {
 		bp_.tocdepth = numberingModule->tocSL->value();
@@ -1629,7 +2224,7 @@ void GuiDocument::applyView()
 	bp_.user_defined_bullet(3) = bulletsModule->bullet(3);
 
 	// packages
-	bp_.graphicsDriver =
+	bp_.graphics_driver =
 		tex_graphics[latexModule->psdriverCO->currentIndex()];
 	
 	// text layout
@@ -1642,15 +2237,15 @@ void GuiDocument::applyView()
 	// Modules
 	modulesToParams(bp_);
 
-	if (mathsModule->amsautoCB->isChecked()) {
+	// Math
+	if (mathsModule->amsautoCB->isChecked())
 		bp_.use_amsmath = BufferParams::package_auto;
-	} else {
+	else {
 		if (mathsModule->amsCB->isChecked())
 			bp_.use_amsmath = BufferParams::package_on;
 		else
 			bp_.use_amsmath = BufferParams::package_off;
 	}
-
 	if (mathsModule->esintautoCB->isChecked())
 		bp_.use_esint = BufferParams::package_auto;
 	else {
@@ -1659,7 +2254,24 @@ void GuiDocument::applyView()
 		else
 			bp_.use_esint = BufferParams::package_off;
 	}
-
+	if (mathsModule->mhchemautoCB->isChecked())
+		bp_.use_mhchem = BufferParams::package_auto;
+	else {
+		if (mathsModule->mhchemCB->isChecked())
+			bp_.use_mhchem = BufferParams::package_on;
+		else
+			bp_.use_mhchem = BufferParams::package_off;
+	}
+	if (mathsModule->mathdotsautoCB->isChecked())
+		bp_.use_mathdots = BufferParams::package_auto;
+	else {
+		if (mathsModule->mathdotsCB->isChecked())
+			bp_.use_mathdots = BufferParams::package_on;
+		else
+			bp_.use_mathdots = BufferParams::package_off;
+	}
+	
+	// Page Layout
 	if (pageLayoutModule->pagestyleCO->currentIndex() == 0)
 		bp_.pagestyle = "default";
 	else {
@@ -1669,6 +2281,7 @@ void GuiDocument::applyView()
 				bp_.pagestyle = pagestyles[i].first;
 	}
 
+	// Text Layout
 	switch (textLayoutModule->lspacingCO->currentIndex()) {
 	case 0:
 		bp_.spacing().set(Spacing::Single);
@@ -1680,7 +2293,7 @@ void GuiDocument::applyView()
 		bp_.spacing().set(Spacing::Double);
 		break;
 	case 3: {
-		string s = fromqstr(textLayoutModule->lspacingLE->text());
+		string s = widgetToDoubleStr(textLayoutModule->lspacingLE);
 		if (s.empty())
 			bp_.spacing().set(Spacing::Single);
 		else
@@ -1694,39 +2307,53 @@ void GuiDocument::applyView()
 	else
 		bp_.columns = 1;
 
-	// text should have passed validation
-	bp_.listings_params =
-		InsetListingsParams(fromqstr(textLayoutModule->listingsED->toPlainText())).params();
-
-	if (textLayoutModule->indentRB->isChecked())
+	if (textLayoutModule->indentRB->isChecked()) {
+		// if paragraphs are separated by an indentation
 		bp_.paragraph_separation = BufferParams::ParagraphIndentSeparation;
-	else
+		switch (textLayoutModule->indentCO->currentIndex()) {
+		case 0:
+			bp_.setIndentation(HSpace(HSpace::DEFAULT));
+			break;
+		case 1:	{
+			HSpace indent = HSpace(
+				widgetsToLength(textLayoutModule->indentLE,
+				textLayoutModule->indentLengthCO)
+				);
+			bp_.setIndentation(indent);
+			break;
+			}
+		default:
+			// this should never happen
+			bp_.setIndentation(HSpace(HSpace::DEFAULT));
+			break;
+		}
+	} else {
+		// if paragraphs are separated by a skip
 		bp_.paragraph_separation = BufferParams::ParagraphSkipSeparation;
-
-	switch (textLayoutModule->skipCO->currentIndex()) {
-	case 0:
-		bp_.setDefSkip(VSpace(VSpace::SMALLSKIP));
-		break;
-	case 1:
-		bp_.setDefSkip(VSpace(VSpace::MEDSKIP));
-		break;
-	case 2:
-		bp_.setDefSkip(VSpace(VSpace::BIGSKIP));
-		break;
-	case 3:
-	{
-		VSpace vs = VSpace(
-			widgetsToLength(textLayoutModule->skipLE,
+		switch (textLayoutModule->skipCO->currentIndex()) {
+		case 0:
+			bp_.setDefSkip(VSpace(VSpace::SMALLSKIP));
+			break;
+		case 1:
+			bp_.setDefSkip(VSpace(VSpace::MEDSKIP));
+			break;
+		case 2:
+			bp_.setDefSkip(VSpace(VSpace::BIGSKIP));
+			break;
+		case 3:
+			{
+			VSpace vs = VSpace(
+				widgetsToLength(textLayoutModule->skipLE,
 				textLayoutModule->skipLengthCO)
-			);
-		bp_.setDefSkip(vs);
-		break;
-	}
-	default:
-		// DocumentDefskipCB assures that this never happens
-		// so Assert then !!!  - jbl
-		bp_.setDefSkip(VSpace(VSpace::MEDSKIP));
-		break;
+				);
+			bp_.setDefSkip(vs);
+			break;
+			}
+		default:
+			// this should never happen
+			bp_.setDefSkip(VSpace(VSpace::MEDSKIP));
+			break;
+		}
 	}
 
 	bp_.options =
@@ -1741,31 +2368,97 @@ void GuiDocument::applyView()
 	else
 		bp_.master = string();
 
+	// Master/Child
+	bp_.clearIncludedChildren();
+	if (masterChildModule->includeonlyRB->isChecked()) {
+		list<string>::const_iterator it = includeonlys_.begin();
+		for (; it != includeonlys_.end() ; ++it) {
+			bp_.addIncludedChildren(*it);
+		}
+	}
+	bp_.maintain_unincluded_children =
+		masterChildModule->maintainAuxCB->isChecked();
+
+	// Float Placement
 	bp_.float_placement = floatModule->get();
 
+	// Listings
+	// text should have passed validation
+	bp_.listings_params =
+		InsetListingsParams(fromqstr(listingsModule->listingsED->toPlainText())).params();
+
+	// output
+	bp_.default_output_format = fromqstr(outputModule->defaultFormatCO->itemData(
+		outputModule->defaultFormatCO->currentIndex()).toString());
+
+	bool const nontexfonts = fontModule->osFontsCB->isChecked();
+	bp_.useNonTeXFonts = nontexfonts;
+
+	bp_.output_sync = outputModule->outputsyncCB->isChecked();
+	bp_.output_sync_macro = fromqstr(outputModule->synccustomCB->currentText());
+
+	int mathfmt = outputModule->mathoutCB->currentIndex();
+	if (mathfmt == -1)
+		mathfmt = 0;
+	BufferParams::MathOutput const mo =
+		static_cast<BufferParams::MathOutput>(mathfmt);
+	bp_.html_math_output = mo;
+	bp_.html_be_strict = outputModule->strictCB->isChecked();
+	bp_.html_math_img_scale = outputModule->mathimgSB->value();
+
 	// fonts
-	bp_.fontsRoman =
-		tex_fonts_roman[fontModule->fontsRomanCO->currentIndex()];
+	if (nontexfonts) {
+		if (fontModule->fontsRomanCO->currentIndex() == 0)
+			bp_.fonts_roman = "default";
+		else
+			bp_.fonts_roman =
+				fromqstr(fontModule->fontsRomanCO->currentText());
+	
+		if (fontModule->fontsSansCO->currentIndex() == 0)
+			bp_.fonts_sans = "default";
+		else
+			bp_.fonts_sans =
+				fromqstr(fontModule->fontsSansCO->currentText());
+	
+		if (fontModule->fontsTypewriterCO->currentIndex() == 0)
+			bp_.fonts_typewriter = "default";
+		else
+			bp_.fonts_typewriter =
+				fromqstr(fontModule->fontsTypewriterCO->currentText());
+	} else {
+		bp_.fonts_roman =
+			tex_fonts_roman[fontModule->fontsRomanCO->currentIndex()];
+	
+		bp_.fonts_sans =
+			tex_fonts_sans[fontModule->fontsSansCO->currentIndex()];
+	
+		bp_.fonts_typewriter =
+			tex_fonts_monospaced[fontModule->fontsTypewriterCO->currentIndex()];
+	}
 
-	bp_.fontsSans =
-		tex_fonts_sans[fontModule->fontsSansCO->currentIndex()];
+	if (fontModule->fontencCO->currentIndex() == 0)
+		bp_.fontenc = "global";
+	else if (fontModule->fontencCO->currentIndex() == 1)
+		bp_.fontenc = fromqstr(fontModule->fontencLE->text());
+	else if (fontModule->fontencCO->currentIndex() == 2)
+		bp_.fontenc = "default";
 
-	bp_.fontsTypewriter =
-		tex_fonts_monospaced[fontModule->fontsTypewriterCO->currentIndex()];
-
-	bp_.fontsCJK =
+	bp_.fonts_cjk =
 		fromqstr(fontModule->cjkFontLE->text());
 
-	bp_.fontsSansScale = fontModule->scaleSansSB->value();
+	bp_.fonts_sans_scale = fontModule->scaleSansSB->value();
 
-	bp_.fontsTypewriterScale = fontModule->scaleTypewriterSB->value();
+	bp_.fonts_typewriter_scale = fontModule->scaleTypewriterSB->value();
 
-	bp_.fontsSC = fontModule->fontScCB->isChecked();
+	bp_.fonts_expert_sc = fontModule->fontScCB->isChecked();
 
-	bp_.fontsOSF = fontModule->fontOsfCB->isChecked();
+	bp_.fonts_old_figures = fontModule->fontOsfCB->isChecked();
 
-	bp_.fontsDefaultFamily = GuiDocument::fontfamilies[
-		fontModule->fontsDefaultCO->currentIndex()];
+	if (nontexfonts)
+		bp_.fonts_default_family = "default";
+	else
+		bp_.fonts_default_family = GuiDocument::fontfamilies[
+			fontModule->fontsDefaultCO->currentIndex()];
 
 	if (fontModule->fontsizeCO->currentIndex() == 0)
 		bp_.fontsize = "default";
@@ -1841,30 +2534,15 @@ void GuiDocument::applyView()
 void GuiDocument::paramsToDialog()
 {
 	// set the default unit
-	Length::UNIT defaultUnit = Length::CM;
-	switch (lyxrc.default_papersize) {
-		case PAPER_DEFAULT: break;
-
-		case PAPER_USLETTER:
-		case PAPER_USLEGAL:
-		case PAPER_USEXECUTIVE:
-			defaultUnit = Length::IN;
-			break;
-
-		case PAPER_A3:
-		case PAPER_A4:
-		case PAPER_A5:
-		case PAPER_B3:
-		case PAPER_B4:
-		case PAPER_B5:
-			defaultUnit = Length::CM;
-			break;
-		case PAPER_CUSTOM:
-			break;
-	}
+	Length::UNIT const defaultUnit = Length::defaultUnit();
 
 	// preamble
 	preambleModule->update(bp_, id());
+	localLayout->update(bp_, id());
+
+	// date
+	latexModule->suppressDateCB->setChecked(bp_.suppress_date);
+	latexModule->refstyleCB->setChecked(bp_.use_refstyle);
 
 	// biblio
 	biblioModule->citeDefaultRB->setChecked(
@@ -1882,6 +2560,24 @@ void GuiDocument::paramsToDialog()
 
 	biblioModule->bibtopicCB->setChecked(
 		bp_.use_bibtopic);
+
+	string command;
+	string options =
+		split(bp_.bibtex_command, command, ' ');
+
+	int const bpos = biblioModule->bibtexCO->findData(toqstr(command));
+	if (bpos != -1) {
+		biblioModule->bibtexCO->setCurrentIndex(bpos);
+		biblioModule->bibtexOptionsED->setText(toqstr(options).trimmed());
+	} else {
+		biblioModule->bibtexCO->setCurrentIndex(0);
+		biblioModule->bibtexOptionsED->clear();
+	}
+	biblioModule->bibtexOptionsED->setEnabled(
+		biblioModule->bibtexCO->currentIndex() != 0);
+
+	// indices
+	indicesModule->update(bp_);
 
 	// language & quotes
 	int const pos = langModule->languageCO->findData(toqstr(
@@ -1918,6 +2614,29 @@ void GuiDocument::paramsToDialog()
 	langModule->defaultencodingRB->setChecked(default_enc);
 	langModule->otherencodingRB->setChecked(!default_enc);
 
+	//color
+	if (bp_.isfontcolor) {
+		colorModule->fontColorPB->setStyleSheet(
+			colorButtonStyleSheet(rgb2qcolor(bp_.fontcolor)));
+	}
+	set_fontcolor = bp_.fontcolor;
+	is_fontcolor = bp_.isfontcolor;
+
+	colorModule->noteFontColorPB->setStyleSheet(
+		colorButtonStyleSheet(rgb2qcolor(bp_.notefontcolor)));
+	set_notefontcolor = bp_.notefontcolor;
+
+	if (bp_.isbackgroundcolor) {
+		colorModule->backgroundPB->setStyleSheet(
+			colorButtonStyleSheet(rgb2qcolor(bp_.backgroundcolor)));
+	}
+	set_backgroundcolor = bp_.backgroundcolor;
+	is_backgroundcolor = bp_.isbackgroundcolor;
+
+	colorModule->boxBackgroundPB->setStyleSheet(
+		colorButtonStyleSheet(rgb2qcolor(bp_.boxbgcolor)));
+	set_boxbgcolor = bp_.boxbgcolor;
+
 	// numbering
 	int const min_toclevel = documentClass().min_toclevel();
 	int const max_toclevel = documentClass().max_toclevel();
@@ -1943,7 +2662,7 @@ void GuiDocument::paramsToDialog()
 	bulletsModule->init();
 
 	// packages
-	int nitem = findToken(tex_graphics, bp_.graphicsDriver);
+	int nitem = findToken(tex_graphics, bp_.graphics_driver);
 	if (nitem >= 0)
 		latexModule->psdriverCO->setCurrentIndex(nitem);
 	updateModuleInfo();
@@ -1957,6 +2676,16 @@ void GuiDocument::paramsToDialog()
 		bp_.use_esint == BufferParams::package_on);
 	mathsModule->esintautoCB->setChecked(
 		bp_.use_esint == BufferParams::package_auto);
+
+	mathsModule->mhchemCB->setChecked(
+		bp_.use_mhchem == BufferParams::package_on);
+	mathsModule->mhchemautoCB->setChecked(
+		bp_.use_mhchem == BufferParams::package_auto);
+
+	mathsModule->mathdotsCB->setChecked(
+		bp_.use_mathdots == BufferParams::package_on);
+	mathsModule->mathdotsautoCB->setChecked(
+		bp_.use_mathdots == BufferParams::package_auto);
 
 	switch (bp_.spacing().getSpace()) {
 		case Spacing::Other: nitem = 3; break;
@@ -1974,50 +2703,55 @@ void GuiDocument::paramsToDialog()
 
 	textLayoutModule->lspacingCO->setCurrentIndex(nitem);
 	if (bp_.spacing().getSpace() == Spacing::Other) {
-		textLayoutModule->lspacingLE->setText(
-			toqstr(bp_.spacing().getValueAsString()));
+		doubleToWidget(textLayoutModule->lspacingLE,
+			bp_.spacing().getValueAsString());
 	}
 	setLSpacing(nitem);
 
-	if (bp_.paragraph_separation == BufferParams::ParagraphIndentSeparation)
+	if (bp_.paragraph_separation == BufferParams::ParagraphIndentSeparation) {
 		textLayoutModule->indentRB->setChecked(true);
-	else
+		string indentation = bp_.getIndentation().asLyXCommand();
+		int indent = 0;
+		if (indentation != "default") {
+			lengthToWidgets(textLayoutModule->indentLE,
+			textLayoutModule->indentLengthCO,
+			indentation, defaultUnit);
+			indent = 1;
+		}
+		textLayoutModule->indentCO->setCurrentIndex(indent);
+		setIndent(indent);
+	} else {
 		textLayoutModule->skipRB->setChecked(true);
-
-	int skip = 0;
-	switch (bp_.getDefSkip().kind()) {
-	case VSpace::SMALLSKIP:
-		skip = 0;
-		break;
-	case VSpace::MEDSKIP:
-		skip = 1;
-		break;
-	case VSpace::BIGSKIP:
-		skip = 2;
-		break;
-	case VSpace::LENGTH:
-	{
-		skip = 3;
-		string const length = bp_.getDefSkip().asLyXCommand();
-		lengthToWidgets(textLayoutModule->skipLE,
-			textLayoutModule->skipLengthCO,
-			length, defaultUnit);
-		break;
+		int skip = 0;
+		switch (bp_.getDefSkip().kind()) {
+		case VSpace::SMALLSKIP:
+			skip = 0;
+			break;
+		case VSpace::MEDSKIP:
+			skip = 1;
+			break;
+		case VSpace::BIGSKIP:
+			skip = 2;
+			break;
+		case VSpace::LENGTH:
+			{
+			skip = 3;
+			string const length = bp_.getDefSkip().asLyXCommand();
+			lengthToWidgets(textLayoutModule->skipLE,
+				textLayoutModule->skipLengthCO,
+				length, defaultUnit);
+			break;
+			}
+		default:
+			skip = 0;
+			break;
+		}
+		textLayoutModule->skipCO->setCurrentIndex(skip);
+		setSkip(skip);
 	}
-	default:
-		skip = 0;
-		break;
-	}
-	textLayoutModule->skipCO->setCurrentIndex(skip);
-	setSkip(skip);
 
 	textLayoutModule->twoColumnCB->setChecked(
 		bp_.columns == 2);
-
-	// break listings_params to multiple lines
-	string lstparams =
-		InsetListingsParams(bp_.listings_params).separatedParams();
-	textLayoutModule->listingsED->setPlainText(toqstr(lstparams));
 
 	if (!bp_.options.empty()) {
 		latexModule->optionsLE->setText(
@@ -2059,43 +2793,127 @@ void GuiDocument::paramsToDialog()
 		latexModule->childDocGB->setChecked(false);
 	}
 
+	// Master/Child
+	if (!bufferview() || !buffer().hasChildren()) {
+		masterChildModule->childrenTW->clear();
+		includeonlys_.clear();
+		docPS->showPanel(qt_("Child Documents"), false);
+		if (docPS->isCurrentPanel(qt_("Child Documents")))
+			docPS->setCurrentPanel(qt_("Document Class"));
+	} else {
+		docPS->showPanel(qt_("Child Documents"), true);
+		masterChildModule->setEnabled(true);
+		includeonlys_ = bp_.getIncludedChildren();
+		updateIncludeonlys();
+	}
+	masterChildModule->maintainAuxCB->setChecked(
+		bp_.maintain_unincluded_children);
+
+	// Float Settings
 	floatModule->set(bp_.float_placement);
+
+	// ListingsSettings
+	// break listings_params to multiple lines
+	string lstparams =
+		InsetListingsParams(bp_.listings_params).separatedParams();
+	listingsModule->listingsED->setPlainText(toqstr(lstparams));
+
+	// Output
+	// update combobox with formats
+	updateDefaultFormat();
+	int index = outputModule->defaultFormatCO->findData(toqstr(
+		bp_.default_output_format));
+	// set to default if format is not found 
+	if (index == -1)
+		index = 0;
+	outputModule->defaultFormatCO->setCurrentIndex(index);
+	fontModule->osFontsCB->setEnabled(bp_.baseClass()->outputType() == lyx::LATEX);
+	fontModule->osFontsCB->setChecked(
+		bp_.baseClass()->outputType() == lyx::LATEX && bp_.useNonTeXFonts);
+
+	outputModule->outputsyncCB->setChecked(bp_.output_sync);
+	outputModule->synccustomCB->setEditText(toqstr(bp_.output_sync_macro));
+
+	outputModule->mathimgSB->setValue(bp_.html_math_img_scale);
+	outputModule->mathoutCB->setCurrentIndex(bp_.html_math_output);
+	outputModule->strictCB->setChecked(bp_.html_be_strict);
 
 	// Fonts
 	updateFontsize(documentClass().opt_fontsize(),
 			bp_.fontsize);
 
-	int n = findToken(tex_fonts_roman, bp_.fontsRoman);
-	if (n >= 0) {
-		fontModule->fontsRomanCO->setCurrentIndex(n);
-		romanChanged(n);
+	if (bp_.useNonTeXFonts) {
+		fontModule->fontencLA->setEnabled(false);
+		fontModule->fontencCO->setEnabled(false);
+		fontModule->fontencLE->setEnabled(false);
+		for (int i = 0; i < fontModule->fontsRomanCO->count(); ++i) {
+			if (fontModule->fontsRomanCO->itemText(i) == toqstr(bp_.fonts_roman)) {
+				fontModule->fontsRomanCO->setCurrentIndex(i);
+				break;
+			}
+		}
+		
+		for (int i = 0; i < fontModule->fontsSansCO->count(); ++i) {
+			if (fontModule->fontsSansCO->itemText(i) == toqstr(bp_.fonts_sans)) {
+				fontModule->fontsSansCO->setCurrentIndex(i);
+				break;
+			}
+		}
+		for (int i = 0; i < fontModule->fontsTypewriterCO->count(); ++i) {
+			if (fontModule->fontsTypewriterCO->itemText(i) == 
+				toqstr(bp_.fonts_typewriter)) {
+				fontModule->fontsTypewriterCO->setCurrentIndex(i);
+				break;
+			}
+		}
+	} else {
+		fontModule->fontencLA->setEnabled(true);
+		fontModule->fontencCO->setEnabled(true);
+		fontModule->fontencLE->setEnabled(true);
+		int n = findToken(tex_fonts_roman, bp_.fonts_roman);
+		if (n >= 0) {
+			fontModule->fontsRomanCO->setCurrentIndex(n);
+			romanChanged(n);
+		}
+	
+		n = findToken(tex_fonts_sans, bp_.fonts_sans);
+		if (n >= 0) {
+			fontModule->fontsSansCO->setCurrentIndex(n);
+			sansChanged(n);
+		}
+	
+		n = findToken(tex_fonts_monospaced, bp_.fonts_typewriter);
+		if (n >= 0) {
+			fontModule->fontsTypewriterCO->setCurrentIndex(n);
+			ttChanged(n);
+		}
 	}
 
-	n = findToken(tex_fonts_sans, bp_.fontsSans);
-	if (n >= 0)	{
-		fontModule->fontsSansCO->setCurrentIndex(n);
-		sansChanged(n);
-	}
-
-	n = findToken(tex_fonts_monospaced, bp_.fontsTypewriter);
-	if (n >= 0) {
-		fontModule->fontsTypewriterCO->setCurrentIndex(n);
-		ttChanged(n);
-	}
-
-	if (!bp_.fontsCJK.empty())
+	if (!bp_.fonts_cjk.empty())
 		fontModule->cjkFontLE->setText(
-			toqstr(bp_.fontsCJK));
+			toqstr(bp_.fonts_cjk));
 	else
 		fontModule->cjkFontLE->setText(QString());
 
-	fontModule->fontScCB->setChecked(bp_.fontsSC);
-	fontModule->fontOsfCB->setChecked(bp_.fontsOSF);
-	fontModule->scaleSansSB->setValue(bp_.fontsSansScale);
-	fontModule->scaleTypewriterSB->setValue(bp_.fontsTypewriterScale);
-	n = findToken(GuiDocument::fontfamilies, bp_.fontsDefaultFamily);
-	if (n >= 0)
-		fontModule->fontsDefaultCO->setCurrentIndex(n);
+	fontModule->fontScCB->setChecked(bp_.fonts_expert_sc);
+	fontModule->fontOsfCB->setChecked(bp_.fonts_old_figures);
+	fontModule->scaleSansSB->setValue(bp_.fonts_sans_scale);
+	fontModule->scaleTypewriterSB->setValue(bp_.fonts_typewriter_scale);
+	
+	int nn = findToken(GuiDocument::fontfamilies, bp_.fonts_default_family);
+	if (nn >= 0)
+		fontModule->fontsDefaultCO->setCurrentIndex(nn);
+
+	if (bp_.fontenc == "global") {
+		fontModule->fontencCO->setCurrentIndex(0);
+		fontModule->fontencLE->setEnabled(false);
+	} else if (bp_.fontenc == "default") {
+		fontModule->fontencCO->setCurrentIndex(2);
+		fontModule->fontencLE->setEnabled(false);
+	} else {
+		fontModule->fontencCO->setCurrentIndex(1);
+		fontModule->fontencLE->setText(toqstr(bp_.fontenc));
+	}
 
 	// paper
 	bool const extern_geometry =
@@ -2149,6 +2967,8 @@ void GuiDocument::paramsToDialog()
 	lengthToWidgets(m->columnsepLE, m->columnsepUnit,
 		bp_.columnsep, defaultUnit);
 
+	// branches
+	updateUnknownBranches();
 	branchesModule->update(bp_);
 
 	// PDF support
@@ -2170,9 +2990,9 @@ void GuiDocument::paramsToDialog()
 	pdfSupportModule->pdfusetitleCB->setChecked(pdf.pdfusetitle);
 	pdfSupportModule->colorlinksCB->setChecked(pdf.colorlinks);
 
-	n = findToken(backref_opts, pdf.backref);
-	if (n >= 0)
-		pdfSupportModule->backrefCO->setCurrentIndex(n);
+	nn = findToken(backref_opts, pdf.backref);
+	if (nn >= 0)
+		pdfSupportModule->backrefCO->setCurrentIndex(nn);
 
 	pdfSupportModule->fullscreenCB->setChecked
 		(pdf.pagemode == pdf.pagemode_fullscreen);
@@ -2183,6 +3003,9 @@ void GuiDocument::paramsToDialog()
 	// Make sure that the bc is in the INITIAL state
 	if (bc().policy().buttonStatus(ButtonPolicy::RESTORE))
 		bc().restore();
+
+	// clear changed branches cache
+	changedBranches_.clear();
 }
 
 
@@ -2215,6 +3038,54 @@ void GuiDocument::updateSelectedModules()
 	for (int i = 0; mit != men; ++mit, ++i)
 		modules_sel_model_.insertRow(i, mit->name, mit->id, 
 				mit->description);
+}
+
+
+void GuiDocument::updateIncludeonlys()
+{
+	masterChildModule->childrenTW->clear();
+	QString const no = qt_("No");
+	QString const yes = qt_("Yes");
+
+	if (includeonlys_.empty()) {
+		masterChildModule->includeallRB->setChecked(true);
+		masterChildModule->childrenTW->setEnabled(false);
+		masterChildModule->maintainAuxCB->setEnabled(false);
+	} else {
+		masterChildModule->includeonlyRB->setChecked(true);
+		masterChildModule->childrenTW->setEnabled(true);
+		masterChildModule->maintainAuxCB->setEnabled(true);
+	}
+	QTreeWidgetItem * item = 0;
+	ListOfBuffers children = buffer().getChildren();
+	ListOfBuffers::const_iterator it  = children.begin();
+	ListOfBuffers::const_iterator end = children.end();
+	bool has_unincluded = false;
+	bool all_unincluded = true;
+	for (; it != end; ++it) {
+		item = new QTreeWidgetItem(masterChildModule->childrenTW);
+		// FIXME Unicode
+		string const name =
+			to_utf8(makeRelPath(from_utf8((*it)->fileName().absFileName()),
+							from_utf8(buffer().filePath())));
+		item->setText(0, toqstr(name));
+		item->setText(1, isChildIncluded(name) ? yes : no);
+		if (!isChildIncluded(name))
+			has_unincluded = true;
+		else
+			all_unincluded = false;
+	}
+	// Both if all childs are included and if none is included
+	// is equal to "include all" (i.e., ommit \includeonly).
+	// Thus, reset the GUI.
+	if (!has_unincluded || all_unincluded) {
+		masterChildModule->includeallRB->setChecked(true);
+		masterChildModule->childrenTW->setEnabled(false);
+		includeonlys_.clear();
+	}
+	// If all are included, we need to update again.
+	if (!has_unincluded)
+		updateIncludeonlys();
 }
 
 
@@ -2260,9 +3131,25 @@ void GuiDocument::setLayoutComboByIDString(string const & idString)
 
 bool GuiDocument::isValid()
 {
-	return validateListingsParameters().isEmpty()
-		&& (textLayoutModule->skipCO->currentIndex() != 3
-			|| !textLayoutModule->skipLE->text().isEmpty());
+	return 
+		validateListingsParameters().isEmpty() &&
+		localLayout->isValid() &&
+		(
+			// if we're asking for skips between paragraphs
+			!textLayoutModule->skipRB->isChecked() ||
+			// then either we haven't chosen custom
+			textLayoutModule->skipCO->currentIndex() != 3 || 
+			// or else a length has been given
+			!textLayoutModule->skipLE->text().isEmpty()
+		) && 
+		(
+			// if we're asking for indentation
+			!textLayoutModule->indentRB->isChecked() || 
+			// then either we haven't chosen custom
+			textLayoutModule->indentCO->currentIndex() != 1 || 
+			// or else a length has been given
+			!textLayoutModule->indentLE->text().isEmpty()
+		);
 }
 
 
@@ -2316,15 +3203,15 @@ list<GuiDocument::modInfoStruct> const & GuiDocument::getModuleInfo()
 
 
 list<GuiDocument::modInfoStruct> const 
-		GuiDocument::makeModuleInfo(list<string> const & mods)
+		GuiDocument::makeModuleInfo(LayoutModuleList const & mods)
 {
-	list<string>::const_iterator it =  mods.begin();
-	list<string>::const_iterator end = mods.end();
+	LayoutModuleList::const_iterator it =  mods.begin();
+	LayoutModuleList::const_iterator end = mods.end();
 	list<modInfoStruct> mInfo;
 	for (; it != end; ++it) {
 		modInfoStruct m;
 		m.id = *it;
-		LyXModule * mod = moduleList[*it];
+		LyXModule const * const mod = theModuleList[*it];
 		if (mod)
 			// FIXME Unicode
 			m.name = toqstr(translateIfPossible(from_utf8(mod->getName())));
@@ -2377,7 +3264,7 @@ void GuiDocument::dispatchParams()
 	if (!params().master.empty()) {
 		FileName const master_file = support::makeAbsPath(params().master,
 			   support::onlyPath(buffer().absFileName()));
-		if (isLyXFilename(master_file.absFilename())) {
+		if (isLyXFileName(master_file.absFileName())) {
 			Buffer * master = checkAndLoadLyXFile(master_file);
 			if (master) {
 				if (master->isChild(const_cast<Buffer *>(&buffer())))
@@ -2410,10 +3297,30 @@ void GuiDocument::dispatchParams()
 		}
 
 		// Open insets of selected branches, close deselected ones
-		dispatch(FuncRequest(LFUN_ALL_INSETS_TOGGLE,
-			"assign branch"));
+		dispatch(FuncRequest(LFUN_INSET_FORALL,
+			"Branch inset-toggle assign"));
 	}
-	// FIXME: If we used an LFUN, we would not need those two lines:
+	// rename branches in the document
+	executeBranchRenaming();
+	// and clear changed branches cache
+	changedBranches_.clear();
+	
+	// Generate the colours requested by indices.
+	IndicesList & indiceslist = params().indiceslist();
+	if (!indiceslist.empty()) {
+		IndicesList::const_iterator it = indiceslist.begin();
+		IndicesList::const_iterator const end = indiceslist.end();
+		for (; it != end; ++it) {
+			docstring const & current_index = it->shortcut();
+			Index const * index = indiceslist.findShortcut(current_index);
+			string const x11hexname = X11hexname(index->color());
+			// display the new color
+			docstring const str = current_index + ' ' + from_ascii(x11hexname);
+			dispatch(FuncRequest(LFUN_SET_COLOR, str));
+		}
+	}
+	// FIXME LFUN
+	// If we used an LFUN, we would not need these two lines:
 	BufferView * bv = const_cast<BufferView *>(bufferview());
 	bv->processUpdateFlags(Update::Force | Update::FitCursor);
 }
@@ -2461,6 +3368,10 @@ bool GuiDocument::isFontAvailable(string const & font) const
 
 bool GuiDocument::providesOSF(string const & font) const
 {
+	if (fontModule->osFontsCB->isChecked())
+		// FIXME: we should check if the fonts really
+		// have OSF support. But how?
+		return true;
 	if (font == "cmr")
 		return isFontAvailable("eco");
 	if (font == "palatino")
@@ -2471,6 +3382,8 @@ bool GuiDocument::providesOSF(string const & font) const
 
 bool GuiDocument::providesSC(string const & font) const
 {
+	if (fontModule->osFontsCB->isChecked())
+		return false;
 	if (font == "palatino")
 		return isFontAvailable("mathpazo");
 	if (font == "utopia")
@@ -2481,6 +3394,8 @@ bool GuiDocument::providesSC(string const & font) const
 
 bool GuiDocument::providesScale(string const & font) const
 {
+	if (fontModule->osFontsCB->isChecked())
+		return true;
 	return font == "helvet" || font == "luximono"
 		|| font == "berasans"  || font == "beramono";
 }
@@ -2489,8 +3404,8 @@ bool GuiDocument::providesScale(string const & font) const
 void GuiDocument::loadModuleInfo()
 {
 	moduleNames_.clear();
-	LyXModuleList::const_iterator it  = moduleList.begin();
-	LyXModuleList::const_iterator end = moduleList.end();
+	LyXModuleList::const_iterator it  = theModuleList.begin();
+	LyXModuleList::const_iterator end = theModuleList.end();
 	for (; it != end; ++it) {
 		modInfoStruct m;
 		m.id = it->getID();
@@ -2509,10 +3424,51 @@ void GuiDocument::loadModuleInfo()
 }
 
 
+void GuiDocument::updateUnknownBranches()
+{
+	if (!bufferview())
+		return;
+	list<docstring> used_branches;
+	buffer().getUsedBranches(used_branches);
+	list<docstring>::const_iterator it = used_branches.begin();
+	QStringList unknown_branches;
+	for (; it != used_branches.end() ; ++it) {
+		if (!buffer().params().branchlist().find(*it))
+			unknown_branches.append(toqstr(*it));
+	}
+	branchesModule->setUnknownBranches(unknown_branches);
+}
+
+
+void GuiDocument::branchesRename(docstring const & oldname, docstring const & newname)
+{
+	map<docstring, docstring>::iterator it = changedBranches_.begin();
+	for (; it != changedBranches_.end() ; ++it) {
+		if (it->second == oldname) {
+			// branch has already been renamed
+			it->second = newname;
+			return;
+		}
+	}
+	// store new name
+	changedBranches_[oldname] = newname;
+}
+
+
+void GuiDocument::executeBranchRenaming() const
+{
+	map<docstring, docstring>::const_iterator it = changedBranches_.begin();
+	for (; it != changedBranches_.end() ; ++it) {
+		docstring const arg = '"' + it->first + '"' + " " + '"' + it->second + '"';
+		dispatch(FuncRequest(LFUN_BRANCHES_RENAME, arg));
+	}
+}
+
+
 Dialog * createGuiDocument(GuiView & lv) { return new GuiDocument(lv); }
 
 
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiDocument_moc.cpp"
+#include "moc_GuiDocument.cpp"

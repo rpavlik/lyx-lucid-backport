@@ -13,47 +13,59 @@
 #ifndef FLOATPLACEMENT_H
 #define FLOATPLACEMENT_H
 
+#include "InsetParamsWidget.h"
 #include "ui_FloatPlacementUi.h"
-#include <QWidget>
 
-#include <string>
-
+#include "support/docstring.h"
 
 namespace lyx {
 
+class FloatList;
+class Inset;
 class InsetFloatParams;
 
-class FloatPlacement : public QWidget, public Ui::FloatPlacementUi {
+namespace frontend {
+
+class FloatPlacement : public InsetParamsWidget, public Ui::FloatPlacementUi {
 	Q_OBJECT
 public:
-	FloatPlacement(QWidget * parent = 0);
+	FloatPlacement(bool show_options = false, QWidget * parent = 0);
 
+	/// \name DialogView inherited methods
+	//@{
+	InsetCode insetCode() const { return FLOAT_CODE; }
+	FuncCode creationCode() const { return LFUN_FLOAT_INSERT; }
+	void paramsToDialog(Inset const *);
+	docstring dialogToParams() const;
+	//@}
+	///
 	void useWide();
+	///
 	void useSideways();
-
-	void set(lyx::InsetFloatParams const & params);
+	///
 	void set(std::string const & placement);
-	void checkAllowed();
-
-	std::string const get(bool & wide, bool & sideways) const;
+	///
 	std::string const get() const;
 
-public Q_SLOTS:
-	void tbhpClicked();
+private Q_SLOTS:
+	void on_defaultsCB_stateChanged(int state);
 	void changedSlot();
-	void on_spanCB_clicked();
-	void on_heredefinitelyCB_clicked();
-	void on_sidewaysCB_clicked();
-
-Q_SIGNALS:
-	void changed();
 
 private:
+	///
+	void checkAllowed();
+	///
+	std::string const get(bool & wide, bool & sideways) const;
+	///
+	void initFloatTypeCO(FloatList const & floats);
+
 	/// one of figure or table?
 	bool standardfloat_;
-
+	///
+	FloatList const * float_list_;
 };
 
+} // namespace frontend
 } // namespace lyx
 
 #endif // FLOATPLACEMENT_H

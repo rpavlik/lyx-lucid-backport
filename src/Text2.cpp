@@ -4,16 +4,16 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Alfredo Braunstein
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Allan Rae
  * \author Stefan Schimanski
  * \author Dekel Tsur
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -33,14 +33,12 @@
 #include "CutAndPaste.h"
 #include "DispatchResult.h"
 #include "ErrorList.h"
-#include "FuncRequest.h"
 #include "Language.h"
 #include "Layout.h"
 #include "Lexer.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
 #include "Paragraph.h"
-#include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
 #include "TextClass.h"
 #include "TextMetrics.h"
@@ -63,19 +61,14 @@ using namespace std;
 
 namespace lyx {
 
-Text::Text()
-	: autoBreakRows_(false)
-{}
-
-
-bool Text::isMainText(Buffer const & buffer) const
+bool Text::isMainText() const
 {
-	return &buffer.text() == this;
+	return &owner_->buffer().text() == this;
 }
 
 
 // Note that this is supposed to return a fully realized font.
-FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
+FontInfo Text::layoutFont(pit_type const pit) const
 {
 	Layout const & layout = pars_[pit].layout();
 
@@ -83,14 +76,14 @@ FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
 		FontInfo lf = layout.resfont;
 		// In case the default family has been customized
 		if (layout.font.family() == INHERIT_FAMILY)
-			lf.setFamily(buffer.params().getFont().fontInfo().family());
+			lf.setFamily(owner_->buffer().params().getFont().fontInfo().family());
 		// FIXME
 		// It ought to be possible here just to use Inset::getLayout() and skip
 		// the asInsetCollapsable() bit. Unfortunatley, that doesn't work right
 		// now, because Inset::getLayout() will return a default-constructed
 		// InsetLayout, and that e.g. sets the foreground color to red. So we
 		// need to do some work to make that possible.
-		InsetCollapsable const * icp = pars_[pit].inInset().asInsetCollapsable();
+		InsetCollapsable const * icp = owner_->asInsetCollapsable();
 		if (!icp)
 			return lf;
 		FontInfo icf = icp->getLayout().font();
@@ -100,16 +93,17 @@ FontInfo Text::layoutFont(Buffer const & buffer, pit_type const pit) const
 
 	FontInfo font = layout.font;
 	// Realize with the fonts of lesser depth.
-	//font.realize(outerFont(pit, paragraphs()));
-	font.realize(buffer.params().getFont().fontInfo());
+	//font.realize(outerFont(pit));
+	font.realize(owner_->buffer().params().getFont().fontInfo());
 
 	return font;
 }
 
 
 // Note that this is supposed to return a fully realized font.
-FontInfo Text::labelFont(Buffer const & buffer, Paragraph const & par) const
+FontInfo Text::labelFont(Paragraph const & par) const
 {
+	Buffer const & buffer = owner_->buffer();
 	Layout const & layout = par.layout();
 
 	if (!par.getDepth()) {
@@ -128,9 +122,10 @@ FontInfo Text::labelFont(Buffer const & buffer, Paragraph const & par) const
 }
 
 
-void Text::setCharFont(Buffer const & buffer, pit_type pit,
+void Text::setCharFont(pit_type pit,
 		pos_type pos, Font const & fnt, Font const & display_font)
 {
+	Buffer const & buffer = owner_->buffer();
 	Font font = fnt;
 	Layout const & layout = pars_[pit].layout();
 
@@ -148,7 +143,7 @@ void Text::setCharFont(Buffer const & buffer, pit_type pit,
 		while (!layoutfont.resolved() &&
 		       tp != pit_type(paragraphs().size()) &&
 		       pars_[tp].getDepth()) {
-			tp = outerHook(tp, paragraphs());
+			tp = outerHook(tp);
 			if (tp != pit_type(paragraphs().size()))
 				layoutfont.realize(pars_[tp].layout().font);
 		}
@@ -156,7 +151,7 @@ void Text::setCharFont(Buffer const & buffer, pit_type pit,
 
 	// Inside inset, apply the inset's font attributes if any
 	// (charstyle!)
-	if (!isMainText(buffer))
+	if (!isMainText())
 		layoutfont.realize(display_font.fontInfo());
 
 	layoutfont.realize(buffer.params().getFont().fontInfo());
@@ -207,20 +202,20 @@ pit_type Text::undoSpan(pit_type pit)
 }
 
 
-void Text::setLayout(Buffer const & buffer, pit_type start, pit_type end,
-		docstring const & layout)
+void Text::setLayout(pit_type start, pit_type end,
+		     docstring const & layout)
 {
 	LASSERT(start != end, /**/);
 
-	BufferParams const & bufparams = buffer.params();
-	Layout const & lyxlayout = bufparams.documentClass()[layout];
+	Buffer const & buffer = owner_->buffer();
+	BufferParams const & bp = buffer.params();
+	Layout const & lyxlayout = bp.documentClass()[layout];
 
 	for (pit_type pit = start; pit != end; ++pit) {
 		Paragraph & par = pars_[pit];
 		par.applyLayout(lyxlayout);
 		if (lyxlayout.margintype == MARGIN_MANUAL)
-			par.setLabelWidthString(par.translateIfPossible(
-				lyxlayout.labelstring(), buffer.params()));
+			par.setLabelWidthString(par.expandLabel(lyxlayout, bp));
 	}
 }
 
@@ -234,8 +229,8 @@ void Text::setLayout(Cursor & cur, docstring const & layout)
 	pit_type end = cur.selEnd().pit() + 1;
 	pit_type undopit = undoSpan(end - 1);
 	recUndo(cur, start, undopit - 1);
-	setLayout(cur.buffer(), start, end, layout);
-	updateLabels(cur.buffer());
+	setLayout(start, end, layout);
+	cur.forceBufferUpdate();
 }
 
 
@@ -294,7 +289,7 @@ void Text::changeDepth(Cursor & cur, DEPTH_CHANGE type)
 	}
 	// this handles the counter labels, and also fixes up
 	// depth values for follow-on (child) paragraphs
-	updateLabels(cur.buffer());
+	cur.forceBufferUpdate();
 }
 
 
@@ -306,13 +301,13 @@ void Text::setFont(Cursor & cur, Font const & font, bool toggleall)
 	FontInfo layoutfont;
 	pit_type pit = cur.pit();
 	if (cur.pos() < pars_[pit].beginOfBody())
-		layoutfont = labelFont(cur.buffer(), pars_[pit]);
+		layoutfont = labelFont(pars_[pit]);
 	else
-		layoutfont = layoutFont(cur.buffer(), pit);
+		layoutfont = layoutFont(pit);
 
 	// Update current font
 	cur.real_current_font.update(font,
-					cur.buffer().params().language,
+					cur.buffer()->params().language,
 					toggleall);
 
 	// Reduce to implicit settings
@@ -360,7 +355,10 @@ void Text::setFont(BufferView const & bv, CursorSlice const & begin,
 		TextMetrics const & tm = bv.textMetrics(this);
 		Font f = tm.displayFont(pit, pos);
 		f.update(font, language, toggleall);
-		setCharFont(buffer, pit, pos, f, tm.font_);
+		setCharFont(pit, pos, f, tm.font_);
+		// font change may change language... 
+		// spell checker has to know that
+		pars_[pit].requestSpellCheck(pos);
 	}
 }
 
@@ -392,8 +390,8 @@ void Text::toggleFree(Cursor & cur, Font const & font, bool toggleall)
 	// Try implicit word selection
 	// If there is a change in the language the implicit word selection
 	// is disabled.
-	CursorSlice resetCursor = cur.top();
-	bool implicitSelection =
+	CursorSlice const resetCursor = cur.top();
+	bool const implicitSelection =
 		font.language() == ignore_language
 		&& font.fontInfo().number() == FONT_IGNORE
 		&& selectWordWhenUnderCursor(cur, WHOLE_WORD_STRICT);
@@ -435,6 +433,32 @@ docstring Text::getStringToIndex(Cursor const & cur)
 }
 
 
+void Text::setLabelWidthStringToSequence(pit_type const par_offset,
+		docstring const & s)
+{
+	pit_type offset = par_offset;
+	// Find first of same layout in sequence
+	while (!isFirstInSequence(offset)) {
+		offset = depthHook(offset, pars_[offset].getDepth());
+	}
+
+	// now apply label width string to every par
+	// in sequence
+	pit_type const end = pars_.size();
+	depth_type const depth = pars_[offset].getDepth();
+	Layout const & layout = pars_[offset].layout();
+	for (pit_type pit = offset; pit != end; ++pit) {
+		while (pars_[pit].getDepth() > depth)
+			++pit;
+		if (pars_[pit].getDepth() < depth)
+			return;
+		if (pars_[pit].layout() != layout)
+			return;
+		pars_[pit].setLabelWidthString(s);
+	}
+}
+
+
 void Text::setParagraphs(Cursor & cur, docstring arg, bool merge) 
 {
 	LASSERT(cur.text(), /**/);
@@ -444,12 +468,22 @@ void Text::setParagraphs(Cursor & cur, docstring arg, bool merge)
 
 	//FIXME UNICODE
 	string const argument = to_utf8(arg);
+	depth_type priordepth = -1;
+	Layout priorlayout;
 	for (pit_type pit = cur.selBegin().pit(), end = cur.selEnd().pit();
 	     pit <= end; ++pit) {
 		Paragraph & par = pars_[pit];
 		ParagraphParameters params = par.params();
 		params.read(argument, merge);
+		// Changes to label width string apply to all paragraphs
+		// with same layout in a sequence.
+		// Do this only once for a selected range of paragraphs
+		// of the same layout and depth.
+		if (par.getDepth() != priordepth || par.layout() != priorlayout)
+			setLabelWidthStringToSequence(pit, params.labelWidthString());
 		par.params().apply(params, par.layout());
+		priordepth = par.getDepth();
+		priorlayout = par.layout();
 	}
 }
 
@@ -464,11 +498,22 @@ void Text::setParagraphs(Cursor & cur, ParagraphParameters const & p)
 	pit_type undopit = undoSpan(cur.selEnd().pit());
 	recUndo(cur, cur.selBegin().pit(), undopit - 1);
 
+	depth_type priordepth = -1;
+	Layout priorlayout;
 	for (pit_type pit = cur.selBegin().pit(), end = cur.selEnd().pit();
 	     pit <= end; ++pit) {
 		Paragraph & par = pars_[pit];
+		// Changes to label width string apply to all paragraphs
+		// with same layout in a sequence.
+		// Do this only once for a selected range of paragraphs
+		// of the same layout and depth.
+		if (par.getDepth() != priordepth || par.layout() != priorlayout)
+			setLabelWidthStringToSequence(pit,
+				par.params().labelWidthString());
 		par.params().apply(p, par.layout());
-	}	
+		priordepth = par.getDepth();
+		priorlayout = par.layout();
+	}
 }
 
 
@@ -478,43 +523,8 @@ void Text::insertInset(Cursor & cur, Inset * inset)
 	LASSERT(this == cur.text(), /**/);
 	LASSERT(inset, /**/);
 	cur.paragraph().insertInset(cur.pos(), inset, cur.current_font,
-		Change(cur.buffer().params().trackChanges
+		Change(cur.buffer()->params().trackChanges
 		? Change::INSERTED : Change::UNCHANGED));
-}
-
-
-// needed to insert the selection
-void Text::insertStringAsLines(Cursor & cur, docstring const & str)
-{
-	cur.buffer().insertStringAsLines(pars_, cur.pit(), cur.pos(),
-		cur.current_font, str, autoBreakRows_);
-}
-
-
-// turn double CR to single CR, others are converted into one
-// blank. Then insertStringAsLines is called
-void Text::insertStringAsParagraphs(Cursor & cur, docstring const & str)
-{
-	docstring linestr = str;
-	bool newline_inserted = false;
-
-	for (string::size_type i = 0, siz = linestr.size(); i < siz; ++i) {
-		if (linestr[i] == '\n') {
-			if (newline_inserted) {
-				// we know that \r will be ignored by
-				// insertStringAsLines. Of course, it is a dirty
-				// trick, but it works...
-				linestr[i - 1] = '\r';
-				linestr[i] = '\n';
-			} else {
-				linestr[i] = ' ';
-				newline_inserted = true;
-			}
-		} else if (isPrintable(linestr[i])) {
-			newline_inserted = false;
-		}
-	}
-	insertStringAsLines(cur, linestr);
 }
 
 
@@ -573,7 +583,7 @@ bool Text::checkAndActivateInset(Cursor & cur, bool front)
 	if (!front && cur.pos() == 0)
 		return false;
 	Inset * inset = front ? cur.nextInset() : cur.prevInset();
-	if (!inset || inset->editable() != Inset::HIGHLY_EDITABLE)
+	if (!inset || !inset->editable())
 		return false;
 	/*
 	 * Apparently, when entering an inset we are expected to be positioned
@@ -599,7 +609,7 @@ bool Text::checkAndActivateInsetVisual(Cursor & cur, bool movingForward, bool mo
 		return false;
 	Paragraph & par = cur.paragraph();
 	Inset * inset = par.isInset(cur.pos()) ? par.getInset(cur.pos()) : 0;
-	if (!inset || inset->editable() != Inset::HIGHLY_EDITABLE)
+	if (!inset || !inset->editable())
 		return false;
 	inset->edit(cur, movingForward, 
 		movingLeft ? Inset::ENTRY_DIRECTION_RIGHT : Inset::ENTRY_DIRECTION_LEFT);
@@ -610,7 +620,7 @@ bool Text::checkAndActivateInsetVisual(Cursor & cur, bool movingForward, bool mo
 bool Text::cursorBackward(Cursor & cur)
 {
 	// Tell BufferView to test for FitCursor in any case!
-	cur.updateFlags(Update::FitCursor);
+	cur.screenUpdateFlags(Update::FitCursor);
 
 	// not at paragraph start?
 	if (cur.pos() > 0) {
@@ -678,7 +688,7 @@ bool Text::cursorVisRight(Cursor & cur, bool skip_inset)
 bool Text::cursorForward(Cursor & cur)
 {
 	// Tell BufferView to test for FitCursor in any case!
-	cur.updateFlags(Update::FitCursor);
+	cur.screenUpdateFlags(Update::FitCursor);
 
 	// not at paragraph end?
 	if (cur.pos() != cur.lastpos()) {
@@ -810,7 +820,7 @@ bool Text::deleteEmptyParagraphMechanism(Cursor & cur,
 
 	// Whether a common inset is found and whether the cursor is still in 
 	// the same paragraph (possibly nested).
-	bool same_par = depth < cur.depth() && old.pit() == cur[depth].pit();
+	bool const same_par = depth < cur.depth() && old.pit() == cur[depth].pit();
 	bool const same_par_pos = depth == cur.depth() - 1 && same_par 
 		&& old.pos() == cur[depth].pos();
 	
@@ -823,7 +833,7 @@ bool Text::deleteEmptyParagraphMechanism(Cursor & cur,
 		    && oldpar.isLineSeparator(old.pos() - 1)
 		    && !oldpar.isDeleted(old.pos() - 1)
 		    && !oldpar.isDeleted(old.pos())) {
-			oldpar.eraseChar(old.pos() - 1, cur.buffer().params().trackChanges);
+			oldpar.eraseChar(old.pos() - 1, cur.buffer()->params().trackChanges);
 // FIXME: This will not work anymore when we have multiple views of the same buffer
 // In this case, we will have to correct also the cursors held by
 // other bufferviews. It will probably be easier to do that in a more
@@ -878,7 +888,7 @@ bool Text::deleteEmptyParagraphMechanism(Cursor & cur,
 		return true;
 	}
 
-	if (oldpar.stripLeadingSpaces(cur.buffer().params().trackChanges)) {
+	if (oldpar.stripLeadingSpaces(cur.buffer()->params().trackChanges)) {
 		need_anchor_change = true;
 		// We return true here because the Paragraph contents changed and
 		// we need a redraw before further action is processed.
@@ -909,8 +919,9 @@ void Text::deleteEmptyParagraphMechanism(pit_type first, pit_type last, bool tra
 			}
 		}
 
-		// don't delete anything if this is the only remaining paragraph within the given range
-		// note: Text::acceptOrRejectChanges() sets the cursor to 'first' after calling DEPM
+		// don't delete anything if this is the only remaining paragraph
+		// within the given range. Note: Text::acceptOrRejectChanges()
+		// sets the cursor to 'first' after calling DEPM
 		if (first == last)
 			continue;
 

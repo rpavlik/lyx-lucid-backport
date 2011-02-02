@@ -5,10 +5,10 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
- * \author André Pönitz
- * \author Jürgen Vigna
+ * \author AndrÃ© PÃ¶nitz
+ * \author JÃ¼rgen Vigna
  * \author Abdelrazak Younes
  *
  * Full author contact details are available in file CREDITS.
@@ -24,6 +24,7 @@ namespace lyx {
 class Buffer;
 class BufferParams;
 class DocIterator;
+class Inset;
 class MathData;
 class ParagraphList;
 
@@ -52,6 +53,9 @@ public:
 
 	~Undo();
 
+	/// Clear out all undo/redo contents.
+	void clear();
+
 	/// this will undo the last action - returns false if no undo possible
 	bool textUndo(DocIterator &);
 
@@ -66,6 +70,9 @@ public:
 	bool hasUndoStack() const;
 	///
 	bool hasRedoStack() const;
+
+	/// Mark all the elements of the undo and redo stacks as dirty
+	void markDirty();
 
 	/// open a new group of undo operations.
 	/**
@@ -98,8 +105,9 @@ public:
 
 	/// Convenience: record undo information for the inset
 	/// containing the cursor.
-	void recordUndoInset(DocIterator const & cur, 
-			     UndoKind kind = ATOMIC_UNDO);
+	void recordUndoInset(DocIterator const & cur,
+			     UndoKind kind = ATOMIC_UNDO,
+			     Inset const * inset = 0);
 
 	/// Convenience: prepare undo for the whole buffer
 	void recordUndoFullDocument(DocIterator const & cur);

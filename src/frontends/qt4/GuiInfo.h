@@ -12,41 +12,30 @@
 #ifndef GUI_INFO_H
 #define GUI_INFO_H
 
-#include "DialogView.h"
+#include "InsetParamsWidget.h"
 #include "ui_InfoUi.h"
 
 namespace lyx {
 
+class Inset;
+
 namespace frontend {
 
-class GuiInfo : public DialogView, public Ui::InfoUi
+class GuiInfo : public InsetParamsWidget, public Ui::InfoUi
 {
 	Q_OBJECT
 
 public:
-	GuiInfo(GuiView & lv);
-
-	/// Dialog inherited methods
-	//@{
-	void applyView();
-	void updateView();
-	void dispatchParams() {}
-	void enableView(bool enable);
-	bool isBufferDependent() const { return true; }
-	bool canApply() const { return true; }
-	//@}
-
-private Q_SLOTS:
-	void on_newPB_clicked();
-	void on_closePB_clicked();
-	void on_typeCO_currentIndexChanged(int);
-	void on_nameLE_textChanged(QString const &);
+	GuiInfo(QWidget * parent = 0);
 
 private:
-	void paramsToDialog();
-	void dialogToParams();
-	QString type_;
-	QString name_;
+	/// \name InsetParamsWidget inherited methods
+	//@{
+	InsetCode insetCode() const { return INFO_CODE; }
+	FuncCode creationCode() const { return LFUN_INFO_INSERT; }
+	void paramsToDialog(Inset const *);
+	docstring dialogToParams() const;
+	//@}
 };
 
 } // namespace frontend

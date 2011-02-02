@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author John Levon
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
@@ -18,13 +18,9 @@
 
 #include "Session.h"
 
-#include <QAbstractProxyModel>
-#include <QComboBox>
 #include <QList>
 #include <QToolBar>
-
-class QSortFilterProxyModel;
-class QStandardItemModel;
+#include <QToolButton>
 
 namespace lyx {
 
@@ -38,74 +34,33 @@ class GuiCommandBuffer;
 class GuiLayoutFilterModel;
 class GuiToolbar;
 class GuiView;
-class LayoutItemDelegate;
+class LayoutBox;
 class ToolbarInfo;
 class ToolbarItem;
 
-class GuiLayoutBox : public QComboBox
+class MenuButton : public QToolButton
 {
 	Q_OBJECT
 public:
-	GuiLayoutBox(GuiToolbar * bar, GuiView &);
-
-	/// select the right layout in the combobox.
-	void set(docstring const & layout);
-	/// Populate the layout combobox.
-	void updateContents(bool reset);
-	/// Add Item to Layout box according to sorting settings from preferences
-	void addItemSort(docstring const & item, docstring const & category,
-		bool sorted, bool sortedByCat, bool unknown);
-
 	///
-	void showPopup();
-	
+	MenuButton(GuiToolbar * bar, ToolbarItem const & item,
+		bool const sticky = false);
 	///
-	bool eventFilter(QObject * o, QEvent * e);
-	///
-	QString const & filter() { return filter_; }
-
-private Q_SLOTS:
-	///
-	void selected(int index);
-	///
-	void setIconSize(QSize size);
+	void mousePressEvent(QMouseEvent * e);
 
 private:
-	friend class LayoutItemDelegate;
-
-	///
-	void resetFilter();
-	///
-	void setFilter(QString const & s);
-	///
-	QString charFilterRegExp(QString const & filter);
-	///
-	void countCategories();
-	
-	///
-	GuiView & owner_;
 	///
 	GuiToolbar * bar_;
 	///
-	DocumentClass const * text_class_;
+	ToolbarItem const & tbitem_;
 	///
-	Inset const * inset_;
-	
-	/// the layout model: 1st column translated, 2nd column raw layout name
-	QStandardItemModel * model_;
-	/// the proxy model filtering \c model_
-	GuiLayoutFilterModel * filterModel_;
-	/// the (model-) index of the last successful selection
-	int lastSel_;
-	/// the character filter
-	QString filter_;
+	bool initialized_;
+
+private Q_SLOTS:
 	///
-	LayoutItemDelegate * layoutItemDelegate_;
-	///
-	unsigned visibleCategories_;
-	///
-	bool inShowPopup_;
+	void actionTriggered(QAction * action);
 };
+
 
 
 class GuiToolbar : public QToolBar
@@ -157,17 +112,11 @@ private:
 	void showEvent(QShowEvent *);
 
 	///
-	QString name_;
-	///
 	QList<Action *> actions_;
 	/// initial visibility flags
 	int visibility_;
 	///
-	bool allowauto_;
-	///
 	GuiView & owner_;
-	///
-	GuiLayoutBox * layout_;
 	///
 	GuiCommandBuffer * command_buffer_;
 	///

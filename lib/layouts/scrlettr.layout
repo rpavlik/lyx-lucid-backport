@@ -1,9 +1,9 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[scrlettr]{letter (KOMA-Script)}
+#  \DeclareLaTeXClass{letter (KOMA-Script)}
 # KOMA scrlettr textclass definition file.
 # Bernd Rellermeyer <100.41728@germanynet.de>, 1999/2/17.
 
-Format 11
+Format 30
 Style Standard
 	LatexName             dummy
 	ParSep                0.4
@@ -189,6 +189,7 @@ Style Title
 	CopyStyle             Name
 	LatexName             title
 	LabelString           "Title:"
+	HTMLTitle             true
 End
 
 

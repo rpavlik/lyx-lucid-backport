@@ -77,19 +77,30 @@ def ui_l10n(input_files, output, base):
 def layouts_l10n(input_files, output, base):
     '''Generate pot file from lib/layouts/*.{layout,inc,module}'''
     out = open(output, 'w')
-    Style = re.compile(r'^Style\s+(.*)')
+    Style = re.compile(r'^Style\s+(.*)', re.IGNORECASE)
     # include ???LabelString???, but exclude comment lines
     LabelString = re.compile(r'^[^#]*LabelString\S*\s+(.*)')
     GuiName = re.compile(r'\s*GuiName\s+(.*)')
     ListName = re.compile(r'\s*ListName\s+(.*)')
     CategoryName = re.compile(r'\s*Category\s+(.*)')
     NameRE = re.compile(r'DeclareLyXModule.*{(.*)}')
-    InsetLayout = re.compile(r'^InsetLayout\s+(.*)')
+    InsetLayout = re.compile(r'^InsetLayout\s+\"?(.*)\"?')
+    FlexCheck = re.compile(r'^Flex:(.*)')
     DescBegin = re.compile(r'#+\s*DescriptionBegin\s*$')
     DescEnd = re.compile(r'#+\s*DescriptionEnd\s*$')
-
+    Category = re.compile(r'#Category: (.*)$')
+    I18nPreamble = re.compile(r'\s*(Lang)|(Babel)Preamble\s*$')
+    EndI18nPreamble = re.compile(r'\s*End(Lang)|(Babel)Preamble\s*$')
+    I18nString = re.compile(r'_\(([^\)]+)\)')
+    CounterFormat = re.compile(r'\s*PrettyFormat\s+"?(.*)"?')
+    CiteFormat = re.compile(r'\s*CiteFormat')
+    KeyVal = re.compile(r'^\s*_\w+\s+(.*)$')
+    End = re.compile(r'\s*End')
+    
     for src in input_files:
         readingDescription = False
+        readingI18nPreamble = False
+        readingCiteFormats = False
         descStartLine = -1
         descLines = []
         lineno = 0
@@ -108,6 +119,20 @@ def layouts_l10n(input_files, output, base):
             if res != None:
                 readingDescription = True
                 descStartLine = lineno
+                continue
+            if readingI18nPreamble:
+                res = EndI18nPreamble.search(line)
+                if res != None:
+                    readingI18nPreamble = False
+                    continue
+                res = I18nString.search(line)
+                if res != None:
+                    string = res.group(1)
+                    writeString(out, src, base, lineno, string)
+                continue
+            res = I18nPreamble.search(line)
+            if res != None:
+                readingI18nPreamble = True
                 continue
             res = NameRE.search(line)
             if res != None:
@@ -147,8 +172,34 @@ def layouts_l10n(input_files, output, base):
             if res != None:
                 string = res.group(1)
                 string = string.replace('_', ' ')
+                #Flex:xxx is not used in translation
+                #writeString(out, src, base, lineno, string)
+                m = FlexCheck.search(string)
+                if m:
+                  writeString(out, src, base, lineno, m.group(1))
+                continue
+            res = Category.search(line)
+            if res != None:
+                string = res.group(1)
                 writeString(out, src, base, lineno, string)
                 continue
+            res = CounterFormat.search(line)
+            if res != None:
+                string = res.group(1)
+                writeString(out, src, base, lineno, string)
+                continue
+            res = CiteFormat.search(line)
+            if res != None:
+                readingCiteFormats = True
+            res = End.search(line)
+            if res != None and readingCiteFormats:
+                readingCiteFormats = False
+            if readingCiteFormats:
+                res = KeyVal.search(line)
+                if res != None:
+                    val = res.group(1)
+                    writeString(out, src, base, lineno, val)
+                
     out.close()
 
 
@@ -171,39 +222,34 @@ def qt4_l10n(input_files, output, base):
             # get lines that match <string>...</string>
             if pat.match(line):
                 (string,) = pat.match(line).groups()
-                string = string.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+                string = string.replace('&amp;', '&').replace('&quot;', '"')
+                string = string.replace('&lt;', '<').replace('&gt;', '>')
                 string = string.replace('\\', '\\\\').replace('"', r'\"')
+                string = string.replace('&#x0a;', r'\n')
                 print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                    (relativePath(src, base), lineno+1, string) 
+                    (relativePath(src, base), lineno+1, string)
         input.close()
     output.close()
 
 
 def languages_l10n(input_files, output, base):
-    '''Generate pot file from lib/language'''
-    output = open(output, 'w')
-    # assuming only one language file
-    reg = re.compile('[\w-]+\s+[\w"]+\s+"([\w \-\(\),]+)"\s+(true|false)\s+[\w-]+\s+[\w\-]+\s+"[^"]*"')
-    input = open(input_files[0])
-    for lineno, line in enumerate(input.readlines()):
-        if line[0] == '#':
-            continue
-        # From:
-        #   afrikaans   afrikaans	"Afrikaans"	false  iso8859-15 af_ZA	 ""
-        # To:
-        #   #: lib/languages:2
-        #   msgid "Afrikaans"
-        #   msgstr ""
-        if reg.match(line):
-            print >> output, '#: %s:%d\nmsgid "%s"\nmsgstr ""\n' % \
-                (relativePath(input_files[0], base), lineno+1, reg.match(line).groups()[0])
-        else:
-            print "Error: Unable to handle line:"
-            print line
-            # No need to abort if the parsing fails (e.g. "ignore" language has no encoding)
-            # sys.exit(1)
-    input.close()
-    output.close()
+    '''Generate pot file from lib/languages'''
+    out = open(output, 'w')
+    GuiName = re.compile(r'^[^#]*GuiName\s+(.*)')
+    
+    for src in input_files:
+        descStartLine = -1
+        descLines = []
+        lineno = 0
+        for line in open(src).readlines():
+            lineno += 1
+            res = GuiName.search(line)
+            if res != None:
+                string = res.group(1)
+                writeString(out, src, base, lineno, string)
+                continue
+               
+    out.close()
 
 
 def external_l10n(input_files, output, base):
@@ -309,13 +355,15 @@ def encodings_l10n(input_files, output, base):
 
 
 Usage = '''
-lyx_pot.py [-b|--base top_src_dir] [-o|--output output_file] [-h|--help] -t|--type input_type input_files
+lyx_pot.py [-b|--base top_src_dir] [-o|--output output_file] [-h|--help] [-s|src_file filename] -t|--type input_type input_files
 
-where 
+where
     --base:
         path to the top source directory. default to '.'
     --output:
         output pot file, default to './lyx.pot'
+    --src_file
+        filename that contains a list of input files in each line
     --input_type can be
         ui: lib/ui/*
         layouts: lib/layouts/*
@@ -330,9 +378,10 @@ if __name__ == '__main__':
     input_type = None
     output = 'lyx.pot'
     base = '.'
+    input_files = []
     #
-    optlist, args = getopt.getopt(sys.argv[1:], 'ht:o:b:',
-        ['help', 'type=', 'output=', 'base='])
+    optlist, args = getopt.getopt(sys.argv[1:], 'ht:o:b:s:',
+        ['help', 'type=', 'output=', 'base=', 'src_file='])
     for (opt, value) in optlist:
         if opt in ['-h', '--help']:
             print Usage
@@ -343,21 +392,28 @@ if __name__ == '__main__':
             base = value
         elif opt in ['-t', '--type']:
             input_type = value
+        elif opt in ['-s', '--src_file']:
+            input_files = [f.strip() for f in open(value)]
+
     if input_type not in ['ui', 'layouts', 'modules', 'qt4', 'languages', 'encodings', 'external', 'formats'] or output is None:
         print 'Wrong input type or output filename.'
         sys.exit(1)
+
+    input_files += args
+
     if input_type == 'ui':
-        ui_l10n(args, output, base)
+        ui_l10n(input_files, output, base)
     elif input_type == 'layouts':
-        layouts_l10n(args, output, base)
+        layouts_l10n(input_files, output, base)
     elif input_type == 'qt4':
-        qt4_l10n(args, output, base)
+        qt4_l10n(input_files, output, base)
     elif input_type == 'external':
-        external_l10n(args, output, base)
+        external_l10n(input_files, output, base)
     elif input_type == 'formats':
-        formats_l10n(args, output, base)
+        formats_l10n(input_files, output, base)
     elif input_type == 'encodings':
-        encodings_l10n(args, output, base)
+        encodings_l10n(input_files, output, base)
     else:
-        languages_l10n(args, output, base)
+        languages_l10n(input_files, output, base)
+
 

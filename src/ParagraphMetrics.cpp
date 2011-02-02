@@ -4,13 +4,13 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Dekel Tsur
- * \author Jürgen Vigna
+ * \author JÃ¼rgen Vigna
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -31,7 +31,6 @@
 #include "LyXRC.h"
 #include "Row.h"
 #include "OutputParams.h"
-#include "paragraph_funcs.h"
 #include "sgml.h"
 #include "TextClass.h"
 #include "TexRow.h"
@@ -40,16 +39,15 @@
 #include "frontends/FontMetrics.h"
 
 #include "insets/InsetBibitem.h"
-#include "insets/InsetOptArg.h"
+#include "insets/InsetArgument.h"
 
 #include "support/lassert.h"
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/textutils.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 #include <boost/crc.hpp>
 
 #include <algorithm>
@@ -236,7 +234,7 @@ int ParagraphMetrics::singleWidth(pos_type pos, Font const & font) const
 				c = par_->transformChar(c, pos);
 		} else if (language->lang() == "hebrew" &&
 				Encodings::isHebrewComposeChar(c)) {
-			return 0;	
+			return 0;
 		}
 	}
 	return theFontMetrics(font).width(c);

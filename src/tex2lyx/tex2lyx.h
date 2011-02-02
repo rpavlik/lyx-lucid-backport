@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Jean-Marc Lasgouttes
  *
  * Full author contact details are available in file CREDITS.
@@ -25,6 +25,14 @@
 namespace lyx {
 
 namespace support { class FileName; }
+
+/// Simple support for frontend::Alert::warning().
+namespace frontend { 
+namespace Alert {
+	void warning(docstring const & title, docstring const & message,
+				 bool const &);
+}
+}
 
 class Context;
 
@@ -92,6 +100,7 @@ std::string active_environment();
 enum ArgumentType {
 	required,
 	verbatim,
+	item,
 	optional
 };
 
@@ -105,6 +114,10 @@ extern CommandMap known_environments;
 extern CommandMap known_math_environments;
 ///
 extern bool noweb_mode;
+/// Did we recognize any pdflatex-only construct?
+extern bool pdflatex;
+/// LyX format that is created by tex2lyx
+int const LYX_FORMAT = 345;
 
 /// path of the master .tex file
 extern std::string getMasterFilePath();

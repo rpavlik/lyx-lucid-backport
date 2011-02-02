@@ -5,8 +5,8 @@
  *
  * \author Asger Alstrup Nielsen
  * \author Jean-Marc Lasgouttes
- * \author Lars Gullik Bjønnes
- * \author Jürgen Spitzmüller
+ * \author Lars Gullik BjÃ¸nnes
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -26,6 +26,7 @@
 #include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 
 #include "support/debug.h"
 #include "support/docstream.h"
@@ -43,7 +44,7 @@ namespace lyx {
 
 
 InsetSpace::InsetSpace(InsetSpaceParams const & params)
-	: params_(params)
+	: Inset(0), params_(params)
 {}
 
 
@@ -53,15 +54,9 @@ InsetSpaceParams::Kind InsetSpace::kind() const
 }
 
 
-Length InsetSpace::length() const
+GlueLength InsetSpace::length() const
 {
 	return params_.length;
-}
-
-
-InsetSpace::~InsetSpace()
-{
-	hideDialogs("space", this);
 }
 
 
@@ -88,7 +83,7 @@ docstring InsetSpace::toolTip(BufferView const &, int, int) const
 		message = _("Quad Space");
 		break;
 	case InsetSpaceParams::QQUAD:
-		message = _("QQuad Space");
+		message = _("Double Quad Space");
 		break;
 	case InsetSpaceParams::ENSPACE:
 		message = _("Enspace");
@@ -130,12 +125,14 @@ docstring InsetSpace::toolTip(BufferView const &, int, int) const
 		message = _("Horizontal Fill (Down Brace)");
 		break;
 	case InsetSpaceParams::CUSTOM:
+		// FIXME unicode
 		message = support::bformat(_("Horizontal Space (%1$s)"),
-				params_.length.asDocstring());
+				from_ascii(params_.length.asString()));
 		break;
 	case InsetSpaceParams::CUSTOM_PROTECTED:
+		// FIXME unicode
 		message = support::bformat(_("Protected Horizontal Space (%1$s)"),
-				params_.length.asDocstring());
+				from_ascii(params_.length.asString()));
 		break;
 	}
 	return message;
@@ -144,19 +141,15 @@ docstring InsetSpace::toolTip(BufferView const &, int, int) const
 
 void InsetSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY:
+		cur.recordUndo();
 		string2params(to_utf8(cmd.argument()), params_);
 		break;
 
 	case LFUN_INSET_DIALOG_UPDATE:
 		cur.bv().updateDialog("space", params2string(params()));
-		break;
-
-	case LFUN_MOUSE_RELEASE:
-		if (!cur.selection() && cmd.button() == mouse_button::button1)
-			cur.bv().showDialog("space", params2string(params()), this);
 		break;
 
 	default:
@@ -169,27 +162,24 @@ void InsetSpace::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetSpace::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "space") {
 			InsetSpaceParams params;
 			string2params(to_utf8(cmd.argument()), params);
 			status.setOnOff(params_.kind == params.kind);
-		}
-		// fall through
+			status.setEnabled(true);	
+		} else
+			status.setEnabled(false);
+		return true;
+
 	case LFUN_INSET_DIALOG_UPDATE:
 		status.setEnabled(true);
 		return true;
 	default:
 		return Inset::getStatus(cur, cmd, status);
 	}
-}
-
-
-void InsetSpace::edit(Cursor & cur, bool, EntryDirection)
-{
-	cur.bv().showDialog("space", params2string(params()), this);
 }
 
 
@@ -241,7 +231,7 @@ void InsetSpace::metrics(MetricsInfo & mi, Dimension & dim) const
 		case InsetSpaceParams::CUSTOM:
 		case InsetSpaceParams::CUSTOM_PROTECTED: {
 			int const w = 
-				params_.length.inPixels(mi.base.textwidth,
+				params_.length.len().inPixels(mi.base.textwidth,
 							fm.width(char_type('M')));
 			int const minw = (w < 0) ? 3 * arrow_size : 4;
 			dim.wid = max(minw, abs(w));
@@ -267,7 +257,7 @@ void InsetSpace::draw(PainterInfo & pi, int x, int y) const
 {
 	Dimension const dim = dimension(*pi.base.bv);
 
-	if (isStretchableSpace() || params_.length.value() < 0) {
+	if (isStretchableSpace() || params_.length.len().value() < 0) {
 		int const asc = theFontMetrics(pi.base.font).ascent('M');
 		int const desc = theFontMetrics(pi.base.font).descent('M');
 		// Pixel height divisible by 2 for prettier fill graphics:
@@ -453,7 +443,7 @@ void InsetSpaceParams::write(ostream & os) const
 		break;
 	}
 	
-	if (!length.empty())
+	if (!length.len().empty())
 		os << "\n\\length " << length.asString();
 }
 
@@ -538,8 +528,8 @@ int InsetSpace::latex(odocstream & os, OutputParams const & runparams) const
 		os << (runparams.free_spacing ? " " : "\\ ");
 		break;
 	case InsetSpaceParams::PROTECTED:
-		if (runparams.local_font
-		    && runparams.local_font->language()->lang() == "polutonikogreek")
+		if (runparams.local_font &&
+		    runparams.local_font->language()->lang() == "polutonikogreek")
 			// in babel's polutonikogreek, ~ is active
 			os << (runparams.free_spacing ? " " : "\\nobreakspace{}");
 		else
@@ -689,6 +679,56 @@ int InsetSpace::docbook(odocstream & os, OutputParams const &) const
 }
 
 
+docstring InsetSpace::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	string output;
+	switch (params_.kind) {
+	case InsetSpaceParams::NORMAL:
+		output = " ";
+		break;
+	case InsetSpaceParams::ENSKIP:
+	case InsetSpaceParams::ENSPACE:
+		output ="&ensp;";
+		break;
+	case InsetSpaceParams::QQUAD:
+		output ="&emsp;";
+	case InsetSpaceParams::THICK:
+	case InsetSpaceParams::QUAD:
+		output ="&emsp;";
+		break;
+	case InsetSpaceParams::THIN:
+		output ="&thinsp;";
+		break;
+	case InsetSpaceParams::PROTECTED:
+	case InsetSpaceParams::MEDIUM:
+	case InsetSpaceParams::NEGTHIN:
+	case InsetSpaceParams::NEGMEDIUM:
+	case InsetSpaceParams::NEGTHICK:
+		output ="&nbsp;";
+		break;
+	case InsetSpaceParams::HFILL:
+	case InsetSpaceParams::HFILL_PROTECTED:
+	case InsetSpaceParams::DOTFILL:
+	case InsetSpaceParams::HRULEFILL:
+	case InsetSpaceParams::LEFTARROWFILL:
+	case InsetSpaceParams::RIGHTARROWFILL:
+	case InsetSpaceParams::UPBRACEFILL:
+	case InsetSpaceParams::DOWNBRACEFILL:
+		// FIXME XHTML
+		// Can we do anything with those in HTML?
+		break;
+	case InsetSpaceParams::CUSTOM:
+	case InsetSpaceParams::CUSTOM_PROTECTED:
+		// FIXME XHTML
+		// Probably we could do some sort of blank span?
+		break;
+	}
+	// don't escape the entities!
+	xs << XHTMLStream::ESCAPE_NONE << from_ascii(output);
+	return docstring();
+}
+
+
 void InsetSpace::validate(LaTeXFeatures & features) const
 {
 	if (params_.kind == InsetSpaceParams::NEGMEDIUM ||
@@ -697,9 +737,16 @@ void InsetSpace::validate(LaTeXFeatures & features) const
 }
 
 
-void InsetSpace::tocString(odocstream & os) const
+void InsetSpace::toString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
+}
+
+
+void InsetSpace::forToc(docstring & os, size_t) const
+{
+	// There's no need to be cute here.
+	os += " ";
 }
 
 
@@ -716,7 +763,7 @@ bool InsetSpace::isStretchableSpace() const
 }
 
 
-docstring InsetSpace::contextMenu(BufferView const &, int, int) const
+docstring InsetSpace::contextMenuName() const
 {
 	return from_ascii("context-space");
 }

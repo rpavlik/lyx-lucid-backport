@@ -4,8 +4,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -32,13 +32,14 @@ class Language;
 class InsetERT : public InsetCollapsable {
 public:
 	///
-	InsetERT(Buffer const &, CollapseStatus status = Open);
-	///
-	~InsetERT();
+	InsetERT(Buffer *, CollapseStatus status = Open);
 	///
 	static CollapseStatus string2params(std::string const &);
 	///
 	static std::string params2string(CollapseStatus);
+
+	docstring contextMenuName() const
+		{ return from_ascii("context-ert"); }
 private:
 	///
 	InsetCode lyxCode() const { return ERT_CODE; }
@@ -47,19 +48,13 @@ private:
 	///
 	void write(std::ostream & os) const;
 	///
-	docstring editMessage() const;
-	///
-	bool insetAllowed(InsetCode code) const;
-	///
-	int latex(odocstream &, OutputParams const &) const;
-	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
-	void validate(LaTeXFeatures &) const {}
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
-	bool showInsetDialog(BufferView *) const;
+	void validate(LaTeXFeatures &) const {}
 	/// should paragraph indendation be omitted in any case?
 	bool neverIndent() const { return true; }
 	///

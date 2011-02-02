@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -170,7 +170,7 @@ void initAutoCorrect()
 } // namespace anon
 
 
-bool math_autocorrect(MathAtom & at, char c)
+bool math_autocorrect(MathAtom & at, char_type c)
 {
 	static bool initialized = false;
 

@@ -205,38 +205,45 @@ GuiExternal::GuiExternal(GuiView & lv)
 	for (size_t i = 0; i != sizeof(origins) / sizeof(origins[0]); ++i)
 		originCO->addItem(qt_(origin_gui_strs[i]));
 
-	// Fill the width combo
-	widthUnitCO->addItem(qt_("Scale%"));
-	for (int i = 0; i < num_units; i++)
-		widthUnitCO->addItem(qt_(unit_name_gui[i]));
+	// add scale item
+	widthUnitCO->insertItem(0, qt_("Scale%"), "scale");
 }
 
 
 bool GuiExternal::activateAspectratio() const
 {
-	if (widthUnitCO->currentIndex() == 0)
+	if (usingScale())
 		return false;
 
-	string const wstr = fromqstr(widthED->text());
-	if (wstr.empty())
+	QString const wstr = widthED->text();
+	if (wstr.isEmpty())
 		return false;
-	bool const wIsDbl = isStrDbl(wstr);
-	if (wIsDbl && float_equal(convert<double>(wstr), 0.0, 0.05))
+	bool wIsDbl;
+	double val = wstr.trimmed().toDouble(&wIsDbl);
+	if (wIsDbl && float_equal(val, 0.0, 0.05))
 		return false;
 	Length l;
-	if (!wIsDbl && (!isValidLength(wstr, &l) || l.zero()))
+	if (!wIsDbl && (!isValidLength(fromqstr(wstr), &l) || l.zero()))
 		return false;
 
-	string const hstr = fromqstr(heightED->text());
-	if (hstr.empty())
+	QString const hstr = heightED->text();
+	if (hstr.isEmpty())
 		return false;
-	bool const hIsDbl = isStrDbl(hstr);
-	if (hIsDbl && float_equal(convert<double>(hstr), 0.0, 0.05))
+	bool hIsDbl;
+	val = hstr.trimmed().toDouble(&hIsDbl);
+	if (hIsDbl && float_equal(val, 0.0, 0.05))
 		return false;
-	if (!hIsDbl && (!isValidLength(hstr, &l) || l.zero()))
+	if (!hIsDbl && (!isValidLength(fromqstr(hstr), &l) || l.zero()))
 		return false;
 
 	return true;
+}
+
+
+bool GuiExternal::usingScale() const
+{
+	return (widthUnitCO->itemData(
+		widthUnitCO->currentIndex()).toString() == "scale");
 }
 
 
@@ -289,7 +296,7 @@ void GuiExternal::getbbClicked()
 	if (filename.empty())
 		return;
 
-	FileName const abs_file(support::makeAbsPath(filename, fromqstr(bufferFilepath())));
+	FileName const abs_file(support::makeAbsPath(filename, fromqstr(bufferFilePath())));
 
 	// try to get it from the file, if possible
 	string bb = readBB_from_PSFile(abs_file);
@@ -335,32 +342,14 @@ void GuiExternal::templateChanged()
 
 void GuiExternal::widthUnitChanged()
 {
-	bool useHeight = (widthUnitCO->currentIndex() > 0);
-
-	if (useHeight)
-		widthED->setValidator(unsignedLengthValidator(widthED));
-	else
+	if (usingScale())
 		widthED->setValidator(new QDoubleValidator(0, 1000, 2, widthED));
+	else
+		widthED->setValidator(unsignedLengthValidator(widthED));
 
-	heightED->setEnabled(useHeight);
-	heightUnitCO->setEnabled(useHeight);
+	heightED->setEnabled(!usingScale());
+	heightUnitCO->setEnabled(!usingScale());
 	changed();
-}
-
-
-static Length::UNIT defaultUnit()
-{
-	Length::UNIT default_unit = Length::CM;
-	switch (lyxrc.default_papersize) {
-	case PAPER_USLETTER:
-	case PAPER_USLEGAL:
-	case PAPER_USEXECUTIVE:
-		default_unit = Length::IN;
-		break;
-	default:
-		break;
-	}
-	return default_unit;
 }
 
 
@@ -368,7 +357,7 @@ static void setRotation(QLineEdit & angleED, QComboBox & originCO,
 	external::RotationData const & data)
 {
 	originCO.setCurrentIndex(int(data.origin()));
-	angleED.setText(toqstr(data.angle));
+	doubleToWidget(&angleED, data.angle);
 }
 
 
@@ -378,11 +367,11 @@ static void getRotation(external::RotationData & data,
 	typedef external::RotationData::OriginType OriginType;
 
 	data.origin(static_cast<OriginType>(originCO.currentIndex()));
-	data.angle = fromqstr(angleED.text());
+	data.angle = widgetToDoubleStr(&angleED);
 }
 
 
-static void setSize(QLineEdit & widthED, QComboBox & widthUnitCO,
+static void setSize(QLineEdit & widthED, LengthCombo & widthUnitCO,
 	QLineEdit & heightED, LengthCombo & heightUnitCO,
 	QCheckBox & aspectratioCB,
 	external::ResizeData const & data)
@@ -396,19 +385,15 @@ static void setSize(QLineEdit & widthED, QComboBox & widthUnitCO,
 	}
 
 	if (using_scale) {
-		widthED.setText(toqstr(scale));
-		widthUnitCO.setCurrentIndex(0);
-	} else {
-		widthED.setText(QString::number(data.width.value()));
-		// Because 'Scale' is position 0...
-		// Note also that width cannot be zero here, so
-		// we don't need to worry about the default unit.
-		widthUnitCO.setCurrentIndex(data.width.unit() + 1);
-	}
+		doubleToWidget(&widthED, scale);
+		widthUnitCO.setCurrentItem("scale");
+	} else
+		lengthToWidgets(&widthED, &widthUnitCO,
+				data.width.asString(), Length::defaultUnit());
 
 	string const h = data.height.zero() ? string() : data.height.asString();
-	Length::UNIT default_unit = data.width.zero() ?
-		defaultUnit() : data.width.unit();
+	Length::UNIT const default_unit = data.width.zero() ?
+		Length::defaultUnit() : data.width.unit();
 	lengthToWidgets(&heightED, &heightUnitCO, h, default_unit);
 
 	heightED.setEnabled(!using_scale);
@@ -425,33 +410,17 @@ static void setSize(QLineEdit & widthED, QComboBox & widthUnitCO,
 static void getSize(external::ResizeData & data,
 	QLineEdit const & widthED, QComboBox const & widthUnitCO,
 	QLineEdit const & heightED, LengthCombo const & heightUnitCO,
-	QCheckBox const & aspectratioCB)
+	QCheckBox const & aspectratioCB, bool const scaling)
 {
-	string const width = fromqstr(widthED.text());
-
-	if (widthUnitCO.currentIndex() > 0) {
-		// Subtract one, because scale is 0.
-		int const unit = widthUnitCO.currentIndex() - 1;
-
-		Length w;
-		if (isValidLength(width, &w))
-			data.width = w;
-		else if (isStrDbl(width))
-			data.width = Length(convert<double>(width),
-					   static_cast<Length::UNIT>(unit));
-		else
-			data.width = Length();
-
-		data.scale = string();
-
-	} else {
+	if (scaling) {
 		// scaling instead of a width
-		data.scale = width;
+		data.scale = widgetToDoubleStr(&widthED);
 		data.width = Length();
+	} else {
+		data.width = Length(widgetsToLength(&widthED, &widthUnitCO));
+		data.scale = string();
 	}
-
 	data.height = Length(widgetsToLength(&heightED, &heightUnitCO));
-
 	data.keepAspectRatio = aspectratioCB.isChecked();
 }
 
@@ -490,10 +459,8 @@ static void getCrop(external::ClipData & data,
 
 void GuiExternal::updateContents()
 {
-	tab->setCurrentIndex(0);
-
 	string const name =
-		params_.filename.outputFilename(fromqstr(bufferFilepath()));
+		params_.filename.outputFileName(fromqstr(bufferFilePath()));
 	fileED->setText(toqstr(name));
 
 	int index = 0;
@@ -603,7 +570,7 @@ void GuiExternal::updateTemplate()
 
 void GuiExternal::applyView()
 {
-	params_.filename.set(fromqstr(fileED->text()), fromqstr(bufferFilepath()));
+	params_.filename.set(fromqstr(fileED->text()), fromqstr(bufferFilePath()));
 	params_.settemplate(getTemplate(externalCO->currentIndex()).lyxName);
 
 	params_.draft = draftCB->isChecked();
@@ -615,7 +582,7 @@ void GuiExternal::applyView()
 
 	if (scaleGB->isEnabled())
 		getSize(params_.resizedata, *widthED, *widthUnitCO,
-			*heightED, *heightUnitCO, *aspectratioCB);
+			*heightED, *heightUnitCO, *aspectratioCB, usingScale());
 
 	if (cropGB->isEnabled())
 		getCrop(params_.clipdata, *clipCB, *xlED, *ybED,
@@ -666,7 +633,7 @@ QString GuiExternal::browse(QString const & input,
 				     QString const & template_name) const
 {
 	QString const title = qt_("Select external file");
-	QString const bufpath = bufferFilepath();
+	QString const bufpath = bufferFilePath();
 	QStringList const filter = templateFilters(template_name);
 
 	QString const label1 = qt_("Documents|#o#O");
@@ -682,4 +649,4 @@ Dialog * createGuiExternal(GuiView & lv) { return new GuiExternal(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiExternal_moc.cpp"
+#include "moc_GuiExternal.cpp"

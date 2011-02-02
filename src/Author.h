@@ -14,7 +14,7 @@
 
 #include "support/docstring.h"
 
-#include <map>
+#include <vector>
 
 
 namespace lyx {
@@ -24,18 +24,23 @@ public:
 	///
 	Author() {}
 	///
-	Author(docstring const & name, docstring const & email)
-		: name_(name), email_(email), used_(true) {}
+	Author(docstring const & name, docstring const & email);
 	///
 	docstring name() const { return name_; }
 	///
 	docstring email() const { return email_; }
+	///
+	int bufferId() const { return buffer_id_; }
+	///
+	void setBufferId(int buffer_id) const { buffer_id_ = buffer_id; }
 	///
 	void setUsed(bool u) const { used_ = u; }
 	///
 	bool used() const { return used_; }
 	///
 	friend std::istream & operator>>(std::istream & os, Author & a);
+	///
+	friend std::ostream & operator<<(std::ostream & os, Author const & a);
 
 private:
 	/// The author's name
@@ -44,6 +49,8 @@ private:
 	docstring email_;
 	///
 	mutable bool used_;
+	/// The id of the author in the lyx-file
+	mutable int buffer_id_;
 };
 
 
@@ -56,14 +63,20 @@ public:
 	///
 	void record(int id, Author const & a);
 	///
+	void recordCurrentAuthor(Author const & a);
+	///
 	Author const & get(int id) const;
 	///
-	typedef std::map<int, Author> Authors;
+	typedef std::vector<Author> Authors;
+	///
+	void sort();
 	///
 	Authors::const_iterator begin() const;
 	///
 	Authors::const_iterator end() const;
 	///
+	friend
+	std::ostream & operator<<(std::ostream & os, AuthorList const & a);
 private:
 	///
 	int last_id_;

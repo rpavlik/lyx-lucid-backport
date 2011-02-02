@@ -21,6 +21,7 @@
 #include "GuiKeySymbol.h"
 #include "qt_helpers.h"
 
+#include "Author.h"
 #include "BufferList.h"
 #include "Color.h"
 #include "ColorSet.h"
@@ -35,6 +36,7 @@
 #include "PanelStack.h"
 #include "paper.h"
 #include "Session.h"
+#include "SpellChecker.h"
 
 #include "support/debug.h"
 #include "support/FileName.h"
@@ -114,9 +116,9 @@ QString browseFile(QString const & filename,
 	FileDialog::Result result;
 
 	if (save)
-		result = dlg.save(lastPath, filters, onlyFilename(filename));
+		result = dlg.save(lastPath, filters, onlyFileName(filename));
 	else
-		result = dlg.open(lastPath, filters, onlyFilename(filename));
+		result = dlg.open(lastPath, filters, onlyFileName(filename));
 
 	return result.second;
 }
@@ -136,14 +138,14 @@ QString browseLibFile(QString const & dir,
 	// FIXME UNICODE
 	QString const label1 = qt_("System files|#S#s");
 	QString const dir1 =
-		toqstr(addName(package().system_support().absFilename(), fromqstr(dir)));
+		toqstr(addName(package().system_support().absFileName(), fromqstr(dir)));
 
 	QString const label2 = qt_("User files|#U#u");
 	QString const dir2 =
-		toqstr(addName(package().user_support().absFilename(), fromqstr(dir)));
+		toqstr(addName(package().user_support().absFileName(), fromqstr(dir)));
 
 	QString const result = browseFile(toqstr(
-		libFileSearch(dir, name, ext).absFilename()),
+		libFileSearch(dir, name, ext).absFileName()),
 		title, filters, false, dir1, dir2, QString(), QString(), dir1);
 
 	// remove the extension if it is the default one
@@ -154,8 +156,8 @@ QString browseLibFile(QString const & dir,
 		noextresult = result;
 
 	// remove the directory, if it is the default one
-	QString const file = onlyFilename(noextresult);
-	if (toqstr(libFileSearch(dir, file, ext).absFilename()) == result)
+	QString const file = onlyFileName(noextresult);
+	if (toqstr(libFileSearch(dir, file, ext).absFileName()) == result)
 		return file;
 	else
 		return noextresult;
@@ -183,7 +185,7 @@ QString browseDir(QString const & pathname,
 	dlg.setButton2(label2, dir2);
 
 	FileDialog::Result const result =
-		dlg.opendir(lastPath, onlyFilename(pathname));
+		dlg.opendir(lastPath, onlyFileName(pathname));
 
 	return result.second;
 }
@@ -324,38 +326,6 @@ static void setComboxFont(QComboBox * cb, string const & family,
 }
 
 
-
-/////////////////////////////////////////////////////////////////////
-//
-// PrefPlaintext
-//
-/////////////////////////////////////////////////////////////////////
-
-PrefPlaintext::PrefPlaintext(GuiPreferences * form)
-	: PrefModule(qt_(catOutput), qt_("Plain text"), form)
-{
-	setupUi(this);
-	connect(plaintextLinelengthSB, SIGNAL(valueChanged(int)),
-		this, SIGNAL(changed()));
-	connect(plaintextRoffED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
-}
-
-
-void PrefPlaintext::apply(LyXRC & rc) const
-{
-	rc.plaintext_linelen = plaintextLinelengthSB->value();
-	rc.plaintext_roff_command = fromqstr(plaintextRoffED->text());
-}
-
-
-void PrefPlaintext::update(LyXRC const & rc)
-{
-	plaintextLinelengthSB->setValue(rc.plaintext_linelen);
-	plaintextRoffED->setText(toqstr(rc.plaintext_roff_command));
-}
-
-
 /////////////////////////////////////////////////////////////////////
 //
 // StrftimeValidator
@@ -398,8 +368,25 @@ PrefOutput::PrefOutput(GuiPreferences * form)
 	DateED->setValidator(new StrftimeValidator(DateED));
 	connect(DateED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+	connect(plaintextLinelengthSB, SIGNAL(valueChanged(int)),
+		this, SIGNAL(changed()));
 	connect(overwriteCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
+	connect(dviCB, SIGNAL(editTextChanged(QString)),
+		this, SIGNAL(changed()));
+	connect(pdfCB, SIGNAL(editTextChanged(QString)),
+		this, SIGNAL(changed()));
+	dviCB->addItem("");
+	dviCB->addItem("xdvi -sourceposition $$n:$$t $$o");
+	dviCB->addItem("yap -1 -s $$n$$t $$o");
+	dviCB->addItem("okular --unique $$o#src:$$n$$t");
+	dviCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"evince -p %{page+1} $$o\"");
+	pdfCB->addItem("");
+	pdfCB->addItem("CMCDDE SUMATRA control [ForwardSearch(\\\"$$o\\\",\\\"$$t\\\",$$n,0,0,1)]");
+	pdfCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"xpdf -raise -remote $$t.tmp $$o %{page+1}\"");
+	pdfCB->addItem("okular --unique $$o#src:$$n$$t");
+	pdfCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"evince -p %{page+1} $$o\"");
+	pdfCB->addItem("/Applications/Skim.app/Contents/SharedSupport/displayline $$n $$o $$t");
 }
 
 
@@ -416,6 +403,9 @@ void PrefOutput::on_DateED_textChanged(const QString &)
 void PrefOutput::apply(LyXRC & rc) const
 {
 	rc.date_insert_format = fromqstr(DateED->text());
+	rc.plaintext_linelen = plaintextLinelengthSB->value();
+	rc.forward_search_dvi = fromqstr(dviCB->currentText());
+	rc.forward_search_pdf = fromqstr(pdfCB->currentText());
 
 	switch (overwriteCO->currentIndex()) {
 	case 0:
@@ -434,6 +424,9 @@ void PrefOutput::apply(LyXRC & rc) const
 void PrefOutput::update(LyXRC const & rc)
 {
 	DateED->setText(toqstr(rc.date_insert_format));
+	plaintextLinelengthSB->setValue(rc.plaintext_linelen);
+	dviCB->setEditText(toqstr(rc.forward_search_dvi));
+	pdfCB->setEditText(toqstr(rc.forward_search_pdf));
 
 	switch (rc.export_overwrite) {
 	case NO_FILES:
@@ -468,6 +461,21 @@ PrefInput::PrefInput(GuiPreferences * form)
 		this, SIGNAL(changed()));
 	connect(mouseWheelSpeedSB, SIGNAL(valueChanged(double)),
 		this, SIGNAL(changed()));
+	connect(scrollzoomEnableCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(scrollzoomValueCO, SIGNAL(activated(int)),
+		this, SIGNAL(changed()));
+	connect(dontswapCB, SIGNAL(toggled(bool)),
+		this, SIGNAL(changed()));
+
+	// reveal checkbox for switching Ctrl and Meta on Mac:
+	bool swapcb = false;
+#ifdef Q_WS_MACX
+#if QT_VERSION > 0x040600
+	swapcb = true;
+#endif
+#endif
+	dontswapCB->setVisible(swapcb);
 }
 
 
@@ -478,6 +486,22 @@ void PrefInput::apply(LyXRC & rc) const
 	rc.primary_kbmap = internal_path(fromqstr(firstKeymapED->text()));
 	rc.secondary_kbmap = internal_path(fromqstr(secondKeymapED->text()));
 	rc.mouse_wheel_speed = mouseWheelSpeedSB->value();
+	if (scrollzoomEnableCB->isChecked()) {
+		switch (scrollzoomValueCO->currentIndex()) {
+		case 0:
+			rc.scroll_wheel_zoom = LyXRC::SCROLL_WHEEL_ZOOM_CTRL;
+			break;
+		case 1:
+			rc.scroll_wheel_zoom = LyXRC::SCROLL_WHEEL_ZOOM_SHIFT;
+			break;
+		case 2:
+			rc.scroll_wheel_zoom = LyXRC::SCROLL_WHEEL_ZOOM_ALT;
+			break;
+		}
+	} else {
+		rc.scroll_wheel_zoom = LyXRC::SCROLL_WHEEL_ZOOM_OFF;
+	}
+	rc.mac_dontswap_ctrl_meta  = dontswapCB->isChecked();
 }
 
 
@@ -488,6 +512,24 @@ void PrefInput::update(LyXRC const & rc)
 	firstKeymapED->setText(toqstr(external_path(rc.primary_kbmap)));
 	secondKeymapED->setText(toqstr(external_path(rc.secondary_kbmap)));
 	mouseWheelSpeedSB->setValue(rc.mouse_wheel_speed);
+	switch (rc.scroll_wheel_zoom) {
+	case LyXRC::SCROLL_WHEEL_ZOOM_OFF:
+		scrollzoomEnableCB->setChecked(false);
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_CTRL:
+		scrollzoomEnableCB->setChecked(true);
+		scrollzoomValueCO->setCurrentIndex(0);
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_SHIFT:
+		scrollzoomEnableCB->setChecked(true);
+		scrollzoomValueCO->setCurrentIndex(1);
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_ALT:
+		scrollzoomEnableCB->setChecked(true);
+		scrollzoomValueCO->setCurrentIndex(2);
+		break;
+	}
+	dontswapCB->setChecked(rc.mac_dontswap_ctrl_meta);
 }
 
 
@@ -524,6 +566,12 @@ void PrefInput::on_keymapCB_toggled(bool keymap)
 }
 
 
+void PrefInput::on_scrollzoomEnableCB_toggled(bool enabled)
+{
+	scrollzoomValueCO->setEnabled(enabled);
+}
+	
+	
 /////////////////////////////////////////////////////////////////////
 //
 // PrefCompletion
@@ -546,6 +594,8 @@ PrefCompletion::PrefCompletion(GuiPreferences * form)
 	connect(popupDelaySB, SIGNAL(valueChanged(double)),
 		this, SIGNAL(changed()));
 	connect(popupMathCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(autocorrectionCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(popupTextCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
@@ -583,6 +633,7 @@ void PrefCompletion::apply(LyXRC & rc) const
 	rc.completion_inline_dots = inlineDotsCB->isChecked() ? 13 : -1;
 	rc.completion_popup_delay = popupDelaySB->value();
 	rc.completion_popup_math = popupMathCB->isChecked();
+	rc.autocorrection_math = autocorrectionCB->isChecked();
 	rc.completion_popup_text = popupTextCB->isChecked();
 	rc.completion_cursor_text = cursorTextCB->isChecked();
 	rc.completion_popup_after_complete =
@@ -598,6 +649,7 @@ void PrefCompletion::update(LyXRC const & rc)
 	inlineDotsCB->setChecked(rc.completion_inline_dots != -1);
 	popupDelaySB->setValue(rc.completion_popup_delay);
 	popupMathCB->setChecked(rc.completion_popup_math);
+	autocorrectionCB->setChecked(rc.autocorrection_math);
 	popupTextCB->setChecked(rc.completion_popup_text);
 	cursorTextCB->setChecked(rc.completion_cursor_text);
 	popupAfterCompleteCB->setChecked(rc.completion_popup_after_complete);
@@ -616,13 +668,19 @@ PrefLatex::PrefLatex(GuiPreferences * form)
 	: PrefModule(qt_(catOutput), qt_("LaTeX"), form)
 {
 	setupUi(this);
+	connect(latexEncodingCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
 	connect(latexEncodingED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 	connect(latexChecktexED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+	connect(latexBibtexCO, SIGNAL(activated(int)),
+		this, SIGNAL(changed()));
 	connect(latexBibtexED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 	connect(latexJBibtexED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+	connect(latexIndexCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
 	connect(latexIndexED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
@@ -645,13 +703,94 @@ PrefLatex::PrefLatex(GuiPreferences * form)
 }
 
 
+void PrefLatex::on_latexEncodingCB_stateChanged(int state)
+{
+	latexEncodingED->setEnabled(state == Qt::Checked);
+}
+
+
+void PrefLatex::on_latexBibtexCO_activated(int n)
+{
+	QString const bibtex = latexBibtexCO->itemData(n).toString();
+	if (bibtex.isEmpty()) {
+		latexBibtexED->clear();
+		latexBibtexOptionsLA->setText(qt_("Co&mmand:"));
+		return;
+	}
+	for (LyXRC::CommandSet::const_iterator it = bibtex_alternatives.begin();
+	     it != bibtex_alternatives.end(); ++it) {
+		QString const bib = toqstr(*it);
+		int ind = bib.indexOf(" ");
+		QString sel_command = bib.left(ind);
+		QString sel_options = ind < 0 ? QString() : bib.mid(ind + 1);
+		if (bibtex == sel_command) {
+			if (ind < 0)
+				latexBibtexED->clear();
+			else
+				latexBibtexED->setText(sel_options.trimmed());
+		}
+	}
+	latexBibtexOptionsLA->setText(qt_("&Options:"));
+}
+
+
+void PrefLatex::on_latexIndexCO_activated(int n)
+{
+	QString const index = latexIndexCO->itemData(n).toString();
+	if (index.isEmpty()) {
+		latexIndexED->clear();
+		latexIndexOptionsLA->setText(qt_("Co&mmand:"));
+		return;
+	}
+	for (LyXRC::CommandSet::const_iterator it = index_alternatives.begin();
+	     it != index_alternatives.end(); ++it) {
+		QString const idx = toqstr(*it);
+		int ind = idx.indexOf(" ");
+		QString sel_command = idx.left(ind);
+		QString sel_options = ind < 0 ? QString() : idx.mid(ind + 1);
+		if (index == sel_command) {
+			if (ind < 0)
+				latexIndexED->clear();
+			else
+				latexIndexED->setText(sel_options.trimmed());
+		}
+	}
+	latexIndexOptionsLA->setText(qt_("Op&tions:"));
+}
+
+
 void PrefLatex::apply(LyXRC & rc) const
 {
-	rc.fontenc = fromqstr(latexEncodingED->text());
+	// If bibtex is not empty, bibopt contains the options, otherwise
+	// it is a customized bibtex command with options.
+	QString const bibtex = latexBibtexCO->itemData(
+		latexBibtexCO->currentIndex()).toString();
+	QString const bibopt = latexBibtexED->text();
+	if (bibtex.isEmpty())
+		rc.bibtex_command = fromqstr(bibopt);
+	else if (bibopt.isEmpty())
+		rc.bibtex_command = fromqstr(bibtex);
+	else
+		rc.bibtex_command = fromqstr(bibtex) + " " + fromqstr(bibopt);
+
+	// If index is not empty, idxopt contains the options, otherwise
+	// it is a customized index command with options.
+	QString const index = latexIndexCO->itemData(
+		latexIndexCO->currentIndex()).toString();
+	QString const idxopt = latexIndexED->text();
+	if (index.isEmpty())
+		rc.index_command = fromqstr(idxopt);
+	else if (idxopt.isEmpty())
+		rc.index_command = fromqstr(index);
+	else
+		rc.index_command = fromqstr(index) + " " + fromqstr(idxopt);
+
+	if (latexEncodingCB->isChecked())
+		rc.fontenc = fromqstr(latexEncodingED->text());
+	else
+		rc.fontenc = "default";
 	rc.chktex_command = fromqstr(latexChecktexED->text());
-	rc.bibtex_command = fromqstr(latexBibtexED->text());
 	rc.jbibtex_command = fromqstr(latexJBibtexED->text());
-	rc.index_command = fromqstr(latexIndexED->text());
 	rc.jindex_command = fromqstr(latexJIndexED->text());
 	rc.nomencl_command = fromqstr(latexNomenclED->text());
 	rc.auto_reset_options = latexAutoresetCB->isChecked();
@@ -666,11 +805,70 @@ void PrefLatex::apply(LyXRC & rc) const
 
 void PrefLatex::update(LyXRC const & rc)
 {
-	latexEncodingED->setText(toqstr(rc.fontenc));
+	latexBibtexCO->clear();
+
+	latexBibtexCO->addItem(qt_("Custom"), QString());
+	for (LyXRC::CommandSet::const_iterator it = rc.bibtex_alternatives.begin();
+			     it != rc.bibtex_alternatives.end(); ++it) {
+		QString const command = toqstr(*it).left(toqstr(*it).indexOf(" "));
+		latexBibtexCO->addItem(command, command);
+	}
+
+	bibtex_alternatives = rc.bibtex_alternatives;
+
+	QString const bib = toqstr(rc.bibtex_command);
+	int ind = bib.indexOf(" ");
+	QString sel_command = bib.left(ind);
+	QString sel_options = ind < 0 ? QString() : bib.mid(ind + 1);
+
+	int pos = latexBibtexCO->findData(sel_command);
+	if (pos != -1) {
+		latexBibtexCO->setCurrentIndex(pos);
+		latexBibtexED->setText(sel_options.trimmed());
+		latexBibtexOptionsLA->setText(qt_("&Options:"));
+	} else {
+		latexBibtexED->setText(toqstr(rc.bibtex_command));
+		latexBibtexCO->setCurrentIndex(0);
+		latexBibtexOptionsLA->setText(qt_("Co&mmand:"));
+	}
+
+	latexIndexCO->clear();
+
+	latexIndexCO->addItem(qt_("Custom"), QString());
+	for (LyXRC::CommandSet::const_iterator it = rc.index_alternatives.begin();
+			     it != rc.index_alternatives.end(); ++it) {
+		QString const command = toqstr(*it).left(toqstr(*it).indexOf(" "));
+		latexIndexCO->addItem(command, command);
+	}
+
+	index_alternatives = rc.index_alternatives;
+
+	QString const idx = toqstr(rc.index_command);
+	ind = idx.indexOf(" ");
+	sel_command = idx.left(ind);
+	sel_options = ind < 0 ? QString() : idx.mid(ind + 1);
+
+	pos = latexIndexCO->findData(sel_command);
+	if (pos != -1) {
+		latexIndexCO->setCurrentIndex(pos);
+		latexIndexED->setText(sel_options.trimmed());
+		latexIndexOptionsLA->setText(qt_("Op&tions:"));
+	} else {
+		latexIndexED->setText(toqstr(rc.index_command));
+		latexIndexCO->setCurrentIndex(0);
+		latexIndexOptionsLA->setText(qt_("Co&mmand:"));
+	}
+
+	if (rc.fontenc == "default") {
+		latexEncodingCB->setChecked(false);
+		latexEncodingED->setEnabled(false);
+	} else {
+		latexEncodingCB->setChecked(true);
+		latexEncodingED->setEnabled(true);
+		latexEncodingED->setText(toqstr(rc.fontenc));
+	}
 	latexChecktexED->setText(toqstr(rc.chktex_command));
-	latexBibtexED->setText(toqstr(rc.bibtex_command));
 	latexJBibtexED->setText(toqstr(rc.jbibtex_command));
-	latexIndexED->setText(toqstr(rc.index_command));
 	latexJIndexED->setText(toqstr(rc.jindex_command));
 	latexNomenclED->setText(toqstr(rc.nomencl_command));
 	latexAutoresetCB->setChecked(rc.auto_reset_options);
@@ -690,16 +888,16 @@ void PrefLatex::update(LyXRC const & rc)
 /////////////////////////////////////////////////////////////////////
 
 PrefScreenFonts::PrefScreenFonts(GuiPreferences * form)
-	: PrefModule(qt_(catLookAndFeel), qt_("Screen fonts"), form)
+	: PrefModule(qt_(catLookAndFeel), qt_("Screen Fonts"), form)
 {
 	setupUi(this);
 
 	connect(screenRomanCO, SIGNAL(activated(QString)),
-		this, SLOT(select_roman(QString)));
+		this, SLOT(selectRoman(QString)));
 	connect(screenSansCO, SIGNAL(activated(QString)),
-		this, SLOT(select_sans(QString)));
+		this, SLOT(selectSans(QString)));
 	connect(screenTypewriterCO, SIGNAL(activated(QString)),
-		this, SLOT(select_typewriter(QString)));
+		this, SLOT(selectTypewriter(QString)));
 
 	QFontDatabase fontdb;
 	QStringList families(fontdb.families());
@@ -715,8 +913,6 @@ PrefScreenFonts::PrefScreenFonts(GuiPreferences * form)
 	connect(screenTypewriterCO, SIGNAL(activated(QString)),
 		this, SIGNAL(changed()));
 	connect(screenZoomSB, SIGNAL(valueChanged(int)),
-		this, SIGNAL(changed()));
-	connect(screenDpiSB, SIGNAL(valueChanged(int)),
 		this, SIGNAL(changed()));
 	connect(screenTinyED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
@@ -766,24 +962,23 @@ void PrefScreenFonts::apply(LyXRC & rc) const
 		rc.typewriter_font_name, rc.typewriter_font_foundry);
 
 	rc.zoom = screenZoomSB->value();
-	rc.dpi = screenDpiSB->value();
-	rc.font_sizes[FONT_SIZE_TINY] = fromqstr(screenTinyED->text());
-	rc.font_sizes[FONT_SIZE_SCRIPT] = fromqstr(screenSmallestED->text());
-	rc.font_sizes[FONT_SIZE_FOOTNOTE] = fromqstr(screenSmallerED->text());
-	rc.font_sizes[FONT_SIZE_SMALL] = fromqstr(screenSmallED->text());
-	rc.font_sizes[FONT_SIZE_NORMAL] = fromqstr(screenNormalED->text());
-	rc.font_sizes[FONT_SIZE_LARGE] = fromqstr(screenLargeED->text());
-	rc.font_sizes[FONT_SIZE_LARGER] = fromqstr(screenLargerED->text());
-	rc.font_sizes[FONT_SIZE_LARGEST] = fromqstr(screenLargestED->text());
-	rc.font_sizes[FONT_SIZE_HUGE] = fromqstr(screenHugeED->text());
-	rc.font_sizes[FONT_SIZE_HUGER] = fromqstr(screenHugerED->text());
+	rc.font_sizes[FONT_SIZE_TINY] = widgetToDoubleStr(screenTinyED);
+	rc.font_sizes[FONT_SIZE_SCRIPT] = widgetToDoubleStr(screenSmallestED);
+	rc.font_sizes[FONT_SIZE_FOOTNOTE] = widgetToDoubleStr(screenSmallerED);
+	rc.font_sizes[FONT_SIZE_SMALL] = widgetToDoubleStr(screenSmallED);
+	rc.font_sizes[FONT_SIZE_NORMAL] = widgetToDoubleStr(screenNormalED);
+	rc.font_sizes[FONT_SIZE_LARGE] = widgetToDoubleStr(screenLargeED);
+	rc.font_sizes[FONT_SIZE_LARGER] = widgetToDoubleStr(screenLargerED);
+	rc.font_sizes[FONT_SIZE_LARGEST] = widgetToDoubleStr(screenLargestED);
+	rc.font_sizes[FONT_SIZE_HUGE] = widgetToDoubleStr(screenHugeED);
+	rc.font_sizes[FONT_SIZE_HUGER] = widgetToDoubleStr(screenHugerED);
 	rc.use_pixmap_cache = pixmapCacheCB->isChecked();
 
 	if (rc.font_sizes != oldrc.font_sizes
 		|| rc.roman_font_name != oldrc.roman_font_name
 		|| rc.sans_font_name != oldrc.sans_font_name
 		|| rc.typewriter_font_name != oldrc.typewriter_font_name
-		|| rc.zoom != oldrc.zoom || rc.dpi != oldrc.dpi) {
+		|| rc.zoom != oldrc.zoom) {
 		// The global QPixmapCache is used in GuiPainter to cache text
 		// painting so we must reset it in case any of the above
 		// parameter is changed.
@@ -803,22 +998,12 @@ void PrefScreenFonts::update(LyXRC const & rc)
 	setComboxFont(screenTypewriterCO, rc.typewriter_font_name,
 			rc.typewriter_font_foundry);
 
-	select_roman(screenRomanCO->currentText());
-	select_sans(screenSansCO->currentText());
-	select_typewriter(screenTypewriterCO->currentText());
+	selectRoman(screenRomanCO->currentText());
+	selectSans(screenSansCO->currentText());
+	selectTypewriter(screenTypewriterCO->currentText());
 
 	screenZoomSB->setValue(rc.zoom);
-	screenDpiSB->setValue(rc.dpi);
-	screenTinyED->setText(toqstr(rc.font_sizes[FONT_SIZE_TINY]));
-	screenSmallestED->setText(toqstr(rc.font_sizes[FONT_SIZE_SCRIPT]));
-	screenSmallerED->setText(toqstr(rc.font_sizes[FONT_SIZE_FOOTNOTE]));
-	screenSmallED->setText(toqstr(rc.font_sizes[FONT_SIZE_SMALL]));
-	screenNormalED->setText(toqstr(rc.font_sizes[FONT_SIZE_NORMAL]));
-	screenLargeED->setText(toqstr(rc.font_sizes[FONT_SIZE_LARGE]));
-	screenLargerED->setText(toqstr(rc.font_sizes[FONT_SIZE_LARGER]));
-	screenLargestED->setText(toqstr(rc.font_sizes[FONT_SIZE_LARGEST]));
-	screenHugeED->setText(toqstr(rc.font_sizes[FONT_SIZE_HUGE]));
-	screenHugerED->setText(toqstr(rc.font_sizes[FONT_SIZE_HUGER]));
+	updateScreenFontSizes(rc);
 
 	pixmapCacheCB->setChecked(rc.use_pixmap_cache);
 #if defined(Q_WS_X11)
@@ -828,19 +1013,34 @@ void PrefScreenFonts::update(LyXRC const & rc)
 }
 
 
-void PrefScreenFonts::select_roman(const QString & name)
+void PrefScreenFonts::updateScreenFontSizes(LyXRC const & rc)
+{
+	doubleToWidget(screenTinyED, rc.font_sizes[FONT_SIZE_TINY]);
+	doubleToWidget(screenSmallestED, rc.font_sizes[FONT_SIZE_SCRIPT]);
+	doubleToWidget(screenSmallerED, rc.font_sizes[FONT_SIZE_FOOTNOTE]);
+	doubleToWidget(screenSmallED, rc.font_sizes[FONT_SIZE_SMALL]);
+	doubleToWidget(screenNormalED, rc.font_sizes[FONT_SIZE_NORMAL]);
+	doubleToWidget(screenLargeED, rc.font_sizes[FONT_SIZE_LARGE]);
+	doubleToWidget(screenLargerED, rc.font_sizes[FONT_SIZE_LARGER]);
+	doubleToWidget(screenLargestED, rc.font_sizes[FONT_SIZE_LARGEST]);
+	doubleToWidget(screenHugeED, rc.font_sizes[FONT_SIZE_HUGE]);
+	doubleToWidget(screenHugerED, rc.font_sizes[FONT_SIZE_HUGER]);
+}
+
+
+void PrefScreenFonts::selectRoman(const QString & name)
 {
 	screenRomanFE->set(QFont(name), name);
 }
 
 
-void PrefScreenFonts::select_sans(const QString & name)
+void PrefScreenFonts::selectSans(const QString & name)
 {
 	screenSansFE->set(QFont(name), name);
 }
 
 
-void PrefScreenFonts::select_typewriter(const QString & name)
+void PrefScreenFonts::selectTypewriter(const QString & name)
 {
 	screenTypewriterFE->set(QFont(name), name);
 }
@@ -885,7 +1085,9 @@ PrefColors::PrefColors(GuiPreferences * form)
 			|| lc == Color_magenta
 			|| lc == Color_yellow
 			|| lc == Color_inherit
-			|| lc == Color_ignore) continue;
+			|| lc == Color_ignore
+			|| lc == Color_greyedouttext
+			|| lc == Color_shadedbg) continue;
 
 		lcolors_.push_back(lc);
 	}
@@ -893,7 +1095,7 @@ PrefColors::PrefColors(GuiPreferences * form)
 	vector<ColorCode>::const_iterator cit = lcolors_.begin();
 	vector<ColorCode>::const_iterator const end = lcolors_.end();
 	for (; cit != end; ++cit) {
-			(void) new QListWidgetItem(QIcon(icon),
+		(void) new QListWidgetItem(QIcon(icon),
 			toqstr(lcolor.getGUIName(*cit)), lyxObjectsLW);
 	}
 	curcolors_.resize(lcolors_.size());
@@ -901,36 +1103,47 @@ PrefColors::PrefColors(GuiPreferences * form)
 	// End initialization
 
 	connect(colorChangePB, SIGNAL(clicked()),
-		this, SLOT(change_color()));
+		this, SLOT(changeColor()));
 	connect(lyxObjectsLW, SIGNAL(itemSelectionChanged()),
-		this, SLOT(change_lyxObjects_selection()));
+		this, SLOT(changeLyxObjectsSelection()));
 	connect(lyxObjectsLW, SIGNAL(itemActivated(QListWidgetItem*)),
-		this, SLOT(change_color()));
+		this, SLOT(changeColor()));
+	connect(syscolorsCB, SIGNAL(toggled(bool)),
+		this, SIGNAL(changed()));
+	connect(syscolorsCB, SIGNAL(toggled(bool)),
+		this, SLOT(changeSysColor()));
 }
 
 
-void PrefColors::apply(LyXRC & /*rc*/) const
+void PrefColors::apply(LyXRC & rc) const
 {
+	LyXRC oldrc = rc;
+
 	for (unsigned int i = 0; i < lcolors_.size(); ++i)
 		if (curcolors_[i] != newcolors_[i])
 			form_->setColor(lcolors_[i], newcolors_[i]);
+	rc.use_system_colors = syscolorsCB->isChecked();
+
+	if (oldrc.use_system_colors != rc.use_system_colors)
+		guiApp->colorCache().clear();
 }
 
 
-void PrefColors::update(LyXRC const & /*rc*/)
+void PrefColors::update(LyXRC const & rc)
 {
 	for (unsigned int i = 0; i < lcolors_.size(); ++i) {
-		QColor color = QColor(guiApp->colorCache().get(lcolors_[i]));
+		QColor color = QColor(guiApp->colorCache().get(lcolors_[i], false));
 		QPixmap coloritem(32, 32);
 		coloritem.fill(color);
 		lyxObjectsLW->item(i)->setIcon(QIcon(coloritem));
 		newcolors_[i] = curcolors_[i] = color.name();
 	}
-	change_lyxObjects_selection();
+	syscolorsCB->setChecked(rc.use_system_colors);
+	changeLyxObjectsSelection();
 }
 
 
-void PrefColors::change_color()
+void PrefColors::changeColor()
 {
 	int const row = lyxObjectsLW->currentRow();
 
@@ -951,7 +1164,19 @@ void PrefColors::change_color()
 	}
 }
 
-void PrefColors::change_lyxObjects_selection()
+void PrefColors::changeSysColor()
+{
+	for (int row = 0 ; row < lyxObjectsLW->count() ; ++row) {
+		// skip colors that are taken from system palette
+		bool const hide = syscolorsCB->isChecked()
+			&& guiApp->colorCache().isSystem(lcolors_[row]);
+
+		lyxObjectsLW->item(row)->setHidden(hide);
+	}
+
+}
+
+void PrefColors::changeLyxObjectsSelection()
 {
 	colorChangePB->setDisabled(lyxObjectsLW->currentRow() < 0);
 }
@@ -970,29 +1195,35 @@ PrefDisplay::PrefDisplay(GuiPreferences * form)
 	connect(displayGraphicsCB, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
 	connect(instantPreviewCO, SIGNAL(activated(int)), this, SIGNAL(changed()));
 	connect(previewSizeSB, SIGNAL(valueChanged(double)), this, SIGNAL(changed()));
-	if (instantPreviewCO->currentIndex() == 0)
-		previewSizeSB->setEnabled(false);
-	else
-		previewSizeSB->setEnabled(true);
-	connect(paragraphMarkerCB, SIGNAL(toggled(bool)), this, SIGNAL(changed())); 
+	connect(paragraphMarkerCB, SIGNAL(toggled(bool)), this, SIGNAL(changed()));
 }
 
 
 void PrefDisplay::on_instantPreviewCO_currentIndexChanged(int index)
 {
-	if (index == 0)
-		previewSizeSB->setEnabled(false);
-	else
-		previewSizeSB->setEnabled(true);
+	previewSizeSB->setEnabled(index != 0);
+}
+
+
+void PrefDisplay::on_displayGraphicsCB_toggled(bool on)
+{
+	instantPreviewCO->setEnabled(on);
+	previewSizeSB->setEnabled(on && instantPreviewCO->currentIndex() > 0);
 }
 
 
 void PrefDisplay::apply(LyXRC & rc) const
 {
 	switch (instantPreviewCO->currentIndex()) {
-		case 0: rc.preview = LyXRC::PREVIEW_OFF; break;
-		case 1:	rc.preview = LyXRC::PREVIEW_NO_MATH; break;
-		case 2:	rc.preview = LyXRC::PREVIEW_ON;	break;
+		case 0:
+			rc.preview = LyXRC::PREVIEW_OFF;
+			break;
+		case 1:
+			rc.preview = LyXRC::PREVIEW_NO_MATH;
+			break;
+		case 2:
+			rc.preview = LyXRC::PREVIEW_ON;
+			break;
 	}
 
 	rc.display_graphics = displayGraphicsCB->isChecked();
@@ -1027,6 +1258,9 @@ void PrefDisplay::update(LyXRC const & rc)
 	instantPreviewCO->setEnabled(rc.display_graphics);
 	previewSizeSB->setValue(rc.preview_scale_factor);
 	paragraphMarkerCB->setChecked(rc.paragraph_markers);
+	previewSizeSB->setEnabled(
+		rc.display_graphics
+		&& rc.preview != LyXRC::PREVIEW_OFF);
 }
 
 
@@ -1040,24 +1274,39 @@ PrefPaths::PrefPaths(GuiPreferences * form)
 	: PrefModule(QString(), qt_("Paths"), form)
 {
 	setupUi(this);
-	connect(exampleDirPB, SIGNAL(clicked()), this, SLOT(select_exampledir()));
-	connect(templateDirPB, SIGNAL(clicked()), this, SLOT(select_templatedir()));
-	connect(tempDirPB, SIGNAL(clicked()), this, SLOT(select_tempdir()));
-	connect(backupDirPB, SIGNAL(clicked()), this, SLOT(select_backupdir()));
-	connect(workingDirPB, SIGNAL(clicked()), this, SLOT(select_workingdir()));
-	connect(lyxserverDirPB, SIGNAL(clicked()), this, SLOT(select_lyxpipe()));
+
+	connect(workingDirPB, SIGNAL(clicked()), this, SLOT(selectWorkingdir()));
 	connect(workingDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
-	connect(exampleDirED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
+
+	connect(templateDirPB, SIGNAL(clicked()), this, SLOT(selectTemplatedir()));
 	connect(templateDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+
+	connect(exampleDirPB, SIGNAL(clicked()), this, SLOT(selectExampledir()));
+	connect(exampleDirED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+
+	connect(backupDirPB, SIGNAL(clicked()), this, SLOT(selectBackupdir()));
 	connect(backupDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
-	connect(tempDirED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
+
+	connect(lyxserverDirPB, SIGNAL(clicked()), this, SLOT(selectLyxPipe()));
 	connect(lyxserverDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+
+	connect(thesaurusDirPB, SIGNAL(clicked()), this, SLOT(selectThesaurusdir()));
+	connect(thesaurusDirED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+
+	connect(tempDirPB, SIGNAL(clicked()), this, SLOT(selectTempdir()));
+	connect(tempDirED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+
+	connect(hunspellDirPB, SIGNAL(clicked()), this, SLOT(selectHunspelldir()));
+	connect(hunspellDirED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+
 	connect(pathPrefixED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 }
@@ -1070,6 +1319,8 @@ void PrefPaths::apply(LyXRC & rc) const
 	rc.template_path = internal_path(fromqstr(templateDirED->text()));
 	rc.backupdir_path = internal_path(fromqstr(backupDirED->text()));
 	rc.tempdir_path = internal_path(fromqstr(tempDirED->text()));
+	rc.thesaurusdir_path = internal_path(fromqstr(thesaurusDirED->text()));
+	rc.hunspelldir_path = internal_path(fromqstr(hunspellDirED->text()));
 	rc.path_prefix = internal_path_list(fromqstr(pathPrefixED->text()));
 	// FIXME: should be a checkbox only
 	rc.lyxpipes = internal_path(fromqstr(lyxserverDirED->text()));
@@ -1083,13 +1334,15 @@ void PrefPaths::update(LyXRC const & rc)
 	templateDirED->setText(toqstr(external_path(rc.template_path)));
 	backupDirED->setText(toqstr(external_path(rc.backupdir_path)));
 	tempDirED->setText(toqstr(external_path(rc.tempdir_path)));
+	thesaurusDirED->setText(toqstr(external_path(rc.thesaurusdir_path)));
+	hunspellDirED->setText(toqstr(external_path(rc.hunspelldir_path)));
 	pathPrefixED->setText(toqstr(external_path_list(rc.path_prefix)));
 	// FIXME: should be a checkbox only
 	lyxserverDirED->setText(toqstr(external_path(rc.lyxpipes)));
 }
 
 
-void PrefPaths::select_exampledir()
+void PrefPaths::selectExampledir()
 {
 	QString file = browseDir(internalPath(exampleDirED->text()),
 		qt_("Select directory for example files"));
@@ -1098,7 +1351,7 @@ void PrefPaths::select_exampledir()
 }
 
 
-void PrefPaths::select_templatedir()
+void PrefPaths::selectTemplatedir()
 {
 	QString file = browseDir(internalPath(templateDirED->text()),
 		qt_("Select a document templates directory"));
@@ -1107,7 +1360,7 @@ void PrefPaths::select_templatedir()
 }
 
 
-void PrefPaths::select_tempdir()
+void PrefPaths::selectTempdir()
 {
 	QString file = browseDir(internalPath(tempDirED->text()),
 		qt_("Select a temporary directory"));
@@ -1116,7 +1369,7 @@ void PrefPaths::select_tempdir()
 }
 
 
-void PrefPaths::select_backupdir()
+void PrefPaths::selectBackupdir()
 {
 	QString file = browseDir(internalPath(backupDirED->text()),
 		qt_("Select a backups directory"));
@@ -1125,7 +1378,7 @@ void PrefPaths::select_backupdir()
 }
 
 
-void PrefPaths::select_workingdir()
+void PrefPaths::selectWorkingdir()
 {
 	QString file = browseDir(internalPath(workingDirED->text()),
 		qt_("Select a document directory"));
@@ -1134,7 +1387,25 @@ void PrefPaths::select_workingdir()
 }
 
 
-void PrefPaths::select_lyxpipe()
+void PrefPaths::selectThesaurusdir()
+{
+	QString file = browseDir(internalPath(thesaurusDirED->text()),
+		qt_("Set the path to the thesaurus dictionaries"));
+	if (!file.isEmpty())
+		thesaurusDirED->setText(file);
+}
+
+
+void PrefPaths::selectHunspelldir()
+{
+	QString file = browseDir(internalPath(hunspellDirED->text()),
+		qt_("Set the path to the Hunspell dictionaries"));
+	if (!file.isEmpty())
+		hunspellDirED->setText(file);
+}
+
+
+void PrefPaths::selectLyxPipe()
 {
 	QString file = form_->browse(internalPath(lyxserverDirED->text()),
 		qt_("Give a filename for the LyX server pipe"));
@@ -1154,107 +1425,80 @@ PrefSpellchecker::PrefSpellchecker(GuiPreferences * form)
 {
 	setupUi(this);
 
-	connect(persDictionaryPB, SIGNAL(clicked()), this, SLOT(select_dict()));
-#if defined (USE_ISPELL)
-	connect(spellCommandCO, SIGNAL(activated(int)),
-		this, SIGNAL(changed()));
+// FIXME: this check should test the target platform (darwin)
+#if defined(USE_MACOSX_PACKAGING)
+	spellcheckerCB->addItem(qt_("Native"), QString("native"));
+#define CONNECT_APPLESPELL
 #else
-	spellCommandCO->setEnabled(false);
+#undef CONNECT_APPLESPELL
 #endif
-	connect(altLanguageED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
-	connect(escapeCharactersED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
-	connect(persDictionaryED, SIGNAL(textChanged(QString)),
-		this, SIGNAL(changed()));
-	connect(compoundWordCB, SIGNAL(clicked()),
-		this, SIGNAL(changed()));
-	connect(inputEncodingCB, SIGNAL(clicked()),
-		this, SIGNAL(changed()));
+#if defined(USE_ASPELL)
+	spellcheckerCB->addItem(qt_("Aspell"), QString("aspell"));
+#endif
+#if defined(USE_ENCHANT)
+	spellcheckerCB->addItem(qt_("Enchant"), QString("enchant"));
+#endif
+#if defined(USE_HUNSPELL)
+	spellcheckerCB->addItem(qt_("Hunspell"), QString("hunspell"));
+#endif
 
-	spellCommandCO->addItem(qt_("ispell"));
-	spellCommandCO->addItem(qt_("aspell"));
-	spellCommandCO->addItem(qt_("hspell"));
-#ifdef USE_ENCHANT
-	spellCommandCO->addItem(qt_("enchant"));
-#else
-#ifdef USE_PSPELL
-	spellCommandCO->addItem(qt_("pspell (library)"));
-#else
-#ifdef USE_ASPELL
-	spellCommandCO->addItem(qt_("aspell (library)"));
-#endif
-#endif
-#endif
+	#if defined(CONNECT_APPLESPELL) || defined(USE_ASPELL) || defined(USE_ENCHANT) || defined(USE_HUNSPELL)
+		connect(spellcheckerCB, SIGNAL(currentIndexChanged(int)),
+			this, SIGNAL(changed()));
+		connect(altLanguageED, SIGNAL(textChanged(QString)),
+			this, SIGNAL(changed()));
+		connect(escapeCharactersED, SIGNAL(textChanged(QString)),
+			this, SIGNAL(changed()));
+		connect(compoundWordCB, SIGNAL(clicked()),
+			this, SIGNAL(changed()));
+		connect(spellcheckContinuouslyCB, SIGNAL(clicked()),
+			this, SIGNAL(changed()));
+		connect(spellcheckNotesCB, SIGNAL(clicked()),
+			this, SIGNAL(changed()));
+	#else
+		spellcheckerCB->setEnabled(false);
+		altLanguageED->setEnabled(false);
+		escapeCharactersED->setEnabled(false);
+		compoundWordCB->setEnabled(false);
+		spellcheckContinuouslyCB->setEnabled(false);
+		spellcheckNotesCB->setEnabled(false);
+	#endif
 }
 
 
 void PrefSpellchecker::apply(LyXRC & rc) const
 {
-	switch (spellCommandCO->currentIndex()) {
-		case 0:
-		case 1:
-		case 2:
-			rc.use_spell_lib = false;
-			rc.isp_command = fromqstr(spellCommandCO->currentText());
-			break;
-		case 3:
-			rc.use_spell_lib = true;
-			break;
-	}
-
-	// FIXME: remove isp_use_alt_lang
-	rc.isp_alt_lang = fromqstr(altLanguageED->text());
-	rc.isp_use_alt_lang = !rc.isp_alt_lang.empty();
-	// FIXME: remove isp_use_esc_chars
-	rc.isp_esc_chars = fromqstr(escapeCharactersED->text());
-	rc.isp_use_esc_chars = !rc.isp_esc_chars.empty();
-	// FIXME: remove isp_use_pers_dict
-	rc.isp_pers_dict = internal_path(fromqstr(persDictionaryED->text()));
-	rc.isp_use_pers_dict = !rc.isp_pers_dict.empty();
-	rc.isp_accept_compound = compoundWordCB->isChecked();
-	rc.isp_use_input_encoding = inputEncodingCB->isChecked();
+	rc.spellchecker = fromqstr(spellcheckerCB->itemData(
+			spellcheckerCB->currentIndex()).toString());
+	rc.spellchecker_alt_lang = fromqstr(altLanguageED->text());
+	rc.spellchecker_esc_chars = fromqstr(escapeCharactersED->text());
+	rc.spellchecker_accept_compound = compoundWordCB->isChecked();
+	rc.spellcheck_continuously = spellcheckContinuouslyCB->isChecked();
+	rc.spellcheck_notes = spellcheckNotesCB->isChecked();
 }
 
 
 void PrefSpellchecker::update(LyXRC const & rc)
 {
-	spellCommandCO->setCurrentIndex(0);
-
-	if (rc.isp_command == "ispell") {
-		spellCommandCO->setCurrentIndex(0);
-	} else if (rc.isp_command == "aspell") {
-		spellCommandCO->setCurrentIndex(1);
-	} else if (rc.isp_command == "hspell") {
-		spellCommandCO->setCurrentIndex(2);
-	}
-
-	if (rc.use_spell_lib) {
-#if defined(USE_ENCHANT) || defined(USE_ASPELL) || defined(USE_PSPELL)
-		spellCommandCO->setCurrentIndex(3);
-#endif
-	}
-
-	// FIXME: remove isp_use_alt_lang
-	altLanguageED->setText(toqstr(rc.isp_alt_lang));
-	// FIXME: remove isp_use_esc_chars
-	escapeCharactersED->setText(toqstr(rc.isp_esc_chars));
-	// FIXME: remove isp_use_pers_dict
-	persDictionaryED->setText(toqstr(external_path(rc.isp_pers_dict)));
-	compoundWordCB->setChecked(rc.isp_accept_compound);
-	inputEncodingCB->setChecked(rc.isp_use_input_encoding);
+	spellcheckerCB->setCurrentIndex(
+		spellcheckerCB->findData(toqstr(rc.spellchecker)));
+	altLanguageED->setText(toqstr(rc.spellchecker_alt_lang));
+	escapeCharactersED->setText(toqstr(rc.spellchecker_esc_chars));
+	compoundWordCB->setChecked(rc.spellchecker_accept_compound);
+	spellcheckContinuouslyCB->setChecked(rc.spellcheck_continuously);
+	spellcheckNotesCB->setChecked(rc.spellcheck_notes);
 }
 
 
-void PrefSpellchecker::select_dict()
+void PrefSpellchecker::on_spellcheckerCB_currentIndexChanged(int index)
 {
-	QString file = form_->browsedict(internalPath(persDictionaryED->text()));
-	if (!file.isEmpty())
-		persDictionaryED->setText(file);
+	QString spellchecker = spellcheckerCB->itemData(index).toString();
+	
+	compoundWordCB->setEnabled(spellchecker != QString("native"));
 }
-
-
-
+	
+	
+	
 /////////////////////////////////////////////////////////////////////
 //
 // PrefConverters
@@ -1268,21 +1512,21 @@ PrefConverters::PrefConverters(GuiPreferences * form)
 	setupUi(this);
 
 	connect(converterNewPB, SIGNAL(clicked()),
-		this, SLOT(update_converter()));
+		this, SLOT(updateConverter()));
 	connect(converterRemovePB, SIGNAL(clicked()),
-		this, SLOT(remove_converter()));
+		this, SLOT(removeConverter()));
 	connect(converterModifyPB, SIGNAL(clicked()),
-		this, SLOT(update_converter()));
+		this, SLOT(updateConverter()));
 	connect(convertersLW, SIGNAL(currentRowChanged(int)),
-		this, SLOT(switch_converter()));
+		this, SLOT(switchConverter()));
 	connect(converterFromCO, SIGNAL(activated(QString)),
-		this, SLOT(converter_changed()));
+		this, SLOT(changeConverter()));
 	connect(converterToCO, SIGNAL(activated(QString)),
-		this, SLOT(converter_changed()));
+		this, SLOT(changeConverter()));
 	connect(converterED, SIGNAL(textEdited(QString)),
-		this, SLOT(converter_changed()));
+		this, SLOT(changeConverter()));
 	connect(converterFlagED, SIGNAL(textEdited(QString)),
-		this, SLOT(converter_changed()));
+		this, SLOT(changeConverter()));
 	connect(converterNewPB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(converterRemovePB, SIGNAL(clicked()),
@@ -1300,7 +1544,7 @@ PrefConverters::PrefConverters(GuiPreferences * form)
 void PrefConverters::apply(LyXRC & rc) const
 {
 	rc.use_converter_cache = cacheCB->isChecked();
-	rc.converter_cache_maxage = int(maxAgeLE->text().toDouble() * 86400.0);
+	rc.converter_cache_maxage = int(widgetToDouble(maxAgeLE) * 86400.0);
 }
 
 
@@ -1308,8 +1552,7 @@ void PrefConverters::update(LyXRC const & rc)
 {
 	cacheCB->setChecked(rc.use_converter_cache);
 	QString max_age;
-	max_age.setNum(double(rc.converter_cache_maxage) / 86400.0, 'g', 6);
-	maxAgeLE->setText(max_age);
+	doubleToWidget(maxAgeLE, (double(rc.converter_cache_maxage) / 86400.0), 'g', 6);
 	updateGui();
 }
 
@@ -1333,7 +1576,7 @@ void PrefConverters::updateGui()
 	}
 
 	// currentRowChanged(int) is also triggered when updating the listwidget
-	// block signals to avoid unnecessary calls to switch_converter()
+	// block signals to avoid unnecessary calls to switchConverter()
 	convertersLW->blockSignals(true);
 	convertersLW->clear();
 
@@ -1364,7 +1607,7 @@ void PrefConverters::updateGui()
 }
 
 
-void PrefConverters::switch_converter()
+void PrefConverters::switchConverter()
 {
 	int const cnr = convertersLW->currentItem()->type();
 	Converter const & c(form_->converters().get(cnr));
@@ -1377,7 +1620,7 @@ void PrefConverters::switch_converter()
 }
 
 
-void PrefConverters::converter_changed()
+void PrefConverters::changeConverter()
 {
 	updateButtons();
 }
@@ -1385,6 +1628,8 @@ void PrefConverters::converter_changed()
 
 void PrefConverters::updateButtons()
 {
+	if (form_->formats().size() == 0)
+		return;
 	Format const & from = form_->formats().get(converterFromCO->currentIndex());
 	Format const & to = form_->formats().get(converterToCO->currentIndex());
 	int const sel = form_->converters().getNumber(from.name(), to.name());
@@ -1413,7 +1658,7 @@ void PrefConverters::updateButtons()
 // FIXME: user must
 // specify unique from/to or it doesn't appear. This is really bad UI
 // this is why we can use the same function for both new and modify
-void PrefConverters::update_converter()
+void PrefConverters::updateConverter()
 {
 	Format const & from = form_->formats().get(converterFromCO->currentIndex());
 	Format const & to = form_->formats().get(converterToCO->currentIndex());
@@ -1435,7 +1680,7 @@ void PrefConverters::update_converter()
 }
 
 
-void PrefConverters::remove_converter()
+void PrefConverters::removeConverter()
 {
 	Format const & from = form_->formats().get(converterFromCO->currentIndex());
 	Format const & to = form_->formats().get(converterToCO->currentIndex());
@@ -1568,7 +1813,7 @@ private:
 /////////////////////////////////////////////////////////////////////
 
 PrefFileformats::PrefFileformats(GuiPreferences * form)
-	: PrefModule(qt_(catFiles), qt_("File formats"), form)
+	: PrefModule(qt_(catFiles), qt_("File Formats"), form)
 {
 	setupUi(this);
 	formatED->setValidator(new FormatNameValidator(formatsCB, form_->formats()));
@@ -1581,6 +1826,12 @@ PrefFileformats::PrefFileformats(GuiPreferences * form)
 	connect(formatsCB->lineEdit(), SIGNAL(editingFinished()),
 		this, SLOT(updatePrettyname()));
 	connect(formatsCB->lineEdit(), SIGNAL(textEdited(QString)),
+		this, SIGNAL(changed()));
+	connect(defaultFormatCB, SIGNAL(activated(QString)),
+		this, SIGNAL(changed()));
+	connect(viewerCO, SIGNAL(activated(int)),
+		this, SIGNAL(changed()));
+	connect(editorCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
 }
 
@@ -1597,44 +1848,68 @@ string const l10n_shortcut(string const prettyname, string const shortcut)
 	return split(l10n_format, '|');
 }
 
-}; // namespace anon
+} // namespace anon
 
 
-void PrefFileformats::apply(LyXRC & /*rc*/) const
+void PrefFileformats::apply(LyXRC & rc) const
 {
+	QString const default_format = defaultFormatCB->itemData(
+		defaultFormatCB->currentIndex()).toString();
+	rc.default_view_format = fromqstr(default_format);
 }
 
 
-void PrefFileformats::update(LyXRC const & /*rc*/)
+void PrefFileformats::update(LyXRC const & rc)
 {
+	viewer_alternatives = rc.viewer_alternatives;
+	editor_alternatives = rc.editor_alternatives;
+	bool const init = defaultFormatCB->currentText().isEmpty();
 	updateView();
+	if (init) {
+		int const pos =
+			defaultFormatCB->findData(toqstr(rc.default_view_format));
+		defaultFormatCB->setCurrentIndex(pos);
+	}
 }
 
 
 void PrefFileformats::updateView()
 {
 	QString const current = formatsCB->currentText();
+	QString const current_def = defaultFormatCB->currentText();
 
-	// update combobox with formats
+	// update comboboxes with formats
 	formatsCB->blockSignals(true);
+	defaultFormatCB->blockSignals(true);
 	formatsCB->clear();
+	defaultFormatCB->clear();
 	form_->formats().sort();
 	Formats::const_iterator cit = form_->formats().begin();
 	Formats::const_iterator end = form_->formats().end();
-	for (; cit != end; ++cit)
+	for (; cit != end; ++cit) {
 		formatsCB->addItem(qt_(cit->prettyname()),
-				   QVariant(form_->formats().getNumber(cit->name())));
+				QVariant(form_->formats().getNumber(cit->name())));
+		if (form_->converters().isReachable("latex", cit->name())
+		    || form_->converters().isReachable("pdflatex", cit->name()))
+			defaultFormatCB->addItem(qt_(cit->prettyname()),
+					QVariant(toqstr(cit->name())));
+	}
 
 	// restore selection
-	int const item = formatsCB->findText(current, Qt::MatchExactly);
+	int item = formatsCB->findText(current, Qt::MatchExactly);
 	formatsCB->setCurrentIndex(item < 0 ? 0 : item);
 	on_formatsCB_currentIndexChanged(item < 0 ? 0 : item);
+	item = defaultFormatCB->findText(current_def, Qt::MatchExactly);
+	defaultFormatCB->setCurrentIndex(item < 0 ? 0 : item);
 	formatsCB->blockSignals(false);
+	defaultFormatCB->blockSignals(false);
 }
 
 
 void PrefFileformats::on_formatsCB_currentIndexChanged(int i)
 {
+	if (form_->formats().size() == 0)
+		return;
 	int const nr = formatsCB->itemData(i).toInt();
 	Format const f = form_->formats().get(nr);
 
@@ -1643,10 +1918,10 @@ void PrefFileformats::on_formatsCB_currentIndexChanged(int i)
 	extensionED->setText(toqstr(f.extension()));
 	shortcutED->setText(
 		toqstr(l10n_shortcut(f.prettyname(), f.shortcut())));
-	viewerED->setText(toqstr(f.viewer()));
-	editorED->setText(toqstr(f.editor()));
 	documentCB->setChecked((f.documentFormat()));
 	vectorCB->setChecked((f.vectorFormat()));
+	updateViewers();
+	updateEditors();
 }
 
 
@@ -1704,8 +1979,17 @@ void PrefFileformats::on_shortcutED_textEdited(const QString & s)
 void PrefFileformats::on_formatED_editingFinished()
 {
 	string const newname = fromqstr(formatED->displayText());
-	if (newname == currentFormat().name())
+	string const oldname = currentFormat().name();
+	if (newname == oldname)
 		return;
+	if (form_->converters().formatIsUsed(oldname)) {
+		Alert::error(_("Format in use"),
+			     _("You cannot change a format's short name "
+			       "if the format is used by a converter. "
+			       "Please remove the converter first."));
+		updateView();
+		return;
+	}
 
 	currentFormat().setName(newname);
 	changed();
@@ -1740,6 +2024,91 @@ void PrefFileformats::updatePrettyname()
 	formatsChanged();
 	updateView();
 	changed();
+}
+
+
+namespace {
+	void updateComboBox(LyXRC::Alternatives const & alts,
+	                    string const & fmt, QComboBox * combo)
+	{
+		LyXRC::Alternatives::const_iterator it = 
+				alts.find(fmt);
+		if (it != alts.end()) {
+			LyXRC::CommandSet const & cmds = it->second;
+			LyXRC::CommandSet::const_iterator sit = 
+					cmds.begin();
+			LyXRC::CommandSet::const_iterator const sen = 
+					cmds.end();
+			for (; sit != sen; ++sit) {
+				QString const qcmd = toqstr(*sit);
+				combo->addItem(qcmd, qcmd);
+			}
+		}
+	}
+}
+
+
+void PrefFileformats::updateViewers()
+{
+	Format const f = currentFormat();
+	viewerCO->blockSignals(true);
+	viewerCO->clear();
+	viewerCO->addItem(qt_("None"), QString());
+	updateComboBox(viewer_alternatives, f.name(), viewerCO);
+	viewerCO->addItem(qt_("Custom"), QString("custom viewer"));
+	viewerCO->blockSignals(false);
+
+	int pos = viewerCO->findData(toqstr(f.viewer()));
+	if (pos != -1) {
+		viewerED->clear();
+		viewerED->setEnabled(false);
+		viewerCO->setCurrentIndex(pos);
+	} else {
+		viewerED->setEnabled(true);
+		viewerED->setText(toqstr(f.viewer()));
+		viewerCO->setCurrentIndex(viewerCO->findData(toqstr("custom viewer")));
+	}
+}
+
+
+void PrefFileformats::updateEditors()
+{
+	Format const f = currentFormat();
+	editorCO->blockSignals(true);
+	editorCO->clear();
+	editorCO->addItem(qt_("None"), QString());
+	updateComboBox(editor_alternatives, f.name(), editorCO);
+	editorCO->addItem(qt_("Custom"), QString("custom editor"));
+	editorCO->blockSignals(false);
+
+	int pos = editorCO->findData(toqstr(f.editor()));
+	if (pos != -1) {
+		editorED->clear();
+		editorED->setEnabled(false);
+		editorCO->setCurrentIndex(pos);
+	} else {
+		editorED->setEnabled(true);
+		editorED->setText(toqstr(f.editor()));
+		editorCO->setCurrentIndex(editorCO->findData(toqstr("custom editor")));
+	}
+}
+
+
+void PrefFileformats::on_viewerCO_currentIndexChanged(int i)
+{
+	bool const custom = viewerCO->itemData(i).toString() == "custom viewer";
+	viewerED->setEnabled(custom);
+	if (!custom)
+		currentFormat().setViewer(fromqstr(viewerCO->itemData(i).toString()));
+}
+
+
+void PrefFileformats::on_editorCO_currentIndexChanged(int i)
+{
+	bool const custom = editorCO->itemData(i).toString() == "custom editor";
+	editorED->setEnabled(custom);
+	if (!custom)
+		currentFormat().setEditor(fromqstr(editorCO->itemData(i).toString()));
 }
 
 
@@ -1803,35 +2172,43 @@ PrefLanguage::PrefLanguage(GuiPreferences * form)
 		this, SIGNAL(changed()));
 	connect(autoEndCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
-	connect(useBabelCB, SIGNAL(clicked()),
-		this, SIGNAL(changed()));
-	connect(globalCB, SIGNAL(clicked()),
+	connect(languagePackageCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
 	connect(languagePackageED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
+	connect(globalCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(startCommandED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 	connect(endCommandED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
-	connect(defaultLanguageCO, SIGNAL(activated(int)),
-		this, SIGNAL(changed()));
 	connect(uiLanguageCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
+	connect(defaultDecimalPointLE, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
 
-	defaultLanguageCO->clear();
 	uiLanguageCO->clear();
 
 	QAbstractItemModel * language_model = guiApp->languageModel();
 	// FIXME: it would be nice if sorting was enabled/disabled via a checkbox.
 	language_model->sort(0);
-	defaultLanguageCO->setModel(language_model);
+	defaultDecimalPointLE->setInputMask("X; ");
+	defaultDecimalPointLE->setMaxLength(1);
 
-	// FIXME: This is wrong, we need filter this list based on the available
-	// translation.
+	set<string> added;
 	uiLanguageCO->blockSignals(true);
 	uiLanguageCO->addItem(qt_("Default"), toqstr("auto"));
 	for (int i = 0; i != language_model->rowCount(); ++i) {
 		QModelIndex index = language_model->index(i, 0);
+		// Filter the list based on the available translation and add
+		// each language code only once
+		string const name = fromqstr(index.data(Qt::UserRole).toString());
+		Language const * lang = languages.getLanguage(name);
+		// never remove the currently selected language
+		if (lang && name != form->rc().gui_language && name != lyxrc.gui_language)
+			if (!lang->translated() || added.find(lang->code()) != added.end())
+				continue;
+		added.insert(lang->code());
 		uiLanguageCO->addItem(index.data(Qt::DisplayRole).toString(),
 			index.data(Qt::UserRole).toString());
 	}
@@ -1847,6 +2224,12 @@ void PrefLanguage::on_uiLanguageCO_currentIndexChanged(int)
 }
 
 
+void PrefLanguage::on_languagePackageCO_currentIndexChanged(int i)
+{
+	 languagePackageED->setEnabled(i == 2);
+}
+
+
 void PrefLanguage::apply(LyXRC & rc) const
 {
 	// FIXME: remove rtl_support bool
@@ -1855,15 +2238,22 @@ void PrefLanguage::apply(LyXRC & rc) const
 	rc.mark_foreign_language = markForeignCB->isChecked();
 	rc.language_auto_begin = autoBeginCB->isChecked();
 	rc.language_auto_end = autoEndCB->isChecked();
-	rc.language_use_babel = useBabelCB->isChecked();
+	int const p = languagePackageCO->currentIndex();
+	if (p == 0)
+		rc.language_package_selection = LyXRC::LP_AUTO;
+	else if (p == 1)
+		rc.language_package_selection = LyXRC::LP_BABEL;
+	else if (p == 2)
+		rc.language_package_selection = LyXRC::LP_CUSTOM;
+	else if (p == 3)
+		rc.language_package_selection = LyXRC::LP_NONE;
+	rc.language_custom_package = fromqstr(languagePackageED->text());
 	rc.language_global_options = globalCB->isChecked();
-	rc.language_package = fromqstr(languagePackageED->text());
 	rc.language_command_begin = fromqstr(startCommandED->text());
 	rc.language_command_end = fromqstr(endCommandED->text());
-	rc.default_language = fromqstr(
-		defaultLanguageCO->itemData(defaultLanguageCO->currentIndex()).toString());
 	rc.gui_language = fromqstr(
 		uiLanguageCO->itemData(uiLanguageCO->currentIndex()).toString());
+	rc.default_decimal_point = fromqstr(defaultDecimalPointLE->text());
 }
 
 
@@ -1878,15 +2268,15 @@ void PrefLanguage::update(LyXRC const & rc)
 	markForeignCB->setChecked(rc.mark_foreign_language);
 	autoBeginCB->setChecked(rc.language_auto_begin);
 	autoEndCB->setChecked(rc.language_auto_end);
-	useBabelCB->setChecked(rc.language_use_babel);
+	languagePackageCO->setCurrentIndex(rc.language_package_selection);
+	languagePackageED->setText(toqstr(rc.language_custom_package));
+	languagePackageED->setEnabled(languagePackageCO->currentIndex() == 2);
 	globalCB->setChecked(rc.language_global_options);
-	languagePackageED->setText(toqstr(rc.language_package));
 	startCommandED->setText(toqstr(rc.language_command_begin));
 	endCommandED->setText(toqstr(rc.language_command_end));
+	defaultDecimalPointLE->setText(toqstr(rc.default_decimal_point));
 
-	int pos = defaultLanguageCO->findData(toqstr(rc.default_language));
-	defaultLanguageCO->setCurrentIndex(pos);
-	pos = uiLanguageCO->findData(toqstr(rc.gui_language));
+	int pos = uiLanguageCO->findData(toqstr(rc.gui_language));
 	uiLanguageCO->blockSignals(true);
 	uiLanguageCO->setCurrentIndex(pos);
 	uiLanguageCO->blockSignals(false);
@@ -1998,7 +2388,7 @@ void PrefPrinter::update(LyXRC const & rc)
 /////////////////////////////////////////////////////////////////////
 
 PrefUserInterface::PrefUserInterface(GuiPreferences * form)
-	: PrefModule(qt_(catLookAndFeel), qt_("User interface"), form)
+	: PrefModule(qt_(catLookAndFeel), qt_("User Interface"), form)
 {
 	setupUi(this);
 
@@ -2008,13 +2398,15 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 		TextLabel1, SLOT(setEnabled(bool)));
 	connect(openDocumentsInTabsCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
+	connect(singleInstanceCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
 #if QT_VERSION < 0x040500
 	singleCloseTabButtonCB->setEnabled(false);
 #endif
 	connect(singleCloseTabButtonCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(uiFilePB, SIGNAL(clicked()),
-		this, SLOT(select_ui()));
+		this, SLOT(selectUi()));
 	connect(uiFileED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 	connect(restoreCursorCB, SIGNAL(clicked()),
@@ -2028,6 +2420,8 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 	connect(autoSaveCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(backupCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(saveCompressedCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(lastfilesSB, SIGNAL(valueChanged(int)),
 		this, SIGNAL(changed()));
@@ -2043,11 +2437,13 @@ void PrefUserInterface::apply(LyXRC & rc) const
 	rc.use_lastfilepos = restoreCursorCB->isChecked();
 	rc.load_session = loadSessionCB->isChecked();
 	rc.allow_geometry_session = allowGeometrySessionCB->isChecked();
-	rc.autosave = autoSaveCB->isChecked()?  autoSaveSB->value() * 60 : 0;
+	rc.autosave = autoSaveCB->isChecked() ?  autoSaveSB->value() * 60 : 0;
 	rc.make_backup = backupCB->isChecked();
+	rc.save_compressed = saveCompressedCB->isChecked();
 	rc.num_lastfiles = lastfilesSB->value();
 	rc.use_tooltip = tooltipCB->isChecked();
 	rc.open_buffers_in_tabs = openDocumentsInTabsCB->isChecked();
+	rc.single_instance = singleInstanceCB->isChecked();
 	rc.single_close_tab_button = singleCloseTabButtonCB->isChecked();
 #if QT_VERSION < 0x040500
 	rc.single_close_tab_button = true;
@@ -2070,14 +2466,17 @@ void PrefUserInterface::update(LyXRC const & rc)
 	autoSaveCB->setChecked(autosave);
 	autoSaveSB->setEnabled(autosave);
 	backupCB->setChecked(rc.make_backup);
+	saveCompressedCB->setChecked(rc.save_compressed);
 	lastfilesSB->setValue(rc.num_lastfiles);
 	tooltipCB->setChecked(rc.use_tooltip);
 	openDocumentsInTabsCB->setChecked(rc.open_buffers_in_tabs);
+	singleInstanceCB->setChecked(rc.single_instance && !rc.lyxpipes.empty());
+	singleInstanceCB->setEnabled(!rc.lyxpipes.empty());
 	singleCloseTabButtonCB->setChecked(rc.single_close_tab_button);
 }
 
 
-void PrefUserInterface::select_ui()
+void PrefUserInterface::selectUi()
 {
 	QString file = form_->browseUI(internalPath(uiFileED->text()));
 	if (!file.isEmpty())
@@ -2105,6 +2504,10 @@ PrefEdit::PrefEdit(GuiPreferences * form)
 
 	connect(cursorFollowsCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
+	connect(scrollBelowCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
+	connect(macLikeWordMovementCB, SIGNAL(clicked()),
+		this, SIGNAL(changed()));
 	connect(sortEnvironmentsCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(groupEnvironmentsCB, SIGNAL(clicked()),
@@ -2117,6 +2520,8 @@ PrefEdit::PrefEdit(GuiPreferences * form)
 		this, SIGNAL(changed()));
 	connect(toggleTabbarCB, SIGNAL(toggled(bool)),
 		this, SIGNAL(changed()));
+	connect(toggleMenubarCB, SIGNAL(toggled(bool)),
+		this, SIGNAL(changed()));
 	connect(toggleScrollbarCB, SIGNAL(toggled(bool)),
 		this, SIGNAL(changed()));
 	connect(toggleToolbarsCB, SIGNAL(toggled(bool)),
@@ -2127,6 +2532,8 @@ PrefEdit::PrefEdit(GuiPreferences * form)
 void PrefEdit::apply(LyXRC & rc) const
 {
 	rc.cursor_follows_scrollbar = cursorFollowsCB->isChecked();
+	rc.scroll_below_document = scrollBelowCB->isChecked();
+	rc.mac_like_word_movement = macLikeWordMovementCB->isChecked();
 	rc.sort_layouts = sortEnvironmentsCB->isChecked();
 	rc.group_layouts = groupEnvironmentsCB->isChecked();
 	switch (macroEditStyleCO->currentIndex()) {
@@ -2137,6 +2544,7 @@ void PrefEdit::apply(LyXRC & rc) const
 	rc.full_screen_toolbars = toggleToolbarsCB->isChecked();
 	rc.full_screen_scrollbar = toggleScrollbarCB->isChecked();
 	rc.full_screen_tabbar = toggleTabbarCB->isChecked();
+	rc.full_screen_menubar = toggleMenubarCB->isChecked();
 	rc.full_screen_width = fullscreenWidthSB->value();
 	rc.full_screen_limit = fullscreenLimitGB->isChecked();
 }
@@ -2145,12 +2553,15 @@ void PrefEdit::apply(LyXRC & rc) const
 void PrefEdit::update(LyXRC const & rc)
 {
 	cursorFollowsCB->setChecked(rc.cursor_follows_scrollbar);
+	scrollBelowCB->setChecked(rc.scroll_below_document);
+	macLikeWordMovementCB->setChecked(rc.mac_like_word_movement);
 	sortEnvironmentsCB->setChecked(rc.sort_layouts);
 	groupEnvironmentsCB->setChecked(rc.group_layouts);
 	macroEditStyleCO->setCurrentIndex(rc.macro_edit_style);
 	toggleScrollbarCB->setChecked(rc.full_screen_scrollbar);
 	toggleToolbarsCB->setChecked(rc.full_screen_toolbars);
 	toggleTabbarCB->setChecked(rc.full_screen_tabbar);
+	toggleMenubarCB->setChecked(rc.full_screen_menubar);
 	fullscreenWidthSB->setValue(rc.full_screen_width);
 	fullscreenLimitGB->setChecked(rc.full_screen_limit);
 }
@@ -2183,7 +2594,7 @@ PrefShortcuts::PrefShortcuts(GuiPreferences * form)
 	// shortcutsTW->setSelectionMode(QAbstractItemView::MultiSelection);
 
 	connect(bindFilePB, SIGNAL(clicked()),
-		this, SLOT(select_bind()));
+		this, SLOT(selectBind()));
 	connect(bindFileED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 
@@ -2199,13 +2610,13 @@ PrefShortcuts::PrefShortcuts(GuiPreferences * form)
 	connect(shortcut_->cancelPB, SIGNAL(clicked()),
 		shortcut_, SLOT(reject()));
 	connect(shortcut_->clearPB, SIGNAL(clicked()),
-		this, SLOT(shortcut_clearPB_pressed()));
+		this, SLOT(shortcutClearPressed()));
 	connect(shortcut_->removePB, SIGNAL(clicked()),
-		this, SLOT(shortcut_removePB_pressed()));
+		this, SLOT(shortcutRemovePressed()));
 	connect(shortcut_->okPB, SIGNAL(clicked()),
-		this, SLOT(shortcut_okPB_pressed()));
+		this, SLOT(shortcutOkPressed()));
 	connect(shortcut_->cancelPB, SIGNAL(clicked()),
-		this, SLOT(shortcut_cancelPB_pressed()));
+		this, SLOT(shortcutCancelPressed()));
 }
 
 
@@ -2213,7 +2624,7 @@ void PrefShortcuts::apply(LyXRC & rc) const
 {
 	rc.bind_file = internal_path(fromqstr(bindFileED->text()));
 	// write user_bind and user_unbind to .lyx/bind/user.bind
-	FileName bind_dir(addPath(package().user_support().absFilename(), "bind"));
+	FileName bind_dir(addPath(package().user_support().absFileName(), "bind"));
 	if (!bind_dir.exists() && !bind_dir.createDirectory(0777)) {
 		lyxerr << "LyX could not create the user bind directory '"
 		       << bind_dir << "'. All user-defined key bindings will be lost." << endl;
@@ -2224,15 +2635,15 @@ void PrefShortcuts::apply(LyXRC & rc) const
 		       << bind_dir << "'. All user-defined key bindings will be lost." << endl;
 		return;
 	}
-	FileName user_bind_file(bind_dir.absFilename() + "/user.bind");
+	FileName user_bind_file(bind_dir.absFileName() + "/user.bind");
 	user_unbind_.write(user_bind_file.toFilesystemEncoding(), false, true);
 	user_bind_.write(user_bind_file.toFilesystemEncoding(), true, false);
 	// immediately apply the keybindings. Why this is not done before?
 	// The good thing is that the menus are updated automatically.
 	theTopLevelKeymap().clear();
 	theTopLevelKeymap().read("site");
-	theTopLevelKeymap().read(rc.bind_file);
-	theTopLevelKeymap().read("user");
+	theTopLevelKeymap().read(rc.bind_file, 0, KeyMap::Fallback);
+	theTopLevelKeymap().read("user", 0, KeyMap::MissingOK);
 }
 
 
@@ -2246,7 +2657,7 @@ void PrefShortcuts::update(LyXRC const & rc)
 	system_bind_.read("site");
 	system_bind_.read(rc.bind_file);
 	// \unbind in user.bind is added to user_unbind_
-	user_bind_.read("user", &user_unbind_);
+	user_bind_.read("user", &user_unbind_, KeyMap::MissingOK);
 	updateShortcutsTW();
 }
 
@@ -2256,7 +2667,7 @@ void PrefShortcuts::updateShortcutsTW()
 	shortcutsTW->clear();
 
 	editItem_ = new QTreeWidgetItem(shortcutsTW);
-	editItem_->setText(0, qt_("Cursor, Mouse and Editing functions"));
+	editItem_->setText(0, qt_("Cursor, Mouse and Editing Functions"));
 	editItem_->setFlags(editItem_->flags() & ~Qt::ItemIsSelectable);
 
 	mathItem_ = new QTreeWidgetItem(shortcutsTW);
@@ -2329,7 +2740,7 @@ void PrefShortcuts::setItemType(QTreeWidgetItem * item, KeyMap::ItemType tag)
 QTreeWidgetItem * PrefShortcuts::insertShortcutItem(FuncRequest const & lfun,
 		KeySequence const & seq, KeyMap::ItemType tag)
 {
-	FuncCode action = lfun.action;
+	FuncCode const action = lfun.action();
 	string const action_name = lyxaction.getActionName(action);
 	QString const lfun_name = toqstr(from_utf8(action_name)
 			+ ' ' + lfun.argument());
@@ -2480,7 +2891,7 @@ void PrefShortcuts::removeShortcut()
 }
 
 
-void PrefShortcuts::select_bind()
+void PrefShortcuts::selectBind()
 {
 	QString file = form_->browsebind(internalPath(bindFileED->text()));
 	if (!file.isEmpty()) {
@@ -2543,19 +2954,19 @@ void PrefShortcuts::on_searchLE_textEdited()
 
 docstring makeCmdString(FuncRequest const & f)
 {
-	docstring actionStr = from_ascii(lyxaction.getActionName(f.action));
+	docstring actionStr = from_ascii(lyxaction.getActionName(f.action()));
 	if (!f.argument().empty())
 		actionStr += " " + f.argument();
 	return actionStr;
 }
 
 
-void PrefShortcuts::shortcut_okPB_pressed()
+void PrefShortcuts::shortcutOkPressed()
 {
 	QString const new_lfun = shortcut_->lfunLE->text();
 	FuncRequest func = lyxaction.lookupFunc(fromqstr(new_lfun));
 
-	if (func.action == LFUN_UNKNOWN_ACTION) {
+	if (func.action() == LFUN_UNKNOWN_ACTION) {
 		Alert::error(_("Failed to create shortcut"),
 			_("Unknown or invalid LyX function"));
 		return;
@@ -2570,23 +2981,23 @@ void PrefShortcuts::shortcut_okPB_pressed()
 
 	// check to see if there's been any change
 	FuncRequest oldBinding = system_bind_.getBinding(k);
-	if (oldBinding.action == LFUN_UNKNOWN_ACTION)
+	if (oldBinding.action() == LFUN_UNKNOWN_ACTION)
 		oldBinding = user_bind_.getBinding(k);
 	if (oldBinding == func)
 		// nothing has changed
 		return;
 	
 	// make sure this key isn't already bound---and, if so, not unbound
-	FuncCode const unbind = user_unbind_.getBinding(k).action;
-	docstring const action_str = makeCmdString(oldBinding);
-	if (oldBinding.action > LFUN_NOACTION && unbind == LFUN_UNKNOWN_ACTION
-		  && save_lfun_ != toqstr(action_str)) {
+	FuncCode const unbind = user_unbind_.getBinding(k).action();
+	docstring const action_string = makeCmdString(oldBinding);
+	if (oldBinding.action() > LFUN_NOACTION && unbind == LFUN_UNKNOWN_ACTION
+		  && save_lfun_ != toqstr(action_string)) {
 		// FIXME Perhaps we should offer to over-write the old shortcut?
 		// If so, we'll need to remove it from our list, etc.
 		Alert::error(_("Failed to create shortcut"),
 			bformat(_("Shortcut `%1$s' is already bound to:\n%2$s\n"
 			  "You need to remove that binding before creating a new one."), 
-			k.print(KeySequence::ForGui), action_str));
+			k.print(KeySequence::ForGui), action_string));
 		return;
 	}
 
@@ -2609,19 +3020,19 @@ void PrefShortcuts::shortcut_okPB_pressed()
 }
 
 
-void PrefShortcuts::shortcut_cancelPB_pressed()
+void PrefShortcuts::shortcutCancelPressed()
 {
 	shortcut_->shortcutWG->reset();
 }
 
 
-void PrefShortcuts::shortcut_clearPB_pressed()
+void PrefShortcuts::shortcutClearPressed()
 {
 	shortcut_->shortcutWG->reset();
 }
 
 
-void PrefShortcuts::shortcut_removePB_pressed()
+void PrefShortcuts::shortcutRemovePressed()
 {
 	shortcut_->shortcutWG->removeFromSequence();
 }
@@ -2681,7 +3092,10 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	addModule(new PrefUserInterface(this));
 	addModule(new PrefEdit(this));
 	addModule(new PrefShortcuts(this));
-	addModule(new PrefScreenFonts(this));
+	PrefScreenFonts * screenfonts = new PrefScreenFonts(this);
+	connect(this, SIGNAL(prefsApplied(LyXRC const &)),
+			screenfonts, SLOT(updateScreenFontSizes(LyXRC const &)));
+	addModule(screenfonts);
 	addModule(new PrefColors(this));
 	addModule(new PrefDisplay(this));
 	addModule(new PrefInput(this));
@@ -2694,10 +3108,10 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	addModule(new PrefLanguage(this));
 	addModule(new PrefSpellchecker(this));
 
+	//for strftime validator
+	PrefOutput * output = new PrefOutput(this); 
+	addModule(output);
 	addModule(new PrefPrinter(this));
-	PrefOutput * general = new PrefOutput(this);
-	addModule(general);
-	addModule(new PrefPlaintext(this));
 	addModule(new PrefLatex(this));
 
 	PrefConverters * converters = new PrefConverters(this);
@@ -2707,7 +3121,7 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	addModule(converters);
 	addModule(formats);
 
-	prefsPS->setCurrentPanel(qt_("User interface"));
+	prefsPS->setCurrentPanel(qt_("User Interface"));
 // FIXME: hack to work around resizing bug in Qt >= 4.2
 // bug verified with Qt 4.2.{0-3} (JSpitzm)
 #if QT_VERSION >= 0x040200
@@ -2721,13 +3135,13 @@ GuiPreferences::GuiPreferences(GuiView & lv)
 	bc().setRestore(restorePB);
 
 	// initialize the strftime validator
-	bc().addCheckedLineEdit(general->DateED);
+	bc().addCheckedLineEdit(output->DateED);
 }
 
 
 void GuiPreferences::addModule(PrefModule * module)
 {
-	LASSERT(module, /**/);
+	LASSERT(module, return);
 	if (module->category().isEmpty())
 		prefsPS->addPanel(module, module->title());
 	else
@@ -2764,6 +3178,7 @@ void GuiPreferences::applyView()
 	apply(rc());
 }
 
+
 bool GuiPreferences::initialiseParams(string const &)
 {
 	rc_ = lyxrc;
@@ -2788,9 +3203,14 @@ void GuiPreferences::dispatchParams()
 	ostringstream ss;
 	rc_.write(ss, true);
 	dispatch(FuncRequest(LFUN_LYXRC_APPLY, ss.str()));
+	// issue prefsApplied signal. This will update the
+	// localized screen font sizes.
+	prefsApplied(rc_);
 	// FIXME: these need lfuns
 	// FIXME UNICODE
-	theBufferList().setCurrentAuthor(from_utf8(rc_.user_name), from_utf8(rc_.user_email));
+	Author const & author = 
+		Author(from_utf8(rc_.user_name), from_utf8(rc_.user_email));
+	theBufferList().recordCurrentAuthor(author);
 
 	lyx::formats = formats_;
 
@@ -2850,15 +3270,8 @@ QString GuiPreferences::browsekbmap(QString const & file) const
 }
 
 
-QString GuiPreferences::browsedict(QString const & file) const
-{
-	return browseFile(file, qt_("Choose personal dictionary"),
-		QStringList(lyxrc.use_spell_lib ? qt_("*.pws") : qt_("*.ispell")));
-}
-
-
 QString GuiPreferences::browse(QString const & file,
-				  QString const & title) const
+	QString const & title) const
 {
 	return browseFile(file, title, QStringList(), true);
 }
@@ -2924,4 +3337,4 @@ Dialog * createGuiPreferences(GuiView & lv) { return new GuiPreferences(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiPrefs_moc.cpp"
+#include "moc_GuiPrefs.cpp"

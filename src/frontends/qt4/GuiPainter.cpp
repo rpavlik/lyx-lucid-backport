@@ -44,6 +44,8 @@ using namespace std;
 
 namespace lyx {
 namespace frontend {
+  
+const float Painter::thin_line = 0.5;
 
 GuiPainter::GuiPainter(QPaintDevice * device)
 	: QPainter(device), Painter(),
@@ -52,7 +54,7 @@ GuiPainter::GuiPainter(QPaintDevice * device)
 	// new QPainter has default QPen:
 	current_color_ = guiApp->colorCache().get(Color_black);
 	current_ls_ = line_solid;
-	current_lw_ = line_thin;
+	current_lw_ = thin_line;
 }
 
 
@@ -64,7 +66,7 @@ GuiPainter::~GuiPainter()
 
 
 void GuiPainter::setQPainterPen(QColor const & col,
-	Painter::line_style ls, Painter::line_width lw)
+	Painter::line_style ls, float lw)
 {
 	if (col == current_color_ && ls == current_ls_ && lw == current_lw_)
 		return;
@@ -81,10 +83,7 @@ void GuiPainter::setQPainterPen(QColor const & col,
 		case line_onoffdash: pen.setStyle(Qt::DotLine); break;
 	}
 
-	switch (lw) {
-		case line_thin: pen.setWidth(0); break;
-		case line_thick: pen.setWidth(3); break;
-	}
+	pen.setWidthF(lw);
 
 	setPen(pen);
 }
@@ -174,7 +173,7 @@ void GuiPainter::point(int x, int y, Color col)
 void GuiPainter::line(int x1, int y1, int x2, int y2,
 	Color col,
 	line_style ls,
-	line_width lw)
+	float lw)
 {
 	if (!isDrawingEnabled())
 		return;
@@ -191,7 +190,7 @@ void GuiPainter::line(int x1, int y1, int x2, int y2,
 void GuiPainter::lines(int const * xp, int const * yp, int np,
 	Color col,
 	line_style ls,
-	line_width lw)
+	float lw)
 {
 	if (!isDrawingEnabled())
 		return;
@@ -219,7 +218,7 @@ void GuiPainter::lines(int const * xp, int const * yp, int np,
 void GuiPainter::rectangle(int x, int y, int w, int h,
 	Color col,
 	line_style ls,
-	line_width lw)
+	float lw)
 {
 	if (!isDrawingEnabled())
 		return;
@@ -336,6 +335,12 @@ int GuiPainter::text(int x, int y, docstring const & s,
 		textwidth = smallCapsText(x, y, str, f);
 		if (f.underbar() == FONT_ON)
 			underline(f, x, y, textwidth);
+		if (f.strikeout() == FONT_ON)
+			strikeoutLine(f, x, y, textwidth);
+		if (f.uuline() == FONT_ON)
+			doubleUnderline(f, x, y, textwidth);
+		if (f.uwave() == FONT_ON)
+			wavyHorizontalLine(x, y, textwidth, f.realColor().baseColor);
 		return textwidth;
 	}
 
@@ -345,6 +350,13 @@ int GuiPainter::text(int x, int y, docstring const & s,
 	textwidth = fm.width(s);
 	if (f.underbar() == FONT_ON)
 		underline(f, x, y, textwidth);
+	if (f.strikeout() == FONT_ON)
+		strikeoutLine(f, x, y, textwidth);
+	if (f.uuline() == FONT_ON)
+		doubleUnderline(f, x, y, textwidth);
+	if (f.uwave() == FONT_ON)
+		// f.color() doesn't work on some circumstances
+		wavyHorizontalLine(x, y, textwidth,  f.realColor().baseColor);
 
 	if (!isDrawingEnabled())
 		return textwidth;
@@ -520,6 +532,17 @@ int GuiPainter::preeditText(int x, int y, char_type c,
 }
 
 
+void GuiPainter::doubleUnderline(FontInfo const & f, int x, int y, int width)
+{
+	FontMetrics const & fm = theFontMetrics(f);
+
+	int const below = max(fm.maxDescent() / 2, 2);
+
+	line(x, y + below, x + width, y + below, f.realColor());
+	line(x, y + below - 2, x + width, y + below - 2, f.realColor());
+}
+
+
 void GuiPainter::underline(FontInfo const & f, int x, int y, int width)
 {
 	FontMetrics const & fm = theFontMetrics(f);
@@ -531,6 +554,20 @@ void GuiPainter::underline(FontInfo const & f, int x, int y, int width)
 		line(x, y + below, x + width, y + below, f.realColor());
 	else
 		fillRectangle(x, y + below, width, below + height, f.realColor());
+}
+
+
+void GuiPainter::strikeoutLine(FontInfo const & f, int x, int y, int width)
+{
+	FontMetrics const & fm = theFontMetrics(f);
+
+	int const middle = max((fm.maxHeight() / 4), 1);
+	int const height =  middle/3;
+
+	if (height < 2)
+		line(x, y - middle, x + width, y - middle, f.realColor());
+	else
+		fillRectangle(x, y - middle, width, height, f.realColor());
 }
 
 
@@ -546,6 +583,25 @@ void GuiPainter::dashedUnderline(FontInfo const & f, int x, int y, int width)
 
 	for (int n = 0; n != height; ++n)
 		line(x, y + below + n, x + width, y + below + n, f.realColor(), line_onoffdash);
+}
+
+
+void GuiPainter::wavyHorizontalLine(int x, int y, int width, ColorCode col)
+{
+	setQPainterPen(computeColor(col));
+	int const step = 2;
+	int const xend = x + width;
+	int height = 1;
+	//FIXME: I am not sure if Antialiasing gives the best effect.
+	//setRenderHint(Antialiasing, true);
+	while (x < xend) {
+		height = - height;
+		drawLine(x, y - height, x + step, y + height);
+		x += step;
+		drawLine(x, y + height, x + step/2, y + height);
+		x += step/2;
+	}
+	//setRenderHint(Antialiasing, false);
 }
 
 } // namespace frontend

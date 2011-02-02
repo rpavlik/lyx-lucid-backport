@@ -14,6 +14,7 @@
 #include "Buffer.h"
 #include "BufferParams.h"
 #include "BufferView.h"
+#include "CutAndPaste.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "InsetGraphics.h"
@@ -23,8 +24,8 @@
 #include "LayoutFile.h"
 #include "LyXAction.h"
 #include "LyXRC.h"
+#include "LyXVC.h"
 #include "Lexer.h"
-#include "MetricsInfo.h"
 #include "ParagraphParameters.h"
 
 #include "frontends/Application.h"
@@ -61,6 +62,7 @@ NameTranslator const initTranslator()
 	translator.addPair(InsetInfo::MENU_INFO, "menu");
 	translator.addPair(InsetInfo::ICON_INFO, "icon");
 	translator.addPair(InsetInfo::BUFFER_INFO, "buffer");
+	translator.addPair(InsetInfo::LYX_INFO, "lyxinfo");
 
 	return translator;
 }
@@ -82,7 +84,7 @@ NameTranslator const & nameTranslator()
 
 
 	
-InsetInfo::InsetInfo(Buffer const & buf, string const & name) 
+InsetInfo::InsetInfo(Buffer * buf, string const & name) 
 	: InsetCollapsable(buf), type_(UNKNOWN_INFO), name_()
 {
 	setAutoBreakRows(true);
@@ -93,8 +95,8 @@ InsetInfo::InsetInfo(Buffer const & buf, string const & name)
 
 Inset * InsetInfo::editXY(Cursor & cur, int x, int y)
 {
-	cur.push(*this);
-	return InsetCollapsable::editXY(cur, x, y);
+	// do not allow the cursor to be set in this Inset
+	return Inset::editXY(cur, x, y);
 }
 
 
@@ -139,7 +141,6 @@ void InsetInfo::read(Lexer & lex)
 			_("Missing \\end_inset at this point."),
 			from_utf8(token));
 	}
-	setLayout(buffer().params());
 	updateInfo();
 }
 
@@ -151,31 +152,45 @@ void InsetInfo::write(ostream & os) const
 }
 
 
-bool InsetInfo::validate(docstring const & arg) const
+bool InsetInfo::validateModifyArgument(docstring const & arg) const
 {
 	string type;
 	string const name = trim(split(to_utf8(arg), type, ' '));
+
 	switch (nameTranslator().find(type)) {
 	case UNKNOWN_INFO:
 		return false;
+
 	case SHORTCUT_INFO:
 	case SHORTCUTS_INFO:
 	case MENU_INFO:
 	case ICON_INFO: {
 		FuncRequest func = lyxaction.lookupFunc(name);
-		return func.action != LFUN_UNKNOWN_ACTION;
+		return func.action() != LFUN_UNKNOWN_ACTION;
 	}
+
 	case LYXRC_INFO: {
 		ostringstream oss;
 		lyxrc.write(oss, true, name);
 		return !oss.str().empty();
 	}
+
 	case PACKAGE_INFO:
 	case TEXTCLASS_INFO:
 		return true;
+
 	case BUFFER_INFO:
-		return name == "name" || name == "path" || name == "class";
+		if (name == "name" || name == "path" || name == "class")
+			return true;
+		if (name == "vcs-revision" || name == "vcs-tree-revision" ||
+		       name == "vcs-author" || name == "vcs-date" || name == "vcs-time")
+			return buffer().lyxvc().inUse();
+		return false;
+
+	case LYX_INFO:
+		return name == "version";
 	}
+
 	return false;
 }
 
@@ -190,47 +205,52 @@ bool InsetInfo::showInsetDialog(BufferView * bv) const
 bool InsetInfo::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
-	case LFUN_MOUSE_PRESS:
-	case LFUN_MOUSE_RELEASE:
-	case LFUN_MOUSE_MOTION:
-	case LFUN_MOUSE_DOUBLE:
-	case LFUN_MOUSE_TRIPLE:
-	case LFUN_COPY:
+	switch (cmd.action()) {
 	case LFUN_INSET_SETTINGS:
 		return InsetCollapsable::getStatus(cur, cmd, flag);
 
-	case LFUN_INSET_MODIFY:
+	case LFUN_INSET_DIALOG_UPDATE:
+	case LFUN_INSET_COPY_AS:
 		flag.setEnabled(true);
-		break;
+		return true;
+
+	case LFUN_INSET_MODIFY:
+		if (validateModifyArgument(cmd.argument())) {
+			flag.setEnabled(true);
+			return true;
+		}
+		//fall through
 
 	default:
 		return false;
 	}
-	return true;
 }
 
 
 void InsetInfo::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	// allow selection, copy but not cut, delete etc
-	switch (cmd.action) {
-	case LFUN_MOUSE_PRESS:
-	case LFUN_MOUSE_RELEASE:
-	case LFUN_MOUSE_MOTION:
-	case LFUN_MOUSE_DOUBLE:
-	case LFUN_MOUSE_TRIPLE:
-	case LFUN_COPY:
-	case LFUN_INSET_SETTINGS:
-		InsetCollapsable::doDispatch(cur, cmd);
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY:
+		cur.recordUndo();
+		setInfo(to_utf8(cmd.argument()));
 		break;
 
-	case LFUN_INSET_MODIFY:
-		setInfo(to_utf8(cmd.argument()));
-		cur.pos() = 0;
+	case LFUN_INSET_COPY_AS: {
+		cap::clearSelection();
+		Cursor copy(cur);
+		copy.pushBackward(*this);
+		copy.pit() = 0;
+		copy.pos() = 0;
+		copy.resetAnchor();
+		copy.pit() = copy.lastpit();
+		copy.pos() = copy.lastpos();
+		copy.setSelection();
+		cap::copySelection(copy);
 		break;
+	}
 
 	default:
+		InsetCollapsable::doDispatch(cur, cmd);
 		break;
 	}
 }
@@ -244,7 +264,6 @@ void InsetInfo::setInfo(string const & name)
 	string type;
 	name_ = trim(split(name, type, ' '));
 	type_ = nameTranslator().find(type);
-	setLayout(buffer().params());
 	updateInfo();
 }
 
@@ -272,8 +291,8 @@ void InsetInfo::updateInfo()
 		break;
 	case SHORTCUT_INFO:
 	case SHORTCUTS_INFO: {
-		FuncRequest func = lyxaction.lookupFunc(name_);
-		if (func.action == LFUN_UNKNOWN_ACTION) {
+		FuncRequest const func = lyxaction.lookupFunc(name_);
+		if (func.action() == LFUN_UNKNOWN_ACTION) {
 			error("Unknown action %1$s");
 			break;
 		}
@@ -333,12 +352,16 @@ void InsetInfo::updateInfo()
 	}
 	case MENU_INFO: {
 		docstring_list names;
-		FuncRequest func = lyxaction.lookupFunc(name_);
-		if (func.action == LFUN_UNKNOWN_ACTION) {
+		FuncRequest const func = lyxaction.lookupFunc(name_);
+		if (func.action() == LFUN_UNKNOWN_ACTION) {
 			error("Unknown action %1$s");
 			break;
 		}
 		// iterate through the menubackend to find it
+		if (!theApp()) {
+			error("Can't determine menu entry for action %1$s in batch mode");
+			break;
+		}
 		if (!theApp()->searchMenu(func, names)) {
 			error("No menu entry for action %1$s");
 			break;
@@ -370,15 +393,19 @@ void InsetInfo::updateInfo()
 	}
 	case ICON_INFO: {
 		FuncRequest func = lyxaction.lookupFunc(name_);
-		docstring icon_name = theApp()->iconName(func, true);
+		docstring icon_name = frontend::Application::iconName(func, true);
 		//FIXME: We should use the icon directly instead of
 		// going through FileName. The code below won't work
 		// if the icon is embedded in the executable through
 		// the Qt resource system.
+		// This is only a negligible performance problem:
+		// If the installed icon differs from the resource icon the
+		// installed one is preferred anyway, and all icons that are
+		// embedded in the resources are installed as well.
 		FileName file(to_utf8(icon_name));
 		if (!file.exists())
 			break;
-		InsetGraphics * inset = new InsetGraphics(buffer());
+		InsetGraphics * inset = new InsetGraphics(buffer_);
 		InsetGraphicsParams igp;
 		igp.filename = file;
 		inset->setParams(igp);
@@ -388,21 +415,60 @@ void InsetInfo::updateInfo()
 		break;
 	}
 	case BUFFER_INFO: {
-		if (name_ == "name")
+		if (name_ == "name") {
 			setText(from_utf8(buffer().fileName().onlyFileName()));
-		else if (name_ == "path")
+			break;
+		}
+		if (name_ == "path") {
 			setText(from_utf8(buffer().filePath()));
-		else if (name_ == "class")
+			break;
+		}
+		if (name_ == "class") {
 			setText(from_utf8(bp.documentClass().name()));
+			break;
+		}
+		
+		// everything that follows is for version control.
+		// nothing that isn't version control should go below this line.
+		if (!buffer().lyxvc().inUse()) {
+			setText(_("No version control"));
+			break;
+		}
+		LyXVC::RevisionInfo itype = LyXVC::Unknown;
+		if (name_ == "vcs-revision")
+			itype = LyXVC::File;
+		else if (name_ == "vcs-tree-revision")
+			itype = LyXVC::Tree;
+		else if (name_ == "vcs-author")
+			itype = LyXVC::Author;
+		else if (name_ == "vcs-time")
+			itype = LyXVC::Time;
+		else if (name_ == "vcs-date")
+			itype = LyXVC::Date;
+		string binfo = buffer().lyxvc().revisionInfo(itype);
+		if (binfo.empty())
+			setText(bformat(_("%1$s unknown"), from_ascii(name_)));
 		else
-			setText(_("Unknown buffer info"));
+			setText(from_utf8(binfo));
 		break;
 	}
+	case LYX_INFO:
+		if (name_ == "version")
+			setText(from_ascii(PACKAGE_VERSION));
+		break;
 	}
 }
 
 
 docstring InsetInfo::contextMenu(BufferView const &, int, int) const
+{
+	//FIXME: We override the implementation of InsetCollapsable,
+	//because this inset is not a collapsable inset.
+	return contextMenuName();
+}
+
+
+docstring InsetInfo::contextMenuName() const
 {
 	return from_ascii("context-info");
 }

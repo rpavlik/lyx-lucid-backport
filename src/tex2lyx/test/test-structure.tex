@@ -1,4 +1,22 @@
+%% LyX trick_preamble_code_into_believing_that_this_was_created_by_lyx created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
 \documentclass[legalpaper]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+
+\newcommand{\noun}[1]{\textsc{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+
+\newenvironment{lyxlist}[1]
+	{\begin{list}{}
+		{\settowidth{\labelwidth}{#1}
+		\setlength{\leftmargin}{\labelwidth}
+		\addtolength{\leftmargin}{\labelsep}
+		\renewcommand{\makelabel}[1]{##1\hfil}}}
+	{\end{list}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
 
 \newenvironment{foo}{==[}{]==}
 
@@ -39,7 +57,11 @@ An environment
 \section*{A starred section}
 
 \begin{figure}
-\caption{A figure}
+\caption{ \emph{\noun{is}} a caption}
+\end{figure}
+
+\begin{figure}
+\caption[s\noun{ho}rt]{this \emph{is} a caption}
 \end{figure}
 
 A paragraph\footnote{hello} with a footnote and another
@@ -87,6 +109,15 @@ We can also nest enumerations
 \end{enumerate}
 \item Item2
 \end{enumerate}
+\begin{enumerate}
+\item Item1 (appears as Item3 with bug 5716)
+
+Normal paragraph in Item1
+
+\begin{enumerate}
+\item Item1.a
+\end{enumerate}
+\end{enumerate}
 
 Let's see what happens when normal paragraphs are inserted in lists:
 
@@ -108,13 +139,18 @@ and a second paragraph for good measure
 
 What else? Well, we have descriptions:
 \begin{description}
-\item[A] first item
-\item[B] second one
+\item[ABC] first item
+\item[BCD] second one
 \end{description}
-
-or even bibliography
+labelings:
+\begin{lyxlist}{00.00.0000}
+\item [label~1] first item
+\item [label~2] second item
+\end{lyxlist}
+and bibliography:
 \begin{thebibliography}{9}
 \bibitem{FOO} Edward Bar. \emph{The Foo Book}. (1999)
+\bibitem{FO2} Walter Müller \emph{The Müller Book}. (2004) 
 \end{thebibliography}
 
 \appendix
@@ -128,5 +164,18 @@ or even bibliography
 
 blub
 
+Test for missing \textbackslash end\_deeper (file format 278).
+This must stay at the very end of the document!
+\begin{itemize}
+\item par1
+
+par2
+\begin{enumerate}
+\item par1
+
+par2
+\end{enumerate}
+
+\end{itemize}
 
 \end{document}

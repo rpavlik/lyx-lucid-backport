@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alejandro Aguilar Sierra
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -29,7 +29,7 @@ namespace lyx {
 
 MathData & InsetMath::cell(idx_type)
 {
-	static MathData dummyCell(buffer_);
+	static MathData dummyCell(&buffer());
 	LYXERR0("I don't have any cell");
 	return dummyCell;
 }
@@ -122,8 +122,21 @@ void InsetMath::mathematica(MathematicaStream & os) const
 
 void InsetMath::mathmlize(MathStream & os) const
 {
+	os << "<!-- " << from_utf8(insetName(lyxCode())) << " -->";
+	os << MTag("mi");
 	NormalStream ns(os.os());
 	normalize(ns);
+	os << ETag("mi");
+}
+
+
+void InsetMath::htmlize(HtmlStream & os) const
+{
+	os << "<!-- " << from_utf8(insetName(lyxCode())) << " -->";
+	os << MTag("span", "style='color: red;'");
+	NormalStream ns(os.os());
+	normalize(ns);
+	os << ETag("span");
 }
 
 

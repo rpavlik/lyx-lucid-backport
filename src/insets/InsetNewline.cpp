@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,12 +13,14 @@
 
 #include "InsetNewline.h"
 
+#include "Cursor.h"
 #include "Dimension.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 
 #include "frontends/Application.h"
 #include "frontends/FontMetrics.h"
@@ -32,7 +34,7 @@ using namespace std;
 
 namespace lyx {
 
-InsetNewline::InsetNewline()
+InsetNewline::InsetNewline() : Inset(0)
 {}
 
 
@@ -89,10 +91,11 @@ void InsetNewline::metrics(MetricsInfo & mi, Dimension & dim) const
 
 void InsetNewline::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
 		InsetNewlineParams params;
+		cur.recordUndo();
 		string2params(to_utf8(cmd.argument()), params);
 		params_.kind = params.kind;
 		break;
@@ -108,7 +111,7 @@ void InsetNewline::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetNewline::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "newline") {
@@ -170,6 +173,14 @@ int InsetNewline::docbook(odocstream & os, OutputParams const &) const
 {
 	os << '\n';
 	return 0;
+}
+
+
+docstring InsetNewline::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	xs << html::CompTag("br");
+	xs.cr();
+	return docstring();
 }
 
 
@@ -250,7 +261,7 @@ void InsetNewline::draw(PainterInfo & pi, int x, int y) const
 }
 
 
-docstring InsetNewline::contextMenu(BufferView const &, int, int) const
+docstring InsetNewline::contextMenuName() const
 {
 	return from_ascii("context-newline");
 }

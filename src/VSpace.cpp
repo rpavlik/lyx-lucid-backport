@@ -244,27 +244,23 @@ bool isValidGlueLength(string const & data, GlueLength * result)
 	}
 	// end of hack
 
-	int  pattern_index = 0;
-	int  table_index = 0;
-	char pattern[20];
-
-	number_index = 1;
-	unit_index = 1;  // entries at index 0 are sentinels
+	number_index = unit_index = 1;  // entries at index 0 are sentinels
 
 	// construct "pattern" from "data"
+	size_t const pattern_max_size = 20;
+	string pattern;
 	while (!isEndOfData(buffer)) {
-		if (pattern_index > 20)
+		if (pattern.size() > pattern_max_size)
 			return false;
-		pattern[pattern_index] = nextToken(buffer);
-		if (pattern[pattern_index] == 'E')
+		char const c = nextToken(buffer);
+		if (c == 'E')
 			return false;
-		++pattern_index;
+		pattern.push_back(c);
 	}
-	pattern[pattern_index] = '\0';
 
 	// search "pattern" in "table"
-	table_index = 0;
-	while (strcmp(pattern, table[table_index].pattern)) {
+	size_t table_index = 0;
+	while (pattern != table[table_index].pattern) {
 		++table_index;
 		if (!*table[table_index].pattern)
 			return false;
@@ -492,6 +488,24 @@ docstring const VSpace::asGUIName() const
 	return result;
 }
 
+
+string VSpace::asHTMLLength() const 
+{
+	string result;
+	switch (kind_) {
+		case DEFSKIP:   result = "2ex"; break;
+		case SMALLSKIP: result = "1ex"; break;
+		case MEDSKIP:   result = "3ex"; break;
+		case BIGSKIP:   result = "5ex"; break;
+		case LENGTH: {
+			Length tmp = len_.len();
+			if (tmp.value() > 0)
+				result = tmp.asHTMLString();
+		}
+		case VFILL:     break;
+	}
+	return result;
+}
 
 int VSpace::inPixels(BufferView const & bv) const
 {

@@ -14,16 +14,15 @@
 
 #include "support/docstring.h"
 
-#include <fstream>
-#include <sstream>
-
 #if defined(_MSC_VER) && (_MSC_VER >= 1600) 
-// Ugly workaround for MSVC10 STL bug
-// http://connect.microsoft.com/VisualStudio/feedback/details/572376/msvc10-c-std-numpunct-has-a-hardcoded-dllimport-in-definition
+// Ugly workaround for MSVC10 STL bug:
 // std::numpunct has a hardcoded dllimport in definition, but we wanna it with 32 bit 
 // so we can't import it and must define it but then the compiler complains.
 #include "support/numpunct_lyx_char_type.h"
 #endif
+
+#include <fstream>
+#include <sstream>
 
 namespace lyx {
 
@@ -53,7 +52,7 @@ typedef std::basic_ostream<char_type> odocstream;
 class ifdocstream : public std::basic_ifstream<char_type> {
 	typedef std::basic_ifstream<char_type> base;
 public:
-	ifdocstream(std::string const & encoding = "UTF-8");
+	ifdocstream();
 	explicit ifdocstream(const char* s,
 		std::ios_base::openmode mode = std::ios_base::in,
 		std::string const & encoding = "UTF-8");
@@ -62,6 +61,7 @@ public:
 
 /// File stream for writing files in 8bit encoding \p encoding with automatic
 /// conversion from UCS4.
+
 class ofdocstream : public std::basic_ofstream<char_type> {
 	typedef std::basic_ofstream<char_type> base;
 public:
@@ -73,6 +73,8 @@ public:
 	///
 	void reset(std::string const & encoding);
 };
+
+
 
 /// UCS4 input stringstream
 typedef std::basic_istringstream<char_type> idocstringstream;

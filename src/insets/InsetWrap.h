@@ -44,7 +44,7 @@ public:
 class InsetWrap : public InsetCollapsable {
 public:
 	///
-	InsetWrap(Buffer const &, std::string const &);
+	InsetWrap(Buffer *, std::string const &);
 	///
 	~InsetWrap();
 	///
@@ -71,19 +71,17 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const &) const;
 	///
-	docstring editMessage() const;
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	bool insetAllowed(InsetCode) const;
 	///
 	bool showInsetDialog(BufferView *) const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
-	// Update the counters of this inset and of its contents
-	void updateLabels(ParIterator const &);
+	/// Update the counters of this inset and of its contents
+	void updateBuffer(ParIterator const &, UpdateType);
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
-	///
-	docstring getCaptionText(OutputParams const &) const;
 	///
 	docstring name() const;
 	///

@@ -1,5 +1,5 @@
-#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
+\lyxformat 404
 \begin_document
 \begin_header
 \textclass book
@@ -36,18 +36,25 @@
   {LyX}}
 \end_preamble
 \use_default_options false
+\maintain_unincluded_children false
 \language slovak
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_xetex false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 12
 \spacing single
 \use_hyperref true
@@ -64,26 +71,35 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,pdfpagelayout=OneColumn, pdfnewwindow=true,pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
 \use_amsmath 0
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
-\tocdepth 3
+\tocdepth 2
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language german
 \papercolumns 1
-\papersides 1
+\papersides 2
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -367,10 +383,13 @@ prácou.
 Tak som neochotne roztrhal asi 20 strán cenného materiálu, ktorý som napísal,
  a rozhodol som sa znovu začať.
  Jediná vec, ktorú som nechal, je teraz časť 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec: čo-je-lyx"
+\begin_inset Quotes gld
+\end_inset
 
+Pomocník\SpecialChar \menuseparator
+Úvod\SpecialChar \menuseparator
+1.1 Čo je LyX
+\begin_inset Quotes grd
 \end_inset
 
 .
@@ -395,10 +414,11 @@ John Weiss
 
 \begin_layout Standard
 Časť 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec: čo-je-lyx"
+\begin_inset Quotes gld
+\end_inset
 
+Čo je LyX
+\begin_inset Quotes grd
 \end_inset
 
  je pozostatok z pôvodnej verzie Sprievodcu.
@@ -1235,13 +1255,20 @@ vášho dokumentu a menej času jeho
 formátovaním
 \emph toggle
 .
- Pozrite s časť 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec: čo-je-lyx"
+ Pozrite si časť 
+\emph default
 
+\begin_inset Quotes gld
 \end_inset
 
+Pomocník\SpecialChar \menuseparator
+Úvod\SpecialChar \menuseparator
+1.1 Čo je LyX
+\begin_inset Quotes grd
+\end_inset
+
+
+\emph toggle
  pre viac informácií o koncepte WYSIWYM.
 \end_layout
 
@@ -2202,7 +2229,7 @@ Užívateľskej príručky
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -2444,10 +2471,6 @@ Address
 , ktoré vo väčšine ostatných triedach neexistujú.
  Iné, napríklad 
 \family sans
-Quote
-\family default
- a 
-\family sans
 Description
 \family default
  sú bežné.
@@ -2489,7 +2512,7 @@ Signature
  Odteraz, vždy, keď budete chcieť napísať list, môžete použiť novú šablónu,
  aby ste ušetrili čas.
  Tu pravdepodobne nemusíme navrhovať žiadne cvičenie.
- Jednoducho napíšte niekomu list
+ Jednoducho napíšte niekomu list!
 \begin_inset Foot
 status collapsed
 
@@ -2512,7 +2535,7 @@ Address
 
 \end_inset
 
-!
+
 \end_layout
 
 \begin_layout Section
@@ -4301,7 +4324,8 @@ Cvičenie:
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
-\sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0\end{array}\right.\]
+\sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
+\end{array}\right.\]
 
 \end_inset
 
@@ -4351,7 +4375,8 @@ Toto vôbec nevyzerá dobre! Ak píšete dve alebo viac rovníc, ktoré sú pod
 \begin_layout Standard
 \begin_inset Formula \begin{eqnarray*}
 x & = & y+y+y+y+y\\
- & = & 5y\end{eqnarray*}
+ & = & 5y
+\end{eqnarray*}
 
 \end_inset
 
@@ -4383,7 +4408,8 @@ C-Enter
  dlhej rovnice, ako napríklad:
 \begin_inset Formula \begin{eqnarray*}
 x & = & a+b+c+d+\\
- &  & +e+f+g\end{eqnarray*}
+ &  & +e+f+g
+\end{eqnarray*}
 
 \end_inset
 
@@ -4437,7 +4463,8 @@ C-Tab
  na
 \begin_inset Formula \begin{eqnarray*}
 E & = & mc^{2}\\
- & = & mc\times c\end{eqnarray*}
+ & = & mc\times c
+\end{eqnarray*}
 
 \end_inset
 

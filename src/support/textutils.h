@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Matthias Ettrich
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -41,11 +41,14 @@ bool isPrintableNonspace(char_type c);
 /// return true if a unicode char is a space.
 bool isSpace(char_type c);
 
-/// return true if a unicode char is a digit.
-bool isDigit(char_type c);
+/// return true if a unicode char is a numeral.
+bool isNumber(char_type c);
 
 /// return whether \p c is a digit in the ASCII range
 bool isDigitASCII(char_type c);
+
+/// return whether \p c is alpha or a digit in the ASCII range
+bool isAlnumASCII(char_type c);
 
 } // namespace lyx
 

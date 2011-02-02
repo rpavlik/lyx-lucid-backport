@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Baruch Even
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  * \author Angus Leeming
  *
  * Full author contact details are available in file CREDITS.
@@ -26,7 +26,7 @@
 #include "support/filetools.h"
 #include "support/FileMonitor.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 using namespace std;
 using namespace lyx::support;
@@ -107,7 +107,7 @@ public:
 	bool remove_loaded_file_;
 
 	/// The image and its loading status.
-	boost::shared_ptr<Image> image_;
+	shared_ptr<Image> image_;
 	///
 	ImageStatus status_;
 
@@ -208,7 +208,7 @@ CacheItem::Impl::Impl(FileName const & file)
 	  remove_loaded_file_(false),
 	  status_(WaitingToLoad)
 {
-	monitor_.connect(boost::bind(&Impl::startLoading, this));
+	monitor_.connect(bind(&Impl::startLoading, this));
 }
 
 
@@ -372,7 +372,7 @@ bool CacheItem::Impl::tryDisplayFormat(FileName & filename, string & from)
 		filename = filename_;
 	}
 
-	docstring const displayed_filename = makeDisplayPath(filename_.absFilename());
+	docstring const displayed_filename = makeDisplayPath(filename_.absFileName());
 	LYXERR(Debug::GRAPHICS, "[CacheItem::Impl::convertToDisplayFormat]\n"
 		<< "\tAttempting to convert image file: " << filename
 		<< "\n\twith displayed filename: " << to_utf8(displayed_filename));
@@ -427,8 +427,8 @@ void CacheItem::Impl::convertToDisplayFormat()
 	// Connect a signal to this->imageConverted and pass this signal to
 	// the graphics converter so that we can load the modified file
 	// on completion of the conversion process.
-	converter_.reset(new Converter(filename, to_file_base.absFilename(), from, to_));
-	converter_->connect(boost::bind(&Impl::imageConverted, this, _1));
+	converter_.reset(new Converter(filename, to_file_base.absFileName(), from, to_));
+	converter_->connect(bind(&Impl::imageConverted, this, _1));
 	converter_->startConversion();
 }
 

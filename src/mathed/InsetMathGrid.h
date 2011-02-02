@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -73,8 +73,6 @@ public:
 		ColInfo();
 		/// currently possible: 'l', 'c', 'r'
 		char align_;
-		/// cache for drawing
-		int h_offset;
 		/// cached width
 		mutable int width_;
 		/// cached offset
@@ -97,7 +95,7 @@ public:
 	InsetMathGrid(Buffer * buf, col_type m, row_type n);
 	///
 	InsetMathGrid(Buffer * buf, col_type m, row_type n, char valign,
-		      docstring const & halign);
+		docstring const & halign);
 	///
 	void metrics(MetricsInfo & mi, Dimension &) const;
 	///
@@ -112,6 +110,8 @@ public:
 	void metricsT(TextMetricsInfo const & mi, Dimension & dim) const;
 	///
 	void drawT(TextPainter & pi, int x, int y) const;
+	///
+	void updateBuffer(ParIterator const &, UpdateType);
 	/// extract number of columns from alignment string
 	static col_type guessColumns(docstring const & halign);
 	/// accepts some LaTeX column codes: p,m,!,@,M,<,>
@@ -211,11 +211,19 @@ public:
 	///
 	void write(WriteStream & os) const;
 	///
+	void write(WriteStream & os,
+		   row_type beg_row, col_type beg_col,
+		   row_type end_row, col_type end_col) const;
+	///
 	void normalize(NormalStream &) const;
 	///
 	//void maple(MapleStream &) const;
 	///
 	void mathmlize(MathStream &) const;
+	/// 
+	void htmlize(HtmlStream &) const;
+	///
+	void htmlize(HtmlStream &, std::string attrib) const;
 	///
 	//void octave(OctaveStream &) const;
 
@@ -230,7 +238,8 @@ protected:
 	/// returns y offset of cell compared to inset
 	int cellYOffset(idx_type idx) const;
 	/// returns proper 'end of line' code for LaTeX
-	virtual docstring eolString(row_type row, bool fragile, bool last_eoln) const;
+	virtual docstring eolString(row_type row, bool fragile, bool latex,
+			bool last_eoln) const;
 	/// returns proper 'end of column' code for LaTeX
 	virtual docstring eocString(col_type col, col_type lastcol) const;
 	/// splits cells and shifts right part to the next cell
@@ -244,6 +253,9 @@ protected:
 	std::vector<ColInfo> colinfo_;
 	/// cell info
 	std::vector<CellInfo> cellinfo_;
+	///
+	InsetCode lyxCode() const { return MATH_GRID_CODE; }
+
 private:
 	///
 	char v_align_; // add approp. type

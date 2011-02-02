@@ -52,6 +52,7 @@
 #include "mathed/InsetMathUnknown.cpp" 
 #include "mathed/InsetMathXArrow.cpp" 
 #include "mathed/InsetMathXYMatrix.cpp" 
+#include "mathed/InsetMathDiagram.cpp" 
 #include "mathed/MathAtom.cpp" 
 #include "mathed/MathAutoCorrect.cpp" 
 #include "mathed/MathData.cpp" 

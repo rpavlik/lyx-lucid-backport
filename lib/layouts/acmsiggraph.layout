@@ -1,5 +1,5 @@
 #% Do not delete he line below; configure depends on this
-#  \DeclareLaTeXClass[acmsiggraph]{article (ACM SIGGRAPH)}
+#  \DeclareLaTeXClass[acmsiggraph,lineno.sty]{article (ACM SIGGRAPH)}
 # ACM SIGGRAPH acmsiggraph textclass definition file.
 # Author : Uwe Stöhr
 #
@@ -10,7 +10,7 @@
 # ACM style files can be obtained at
 # http://www.acm.org/sigs/pubs/proceed/template.html
 
-Format 11
+Format 30
 
 Columns                 1
 Sides                   1

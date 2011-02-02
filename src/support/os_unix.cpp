@@ -297,9 +297,16 @@ bool autoOpenFile(string const & filename, auto_open_mode const mode)
 
 string real_path(string const & path)
 {
+#ifdef HAVE_DEF_PATH_MAX
 	char rpath[PATH_MAX + 1];
 	char * result = realpath(path.c_str(), rpath);
-	return FileName::fromFilesystemEncoding(result ? rpath : path).absFilename();
+	return FileName::fromFilesystemEncoding(result ? rpath : path).absFileName();
+#else
+	char * result = realpath(path.c_str(), NULL);
+	string ret = FileName::fromFilesystemEncoding(result ? result : path).absFileName();
+	free(result);
+	return ret;
+#endif
 }
 
 } // namespace os

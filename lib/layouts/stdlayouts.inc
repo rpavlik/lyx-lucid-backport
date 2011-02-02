@@ -7,7 +7,8 @@
 # quotations and such.
 
 
-Format 11
+Format 30
+
 Style Quotation
 	Category              MainText
 	Margin                Static
@@ -24,6 +25,8 @@ Style Quotation
 	ParSep                0
 	Align                 Block
 	AlignPossible         Block, Left, Right, Center
+	HTMLTag               blockquote
+	HTMLItem              div
 End
 
 
@@ -41,6 +44,8 @@ Style Quote
 	Align                 Block
 	AlignPossible         Block, Left, Right, Center
 	LabelType             No_Label
+	HTMLTag               blockquote
+	HTMLItem              div
 End
 
 
@@ -61,6 +66,8 @@ Style Verse
 	Align                 Block
 	AlignPossible         Block, Left
 	LabelType             No_Label
+	HTMLTag               blockquote
+	HTMLItem              p
 End
 
 
@@ -80,4 +87,5 @@ Style --Separator--
 	  Size                Normal
 	  Color               Blue
 	EndFont
+	HTMLLabel             NONE
 End

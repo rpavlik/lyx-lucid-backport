@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -22,26 +22,23 @@ class InsetVSpace : public Inset
 {
 public:
 	///
-	InsetVSpace() {}
+	InsetVSpace() : Inset(0) {}
 	///
 	InsetVSpace(VSpace const &);
-	///
-	~InsetVSpace();
 	/// How much?
 	VSpace const & space() const { return space_; }
 	///
 	InsetCode lyxCode() const { return VSPACE_CODE; }
 	///
-	void edit(Cursor & cur, bool front,
-		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
+	bool hasSettings() const { return true; }
 	///
-	EDITABLE editable() const { return IS_EDITABLE; }
-	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
+	docstring contextMenuName() const;
 	///
 	static void string2params(std::string const &, VSpace &);
 	///
 	static std::string params2string(VSpace const &);
+	///
+	bool clickable(int, int) const { return true; }
 private:
 	///
 	void metrics(MetricsInfo & mi, Dimension & dim) const;
@@ -53,6 +50,12 @@ private:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	/// Note that this returns the inset rather than writing it,
+	/// so it will actually be written after the present paragraph.
+	/// The normal case is that this inset will be on a line by
+	/// itself, and in that case the present paragraph will not,
+	/// in fact, appear at all.
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	void read(Lexer & lex);
 	///

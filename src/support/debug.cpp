@@ -3,8 +3,9 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
+ * \author Pavel Sanda
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,6 +17,7 @@
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/FileName.h"
+#include "support/ProgressInterface.h"
 
 #include <iostream>
 #include <iomanip>
@@ -35,7 +37,7 @@ struct ErrorItem {
 
 
 ErrorItem errorTags[] = {
-	{ Debug::NONE,      "none",      N_("No debugging message")},
+	{ Debug::NONE,      "none",      N_("No debugging messages")},
 	{ Debug::INFO,      "info",      N_("General information")},
 	{ Debug::INIT,      "init",      N_("Program initialisation")},
 	{ Debug::KEY,       "key",       N_("Keyboard events handling")},
@@ -51,7 +53,7 @@ ErrorItem errorTags[] = {
 	{ Debug::LYXSERVER, "lyxserver", N_("External control interface")},
 	{ Debug::UNDO,      "undo",      N_("Undo/Redo mechanism")},
 	{ Debug::ACTION,    "action",    N_("User commands")},
-	{ Debug::LYXLEX,    "lyxlex",    N_("The LyX Lexxer")},
+	{ Debug::LYXLEX,    "lyxlex",    N_("The LyX Lexer")},
 	{ Debug::DEPEND,    "depend",    N_("Dependency information")},
 	{ Debug::INSETS,    "insets",    N_("LyX Insets")},
 	{ Debug::FILES,     "files",     N_("Files used by LyX")},
@@ -61,11 +63,12 @@ ErrorItem errorTags[] = {
 	{ Debug::CHANGES,   "changes",   N_("Change tracking")},
 	{ Debug::EXTERNAL,  "external",  N_("External template/inset messages")},
 	{ Debug::PAINTING,  "painting",  N_("RowPainter profiling")},
-	{ Debug::SCROLLING, "scrolling", N_("scrolling debugging")},
+	{ Debug::SCROLLING, "scrolling", N_("Scrolling debugging")},
 	{ Debug::MACROS,    "macros",    N_("Math macros")},
 	{ Debug::RTL,       "rtl",       N_("RTL/Bidi")},
 	{ Debug::LOCALE,    "locale",    N_("Locale/Internationalisation")},
 	{ Debug::SELECTION, "selection", N_("Selection copy/paste mechanism")},
+	{ Debug::FIND,      "find",      N_("Find and replace mechanism")},
 	{ Debug::DEBUG,     "debug",     N_("Developers' general debug messages")},
 	{ Debug::ANY,       "any",       N_("All debugging messages")}
 };
@@ -74,6 +77,40 @@ ErrorItem errorTags[] = {
 int const numErrorTags = sizeof(errorTags)/sizeof(errorTags[0]);
 
 } // namespace anon
+
+
+int Debug::levelCount()
+{
+	return numErrorTags;
+}
+
+
+Debug::Type Debug::value(int idx)
+{
+	if (idx > 0 && idx < numErrorTags)
+		return errorTags[idx].level;
+	return Debug::NONE;
+}
+
+
+string const Debug::description(Debug::Type val)
+{
+	for (int i = 0 ; i < numErrorTags ; ++i) {
+		if (errorTags[i].level == val)
+			return errorTags[i].desc;
+	}
+	return "unknown level";
+}
+
+
+string const Debug::name(Debug::Type val)
+{
+	for (int i = 0 ; i < numErrorTags ; ++i) {
+		if (errorTags[i].level == val)
+			return errorTags[i].name;
+	}
+	return "unknown level";
+}
 
 
 Debug::Type Debug::value(string const & val)
@@ -106,10 +143,10 @@ Debug::Type Debug::value(string const & val)
 void Debug::showLevel(ostream & os, Debug::Type level)
 {
 	// Show what features are traced
-	for (int i = 0; i != numErrorTags; ++i) {
+	for (int i = 0; i < numErrorTags; ++i) {
 		if (errorTags[i].level != Debug::ANY
-		    && errorTags[i].level != Debug::NONE
-		    && errorTags[i].level & level) {
+		      && errorTags[i].level != Debug::NONE
+		      && errorTags[i].level & level) {
 			// avoid to_utf8(_(...)) re-entrance problem
 			docstring const s = _(errorTags[i].desc);
 			os << to_utf8(bformat(_("Debugging `%1$s' (%2$s)"),
@@ -145,43 +182,61 @@ void LyXErr::enable()
 
 bool LyXErr::debugging(Debug::Type t) const
 {
-	return (dt & t);
+	return (dt_ & t);
 }
 
 
 void LyXErr::endl()
 {
-	if (enabled_)
+	if (enabled_) {
 		stream() << std::endl;
+		if (second_enabled_)
+			secondStream() << std::endl;
+	}
+}
+
+
+// It seems not possible to instantiate operator template out of class body
+template<class T>
+LyXErr & toStream(LyXErr & l, T t)	
+{
+	if (l.enabled()){
+		l.stream() << t;
+                if (l.secondEnabled()) {
+			l.secondStream() << t;
+			ProgressInterface::instance()->lyxerrFlush();
+		}
+	}
+	return l;
 }
 
 
 LyXErr & operator<<(LyXErr & l, void const * t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, char const * t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, char t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, int t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, unsigned int t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, long t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, unsigned long t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, double t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, string const & t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, docstring const & t)
-{ if (l.enabled()) l.stream() << to_utf8(t); return l; }
+{ return toStream(l, to_utf8(t)); }
 LyXErr & operator<<(LyXErr & l, FileName const & t)
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, ostream &(*t)(ostream &))
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 LyXErr & operator<<(LyXErr & l, ios_base &(*t)(ios_base &))
-{ if (l.enabled()) l.stream() << t; return l; }
+{ return toStream(l, t); }
 
 
 // The global instance

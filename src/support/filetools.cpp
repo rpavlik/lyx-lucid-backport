@@ -8,11 +8,11 @@
  * \author Ivan Schreter
  * \author Dirk Niggemann
  * \author Asger Alstrup
- * \author Lars Gullik Bj¯nnes
+ * \author Lars Gullik Bj√∏nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author John Levon
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  *
  * Full author contact details are available in file CREDITS.
  *
@@ -23,7 +23,6 @@
 
 #include "support/filetools.h"
 
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/environment.h"
 #include "support/gettext.h"
@@ -37,7 +36,7 @@
 #include <QDir>
 
 #include "support/lassert.h"
-#include <boost/regex.hpp>
+#include "support/regex.h"
 
 #include <fcntl.h>
 
@@ -49,26 +48,40 @@
 #include <fstream>
 #include <sstream>
 
+#if defined (_WIN32)
+#include <io.h>
+#include <windows.h>
+#endif
+
 using namespace std;
+
+#define USE_QPROCESS
 
 namespace lyx {
 namespace support {
 
-bool isLyXFilename(string const & filename)
+bool isLyXFileName(string const & filename)
 {
 	return suffixIs(ascii_lowercase(filename), ".lyx");
 }
 
 
-bool isSGMLFilename(string const & filename)
+bool isSGMLFileName(string const & filename)
 {
 	return suffixIs(ascii_lowercase(filename), ".sgml");
 }
 
 
-bool isValidLaTeXFilename(string const & filename)
+bool isValidLaTeXFileName(string const & filename)
 {
-	string const invalid_chars("#$%{}()[]\"^");
+	string const invalid_chars("#%\"");
+	return filename.find_first_of(invalid_chars) == string::npos;
+}
+
+
+bool isValidDVIFileName(string const & filename)
+{
+	string const invalid_chars("${}()[]^");
 	return filename.find_first_of(invalid_chars) == string::npos;
 }
 
@@ -106,7 +119,7 @@ string const latex_path(string const & original_path,
 FileName const makeLatexName(FileName const & file)
 {
 	string name = file.onlyFileName();
-	string const path = file.onlyPath().absFilename() + "/";
+	string const path = file.onlyPath().absFileName() + "/";
 
 	// ok so we scan through the string twice, but who cares.
 	// FIXME: in Unicode time this will break for sure! There is
@@ -139,9 +152,17 @@ string const quoteName(string const & name, quote_style style)
 		// containing " or ', therefore we don't pass user filenames
 		// to child processes if possible. We store them in a python
 		// script instead, where we don't have these limitations.
+#ifndef USE_QPROCESS
 		return (os::shell() == os::UNIX) ?
 			'\'' + subst(name, "'", "\'\\\'\'") + '\'' :
 			'"' + name + '"';
+#else
+		// According to the QProcess parser, a single double
+		// quote is represented by three consecutive ones.
+		// Here we simply escape the double quote and let our
+		// simple parser in Systemcall.cpp do the substitution.
+		return '"' + subst(name, "\"", "\\\"") + '"';
+#endif
 	case quote_python:
 		return "\"" + subst(subst(name, "\\", "\\\\"), "\"", "\\\"")
 		     + "\"";
@@ -170,9 +191,9 @@ FileName const fileOpenSearch(string const & path, string const & name,
 		if (!suffixIs(path_element, '/'))
 			path_element += '/';
 		path_element = subst(path_element, "$$LyX",
-				     package().system_support().absFilename());
+				     package().system_support().absFileName());
 		path_element = subst(path_element, "$$User",
-				     package().user_support().absFilename());
+				     package().user_support().absFileName());
 
 		real_file = fileSearch(path_element, name, ext);
 
@@ -206,8 +227,8 @@ FileName const fileSearch(string const & path, string const & name,
 		return mode == may_not_exist ? fullname : FileName();
 	// Only add the extension if it is not already the extension of
 	// fullname.
-	if (getExtension(fullname.absFilename()) != ext)
-		fullname = FileName(addExtension(fullname.absFilename(), ext));
+	if (getExtension(fullname.absFileName()) != ext)
+		fullname = FileName(addExtension(fullname.absFileName(), ext));
 	if (fullname.isReadableFile() || mode == may_not_exist)
 		return fullname;
 	return FileName();
@@ -221,18 +242,18 @@ FileName const fileSearch(string const & path, string const & name,
 FileName const libFileSearch(string const & dir, string const & name,
 			   string const & ext)
 {
-	FileName fullname = fileSearch(addPath(package().user_support().absFilename(), dir),
+	FileName fullname = fileSearch(addPath(package().user_support().absFileName(), dir),
 				     name, ext);
 	if (!fullname.empty())
 		return fullname;
 
 	if (!package().build_support().empty())
-		fullname = fileSearch(addPath(package().build_support().absFilename(), dir),
+		fullname = fileSearch(addPath(package().build_support().absFileName(), dir),
 				      name, ext);
 	if (!fullname.empty())
 		return fullname;
 
-	return fileSearch(addPath(package().system_support().absFilename(), dir), name, ext);
+	return fileSearch(addPath(package().system_support().absFileName(), dir), name, ext);
 }
 
 
@@ -247,7 +268,7 @@ FileName const i18nLibFileSearch(string const & dir, string const & name,
 	   each po file is able to tell us its name. (JMarc)
 	*/
 
-	string lang = to_ascii(_("[[Replace with the code of your language]]"));
+	string lang = to_ascii(_(languageTestString()));
 	string const language = getEnv("LANGUAGE");
 	if (!lang.empty() && !language.empty())
 		lang = language;
@@ -304,7 +325,7 @@ string const libScriptSearch(string const & command_in, quote_style style)
 
 	// Does this script file exist?
 	string const script =
-		libFileSearch(".", command.substr(start_script, size_script)).absFilename();
+		libFileSearch(".", command.substr(start_script, size_script)).absFileName();
 
 	if (script.empty()) {
 		// Replace "$$s/" with ""
@@ -341,7 +362,7 @@ FileName const createLyXTmpDir(FileName const & deflt)
 	if (deflt.empty() || deflt == package().system_temp_dir())
 		return createTmpDir(package().system_temp_dir(), "lyx_tmpdir");
 
-	if (deflt.createDirectory(0777)) 
+	if (deflt.createDirectory(0777))
 		return deflt;
 
 	if (deflt.isDirWritable()) {
@@ -392,7 +413,7 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 	if (FileName::isAbsolute(basePath))
 		tempBase = basePath;
 	else
-		tempBase = addPath(FileName::getcwd().absFilename(), basePath);
+		tempBase = addPath(FileName::getcwd().absFileName(), basePath);
 
 	// Handle /./ at the end of the path
 	while (suffixIs(tempBase, "/./"))
@@ -406,7 +427,7 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 	// Split by first /
 	rTemp = split(rTemp, temp, '/');
 	if (temp == "~") {
-		tempBase = package().home_dir().absFilename();
+		tempBase = package().home_dir().absFileName();
 		tempRel = rTemp;
 	}
 
@@ -455,7 +476,7 @@ FileName const makeAbsPath(string const & relPath, string const & basePath)
 // Chops any path of filename.
 string const addName(string const & path, string const & fname)
 {
-	string const basename = onlyFilename(fname);
+	string const basename = onlyFileName(fname);
 	string buf;
 
 	if (path != "." && path != "./" && !path.empty()) {
@@ -469,7 +490,7 @@ string const addName(string const & path, string const & fname)
 
 
 // Strips path from filename
-string const onlyFilename(string const & fname)
+string const onlyFileName(string const & fname)
 {
 	if (fname.empty())
 		return fname;
@@ -499,13 +520,13 @@ string const expandPath(string const & path)
 	rTemp = split(rTemp, temp, '/');
 
 	if (temp == ".")
-		return FileName::getcwd().absFilename() + '/' + rTemp;
+		return FileName::getcwd().absFileName() + '/' + rTemp;
 
 	if (temp == "~")
-		return package().home_dir().absFilename() + '/' + rTemp;
+		return package().home_dir().absFileName() + '/' + rTemp;
 
 	if (temp == "..")
-		return makeAbsPath(copy).absFilename();
+		return makeAbsPath(copy).absFileName();
 
 	// Don't know how to handle this
 	return copy;
@@ -520,12 +541,12 @@ string const replaceEnvironmentPath(string const & path)
 	static string const envvar_br = "[$]\\{([A-Za-z_][A-Za-z_0-9]*)\\}";
 
 	// $VAR is defined as:
-	// $\{[A-Za-z_][A-Za-z_0-9]*\}
+	// $[A-Za-z_][A-Za-z_0-9]*
 	static string const envvar = "[$]([A-Za-z_][A-Za-z_0-9]*)";
 
-	static boost::regex envvar_br_re("(.*)" + envvar_br + "(.*)");
-	static boost::regex envvar_re("(.*)" + envvar + "(.*)");
-	boost::smatch what;
+	static regex envvar_br_re("(.*)" + envvar_br + "(.*)");
+	static regex envvar_re("(.*)" + envvar + "(.*)");
+	smatch what;
 	string result;
 	string remaining = path;
 	while (1) {
@@ -666,7 +687,7 @@ string const unzippedFileName(string const & zipped_file)
 	string const ext = getExtension(zipped_file);
 	if (ext == "gz" || ext == "z" || ext == "Z")
 		return changeExtension(zipped_file, string());
-	return onlyPath(zipped_file) + "unzipped_" + onlyFilename(zipped_file);
+	return onlyPath(zipped_file) + "unzipped_" + onlyFileName(zipped_file);
 }
 
 
@@ -692,12 +713,12 @@ docstring const makeDisplayPath(string const & path, unsigned int threshold)
 	string str = path;
 
 	// If file is from LyXDir, display it as if it were relative.
-	string const system = package().system_support().absFilename();
+	string const system = package().system_support().absFileName();
 	if (prefixIs(str, system) && str != system)
 		return from_utf8("[" + str.erase(0, system.length()) + "]");
 
 	// replace /home/blah with ~/
-	string const home = package().home_dir().absFilename();
+	string const home = package().home_dir().absFileName();
 	if (!home.empty() && prefixIs(str, home))
 		str = subst(str, home, "~");
 
@@ -714,7 +735,7 @@ docstring const makeDisplayPath(string const & path, unsigned int threshold)
 	if (str.empty()) {
 		// Yes, filename itself is too long.
 		// Pick the start and the end of the filename.
-		str = onlyFilename(path);
+		str = onlyFileName(path);
 		string const head = str.substr(0, threshold / 2 - 3);
 
 		string::size_type len = str.length();
@@ -727,23 +748,25 @@ docstring const makeDisplayPath(string const & path, unsigned int threshold)
 }
 
 
+#ifdef HAVE_READLINK
 bool readLink(FileName const & file, FileName & link)
 {
-#ifdef HAVE_READLINK
-	char linkbuffer[512];
-	// Should be PATH_MAX but that needs autconf support
+	char linkbuffer[PATH_MAX + 1];
 	string const encoded = file.toFilesystemEncoding();
 	int const nRead = ::readlink(encoded.c_str(),
 				     linkbuffer, sizeof(linkbuffer) - 1);
 	if (nRead <= 0)
 		return false;
 	linkbuffer[nRead] = '\0'; // terminator
-	link = makeAbsPath(linkbuffer, onlyPath(file.absFilename()));
+	link = makeAbsPath(linkbuffer, onlyPath(file.absFileName()));
 	return true;
-#else
-	return false;
-#endif
 }
+#else
+bool readLink(FileName const &, FileName &)
+{
+	return false;
+}
+#endif
 
 
 cmd_ret const runCommand(string const & cmd)
@@ -758,7 +781,39 @@ cmd_ret const runCommand(string const & cmd)
 	// pstream (process stream), with the
 	// variants ipstream, opstream
 
-#if defined (HAVE_POPEN)
+#if defined (_WIN32)
+	int fno;
+	STARTUPINFO startup;
+	PROCESS_INFORMATION process;
+	SECURITY_ATTRIBUTES security;
+	HANDLE in, out;
+	FILE * inf = 0;
+
+	security.nLength = sizeof(SECURITY_ATTRIBUTES);
+	security.bInheritHandle = TRUE;
+	security.lpSecurityDescriptor = NULL;
+
+	if (CreatePipe(&in, &out, &security, 0)) {
+		memset(&startup, 0, sizeof(STARTUPINFO));
+		memset(&process, 0, sizeof(PROCESS_INFORMATION));
+
+		startup.cb = sizeof(STARTUPINFO);
+		startup.dwFlags = STARTF_USESTDHANDLES;
+
+		startup.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+		startup.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+		startup.hStdOutput = out;
+
+		if (CreateProcess(0, (LPTSTR)cmd.c_str(), &security, &security,
+			TRUE, CREATE_NO_WINDOW, 0, 0, &startup, &process)) {
+
+			CloseHandle(process.hThread);
+			fno = _open_osfhandle((long)in, _O_RDONLY);
+			CloseHandle(out);
+			inf = _fdopen(fno, "r");
+		}
+	}
+#elif defined (HAVE_POPEN)
 	FILE * inf = ::popen(cmd.c_str(), os::popen_read_mode());
 #elif defined (HAVE__POPEN)
 	FILE * inf = ::_popen(cmd.c_str(), os::popen_read_mode());
@@ -766,7 +821,7 @@ cmd_ret const runCommand(string const & cmd)
 #error No popen() function.
 #endif
 
-	// (Claus Hentschel) Check if popen was succesful ;-)
+	// (Claus Hentschel) Check if popen was successful ;-)
 	if (!inf) {
 		lyxerr << "RunCommand:: could not start child process" << endl;
 		return make_pair(-1, string());
@@ -779,7 +834,11 @@ cmd_ret const runCommand(string const & cmd)
 		c = fgetc(inf);
 	}
 
-#if defined (HAVE_PCLOSE)
+#if defined (_WIN32)
+	WaitForSingleObject(process.hProcess, INFINITE);
+	CloseHandle(process.hProcess);
+	int const pret = fclose(inf);
+#elif defined (HAVE_PCLOSE)
 	int const pret = pclose(inf);
 #elif defined (HAVE__PCLOSE)
 	int const pret = _pclose(inf);
@@ -872,13 +931,13 @@ string const readBB_from_PSFile(FileName const & file)
 		return string();
 	}
 
-	static boost::regex bbox_re(
+	static lyx::regex bbox_re(
 		"^%%BoundingBox:\\s*([[:digit:]]+)\\s+([[:digit:]]+)\\s+([[:digit:]]+)\\s+([[:digit:]]+)");
 	ifstream is(file_.toFilesystemEncoding().c_str());
 	while (is) {
 		string s;
 		getline(is,s);
-		boost::smatch what;
+		lyx::smatch what;
 		if (regex_match(s, what, bbox_re)) {
 			// Our callers expect the tokens in the string
 			// separated by single spaces.

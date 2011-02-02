@@ -261,7 +261,7 @@ Change const & Changes::lookup(pos_type const pos) const
 }
 
 
-bool Changes::isFullyDeleted(pos_type start, pos_type end) const
+bool Changes::isDeleted(pos_type start, pos_type end) const
 {
 	ChangeTable::const_iterator it = table_.begin();
 	ChangeTable::const_iterator const itend = table_.end();
@@ -381,7 +381,7 @@ docstring getLaTeXMarkup(docstring const & macro, docstring const & author,
 				  "used for change tracking, contains glyphs that cannot be\n"
 				  "represented in the current encoding. The respective glyphs\n"
 				  "will be omitted in the exported LaTeX file.\n\n"
-				  "Chose an appropriate document encoding (such as utf8)\n"
+				  "Choose an appropriate document encoding (such as utf8)\n"
 				  "or change the spelling of the author name."), uncodable_author));
 		warned_author = uncodable_author;
 	}
@@ -428,7 +428,7 @@ int Changes::latexMarkChange(odocstream & os, BufferParams const & bparams,
 }
 
 
-void Changes::lyxMarkChange(ostream & os, int & column,
+void Changes::lyxMarkChange(ostream & os, BufferParams const & bparams, int & column,
 			    Change const & old, Change const & change)
 {
 	if (old == change)
@@ -436,22 +436,22 @@ void Changes::lyxMarkChange(ostream & os, int & column,
 
 	column = 0;
 
+	int const buffer_id = bparams.authors().get(change.author).bufferId();
+
 	switch (change.type) {
 		case Change::UNCHANGED:
 			os << "\n\\change_unchanged\n";
 			break;
 
-		case Change::DELETED: {
-			os << "\n\\change_deleted " << change.author
+		case Change::DELETED:
+			os << "\n\\change_deleted " << buffer_id
 				<< " " << change.changetime << "\n";
 			break;
-		}
 
-		case Change::INSERTED: {
-			os << "\n\\change_inserted " << change.author
+		case Change::INSERTED:
+			os << "\n\\change_inserted " << buffer_id
 				<< " " << change.changetime << "\n";
 			break;
-		}
 	}
 }
 

@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -62,10 +62,15 @@ void InsetMathSubstack::draw(PainterInfo & pi, int x, int y) const
 bool InsetMathSubstack::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
-	case LFUN_TABULAR_FEATURE: {
+	switch (cmd.action()) {
+	case LFUN_INSET_MODIFY: {
+		istringstream is(to_utf8(cmd.argument()));
+		string s;
+		is >> s;
+		if (s != "tabular")
+			break;
+		is >> s;
 		string const name = "substack";
-		docstring const & s = cmd.argument();
 		if (s == "add-vline-left" || s == "add-vline-right") {
 			flag.message(bformat(
 				from_utf8(N_("Can't add vertical grid lines in '%1$s'")),
@@ -73,11 +78,22 @@ bool InsetMathSubstack::getStatus(Cursor & cur, FuncRequest const & cmd,
 			flag.setEnabled(false);
 			return true;
 		}
-		return InsetMathGrid::getStatus(cur, cmd, flag);
+		// in contrary to \subaray, the columns in \substack
+		// are always centered and this cannot be changed
+		if (s == "align-left" || s == "align-right") {
+			flag.message(bformat(
+				from_utf8(N_("Can't change horizontal alignment in '%1$s'")),
+				from_utf8(name)));
+			flag.setEnabled(false);
+			return true;
+		}
+		break;
 	}
+
 	default:
-		return InsetMathGrid::getStatus(cur, cmd, flag);
+		break;
 	}
+	return InsetMathGrid::getStatus(cur, cmd, flag);
 }
 
 
@@ -112,9 +128,25 @@ void InsetMathSubstack::maple(MapleStream & os) const
 }
 
 
+void InsetMathSubstack::htmlize(HtmlStream & os) const
+{
+	os << MTag("span", "class='substack'");
+	for (row_type row = 0; row < nrows(); ++row) 
+		os << MTag("span") << cell(index(row, 0)) << ETag("span");
+	os << ETag("span");
+}
+
+	
 void InsetMathSubstack::validate(LaTeXFeatures & features) const
 {
-	features.require("amsmath");
+	if (features.runparams().isLaTeX())
+		features.require("amsmath");
+	else if (features.runparams().math_flavor == OutputParams::MathAsHTML)
+		features.addPreambleSnippet("<style type=\"text/css\">\n"
+			"span.substack{display: inline-block; vertical-align: middle; text-align:center; font-size: 75%;}\n"
+			"span.substack span{display: block;}\n"
+			"</style>");
+	
 	InsetMathGrid::validate(features);
 }
 

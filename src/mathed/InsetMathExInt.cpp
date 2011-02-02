@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -11,6 +11,8 @@
 #include <config.h>
 
 #include "InsetMathExInt.h"
+
+#include "LaTeXFeatures.h"
 #include "MathData.h"
 #include "MathStream.h"
 #include "MathStream.h"
@@ -124,14 +126,61 @@ void InsetMathExInt::mathematica(MathematicaStream & os) const
 
 void InsetMathExInt::mathmlize(MathStream & os) const
 {
+	// At the moment, we are not extracting sums and the like for MathML.
+	// If we should decide to do so later, then we'll need to re-merge
+	// r32566 and r32568.
+	// So right now this only handles integrals.
 	InsetMathSymbol sym(symbol_);
-	//if (hasScripts())
-	//	mathmlize(sym, os);
-	//else
-		sym.mathmlize(os);
+	bool const lower = !cell(2).empty();
+	bool const upper = !cell(3).empty();
+	if (lower && upper)
+		os << MTag("msubsup");
+	else if (lower)
+		os << MTag("msub");
+	else if (upper)
+		os << MTag("msup");
+	os << MTag("mrow");
+	sym.mathmlize(os);
+	os << ETag("mrow");
+	if (lower)
+		os << MTag("mrow") << cell(2) << ETag("mrow");
+	if (upper)
+		os << MTag("mrow") << cell(3) << ETag("mrow");
+	if (lower && upper)
+		os << ETag("msubsup");
+	else if (lower)
+		os << ETag("msub");
+	else if (upper)
+		os << ETag("msup");
 	os << cell(0) << "<mo> &InvisibleTimes; </mo>"
 	   << MTag("mrow") << "<mo> &DifferentialD; </mo>"
 	   << cell(1) << ETag("mrow");
+}
+
+
+void InsetMathExInt::htmlize(HtmlStream & os) const
+{
+	// At the moment, we are not extracting sums and the like for HTML.
+	// So right now this only handles integrals.
+	InsetMathSymbol sym(symbol_);
+	bool const lower = !cell(2).empty();
+	bool const upper = !cell(3).empty();
+	
+	os << MTag("span", "class='integral'")
+	   << MTag("span", "class='intsym'");
+	sym.htmlize(os, false);
+	os << ETag("span");
+	
+	if (lower && upper) {
+		os << MTag("span", "class='limits'")
+		   << MTag("span") << cell(2) << ETag("span")
+			 << MTag("span") << cell(3) << ETag("span")
+			 << ETag("span");
+	} else if (lower)
+		os << MTag("sub", "class='limit'") << cell(2) << ETag("sub");
+	else if (upper)
+		os << MTag("sup", "class='limit'") << cell(3) << ETag("sup");
+	os << cell(0) << "<b>d</b>" << cell(1) << ETag("span");
 }
 
 
@@ -139,6 +188,5 @@ void InsetMathExInt::write(WriteStream &) const
 {
 	LYXERR0("should not happen");
 }
-
 
 } // namespace lyx

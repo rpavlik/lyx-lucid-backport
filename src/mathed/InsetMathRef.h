@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -27,6 +27,8 @@ public:
 	///
 	explicit InsetMathRef(Buffer * buf, docstring const & data);
 	///
+	void updateBuffer(ParIterator const &, UpdateType);
+	///
 	//void write(WriteStream & os) const;
 	///
 	void infoize(odocstream & os) const;
@@ -41,12 +43,14 @@ public:
 	///
 	void validate(LaTeXFeatures & features) const;
 	///
+	void changeTarget(docstring const & target);
+	///
 	virtual InsetMathRef * asRefInset() { return this; }
 
 	/// docbook output
 	int docbook(odocstream & os, OutputParams const &) const;
 	/// generate something that will be understood by the Dialogs.
-	std::string const createDialogStr(std::string const & name) const;
+	std::string const createDialogStr() const;
 
 	struct ref_type_info {
 		///
@@ -61,6 +65,11 @@ public:
 	static int getType(docstring const & name);
 	///
 	static docstring const & getName(int type);
+	///
+	docstring const getTarget() const;
+	///
+	InsetCode lyxCode() const { return MATH_REF_CODE; }
+
 protected:
 	///
 	virtual void doDispatch(Cursor & cur, FuncRequest & cmd);

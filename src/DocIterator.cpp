@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Alfredo Braunstein
  *
  * Full author contact details are available in file CREDITS.
@@ -14,49 +14,88 @@
 
 #include "DocIterator.h"
 
+#include "Buffer.h"
 #include "InsetList.h"
 #include "Paragraph.h"
+#include "LyXRC.h"
 #include "Text.h"
 
 #include "mathed/MathData.h"
 #include "mathed/InsetMath.h"
+#include "mathed/InsetMathHull.h"
 
 #include "insets/InsetTabular.h"
 
 #include "support/debug.h"
-
 #include "support/lassert.h"
+#include "support/lstrings.h"
 
 #include <ostream>
 
 using namespace std;
+using namespace lyx::support;
 
 namespace lyx {
 
 
+DocIterator::DocIterator()
+	: boundary_(false), inset_(0), buffer_(0)
+{}
+
 // We could be able to get rid of this if only every BufferView were
 // associated to a buffer on construction.
-DocIterator::DocIterator()
-	: boundary_(false), inset_(0)
+DocIterator::DocIterator(Buffer * buf)
+	: boundary_(false), inset_(0), buffer_(buf)
 {}
 
 
-DocIterator::DocIterator(Inset & inset)
-	: boundary_(false), inset_(&inset)
+DocIterator::DocIterator(Buffer * buf, Inset * inset)
+	: boundary_(false), inset_(inset), buffer_(buf)
 {}
 
 
-DocIterator doc_iterator_begin(Inset & inset)
+DocIterator doc_iterator_begin(const Buffer * buf0, const Inset * inset0)
 {
-	DocIterator dit(inset);
+	Buffer * buf = const_cast<Buffer *>(buf0);	
+	Inset * inset = const_cast<Inset *>(inset0);
+	DocIterator dit(buf, inset ? inset : &buf->inset());
 	dit.forwardPos();
 	return dit;
 }
 
 
-DocIterator doc_iterator_end(Inset & inset)
+DocIterator doc_iterator_end(const Buffer * buf0, const Inset * inset0)
 {
-	return DocIterator(inset);
+	Buffer * buf = const_cast<Buffer *>(buf0);	
+	Inset * inset = const_cast<Inset *>(inset0);
+	return DocIterator(buf, inset ? inset : &buf->inset());
+}
+
+
+DocIterator DocIterator::clone(Buffer * buffer) const
+{
+	LASSERT(buffer->isClone(), return DocIterator());
+	Inset * inset = &buffer->inset();
+	DocIterator dit(buffer);
+	size_t const n = slices_.size();
+	for (size_t i = 0 ; i != n; ++i) {
+		LASSERT(inset, /**/);
+		dit.push_back(slices_[i]);
+		dit.top().inset_ = inset;
+		if (i + 1 != n)
+			inset = dit.nextInset();
+	}
+	return dit;
+}
+
+
+bool DocIterator::inRegexped() const
+{
+	InsetMath * im = inset().asInsetMath();
+	if (!im) 
+		return false;
+	InsetMathHull * hull = im->asHullInset();
+	return hull && hull->getType() == hullRegexp;
 }
 
 
@@ -69,11 +108,12 @@ LyXErr & operator<<(LyXErr & os, DocIterator const & it)
 
 Inset * DocIterator::nextInset() const
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return 0);
 	if (pos() == lastpos())
 		return 0;
 	if (pos() > lastpos()) {
-		LYXERR0("Should not happen, but it does. ");
+		LYXERR0("Should not happen, but it does: pos() = "
+			<< pos() << ", lastpos() = " << lastpos());
 		return 0;
 	}
 	if (inMathed())
@@ -84,14 +124,14 @@ Inset * DocIterator::nextInset() const
 
 Inset * DocIterator::prevInset() const
 {
-	LASSERT(!empty(), /**/);
+	LASSERT(!empty(), return 0);
 	if (pos() == 0)
 		return 0;
 	if (inMathed()) {
 		if (cell().empty())
 			// FIXME: this should not happen but it does.
 			// See bug 3189
-			// http://bugzilla.lyx.org/show_bug.cgi?id=3189
+			// http://www.lyx.org/trac/ticket/3189
 			return 0;
 		else
 			return prevAtom().nucleus();
@@ -105,8 +145,8 @@ Inset * DocIterator::realInset() const
 	LASSERT(inTexted(), /**/);
 	// if we are in a tabular, we need the cell
 	if (inset().lyxCode() == TABULAR_CODE) {
-		InsetTabular & tabular = static_cast<InsetTabular&>(inset());
-		return tabular.cell(idx()).get();
+		InsetTabular * tabular = inset().asInsetTabular();
+		return tabular->cell(idx()).get();
 	}
 	return &inset();
 }
@@ -230,12 +270,7 @@ MathData & DocIterator::cell() const
 Text * DocIterator::innerText() const
 {
 	LASSERT(!empty(), /**/);
-	// go up until first non-0 text is hit
-	// (innermost text is 0 in mathed)
-	for (int i = depth() - 1; i >= 0; --i)
-		if (slices_[i].text())
-			return slices_[i].text();
-	return 0;
+	return innerTextSlice().text();
 }
 
 
@@ -296,7 +331,7 @@ void DocIterator::forwardPosIgnoreCollapsed()
 	// FIXME: the check for asInsetMath() shouldn't be necessary
 	// but math insets do not return a sensible editable() state yet.
 	if (nextinset && !nextinset->asInsetMath()
-	    && nextinset->editable() != Inset::HIGHLY_EDITABLE) {
+	    && !nextinset->editable()) {
 		++top().pos();
 		return;
 	}
@@ -548,11 +583,12 @@ StableDocIterator::StableDocIterator(DocIterator const & dit)
 }
 
 
-DocIterator StableDocIterator::asDocIterator(Inset * inset) const
+DocIterator StableDocIterator::asDocIterator(Buffer * buf) const
 {
 	// this function re-creates the cache of inset pointers
 	//lyxerr << "converting:\n" << *this << endl;
-	DocIterator dit = DocIterator(*inset);
+	Inset * inset = &buf->inset();
+	DocIterator dit = DocIterator(buf, inset);
 	for (size_t i = 0, n = data_.size(); i != n; ++i) {
 		if (inset == 0) {
 			// FIXME

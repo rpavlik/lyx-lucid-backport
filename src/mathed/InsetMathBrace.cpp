@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -97,6 +97,12 @@ void InsetMathBrace::octave(OctaveStream & os) const
 void InsetMathBrace::mathmlize(MathStream & os) const
 {
 	os << MTag("mrow") << cell(0) << ETag("mrow");
+}
+
+
+void InsetMathBrace::htmlize(HtmlStream & os) const
+{
+	os << cell(0);
 }
 
 

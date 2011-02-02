@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  *
  * Full author contact details are available in file CREDITS.
@@ -44,6 +44,11 @@ bool isStrUnsignedInt(std::string const & str);
 ///
 bool isStrDbl(std::string const & str);
 
+/// does the string contain a digit?
+bool hasDigitASCII(docstring const & str);
+
+bool isHexChar(char_type);
+
 bool isHex(docstring const & str);
 
 int hexToInt(docstring const & str);
@@ -80,6 +85,12 @@ char_type lowercase(char_type c);
 /// Does not depend on the locale.
 char_type uppercase(char_type c);
 
+/// Checks if the supplied character is lower-case
+bool isLowerCase(char_type ch);
+
+/// Checks if the supplied character is upper-case
+bool isUpperCase(char_type ch);
+
 /// same as lowercase(), but ignores locale
 std::string const ascii_lowercase(std::string const &);
 docstring const ascii_lowercase(docstring const &);
@@ -91,6 +102,14 @@ docstring const lowercase(docstring const & s);
 /// Changes the case of \p s to uppercase.
 /// Does not depend on the locale.
 docstring const uppercase(docstring const & s);
+
+/// Returns the superscript of \p c or \p c if no superscript exists.
+/// Does not depend on the locale.
+char_type superscript(char_type c);
+
+/// Returns the subscript of \p c or \p c if no subscript exists.
+/// Does not depend on the locale.
+char_type subscript(char_type c);
 
 /// Does str start with c?
 bool prefixIs(docstring const & str, char_type c);
@@ -107,7 +126,7 @@ bool suffixIs(docstring const &, char_type);
 bool suffixIs(std::string const &, std::string const &);
 bool suffixIs(docstring const &, docstring const &);
 
-///
+/// Is b contained in a?
 inline bool contains(std::string const & a, std::string const & b)
 {
 	return a.find(b) != std::string::npos;
@@ -205,7 +224,7 @@ std::string const ltrim(std::string const & a, char const * p = " ");
 docstring const ltrim(docstring const & a, char const * p = " ");
 
 /** Splits the string given in the first argument at the first occurence 
-    of the third argumnent, delim.
+    of the third argument, delim.
     What precedes delim is returned in the second argument, piece; this
     will be the whole of the string if no delimiter is found.
     The return value is what follows delim, if anything. So the return
@@ -266,6 +285,9 @@ docstring const getStringFromVector(std::vector<docstring> const & vec,
 /// found, else -1. The last item in \p str must be "".
 int findToken(char const * const str[], std::string const & search_token);
 
+/// A test string that is supposed to be translated into the gettext code
+std::string const languageTestString();
+
 template <class Arg1>
 docstring bformat(docstring const & fmt, Arg1);
 
@@ -285,6 +307,7 @@ template<> docstring bformat(docstring const & fmt, unsigned int arg1);
 template<> docstring bformat(docstring const & fmt, docstring arg1);
 template<> docstring bformat(docstring const & fmt, char * arg1);
 template<> docstring bformat(docstring const & fmt, docstring arg1, docstring arg2);
+template<> docstring bformat(docstring const & fmt, docstring arg1, int arg2);
 template<> docstring bformat(docstring const & fmt, char const * arg1, docstring arg2);
 template<> docstring bformat(docstring const & fmt, int arg1, int arg2);
 template<> docstring bformat(docstring const & fmt, docstring arg1, docstring arg2, docstring arg3);

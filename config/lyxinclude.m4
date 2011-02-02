@@ -44,7 +44,7 @@ AC_MSG_CHECKING([for version suffix])
 dnl We need the literal double quotes in the rpm spec file
 RPM_VERSION_SUFFIX='""'
 AC_ARG_WITH(version-suffix,
-  [  --with-version-suffix[=<version>]  install lyx files as lyx<version>],
+  [AC_HELP_STRING([--with-version-suffix@<:@=VERSION@:>@], install lyx files as lyxVERSION (VERSION=-AC_PACKAGE_VERSION))],
   [if test "x$withval" = "xyes";
    then
      withval="-"AC_PACKAGE_VERSION
@@ -234,6 +234,21 @@ AC_ARG_ENABLE(pch,
 	enable_pch=no;)
 lyx_pch_comp=no
 
+AC_ARG_ENABLE(assertions,
+  AC_HELP_STRING([--enable-assertions],[add runtime sanity checks in the program]),,
+  [if test $lyx_devel_version = yes -o $lyx_prerelease = yes ; then
+	enable_assertions=yes;
+    else
+	enable_assertions=no;
+    fi;])
+if test "x$enable_assertions" = xyes ; then
+   lyx_flags="assertions $lyx_flags"
+   AC_DEFINE(ENABLE_ASSERTIONS,1,
+    [Define if you want assertions to be enabled in the code])
+fi
+
+
+
 # set the compiler options correctly.
 if test x$GXX = xyes; then
   dnl Useful for global version info
@@ -302,130 +317,12 @@ test "$lyx_pch_comp" = yes && lyx_flags="pch $lyx_flags"
 AM_CONDITIONAL(LYX_BUILD_PCH, test "$lyx_pch_comp" = yes)
 ])dnl
 
-
-dnl NOT USED CURRENTLY*************************************
-dnl Usage: LYX_CXX_RTTI : checks whether the C++ compiler
-dnl   supports RTTI
-AC_DEFUN([LYX_CXX_RTTI],[
-### Check whether the compiler supports runtime type information
-AC_CACHE_CHECK(whether the C++ compiler supports RTTI,lyx_cv_rtti,
- [AC_TRY_RUN([
-class rtti {
-public:
-   virtual int tag() { return 0; }
-};
-class derived1 : public rtti {
-public:
-    int tag() { return 1; }
-};
-class derived2 : public rtti {
-public:
-    int tag() { return 2; }
-};
-int main() {
-    derived1 * foo1 = new derived1();
-    derived2 * foo2 = new derived2();
-    rtti * bar = foo1;
-    derived1 * bar1 = dynamic_cast<derived1 *>(bar);
-    if (bar1 == 0)
-	exit(1);
-    bar = foo2;
-    bar1 = dynamic_cast<derived1 *>(bar);
-    if (bar1 != 0)
-	exit(1);
-    return 0;
-}
-],lyx_cv_rtti=yes,lyx_cv_rtti=no,lyx_cv_rtti=no)
-])
-if test x$lyx_cv_rtti = xyes ; then
-  AC_DEFINE(HAVE_RTTI, 1,
-   [Define to 1 if your compiler supports runtime type information])
-fi])
-
-
-dnl Usage: LYX_CXX_EXPLICIT : checks whether the C++ compiler
-dnl   understands the "explicit" directive.
-AC_DEFUN([LYX_CXX_EXPLICIT],[
-### Check whether the compiler understands the keyword `explicit'
-AC_CACHE_CHECK(whether the C++ compiler understands explicit,lyx_cv_explicit,
- [AC_TRY_COMPILE([
-class Expl {
-public:
-	explicit Expl() {}
-};],,lyx_cv_explicit=yes,lyx_cv_explicit=no)
-])
-if test $lyx_cv_explicit = no ; then
-  AC_DEFINE(explicit,[ ],
-   [Define to nothing if your compiler does not understand the
-   'explicit' directive])
-fi])
-
-
-dnl NOT USED CURRENTLY*************************************
-dnl Usage: LYX_CXX_STL_STACK : checks whether the C++ compiler
-dnl   has a working stl stack template
-AC_DEFUN([LYX_CXX_STL_STACK],[
-AC_CACHE_CHECK(for broken STL stack template,lyx_cv_broken_stack,
- [AC_TRY_COMPILE([
-#include <stack>
-using std::stack;
-],[
-    stack<int> stakk;
-    stakk.push(0);
-],lyx_cv_broken_stack=no,lyx_cv_broken_stack=yes)
-])
-if test $lyx_cv_broken_stack = yes ; then
-  AC_DEFINE(BROKEN_STL_STACK, 1,
-   [Define if you have the STL from libg++ 2.7.x, where stack<> is not defined
-   correctly])
-fi])
-
-
-dnl Usage: LYX_STD_COUNT : checks wherer the C++ library have a conforming
-dnl    count template, if not the old HP version is assumed.
-AC_DEFUN([LYX_STD_COUNT],[
-AC_CACHE_CHECK(for conforming std::count,lyx_cv_std_count,
- [AC_TRY_COMPILE([
-#include <algorithm>
-using std::count;
-int countChar(char * b, char * e, char const c)
-{
-	return count(b, e, c);
-}
-],[
-    char a[] = "hello";
-    int i = countChar(a, a + 5, 'l');
-],lyx_cv_std_count=yes,lyx_cv_std_count=no)
-])
-if test $lyx_cv_std_count = yes ; then
-    AC_DEFINE(HAVE_STD_COUNT, 1,
-    [Define if you have a conforming std::count template, otherwise HP version of count template is assumed.])
-fi])
-
-
-dnl Usage: LYX_CXX_STL_MODERN_STREAMS : checks whether the C++ compiler
-dnl   supports modern STL streams
-AC_DEFUN([LYX_CXX_STL_MODERN_STREAMS],[
-AC_CACHE_CHECK(for modern STL streams,lyx_cv_modern_streams,
- [AC_TRY_COMPILE([
-#include <iostream>
-],[
- std::streambuf * test = std::cerr.rdbuf();
- test->pubsync();
-],lyx_cv_modern_streams=yes,lyx_cv_modern_streams=no)
-])
-if test $lyx_cv_modern_streams = yes ; then
-  AC_DEFINE(MODERN_STL_STREAMS, 1,
-   [Define if you have modern standard-compliant STL streams])
-fi])
-
-
 dnl Usage: LYX_USE_INCLUDED_BOOST : select if the included boost should
 dnl        be used.
 AC_DEFUN([LYX_USE_INCLUDED_BOOST],[
 	AC_MSG_CHECKING([whether to use boost included library])
 	AC_ARG_WITH(included-boost,
-	    [  --without-included-boost  do not use the boost lib supplied with LyX, try to find one in the system directories - compilation will abort if nothing suitable is found],
+	    [AC_HELP_STRING([--without-included-boost], [do not use the boost lib supplied with LyX, try to find one in the system directories - compilation will abort if nothing suitable is found])],
 	    [lyx_cv_with_included_boost=$withval],
 	    [lyx_cv_with_included_boost=yes])
 	AM_CONDITIONAL(USE_INCLUDED_BOOST, test x$lyx_cv_with_included_boost = xyes)
@@ -437,59 +334,13 @@ AC_DEFUN([LYX_USE_INCLUDED_BOOST],[
 			BOOST_MT="-mt"
 		else
 			BOOST_MT=""
-			if test x$lyx_boost_underscore != xyes ; then
-				LYX_ERROR([No suitable boost library found (use --with-included-boost)])
+			if test x$lyx_boost_plain != xyes -a x$lyx_boost_underscore != xyes ; then
+				LYX_ERROR([No suitable boost library found (do not use --without-included-boost)])
 			fi
 		fi
+		AC_SUBST(BOOST_SEP)
 		AC_SUBST(BOOST_MT)
 	fi
-])
-
-
-dnl NOT USED CURRENTLY*************************************
-dnl LYX_CXX_PARTIAL
-AC_DEFUN([LYX_CXX_PARTIAL], [
-    AC_REQUIRE([AC_PROG_CXX])
-    AC_CACHE_CHECK([if C++ compiler supports partial specialization],
-	[lyx_cv_cxx_partial_specialization],
-	[AC_TRY_COMPILE(
-	    [
-	    template<class T, class K>
-	    class k {
-	    public:
-	    };
-	    template<class T> class k<void,T> { };
-	    ],[
-	    k<float, float> b;
-	    k<void,void> a;
-	    ],[
-	    lyx_cv_cxx_partial_specialization=yes
-	    ],[
-	    lyx_cv_cxx_partial_specialization=no
-	    ])
-	])
-    if test x$lyx_cv_cxx_partial_specialization = xyes ; then
-	AC_DEFINE(HAVE_PARTIAL_SPECIALIZATION, 1,
-	[Defined if your compiler supports partial specialization.])
-    fi
-])
-
-
-dnl Usage: LYX_CXX_GLOBAL_CSTD: checks whether C library functions
-dnl   are already in the global namespace
-AC_DEFUN([LYX_CXX_GLOBAL_CSTD],[
-    AC_CACHE_CHECK(whether C library functions are already in the global namespace,
-    lyx_cv_cxx_global_cstd,
-    [AC_TRY_COMPILE([
-    #include <cctype>
-    using std::tolower;
-    ],[
-    return 0;
-    ],[lyx_cv_cxx_global_cstd=no],[lyx_cv_cxx_global_cstd=yes])])
-    if test x$lyx_cv_cxx_global_cstd = xyes; then
-	AC_DEFINE(CXX_GLOBAL_CSTD,1,
-	[Define if your C++ compiler puts C library functions in the global namespace])
-    fi
 ])
 
 
@@ -580,8 +431,8 @@ rm -f conftest*])
 AC_DEFUN([LYX_USE_FRONTENDS],
 [AC_MSG_CHECKING([what frontend should be used for the GUI])
 AC_ARG_WITH(frontend,
-  [  --with-frontend=THIS    Use THIS frontend as main GUI:
-			    Possible values: qt4],
+  [AC_HELP_STRING([--with-frontend=THIS], [use THIS frontend as main GUI:
+			    Possible values: qt4])],
   [FRONTENDS="$withval"],[FRONTENDS="qt4"])
 if test "x$FRONTENDS" = x ; then
   AC_MSG_RESULT(none)
@@ -599,8 +450,8 @@ AC_SUBST(FRONTENDS_PROGS)
 AC_DEFUN([LYX_USE_PACKAGING],
 [AC_MSG_CHECKING([what packaging should be used])
 AC_ARG_WITH(packaging,
-  [  --with-packaging=THIS   Use THIS packaging for installation:
-			    Possible values: posix, windows, macosx],
+  [AC_HELP_STRING([--with-packaging=THIS], [use THIS packaging for installation:
+			    Possible values: posix, windows, macosx])],
   [lyx_use_packaging="$withval"], [
   case $host in
     *-apple-darwin*) lyx_use_packaging=macosx ;;
@@ -648,42 +499,6 @@ datadir='${datarootdir}'
 AC_SUBST(datarootdir)
 AC_SUBST(pkgdatadir)
 AC_SUBST(program_suffix)
-])
-
-
-## ------------------------------------------------------------------------
-## Find a file (or one of more files in a list of dirs)
-## ------------------------------------------------------------------------
-##
-AC_DEFUN([AC_FIND_FILE],
-[
-$3=NO
-for i in $2;
-do
-  for j in $1;
-  do
-    if test -r "$i/$j"; then
-      $3=$i
-      break 2
-    fi
-  done
-done
-])
-
-dnl just a wrapper to clean up configure.in
-AC_DEFUN([LYX_PROG_LIBTOOL],
-[
-AC_REQUIRE([AC_ENABLE_SHARED])
-AC_REQUIRE([AC_ENABLE_STATIC])
-dnl libtool is only for C, so I must force him
-dnl to find the correct flags for C++
-ac_save_cc=$CC
-ac_save_cflags="$CFLAGS"
-CC=$CXX
-CFLAGS="$CXXFLAGS"
-AC_PROG_LIBTOOL dnl for libraries
-CC=$ac_save_cc
-CFLAGS="$ac_save_cflags"
 ])
 
 
@@ -755,6 +570,26 @@ do
        break],
       [AC_MSG_RESULT(no)])
 done])
+
+dnl this is used by the macro below to generate a proper config.h.in entry
+m4_define([LYX_AH_CHECK_DEF],
+[AH_TEMPLATE(AS_TR_CPP(HAVE_DEF_$1),
+  [Define to 1 if `$1' is defined in `$2'])])
+
+dnl Check whether name is defined in header by using it in codesnippet.
+dnl Called like LYX_CHECK_DEF(name, header, codesnippet)
+dnl Defines HAVE_DEF_{NAME}
+AC_DEFUN([LYX_CHECK_DEF],
+[LYX_AH_CHECK_DEF($1, $2)
+ AC_MSG_CHECKING([whether $1 is defined by header $2])
+ AC_TRY_COMPILE([#include <$2>], [$3],
+     lyx_have_def_name=yes,
+     lyx_have_def_name=no)
+ AC_MSG_RESULT($lyx_have_def_name)
+ if test "x$lyx_have_def_name" = xyes; then
+   AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_DEF_$1))
+ fi
+])
 
 dnl Extract the single digits from PACKAGE_VERSION and make them available.
 dnl Defines LYX_MAJOR_VERSION, LYX_MINOR_VERSION, LYX_RELEASE_LEVEL,

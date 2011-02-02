@@ -1,11 +1,11 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[spie]{article (SPIE Proceedings)}
+#  \DeclareLaTeXClass[spie,cite.sty]{article (SPIE Proceedings)}
 # SPIE-Article textclass definition file.
 # Author : Guenter Milde <g.milde@physik.tu-dresden.de>
 # to be used with the spie.cls LaTex-style available at
 # http://public.lanl.gov/kmh/spie/
 
-Format 11
+Format 30
 Input stdclass.inc
 
 NoStyle Chapter
@@ -23,6 +23,7 @@ Style Section
 	  Series              Bold
 	  Size                large
 	EndFont
+	TocLevel 1
 End
 
 

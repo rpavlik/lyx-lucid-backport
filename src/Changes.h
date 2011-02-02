@@ -60,6 +60,8 @@ public:
 	bool deleted() const { return type == DELETED; }
 	///
 	void setDeleted() { type = DELETED; }
+	/// Is this change made by the current author ?
+	bool currentAuthor() const { return author == 0; }
 
 	Type type;
 
@@ -97,7 +99,7 @@ public:
 	bool isChanged(pos_type start, pos_type end) const;
 
 	/// return true if the whole range is deleted
-	bool isFullyDeleted(pos_type const start, pos_type const end) const;
+	bool isDeleted(pos_type start, pos_type end) const;
 
 	/// output latex to mark a transition between two change types
 	/// returns length of text outputted
@@ -106,8 +108,8 @@ public:
 				   OutputParams const & runparams);
 
 	/// output .lyx file format for transitions between changes
-	static void lyxMarkChange(std::ostream & os, int & column,
-		Change const & old, Change const & change);
+	static void lyxMarkChange(std::ostream & os, BufferParams const & bparams,
+		int & column, Change const & old, Change const & change);
 
 	///
 	void checkAuthors(AuthorList const & authorList);

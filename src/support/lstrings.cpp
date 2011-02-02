@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Dekel Tsur
  *
@@ -15,6 +15,7 @@
 #include "support/lstrings.h"
 
 #include "support/convert.h"
+#include "support/gettext.h"
 #include "support/qstring_helpers.h"
 #include "support/textutils.h"
 
@@ -47,6 +48,7 @@ string const & empty_string()
 	return s;
 }
 
+namespace {
 /**
  * Convert a QChar into a UCS4 character.
  * This is a hack (it does only make sense for the common part of the UCS4
@@ -54,12 +56,11 @@ string const & empty_string()
  * This does only exist because of performance reasons (a real conversion
  * using iconv is too slow on windows).
  */
-static inline char_type qchar_to_ucs4(QChar const & qchar)
+inline char_type qchar_to_ucs4(QChar const & qchar)
 {
 	LASSERT(is_utf16(static_cast<char_type>(qchar.unicode())), /**/);
 	return static_cast<char_type>(qchar.unicode());
 }
-
 
 /**
  * Convert a UCS4 character into a QChar.
@@ -68,17 +69,15 @@ static inline char_type qchar_to_ucs4(QChar const & qchar)
  * This does only exist because of performance reasons (a real conversion
  * using iconv is too slow on windows).
  */
-static inline QChar const ucs4_to_qchar(char_type const ucs4)
+inline QChar const ucs4_to_qchar(char_type const ucs4)
 {
 	LASSERT(is_utf16(ucs4), /**/);
 	return QChar(static_cast<unsigned short>(ucs4));
 }
 
-
-namespace {
-	/// Maximum valid UCS4 code point
-	char_type const ucs4_max = 0x10ffff;
-}
+/// Maximum valid UCS4 code point
+char_type const ucs4_max = 0x10ffff;
+} // anon namespace
 
 
 bool isLetterChar(char_type c)
@@ -148,13 +147,13 @@ bool isSpace(char_type c)
 }
 
 
-bool isDigit(char_type c)
+bool isNumber(char_type c)
 {
 	if (!is_utf16(c))
-		// assume that no non-utf16 character is a digit
+		// assume that no non-utf16 character is a numeral
 		// c outside the UCS4 range is catched as well
 		return false;
-	return ucs4_to_qchar(c).isDigit();
+	return ucs4_to_qchar(c).isNumber();
 }
 
 
@@ -162,6 +161,13 @@ bool isDigitASCII(char_type c)
 {
 	return '0' <= c && c <= '9';
 }
+
+
+bool isAlnumASCII(char_type c)
+{
+	return isAlphaASCII(c) || isDigitASCII(c);
+}
+
 
 namespace support {
 
@@ -259,7 +265,7 @@ bool isStrInt(string const & str)
 
 	string::const_iterator end = tmpstr.end();
 	for (; cit != end; ++cit)
-		if (!isdigit((*cit)))
+		if (!isDigitASCII(*cit))
 			return false;
 
 	return true;
@@ -279,7 +285,7 @@ bool isStrUnsignedInt(string const & str)
 	string::const_iterator cit = tmpstr.begin();
 	string::const_iterator end = tmpstr.end();
 	for (; cit != end; ++cit)
-		if (!isdigit((*cit)))
+		if (!isDigitASCII(*cit))
 			return false;
 
 	return true;
@@ -303,7 +309,7 @@ bool isStrDbl(string const & str)
 		++cit;
 	string::const_iterator end = tmpstr.end();
 	for (; cit != end; ++cit) {
-		if (!isdigit(*cit) && *cit != '.')
+		if (!isDigitASCII(*cit) && *cit != '.')
 			return false;
 		if ('.' == (*cit)) {
 			if (found_dot)
@@ -315,7 +321,18 @@ bool isStrDbl(string const & str)
 }
 
 
-static bool isHexChar(char_type c)
+bool hasDigitASCII(docstring const & str)
+{
+	docstring::const_iterator cit = str.begin();
+	docstring::const_iterator const end = str.end();
+	for (; cit != end; ++cit)
+		if (isDigitASCII(*cit))
+			return true;
+	return false;
+}
+
+
+bool isHexChar(char_type c)
 {
 	return c == '0' ||
 		c == '1' ||
@@ -415,6 +432,16 @@ char_type uppercase(char_type c)
 }
 
 
+bool isLowerCase(char_type ch) {
+	return lowercase(ch) == ch;
+}
+
+
+bool isUpperCase(char_type ch) {
+	return uppercase(ch) == ch;
+}
+
+
 namespace {
 
 // since we cannot use tolower and toupper directly in the
@@ -422,19 +449,13 @@ namespace {
 
 struct local_lowercase {
 	char_type operator()(char_type c) const {
-		if (!is_utf16(c))
-			// We don't know how to lowercase a non-utf16 char
-			return c;
-		return qchar_to_ucs4(ucs4_to_qchar(c).toLower());
+		return lowercase(c);
 	}
 };
 
 struct local_uppercase {
 	char_type operator()(char_type c) const {
-		if (!is_utf16(c))
-			// We don't know how to uppercase a non-utf16 char
-			return c;
-		return qchar_to_ucs4(ucs4_to_qchar(c).toUpper());
+		return uppercase(c);
 	}
 };
 
@@ -443,6 +464,7 @@ template<typename Char> struct local_ascii_lowercase {
 };
 
 } // end of anon namespace
+
 
 docstring const lowercase(docstring const & a)
 {
@@ -478,6 +500,132 @@ docstring const ascii_lowercase(docstring const & a)
 }
 
 
+char_type superscript(char_type c)
+{
+	switch (c) {
+		case    '2': return 0x00b2;
+		case    '3': return 0x00b3;
+		case    '1': return 0x00b9;
+		case    '0': return 0x2070;
+		case    'i': return 0x2071;
+		case    '4': return 0x2074;
+		case    '5': return 0x2075;
+		case    '6': return 0x2076;
+		case    '7': return 0x2077;
+		case    '8': return 0x2078;
+		case    '9': return 0x2079;
+		case    '+': return 0x207a;
+		case    '-': return 0x207b;
+		case    '=': return 0x207c;
+		case    '(': return 0x207d;
+		case    ')': return 0x207e;
+		case    'n': return 0x207f;
+		case    'h': return 0x02b0;
+		case 0x0266: return 0x02b1; // LATIN SMALL LETTER H WITH HOOK
+		case    'j': return 0x02b2;
+		case    'r': return 0x02b3;
+		case 0x0279: return 0x02b4; // LATIN SMALL LETTER TURNED R
+		case 0x027b: return 0x02b5; // LATIN SMALL LETTER TURNED R WITH HOOK
+		case 0x0281: return 0x02b6; // LATIN SMALL LETTER CAPITAL INVERTED R
+		case    'w': return 0x02b7;
+		case    'y': return 0x02b8;
+//		case 0x0294: return 0x02c0; // LATIN LETTER GLOTTAL STOP)
+//		case 0x0295: return 0x02c1; // LATIN LETTER PHARYNGEAL VOICED FRICATIVE
+		                            // (= LATIN LETTER REVERSED GLOTTAL STOP)
+		case    'l': return 0x02e1;
+		case    's': return 0x02e2;
+		case    'x': return 0x02e3;
+//		case 0x0295: return 0x02e4; // LATIN SMALL LETTER REVERSED GLOTTAL STOP
+		case    'A': return 0x1d2c;
+		case 0x00c6: return 0x1d2d; // LATIN CAPITAL LETTER AE
+		case    'B': return 0x1d2e;
+		case    'D': return 0x1d30;
+		case    'E': return 0x1d31;
+		case    'G': return 0x1d33;
+		case    'H': return 0x1d34;
+		case    'I': return 0x1d35;
+		case    'J': return 0x1d36;
+		case    'K': return 0x1d37;
+		case    'L': return 0x1d38;
+		case    'M': return 0x1d39;
+		case    'N': return 0x1d3a;
+		case    'O': return 0x1d3c;
+		case    'P': return 0x1d3e;
+		case    'R': return 0x1d3f;
+		case    'T': return 0x1d40;
+		case    'U': return 0x1d41;
+		case    'W': return 0x1d42;
+		case    'a': return 0x1d43;
+		case 0x0250: return 0x1d44; // LATIN SMALL LETTER TURNED A
+		case 0x0251: return 0x1d45; // LATIN SMALL LETTER ALPHA
+		case    'b': return 0x1d47;
+		case    'd': return 0x1d48;
+		case    'e': return 0x1d49;
+		case 0x0259: return 0x1d4a; // LATIN SMALL LETTER SCHWA
+		case 0x025b: return 0x1d4b; // LATIN SMALL LETTER OPEN E
+		case 0x1d08: return 0x1d4c; // LATIN SMALL LETTER TURNED OPEN E
+		case    'g': return 0x1d4d;
+		case 0x1d09: return 0x1d4e; // LATIN SMALL LETTER TURNED I
+		case    'k': return 0x1d4f;
+		case    'm': return 0x1d50;
+		case 0x014b: return 0x1d51; // LATIN SMALL LETTER ENG
+		case    'o': return 0x1d52;
+		case 0x0254: return 0x1d53; // LATIN SMALL LETTER OPEN O
+		case 0x1d16: return 0x1d54; // LATIN SMALL LETTER TOP HALF O
+		case 0x1d17: return 0x1d55; // LATIN SMALL LETTER BOTTOM HALF O
+		case    'p': return 0x1d56;
+		case    't': return 0x1d57;
+		case    'u': return 0x1d58;
+		case 0x1d1d: return 0x1d59; // LATIN SMALL LETTER SIDEWAYS U
+		case 0x1d1f: return 0x1d5a; // LATIN SMALL LETTER SIDEWAYS TURNED M
+		case    'v': return 0x1d5b;
+		case 0x03b2: return 0x1d5d; // GREEK SMALL LETTER BETA
+		case 0x03b3: return 0x1d5e; // GREEK SMALL LETTER GAMMA
+		case 0x03b4: return 0x1d5f; // GREEK SMALL LETTER DELTA
+		case 0x03c6: return 0x1d60; // GREEK SMALL LETTER PHI
+		case 0x03c7: return 0x1d61; // GREEK SMALL LETTER CHI
+	}
+	return c;
+}
+
+
+char_type subscript(char_type c)
+{
+	switch (c) {
+		case    'i': return 0x1d62;
+		case    'r': return 0x1d63;
+		case    'u': return 0x1d64;
+		case    'v': return 0x1d65;
+		case 0x03b2: return 0x1d66; // GREEK SMALL LETTER BETA
+		case 0x03b3: return 0x1d67; // GREEK SMALL LETTER GAMMA
+		case 0x03c1: return 0x1d68; // GREEK SMALL LETTER RHO
+		case 0x03c6: return 0x1d69; // GREEK SMALL LETTER PHI
+		case 0x03c7: return 0x1d6a; // GREEK SMALL LETTER CHI
+		case    '0': return 0x2080;
+		case    '1': return 0x2081;
+		case    '2': return 0x2082;
+		case    '3': return 0x2083;
+		case    '4': return 0x2084;
+		case    '5': return 0x2085;
+		case    '6': return 0x2086;
+		case    '7': return 0x2087;
+		case    '8': return 0x2088;
+		case    '9': return 0x2089;
+		case    '+': return 0x208a;
+		case    '-': return 0x208b;
+		case    '=': return 0x208c;
+		case    '(': return 0x208d;
+		case    ')': return 0x208e;
+		case    'a': return 0x2090;
+		case    'e': return 0x2091;
+		case    'o': return 0x2092;
+		case    'x': return 0x2093;
+		case 0x0259: return 0x2093; // LATIN SMALL LETTER SCHWA
+	}
+	return c;
+}
+
+
 bool prefixIs(docstring const & a, char_type c)
 {
 	if (a.empty())
@@ -504,7 +652,7 @@ bool prefixIs(docstring const & a, docstring const & pre)
 
 bool suffixIs(string const & a, char c)
 {
-	if (a.empty()) 
+	if (a.empty())
 		return false;
 	return a[a.length() - 1] == c;
 }
@@ -994,7 +1142,7 @@ vector<docstring> wrapToVec(docstring const & str, int ind,
 docstring wrap(docstring const & str, int const ind, size_t const width)
 {
 	docstring s = trim(str);
-	if (s.empty()) 
+	if (s.empty())
 		return docstring();
 
 	vector<docstring> const svec = wrapToVec(str, ind, width);
@@ -1003,25 +1151,38 @@ docstring wrap(docstring const & str, int const ind, size_t const width)
 
 
 docstring wrapParas(docstring const & str, int const indent,
-                    size_t const width, size_t const maxlines)
+		    size_t const width, size_t const maxlines)
 {
+	docstring const dots = from_ascii("...");
 	if (str.empty())
 		return docstring();
 
-	vector<docstring> pars = getVectorFromString(str, from_ascii("\n"), true);
+	vector<docstring> const pars = getVectorFromString(str, from_ascii("\n"), true);
 	vector<docstring> retval;
 
-	vector<docstring>::iterator it = pars.begin();
-	vector<docstring>::iterator en = pars.end();
+	vector<docstring>::const_iterator it = pars.begin();
+	vector<docstring>::const_iterator const en = pars.end();
 	for (; it != en; ++it) {
 		vector<docstring> tmp = wrapToVec(*it, indent, width);
 		size_t const nlines = tmp.size();
 		if (nlines == 0)
 			continue;
 		size_t const curlines = retval.size();
-		if (maxlines > 0 && curlines + nlines >= maxlines) {
-			tmp.resize(maxlines - curlines - 1);
-			tmp.push_back(from_ascii("..."));
+		if (maxlines > 0 && curlines + nlines > maxlines) {
+			tmp.resize(maxlines - curlines);
+			docstring last = tmp.back();
+			size_t const lsize = last.size();
+			if (lsize > width - 3) {
+				size_t const i = last.find_last_of(' ', width - 3);
+				if (i == docstring::npos || i <= size_t(indent))
+					// no space found
+					last = last.substr(0, lsize - 3) + dots;
+				else
+					last = last.substr(0, i) + dots;
+			} else
+				last += dots;
+			tmp.pop_back();
+			tmp.push_back(last);
 		}
 		retval.insert(retval.end(), tmp.begin(), tmp.end());
 		if (maxlines > 0 && retval.size() >= maxlines)
@@ -1104,14 +1265,14 @@ vector<docstring> const getVectorFromString(docstring const & str,
 
 
 string const getStringFromVector(vector<string> const & vec,
-                                 string const & delim)
+				 string const & delim)
 {
 	return getStringFromVector<string>(vec, delim);
 }
 
 
 docstring const getStringFromVector(vector<docstring> const & vec,
-                                    docstring const & delim)
+				    docstring const & delim)
 {
 	return getStringFromVector<docstring>(vec, delim);
 }
@@ -1126,6 +1287,12 @@ int findToken(char const * const str[], string const & search_token)
 	if (!str[i][0])
 		i = -1;
 	return i;
+}
+
+
+string const languageTestString()
+{
+	return N_("[[Replace with the code of your language]]");
 }
 
 
@@ -1181,6 +1348,17 @@ docstring bformat(docstring const & fmt, docstring arg1, docstring arg2)
 	LASSERT(contains(fmt, from_ascii("%2$s")), /**/);
 	docstring str = subst(fmt, from_ascii("%1$s"), arg1);
 	str = subst(str, from_ascii("%2$s"), arg2);
+	return subst(str, from_ascii("%%"), from_ascii("%"));
+}
+
+
+template<>
+docstring bformat(docstring const & fmt, docstring arg1, int arg2)
+{
+	LASSERT(contains(fmt, from_ascii("%1$s")), /**/);
+	LASSERT(contains(fmt, from_ascii("%2$d")), /**/);
+	docstring str = subst(fmt, from_ascii("%1$s"), arg1);
+	str = subst(str, from_ascii("%2$d"), convert<docstring>(arg2));
 	return subst(str, from_ascii("%%"), from_ascii("%"));
 }
 

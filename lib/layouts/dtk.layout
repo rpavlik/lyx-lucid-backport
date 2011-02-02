@@ -1,12 +1,12 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[dtk]{article (Die TeXnische Komoedie)}
+#  \DeclareLaTeXClass[dtk,dtklogos.sty,filecontents.sty,multicol.sty,ragged2e.sty]{article (Die TeXnische Komoedie)}
 # This is the definition file for
 # Die TeXnische Komoedie (dtk),
 # the journal of the German TeX User Group http://www.dante.de.
 # Author : Herbert Voss <voss@lyx.org> 2001/08/13
 
 
-Format 11
+Format 30
 Columns                 1
 Sides                   2
 SecNumDepth             -1              # no counting

@@ -110,16 +110,16 @@ if os.path.isfile('config.py'):
     print "Getting options from config.py..."
     print open('config.py').read()
 
-opts = Options(['config.py'])
-opts.AddOptions(
+opts = Variables(['config.py'])
+opts.AddVariables(
     # frontend
-    EnumOption('frontend', 'Main GUI', 'qt4',
+    EnumVariable('frontend', 'Main GUI', 'qt4',
         allowed_values = ('qt4',) ),
     # debug or release build
-    EnumOption('mode', 'Building method', default_build_mode,
+    EnumVariable('mode', 'Building method', default_build_mode,
         allowed_values = ('debug', 'release') ),
     # boost libraries
-    EnumOption('boost',
+    EnumVariable('boost',
         'Use included, system boost library, or try sytem boost first.',
         'auto', allowed_values = (
             'auto',       # detect boost, if not found, use included
@@ -127,7 +127,7 @@ opts.AddOptions(
             'system',     # always use system boost, fail if can not find
             ) ),
     #
-    EnumOption('gettext',
+    EnumVariable('gettext',
         'Use included, system gettext library, or try sytem gettext first',
         'auto', allowed_values = (
             'auto',       # detect gettext, if not found, use included
@@ -135,46 +135,46 @@ opts.AddOptions(
             'system',     # always use system gettext, fail if can not find
             ) ),
     #
-    EnumOption('spell', 'Choose spell checker to use.', 'auto',
-        allowed_values = ('aspell', 'enchant', 'pspell', 'ispell', 'auto', 'no') ),
+    EnumVariable('spell', 'Choose spell checker to use.', 'auto',
+		allowed_values = ('aspell', 'enchant', 'hunspell', 'auto', 'no') ),
     # packaging method
-    EnumOption('packaging', 'Packaging method to use.', default_packaging_method,
+    EnumVariable('packaging', 'Packaging method to use.', default_packaging_method,
         allowed_values = ('windows', 'posix', 'macosx')),
     #
-    BoolOption('fast_start', 'This option is obsolete.', False),
+    BoolVariable('fast_start', 'This option is obsolete.', False),
     # No precompiled header support (too troublesome to make it work for msvc)
-    # BoolOption('pch', 'Whether or not use pch', False),
+    # BoolVariable('pch', 'Whether or not use pch', False),
     # enable assertion, (config.h has ENABLE_ASSERTIOS
-    BoolOption('assertions', 'Use assertions', True),
+    BoolVariable('assertions', 'Use assertions', True),
     # config.h define _GLIBCXX_CONCEPT_CHECKS
     # Note: for earlier version of gcc (3.3) define _GLIBCPP_CONCEPT_CHECKS
-    BoolOption('concept_checks', 'Enable concept checks', True),
+    BoolVariable('concept_checks', 'Enable concept checks', True),
     #
-    BoolOption('nls', 'Whether or not use native language support', True),
+    BoolVariable('nls', 'Whether or not use native language support', True),
     #
-    BoolOption('profiling', 'Whether or not enable profiling', False),
+    BoolVariable('profiling', 'Whether or not enable profiling', False),
     # config.h define _GLIBCXX_DEBUG and _GLIBCXX_DEBUG_PEDANTIC
-    BoolOption('stdlib_debug', 'Whether or not turn on stdlib debug', False),
+    BoolVariable('stdlib_debug', 'Whether or not turn on stdlib debug', False),
     # using x11?
-    BoolOption('X11', 'Use x11 windows system', default_with_x),
+    BoolVariable('X11', 'Use x11 windows system', default_with_x),
     # use MS VC++ to build lyx
-    BoolOption('use_vc', 'Use MS VC++ to build lyx (cl.exe will be probed)', None),
+    BoolVariable('use_vc', 'Use MS VC++ to build lyx (cl.exe will be probed)', None),
     #
-    PathOption('qt_dir', 'Path to qt directory', None),
+    PathVariable('qt_dir', 'Path to qt directory', None),
     #
-    PathOption('qt_inc_path', 'Path to qt include directory', None),
+    PathVariable('qt_inc_path', 'Path to qt include directory', None),
     #
-    PathOption('qt_lib_path', 'Path to qt library directory', None),
+    PathVariable('qt_lib_path', 'Path to qt library directory', None),
     # extra include and libpath
-    PathOption('extra_inc_path', 'Extra include path', None),
+    PathVariable('extra_inc_path', 'Extra include path', None),
     #
-    PathOption('extra_lib_path', 'Extra library path', None),
+    PathVariable('extra_lib_path', 'Extra library path', None),
     #
-    PathOption('extra_bin_path', 'A convenient way to add a path to $PATH', None),
+    PathVariable('extra_bin_path', 'A convenient way to add a path to $PATH', None),
     #
-    PathOption('extra_inc_path1', 'Extra include path', None),
+    PathVariable('extra_inc_path1', 'Extra include path', None),
     #
-    PathOption('extra_lib_path1', 'Extra library path', None),
+    PathVariable('extra_lib_path1', 'Extra library path', None),
     #
     ('rebuild', 'Obsolete option', None),
     # can be set to a non-existing directory
@@ -184,9 +184,9 @@ opts.AddOptions(
     # the deps package used to create minimal installer (qt and other libraries)
     ('deps_dir', 'path to the development depedency packages with zlib, iconv, zlib and qt libraries', None),
     # whether or not build bundle installer
-    BoolOption('bundle', 'Whether or not build bundle installer', False),
+    BoolVariable('bundle', 'Whether or not build bundle installer', False),
     # the bundle directory, containing bundled applications
-    PathOption('bundle_dir', 'path to the bundle dependency package with miktex setup.exe etc', None),
+    PathVariable('bundle_dir', 'path to the bundle dependency package with miktex setup.exe etc', None),
     # build directory, will use $mode if not set
     ('build_dir', 'Build directory', None),
     # version suffix
@@ -200,7 +200,7 @@ opts.AddOptions(
     #
     ('optimization', 'optimization CCFLAGS option.', None),
     #
-    PathOption('exec_prefix', 'install architecture-independent executable files in PREFIX', None),
+    PathVariable('exec_prefix', 'install architecture-independent executable files in PREFIX', None),
     # log file
     ('logfile', 'save commands (not outputs) to logfile', default_log_file),
     # provided for backward compatibility
@@ -220,7 +220,7 @@ opts.AddOptions(
 # allowed options
 all_options = [x.key for x in opts.options]
 
-# copied from SCons/Options/BoolOption.py
+# copied from SCons/Variables/BoolVariable.py
 # We need to use them before a boolean ARGUMENTS option is available
 # in env as bool.
 true_strings  = ('y', 'yes', 'true', 't', '1', 'on' , 'all' )
@@ -808,16 +808,13 @@ else:
 spell_opt = ARGUMENTS.get('spell', 'auto')
 env['USE_ASPELL'] = False
 env['USE_ENCHANT'] = False
-env['USE_PSPELL'] = False
-env['USE_ISPELL'] = False
+env['USE_HUNSPELL'] = False
 if spell_opt in ['auto', 'aspell'] and conf.CheckLib(aspell_lib):
     spell_engine = 'USE_ASPELL'
 elif spell_opt in ['auto', 'enchant'] and conf.CheckLib('enchant'):
     spell_engine = 'USE_ENCHANT'
-elif spell_opt in ['auto', 'pspell'] and conf.CheckLib('pspell'):
-    spell_engine = 'USE_PSPELL'
-elif spell_opt in ['auto', 'ispell'] and conf.CheckLib('ispell'):
-    spell_engine = 'USE_ISPELL'
+elif spell_opt in ['auto', 'hunspell'] and conf.CheckLib('hunspell'):
+    spell_engine = 'USE_HUNSPELL'
 else:
     spell_engine = None
 
@@ -1075,8 +1072,8 @@ char * strerror(int n);
 )
 
 # these keys are needed in env
-for key in ['USE_ASPELL', 'USE_ENCHANT', 'USE_PSPELL', 'USE_ISPELL',\
-    'HAVE_FCNTL', 'HAVE_LIBGDI32', 'HAVE_LIBAIKSAURUS', 'AIKSAURUS_LIB']:
+for key in ['USE_ASPELL', 'USE_ENCHANT', 'USE_HUNSPELL', 'HAVE_FCNTL',\
+    'HAVE_LIBGDI32', 'HAVE_LIBAIKSAURUS', 'AIKSAURUS_LIB']:
     # USE_ASPELL etc does not go through result
     if result.has_key(key):
         env[key] = result[key]
@@ -1234,8 +1231,7 @@ libs = [
     ('HAVE_LIBAIKSAURUS', env['AIKSAURUS_LIB']),
     ('USE_ASPELL', aspell_lib),
     ('USE_ENCHANT', 'enchant'),
-    ('USE_ISPELL', 'ispell'),
-    ('USE_PSPELL', 'pspell'),
+    ('USE_HUNSPELL', 'hunspell')
 ]
 
 for lib in libs:
@@ -1435,10 +1431,10 @@ Help(opts.GenerateHelpText(env))
 env.SConsignFile(os.path.join(Dir(env['BUILDDIR']).abspath, '.sconsign'))
 # this usage needs further investigation.
 #env.CacheDir('%s/Cache/%s' % (env['BUILDDIR'], frontend))
-env.BuildDir('$BUILDDIR/boost', '$TOP_SRCDIR/boost/libs', duplicate = 0)
-env.BuildDir('$BUILDDIR/intl', '$TOP_SRCDIR/intl', duplicate = 0)
-env.BuildDir('$BUILDDIR/src', '$TOP_SRCDIR/src', duplicate = 0)
-env.BuildDir('$BUILDDIR/src', '$TOP_SRCDIR/src', duplicate = 0)
+env.VariantDir('$BUILDDIR/boost', '$TOP_SRCDIR/boost/libs', duplicate = 0)
+env.VariantDir('$BUILDDIR/intl', '$TOP_SRCDIR/intl', duplicate = 0)
+env.VariantDir('$BUILDDIR/src', '$TOP_SRCDIR/src', duplicate = 0)
+env.VariantDir('$BUILDDIR/src', '$TOP_SRCDIR/src', duplicate = 0)
 
 print "Building all targets recursively"
 
@@ -1496,8 +1492,8 @@ if (included_gettext and not libExists('included_intl')) or 'intl' in BUILD_TARG
 #
 # src/support
 #
-env['QT4_MOCHPREFIX'] = ''
-env['QT4_MOCHSUFFIX'] = '_moc.cpp'
+env['QT4_MOCHPREFIX'] = 'moc_'
+env['QT4_MOCHSUFFIX'] = '.cpp'
 
 support_moced_files = [env.Moc4('$BUILDDIR/src/support/%s' % x)
     for x in src_support_header_files ]
@@ -1514,8 +1510,6 @@ support = env.StaticLibrary(
 )
 Alias('support', support)
 
-#
-# lyxclient
 #
 if env['HAVE_FCNTL']:
     client = env.Program(
@@ -1557,13 +1551,14 @@ Alias('tex2lyx', tex2lyx)
 # Build lyx with given frontend
 #
 if env.has_key('USE_ASPELL') and env['USE_ASPELL']:
-    src_post_files.append('ASpell.cpp')
+    src_post_files.append('AspellChecker.cpp')
+    src_post_files.append('PersonalWordList.cpp')
 elif env.has_key('USE_ENCHANT') and env['USE_ENCHANT']:
-    src_post_files.append('Enchant.cpp')
-elif env.has_key('USE_PSPELL') and env['USE_PSPELL']:
-    src_post_files.append('PSpell.cpp')
-elif env.has_key('USE_ISPELL') and env['USE_ISPELL']:
-    src_post_files.append('ISpell.cpp')
+    src_post_files.append('EnchantChecker.cpp')
+    src_post_files.append('PersonalWordList.cpp')
+elif env.has_key('USE_HUNSPELL') and env['USE_HUNSPELL']:
+    src_post_files.append('HunspellChecker.cpp')
+    src_post_files.append('PersonalWordList.cpp')
 
 # tells scons how to get these moced files, although not all moced files are needed
 # (or are actually generated).
@@ -1926,6 +1921,7 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
             ('examples/ru', lib_examples_ru_files),
             ('examples/sk', lib_examples_sk_files),
             ('examples/sl', lib_examples_sl_files),
+            ('examples/sr', lib_examples_sr_files),
             ('examples/uk', lib_examples_uk_files),
             ('fonts', lib_fonts_files),
             ('images', lib_images_files),
@@ -1936,6 +1932,7 @@ if 'install' in BUILD_TARGETS or 'installer' in BUILD_TARGETS:
             ('lyx2lyx', lib_lyx2lyx_files),
             ('scripts', lib_scripts_files),
             ('templates', lib_templates_files),
+            ('templates/thesis', lib_templates_thesis_files),
             ('tex', lib_tex_files),
             ('ui', lib_ui_files)]:
         dirs.append(env.Install(os.path.join(share_dest_dir, dir),

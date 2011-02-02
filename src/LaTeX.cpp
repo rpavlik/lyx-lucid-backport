@@ -4,11 +4,11 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Alfredo Braunstein
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
  * \author Angus Leeming
  * \author Dekel Tsur
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -29,12 +29,10 @@
 #include "support/Systemcall.h"
 #include "support/os.h"
 
-#include <boost/regex.hpp>
+#include "support/regex.h"
 
 #include <fstream>
 
-using boost::regex;
-using boost::smatch;
 
 using namespace std;
 using namespace lyx::support;
@@ -50,8 +48,6 @@ namespace os = support::os;
 //   different way.
 // - the makeindex style files should be taken care of with
 //   the dependency mechanism.
-// - makeindex commandline options should be supported
-// - somewhere support viewing of bibtex and makeindex log files.
 // - we should perhaps also scan the bibtex log file
 
 namespace {
@@ -75,16 +71,16 @@ void TeXErrors::insertError(int line, docstring const & error_desc,
 }
 
 
-bool operator==(Aux_Info const & a, Aux_Info const & o)
+bool operator==(AuxInfo const & a, AuxInfo const & o)
 {
-	return a.aux_file == o.aux_file &&
-		a.citations == o.citations &&
-		a.databases == o.databases &&
-		a.styles == o.styles;
+	return a.aux_file == o.aux_file
+		&& a.citations == o.citations
+		&& a.databases == o.databases
+		&& a.styles == o.styles;
 }
 
 
-bool operator!=(Aux_Info const & a, Aux_Info const & o)
+bool operator!=(AuxInfo const & a, AuxInfo const & o)
 {
 	return !(a == o);
 }
@@ -100,13 +96,13 @@ LaTeX::LaTeX(string const & latex, OutputParams const & rp,
 {
 	num_errors = 0;
 	if (prefixIs(cmd, "pdf")) { // Do we use pdflatex ?
-		depfile = FileName(file.absFilename() + ".dep-pdf");
+		depfile = FileName(file.absFileName() + ".dep-pdf");
 		output_file =
-			FileName(changeExtension(file.absFilename(), ".pdf"));
+			FileName(changeExtension(file.absFileName(), ".pdf"));
 	} else {
-		depfile = FileName(file.absFilename() + ".dep");
+		depfile = FileName(file.absFileName() + ".dep");
 		output_file =
-			FileName(changeExtension(file.absFilename(), ".dvi"));
+			FileName(changeExtension(file.absFileName(), ".dvi"));
 	}
 }
 
@@ -123,23 +119,23 @@ void LaTeX::deleteFilesOnError() const
 	// but the reason for the error might be in a generated file...
 
 	// bibtex file
-	FileName const bbl(changeExtension(file.absFilename(), ".bbl"));
+	FileName const bbl(changeExtension(file.absFileName(), ".bbl"));
 	bbl.removeFile();
 
 	// makeindex file
-	FileName const ind(changeExtension(file.absFilename(), ".ind"));
+	FileName const ind(changeExtension(file.absFileName(), ".ind"));
 	ind.removeFile();
 
 	// nomencl file
-	FileName const nls(changeExtension(file.absFilename(), ".nls"));
+	FileName const nls(changeExtension(file.absFileName(), ".nls"));
 	nls.removeFile();
 
 	// nomencl file (old version of the package)
-	FileName const gls(changeExtension(file.absFilename(), ".gls"));
+	FileName const gls(changeExtension(file.absFileName(), ".gls"));
 	gls.removeFile();
 
 	// Also remove the aux file
-	FileName const aux(changeExtension(file.absFilename(), ".aux"));
+	FileName const aux(changeExtension(file.absFileName(), ".aux"));
 	aux.removeFile();
 }
 
@@ -148,7 +144,7 @@ int LaTeX::run(TeXErrors & terr)
 	// We know that this function will only be run if the lyx buffer
 	// has been changed. We also know that a newly written .tex file
 	// is always different from the previous one because of the date
-	// in it. However it seems safe to run latex (at least) on time
+	// in it. However it seems safe to run latex (at least) one time
 	// each time the .tex file changes.
 {
 	int scanres = NO_ERRORS;
@@ -159,7 +155,7 @@ int LaTeX::run(TeXErrors & terr)
 	bool rerun = false; // rerun requested
 
 	// The class LaTeX does not know the temp path.
-	theBufferList().updateIncludedTeXfiles(FileName::getcwd().absFilename(),
+	theBufferList().updateIncludedTeXfiles(FileName::getcwd().absFileName(),
 		runparams);
 
 	// Never write the depfile if an error was encountered.
@@ -182,7 +178,7 @@ int LaTeX::run(TeXErrors & terr)
 
 	bool had_depfile = depfile.exists();
 	bool run_bibtex = false;
-	FileName const aux_file(changeExtension(file.absFilename(), "aux"));
+	FileName const aux_file(changeExtension(file.absFileName(), "aux"));
 
 	if (had_depfile) {
 		LYXERR(Debug::DEPEND, "Dependency file exists");
@@ -216,7 +212,7 @@ int LaTeX::run(TeXErrors & terr)
 	/// We scan the aux file even when had_depfile = false,
 	/// because we can run pdflatex on the file after running latex on it,
 	/// in which case we will not need to run bibtex again.
-	vector<Aux_Info> bibtex_info_old;
+	vector<AuxInfo> bibtex_info_old;
 	if (!run_bibtex)
 		bibtex_info_old = scanAuxFiles(aux_file);
 
@@ -237,7 +233,7 @@ int LaTeX::run(TeXErrors & terr)
 		return scanres; // return on error
 	}
 
-	vector<Aux_Info> const bibtex_info = scanAuxFiles(aux_file);
+	vector<AuxInfo> const bibtex_info = scanAuxFiles(aux_file);
 	if (!run_bibtex && bibtex_info_old != bibtex_info)
 		run_bibtex = true;
 
@@ -254,7 +250,7 @@ int LaTeX::run(TeXErrors & terr)
 
 	// memoir (at least) writes an empty *idx file in the first place.
 	// A second latex run is needed.
-	FileName const idxfile(changeExtension(file.absFilename(), ".idx"));
+	FileName const idxfile(changeExtension(file.absFileName(), ".idx"));
 	rerun = idxfile.exists() && idxfile.isFileEmpty();
 
 	// run makeindex
@@ -262,14 +258,14 @@ int LaTeX::run(TeXErrors & terr)
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running MakeIndex.");
 		message(_("Running Index Processor."));
-		// onlyFilename() is needed for cygwin
-		rerun |= runMakeIndex(onlyFilename(idxfile.absFilename()),
+		// onlyFileName() is needed for cygwin
+		rerun |= runMakeIndex(onlyFileName(idxfile.absFileName()),
 				runparams);
 	}
-	FileName const nlofile(changeExtension(file.absFilename(), ".nlo"));
+	FileName const nlofile(changeExtension(file.absFileName(), ".nlo"));
 	if (head.haschanged(nlofile))
 		rerun |= runMakeIndexNomencl(file, ".nlo", ".nls");
-	FileName const glofile(changeExtension(file.absFilename(), ".glo"));
+	FileName const glofile(changeExtension(file.absFileName(), ".glo"));
 	if (head.haschanged(glofile))
 		rerun |= runMakeIndexNomencl(file, ".glo", ".gls");
 
@@ -351,9 +347,9 @@ int LaTeX::run(TeXErrors & terr)
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running MakeIndex.");
 		message(_("Running Index Processor."));
-		// onlyFilename() is needed for cygwin
-		rerun = runMakeIndex(onlyFilename(changeExtension(
-				file.absFilename(), ".idx")), runparams);
+		// onlyFileName() is needed for cygwin
+		rerun = runMakeIndex(onlyFileName(changeExtension(
+				file.absFileName(), ".idx")), runparams);
 	}
 
 	// I am not pretty sure if need this twice.
@@ -400,9 +396,9 @@ int LaTeX::run(TeXErrors & terr)
 
 int LaTeX::startscript()
 {
-	// onlyFilename() is needed for cygwin
+	// onlyFileName() is needed for cygwin
 	string tmp = cmd + ' '
-		     + quoteName(onlyFilename(file.toFilesystemEncoding()))
+		     + quoteName(onlyFileName(file.toFilesystemEncoding()))
 		     + " > " + os::nulldev();
 	Systemcall one;
 	return one.startscript(Systemcall::Wait, tmp);
@@ -412,13 +408,23 @@ int LaTeX::startscript()
 bool LaTeX::runMakeIndex(string const & f, OutputParams const & runparams,
 			 string const & params)
 {
-	LYXERR(Debug::LATEX,
-		"idx file has been made, running makeindex on file " << f);
 	string tmp = runparams.use_japanese ?
 		lyxrc.jindex_command : lyxrc.index_command;
-	tmp += ' ';
+	
+	if (!runparams.index_command.empty())
+		tmp = runparams.index_command;
+
+	LYXERR(Debug::LATEX,
+		"idx file has been made, running index processor ("
+		<< tmp << ") on file " << f);
 
 	tmp = subst(tmp, "$$lang", runparams.document_language);
+	if (runparams.use_indices) {
+		tmp = lyxrc.splitindex_command + " -m " + quoteName(tmp);
+		LYXERR(Debug::LATEX,
+		"Multiple indices. Using splitindex command: " << tmp);
+	}
+	tmp += ' ';
 	tmp += quoteName(f);
 	tmp += params;
 	Systemcall one;
@@ -433,24 +439,24 @@ bool LaTeX::runMakeIndexNomencl(FileName const & file,
 	LYXERR(Debug::LATEX, "Running MakeIndex for nomencl.");
 	message(_("Running MakeIndex for nomencl."));
 	string tmp = lyxrc.nomencl_command + ' ';
-	// onlyFilename() is needed for cygwin
-	tmp += quoteName(onlyFilename(changeExtension(file.absFilename(), nlo)));
+	// onlyFileName() is needed for cygwin
+	tmp += quoteName(onlyFileName(changeExtension(file.absFileName(), nlo)));
 	tmp += " -o "
-		+ onlyFilename(changeExtension(file.toFilesystemEncoding(), nls));
+		+ onlyFileName(changeExtension(file.toFilesystemEncoding(), nls));
 	Systemcall one;
 	one.startscript(Systemcall::Wait, tmp);
 	return true;
 }
 
 
-vector<Aux_Info> const
+vector<AuxInfo> const
 LaTeX::scanAuxFiles(FileName const & file)
 {
-	vector<Aux_Info> result;
+	vector<AuxInfo> result;
 
 	result.push_back(scanAuxFile(file));
 
-	string const basename = removeExtension(file.absFilename());
+	string const basename = removeExtension(file.absFileName());
 	for (int i = 1; i < 1000; ++i) {
 		FileName const file2(basename
 			+ '.' + convert<string>(i)
@@ -463,16 +469,16 @@ LaTeX::scanAuxFiles(FileName const & file)
 }
 
 
-Aux_Info const LaTeX::scanAuxFile(FileName const & file)
+AuxInfo const LaTeX::scanAuxFile(FileName const & file)
 {
-	Aux_Info result;
+	AuxInfo result;
 	result.aux_file = file;
 	scanAuxFile(file, result);
 	return result;
 }
 
 
-void LaTeX::scanAuxFile(FileName const & file, Aux_Info & aux_info)
+void LaTeX::scanAuxFile(FileName const & file, AuxInfo & aux_info)
 {
 	LYXERR(Debug::LATEX, "Scanning aux file: " << file);
 
@@ -524,15 +530,15 @@ void LaTeX::scanAuxFile(FileName const & file, Aux_Info & aux_info)
 
 
 void LaTeX::updateBibtexDependencies(DepTable & dep,
-				     vector<Aux_Info> const & bibtex_info)
+				     vector<AuxInfo> const & bibtex_info)
 {
 	// Since a run of Bibtex mandates more latex runs it is ok to
 	// remove all ".bib" and ".bst" files.
 	dep.remove_files_with_extension(".bib");
 	dep.remove_files_with_extension(".bst");
-	//string aux = OnlyFilename(ChangeExtension(file, ".aux"));
+	//string aux = OnlyFileName(ChangeExtension(file, ".aux"));
 
-	for (vector<Aux_Info>::const_iterator it = bibtex_info.begin();
+	for (vector<AuxInfo>::const_iterator it = bibtex_info.begin();
 	     it != bibtex_info.end(); ++it) {
 		for (set<string>::const_iterator it2 = it->databases.begin();
 		     it2 != it->databases.end(); ++it2) {
@@ -551,11 +557,11 @@ void LaTeX::updateBibtexDependencies(DepTable & dep,
 }
 
 
-bool LaTeX::runBibTeX(vector<Aux_Info> const & bibtex_info,
+bool LaTeX::runBibTeX(vector<AuxInfo> const & bibtex_info,
 		      OutputParams const & runparams)
 {
 	bool result = false;
-	for (vector<Aux_Info>::const_iterator it = bibtex_info.begin();
+	for (vector<AuxInfo>::const_iterator it = bibtex_info.begin();
 	     it != bibtex_info.end(); ++it) {
 		if (it->databases.empty())
 			continue;
@@ -563,10 +569,13 @@ bool LaTeX::runBibTeX(vector<Aux_Info> const & bibtex_info,
 
 		string tmp = runparams.use_japanese ?
 			lyxrc.jbibtex_command : lyxrc.bibtex_command;
+
+		if (!runparams.bibtex_command.empty())
+			tmp = runparams.bibtex_command;
 		tmp += " ";
-		// onlyFilename() is needed for cygwin
-		tmp += quoteName(onlyFilename(removeExtension(
-				it->aux_file.absFilename())));
+		// onlyFileName() is needed for cygwin
+		tmp += quoteName(onlyFileName(removeExtension(
+				it->aux_file.absFileName())));
 		Systemcall one;
 		one.startscript(Systemcall::Wait, tmp);
 	}
@@ -581,12 +590,15 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 	int line_count = 1;
 	int retval = NO_ERRORS;
 	string tmp =
-		onlyFilename(changeExtension(file.absFilename(), ".log"));
+		onlyFileName(changeExtension(file.absFileName(), ".log"));
 	LYXERR(Debug::LATEX, "Log file: " << tmp);
 	FileName const fn = FileName(makeAbsPath(tmp));
 	ifstream ifs(fn.toFilesystemEncoding().c_str());
 	bool fle_style = false;
 	static regex file_line_error(".+\\.\\D+:[0-9]+: (.+)");
+	// Flag for 'File ended while scanning' message.
+	// We need to wait for subsequent processing.
+	string wait_for_error;
 
 	string token;
 	while (getline(ifs, token)) {
@@ -646,6 +658,12 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				LYXERR(Debug::LATEX, "We should rerun.");
 				retval |= RERUN;
 			}
+		} else if (prefixIs(token, "LETTRE WARNING:")) {
+			if (contains(token, "veuillez recompiler")) {
+				// lettre.cls
+				LYXERR(Debug::LATEX, "We should rerun.");
+				retval |= RERUN;
+			}
 		} else if (token[0] == '(') {
 			if (contains(token, "Rerun LaTeX") ||
 			    contains(token, "Rerun to get")) {
@@ -653,16 +671,10 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				LYXERR(Debug::LATEX, "We should rerun.");
 				retval |= RERUN;
 			}
-		} else if (prefixIs(token, "LETTRE WARNING:")) {
-			if (contains(token, "veuillez recompiler")) {
-				// lettre.cls
-				LYXERR(Debug::LATEX, "We should rerun.");
-				retval |= RERUN;
-			}
-		} else if (prefixIs(token, "! ") ||
-			   (fle_style &&
-			    regex_match(token, sub, file_line_error) &&
-			    !contains(token, "pdfTeX warning"))) {
+		} else if (prefixIs(token, "! ")
+			    || (fle_style
+				&& regex_match(token, sub, file_line_error)
+				&& !contains(token, "pdfTeX warning"))) {
 			   // Ok, we have something that looks like a TeX Error
 			   // but what do we really have.
 
@@ -674,6 +686,30 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				desc = sub.str();
 			if (contains(token, "LaTeX Error:"))
 				retval |= LATEX_ERROR;
+
+			// bug 6445. At this point its not clear we finish with error.
+			if (prefixIs(token, "! File ended while scanning")){
+				wait_for_error = desc;
+				continue;
+			}
+			if (!wait_for_error.empty() && prefixIs(token, "! Emergency stop.")){
+				retval |= LATEX_ERROR;
+				string errstr;
+				int count = 0;
+				errstr = wait_for_error;
+				do {
+					if (!getline(ifs, tmp))
+						break;
+					errstr += "\n" + tmp;
+					if (++count > 5)
+						break;
+				} while (!contains(tmp, "(job aborted"));
+
+				terr.insertError(0,
+						 from_local8bit("Emergency stop"),
+						 from_local8bit(errstr));
+			}
+
 			// get the next line
 			string tmp;
 			int count = 0;
@@ -816,7 +852,7 @@ bool handleFoundFile(string const & ff, DepTable & head)
 		}
 	}
 
-	string onlyfile = onlyFilename(foundfile);
+	string onlyfile = onlyFileName(foundfile);
 	absname = makeAbsPath(onlyfile);
 
 	// check for spaces
@@ -836,7 +872,7 @@ bool handleFoundFile(string const & ff, DepTable & head)
 			string const stripoff =
 				rsplit(foundfile, strippedfile, ' ');
 			foundfile = strippedfile;
-			onlyfile = onlyFilename(strippedfile);
+			onlyfile = onlyFileName(strippedfile);
 			absname = makeAbsPath(onlyfile);
 		}
 	}
@@ -887,7 +923,7 @@ void LaTeX::deplog(DepTable & head)
 	// entered into the dependency file.
 
 	string const logfile =
-		onlyFilename(changeExtension(file.absFilename(), ".log"));
+		onlyFileName(changeExtension(file.absFileName(), ".log"));
 
 	static regex const reg1("File: (.+).*");
 	static regex const reg2("No file (.+)(.).*");
@@ -915,7 +951,7 @@ void LaTeX::deplog(DepTable & head)
 	string lastline;
 	while (ifs) {
 		// Ok, the scanning of files here is not sufficient.
-		// Sometimes files are named by "File: xxx" only
+		// Sometimes files are named by "File:ï¿½ xxx" only
 		// So I think we should use some regexps to find files instead.
 		// Note: all file names and paths might contains spaces.
 		bool found_file = false;
@@ -972,7 +1008,7 @@ void LaTeX::deplog(DepTable & head)
 			// However, ...
 			if (suffixIs(token, ")"))
 				// no line break for sure
-				// pretend we've been succesfully searching
+				// pretend we've been successfully searching
 				found_file = true;
 		// (2) "No file file.ext"
 		} else if (regex_match(token, sub, reg2)) {
@@ -1009,11 +1045,11 @@ void LaTeX::deplog(DepTable & head)
 			found_file = checkLineBreak(sub.str(1), head);
 		// (7) "\tf@toc=\write<nr>" (for MikTeX)
 		else if (regex_match(token, sub, miktexTocReg))
-			found_file = handleFoundFile(onlyFilename(changeExtension(
-						file.absFilename(), ".toc")), head);
+			found_file = handleFoundFile(onlyFileName(changeExtension(
+						file.absFileName(), ".toc")), head);
 		else
 			// not found, but we won't check further
-			// pretend we've been succesfully searching
+			// pretend we've been successfully searching
 			found_file = true;
 
 		// (8) "(file.ext"
@@ -1052,7 +1088,7 @@ void LaTeX::deplog(DepTable & head)
 					// we have a closing bracket, so the content
 					// is not a file name.
 					// no need to investigate further
-					// pretend we've been succesfully searching
+					// pretend we've been successfully searching
 					first = what[0].second;
 					found_file = true;
 				}

@@ -38,8 +38,10 @@ public:
 		LAYOUTS,
 		/// a special widget to insert tabulars
 		TABLEINSERT,
-		///
+		/// a button that expands a menu
 		POPUPMENU,
+		/// a button that expands a menu but remembers the last choice
+		STICKYPOPUPMENU,
 		///
 		ICONPALETTE
 	};
@@ -105,7 +107,9 @@ public:
 		MATH = 128, //< show when in math
 		TABLE = 256, //< show when in table
 		REVIEW = 512, //< show when change tracking is enabled
-		MATHMACROTEMPLATE = 1024 //< show in math macro template
+		MATHMACROTEMPLATE = 1024, //< show in math macro template
+		ALLOWAUTO = MATH | TABLE | REVIEW | MATHMACROTEMPLATE,
+		SAMEROW = 2048 //place to the current row, no new line
 	};
 
 	typedef std::vector<ToolbarInfo> Infos;

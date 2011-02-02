@@ -28,13 +28,15 @@ TOP_extra_files = Split('''
 
 
 src_header_files = Split('''
-    ASpell_local.h
+    AppleSpellChecker.h
+    AspellChecker.h
     Author.h
     BiblioInfo.h
     Bidi.h
     Box.h
     BranchList.h
     Buffer.h
+    buffer_funcs.h
     BufferList.h
     BufferParams.h
     BufferView.h
@@ -46,6 +48,7 @@ src_header_files = Split('''
     Color.h
     ColorSet.h
     ColorCode.h
+    Compare.h
     CompletionList.h
     Converter.h
     ConverterCache.h
@@ -58,10 +61,11 @@ src_header_files = Split('''
     Dimension.h
     DispatchResult.h
     DocIterator.h
-    Enchant.h
+    EnchantChecker.h
     Encoding.h
     ErrorList.h
     Exporter.h
+    factory.h
     FloatList.h
     Floating.h
     Font.h
@@ -73,7 +77,9 @@ src_header_files = Split('''
     FuncRequest.h
     FuncStatus.h
     Graph.h
-    ISpell.h
+    HSpace.h
+    HunspellChecker.h
+    IndicesList.h
     InsetIterator.h
     InsetList.h
     Intl.h
@@ -85,32 +91,41 @@ src_header_files = Split('''
     Layout.h
     LayoutEnums.h
     LayoutFile.h
+    LayoutModuleList.h
     Length.h
     Lexer.h
     LyX.h
     LyXAction.h
-    LyXFunc.h
+    lyxfind.h
     LyXRC.h
     LyXVC.h
     MetricsInfo.h
     ModuleList.h
     Mover.h
+    output.h
+    output_docbook.h
+    output_latex.h
+    output_plaintext.h
+    output_xhtml.h
+    OutputEnums.h
     OutputParams.h
+    paper.h
     ParIterator.h
     Paragraph.h
     ParagraphList.h
     ParagraphMetrics.h
     ParagraphParameters.h
     PDFOptions.h
+    PersonalWordList.h
     PrinterParams.h
-    PSpell.h
     Row.h
-    Section.h
+    rowpainter.h
     Server.h
     ServerSocket.h
     Session.h
+    sgml.h
     Spacing.h
-    SpellBase.h
+    SpellChecker.h
     TexRow.h
     Text.h
     TextClass.h
@@ -119,23 +134,11 @@ src_header_files = Split('''
     TocBackend.h
     Trans.h
     Undo.h
+    update_flags.h
     VCBackend.h
     VSpace.h
-    Variables.h
-    WordLangTuple.h
-    buffer_funcs.h
-    factory.h
-    lyxfind.h
-    output.h
-    output_docbook.h
-    output_latex.h
-    output_plaintext.h
-    paper.h
-    paragraph_funcs.h
-    rowpainter.h
-    sgml.h
-    update_flags.h
     version.h
+    WordLangTuple.h
     WordList.h
 ''')
 
@@ -154,6 +157,7 @@ src_pre_files = Split('''
     Chktex.cpp
     CmdDef.cpp
     Color.cpp
+    Compare.cpp
     Converter.cpp
     ConverterCache.cpp
     CoordCache.cpp
@@ -176,6 +180,8 @@ src_pre_files = Split('''
     FuncRequest.cpp
     FuncStatus.cpp
     Graph.cpp
+    HSpace.cpp
+    IndicesList.cpp
     InsetIterator.cpp
     InsetList.cpp
     Intl.cpp
@@ -186,13 +192,13 @@ src_pre_files = Split('''
     Language.cpp
     Layout.cpp
     LayoutFile.cpp
+    LayoutModuleList.cpp
     Length.cpp
     lengthcommon.cpp
     Lexer.cpp
     LyX.cpp
     LyXAction.cpp
     lyxfind.cpp
-    LyXFunc.cpp
     LyXRC.cpp
     LyXVC.cpp
     MetricsInfo.cpp
@@ -202,12 +208,13 @@ src_pre_files = Split('''
     output_docbook.cpp
     output_latex.cpp
     output_plaintext.cpp
-    paragraph_funcs.cpp
+    output_xhtml.cpp
     PDFOptions.cpp
     ParIterator.cpp
     Paragraph.cpp
     ParagraphMetrics.cpp
     ParagraphParameters.cpp
+    PersonalWordList.cpp
     Row.cpp
     rowpainter.cpp
     Server.cpp
@@ -238,19 +245,16 @@ src_post_files = Split('''
     Dimension.cpp
     ModuleList.cpp
     PrinterParams.cpp
-    SpellBase.cpp
     Thesaurus.cpp
 ''')
 
 
 src_extra_src_files = Split('''
-    ASpell.cpp
-    Enchant.cpp
-    ISpell.cpp
+    AppleSpellChecker.cpp
+    AspellChecker.cpp
+    EnchantChecker.cpp
+    HunspellChecker.cpp
     main.cpp
-    PSpell.cpp
-    Section.cpp
-    Variables.cpp
 ''')
 
 
@@ -281,6 +285,7 @@ src_client_extra_files = Split('''
 
 
 src_support_header_files = Split('''
+    bind.h
     convert.h
     copied_ptr.h
     debug.h
@@ -294,6 +299,7 @@ src_support_header_files = Split('''
     filetools.h
     foreach.h
     ForkedCalls.h
+    functional.h
     gettext.h
     gzstream.h
     lassert.h
@@ -302,24 +308,27 @@ src_support_header_files = Split('''
     lyxalgo.h
     lyxlib.h
     lyxtime.h
-    numpunct_lyx_char_type.h
     Messages.h
+    numpunct_lyx_char_type.h
     os.h
     os_win32.h
     Package.h
     Path.h
+    ProgressInterface.h
     qstring_helpers.h
     RandomAccessList.h
-    SignalSlot.h
-    SignalSlotPrivate.h
+    regex.h
+    shared_ptr.h
     socktools.h
     Systemcall.h
+    SystemcallPrivate.h
     textutils.h
     Timeout.h
     Translator.h
     types.h
     unicode.h
     userinfo.h
+    mythes/mythes.hxx
 ''')
 
 
@@ -344,18 +353,18 @@ src_support_files = Split('''
     Package.cpp
     Path.cpp
     qstring_helpers.cpp
-    SignalSlot.cpp
-    SignalSlotPrivate.cpp
     socktools.cpp
     Systemcall.cpp
     Timeout.cpp
     unicode.cpp
     userinfo.cpp
+    mythes/mythes.cxx
 ''')
 
 
 src_support_extra_header_files = Split('''
-    
+    AppleSpeller.h
+    AppleSpeller.m
 ''')
 
 
@@ -371,6 +380,7 @@ src_support_extra_src_files = Split('''
 src_support_extra_files = Split('''
     Makefile.am
     pch.h
+    mythes/license.readme
 ''')
 
 
@@ -441,6 +451,7 @@ src_mathed_header_files = Split('''
     InsetMathComment.h
     InsetMathDecoration.h
     InsetMathDelim.h
+    InsetMathDiagram.h
     InsetMathDiff.h
     InsetMathDots.h
     InsetMathEnsureMath.h
@@ -513,6 +524,7 @@ src_mathed_files = Split('''
     InsetMathComment.cpp
     InsetMathDecoration.cpp
     InsetMathDelim.cpp
+    InsetMathDiagram.cpp
     InsetMathDiff.cpp
     InsetMathDots.cpp
     InsetMathEnsureMath.cpp
@@ -583,9 +595,7 @@ src_mathed_extra_files = Split('''
 
 src_tex2lyx_header_files = Split('''
     Context.h
-    Font.h
     Parser.h
-    Spacing.h
     tex2lyx.h
 ''')
 
@@ -593,8 +603,6 @@ src_tex2lyx_header_files = Split('''
 src_tex2lyx_files = Split('''
     boost.cpp
     Context.cpp
-    Font.cpp
-    gettext.cpp
     math.cpp
     Parser.cpp
     preamble.cpp
@@ -605,6 +613,7 @@ src_tex2lyx_files = Split('''
 
 
 src_tex2lyx_copied_header_files = Split('''
+    TextClass.h
     insets/InsetLayout.h
 ''')
 
@@ -615,9 +624,13 @@ src_tex2lyx_copied_files = Split('''
     Encoding.cpp
     FloatList.cpp
     Floating.cpp
+    FontInfo.cpp
     Layout.cpp
+    LayoutModuleList.cpp
     lengthcommon.cpp
     Lexer.cpp
+    ModuleList.cpp
+    Spacing.cpp
     TextClass.cpp
     insets/InsetLayout.cpp
 ''')
@@ -626,9 +639,6 @@ src_tex2lyx_copied_files = Split('''
 src_tex2lyx_extra_files = Split('''
     Makefile.am
     pch.h
-    test-insets.tex
-    test-structure.tex
-    test.ltx
     tex2lyx.1in
     test/box-color-size-space-align.tex
     test/DummyDocument.tex
@@ -648,7 +658,6 @@ src_frontends_header_files = Split('''
     FontMetrics.h
     KeyModifier.h
     KeySymbol.h
-    LyXView.h
     mouse_state.h
     Painter.h
     Selection.h
@@ -700,6 +709,7 @@ src_frontends_qt4_header_files = Split('''
     DockView.h
     EmptyTable.h
     FileDialog.h
+    FindAndReplace.h
     FloatPlacement.h
     GuiAbout.h
     GuiApplication.h
@@ -715,6 +725,8 @@ src_frontends_qt4_header_files = Split('''
     GuiClipboard.h
     GuiCommandBuffer.h
     GuiCommandEdit.h
+    GuiCompare.h
+    GuiCompareHistory.h
     GuiCompleter.h
     GuiDelimiter.h
     GuiDialog.h
@@ -722,7 +734,6 @@ src_frontends_qt4_header_files = Split('''
     GuiErrorList.h
     GuiERT.h
     GuiExternal.h
-    GuiFloat.h
     GuiFontExample.h
     GuiFontLoader.h
     GuiGraphics.h
@@ -732,18 +743,26 @@ src_frontends_qt4_header_files = Split('''
     GuiIdListModel.h
     GuiImage.h
     GuiInclude.h
+    GuiIndex.h
+    GuiIndices.h
     GuiInfo.h
     GuiKeySymbol.h
     GuiLabel.h
+    GuiLine.h
     GuiListings.h
     GuiLog.h
     GuiMathMatrix.h
-    GuiNomencl.h
+    GuiNomenclature.h
     GuiNote.h
     GuiPainter.h
     GuiParagraph.h
+    GuiPhantom.h
     GuiPrefs.h
     GuiPrint.h
+    GuiPrintindex.h
+    GuiPrintNomencl.h
+    GuiProgress.h
+    GuiProgressView.h
     GuiRef.h
     GuiSearch.h
     GuiSelection.h
@@ -765,8 +784,12 @@ src_frontends_qt4_header_files = Split('''
     GuiWorkArea.h
     GuiWrap.h
     IconPalette.h
+    InGuiThread.h
     InsertTableWidget.h
+    InsetParamsDialog.h
+    InsetParamsWidget.h
     LaTeXHighlighter.h
+    LayoutBox.h
     LengthCombo.h
     LyXFileDialog.h
     Menus.h
@@ -789,6 +812,7 @@ src_frontends_qt4_files = Split('''
     ColorCache.cpp
     CustomizedWidgets.cpp
     EmptyTable.cpp
+    FindAndReplace.cpp
     FileDialog.cpp
     FloatPlacement.cpp
     GuiAbout.cpp
@@ -805,6 +829,8 @@ src_frontends_qt4_files = Split('''
     GuiClipboard.cpp
     GuiCommandBuffer.cpp
     GuiCommandEdit.cpp
+    GuiCompare.cpp
+    GuiCompareHistory.cpp
     GuiCompleter.cpp
     GuiDelimiter.cpp
     GuiDialog.cpp
@@ -812,7 +838,6 @@ src_frontends_qt4_files = Split('''
     GuiErrorList.cpp
     GuiERT.cpp
     GuiExternal.cpp
-    GuiFloat.cpp
     GuiFontExample.cpp
     GuiFontLoader.cpp
     GuiFontMetrics.cpp
@@ -822,18 +847,26 @@ src_frontends_qt4_files = Split('''
     GuiIdListModel.cpp 
     GuiImage.cpp
     GuiInclude.cpp
+    GuiIndex.cpp
+    GuiIndices.cpp
     GuiInfo.cpp
     GuiKeySymbol.cpp
     GuiLabel.cpp
+    GuiLine.cpp
     GuiListings.cpp
     GuiLog.cpp
     GuiMathMatrix.cpp
-    GuiNomencl.cpp
+    GuiNomenclature.cpp
     GuiNote.cpp
     GuiPainter.cpp
     GuiParagraph.cpp
+    GuiPhantom.cpp
     GuiPrefs.cpp
     GuiPrint.cpp
+    GuiPrintindex.cpp
+    GuiPrintNomencl.cpp
+    GuiProgress.cpp
+    GuiProgressView.cpp
     GuiRef.cpp
     GuiSearch.cpp
     GuiSelection.cpp
@@ -855,9 +888,13 @@ src_frontends_qt4_files = Split('''
     GuiWorkArea.cpp
     GuiWrap.cpp
     IconPalette.cpp
+    InGuiThread.cpp
     InsertTableWidget.cpp
+    InsetParamsDialog.cpp
+    InsetParamsWidget.cpp
     LengthCombo.cpp
     LaTeXHighlighter.cpp
+    LayoutBox.cpp
     LyXFileDialog.cpp
     Menus.cpp
     PanelStack.cpp
@@ -879,7 +916,6 @@ src_frontends_qt4_extra_files = Split('''
 
 src_frontends_qt4_ui_files = Split('''
     AboutUi.ui
-    AskForTextUi.ui
     BibitemUi.ui
     BiblioUi.ui
     BibtexAddUi.ui
@@ -887,38 +923,51 @@ src_frontends_qt4_ui_files = Split('''
     BoxUi.ui
     BranchUi.ui
     BranchesUi.ui
+    BranchesUnknownUi.ui
     BulletsUi.ui
     ChangesUi.ui
     CharacterUi.ui
     CitationUi.ui
+    ColorUi.ui
+    CompareUi.ui
+    CompareHistoryUi.ui
     DelimiterUi.ui
     DocumentUi.ui
     ERTUi.ui
     ErrorListUi.ui
     ExternalUi.ui
+    FindAndReplaceUi.ui
     FloatPlacementUi.ui
-    FloatUi.ui
     FontUi.ui
     GraphicsUi.ui
     HSpaceUi.ui
     HyperlinkUi.ui
     IncludeUi.ui
+    IndexUi.ui
+    IndicesUi.ui
     InfoUi.ui
+    InsetParamsUi.ui
     LabelUi.ui
     LaTeXUi.ui
     LanguageUi.ui
+    LineUi.ui
     ListingsUi.ui
+    ListingsSettingsUi.ui
+    LocalLayoutUi.ui
     LogUi.ui
     MarginsUi.ui
+    MasterChildUi.ui
     MathMatrixUi.ui
     MathsUi.ui
     ModulesUi.ui
     NomenclUi.ui
     NoteUi.ui
     NumberingUi.ui
+    OutputUi.ui
     PageLayoutUi.ui
     ParagraphUi.ui
     PDFSupportUi.ui
+    PhantomUi.ui
     PreambleUi.ui
     PrefColorsUi.ui
     PrefCompletionUi.ui
@@ -932,7 +981,6 @@ src_frontends_qt4_ui_files = Split('''
     PrefLatexUi.ui
     PrefOutputUi.ui
     PrefPathsUi.ui
-    PrefPlaintextUi.ui
     PrefPrinterUi.ui
     PrefScreenFontsUi.ui
     PrefShortcutsUi.ui
@@ -940,6 +988,9 @@ src_frontends_qt4_ui_files = Split('''
     PrefUi.ui
     PrefsUi.ui
     PrintUi.ui
+    PrintindexUi.ui
+    PrintNomenclUi.ui
+    ProgressViewUi.ui
     RefUi.ui
     SearchUi.ui
     SendtoUi.ui
@@ -961,7 +1012,6 @@ src_frontends_qt4_ui_files = Split('''
 
 
 src_frontends_qt4_ui_extra_files = Split('''
-    compile_uic.sh
     Makefile.am    
 ''')
 
@@ -971,6 +1021,7 @@ src_insets_header_files = Split('''
     ExternalTemplate.h
     ExternalTransforms.h
     Inset.h
+    InsetArgument.h
     InsetBibitem.h
     InsetBibtex.h
     InsetBox.h
@@ -1004,9 +1055,11 @@ src_insets_header_files = Split('''
     InsetNewpage.h
     InsetNomencl.h
     InsetNote.h
-    InsetOptArg.h
+    InsetPhantom.h
+    InsetPreview.h
     InsetQuotes.h
     InsetRef.h
+    InsetScript.h
     InsetSpace.h
     InsetSpecialChar.h
     InsetTOC.h
@@ -1026,6 +1079,7 @@ src_insets_files = Split('''
     ExternalTemplate.cpp
     ExternalTransforms.cpp
     Inset.cpp
+    InsetArgument.cpp
     InsetBibitem.cpp
     InsetBibtex.cpp
     InsetBox.cpp
@@ -1058,9 +1112,11 @@ src_insets_files = Split('''
     InsetNewpage.cpp
     InsetNomencl.cpp
     InsetNote.cpp
-    InsetOptArg.cpp
+    InsetPhantom.cpp
+    InsetPreview.cpp
     InsetQuotes.cpp
     InsetRef.cpp
+    InsetScript.cpp
     InsetSpace.cpp
     InsetSpecialChar.cpp
     InsetTOC.cpp
@@ -1149,7 +1205,6 @@ config_extra_files = Split('''
     config.sub
     depcomp
     install-sh
-    libtool.m4
     ltmain.sh
     lyxinclude.m4
     Makefile.am
@@ -1212,6 +1267,7 @@ po_extra_files = Split('''
     Rules-quot
     sk.po
     sl.po
+    sr.po
     sv.po
     tr.po
     uk.po
@@ -1290,15 +1346,19 @@ lib_templates_files = Split('''
     aastex.lyx
     ACM-siggraph.lyx
     ACM-sigplan.lyx
+    AEA.lyx
+    agutex.lyx
     agu_article.lyx
     apa.lyx
     beamer-conference-ornate-20min.lyx
     de_beamer-conference-ornate-20min.lyx
     dinbrief.lyx
     docbook_article.lyx
+    ectaart.lyx
     elsarticle.lyx
     es_beamer-conference-ornate-20min.lyx
     fr_beamer-conference-ornate-20min.lyx
+    frletter.lyx
     g-brief-de.lyx
     g-brief-en.lyx
     g-brief2.lyx
@@ -1312,6 +1372,7 @@ lib_templates_files = Split('''
     koma-letter2.lyx
     latex8.lyx
     letter.lyx
+    lettre.lyx
     README.new_templates
     revtex.lyx
     revtex4.lyx
@@ -1321,6 +1382,18 @@ lib_templates_files = Split('''
     svmult_appendix.lyx
     svmult_author.lyx
     svmult_editor.lyx
+''')
+
+
+lib_templates_thesis_files = Split('''
+    Acknowledgments.lyx
+    Appendix.lyx
+    alpha.bst
+    chapter-1.lyx
+    chapter-2.lyx
+    Summary.lyx
+    thesis.lyx
+    thesisExample.bib
 ''')
 
 
@@ -1344,6 +1417,7 @@ lib_fonts_files = Split('''
     msam10.ttf
     msbm10.ttf
     ReadmeBaKoMa4LyX.txt
+    rsfs10.ttf
     wasy10.ttf
 ''')
 
@@ -1359,18 +1433,37 @@ lib_images_files = Split('''
     box-insert.png
     break-line.png
     buffer-close.png
+    buffer-export.png
     buffer-export_dvi.png
+    buffer-export_dvi3.png
     buffer-export_latex.png
+    buffer-export_pdf.png
     buffer-export_pdf2.png
+    buffer-export_pdf3.png
+    buffer-export_pdf4.png
+    buffer-export_pdf5.png
     buffer-export_ps.png
     buffer-export_text.png
     buffer-new.png
     buffer-reload.png
+    buffer-toggle-output-sync.png
+    buffer-update.png
     buffer-update_dvi.png
+    buffer-update_dvi3.png
+    buffer-update_pdf.png
     buffer-update_pdf2.png
+    buffer-update_pdf3.png
+    buffer-update_pdf4.png
+    buffer-update_pdf5.png
     buffer-update_ps.png
+    buffer-view.png
     buffer-view_dvi.png
+    buffer-view_dvi3.png
+    buffer-view_pdf.png
     buffer-view_pdf2.png
+    buffer-view_pdf3.png
+    buffer-view_pdf4.png
+    buffer-view_pdf5.png
     buffer-view_ps.png
     buffer-write-as.png
     buffer-write.png
@@ -1400,6 +1493,7 @@ lib_images_files = Split('''
     dialog-show_print.png
     dialog-show_spellchecker.png
     dialog-show_vclog.png
+    dialog-toggle_findreplaceadv.png
     dialog-toggle_toc.png
     down.png
     ert-insert.png
@@ -1415,6 +1509,7 @@ lib_images_files = Split('''
     href-insert.png
     hidetab.png
     index-insert.png
+    info-insert_buffer_vcs-revision.png
     label-insert.png
     layout-document.png
     layout-paragraph.png
@@ -1429,6 +1524,8 @@ lib_images_files = Split('''
     lyx-quit.png
     lyx.png
     marginalnote-insert.png
+    master-buffer-update.png
+    master-buffer-view.png
     math-display.png
     math-macro-add-greedy-optional-param.png
     math-macro-add-optional-param.png
@@ -1455,17 +1552,24 @@ lib_images_files = Split('''
     psnfss4.png
     redo.png
     reload.png
+    script-insert_subscript.png
+    script-insert_superscript.png
     split-view_horizontal.png
     split-view_vertical.png
     standard.png
+    tabular-feature_align-decimal.png
     tabular-feature_m-align-center.png
     tabular-feature_m-align-left.png
     tabular-feature_m-align-right.png
+    tabular-feature_m-valign-bottom.png
+    tabular-feature_m-valign-middle.png
+    tabular-feature_m-valign-top.png
     tabular-feature_append-column.png
     tabular-feature_append-row.png
     tabular-feature_delete-column.png
     tabular-feature_delete-row.png
     tabular-feature_multicolumn.png
+    tabular-feature_multirow.png
     tabular-feature_set-all-lines.png
     tabular-feature_set-border-lines.png
     tabular-feature_set-longtabular.png
@@ -1478,9 +1582,6 @@ lib_images_files = Split('''
     tabular-feature_toggle-rotate-cell.png
     tabular-feature_toggle-rotate-tabular.png
     tabular-feature_unset-all-lines.png
-    tabular-feature_m-valign-bottom.png
-    tabular-feature_m-valign-middle.png
-    tabular-feature_m-valign-top.png
     tabular-insert.png
     thesaurus-entry.png
     toolbar-toggle_math.png
@@ -1489,13 +1590,17 @@ lib_images_files = Split('''
     undo.png
     unknown.png
     up.png
+    update-others.png
     url-insert.png
+    vc-compare.png
+    vc-compare_0.png
     vc-check-in.png
     vc-check-out.png
     vc-locking-toggle.png
     vc-register.png
     vc-repo-update.png
     vc-revert.png
+    view-others.png
 ''')
 
 
@@ -1507,6 +1612,7 @@ lib_images_extra_files = Split('''
 
 lib_images_math_files = Split('''
     acute.png
+    adots.png
     aleph.png
     alpha.png
     amalg.png
@@ -1590,6 +1696,8 @@ lib_images_math_files = Split('''
     dashrightarrow.png
     dashv.png
     ddagger.png
+    ddddot.png
+    dddot.png
     ddot.png
     ddots.png
     delim.png
@@ -1627,6 +1735,7 @@ lib_images_math_files = Split('''
     eta.png
     eth.png
     exists.png
+    export-others.png
     fallingdotseq.png
     fint.png
     fintop.png
@@ -1666,6 +1775,7 @@ lib_images_math_files = Split('''
     hookrightarrow.png
     hphantom.png
     hslash.png
+    iddots.png
     iiiint.png
     iiiintop.png
     iiint.png
@@ -2055,7 +2165,7 @@ lib_doc_files = Split('''
     DummyDocument2.lyx
     DummyTextDocument.txt
     EmbeddedObjects.lyx
-    Extended.lyx
+    Additional.lyx
     Formula-numbering.lyx
     Intro.lyx
     LaTeXConfig.lyx
@@ -2093,7 +2203,6 @@ lib_doc_clipart_files = Split('''
     macrobox.png
     MacroToolbar.png
     macrouse.png
-    mbox.png
     mobius.eps
     platypus.eps
     referenceQt4.png
@@ -2122,18 +2231,13 @@ lib_doc_cs_files = Split('''
 ''')
 
 
-lib_doc_da_files = Split('''
-    Intro.lyx
-''')
-
-
 lib_doc_de_files = Split('''
     Customization.lyx
     DummyDocument1.lyx
     DummyDocument2.lyx
     DummyTextDocument.txt
     EmbeddedObjects.lyx
-    Extended.lyx
+    Additional.lyx
     Formelnummerierung.lyx
     Intro.lyx
     Math.lyx
@@ -2158,9 +2262,15 @@ lib_doc_de_clipart_files = Split('''
 ''')
 
 
+lib_doc_da_files = Split('''
+    Intro.lyx
+''')
+
+
 lib_doc_el_files = Split('''
     Intro.lyx
 ''')
+
 
 lib_doc_es_files = Split('''
     Customization.lyx
@@ -2168,7 +2278,7 @@ lib_doc_es_files = Split('''
     DocumentoPostizo2.lyx
     DocumentoTextoPostizo.txt
     EmbeddedObjects.lyx
-    Extended.lyx
+    Additional.lyx
     Formula-numbering.lyx
     Intro.lyx
     Math.lyx
@@ -2197,7 +2307,7 @@ lib_doc_es_clipart_files = Split('''
 
 lib_doc_eu_files = Split('''
     Customization.lyx
-    Extended.lyx
+    Additional.lyx
     Intro.lyx
     Tutorial.lyx
     UserGuide.lyx
@@ -2210,7 +2320,7 @@ lib_doc_fr_files = Split('''
     DocumentBidon2.lyx
     DocumentTexteBidon.txt
     EmbeddedObjects.lyx
-    Extended.lyx
+    Additional.lyx
     Formula-numbering.lyx
     Intro.lyx
     Math.lyx
@@ -2252,7 +2362,9 @@ lib_doc_hu_files = Split('''
 
 lib_doc_id_files = Split('''
     Intro.lyx
+    Shortcuts.lyx
     Tutorial.lyx
+    UserGuide.lyx
 ''')
 
 
@@ -2278,11 +2390,11 @@ lib_doc_it_clipart_files = Split('''
 
 
 lib_doc_ja_files = Split('''
+    Additional.lyx
     Customization.lyx
     DummyDocument1.lyx
     DummyDocument2.lyx
     EmbeddedObjects.lyx
-    Extended.lyx
     Formula-numbering.lyx
     Intro.lyx
     LaTeXConfig.lyx
@@ -2316,7 +2428,7 @@ lib_doc_nl_files = Split('''
 
 
 lib_doc_pl_files = Split('''
-    Extended.lyx
+    Additional.lyx
     Intro.lyx
     Tutorial.lyx
 ''')
@@ -2404,12 +2516,14 @@ lib_examples_files = Split('''
     europeCV.lyx
     example_lyxified.lyx
     example_raw.lyx
+    FeynmanDiagrams.lyx
     Foils.lyx
     iecc05.fen
     iecc07.fen
     iecc12.fen
     ItemizeBullets.lyx
     landslide.lyx
+    lilypond.lyx
     linguistics.lyx
     listerrors.lyx
     Literate.lyx
@@ -2425,6 +2539,7 @@ lib_examples_files = Split('''
     serial_letter3.lyx
     simplecv.lyx
     splash.lyx
+    sweave.lyx
     tufte-book.lyx
     tufte-handout.lyx
     xyfigure.png
@@ -2466,8 +2581,12 @@ lib_examples_de_files = Split('''
 ''')
 
 
+lib_examples_el_files = Split('''
+    splash.lyx
+''')
+
+
 lib_examples_es_files = Split('''
-    beamer-conference-ornate20min.lyx
     Braille.lyx
     ejemplo_con_lyx.lyx
     ejemplo_sin_lyx.lyx
@@ -2477,11 +2596,6 @@ lib_examples_es_files = Split('''
     splash.lyx
     tufte-book.lyx
     tufte-handout.lyx
-''')
-
-
-lib_examples_el_files = Split('''
-    splash.lyx
 ''')
 
 
@@ -2496,6 +2610,7 @@ lib_examples_fr_files = Split('''
     exemple_brut.lyx
     exemple_lyxifie.lyx
     exemple-powerdot.lyx
+    FeynmanDiagrams.lyx
     Foils.lyx
     linguistics.lyx
     ListesPuces.lyx
@@ -2598,6 +2713,12 @@ lib_examples_sl_files = Split('''
 ''')
 
 
+lib_examples_sr_files = Split('''
+    Braille.lyx
+    splash.lyx
+''')
+
+
 lib_examples_uk_files = Split('''
     splash.lyx
 ''')
@@ -2622,9 +2743,12 @@ lib_lyx2lyx_files = Split('''
     lyx_1_4.py
     lyx_1_5.py
     lyx_1_6.py
+    lyx_2_0.py
+    lyx2lyx_tools.py
     parser_tools.py
     profiling.py
     test_parser_tools.py
+    unicode_symbols.py
 ''')
 
 
@@ -2640,6 +2764,8 @@ lib_layouts_files = Split('''
     aastex.layout
     achemso.layout
     acmsiggraph.layout
+    AEA.layout
+    agutex.layout
     agu-dtd.layout
     agums.layout
     amsart.layout
@@ -2654,6 +2780,7 @@ lib_layouts_files = Split('''
     broadway.layout
     chess.layout
     cl2emult.layout
+    customHeadersFooters.module
     dinbrief.layout
     docbook-book.layout
     docbook-chapter.layout
@@ -2661,18 +2788,20 @@ lib_layouts_files = Split('''
     docbook.layout
     doublecol-new.layout
     dtk.layout
+    ectaart.layout
     egs.layout
     elsart.layout
     elsarticle.layout
     entcs.layout
+    enumitem.module
     europecv.layout
     extarticle.layout
     extbook.layout
     extletter.layout
     extreport.layout
     foils.layout
-    g-brief-de.layout
-    g-brief-en.layout
+    frletter.layout
+    g-brief.layout
     g-brief2.layout
     heb-article.layout
     heb-letter.layout
@@ -2692,6 +2821,7 @@ lib_layouts_files = Split('''
     kluwer.layout
     latex8.layout
     letter.layout
+    lettre.layout
     literate-article.layout
     literate-book.layout
     literate-report.layout
@@ -2762,6 +2892,7 @@ lib_layouts_inc_files = Split('''
     numrevtex.inc
     scrclass.inc
     stdcharstyles.inc
+    stdciteformats.inc
     stdclass.inc
     stdcounters.inc
     stdcustom.inc
@@ -2770,6 +2901,7 @@ lib_layouts_inc_files = Split('''
     stdlayouts.inc
     stdletter.inc
     stdlists.inc
+    stdrefprefix.inc
     stdsections.inc
     stdstarsections.inc
     stdstruct.inc
@@ -2781,6 +2913,8 @@ lib_layouts_inc_files = Split('''
     theorems-bytype.inc
     theorems-order.inc
     theorems-proof.inc
+    theorems-proof-std.inc
+    theorems-refprefix.inc
     theorems-starred.inc
     theorems-starred-equivalents.inc
 ''')
@@ -2791,11 +2925,16 @@ lib_layouts_module_files = Split('''
     endnotes.module
     eqs-within-sections.module
     figs-within-sections.module
+    fixltx2e.module
     foottoend.module
     hanging.module
+    initials.module
+    lilypond.module
     linguistics.module
     logicalmkup.module
     minimalistic.module
+    noweb.module
+    sweave.module
     tabs-within-sections.module
     theorems-ams-bytype.module
     theorems-ams-extended.module
@@ -2804,6 +2943,7 @@ lib_layouts_module_files = Split('''
     theorems-bytype.module
     theorems-chap-bytype.module
     theorems-chap.module
+    theorems-named.module
     theorems-sec-bytype.module
     theorems-sec.module
     theorems-starred.module
@@ -2811,6 +2951,7 @@ lib_layouts_module_files = Split('''
 ''')
 
 lib_scripts_files = Split('''
+    bash_completion
     clean_dvi.py
     convertDefault.py
     csv2lyx.py
@@ -2820,12 +2961,18 @@ lib_scripts_files = Split('''
     fig2pdftex.py
     fig2pstex.py
     fig_copy.py
+    include_bib.py
     layout2layout.py
     legacy_lyxpreview2ppm.py
     listerrors
     lyxpreview2bitmap.py
+    lyxpreview-lytex2bitmap.py
     lyxpreview-platex2bitmap.py
     lyxpreview_tools.py
+    lyxsweave.R
+    prefs2prefs.py
+    prefs2prefs_lfuns.py
+    prefs2prefs_prefs.py
     TeXFiles.py
     tex_copy.py
 ''')

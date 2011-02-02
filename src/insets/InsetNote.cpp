@@ -5,7 +5,7 @@
  *
  * \author Angus Leeming
  * \author Martin Vermeer
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -27,7 +27,7 @@
 #include "InsetIterator.h"
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
-#include "MetricsInfo.h"
+#include "LyXRC.h"
 #include "OutputParams.h"
 #include "ParIterator.h"
 #include "TextClass.h"
@@ -61,15 +61,6 @@ NoteTranslator const init_notetranslator()
 }
 
 
-NoteTranslatorLoc const init_notetranslator_loc()
-{
-	NoteTranslatorLoc translator(_("Note[[InsetNote]]"), InsetNoteParams::Note);
-	translator.addPair(_("Comment"), InsetNoteParams::Comment);
-	translator.addPair(_("Greyed out"), InsetNoteParams::Greyedout);
-	return translator;
-}
-
-
 NoteTranslator const & notetranslator()
 {
 	static NoteTranslator translator = init_notetranslator();
@@ -77,15 +68,7 @@ NoteTranslator const & notetranslator()
 }
 
 
-NoteTranslatorLoc const & notetranslator_loc()
-{
-	static NoteTranslatorLoc translator = init_notetranslator_loc();
-	return translator;
-}
-
 } // anon
-
-
 
 
 InsetNoteParams::InsetNoteParams()
@@ -111,11 +94,11 @@ void InsetNoteParams::read(Lexer & lex)
 
 /////////////////////////////////////////////////////////////////////
 //
-// InsetNode
+// InsetNote
 //
 /////////////////////////////////////////////////////////////////////
 
-InsetNote::InsetNote(Buffer const & buf, string const & label)
+InsetNote::InsetNote(Buffer * buf, string const & label)
 	: InsetCollapsable(buf)
 {
 	params_.type = notetranslator().find(label);
@@ -125,12 +108,6 @@ InsetNote::InsetNote(Buffer const & buf, string const & label)
 InsetNote::~InsetNote()
 {
 	hideDialogs("note", this);
-}
-
-
-docstring InsetNote::editMessage() const
-{
-	return _("Opened Note Inset");
 }
 
 
@@ -160,13 +137,6 @@ void InsetNote::read(Lexer & lex)
 }
 
 
-void InsetNote::setButtonLabel()
-{
-	docstring const label = notetranslator_loc().find(params_.type);
-	setLabel(label);
-}
-
-
 bool InsetNote::showInsetDialog(BufferView * bv) const
 {
 	bv->showDialog("note", params2string(params()),
@@ -177,12 +147,15 @@ bool InsetNote::showInsetDialog(BufferView * bv) const
 
 void InsetNote::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY:
+		cur.recordUndoInset(ATOMIC_UNDO, this);
 		string2params(to_utf8(cmd.argument()), params_);
-		// get a bp from cur:
-		setLayout(cur.buffer().params());
+		setButtonLabel();
+		// what we really want here is a TOC update, but that means
+		// a full buffer update
+		cur.forceBufferUpdate();
 		break;
 
 	case LFUN_INSET_DIALOG_UPDATE:
@@ -199,7 +172,7 @@ void InsetNote::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetNote::getStatus(Cursor & cur, FuncRequest const & cmd,
 		FuncStatus & flag) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY:
 		// disallow comment and greyed out in commands
@@ -228,10 +201,10 @@ void InsetNote::addToToc(DocIterator const & cpit)
 	pit.push_back(CursorSlice(*this));
 
 	Toc & toc = buffer().tocBackend().toc("note");
-	docstring str;
-	str = notetranslator_loc().find(params_.type) + from_ascii(": ")
-		+ text().getPar(0).asString();
-	toc.push_back(TocItem(pit, 0, str, toolTipText()));
+	InsetLayout const & il = getLayout();
+	docstring str = translateIfPossible(il.labelstring()) + from_ascii(": ");
+	text().forToc(str, TOC_ENTRY_LENGTH);
+	toc.push_back(TocItem(pit, 0, str, toolTipText(docstring(), 3, 60)));
 	// Proceed with the rest of the inset.
 	InsetCollapsable::addToToc(cpit);
 }
@@ -327,21 +300,40 @@ int InsetNote::docbook(odocstream & os, OutputParams const & runparams_in) const
 }
 
 
-void InsetNote::validate(LaTeXFeatures & features) const
+docstring InsetNote::xhtml(XHTMLStream & xs, OutputParams const & rp) const
 {
-	if (params_.type == InsetNoteParams::Comment)
-		features.require("verbatim");
-	if (params_.type == InsetNoteParams::Greyedout) {
-		features.require("color");
-		features.require("lyxgreyedout");
-	}
-	InsetText::validate(features);
+	if (params_.type == InsetNoteParams::Note)
+		return docstring();
+
+	return InsetCollapsable::xhtml(xs, rp);
 }
 
 
-docstring InsetNote::contextMenu(BufferView const &, int, int) const
+void InsetNote::validate(LaTeXFeatures & features) const
+{
+	switch (params_.type) {
+	case InsetNoteParams::Comment:
+		features.require("verbatim");
+		break;
+	case InsetNoteParams::Greyedout:
+		features.require("color");
+		features.require("lyxgreyedout");
+		InsetCollapsable::validate(features);
+		break;
+	case InsetNoteParams::Note:
+		break;
+	}
+}
+
+
+docstring InsetNote::contextMenuName() const
 {
 	return from_ascii("context-note");
+}
+
+bool InsetNote::allowSpellCheck() const
+{
+	return (params_.type == InsetNoteParams::Greyedout || lyxrc.spellcheck_notes);
 }
 
 
@@ -365,42 +357,16 @@ void InsetNote::string2params(string const & in, InsetNoteParams & params)
 	Lexer lex;
 	lex.setStream(data);
 	lex.setContext("InsetNote::string2params");
-	lex >> "note" >> "Note";
+	lex >> "note";
+	// There are cases, such as when we are called via getStatus() from
+	// Dialog::canApply(), where we are just called with "note" rather
+	// than a full "note Note TYPE".
+	if (!lex.isOK())
+		return;
+	lex >> "Note";
 
 	params.read(lex);
 }
 
-bool mutateNotes(Cursor & cur, string const & source, string const &target)
-{
-	InsetNoteParams::Type typeSrc = notetranslator().find(source);
-	InsetNoteParams::Type typeTrt = notetranslator().find(target);
-	// syntax check of arguments
-	string sSrc = notetranslator().find(typeSrc);
-	string sTrt = notetranslator().find(typeTrt);
-	if ((sSrc != source) || (sTrt != target))
-		return false;
-
-	// did we found some conforming inset?
-	bool ret = false;
-
-	cur.beginUndoGroup();
-	Inset & inset = cur.buffer().inset();
-	InsetIterator it  = inset_iterator_begin(inset);
-	InsetIterator const end = inset_iterator_end(inset);
-	for (; it != end; ++it) {
-		if (it->lyxCode() == NOTE_CODE) {
-			InsetNote & ins = static_cast<InsetNote &>(*it);
-			if (ins.params().type == typeSrc) {
-				cur.buffer().undo().recordUndo(it);
-				FuncRequest fr(LFUN_INSET_MODIFY, "note Note " + target);
-				ins.dispatch(cur, fr);
-				ret = true;
-			}
-		}
-	}
-	cur.endUndoGroup();
-
-	return ret;
-}
 
 } // namespace lyx

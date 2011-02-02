@@ -18,6 +18,7 @@
 #include "Menus.h"
 
 #include "Buffer.h"
+#include "BufferList.h"
 #include "BufferParams.h"
 #include "BufferView.h"
 #include "CoordCache.h"
@@ -31,12 +32,12 @@
 #include "GuiView.h"
 #include "KeySymbol.h"
 #include "Language.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
 #include "LyXVC.h"
-#include "MetricsInfo.h"
 #include "qt_helpers.h"
 #include "Text.h"
+#include "TextMetrics.h"
 #include "version.h"
 
 #include "graphics/GraphicsImage.h"
@@ -68,7 +69,7 @@
 #include <QToolTip>
 #include <QMenuBar>
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <cmath>
 
@@ -139,7 +140,7 @@ public:
 		int r = rect_.right() - x_;
 		int bot = rect_.bottom();
 
-		// draw vertica linel
+		// draw vertical line
 		painter.fillRect(x_, y, CursorWidth, rect_.height(), color_);
 
 		// draw RTL/LTR indication
@@ -224,20 +225,35 @@ private:
 // This is a 'heartbeat' generating synthetic mouse move events when the
 // cursor is at the top or bottom edge of the viewport. One scroll per 0.2 s
 SyntheticMouseEvent::SyntheticMouseEvent()
-	: timeout(200), restart_timeout(true),
-	  x_old(-1), y_old(-1), min_scrollbar_old(-1.0), max_scrollbar_old(-1.0)
+	: timeout(200), restart_timeout(true)
 {}
 
 
-
-GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
-	: buffer_view_(new BufferView(buffer)), lyx_view_(&lv),
+GuiWorkArea::GuiWorkArea(QWidget *)
+	: buffer_view_(0), lyx_view_(0),
 	cursor_visible_(false),
 	need_resize_(false), schedule_redraw_(false),
 	preedit_lines_(1), completer_(new GuiCompleter(this, this)),
 	context_target_pos_()
 {
-	buffer.workAreaManager().add(this);
+}
+
+
+GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & gv)
+	: buffer_view_(0), read_only_(buffer.isReadonly()), lyx_view_(0),
+	cursor_visible_(false),
+	need_resize_(false), schedule_redraw_(false),
+	preedit_lines_(1), completer_(new GuiCompleter(this, this)),
+	context_target_pos_()
+{
+	setGuiView(gv);
+	setBuffer(buffer);
+	init();
+}
+
+
+void GuiWorkArea::init()
+{
 	// Setup the signals
 	connect(&cursor_timeout_, SIGNAL(timeout()),
 		this, SLOT(toggleCursor()));
@@ -258,17 +274,6 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	cursor_ = new frontend::CursorWidget();
 	cursor_->hide();
 
-	// HACK: Prevents an additional redraw when the scrollbar pops up
-	// which regularily happens on documents with more than one page.
-	// The policy  should be set to "Qt::ScrollBarAsNeeded" soon.
-	// Since we have no geometry information yet, we assume that
-	// a document needs a scrollbar if there is more then four
-	// paragraph in the outermost text.
-	if (buffer.text().paragraphs().size() > 4)
-		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-	QTimer::singleShot(50, this, SLOT(fixVerticalScrollBar()));
-
-
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setAcceptDrops(true);
 	setMouseTracking(true);
@@ -281,12 +286,12 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	// the viewport because we have our own backing pixmap.
 	viewport()->setAttribute(Qt::WA_NoSystemBackground);
 
-	setFocusPolicy(Qt::WheelFocus);
+	setFocusPolicy(Qt::StrongFocus);
 
-	viewport()->setCursor(Qt::IBeamCursor);
+	setCursorShape(Qt::IBeamCursor);
 
 	synthetic_mouse_event_.timeout.timeout.connect(
-		boost::bind(&GuiWorkArea::generateSyntheticMouseEvent,
+		bind(&GuiWorkArea::generateSyntheticMouseEvent,
 					this));
 
 	// Initialize the vertical Scroll Bar
@@ -299,6 +304,8 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & lv)
 	// Enables input methods for asian languages.
 	// Must be set when creating custom text editing widgets.
 	setAttribute(Qt::WA_InputMethodEnabled, true);
+
+	dialog_mode_ = false;
 }
 
 
@@ -308,7 +315,51 @@ GuiWorkArea::~GuiWorkArea()
 	delete buffer_view_;
 	delete cursor_;
 	// Completer has a QObject parent and is thus automatically destroyed.
+	// See #4758.
 	// delete completer_;
+}
+
+
+Qt::CursorShape GuiWorkArea::cursorShape() const
+{
+	return viewport()->cursor().shape();
+}
+
+
+void GuiWorkArea::setCursorShape(Qt::CursorShape shape)
+{
+	viewport()->setCursor(shape);
+}
+
+
+void GuiWorkArea::updateCursorShape()
+{
+	setCursorShape(buffer_view_->clickableInset() 
+		? Qt::PointingHandCursor : Qt::IBeamCursor);
+}
+
+
+void GuiWorkArea::setGuiView(GuiView & gv)
+{
+	lyx_view_ = &gv;
+}
+
+
+void GuiWorkArea::setBuffer(Buffer & buffer)
+{
+	delete buffer_view_;
+	buffer_view_ = new BufferView(buffer);
+	buffer.workAreaManager().add(this);
+
+	// HACK: Prevents an additional redraw when the scrollbar pops up
+	// which regularily happens on documents with more than one page.
+	// The policy  should be set to "Qt::ScrollBarAsNeeded" soon.
+	// Since we have no geometry information yet, we assume that
+	// a document needs a scrollbar if there is more then four
+	// paragraph in the outermost text.
+	if (buffer.text().paragraphs().size() > 4)
+		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+	QTimer::singleShot(50, this, SLOT(fixVerticalScrollBar()));
 }
 
 
@@ -359,7 +410,19 @@ void GuiWorkArea::stopBlinkingCursor()
 
 void GuiWorkArea::startBlinkingCursor()
 {
+	// do not show the cursor if the view is busy
+	if (view().busy())
+		return;
+
+	Point p;
+	int h = 0;
+	buffer_view_->cursorPosAndHeight(p, h);
+	// Don't start blinking if the cursor isn't on screen.
+	if (!buffer_view_->cursorInView(p, h))
+		return;
+
 	showCursor();
+
 	//we're not supposed to cache this value.
 	int const time = QApplication::cursorFlashTime() / 2;
 	if (time <= 0)
@@ -369,7 +432,7 @@ void GuiWorkArea::startBlinkingCursor()
 }
 
 
-void GuiWorkArea::redraw()
+void GuiWorkArea::redraw(bool update_metrics)
 {
 	if (!isVisible())
 		// No need to redraw in this case.
@@ -377,9 +440,10 @@ void GuiWorkArea::redraw()
 
 	// No need to do anything if this is the current view. The BufferView
 	// metrics are already up to date.
-	if (lyx_view_ != guiApp->currentView()
+	if (update_metrics || lyx_view_ != guiApp->currentView()
 		|| lyx_view_->currentWorkArea() != this) {
 		// FIXME: it would be nice to optimize for the off-screen case.
+		buffer_view_->cursor().fixIfBroken();
 		buffer_view_->updateMetrics();
 		buffer_view_->cursor().fixIfBroken();
 	}
@@ -402,12 +466,17 @@ void GuiWorkArea::redraw()
 
 	if (lyxerr.debugging(Debug::WORKAREA))
 		buffer_view_->coordCache().dump();
+
+	setReadOnly(buffer_view_->buffer().isReadonly());
+
+	updateCursorShape();
 }
 
 
 void GuiWorkArea::processKeySym(KeySymbol const & key, KeyModifier mod)
 {
-	if (lyx_view_->isFullScreen() && lyx_view_->menuBar()->isVisible()) {
+	if (lyx_view_->isFullScreen() && lyx_view_->menuBar()->isVisible()
+		&& lyxrc.full_screen_menubar) {
 		// FIXME HACK: we should not have to do this here. See related comment
 		// in GuiView::event() (QEvent::ShortcutOverride)
 		lyx_view_->menuBar()->hide();
@@ -417,25 +486,22 @@ void GuiWorkArea::processKeySym(KeySymbol const & key, KeyModifier mod)
 	// we better stop the blinking cursor...
 	// the cursor gets restarted in GuiView::restartCursor()
 	stopBlinkingCursor();
-
-	theLyXFunc().setLyXView(lyx_view_);
-	theLyXFunc().processKeySym(key, mod);
+	guiApp->processKeySym(key, mod);
 }
 
 
 void GuiWorkArea::dispatch(FuncRequest const & cmd0, KeyModifier mod)
 {
 	// Handle drag&drop
-	if (cmd0.action == LFUN_FILE_OPEN) {
-		lyx_view_->dispatch(cmd0);
+	if (cmd0.action() == LFUN_FILE_OPEN) {
+		DispatchResult dr;
+		lyx_view_->dispatch(cmd0, dr);
 		return;
 	}
 
-	theLyXFunc().setLyXView(lyx_view_);
-
 	FuncRequest cmd;
 
-	if (cmd0.action == LFUN_MOUSE_PRESS) {
+	if (cmd0.action() == LFUN_MOUSE_PRESS) {
 		if (mod == ShiftModifier)
 			cmd = FuncRequest(cmd0, "region-select");
 		else if (mod == ControlModifier)
@@ -447,7 +513,7 @@ void GuiWorkArea::dispatch(FuncRequest const & cmd0, KeyModifier mod)
 		cmd = cmd0;
 
 	bool const notJustMovingTheMouse =
-		cmd.action != LFUN_MOUSE_MOTION || cmd.button() != mouse_button::none;
+		cmd.action() != LFUN_MOUSE_MOTION || cmd.button() != mouse_button::none;
 
 	// In order to avoid bad surprise in the middle of an operation, we better stop
 	// the blinking cursor.
@@ -457,7 +523,7 @@ void GuiWorkArea::dispatch(FuncRequest const & cmd0, KeyModifier mod)
 	buffer_view_->mouseEventDispatch(cmd);
 
 	// Skip these when selecting
-	if (cmd.action != LFUN_MOUSE_MOTION) {
+	if (cmd.action() != LFUN_MOUSE_MOTION) {
 		completer_->updateVisibility(false, false);
 		lyx_view_->updateDialogs();
 		lyx_view_->updateStatusBar();
@@ -473,6 +539,8 @@ void GuiWorkArea::dispatch(FuncRequest const & cmd0, KeyModifier mod)
 		// Show the cursor immediately after any operation
 		startBlinkingCursor();
 	}
+
+	updateCursorShape();
 }
 
 
@@ -507,6 +575,12 @@ void GuiWorkArea::showCursor()
 	if (cursor_visible_)
 		return;
 
+	Point p;
+	int h = 0;
+	buffer_view_->cursorPosAndHeight(p, h);
+	if (!buffer_view_->cursorInView(p, h))
+		return;
+
 	// RTL or not RTL
 	bool l_shape = false;
 	Font const & realfont = buffer_view_->cursor().real_current_font;
@@ -521,19 +595,14 @@ void GuiWorkArea::showCursor()
 	if (realfont.language() == latex_language)
 		l_shape = false;
 
-	Point p;
-	int h = 0;
-	buffer_view_->cursorPosAndHeight(p, h);
 	// show cursor on screen
 	Cursor & cur = buffer_view_->cursor();
 	bool completable = cur.inset().showCompletionCursor()
 		&& completer_->completionAvailable()
 		&& !completer_->popupVisible()
 		&& !completer_->inlineVisible();
-	if (buffer_view_->cursorInView(p, h)) {
-		cursor_visible_ = true;
-		showCursor(p.x_, p.y_, h, l_shape, isrtl, completable);
-	}
+	cursor_visible_ = true;
+	showCursor(p.x_, p.y_, h, l_shape, isrtl, completable);
 }
 
 
@@ -573,7 +642,7 @@ void GuiWorkArea::updateScrollbar()
 void GuiWorkArea::scrollTo(int value)
 {
 	stopBlinkingCursor();
-	buffer_view_->scrollDocView(value);
+	buffer_view_->scrollDocView(value, true);
 
 	if (lyxrc.cursor_follows_scrollbar) {
 		buffer_view_->setCursorFromScrollbar();
@@ -609,11 +678,14 @@ bool GuiWorkArea::event(QEvent * e)
 		// which are otherwise reserved to focus switching between controls
 		// within a dialog.
 		QKeyEvent * ke = static_cast<QKeyEvent*>(e);
-		if ((ke->key() != Qt::Key_Tab && ke->key() != Qt::Key_Backtab)
-			|| ke->modifiers() & Qt::ControlModifier)
-			return QAbstractScrollArea::event(e);
-		keyPressEvent(ke);
-		return true;
+		if ((ke->key() == Qt::Key_Tab && ke->modifiers() == Qt::NoModifier)
+			|| (ke->key() == Qt::Key_Backtab && (
+				ke->modifiers() == Qt::ShiftModifier
+				|| ke->modifiers() == Qt::NoModifier))) {
+			keyPressEvent(ke);
+			return true;
+		}
+		return QAbstractScrollArea::event(e);
 	}
 
 	default:
@@ -663,6 +735,7 @@ void GuiWorkArea::contextMenuEvent(QContextMenuEvent * e)
 
 void GuiWorkArea::focusInEvent(QFocusEvent * e)
 {
+	LYXERR(Debug::DEBUG, "GuiWorkArea::focusInEvent(): " << this << endl);
 	if (lyx_view_->currentWorkArea() != this)
 		lyx_view_->setCurrentWorkArea(this);
 
@@ -673,6 +746,7 @@ void GuiWorkArea::focusInEvent(QFocusEvent * e)
 
 void GuiWorkArea::focusOutEvent(QFocusEvent * e)
 {
+	LYXERR(Debug::DEBUG, "GuiWorkArea::focusOutEvent(): " << this << endl);
 	stopBlinkingCursor();
 	QAbstractScrollArea::focusOutEvent(e);
 }
@@ -723,18 +797,19 @@ void GuiWorkArea::mouseMoveEvent(QMouseEvent * e)
 	e->accept();
 
 	// If we're above or below the work area...
-	if (e->y() <= 20 || e->y() >= viewport()->height() - 20) {
+	if ((e->y() <= 20 || e->y() >= viewport()->height() - 20)
+			&& e->buttons() == mouse_button::button1) {
 		// Make sure only a synthetic event can cause a page scroll,
 		// so they come at a steady rate:
 		if (e->y() <= 20)
 			// _Force_ a scroll up:
-			cmd.y = -40;
+			cmd.set_y(e->y() - 21);
 		else
-			cmd.y = viewport()->height();
+			cmd.set_y(e->y() + 21);
 		// Store the event, to be handled when the timeout expires.
 		synthetic_mouse_event_.cmd = cmd;
 
-		if (synthetic_mouse_event_.timeout.running())
+		if (synthetic_mouse_event_.timeout.running()) {
 			// Discard the event. Note that it _may_ be handled
 			// when the timeout expires if
 			// synthetic_mouse_event_.cmd has not been overwritten.
@@ -743,7 +818,8 @@ void GuiWorkArea::mouseMoveEvent(QMouseEvent * e)
 			// occurred after the one used to start the timeout
 			// in the first place.
 			return;
-
+		}
+		
 		synthetic_mouse_event_.restart_timeout = true;
 		synthetic_mouse_event_.timeout.start();
 		// Fall through to handle this event...
@@ -759,24 +835,6 @@ void GuiWorkArea::mouseMoveEvent(QMouseEvent * e)
 		synthetic_mouse_event_.restart_timeout = false;
 		return;
 	}
-
-	// Has anything changed on-screen since the last QMouseEvent
-	// was received?
-	if (e->x() == synthetic_mouse_event_.x_old
-		&& e->y() == synthetic_mouse_event_.y_old
-		&& synthetic_mouse_event_.min_scrollbar_old == verticalScrollBar()->minimum()
-		&& synthetic_mouse_event_.max_scrollbar_old == verticalScrollBar()->maximum()) {
-		// Nothing changed on-screen since the last QMouseEvent.
-		return;
-	}
-
-	// Yes something has changed. Store the params used to check this.
-	synthetic_mouse_event_.x_old = e->x();
-	synthetic_mouse_event_.y_old = e->y();
-	synthetic_mouse_event_.min_scrollbar_old = verticalScrollBar()->minimum();
-	synthetic_mouse_event_.max_scrollbar_old = verticalScrollBar()->maximum();
-
-	// ... and dispatch the event to the LyX core.
 	dispatch(cmd);
 }
 
@@ -785,9 +843,26 @@ void GuiWorkArea::wheelEvent(QWheelEvent * ev)
 {
 	// Wheel rotation by one notch results in a delta() of 120 (see
 	// documentation of QWheelEvent)
-	int const delta = ev->delta() / 120;
-	if (ev->modifiers() & Qt::ControlModifier) {
-		docstring arg = convert<docstring>(5 * delta);
+	double const delta = ev->delta() / 120.0;
+	bool zoom = false;
+	switch (lyxrc.scroll_wheel_zoom) {
+	case LyXRC::SCROLL_WHEEL_ZOOM_CTRL:
+		zoom = ev->modifiers() & Qt::ControlModifier;
+		zoom &= !(ev->modifiers() & (Qt::ShiftModifier | Qt::AltModifier));
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_SHIFT:
+		zoom = ev->modifiers() & Qt::ShiftModifier;
+		zoom &= !(ev->modifiers() & (Qt::ControlModifier | Qt::AltModifier));
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_ALT:
+		zoom = ev->modifiers() & Qt::AltModifier;
+		zoom &= !(ev->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier));
+		break;
+	case LyXRC::SCROLL_WHEEL_ZOOM_OFF:
+		break;
+	}
+	if (zoom) {
+		docstring arg = convert<docstring>(int(5 * delta));
 		lyx::dispatch(FuncRequest(LFUN_BUFFER_ZOOM_IN, arg));
 		return;
 	}
@@ -799,11 +874,8 @@ void GuiWorkArea::wheelEvent(QWheelEvent * ev)
 	int scroll_value = lines > page_step
 		? page_step : lines * verticalScrollBar()->singleStep();
 
-	// Take into account the rotation.
-	scroll_value *= delta;
-
-	// Take into account user preference.
-	scroll_value *= lyxrc.mouse_wheel_speed;
+	// Take into account the rotation and the user preferences.
+	scroll_value = int(scroll_value * delta * lyxrc.mouse_wheel_speed);
 	LYXERR(Debug::SCROLLING, "wheelScrollLines = " << lines
 			<< " delta = " << delta << " scroll_value = " << scroll_value
 			<< " page_step = " << page_step);
@@ -816,17 +888,98 @@ void GuiWorkArea::wheelEvent(QWheelEvent * ev)
 
 void GuiWorkArea::generateSyntheticMouseEvent()
 {
-	// Set things off to generate the _next_ 'pseudo' event.
-	if (synthetic_mouse_event_.restart_timeout)
-		synthetic_mouse_event_.timeout.start();
+	int const e_y = synthetic_mouse_event_.cmd.y();
+	int const wh = buffer_view_->workHeight();
+	bool const up = e_y < 0;
+	bool const down = e_y > wh;
 
-	// Dispatch the event to the LyX core.
-	dispatch(synthetic_mouse_event_.cmd);
+	// Set things off to generate the _next_ 'pseudo' event.
+	int step = 50;
+	if (synthetic_mouse_event_.restart_timeout) {
+		// This is some magic formulae to determine the speed
+		// of scrolling related to the position of the mouse.
+		int time = 200;
+		if (up || down) {
+			int dist = up ? -e_y : e_y - wh;
+			time = max(min(200, 250000 / (dist * dist)), 1) ;
+			
+			if (time < 40) {
+				step = 80000 / (time * time);
+				time = 40;
+			}
+		}
+		synthetic_mouse_event_.timeout.setTimeout(time);
+		synthetic_mouse_event_.timeout.start();
+	}
+
+	// Can we scroll further ?
+	int const value = verticalScrollBar()->value();
+	if (value == verticalScrollBar()->maximum()
+		  || value == verticalScrollBar()->minimum()) {
+		synthetic_mouse_event_.timeout.stop();
+		return;
+	}
+
+	// Scroll
+	if (step <= 2 * wh) {
+		buffer_view_->scroll(up ? -step : step);
+		buffer_view_->updateMetrics();
+	} else {
+		buffer_view_->scrollDocView(value + up ? -step : step, false);
+	}
+
+	// In which paragraph do we have to set the cursor ?
+	Cursor & cur = buffer_view_->cursor();
+	TextMetrics const & tm = buffer_view_->textMetrics(cur.text());
+
+	pair<pit_type, const ParagraphMetrics *> p = up ? tm.first() : tm.last();
+	ParagraphMetrics const & pm = *p.second;
+	pit_type const pit = p.first;
+
+	if (pm.rows().empty())
+		return;
+
+	// Find the row at which we set the cursor.
+	RowList::const_iterator rit = pm.rows().begin();
+	RowList::const_iterator rlast = pm.rows().end();
+	int yy = pm.position() - pm.ascent();
+	for (--rlast; rit != rlast; ++rit) {
+		int h = rit->height();
+		if ((up && yy + h > 0)
+			  || (!up && yy + h > wh - defaultRowHeight()))
+			break;
+		yy += h;
+	}
+	
+	// Find the position of the cursor
+	bool bound;
+	int x = synthetic_mouse_event_.cmd.x();
+	pos_type const pos = rit->pos() + tm.getColumnNearX(pit, *rit, x, bound);
+
+	// Set the cursor
+	cur.pit() = pit;
+	cur.pos() = pos;
+	cur.boundary(bound);
+
+	buffer_view_->buffer().changed(false);
+	return;
 }
 
 
 void GuiWorkArea::keyPressEvent(QKeyEvent * ev)
 {
+	// Do not process here some keys if dialog_mode_ is set
+	if (dialog_mode_
+		&& (ev->modifiers() == Qt::NoModifier
+		    || ev->modifiers() == Qt::ShiftModifier)
+		&& (ev->key() == Qt::Key_Escape
+		    || ev->key() == Qt::Key_Enter
+		    || ev->key() == Qt::Key_Return)
+	    ) {
+		ev->ignore();
+		return;
+	}
+
 	// intercept some keys if completion popup is visible
 	if (completer_->popupVisible()) {
 		switch (ev->key()) {
@@ -1101,7 +1254,8 @@ QVariant GuiWorkArea::inputMethodQuery(Qt::InputMethodQuery query) const
 {
 	QRect cur_r(0, 0, 0, 0);
 	switch (query) {
-		// this is the CJK-specific composition window position.
+		// this is the CJK-specific composition window position and
+		// the context menu position when the menu key is pressed.
 		case Qt::ImMicroFocus:
 			cur_r = cursor_->rect();
 			if (preedit_lines_ != 1)
@@ -1124,13 +1278,13 @@ void GuiWorkArea::updateWindowTitle()
 	Buffer & buf = buffer_view_->buffer();
 	FileName const fileName = buf.fileName();
 	if (!fileName.empty()) {
-		maximize_title = fileName.displayName(30);
+		maximize_title = fileName.displayName(130);
 		minimize_title = from_utf8(fileName.onlyFileName());
 		if (buf.lyxvc().inUse()) {
-			if (buf.lyxvc().locker().empty())
-				maximize_title +=  _(" (version control)");
-			else
+			if (buf.lyxvc().locking())
 				maximize_title +=  _(" (version control, locking)");
+			else
+				maximize_title +=  _(" (version control)");
 		}
 		if (!buf.isClean()) {
 			maximize_title += _(" (changed)");
@@ -1151,8 +1305,11 @@ void GuiWorkArea::updateWindowTitle()
 }
 
 
-void GuiWorkArea::setReadOnly(bool)
+void GuiWorkArea::setReadOnly(bool read_only)
 {
+	if (read_only_ == read_only)
+		return;
+	read_only_ = read_only;
 	updateWindowTitle();
 	if (this == lyx_view_->currentWorkArea())
 		lyx_view_->updateDialogs();
@@ -1164,6 +1321,68 @@ bool GuiWorkArea::isFullScreen()
 	return lyx_view_ && lyx_view_->isFullScreen();
 }
 
+
+////////////////////////////////////////////////////////////////////
+//
+// EmbeddedWorkArea
+//
+////////////////////////////////////////////////////////////////////
+
+
+EmbeddedWorkArea::EmbeddedWorkArea(QWidget * w): GuiWorkArea(w)
+{
+	buffer_ = theBufferList().newBuffer(
+		support::FileName::tempName().absFileName() + "_embedded.internal");
+	buffer_->setUnnamed(true);
+	buffer_->setFullyLoaded(true);
+	setBuffer(*buffer_);
+	setDialogMode(true);
+}
+
+
+EmbeddedWorkArea::~EmbeddedWorkArea()
+{
+	// No need to destroy buffer and bufferview here, because it is done
+	// in theBufferList() destruction loop at application exit
+}
+
+
+void EmbeddedWorkArea::closeEvent(QCloseEvent * ev)
+{
+	disable();
+	GuiWorkArea::closeEvent(ev);
+}
+
+
+void EmbeddedWorkArea::hideEvent(QHideEvent * ev)
+{
+	disable();
+	GuiWorkArea::hideEvent(ev);
+}
+
+
+QSize EmbeddedWorkArea::sizeHint () const
+{
+	// FIXME(?):
+	// GuiWorkArea sets the size to the screen's viewport
+	// by returning a value this gets overridden
+	// EmbeddedWorkArea is now sized to fit in the layout
+	// of the parent, and has a minimum size set in GuiWorkArea
+	// which is what we return here
+	return QSize(100, 70);
+}
+
+
+void EmbeddedWorkArea::disable()
+{
+	stopBlinkingCursor();
+	if (view().currentWorkArea() != this)
+		return;
+	// No problem if currentMainWorkArea() is 0 (setCurrentWorkArea()
+	// tolerates it and shows the background logo), what happens if
+	// an EmbeddedWorkArea is closed after closing all document WAs
+	view().setCurrentWorkArea(view().currentMainWorkArea());
+}
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -1246,22 +1465,36 @@ TabWorkArea::TabWorkArea(QWidget * parent)
 		this, SLOT(showContextMenu(const QPoint &)));
 #if QT_VERSION >= 0x040500
 	connect(tb, SIGNAL(tabCloseRequested(int)),
-		tb, SLOT(on_tabCloseRequested(int)));
+		this, SLOT(closeTab(int)));
 #endif
 
 	setUsesScrollButtons(true);
 }
 
 
+void TabWorkArea::mouseDoubleClickEvent(QMouseEvent * event)
+{
+	if (event->button() != Qt::LeftButton)
+		return;
+
+	// return early if double click on existing tabs
+	for (int i = 0; i < count(); ++i)
+		if (tabBar()->tabRect(i).contains(event->pos()))
+			return;
+
+	dispatch(FuncRequest(LFUN_BUFFER_NEW));
+}
+
+
 void TabWorkArea::setFullScreen(bool full_screen)
 {
 	for (int i = 0; i != count(); ++i) {
-		if (GuiWorkArea * wa = dynamic_cast<GuiWorkArea *>(widget(i)))
+		if (GuiWorkArea * wa = workArea(i))
 			wa->setFullScreen(full_screen);
 	}
 
 	if (lyxrc.full_screen_tabbar)
-		showBar(!full_screen && count()>1);
+		showBar(!full_screen && count() > 1);
 }
 
 
@@ -1287,10 +1520,18 @@ GuiWorkArea * TabWorkArea::currentWorkArea()
 }
 
 
+GuiWorkArea * TabWorkArea::workArea(int index)
+{
+	return dynamic_cast<GuiWorkArea *>(widget(index));
+}
+
+
 GuiWorkArea * TabWorkArea::workArea(Buffer & buffer)
 {
+	// FIXME: this method doesn't work if we have more than work area
+	// showing the same buffer.
 	for (int i = 0; i != count(); ++i) {
-		GuiWorkArea * wa = dynamic_cast<GuiWorkArea *>(widget(i));
+		GuiWorkArea * wa = workArea(i);
 		LASSERT(wa, return 0);
 		if (&wa->bufferView().buffer() == &buffer)
 			return wa;
@@ -1302,7 +1543,7 @@ GuiWorkArea * TabWorkArea::workArea(Buffer & buffer)
 void TabWorkArea::closeAll()
 {
 	while (count()) {
-		GuiWorkArea * wa = dynamic_cast<GuiWorkArea *>(widget(0));
+		GuiWorkArea * wa = workArea(0);
 		LASSERT(wa, /**/);
 		removeTab(0);
 		delete wa;
@@ -1369,11 +1610,10 @@ bool TabWorkArea::removeWorkArea(GuiWorkArea * work_area)
 		if (currentWorkArea() && currentWorkArea()->isFullScreen())
 			setFullScreen(true);
 		else
-			// Hide tabbar if there's only one tab.
+			// Show tabbar only if there's more than one tab.
 			showBar(count() > 1);
-	} else {
+	} else
 		lastWorkAreaRemoved();
-	}
 
 	updateTabTexts();
 
@@ -1386,46 +1626,58 @@ void TabWorkArea::on_currentTabChanged(int i)
 	// returns e.g. on application destruction
 	if (i == -1)
 		return;
-	GuiWorkArea * wa = dynamic_cast<GuiWorkArea *>(widget(i));
+	GuiWorkArea * wa = workArea(i);
 	LASSERT(wa, return);
-	BufferView & bv = wa->bufferView();
-	bv.cursor().fixIfBroken();
-	bv.updateMetrics();
 	wa->setUpdatesEnabled(true);
-	wa->redraw();
+	wa->redraw(true);
 	wa->setFocus();
 	///
 	currentWorkAreaChanged(wa);
 
 	LYXERR(Debug::GUI, "currentTabChanged " << i
-		<< "File" << bv.buffer().absFileName());
+		<< " File: " << wa->bufferView().buffer().absFileName());
 }
 
 
 void TabWorkArea::closeCurrentBuffer()
 {
-	if (clicked_tab_ != -1)
-		setCurrentIndex(clicked_tab_);
-	else {
-		// Before dispatching the LFUN we should be sure this
-		// is the current workarea.
-		currentWorkAreaChanged(currentWorkArea());
-	}
-
-	lyx::dispatch(FuncRequest(LFUN_BUFFER_CLOSE));
-}
-
-
-void TabWorkArea::closeCurrentTab()
-{
+	GuiWorkArea * wa;
 	if (clicked_tab_ == -1)
-		removeWorkArea(currentWorkArea());
+		wa = currentWorkArea();
 	else {
-		GuiWorkArea * wa = dynamic_cast<GuiWorkArea *>(widget(clicked_tab_));
+		wa = workArea(clicked_tab_);
 		LASSERT(wa, /**/);
-		removeWorkArea(wa);
 	}
+	wa->view().closeWorkArea(wa);
 }
+
+
+void TabWorkArea::hideCurrentTab()
+{
+	GuiWorkArea * wa;
+	if (clicked_tab_ == -1)
+		wa = currentWorkArea();
+	else {
+		wa = workArea(clicked_tab_);
+		LASSERT(wa, /**/);
+	}
+	wa->view().hideWorkArea(wa);
+}
+
+
+void TabWorkArea::closeTab(int index)
+{
+	on_currentTabChanged(index);
+	GuiWorkArea * wa;
+	if (index == -1)
+		wa = currentWorkArea();
+	else {
+		wa = workArea(index);
+		LASSERT(wa, /**/);
+	}
+	wa->view().closeWorkArea(wa);
+}
+
 
 ///
 class DisplayPath {
@@ -1531,7 +1783,7 @@ void TabWorkArea::updateTabTexts()
 	// collect full names first: path into postfix, empty prefix and
 	// filename without extension
 	for (size_t i = 0; i < n; ++i) {
-		GuiWorkArea * i_wa = dynamic_cast<GuiWorkArea *>(widget(i));
+		GuiWorkArea * i_wa = workArea(i);
 		FileName const fn = i_wa->bufferView().buffer().fileName();
 		paths.push_back(DisplayPath(i, fn));
 	}
@@ -1615,12 +1867,13 @@ void TabWorkArea::updateTabTexts()
 
 	// set new tab titles
 	for (It it = paths.begin(); it != paths.end(); ++it) {
-		GuiWorkArea * i_wa = dynamic_cast<GuiWorkArea *>(widget(it->tab()));
-		Buffer & buf = i_wa->bufferView().buffer();
+		int const tab_index = it->tab();
+		Buffer const & buf = workArea(tab_index)->bufferView().buffer();
+		QString tab_text = it->displayString();
 		if (!buf.fileName().empty() && !buf.isClean())
-			setTabText(it->tab(), it->displayString() + "*");
-		else
-			setTabText(it->tab(), it->displayString());
+			tab_text += "*";
+		setTabText(tab_index, tab_text);
+		setTabToolTip(tab_index, it->abs());
 	}
 }
 
@@ -1635,7 +1888,7 @@ void TabWorkArea::showContextMenu(const QPoint & pos)
 	// show tab popup
 	QMenu popup;
 	popup.addAction(QIcon(getPixmap("images/", "hidetab", "png")),
-		qt_("Hide tab"), this, SLOT(closeCurrentTab()));
+		qt_("Hide tab"), this, SLOT(hideCurrentTab()));
 	popup.addAction(QIcon(getPixmap("images/", "closetab", "png")),
 		qt_("Close tab"), this, SLOT(closeCurrentBuffer()));
 	popup.exec(tabBar()->mapToGlobal(pos));
@@ -1664,13 +1917,6 @@ DragTabBar::DragTabBar(QWidget* parent)
 #if QT_VERSION >= 0x040500
 	setTabsClosable(!lyxrc.single_close_tab_button);
 #endif
-}
-
-
-void DragTabBar::on_tabCloseRequested(int index)
-{
-	setCurrentIndex(index);
-	lyx::dispatch(FuncRequest(LFUN_BUFFER_CLOSE));
 }
 
 
@@ -1765,4 +2011,4 @@ void DragTabBar::dropEvent(QDropEvent * event)
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiWorkArea_moc.cpp"
+#include "moc_GuiWorkArea.cpp"

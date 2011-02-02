@@ -18,10 +18,9 @@
 #include "Cursor.h"
 #include "DocIterator.h"
 #include "FuncRequest.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "TocBackend.h"
 
-#include "support/convert.h"
 #include "support/debug.h"
 #include "support/lassert.h"
 
@@ -33,12 +32,6 @@ using namespace std;
 
 namespace lyx {
 namespace frontend {
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// TocTypeModel
-//
-///////////////////////////////////////////////////////////////////////////////
 
 /// A QStandardItemModel that gives access to the reset methods.
 /// This is needed in order to fix http://www.lyx.org/trac/ticket/3740
@@ -70,8 +63,8 @@ public:
 	#endif
 	}
 };
-	
-	
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // TocModel
@@ -253,7 +246,7 @@ TocModels::TocModels()
 	: bv_(0)
 {
 	names_ = new TocTypeModel(this);
-	names_sorted_ = new QSortFilterProxyModel(this);
+	names_sorted_ = new TocModelSortProxyModel(this);
 	names_sorted_->setSourceModel(names_);
 #if QT_VERSION >= 0x040300
 	names_sorted_->setSortLocaleAware(true);
@@ -322,6 +315,20 @@ void TocModels::goTo(QString const & type, QModelIndex const & index) const
 	dispatch(item.action());
 }
 
+
+TocItem const TocModels::currentItem(QString const & type,
+	QModelIndex const & index) const
+{
+	const_iterator it = models_.find(type);
+	if (it == models_.end() || !index.isValid()) {
+		LYXERR(Debug::GUI, "TocModels::currentItem(): QModelIndex is invalid!");
+		return TocItem();
+	}
+	LASSERT(index.model() == it.value()->model(), return TocItem());
+	
+	return it.value()->tocItem(index);
+}
+ 
 
 void TocModels::updateBackend() const
 {
@@ -399,4 +406,4 @@ void TocModels::sort(QString const & type, bool sort_it)
 } // namespace frontend
 } // namespace lyx
 
-#include "TocModel_moc.cpp"
+#include "moc_TocModel.cpp"

@@ -8,7 +8,7 @@
 # Converted article -> egs Martin Vermeer
 
 
-Format 11
+Format 30
 Columns                 2
 Sides                   1
 PageStyle               Plain
@@ -45,6 +45,7 @@ Style Section
 	LabelFont
 	  Series              Bold
 	EndFont
+	TocLevel 1
 End
 
 
@@ -63,6 +64,7 @@ Style Subsection
 	Font
 	  Shape               Up
 	EndFont
+	TocLevel 2
 End
 
 
@@ -80,6 +82,7 @@ Style Paragraph
 	  Series              Bold
 	  Size                Normal
 	EndFont
+	TocLevel 4
 End
 
 
@@ -88,6 +91,7 @@ Style Subparagraph
 	LatexName             subparagraph
 	NextNoIndent          0
 	LeftMargin            MM
+	TocLevel 5
 End
 
 
@@ -157,6 +161,7 @@ Style Enumerate
 	Align                 Block
 	AlignPossible         Block, Left
 	LabelType             Enumerate
+	RefPrefix             enu
 End
 
 
@@ -262,6 +267,7 @@ Style Title
 	  Series              Bold
 	  Size                Largest
 	EndFont
+	HTMLTitle             true
 End
 
 
@@ -282,6 +288,7 @@ Style LaTeX_Title
 	  Series              Bold
 	  Size                Largest
 	EndFont
+	HTMLTitle             true
 End
 
 
@@ -320,7 +327,7 @@ Style Affil
 	ParSep                0.7
 	Align                 Left
 	LabelType             Static
-	LabelString           "Affilation:"
+	LabelString           "Affiliation:"
 	LabelFont
 	  Series              Bold
 	  Shape               Italic
@@ -650,3 +657,4 @@ Input stdinsets.inc
 Input stdfloats.inc
 Input numarticle.inc
 Input stdcounters.inc
+Input stdrefprefix.inc

@@ -3,11 +3,11 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author José Matos
- * \author Lars Gullik Bjønnes
+ * \author JosÃ© Matos
+ * \author Lars Gullik BjÃ¸nnes
  * \author Jean-Marc Lasgouttes
- * \author Jürgen Vigna
- * \author André Pönitz
+ * \author JÃ¼rgen Vigna
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,8 +16,10 @@
 
 #include "LaTeXFeatures.h"
 
+#include "Buffer.h"
 #include "BufferParams.h"
 #include "ColorSet.h"
+#include "Converter.h"
 #include "Encoding.h"
 #include "Floating.h"
 #include "FloatList.h"
@@ -27,11 +29,17 @@
 #include "LyXRC.h"
 #include "TextClass.h"
 
+#include "insets/InsetLayout.h"
+
 #include "support/debug.h"
 #include "support/docstream.h"
 #include "support/FileName.h"
 #include "support/filetools.h"
+#include "support/gettext.h"
 #include "support/lstrings.h"
+
+#include <algorithm>
+
 
 using namespace std;
 using namespace lyx::support;
@@ -49,62 +57,58 @@ namespace lyx {
 //\ProvidesPackage{lyx}[1996/01/11 LLE v0.2 (LyX LaTeX Extensions)]
 //\message{LyX LaTeX Extensions (LLE v0.2) of 11-Jan-1996.}
 
-static string const lyx_def =
-	"\\providecommand{\\LyX}{L\\kern-.1667em\\lower.25em\\hbox{Y}\\kern-.125emX\\@}";
+static docstring const lyx_def = from_ascii(
+	"\\providecommand{\\LyX}{L\\kern-.1667em\\lower.25em\\hbox{Y}\\kern-.125emX\\@}");
 
-static string const lyxline_def =
-	"\\newcommand{\\lyxline}[1][1pt]{%\n"
-	"  \\par\\noindent%\n"
-	"  \\rule[.5ex]{\\linewidth}{#1}\\par}";
+static docstring const noun_def = from_ascii(
+	"\\newcommand{\\noun}[1]{\\textsc{#1}}");
 
-static string const noun_def = "\\newcommand{\\noun}[1]{\\textsc{#1}}";
-
-static string const lyxarrow_def =
+static docstring const lyxarrow_def = from_ascii(
 	"\\DeclareRobustCommand*{\\lyxarrow}{%\n"
 	"\\@ifstar\n"
 	"{\\leavevmode\\,$\\triangleleft$\\,\\allowbreak}\n"
-	"{\\leavevmode\\,$\\triangleright$\\,\\allowbreak}}";
+	"{\\leavevmode\\,$\\triangleright$\\,\\allowbreak}}");
 
 // for quotes without babel. This does not give perfect results, but
 // anybody serious about non-english quotes should use babel (JMarc).
 
-static string const quotedblbase_def =
+static docstring const quotedblbase_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\quotedblbase}{%\n"
 	"  \\raisebox{-1.4ex}[1ex][.5ex]{\\textquotedblright}%\n"
 	"  \\penalty10000\\hskip0em\\relax%\n"
-	"}";
+	"}");
 
-static string const quotesinglbase_def =
+static docstring const quotesinglbase_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\quotesinglbase}{%\n"
 	"  \\raisebox{-1.4ex}[1ex][.5ex]{\\textquoteright}%\n"
 	"  \\penalty10000\\hskip0em\\relax%\n"
-	"}";
+	"}");
 
-static string const guillemotleft_def =
+static docstring const guillemotleft_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\guillemotleft}{%\n"
 	"  {\\usefont{U}{lasy}{m}{n}\\char'50\\kern-.15em\\char'50}%\n"
 	"\\penalty10000\\hskip0pt\\relax%\n"
-	"}";
+	"}");
 
-static string const guillemotright_def =
+static docstring const guillemotright_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\guillemotright}{%\n"
 	"  \\penalty10000\\hskip0pt%\n"
 	"  {\\usefont{U}{lasy}{m}{n}\\char'51\\kern-.15em\\char'51}%\n"
-	"}";
+	"}");
 
-static string const guilsinglleft_def =
+static docstring const guilsinglleft_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\guilsinglleft}{%\n"
 	"  {\\usefont{U}{lasy}{m}{n}\\char'50}%\n"
 	"  \\penalty10000\\hskip0pt\\relax%\n"
-	"}";
+	"}");
 
-static string const guilsinglright_def =
+static docstring const guilsinglright_def = from_ascii(
 	"\\ProvideTextCommandDefault{\\guilsinglright}{%\n"
 	"  \\penalty10000\\hskip0pt%\n"
 	"  {\\usefont{U}{lasy}{m}{n}\\char'51}%\n"
-	"}";
+	"}");
 
-static string const paragraphleftindent_def =
+static docstring const paragraphleftindent_def = from_ascii(
 	"\\newenvironment{LyXParagraphLeftIndent}[1]%\n"
 	"{\n"
 	"  \\begin{list}{}{%\n"
@@ -120,9 +124,9 @@ static string const paragraphleftindent_def =
 	"  }\n"
 	"  \\item[]\n"
 	"}\n"
-	"{\\end{list}}\n";
+	"{\\end{list}}\n");
 
-static string const floatingfootnote_def =
+static docstring const floatingfootnote_def = from_ascii(
 	"%% Special footnote code from the package 'stblftnt.sty'\n"
 	"%% Author: Robin Fairbairns -- Last revised Dec 13 1996\n"
 	"\\let\\SF@@footnote\\footnote\n"
@@ -138,32 +142,32 @@ static string const floatingfootnote_def =
 	"}\n"
 	"\\edef\\SF@gobble@opt{\\noexpand\\protect\n"
 	"  \\expandafter\\noexpand\\csname SF@gobble@opt \\endcsname}\n"
-	"\\def\\SF@gobble@twobracket[#1]#2{}\n";
+	"\\def\\SF@gobble@twobracket[#1]#2{}\n");
 
-static string const binom_def =
+static docstring const binom_def = from_ascii(
 	"%% Binom macro for standard LaTeX users\n"
-	"\\newcommand{\\binom}[2]{{#1 \\choose #2}}\n";
+	"\\newcommand{\\binom}[2]{{#1 \\choose #2}}\n");
 
-static string const mathcircumflex_def =
+static docstring const mathcircumflex_def = from_ascii(
 	"%% For printing a cirumflex inside a formula\n"
-	"\\newcommand{\\mathcircumflex}[0]{\\mbox{\\^{}}}\n";
+	"\\newcommand{\\mathcircumflex}[0]{\\mbox{\\^{}}}\n");
 
-static string const tabularnewline_def =
+static docstring const tabularnewline_def = from_ascii(
 	"%% Because html converters don't know tabularnewline\n"
-	"\\providecommand{\\tabularnewline}{\\\\}\n";
+	"\\providecommand{\\tabularnewline}{\\\\}\n");
 	
-static string const lyxgreyedout_def =
+static docstring const lyxgreyedout_def = from_ascii(
 	"%% The greyedout annotation environment\n"
-	"\\newenvironment{lyxgreyedout}{\\textcolor[gray]{0.8}\\bgroup}{\\egroup}\n";
+	"\\newenvironment{lyxgreyedout}{\\textcolor{note_fontcolor}\\bgroup}{\\egroup}\n");
 
 // We want to omit the file extension for includegraphics, but this does not
 // work when the filename contains other dots.
 // Idea from http://www.tex.ac.uk/cgi-bin/texfaq2html?label=unkgrfextn
-static string const lyxdot_def =
+static docstring const lyxdot_def = from_ascii(
 	"%% A simple dot to overcome graphicx limitations\n"
-	"\\newcommand{\\lyxdot}{.}\n";
+	"\\newcommand{\\lyxdot}{.}\n");
 
-static string const changetracking_dvipost_def =
+static docstring const changetracking_dvipost_def = from_ascii(
 	"%% Change tracking with dvipost\n"
 	"\\dvipostlayout\n"
 	"\\dvipost{osstart color push Red}\n"
@@ -172,85 +176,97 @@ static string const changetracking_dvipost_def =
 	"\\dvipost{cbend color pop}\n"
 	"\\newcommand{\\lyxadded}[3]{\\changestart#3\\changeend}\n"
 	"\\newcommand{\\lyxdeleted}[3]{%\n"
-	"\\changestart\\overstrikeon#3\\overstrikeoff\\changeend}\n";
+	"\\changestart\\overstrikeon#3\\overstrikeoff\\changeend}\n");
 
-static string const changetracking_xcolor_ulem_def =
+static docstring const changetracking_xcolor_ulem_def = from_ascii(
 	"%% Change tracking with ulem\n"
 	"\\newcommand{\\lyxadded}[3]{{\\color{lyxadded}{}#3}}\n"
-	"\\newcommand{\\lyxdeleted}[3]{{\\color{lyxdeleted}\\sout{#3}}}\n";
+	"\\newcommand{\\lyxdeleted}[3]{{\\color{lyxdeleted}\\sout{#3}}}\n");
 
-static string const changetracking_xcolor_ulem_hyperref_def =
+static docstring const changetracking_xcolor_ulem_hyperref_def = from_ascii(
 	"%% Change tracking with ulem\n"
 	"\\newcommand{\\lyxadded}[3]{{\\texorpdfstring{\\color{lyxadded}{}}{}#3}}\n"
-	"\\newcommand{\\lyxdeleted}[3]{{\\texorpdfstring{\\color{lyxdeleted}\\sout{#3}}{}}}\n";
+	"\\newcommand{\\lyxdeleted}[3]{{\\texorpdfstring{\\color{lyxdeleted}\\sout{#3}}{}}}\n");
 
-static string const changetracking_none_def =
+static docstring const changetracking_none_def = from_ascii(
 	"\\newcommand{\\lyxadded}[3]{#3}\n"
-	"\\newcommand{\\lyxdeleted}[3]{}\n";
+	"\\newcommand{\\lyxdeleted}[3]{}\n");
 
-static string const textgreek_def =
+static docstring const textgreek_def = from_ascii(
 	"\\DeclareRobustCommand{\\greektext}{%\n"
 	"  \\fontencoding{LGR}\\selectfont\\def\\encodingdefault{LGR}}\n"
 	"\\DeclareRobustCommand{\\textgreek}[1]{\\leavevmode{\\greektext #1}}\n"
 	"\\DeclareFontEncoding{LGR}{}{}\n"
-	"\\DeclareTextSymbol{\\~}{LGR}{126}";
+	"\\DeclareTextSymbol{\\~}{LGR}{126}");
 
-static string const textcyr_def =
+static docstring const textcyr_def = from_ascii(
 	"\\DeclareRobustCommand{\\cyrtext}{%\n"
 	"  \\fontencoding{T2A}\\selectfont\\def\\encodingdefault{T2A}}\n"
 	"\\DeclareRobustCommand{\\textcyr}[1]{\\leavevmode{\\cyrtext #1}}\n"
-	"\\AtBeginDocument{\\DeclareFontEncoding{T2A}{}{}}\n";
+	"\\AtBeginDocument{\\DeclareFontEncoding{T2A}{}{}}\n");
 
-static string const lyxmathsym_def =
+static docstring const lyxmathsym_def = from_ascii(
 	"\\newcommand{\\lyxmathsym}[1]{\\ifmmode\\begingroup\\def\\b@ld{bold}\n"
-	"  \\text{\\ifx\\math@version\\b@ld\\bfseries\\fi#1}\\endgroup\\else#1\\fi}\n";
+	"  \\text{\\ifx\\math@version\\b@ld\\bfseries\\fi#1}\\endgroup\\else#1\\fi}\n");
 
-static string const papersizedvi_def =
-	"\\special{papersize=\\the\\paperwidth,\\the\\paperheight}\n";
+static docstring const papersizedvi_def = from_ascii(
+	"\\special{papersize=\\the\\paperwidth,\\the\\paperheight}\n");
 
-static string const papersizepdf_def =
+static docstring const papersizepdf_def = from_ascii(
 	"\\pdfpageheight\\paperheight\n"
-	"\\pdfpagewidth\\paperwidth\n";
+	"\\pdfpagewidth\\paperwidth\n");
 
-static string const cedilla_def =
+static docstring const cedilla_def = from_ascii(
 	"\\newcommand{\\docedilla}[2]{\\underaccent{#1\\mathchar'30}{#2}}\n"
-	"\\newcommand{\\cedilla}[1]{\\mathpalette\\docedilla{#1}}\n";
+	"\\newcommand{\\cedilla}[1]{\\mathpalette\\docedilla{#1}}\n");
 
-static string const subring_def =
+static docstring const subring_def = from_ascii(
 	"\\newcommand{\\dosubring}[2]{\\underaccent{#1\\mathchar'27}{#2}}\n"
-	"\\newcommand{\\subring}[1]{\\mathpalette\\dosubring{#1}}\n";
+	"\\newcommand{\\subring}[1]{\\mathpalette\\dosubring{#1}}\n");
 
-static string const subdot_def =
+static docstring const subdot_def = from_ascii(
 	"\\newcommand{\\dosubdot}[2]{\\underaccent{#1.}{#2}}\n"
-	"\\newcommand{\\subdot}[1]{\\mathpalette\\dosubdot{#1}}\n";
+	"\\newcommand{\\subdot}[1]{\\mathpalette\\dosubdot{#1}}\n");
 
-static string const subhat_def =
+static docstring const subhat_def = from_ascii(
 	"\\newcommand{\\dosubhat}[2]{\\underaccent{#1\\mathchar'136}{#2}}\n"
-	"\\newcommand{\\subhat}[1]{\\mathpalette\\dosubhat{#1}}\n";
+	"\\newcommand{\\subhat}[1]{\\mathpalette\\dosubhat{#1}}\n");
 
-static string const subtilde_def =
+static docstring const subtilde_def = from_ascii(
 	"\\newcommand{\\dosubtilde}[2]{\\underaccent{#1\\mathchar'176}{#2}}\n"
-	"\\newcommand{\\subtilde}[1]{\\mathpalette\\dosubtilde{#1}}\n";
+	"\\newcommand{\\subtilde}[1]{\\mathpalette\\dosubtilde{#1}}\n");
 
-static string const dacute_def =
-	"\\DeclareMathAccent{\\dacute}{\\mathalpha}{operators}{'175}\n";
+static docstring const dacute_def = from_ascii(
+	"\\DeclareMathAccent{\\dacute}{\\mathalpha}{operators}{'175}\n");
 
-static string const tipasymb_def =
+static docstring const tipasymb_def = from_ascii(
 	"\\DeclareFontEncoding{T3}{}{}\n"
-	"\\DeclareSymbolFont{tipasymb}{T3}{cmr}{m}{n}\n";
+	"\\DeclareSymbolFont{tipasymb}{T3}{cmr}{m}{n}\n");
 
-static string const dgrave_def =
-	"\\DeclareMathAccent{\\dgrave}{\\mathord}{tipasymb}{'15}\n";
+static docstring const dgrave_def = from_ascii(
+	"\\DeclareMathAccent{\\dgrave}{\\mathord}{tipasymb}{'15}\n");
 
-static string const rcap_def =
-	"\\DeclareMathAccent{\\rcap}{\\mathord}{tipasymb}{'20}\n";
+static docstring const rcap_def = from_ascii(
+	"\\DeclareMathAccent{\\rcap}{\\mathord}{tipasymb}{'20}\n");
 
-static string const ogonek_def =
+static docstring const ogonek_def = from_ascii(
 	"\\newcommand{\\doogonek}[2]{\\setbox0=\\hbox{$#1#2$}\\underaccent{#1\\mkern-6mu\n"
 	"  \\ifx#2O\\hskip0.5\\wd0\\else\\ifx#2U\\hskip0.5\\wd0\\else\\hskip\\wd0\\fi\\fi\n"
 	"  \\ifx#2o\\mkern-2mu\\else\\ifx#2e\\mkern-1mu\\fi\\fi\n"
 	"  \\mathchar\"0\\hexnumber@\\symtipasymb0C}{#2}}\n"
-	"\\newcommand{\\ogonek}[1]{\\mathpalette\\doogonek{#1}}\n";
+	"\\newcommand{\\ogonek}[1]{\\mathpalette\\doogonek{#1}}\n");
+
+static docstring const lyxref_def = from_ascii(
+		"\\RS@ifundefined{subref}\n"
+		"  {\\def\\RSsubtxt{section~}\\newref{sub}{name = \\RSsubtxt}}\n" 
+		"  {}\n"
+		"\\RS@ifundefined{thmref}\n"
+		"  {\\def\\RSthmtxt{theorem~}\\newref{thm}{name = \\RSthmtxt}}\n" 
+		"  {}\n"
+		"\\RS@ifundefined{lemref}\n"
+		"  {\\def\\RSlemtxt{lemma~}\\newref{lem}{name = \\RSlemtxt}}\n" 
+		"  {}\n");
+
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -269,10 +285,22 @@ LaTeXFeatures::LaTeXFeatures(Buffer const & b, BufferParams const & p,
 
 bool LaTeXFeatures::useBabel() const
 {
-	return lyxrc.language_use_babel ||
-		(bufferParams().language->lang() != lyxrc.default_language &&
-		 !bufferParams().language->babel().empty()) ||
-		this->hasLanguages();
+	if (usePolyglossia())
+		return false;
+	return (lyxrc.language_package_selection != LyXRC::LP_NONE)
+	        || (bufferParams().language->lang() != lyxrc.default_language
+	            && !bufferParams().language->babel().empty())
+	        || this->hasLanguages();
+}
+
+
+bool LaTeXFeatures::usePolyglossia() const
+{
+	return (lyxrc.language_package_selection == LyXRC::LP_AUTO)
+	        && isRequired("polyglossia")
+	        && isAvailable("polyglossia")
+	        && !params_.documentClass().provides("babel")
+	        && this->hasPolyglossiaLanguages();
 }
 
 
@@ -356,6 +384,24 @@ void LaTeXFeatures::useLayout(docstring const & layoutname)
 }
 
 
+void LaTeXFeatures::useInsetLayout(InsetLayout const & lay)
+{
+	docstring const & lname = lay.name();
+	DocumentClass const & tclass = params_.documentClass();
+
+	// this is a default inset layout, nothing useful here
+	if (!tclass.hasInsetLayout(lname))
+		return;
+	// Is this layout already in usedInsetLayouts?
+	if (find(usedInsetLayouts_.begin(), usedInsetLayouts_.end(), lname) 
+			!= usedInsetLayouts_.end())
+		return;
+
+	require(lay.requires());
+	usedInsetLayouts_.push_back(lname);
+}
+
+
 bool LaTeXFeatures::isRequired(string const & name) const
 {
 	return features_.find(name) != features_.end();
@@ -370,6 +416,14 @@ bool LaTeXFeatures::mustProvide(string const & name) const
 
 bool LaTeXFeatures::isAvailable(string const & name)
 {
+	string::size_type const i = name.find("->");
+	if (i != string::npos) {
+		string const from = name.substr(0,i);
+		string const to = name.substr(i+2);
+		//LYXERR0("from=[" << from << "] to=[" << to << "]");
+		return theConverters().isReachable(from, to);
+	}
+
 	if (packages_.empty())
 		getAvailable();
 	string n = name;
@@ -398,7 +452,7 @@ void LaTeXFeatures::useFloat(string const & name, bool subfloat)
 	// use the "H" modifier. This includes modified table and
 	// figure floats. (Lgb)
 	Floating const & fl = params_.documentClass().floats().getType(name);
-	if (!fl.type().empty() && !fl.builtin()) {
+	if (!fl.floattype().empty() && fl.needsFloatPkg()) {
 		require("float");
 	}
 }
@@ -432,6 +486,19 @@ bool LaTeXFeatures::hasLanguages() const
 }
 
 
+bool LaTeXFeatures::hasPolyglossiaLanguages() const
+{
+	LanguageList::const_iterator const begin = UsedLanguages_.begin();
+	for (LanguageList::const_iterator cit = begin;
+	     cit != UsedLanguages_.end();
+	     ++cit) {
+		if ((*cit)->polyglossia().empty())
+			return false;
+	}
+	return true;
+}
+
+
 string LaTeXFeatures::getLanguages() const
 {
 	ostringstream languages;
@@ -445,6 +512,20 @@ string LaTeXFeatures::getLanguages() const
 		languages << (*cit)->babel();
 	}
 	return languages.str();
+}
+
+
+std::map<std::string, std::string> LaTeXFeatures::getPolyglossiaLanguages() const
+{
+	std::map<std::string, std::string> languages;
+
+	LanguageList::const_iterator const begin = UsedLanguages_.begin();
+	for (LanguageList::const_iterator cit = begin;
+	     cit != UsedLanguages_.end();
+	     ++cit) {
+		languages[(*cit)->polyglossia()] = (*cit)->polyglossiaOpts();
+	}
+	return languages;
 }
 
 
@@ -477,6 +558,7 @@ char const * simplefeatures[] = {
 	// subfig is handled in BufferParams.cpp
 	"varioref",
 	"prettyref",
+	"refstyle",
 	/*For a successful cooperation of the `wrapfig' package with the
 	  `float' package you should load the `wrapfig' package *after*
 	  the `float' package. See the caption package documentation
@@ -494,6 +576,7 @@ char const * simplefeatures[] = {
 	"framed",
 	"soul",
 	"textcomp",
+	"fixltx2e",
 	"pmboxdraw",
 	"bbding",
 	"ifsym",
@@ -506,13 +589,15 @@ char const * simplefeatures[] = {
 	"csquotes",
 	"enumitem",
 	"endnotes",
+	"hhline",
 	"ifthen",
-	"amsthm",
 	// listings is handled in BufferParams.cpp
 	"bm",
 	"pdfpages",
 	"amscd",
-	"slashed"
+	"slashed",
+	"multirow",
+	"tfrupee"
 };
 
 int const nb_simplefeatures = sizeof(simplefeatures) / sizeof(char const *);
@@ -532,18 +617,49 @@ string const LaTeXFeatures::getColorOptions() const
 	if (mustProvide("color") || mustProvide("xcolor")) {
 		string const package =
 			(mustProvide("xcolor") ? "xcolor" : "color");
-		if (params_.graphicsDriver == "default"
-			|| params_.graphicsDriver == "none")
+		if (params_.graphics_driver == "default"
+			|| params_.graphics_driver == "none")
 			colors << "\\usepackage{" << package << "}\n";
 		else
 			colors << "\\usepackage["
-				 << params_.graphicsDriver
+				 << params_.graphics_driver
 				 << "]{" << package << "}\n";
 	}
 
 	// pdfcolmk must be loaded after color
 	if (mustProvide("pdfcolmk"))
 		colors << "\\usepackage{pdfcolmk}\n";
+
+	// the following 3 color commands must be set after color
+	// is loaded and before pdfpages, therefore add the command
+	// here define the set color
+	if (mustProvide("pagecolor")) {
+		colors << "\\definecolor{page_backgroundcolor}{rgb}{";
+		colors << outputLaTeXColor(params_.backgroundcolor) << "}\n";
+		// set the page color
+		colors << "\\pagecolor{page_backgroundcolor}\n";
+	}
+
+	if (mustProvide("fontcolor")) {
+		colors << "\\definecolor{document_fontcolor}{rgb}{";
+		colors << outputLaTeXColor(params_.fontcolor) << "}\n";
+		// set the color
+		colors << "\\color{document_fontcolor}\n";
+	}
+
+	if (mustProvide("lyxgreyedout")) {
+		colors << "\\definecolor{note_fontcolor}{rgb}{";
+		colors << outputLaTeXColor(params_.notefontcolor) << "}\n";
+		// the color will be set together with the definition of
+		// the lyxgreyedout environment (see lyxgreyedout_def)
+	}
+
+	// color for shaded boxes
+	if (isRequired("framed") && mustProvide("color")) {
+		colors << "\\definecolor{shadecolor}{rgb}{";
+		colors << outputLaTeXColor(params_.boxbgcolor) << "}\n";
+		// this color is automatically used by the LaTeX-package "framed"
+	}
 
 	return colors.str();
 }
@@ -557,7 +673,7 @@ string const LaTeXFeatures::getPackages() const
 	// FIXME: currently, we can only load packages and macros known
 	// to LyX.
 	// However, with the Require tag of layouts/custom insets,
-	// also inknown packages can be requested. They are silently
+	// also unknown packages can be requested. They are silently
 	// swallowed now. We should change this eventually.
 
 	//
@@ -575,21 +691,11 @@ string const LaTeXFeatures::getPackages() const
 	// than those above.
 	//
 
-	// esint is preferred for esintoramsmath
-	if ((mustProvide("amsmath")
-	     && params_.use_amsmath != BufferParams::package_off)
-	    || (mustProvide("esintoramsmath")
-	        && params_.use_esint == BufferParams::package_off
-	        && params_.use_amsmath != BufferParams::package_off)) {
-		packages << "\\usepackage{amsmath}\n";
-	} else {
-		// amsbsy and amstext are already provided by amsmath
-		if (mustProvide("amsbsy"))
-			packages << "\\usepackage{amsbsy}\n";
-		if (mustProvide("amstext"))
-			packages << "\\usepackage{amstext}\n";
-	}
-	
+	// if fontspec is used, AMS packages have to be loaded before
+	// fontspec (in BufferParams)
+	if (!params_.useNonTeXFonts && !loadAMSPackages().empty())
+		packages << loadAMSPackages();
+
 	// wasysym is a simple feature, but it must be after amsmath if both
 	// are used
 	// wasysym redefines some integrals (e.g. iint) from amsmath. That
@@ -597,7 +703,7 @@ string const LaTeXFeatures::getPackages() const
 	// the document does not contain integrals (then isRequired("esint")
 	// is false) or if esint is used, since esint redefines all relevant
 	// integral symbols from wasysym and amsmath.
-	// See http://bugzilla.lyx.org/show_bug.cgi?id=1942
+	// See http://www.lyx.org/trac/ticket/1942
 	if (mustProvide("wasysym") &&
 	    (params_.use_esint != BufferParams::package_off || !isRequired("esint")))
 		packages << "\\usepackage{wasysym}\n";
@@ -606,39 +712,36 @@ string const LaTeXFeatures::getPackages() const
 	if (mustProvide("accents"))
 		packages << "\\usepackage{accents}\n";
 
+	// mathdots must be loaded after amsmath
+	if (mustProvide("mathdots") &&
+		params_.use_mathdots != BufferParams::package_off)
+		packages << "\\usepackage{mathdots}\n";
+
+	// yhmath must be loaded after amsmath
+	if (mustProvide("yhmath"))
+		packages << "\\usepackage{yhmath}\n";
+
 	// [x]color and pdfcolmk are handled in getColorOptions() above
 	
 	// makeidx.sty
-	if (isRequired("makeidx")) {
-		if (!tclass.provides("makeidx"))
+	if (isRequired("makeidx") || isRequired("splitidx")) {
+		if (!tclass.provides("makeidx") && !isRequired("splitidx"))
 			packages << "\\usepackage{makeidx}\n";
+		if (!tclass.provides("splitidx") && isRequired("splitidx"))
+			packages << "\\usepackage{splitidx}\n";
 		packages << "\\makeindex\n";
 	}
 
 	// graphicx.sty
-	if (mustProvide("graphicx") && params_.graphicsDriver != "none") {
-		if (params_.graphicsDriver == "default")
+	if (mustProvide("graphicx") && params_.graphics_driver != "none") {
+		if (params_.graphics_driver == "default")
 			packages << "\\usepackage{graphicx}\n";
 		else
 			packages << "\\usepackage["
-				 << params_.graphicsDriver
+				 << params_.graphics_driver
 				 << "]{graphicx}\n";
 	}
-	// shadecolor for shaded
-	if (isRequired("framed") && mustProvide("color")) {
-		RGBColor c = rgbFromHexName(lcolor.getX11Name(Color_shadedbg));
-		//255.0 to force conversion to double
-		//NOTE As Jürgen Spitzmüller pointed out, an alternative would be
-		//to use the xcolor package instead, and then we can do
-		// \define{shadcolor}{RGB}...
-		//and not do any conversion. We'd then need to require xcolor
-		//in InsetNote::validate().
-		int const stmSize = packages.precision(2);
-		packages << "\\definecolor{shadecolor}{rgb}{"
-			<< c.r / 255.0 << ',' << c.g / 255.0 << ',' << c.b / 255.0 << "}\n";
-		packages.precision(stmSize);
-	}
-
+	
 	// lyxskak.sty --- newer chess support based on skak.sty
 	if (mustProvide("chess"))
 		packages << "\\usepackage[ps,mover]{lyxskak}\n";
@@ -646,11 +749,6 @@ string const LaTeXFeatures::getPackages() const
 	// setspace.sty
 	if (mustProvide("setspace") && !tclass.provides("SetSpace"))
 		packages << "\\usepackage{setspace}\n";
-
-	// amssymb.sty
-	if (mustProvide("amssymb")
-	    || params_.use_amsmath == BufferParams::package_on)
-		packages << "\\usepackage{amssymb}\n";
 
 	// esint must be after amsmath and wasysym, since it will redeclare
 	// inconsistent integral symbols
@@ -687,11 +785,16 @@ string const LaTeXFeatures::getPackages() const
 	if (mustProvide("xy"))
 		packages << "\\usepackage[all]{xy}\n";
 
+	if (mustProvide("feyn"))
+		packages << "\\usepackage{feyn}\n"; //Diagram
+
 	if (mustProvide("ulem"))
 		packages << "\\PassOptionsToPackage{normalem}{ulem}\n"
 			    "\\usepackage{ulem}\n";
 
-	if (mustProvide("mhchem"))
+	if (params_.use_mhchem == BufferParams::package_on ||
+	    (mustProvide("mhchem") &&
+	     params_.use_mhchem != BufferParams::package_off))
 		packages << "\\PassOptionsToPackage{version=3}{mhchem}\n"
 			    "\\usepackage{mhchem}\n";
 
@@ -706,20 +809,33 @@ string const LaTeXFeatures::getPackages() const
 			    "\\makenomenclature\n";
 	}
 
+	// fixltx2e provides subscript
+	if (mustProvide("subscript") && !isRequired("fixltx2e"))
+		packages << "\\usepackage{subscript}\n";
+
 	return packages.str();
 }
 
 
-string const LaTeXFeatures::getMacros() const
+string LaTeXFeatures::getPreambleSnippets() const 
 {
-	ostringstream macros;
-
-	if (!preamble_snippets_.empty())
-		macros << '\n';
+	ostringstream snip;
 	SnippetList::const_iterator pit  = preamble_snippets_.begin();
 	SnippetList::const_iterator pend = preamble_snippets_.end();
 	for (; pit != pend; ++pit)
-		macros << *pit << '\n';
+		snip << *pit << '\n';
+	return snip.str();
+}
+
+
+docstring const LaTeXFeatures::getMacros() const
+{
+	odocstringstream macros;
+
+	if (!preamble_snippets_.empty()) {
+		macros << '\n';
+		macros << from_utf8(getPreambleSnippets());
+	}
 
 	if (mustProvide("papersize")) {
 		if (runparams_.flavor == OutputParams::LATEX)
@@ -731,28 +847,27 @@ string const LaTeXFeatures::getMacros() const
 	if (mustProvide("LyX"))
 		macros << lyx_def << '\n';
 
-	if (mustProvide("lyxline"))
-		macros << lyxline_def << '\n';
-
 	if (mustProvide("noun"))
 		macros << noun_def << '\n';
 
 	if (mustProvide("lyxarrow"))
 		macros << lyxarrow_def << '\n';
 
-	if (mustProvide("textgreek")) {
+	if (!usePolyglossia() && mustProvide("textgreek")) {
 		// Avoid a LaTeX error if times fonts are used and the grtimes
 		// package is installed but actual fonts are not (bug 6469).
-		if (params_.fontsRoman == "times")
-			macros << subst(textgreek_def, "\\greektext #1",
-					"%\n  \\IfFileExists{grtm10.tfm}{}"
-					"{\\fontfamily{cmr}}\\greektext #1")
+		if (params_.fonts_roman == "times")
+			macros << subst(textgreek_def,
+					from_ascii("\\greektext #1"),
+					from_ascii("%\n  \\IfFileExists"
+						   "{grtm10.tfm}{}{\\fontfamily"
+						   "{cmr}}\\greektext #1"))
 			       << '\n';
 		else
 			macros << textgreek_def << '\n';
 	}
 
-	if (mustProvide("textcyr"))
+	if (!usePolyglossia() && mustProvide("textcyr"))
 		macros << textcyr_def << '\n';
 
 	if (mustProvide("lyxmathsym"))
@@ -818,7 +933,9 @@ string const LaTeXFeatures::getMacros() const
 	if (mustProvide("NeedTabularnewline"))
 		macros << tabularnewline_def;
 
-	// greyedout environment (note inset)
+	// greyed-out environment (note inset)
+	// the color is specified in the routine
+	// getColorOptions() to avoid LaTeX-package clashes
 	if (mustProvide("lyxgreyedout"))
 		macros << lyxgreyedout_def;
 
@@ -827,13 +944,16 @@ string const LaTeXFeatures::getMacros() const
 
 	// floats
 	getFloatDefinitions(macros);
-
+	
+	if (mustProvide("refstyle")) 
+		macros << lyxref_def << '\n';	
+	
 	// change tracking
 	if (mustProvide("ct-dvipost"))
 		macros << changetracking_dvipost_def;
-
+	
 	if (mustProvide("ct-xcolor-ulem")) {
-		int const prec = macros.precision(2);
+		streamsize const prec = macros.precision(2);
 	
 		RGBColor cadd = rgbFromHexName(lcolor.getX11Name(Color_addedtext));
 		macros << "\\providecolor{lyxadded}{rgb}{"
@@ -858,17 +978,77 @@ string const LaTeXFeatures::getMacros() const
 }
 
 
-string const LaTeXFeatures::getBabelOptions() const
+string const LaTeXFeatures::getBabelPresettings() const
 {
 	ostringstream tmp;
 
 	LanguageList::const_iterator it  = UsedLanguages_.begin();
-	LanguageList::const_iterator end =  UsedLanguages_.end();
+	LanguageList::const_iterator end = UsedLanguages_.end();
 	for (; it != end; ++it)
-		if (!(*it)->latex_options().empty())
-			tmp << (*it)->latex_options() << '\n';
-	if (!params_.language->latex_options().empty())
-		tmp << params_.language->latex_options() << '\n';
+		if (!(*it)->babel_presettings().empty())
+			tmp << (*it)->babel_presettings() << '\n';
+	if (!params_.language->babel_presettings().empty())
+		tmp << params_.language->babel_presettings() << '\n';
+
+	return tmp.str();
+}
+
+
+string const LaTeXFeatures::getBabelPostsettings() const
+{
+	ostringstream tmp;
+
+	LanguageList::const_iterator it  = UsedLanguages_.begin();
+	LanguageList::const_iterator end = UsedLanguages_.end();
+	for (; it != end; ++it)
+		if (!(*it)->babel_postsettings().empty())
+			tmp << (*it)->babel_postsettings() << '\n';
+	if (!params_.language->babel_postsettings().empty())
+		tmp << params_.language->babel_postsettings() << '\n';
+
+	return tmp.str();
+}
+
+
+bool LaTeXFeatures::needBabelLangOptions() const
+{
+	if (!lyxrc.language_global_options || params_.language->asBabelOptions())
+		return true;
+
+	LanguageList::const_iterator it  = UsedLanguages_.begin();
+	LanguageList::const_iterator end = UsedLanguages_.end();
+	for (; it != end; ++it)
+		if ((*it)->asBabelOptions())
+			return true;
+
+	return false;
+}
+
+
+string const LaTeXFeatures::loadAMSPackages() const
+{
+	ostringstream tmp;
+	if (mustProvide("amsthm"))
+		tmp << "\\usepackage{amsthm}\n";
+
+	// esint is preferred for esintoramsmath
+	if ((mustProvide("amsmath")
+	     && params_.use_amsmath != BufferParams::package_off)
+	    || (mustProvide("esintoramsmath")
+	        && params_.use_esint == BufferParams::package_off
+	        && params_.use_amsmath != BufferParams::package_off)) {
+		tmp << "\\usepackage{amsmath}\n";
+	} else {
+		// amsbsy and amstext are already provided by amsmath
+		if (mustProvide("amsbsy"))
+			tmp << "\\usepackage{amsbsy}\n";
+		if (mustProvide("amstext"))
+			tmp << "\\usepackage{amstext}\n";
+	}
+	
+	if (mustProvide("amssymb")
+	    || params_.use_amsmath == BufferParams::package_on)
+		tmp << "\\usepackage{amssymb}\n";
 
 	return tmp.str();
 }
@@ -884,10 +1064,144 @@ docstring const LaTeXFeatures::getTClassPreamble() const
 
 	list<docstring>::const_iterator cit = usedLayouts_.begin();
 	list<docstring>::const_iterator end = usedLayouts_.end();
-	for (; cit != end; ++cit) {
+	for (; cit != end; ++cit)
 		tcpreamble << tclass[*cit].preamble();
+
+	cit = usedInsetLayouts_.begin();
+	end = usedInsetLayouts_.end();
+	TextClass::InsetLayouts const & ils = tclass.insetLayouts();
+	for (; cit != end; ++cit) {
+		TextClass::InsetLayouts::const_iterator it = ils.find(*cit);
+		if (it == ils.end())
+			continue;
+		tcpreamble << it->second.preamble();
 	}
 
+	return tcpreamble.str();
+}
+
+
+docstring const LaTeXFeatures::getTClassHTMLPreamble() const 
+{
+	DocumentClass const & tclass = params_.documentClass();
+	odocstringstream tcpreamble;
+
+	tcpreamble << tclass.htmlpreamble();
+
+	list<docstring>::const_iterator cit = usedLayouts_.begin();
+	list<docstring>::const_iterator end = usedLayouts_.end();
+	for (; cit != end; ++cit)
+		tcpreamble << tclass[*cit].htmlpreamble();
+
+	cit = usedInsetLayouts_.begin();
+	end = usedInsetLayouts_.end();
+	TextClass::InsetLayouts const & ils = tclass.insetLayouts();
+	for (; cit != end; ++cit) {
+		TextClass::InsetLayouts::const_iterator it = ils.find(*cit);
+		if (it == ils.end())
+			continue;
+		tcpreamble << it->second.htmlpreamble();
+	}
+
+	return tcpreamble.str();
+}
+
+
+docstring const LaTeXFeatures::getTClassHTMLStyles() const {
+	DocumentClass const & tclass = params_.documentClass();
+	odocstringstream tcpreamble;
+
+	list<docstring>::const_iterator cit = usedLayouts_.begin();
+	list<docstring>::const_iterator end = usedLayouts_.end();
+	for (; cit != end; ++cit)
+		tcpreamble << tclass[*cit].htmlstyle();
+
+	cit = usedInsetLayouts_.begin();
+	end = usedInsetLayouts_.end();
+	TextClass::InsetLayouts const & ils = tclass.insetLayouts();
+	for (; cit != end; ++cit) {
+		TextClass::InsetLayouts::const_iterator it = ils.find(*cit);
+		if (it == ils.end())
+			continue;
+		tcpreamble << it->second.htmlstyle();
+	}
+
+	return tcpreamble.str();
+}
+
+
+namespace {
+docstring const getFloatI18nPreamble(docstring const & type, docstring const & name, docstring const & lang)
+{
+	odocstringstream os;
+	os << "\\addto\\captions" << lang
+	   << "{\\renewcommand{\\" << type << "name}{" << name << "}}\n";
+	return os.str();
+}
+}
+
+
+docstring const LaTeXFeatures::getTClassI18nPreamble(bool use_babel, bool use_polyglossia) const
+{
+	DocumentClass const & tclass = params_.documentClass();
+	// collect preamble snippets in a set to prevent multiple identical
+	// commands (would happen if e.g. both theorem and theorem* are used)
+	set<docstring> snippets;
+	typedef LanguageList::const_iterator lang_it;
+	lang_it const lbeg = UsedLanguages_.begin();
+	lang_it const lend =  UsedLanguages_.end();
+	list<docstring>::const_iterator cit = usedLayouts_.begin();
+	list<docstring>::const_iterator end = usedLayouts_.end();
+	for (; cit != end; ++cit) {
+		// language dependent commands (once per document)
+		snippets.insert(tclass[*cit].langpreamble(buffer().language(),
+							  use_polyglossia));
+		// commands for language changing (for multilanguage documents)
+		if ((use_babel || use_polyglossia) && !UsedLanguages_.empty()) {
+			snippets.insert(tclass[*cit].babelpreamble(buffer().language(),
+								   use_polyglossia));
+			for (lang_it lit = lbeg; lit != lend; ++lit)
+				snippets.insert(tclass[*cit].babelpreamble(*lit, use_polyglossia));
+		}
+	}
+	if ((use_babel || use_polyglossia) && !UsedLanguages_.empty()) {
+		FloatList const & floats = params_.documentClass().floats();
+		UsedFloats::const_iterator fit = usedFloats_.begin();
+		UsedFloats::const_iterator fend = usedFloats_.end();
+		for (; fit != fend; ++fit) {
+			Floating const & fl = floats.getType(fit->first);
+			docstring const type = from_ascii(fl.floattype());
+			docstring const flname = from_utf8(fl.name());
+			docstring name = translateIfPossible(flname,
+				buffer().language()->code());
+			if (use_polyglossia)
+				snippets.insert(getFloatI18nPreamble(
+					type, name,
+					from_ascii(buffer().language()->polyglossia())));
+			else
+				snippets.insert(getFloatI18nPreamble(
+					type, name,
+					from_ascii(buffer().language()->babel())));
+			for (lang_it lit = lbeg; lit != lend; ++lit) {
+				name = translateIfPossible(flname,
+					(*lit)->code());
+				if (use_polyglossia)
+					snippets.insert(getFloatI18nPreamble(
+						type, name,
+						from_ascii((*lit)->polyglossia())));
+				else
+					snippets.insert(getFloatI18nPreamble(
+						type, name,
+						from_ascii((*lit)->babel())));
+			}
+		}
+	}
+
+	odocstringstream tcpreamble;
+	set<docstring>::const_iterator const send = snippets.end();
+	set<docstring>::const_iterator it = snippets.begin();
+	for (; it != send; ++it)
+		tcpreamble << *it;
 	return tcpreamble.str();
 }
 
@@ -916,7 +1230,7 @@ docstring const LaTeXFeatures::getIncludedFiles(string const & fname) const
 	     fi != end; ++fi)
 		// FIXME UNICODE
 		sgmlpreamble << "\n<!ENTITY " << fi->first
-			     << (isSGMLFilename(fi->second) ? " SYSTEM \"" : " \"")
+			     << (isSGMLFileName(fi->second) ? " SYSTEM \"" : " \"")
 			     << makeRelPath(from_utf8(fi->second), basename) << "\">";
 
 	return sgmlpreamble.str();
@@ -927,7 +1241,7 @@ void LaTeXFeatures::showStruct() const
 {
 	lyxerr << "LyX needs the following commands when LaTeXing:"
 	       << "\n***** Packages:" << getPackages()
-	       << "\n***** Macros:" << getMacros()
+	       << "\n***** Macros:" << to_utf8(getMacros())
 	       << "\n***** Textclass stuff:" << to_utf8(getTClassPreamble())
 	       << "\n***** done." << endl;
 }
@@ -951,7 +1265,7 @@ BufferParams const & LaTeXFeatures::bufferParams() const
 }
 
 
-void LaTeXFeatures::getFloatDefinitions(ostream & os) const
+void LaTeXFeatures::getFloatDefinitions(odocstream & os) const
 {
 	FloatList const & floats = params_.documentClass().floats();
 
@@ -959,25 +1273,26 @@ void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 	// We will try to do this as minimal as possible.
 	// \floatstyle{ruled}
 	// \newfloat{algorithm}{htbp}{loa}
-	// \floatname{algorithm}{Algorithm}
+	// \providecommand{\algorithmname}{Algorithm}
+	// \floatname{algorithm}{\protect\algorithmname}
 	UsedFloats::const_iterator cit = usedFloats_.begin();
 	UsedFloats::const_iterator end = usedFloats_.end();
-	// ostringstream floats;
 	for (; cit != end; ++cit) {
-		Floating const & fl = floats.getType((cit->first));
+		Floating const & fl = floats.getType(cit->first);
 
 		// For builtin floats we do nothing.
-		if (fl.builtin()) continue;
+		if (!fl.needsFloatPkg()) 
+			continue;
 
 		// We have to special case "table" and "figure"
-		if (fl.type() == "tabular" || fl.type() == "figure") {
+		if (fl.floattype() == "tabular" || fl.floattype() == "figure") {
 			// Output code to modify "table" or "figure"
 			// but only if builtin == false
 			// and that have to be true at this point in the
 			// function.
-			string const type = fl.type();
-			string const placement = fl.placement();
-			string const style = fl.style();
+			docstring const type = from_ascii(fl.floattype());
+			docstring const placement = from_ascii(fl.placement());
+			docstring const style = from_ascii(fl.style());
 			if (!style.empty()) {
 				os << "\\floatstyle{" << style << "}\n"
 				   << "\\restylefloat{" << type << "}\n";
@@ -989,20 +1304,24 @@ void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 		} else {
 			// The other non builtin floats.
 
-			string const type = fl.type();
-			string const placement = fl.placement();
-			string const ext = fl.ext();
-			string const within = fl.within();
-			string const style = fl.style();
-			string const name = fl.name();
+			docstring const type = from_ascii(fl.floattype());
+			docstring const placement = from_ascii(fl.placement());
+			docstring const ext = from_ascii(fl.ext());
+			docstring const within = from_ascii(fl.within());
+			docstring const style = from_ascii(fl.style());
+			docstring const name = translateIfPossible(
+					from_utf8(fl.name()),
+					buffer().language()->code());
 			os << "\\floatstyle{" << style << "}\n"
 			   << "\\newfloat{" << type << "}{" << placement
 			   << "}{" << ext << '}';
 			if (!within.empty())
 				os << '[' << within << ']';
 			os << '\n'
-			   << "\\floatname{" << type << "}{"
-			   << name << "}\n";
+			   << "\\providecommand{\\" << type << "name}{"
+			   << name << "}\n"
+			   << "\\floatname{" << type << "}{\\protect\\"
+			   << type << "name}\n";
 
 			// What missing here is to code to minimalize the code
 			// output so that the same floatstyle will not be
@@ -1010,7 +1329,7 @@ void LaTeXFeatures::getFloatDefinitions(ostream & os) const
 			// effect. (Lgb)
 		}
 		if (cit->second)
-			os << "\n\\newsubfloat{" << fl.type() << "}\n";
+			os << "\n\\newsubfloat{" << from_ascii(fl.floattype()) << "}\n";
 	}
 }
 

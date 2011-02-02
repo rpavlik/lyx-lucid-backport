@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Baruch Even
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -141,7 +141,7 @@ void InsetGraphicsParams::Write(ostream & os, Buffer const & buffer) const
 {
 	// Do not write the default values
 	if (!filename.empty())
-		os << "\tfilename " << filename.outputFilename(buffer.filePath()) << '\n';
+		os << "\tfilename " << filename.outputFileName(buffer.filePath()) << '\n';
 	if (lyxscale != 100)
 		os << "\tlyxscale " << lyxscale << '\n';
 	if (!display)

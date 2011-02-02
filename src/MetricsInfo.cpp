@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -65,7 +65,7 @@ MetricsInfo::MetricsInfo(BufferView * bv, FontInfo const & font, int textwidth,
 /////////////////////////////////////////////////////////////////////////
 
 PainterInfo::PainterInfo(BufferView * bv, lyx::frontend::Painter & painter)
-	: pain(painter), ltr_pos(false), erased_(false), selected(false),
+	: pain(painter), ltr_pos(false), change_(), selected(false),
 	full_repaint(true), background_color(Color_background)
 {
 	base.bv = bv;
@@ -104,6 +104,16 @@ ColorCode PainterInfo::backgroundColor(Inset const * inset, bool sel) const
 				return background_color;
 		}
 	}
+}
+
+
+Color PainterInfo::textColor(Color const & color) const
+{
+	if (change_.changed()) 
+		return change_.color();
+	if (selected)
+		return Color_selectiontext;
+	return color;
 }
 
 
@@ -302,13 +312,13 @@ WidthChanger::~WidthChanger()
 //
 /////////////////////////////////////////////////////////////////////////
 
-ColorChanger::ColorChanger(FontInfo & font, docstring const & color,
+ColorChanger::ColorChanger(FontInfo & font, ColorCode color,
 			   bool really_change_color)
 	: Changer<FontInfo, ColorCode>(font), change_(really_change_color)
 {
 	if (change_) {
 		save_ = font.color();
-		font.setColor(lcolor.getFromLyXName(to_utf8(color)));
+		font.setColor(color);
 	}
 }
 

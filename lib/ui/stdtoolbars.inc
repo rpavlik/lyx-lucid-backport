@@ -12,7 +12,7 @@
 # The interface is designed (partially) following the KDE Human Interface
 # Guidelines (http://usability.kde.org/hig/)
 
-# Casing rules for "The tooltip":
+# Casing rules "The tooltip":
 # Capitalize the first letter of the first word, and any other words normally
 # capitalized in sentences, such as application names.
 #
@@ -79,19 +79,31 @@ ToolbarSet
 		Item "Copy" "copy"
 		Item "Paste" "paste"
 		Item "Find and replace" "dialog-show findreplace"
+		Item "Find and replace (advanced)" "dialog-toggle findreplaceadv"
 		Item "Navigate back" "bookmark-goto 0"
 		Separator
 		Item "Toggle emphasis" "font-emph"
 		Item "Toggle noun" "font-noun"
 		Item "Apply last" "textstyle-apply"
 		Separator
-		Item "Insert math" "math-mode"
+		Item "Insert math" "math-mode on"
 		Item "Insert graphics" "dialog-show-new-inset graphics"
 		TableInsert "Insert table"
 		Separator
 		Item "Toggle outline" "dialog-toggle toc"
 		Item "Toggle math toolbar" "toolbar-toggle math"
 		Item "Toggle table toolbar" "toolbar-toggle table"
+	End
+
+	Toolbar "view/update" "View/Update"
+		Item "View" "buffer-view"
+		Item "Update" "buffer-update"
+		Item "View master document" "master-buffer-view"
+		Item "Update master document" "master-buffer-update"
+		Item "Enable Forward/Reverse Search" "buffer-toggle-output-sync"
+		Separator
+		StickyPopupMenu "view-others" "View other formats"
+		StickyPopupMenu "update-others" "Update other formats"
 	End
 
 	Toolbar "extra" "Extra"
@@ -126,30 +138,32 @@ ToolbarSet
 	End
 	
 	Toolbar "table" "Table"
-		Item "Add row" "tabular-feature append-row"
-		Item "Add column" "tabular-feature append-column"
-		Item "Delete row" "tabular-feature delete-row"
-		Item "Delete column" "tabular-feature delete-column"
+		Item "Add row" "inset-modify tabular append-row"
+		Item "Add column" "inset-modify tabular append-column"
+		Item "Delete row" "inset-modify tabular delete-row"
+		Item "Delete column" "inset-modify tabular delete-column"
 		Separator
-		Item "Set top line" "tabular-feature toggle-line-top"
-		Item "Set bottom line" "tabular-feature toggle-line-bottom"
-		Item "Set left line" "tabular-feature toggle-line-left"
-		Item "Set right line" "tabular-feature toggle-line-right"
-		Item "Set border lines" "tabular-feature set-border-lines"
-		Item "Set all lines" "tabular-feature set-all-lines"
-		Item "Unset all lines" "tabular-feature unset-all-lines"
+		Item "Set top line" "inset-modify tabular toggle-line-top"
+		Item "Set bottom line" "inset-modify tabular toggle-line-bottom"
+		Item "Set left line" "inset-modify tabular toggle-line-left"
+		Item "Set right line" "inset-modify tabular toggle-line-right"
+		Item "Set border lines" "inset-modify tabular set-border-lines"
+		Item "Set all lines" "inset-modify tabular set-all-lines"
+		Item "Unset all lines" "inset-modify tabular unset-all-lines"
 		Separator
-		Item "Align left" "command-alternatives tabular-feature m-align-left;tabular-feature align-left"
-		Item "Align center" "command-alternatives tabular-feature m-align-center;tabular-feature align-center"
-		Item "Align right" "command-alternatives tabular-feature m-align-right;tabular-feature align-right"
+		Item "Align left" "command-alternatives inset-modify tabular m-align-left;inset-modify tabular align-left"
+		Item "Align center" "command-alternatives inset-modify tabular m-align-center;inset-modify tabular align-center"
+		Item "Align right" "command-alternatives inset-modify tabular m-align-right;inset-modify tabular align-right"
+		Item "Align on decimal" "inset-modify tabular align-decimal"
 		Separator
-		Item "Align top" "command-alternatives tabular-feature m-valign-top;tabular-feature valign-top"
-		Item "Align middle" "command-alternatives tabular-feature m-valign-middle;tabular-feature valign-middle"
-		Item "Align bottom" "command-alternatives tabular-feature m-valign-bottom;tabular-feature valign-bottom"
+		Item "Align top" "command-alternatives inset-modify tabular m-valign-top;inset-modify tabular valign-top"
+		Item "Align middle" "command-alternatives inset-modify tabular m-valign-middle;inset-modify tabular valign-middle"
+		Item "Align bottom" "command-alternatives inset-modify tabular m-valign-bottom;inset-modify tabular valign-bottom"
 		Separator
-		Item "Rotate cell" "tabular-feature toggle-rotate-cell"
-		Item "Rotate table" "tabular-feature toggle-rotate-tabular"
-		Item "Set multi-column" "tabular-feature multicolumn"
+		Item "Rotate cell" "inset-modify tabular toggle-rotate-cell"
+		Item "Rotate table" "inset-modify tabular toggle-rotate-tabular"
+		Item "Set multi-column" "inset-modify tabular multicolumn"
+		Item "Set multi-row" "inset-modify tabular multirow"
 	End
 	
 	Toolbar "math" "Math"
@@ -171,10 +185,10 @@ ToolbarSet
 		Separator
 		Item "Insert matrix" "dialog-show mathmatrix"
 		Item "Insert cases environment" "math-insert \cases"
-		Item "Add row" "tabular-feature append-row"
-		Item "Add column" "tabular-feature append-column"
-		Item "Delete row" "tabular-feature delete-row"
-		Item "Delete column" "tabular-feature delete-column"
+		Item "Add row" "inset-modify tabular append-row"
+		Item "Add column" "inset-modify tabular append-column"
+		Item "Delete row" "inset-modify tabular delete-row"
+		Item "Delete column" "inset-modify tabular delete-column"
 		Separator
 		Item "Toggle math panels" "toolbar-toggle math_panels"
 	End
@@ -214,14 +228,29 @@ ToolbarSet
 		Item "Next note" "note-next"
 	End
 	
-	Toolbar "view/update" "View/Update"
-		Item "View DVI" "buffer-view dvi"
-		Item "Update DVI" "buffer-update dvi"
-		Item "View PDF (pdflatex)" "buffer-view pdf2"
-		Item "Update PDF (pdflatex)" "buffer-update pdf2"
-		Item "View PostScript" "buffer-view ps"
-		Item "Update PostScript" "buffer-update ps"
+	Toolbar "view-others" "View Other Formats"
+		ViewFormats
 	End
+	
+	Toolbar "update-others" "Update Other Formats"
+		UpdateFormats
+	End
+
+# The following three toolbars are disabled because of missing icons.
+#	Toolbar "import/export" "Import/Export"
+#		Item "Import" "buffer-import"
+#		Item "Export" "buffer-export"
+#		StickyPopupMenu "import-others" "Import other formats"
+#		StickyPopupMenu "export-others" "Export other formats"
+#	End
+
+#	Toolbar "import-others" "Import Other Formats"
+#		ImportFormats
+#	End
+
+#	Toolbar "export-others" "Export Other Formats"
+#		ExportFormats
+#	End
 
 	Toolbar "vcs" "Version Control"
 		Item "Register" "vc-register"
@@ -229,6 +258,9 @@ ToolbarSet
 		Item "Check-in changes" "vc-check-in"
 		Item "View revision log" "dialog-show vclog"
 		Item "Revert changes" "vc-revert"
+		Item "Compare with older revision" "vc-compare"
+		Item "Compare with last revision" "vc-compare 0"
+		Item "Insert Version Info" "info-insert buffer vcs-revision"
 		Separator
 		Item "Use SVN file locking property" "vc-locking-toggle"
 		Separator
@@ -299,9 +331,9 @@ ToolbarSet
 		Item "Quadratin space	\\quad" "math-insert \quad"
 		Item "Double quadratin space	\\qquad" "math-insert \qquad"
 		Item "Negative space	\\!" "math-insert \!"
-		Item "Placeholder	\\phantom" "math-insert \phantom"
-		Item "Horizontal placeholder	\\hphantom" "math-insert \hphantom"
-		Item "Vertical placeholder	\\vphantom" "math-insert \vphantom"
+		Item "Phantom	\\phantom" "math-insert \phantom"
+		Item "Horizontal phantom	\\hphantom" "math-insert \hphantom"
+		Item "Vertical phantom	\\vphantom" "math-insert \vphantom"
 	End
 
 	Toolbar "sqrt-square" "Roots"
@@ -318,7 +350,6 @@ ToolbarSet
 
 	Toolbar "frac-square" "Fractions"
 		Item "Standard	\\frac" "math-insert \frac"
-		Item "No horizontal line	\\atop" "math-insert \atop"
 		Item "Nice fraction (3/4)	\\nicefrac" "math-insert \nicefrac"
 		Item "Unit (km)	\\unit" "math-insert \unitone"
 		Item "Unit (864 m)	\\unit" "math-insert \unittwo"
@@ -344,6 +375,7 @@ ToolbarSet
 		Item "Blackboard	\\mathbb" "math-insert \mathbb"
 		Item "Fraktur	\\mathfrak" "math-insert \mathfrak"
 		Item "Calligraphic	\\mathcal" "math-insert \mathcal"
+		Item "Formal Script	\\mathscr" "math-insert \mathscr"
 		Item "Normal text mode	\\textrm" "math-insert \textrm"
 	End
 
@@ -352,6 +384,7 @@ ToolbarSet
 		Item "cdots" "math-insert \cdots"
 		Item "vdots" "math-insert \vdots"
 		Item "ddots" "math-insert \ddots"
+		Item "iddots" "math-insert \iddots"
 	End
 
 	Toolbar "latex_deco" "Frame Decorations"
@@ -366,6 +399,8 @@ ToolbarSet
 		Item "vec" "math-insert \vec"
 		Item "acute" "math-insert \acute"
 		Item "ddot" "math-insert \ddot"
+		Item "dddot" "math-insert \dddot"
+		Item "ddddot" "math-insert \ddddot"
 		Item "breve" "math-insert \breve"
 		Item "overline" "math-insert \overline"
 		Item "overbrace" "math-insert \overbrace"
@@ -478,7 +513,7 @@ ToolbarSet
 		Item "sqsupseteq" "math-insert \sqsupseteq"
 		Item "doteq" "math-insert \doteq"
 		Item "neq" "math-insert \neq"
-		Item "in" "math-insert \in"
+		Item "in[[math relation]]" "math-insert \in"
 		Item "ni" "math-insert \ni"
 		Item "propto" "math-insert \propto"
 		Item "notin" "math-insert \notin"

@@ -5,7 +5,7 @@
  *
  * \author Bo Peng
  * \author Edwin Leuven
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -158,4 +158,4 @@ void ShortcutWidget::removeFromSequence()
 } // namespace frontend
 } // namespace lyx
 
-#include "CustomizedWidgets_moc.cpp"
+#include "moc_CustomizedWidgets.cpp"

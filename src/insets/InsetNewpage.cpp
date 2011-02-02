@@ -3,8 +3,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
- * \author Jürgen Spitzmüller
+ * \author AndrÃ© PÃ¶nitz
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,11 +13,13 @@
 
 #include "InsetNewpage.h"
 
+#include "Cursor.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
 #include "OutputParams.h"
+#include "output_xhtml.h"
 #include "Text.h"
 #include "TextMetrics.h"
 
@@ -34,12 +36,12 @@ using namespace std;
 
 namespace lyx {
 
-InsetNewpage::InsetNewpage()
+	InsetNewpage::InsetNewpage() : Inset(0)
 {}
 
 
 InsetNewpage::InsetNewpage(InsetNewpageParams const & params)
-	: params_(params)
+	: Inset(0), params_(params)
 {}
 
 
@@ -136,10 +138,11 @@ void InsetNewpage::draw(PainterInfo & pi, int x, int y) const
 
 void InsetNewpage::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 
 	case LFUN_INSET_MODIFY: {
 		InsetNewpageParams params;
+		cur.recordUndo();
 		string2params(to_utf8(cmd.argument()), params);
 		params_.kind = params.kind;
 		break;
@@ -155,7 +158,7 @@ void InsetNewpage::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetNewpage::getStatus(Cursor & cur, FuncRequest const & cmd,
 	FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "newpage") {
@@ -247,7 +250,14 @@ int InsetNewpage::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-docstring InsetNewpage::contextMenu(BufferView const &, int, int) const
+docstring InsetNewpage::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	xs << html::CompTag("br");
+	return docstring();
+}
+
+
+docstring InsetNewpage::contextMenuName() const
 {
 	return from_ascii("context-newpage");
 }

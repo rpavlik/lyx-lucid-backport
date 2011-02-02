@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author O. U. Baran
  *
  * Full author contact details are available in file CREDITS.
@@ -26,21 +26,29 @@ class LaTeXFeatures;
 class InsetNomencl : public InsetCommand {
 public:
 	///
-	InsetNomencl(InsetCommandParams const &);
+	InsetNomencl(Buffer * buf, InsetCommandParams const &);
+
 	///
-	docstring screenLabel() const;
+	int docbookGlossary(odocstream &) const;
+
+	/// \name Public functions inherited from Inset class
+	//@{
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
-	EDITABLE editable() const { return IS_EDITABLE; }
+	bool hasSettings() const { return true; }
 	/// Updates needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
 	///
 	InsetCode lyxCode() const { return NOMENCL_CODE; }
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	///
-	int docbookGlossary(odocstream &) const;
+	/// Does nothing at the moment.
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	//@}
+
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	///
 	static ParamInfo const & findInfo(std::string const &);
 	///
@@ -48,8 +56,21 @@ public:
 	///
 	static bool isCompatibleCommand(std::string const & s) 
 		{ return s == "nomenclature"; }
+	//@}
+
 private:
+	/// \name Private functions inherited from Inset class
+	//@{
+	///
 	Inset * clone() const { return new InsetNomencl(*this); }
+	//@}
+
+	/// \name Private functions inherited from InsetCommand class
+	//@{
+	///
+	docstring screenLabel() const;
+	//@}
+
 	/// unique id for this nomenclature entry for docbook export
 	docstring nomenclature_entry_id;
 };
@@ -58,23 +79,30 @@ private:
 class InsetPrintNomencl : public InsetCommand {
 public:
 	///
-	InsetPrintNomencl(InsetCommandParams const &);
+	InsetPrintNomencl(Buffer * buf, InsetCommandParams const &);
+
+	/// \name Public functions inherited from Inset class
+	//@{
 	/// Updates needed features for this inset.
 	void validate(LaTeXFeatures & features) const;
-	// FIXME: This should be editable to set the label width (stored
-	// in params_["labelwidth"]).
-	// Currently the width can be read from file and written, but not
-	// changed.
-	///
-	EDITABLE editable() const { return NOT_EDITABLE; }
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	/// Does nothing at the moment.
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	InsetCode lyxCode() const;
 	///
+	bool hasSettings() const { return true; }
+	///
 	DisplayType display() const { return AlignCenter; }
 	///
-	docstring screenLabel() const;
+	int latex(odocstream &, OutputParams const &) const;
+	///
+	docstring contextMenuName() const;
+	//@}
+
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	///
 	static ParamInfo const & findInfo(std::string const &);
 	///
@@ -82,10 +110,25 @@ public:
 	///
 	static bool isCompatibleCommand(std::string const & s) 
 		{ return s == "printnomenclature"; }
-private:
-	Inset * clone() const { return new InsetPrintNomencl(*this); }
-};
+	//@}
 
+private:
+	/// \name Private functions inherited from Inset class
+	//@{
+	///
+	Inset * clone() const { return new InsetPrintNomencl(*this); }
+	///
+	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus & status) const;
+	///
+	void doDispatch(Cursor & cur, FuncRequest & cmd);
+	//@}
+
+	/// \name Private functions inherited from InsetCommand class
+	//@{
+	///
+	docstring screenLabel() const;
+	//@}
+};
 
 } // namespace lyx
 

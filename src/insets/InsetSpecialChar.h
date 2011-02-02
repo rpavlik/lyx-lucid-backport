@@ -6,7 +6,7 @@
  *
  * \author Asger Alstrup Nielsen
  * \author Jean-Marc Lasgouttes
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -41,11 +41,11 @@ public:
 		/// breakable slash
 		SLASH,
 		/// protected dash
-		NOBREAKDASH,
+		NOBREAKDASH
 	};
 
 	///
-	InsetSpecialChar() {}
+	InsetSpecialChar() : Inset(0) {}
 	///
 	explicit InsetSpecialChar(Kind k);
 	///
@@ -64,8 +64,12 @@ public:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	/// the string that is passed to the TOC
-	void tocString(odocstream &) const;
+	///
+	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
+	void toString(odocstream &) const;
+	///
+	void forToc(docstring &, size_t) const;
 	///
 	InsetCode lyxCode() const { return SPECIALCHAR_CODE; }
 	/// We don't need \begin_inset and \end_inset
@@ -74,7 +78,7 @@ public:
 	void validate(LaTeXFeatures &) const;
 
 	// should this inset be handled like a normal charater
-	bool isChar() const;
+	bool isChar() const { return true; }
 	/// is this equivalent to a letter?
 	bool isLetter() const;
 	// should we break lines after this inset?

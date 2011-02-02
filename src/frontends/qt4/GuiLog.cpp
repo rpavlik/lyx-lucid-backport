@@ -5,7 +5,7 @@
  *
  * \author John Levon
  * \author Angus Leeming
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,6 +19,7 @@
 #include "Lexer.h"
 
 #include "support/docstring.h"
+#include "support/FileName.h"
 #include "support/gettext.h"
 
 #include <QTextBrowser>
@@ -39,7 +40,7 @@ namespace frontend {
 // Information
 QRegExp exprInfo("^(Document Class:|LaTeX Font Info:|File:|Package:|Language:|Underfull|Overfull|\\(|\\\\).*$");
 // Warnings
-QRegExp exprWarning("^(LaTeX Warning|Package \\w+ Warning).*$");
+QRegExp exprWarning("^(LaTeX Warning|LaTeX Font Warning|Package [\\w\\.]+ Warning|Class \\w+ Warning).*$");
 // Errors
 QRegExp exprError("^!.*$");
 
@@ -117,6 +118,8 @@ GuiLog::GuiLog(GuiView & lv)
 	connect(findPB, SIGNAL(clicked()), this, SLOT(find()));
 	// FIXME: find via returnPressed() does not work!
 	connect(findLE, SIGNAL(returnPressed()), this, SLOT(find()));
+	connect(logTypeCO, SIGNAL(activated(int)),
+		this, SLOT(typeChanged(int)));
 
 	bc().setPolicy(ButtonPolicy::OkCancelPolicy);
 
@@ -143,6 +146,25 @@ void GuiLog::updateContents()
 
 	nextErrorPB->setEnabled(contains(exprError));
 	nextWarningPB->setEnabled(contains(exprWarning));
+}
+
+
+void GuiLog::typeChanged(int i)
+{
+	string const type =
+		fromqstr(logTypeCO->itemData(i).toString());
+	string ext;
+	if (type == "latex")
+		ext = "log";
+	else if (type == "bibtex")
+		ext = "blg";
+	else if (type == "index")
+		ext = "ilg";
+
+	if (!ext.empty())
+		logfile_.changeExtension(ext);
+
+	updateContents();
 }
 
 
@@ -194,18 +216,35 @@ bool GuiLog::initialiseParams(string const & data)
 		// Parsing of the data failed.
 		return false;
 
-	if (logtype == "latex")
+	logTypeCO->setEnabled(logtype == "latex");
+	logTypeCO->clear();
+	
+	FileName log(logfile);
+	
+	if (logtype == "latex") {
 		type_ = LatexLog;
-	else if (logtype == "literate")
+		logTypeCO->addItem(qt_("LaTeX"), toqstr(logtype));
+		FileName tmp = log;
+		tmp.changeExtension("blg");
+		if (tmp.exists())
+			logTypeCO->addItem(qt_("BibTeX"), QString("bibtex"));
+		tmp.changeExtension("ilg");
+		if (tmp.exists())
+			logTypeCO->addItem(qt_("Index"), QString("index"));
+	// FIXME: not sure "literate" still works.
+	} else if (logtype == "literate") {
 		type_ = LiterateLog;
-	else if (logtype == "lyx2lyx")
+		logTypeCO->addItem(qt_("Literate"), toqstr(logtype));
+	} else if (logtype == "lyx2lyx") {
 		type_ = Lyx2lyxLog;
-	else if (logtype == "vc")
+		logTypeCO->addItem(qt_("LyX2LyX"), toqstr(logtype));
+	} else if (logtype == "vc") {
 		type_ = VCLog;
-	else
+		logTypeCO->addItem(qt_("Version Control"), toqstr(logtype));
+	} else
 		return false;
 
-	logfile_ = FileName(logfile);
+	logfile_ = log;
 
 	updateContents();
 
@@ -255,7 +294,7 @@ void GuiLog::getContents(ostream & ss) const
 
 	switch (type_) {
 	case LatexLog:
-		ss << to_utf8(_("No LaTeX log file found."));
+		ss << to_utf8(_("Log file not found."));
 		break;
 	case LiterateLog:
 		ss << to_utf8(_("No literate programming build log file found."));
@@ -282,4 +321,4 @@ Dialog * createGuiLog(GuiView & lv) { return new GuiLog(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiLog_moc.cpp"
+#include "moc_GuiLog.cpp"

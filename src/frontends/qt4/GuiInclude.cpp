@@ -64,9 +64,9 @@ GuiInclude::GuiInclude(GuiView & lv)
 	connect(captionLE, SIGNAL(textChanged(const QString&)), this, SLOT(change_adaptor()));
 	connect(labelLE, SIGNAL(textChanged(const QString&)), this, SLOT(change_adaptor()));
 	connect(listingsED, SIGNAL(textChanged()), this, SLOT(change_adaptor()));
-	connect(listingsED, SIGNAL(textChanged()), this, SLOT(set_listings_msg()));
+	connect(listingsED, SIGNAL(textChanged()), this, SLOT(setListingsMsg()));
 	connect(bypassCB, SIGNAL(clicked()), this, SLOT(change_adaptor()));
-	connect(bypassCB, SIGNAL(clicked()), this, SLOT(set_listings_msg()));
+	connect(bypassCB, SIGNAL(clicked()), this, SLOT(setListingsMsg()));
 
 	setFocusProxy(filenameED);
 
@@ -108,7 +108,7 @@ docstring GuiInclude::validate_listings_params()
 }
 
 
-void GuiInclude::set_listings_msg()
+void GuiInclude::setListingsMsg()
 {
 	static bool isOK = true;
 	docstring msg = validate_listings_params();
@@ -335,7 +335,7 @@ QString GuiInclude::browse(QString const & in_name, Type in_type) const
 
 bool GuiInclude::initialiseParams(std::string const & data)
 {
-	InsetCommand::string2params("include", data, params_);
+	InsetCommand::string2params(data, params_);
 	paramsToDialog(params_);
 	return true;
 }
@@ -343,7 +343,7 @@ bool GuiInclude::initialiseParams(std::string const & data)
 
 void GuiInclude::dispatchParams()
 {
-	std::string const lfun = InsetCommand::params2string("include", params_);
+	std::string const lfun = InsetCommand::params2string(params_);
 	dispatch(FuncRequest(getLfun(), lfun));
 }
 
@@ -354,4 +354,4 @@ Dialog * createGuiInclude(GuiView & lv) { return new GuiInclude(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiInclude_moc.cpp"
+#include "moc_GuiInclude.cpp"

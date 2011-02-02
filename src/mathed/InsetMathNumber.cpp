@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -69,7 +69,16 @@ void InsetMathNumber::octave(OctaveStream & os) const
 
 void InsetMathNumber::mathmlize(MathStream & os) const
 {
-	os << "<mi> " << str_ << " </mi>";
+	if (os.inText())
+		os << str_;
+	else
+		os << "<mn>" << str_ << "</mn>";
+}
+
+
+void InsetMathNumber::htmlize(HtmlStream & os) const
+{
+	os << str_;
 }
 
 

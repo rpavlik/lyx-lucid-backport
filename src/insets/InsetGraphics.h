@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Baruch Even
- * \author Herbert Voﬂ
+ * \author Herbert Vo√ü
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,9 +13,10 @@
 #ifndef INSET_GRAPHICS_H
 #define INSET_GRAPHICS_H
 
-#include <set>
 #include "Inset.h"
 #include "InsetGraphicsParams.h"
+
+#include <set>
 
 namespace lyx {
 
@@ -33,7 +34,7 @@ class InsetGraphics : public Inset
 {
 public:
 	///
-	InsetGraphics(Buffer & buf);
+	InsetGraphics(Buffer * buf);
 	///
 	~InsetGraphics();
 
@@ -51,6 +52,8 @@ public:
 	bool setParams(InsetGraphicsParams const & params);
 
 	InsetGraphicsParams getParams() const { return params_;}
+	///
+	bool clickable(int, int) const { return true; }
 
 private:
 	///
@@ -60,7 +63,7 @@ private:
 	bool isLabeled() const { return true; }
 	void metrics(MetricsInfo &, Dimension &) const;
 	///
-	EDITABLE editable() const;
+	bool hasSettings() const { return true; }
 	///
 	void write(std::ostream &) const;
 	///
@@ -74,6 +77,8 @@ private:
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream &, OutputParams const &) const;
+	///
+	docstring xhtml(XHTMLStream & os, OutputParams const &) const;
 	/** Tell LyX what the latex features you need i.e. what latex packages
 	    you need to be included.
 	 */
@@ -85,16 +90,16 @@ private:
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
-	void edit(Cursor & cur, bool front, EntryDirection entry_from);
+	bool showInsetDialog(BufferView * bv) const;
 	///
-	void editGraphics(InsetGraphicsParams const &, Buffer const &) const;
+	void editGraphics(InsetGraphicsParams const &) const;
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	///
 	void addToToc(DocIterator const &);
 	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
-	/// Force inset into LTR environment if surroundings are RTL?
+	docstring contextMenuName() const;
+	/// Force inset into LTR environment if surroundings are RTL
 	bool forceLTR() const { return true; }
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
@@ -109,7 +114,13 @@ private:
 	/// Create the atributes for docbook export.
 	docstring createDocBookAttributes() const;
 	/// Convert the file if needed, and return the location of the file.
+	/// This version is for use with LaTeX-style output.
 	std::string prepareFile(OutputParams const &) const;
+	/// Convert the file if needed, and return the location of the file.
+	/// This version is for use with HTML-style output.
+	/// \return the new filename, relative to the location of the HTML file,
+	/// or an empty string on error.
+	std::string prepareHTMLFile(OutputParams const & runparams) const;
 
 	///
 	InsetGraphicsParams params_;

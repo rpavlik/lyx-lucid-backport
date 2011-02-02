@@ -18,6 +18,7 @@
 
 #include "support/strfwd.h"
 
+#include <QList>
 #include <QString>
 
 class QWidget;
@@ -43,7 +44,6 @@ enum KernelDocType
 	LITERATE,
 	DOCBOOK
 };
-
 
 /** \c Dialog collects the different parts of a Model-Controller-View
  *  split of a generic dialog together.
@@ -203,11 +203,6 @@ public:
 	 */
 	virtual bool disconnectOnApply() const { return false; }
 
-	/** \return true if Dialog::View::show() should not display the dialog
-	 *   after running update. Currently, only ControlSpellchecker
-	 *   makes use of that.
-	*/
-	virtual bool exitEarly() const { return false; }
 	//@}
 
 	/** \c Kernel part: a wrapper making the LyX kernel available to the dialog.
@@ -245,7 +240,7 @@ public:
 	//@{
 	bool isBufferAvailable() const;
 	bool isBufferReadonly() const;
-	QString bufferFilepath() const;
+	QString bufferFilePath() const;
 	//@}
 
 	/// The type of the current buffer.
@@ -269,7 +264,7 @@ protected:
 
 private:
 	/** The Dialog's name is the means by which a dialog identifies
-	 *  itself to the LyXView.
+	 *  itself to the GuiView.
 	 */
 	QString const name_;
 	///
@@ -280,7 +275,6 @@ private:
 	/// intentionally unimplemented, therefore uncopiable
 	Dialog(Dialog const &);
 	void operator=(Dialog const &);
-
 };
 
 

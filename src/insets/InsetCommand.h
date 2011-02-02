@@ -5,7 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Angus Leeming
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -16,11 +16,11 @@
 #include "Inset.h"
 #include "InsetCommandParams.h"
 #include "RenderButton.h"
-#include "Cursor.h"
 
 
 namespace lyx {
 
+class Cursor;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -35,30 +35,34 @@ class InsetCommand : public Inset
 {
 public:
 	///
-	InsetCommand(InsetCommandParams const &, std::string const & mailer_name);
+	InsetCommand(Buffer *, InsetCommandParams const &);
 	///
-	~InsetCommand();
+	InsetCommand(InsetCommand const & rhs);
+	///
+	virtual ~InsetCommand();
+	///
+	InsetCommand * asInsetCommand() { return this; }
+	///
+	InsetCommand const * asInsetCommand() const { return this; }
 
-	/// returns true if params are successfully read
-	static bool string2params(std::string const &, std::string const & name,
+	/// \return true if params are successfully read
+	static bool string2params(std::string const & data,
 				  InsetCommandParams &);
 	///
-	static std::string params2string(std::string const & name,
-					       InsetCommandParams const &);
+	static std::string params2string(InsetCommandParams const &);
 	///
 	InsetCommandParams const & params() const { return p_; }
 	///
 	void setParams(InsetCommandParams const &);
 	///
-	void setParam(std::string const & name, docstring const & value);
-	///
 	docstring const & getParam(std::string const & name) const;
+	///
+	void setParam(std::string const & name, docstring const & value);
 	/// FIXME Remove
 	docstring const getFirstNonOptParam() const { return p_.getFirstNonOptParam(); }
-	/// update label and references.
-	virtual void updateCommand(docstring const &, bool) {}
 
-protected:
+	/// \name Public functions inherited from Inset class
+	//@{
 	///
 	void write(std::ostream & os) const { p_.write(os); }
 	///
@@ -68,17 +72,7 @@ protected:
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
 	///
-	docstring const getCommand() const { return p_.getCommand(); }
-	///
-	std::string const & getCmdName() const { return p_.getCmdName(); }
-	///
-	void setCmdName(std::string const & n) { p_.setCmdName(n); }
-
-private:
-	///
 	void metrics(MetricsInfo &, Dimension &) const;
-	///
-	Dimension const dimension(BufferView const &) const { return button_.dimension(); }
 	///
 	void draw(PainterInfo & pi, int x, int y) const;
 	///
@@ -88,14 +82,48 @@ private:
 	///
 	int docbook(odocstream &, OutputParams const & runparams) const;
 	///
-	InsetCode lyxCode() const { return NO_CODE; }
+	bool setMouseHover(BufferView const * bv, bool mouse_hover) const;
 	///
-	void edit(Cursor & cur, bool front, 
-		EntryDirection entry_from = ENTRY_DIRECTION_IGNORE);
+	bool clickable(int, int) const { return hasSettings(); }
+	//@}
+
+protected:
+	/// \name Methods relaying to the InsetCommandParams p_
+	//@{
+	///
+	docstring contextMenuName() const;
+	///
+	bool showInsetDialog(BufferView * bv) const;
+	///
+	Dimension const dimension(BufferView const &) const 
+		{ return button_.dimension(); }
+	//@}
+
+protected:
+	/// \name Functions relaying to the InsetCommandParams
+	//@{
+	/// Build the complete LaTeX command
+	/// \see InsetCommandParams::getCommand
+	docstring const getCommand(OutputParams const & rp) const 
+		{ return p_.getCommand(rp); }
+	/// Return the command name
+	/// \see InsetCommandParams::getCmdName
+	std::string const & getCmdName() const { return p_.getCmdName(); }
+	/// Set the name to \p n. This must be a known name. All parameters
+	/// are cleared except those that exist also in the new command.
+	/// What matters here is the parameter name, not position.
+	/// \see InsetCommandParams::setCmdName
+	void setCmdName(std::string const & n) { p_.setCmdName(n); }
+	//@}
+
+private:
 	///
 	RenderButton & button() const { return button_; }
-	///
-	bool setMouseHover(bool mouse_hover);
+	/// This should provide the text for the button
+	virtual docstring screenLabel() const = 0;
+
+	/// \name Static public methods obligated for InsetCommand derived classes
+	//@{
 	/// Return parameter information for command cmdName.
 	/// Not implemented here. Must be implemented in derived class.
 	static ParamInfo const & findInfo(std::string const & cmdName);
@@ -105,22 +133,19 @@ private:
 	/// Whether this is a command this inset can represent.
 	/// Not implemented here. Must be implemented in derived class.
 	static bool isCompatibleCommand(std::string const & cmd);
-	///
-	docstring contextMenu(BufferView const & bv, int x, int y) const;
-	/// This should provide the text for the button
-	virtual docstring screenLabel() const = 0;
+	//@}
 
-private:
 	///
 	InsetCommandParams p_;
-	///
-	std::string mailer_name_;
 	/// changes color when mouse enters/leaves this inset
-	bool mouse_hover_;
+	mutable std::map<BufferView const *, bool> mouse_hover_;
 	///
 	mutable RenderButton button_;
 };
 
+/// Decode InsetCommand considering Inset name and data.
+bool decodeInsetParam(std::string const & name, std::string & data,
+	Buffer const & buffer);
 
 } // namespace lyx
 

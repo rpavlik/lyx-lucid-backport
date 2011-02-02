@@ -21,7 +21,7 @@
 #include "support/os.h"
 #include "support/Timeout.h"
 
-#include <boost/bind.hpp>
+#include "support/bind.h"
 
 #include <cerrno>
 #include <queue>
@@ -46,7 +46,7 @@
 
 using namespace std;
 
-using boost::bind;
+
 
 namespace lyx {
 namespace support {
@@ -84,7 +84,7 @@ private:
 	Murder(int secs, pid_t pid)
 		: timeout_(1000*secs, Timeout::ONETIME), pid_(pid)
 	{
-		timeout_.timeout.connect(boost::bind(&Murder::kill, this));
+		timeout_.timeout.connect(lyx::bind(&Murder::kill, this));
 		timeout_.start();
 	}
 
@@ -300,6 +300,9 @@ int ForkedCall::generateChild()
 	if (line.empty())
 		return 1;
 
+#if !defined (_WIN32)
+	// POSIX
+
 	// Split the input command up into an array of words stored
 	// in a contiguous block of memory. The array contains pointers
 	// to each word.
@@ -326,23 +329,11 @@ int ForkedCall::generateChild()
 			if (c == ' ')
 				*it = '\0';
 			else if (c == '\'' || c == '"') {
-#if defined (_WIN32)
-				// How perverse!
-				// spawnvp *requires* the quotes or it will
-				// split the arg at the internal whitespace!
-				// Make shure the quote is a DOS-style one.
-				*it = '"';
-#else
 				*it = '\0';
-#endif
 				inside_quote = c;
 			}
 		} else if (c == inside_quote) {
-#if defined (_WIN32)
-			*it = '"';
-#else
 			*it = '\0';
-#endif
 			inside_quote = 0;
 		}
 	}
@@ -370,9 +361,6 @@ int ForkedCall::generateChild()
 		lyxerr << "</command>" << endl;
 	}
 
-#ifdef _WIN32
-	pid_t const cpid = spawnvp(_P_NOWAIT, argv[0], &*argv.begin());
-#else // POSIX
 	pid_t const cpid = ::fork();
 	if (cpid == 0) {
 		// Child
@@ -382,6 +370,24 @@ int ForkedCall::generateChild()
 		lyxerr << "execvp of \"" << command_ << "\" failed: "
 		       << strerror(errno) << endl;
 		_exit(1);
+	}
+#else
+	// Windows
+
+	pid_t cpid = -1;
+
+	STARTUPINFO startup; 
+	PROCESS_INFORMATION process; 
+
+	memset(&startup, 0, sizeof(STARTUPINFO));
+	memset(&process, 0, sizeof(PROCESS_INFORMATION));
+    
+	startup.cb = sizeof(STARTUPINFO);
+
+	if (CreateProcess(0, (LPSTR)line.c_str(), 0, 0, FALSE,
+		CREATE_NO_WINDOW, 0, 0, &startup, &process)) {
+		CloseHandle(process.hThread);
+		cpid = (pid_t)process.hProcess;
 	}
 #endif
 
@@ -442,10 +448,10 @@ void callNext()
 	Process pro = callQueue_.front();
 	callQueue_.pop();
 	// Bind our chain caller
-	pro.second->connect(boost::bind(&ForkedCallQueue::callback, _1, _2));
+	pro.second->connect(lyx::bind(&ForkedCallQueue::callback, _1, _2));
 	ForkedCall call;
-	// If we fail to fork the process, then emit the signal
-	// to tell the outside world that it failed.
+	//If we fail to fork the process, then emit the signal
+	//to tell the outside world that it failed.
 	if (call.startScript(pro.first, pro.second) > 0)
 		pro.second->operator()(0,1);
 }
@@ -520,7 +526,7 @@ string const getChildErrorMessage()
 
 namespace ForkedCallsController {
 
-typedef boost::shared_ptr<ForkedProcess> ForkedProcessPtr;
+typedef shared_ptr<ForkedProcess> ForkedProcessPtr;
 typedef list<ForkedProcessPtr> ListType;
 typedef ListType::iterator iterator;
 
@@ -531,8 +537,8 @@ static ListType forkedCalls;
 iterator find_pid(pid_t pid)
 {
 	return find_if(forkedCalls.begin(), forkedCalls.end(),
-		       bind(equal_to<pid_t>(),
-			    bind(&ForkedCall::pid, _1),
+			    lyx::bind(equal_to<pid_t>(),
+			    lyx::bind(&ForkedCall::pid, _1),
 			    pid));
 }
 
@@ -571,6 +577,7 @@ void handleCompletedProcesses()
 			} else {
 				actCall->setRetValue(exit_code);
 			}
+			CloseHandle(hProcess);
 			remove_it = true;
 			break;
 		}
@@ -578,6 +585,7 @@ void handleCompletedProcesses()
 			lyxerr << "WaitForSingleObject failed waiting for child\n"
 			       << getChildErrorMessage() << endl;
 			actCall->setRetValue(1);
+			CloseHandle(hProcess);
 			remove_it = true;
 			break;
 		}

@@ -3,8 +3,8 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Jürgen Vigna
- * \author Lars Gullik Bjønnes
+ * \author JÃ¼rgen Vigna
+ * \author Lars Gullik BjÃ¸nnes
  * \author Alfredo Braunstein
  * \author Michael Gerz
  *
@@ -15,6 +15,7 @@
 
 #include "CutAndPaste.h"
 
+#include "BranchList.h"
 #include "Buffer.h"
 #include "buffer_funcs.h"
 #include "BufferList.h"
@@ -28,17 +29,18 @@
 #include "InsetIterator.h"
 #include "InsetList.h"
 #include "Language.h"
-#include "LyXFunc.h"
+#include "LyX.h"
 #include "LyXRC.h"
 #include "Text.h"
 #include "Paragraph.h"
-#include "paragraph_funcs.h"
 #include "ParagraphParameters.h"
 #include "ParIterator.h"
-#include "Undo.h"
+#include "TextClass.h"
 
-#include "insets/InsetFlex.h"
+#include "insets/InsetBibitem.h"
+#include "insets/InsetBranch.h"
 #include "insets/InsetCommand.h"
+#include "insets/InsetFlex.h"
 #include "insets/InsetGraphics.h"
 #include "insets/InsetGraphicsParams.h"
 #include "insets/InsetInclude.h"
@@ -48,6 +50,7 @@
 #include "mathed/MathData.h"
 #include "mathed/InsetMath.h"
 #include "mathed/InsetMathHull.h"
+#include "mathed/InsetMathRef.h"
 #include "mathed/MathSupport.h"
 
 #include "support/debug.h"
@@ -56,6 +59,7 @@
 #include "support/limited_stack.h"
 #include "support/lstrings.h"
 
+#include "frontends/alert.h"
 #include "frontends/Clipboard.h"
 #include "frontends/Selection.h"
 
@@ -96,7 +100,7 @@ pair<PitPosPair, pit_type>
 pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		     DocumentClass const * const oldDocClass, ErrorList & errorlist)
 {
-	Buffer const & buffer = cur.buffer();
+	Buffer const & buffer = *cur.buffer();
 	pit_type pit = cur.pit();
 	pos_type pos = cur.pos();
 	InsetText * target_inset = cur.inset().asInsetText();
@@ -120,10 +124,9 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	// Now remove all out of the pars which is NOT allowed in the
 	// new environment and set also another font if that is required.
 
-	// Convert newline to paragraph break in ERT inset.
-	// This should not be here!
-	InsetCode const code = target_inset->lyxCode();
-	if (code == ERT_CODE || code == LISTINGS_CODE) {
+	// Convert newline to paragraph break in ParbreakIsNewline
+	if (target_inset->getLayout().parbreakIsNewline()
+	    || pars[pit].layout().parbreak_is_newline) {
 		for (size_t i = 0; i != insertion.size(); ++i) {
 			for (pos_type j = 0; j != insertion[i].size(); ++j) {
 				if (insertion[i].isNewline(j)) {
@@ -163,7 +166,7 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		}
 	}
 
-	InsetText in(buffer);
+	InsetText in(cur.buffer());
 	// Make sure there is no class difference.
 	in.paragraphs().clear();
 	// This works without copying any paragraph data because we have
@@ -219,30 +222,28 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	}
 
 	// Prepare the paragraphs and insets for insertion.
-	// A couple of insets store buffer references so need updating.
 	insertion.swap(in.paragraphs());
 
 	InsetIterator const i_end = inset_iterator_end(in);
-
 	for (InsetIterator it = inset_iterator_begin(in); it != i_end; ++it) {
-		// Insets store buffer references so need updating.
-		// FIXME This code can probably be deleted. The insets
-		// will get copied when they are pasted, at which point
-		// their buffer_ members will get set back to zero.
+		// Even though this will also be done later, it has to be done here 
+		// since, e.g., InsetLabel::updateCommand() is going to try to access
+		// the buffer() member.
 		it->setBuffer(const_cast<Buffer &>(buffer));
-
 		switch (it->lyxCode()) {
- 
-		case MATH_CODE: {
+
+		case MATH_HULL_CODE: {
 			// check for equation labels and resolve duplicates
-			InsetMathHull & ins = static_cast<InsetMathHull &>(*it);
-			std::vector<InsetLabel *> labels = ins.getLabels();
+			InsetMathHull * ins = it->asInsetMath()->asHullInset();
+			std::vector<InsetLabel *> labels = ins->getLabels();
 			for (size_t i = 0; i != labels.size(); ++i) {
 				if (!labels[i])
 					continue;
 				InsetLabel * lab = labels[i];
 				docstring const oldname = lab->getParam("name");
 				lab->updateCommand(oldname, false);
+				// We need to update the buffer reference cache.
+				cur.forceBufferUpdate();
 				docstring const newname = lab->getParam("name");
 				if (oldname == newname)
 					continue;
@@ -250,32 +251,48 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 				for (InsetIterator itt = inset_iterator_begin(in);
 				      itt != i_end; ++itt) {
 					if (itt->lyxCode() == REF_CODE) {
-						InsetCommand & ref =
-							static_cast<InsetCommand &>(*itt);
-						if (ref.getParam("reference") == oldname)
-							ref.setParam("reference", newname);
+						InsetCommand * ref = itt->asInsetCommand();
+						if (ref->getParam("reference") == oldname)
+							ref->setParam("reference", newname);
+					} else if (itt->lyxCode() == MATH_REF_CODE) {
+						InsetMathHull * mi = itt->asInsetMath()->asHullInset();
+						// this is necessary to prevent an uninitialized
+						// buffer when the RefInset is in a MathBox.
+						// FIXME audit setBuffer calls
+						mi->setBuffer(const_cast<Buffer &>(buffer));
+						if (mi->asRefInset()->getTarget() == oldname)
+							mi->asRefInset()->changeTarget(newname);
 					}
 				}
 			}
 			break;
 		}
-		
+
 		case LABEL_CODE: {
 			// check for duplicates
-			InsetCommand & lab = static_cast<InsetCommand &>(*it);
+			InsetLabel & lab = static_cast<InsetLabel &>(*it);
 			docstring const oldname = lab.getParam("name");
 			lab.updateCommand(oldname, false);
+			// We need to update the buffer reference cache.
+			cur.forceBufferUpdate();
 			docstring const newname = lab.getParam("name");
 			if (oldname == newname)
 				break;
 			// adapt the references
-			for (InsetIterator itt = inset_iterator_begin(in);
-			     itt != i_end; ++itt) {
+			for (InsetIterator itt = inset_iterator_begin(in); itt != i_end; ++itt) {
 				if (itt->lyxCode() == REF_CODE) {
-					InsetCommand & ref =
-						static_cast<InsetCommand &>(*itt);
+					InsetCommand & ref = static_cast<InsetCommand &>(*itt);
 					if (ref.getParam("reference") == oldname)
 						ref.setParam("reference", newname);
+				} else if (itt->lyxCode() == MATH_REF_CODE) {
+					InsetMathHull & mi =
+						static_cast<InsetMathHull &>(*itt);
+					// this is necessary to prevent an uninitialized
+					// buffer when the RefInset is in a MathBox.
+					// FIXME audit setBuffer calls
+					mi.setBuffer(const_cast<Buffer &>(buffer));
+					if (mi.asRefInset()->getTarget() == oldname)
+						mi.asRefInset()->changeTarget(newname);
 				}
 			}
 			break;
@@ -284,14 +301,18 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 		case INCLUDE_CODE: {
 			InsetInclude & inc = static_cast<InsetInclude &>(*it);
 			inc.updateCommand();
+			// We need to update the list of included files.
+			cur.forceBufferUpdate();
 			break;
 		}
 
 		case BIBITEM_CODE: {
 			// check for duplicates
-			InsetCommand & bib = static_cast<InsetCommand &>(*it);
+			InsetBibitem & bib = static_cast<InsetBibitem &>(*it);
 			docstring const oldkey = bib.getParam("key");
 			bib.updateCommand(oldkey, false);
+			// We need to update the buffer reference cache.
+			cur.forceBufferUpdate();
 			docstring const newkey = bib.getParam("key");
 			if (oldkey == newkey)
 				break;
@@ -299,12 +320,38 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 			for (InsetIterator itt = inset_iterator_begin(in);
 			     itt != i_end; ++itt) {
 				if (itt->lyxCode() == CITE_CODE) {
-					InsetCommand & ref =
-						static_cast<InsetCommand &>(*itt);
-					if (ref.getParam("key") == oldkey)
-						ref.setParam("key", newkey);
+					InsetCommand * ref = itt->asInsetCommand();
+					if (ref->getParam("key") == oldkey)
+						ref->setParam("key", newkey);
 				}
 			}
+			break;
+		}
+
+		case BRANCH_CODE: {
+			// check if branch is known to target buffer
+			// or its master
+			InsetBranch & br = static_cast<InsetBranch &>(*it);
+			docstring const name = br.branch();
+			if (name.empty())
+				break;
+			bool const is_child = (&buffer != buffer.masterBuffer());
+			BranchList branchlist = buffer.params().branchlist();
+			if ((!is_child && branchlist.find(name))
+			    || (is_child && (branchlist.find(name)
+			        || buffer.masterBuffer()->params().branchlist().find(name))))
+				break;
+			// FIXME: add an option to add the branch to the master's BranchList.
+			docstring text = bformat(
+					_("The pasted branch \"%1$s\" is undefined.\n"
+					  "Do you want to add it to the document's branch list?"),
+					name);
+			if (frontend::Alert::prompt(_("Unknown branch"),
+					  text, 0, 1, _("&Add"), _("&Don't Add")) != 0)
+				break;
+			lyx::dispatch(FuncRequest(LFUN_BRANCH_ADD, name));
+			// We need to update the list of branches.
+			cur.forceBufferUpdate();
 			break;
 		}
 
@@ -342,11 +389,11 @@ pasteSelectionHelper(Cursor & cur, ParagraphList const & parlist,
 	pit = last_paste;
 	pos = pars[last_paste].size();
 
+	// FIXME Should we do it here, or should we let updateBuffer() do it?
 	// Set paragraph buffers. It's important to do this right away
 	// before something calls Inset::buffer() and causes a crash.
 	for (pit_type p = startpit; p <= pit; ++p)
 		pars[p].setBuffer(const_cast<Buffer &>(buffer));
-
 
 	// Join (conditionally) last pasted paragraph with next one, i.e.,
 	// the tail of the spliced document paragraph
@@ -424,7 +471,7 @@ void putClipboard(ParagraphList const & paragraphs,
 	// some kind of garbage collection there, or a shared_ptr, then this
 	// would not be needed.
 	static Buffer * buffer = theBufferList().newBuffer(
-		FileName::tempName().absFilename() + "_clipboard.internal");
+		FileName::tempName().absFileName() + "_clipboard.internal");
 	buffer->setUnnamed(true);
 	buffer->paragraphs() = paragraphs;
 	buffer->inset().setBuffer(*buffer);
@@ -439,10 +486,27 @@ void putClipboard(ParagraphList const & paragraphs,
 }
 
 
-void copySelectionHelper(Buffer const & buf, ParagraphList const & pars,
+/// return true if the whole ParagraphList is deleted
+static bool isFullyDeleted(ParagraphList const & pars)
+{
+	pit_type const pars_size = static_cast<pit_type>(pars.size());
+
+	// check all paragraphs
+	for (pit_type pit = 0; pit < pars_size; ++pit) {
+		if (!pars[pit].empty())   // prevent assertion failure
+			if (!pars[pit].isDeleted(0, pars[pit].size()))
+				return false;
+	}
+	return true;
+}
+
+
+void copySelectionHelper(Buffer const & buf, Text const & text,
 	pit_type startpit, pit_type endpit,
 	int start, int end, DocumentClass const * const dc, CutStack & cutstack)
 {
+	ParagraphList const & pars = text.paragraphs();
+
 	LASSERT(0 <= start && start <= pars[startpit].size(), /**/);
 	LASSERT(0 <= end && end <= pars[endpit].size(), /**/);
 	LASSERT(startpit != endpit || start <= end, /**/);
@@ -465,21 +529,34 @@ void copySelectionHelper(Buffer const & buf, ParagraphList const & pars,
 	ParagraphList::iterator it_end = copy_pars.end();
 
 	for (; it != it_end; it++) {
-		// ERT paragraphs have the Language latex_language.
-		// This is invalid outside of ERT, so we need to change it
-		// to the buffer language.
-		if (it->ownerCode() == ERT_CODE || it->ownerCode() == LISTINGS_CODE)
-			it->changeLanguage(buf.params(), latex_language, buf.language());
-
-		it->setInsetOwner(0);
+		// Since we have a copy of the paragraphs, the insets
+		// do not have a proper buffer reference. It makes
+		// sense to add them temporarily, because the
+		// operations below depend on that (acceptChanges included).
+		it->setBuffer(const_cast<Buffer &>(buf));
+		// PassThru paragraphs have the Language
+		// latex_language. This is invalid for others, so we
+		// need to change it to the buffer language.
+		if (text.inset().getLayout().isPassThru())
+			it->changeLanguage(buf.params(), 
+					   latex_language, buf.language());
 	}
 
-	// do not copy text (also nested in insets) which is marked as deleted,
-	// unless the whole selection was deleted
+	// do not copy text (also nested in insets) which is marked as
+	// deleted, unless the whole selection was deleted
 	if (!isFullyDeleted(copy_pars))
 		acceptChanges(copy_pars, buf.params());
 	else
 		rejectChanges(copy_pars, buf.params());
+
+
+	// do some final cleanup now, to make sure that the paragraphs
+	// are not linked to something else.
+	it = copy_pars.begin();
+	for (; it != it_end; it++) {
+		it->setBuffer(*static_cast<Buffer *>(0));
+		it->setInsetOwner(0);
+	}
 
 	DocumentClass * d = const_cast<DocumentClass *>(dc);
 	cutstack.push(make_pair(copy_pars, d));
@@ -587,21 +664,20 @@ void switchBetweenClasses(DocumentClass const * const oldone,
 	// character styles
 	InsetIterator const i_end = inset_iterator_end(in);
 	for (InsetIterator it = inset_iterator_begin(in); it != i_end; ++it) {
-		InsetCollapsable * inset = it->asInsetCollapsable();
-		if (!inset)
-			continue;
-		if (inset->lyxCode() != FLEX_CODE)
+		if (it->lyxCode() != FLEX_CODE)
 			// FIXME: Should we verify all InsetCollapsable?
 			continue;
-		inset->setLayout(newone);
-		if (!inset->undefined())
+		docstring const & n = newone->insetLayout(it->name()).name();
+		bool const is_undefined = n.empty() ||
+			n == DocumentClass::plainInsetLayout().name();
+		if (!is_undefined)
 			continue;
 		// The flex inset is undefined in newtc
 		docstring const s = bformat(_(
 			"Flex inset %1$s is "
 			"undefined because of class "
 			"conversion from\n%2$s to %3$s"),
-			inset->name(), from_utf8(oldtc.name()),
+			it->name(), from_utf8(oldtc.name()),
 			from_utf8(newtc.name()));
 		// To warn the user that something had to be done.
 		errorlist.push_back(ErrorItem(
@@ -673,10 +749,10 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 
 		int endpos = cur.selEnd().pos();
 
-		BufferParams const & bp = cur.buffer().params();
+		BufferParams const & bp = cur.buffer()->params();
 		if (realcut) {
-			copySelectionHelper(cur.buffer(),
-				text->paragraphs(),
+			copySelectionHelper(*cur.buffer(),
+				*text,
 				begpit, endpit,
 				cur.selBegin().pos(), endpos,
 				bp.documentClassPtr(), theCuts);
@@ -687,7 +763,7 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 		}
 
 		if (begpit != endpit)
-			cur.updateFlags(Update::Force | Update::FitCursor);
+			cur.screenUpdateFlags(Update::Force | Update::FitCursor);
 
 		boost::tie(endpit, endpos) =
 			eraseSelectionHelper(bp,
@@ -708,7 +784,12 @@ void cutSelection(Cursor & cur, bool doclear, bool realcut)
 
 		// need a valid cursor. (Lgb)
 		cur.clearSelection();
-		updateLabels(cur.buffer());
+
+		// After a cut operation, we must make sure that the Buffer is updated
+		// because some further operation might need updated label information for
+		// example. So we cannot just use "cur.forceBufferUpdate()" here.
+		// This fixes #7071.
+		cur.buffer()->updateBuffer();
 
 		// tell tabular that a recent copy happened
 		dirtyTabularStack(false);
@@ -741,7 +822,7 @@ void copyInset(Cursor const & cur, Inset * inset, docstring const & plaintext)
 {
 	ParagraphList pars;
 	Paragraph par;
-	BufferParams const & bp = cur.buffer().params();
+	BufferParams const & bp = cur.buffer()->params();
 	par.setLayout(bp.documentClass().plainLayout());
 	par.insertInset(0, inset, Change(Change::UNCHANGED));
 	pars.push_back(par);
@@ -778,9 +859,9 @@ void copySelectionToStack(Cursor const & cur, CutStack & cutstack)
 		       (par != cur.selEnd().pit() || pos < cur.selEnd().pos()))
 			++pos;
 
-		copySelectionHelper(cur.buffer(), pars, par, cur.selEnd().pit(),
+		copySelectionHelper(*cur.buffer(), *text, par, cur.selEnd().pit(),
 			pos, cur.selEnd().pos(), 
-			cur.buffer().params().documentClassPtr(), cutstack);
+			cur.buffer()->params().documentClassPtr(), cutstack);
 
 		// Reset the dirty_tabular_stack_ flag only when something
 		// is copied to the clipboard (not to the selectionBuffer).
@@ -792,7 +873,7 @@ void copySelectionToStack(Cursor const & cur, CutStack & cutstack)
 		//lyxerr << "copySelection in mathed" << endl;
 		ParagraphList pars;
 		Paragraph par;
-		BufferParams const & bp = cur.buffer().params();
+		BufferParams const & bp = cur.buffer()->params();
 		// FIXME This should be the plain layout...right?
 		par.setLayout(bp.documentClass().plainLayout());
 		par.insert(0, grabSelection(cur), Font(), Change(Change::UNCHANGED));
@@ -820,7 +901,7 @@ void copySelection(Cursor const & cur, docstring const & plaintext)
 	if (cur.selBegin().idx() != cur.selEnd().idx()) {
 		ParagraphList pars;
 		Paragraph par;
-		BufferParams const & bp = cur.buffer().params();
+		BufferParams const & bp = cur.buffer()->params();
 		par.setLayout(bp.documentClass().plainLayout());
 		par.insert(0, plaintext, Font(), Change(Change::UNCHANGED));
 		pars.push_back(par);
@@ -886,7 +967,7 @@ void pasteParagraphList(Cursor & cur, ParagraphList const & parlist,
 
 		boost::tie(ppp, endpit) =
 			pasteSelectionHelper(cur, parlist, docclass, errorList);
-		updateLabels(cur.buffer());
+		cur.forceBufferUpdate();
 		cur.clearSelection();
 		text->setCursor(cur, ppp.first, ppp.second);
 	}
@@ -941,9 +1022,9 @@ void pasteClipboardText(Cursor & cur, ErrorList & errorList, bool asParagraphs)
 		return;
 	cur.recordUndo();
 	if (asParagraphs)
-		cur.text()->insertStringAsParagraphs(cur, text);
+		cur.text()->insertStringAsParagraphs(cur, text, cur.current_font);
 	else
-		cur.text()->insertStringAsLines(cur, text);
+		cur.text()->insertStringAsLines(cur, text, cur.current_font);
 }
 
 
@@ -960,7 +1041,7 @@ void pasteClipboardGraphics(Cursor & cur, ErrorList & /* errorList */,
 	// create inset for graphic
 	InsetGraphics * inset = new InsetGraphics(cur.buffer());
 	InsetGraphicsParams params;
-	params.filename = support::DocFileName(filename.absFilename());
+	params.filename = support::DocFileName(filename.absFileName(), false);
 	inset->setParams(params);
 	cur.recordUndo();
 	cur.insert(inset);
@@ -984,7 +1065,7 @@ void replaceSelectionWithString(Cursor & cur, docstring const & str, bool backwa
 
 	// Get font setting before we cut, we need a copy here, not a bare reference.
 	Font const font =
-		selbeg.paragraph().getFontSettings(cur.buffer().params(), selbeg.pos());
+		selbeg.paragraph().getFontSettings(cur.buffer()->params(), selbeg.pos());
 
 	// Insert the new string
 	pos_type pos = cur.selEnd().pos();
@@ -992,7 +1073,7 @@ void replaceSelectionWithString(Cursor & cur, docstring const & str, bool backwa
 	docstring::const_iterator cit = str.begin();
 	docstring::const_iterator end = str.end();
 	for (; cit != end; ++cit, ++pos)
-		par.insertChar(pos, *cit, font, cur.buffer().params().trackChanges);
+		par.insertChar(pos, *cit, font, cur.buffer()->params().trackChanges);
 
 	// Cut the selection
 	cutSelection(cur, true, false);
@@ -1087,7 +1168,7 @@ docstring grabSelection(Cursor const & cur)
 	if (i1.idx() == i2.idx()) {
 		if (i1.inset().asInsetMath()) {
 			MathData::const_iterator it = i1.cell().begin();
-			Buffer * buf = &cur.buffer();
+			Buffer * buf = cur.buffer();
 			return asString(MathData(buf, it + i1.pos(), it + i2.pos()));
 		} else {
 			return from_ascii("unknown selection 1");
@@ -1130,5 +1211,4 @@ bool tabularStackDirty()
 
 
 } // namespace cap
-
 } // namespace lyx

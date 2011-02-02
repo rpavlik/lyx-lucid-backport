@@ -77,7 +77,7 @@ void BulletsModule::setupPanel(QListWidget * lw, QString const & panelname,
 	lw->setGridSize(QSize(w, h));
 	// the widening by 21 is needed to avoid wrapping
 	lw->resize(6 * w + 21, 6 * h);
-	bulletpaneSW->setMinimumSize(6 * w, 6 * h + 6);
+	bulletpaneSW->setMinimumSize(6 * w + 5, 6 * h + 6);
 
 	// get individual bullets from pixmap
 	for (int row = 0; row < 6; ++row) {
@@ -195,4 +195,4 @@ Bullet const & BulletsModule::bullet(int level) const
 } // namespace lyx
 
 
-#include "BulletsModule_moc.cpp"
+#include "moc_BulletsModule.cpp"

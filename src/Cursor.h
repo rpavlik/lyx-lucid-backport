@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -36,19 +36,18 @@ class Encoding;
 
 
 /// The cursor class describes the position of a cursor within a document.
-
-// The public inheritance should go in favour of a suitable data member
-// (or maybe private inheritance) at some point of time.
 class Cursor : public DocIterator
 {
 public:
 	/// create the cursor of a BufferView
 	explicit Cursor(BufferView & bv);
 
+	/// returns true if we made a decision
+	bool getStatus(FuncRequest const & cmd, FuncStatus & flag) const;
 	/// dispatch from innermost inset upwards
 	void dispatch(FuncRequest const & cmd);
 	/// get the resut of the last dispatch
-	DispatchResult result() const;
+	DispatchResult const & result() const;
 	/// add a new cursor slice
 	void push(Inset & inset);
 	/// add a new cursor slice, place cursor at front (move backwards)
@@ -63,7 +62,7 @@ public:
 	void leaveInset(Inset const & inset);
 	/// sets cursor part
 	void setCursor(DocIterator const & it);
-	/// sets the cursor to the anchor
+	/// sets the cursor to the normalized selection anchor
 	void setCursorToAnchor();
 
 	///
@@ -112,7 +111,7 @@ public:
 	 */
 	bool selHandle(bool selecting);
 	///
-	docstring selectionAsString(bool label) const;
+	docstring selectionAsString(bool with_label) const;
 	///
 	docstring currentState() const;
 
@@ -199,20 +198,22 @@ public:
 	int textTargetOffset() const;
 
 	/// access to normalized selection anchor
-	CursorSlice anchor() const;
+	CursorSlice normalAnchor() const;
+	// FIXME: this can't be a const & and a const function because
+	// LFUN_TAB_* wants to move the real anchor.
+	/// access to real selection anchor
+	DocIterator & realAnchor();
 	/// sets anchor to cursor position
 	void resetAnchor();
 	/// access to owning BufferView
 	BufferView & bv() const;
-	/// access to owning Buffer
-	Buffer & buffer() const;
 	/// get some interesting description of top position
 	void info(odocstream & os) const;
 	/// are we in math mode (2), text mode (1) or unsure (0)?
 	int currentMode();
-	/// reset cursor bottom to the beginning of the given inset
+	/// reset cursor bottom to the beginning of the top inset
 	// (sort of 'chroot' environment...)
-	void reset(Inset &);
+	void reset();
 	/// for spellchecking
 	void replaceWord(std::string const & replacestring);
 	/**
@@ -227,8 +228,14 @@ public:
 	void undispatched();
 	/// the event was already dispatched
 	void dispatched();
-	/// Set which update should be done
-	void updateFlags(Update::flags f);
+	/// Set which screen update should be done
+	void screenUpdateFlags(Update::flags f);
+	/// Forces an updateBuffer() call
+	void forceBufferUpdate();
+	/// Removes any pending updateBuffer() call
+	void clearBufferUpdate();
+	/// Do we need to call updateBuffer()?
+	bool needBufferUpdate() const;
 	/**
 	 * don't call update() when done
 	 *
@@ -237,9 +244,9 @@ public:
 	 * not need to be re-drawn and all entries in the coord cache stay
 	 * valid (and there are no other things to put in the coord cache).
 	 * This is a fairly rare event as well and only some optimization.
-	 * Not using noUpdate() should never be wrong.
+	 * Not using noScreenUpdate() should never be wrong.
 	 */
-	void noUpdate();
+	void noScreenUpdate();
 	/// fix cursor in circumstances that should never happen.
 	/// \retval true if a fix occured.
 	bool fixIfBroken();
@@ -273,7 +280,8 @@ public:
 	void recordUndo(UndoKind kind = ATOMIC_UNDO) const;
 
 	/// Convenience: prepare undo for the inset containing the cursor
-	void recordUndoInset(UndoKind kind = ATOMIC_UNDO) const;
+	void recordUndoInset(UndoKind kind = ATOMIC_UNDO,
+			     Inset const * inset = 0) const;
 
 	/// Convenience: prepare undo for the whole buffer
 	void recordUndoFullDocument() const;
@@ -285,18 +293,20 @@ public:
 	void checkBufferStructure();
 
 public:
+//private:
+	
+	///
+	DocIterator const & beforeDispatchCursor() const { return beforeDispatchCursor_; }
+	///
+	void saveBeforeDispatchPosXY();
+
+private:
 	///
 	BufferView * bv_;
-//private:
 	/// the anchor position
 	DocIterator anchor_;
-	
 	///
-	DispatchResult disp_;
-	///
-	DocIterator const & beforeDispatchCursor() { return beforeDispatchCursor_; }
-	
-private:
+	mutable DispatchResult disp_;
 	/**
 	 * The target x position of the cursor. This is used for when
 	 * we have text like :
@@ -325,6 +335,10 @@ private:
 	bool logicalpos_;
 	/// position before dispatch started
 	DocIterator beforeDispatchCursor_;
+	/// cursor screen coordinates before dispatch started
+	int beforeDispatchPosX_;
+	int beforeDispatchPosY_;
+
 
 // FIXME: make them private.
 public:
@@ -441,11 +455,12 @@ public:
 
 
 /**
- * Notifies all insets which appear in old, but not in cur. Make
- * Sure that the cursor old is valid, i.e. all inset pointers
+ * Notifies all insets which appear in old, but not in cur. And then
+ * notify all insets which appear in cur, but not in old.
+ * Make sure that the cursor old is valid, i.e. all inset pointers
  * point to valid insets! Use Cursor::fixIfBroken if necessary.
  */
-bool notifyCursorLeaves(Cursor const & old, Cursor & cur);
+bool notifyCursorLeavesOrEnters(Cursor const & old, Cursor & cur);
 
 
 } // namespace lyx

@@ -4,7 +4,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,6 +19,7 @@
 
 namespace lyx {
 
+class Author;
 class Buffer;
 class OutputParams;
 
@@ -63,12 +64,6 @@ public:
 	/// returns a vector with all the buffers filenames
 	support::FileNameList const & fileNames() const;
 
-	/// FIXME
-	void updateIncludedTeXfiles(std::string const &, OutputParams const &);
-
-	/// emergency save for all buffers
-	void emergencyWriteAll();
-
 	/// return true if no buffers loaded
 	bool empty() const;
 
@@ -84,14 +79,14 @@ public:
 	/// returns true if the buffer is loaded
 	bool isLoaded(Buffer const * b) const;
 
-	/// return index of named buffer in buffer list
+	/// \return index of named buffer in buffer list
 	int bufferNum(support::FileName const & name) const;
-	/// returns a pointer to the buffer with the given name.
-	Buffer * getBuffer(support::FileName const &) const;
-	/// returns a pointer to the buffer with the given number.
+	/// \return a pointer to the buffer with the given name
+	Buffer * getBuffer(support::FileName const & name) const;
+	/// \return a pointer to the buffer with the given number
 	Buffer * getBuffer(unsigned int);
-	/// returns a pointer to the buffer whose temppath matches the string
-	Buffer * getBufferFromTmp(std::string const &);
+	/// \return a pointer to the buffer whose temppath matches the given path
+	Buffer * getBufferFromTmp(std::string const & path);
 
 	/** returns a pointer to the buffer that follows argument in
 	 * buffer list. The buffer following the last in list is the
@@ -105,8 +100,17 @@ public:
 	 */
 	Buffer * previous(Buffer const *) const;
 
+	/// \name Functions that just operate on all buffers
+	//@{
 	/// reset current author for all buffers
-	void setCurrentAuthor(docstring const & name, docstring const & email);
+	void recordCurrentAuthor(Author const & author);
+	/// Call changed() on all buffers, internal or not
+	void changed(bool update_metrics) const;
+	/// emergency save for all buffers
+	void emergencyWriteAll();
+	/// FIXME
+	void updateIncludedTeXfiles(std::string const &, OutputParams const &);
+	//@}
 
 private:
 	/// noncopiable

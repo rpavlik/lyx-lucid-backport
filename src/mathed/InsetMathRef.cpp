@@ -3,7 +3,7 @@
  * This file is part of LyX, the document processor.
  * Licence details can be found in the file COPYING.
  *
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -13,15 +13,17 @@
 #include "InsetMathRef.h"
 
 #include "BufferView.h"
-#include "LaTeXFeatures.h"
 #include "Buffer.h"
 #include "Cursor.h"
 #include "FuncRequest.h"
 #include "FuncStatus.h"
+#include "LaTeXFeatures.h"
+#include "LyX.h"
 #include "MathData.h"
 #include "MathFactory.h"
 #include "MathSupport.h"
 #include "OutputParams.h"
+#include "ParIterator.h"
 #include "sgml.h"
 
 #include "insets/InsetCommand.h"
@@ -59,11 +61,12 @@ void InsetMathRef::infoize(odocstream & os) const
 
 void InsetMathRef::doDispatch(Cursor & cur, FuncRequest & cmd)
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	case LFUN_INSET_MODIFY:
 		if (cmd.getArg(0) == "ref") {
 			MathData ar;
 			if (createInsetMath_fromDialogStr(cmd.argument(), ar)) {
+				cur.recordUndo();
 				*this = *ar[0].nucleus()->asRefInset();
 				break;
 			}
@@ -72,7 +75,7 @@ void InsetMathRef::doDispatch(Cursor & cur, FuncRequest & cmd)
 		break;
 
 	case LFUN_INSET_DIALOG_UPDATE: {
-		string const data = createDialogStr("ref");
+		string const data = createDialogStr();
 		cur.bv().updateDialog("ref", data);
 		break;
 	}
@@ -80,12 +83,13 @@ void InsetMathRef::doDispatch(Cursor & cur, FuncRequest & cmd)
 	case LFUN_MOUSE_RELEASE:
 		if (cmd.button() == mouse_button::button3) {
 			LYXERR0("trying to goto ref '" << to_utf8(asString(cell(0))) << "'");
-			cur.bv().dispatch(FuncRequest(LFUN_LABEL_GOTO, asString(cell(0))));
+			//FIXME: use DispatchResult argument
+			lyx::dispatch(FuncRequest(LFUN_LABEL_GOTO, asString(cell(0))));
 			break;
 		}
 		if (cmd.button() == mouse_button::button1) {
 			// Eventually trigger dialog with button 3, not 1
-			string const data = createDialogStr("ref");
+			string const data = createDialogStr();
 			cur.bv().showDialog("ref", data, this);
 			break;
 		}
@@ -107,7 +111,7 @@ void InsetMathRef::doDispatch(Cursor & cur, FuncRequest & cmd)
 bool InsetMathRef::getStatus(Cursor & cur, FuncRequest const & cmd,
 			 FuncStatus & status) const
 {
-	switch (cmd.action) {
+	switch (cmd.action()) {
 	// we handle these
 	case LFUN_INSET_MODIFY:
 	case LFUN_INSET_DIALOG_UPDATE:
@@ -173,13 +177,47 @@ int InsetMathRef::docbook(odocstream & os, OutputParams const & runparams) const
 }
 
 
-string const InsetMathRef::createDialogStr(string const & name) const
+void InsetMathRef::updateBuffer(ParIterator const & it, UpdateType /*utype*/)
+{
+	if (!buffer_) {
+		LYXERR0("InsetMathRef::updateBuffer: no buffer_!");
+		return;
+	}
+	// register this inset into the buffer reference cache.
+	buffer().references(getTarget()).push_back(make_pair(this, it));
+}
+
+
+string const InsetMathRef::createDialogStr() const
 {
 	InsetCommandParams icp(REF_CODE, to_ascii(commandname()));
 	icp["reference"] = asString(cell(0));
 	if (!cell(1).empty())
 		icp["name"] = asString(cell(1));
-	return InsetCommand::params2string(name, icp);
+	return InsetCommand::params2string(icp);
+}
+
+
+docstring const InsetMathRef::getTarget() const
+{
+	return asString(cell(0));
+}
+
+
+void InsetMathRef::changeTarget(docstring const & target)
+{
+	InsetCommandParams icp(REF_CODE, to_ascii(commandname()));
+	icp["reference"] = target;
+	if (!cell(1).empty())
+		icp["name"] = asString(cell(1));
+	MathData ar;
+	Buffer & buf = buffer();
+	if (createInsetMath_fromDialogStr(
+	    from_utf8(InsetCommand::params2string(icp)), ar)) {
+		*this = *ar[0].nucleus()->asRefInset();
+		// FIXME audit setBuffer calls
+		setBuffer(buf);
+	}
 }
 
 

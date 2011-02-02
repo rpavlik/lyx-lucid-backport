@@ -5,6 +5,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author John Levon
+ * \author Jürgen Spitzmüller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -14,12 +15,9 @@
 
 #include "support/docstring.h"
 
-#include <vector>
 #include <map>
-
-#ifdef HAVE_LIBAIKSAURUS
-#include AIKSAURUS_H_LOCATION
-#endif
+#include <string>
+#include <vector>
 
 namespace lyx {
 
@@ -27,7 +25,8 @@ namespace lyx {
  * This class provides an interface to whatever thesauri we might support.
  */
 
-class Thesaurus {
+class Thesaurus
+{
 public:
 	///
 	Thesaurus();
@@ -39,12 +38,17 @@ public:
 	/**
 	 * look up some text in the thesaurus
 	 */
-	Meanings lookup(docstring const & text);
+	Meanings lookup(docstring const & text, docstring const & lang);
+	/** check if a thesaurus for a given language \p lang is available
+	 *  (installed and loaded)
+	 */
+	bool thesaurusAvailable(docstring const & lang) const;
+	/// check if a thesaurus for a given language \p lang is installed
+	bool thesaurusInstalled(docstring const & lang) const;
 
 private:
-#ifdef HAVE_LIBAIKSAURUS
-	Aiksaurus * aik_;
-#endif
+	struct Private;
+	Private * const d;
 };
 
 extern Thesaurus thesaurus;

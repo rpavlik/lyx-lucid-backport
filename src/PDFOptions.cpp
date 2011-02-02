@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Pavel Sanda
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -22,6 +22,7 @@
 
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 using namespace std;
 using namespace lyx::support;
@@ -94,55 +95,55 @@ int PDFOptions::writeLaTeX(OutputParams & runparams, odocstream & os,
 	int lines = 0;
 	// FIXME Unicode
 	string opt;
+	string hyperset;
 	
 	// since LyX uses unicode, also set the PDF strings to unicode strings with the
 	// hyperref option "unicode"
-	opt += "unicode=true, ";
-	
-	// try to extract author and title from document when none is
-	// explicitely given
-	if (pdfusetitle && title.empty() && author.empty())
-		opt += "pdfusetitle,";
-	opt += "\n ";
+	opt += "unicode=true,";
 
-	opt += "bookmarks=" + convert<string>(bookmarks) + ',';
-	if (bookmarks) {
-		opt += "bookmarksnumbered=" + convert<string>(bookmarksnumbered) + ',';
-		opt += "bookmarksopen=" + convert<string>(bookmarksopen) + ',';
-		if (bookmarksopen)
-			opt += "bookmarksopenlevel="
-			    + convert<string>(bookmarksopenlevel) + ',';
+	// only use the hyperref settings if hyperref is enabled by the user
+	// see bug #7052
+	if(use_hyperref) {
+		// try to extract author and title from document when none is
+		// explicitly given
+		if (pdfusetitle && title.empty() && author.empty())
+			opt += "pdfusetitle,";
+		opt += "\n ";
+		opt += "bookmarks=" + convert<string>(bookmarks) + ',';
+		if (bookmarks) {
+			opt += "bookmarksnumbered=" + convert<string>(bookmarksnumbered) + ',';
+			opt += "bookmarksopen=" + convert<string>(bookmarksopen) + ',';
+			if (bookmarksopen)
+				opt += "bookmarksopenlevel="
+				+ convert<string>(bookmarksopenlevel) + ',';
+		}
+		opt += "\n ";
+		opt += "breaklinks=" + convert<string>(breaklinks) + ',';
+		opt += "pdfborder={0 0 ";
+		opt += (pdfborder ? '0' : '1');
+		opt += "},";
+		opt += "backref=" + backref + ',';
+		opt += "colorlinks=" + convert<string>(colorlinks) + ',';
+		if (!pagemode.empty())
+			opt += "pdfpagemode=" + pagemode + ',';
+
+		// load the pdftitle etc. as hypersetup, otherwise you'll get
+		// LaTeX-errors when using non-latin characters
+		if (!title.empty())
+			hyperset += "pdftitle={" + title + "},";
+		if (!author.empty())			
+			hyperset += "\n pdfauthor={" + author + "},";
+		if (!subject.empty())
+			hyperset += "\n pdfsubject={" + subject + "},";
+		if (!keywords.empty())
+			hyperset += "\n pdfkeywords={" + keywords + "},";
+		if (!quoted_options.empty()){
+			hyperset += "\n ";
+			hyperset += quoted_options;
+		}
+		hyperset = rtrim(hyperset,",");
+
 	}
-	opt += "\n ";
-	opt += "breaklinks=" + convert<string>(breaklinks) + ',';
-
-	opt += "pdfborder={0 0 ";
-	opt += (pdfborder ? '0' : '1');
-	opt += "},";
-
-	opt += "backref=" + backref + ',';
-	opt += "colorlinks=" + convert<string>(colorlinks) + ',';
-	if (!pagemode.empty())
-		opt += "pdfpagemode=" + pagemode + ',';
-	
-
-
-	// load the pdftitle etc. as hypersetup, otherwise you'll get
-	// LaTeX-errors when using non-latin characters
-	string hyperset;
-	if (!title.empty())
-		hyperset += "pdftitle={" + title + "},";
-	if (!author.empty())
-		hyperset += "\n pdfauthor={" + author + "},";
-	if (!subject.empty())
-		hyperset += "\n pdfsubject={" + subject + "},";
-	if (!keywords.empty())
-		hyperset += "\n pdfkeywords={" + keywords + "},";
-	if (!quoted_options.empty()){
-		hyperset += "\n ";
-		hyperset += quoted_options;
-	}
-	hyperset = rtrim(hyperset,",");
 
 	// check if the hyperref settings use an encoding that exceeds
 	// ours. If so, we have to switch to utf8.
@@ -151,10 +152,8 @@ int PDFOptions::writeLaTeX(OutputParams & runparams, odocstream & os,
 	bool need_unicode = false;
 	if (enc) {
 		for (size_t n = 0; n < hs.size(); ++n) {
-			if (enc->latexChar(hs[n], true) != docstring(1, hs[n])) {
+			if (enc->latexChar(hs[n], true) != docstring(1, hs[n]))
 				need_unicode = true;
-				break;
-			}
 		}
 	}
 
@@ -165,27 +164,32 @@ int PDFOptions::writeLaTeX(OutputParams & runparams, odocstream & os,
 
 		if (!hyperset.empty())
 			opt += "\\hypersetup{" + hyperset + "}\n";
-	} else
+	} else {
 		// only in case hyperref is already loaded by the current text class
 		// try to put it into hyperset
 		//
-		// FIXME: this still does not fix the cases where hyperref is loaded
-		//        and the option is active only when part of usepackage parameter
-		//        (e.g. pdfusetitle).
-		{
-			opt = "\\hypersetup{" + opt + hyperset + "}\n";
-		}
+		// FIXME: rename in this case the PDF settings dialog checkbox
+		//  label from "Use Hyperref" to "Customize Hyperref Settings"
+		//  as discussd in bug #6293
+		opt = "\\hypersetup{" + opt + hyperset + "}\n";
+	}
 
 	lines = int(count(opt.begin(), opt.end(), '\n'));
 
 	// hyperref expects utf8!
-	if (need_unicode && enc && enc->iconvName() != "UTF-8") {
+	if (need_unicode && enc && enc->iconvName() != "UTF-8"
+	    &&!runparams.isFullUnicode()) {
 		os << "\\inputencoding{utf8}\n"
 		   << setEncoding("UTF-8");
 		++lines;
 	}
-	os << from_utf8(opt);
-	if (need_unicode && enc && enc->iconvName() != "UTF-8") {
+	// FIXME: handle the case that hyperref is loaded by the document class and
+	// hyperset is empty, see bug #7048
+	if (!(hyperref_already_provided && hyperset.empty()))
+		os << from_utf8(opt);
+
+	if (need_unicode && enc && enc->iconvName() != "UTF-8"
+	    &&!runparams.isFullUnicode()) {
 		os << setEncoding(enc->iconvName())
 		   << "\\inputencoding{" << from_ascii(enc->latexName()) << "}\n";
 		++lines;

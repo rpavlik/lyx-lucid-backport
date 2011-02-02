@@ -1,10 +1,10 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[powerdot,enumitem.sty,pstricks.sty,xkeyval.sty]{presentation (powerdot)}
+#  \DeclareLaTeXClass[powerdot,enumitem.sty,hyperref.sty,pstricks.sty,verbatim.sty,xcolor.sty,xkeyval.sty]{presentation (powerdot)}
 # PowerDot textclass definition file.
 # Created: 29-Aug-05 by Mael Hilléreau
 # Last modified: 20-May-06 by Uwe Stöhr
 
-Format 11
+Format 30
 
 Input stdcounters.inc
 Input stdinsets.inc
@@ -56,6 +56,7 @@ Style Title
     Size        Largest
     Color       Blue
   EndFont
+	HTMLTitle             true
 End
 
 ###
@@ -269,8 +270,8 @@ Style Enumerate
   Margin        Static
   LatexType     Item_Environment
   LatexName     enumerate
-  NextNoIndent      1
-  LeftMargin        MMN
+  NextNoIndent  1
+  LeftMargin    MMN
   LabelSep      xx
   ParSkip       0.0
   ItemSep       0.2
@@ -278,8 +279,9 @@ Style Enumerate
   BottomSep     0.7
   ParSep        0.3
   Align         Block
-  AlignPossible     Block, Left
+  AlignPossible Block, Left
   LabelType     Enumerate
+  RefPrefix     enu
 End
 
 Style EnumerateType1
@@ -376,12 +378,13 @@ End
 ###
 Float
   Type                  table
-  GuiName       Table
+  GuiName               Table
   Extension             lot
   NumberWithin          none
   Style                 plain
   ListName              "List of Tables"
-  LaTeXBuiltin          true
+  NeedsFloatPkg         false
+	ListCommand           listoftables
 End
   
 Float
@@ -391,7 +394,8 @@ Float
   NumberWithin          none
   Style                 plain
   ListName              "List of Figures"
-  LaTeXBuiltin          true
+  NeedsFloatPkg         false
+	ListCommand           listoffigures
 End
 
 Float
@@ -401,7 +405,7 @@ Float
   NumberWithin          none
   Style                 ruled
   ListName              "List of Algorithms"
-  LaTeXBuiltin          false
+  NeedsFloatPkg         true
 End
 
 ###

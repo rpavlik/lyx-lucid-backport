@@ -4,11 +4,11 @@ SUBDIRS = $(FRONTENDS_SUBDIRS) .
 
 DIST_SUBDIRS = qt4 .
 
-noinst_LTLIBRARIES = liblyxfrontends.la
+noinst_LIBRARIES = liblyxfrontends.a
 
 AM_CPPFLAGS += -I$(srcdir)/..  $(BOOST_INCLUDES)
 
-liblyxfrontends_la_SOURCES = \
+liblyxfrontends_a_SOURCES = \
 	alert.h \
 	Application.h \
 	FontLoader.h \
@@ -16,7 +16,6 @@ liblyxfrontends_la_SOURCES = \
 	Delegates.h \
 	KeyModifier.h \
 	KeySymbol.h \
-	LyXView.h \
 	Painter.h \
 	Clipboard.h \
 	Selection.h \
@@ -37,7 +36,7 @@ TESTS = \
 check_PROGRAMS = \
 	biblio
 
-biblio_LDADD = $(BOOST_LIBS) $(BOOST_REGEX)
+biblio_LDADD = $(BOOST_LIBS)
 biblio_SOURCES = \
 	tests/biblio.cpp \
 	tests/boost.cpp

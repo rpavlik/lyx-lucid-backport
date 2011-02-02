@@ -5,7 +5,7 @@
  *
  * \author Asger Alstrup Nielsen
  * \author Jean-Marc Lasgouttes
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -19,6 +19,7 @@
 #include "LaTeXFeatures.h"
 #include "Lexer.h"
 #include "MetricsInfo.h"
+#include "output_xhtml.h"
 
 #include "frontends/FontMetrics.h"
 #include "frontends/Painter.h"
@@ -32,7 +33,7 @@ namespace lyx {
 
 
 InsetSpecialChar::InsetSpecialChar(Kind k)
-	: kind_(k)
+	: Inset(0), kind_(k)
 {}
 
 
@@ -291,9 +292,43 @@ int InsetSpecialChar::docbook(odocstream & os, OutputParams const &) const
 }
 
 
-void InsetSpecialChar::tocString(odocstream & os) const
+docstring InsetSpecialChar::xhtml(XHTMLStream & xs, OutputParams const &) const
+{
+	switch (kind_) {
+	case HYPHENATION:
+	case LIGATURE_BREAK:
+		break;
+	case END_OF_SENTENCE:
+		xs << '.';
+		break;
+	case LDOTS:
+		xs << XHTMLStream::ESCAPE_NONE << "&hellip;";
+		break;
+	case MENU_SEPARATOR:
+		xs << XHTMLStream::ESCAPE_NONE << "&rArr;";
+		break;
+	case SLASH:
+		xs << XHTMLStream::ESCAPE_NONE << "&frasl;";
+		break;
+	case NOBREAKDASH:
+		xs << '-';
+		break;
+	}
+	return docstring();
+}
+
+
+void InsetSpecialChar::toString(odocstream & os) const
 {
 	plaintext(os, OutputParams(0));
+}
+
+
+void InsetSpecialChar::forToc(docstring & os, size_t) const
+{
+	odocstringstream ods;
+	plaintext(ods, OutputParams(0));
+	os += ods.str();
 }
 
 
@@ -303,12 +338,6 @@ void InsetSpecialChar::validate(LaTeXFeatures & features) const
 		features.require("lyxarrow");
 	if (kind_ == NOBREAKDASH)
 		features.require("amsmath");
-}
-
-
-bool InsetSpecialChar::isChar() const
-{
-	return true;
 }
 
 

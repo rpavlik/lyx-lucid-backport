@@ -4,7 +4,7 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Angus Leeming
- * \author Jürgen Spitzmüller
+ * \author JÃ¼rgen SpitzmÃ¼ller
  *
  * Full author contact details are available in file CREDITS.
  */
@@ -98,4 +98,4 @@ Dialog * createGuiNote(GuiView & lv) { return new GuiNote(lv); }
 } // namespace frontend
 } // namespace lyx
 
-#include "GuiNote_moc.cpp"
+#include "moc_GuiNote.cpp"

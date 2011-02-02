@@ -1,190 +1,26 @@
-﻿Version 4.25
-- LyX 1.6.7
-- updated to eLyXer 0.99
-- updated to ImageMagick 6.6.3-0
-- updated Qt libraries to version 4.6.3
+﻿Version 5.9
+- LyX 2.0xxx
+- updated to eLyXer 1.1.2
+- fix bug that a detected installed Python 3.x was used for LyX (LyX bug 7143)
+  LyX only works properly with Python 2.x
 
 
-Version 4.24
-- LyX 1.6.6.1
+Version 5.8
+- LyX 2.0beta2
+- updated to eLyXer 1.1.0
 
 
-Version 4.23
-- LyX 1.6.6
-- updated to eLyXer 0.98
-- updated to Ghostscript 8.71
-- updated to ImageMagick 6.6.1-10
-- updated to Python 2.6.5
-- updated to MiKTeX 2.8 (build 3761)
-- support to set Greek as LyX menu language (new feature in LyX 1.6.6)
-- fix bug that it was not possible to change the language of the
-  LyX menus via the LyX menu Tools->Preferences->Language Settings
-- no longer use a *.bat file to start LyX
-  (avoids one of the two windows that appeared for a few milliseconds
-   when starting LyX)
+Version 5.7
+- LyX 2.0beta1
+- updated to eLyXer 1.0.4
+- updated to ImageMagick 6.6.5-8
+- updated to MiKTeX 2.9 (build 3972)
+- support to set Serbian (Latin) as LyX menu language (new feature in LyX)
 
 
-Version 4.22
-- LyX 1.6.5
-- updated to eLyXer 0.38
-- updated to ImageMagick 6.5.8-4
-- fix bug that SVG images could not be used
-
-
-Version 4.21
-- new converter to export LyX files as HTML:
-  eLyXer 0.35 (http://www.nongnu.org/elyxer)
-- updated to MiKTeX 2.8 (needed to run LyX under Windows 7)
-- updated to ImageMagick 6.5.7-5
-- updated to Python 2.6.4
-- downgraded to Ghostscript 8.64 due to a regression bug
-  with cropped PDF images
-- fix bug that an installed Python 3.x was ignored
-
-
-Version 4.20
-- LyX 1.6.4
-- updated to ImageMagick 6.5.5-0
-- updated to JabRef 2.5
-- updated to Ghostscript 8.70
-
-
-Version 4.19
-- LyX 1.6.3
-- add two missing programs so that paths in LyX document
-  preambles will correctly be parsed
-- fix installation of Arabic spell checker dictionary
-- new Indonesian translation of the installer (thanks
-  to Waluyo Adi Siswanto)
-- LyX can now be installed with Indonesian and Slovak menus
-- the uninstaller is now also shown in the Windows system language
-- updated to Python 2.6.2
-- updated to ImageMagick 6.5.3-2
-
-
-Version 4.18
-- LyX 1.6.2
-- updated to Ghostscript 8.64
-- updated to ImageMagick 6.4.9-9
-- fix bug that some programs that were installed together with
-  LyX are not uninstalled together with LyX when the update
-  installer was used in the meantime
-
-
-Version 4.17
-- updated to Python 2.6.1, fixes a bug that older LyX files
-     couldn't be opened on some systems
-
-
-Version 4.16
-- LyX 1.6.1
-- updated to MiKTeX 2.7 (build 3248)
-- updated to ImageMagick 6.4.7-7
-- fix unnecessary refreshing of Aspell dictionaries when no new
-  dictionary was installed
-
-
-Version 4.15
-- add missing Python file to be able to import CSV-files to LyX
-- fix bug that PDF and EPS images weren't show in LyX
-
-
-Version 4.14
-- fix a bug in the Romanian translation of the installer
-- fix installation of Aspell dictionaries in Win Vista
-- fix uninstalling of the file extensions ".lyx13" and the like
-
-
-Version 4.13
-- LyX 1.6.0
-
-
-Version 4.12
-- add missing Python files after the update to Python 2.6
-
-
-Version 4.11
-- LyX 1.6rc5
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-- fix bug that the installer ignored for some cases when LyX should only
-  installed for the current user
-- updated to Python 2.6
-
-
-Version 4.10
-- LyX 1.6rc4
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-- LyX files with the extensions ".lyx15" etc. that you get when exporting
-  to older LyX versions, can now be opened by double clicking on them
-
-
-Version 4.09
-- LyX 1.6rc3
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-- updated to MiKTeX 2.7 (build 3164)
-- updated to Python 2.5.2
-- updated to Ghostscript 8.63
-- updated to ImageMagick 6.4.4-1
-
-
-Version 4.08
-- LyX 1.6rc2
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-- new Catalan translation of the installer (thanks to Joan Montané)
-
-
-Version 4.07
-- LyX 1.6rc1
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-- Ukrainian translation of the installer (thanks to Yuri Chornoivan)
-- Arabic translation of the installer (thanks to Hatim Alahmadi)
-
-
-Version 4.06
-- LyX 1.6beta4
-  (list of current regressions: http://tinyurl.com/yu4the )
-  (list of current crashes and critical bugs: http://tinyurl.com/653prg)
-
-
-Version 4.05
-- LyX 1.6beta3
-  (list of current regressions: http://tinyurl.com/yu4the )
-
-- When Aspell is installed together with this installer (this will be the
-  case when Aspell is not already installed), now every user on the PC
-  gets his personal word list files.
-
-
-Version 4.04
-- LyX 1.6beta1
-  (list of current regressions: http://tinyurl.com/yu4the )
-
-
-Version 4.03
-- LyX 1.6alpha2
-  (list of current regressions: http://tinyurl.com/yu4the )
-
-- added some missing Python files to be able to open old LyX documents with
-  LyX 1.6svn
-- new method to view PDF files that also works under Windows Vista
-  (thanks to Joost Verburg)
-- The .lyx file extension is no longer removed when it was not created by
-  the LyX version that is uninstalled (necessary to be able to play with
-  LyX 1.6svn without touching existing LyX installations)
-
-
-Version 4.02
-- LyX 1.6svn-r24066
-  (list of current regressions: http://tinyurl.com/yu4the )
-
-- Japanese translation of the installer (thanks to Koji Yokata)
-- added a DLL that is needed on some Windows systems to be able to start LyX
-
-
-Version 4.01
-- LyX 1.6svn-1
+Version 5.6
+- LyX 2.0svn (October 3, 2010)
+- updated to Python 2.6.6
+- updated to Ghostscript 9.00
+- updated to eLyXer 1.0.2
+- updated to ImageMagick 6.6.4-8

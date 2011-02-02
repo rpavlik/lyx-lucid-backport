@@ -4,11 +4,11 @@
  * Licence details can be found in the file COPYING.
  *
  * \author Asger Alstrup
- * \author Lars Gullik Bjønnes
+ * \author Lars Gullik BjÃ¸nnes
  * \author Matthias Ettrich
  * \author Jean-Marc Lasgouttes
  * \author John Levon
- * \author André Pönitz
+ * \author AndrÃ© PÃ¶nitz
  * \author Martin Vermeer
  *
  * Full author contact details are available in file CREDITS.
@@ -19,6 +19,7 @@
 #include "Color.h"
 #include "ColorSet.h"
 
+#include "support/convert.h"
 #include "support/debug.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
@@ -84,6 +85,28 @@ RGBColor rgbFromHexName(string const & x11hexname)
 	return c;
 }
 
+string const outputLaTeXColor(RGBColor const & color)
+{
+	// this routine returns a LaTeX readable color string in the form
+	// "red, green, blue" where the colors are a number in the range 0-1 
+	int red = color.r;
+	int green = color.g;
+	int blue = color.b;
+	// the color values are given in the range of 0-255, so to get
+	// an output of "0.5" for the value 127 we need to do the following
+	if (red != 0)
+		++red;
+	if (green != 0)
+		++green;
+	if (blue != 0)
+		++blue;
+	string output;
+	output = convert<string>(float(red) / 256) + ", "
+			 + convert<string>(float(green) / 256) + ", "
+			 + convert<string>(float(blue) / 256);
+	return output;
+}
+
 
 Color::Color(ColorCode base_color) : baseColor(base_color), 
 	mergeColor(Color_ignore)
@@ -131,6 +154,7 @@ ColorSet::ColorSet()
 	char const * grey80 = "#cccccc";
 	//char const * grey90 = "#e5e5e5";
 	//  ColorCode, gui, latex, x11, lyx
+	// Warning: several of these entries are overridden in GuiApplication constructor
 	static ColorEntry const items[] = {
 	{ Color_none, N_("none"), "none", "black", "none" },
 	{ Color_black, N_("black"), "black", "black", "black" },
@@ -158,7 +182,9 @@ ColorSet::ColorSet()
 	{ Color_commentlabel, N_("comment label"), "comment", "magenta", "comment" },
 	{ Color_commentbg, N_("comment background"), "commentbg", "linen", "commentbg" },
 	{ Color_greyedoutlabel, N_("greyedout inset label"), "greyedout", "#ff0080", "greyedout" },
+	{ Color_greyedouttext, N_("greyedout inset text"), "greyedouttext", grey80, "greyedouttext" },
 	{ Color_greyedoutbg, N_("greyedout inset background"), "greyedoutbg", "linen", "greyedoutbg" },
+	{ Color_phantomtext, N_("phantom inset text"), "phantomtext", "#7f7f7f", "phantomtext" },
 	{ Color_shadedbg, N_("shaded box"), "shaded", "#ff0000", "shaded" },
 	{ Color_listingsbg, N_("listings background"), "listingsbg", "white", "listingsbg" },
 	{ Color_branchlabel, N_("branch label"), "branchlabel", "#c88000", "branchlabel" },
@@ -187,7 +213,6 @@ ColorSet::ColorSet()
 	{ Color_mathmacroblend, N_("math macro blended out"), "mathmacroblend", "black", "mathmacroblend" },
 	{ Color_mathmacrooldarg, N_("math macro old parameter"), "mathmacrooldarg", grey80, "mathmacrooldarg" },
 	{ Color_mathmacronewarg, N_("math macro new parameter"), "mathmacronewarg", "black", "mathmacronewarg" },
-	{ Color_captionframe, N_("caption frame"), "captionframe", "DarkRed", "captionframe" },
 	{ Color_collapsable, N_("collapsable inset text"), "collapsable", "DarkRed", "collapsable" },
 	{ Color_collapsableframe, N_("collapsable inset frame"), "collapsableframe", "IndianRed", "collapsableframe" },
 	{ Color_insetbg, N_("inset background"), "insetbg", grey80, "insetbg" },
@@ -205,7 +230,6 @@ ColorSet::ColorSet()
 	{ Color_changedtextauthor5, N_("changed text 5th author"), "changedtextauthor5", "#55aa00", "changedtextauthor5" },
 	{ Color_deletedtextmodifier, N_("deleted text modifier"), "deletedtextmodifier", "white", "deletedtextmodifier" },
 	{ Color_added_space, N_("added space markers"), "added_space", "Brown", "added_space" },
-	{ Color_topline, N_("top/bottom line"), "topline", "Brown", "topline" },
 	{ Color_tabularline, N_("table line"), "tabularline", "black", "tabularline" },
 	{ Color_tabularonoffline, N_("table on/off line"), "tabularonoffline",
 	     "LightSteelBlue", "tabularonoffline" },
@@ -216,7 +240,9 @@ ColorSet::ColorSet()
 	{ Color_buttonbg, N_("button background"), "buttonbg", "#dcd2c8", "buttonbg" },
 	{ Color_buttonhoverbg, N_("button background under focus"), "buttonhoverbg", "#C7C7CA", "buttonhoverbg" },
 	{ Color_paragraphmarker, N_("paragraph marker"), "paragraphmarker", grey80, "paragraphmarker"},
+	{ Color_previewframe, N_("preview frame"), "previewframe", "black", "previewframe"},
 	{ Color_inherit, N_("inherit"), "inherit", "black", "inherit" },
+	{ Color_regexpframe, N_("regexp frame"), "green", "green", "green" },
 	{ Color_ignore, N_("ignore"), "ignore", "black", "ignore" },
 	{ Color_ignore, 0, 0, 0, 0 }
 	};

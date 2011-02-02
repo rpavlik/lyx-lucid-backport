@@ -6,20 +6,14 @@
     <x>0</x>
     <y>0</y>
     <width>351</width>
-    <height>233</height>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout">
-   <property name="spacing">
-    <number>6</number>
-   </property>
-   <property name="margin">
-    <number>11</number>
-   </property>
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
     <widget class="QCheckBox" name="amsautoCB">
      <property name="toolTip">
       <string>The AMS LaTeX packages are only used if symbols from the AMS math toolbars are inserted into formulas</string>
@@ -32,7 +26,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="1" column="0">
     <widget class="QCheckBox" name="amsCB">
      <property name="toolTip">
       <string>The AMS LaTeX packages are always used</string>
@@ -42,7 +36,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="2" column="0">
     <widget class="QCheckBox" name="esintautoCB">
      <property name="toolTip">
       <string>The LaTeX package esint is only used if special integral symbols are inserted into formulas</string>
@@ -55,7 +49,7 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="3" column="0">
     <widget class="QCheckBox" name="esintCB">
      <property name="toolTip">
       <string>The LaTeX package esint is always used</string>
@@ -65,7 +59,50 @@
      </property>
     </widget>
    </item>
-   <item>
+   <item row="4" column="0">
+    <widget class="QCheckBox" name="mathdotsautoCB">
+     <property name="toolTip">
+      <string>The LaTeX package mathdots is only used if the command \iddots is inserted into formulas</string>
+     </property>
+     <property name="text">
+      <string>Use math&amp;dots package automatically</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QCheckBox" name="mathdotsCB">
+     <property name="toolTip">
+      <string>The LaTeX package mathdots is used</string>
+     </property>
+     <property name="text">
+      <string>Use mathdo&amp;ts package</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QCheckBox" name="mhchemautoCB">
+     <property name="toolTip">
+      <string>The LaTeX package mhchem is only used if either the command \ce or \cf is inserted into formulas</string>
+     </property>
+     <property name="text">
+      <string>Use mhchem &amp;package automatically</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QCheckBox" name="mhchemCB">
+     <property name="toolTip">
+      <string>The LaTeX package mhchem is always used</string>
+     </property>
+     <property name="text">
+      <string>Use mh&amp;chem package</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
     <spacer>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
