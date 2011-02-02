@@ -1,3 +1,10 @@
+lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
+
+  * Add texlive-generic-extra to the list of recommends, it's now required
+    to build the math manual.
+
+ -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
+
 lyx (2.0.0~beta3-1) experimental; urgency=low
 
   * New upstream release. (Closes: #606118)
