@@ -1,4 +1,4 @@
-lyx (2.0.0~beta3-1) UNRELEASED; urgency=low
+lyx (2.0.0~beta3-1) experimental; urgency=low
 
   * New upstream release. (Closes: #606118)
     + Includes the proposed fix for the PATH_MAX issue on GNU/Hurd.
@@ -14,7 +14,7 @@ lyx (2.0.0~beta3-1) UNRELEASED; urgency=low
     where we've no shebang line. Currently that's lyxsweave.R and
     included_bib.py.
 
- -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 17:35:52 +0100
+ -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 21:21:57 +0100
 
 lyx (1.6.7-1) unstable; urgency=low
 
