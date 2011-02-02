@@ -18,8 +18,8 @@ Build-Depends: libaiksaurus-dev, python-support,
 Package: lyx
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, lyx-common (= ${source:Version}), xdg-utils, mime-support
-Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-science, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, ttf-lyx, evince-gtk | pdf-viewer, librsvg2-bin | inkscape
-Suggests: rcs, dvipost, elyxer | tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf
+Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-science, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, ttf-lyx, evince-gtk | pdf-viewer
+Suggests: rcs, dvipost, elyxer | tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf, librsvg2-bin | inkscape
 Description: Document Processor
  LyX is an almost WYSIWYG-frontend for LaTeX. It makes the power and
  typesetting quality of LaTeX available for people who are used to
