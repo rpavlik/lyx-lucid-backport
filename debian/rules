@@ -77,6 +77,10 @@ override_dh_auto_install:
 		debian/lyx-common/etc/bash_completion.d/lyx
 	rm debian/lyx-common/usr/share/lyx/scripts/bash_completion
 
+# remove exec permissions on scripts without proper shebang
+	chmod -x debian/lyx-common/usr/share/lyx/scripts/lyxsweave.R
+	chmod -x debian/lyx-common/usr/share/lyx/scripts/include_bib.py
+
 override_dh_installdocs:
 	mkdir -p debian/lyx/usr/share/doc
 	ln -s lyx-common debian/lyx/usr/share/doc/lyx

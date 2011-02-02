@@ -8,6 +8,9 @@ lyx (2.0.0~beta3-1) UNRELEASED; urgency=low
   * Move 'librsvg2-bin | inkscape' down from recommends to suggests.
   * Drop our own bash_completion file and instead install the one
     provided by upstream in the correct location.
+  * Remove exec permissions on scripts installed in /usr/share/lyx/scripts/
+    where we've no shebang line. Currently that's lyxsweave.R and
+    included_bib.py.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 17:35:52 +0100
 
