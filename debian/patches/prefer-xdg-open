@@ -1,16 +1,16 @@
 Add xdg-open as the first choice whenever this seems to be usefull.
 --- a/lib/configure.py
 +++ b/lib/configure.py
-@@ -279,7 +279,7 @@ def checkFormatEntries(dtl_tools):
-     checkViewer('an SVG viewer and editor', ['inkscape'],
+@@ -458,7 +458,7 @@ def checkFormatEntries(dtl_tools):
+     checkViewerEditor('a SVG viewer and editor', ['inkscape'],
          rc_entry = [r'\Format svg        svg     SVG                    "" "%%" "%%"	"vector"'])
      #
--    path, iv = checkViewer('a raster image viewer', ['xv', 'kview', 'gimp-remote', 'gimp'])
-+    path, iv = checkViewer('a raster image viewer', ['xdg-open', 'xv', 'kview', 'gimp-remote', 'gimp'])
-     path, ie = checkViewer('a raster image editor', ['gimp-remote', 'gimp'])
-     addToRC(r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
+-    path, iv = checkViewerNoRC('a raster image viewer', ['xv', 'kview', 'gimp-remote', 'gimp'],
++    path, iv = checkViewerNoRC('a raster image viewer', ['xdg-open', 'xv', 'kview', 'gimp-remote', 'gimp'],
+         rc_entry = [r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
  \Format gif        gif     GIF                    "" "%s"	"%s"	""
-@@ -322,29 +322,29 @@ def checkFormatEntries(dtl_tools):
+ \Format jpg        jpg     JPEG                   "" "%s"	"%s"	""
+@@ -535,11 +535,11 @@ def checkFormatEntries(dtl_tools):
      #
      #checkProg('a Postscript interpreter', ['gs'],
      #  rc_entry = [ r'\ps_command "%%"' ])
@@ -18,17 +18,20 @@ Add xdg-open as the first choice whenever this seems to be usefull.
 +    checkViewer('a Postscript previewer', ['xdg-open', 'kghostview', 'okular', 'evince', 'gv', 'ghostview -swap'],
          rc_entry = [r'''\Format eps        eps     EPS                    "" "%%"	""	"vector"
  \Format ps         ps      Postscript             t  "%%"	""	"document,vector"'''])
-     #
+     # for xdg-open issues look here: http://www.mail-archive.com/lyx-devel@lists.lyx.org/msg151818.html
 -    checkViewer('a PDF previewer', ['kpdf', 'okular', 'evince', 'kghostview', 'xpdf', 'acrobat', 'acroread', \
 +    checkViewer('a PDF previewer', ['xdg-open', 'kpdf', 'okular', 'evince', 'kghostview', 'xpdf', 'acrobat', 'acroread', \
  		    'gv', 'ghostview'],
          rc_entry = [r'''\Format pdf        pdf    "PDF (ps2pdf)"          P  "%%"	""	"document,vector"
  \Format pdf2       pdf    "PDF (pdflatex)"        F  "%%"	""	"document,vector"
- \Format pdf3       pdf    "PDF (dvipdfm)"         m  "%%"	""	"document,vector"'''])
+@@ -547,24 +547,24 @@ def checkFormatEntries(dtl_tools):
+ \Format pdf4       pdf    "PDF (XeTeX)"           X  "%%"	""	"document,vector"
+ \Format pdf5       pdf    "PDF (LuaTeX)"          u  "%%"	""	"document,vector"'''])
      #
--    checkViewer('a DVI previewer', ['xdvi', 'kdvi', 'okular', 'dviout -Set=!m'],
-+    checkViewer('a DVI previewer', ['xdg-open', 'xdvi', 'kdvi', 'okular', 'dviout -Set=!m'],
-         rc_entry = [r'\Format dvi        dvi     DVI                    D  "%%"	""	"document,vector"'])
+-    checkViewer('a DVI previewer', ['xdvi', 'kdvi', 'okular', 'yap', 'dviout -Set=!m'],
++    checkViewer('a DVI previewer', ['xdg-open', 'xdvi', 'kdvi', 'okular', 'yap', 'dviout -Set=!m'],
+         rc_entry = [r'''\Format dvi        dvi     DVI                    D  "%%"	""	"document,vector"
+ \Format dvi3       dvi     "DVI (LuaTeX)"          V  "%%"	""	"document,vector"'''])
      if dtl_tools:
          # Windows only: DraftDVI
          addToRC(r'\Format dvi2       dvi     DraftDVI               ""	""	""	"vector"')
@@ -37,11 +40,16 @@ Add xdg-open as the first choice whenever this seems to be usefull.
 +    checkViewer('an HTML previewer', ['xdg-open', 'firefox', 'mozilla file://$$p$$i', 'netscape'],
          rc_entry = [r'\Format html       html    HTML                   H  "%%"	""	"document"'])
      #
-     checkViewer('Noteedit', ['noteedit'],
+     checkViewerEditor('Noteedit', ['noteedit'],
          rc_entry = [r'\Format noteedit   not     Noteedit               "" "%%"	"%%"	"vector"'])
      #
--    checkViewer('an OpenDocument viewer', ['swriter', 'oowriter'],
-+    checkViewer('an OpenDocument viewer', ['xdg-open', 'swriter', 'oowriter'],
-         rc_entry = [r'\Format odt        odt     OpenDocument           "" "%%"	"%%"	"document,vector"'])
+-    checkViewerEditor('an OpenDocument/OpenOffice viewer', ['swriter', 'oowriter', 'abiword'],
++    checkViewerEditor('an OpenDocument/OpenOffice viewer', ['xdg-open', 'swriter', 'oowriter', 'abiword'],
+         rc_entry = [r'''\Format odt        odt     OpenDocument           "" "%%"	"%%"	"document,vector"
+ \Format sxw        sxw    "OpenOffice.Org (sxw)"  "" ""	""	"document,vector"'''])
+     # 
+-    checkViewerEditor('a Rich Text and Word viewer', ['swriter', 'oowriter', 'abiword'],
++    checkViewerEditor('a Rich Text and Word viewer', ['xdg-open', 'swriter', 'oowriter', 'abiword'],
+         rc_entry = [r'''\Format rtf        rtf    "Rich Text Format"      "" "%%"	"%%"	"document,vector"
+ \Format word       doc    "MS Word"               W  "%%"	"%%"	"document,vector"'''])
      #
-     # entried that do not need checkProg
