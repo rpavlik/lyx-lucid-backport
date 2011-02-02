@@ -2,6 +2,7 @@ lyx (2.0.0~beta3-1) UNRELEASED; urgency=low
 
   * New upstream release
   * Refresh debian/patches/prefer-xdg-open.
+  * Disable debian/patches/fix-manpage-errors for the moment.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 17:35:52 +0100
 
