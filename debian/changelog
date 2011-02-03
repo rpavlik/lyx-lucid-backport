@@ -16,6 +16,8 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Add debian/source/local-options with option unapply-patches.
   * Remove dependency on mime-support. xdg-utils picks whatever
     mechanism is available.
+  * Switch source format to 3.0 (quilt) and remove quilt references in
+    rules and control.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 

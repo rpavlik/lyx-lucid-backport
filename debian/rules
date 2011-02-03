@@ -28,7 +28,7 @@ CONFIGURE_OPTIONS += \
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh --with quilt $@
+	dh $@
 
 override_dh_auto_configure:
 	set -e; if ! [ -f config/config.sub.backup ]; then \
