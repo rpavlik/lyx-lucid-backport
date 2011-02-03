@@ -18,7 +18,8 @@ CONFIGURE_OPTIONS += \
 	--enable-warnings \
 	--enable-nls \
 	--with-gnu-ld \
-	--without-pspell \
+	--without-aspell \
+	--without-hunspell \
 	--with-enchant \
 	--with-x \
 	--without-included-gettext \
