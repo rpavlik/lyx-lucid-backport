@@ -28,14 +28,9 @@ CONFIGURE_OPTIONS += \
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh $@
+	dh --with autotools_dev $@
 
 override_dh_auto_configure:
-	set -e; if ! [ -f config/config.sub.backup ]; then \
-		mv config/config.sub config/config.sub.backup; \
-		ln -s /usr/share/misc/config.sub config/config.sub; \
-	fi
-
 	test -d build-tree || mkdir build-tree
 	cd build-tree && ../configure $(CONFIGURE_OPTIONS)
 

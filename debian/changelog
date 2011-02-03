@@ -23,6 +23,8 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Switch source format to 3.0 (quilt) and remove quilt references in
     rules and control.
   * Compress debs with xz instead of bzip2.
+  * Use "dh --with autotools_dev" instead of replacing
+    config.{sub,guess} manually.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
