@@ -24,7 +24,6 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
     rules and control.
   * Use "dh --with autotools_dev" instead of replacing
     config.{sub,guess} manually.
-  * Un-version debhelper build dependency.
   * Use debhelper v8 compat mode.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
