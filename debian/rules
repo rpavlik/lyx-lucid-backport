@@ -39,8 +39,6 @@ override_dh_auto_build:
 
 override_dh_auto_clean:
 	! test -e build-tree || rm -r build-tree
-	! test -f config/config.sub.backup || \
-		mv config/config.sub.backup config/config.sub
 
 # clean out compiled python code left around after building
 	find lib -name '*.pyc' -exec rm -v {} \;
