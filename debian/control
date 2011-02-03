@@ -16,7 +16,7 @@ Build-Depends: python-support, debhelper (>= 7.0.50), quilt (>= 0.46-7~),
 
 Package: lyx
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, lyx-common (= ${source:Version}), xdg-utils, mime-support
+Depends: ${shlibs:Depends}, ${misc:Depends}, lyx-common (= ${source:Version}), xdg-utils
 Recommends: texlive-latex-recommended, texlive-latex-extra, texlive-science, texlive-generic-extra, texlive-fonts-recommended, preview-latex-style, dvipng, imagemagick, psutils, ghostscript, poppler-utils, ttf-lyx, evince-gtk | pdf-viewer
 Suggests: rcs, dvipost, elyxer | tex4ht | hevea | tth | latex2html, groff, libtiff-tools, gnuhtml2latex, wv, chktex, noweb, menu, sgmltools-lite, linuxdoc-tools, writer2latex, latex2rtf, librsvg2-bin | inkscape
 Description: Document Processor
