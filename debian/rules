@@ -28,7 +28,7 @@ CONFIGURE_OPTIONS += \
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh --with autotools_dev $@
+	dh $@ --with autotools_dev
 
 override_dh_auto_configure:
 	test -d build-tree || mkdir build-tree
