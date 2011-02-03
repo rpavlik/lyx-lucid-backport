@@ -1,50 +1,25 @@
 #!/usr/bin/make -f
 
-DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-
-ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
-	CONFIGURE_OPTIONS += --build $(DEB_HOST_GNU_TYPE)
-else
-	CONFIGURE_OPTIONS += --build $(DEB_BUILD_GNU_TYPE) \
-		--host $(DEB_HOST_GNU_TYPE)
-endif
-
-CONFIGURE_OPTIONS += \
-	--prefix=/usr \
-	--mandir=/usr/share/man \
-	--disable-dependency-tracking \
-	--disable-rpath \
-	--enable-warnings \
-	--enable-nls \
-	--with-gnu-ld \
-	--without-aspell \
-	--without-hunspell \
-	--with-enchant \
-	--with-x \
-	--without-included-gettext \
-	--without-included-boost \
-
 LDFLAGS += -Wl,-z,defs -Wl,--as-needed
 
 %:
-	dh $@ --with autotools_dev
+	dh $@ --with autotools_dev --builddirectory
 
 override_dh_auto_configure:
-	test -d build-tree || mkdir build-tree
-	cd build-tree && ../configure $(CONFIGURE_OPTIONS)
-
-override_dh_auto_build:
-	cd build-tree && $(MAKE)
-
-override_dh_auto_clean:
-	! test -e build-tree || rm -r build-tree
-
-# clean out compiled python code left around after building
-	find lib -name '*.pyc' -exec rm -v {} \;
+	dh_auto_configure -- \
+		--disable-rpath \
+		--enable-warnings \
+		--enable-nls \
+		--with-gnu-ld \
+		--without-aspell \
+		--without-hunspell \
+		--with-enchant \
+		--with-x \
+		--without-included-gettext \
+		--without-included-boost \
 
 override_dh_auto_install:
-	cd build-tree && $(MAKE) install DESTDIR=`pwd`/../debian/lyx-common
+	dh_auto_install --destdir=debian/lyx-common
 
 # move binaries to arch package
 	mkdir -p debian/lyx/usr/share

@@ -25,6 +25,7 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Use "dh --with autotools_dev" instead of replacing
     config.{sub,guess} manually.
   * Use debhelper v8 compat mode.
+  * Use dh_auto_* for building and cleaning.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
