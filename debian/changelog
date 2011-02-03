@@ -9,6 +9,7 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
     --without-pspell since it's no longer supported.
   * Remove debian/patches/fix-manpage-errors, applied upstream.
     Thanks Georg.
+  * Add debian/patches/hyphen-as-minus.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
