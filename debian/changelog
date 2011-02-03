@@ -4,6 +4,7 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
     to build the math manual.
   * Remove build-dependency on libaiksaurus-dev. LyX now supports
     OpenOffice.org mythes-* thesauruses.
+  * Update debian/copyright to include the MyThes license.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
