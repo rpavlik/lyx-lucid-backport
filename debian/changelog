@@ -7,6 +7,8 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Update debian/copyright to include the MyThes license.
   * Build explicitly --without-aspell and --without-hunspell. Drop
     --without-pspell since it's no longer supported.
+  * Remove debian/patches/fix-manpage-errors, applied upstream.
+    Thanks Georg.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
