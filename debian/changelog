@@ -12,6 +12,8 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
     Thanks Georg.
   * Add debian/patches/hyphen-as-minus.
   * Remove the latex-xft-fonts dummy package.
+  * Remove lyx-common.postinst, lyx-common.preinst, lyx.preinst. All
+    migrations supported within those scripts should be finished by now.
 
   [ Per Olofsson ]
   * Add debian/source/local-options with option unapply-patches.
