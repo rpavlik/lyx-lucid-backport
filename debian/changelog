@@ -14,6 +14,7 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Remove the latex-xft-fonts dummy package.
   * Remove lyx-common.postinst, lyx-common.preinst, lyx.preinst. All
     migrations supported within those scripts should be finished by now.
+  * Remove README.source - no longer needed with source format 3.0.
 
   [ Per Olofsson ]
   * Add debian/source/local-options with option unapply-patches.
