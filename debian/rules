@@ -94,4 +94,4 @@ override_dh_install:
 	dh_installdefoma -pttf-lyx
 
 override_dh_builddeb:
-	dh_builddeb -- -Z xz
+	dh_builddeb -- -Z bzip2
