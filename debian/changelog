@@ -1,5 +1,6 @@
 lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
 
+  [ Sven Hoexter ]
   * Add texlive-generic-extra to the list of recommends, it's now required
     to build the math manual.
   * Remove build-dependency on libaiksaurus-dev. LyX now supports
@@ -10,6 +11,9 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Remove debian/patches/fix-manpage-errors, applied upstream.
     Thanks Georg.
   * Add debian/patches/hyphen-as-minus.
+
+  [ Per Olofsson ]
+  * Add debian/source/local-options with option unapply-patches.
 
  -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
 
