@@ -20,7 +20,7 @@ http://www.lyx.org/trac/ticket/7278
  Thus, something like:
  .br
 -    lyx -batch -x "buffer-print printer default dvips" myfile.lyx
-+    lyx \-batch \-x "buffer-print printer default dvips" myfile.lyx
++    lyx \-batch \-x "buffer\-print printer default dvips" myfile.lyx
  .br
  will cause LyX to print myfile.lyx to the default printer, using dvips and
  the default print settings (which, of course, have to have been configured
