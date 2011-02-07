@@ -56,6 +56,7 @@ class ParIterator;
 class Text;
 class TocList;
 class XHTMLStream;
+class otexstream;
 
 namespace graphics { class PreviewLoader; }
 
@@ -464,7 +465,7 @@ public:
 	 *  \sa Buffer::writeLaTeXSource for the reason.
 	 *  \return the number of rows (\n's) of generated LaTeX code.
 	 */
-	virtual int latex(odocstream &, OutputParams const &) const { return 0; }
+	virtual int latex(otexstream &, OutputParams const &) const { return 0; }
 	/// returns true to override begin and end inset in file
 	virtual bool directWrite() const;
 	///
@@ -492,8 +493,9 @@ public:
 	virtual void initUnicodeMath() const {}
 
 	/// Add an entry to the TocList
-	/// pit is the ParConstIterator of the paragraph containing the inset
-	virtual void addToToc(DocIterator const &) {}
+	/// Pass a DocIterator that points at the paragraph containing
+	/// the inset
+	virtual void addToToc(DocIterator const &) const {}
 	/// Collect BibTeX information
 	virtual void collectBibKeys(InsetIterator const &) const {}
 	/// Update the counters of this inset and of its contents.

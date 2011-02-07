@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is part of lyx2lyx
 # -*- coding: utf-8 -*-
-# Copyright (C) 2010 The LyX team
+# Copyright (C) 2011 The LyX team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1571,7 +1571,7 @@ def convert_use_makebox(document):
       i = z
       continue
     document.body.insert(k + 1, "use_makebox 0")
-    i = z + 1
+    i = blay + 1 # not z + 1 (box insets may be nested)
 
 
 def revert_IEEEtran(document):
@@ -1978,9 +1978,16 @@ def revert_diagram(document):
     # only need to do it once!
     return
 
+chapters = ("amsbook", "book", "docbook-book", "elsart", "extbook", "extreport", 
+    "jbook", "jreport", "jsbook", "literate-book", "literate-report", "memoir", 
+    "mwbk", "mwrep", "recipebook", "report", "scrbook", "scrreprt", "svmono", 
+    "svmult", "tbook", "treport", "tufte-book")
 
 def convert_bibtex_clearpage(document):
   " insert a clear(double)page bibliographystyle if bibtotoc option is used "
+
+  if document.textclass not in chapters:
+    return
 
   i = find_token(document.header, '\\papersides', 0)
   sides = 0
@@ -2071,9 +2078,20 @@ def convert_passthru(document):
           document.warning("Can't find end of layout at line " + str(beg))
           beg += 1
           continue
+        document.warning(str(end))
+
         # we are now going to replace newline insets within this layout
         # by new instances of this layout. so we have repeated layouts
         # instead of newlines.
+
+        # first, though, we need to find out if the paragraph has any
+        # customization, so those can be propogated.
+        custom = []
+        i = beg + 1
+        while document.body[i].startswith("\\"):
+          custom.append(document.body[i])
+          i += 1
+
         ns = beg
         while True:
           ns = find_token(document.body, "\\begin_inset Newline newline", ns, end)
@@ -2086,13 +2104,14 @@ def convert_passthru(document):
             continue
           if document.body[ne + 1] == "":
             ne += 1
-          subst = ["\\end_layout", "", "\\begin_layout " + lay]
+          subst = ["\\end_layout", "", "\\begin_layout " + lay] + custom
           document.body[ns:ne + 1] = subst
           # now we need to adjust end, in particular, but might as well
           # do ns properly, too
-          newlines = (ne - ns) - len(subst)
+          newlines = (ne - ns) - len(subst) + len(custom)
           ns += newlines + 2
-          end += newlines + 1
+          end += newlines + 2
+
         # ok, we now want to find out if the next layout is the
         # same as this one. if so, we will insert an extra copy of it
         didit = False
@@ -2397,6 +2416,48 @@ def revert_labeling(document):
         document.body[i] = "\\begin_layout List"
 
 
+def revert_langpack(document):
+    " revert \\language_package parameter "
+    i = 0
+    i = find_token(document.header, "\\language_package", 0)
+    if i == -1:
+        document.warning("Malformed document. No \\language_package param!")
+        return
+
+    del document.header[i]
+
+
+def convert_langpack(document):
+    " Add \\language_package parameter "
+    i = find_token(document.header, "\language" , 0)
+    if i == -1:
+        document.warning("Malformed document. No \\language defined!")
+        return
+
+    document.header.insert(i + 1, "\\language_package default")
+
+
+def revert_tabularwidth(document):
+  i = 0
+  while True:
+    i = find_token(document.body, "\\begin_inset Tabular", i)
+    if i == -1:
+      return
+    j = find_end_of_inset(document.body, i)
+    if j == -1:
+      document.warning("Unable to find end of Tabular inset at line " + str(i))
+      i += 1
+      continue
+    i += 1
+    features = find_token(document.body, "<features", i, j)
+    if features == -1:
+      document.warning("Can't find any features in Tabular inset at line " + str(i))
+      i = j
+      continue
+    if document.body[features].find('alignment="tabularwidth"') != -1:
+      remove_option(document.body, features, 'tabularwidth')
+
+
 ##
 # Conversion hub
 #
@@ -2466,10 +2527,14 @@ convert = [[346, []],
            [407, []],
            [408, []],
            [409, [convert_use_xetex]],
-           [410, []]
+           [410, []],
+           [411, [convert_langpack]],
+           [412, []]
 ]
 
-revert =  [[409, [revert_labeling]],
+revert =  [[411, [revert_tabularwidth]],
+           [410, [revert_langpack]],
+           [409, [revert_labeling]],
            [408, [revert_use_xetex]],
            [407, [revert_script]],
            [406, [revert_multirowOffset]],

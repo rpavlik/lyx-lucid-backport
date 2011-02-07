@@ -65,7 +65,7 @@ private:
 	///
 	ColorCode backgroundColor(PainterInfo const &) const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -81,7 +81,7 @@ private:
 	///
 	docstring contextMenuName() const;
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	InsetBranchParams const & params() const { return params_; }
 	///

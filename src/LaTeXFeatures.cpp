@@ -60,6 +60,11 @@ namespace lyx {
 static docstring const lyx_def = from_ascii(
 	"\\providecommand{\\LyX}{L\\kern-.1667em\\lower.25em\\hbox{Y}\\kern-.125emX\\@}");
 
+static docstring const lyx_hyperref_def = from_ascii(
+	"\\providecommand{\\LyX}{\\texorpdfstring%\n"
+	"  {L\\kern-.1667em\\lower.25em\\hbox{Y}\\kern-.125emX\\@}\n"
+        "  {LyX}}");
+
 static docstring const noun_def = from_ascii(
 	"\\newcommand{\\noun}[1]{\\textsc{#1}}");
 
@@ -158,7 +163,9 @@ static docstring const tabularnewline_def = from_ascii(
 	
 static docstring const lyxgreyedout_def = from_ascii(
 	"%% The greyedout annotation environment\n"
-	"\\newenvironment{lyxgreyedout}{\\textcolor{note_fontcolor}\\bgroup}{\\egroup}\n");
+	"\\newenvironment{lyxgreyedout}\n"
+	"  {\\textcolor{note_fontcolor}\\bgroup\\ignorespaces}\n"
+	"  {\\ignorespacesafterend\\egroup}\n");
 
 // We want to omit the file extension for includegraphics, but this does not
 // work when the filename contains other dots.
@@ -287,20 +294,31 @@ bool LaTeXFeatures::useBabel() const
 {
 	if (usePolyglossia())
 		return false;
-	return (lyxrc.language_package_selection != LyXRC::LP_NONE)
-	        || (bufferParams().language->lang() != lyxrc.default_language
-	            && !bufferParams().language->babel().empty())
-	        || this->hasLanguages();
+	if (bufferParams().lang_package == "default")
+		return (lyxrc.language_package_selection != LyXRC::LP_NONE)
+			|| (bufferParams().language->lang() != lyxrc.default_language
+			    && !bufferParams().language->babel().empty())
+			|| this->hasLanguages();
+	return (bufferParams().lang_package != "none")
+		|| (bufferParams().language->lang() != lyxrc.default_language
+		    && !bufferParams().language->babel().empty())
+		|| this->hasLanguages();
 }
 
 
 bool LaTeXFeatures::usePolyglossia() const
 {
-	return (lyxrc.language_package_selection == LyXRC::LP_AUTO)
-	        && isRequired("polyglossia")
-	        && isAvailable("polyglossia")
-	        && !params_.documentClass().provides("babel")
-	        && this->hasPolyglossiaLanguages();
+	if (bufferParams().lang_package == "default")
+		return (lyxrc.language_package_selection == LyXRC::LP_AUTO)
+			&& isRequired("polyglossia")
+			&& isAvailable("polyglossia")
+			&& !params_.documentClass().provides("babel")
+			&& this->hasPolyglossiaLanguages();
+	return (bufferParams().lang_package == "auto")
+		&& isRequired("polyglossia")
+		&& isAvailable("polyglossia")
+		&& !params_.documentClass().provides("babel")
+		&& this->hasPolyglossiaLanguages();
 }
 
 
@@ -452,7 +470,7 @@ void LaTeXFeatures::useFloat(string const & name, bool subfloat)
 	// use the "H" modifier. This includes modified table and
 	// figure floats. (Lgb)
 	Floating const & fl = params_.documentClass().floats().getType(name);
-	if (!fl.floattype().empty() && fl.needsFloatPkg()) {
+	if (!fl.floattype().empty() && fl.usesFloatPkg()) {
 		require("float");
 	}
 }
@@ -576,7 +594,6 @@ char const * simplefeatures[] = {
 	"framed",
 	"soul",
 	"textcomp",
-	"fixltx2e",
 	"pmboxdraw",
 	"bbding",
 	"ifsym",
@@ -695,6 +712,12 @@ string const LaTeXFeatures::getPackages() const
 	// fontspec (in BufferParams)
 	if (!params_.useNonTeXFonts && !loadAMSPackages().empty())
 		packages << loadAMSPackages();
+
+	// fixltx2e must be loaded after amsthm, since amsthm produces an error with
+	// the redefined \[ command (bug 7233). Load is as early as possible, since
+	// other packages might profit from it.
+	if (mustProvide("fixltx2e"))
+		packages << "\\usepackage{fixltx2e}\n";
 
 	// wasysym is a simple feature, but it must be after amsmath if both
 	// are used
@@ -844,8 +867,12 @@ docstring const LaTeXFeatures::getMacros() const
 			macros << papersizepdf_def << '\n';
 	}
 
-	if (mustProvide("LyX"))
-		macros << lyx_def << '\n';
+	if (mustProvide("LyX")) {
+		if (isRequired("hyperref"))
+			macros << lyx_hyperref_def << '\n';
+		else
+			macros << lyx_def << '\n';
+	}
 
 	if (mustProvide("noun"))
 		macros << noun_def << '\n';
@@ -1281,7 +1308,7 @@ void LaTeXFeatures::getFloatDefinitions(odocstream & os) const
 		Floating const & fl = floats.getType(cit->first);
 
 		// For builtin floats we do nothing.
-		if (!fl.needsFloatPkg()) 
+		if (fl.isPredefined())
 			continue;
 
 		// We have to special case "table" and "figure"

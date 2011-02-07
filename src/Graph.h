@@ -13,6 +13,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+
 #include <list>
 #include <queue>
 #include <vector>
@@ -29,9 +30,9 @@ public:
 	///
 	typedef std::vector<int> EdgePath;
 	/// \return a vector of the vertices from which "to" can be reached
-	std::vector<int> const getReachableTo(int to, bool clear_visited);
+	EdgePath const getReachableTo(int to, bool clear_visited);
 	/// \return a vector of the vertices that can be reached from "from"
-	std::vector<int> const
+	EdgePath const
 		getReachable(int from, bool only_viewable, bool clear_visited);
 	/// can "from" be reached from "to"?
 	bool isReachable(int from, int to);
@@ -45,12 +46,7 @@ public:
 
 private:
 	///
-	bool bfs_init(int, bool clear_visited = true);
-	/// clears the paths from a previous search. should be
-	/// called before each new one.
-	void clearPaths();
-	/// used to recover a marked path 
-	void getMarkedPath(int from, int to, EdgePath & path);
+	bool bfs_init(int, bool clear_visited, std::queue<int> & Q);
 	/// these represent the arrows connecting the nodes of the graph.
 	/// this is the basic representation of the graph: as a bunch of 
 	/// arrows.
@@ -81,8 +77,6 @@ private:
 		std::vector<Arrow *> out_arrows;
 		/// used in the search routines
 		bool visited;
-		///
-		EdgePath path;
 	};
 	/// a container for the vertices
 	/// the index into the vector functions as the identifier by which
@@ -92,8 +86,7 @@ private:
 	/// of Format, this is easy, since the Format objects already have ints
 	/// as identifiers.)
 	std::vector<Vertex> vertices_;
-	///
-	std::queue<int> Q_;
+	
 	/// a counter that we use to assign id's to the arrows
 	/// FIXME This technique assumes a correspondence between the
 	/// ids of the arrows and ids associated with Converters that

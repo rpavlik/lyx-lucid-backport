@@ -67,7 +67,7 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = Color.$(OBJEXT) Counters.$(OBJEXT) Encoding.$(OBJEXT) \
 	FloatList.$(OBJEXT) Floating.$(OBJEXT) FontInfo.$(OBJEXT) \
-	InsetLayout.$(OBJEXT) Layout.$(OBJEXT) \
+	InsetLayout.$(OBJEXT) Layout.$(OBJEXT) LayoutFile.$(OBJEXT) \
 	LayoutModuleList.$(OBJEXT) lengthcommon.$(OBJEXT) \
 	Lexer.$(OBJEXT) ModuleList.$(OBJEXT) Spacing.$(OBJEXT) \
 	TextClass.$(OBJEXT)
@@ -376,7 +376,7 @@ SUFFIXES = .gch
 @USE_INCLUDED_BOOST_TRUE@BOOST_LIBS = $(top_builddir)/boost/liblyxboost.a
 @USE_INCLUDED_BOOST_FALSE@BOOST_REGEX = -lboost_regex$(BOOST_MT)
 @USE_INCLUDED_BOOST_FALSE@BOOST_SIGNALS = -lboost_signals$(BOOST_MT)
-EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
+EXTRA_DIST = TODO.txt tex2lyx.1in $(TEST_FILES) pch.h
 
 #noinst_LIBRARIES = libtexparser.a
 #
@@ -405,6 +405,7 @@ LINKED_FILES = \
 	../FontInfo.cpp \
 	../insets/InsetLayout.cpp \
 	../Layout.cpp \
+	../LayoutFile.cpp \
 	../LayoutModuleList.cpp \
 	../lengthcommon.cpp \
 	../Lexer.cpp \
@@ -527,6 +528,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FontInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InsetLayout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LayoutFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LayoutModuleList.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Lexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleList.Po@am__quote@
@@ -684,6 +686,22 @@ Layout.obj: ../Layout.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../Layout.cpp' object='Layout.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Layout.obj `if test -f '../Layout.cpp'; then $(CYGPATH_W) '../Layout.cpp'; else $(CYGPATH_W) '$(srcdir)/../Layout.cpp'; fi`
+
+LayoutFile.o: ../LayoutFile.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LayoutFile.o -MD -MP -MF $(DEPDIR)/LayoutFile.Tpo -c -o LayoutFile.o `test -f '../LayoutFile.cpp' || echo '$(srcdir)/'`../LayoutFile.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/LayoutFile.Tpo $(DEPDIR)/LayoutFile.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../LayoutFile.cpp' object='LayoutFile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LayoutFile.o `test -f '../LayoutFile.cpp' || echo '$(srcdir)/'`../LayoutFile.cpp
+
+LayoutFile.obj: ../LayoutFile.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LayoutFile.obj -MD -MP -MF $(DEPDIR)/LayoutFile.Tpo -c -o LayoutFile.obj `if test -f '../LayoutFile.cpp'; then $(CYGPATH_W) '../LayoutFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../LayoutFile.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/LayoutFile.Tpo $(DEPDIR)/LayoutFile.Po
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../LayoutFile.cpp' object='LayoutFile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LayoutFile.obj `if test -f '../LayoutFile.cpp'; then $(CYGPATH_W) '../LayoutFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../LayoutFile.cpp'; fi`
 
 LayoutModuleList.o: ../LayoutModuleList.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LayoutModuleList.o -MD -MP -MF $(DEPDIR)/LayoutModuleList.Tpo -c -o LayoutModuleList.o `test -f '../LayoutModuleList.cpp' || echo '$(srcdir)/'`../LayoutModuleList.cpp

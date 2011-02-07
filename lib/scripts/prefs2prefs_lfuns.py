@@ -20,16 +20,14 @@
 
 import sys, re
 
-current_format = 1
-
 ###########################################################
 #
 # Actual converter functions
 #
 # These accept a line as argument and should return a list:
 #  (bool, newline)
-# where the bool indicates whether we changed anything. In 
-# that case, one normally returns: (False, []).
+# where the bool indicates whether we changed anything. If not,
+# one normally returns: (False, []).
 
 no_match = (False, [])
 
@@ -49,7 +47,7 @@ def next_inset_toggle(line):
 
 
 def optional_insert(line):
-	return simple_renaming(line, "argument-insert", "optional-insert")
+	return simple_renaming(line, "optional-insert", "argument-insert")
 
 
 re_nm = re.compile(r'^(.*)notes-mutate\s+(\w+)\s+(\w+)(.*)$')

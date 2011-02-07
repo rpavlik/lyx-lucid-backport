@@ -6,7 +6,7 @@
 # ftp://ftp.agu.org/journals/latex/journals
 
 
-Format 30
+Format 33
 Input stdclass.inc
 
 SecNumDepth             4
@@ -18,9 +18,11 @@ EndPreamble
 
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
 NoStyle Subparagraph
+NoCounter subparagraph
 NoStyle Subparagraph*
 
 
@@ -184,7 +186,8 @@ Float
 	Extension             lof
 	NumberWithin          none
 	Style                 plain
-	NeedsFloatPkg         false
+	IsPredefined          true
+	UsesFloatPkg          false
 End
 
 
@@ -195,7 +198,8 @@ Float
 	Extension             lot
 	NumberWithin          none
 	Style                 Ruled
-	NeedsFloatPkg         false
+	IsPredefined          true
+	UsesFloatPkg          false
 End
 
 

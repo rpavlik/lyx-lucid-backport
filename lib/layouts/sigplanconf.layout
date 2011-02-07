@@ -13,7 +13,7 @@
 # ACM style files can be obtained at
 # http://www.acm.org/sigs/pubs/proceed/template.html
 
-Format 30
+Format 33
 
 Columns                 1
 Sides                   1
@@ -54,10 +54,13 @@ Input stdstarsections.inc
 
 # don't use the following styles
 NoStyle			Part
+NoCounter			part
 NoStyle			Part*
 NoStyle			Chapter
+NoCounter			chapter
 NoStyle			Chapter*
 NoStyle			Subparagraph
+NoCounter			subparagraph
 NoStyle			Subparagraph*
 
 

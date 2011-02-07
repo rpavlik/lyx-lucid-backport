@@ -10,7 +10,7 @@
 # Modified from  amsart.layout May '08 by Andrew Corrigan <acorriga@gmu.edu>
 
 
-Format 30
+Format 33
 Columns                 1
 Sides                   2
 PageStyle               Headers
@@ -337,8 +337,11 @@ Style Bibliography
 End
 
 NoStyle                 Chapter
+NoCounter                 chapter
 NoStyle                 Paragraph
+NoCounter                 paragraph
 NoStyle                 Subparagraph
+NoCounter                 subparagraph
 NoStyle                 Chapter*
 #NoStyle                Paragraph*
 #NoStyle                Subparagraph*

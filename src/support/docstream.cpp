@@ -13,6 +13,7 @@
 #include "support/docstream.h"
 #include "support/unicode.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -400,6 +401,121 @@ odocstream & operator<<(odocstream & os, char c)
 	return os;
 }
 #endif
+
+
+void otexstream::put(char_type const & c)
+{
+	if (protectspace_) {
+		if (!canbreakline_ && c == ' ')
+			os_ << "{}";
+		protectspace_ = false;
+	}
+	os_.put(c);
+	if (c == '\n') {
+		++lines_;
+		canbreakline_ = false;
+	} else
+		canbreakline_ = true;
+}
+
+
+BreakLine breakln;
+SafeBreakLine safebreakln;
+
+
+otexstream & operator<<(otexstream & ots, BreakLine)
+{
+	if (ots.canBreakLine()) {
+		ots.os().put('\n');
+		ots.canBreakLine(false);
+		ots.addLines(1);
+	}
+	ots.protectSpace(false);
+	return ots;
+}
+
+
+otexstream & operator<<(otexstream & ots, SafeBreakLine)
+{
+	if (ots.canBreakLine()) {
+		ots.os() << "%\n";
+		ots.canBreakLine(false);
+		ots.addLines(1);
+	}
+	ots.protectSpace(false);
+	return ots;
+}
+
+
+otexstream & operator<<(otexstream & ots, docstring const & s)
+{
+	size_t const len = s.length();
+
+	// Check whether there's something to output
+	if (len == 0)
+		return ots;
+
+	if (ots.protectSpace()) {
+		if (!ots.canBreakLine() && s[0] == ' ')
+			ots.os() << "{}";
+		ots.protectSpace(false);
+	}
+	ots.os() << s;
+	ots.addLines(count(s.begin(), s.end(), '\n'));
+	ots.canBreakLine(s[len - 1] != '\n');
+	return ots;
+}
+
+
+otexstream & operator<<(otexstream & ots, char const * s)
+{
+	size_t const len = strlen(s);
+
+	// Check whether there's something to output
+	if (len == 0)
+		return ots;
+
+	if (ots.protectSpace()) {
+		if (!ots.canBreakLine() && s[0] == ' ')
+			ots.os() << "{}";
+		ots.protectSpace(false);
+	}
+	ots.os() << s;
+	ots.addLines(count(s, s + len, '\n'));
+	ots.canBreakLine(s[len - 1] != '\n');
+	return ots;
+}
+
+
+otexstream & operator<<(otexstream & ots, char c)
+{
+	if (ots.protectSpace()) {
+		if (!ots.canBreakLine() && c == ' ')
+			ots.os() << "{}";
+		ots.protectSpace(false);
+	}
+	ots.os() << c;
+	if (c == '\n')
+		ots.addLines(1);
+	ots.canBreakLine(c != '\n');
+	return ots;
+}
+
+
+template <typename Type>
+otexstream & operator<<(otexstream & ots, Type value)
+{
+	ots.os() << value;
+	ots.canBreakLine(true);
+	ots.protectSpace(false);
+	return ots;
+}
+
+template otexstream & operator<< <SetEnc>(otexstream & os, SetEnc);
+template otexstream & operator<< <double>(otexstream &, double);
+template otexstream & operator<< <int>(otexstream &, int);
+template otexstream & operator<< <unsigned int>(otexstream &, unsigned int);
+template otexstream & operator<< <unsigned long>(otexstream &, unsigned long);
 
 }
 

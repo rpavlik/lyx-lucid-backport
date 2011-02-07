@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,2.0.0beta3,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,2.0.0beta4,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2011-01-10"])
+AC_SUBST(LYX_DATE, ["2011-02-07"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -222,7 +222,7 @@ real_pkgdatadir=`eval "echo \`eval \"echo \\\`eval \\\"echo ${pkgdatadir}\\\"\\\
 real_localedir=`eval "echo \`eval \"echo ${datadir}/locale\"\`"`
 VERSION_INFO="Configuration\n\
   Host type:                    ${host}\n\
-  Special build flags:          ${lyx_flags}\n\
+  Special build flags:         ${lyx_flags}\n\
   C   Compiler:                 ${CC} ${CC_VERSION}\n\
   C   Compiler LyX flags:       ${AM_CPPFLAGS} ${AM_CFLAGS}\n\
   C   Compiler flags:           ${CPPFLAGS} ${CFLAGS}\n\

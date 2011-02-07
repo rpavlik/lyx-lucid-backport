@@ -3,7 +3,7 @@
 # DocBook textclass definition file.
 # Author : Jose' Matos <jamatos@lyx.org>
 
-Format 30
+Format 33
 Input db_stdclass.inc
 
 Style Title
@@ -15,5 +15,8 @@ End
 
 # Exclude higher, or equal, sections:
 NoStyle Part
+NoCounter part
 NoStyle Chapter
+NoCounter chapter
 NoStyle Section
+NoCounter section

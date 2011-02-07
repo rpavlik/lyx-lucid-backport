@@ -100,13 +100,13 @@ am__liblyxsupport_a_SOURCES_DIST = FileMonitor.h FileMonitor.cpp \
 	ForkedCalls.h functional.h gettext.cpp gettext.h gzstream.cpp \
 	gzstream.h kill.cpp lassert.h lassert.cpp limited_stack.h \
 	lstrings.cpp lstrings.h lyxalgo.h lyxlib.h lyxtime.cpp \
-	lyxtime.h Messages.cpp Messages.h numpunct_lyx_char_type.h \
-	os.cpp os.h Path.cpp Path.h Package.cpp Package.h \
-	ProgressInterface.h qstring_helpers.cpp qstring_helpers.h \
-	regex.h socktools.cpp socktools.h strfwd.h Systemcall.cpp \
-	Systemcall.h SystemcallPrivate.h shared_ptr.h textutils.h \
-	Translator.h Timeout.cpp Timeout.h types.h userinfo.cpp \
-	userinfo.h unicode.cpp unicode.h weighted_btree.h \
+	lyxtime.h mutex.h mutex.cpp Messages.cpp Messages.h \
+	numpunct_lyx_char_type.h os.cpp os.h Path.cpp Path.h \
+	Package.cpp Package.h ProgressInterface.h qstring_helpers.cpp \
+	qstring_helpers.h regex.h socktools.cpp socktools.h strfwd.h \
+	Systemcall.cpp Systemcall.h SystemcallPrivate.h shared_ptr.h \
+	textutils.h Translator.h Timeout.cpp Timeout.h types.h \
+	userinfo.cpp userinfo.h unicode.cpp unicode.h weighted_btree.h \
 	mythes/mythes.cxx mythes/mythes.hxx mythes/license.readme \
 	AppleSpeller.h AppleSpeller.m linkback/LinkBack.h \
 	linkback/LinkBack.m linkback/LinkBackProxy.h \
@@ -121,11 +121,11 @@ am_liblyxsupport_a_OBJECTS = FileMonitor.$(OBJEXT) convert.$(OBJEXT) \
 	environment.$(OBJEXT) FileName.$(OBJEXT) filetools.$(OBJEXT) \
 	ForkedCalls.$(OBJEXT) gettext.$(OBJEXT) gzstream.$(OBJEXT) \
 	kill.$(OBJEXT) lassert.$(OBJEXT) lstrings.$(OBJEXT) \
-	lyxtime.$(OBJEXT) Messages.$(OBJEXT) os.$(OBJEXT) \
-	Path.$(OBJEXT) Package.$(OBJEXT) qstring_helpers.$(OBJEXT) \
-	socktools.$(OBJEXT) Systemcall.$(OBJEXT) Timeout.$(OBJEXT) \
-	userinfo.$(OBJEXT) unicode.$(OBJEXT) mythes.$(OBJEXT) \
-	$(am__objects_1)
+	lyxtime.$(OBJEXT) mutex.$(OBJEXT) Messages.$(OBJEXT) \
+	os.$(OBJEXT) Path.$(OBJEXT) Package.$(OBJEXT) \
+	qstring_helpers.$(OBJEXT) socktools.$(OBJEXT) \
+	Systemcall.$(OBJEXT) Timeout.$(OBJEXT) userinfo.$(OBJEXT) \
+	unicode.$(OBJEXT) mythes.$(OBJEXT) $(am__objects_1)
 liblyxsupport_a_OBJECTS = $(am_liblyxsupport_a_OBJECTS)
 am_check_convert_OBJECTS = check_convert.$(OBJEXT) boost.$(OBJEXT)
 check_convert_OBJECTS = $(am_check_convert_OBJECTS)
@@ -458,13 +458,13 @@ liblyxsupport_a_SOURCES = FileMonitor.h FileMonitor.cpp \
 	ForkedCalls.h functional.h gettext.cpp gettext.h gzstream.cpp \
 	gzstream.h kill.cpp lassert.h lassert.cpp limited_stack.h \
 	lstrings.cpp lstrings.h lyxalgo.h lyxlib.h lyxtime.cpp \
-	lyxtime.h Messages.cpp Messages.h numpunct_lyx_char_type.h \
-	os.cpp os.h Path.cpp Path.h Package.cpp Package.h \
-	ProgressInterface.h qstring_helpers.cpp qstring_helpers.h \
-	regex.h socktools.cpp socktools.h strfwd.h Systemcall.cpp \
-	Systemcall.h SystemcallPrivate.h shared_ptr.h textutils.h \
-	Translator.h Timeout.cpp Timeout.h types.h userinfo.cpp \
-	userinfo.h unicode.cpp unicode.h weighted_btree.h \
+	lyxtime.h mutex.h mutex.cpp Messages.cpp Messages.h \
+	numpunct_lyx_char_type.h os.cpp os.h Path.cpp Path.h \
+	Package.cpp Package.h ProgressInterface.h qstring_helpers.cpp \
+	qstring_helpers.h regex.h socktools.cpp socktools.h strfwd.h \
+	Systemcall.cpp Systemcall.h SystemcallPrivate.h shared_ptr.h \
+	textutils.h Translator.h Timeout.cpp Timeout.h types.h \
+	userinfo.cpp userinfo.h unicode.cpp unicode.h weighted_btree.h \
 	mythes/mythes.cxx mythes/mythes.hxx mythes/license.readme \
 	$(am__append_1)
 TESTS = \
@@ -579,6 +579,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lassert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lstrings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyxtime.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mutex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mythes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qstring_helpers.Po@am__quote@

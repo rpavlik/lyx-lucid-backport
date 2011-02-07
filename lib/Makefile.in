@@ -50,10 +50,10 @@ DIST_COMMON = $(dist_bind_DATA) $(dist_caexamples_DATA) \
 	$(dist_pkgdata_DATA) $(dist_pkgdata_PYTHON) \
 	$(dist_plexamples_DATA) $(dist_ptbind_DATA) \
 	$(dist_ptexamples_DATA) $(dist_roexamples_DATA) \
-	$(dist_ruexamples_DATA) $(dist_scripts_PYTHON) \
-	$(dist_skexamples_DATA) $(dist_slexamples_DATA) \
-	$(dist_srexamples_DATA) $(dist_svbind_DATA) \
-	$(dist_templates_DATA) $(dist_tex_DATA) \
+	$(dist_ruexamples_DATA) $(dist_scripts_DATA) \
+	$(dist_scripts_PYTHON) $(dist_skexamples_DATA) \
+	$(dist_slexamples_DATA) $(dist_srexamples_DATA) \
+	$(dist_svbind_DATA) $(dist_templates_DATA) $(dist_tex_DATA) \
 	$(dist_thesistemplates_DATA) $(dist_ui_DATA) \
 	$(dist_ukexamples_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/common.am
@@ -136,11 +136,12 @@ am__installdirs = "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(scriptsdir)" \
 	"$(DESTDIR)$(nlexamplesdir)" "$(DESTDIR)$(pkgdatadir)" \
 	"$(DESTDIR)$(plexamplesdir)" "$(DESTDIR)$(ptbinddir)" \
 	"$(DESTDIR)$(ptexamplesdir)" "$(DESTDIR)$(roexamplesdir)" \
-	"$(DESTDIR)$(ruexamplesdir)" "$(DESTDIR)$(skexamplesdir)" \
-	"$(DESTDIR)$(slexamplesdir)" "$(DESTDIR)$(srexamplesdir)" \
-	"$(DESTDIR)$(svbinddir)" "$(DESTDIR)$(templatesdir)" \
-	"$(DESTDIR)$(texdir)" "$(DESTDIR)$(thesistemplatesdir)" \
-	"$(DESTDIR)$(uidir)" "$(DESTDIR)$(ukexamplesdir)"
+	"$(DESTDIR)$(ruexamplesdir)" "$(DESTDIR)$(scriptsdir)" \
+	"$(DESTDIR)$(skexamplesdir)" "$(DESTDIR)$(slexamplesdir)" \
+	"$(DESTDIR)$(srexamplesdir)" "$(DESTDIR)$(svbinddir)" \
+	"$(DESTDIR)$(templatesdir)" "$(DESTDIR)$(texdir)" \
+	"$(DESTDIR)$(thesistemplatesdir)" "$(DESTDIR)$(uidir)" \
+	"$(DESTDIR)$(ukexamplesdir)"
 py_compile = $(top_srcdir)/config/py-compile
 DATA = $(dist_bind_DATA) $(dist_caexamples_DATA) $(dist_commands_DATA) \
 	$(dist_csexamples_DATA) $(dist_daexamples_DATA) \
@@ -157,9 +158,10 @@ DATA = $(dist_bind_DATA) $(dist_caexamples_DATA) $(dist_commands_DATA) \
 	$(dist_noinst_DATA) $(dist_pkgdata_DATA) \
 	$(dist_plexamples_DATA) $(dist_ptbind_DATA) \
 	$(dist_ptexamples_DATA) $(dist_roexamples_DATA) \
-	$(dist_ruexamples_DATA) $(dist_skexamples_DATA) \
-	$(dist_slexamples_DATA) $(dist_srexamples_DATA) \
-	$(dist_svbind_DATA) $(dist_templates_DATA) $(dist_tex_DATA) \
+	$(dist_ruexamples_DATA) $(dist_scripts_DATA) \
+	$(dist_skexamples_DATA) $(dist_slexamples_DATA) \
+	$(dist_srexamples_DATA) $(dist_svbind_DATA) \
+	$(dist_templates_DATA) $(dist_tex_DATA) \
 	$(dist_thesistemplates_DATA) $(dist_ui_DATA) \
 	$(dist_ukexamples_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
@@ -673,6 +675,7 @@ dist_examples_DATA = \
 	examples/chess-article.lyx \
 	examples/chessgame.lyx \
 	examples/docbook_article.lyx \
+	examples/enumitem.lyx \
 	examples/europeCV.lyx \
 	examples/example_lyxified.lyx \
 	examples/example_raw.lyx \
@@ -765,6 +768,7 @@ dist_images_DATA = \
 	images/buffer-write-as.png \
 	images/buffer-write.png \
 	images/build-program.png \
+	images/busy.gif \
 	images/change-accept.png \
 	images/change-next.png \
 	images/change-reject.png \
@@ -854,13 +858,17 @@ dist_images_DATA = \
 	images/split-view_horizontal.png \
 	images/split-view_vertical.png \
 	images/standard.png \
-	images/tabular-feature_m-align-center.png \
-	images/tabular-feature_m-align-left.png \
-	images/tabular-feature_m-align-right.png \
+	images/tabular-feature_align-decimal.png \
 	images/tabular-feature_append-column.png \
 	images/tabular-feature_append-row.png \
 	images/tabular-feature_delete-column.png \
 	images/tabular-feature_delete-row.png \
+	images/tabular-feature_m-align-center.png \
+	images/tabular-feature_m-align-left.png \
+	images/tabular-feature_m-align-right.png \
+	images/tabular-feature_m-valign-bottom.png \
+	images/tabular-feature_m-valign-middle.png \
+	images/tabular-feature_m-valign-top.png \
 	images/tabular-feature_multicolumn.png \
 	images/tabular-feature_multirow.png \
 	images/tabular-feature_set-all-lines.png \
@@ -875,9 +883,6 @@ dist_images_DATA = \
 	images/tabular-feature_toggle-rotate-cell.png \
 	images/tabular-feature_toggle-rotate-tabular.png \
 	images/tabular-feature_unset-all-lines.png \
-	images/tabular-feature_m-valign-bottom.png \
-	images/tabular-feature_m-valign-middle.png \
-	images/tabular-feature_m-valign-top.png \
 	images/tabular-insert.png \
 	images/thesaurus-entry.png \
 	images/toolbar-toggle_math.png \
@@ -1513,6 +1518,7 @@ dist_layouts_DATA = \
 	layouts/extreport.layout \
 	layouts/figs-within-sections.module \
 	layouts/fixltx2e.module \
+	layouts/fix-cm.module \
 	layouts/foils.layout \
 	layouts/foottoend.module \
 	layouts/frletter.layout \
@@ -1633,9 +1639,12 @@ dist_layouts_DATA = \
 	layouts/tufte-handout.layout
 
 scriptsdir = $(pkgdatadir)/scripts
+dist_scripts_DATA = \
+	scripts/bash_completion \
+	scripts/lyxsweave.R
+
 # Note that we "chmod 755" manually these files in install-data-hook.
 dist_scripts_PYTHON = \
-	scripts/bash_completion \
 	scripts/clean_dvi.py \
 	scripts/convertDefault.py \
 	scripts/csv2lyx.py \
@@ -1649,11 +1658,11 @@ dist_scripts_PYTHON = \
 	scripts/layout2layout.py \
 	scripts/legacy_lyxpreview2ppm.py \
 	scripts/listerrors \
+	scripts/lyxpak.py \
 	scripts/lyxpreview2bitmap.py \
 	scripts/lyxpreview-lytex2bitmap.py \
 	scripts/lyxpreview-platex2bitmap.py \
 	scripts/lyxpreview_tools.py \
-	scripts/lyxsweave.R \
 	scripts/prefs2prefs.py \
 	scripts/prefs2prefs_lfuns.py \
 	scripts/prefs2prefs_prefs.py \
@@ -2500,6 +2509,26 @@ uninstall-dist_ruexamplesDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(ruexamplesdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(ruexamplesdir)" && rm -f $$files
+install-dist_scriptsDATA: $(dist_scripts_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(scriptsdir)" || $(MKDIR_P) "$(DESTDIR)$(scriptsdir)"
+	@list='$(dist_scripts_DATA)'; test -n "$(scriptsdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(scriptsdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(scriptsdir)" || exit $$?; \
+	done
+
+uninstall-dist_scriptsDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_scripts_DATA)'; test -n "$(scriptsdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(scriptsdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(scriptsdir)" && rm -f $$files
 install-dist_skexamplesDATA: $(dist_skexamples_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(skexamplesdir)" || $(MKDIR_P) "$(DESTDIR)$(skexamplesdir)"
@@ -2879,7 +2908,7 @@ check: check-recursive
 all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(scriptsdir)" "$(DESTDIR)$(binddir)" "$(DESTDIR)$(caexamplesdir)" "$(DESTDIR)$(commandsdir)" "$(DESTDIR)$(csexamplesdir)" "$(DESTDIR)$(daexamplesdir)" "$(DESTDIR)$(debinddir)" "$(DESTDIR)$(deexamplesdir)" "$(DESTDIR)$(elexamplesdir)" "$(DESTDIR)$(esexamplesdir)" "$(DESTDIR)$(euexamplesdir)" "$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(faexamplesdir)" "$(DESTDIR)$(fibinddir)" "$(DESTDIR)$(fontsdir)" "$(DESTDIR)$(frexamplesdir)" "$(DESTDIR)$(glexamplesdir)" "$(DESTDIR)$(heexamplesdir)" "$(DESTDIR)$(huexamplesdir)" "$(DESTDIR)$(idexamplesdir)" "$(DESTDIR)$(imagesdir)" "$(DESTDIR)$(imagescommandsdir)" "$(DESTDIR)$(imagesmathdir)" "$(DESTDIR)$(itexamplesdir)" "$(DESTDIR)$(jaexamplesdir)" "$(DESTDIR)$(kbddir)" "$(DESTDIR)$(layoutsdir)" "$(DESTDIR)$(nlexamplesdir)" "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(plexamplesdir)" "$(DESTDIR)$(ptbinddir)" "$(DESTDIR)$(ptexamplesdir)" "$(DESTDIR)$(roexamplesdir)" "$(DESTDIR)$(ruexamplesdir)" "$(DESTDIR)$(skexamplesdir)" "$(DESTDIR)$(slexamplesdir)" "$(DESTDIR)$(srexamplesdir)" "$(DESTDIR)$(svbinddir)" "$(DESTDIR)$(templatesdir)" "$(DESTDIR)$(texdir)" "$(DESTDIR)$(thesistemplatesdir)" "$(DESTDIR)$(uidir)" "$(DESTDIR)$(ukexamplesdir)"; do \
+	for dir in "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(scriptsdir)" "$(DESTDIR)$(binddir)" "$(DESTDIR)$(caexamplesdir)" "$(DESTDIR)$(commandsdir)" "$(DESTDIR)$(csexamplesdir)" "$(DESTDIR)$(daexamplesdir)" "$(DESTDIR)$(debinddir)" "$(DESTDIR)$(deexamplesdir)" "$(DESTDIR)$(elexamplesdir)" "$(DESTDIR)$(esexamplesdir)" "$(DESTDIR)$(euexamplesdir)" "$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(faexamplesdir)" "$(DESTDIR)$(fibinddir)" "$(DESTDIR)$(fontsdir)" "$(DESTDIR)$(frexamplesdir)" "$(DESTDIR)$(glexamplesdir)" "$(DESTDIR)$(heexamplesdir)" "$(DESTDIR)$(huexamplesdir)" "$(DESTDIR)$(idexamplesdir)" "$(DESTDIR)$(imagesdir)" "$(DESTDIR)$(imagescommandsdir)" "$(DESTDIR)$(imagesmathdir)" "$(DESTDIR)$(itexamplesdir)" "$(DESTDIR)$(jaexamplesdir)" "$(DESTDIR)$(kbddir)" "$(DESTDIR)$(layoutsdir)" "$(DESTDIR)$(nlexamplesdir)" "$(DESTDIR)$(pkgdatadir)" "$(DESTDIR)$(plexamplesdir)" "$(DESTDIR)$(ptbinddir)" "$(DESTDIR)$(ptexamplesdir)" "$(DESTDIR)$(roexamplesdir)" "$(DESTDIR)$(ruexamplesdir)" "$(DESTDIR)$(scriptsdir)" "$(DESTDIR)$(skexamplesdir)" "$(DESTDIR)$(slexamplesdir)" "$(DESTDIR)$(srexamplesdir)" "$(DESTDIR)$(svbinddir)" "$(DESTDIR)$(templatesdir)" "$(DESTDIR)$(texdir)" "$(DESTDIR)$(thesistemplatesdir)" "$(DESTDIR)$(uidir)" "$(DESTDIR)$(ukexamplesdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2947,11 +2976,12 @@ install-data-am: install-dist_bindDATA install-dist_caexamplesDATA \
 	install-dist_pkgdataPYTHON install-dist_plexamplesDATA \
 	install-dist_ptbindDATA install-dist_ptexamplesDATA \
 	install-dist_roexamplesDATA install-dist_ruexamplesDATA \
-	install-dist_scriptsPYTHON install-dist_skexamplesDATA \
-	install-dist_slexamplesDATA install-dist_srexamplesDATA \
-	install-dist_svbindDATA install-dist_templatesDATA \
-	install-dist_texDATA install-dist_thesistemplatesDATA \
-	install-dist_uiDATA install-dist_ukexamplesDATA
+	install-dist_scriptsDATA install-dist_scriptsPYTHON \
+	install-dist_skexamplesDATA install-dist_slexamplesDATA \
+	install-dist_srexamplesDATA install-dist_svbindDATA \
+	install-dist_templatesDATA install-dist_texDATA \
+	install-dist_thesistemplatesDATA install-dist_uiDATA \
+	install-dist_ukexamplesDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-recursive
@@ -3013,12 +3043,12 @@ uninstall-am: uninstall-dist_bindDATA uninstall-dist_caexamplesDATA \
 	uninstall-dist_pkgdataDATA uninstall-dist_pkgdataPYTHON \
 	uninstall-dist_plexamplesDATA uninstall-dist_ptbindDATA \
 	uninstall-dist_ptexamplesDATA uninstall-dist_roexamplesDATA \
-	uninstall-dist_ruexamplesDATA uninstall-dist_scriptsPYTHON \
-	uninstall-dist_skexamplesDATA uninstall-dist_slexamplesDATA \
-	uninstall-dist_srexamplesDATA uninstall-dist_svbindDATA \
-	uninstall-dist_templatesDATA uninstall-dist_texDATA \
-	uninstall-dist_thesistemplatesDATA uninstall-dist_uiDATA \
-	uninstall-dist_ukexamplesDATA
+	uninstall-dist_ruexamplesDATA uninstall-dist_scriptsDATA \
+	uninstall-dist_scriptsPYTHON uninstall-dist_skexamplesDATA \
+	uninstall-dist_slexamplesDATA uninstall-dist_srexamplesDATA \
+	uninstall-dist_svbindDATA uninstall-dist_templatesDATA \
+	uninstall-dist_texDATA uninstall-dist_thesistemplatesDATA \
+	uninstall-dist_uiDATA uninstall-dist_ukexamplesDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-data-am install-strip tags-recursive
@@ -3045,18 +3075,19 @@ uninstall-am: uninstall-dist_bindDATA uninstall-dist_caexamplesDATA \
 	install-dist_pkgdataPYTHON install-dist_plexamplesDATA \
 	install-dist_ptbindDATA install-dist_ptexamplesDATA \
 	install-dist_roexamplesDATA install-dist_ruexamplesDATA \
-	install-dist_scriptsPYTHON install-dist_skexamplesDATA \
-	install-dist_slexamplesDATA install-dist_srexamplesDATA \
-	install-dist_svbindDATA install-dist_templatesDATA \
-	install-dist_texDATA install-dist_thesistemplatesDATA \
-	install-dist_uiDATA install-dist_ukexamplesDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
-	tags-recursive uninstall uninstall-am uninstall-dist_bindDATA \
+	install-dist_scriptsDATA install-dist_scriptsPYTHON \
+	install-dist_skexamplesDATA install-dist_slexamplesDATA \
+	install-dist_srexamplesDATA install-dist_svbindDATA \
+	install-dist_templatesDATA install-dist_texDATA \
+	install-dist_thesistemplatesDATA install-dist_uiDATA \
+	install-dist_ukexamplesDATA install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-dist_bindDATA \
 	uninstall-dist_caexamplesDATA uninstall-dist_commandsDATA \
 	uninstall-dist_csexamplesDATA uninstall-dist_daexamplesDATA \
 	uninstall-dist_debindDATA uninstall-dist_deexamplesDATA \
@@ -3073,12 +3104,12 @@ uninstall-am: uninstall-dist_bindDATA uninstall-dist_caexamplesDATA \
 	uninstall-dist_pkgdataDATA uninstall-dist_pkgdataPYTHON \
 	uninstall-dist_plexamplesDATA uninstall-dist_ptbindDATA \
 	uninstall-dist_ptexamplesDATA uninstall-dist_roexamplesDATA \
-	uninstall-dist_ruexamplesDATA uninstall-dist_scriptsPYTHON \
-	uninstall-dist_skexamplesDATA uninstall-dist_slexamplesDATA \
-	uninstall-dist_srexamplesDATA uninstall-dist_svbindDATA \
-	uninstall-dist_templatesDATA uninstall-dist_texDATA \
-	uninstall-dist_thesistemplatesDATA uninstall-dist_uiDATA \
-	uninstall-dist_ukexamplesDATA
+	uninstall-dist_ruexamplesDATA uninstall-dist_scriptsDATA \
+	uninstall-dist_scriptsPYTHON uninstall-dist_skexamplesDATA \
+	uninstall-dist_slexamplesDATA uninstall-dist_srexamplesDATA \
+	uninstall-dist_svbindDATA uninstall-dist_templatesDATA \
+	uninstall-dist_texDATA uninstall-dist_thesistemplatesDATA \
+	uninstall-dist_uiDATA uninstall-dist_ukexamplesDATA
 
 @LYX_BUILD_PCH_TRUE@sinclude ./pch.h.gch.dep
 

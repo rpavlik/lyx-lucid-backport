@@ -1,6 +1,6 @@
 # Reference prefixes for theorem environments
 
-Format 30
+Format 33
 
 IfStyle Theorem
 	RefPrefix thm

@@ -113,14 +113,14 @@ void InsetFloatList::read(Lexer & lex)
 }
 
 
-int InsetFloatList::latex(odocstream & os, OutputParams const &) const
+int InsetFloatList::latex(otexstream & os, OutputParams const &) const
 {
 	FloatList const & floats = buffer().params().documentClass().floats();
 	FloatList::const_iterator cit = floats[to_ascii(getParam("type"))];
 
 	if (cit != floats.end()) {
 		Floating const & fl = cit->second;
-		if (fl.needsFloatPkg())
+		if (fl.usesFloatPkg())
 			os << "\\listof{" << getParam("type") << "}{"
 			   << buffer().B_(fl.listName()) << "}\n"; 
 		else {
@@ -167,7 +167,7 @@ docstring InsetFloatList::xhtml(XHTMLStream &, OutputParams const &) const {
 	// If so, then they should define ListName, as non-builtin floats do, and
 	// then we can use that. 
 	// Really, all floats should define that.
-	if (!cit->second.needsFloatPkg()) {
+	if (cit->second.isPredefined()) {
 		// Only two different types allowed here:
 		string const type = cit->second.floattype();
 		if (type == "table") {

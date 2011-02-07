@@ -5,10 +5,11 @@
 # to be used with the spie.cls LaTex-style available at
 # http://public.lanl.gov/kmh/spie/
 
-Format 30
+Format 33
 Input stdclass.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
 PageStyle               empty

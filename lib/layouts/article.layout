@@ -5,13 +5,14 @@
 # Transposed by Pascal André <andre@via.ecp.fr>
 # Heavily modifed and enhanced by serveral developers.
 
-Format 30
+Format 33
 Input stdclass.inc
 
 SecNumDepth             3
 TocDepth                3
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
 

@@ -104,13 +104,13 @@ void InsetCaption::setCustomLabel(docstring const & label)
 }
 
 
-void InsetCaption::addToToc(DocIterator const & cpit)
+void InsetCaption::addToToc(DocIterator const & cpit) const
 {
 	if (type_.empty())
 		return;
 
 	DocIterator pit = cpit;
-	pit.push_back(CursorSlice(*this));
+	pit.push_back(CursorSlice(const_cast<InsetCaption &>(*this)));
 
 	Toc & toc = buffer().tocBackend().toc(type_);
 	docstring str = full_label_ + ". ";
@@ -228,7 +228,7 @@ bool InsetCaption::getStatus(Cursor & cur, FuncRequest const & cmd,
 }
 
 
-int InsetCaption::latex(odocstream & os,
+int InsetCaption::latex(otexstream & os,
 			OutputParams const & runparams_in) const
 {
 	if (runparams_in.inFloat == OutputParams::SUBFLOAT)
@@ -290,14 +290,14 @@ docstring InsetCaption::xhtml(XHTMLStream & xs, OutputParams const & rp) const
 }
 
 
-int InsetCaption::getArgument(odocstream & os,
+int InsetCaption::getArgument(otexstream & os,
 			OutputParams const & runparams) const
 {
 	return InsetText::latex(os, runparams);
 }
 
 
-int InsetCaption::getOptArg(odocstream & os,
+int InsetCaption::getOptArg(otexstream & os,
 			OutputParams const & runparams) const
 {
 	return latexArgInsets(paragraphs()[0], os, runparams, 0, 1);

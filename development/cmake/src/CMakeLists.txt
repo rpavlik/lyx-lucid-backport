@@ -1,7 +1,7 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006, Peter Kümmel, <syntheticpp@gmx.net>
+# Copyright (c) 2006-2011 Peter Kümmel, <syntheticpp@gmx.net>
 #
 
 set(_lyx ${PACKAGE_BASE}${PROGRAM_SUFFIX})
@@ -16,7 +16,7 @@ add_subdirectory(mathed)
 add_subdirectory(support)
 add_subdirectory(tex2lyx)
 if (UNIX)
-  add_subdirectory(client)
+	add_subdirectory(client)
 endif()
 
 file(GLOB lyx_sources ${TOP_SRC_DIR}/src/${LYX_CPP_FILES})
@@ -63,8 +63,8 @@ endif()
 
 
 lyx_automoc(${TOP_SRC_DIR}/src/Compare.cpp)
-if (WIN32)
-  lyx_automoc(${TOP_SRC_DIR}/src/Server.cpp)
+if(WIN32)
+	lyx_automoc(${TOP_SRC_DIR}/src/Server.cpp)
 endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
@@ -95,31 +95,10 @@ if(WIN32)
 	message(STATUS "Using icon defined in resource file: ${FILE_RC}")
 endif()
 
-if(MSVC_IDE)
-	file(GLOB info_files ${TOP_SRC_DIR}/*)
-	set(lyx_info_files)
-	foreach(_it ${info_files})
-		if(NOT IS_DIRECTORY ${_it})
-			set_source_files_properties(${_it} PROPERTIES HEADER_FILE_ONLY TRUE)
-			set(lyx_info_files ${lyx_info_files} ${_it})
-		endif()
-	endforeach()
-	source_group(LyXInfoFiles FILES ${lyx_info_files})
-	
-	file(GLOB cmake_files1 ${TOP_SRC_DIR}/development/cmake/*)
-	file(GLOB cmake_files2 ${TOP_SRC_DIR}/development/cmake/modules/*)
-	set(lyx_cmake_files)
-	foreach(_it ${cmake_files1} ${cmake_files2})
-		if(NOT IS_DIRECTORY ${_it})
-			get_filename_component(name ${_it} NAME)
-			if(NOT name STREQUAL CMakeLists.txt AND NOT ${_it} MATCHES "^/\\\\..*$;~$")
-				set_source_files_properties(${_it} PROPERTIES HEADER_FILE_ONLY TRUE)
-				set(lyx_cmake_files ${lyx_cmake_files} ${_it})
-			endif()
-		endif()
-	endforeach()
-	source_group(LyXCMakeFiles FILES ${lyx_cmake_files})
-endif()
+lyx_find_info_files(LyXInfoFiles ${TOP_SRC_DIR}/*)
+lyx_find_info_files(LyXCMakeFiles ${TOP_SRC_DIR}/development/cmake/*)
+lyx_find_info_files(LyXCMakeFiles ${TOP_SRC_DIR}/development/cmake/modules/*)
+lyx_find_info_files(LyXUiFiles ${TOP_SRC_DIR}/lib/ui/*)
 
 add_executable(${_lyx}
 	${WIN32_CONSOLE}
@@ -145,23 +124,23 @@ target_link_libraries(${_lyx}
 	${QT_QTMAIN_LIBRARY}
 	${vld_dll})
 
-if (HUNSPELL_FOUND)
-        target_link_libraries(${_lyx} ${HUNSPELL_LIBRARY})
+if(HUNSPELL_FOUND)
+	target_link_libraries(${_lyx} ${HUNSPELL_LIBRARY})
 endif()
-if (ASPELL_FOUND)
+if(ASPELL_FOUND)
 	target_link_libraries(${_lyx} ${ASPELL_LIBRARY})
 endif()
-if (ENCHANT_FOUND)
-    target_link_libraries(${_lyx} ${ENCHANT_LIBRARY})
+if(ENCHANT_FOUND)
+	target_link_libraries(${_lyx} ${ENCHANT_LIBRARY})
 endif()
 
-if (APPLE)
-  target_link_libraries(${_lyx} "-bind_at_load")
-  target_link_libraries(${_lyx} "-framework Carbon")
+if(APPLE)
+	target_link_libraries(${_lyx} "-bind_at_load")
+	target_link_libraries(${_lyx} "-framework Carbon")
 endif()
 
-if (MINGW)
-  target_link_libraries(${_lyx} ole32)
+if(MINGW)
+	target_link_libraries(${_lyx} ole32)
 endif()
 
 project_source_group("${GROUP_CODE}" lyx_sources lyx_headers)

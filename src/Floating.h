@@ -34,7 +34,7 @@ public:
 		 std::string const & listName, std::string const & listCmd,
 		 std::string const & refPrefix,
 		 std::string const & htmlType, std::string const & htmlClass, 
-		 std::string const & htmlStyle, bool builtin = false);
+		 std::string const & htmlStyle, bool usesfloat, bool isprefined);
 	///
 	std::string const & floattype() const { return floattype_; }
 	///
@@ -50,13 +50,16 @@ public:
 	/// the title of a list of this kind of float
 	std::string const & listName() const { return listname_; }
 	/// the command used to generate that list. this has to be given
-	/// if needsFloatPkg() is false. note that this should not contain
+	/// if usesFloatPkg() is false, unless this float uses the same
+	/// auxfile as another defined previously. this should not contain
 	/// the leading "\".
 	std::string const & listCommand() const { return listcommand_; }
 	/// prefix to use for formatted references to such floats
 	std::string const & refPrefix() const { return refprefix_; }
 	///
-	bool needsFloatPkg() const { return needsfloatpkg_; }
+	bool usesFloatPkg() const { return usesfloatpkg_; }
+	///
+	bool isPredefined() const { return ispredefined_; }
 	/// style information, for preamble
 	std::string const & htmlStyle() const { return html_style_; }
 	/// class, for css, defaults to "float-" + type()
@@ -85,7 +88,9 @@ private:
 	///
 	std::string refprefix_;
 	///
-	bool needsfloatpkg_;
+	bool usesfloatpkg_;
+	///
+	bool ispredefined_;
 	/// 
 	mutable std::string html_tag_;
 	/// 

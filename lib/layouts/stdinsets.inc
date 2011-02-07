@@ -4,7 +4,7 @@
 #
 # Detailled format description is available in the customization manual
 
-Format 30
+Format 33
 
 Provides stdinsets 1
 
@@ -86,6 +86,7 @@ InsetLayout Note:Comment
 	  Size                Small
 	EndFont
 	MultiPar              true
+	Display               false
 	HTMLTag               !--
 	HTMLIsBlock           false
 End
@@ -119,6 +120,7 @@ InsetLayout Note:Greyedout
 	  Size                Small
 	EndFont
 	MultiPar              true
+	Display               false
 	HTMLStyle
 		div.note_greyedout { 
 			display: inline;

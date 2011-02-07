@@ -136,7 +136,7 @@ docstring InsetRef::getEscapedLabel(OutputParams const & rp) const
 }
 
 
-int InsetRef::latex(odocstream & os, OutputParams const & rp) const
+int InsetRef::latex(otexstream & os, OutputParams const & rp) const
 {
 	string const cmd = getCmdName();
 	if (cmd != "formatted") {
@@ -280,7 +280,7 @@ void InsetRef::updateBuffer(ParIterator const & it, UpdateType)
 }
 
 
-void InsetRef::addToToc(DocIterator const & cpit)
+void InsetRef::addToToc(DocIterator const & cpit) const
 {
 	docstring const & label = getParam("reference");
 	if (buffer().insetLabel(label))

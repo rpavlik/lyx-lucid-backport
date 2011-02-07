@@ -203,7 +203,7 @@ bool InsetBranch::isBranchSelected() const
 }
 
 
-int InsetBranch::latex(odocstream & os, OutputParams const & runparams) const
+int InsetBranch::latex(otexstream & os, OutputParams const & runparams) const
 {
 	return isBranchSelected() ?  InsetText::latex(os, runparams) : 0;
 }
@@ -294,10 +294,10 @@ void InsetBranch::string2params(string const & in, InsetBranchParams & params)
 }
 
 
-void InsetBranch::addToToc(DocIterator const & cpit)
+void InsetBranch::addToToc(DocIterator const & cpit) const
 {
 	DocIterator pit = cpit;
-	pit.push_back(CursorSlice(*this));
+	pit.push_back(CursorSlice(const_cast<InsetBranch &>(*this)));
 
 	Toc & toc = buffer().tocBackend().toc("branch");
 	docstring str = params_.branch + ": ";

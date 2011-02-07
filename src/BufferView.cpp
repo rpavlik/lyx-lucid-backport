@@ -700,6 +700,7 @@ CursorStatus BufferView::cursorStatus(DocIterator const & dit) const
 
 void BufferView::bookmarkEditPosition()
 {
+	d->cursor_.markEditPosition();
 	// Don't eat cpu time for each keystroke
 	if (d->cursor_.paragraph().id() == d->bookmark_edit_position_)
 		return;
@@ -1125,7 +1126,7 @@ bool BufferView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		if (cur.inset().lyxCode() == CAPTION_CODE)
 			return cur.inset().getStatus(cur, cmd, flag);
 		// FIXME we should consider passthru paragraphs too.
-		flag.setEnabled(!cur.inset().getLayout().isPassThru());
+		flag.setEnabled(!(cur.inTexted() && cur.paragraph().isPassThru()));
 		break;
 
 	case LFUN_CITATION_INSERT: {

@@ -42,7 +42,7 @@ public:
 	///
 	void updateBuffer(ParIterator const &, UpdateType);
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	InsetMathHull & operator=(InsetMathHull const &);
 	///
@@ -108,8 +108,6 @@ public:
 	///
 	void write(WriteStream & os) const;
 	///
-	void mathmlize(MathStream &) const;
-	///
 	void normalize(NormalStream &) const;
 	///
 	void infoize(odocstream & os) const;
@@ -130,6 +128,12 @@ public:
 	int docbook(odocstream &, OutputParams const &) const;
 	///
 	docstring xhtml(XHTMLStream &, OutputParams const &) const;
+	///
+	void mathmlize(MathStream &) const;
+	///
+	void htmlize(HtmlStream &) const;
+	///
+	void mathAsLatex(WriteStream &) const;
 	/// 
 	void toString(odocstream &) const;
 	///
@@ -218,11 +222,15 @@ private:
 	bool rowChangeOK() const;
 	/// can this change its number of cols?
 	bool colChangeOK() const;
+	/// are any of the equations numbered?
+	bool haveNumbers() const;
 
 	/// "none", "simple", "display", "eqnarray",...
 	HullType type_;
 	///
 	std::vector<bool> numbered_;
+	///
+	std::vector<docstring> numbers_;
 	///
 	std::vector<InsetLabel *> label_;
 	///
@@ -231,6 +239,10 @@ private:
 	mutable bool use_preview_;
 	///
 	DocIterator docit_;
+	///
+	typedef std::map<docstring, int> CounterMap;
+	/// used to store current values of important counters
+	CounterMap counter_map;
 //
 // Incorporate me
 //

@@ -745,6 +745,12 @@ bool LyX::init()
 					      "templates");
 	}
 
+	// init LyXDir environment variable
+	string const lyx_dir = package().lyx_dir().absFileName();
+	LYXERR(Debug::INIT, "Setting LyXDir... to \"" << lyx_dir << "\"");
+	if (!setEnv("LyXDir", lyx_dir))
+		LYXERR(Debug::INIT, "\t... failed!");
+
 	//
 	// Read configuration files
 	//
@@ -764,7 +770,7 @@ bool LyX::init()
 		prependEnvPath("PATH", package().binary_dir().absFileName());
 #endif
 	if (!lyxrc.path_prefix.empty())
-		prependEnvPath("PATH", lyxrc.path_prefix);
+		prependEnvPath("PATH", replaceEnvironmentPath(lyxrc.path_prefix));
 
 	// Check that user LyX directory is ok.
 	if (queryUserLyXDir(package().explicit_user_support()))
@@ -806,7 +812,7 @@ bool LyX::init()
 	system_lcolor = lcolor;
 
 	// This one is edited through the preferences dialog.
-	if (!readRcFile("preferences"))
+	if (!readRcFile("preferences", true))
 		return false;
 
 	if (!readEncodingsFile("encodings", "unicodesymbols"))
@@ -842,7 +848,7 @@ bool LyX::init()
 
 	os::windows_style_tex_paths(lyxrc.windows_style_tex_paths);
 	if (!lyxrc.path_prefix.empty())
-		prependEnvPath("PATH", lyxrc.path_prefix);
+		prependEnvPath("PATH", replaceEnvironmentPath(lyxrc.path_prefix));
 
 	FileName const document_path(lyxrc.document_path);
 	if (document_path.exists() && document_path.isDirectory())
@@ -960,21 +966,22 @@ bool LyX::queryUserLyXDir(bool explicit_userdir)
 }
 
 
-bool LyX::readRcFile(string const & name)
+bool LyX::readRcFile(string const & name, bool check_format)
 {
 	LYXERR(Debug::INIT, "About to read " << name << "... ");
 
 	FileName const lyxrc_path = libFileSearch(string(), name);
-	if (!lyxrc_path.empty()) {
-		LYXERR(Debug::INIT, "Found in " << lyxrc_path);
-		if (lyxrc.read(lyxrc_path) < 0) {
-			showFileError(name);
-			return false;
-		}
-	} else {
+	if (lyxrc_path.empty()) {
 		LYXERR(Debug::INIT, "Not found." << lyxrc_path);
+		// FIXME
+		// This was the previous logic, but can it be right??
+		return true;
 	}
-	return true;
+	LYXERR(Debug::INIT, "Found in " << lyxrc_path);
+	bool const success = lyxrc.read(lyxrc_path, check_format);
+	if (!success)
+		showFileError(name);
+	return success;
 }
 
 // Read the languages file `name'

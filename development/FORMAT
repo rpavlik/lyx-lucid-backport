@@ -11,7 +11,22 @@ adjustments are made to tex2lyx and bugs are fixed in lyx2lyx.
 
 -----------------------
 
-2010-11-28 Jürgen Spitzmüller <spitz@lyx.org>
+2011-02-03 Edwin Leuven <e.leuven@gmail.com>
+	* Format incremented to 411 (r37471)
+	  Support tabular* : add tabularwidth parameter to
+	  tabular features
+
+2011-02-03 Jürgen Spitzmüller <spitz@lyx.org>
+	* Format incremented to 411
+	  New buffer param \language_package to allow per-document
+	  language package selection (bug 2909).
+
+2010-11-26 Richard Heck <rgheck@comcast.net>
+	* Format incremented to 410 (r36520)
+	  Rename "\\begin_layout Labeling" to "\\begin_layout List"
+	  in the KOMA (scr*) classes.
+
+2010-11-26 Jürgen Spitzmüller <spitz@lyx.org>
 	* Format incremented to 409 (r36500)
 	  Rename buffer param \use_xetex to \use_non_tex_fonts.
 

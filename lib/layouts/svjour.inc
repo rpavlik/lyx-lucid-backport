@@ -18,7 +18,7 @@
 # see www.springer.de/author/tex/help-journals.html for class files
 
 
-Format 30
+Format 33
 Columns                 2
 Sides                   1
 PageStyle               Plain
@@ -46,10 +46,13 @@ Input stdcounters.inc
 Input stdtitle.inc
 
 NoStyle Part
+NoCounter part
 NoStyle Part*
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 NoStyle Subparagraph
+NoCounter subparagraph
 NoStyle Subparagraph*
 
 

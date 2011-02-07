@@ -2,7 +2,7 @@
 #  \DeclareLaTeXClass[apa,apacite.sty,endfloat.sty,endnotes.sty]{article (APA)}
 # Author: Randy Gobbel <gobbel@andrew.cmu.edu>
 
-Format 30
+Format 33
 Columns                 1
 Sides                   1
 PageStyle               Headers
@@ -295,8 +295,10 @@ Input stdfloats.inc
 Input stdcounters.inc
 
 NoStyle Part
+NoCounter part
 NoStyle Part*
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 NoStyle Section*
 NoStyle Subsection*

@@ -2,8 +2,8 @@
 # This file is part of LyX, the document processor.
 # Licence details can be found in the file COPYING.
 #
-# Copyright (c) 2006-2010 Peter Kümmel, <syntheticpp@gmx.net>
-# Copyright (c) 2008-2010 Kornel Benko, <Kornel.Benko@berlin.de>
+# Copyright (c) 2006-2011 Peter Kümmel, <syntheticpp@gmx.net>
+# Copyright (c) 2008-2011 Kornel Benko, <Kornel.Benko@berlin.de>
 
 
 cmake_minimum_required(VERSION 2.6.4)
@@ -18,6 +18,9 @@ project(${LYX_PROJECT})
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+# Supress regeneration
+set(CMAKE_SUPPRESS_REGENERATION FALSE)
+
 # where to look first for cmake modules,
 # before ${CMAKE_ROOT}/Modules is checked
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
@@ -29,54 +32,102 @@ include(LyXMacros)
 # 2. parameter: description
 # 3. parameter: default value, ON or OFF
 # 4. parameter: system on which option is used: ALL, GCC, MSVC, ...
-message(STATUS)
-message(STATUS "Switch LYX_* variables by -DLYX_*=1 or 0:")
-message(STATUS)
 
+
+LYX_OPTION_INIT()
+
+# Options for all compilers/systems
 LYX_OPTION(CPACK "Use the CPack management (Implies LYX_INSTALL option)" OFF ALL)
-if(LYX_CPACK)
-	set(LYX_INSTALL ON CACHE BOOL "INSTALL option" FORCE)
-endif()
-
 LYX_OPTION(INSTALL "Build install projects/rules (implies a bunch of other options)" OFF ALL)
-if(LYX_INSTALL)
-	set(LYX_NLS ON CACHE BOOL "Nls option" FORCE)
-	set(LYX_ASPELL ON CACHE BOOL "Aspell option" FORCE)
-	if (WIN32)
-		set(LYX_HUNSPELL ON CACHE BOOL "Hunspell option" FORCE)
-	endif()
-	set(LYX_NO_CONSOLE ON CACHE BOOL "No console option" FORCE)
-	set(LYX_PACKAGE_SUFFIX ON CACHE BOOL "Package suffix option" FORCE)
-	set(LYX_RELEASE ON CACHE BOOL "Release option" FORCE)
-	set(LYX_DEBUG OFF CACHE BOOL "Debug option" FORCE)
-	set(LYX_PROFILE OFF CACHE BOOL "Profile option" FORCE)
-endif()
-
 LYX_OPTION(NLS "Use nls" OFF ALL)
 LYX_OPTION(ASPELL "Require aspell" OFF ALL)
 LYX_OPTION(ENCHANT "Require Enchant" OFF ALL)
 LYX_OPTION(HUNSPELL "Require Hunspell" OFF ALL)
-LYX_OPTION(DEBUG "Build debug version" OFF ALL)
 LYX_OPTION(DEVEL_VERSION "Build developer version" OFF ALL) 
-LYX_OPTION(RELEASE "Build release version" ON ALL)
-LYX_OPTION(PROFILE "Build profile version" OFF GCC)
-LYX_OPTION(USE_EXTERNAL_BOOST "Use external boost" OFF GCC)
-LYX_OPTION(USE_EXTERNAL_LIBINTL "Use external libintl" ON ALL)
+LYX_OPTION(RELEASE "Build release version, build debug when disabled" ON ALL)
 LYX_OPTION(PACKAGE_SUFFIX "Use version suffix for packaging" ON ALL)
-LYX_OPTION(PROGRAM_SUFFIX "Append version suffix to binaries" ON GCC)
-LYX_OPTION(INSTALL_PREFIX "Install path for LyX" OFF ALL)
-LYX_OPTION(NO_CONSOLE "Suppress console on Windows" OFF MSVC)
-LYX_OPTION(VLD "Use VLD with MSVC" OFF MSVC)
-LYX_OPTION(WALL "Enable all warnings" OFF MSVC)
-LYX_OPTION(DISABLE_PCH "Disable precompiled headers" ON ALL)
+LYX_OPTION(PCH "Use precompiled headers" OFF ALL)
 LYX_OPTION(MERGE_FILES "Merge source files into one compilation unit" OFF ALL)
 LYX_OPTION(MERGE_REBUILD "Rebuild generated files from merged files build" OFF ALL)
+LYX_OPTION(QUIET "Don't generate verbose makefiles" OFF ALL)
+LYX_OPTION(INSTALL_PREFIX "Install path for LyX" OFF ALL)
+LYX_OPTION(EXTERNAL_LIBINTL "Use external libintl" ON ALL)
+
+# GCC specific
+LYX_OPTION(PROFILE "Build profile version" OFF GCC)
+LYX_OPTION(EXTERNAL_BOOST "Use external boost" OFF GCC)
+LYX_OPTION(PROGRAM_SUFFIX "Append version suffix to binaries" ON GCC)
 LYX_OPTION(DEBUG_GLIBC "Enable libstdc++ debug mode" OFF GCC)
 LYX_OPTION(DEBUG_GLIBC_PEDANTIC "Enable libstdc++pedantic debug mode" OFF GCC)
 LYX_OPTION(STDLIB_DEBUG "Use debug stdlib" OFF GCC)
 LYX_OPTION(CONCEPT_CHECKS "Enable concept-checks" OFF GCC)
-LYX_OPTION(QUIET "Don't generate verbose makefiles" OFF ALL)
-LYX_OPTION(SHARED_LIBRARIES "Build shared libraries" OFF ALL)
+
+# MSVC specific
+LYX_OPTION(CONSOLE "Show console on Windows" ON MSVC)
+LYX_OPTION(VLD "Use VLD with MSVC" OFF MSVC)
+LYX_OPTION(WALL "Enable all warnings" OFF MSVC)
+LYX_OPTION(CONFIGURE_CHECKS "Also run configure checks for MSVC" OFF MSVC)
+LYX_OPTION(3RDPARTY_DOWNLOAD "Download precompiled 3rd party libraries for MSVC 10" OFF MSVC)
+
+# Check option dependencies
+if(LYX_CPACK)
+	set(LYX_INSTALL ON)
+endif()
+
+if(LYX_INSTALL)
+	set(LYX_NLS ON)
+	if(NOT LYX_3RDPARTY_DOWNLOAD)
+		set(LYX_ASPELL ON)
+	endif()
+	if (WIN32)
+		set(LYX_HUNSPELL ON)
+	endif()
+	set(LYX_CONSOLE OFF)
+	set(LYX_PACKAGE_SUFFIX ON)
+	set(LYX_RELEASE ON)
+	set(LYX_PROFILE OFF)
+endif()
+
+if(LYX_MERGE_FILES)
+	set(LYX_PCH OFF)
+else()
+	set(LYX_MERGE_REBUILD OFF)
+endif()
+
+if(LYX_3RDPARTY_DOWNLOAD)
+	message(STATUS)
+	set(LYX_3RDPARTY_DIR ${CMAKE_BINARY_DIR}/msvc10-deps)
+	message(STATUS "Using downloaded 3rd party libraries in ${LYX_3RDPARTY_DIR}")
+	set(3rdparty_files
+		crt-msvc2010-x86.zip 
+		dict-hunspell-all.zip 
+		dtl-modified-msvc2010-x86.zip 
+		dvipost-1.1-modified-msvc2010-x86.zip 
+		gettext-tools-0.18.1-x86.zip 
+		ghostscript-8.71-msvc2010-x86.zip 
+		hunspell-1.2.11-msvc2010-x86.zip 
+		iconv-1.13.1-msvc2010-x86.zip 
+		imagemagick-6.6.3-0-modified-msvc2010-x86.zip 
+		libintl-0.18.1-msvc2010-x86.zip 
+		netpbm-pnmcrop-10.27-x86.zip 
+		pdftools-msvc2010-x86.zip 
+		pdfview-x86.zip 
+		python-2.6.5-msvc2010-x86.zip 
+		thes-mythes-all.zip 
+		zlib-1.2.5-msvc2010-x86.zip)
+	foreach(it ${3rdparty_files})
+		set(already_downloaded already_downloaded-NOTFOUND CACHE PATH "downloaded" FORCE)
+		find_file(already_downloaded ${it} "${LYX_3RDPARTY_DIR}/downloads")
+		if(NOT already_downloaded)
+			message(STATUS "Downloading ${it} ...")
+			file(DOWNLOAD ftp://ftp.devel.lyx.org/pub/contrib/windows/bin/${it} ${LYX_3RDPARTY_DIR}/downloads/${it} SHOW_PROGRESS)
+			execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${LYX_3RDPARTY_DIR}/downloads/${it}
+		                      WORKING_DIRECTORY ${LYX_3RDPARTY_DIR})
+		endif()
+	endforeach()
+	set(GNUWIN32_DIR ${LYX_3RDPARTY_DIR})
+endif()
+
 
 message(STATUS)
 
@@ -101,10 +152,6 @@ else()
 	endif()
 endif()
 
-
-
-# Supress regeneration
-set(CMAKE_SUPPRESS_REGENERATION TRUE)
 
 set(VERSION_INFO "CMake Build")
 
@@ -179,7 +226,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 		endif()
 	endif()
 	if(WIN32)
-		set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/LYX_INSTALLED CACHE PATH "LyX default install prefix" FORCE)
+		set(CMAKE_INSTALL_PREFIX LYX_INSTALLED CACHE PATH "LyX default install prefix" FORCE)
 	endif()
 endif()
 
@@ -215,15 +262,13 @@ if(LYX_PROFILE)
 endif()
 
 if(LYX_RELEASE)
-	set(CMAKE_BUILD_TYPE Release CACHE TYPE STRING FORCE)
+	set(CMAKE_BUILD_TYPE Release CACHE STRING "Build release version" FORCE)
+else()
+	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build debug version" FORCE)
 endif()
 
-if(LYX_DEBUG)
-	set(CMAKE_BUILD_TYPE Debug CACHE TYPE STRING FORCE)
-endif()
-
-
-
+# When shared libs are supported enable this option
+#LYX_OPTION(SHARED_LIBRARIES "Build shared libraries" OFF ALL)
 if(LYX_SHARED_LIBRARIES)
 	set(library_type SHARED)
 else()
@@ -283,14 +328,14 @@ if(LYX_NLS)
 	add_subdirectory(po)
 endif()
 
-if(LYX_USE_EXTERNAL_LIBINTL)
+if(LYX_EXTERNAL_LIBINTL)
 	find_package(Libintl REQUIRED)
 	add_definitions(-DHAVE_GETTEXT) #TODO move to config.h
 else()
 	add_subdirectory(intl)
 endif()
 
-if(LYX_USE_EXTERNAL_BOOST)
+if(LYX_EXTERNAL_BOOST)
 	message(STATUS "Searching for boost")
 	find_package(Boost COMPONENTS signals regex) #TODO could REQUIRED be used
 	if(Boost_FOUND)
@@ -315,7 +360,7 @@ endif()
 
 
 if(WIN32)
-	if(LYX_NO_CONSOLE)
+	if(NOT LYX_CONSOLE)
 		set(WIN32_CONSOLE WIN32)
 		set(LYX_QTMAIN_LIBRARY ${QT_QTMAIN_LIBRARY})
 	endif()
@@ -342,16 +387,15 @@ endforeach(_v)
 message(STATUS "")
 
 
-# PCHs not supported by cmake: http://www.cmake.org/Bug/view.php?id=1260
-# Not sure if it works for all non-msvc compilers
-include(PCHSupport_26)
-
-if(NOT LYX_DISABLE_PCH)
+if(LYX_PCH)
+	# PCHs not supported by cmake: http://www.cmake.org/Bug/view.php?id=1260
+	# Not sure if it works for all non-msvc compilers
+	include(PCHSupport_26)
 	configure_file(${CMAKE_SOURCE_DIR}/pcheaders.h ${CMAKE_BINARY_DIR}/pcheaders.h)
 	configure_file(${CMAKE_SOURCE_DIR}/config.cpp.cmake ${CMAKE_BINARY_DIR}/config_pch.cpp)
 	add_definitions(-DLYX_ENABLE_PCH)
 
-	if(MSVC AND NOT MERGE_FILES)
+	if(MSVC)
 		macro(lyx_add_msvc_pch name_)
 			set_source_files_properties(${${name_}_sources} PROPERTIES
 				COMPILE_FLAGS "/Yuconfig.h /Fp\$(IntDir)/config.pch")
@@ -374,7 +418,6 @@ if(NOT LYX_DISABLE_PCH)
 		endmacro()
 	endif()
 else()
-	set(LYX_DISABLE_PCH TRUE CACHE TYPE STRING)
 	macro(lyx_add_msvc_pch)
 	endmacro(lyx_add_msvc_pch)
 	macro(lyx_add_gcc_pch name_)
@@ -389,7 +432,6 @@ if(MSVC)
 		include(${LYX_VLD_PATH}/tools/cmake/vld.cmake)
 	endif()
 
-	# TODO options
 	if(LYX_WALL)
 		# Use the highest warning level
 		set(CMAKE_CXX_WARNING_LEVEL 4 CACHE TYPE STRING FORCE)
@@ -448,7 +490,7 @@ if(LYX_DEBUG_GLIBC_PEDANTIC)
 endif()
 
 # compiler tests, config.h generation
-if(MSVC AND NOT CONFIGURECHECKS)
+if(MSVC AND NOT LYX_CONFIGURE_CHECKS)
 	configure_file(configCompiler.h.msvc ${CMAKE_BINARY_DIR}/configCompiler.h)
 else()
 	include(ConfigureChecks.cmake)
@@ -474,9 +516,18 @@ if(LYX_INSTALL)
 endif()
 
 
+message(STATUS)
+message(STATUS "Build options, switch LYX_* variables by -DLYX_*=1 or 0:")
+message(STATUS)
+LYX_OPTION_LIST_ALL()
+
+
 set(CPACK_PACKAGE_VERSION_MAJOR "${LYX_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${LYX_MINOR_VERSION}")
 FILE(STRINGS "${TOP_SRC_DIR}/development/cmake/LyX_summary.txt" CPACK_PACKAGE_DESCRIPTION_SUMMARY)
+
+set(CPACK_SOURCE_GENERATOR TGZ ZIP TBZ2)
+set(CPACK_SOURCE_INSTALLED_DIRECTORIES "${TOP_SRC_DIR};/") # http://www.mail-archive.com/cmake@cmake.org/msg33720.html
 
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${LYX_INSTALL_SUFFIX}")
 #
@@ -498,7 +549,7 @@ endif()
 if(ENCHANT_FOUND)
 	set(CPACK_DEBIAN_PACKAGE_DEPENDS "libenchant1c2a (>= 1.6.0-0),${CPACK_DEBIAN_PACKAGE_DEPENDS}")
 endif()
-if(LYX_USE_EXTERNAL_BOOST)
+if(LYX_EXTERNAL_BOOST)
 	if(Boost_FOUND)
 		set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-regex1.40.0 (>= 1.40.0-4),libboost-signals1.40.0 (>= 1.40.0-4),${CPACK_DEBIAN_PACKAGE_DEPENDS}")
 	endif()

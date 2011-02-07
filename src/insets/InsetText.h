@@ -73,7 +73,7 @@ public:
 	Text & text() { return text_; }
 	Text const & text() const { return text_; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -168,7 +168,7 @@ public:
 	///
 	void forToc(docstring &, size_t) const;
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	Inset * clone() const { return new InsetText(*this); }
 	///

@@ -87,7 +87,7 @@ public:
 	///
 	bool hasSettings() const { return true; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -99,7 +99,7 @@ public:
 	///
 	void addPreview(DocIterator const &, graphics::PreviewLoader &) const;
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	void updateBuffer(ParIterator const &, UpdateType);
 	///

@@ -4,10 +4,15 @@
 #the section number to the equation number, as in '(2.1)'.
 #DescriptionEnd
 
-Format 30
+Format 33
 
 Requires amsmath
 
 AddToPreamble
 	\numberwithin{equation}{section}
 EndPreamble
+
+Counter equation
+	Within section
+	LabelString "\thesection.\arabic{equation}"
+End

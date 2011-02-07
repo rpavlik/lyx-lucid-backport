@@ -964,6 +964,12 @@ GuiDocument::GuiDocument(GuiView & lv)
 		this, SLOT(change_adaptor()));
 	connect(langModule->quoteStyleCO, SIGNAL(activated(int)),
 		this, SLOT(change_adaptor()));
+	connect(langModule->languagePackageCO, SIGNAL(activated(int)),
+		this, SLOT(change_adaptor()));
+	connect(langModule->languagePackageED, SIGNAL(textChanged(QString)),
+		this, SLOT(change_adaptor()));
+	connect(langModule->languagePackageCO, SIGNAL(currentIndexChanged(int)),
+		this, SLOT(languagePackageChanged(int)));
 
 	QAbstractItemModel * language_model = guiApp->languageModel();
 	// FIXME: it would be nice if sorting was enabled/disabled via a checkbox.
@@ -987,6 +993,17 @@ GuiDocument::GuiDocument(GuiView & lv)
 	langModule->quoteStyleCO->addItem(qt_(",,text''"));
 	langModule->quoteStyleCO->addItem(qt_("<<text>>"));
 	langModule->quoteStyleCO->addItem(qt_(">>text<<"));
+
+	langModule->languagePackageCO->addItem(
+		qt_("Default"), toqstr("default"));
+	langModule->languagePackageCO->addItem(
+		qt_("Automatic"), toqstr("auto"));
+	langModule->languagePackageCO->addItem(
+		qt_("Always Babel"), toqstr("babel"));
+	langModule->languagePackageCO->addItem(
+		qt_("Custom"), toqstr("custom"));
+	langModule->languagePackageCO->addItem(
+		qt_("None[[language package]]"), toqstr("none"));
 
 
 	// color
@@ -1049,7 +1066,8 @@ GuiDocument::GuiDocument(GuiView & lv)
 	biblioModule->citeStyleCO->addItem(qt_("Author-year"));
 	biblioModule->citeStyleCO->addItem(qt_("Numerical"));
 	biblioModule->citeStyleCO->setCurrentIndex(0);
-	
+
+	// NOTE: we do not provide "custom" here for security reasons!
 	biblioModule->bibtexCO->clear();
 	biblioModule->bibtexCO->addItem(qt_("Default"), QString("default"));
 	for (set<string>::const_iterator it = lyxrc.bibtex_alternatives.begin();
@@ -1057,7 +1075,7 @@ GuiDocument::GuiDocument(GuiView & lv)
 		QString const command = toqstr(*it).left(toqstr(*it).indexOf(" "));
 		biblioModule->bibtexCO->addItem(command, command);
 	}
-	
+
 
 	// indices
 	indicesModule = new GuiIndices;
@@ -1877,9 +1895,17 @@ void GuiDocument::classChanged()
 }
 
 
+void GuiDocument::languagePackageChanged(int i)
+{
+	 langModule->languagePackageED->setEnabled(
+		langModule->languagePackageCO->itemData(i).toString() == "custom");
+}
+
+
 void GuiDocument::bibtexChanged(int n)
 {
-	biblioModule->bibtexOptionsED->setEnabled(n != 0);
+	biblioModule->bibtexOptionsED->setEnabled(
+		biblioModule->bibtexCO->itemData(n).toString() != "default");
 	changed();
 }
 
@@ -2202,6 +2228,14 @@ void GuiDocument::applyView()
 	QString const lang = langModule->languageCO->itemData(
 		langModule->languageCO->currentIndex()).toString();
 	bp_.language = lyx::languages.getLanguage(fromqstr(lang));
+	
+	QString const pack = langModule->languagePackageCO->itemData(
+		langModule->languagePackageCO->currentIndex()).toString();
+	if (pack == "custom")
+		bp_.lang_package =
+			fromqstr(langModule->languagePackageED->text());
+	else
+		bp_.lang_package = fromqstr(pack);
 
 	//color
 	bp_.backgroundcolor = set_backgroundcolor;
@@ -2570,7 +2604,10 @@ void GuiDocument::paramsToDialog()
 		biblioModule->bibtexCO->setCurrentIndex(bpos);
 		biblioModule->bibtexOptionsED->setText(toqstr(options).trimmed());
 	} else {
-		biblioModule->bibtexCO->setCurrentIndex(0);
+		// We reset to default if we do not know the specified compiler
+		// This is for security reasons
+		biblioModule->bibtexCO->setCurrentIndex(
+			biblioModule->bibtexCO->findData(toqstr("default")));
 		biblioModule->bibtexOptionsED->clear();
 	}
 	biblioModule->bibtexOptionsED->setEnabled(
@@ -2613,6 +2650,16 @@ void GuiDocument::paramsToDialog()
 	}
 	langModule->defaultencodingRB->setChecked(default_enc);
 	langModule->otherencodingRB->setChecked(!default_enc);
+
+	int const p = langModule->languagePackageCO->findData(toqstr(bp_.lang_package));
+	if (p == -1) {
+		langModule->languagePackageCO->setCurrentIndex(
+			  langModule->languagePackageCO->findData("custom"));
+		langModule->languagePackageED->setText(toqstr(bp_.lang_package));
+	} else {
+		langModule->languagePackageCO->setCurrentIndex(p);
+		langModule->languagePackageED->clear();
+	}
 
 	//color
 	if (bp_.isfontcolor) {

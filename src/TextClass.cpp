@@ -60,7 +60,7 @@ namespace lyx {
 // development/updatelayouts.sh script, to update the format of 
 // all of our layout files.
 //
-int const LAYOUT_FORMAT = 30;
+int const LAYOUT_FORMAT = 33;
 	
 namespace {
 
@@ -196,6 +196,7 @@ enum TextClassTags {
 	TC_RIGHTMARGIN,
 	TC_FLOAT,
 	TC_COUNTER,
+	TC_NOCOUNTER,
 	TC_IFCOUNTER,
 	TC_NOFLOAT,
 	TC_TITLELATEXNAME,
@@ -233,6 +234,7 @@ namespace {
 		{ "input",             TC_INPUT },
 		{ "insetlayout",       TC_INSETLAYOUT },
 		{ "leftmargin",        TC_LEFTMARGIN },
+		{ "nocounter",         TC_NOCOUNTER },
 		{ "nofloat",           TC_NOFLOAT },
 		{ "nostyle",           TC_NOSTYLE },
 		{ "outputformat",      TC_OUTPUTFORMAT },
@@ -652,6 +654,14 @@ TextClass::ReturnValues TextClass::read(Lexer & lexrc, ReadType rt)
 			readCiteFormat(lexrc);
 			break;
 
+		case TC_NOCOUNTER:
+			if (lexrc.next()) {
+				docstring const cnt = lexrc.getDocString();
+				if (!counters_.remove(cnt))
+					LYXERR0("Unable to remove counter: " + to_utf8(cnt));
+			}
+			break;
+
 		case TC_IFCOUNTER:
 			ifcounter = true;
 		case TC_COUNTER:
@@ -901,7 +911,8 @@ bool TextClass::readFloat(Lexer & lexrc)
 		FT_WITHIN,
 		FT_STYLE,
 		FT_LISTNAME,
-		FT_NEEDSFLOAT,
+		FT_USESFLOAT,
+		FT_PREDEFINED,
 		FT_HTMLSTYLE,
 		FT_HTMLATTR,
 		FT_HTMLTAG,
@@ -917,14 +928,15 @@ bool TextClass::readFloat(Lexer & lexrc)
 		{ "htmlattr", FT_HTMLATTR },
 		{ "htmlstyle", FT_HTMLSTYLE },
 		{ "htmltag", FT_HTMLTAG },
+		{ "ispredefined", FT_PREDEFINED },
 		{ "listcommand", FT_LISTCOMMAND },
 		{ "listname", FT_LISTNAME },
-		{ "needsfloatpkg", FT_NEEDSFLOAT },
 		{ "numberwithin", FT_WITHIN },
 		{ "placement", FT_PLACEMENT },
 		{ "refprefix", FT_REFPREFIX },
 		{ "style", FT_STYLE },
-		{ "type", FT_TYPE }
+		{ "type", FT_TYPE },
+		{ "usesfloatpkg", FT_USESFLOAT }
 	};
 
 	lexrc.pushTable(floatTags);
@@ -941,7 +953,8 @@ bool TextClass::readFloat(Lexer & lexrc)
 	string style;
 	string type;
 	string within;
-	bool needsfloat = true;
+	bool usesfloat = true;
+	bool ispredefined = false;
 
 	bool getout = false;
 	while (!getout && lexrc.isOK()) {
@@ -965,7 +978,8 @@ bool TextClass::readFloat(Lexer & lexrc)
 				style = fl.style();
 				name = fl.name();
 				listname = fl.listName();
-				needsfloat = fl.needsFloatPkg();
+				usesfloat = fl.usesFloatPkg();
+				ispredefined = fl.isPredefined();
 				listcommand = fl.listCommand();
 				refprefix = fl.refPrefix();
 			} 
@@ -1004,9 +1018,13 @@ bool TextClass::readFloat(Lexer & lexrc)
 			lexrc.next();
 			listname = lexrc.getString();
 			break;
-		case FT_NEEDSFLOAT:
+		case FT_USESFLOAT:
 			lexrc.next();
-			needsfloat = lexrc.getBool();
+			usesfloat = lexrc.getBool();
+			break;
+		case FT_PREDEFINED:
+			lexrc.next();
+			ispredefined = lexrc.getBool();
 			break;
 		case FT_HTMLATTR:
 			lexrc.next();
@@ -1030,13 +1048,26 @@ bool TextClass::readFloat(Lexer & lexrc)
 
 	// Here we have a full float if getout == true
 	if (getout) {
-		if (!needsfloat && listcommand.empty())
-			LYXERR0("The layout does not provide a list command " <<
-			        "for the builtin float `" << type << "'. LyX will " <<
-			        "not be able to produce a float list.");
+		if (!usesfloat && listcommand.empty()) {
+			// if this float uses the same auxfile as an existing one,
+			// there is no need for it to provide a list command.
+			FloatList::const_iterator it = floatlist_.begin();
+			FloatList::const_iterator en = floatlist_.end();
+			bool found_ext = false;
+			for (; it != en; ++it) {
+				if (it->second.ext() == ext) {
+					found_ext = true;
+					break;
+				}
+			}
+			if (!found_ext)
+				LYXERR0("The layout does not provide a list command " <<
+			          "for the float `" << type << "'. LyX will " <<
+			          "not be able to produce a float list.");
+		}
 		Floating fl(type, placement, ext, within, style, name, 
 				listname, listcommand, refprefix, 
-				htmltag, htmlattr, htmlstyle, needsfloat);
+				htmltag, htmlattr, htmlstyle, usesfloat, ispredefined);
 		floatlist_.newFloat(fl);
 		// each float has its own counter
 		counters_.newCounter(from_ascii(type), from_ascii(within),
@@ -1298,12 +1329,16 @@ DocumentClass & DocumentClassBundle::makeDocumentClass(
 			continue;
 		}
 		if (!lm->isAvailable()) {
+			docstring const prereqs = from_utf8(getStringFromVector(lm->prerequisites(), "\n\t"));
 			docstring const msg =
-				bformat(_("The module %1$s requires a package that is\n"
-				"not available in your LaTeX installation, or a converter\n"
-				"you have not installed. LaTeX output may not be possible.\n"), 
-				from_utf8(modName));
-			frontend::Alert::warning(_("Package not available"), msg);
+				bformat(_("The module %1$s requires a package that is not\n"
+					"available in your LaTeX installation, or a converter that\n"
+					"you have not installed. LaTeX output may not be possible.\n"
+					"Missing prerequisites:\n"
+						"\t%2$s\n"
+					"See section 3.1.2.3 (Modules) of the User's Guide for more information."),
+				from_utf8(modName), prereqs);
+			frontend::Alert::warning(_("Package not available"), msg, true);
 		}
 		FileName layout_file = libFileSearch("layouts", lm->getFilename());
 		if (!doc_class.read(layout_file, TextClass::MODULE)) {

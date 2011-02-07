@@ -1,6 +1,6 @@
 include $(top_srcdir)/config/common.am
 
-EXTRA_DIST = tex2lyx.1in $(TEST_FILES) pch.h
+EXTRA_DIST = TODO.txt tex2lyx.1in $(TEST_FILES) pch.h
 
 #noinst_LIBRARIES = libtexparser.a
 #
@@ -37,6 +37,7 @@ LINKED_FILES = \
 	../FontInfo.cpp \
 	../insets/InsetLayout.cpp \
 	../Layout.cpp \
+	../LayoutFile.cpp \
 	../LayoutModuleList.cpp \
 	../lengthcommon.cpp \
 	../Lexer.cpp \

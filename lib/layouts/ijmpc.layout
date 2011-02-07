@@ -9,14 +9,16 @@
 #
 # Version 1  2006-04-09  -  First version, for LyX 1.4.0.
 
-Format 30
+Format 33
 
 Input stdclass.inc
 Input numarticle.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 NoStyle Part
+NoCounter part
 NoStyle Verse
 
 Sides                   1
@@ -130,8 +132,8 @@ Style Subsubsection
 End
 
 Counter definition
-	TocLevel 3
 End
+
 Style Definition
 	LatexType             Environment
 	LatexName             definition

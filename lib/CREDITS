@@ -19,6 +19,9 @@
 @bJoão Luis Meloni Assirati
 @iE-mail: assirati () nonada ! if ! usp ! br
    Added support for unix sockets and thence the 'inverse DVI' feature
+@bPatrick Atamaniuk
+@iE-mail: atamaniuk () frobs ! net
+   fix-cm module
 @bÖzgür Uğraş Baran
 @iE-mail: ugras.baran () gmail ! com
    New commandparams structure, Nomenclature inset
@@ -385,6 +388,9 @@
 @bBernhard Roider
 @iE-mail: bernhard.roider () sonnenkinder ! org
    Various bug fixes
+@bJim Rotmalm
+@iE-mail: jim.rotmalm () gmail ! com
+   Swedish translation
 @bPaul A. Rubin
 @iE-mail: rubin () msu ! edu
    Major rework of the AMS classes
@@ -537,6 +543,4 @@
    bug reports and small fixes
 
 
-If your name doesn't appear here although you've done
-something for LyX, or your entry is wrong or incomplete,
-just drop some e-mail to lyx@lyx.org. Thanks.
+If your name doesn't appear here although you've done something for LyX, or your entry is wrong or incomplete, just drop some e-mail to lyx@lyx.org. Thanks.
