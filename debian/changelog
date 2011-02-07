@@ -1,4 +1,4 @@
-lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
+lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
   * Add texlive-generic-extra to the list of recommends, it's now required
