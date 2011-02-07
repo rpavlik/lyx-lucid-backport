@@ -746,7 +746,7 @@ string InsetGraphics::prepareFile(OutputParams const & runparams) const
 }
 
 
-int InsetGraphics::latex(odocstream & os,
+int InsetGraphics::latex(otexstream & os,
 			 OutputParams const & runparams) const
 {
 	// If there is no file specified or not existing,
@@ -1031,7 +1031,7 @@ void InsetGraphics::editGraphics(InsetGraphicsParams const & p) const
 }
 
 
-void InsetGraphics::addToToc(DocIterator const & cpit)
+void InsetGraphics::addToToc(DocIterator const & cpit) const
 {
 	TocBackend & backend = buffer().tocBackend();
 

@@ -77,7 +77,7 @@ struct TeXEnvironementData
 
 
 static TeXEnvironementData prepareEnvironement(Buffer const & buf, Text const & text,
-		ParagraphList::const_iterator pit, odocstream & os, TexRow & texrow,
+		ParagraphList::const_iterator pit, otexstream & os, TexRow & texrow,
 		OutputParams const & runparams)
 {
 	TeXEnvironementData data;
@@ -202,7 +202,7 @@ static TeXEnvironementData prepareEnvironement(Buffer const & buf, Text const & 
 }
 
 
-static void finishEnvironement(odocstream & os, TexRow & texrow,
+static void finishEnvironement(otexstream & os, TexRow & texrow,
 		OutputParams const & runparams, TeXEnvironementData const & data)
 {
 	if (open_encoding_ == CJK && data.cjk_nested) {
@@ -239,7 +239,7 @@ static void finishEnvironement(odocstream & os, TexRow & texrow,
 
 void TeXEnvironment(Buffer const & buf,
 	       Text const & text, OutputParams const & runparams,
-		   pit_type & pit, odocstream & os, TexRow & texrow)
+		   pit_type & pit, otexstream & os, TexRow & texrow)
 {
 	ParagraphList const & paragraphs = text.paragraphs();
 	ParagraphList::const_iterator par = paragraphs.constIterator(pit);
@@ -326,7 +326,7 @@ void TeXEnvironment(Buffer const & buf,
 } // namespace anon
 
 
-int latexArgInsets(Paragraph const & par, odocstream & os,
+int latexArgInsets(Paragraph const & par, otexstream & os,
 	OutputParams const & runparams, unsigned int reqargs,
 	unsigned int optargs)
 {
@@ -380,12 +380,46 @@ int latexArgInsets(Paragraph const & par, odocstream & os,
 	return lines;
 }
 
+namespace {
+
+// output the proper paragraph start according to latextype.
+void parStartCommand(Paragraph const & par, otexstream & os, TexRow & texrow,
+		     OutputParams const & runparams,Layout const & style) 
+{
+	switch (style.latextype) {
+	case LATEX_COMMAND:
+		os << '\\' << from_ascii(style.latexname());
+
+		// Separate handling of optional argument inset.
+		if (style.optargs != 0 || style.reqargs != 0) {
+			int ret = latexArgInsets(par, os, runparams, style.reqargs, style.optargs);
+			while (ret > 0) {
+				texrow.newline();
+				--ret;
+			}
+		}
+		else
+			os << from_ascii(style.latexparam());
+		break;
+	case LATEX_ITEM_ENVIRONMENT:
+	case LATEX_LIST_ENVIRONMENT:
+		os << "\\item ";
+		break;
+	case LATEX_BIB_ENVIRONMENT:
+		// ignore this, the inset will write itself
+		break;
+	default:
+		break;
+	}
+}
+
+} // namespace anon
 
 // FIXME: this should be anonymous
 void TeXOnePar(Buffer const & buf,
 	  Text const & text,
 	  pit_type pit,
-	  odocstream & os, TexRow & texrow,
+	  otexstream & os, TexRow & texrow,
 	  OutputParams const & runparams_in,
 	  string const & everypar,
 	  int start_pos, int end_pos)
@@ -444,9 +478,18 @@ void TeXOnePar(Buffer const & buf,
 
 	if (style.pass_thru) {
 		Font const outerfont = text.outerFont(pit);
+		parStartCommand(par, os, texrow,runparams, style);
+
 		par.latex(bparams, outerfont, os, texrow, runparams, start_pos,
 			end_pos);
-		os << '\n';
+
+		// I did not create a parEndCommand for this minuscule
+		// task because in the other user of parStartCommand
+		// the code is different (JMarc)
+		if (style.isCommand())
+			os << "}\n";
+		else
+			os << '\n';
 		texrow.newline();
 		if (!style.parbreak_is_newline) {
 			os << '\n';
@@ -616,8 +659,8 @@ void TeXOnePar(Buffer const & buf,
 			if (i != 0 && encoding->package() == Encoding::CJK)
 				continue;
 
-			pair<bool, int> enc_switch = switchEncoding(os, bparams, runparams,
-				*encoding);
+			pair<bool, int> enc_switch = switchEncoding(os.os(),
+						bparams, runparams, *encoding);
 			// the following is necessary after a CJK environment in a multilingual
 			// context (nesting issue).
 			if (par_language->encoding()->package() == Encoding::CJK
@@ -673,31 +716,7 @@ void TeXOnePar(Buffer const & buf,
 		}
 	}
 
-	switch (style.latextype) {
-	case LATEX_COMMAND:
-		os << '\\' << from_ascii(style.latexname());
-
-		// Separate handling of optional argument inset.
-		if (style.optargs != 0 || style.reqargs != 0) {
-			int ret = latexArgInsets(par, os, runparams, style.reqargs, style.optargs);
-			while (ret > 0) {
-				texrow.newline();
-				--ret;
-			}
-		}
-		else
-			os << from_ascii(style.latexparam());
-		break;
-	case LATEX_ITEM_ENVIRONMENT:
-	case LATEX_LIST_ENVIRONMENT:
-		os << "\\item ";
-		break;
-	case LATEX_BIB_ENVIRONMENT:
-		// ignore this, the inset will write itself
-		break;
-	default:
-		break;
-	}
+	parStartCommand(par, os, texrow,runparams, style);
 
 	Font const outerfont = text.outerFont(pit);
 
@@ -922,7 +941,7 @@ void TeXOnePar(Buffer const & buf,
 // LaTeX all paragraphs
 void latexParagraphs(Buffer const & buf,
 		     Text const & text,
-		     odocstream & os,
+		     otexstream & os,
 		     TexRow & texrow,
 		     OutputParams const & runparams,
 		     string const & everypar)
@@ -1046,12 +1065,11 @@ void latexParagraphs(Buffer const & buf,
 	if (was_title && !already_title) {
 		if (tclass.titletype() == TITLE_ENVIRONMENT) {
 			os << "\\end{" << from_ascii(tclass.titlename())
-			    << "}\n";
-		}
-		else {
+			   << "}\n";
+		} else {
 			os << "\\" << from_ascii(tclass.titlename())
-			    << "\n";
-				}
+			   << "\n";
+		}
 		texrow.newline();
 	}
 

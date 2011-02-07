@@ -30,6 +30,10 @@ class BufferView;
 class ColorCache;
 class KeySymbol;
 
+namespace support {
+class FileName;
+}
+
 namespace frontend {
 
 class GuiView;
@@ -117,7 +121,7 @@ public:
 	void setCurrentView(GuiView * view) { current_view_ = view; }
 	///
 	QList<int> viewIds() const;
-	
+
 	/// Clear all session information.
 	void clearSession();
 
@@ -179,9 +183,19 @@ private Q_SLOTS:
 
 private:
 	///
+	void validateCurrentView();
+	///
 	bool closeAllViews();
 	/// read the given ui (menu/toolbar) file
 	bool readUIFile(QString const & name, bool include = false);
+	///
+	enum ReturnValues {
+		ReadOK,
+		ReadError,
+		FormatMismatch
+	};
+	///
+	ReturnValues readUIFile(support::FileName);
 	///
 	void setGuiLanguage();
 	///

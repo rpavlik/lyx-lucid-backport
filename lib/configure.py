@@ -627,7 +627,7 @@ def checkConverterEntries():
         rc_entry = [r'''\converter literate   latex      "%%"	""
 \converter literate   pdflatex      "%%"	""'''])
     #
-    checkProg('a Sweave -> LaTeX converter', ['Rscript --no-save --no-restore $$s/scripts/lyxsweave.R $$i $$e $$r'],
+    checkProg('a Sweave -> LaTeX converter', ['Rscript --no-save --no-restore $$s/scripts/lyxsweave.R $$p$$i $$e $$r'],
         rc_entry = [r'''\converter sweave   latex      "%%"	""
 \converter sweave   pdflatex      "%%"	""'''])
     #
@@ -638,21 +638,18 @@ def checkConverterEntries():
     checkProg('an MS Word -> LaTeX converter', ['wvCleanLatex $$i $$o'],
         rc_entry = [ r'\converter word       latex      "%%"	""' ])
 
-    # eLyXer: search as a Python module and then as an executable (elyxer.py, elyxer)
-    elyxerfound = checkModule('elyxer')
-    if elyxerfound:
-      addToRC(r'''\converter lyx      html       "python -m elyxer --directory $$r $$i $$o"	""''')
-    else:
-      path, elyxer = checkProg('a LyX -> HTML converter',
+    # eLyXer: search as an executable (elyxer.py, elyxer)
+    path, elyxer = checkProg('a LyX -> HTML converter',
         ['elyxer.py --directory $$r $$i $$o', 'elyxer --directory $$r $$i $$o'],
         rc_entry = [ r'\converter lyx      html       "%%"	""' ])
-      if elyxer.find('elyxer') >= 0:
-        elyxerfound = True
-
-    if elyxerfound:
+    path, elyxer = checkProg('a LyX -> HTML (MS Word) converter',
+        ['elyxer.py --html --directory $$r $$i $$o', 'elyxer --html --directory $$r $$i $$o'],
+        rc_entry = [ r'\converter lyx      wordhtml       "%%"	""' ])
+    if elyxer.find('elyxer') >= 0:
       addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,jpg,jpeg,css $$i $$o"''')
+      addToRC(r'''\copier    wordhtml       "python -tt $$s/scripts/ext_copy.py -e html,png,jpg,jpeg,css $$i $$o"''')
     else:
-      # search for other converters than eLyXer
+      # search for HTML converters other than eLyXer
       # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
       path, htmlconv = checkProg('a LaTeX -> HTML converter', ['htlatex $$i', 'htlatex.sh $$i', \
           '/usr/share/tex4ht/htlatex $$i', 'tth  -t -e2 -L$$b < $$i > $$o', \
@@ -662,28 +659,7 @@ def checkConverterEntries():
         addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
       else:
         addToRC(r'''\copier    html       "python -tt $$s/scripts/ext_copy.py $$i $$o"''')
-
-    # Check if LyXBlogger is installed
-    lyxblogger_found = checkModule('lyxblogger')
-    if lyxblogger_found:
-      addToRC(r'\Format    blog       blog       "LyXBlogger"           "" "" ""  "document"')
-      addToRC(r'\converter xhtml      blog       "python -m lyxblogger $$i"       ""')
-
-    if elyxerfound:
-      addToRC(r'''\converter lyx      wordhtml       "python -m elyxer --html --directory $$r $$i $$o"	""''')
-    else:
-      path, elyxer = checkProg('a LyX -> MS Word converter',
-        ['elyxer.py --directory $$r $$i $$o', 'elyxer --html --directory $$r $$i $$o'],
-        rc_entry = [ r'\converter lyx      wordhtml       "%%"	""' ])
-      if elyxer.find('elyxer') >= 0:
-        elyxerfound = True
-
-    if elyxerfound:
-      addToRC(r'''\copier    wordhtml       "python -tt $$s/scripts/ext_copy.py -e html,png,jpg,jpeg,css $$i $$o"''')
-    else:
-      # search for other converters than eLyXer
-      # On SuSE the scripts have a .sh suffix, and on debian they are in /usr/share/tex4ht/
-      path, htmlconv = checkProg('a LaTeX -> MS Word converter', ["htlatex $$i 'html,word' 'symbol/!' '-cvalidate'", \
+      path, htmlconv = checkProg('a LaTeX -> HTML (MS Word) converter', ["htlatex $$i 'html,word' 'symbol/!' '-cvalidate'", \
           "htlatex.sh $$i 'html,word' 'symbol/!' '-cvalidate'", \
           "/usr/share/tex4ht/htlatex $$i 'html,word' 'symbol/!' '-cvalidate'"],
           rc_entry = [ r'\converter latex      wordhtml   "%%"	"needaux"' ])
@@ -691,6 +667,13 @@ def checkConverterEntries():
         addToRC(r'''\copier    wordhtml       "python -tt $$s/scripts/ext_copy.py -e html,png,css $$i $$o"''')
       else:
         addToRC(r'''\copier    wordhtml       "python -tt $$s/scripts/ext_copy.py $$i $$o"''')
+
+
+    # Check if LyXBlogger is installed
+    lyxblogger_found = checkModule('lyxblogger')
+    if lyxblogger_found:
+      addToRC(r'\Format    blog       blog       "LyXBlogger"           "" "" ""  "document"')
+      addToRC(r'\converter xhtml      blog       "python -m lyxblogger $$i"       ""')
 
     #
     checkProg('an OpenOffice.org -> LaTeX converter', ['w2l -clean $$i'],
@@ -743,10 +726,17 @@ def checkConverterEntries():
         rc_entry = [ r'\converter dvi        pdf3       "%%"	""' ])
     #
     path, dvipng = checkProg('dvipng', ['dvipng'])
-    if dvipng == "dvipng":
+    path, dv2dt  = checkProg('DVI to DTL converter', ['dv2dt'])
+    if dvipng == "dvipng" and dv2dt == 'dv2dt':
         addToRC(r'\converter lyxpreview png        "python -tt $$s/scripts/lyxpreview2bitmap.py"	""')
     else:
+        # set empty converter to override the default imagemagick
         addToRC(r'\converter lyxpreview png        ""	""')
+    if dv2dt == 'dv2dt':
+        addToRC(r'\converter lyxpreview ppm        "python -tt $$s/scripts/lyxpreview2bitmap.py"	""')
+    else:
+        # set empty converter to override the default imagemagick
+        addToRC(r'\converter lyxpreview ppm        ""	""')
     #  
     checkProg('a fax program', ['kdeprintfax $$i', 'ksendfax $$i', 'hylapex $$i'],
         rc_entry = [ r'\converter ps         fax        "%%"	""'])
@@ -850,10 +840,15 @@ def checkConverterEntries():
             version_number = match.groups()[0]
             version = version_number.split('.')
             if int(version[0]) > 2 or (len(version) > 1 and int(version[0]) == 2 and int(version[1]) >= 13):
-                addToRC(r'\converter lyxpreview-lytex ppm "python -tt $$s/scripts/lyxpreview-lytex2bitmap.py" ""')
-                if dvipng == "dvipng":
+                if dv2dt == 'dv2dt':
+                    addToRC(r'\converter lyxpreview-lytex ppm "python -tt $$s/scripts/lyxpreview-lytex2bitmap.py" ""')
+                else:
+                    # set empty converter to override the default imagemagick
+                    addToRC(r'\converter lyxpreview-lytex ppm "" ""')
+                if dvipng == "dvipng" and dv2dt == 'dv2dt':
                     addToRC(r'\converter lyxpreview-lytex png "python -tt $$s/scripts/lyxpreview-lytex2bitmap.py" ""')
                 else:
+                    # set empty converter to override the default imagemagick
                     addToRC(r'\converter lyxpreview-lytex png "" ""')
                 # Note: The --lily-output-dir flag is required because lilypond-book
                 #       does not process input again unless the input has changed,
@@ -873,12 +868,23 @@ def checkConverterEntries():
     checkProg('a Noteedit -> LilyPond converter', ['noteedit --export-lilypond $$i'],
         rc_entry = [ r'\converter noteedit   lilypond   "%%"	""', ''])
     #
+    # Currently, lyxpak outputs a gzip compressed tar archive on *nix
+    # and a zip archive on Windows.
+    # So, we configure the appropriate version according to the platform.
+    cmd = r'\converter lyx %s "python -tt $$s/scripts/lyxpak.py $$r/$$i" ""'
+    if os.name == 'nt':
+        addToRC(r'\Format lyxzip     zip    "LyX Archive (zip)"     "" "" ""  "document"')
+        addToRC(cmd % "lyxzip")
+    else:
+        addToRC(r'\Format lyxgz      gz     "LyX Archive (tar.gz)"  "" "" ""  "document"')
+        addToRC(cmd % "lyxgz")
+        
+    #
     # FIXME: no rc_entry? comment it out
     # checkProg('Image converter', ['convert $$i $$o'])
     #
     # Entries that do not need checkProg
-    addToRC(r'''\converter lyxpreview ppm        "python -tt $$s/scripts/lyxpreview2bitmap.py"	""
-\converter lyxpreview-platex ppm        "python -tt $$s/scripts/lyxpreview-platex2bitmap.py"	""
+    addToRC(r'''\converter lyxpreview-platex ppm        "python -tt $$s/scripts/lyxpreview-platex2bitmap.py"	""
 \converter csv        lyx        "python -tt $$s/scripts/csv2lyx.py $$i $$o"	""
 \converter date       dateout    "python -tt $$s/scripts/date.py %d-%m-%Y > $$o"	""
 \converter docbook    docbook-xml "cp $$i $$o"	"xml"
@@ -924,7 +930,7 @@ def checkOtherEntries():
         alt_rc_entry = [ r'\bibtex_alternatives "%%"' ])
     checkProg('a specific Japanese BibTeX variant', ['pbibtex', 'jbibtex', 'bibtex'],
         rc_entry = [ r'\jbibtex_command "%%"' ])
-    checkProgAlternatives('available index processors', ['texindy', 'makeindex -c -q'],
+    checkProgAlternatives('available index processors', ['texindy', 'makeindex -c -q', 'xindy'],
         rc_entry = [ r'\index_command "%%"' ],
         alt_rc_entry = [ r'\index_alternatives "%%"' ])
     checkProg('an index processor appropriate to Japanese', ['mendex -c -q', 'jmakeindex -c -q', 'makeindex -c -q'],

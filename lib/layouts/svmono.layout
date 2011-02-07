@@ -5,7 +5,7 @@
 #  Class and style files and templates are found at:
 #       ftp://ftp.springer.de/pub/tex/latex/svmonogl/
 #
-Format 30
+Format 33
 Input svjour.inc
 
 ClassOptions
@@ -22,7 +22,7 @@ Style Petit
 	RightMargin	MMM
 	Font
 	  Size		Small
-	FontEnd
+	EndFont
 End
 
 Style Front_Matter

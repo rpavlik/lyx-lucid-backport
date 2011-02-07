@@ -139,7 +139,7 @@ static void initializeResources()
 {
 	static bool initialized = false;
 	if (!initialized) {
-		Q_INIT_RESOURCE(Resources); 
+		Q_INIT_RESOURCE(Resources);
 		initialized = true;
 	}
 }
@@ -378,7 +378,7 @@ QString iconName(FuncRequest const & f, bool unknown)
 	path = ":/images/" + path;
 	QDir res(path);
 	if (!res.exists()) {
-		LYXERR0("Directory " << path << " not found in resource!"); 
+		LYXERR0("Directory " << path << " not found in resource!");
 		return QString();
 	}
 	name1 += ".png";
@@ -392,7 +392,7 @@ QString iconName(FuncRequest const & f, bool unknown)
 	LYXERR(Debug::GUI, "Cannot find icon with filename "
 			   << "\"" << name1 << "\""
 			   << " or filename "
-			   << "\"" << name2 << "\"" 
+			   << "\"" << name2 << "\""
 			   << " for command \""
 			   << lyxaction.getActionName(f.action())
 			   << '(' << to_utf8(f.argument()) << ")\"");
@@ -478,15 +478,15 @@ public:
 		: QTranslator(parent)
 	{}
 
-	QString translate(const char * /*context*/, 
-	  const char * sourceText, 
-	  const char * /*comment*/ = 0) 
+	QString translate(const char * /*context*/,
+	  const char * sourceText,
+	  const char * /*comment*/ = 0)
 	{
 		string const s = sourceText;
-		if (s == N_("About %1")	|| s == N_("Preferences") 
+		if (s == N_("About %1")	|| s == N_("Preferences")
 				|| s == N_("Reconfigure") || s == N_("Quit %1"))
 			return qt_(s);
-		else 
+		else
 			return QString();
 	}
 };
@@ -496,7 +496,7 @@ class GlobalMenuBar : public QMenuBar
 public:
 	///
 	GlobalMenuBar() : QMenuBar(0) {}
-	
+
 	///
 	bool event(QEvent * e)
 	{
@@ -662,7 +662,7 @@ public:
 	{
 		switch (formatetc.cfFormat) {
 		case CF_ENHMETAFILE:
-			return emfMimeType(); 
+			return emfMimeType();
 		case CF_METAFILEPICT:
 			return wmfMimeType();
 		}
@@ -791,7 +791,7 @@ GuiApplication::GuiApplication(int & argc, char ** argv)
 	/// Only needed with Qt/Mac.
 	installTranslator(new MenuTranslator(this));
 #endif
-	
+
 #ifdef Q_WS_X11
 	// doubleClickInterval() is 400 ms on X11 which is just too long.
 	// On Windows and Mac OS X, the operating system's value is used.
@@ -861,7 +861,7 @@ FuncStatus GuiApplication::getStatus(FuncRequest const & cmd) const
 
 	BufferView * bv = 0;
 	BufferView * doc_bv = 0;
-	
+
 	if (cmd.action() == LFUN_NOACTION) {
 		status.message(from_utf8(N_("Nothing to do")));
 		status.setEnabled(false);
@@ -879,7 +879,7 @@ FuncStatus GuiApplication::getStatus(FuncRequest const & cmd) const
 	// If we do not have a GuiView, then other functions are disabled
 	else if (!current_view_)
 		status.setEnabled(false);
-		
+
 	// Does the GuiView know something?
 	else if (current_view_->getStatus(cmd, status))	{ }
 
@@ -896,10 +896,10 @@ FuncStatus GuiApplication::getStatus(FuncRequest const & cmd) const
 	// If we do not have a BufferView, then other functions are disabled
 	else if (!(bv = current_view_->currentBufferView()))
 		status.setEnabled(false);
-	
+
 	// Does the current BufferView know something?
 	else if (bv->getStatus(cmd, status)) { }
-		
+
 	// Does the current Buffer know something?
 	else if (bv->buffer().getStatus(cmd, status)) { }
 
@@ -911,12 +911,12 @@ FuncStatus GuiApplication::getStatus(FuncRequest const & cmd) const
 	// Does the document Buffer know something?
 	else if (doc_bv->buffer().getStatus(cmd, status)) { }
 
-	else { 
+	else {
 		LYXERR(Debug::ACTION, "LFUN not handled in getStatus(): " << cmd);
 		status.message(from_utf8(N_("Command not handled")));
 		status.setEnabled(false);
 	}
-	
+
 	// the default error message if we disable the command
 	if (!status.enabled() && status.message().empty())
 		status.message(from_utf8(N_("Command disabled")));
@@ -1169,10 +1169,13 @@ void GuiApplication::gotoBookmark(unsigned int idx, bool openFile,
 		dispatch(FuncRequest(LFUN_BOOKMARK_SAVE, "0"));
 
 	// if the current buffer is not that one, switch to it.
-	BufferView * doc_bv = current_view_->documentBufferView();
+	BufferView * doc_bv = current_view_ ?
+		current_view_->documentBufferView() : 0;
 	if (!doc_bv || doc_bv->buffer().fileName() != tmp.filename) {
 		if (switchToBuffer) {
 			dispatch(FuncRequest(LFUN_BUFFER_SWITCH, file));
+			if (!current_view_)
+				return;
 			doc_bv = current_view_->documentBufferView();
 		} else
 			return;
@@ -1220,7 +1223,7 @@ void GuiApplication::reconfigure(string const & option)
 	// emit message signal.
 	if (current_view_)
 		current_view_->message(_("Reloading configuration..."));
-	lyxrc.read(libFileSearch(QString(), "lyxrc.defaults"));
+	lyxrc.read(libFileSearch(QString(), "lyxrc.defaults"), false);
 	// Re-read packages.lst
 	LaTeXFeatures::getAvailable();
 
@@ -1237,6 +1240,23 @@ void GuiApplication::reconfigure(string const & option)
 			     "updated document class specifications."));
 }
 
+void GuiApplication::validateCurrentView()
+{
+	if (!d->views_.empty() && !current_view_) {
+		// currently at least one view exists but no view has the focus.
+		// choose the last view to make it current.
+		// a view without any open document is preferred.
+		GuiView * candidate = 0;
+		QHash<int, GuiView *>::const_iterator it = d->views_.begin();
+		QHash<int, GuiView *>::const_iterator end = d->views_.end();
+		for (; it != end; ++it) {
+			candidate = *it;
+			if (!candidate->documentBufferView())
+				break;
+		}
+		setCurrentView(candidate);
+	}
+}
 
 void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 {
@@ -1254,8 +1274,6 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		LYXERR(Debug::ACTION, "action "
 		       << lyxaction.getActionName(action)
 		       << " [" << action << "] is disabled at this location");
-		if (current_view_)
-			current_view_->restartCursor();
 		dr.setMessage(flag.message());
 		dr.setError(true);
 		dr.dispatched(false);
@@ -1280,7 +1298,10 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		// clear the last opened list, because
 		// maybe this will end the session
 		theSession().lastOpened().clear();
-		current_view_->closeScheduled();
+		// check for valid current_view_
+		validateCurrentView();
+		if (current_view_)
+			current_view_->closeScheduled();
 		break;
 
 	case LFUN_LYX_QUIT:
@@ -1307,6 +1328,7 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 	}
 
 	case LFUN_BUFFER_NEW:
+		validateCurrentView();
 		if (d->views_.empty()
 		   || (!lyxrc.open_buffers_in_tabs && current_view_->documentBufferView() != 0)) {
 			createView(QString(), false); // keep hidden
@@ -1319,6 +1341,7 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		break;
 
 	case LFUN_BUFFER_NEW_TEMPLATE:
+		validateCurrentView();
 		if (d->views_.empty()
 		   || (!lyxrc.open_buffers_in_tabs && current_view_->documentBufferView() != 0)) {
 			createView();
@@ -1331,9 +1354,10 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		break;
 
 	case LFUN_FILE_OPEN: {
+		validateCurrentView();
 		// FIXME: create a new method shared with LFUN_HELP_OPEN.
 		string const fname = to_utf8(cmd.argument());
-		if (d->views_.empty() || (!lyxrc.open_buffers_in_tabs 
+		if (d->views_.empty() || (!lyxrc.open_buffers_in_tabs
 			  && current_view_->documentBufferView() != 0)) {
 			// We want the ui session to be saved per document and not per
 			// window number. The filename crc is a good enough identifier.
@@ -1390,7 +1414,7 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		}
 
 		string const graphicsbg = lcolor.getLyXName(Color_graphicsbg);
-		bool const graphicsbg_changed = 
+		bool const graphicsbg_changed =
 				lyx_name == graphicsbg && x11_name != graphicsbg;
 		if (graphicsbg_changed) {
 			// FIXME: The graphics cache no longer has a changeDisplay method.
@@ -1400,8 +1424,9 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		}
 
 		if (!lcolor.setColor(lyx_name, x11_name)) {
-			current_view_->message(
-				bformat(_("Set-color \"%1$s\" failed "
+			if (current_view_)
+				current_view_->message(
+					bformat(_("Set-color \"%1$s\" failed "
 				        "- color is undefined or "
 				        "may not be redefined"),
 				        from_utf8(lyx_name)));
@@ -1419,7 +1444,7 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		LyXRC const lyxrc_orig = lyxrc;
 
 		istringstream ss(to_utf8(cmd.argument()));
-		bool const success = lyxrc.read(ss) == 0;
+		bool const success = lyxrc.read(ss);
 
 		if (!success) {
 			lyxerr << "Warning in LFUN_LYXRC_APPLY!\n"
@@ -1462,13 +1487,18 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 
 	// --- lyxserver commands ----------------------------
 	case LFUN_SERVER_GET_FILENAME: {
-		LASSERT(current_view_ && current_view_->documentBufferView(), return);
-		docstring const fname = from_utf8(
+		if (current_view_ && current_view_->documentBufferView()) {
+			docstring const fname = from_utf8(
 				current_view_->documentBufferView()->buffer().absFileName());
-		dr.setMessage(fname);
-		LYXERR(Debug::INFO, "FNAME[" << fname << ']');
+			dr.setMessage(fname);
+			LYXERR(Debug::INFO, "FNAME[" << fname << ']');
+		} else {
+			dr.setMessage(docstring());
+			LYXERR(Debug::INFO, "No current file for LFUN_SERVER_GET_FILENAME");
+		}
 		break;
 	}
+
 	case LFUN_SERVER_NOTIFY: {
 		docstring const dispatch_buffer = d->keyseq.print(KeySequence::Portable);
 		dr.setMessage(dispatch_buffer);
@@ -1854,13 +1884,13 @@ Selection & GuiApplication::selection()
 }
 
 
-FontLoader & GuiApplication::fontLoader() 
+FontLoader & GuiApplication::fontLoader()
 {
 	return d->font_loader_;
 }
 
 
-Toolbars const & GuiApplication::toolbars() const 
+Toolbars const & GuiApplication::toolbars() const
 {
 	return d->toolbars_;
 }
@@ -1868,11 +1898,11 @@ Toolbars const & GuiApplication::toolbars() const
 
 Toolbars & GuiApplication::toolbars()
 {
-	return d->toolbars_; 
+	return d->toolbars_;
 }
 
 
-Menus const & GuiApplication::menus() const 
+Menus const & GuiApplication::menus() const
 {
 	return d->menus_;
 }
@@ -1880,7 +1910,7 @@ Menus const & GuiApplication::menus() const
 
 Menus & GuiApplication::menus()
 {
-	return d->menus_; 
+	return d->menus_;
 }
 
 
@@ -1926,7 +1956,7 @@ void GuiApplication::setGuiLanguage()
 	// install translation file for Qt built-in dialogs
 	QString const language_name = QString("qt_") + default_locale.name();
 
-	// language_name can be short (e.g. qt_zh) or long (e.g. qt_zh_CN). 
+	// language_name can be short (e.g. qt_zh) or long (e.g. qt_zh_CN).
 	// Short-named translator can be loaded from a long name, but not the
 	// opposite. Therefore, long name should be used without truncation.
 	// c.f. http://doc.trolltech.com/4.1/qtranslator.html#load
@@ -2020,8 +2050,10 @@ void GuiApplication::restoreGuiSession()
 		return;
 
 	Session & session = theSession();
-	LastOpenedSection::LastOpened const & lastopened = 
+	LastOpenedSection::LastOpened const & lastopened =
 		session.lastOpened().getfiles();
+
+	validateCurrentView();
 
 	FileName active_file;
 	// do not add to the lastfile list since these files are restored from
@@ -2044,7 +2076,7 @@ void GuiApplication::restoreGuiSession()
 
 	// Restore last active buffer
 	Buffer * buffer = theBufferList().getBuffer(active_file);
-	if (buffer)
+	if (buffer && current_view_)
 		current_view_->setBuffer(buffer);
 
 	// clear this list to save a few bytes of RAM
@@ -2118,7 +2150,7 @@ bool GuiApplication::notify(QObject * receiver, QEvent * event)
 		return QApplication::notify(receiver, event);
 	}
 	catch (ExceptionMessage const & e) {
-		switch(e.type_) { 
+		switch(e.type_) {
 		case ErrorException:
 			emergencyCleanup();
 			setQuitOnLastWindowClosed(false);
@@ -2132,7 +2164,7 @@ bool GuiApplication::notify(QObject * receiver, QEvent * event)
 			this->exit(1);
 
 		case BufferException: {
-			if (!current_view_->documentBufferView())
+			if (!current_view_ || !current_view_->documentBufferView())
 				return false;
 			Buffer * buf = &current_view_->documentBufferView()->buffer();
 			docstring details = e.details_ + '\n';
@@ -2306,6 +2338,104 @@ bool GuiApplication::searchMenu(FuncRequest const & func,
 }
 
 
+// Ensure that a file is read only once (prevents include loops)
+static QStringList uifiles;
+// store which ui files define Toolbars
+static QStringList toolbar_uifiles;
+
+
+GuiApplication::ReturnValues GuiApplication::readUIFile(FileName ui_path)
+{
+	enum {
+		ui_menuset = 1,
+		ui_toolbars,
+		ui_toolbarset,
+		ui_include,
+		ui_format,
+		ui_last
+	};
+
+	LexerKeyword uitags[] = {
+		{ "format", ui_format },
+		{ "include", ui_include },
+		{ "menuset", ui_menuset },
+		{ "toolbars", ui_toolbars },
+		{ "toolbarset", ui_toolbarset }
+	};
+
+	Lexer lex(uitags);
+	lex.setFile(ui_path);
+	if (!lex.isOK()) {
+		lyxerr << "Unable to set LyXLeX for ui file: " << ui_path
+					 << endl;
+	}
+
+	if (lyxerr.debugging(Debug::PARSER))
+		lex.printTable(lyxerr);
+
+	bool error = false;
+	// format before introduction of format tag
+	unsigned int format = 0;
+	while (lex.isOK()) {
+		int const status = lex.lex();
+
+		// we have to do this check here, outside the switch,
+		// because otherwise we would start reading include files,
+		// e.g., if the first tag we hit was an include tag.
+		if (status == ui_format)
+			if (lex.next()) {
+				format = lex.getInteger();
+				continue;
+			}
+
+		// this will trigger unless the first tag we hit is a format
+		// tag, with the right format.
+		if (format != LFUN_FORMAT)
+			return FormatMismatch;
+
+		switch (status) {
+		case Lexer::LEX_FEOF:
+			continue;
+
+		case ui_include: {
+			lex.next(true);
+			QString const file = toqstr(lex.getString());
+			bool const success = readUIFile(file, true);
+			if (!success) {
+				LYXERR0("Failed to read inlcuded file: " << fromqstr(file));
+				return ReadError;
+			}
+			break;
+		}
+
+		case ui_menuset:
+			d->menus_.read(lex);
+			break;
+
+		case ui_toolbarset:
+			d->toolbars_.readToolbars(lex);
+			break;
+
+		case ui_toolbars:
+			d->toolbars_.readToolbarSettings(lex);
+			toolbar_uifiles.push_back(toqstr(ui_path.absFileName()));
+			break;
+
+		default:
+			if (!rtrim(lex.getString()).empty())
+				lex.printError("LyX::ReadUIFile: "
+				               "Unknown menu tag: `$$Token'");
+			else
+				LYXERR0("Error with status: " << status);
+			error = true;
+			break;
+		}
+
+	}
+	return (error ? ReadError : ReadOK);
+}
+
+
 bool GuiApplication::readUIFile(QString const & name, bool include)
 {
 	LYXERR(Debug::INIT, "About to read " << name << "...");
@@ -2343,8 +2473,6 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 		return readUIFile(defaultUIFile, false);
 	}
 
-	// Ensure that a file is read only once (prevents include loops)
-	static QStringList uifiles;
 	QString const uifile = toqstr(ui_path.absFileName());
 	if (uifiles.contains(uifile)) {
 		if (!include) {
@@ -2362,62 +2490,24 @@ bool GuiApplication::readUIFile(QString const & name, bool include)
 
 	LYXERR(Debug::INIT, "Found " << name << " in " << ui_path);
 
-	enum {
-		ui_menuset = 1,
-		ui_toolbars,
-		ui_toolbarset,
-		ui_include,
-		ui_last
-	};
+	ReturnValues retval = readUIFile(ui_path);
 
-	LexerKeyword uitags[] = {
-		{ "include", ui_include },
-		{ "menuset", ui_menuset },
-		{ "toolbars", ui_toolbars },
-		{ "toolbarset", ui_toolbarset }
-	};
-
-	Lexer lex(uitags);
-	lex.setFile(ui_path);
-	if (!lex.isOK()) {
-		lyxerr << "Unable to set LyXLeX for ui file: " << ui_path
-		       << endl;
+	if (retval == FormatMismatch) {
+		LYXERR(Debug::FILES, "Converting ui file to format " << LFUN_FORMAT);
+		FileName const tempfile = FileName::tempName("convert_ui");
+		bool const success = prefs2prefs(ui_path, tempfile, true);
+		if (!success) {
+			LYXERR0("Unable to convert " << ui_path.absFileName() <<
+				" to format " << LFUN_FORMAT << ".");
+		} else {
+			retval = readUIFile(tempfile);
+			tempfile.removeFile();
+		}
 	}
 
-	if (lyxerr.debugging(Debug::PARSER))
-		lex.printTable(lyxerr);
-
-	// store which ui files define Toolbars
-	static QStringList toolbar_uifiles;
-
-	while (lex.isOK()) {
-		switch (lex.lex()) {
-		case ui_include: {
-			lex.next(true);
-			QString const file = toqstr(lex.getString());
-			if (!readUIFile(file, true))
-				return false;
-			break;
-		}
-		case ui_menuset:
-			d->menus_.read(lex);
-			break;
-
-		case ui_toolbarset:
-			d->toolbars_.readToolbars(lex);
-			break;
-
-		case ui_toolbars:
-			d->toolbars_.readToolbarSettings(lex);
-			toolbar_uifiles.push_back(uifile);
-			break;
-
-		default:
-			if (!rtrim(lex.getString()).empty())
-				lex.printError("LyX::ReadUIFile: "
-					       "Unknown menu tag: `$$Token'");
-			break;
-		}
+	if (retval != ReadOK) {
+		LYXERR0("Unable to read UI file: " << ui_path.absFileName());
+		return false;
 	}
 
 	if (include)

@@ -3,7 +3,7 @@
 # IOP article textclass definition file.
 # Author: Uwe Stöhr (uwestoehr@web.de)
 
-Format 30
+Format 33
 
 Columns                 1
 Sides                   1
@@ -50,6 +50,7 @@ Input stdsections.inc
 Input stdstarsections.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
 Style Title

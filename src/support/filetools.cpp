@@ -547,23 +547,17 @@ string const replaceEnvironmentPath(string const & path)
 	static regex envvar_br_re("(.*)" + envvar_br + "(.*)");
 	static regex envvar_re("(.*)" + envvar + "(.*)");
 	smatch what;
-	string result;
-	string remaining = path;
+	string result = path;
 	while (1) {
-		regex_match(remaining, what, envvar_br_re);
+		regex_match(result, what, envvar_br_re);
 		if (!what[0].matched) {
-			regex_match(remaining, what, envvar_re);
+			regex_match(result, what, envvar_re);
 			if (!what[0].matched) {
-				result += remaining;
 				break;
 			}
 		}
 		string env_var = getEnv(what.str(2));
-		if (!env_var.empty())
-			result += what.str(1) + env_var;
-		else
-			result += what.str(1) + "$" + what.str(2);
-		remaining = what.str(3);
+		result = what.str(1) + env_var + what.str(3);
 	}
 	return result;
 }
@@ -974,6 +968,33 @@ int compare_timestamps(FileName const & file1, FileName const & file2)
 	}
 
 	return cmp;
+}
+
+
+bool prefs2prefs(FileName const & filename, FileName const & tempfile, bool lfuns)
+{
+	FileName const script = libFileSearch("scripts", "prefs2prefs.py");
+	if (script.empty()) {
+		LYXERR0("Could not find bind file conversion "
+				"script prefs2prefs.py.");
+		return false;
+	}
+
+	ostringstream command;
+	command << os::python() << ' ' << quoteName(script.toFilesystemEncoding())
+	  << ' ' << (lfuns ? "-l" : "-p") << ' '
+		<< quoteName(filename.toFilesystemEncoding())
+		<< ' ' << quoteName(tempfile.toFilesystemEncoding());
+	string const command_str = command.str();
+
+	LYXERR(Debug::FILES, "Running `" << command_str << '\'');
+
+	cmd_ret const ret = runCommand(command_str);
+	if (ret.first != 0) {
+		LYXERR0("Could not run file conversion script prefs2prefs.py.");
+		return false;
+	}
+	return true;
 }
 
 

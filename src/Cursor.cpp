@@ -503,6 +503,7 @@ Row const & Cursor::textRow() const
 void Cursor::resetAnchor()
 {
 	anchor_ = *this;
+	checkNewWordPosition();
 }
 
 
@@ -515,6 +516,54 @@ void Cursor::setCursorToAnchor()
 		if (depth() < anchor_.depth() && top() <= anchor_[depth() - 1])
 			++normal.pos();
 		setCursor(normal);
+	}
+}
+
+
+void Cursor::markEditPosition()
+{
+	if (inTexted() && new_word_.empty()) {
+		FontSpan ow = locateWord(WHOLE_WORD);
+		if (ow.size() == 1) {
+			LYXERR(Debug::DEBUG, "start new word: "
+				<< " par: " << pit()
+				<< " pos: " << ow.first);
+			new_word_ = *this;
+		}
+	}
+}
+
+
+void Cursor::clearNewWordPosition()
+{
+	if (!new_word_.empty()) {
+		LYXERR(Debug::DEBUG, "clear new word: "
+			<< " par: " << pit()
+			<< " pos: " << pos());
+		new_word_.resize(0);
+	}
+}
+
+
+void Cursor::checkNewWordPosition()
+{
+	if (new_word_.empty())
+		return ;
+	if (!inTexted())
+		clearNewWordPosition();
+	else {
+		if (paragraph().id() != new_word_.paragraph().id())
+			clearNewWordPosition();
+		else {
+			FontSpan ow = new_word_.locateWord(WHOLE_WORD);
+			FontSpan nw = locateWord(WHOLE_WORD);
+			if (nw.intersect(ow).empty())
+				clearNewWordPosition();
+			else
+				LYXERR(Debug::DEBUG, "new word: "
+					<< " par: " << pit()
+					<< " pos: " << nw.first << ".." << nw.last);
+		}
 	}
 }
 
@@ -1337,7 +1386,7 @@ void Cursor::insert(Inset * inset0)
 }
 
 
-void Cursor::niceInsert(docstring const & t, Parse::flags f, bool enter)
+int Cursor::niceInsert(docstring const & t, Parse::flags f, bool enter)
 {
 	MathData ar(buffer());
 	asArray(t, ar, f);
@@ -1345,6 +1394,7 @@ void Cursor::niceInsert(docstring const & t, Parse::flags f, bool enter)
 		niceInsert(ar[0]);
 	else
 		insert(ar);
+	return ar.size();
 }
 
 
@@ -1624,7 +1674,7 @@ bool Cursor::inMacroMode() const
 {
 	if (!inMathed())
 		return false;
-	if (pos() == 0)
+	if (pos() == 0 || cell().empty())
 		return false;
 	InsetMathUnknown const * p = prevAtom()->asUnknownInset();
 	return p && !p->final();
@@ -2132,31 +2182,31 @@ Encoding const * Cursor::getEncoding() const
 }
 
 
-void Cursor::undispatched()
+void Cursor::undispatched() const
 {
 	disp_.dispatched(false);
 }
 
 
-void Cursor::dispatched()
+void Cursor::dispatched() const
 {
 	disp_.dispatched(true);
 }
 
 
-void Cursor::screenUpdateFlags(Update::flags f)
+void Cursor::screenUpdateFlags(Update::flags f) const
 {
 	disp_.screenUpdate(f);
 }
 
 
-void Cursor::forceBufferUpdate()
+void Cursor::forceBufferUpdate() const
 {
 	disp_.forceBufferUpdate();
 }
 
 
-void Cursor::clearBufferUpdate()
+void Cursor::clearBufferUpdate() const
 {
 	disp_.clearBufferUpdate();
 }
@@ -2168,7 +2218,7 @@ bool Cursor::needBufferUpdate() const
 }
 
 
-void Cursor::noScreenUpdate()
+void Cursor::noScreenUpdate() const
 {
 	disp_.screenUpdate(Update::None);
 }

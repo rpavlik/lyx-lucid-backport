@@ -61,10 +61,10 @@ void InsetFoot::updateBuffer(ParIterator const & it, UpdateType utype)
 }
 
 
-void InsetFoot::addToToc(DocIterator const & cpit)
+void InsetFoot::addToToc(DocIterator const & cpit) const
 {
 	DocIterator pit = cpit;
-	pit.push_back(CursorSlice(*this));
+	pit.push_back(CursorSlice(const_cast<InsetFoot &>(*this)));
 
 	Toc & toc = buffer().tocBackend().toc("footnote");
 	docstring str = custom_label_ + ": ";
@@ -84,7 +84,7 @@ docstring InsetFoot::toolTip(BufferView const & bv, int x, int y) const
 }
 
 
-int InsetFoot::latex(odocstream & os, OutputParams const & runparams_in) const
+int InsetFoot::latex(otexstream & os, OutputParams const & runparams_in) const
 {
 	OutputParams runparams = runparams_in;
 	// footnotes in titling commands like \title have moving arguments

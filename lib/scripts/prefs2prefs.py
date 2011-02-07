@@ -100,16 +100,16 @@ def update_format(lines):
 	" Writes new format line "
 	(found, format_line) = find_format_line(lines)
 	if not found:
-		lines.insert(format_line, "Format 1")
+		lines[format_line:format_line] = ("Format 1", "")
 		return
 
 	line = lines[format_line]
-	m = re_format.search(l)
+	m = re_format.search(line)
 	if not m:
 		sys.stderr.write("Couldn't match format line!\n" + line + "\n")
 		sys.exit(1)
 	format = int(m.group(1))
-	lines[i] = "Format " + str(format + 1)
+	lines[format_line] = "Format " + str(format + 1)
 
 
 #
@@ -137,8 +137,8 @@ def main(argv):
 		source = sys.stdin
 		output = sys.stdout
 	elif len(args) == 2:
-		source = open(args[1], 'rb')
-		output = open(args[2], 'wb')
+		source = open(args[0], 'rb')
+		output = open(args[1], 'wb')
 		opened_files = True
 	else:
 		usage()
@@ -149,15 +149,16 @@ def main(argv):
 
 	for (opt, param) in options:
 		if opt == "-l":
-			from prefs2prefs_lfuns import conversions, current_format
+			from prefs2prefs_lfuns import conversions
 		elif opt == "-p":
-			from prefs2prefs_prefs import conversions, current_format
+			from prefs2prefs_prefs import conversions
 	
 	if not conversions:
 		usage()
 		print "\nNeither -l nor -p given"
 		sys.exit(1)
 
+	current_format = len(conversions)
 	lines = read(source)
 	format = get_format(lines)
 

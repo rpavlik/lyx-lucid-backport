@@ -1,6 +1,7 @@
 #\DeclareLyXModule[sweave->latex]{Sweave}
 #DescriptionBegin
 #Allows to use the statistical language S/R as a literate programming tool via Sweave package.
+#See sweave.lyx in examples.
 #DescriptionEnd
 #Category: literate
 
@@ -9,7 +10,7 @@
 # - \setkeys{Gin}{width=0.8\textwidth} How to add such a "beast"? This is used to define
 #   the size of produced plots.
 
-Format 30
+Format 33
 OutputType             literate
 OutputFormat           sweave
 
@@ -35,6 +36,7 @@ Style Chunk
 	FreeSpacing           1
 	PassThru              1
 	ParbreakIsNewline     1
+	Spellcheck	      0
 	## What is LabelType used for?
 	LabelType             Static
 	TextFont
@@ -64,6 +66,7 @@ InsetLayout "Sweave Options"
 	MultiPar              false
 	PassThru              1
 	ParbreakIsNewline     1
+	Spellcheck	      0
 	FreeSpacing           true
 	ForceLTR              true
 End
@@ -85,6 +88,7 @@ InsetLayout "S/R expression"
 	MultiPar              false
 	PassThru              1
 	ParbreakIsNewline     1
+	Spellcheck	      0
 	FreeSpacing           true
 	ForceLTR              true
 End
@@ -106,6 +110,7 @@ InsetLayout "Sweave Input File"
 	MultiPar              false
 	PassThru              1
 	ParbreakIsNewline     1
+	Spellcheck	      0
 	FreeSpacing           true
 	ForceLTR              true
 End

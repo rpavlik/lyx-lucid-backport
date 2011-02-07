@@ -245,7 +245,8 @@ static bool doInsertInset(Cursor & cur, Text * text,
 		if (edit)
 			inset->edit(cur, true);
 		// Now put this into inset
-		cur.text()->insertStringAsLines(cur, ds, cur.current_font);
+		Font const f(inherit_font, cur.current_font.language());
+		cur.text()->insertStringAsLines(cur, ds, f);
 		cur.leaveInset(*inset);
 		return true;
 	}
@@ -467,9 +468,9 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	cur.noScreenUpdate();
 
 	LASSERT(cur.text() == this, /**/);
-	CursorSlice oldTopSlice = cur.top();
-	bool oldBoundary = cur.boundary();
-	bool sel = cur.selection();
+	CursorSlice const oldTopSlice = cur.top();
+	bool const oldBoundary = cur.boundary();
+	bool const oldSelection = cur.selection();
 	// Signals that, even if needsUpdate == false, an update of the
 	// cursor paragraph is required
 	bool singleParUpdate = lyxaction.funcHasFlag(cmd.action(),
@@ -477,9 +478,8 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	// Signals that a full-screen update is required
 	bool needsUpdate = !(lyxaction.funcHasFlag(cmd.action(),
 		LyXAction::NoUpdate) || singleParUpdate);
-	int const last_pid = cur.paragraph().id();
-	pos_type const last_pos = cur.pos();
-	bool const last_misspelled = lyxrc.spellcheck_continuously && cur.paragraph().isMisspelled(cur.pos());
+	bool const last_misspelled = lyxrc.spellcheck_continuously
+		&& cur.paragraph().isMisspelled(cur.pos(), true);
 	
 	FuncCode const act = cmd.action();
 	switch (act) {
@@ -1357,13 +1357,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		Paragraph const & par = cur.paragraph();
 		pos_type pos = cur.pos();
 
-		Layout const & style = par.layout();
-		InsetLayout const & ilayout = cur.inset().getLayout();
 		BufferParams const & bufparams = bv->buffer().params();
 		bool const hebrew = 
 			par.getFontSettings(bufparams, pos).language()->lang() == "hebrew";
-		bool const allow_inset_quote = 
-			!(style.pass_thru || ilayout.isPassThru() || hebrew);
+		bool const allow_inset_quote = !(par.isPassThru() || hebrew);
 		
 		if (allow_inset_quote) {
 			char_type c = ' ';
@@ -1893,6 +1890,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		Language const * lang = languages.getLanguage(to_utf8(cmd.argument()));
 		if (!lang)
 			break;
+		selectWordWhenUnderCursor(cur, WHOLE_WORD);
 		Font font(ignore_font, lang);
 		toggleAndShow(cur, this, font);
 		break;
@@ -2187,9 +2185,10 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 		if (!cur.inTexted()) {
 			// move from regular text to math
 			needsUpdate = last_misspelled;
-		} else if (cur.paragraph().id() != last_pid || cur.pos() != last_pos) {
+		} else if (oldTopSlice != cur.top() || oldBoundary != cur.boundary()) {
 			// move inside regular text
-			needsUpdate = last_misspelled || cur.paragraph().isMisspelled(cur.pos());
+			needsUpdate = last_misspelled
+				|| cur.paragraph().isMisspelled(cur.pos(), true);
 		}
 	}
 
@@ -2215,7 +2214,7 @@ void Text::dispatch(Cursor & cur, FuncRequest & cmd)
 	if (!needsUpdate
 	    && &oldTopSlice.inset() == &cur.inset()
 	    && oldTopSlice.idx() == cur.idx()
-	    && !sel // sel is a backup of cur.selection() at the beginning of the function.
+	    && !oldSelection // oldSelection is a backup of cur.selection() at the beginning of the function.
 	    && !cur.selection())
 		// FIXME: it would be better if we could just do this
 		//
@@ -2376,7 +2375,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 			// make sure we know about such floats
 			if (cit == floats.end() ||
 					// and that we know how to generate a list of them
-			    (!cit->second.needsFloatPkg() && cit->second.listCommand().empty())) {
+			    (!cit->second.usesFloatPkg() && cit->second.listCommand().empty())) {
 				flag.setUnknown(true);
 				// probably not necessary, but...
 				enable = false;
@@ -2508,38 +2507,38 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_FONT_EMPH:
 		flag.setOnOff(fontinfo.emph() == FONT_ON);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_ITAL:
 		flag.setOnOff(fontinfo.shape() == ITALIC_SHAPE);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_NOUN:
 		flag.setOnOff(fontinfo.noun() == FONT_ON);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_BOLD:
 	case LFUN_FONT_BOLDSYMBOL:
 		flag.setOnOff(fontinfo.series() == BOLD_SERIES);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_SANS:
 		flag.setOnOff(fontinfo.family() == SANS_FAMILY);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_ROMAN:
 		flag.setOnOff(fontinfo.family() == ROMAN_FAMILY);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_FONT_TYPEWRITER:
 		flag.setOnOff(fontinfo.family() == TYPEWRITER_FAMILY);
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_CUT:
@@ -2633,7 +2632,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 	case LFUN_TAB_INSERT:
 	case LFUN_TAB_DELETE:
-		enable = cur.inset().getLayout().isPassThru();
+		enable = cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_SET_GRAPHICS_GROUP: {
@@ -2659,7 +2658,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	}
 
 	case LFUN_LANGUAGE:
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		flag.setOnOff(to_utf8(cmd.argument()) == cur.real_current_font.language()->lang());
 		break;
 
@@ -2711,7 +2710,7 @@ bool Text::getStatus(Cursor & cur, FuncRequest const & cmd,
 	case LFUN_FONT_UWAVE:
 	case LFUN_TEXTSTYLE_APPLY:
 	case LFUN_TEXTSTYLE_UPDATE:
-		enable = !cur.inset().getLayout().isPassThru();
+		enable = !cur.paragraph().isPassThru();
 		break;
 
 	case LFUN_WORD_DELETE_FORWARD:

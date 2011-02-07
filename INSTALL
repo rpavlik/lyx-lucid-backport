@@ -58,17 +58,6 @@ widely tested. For compilation you need to compile against at least
 Qt 4.2.2. The only special point to make is that you must ensure that both
 LyX and the Qt libraries are compiled with the same C++ compiler.
 
-Note that if Qt is using Xft2/fontconfig, you may need to install the
-latex-xft-fonts package (at ftp://ftp.lyx.org/pub/lyx/contrib/) to get
-maths symbols displayed properly. To find out, type:
-
-	ldd `which lyx` | grep fontconfig
-
-at the console. Most recent distributions are known to use fontconfig.
-
-If, however, your version of Qt does not use fontconfig, then TeX
-fonts should be added to the font path. 'man xset' is your friend.
-
 To build LyX with spell checking capabilities included you have to
 install at least one of the development packages of the spell checker
 libraries. See the RELEASE-NOTES for details.
@@ -103,20 +92,21 @@ to create the Makefile by typing
 
   ./configure
 
-For more complicated cases, LyX configure takes the following specific
+For more complicated cases, LyX configure honors the following specific
 flags:
 
-  o --enable-build-type=[rel(ease), dev(elopment), pre(release)]
+  o --enable-build-type=[rel(ease), pre(release), dev(elopment), prof(iling), gprof]
     allows to tweak the compiled code. The following table describes
     the settings in terms of various options that are described later
 
-                      release   prerelease  development
-    optimization        -O2         -O2         -O
+                      release   prerelease  development profiling gprof
+    optimization        -O2         -O2         -O         -O2     -O2
     assertions                       X           X
     stdlib-debug                                 X
     concept-checks                   X           X
     warnings                         X           X
-    debug                            X           X
+    debug                            X           X           X       X
+    gprof                                                            X
 
     The default are as follows in terms of version number
     release: stable release (1.x.y)
@@ -211,7 +201,7 @@ this file.
 
 The following options allow to tweak more precisely the generated code:
 
-  o --enable-profiling instruments the code for use with the gprof
+  o --enable-gprof instruments the code for use with the gprof
     profiler. The result are only meaningful in conjunction with
     --enable-build-type=release.
 

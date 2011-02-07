@@ -58,10 +58,10 @@ private:
 	void read(Lexer & lex);
 	///
 	int docbook(odocstream &, OutputParams const &) const;
-	/// 
+	///
 	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	bool showInsetDialog(BufferView *) const;
 	///
@@ -71,7 +71,7 @@ private:
 	/// should paragraph indendation be omitted in any case?
 	bool neverIndent() const { return true; }
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///
@@ -100,8 +100,8 @@ public:
 	///
 	InsetCode lyxCode() const { return INDEX_PRINT_CODE; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
-	/// 
+	int latex(otexstream &, OutputParams const &) const;
+	///
 	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	void doDispatch(Cursor & cur, FuncRequest & cmd);

@@ -43,7 +43,7 @@ public:
 	///
 	InsetCode lyxCode() const { return CITE_CODE; }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -59,7 +59,7 @@ public:
 	///
 	void updateBuffer(ParIterator const & it, UpdateType);
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	docstring contextMenuName() const;
 	//@}

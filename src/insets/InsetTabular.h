@@ -270,6 +270,8 @@ public:
 		///
 		SET_DECIMAL_POINT,
 		///
+		SET_TABULAR_WIDTH,
+		///
 		LAST_ACTION
 	};
 	///
@@ -402,6 +404,10 @@ public:
 	void setVAlignment(idx_type cell, VAlignment align,
 			   bool onlycolumn = false);
 	///
+	void setTabularWidth(Length const & l) { tabular_width = l; }
+	///
+	Length tabularWidth() const { return tabular_width; }
+	///
 	void setColumnPWidth(Cursor &, idx_type, Length const &);
 	///
 	bool setMColumnPWidth(Cursor &, idx_type, Length const &);
@@ -447,7 +453,7 @@ public:
 	///
 	void read(Lexer &);
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream & os, OutputParams const &) const;
 	///
@@ -675,6 +681,8 @@ public:
 	///
 	mutable cell_vvector cell_info;
 	///
+	Length tabular_width;
+	///
 	bool use_booktabs;
 	///
 	bool rotate;
@@ -713,19 +721,19 @@ public:
 	///
 	// helper function for Latex returns number of newlines
 	///
-	int TeXTopHLine(odocstream &, row_type row, std::string const lang) const;
+	int TeXTopHLine(otexstream &, row_type row, std::string const lang) const;
 	///
-	int TeXBottomHLine(odocstream &, row_type row, std::string const lang) const;
+	int TeXBottomHLine(otexstream &, row_type row, std::string const lang) const;
 	///
-	int TeXCellPreamble(odocstream &, idx_type cell, bool & ismulticol, bool & ismultirow) const;
+	int TeXCellPreamble(otexstream &, idx_type cell, bool & ismulticol, bool & ismultirow) const;
 	///
-	int TeXCellPostamble(odocstream &, idx_type cell, bool ismulticol, bool ismultirow) const;
+	int TeXCellPostamble(otexstream &, idx_type cell, bool ismulticol, bool ismultirow) const;
 	///
-	int TeXLongtableHeaderFooter(odocstream &, OutputParams const &) const;
+	int TeXLongtableHeaderFooter(otexstream &, OutputParams const &) const;
 	///
 	bool isValidRow(row_type const row) const;
 	///
-	int TeXRow(odocstream &, row_type const row,
+	int TeXRow(otexstream &, row_type const row,
 		   OutputParams const &) const;
 	///
 	// helper functions for plain text
@@ -744,7 +752,8 @@ public:
 	/// auxiliary function for docbook
 	int docbookRow(odocstream & os, row_type, OutputParams const &) const;
 	///
-	docstring xhtmlRow(XHTMLStream & xs, row_type, OutputParams const &) const;
+	docstring xhtmlRow(XHTMLStream & xs, row_type, OutputParams const &,
+	                   bool header = false) const;
 
 	/// change associated Buffer
 	void setBuffer(Buffer & buffer);
@@ -801,7 +810,7 @@ public:
 	///
 	DisplayType display() const;
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -863,7 +872,7 @@ public:
 	/// Update the counters of this inset and of its contents
 	void updateBuffer(ParIterator const &, UpdateType);
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 
 	///
 	bool completionSupported(Cursor const &) const;

@@ -183,6 +183,7 @@ TabularFeature tabularFeature[] =
 	{ Tabular::LONGTABULAR_ALIGN_CENTER, "longtabular-align-center", false },
 	{ Tabular::LONGTABULAR_ALIGN_RIGHT, "longtabular-align-right", false },
 	{ Tabular::SET_DECIMAL_POINT, "set-decimal-point", true },
+	{ Tabular::SET_TABULAR_WIDTH, "set-tabular-width", true },
 	{ Tabular::LAST_ACTION, "", false }
 };
 
@@ -678,6 +679,7 @@ void Tabular::init(Buffer * buf, row_type rows_arg,
 	updateIndexes();
 	is_long_tabular = false;
 	tabular_valignment = LYX_VALIGN_MIDDLE;
+	tabular_width = Length();
 	longtabular_alignment = LYX_LONGTABULAR_ALIGN_CENTER;
 	rotate = false;
 	use_booktabs = false;
@@ -1391,8 +1393,10 @@ void Tabular::write(ostream & os) const
 	   << write_attribute("lastFootBottomDL", endlastfoot.bottomDL)
 	   << write_attribute("lastFootEmpty", endlastfoot.empty);
 	// longtables cannot be aligned vertically
-	if (!is_long_tabular)
+	if (!is_long_tabular) {
 	   os << write_attribute("tabularvalignment", tabular_valignment);
+	   os << write_attribute("tabularwidth", tabular_width);
+	}
 	if (is_long_tabular)
 	   os << write_attribute("longtabularalignment",
 	                         longtabular_alignment);
@@ -1489,6 +1493,7 @@ void Tabular::read(Lexer & lex)
 	getTokenValue(line, "booktabs", use_booktabs);
 	getTokenValue(line, "islongtable", is_long_tabular);
 	getTokenValue(line, "tabularvalignment", tabular_valignment);
+	getTokenValue(line, "tabularwidth", tabular_width);
 	getTokenValue(line, "longtabularalignment", longtabular_alignment);
 	getTokenValue(line, "firstHeadTopDL", endfirsthead.topDL);
 	getTokenValue(line, "firstHeadBottomDL", endfirsthead.bottomDL);
@@ -1886,6 +1891,8 @@ bool Tabular::getLTNewPage(row_type row) const
 
 bool Tabular::haveLTHead() const
 {
+	if (!is_long_tabular)
+		return false;
 	for (row_type i = 0; i < nrows(); ++i)
 		if (row_info[i].endhead)
 			return true;
@@ -1895,7 +1902,7 @@ bool Tabular::haveLTHead() const
 
 bool Tabular::haveLTFirstHead() const
 {
-	if (endfirsthead.empty)
+	if (!is_long_tabular || endfirsthead.empty)
 		return false;
 	for (row_type r = 0; r < nrows(); ++r)
 		if (row_info[r].endfirsthead)
@@ -1906,6 +1913,8 @@ bool Tabular::haveLTFirstHead() const
 
 bool Tabular::haveLTFoot() const
 {
+	if (!is_long_tabular)
+		return false;
 	for (row_type r = 0; r < nrows(); ++r)
 		if (row_info[r].endfoot)
 			return true;
@@ -1915,7 +1924,7 @@ bool Tabular::haveLTFoot() const
 
 bool Tabular::haveLTLastFoot() const
 {
-	if (endlastfoot.empty)
+	if (!is_long_tabular || endlastfoot.empty)
 		return false;
 	for (row_type r = 0; r < nrows(); ++r)
 		if (row_info[r].endlastfoot)
@@ -1951,6 +1960,8 @@ bool Tabular::ltCaption(row_type row) const
 
 bool Tabular::haveLTCaption() const
 {
+	if (!is_long_tabular)
+		return false;
 	for (row_type r = 0; r < nrows(); ++r)
 		if (row_info[r].caption)
 			return true;
@@ -2016,7 +2027,7 @@ bool Tabular::isPartOfMultiRow(row_type row, col_type column) const
 }
 
 
-int Tabular::TeXTopHLine(odocstream & os, row_type row, string const lang) const
+int Tabular::TeXTopHLine(otexstream & os, row_type row, string const lang) const
 {
 	// we only output complete row lines and the 1st row here, the rest
 	// is done in Tabular::TeXBottomHLine(...)
@@ -2079,7 +2090,7 @@ int Tabular::TeXTopHLine(odocstream & os, row_type row, string const lang) const
 }
 
 
-int Tabular::TeXBottomHLine(odocstream & os, row_type row, string const lang) const
+int Tabular::TeXBottomHLine(otexstream & os, row_type row, string const lang) const
 {
 	// we output bottomlines of row r and the toplines of row r+1
 	// if the latter do not span the whole tabular
@@ -2152,8 +2163,8 @@ int Tabular::TeXBottomHLine(odocstream & os, row_type row, string const lang) co
 }
 
 
-int Tabular::TeXCellPreamble(odocstream & os, idx_type cell,
-							 bool & ismulticol, bool & ismultirow) const
+int Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
+			     bool & ismulticol, bool & ismultirow) const
 {
 	int ret = 0;
 	row_type const r = cellRow(cell);
@@ -2302,8 +2313,8 @@ int Tabular::TeXCellPreamble(odocstream & os, idx_type cell,
 }
 
 
-int Tabular::TeXCellPostamble(odocstream & os, idx_type cell,
-							  bool ismulticol, bool ismultirow) const
+int Tabular::TeXCellPostamble(otexstream & os, idx_type cell,
+			      bool ismulticol, bool ismultirow) const
 {
 	int ret = 0;
 	row_type const r = cellRow(cell);
@@ -2330,7 +2341,7 @@ int Tabular::TeXCellPostamble(odocstream & os, idx_type cell,
 }
 
 
-int Tabular::TeXLongtableHeaderFooter(odocstream & os,
+int Tabular::TeXLongtableHeaderFooter(otexstream & os,
 					 OutputParams const & runparams) const
 {
 	if (!is_long_tabular)
@@ -2442,7 +2453,7 @@ bool Tabular::isValidRow(row_type row) const
 }
 
 
-int Tabular::TeXRow(odocstream & os, row_type row,
+int Tabular::TeXRow(otexstream & os, row_type row,
 		       OutputParams const & runparams) const
 {
 	idx_type cell = cellIndex(row, 0);
@@ -2585,9 +2596,10 @@ int Tabular::TeXRow(odocstream & os, row_type row,
 }
 
 
-int Tabular::latex(odocstream & os, OutputParams const & runparams) const
+int Tabular::latex(otexstream & os, OutputParams const & runparams) const
 {
 	int ret = 0;
+	bool const is_tabular_star = !tabular_width.zero();
 
 	//+---------------------------------------------------------------------
 	//+                      first the opening preamble                    +
@@ -2610,7 +2622,10 @@ int Tabular::latex(odocstream & os, OutputParams const & runparams) const
 			break;
 		}
 	} else {
-		os << "\\begin{tabular}";
+		if (is_tabular_star)
+			os << "\\begin{tabular*}{" << from_ascii(tabular_width.asLatexString()) << "}";
+		else
+			os << "\\begin{tabular}";
 		switch (tabular_valignment) {
 		case LYX_VALIGN_TOP:
 			os << "[t]";
@@ -2624,6 +2639,9 @@ int Tabular::latex(odocstream & os, OutputParams const & runparams) const
 	}
 	
 	os << "{";
+
+	if (is_tabular_star)
+		os << "@{\\extracolsep{\\fill}}";
 
 	for (col_type c = 0; c < ncols(); ++c) {
 		if (columnLeftLine(c))
@@ -2710,10 +2728,15 @@ int Tabular::latex(odocstream & os, OutputParams const & runparams) const
 	if (is_long_tabular)
 		os << "\\end{longtable}";
 	else
-		os << "\\end{tabular}";
+		if (is_tabular_star)
+			os << "\\end{tabular*}";
+		else
+			os << "\\end{tabular}";
 	if (rotate) {
-		os << "\n\\end{sideways}";
-		++ret;
+		// clear counter
+		os.countLines();
+		os << breakln << "\\end{sideways}";
+		ret += os.countLines();
 	}
 
 	return ret;
@@ -2869,9 +2892,10 @@ int Tabular::docbook(odocstream & os, OutputParams const & runparams) const
 
 
 docstring Tabular::xhtmlRow(XHTMLStream & xs, row_type row,
-			   OutputParams const & runparams) const
+			   OutputParams const & runparams, bool header) const
 {
 	docstring ret;
+	string const celltag = header ? "th" : "td";
 	idx_type cell = getFirstCellInRow(row);
 
 	xs << html::StartTag("tr");
@@ -2909,9 +2933,9 @@ docstring Tabular::xhtmlRow(XHTMLStream & xs, row_type row,
 		if (isMultiColumn(cell))
 			attr << " colspan='" << columnSpan(cell) << "'";
 
-		xs << html::StartTag("td", attr.str());
+		xs << html::StartTag(celltag, attr.str());
 		ret += cellInset(cell)->xhtml(xs, runparams);
-		xs << html::EndTag("td");
+		xs << html::EndTag(celltag);
 		++cell;
 	}
 	xs << html::EndTag("tr");
@@ -2922,8 +2946,63 @@ docstring Tabular::xhtmlRow(XHTMLStream & xs, row_type row,
 docstring Tabular::xhtml(XHTMLStream & xs, OutputParams const & runparams) const
 {
 	docstring ret;
-	// It's unclear to me if we need to mess with the long table stuff. 
-	// We can borrow that too from docbook, if so.
+
+	if (is_long_tabular) {
+		// we'll wrap it in a div, so as to deal with alignment
+		string align;
+		switch (longtabular_alignment) {
+		case LYX_LONGTABULAR_ALIGN_LEFT:
+			align = "left";
+			break;
+		case LYX_LONGTABULAR_ALIGN_CENTER:
+			align = "center";
+			break;
+		case LYX_LONGTABULAR_ALIGN_RIGHT:
+			align = "right";
+			break;
+		}
+		xs << html::StartTag("div", "class='longtable' style='text-align: " + align + ";'");
+		if (haveLTCaption()) {
+			xs << html::StartTag("div", "class='longtable-caption' style='text-align: " + align + ";'");
+			for (row_type r = 0; r < nrows(); ++r)
+				if (row_info[r].caption)
+					ret += xhtmlRow(xs, r, runparams);
+			xs << html::EndTag("div");
+		}
+	}
+
+	xs << html::StartTag("table");
+
+	// output header info
+	bool const havefirsthead = haveLTFirstHead();
+	// if we have a first head, then we are going to ignore the
+	// headers for the additional pages, since there aren't any
+	// in XHTML. this test accomplishes that.
+	bool const havehead = !havefirsthead && haveLTHead();
+	if (havehead || havefirsthead) {
+		xs << html::StartTag("thead");
+		for (row_type r = 0; r < nrows(); ++r) {
+			if ((havefirsthead && row_info[r].endfirsthead)
+			    || (havehead && row_info[r].endhead)) {
+				ret += xhtmlRow(xs, r, runparams, true);
+			}
+		}
+		xs << html::EndTag("thead");
+	}
+	// output footer info
+	bool const havelastfoot = haveLTLastFoot();
+	// as before.
+	bool const havefoot = !havelastfoot && haveLTFoot();
+	if (havefoot || havelastfoot) {
+		xs << html::StartTag("tfoot");
+		for (row_type r = 0; r < nrows(); ++r) {
+			if ((havelastfoot && row_info[r].endlastfoot)
+			    || (havefoot && row_info[r].endfoot)) {
+				ret += xhtmlRow(xs, r, runparams);
+			}
+		}
+		xs << html::EndTag("tfoot");
+	}
 
 	xs << html::StartTag("tbody");
 	for (row_type r = 0; r < nrows(); ++r) {
@@ -2931,7 +3010,10 @@ docstring Tabular::xhtml(XHTMLStream & xs, OutputParams const & runparams) const
 			ret += xhtmlRow(xs, r, runparams);
 		}
 	}
-	xs << html::EndTag("tbody");
+	xs << html::EndTag("tbody")
+	   << html::EndTag("table");
+	if (is_long_tabular)
+		xs << html::EndTag("div");
 	return ret;
 }
 
@@ -3736,7 +3818,7 @@ void InsetTabular::updateBuffer(ParIterator const & it, UpdateType utype)
 }
 
 
-void InsetTabular::addToToc(DocIterator const & cpit)
+void InsetTabular::addToToc(DocIterator const & cpit) const
 {
 	DocIterator dit = cpit;
 	dit.forwardPos();
@@ -4293,6 +4375,11 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 			status.clear();
 			return true;
 
+		case Tabular::SET_TABULAR_WIDTH:
+			status.setEnabled(!tabular.rotate &&  !tabular.is_long_tabular
+				&& tabular.tabular_valignment == Tabular::LYX_VALIGN_MIDDLE);
+			break;
+
 		case Tabular::SET_DECIMAL_POINT:
 			status.setEnabled(
 				tabular.getAlignment(cur.idx()) == LYX_ALIGN_DECIMAL);
@@ -4431,18 +4518,22 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 
 		case Tabular::TOGGLE_ROTATE_TABULAR:
 		case Tabular::SET_ROTATE_TABULAR:
+			status.setEnabled(tabular.tabular_width.zero());
 			status.setOnOff(tabular.rotate);
 			break;
 
 		case Tabular::TABULAR_VALIGN_TOP:
+			status.setEnabled(tabular.tabular_width.zero());
 			status.setOnOff(tabular.tabular_valignment 
 				== Tabular::LYX_VALIGN_TOP);
 			break;
 		case Tabular::TABULAR_VALIGN_MIDDLE:
+			status.setEnabled(tabular.tabular_width.zero());
 			status.setOnOff(tabular.tabular_valignment 
 				== Tabular::LYX_VALIGN_MIDDLE);
 			break;
 		case Tabular::TABULAR_VALIGN_BOTTOM:
+			status.setEnabled(tabular.tabular_width.zero());
 			status.setOnOff(tabular.tabular_valignment 
 				== Tabular::LYX_VALIGN_BOTTOM);
 			break;
@@ -4653,7 +4744,7 @@ Inset::DisplayType InsetTabular::display() const
 }
 
 
-int InsetTabular::latex(odocstream & os, OutputParams const & runparams) const
+int InsetTabular::latex(otexstream & os, OutputParams const & runparams) const
 {
 	return tabular.latex(os, runparams);
 }
@@ -4697,13 +4788,7 @@ int InsetTabular::docbook(odocstream & os, OutputParams const & runparams) const
 
 docstring InsetTabular::xhtml(XHTMLStream & xs, OutputParams const & rp) const
 {
-	// FIXME XHTML
-	// It'd be better to be able to get this from an InsetLayout, but at present
-	// InsetLayouts do not seem really to work for things that aren't InsetTexts.
-	xs << html::StartTag("table");
-	docstring ret = tabular.xhtml(xs, rp);
-	xs << html::EndTag("table");
-	return ret;
+	return tabular.xhtml(xs, rp);
 }
 
 
@@ -5125,6 +5210,10 @@ void InsetTabular::tabularFeatures(Cursor & cur,
 	Tabular::ltType ltt;
 
 	switch (feature) {
+
+	case Tabular::SET_TABULAR_WIDTH:
+		tabular.setTabularWidth(Length(value));
+		break;
 
 	case Tabular::SET_PWIDTH: {
 		Length const len(value);

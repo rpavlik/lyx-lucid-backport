@@ -308,6 +308,7 @@ src_support_header_files = Split('''
     lyxalgo.h
     lyxlib.h
     lyxtime.h
+    mutex.h
     Messages.h
     numpunct_lyx_char_type.h
     os.h
@@ -348,6 +349,7 @@ src_support_files = Split('''
     lassert.cpp
     lstrings.cpp
     lyxtime.cpp
+    mutex.cpp
     Messages.cpp
     os.cpp
     Package.cpp
@@ -626,6 +628,7 @@ src_tex2lyx_copied_files = Split('''
     Floating.cpp
     FontInfo.cpp
     Layout.cpp
+    LayoutFile.cpp
     LayoutModuleList.cpp
     lengthcommon.cpp
     Lexer.cpp
@@ -638,6 +641,7 @@ src_tex2lyx_copied_files = Split('''
 
 src_tex2lyx_extra_files = Split('''
     Makefile.am
+    TODO.txt
     pch.h
     tex2lyx.1in
     test/box-color-size-space-align.tex
@@ -1468,6 +1472,7 @@ lib_images_files = Split('''
     buffer-write-as.png
     buffer-write.png
     build-program.png
+    busy.gif
     change-accept.png
     change-next.png
     change-reject.png
@@ -1558,16 +1563,16 @@ lib_images_files = Split('''
     split-view_vertical.png
     standard.png
     tabular-feature_align-decimal.png
+    tabular-feature_append-column.png
+    tabular-feature_append-row.png
+    tabular-feature_delete-column.png
+    tabular-feature_delete-row.png
     tabular-feature_m-align-center.png
     tabular-feature_m-align-left.png
     tabular-feature_m-align-right.png
     tabular-feature_m-valign-bottom.png
     tabular-feature_m-valign-middle.png
     tabular-feature_m-valign-top.png
-    tabular-feature_append-column.png
-    tabular-feature_append-row.png
-    tabular-feature_delete-column.png
-    tabular-feature_delete-row.png
     tabular-feature_multicolumn.png
     tabular-feature_multirow.png
     tabular-feature_set-all-lines.png
@@ -2513,6 +2518,7 @@ lib_examples_files = Split('''
     CV-image.eps
     CV-image.png
     docbook_article.lyx
+    enumitem.lyx
     europeCV.lyx
     example_lyxified.lyx
     example_raw.lyx
@@ -2926,6 +2932,7 @@ lib_layouts_module_files = Split('''
     eqs-within-sections.module
     figs-within-sections.module
     fixltx2e.module
+    fix-cm.module
     foottoend.module
     hanging.module
     initials.module

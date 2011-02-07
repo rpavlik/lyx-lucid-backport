@@ -33,7 +33,7 @@
 #                        - new environments for \altaffiltext and \tablenotetext
 
 
-Format 30
+Format 33
 Columns                 1
 Sides                   1
 #SecNumDepth            3
@@ -165,8 +165,11 @@ Input stdfloats.inc
 Input stdcounters.inc
 
 NoStyle Part
+NoCounter part
 NoStyle Chapter
+NoCounter chapter
 NoStyle Subparagraph
+NoCounter subparagraph
 NoStyle List
 NoStyle Bibliography
 

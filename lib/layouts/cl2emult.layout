@@ -3,7 +3,7 @@
 # Springer's cl2emult textclass definition file.
 # Author : André Poenitz
 
-Format 30
+Format 33
 Columns                   1
 Sides                     1
 SecNumDepth               2
@@ -19,13 +19,13 @@ Input stdcounters.inc
 Input stdinsets.inc
 
 NoStyle Chapter
-NoStyle Chapter*
+NoCounter chapter
 NoStyle Part
-NoStyle Part*
+NoCounter part
 NoStyle Paragraph
-NoStyle Paragraph*
+NoCounter paragraph
 NoStyle Subparagraph
-NoStyle Subparagraph*
+NoCounter subparagraph
 
 
 DefaultFont

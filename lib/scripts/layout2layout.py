@@ -107,6 +107,15 @@ import os, re, string, sys
 # Incremented to format 30, 13 August 2010 by rgh
 # Introduced ResetsFont tag for InsetLayout.
 
+# Incremented to format 31, 12 January 2011 by rgh
+# Introducted NoCounter tag.
+
+# Incremented to format 32, 30 January 2011 by forenr
+# Added Display tag for InsetLayout
+
+# Incremented to format 33, 2 February 2011 by rgh
+# Changed NeedsFloatPkg to UsesFloatPkg
+
 # Do not forget to document format change in Customization
 # Manual (section "Declaring a new text class").
 
@@ -114,7 +123,7 @@ import os, re, string, sys
 # development/tools/updatelayouts.sh script to update all
 # layout files to the new format.
 
-currentFormat = 30
+currentFormat = 33
 
 
 def usage(prog_name):
@@ -201,6 +210,7 @@ def convert(lines):
     re_InsetLayout = re.compile(r'^\s*InsetLayout\s+(?:Custom|CharStyle|Element):(\S+)\s*$')
     # with quotes
     re_QInsetLayout = re.compile(r'^\s*InsetLayout\s+"(?:Custom|CharStyle|Element):([^"]+)"\s*$')
+    re_NeedsFloatPkg = re.compile(r'^(\s*)NeedsFloatPkg\s+(\w+)\s*$')
 
     # counters for sectioning styles (hardcoded in 1.3)
     counters = {"part"          : "\\Roman{part}",
@@ -288,9 +298,23 @@ def convert(lines):
             while i < len(lines) and not re_EndBabelPreamble.match(lines[i]):
                 i += 1
             continue
-        
+
+        if format == 32:
+          match = re_NeedsFloatPkg.match(lines[i])
+          if match:
+            space = match.group(1)
+            val = match.group(2)
+            lines[i] = space + "UsesFloatPkg " + val
+            newval = 'true'
+            if val == '1' or val.lower() == 'true':
+              newval = 'false'
+            lines.insert(i, space + "IsPredefined " + newval)
+            i += 1
+          i += 1
+          continue
+
         # Only new features
-        if format == 29:
+        if format >= 29 and format <= 31:
           i += 1
           continue
 

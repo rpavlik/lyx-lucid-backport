@@ -14,7 +14,7 @@
 # 2003-03-03  Updated for lyx 1.3.0.
 
 
-Format 30
+Format 33
 Columns                 1
 Sides                   2
 SecNumDepth             4
@@ -51,7 +51,9 @@ Input stdlists.inc
 Input stdlayouts.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Part
+NoCounter part
 NoStyle Verse
 
 

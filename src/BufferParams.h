@@ -236,6 +236,8 @@ public:
 	int tocdepth;
 	///
 	Language const * language;
+	/// language package
+	std::string lang_package;
 	/// BranchList:
 	BranchList & branchlist();
 	BranchList const & branchlist() const;
@@ -374,7 +376,8 @@ public:
 				     std::string const & sf, std::string const & tt,
 				     bool const & sc, bool const & osf,
 				     int const & sfscale, int const & ttscale,
-				     bool const & use_nonlatexfonts) const;
+				     bool const & use_nonlatexfonts,
+				     LaTeXFeatures & features) const;
 
 	/// get the appropriate cite engine (natbib handling)
 	CiteEngine citeEngine() const;

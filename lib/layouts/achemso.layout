@@ -3,13 +3,15 @@
 # achemso textclass definition file.
 # Author: Uwe Stöhr (uwestoehr@web.de)
 
-Format 30
+Format 33
 
 Columns                 1
 Sides                   1
 SecNumDepth             3
 TocDepth                3
 DefaultStyle            Standard
+
+Provides float 1
 
 ClassOptions
 	FontSize		10|11|12
@@ -46,8 +48,74 @@ Input stdsections.inc
 Input stdstarsections.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
+Style Title
+  Margin                Static
+  LatexType             Command
+  Category              FrontMatter
+  InTitle               1
+  InPreamble            1
+  LatexName             title
+  ParSkip               0.4
+  ItemSep               0
+  TopSep                0
+  BottomSep             1
+  ParSep                1
+  Align                 Center
+  LabelType             No_Label
+  Font
+    Family              Sans
+    Size                Largest
+  EndFont
+  HTMLTag               h1
+  HTMLTitle             true
+  OptionalArgs          1
+End  
+
+Style Author
+  LatexType             command
+  LatexName             author
+  InTitle               1
+  InPreamble            1
+  Align                 Center
+  Font
+    Family              Sans
+    Size                Large
+  EndFont
+End
+
+Style Email
+  CopyStyle             Author
+  LatexName             email
+End
+
+Style Affiliation
+  CopyStyle             Author
+  LatexName             affiliation
+  OptionalArgs          1
+End
+
+Style Alt_Affiliation
+  CopyStyle             Author
+  LatexName             altaffiliation
+End
+
+Style Also_Affiliation
+  CopyStyle             Author
+  LatexName             alsoaffiliation
+End
+
+Style Fax
+  CopyStyle             Author
+  LatexName             fax
+End
+
+Style Phone
+  CopyStyle             Author
+  LatexName             phone
+End
 
 Float
 	Type			scheme
@@ -57,7 +125,8 @@ Float
 	NumberWithin		none
 	Style			plain
 	ListName		"List of Schemes"
-	NeedsFloatPkg false
+	IsPredefined true
+	UsesFloatPkg true
 End
 
 InsetLayout scheme
@@ -78,7 +147,8 @@ Float
 	NumberWithin		none
 	Style			plain
 	ListName		"List of Charts"
-	NeedsFloatPkg false
+	IsPredefined true
+	UsesFloatPkg true
 End
 
 InsetLayout chart
@@ -99,7 +169,8 @@ Float
 	NumberWithin		none
 	Style			plain
 	ListName		"List of Graphs"
-	NeedsFloatPkg false
+	IsPredefined true
+	UsesFloatPkg true
 End
 
 InsetLayout graph

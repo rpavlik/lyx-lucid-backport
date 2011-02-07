@@ -358,8 +358,18 @@ $$
 %
 % Arguments whose text is "translate" will have regular LaTeX in them (as
 % opposed to commands with special syntax) which should be translated by
-% reLyX like regular LaTeX. \mbox{} is an obvious example. LyX doesn't
+% tex2lyx like regular LaTeX. \mbox{} is an obvious example. LyX doesn't
 % support it, but only the "\mbox{" and the "}" need to be in TeX mode.
+% "translate" should be specified for as many arguments aspossible.
+% Besides the better on-screen display of the contents (a math inset looks
+% better than a formula in ERT), it enables LyX to apply some fixes to LaTeX
+% limitations: For example, footnotes in section headings do not work in
+% LaTeX, but LyX produces preamble code to fix that. Of course this works only
+% for footnote insets and not for footnotes in ERT. Example:
+% \section{title \texorpdfstring{\footnote{foo}}{bar}}
+% is some code that may occur in a .tex file created by LyX. The re-import
+% works only because the first argument of \texorpdfstring is specified as
+% translatable in this file.
 
 \abstractname
 \Acrobatmenu{}{}         % from the hyperref package
@@ -394,6 +404,10 @@ $$
 \chapter*{}
 \chaptername
 \check{}
+\CheckCommand{}[][]{}
+\CheckCommand*{}[][]{}
+\CheckCommandx{}[][]{} % xargs.sty
+\CheckCommandx*{}[][]{} % xargs.sty
 %\circle{}    % picture environment (JMarc)
 %\circle*{}
 \cleardoublepage
@@ -410,6 +424,10 @@ $$
 \dblfigrule
 \dblfloatpagefraction
 \dbltopfraction
+\DeclareRobustCommand{}[][]{}
+\DeclareRobustCommand*{}[][]{}
+\DeclareRobustCommandx{}[][]{} % xargs.sty
+\DeclareRobustCommandx*{}[][]{} % xargs.sty
 \def{}{}
 \definecolor{}{}{,,}
 \DeleteShortVerb{} % from doc.sty, argument must be verbatim
@@ -507,11 +525,13 @@ $$
 \newboolean{}
 \newcommand{}[][]{}
 \newcommand*{}[][]{}
-%\newcommand{}[]{}    % tex2lyx can support this when the file format is the one of LyX 1.6.x
+\newcommandx{}[][]{} % xargs.sty
+\newcommandx∗{}[][]{} % xargs.sty
 \newcounter{}[]
 \newenvironment{}[][]{}{}
 \newenvironment*{}[][]{}{}
-%\newenvironment{}[]{}{}    % tex2lyx can support this when the file format is the one of LyX 1.6.x
+\newenvironmentx{}[][]{}{} % xargs.sty
+\newenvironmentx*{}[][]{}{} % xargs.sty
 \newfont{}{ scaled }
 \newlength{}
 \newpage
@@ -553,6 +573,8 @@ $$
 \protect
 \providecommand{}[][]{}
 \providecommand*{}[][]{}
+\providecommandx{}[][]{} % xargs.sty
+\providecommandx*{}[][]{} % xargs.sty
 \ps
 \psfrag{}[][][][]{translate}
 \psfrag*{}[][][][]{translate}
@@ -570,10 +592,13 @@ $$
 \refstepcounter{}
 \renewcommand{}[][]{}
 \renewcommand*{}[][]{}
-%\renewcommand{}[]{}   % tex2lyx can support this when the file format is the one of LyX 1.6.x
+\renewcommandx{}[][]{} % xargs.sty
+\renewcommandx∗{}[][]{} % xargs.sty
 \renewenvironment{}[][]{}{}
 \renewenvironment*{}[][]{}{}
 %\renewenvironment{}[]{}{}
+\renewenvironmentx{}[][]{}{} % xargs.sty
+\renewenvironmentx*{}[][]{}{} % xargs.sty
 \resizebox{}{}{translate}
 \resizebox*{}{}{translate}
 \reversemarginpar
@@ -625,7 +650,7 @@ $$
 \tableofcontents
 \tabularnewline[]
 \telephone{translate}
-\texorpdfstring{}{}      % from the hyperref package
+\texorpdfstring{translate}{translate} % from the hyperref package
 \textcircled{translate}
 \textcolor[]{,,}{translate}
 %\textcolor{}{}

@@ -127,7 +127,7 @@ namespace {
 
 // Do not remove the comment below, so we get merge conflict in
 // independent branches. Instead add your own.
-int const LYX_FORMAT = 410; // rgh: dummy format for list->labeling
+int const LYX_FORMAT = 412; // edwin: set tabular width
 
 typedef map<string, bool> DepClean;
 typedef map<docstring, pair<InsetLabel const *, Buffer::References> > RefCache;
@@ -1055,10 +1055,15 @@ bool Buffer::save() const
 			backupName = FileName(addName(lyxrc.backupdir_path,
 						      mangledName));
 		}
-		// do not copy because of #6587
-		if (fileName().moveTo(backupName)) {
-			madeBackup = true;
-		} else {
+
+		// Except file is symlink do not copy because of #6587.
+		// Hard links have bad luck.
+		if (fileName().isSymLink())
+			madeBackup = fileName().copyTo(backupName);
+		else
+			madeBackup = fileName().moveTo(backupName);
+
+		if (!madeBackup) {
 			Alert::error(_("Backup failure"),
 				     bformat(_("Cannot create backup file %1$s.\n"
 					       "Please check whether the directory exists and is writable."),
@@ -1361,8 +1366,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	if (output_preamble) {
 		if (!runparams.nice) {
 			// code for usual, NOT nice-latex-file
-			os << "\\batchmode\n"; // changed
-			// from \nonstopmode
+			os << "\\batchmode\n"; // changed from \nonstopmode
 			d->texrow.newline();
 		}
 		if (!original_path.empty()) {
@@ -1449,7 +1453,8 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	}
 
 	// the real stuff
-	latexParagraphs(*this, text(), os, d->texrow, runparams);
+	otexstream ots(os);
+	latexParagraphs(*this, text(), ots, d->texrow, runparams);
 
 	// Restore the parenthood if needed
 	if (output_preamble)
@@ -2688,7 +2693,8 @@ MacroData const * Buffer::Impl::getBufferMacro(docstring const & name,
 
 		// scope ends behind pos?
 		if (pos < it->second.first
-		    && theBufferList().isLoaded(it->second.second)) {
+			&& (cloned_buffer_ ||
+			    theBufferList().isLoaded(it->second.second))) {
 			// look for macro in external file
 			macro_lock = true;
 			MacroData const * data
@@ -3127,9 +3133,11 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 		else if (runparams.flavor == OutputParams::HTML) {
 			XHTMLStream xs(os);
 			xhtmlParagraphs(text(), *this, xs, runparams);
-		} else 
+		} else {
 			// latex or literate
-			latexParagraphs(*this, text(), os, texrow, runparams);
+			otexstream ots(os);
+			latexParagraphs(*this, text(), ots, texrow, runparams);
+		}
 	}
 }
 
@@ -3383,12 +3391,10 @@ string Buffer::getDefaultOutputFormat() const
 	if (!params().default_output_format.empty()
 	    && params().default_output_format != "default")
 		return params().default_output_format;
-	typedef vector<Format const *> Formats;
-	Formats formats = exportableFormats(true);
 	if (isDocBook()
-	    || isLiterate()
 	    || params().useNonTeXFonts
 	    || params().encoding().package() == Encoding::japanese) {
+		vector<Format const *> const formats = exportableFormats(true);
 		if (formats.empty())
 			return string();
 		// return the first we find
@@ -3476,13 +3482,14 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	runparams.linelen = lyxrc.plaintext_linelen;
 	runparams.includeall = includeall;
 	vector<string> backs = backends();
+	Converters converters = theConverters();
 	if (find(backs.begin(), backs.end(), format) == backs.end()) {
 		// Get shortest path to format
-		theConverters().buildGraph();
+		converters.buildGraph();
 		Graph::EdgePath path;
 		for (vector<string>::const_iterator it = backs.begin();
 		     it != backs.end(); ++it) {
-			Graph::EdgePath p = theConverters().getPath(*it, format);
+			Graph::EdgePath p = converters.getPath(*it, format);
 			if (!p.empty() && (path.empty() || p.size() < path.size())) {
 				backend_format = *it;
 				path = p;
@@ -3498,7 +3505,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 			}
 			return false;
 		}
-		runparams.flavor = theConverters().getFlavor(path);
+		runparams.flavor = converters.getFlavor(path);
 
 	} else {
 		backend_format = format;
@@ -3570,7 +3577,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	ErrorList & error_list = d->errorLists[error_type];
 	string const ext = formats.extension(format);
 	FileName const tmp_result_file(changeExtension(filename, ext));
-	bool const success = theConverters().convert(this, FileName(filename),
+	bool const success = converters.convert(this, FileName(filename),
 		tmp_result_file, FileName(absFileName()), backend_format, format,
 		error_list);
 

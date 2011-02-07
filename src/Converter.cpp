@@ -412,8 +412,8 @@ bool Converters::convert(Buffer const * buffer,
 			command = subst(command, token_from, quoteName(infile2));
 			command = subst(command, token_base, quoteName(from_base));
 			command = subst(command, token_to, quoteName(outfile2));
-			command = subst(command, token_path, quoteName(infile.onlyPath().absFileName()));
-			command = subst(command, token_orig_path, quoteName(orig_from.onlyPath().absFileName()));
+			command = subst(command, token_path, quoteName(onlyPath(infile.absFileName())));
+			command = subst(command, token_orig_path, quoteName(onlyPath(orig_from.absFileName())));
 			command = subst(command, token_encoding, buffer ? buffer->params().encoding().iconvName() : string());
 			command = libScriptSearch(command);
 
@@ -713,8 +713,9 @@ vector<Format const *> Converters::importableFormats()
 {
 	vector<string> l = loaders();
 	vector<Format const *> result = getReachableTo(l[0], true);
-	for (vector<string>::const_iterator it = l.begin() + 1;
-	     it != l.end(); ++it) {
+	vector<string>::const_iterator it = l.begin() + 1;
+	vector<string>::const_iterator en = l.end();
+	for (; it != en; ++it) {
 		vector<Format const *> r = getReachableTo(*it, false);
 		result.insert(result.end(), r.begin(), r.end());
 	}
@@ -726,8 +727,9 @@ vector<Format const *> Converters::exportableFormats(bool only_viewable)
 {
 	vector<string> s = savers();
 	vector<Format const *> result = getReachable(s[0], only_viewable, true);
-	for (vector<string>::const_iterator it = s.begin() + 1;
-	     it != s.end(); ++it) {
+	vector<string>::const_iterator it = s.begin() + 1;
+	vector<string>::const_iterator en = s.end();
+	for (; it != en; ++it) {
 		vector<Format const *> r =
 			getReachable(*it, only_viewable, false);
 		result.insert(result.end(), r.begin(), r.end());

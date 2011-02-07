@@ -5,10 +5,11 @@
 # Transposed by Tomasz Łuczak <tlu@technodat.com.pl>
 # Heavily modifed and enhanced by several developers.
 
-Format 30
+Format 33
 Input stdclass.inc
 
 NoStyle Chapter
+NoCounter chapter
 NoStyle Chapter*
 
 SecNumDepth             3

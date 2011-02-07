@@ -5,7 +5,7 @@
 # $Header: /cvsroot/latex-beamer/latex-beamer/lyx/layouts/beamer.layout,v 1.16 2004/10/07 20:53:07 tantau Exp $
 
 # Includes
-Format 30
+Format 33
 Input stdcounters.inc
 Input stdinsets.inc
 
@@ -1202,8 +1202,9 @@ Float
   NumberWithin     none
   Style            plain
   ListName         "List of Tables"
-  NeedsFloatPkg    false
-	ListCommand      listoftables
+  IsPredefined     true
+  UsesFloatPkg     false
+  ListCommand      listoftables
 End
 
 
@@ -1215,8 +1216,9 @@ Float
   NumberWithin     none
   Style            plain
   ListName         "List of Figures"
-  NeedsFloatPkg    false
-	ListCommand      listoffigures
+  IsPredefined     true
+  UsesFloatPkg     false
+  ListCommand      listoffigures
 End
 
 

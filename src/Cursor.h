@@ -225,15 +225,15 @@ public:
 	 * Right Thing (even if my getStatus partner said that I can do it).
 	 * It is sort of a kludge that should be used only rarely...
 	 */
-	void undispatched();
+	void undispatched() const;
 	/// the event was already dispatched
-	void dispatched();
+	void dispatched() const;
 	/// Set which screen update should be done
-	void screenUpdateFlags(Update::flags f);
+	void screenUpdateFlags(Update::flags f) const;
 	/// Forces an updateBuffer() call
-	void forceBufferUpdate();
+	void forceBufferUpdate() const;
 	/// Removes any pending updateBuffer() call
-	void clearBufferUpdate();
+	void clearBufferUpdate() const;
 	/// Do we need to call updateBuffer()?
 	bool needBufferUpdate() const;
 	/**
@@ -246,7 +246,7 @@ public:
 	 * This is a fairly rare event as well and only some optimization.
 	 * Not using noScreenUpdate() should never be wrong.
 	 */
-	void noScreenUpdate();
+	void noScreenUpdate() const;
 	/// fix cursor in circumstances that should never happen.
 	/// \retval true if a fix occured.
 	bool fixIfBroken();
@@ -292,6 +292,15 @@ public:
 	///
 	void checkBufferStructure();
 
+	/// hook for text input to maintain the "new born word"
+	void markEditPosition();
+
+	/// The position of the new born word
+	/// As the user is entering a word without leaving it
+	/// the result is not empty. When not in text mode
+	/// and after leaving the word the result is empty.
+	DocIterator newWord() const { return new_word_; }
+
 public:
 //private:
 	
@@ -301,10 +310,18 @@ public:
 	void saveBeforeDispatchPosXY();
 
 private:
+	/// validate the "new born word" position
+	void checkNewWordPosition();
+	/// clear the "new born word" position
+	void clearNewWordPosition();
+
+private:
 	///
 	BufferView * bv_;
 	/// the anchor position
 	DocIterator anchor_;
+	/// the start of the new born word
+	DocIterator new_word_;
 	///
 	mutable DispatchResult disp_;
 	/**
@@ -396,8 +413,8 @@ public:
 	void plainInsert(MathAtom const & at);
 	///
 	void niceInsert(MathAtom const & at);
-	///
-	void niceInsert(docstring const & str, Parse::flags f = Parse::NORMAL,
+	/// return the number of inserted array items
+	int niceInsert(docstring const & str, Parse::flags f = Parse::NORMAL,
 			bool enter = true);
 
 	/// in pixels from top of screen

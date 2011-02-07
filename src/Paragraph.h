@@ -55,6 +55,7 @@ class TexRow;
 class Toc;
 class WordLangTuple;
 class XHTMLStream;
+class otexstream;
 
 class FontSpan {
 public:
@@ -76,12 +77,34 @@ public:
 	{
 		return first == s.first && last == s.last;
 	}
-	
+
 	inline bool inside(pos_type p) const
 	{
 		return first <= p && p <= last;
 	}
 
+	inline size_t size() const
+	{
+		return empty() ? 0 : last - first;
+	}
+	
+
+	inline FontSpan intersect(FontSpan const & f) const
+	{
+		FontSpan result = FontSpan();
+		if (inside(f.first))
+			result.first = f.first;
+		else if (f.inside(first))
+			result.first = first;
+		else
+			return result;
+		if (inside(f.last))
+			result.last = f.last;
+		else if (f.inside(last))
+			result.last = last;
+		return result;
+	}
+	
 	inline bool empty() const
 	{
 		return first > last;
@@ -168,7 +191,7 @@ public:
 	void validate(LaTeXFeatures &) const;
 
 	/// \param force means: output even if layout.inpreamble is true.
-	void latex(BufferParams const &, Font const & outerfont, odocstream &,
+	void latex(BufferParams const &, Font const & outerfont, otexstream &,
 		   TexRow & texrow, OutputParams const &,
 		   int start_pos = 0, int end_pos = -1, bool force = false) const;
 
@@ -212,6 +235,8 @@ public:
 	bool allowParagraphCustomization() const;
 	///
 	bool usePlainLayout() const;
+	///
+	bool isPassThru() const;
 	///
 	pos_type size() const;
 	///
@@ -453,8 +478,10 @@ public:
 		bool check_learned = false) const;
 
 	/// Spell checker status at position \p pos.
-	/// \return true if pointed position is misspelled.
-	bool isMisspelled(pos_type pos) const;
+	/// If \p check_boundary is true the status of position immediately
+	/// before \p pos is tested too if it is at word boundary.
+	/// \return true if one of the tested positions is misspelled.
+	bool isMisspelled(pos_type pos, bool check_boundary = false) const;
 
 	/// \return true if both positions are inside the same
 	/// spell range - i.e. the same word.

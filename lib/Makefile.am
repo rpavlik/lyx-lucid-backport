@@ -253,6 +253,7 @@ dist_examples_DATA = \
 	examples/chess-article.lyx \
 	examples/chessgame.lyx \
 	examples/docbook_article.lyx \
+	examples/enumitem.lyx \
 	examples/europeCV.lyx \
 	examples/example_lyxified.lyx \
 	examples/example_raw.lyx \
@@ -345,6 +346,7 @@ dist_images_DATA = \
 	images/buffer-write-as.png \
 	images/buffer-write.png \
 	images/build-program.png \
+	images/busy.gif \
 	images/change-accept.png \
 	images/change-next.png \
 	images/change-reject.png \
@@ -434,13 +436,17 @@ dist_images_DATA = \
 	images/split-view_horizontal.png \
 	images/split-view_vertical.png \
 	images/standard.png \
-	images/tabular-feature_m-align-center.png \
-	images/tabular-feature_m-align-left.png \
-	images/tabular-feature_m-align-right.png \
+	images/tabular-feature_align-decimal.png \
 	images/tabular-feature_append-column.png \
 	images/tabular-feature_append-row.png \
 	images/tabular-feature_delete-column.png \
 	images/tabular-feature_delete-row.png \
+	images/tabular-feature_m-align-center.png \
+	images/tabular-feature_m-align-left.png \
+	images/tabular-feature_m-align-right.png \
+	images/tabular-feature_m-valign-bottom.png \
+	images/tabular-feature_m-valign-middle.png \
+	images/tabular-feature_m-valign-top.png \
 	images/tabular-feature_multicolumn.png \
 	images/tabular-feature_multirow.png \
 	images/tabular-feature_set-all-lines.png \
@@ -455,9 +461,6 @@ dist_images_DATA = \
 	images/tabular-feature_toggle-rotate-cell.png \
 	images/tabular-feature_toggle-rotate-tabular.png \
 	images/tabular-feature_unset-all-lines.png \
-	images/tabular-feature_m-valign-bottom.png \
-	images/tabular-feature_m-valign-middle.png \
-	images/tabular-feature_m-valign-top.png \
 	images/tabular-insert.png \
 	images/thesaurus-entry.png \
 	images/toolbar-toggle_math.png \
@@ -1094,6 +1097,7 @@ dist_layouts_DATA =\
 	layouts/extreport.layout \
 	layouts/figs-within-sections.module \
 	layouts/fixltx2e.module \
+	layouts/fix-cm.module \
 	layouts/foils.layout \
 	layouts/foottoend.module \
 	layouts/frletter.layout \
@@ -1214,9 +1218,11 @@ dist_layouts_DATA =\
 	layouts/tufte-handout.layout
 
 scriptsdir = $(pkgdatadir)/scripts
+dist_scripts_DATA = \
+	scripts/bash_completion \
+	scripts/lyxsweave.R
 # Note that we "chmod 755" manually these files in install-data-hook.
 dist_scripts_PYTHON = \
-	scripts/bash_completion \
 	scripts/clean_dvi.py \
 	scripts/convertDefault.py \
 	scripts/csv2lyx.py \
@@ -1230,11 +1236,11 @@ dist_scripts_PYTHON = \
 	scripts/layout2layout.py \
 	scripts/legacy_lyxpreview2ppm.py \
 	scripts/listerrors \
+	scripts/lyxpak.py \
 	scripts/lyxpreview2bitmap.py \
 	scripts/lyxpreview-lytex2bitmap.py \
 	scripts/lyxpreview-platex2bitmap.py \
 	scripts/lyxpreview_tools.py \
-	scripts/lyxsweave.R \
 	scripts/prefs2prefs.py \
 	scripts/prefs2prefs_lfuns.py \
 	scripts/prefs2prefs_prefs.py \

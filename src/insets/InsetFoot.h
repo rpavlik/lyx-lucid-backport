@@ -32,7 +32,7 @@ private:
 	///
 	docstring name() const { return from_ascii("Foot"); }
 	///
-	int latex(odocstream &, OutputParams const &) const;
+	int latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -40,7 +40,7 @@ private:
 	/// Update the counters of this inset and of its contents
 	void updateBuffer(ParIterator const &, UpdateType);
 	///
-	void addToToc(DocIterator const &);
+	void addToToc(DocIterator const &) const;
 	///
 	docstring toolTip(BufferView const & bv, int x, int y) const;
 	///

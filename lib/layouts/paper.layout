@@ -4,7 +4,7 @@
 # Created by Jean-Marc Lasgouttes (Jean-Marc.Lasgouttes@inria.fr)
 
 
-Format 30
+Format 33
 Columns                 1
 Sides                   1
 SecNumDepth             3
@@ -39,6 +39,7 @@ Input stdciteformats.inc
 
 # There are no chapters in a paper.
 NoStyle                 Chapter
+NoCounter                 chapter
 NoStyle                 Chapter*
 
 # All the section headings now use sans serif

@@ -52,6 +52,7 @@ GuiIndices::GuiIndices(QWidget * parent)
 	indicesTW->headerItem()->setText(1, qt_("Label Color"));
 	indicesTW->setSortingEnabled(true);
 
+	// NOTE: we do not provide "custom" here for security reasons!
 	indexCO->clear();
 	indexCO->addItem(qt_("Default"), QString("default"));
 	for (set<string>::const_iterator it = lyxrc.index_alternatives.begin();
@@ -83,7 +84,9 @@ void GuiIndices::update(BufferParams const & params)
 		indexCO->setCurrentIndex(pos);
 		indexOptionsED->setText(toqstr(options).trimmed());
 	} else {
-		indexCO->setCurrentIndex(0);
+		// We reset to default if we do not know the specified compiler
+		// This is for security reasons
+		indexCO->setCurrentIndex(indexCO->findData(toqstr("default")));
 		indexOptionsED->clear();
 	}
 	indexOptionsED->setEnabled(
@@ -152,7 +155,8 @@ void GuiIndices::apply(BufferParams & params) const
 
 void GuiIndices::on_indexCO_activated(int n)
 {
-	indexOptionsED->setEnabled(n != 0);
+	indexOptionsED->setEnabled(
+		indexCO->itemData(n).toString() != "default");
 	changed();
 }
 
