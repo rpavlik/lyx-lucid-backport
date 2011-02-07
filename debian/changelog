@@ -1,6 +1,8 @@
 lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
 
   [ Sven Hoexter ]
+  * New upstream release.
+    + Drop the permission fix for lyxsweave.R and include_bib.py.
   * Add texlive-generic-extra to the list of recommends, it's now required
     to build the math manual.
   * Remove build-dependency on libaiksaurus-dev. LyX now supports
