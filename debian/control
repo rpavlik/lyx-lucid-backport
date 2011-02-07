@@ -34,6 +34,7 @@ Description: Document Processor
   * elyxer, tex4ht, hevea, tth, or latex2html: export HTML documents
   * gnuhtml2latex: import HTML documents
   * groff: improved table formatting in plain text exports
+  * librsvg2-bin, inkscape: use the SVG image format in LyX documents
   * linuxdoc-tools: export SGML LinuxDoc documents
   * noweb: import noweb files
   * rcs: integrated version control

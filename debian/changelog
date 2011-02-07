@@ -17,6 +17,7 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Remove README.source - no longer needed with source format 3.0.
   * Don't mention texlive-latex-extra in the long description for lyx. It's
     already recommended and thus part of the default installation.
+  * Add a note about librsvg2-bin and inkscape to the long description.
 
   [ Per Olofsson ]
   * Add debian/source/local-options with option unapply-patches.
