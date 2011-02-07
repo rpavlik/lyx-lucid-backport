@@ -1,4 +1,4 @@
-lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
+lyx (2.0.0~beta4-1) unstable; urgency=low
 
   [ Sven Hoexter ]
   * New upstream release.
@@ -32,7 +32,7 @@ lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
   * Use debhelper v8 compat mode.
   * Use dh_auto_* for building and cleaning.
 
- -- Sven Hoexter <hoexter@debian.org>  Wed, 02 Feb 2011 22:54:55 +0100
+ -- Sven Hoexter <hoexter@debian.org>  Mon, 07 Feb 2011 14:29:55 +0100
 
 lyx (2.0.0~beta3-1) experimental; urgency=low
 
