@@ -19,6 +19,7 @@ lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
   * Don't mention texlive-latex-extra in the long description for lyx. It's
     already recommended and thus part of the default installation.
   * Add a note about librsvg2-bin and inkscape to the long description.
+  * Move HTML converters from suggests to recommends. (Closes: #611862)
 
   [ Per Olofsson ]
   * Add debian/source/local-options with option unapply-patches.
