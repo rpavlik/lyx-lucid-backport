@@ -10,7 +10,6 @@ lyx (2.0.0~beta4-1) UNRELEASED; urgency=low
     --without-pspell since it's no longer supported.
   * Remove debian/patches/fix-manpage-errors, applied upstream.
     Thanks Georg.
-  * Add debian/patches/hyphen-as-minus.
   * Remove the latex-xft-fonts dummy package.
   * Remove lyx-common.postinst, lyx-common.preinst, lyx.preinst. All
     migrations supported within those scripts should be finished by now.
