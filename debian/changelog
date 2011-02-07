@@ -15,6 +15,8 @@ lyx (2.0.0~beta3-2) UNRELEASED; urgency=low
   * Remove lyx-common.postinst, lyx-common.preinst, lyx.preinst. All
     migrations supported within those scripts should be finished by now.
   * Remove README.source - no longer needed with source format 3.0.
+  * Don't mention texlive-latex-extra in the long description for lyx. It's
+    already recommended and thus part of the default installation.
 
   [ Per Olofsson ]
   * Add debian/source/local-options with option unapply-patches.

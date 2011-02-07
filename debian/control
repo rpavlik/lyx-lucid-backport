@@ -38,7 +38,6 @@ Description: Document Processor
   * rcs: integrated version control
   * sgmltools-lite: export SGML DocBook documents
   * elyxer, tex4ht, hevea, tth, or latex2html: export HTML documents
-  * texlive-latex-extra: more styles and packages
   * wv: import MS Word documents
 
 Package: lyx-common
