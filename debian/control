@@ -31,13 +31,13 @@ Description: Document Processor
  You can extend the functionality of LyX by installing these packages:
   * chktex: check for typographical errors
   * dvipost: display tracked changes in DVI format output
+  * elyxer, tex4ht, hevea, tth, or latex2html: export HTML documents
   * gnuhtml2latex: import HTML documents
   * groff: improved table formatting in plain text exports
   * linuxdoc-tools: export SGML LinuxDoc documents
   * noweb: import noweb files
   * rcs: integrated version control
   * sgmltools-lite: export SGML DocBook documents
-  * elyxer, tex4ht, hevea, tth, or latex2html: export HTML documents
   * wv: import MS Word documents
 
 Package: lyx-common
