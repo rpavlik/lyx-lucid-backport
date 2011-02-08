@@ -1,6 +1,10 @@
 lyx (2.0.0~beta4-2~lucid) UNRELEASED; urgency=low
 
+  [ Per Olofsson ]
   * Use debhelper sequence 'tex'.
+
+  [ Rene Engelhard ]
+  * Add a symlink so that LyX can access the mythes thesaurus files.
 
  -- Per Olofsson <pelle@debian.org>  Mon, 07 Feb 2011 15:55:44 +0100
 
