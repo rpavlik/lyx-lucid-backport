@@ -12,7 +12,7 @@ Build-Depends: python (>= 2.6.6-3), debhelper (>= 8),
  autotools-dev, libqt4-dev, libboost-dev,
  libboost-filesystem-dev, libboost-signals-dev,
  libboost-iostreams-dev, libboost-regex-dev, libboost-test-dev,
- pkg-config, tex-common, defoma
+ pkg-config, tex-common
 
 Package: lyx
 Architecture: any
@@ -52,7 +52,7 @@ Description: Architecture-independent files for LyX
 Package: ttf-lyx
 Architecture: all
 Section: fonts
-Depends: ${misc:Depends}, defoma
+Depends: ${misc:Depends}
 Description: TrueType versions of some TeX fonts
  These fonts are needed for the visual math symbol display in
  LyX. They can also be used to display MathML in Gecko-based browsers
