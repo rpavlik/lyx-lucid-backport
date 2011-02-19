@@ -11,7 +11,8 @@ lyx (2.0.0~beta4-2~lucid) UNRELEASED; urgency=low
   [ Sven Hoexter ]
   * Stop using defoma: Drop build-dep and dependency for ttf-lyx, remove
     dh_installdefoma from rules and subsequently no longer override_dh_install.
-  
+  * Add ttf-lyx.preinst to call dpkg-maintscript-helper rm_conffile
+    to remove the old defoma hints file.
 
  -- Per Olofsson <pelle@debian.org>  Mon, 07 Feb 2011 15:55:44 +0100
 
