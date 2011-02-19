@@ -3,9 +3,12 @@
 set -e 
 
 CFILE='/etc/defoma/hints/ttf-lyx.hints'
-if dpkg-maintscript-helper supports rm_conffile; then
-   dpkg-maintscript-helper rm_conffile $CFILE 2.0.0~beta4-1 -- "$@"
+
+if [ -f $CFILE ]; then
+    if dpkg-maintscript-helper supports rm_conffile; then
+	dpkg-maintscript-helper rm_conffile $CFILE 2.0.0~beta4-1 -- "$@"
+    fi
+    test -f $CFILE.dpkg-remove && rm $CFILE.dpkg-remove
 fi
-test -f $CFILE.dpkg-remove && rm $CFILE.dpkg-remove
 
 #DEBHELPER#
