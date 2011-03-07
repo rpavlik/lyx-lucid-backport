@@ -15,6 +15,7 @@ lyx (2.0.0~rc1-1~lucid) UNRELEASED; urgency=low
     to remove the old defoma hints file.
   * Build --without-included-mythes (Closes: #612327)
     Kudos to Rene Engelhard and Georg Baum for implementing it right away.
+  * Refresh debian/patches/prefer-xdg-open.
 
  -- Per Olofsson <pelle@debian.org>  Mon, 07 Feb 2011 15:55:44 +0100
 
