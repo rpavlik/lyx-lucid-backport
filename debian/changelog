@@ -5,8 +5,6 @@ lyx (2.0.0~rc1-1~lucid) UNRELEASED; urgency=low
 
   [ Rene Engelhard ]
   * Add a symlink so that LyX can access the mythes thesaurus files.
-  * Add debian/patches/use-system-libmythes and a build depedency on
-    libmythes-dev to use the system wide libmythes. (Closes: #612327)
 
   [ Sven Hoexter ]
   * New upstream release
