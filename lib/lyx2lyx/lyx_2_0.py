@@ -214,7 +214,7 @@ def revert_xetex(document):
 
     # 2.) check font settings
     # defaults
-    roman = sans = typew = default
+    roman = sans = typew = "default"
     osf = False
     sf_scale = tt_scale = 100.0
     
@@ -288,11 +288,11 @@ def revert_xetex(document):
             sf += 'Scale=' + str(sf_scale / 100.0) + ','
         sf += 'Mapping=tex-text]{' + sans + '}'
         pretext.append(sf)
-    if typewriter != "default":
+    if typew != "default":
         tw = '\\setmonofont'
         if tt_scale != 100.0:
             tw += '[Scale=' + str(tt_scale / 100.0) + ']'
-        tw += '{' + typewriter + '}'
+        tw += '{' + typew + '}'
         pretext.append(tw)
     if osf:
         pretext.append('\\defaultfontfeatures{Numbers=OldStyle}')
@@ -2078,19 +2078,16 @@ def convert_passthru(document):
           document.warning("Can't find end of layout at line " + str(beg))
           beg += 1
           continue
-        document.warning(str(end))
 
         # we are now going to replace newline insets within this layout
         # by new instances of this layout. so we have repeated layouts
         # instead of newlines.
 
-        # first, though, we need to find out if the paragraph has any
-        # customization, so those can be propogated.
-        custom = []
-        i = beg + 1
-        while document.body[i].startswith("\\"):
-          custom.append(document.body[i])
-          i += 1
+        # if the paragraph has any customization, however, we do not want to
+        # do the replacement.
+        if document.body[beg + 1].startswith("\\"):
+          beg = end + 1
+          continue
 
         ns = beg
         while True:
@@ -2104,11 +2101,11 @@ def convert_passthru(document):
             continue
           if document.body[ne + 1] == "":
             ne += 1
-          subst = ["\\end_layout", "", "\\begin_layout " + lay] + custom
+          subst = ["\\end_layout", "", "\\begin_layout " + lay]
           document.body[ns:ne + 1] = subst
           # now we need to adjust end, in particular, but might as well
           # do ns properly, too
-          newlines = (ne - ns) - len(subst) + len(custom)
+          newlines = (ne - ns) - len(subst)
           ns += newlines + 2
           end += newlines + 2
 
@@ -2457,6 +2454,10 @@ def revert_tabularwidth(document):
     if document.body[features].find('alignment="tabularwidth"') != -1:
       remove_option(document.body, features, 'tabularwidth')
 
+def revert_html_css_as_file(document):
+  if not del_token(document.header, '\\html_css_as_file', 0):
+    document.warning("Malformed LyX document: Missing \\html_css_as_file.")
+
 
 ##
 # Conversion hub
@@ -2529,10 +2530,12 @@ convert = [[346, []],
            [409, [convert_use_xetex]],
            [410, []],
            [411, [convert_langpack]],
-           [412, []]
+           [412, []],
+           [413, []],
 ]
 
-revert =  [[411, [revert_tabularwidth]],
+revert =  [[412, [revert_html_css_as_file]],
+           [411, [revert_tabularwidth]],
            [410, [revert_langpack]],
            [409, [revert_labeling]],
            [408, [revert_use_xetex]],

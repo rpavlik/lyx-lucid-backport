@@ -313,6 +313,9 @@ bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos) const
 }
 
 
+// isRTLBoundary returns false on a real end-of-line boundary,
+// because otherwise the two boundary types get mixed up.
+// This is the whole purpose of this being in TextMetrics.
 bool TextMetrics::isRTLBoundary(pit_type pit, pos_type pos,
 		Font const & font) const
 {
@@ -393,8 +396,6 @@ bool TextMetrics::redoParagraph(pit_type const pit)
 	}
 
 	// redo insets
-	// FIXME: We should always use getFont(), see documentation of
-	// noFontChange() in Inset.h.
 	Font const bufferfont = buffer.params().getFont();
 	InsetList::const_iterator ii = par.insetList().begin();
 	InsetList::const_iterator iend = par.insetList().end();
@@ -415,8 +416,8 @@ bool TextMetrics::redoParagraph(pit_type const pit)
 		Dimension dim;
 		int const w = max_width_ - leftMargin(max_width_, pit, ii->pos)
 			- right_margin;
-		Font const & font = ii->inset->noFontChange() ?
-			bufferfont : displayFont(pit, ii->pos);
+		Font const & font = ii->inset->inheritFont() ?
+			displayFont(pit, ii->pos) : bufferfont;
 		MacroContext mc(&buffer, parPos);
 		MetricsInfo mi(bv_, font.fontInfo(), w, mc);
 		ii->inset->metrics(mi, dim);
@@ -1989,7 +1990,7 @@ int TextMetrics::leftMargin(int max_width,
 	       || (layout.labeltype == LABEL_STATIC
 	           && layout.latextype == LATEX_ENVIRONMENT
 	           && !text_->isFirstInSequence(pit)))
-	    && align == LYX_ALIGN_BLOCK
+	    && (align == LYX_ALIGN_BLOCK || align == LYX_ALIGN_LEFT)
 	    && !par.params().noindent()
 	    // in some insets, paragraphs are never indented
 	    && !text_->inset().neverIndent()

@@ -16,7 +16,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QCheckBox" name="osFontsCB">
      <property name="toolTip">
-      <string>Use OpenType- and TrueType fonts directly (requires XeTeX or LuaTeX)</string>
+      <string>Use OpenType and TrueType fonts directly (requires XeTeX or LuaTeX)</string>
      </property>
      <property name="text">
       <string>&amp;Use non-TeX fonts (via XeTeX/LuaTeX)</string>
@@ -39,7 +39,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="fontsDefaultLA">
      <property name="text">
-      <string>&amp;Default Family:</string>
+      <string>&amp;Default family:</string>
      </property>
      <property name="buddy">
       <cstring>fontsDefaultCO</cstring>

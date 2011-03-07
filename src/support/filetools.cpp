@@ -546,15 +546,12 @@ string const replaceEnvironmentPath(string const & path)
 
 	static regex envvar_br_re("(.*)" + envvar_br + "(.*)");
 	static regex envvar_re("(.*)" + envvar + "(.*)");
-	smatch what;
 	string result = path;
 	while (1) {
-		regex_match(result, what, envvar_br_re);
-		if (!what[0].matched) {
-			regex_match(result, what, envvar_re);
-			if (!what[0].matched) {
+		smatch what;
+		if (!regex_match(result, what, envvar_br_re)) {
+			if (!regex_match(result, what, envvar_re))
 				break;
-			}
 		}
 		string env_var = getEnv(what.str(2));
 		result = what.str(1) + env_var + what.str(3);

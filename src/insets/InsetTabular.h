@@ -453,7 +453,7 @@ public:
 	///
 	void read(Lexer &);
 	///
-	int latex(otexstream &, OutputParams const &) const;
+	void latex(otexstream &, OutputParams const &) const;
 	///
 	int docbook(odocstream & os, OutputParams const &) const;
 	///
@@ -719,22 +719,22 @@ public:
 	///
 	BoxType useParbox(idx_type cell) const;
 	///
-	// helper function for Latex returns number of newlines
+	// helper function for Latex
 	///
-	int TeXTopHLine(otexstream &, row_type row, std::string const lang) const;
+	void TeXTopHLine(otexstream &, row_type row, std::string const lang) const;
 	///
-	int TeXBottomHLine(otexstream &, row_type row, std::string const lang) const;
+	void TeXBottomHLine(otexstream &, row_type row, std::string const lang) const;
 	///
-	int TeXCellPreamble(otexstream &, idx_type cell, bool & ismulticol, bool & ismultirow) const;
+	void TeXCellPreamble(otexstream &, idx_type cell, bool & ismulticol, bool & ismultirow) const;
 	///
-	int TeXCellPostamble(otexstream &, idx_type cell, bool ismulticol, bool ismultirow) const;
+	void TeXCellPostamble(otexstream &, idx_type cell, bool ismulticol, bool ismultirow) const;
 	///
-	int TeXLongtableHeaderFooter(otexstream &, OutputParams const &) const;
+	void TeXLongtableHeaderFooter(otexstream &, OutputParams const &) const;
 	///
 	bool isValidRow(row_type const row) const;
 	///
-	int TeXRow(otexstream &, row_type const row,
-		   OutputParams const &) const;
+	void TeXRow(otexstream &, row_type const row,
+		    OutputParams const &) const;
 	///
 	// helper functions for plain text
 	///
@@ -803,14 +803,14 @@ public:
 	bool allowSpellCheck() const { return true; }
 	///
 	bool canTrackChanges() const { return true; }
-	/** returns true if, when outputing LaTeX, font changes should
+	/** returns false if, when outputing LaTeX, font changes should
 	    be closed before generating this inset. This is needed for
 	    insets that may contain several paragraphs */
-	bool noFontChange() const { return true; }
+	bool inheritFont() const { return false; }
 	///
 	DisplayType display() const;
 	///
-	int latex(otexstream &, OutputParams const &) const;
+	void latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -919,8 +919,6 @@ private:
 	void doDispatch(Cursor & cur, FuncRequest & cmd);
 	///
 	bool getStatus(Cursor & cur, FuncRequest const & cmd, FuncStatus &) const;
-	///
-	int scroll() const { return scx_; }
 	///
 	Inset * clone() const { return new InsetTabular(*this); }
 

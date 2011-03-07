@@ -63,17 +63,26 @@ RowPainter::RowPainter(PainterInfo & pi,
 	  pm_(text_metrics_.parMetrics(pit)),
 	  bidi_(bidi), change_(pi_.change_),
 	  xo_(x), yo_(y), width_(text_metrics_.width()),
-	  line_thickness_(1.0), line_offset_(2)
+	  solid_line_thickness_(1.0), solid_line_offset_(1),
+	  dotted_line_thickness_(1.0), dotted_line_offset_(2)
 {
 	bidi_.computeTables(par_, pi_.base.bv->buffer(), row_);
 
+	if (lyxrc.zoom >= 200) {
+		// derive the line thickness from zoom factor
+		// the zoom is given in percent
+		// (increase thickness at 250%, 450% etc.)
+		solid_line_thickness_ = (float)(int((lyxrc.zoom + 50) / 200.0));
+		// adjust line_offset_ too
+		solid_line_offset_ = 1 + int(0.5 * solid_line_thickness_);
+	}
 	if (lyxrc.zoom >= 100) {
 		// derive the line thickness from zoom factor
 		// the zoom is given in percent
 		// (increase thickness at 150%, 250% etc.)
-		line_thickness_ = (float)(int((lyxrc.zoom + 50) / 100.0));
+		dotted_line_thickness_ = (float)(int((lyxrc.zoom + 50) / 100.0));
 		// adjust line_offset_ too
-		line_offset_ = int(2 * line_thickness_) + 1;
+		dotted_line_offset_ = int(0.5 * dotted_line_thickness_) + 1;
 	}
 
 	x_ = row_.x + xo_;
@@ -116,11 +125,8 @@ void RowPainter::paintInset(Inset const * inset, pos_type const pos)
 	// requires a full repaint
 	bool pi_full_repaint = pi_.full_repaint;
 
-	// FIXME: We should always use font, see documentation of
-	// noFontChange() in Inset.h.
-	pi_.base.font = inset->noFontChange() ?
-		pi_.base.bv->buffer().params().getFont().fontInfo() :
-		font.fontInfo();
+	pi_.base.font = inset->inheritFont() ? font.fontInfo() :
+		pi_.base.bv->buffer().params().getFont().fontInfo();
 	pi_.ltr_pos = (bidi_.level(pos) % 2 == 0);
 	pi_.change_ = change_.changed() ? change_ : par_.lookupChange(pos);
 
@@ -261,9 +267,9 @@ void RowPainter::paintChars(pos_type & vpos, FontInfo const & font,
 		// Maybe a more general fix would be draw character by character
 		// for some predefined fonts on some platform. In arabic and
 		// Hebrew we already do paint this way.
-		if (prev_char == 'f')
+		if (prev_char == 'f' || lyxrc.force_paint_single_char)
 			break;
-		
+
 		pos = bidi_.vis2log(vpos);
 		if (pos < font_span.first || pos > font_span.last)
 			break;
@@ -362,9 +368,9 @@ void RowPainter::paintForeignMark(double orig_x, Language const * lang,
 	if (lang == pi_.base.bv->buffer().params().language)
 		return;
 
-	int const y = yo_ + 1 + desc + int(line_thickness_/2);
+	int const y = yo_ + solid_line_offset_ + desc + int(solid_line_thickness_/2);
 	pi_.pain.line(int(orig_x), y, int(x_), y, Color_language,
-		Painter::line_solid, line_thickness_);
+		Painter::line_solid, solid_line_thickness_);
 }
 
 
@@ -372,9 +378,11 @@ void RowPainter::paintMisspelledMark(double orig_x, bool changed)
 {
 	// if changed the misspelled marker gets placed slightly lower than normal
 	// to avoid drawing at the same vertical offset
-	int const y = yo_ + (changed ? int(line_thickness_ + 1.0) : 0) + line_offset_;
+	int const y = yo_ + solid_line_offset_ + solid_line_thickness_
+		+ (changed ? solid_line_thickness_ + 1 : 0)
+		+ dotted_line_offset_;
 	pi_.pain.line(int(orig_x), y, int(x_), y, Color_error,
-		Painter::line_onoffdash, line_thickness_);
+		Painter::line_onoffdash, dotted_line_thickness_);
 }
 
 
@@ -886,9 +894,9 @@ void RowPainter::paintText()
 			FontMetrics const & fm
 				= theFontMetrics(pi_.base.bv->buffer().params().getFont());
 			int const y_bar = change_running.deleted() ?
-				yo_ - fm.maxAscent() / 3 : yo_ + line_offset_;
+				yo_ - fm.maxAscent() / 3 : yo_ + 2 * solid_line_offset_ + solid_line_thickness_;
 			pi_.pain.line(change_last_x, y_bar, int(x_), y_bar,
-				change_running.color(), Painter::line_solid, line_thickness_);
+				change_running.color(), Painter::line_solid, solid_line_thickness_);
 
 			// Change might continue with a different author or type
 			if (change.changed() && !highly_editable_inset) {
@@ -946,9 +954,9 @@ void RowPainter::paintText()
 		FontMetrics const & fm
 			= theFontMetrics(pi_.base.bv->buffer().params().getFont());
 		int const y_bar = change_running.deleted() ?
-				yo_ - fm.maxAscent() / 3 : yo_ + line_offset_;
+				yo_ - fm.maxAscent() / 3 : yo_ + 2 * solid_line_offset_ + solid_line_thickness_;
 		pi_.pain.line(change_last_x, y_bar, int(x_), y_bar,
-			change_running.color(), Painter::line_solid, line_thickness_);
+			change_running.color(), Painter::line_solid, solid_line_thickness_);
 		change_running.setUnchanged();
 	}
 }

@@ -119,11 +119,12 @@ void GuiErrorList::paramsToDialog()
 
 ErrorList const & GuiErrorList::errorList() const
 {
-	if (&bufferview()->buffer() == buf_) {
-		error_list_ = from_master_ ?
-			bufferview()->buffer().masterBuffer()->errorList(error_type_)
-			: bufferview()->buffer().errorList(error_type_);
-	}
+	Buffer const * buffer = from_master_
+				? bufferview()->buffer().masterBuffer()
+				: &bufferview()->buffer();
+	if (buffer == buf_)
+		error_list_ = buffer->errorList(error_type_);
+
 	return error_list_;
 }
 
@@ -148,41 +149,49 @@ bool GuiErrorList::initialiseParams(string const & data)
 
 bool GuiErrorList::goTo(int item)
 {
-	if (&buffer() != buf_) {
-		if (!theBufferList().isLoaded(buf_))
-			return false;
-		FuncRequest fr(LFUN_BUFFER_SWITCH, buf_->absFileName());
-		dispatch(fr);
-	}
 	ErrorItem const & err = errorList()[item];
 
 	if (err.par_id == -1)
 		return false;
 
-	if (from_master_)
-		// FIXME: implement
-		return false;
+	Buffer const * errbuf = err.buffer ? err.buffer : buf_;
 
-	DocIterator dit = buf_->getParFromID(err.par_id);
+	if (&buffer() != errbuf) {
+		if (!theBufferList().isLoaded(errbuf))
+			return false;
+		FuncRequest fr(LFUN_BUFFER_SWITCH, errbuf->absFileName());
+		dispatch(fr);
+	}
 
-	if (dit == doc_iterator_end(buf_)) {
+	DocIterator dit = errbuf->getParFromID(err.par_id);
+
+	if (dit == doc_iterator_end(errbuf)) {
 		// FIXME: Happens when loading a read-only doc with 
 		// unknown layout. Should this be the case?
 		LYXERR0("par id " << err.par_id << " not found");
 		return false;
 	}
 
+	// Don't try to highlight the content of info insets
+	while (dit.inset().lyxCode() == INFO_CODE)
+		dit.forwardPos();
+
+	// If this paragraph is empty, highlight the previous one
+	while (dit.paragraph().empty())
+		dit.backwardPos();
+
 	// Now make the selection.
 	// if pos_end is 0, this means it is end-of-paragraph
 	pos_type const s = dit.paragraph().size();
 	pos_type const end = err.pos_end ? min(err.pos_end, s) : s;
 	pos_type const start = min(err.pos_start, end);
-	pos_type const range = end - start;
-	dit.pos() = start;
+	pos_type const range = end == start ? s - start : end - start;
+	// end-of-paragraph cannot be highlighted, so highlight the last thing
+	dit.pos() = range ? start : end - 1;
 	BufferView * bv = const_cast<BufferView *>(bufferview());
 	// FIXME LFUN
 	// If we used an LFUN, we would not need these lines:
-	bv->putSelectionAt(dit, range, false);
+	bv->putSelectionAt(dit, max(range, pos_type(1)), false);
 	bv->processUpdateFlags(Update::Force | Update::FitCursor);
 	return true;
 }

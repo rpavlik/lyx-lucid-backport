@@ -377,14 +377,14 @@ PrefOutput::PrefOutput(GuiPreferences * form)
 	connect(pdfCB, SIGNAL(editTextChanged(QString)),
 		this, SIGNAL(changed()));
 	dviCB->addItem("");
-	dviCB->addItem("xdvi -sourceposition $$n:$$t $$o");
-	dviCB->addItem("yap -1 -s $$n$$t $$o");
-	dviCB->addItem("okular --unique $$o#src:$$n$$t");
+	dviCB->addItem("xdvi -sourceposition '$$n:\\ $$t' $$o");
+	dviCB->addItem("yap -1 -s \"$$n $$t\" $$o");
+	dviCB->addItem("okular --unique \"file:$$o#src:$$n $$t\"");
 	dviCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"evince -p %{page+1} $$o\"");
 	pdfCB->addItem("");
 	pdfCB->addItem("CMCDDE SUMATRA control [ForwardSearch(\\\"$$o\\\",\\\"$$t\\\",$$n,0,0,1)]");
 	pdfCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"xpdf -raise -remote $$t.tmp $$o %{page+1}\"");
-	pdfCB->addItem("okular --unique $$o#src:$$n$$t");
+	pdfCB->addItem("okular --unique \"file:$$o#src:$$n $$t\"");
 	pdfCB->addItem("synctex view -i $$n:0:$$t -o $$o -x \"evince -p %{page+1} $$o\"");
 	pdfCB->addItem("/Applications/Skim.app/Contents/SharedSupport/displayline $$n $$o $$t");
 }
@@ -1303,9 +1303,14 @@ PrefPaths::PrefPaths(GuiPreferences * form)
 	connect(tempDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
 
+#if defined(USE_HUNSPELL)
 	connect(hunspellDirPB, SIGNAL(clicked()), this, SLOT(selectHunspelldir()));
 	connect(hunspellDirED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+#else
+	hunspellDirPB->setEnabled(false);
+	hunspellDirED->setEnabled(false);
+#endif
 
 	connect(pathPrefixED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
@@ -1825,6 +1830,8 @@ PrefFileformats::PrefFileformats(GuiPreferences * form)
 		this, SLOT(setFlags()));
 	connect(vectorCB, SIGNAL(clicked()),
 		this, SLOT(setFlags()));
+	connect(exportMenuCB, SIGNAL(clicked()),
+		this, SLOT(setFlags()));
 	connect(formatsCB->lineEdit(), SIGNAL(editingFinished()),
 		this, SLOT(updatePrettyname()));
 	connect(formatsCB->lineEdit(), SIGNAL(textEdited(QString)),
@@ -1922,6 +1929,8 @@ void PrefFileformats::on_formatsCB_currentIndexChanged(int i)
 		toqstr(l10n_shortcut(f.prettyname(), f.shortcut())));
 	documentCB->setChecked((f.documentFormat()));
 	vectorCB->setChecked((f.vectorFormat()));
+	exportMenuCB->setChecked((f.inExportMenu()));
+	exportMenuCB->setEnabled((f.documentFormat()));
 	updateViewers();
 	updateEditors();
 }
@@ -1934,7 +1943,10 @@ void PrefFileformats::setFlags()
 		flags |= Format::document;
 	if (vectorCB->isChecked())
 		flags |= Format::vector;
+	if (exportMenuCB->isChecked())
+		flags |= Format::export_menu;
 	currentFormat().setFlags(flags);
+	exportMenuCB->setEnabled(documentCB->isChecked());
 	changed();
 }
 

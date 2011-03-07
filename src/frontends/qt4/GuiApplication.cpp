@@ -1413,15 +1413,14 @@ void GuiApplication::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 			break;
 		}
 
+#if 0
+		// FIXME: The graphics cache no longer has a changeDisplay method.
 		string const graphicsbg = lcolor.getLyXName(Color_graphicsbg);
 		bool const graphicsbg_changed =
 				lyx_name == graphicsbg && x11_name != graphicsbg;
-		if (graphicsbg_changed) {
-			// FIXME: The graphics cache no longer has a changeDisplay method.
-#if 0
+		if (graphicsbg_changed)
 			graphics::GCache::get().changeDisplay(true);
 #endif
-		}
 
 		if (!lcolor.setColor(lyx_name, x11_name)) {
 			if (current_view_)
@@ -1687,7 +1686,6 @@ void GuiApplication::processKeySym(KeySymbol const & keysym, KeyModifier state)
 	}
 
 	if (keysym.isModifier()) {
-		LYXERR(Debug::KEY, "isModifier true");
 		if (current_view_)
 			current_view_->restartCursor();
 		return;
@@ -1839,6 +1837,13 @@ void GuiApplication::createView(QString const & geometry_arg, bool autoShow,
 	// menubar on Mac to catch shortcuts even without any GuiView.
 	if (d->global_menubar_)
 		d->global_menubar_->releaseKeyboard();
+
+#if QT_VERSION < 0x040700
+	// the option to disable kerning in rowpainter
+	// is needed only with Qt4.7.0 or better
+	lyxrc.force_paint_single_char = false;
+	system_lyxrc.force_paint_single_char = false;
+#endif
 
 	// create new view
 	int id = view_id;

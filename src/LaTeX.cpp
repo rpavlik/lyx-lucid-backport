@@ -32,6 +32,7 @@
 #include "support/regex.h"
 
 #include <fstream>
+#include <stack>
 
 
 using namespace std;
@@ -64,9 +65,10 @@ docstring runMessage(unsigned int count)
  */
 
 void TeXErrors::insertError(int line, docstring const & error_desc,
-			    docstring const & error_text)
+			    docstring const & error_text,
+			    string const & child_name)
 {
-	Error newerr(line, error_desc, error_text);
+	Error newerr(line, error_desc, error_text, child_name);
 	errors.push_back(newerr);
 }
 
@@ -121,6 +123,10 @@ void LaTeX::deleteFilesOnError() const
 	// bibtex file
 	FileName const bbl(changeExtension(file.absFileName(), ".bbl"));
 	bbl.removeFile();
+
+	// biber file
+	FileName const bcf(changeExtension(file.absFileName(), ".bcf"));
+	bcf.removeFile();
 
 	// makeindex file
 	FileName const ind(changeExtension(file.absFileName(), ".ind"));
@@ -269,6 +275,12 @@ int LaTeX::run(TeXErrors & terr)
 	if (head.haschanged(glofile))
 		rerun |= runMakeIndexNomencl(file, ".glo", ".gls");
 
+	// check if we're using biber instead of bibtex
+	// biber writes no info to the aux file, so we just check
+	// if a bcf file exists (and if it was updated)
+	FileName const bcffile(changeExtension(file.absFileName(), ".bcf"));
+	bool const biber = head.exist(bcffile);
+
 	// run bibtex
 	// if (scanres & UNDEF_CIT || scanres & RERUN || run_bibtex)
 	if (scanres & UNDEF_CIT || run_bibtex) {
@@ -278,13 +290,21 @@ int LaTeX::run(TeXErrors & terr)
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running BibTeX.");
 		message(_("Running BibTeX."));
-		updateBibtexDependencies(head, bibtex_info);
-		rerun |= runBibTeX(bibtex_info, runparams);
+		updateBibtexDependencies(head, bibtex_info, biber);
+		rerun |= runBibTeX(bibtex_info, runparams, biber);
+		if (biber) {
+			// since biber writes no info to the aux file, we have
+			// to parse the blg file (which only exists after biber
+			// was first issued)
+			FileName const blgfile(changeExtension(file.absFileName(), ".blg"));
+			if (blgfile.exists())
+				scanBlgFile(head);
+		}
 	} else if (!had_depfile) {
 		/// If we run pdflatex on the file after running latex on it,
 		/// then we do not need to run bibtex, but we do need to
 		/// insert the .bib and .bst files into the .dep-pdf file.
-		updateBibtexDependencies(head, bibtex_info);
+		updateBibtexDependencies(head, bibtex_info, biber);
 	}
 
 	// 2
@@ -330,8 +350,8 @@ int LaTeX::run(TeXErrors & terr)
 		// no checks for now
 		LYXERR(Debug::LATEX, "Running BibTeX.");
 		message(_("Running BibTeX."));
-		updateBibtexDependencies(head, bibtex_info);
-		rerun |= runBibTeX(bibtex_info, runparams);
+		updateBibtexDependencies(head, bibtex_info, biber);
+		rerun |= runBibTeX(bibtex_info, runparams, biber);
 	}
 
 	// 4
@@ -530,7 +550,8 @@ void LaTeX::scanAuxFile(FileName const & file, AuxInfo & aux_info)
 
 
 void LaTeX::updateBibtexDependencies(DepTable & dep,
-				     vector<AuxInfo> const & bibtex_info)
+				     vector<AuxInfo> const & bibtex_info,
+				     bool biber)
 {
 	// Since a run of Bibtex mandates more latex runs it is ok to
 	// remove all ".bib" and ".bst" files.
@@ -554,16 +575,22 @@ void LaTeX::updateBibtexDependencies(DepTable & dep,
 				dep.insert(file, true);
 		}
 	}
+
+	// biber writes nothing into the aux file.
+	// Instead, we have to scan the blg file
+	if (biber) {
+		scanBlgFile(dep);
+	}
 }
 
 
 bool LaTeX::runBibTeX(vector<AuxInfo> const & bibtex_info,
-		      OutputParams const & runparams)
+		      OutputParams const & runparams, bool biber)
 {
 	bool result = false;
 	for (vector<AuxInfo>::const_iterator it = bibtex_info.begin();
 	     it != bibtex_info.end(); ++it) {
-		if (it->databases.empty())
+		if (!biber && it->databases.empty())
 			continue;
 		result = true;
 
@@ -596,9 +623,13 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 	ifstream ifs(fn.toFilesystemEncoding().c_str());
 	bool fle_style = false;
 	static regex file_line_error(".+\\.\\D+:[0-9]+: (.+)");
+	static regex child_file(".*([0-9]+[A-Za-z]*_.+\\.tex).*");
 	// Flag for 'File ended while scanning' message.
 	// We need to wait for subsequent processing.
 	string wait_for_error;
+	string child_name;
+	int pnest = 0;
+	stack <pair<string, int> > child;
 
 	string token;
 	while (getline(ifs, token)) {
@@ -614,6 +645,29 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 
 		if (token.empty())
 			continue;
+
+		// Track child documents
+		for (size_t i = 0; i < token.length(); ++i) {
+			if (token[i] == '(') {
+				++pnest;
+				size_t j = token.find('(', i + 1);
+				size_t len = j == string::npos
+						? token.substr(i + 1).length()
+						: j - i - 1;
+				if (regex_match(token.substr(i + 1, len),
+							sub, child_file)) {
+					string const name = sub.str(1);
+					child.push(make_pair(name, pnest));
+					i += len;
+				}
+			} else if (token[i] == ')') {
+				if (!child.empty()
+				    && child.top().second == pnest)
+					child.pop();
+				--pnest;
+			}
+		}
+		child_name = child.empty() ? empty_string() : child.top().first;
 
 		if (contains(token, "file:line:error style messages enabled"))
 			fle_style = true;
@@ -704,6 +758,7 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				do {
 					if (!getline(ifs, tmp))
 						break;
+					tmp = rtrim(tmp, "\r");
 					errstr += "\n" + tmp;
 					if (++count > 5)
 						break;
@@ -711,7 +766,8 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 
 				terr.insertError(0,
 						 from_local8bit("Emergency stop"),
-						 from_local8bit(errstr));
+						 from_local8bit(errstr),
+						 child_name);
 			}
 
 			// get the next line
@@ -720,6 +776,7 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 			do {
 				if (!getline(ifs, tmp))
 					break;
+				tmp = rtrim(tmp, "\r");
 				if (++count > 10)
 					break;
 			} while (!prefixIs(tmp, "l."));
@@ -738,6 +795,7 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				string errstr(tmp, tmp.find(' '));
 				errstr += '\n';
 				getline(ifs, tmp);
+				tmp = rtrim(tmp, "\r");
 				while (!contains(errstr, "l.")
 				       && !tmp.empty()
 				       && !prefixIs(tmp, "! ")
@@ -745,6 +803,7 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 					errstr += tmp;
 					errstr += "\n";
 					getline(ifs, tmp);
+					tmp = rtrim(tmp, "\r");
 				}
 				LYXERR(Debug::LATEX, "line: " << line << '\n'
 					<< "Desc: " << desc << '\n' << "Text: " << errstr);
@@ -765,7 +824,8 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 					// assume here it can be wrong.
 					terr.insertError(line,
 							 from_local8bit(desc),
-							 from_local8bit(errstr));
+							 from_local8bit(errstr),
+							 child_name);
 					++num_errors;
 				}
 			}
@@ -791,7 +851,8 @@ int LaTeX::scanLogFile(TeXErrors & terr)
 				retval |= ERRORS;
 					terr.insertError(0,
 							 from_local8bit("pdfTeX Error"),
-							 from_local8bit(token));
+							 from_local8bit(token),
+							 child_name);
 			}
 		}
 	}
@@ -1110,6 +1171,32 @@ void LaTeX::deplog(DepTable & head)
 
 	// Make sure that the main .tex file is in the dependency file.
 	head.insert(file, true);
+}
+
+
+void LaTeX::scanBlgFile(DepTable & dep)
+{
+	FileName const blg_file(changeExtension(file.absFileName(), "blg"));
+	LYXERR(Debug::LATEX, "Scanning blg file: " << blg_file);
+
+	ifstream ifs(blg_file.toFilesystemEncoding().c_str());
+	string token;
+	static regex const reg1(".*Found bibtex data file '([^']+).*");
+
+	while (getline(ifs, token)) {
+		token = rtrim(token, "\r");
+		smatch sub;
+		// FIXME UNICODE: We assume that citation keys and filenames
+		// in the aux file are in the file system encoding.
+		token = to_utf8(from_filesystem8bit(token));
+		if (regex_match(token, sub, reg1)) {
+			string data = sub.str(1);
+			if (!data.empty()) {
+				LYXERR(Debug::LATEX, "Found bib file: " << data);
+				handleFoundFile(data, dep);
+			}
+		}
+	} 
 }
 
 

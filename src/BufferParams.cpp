@@ -414,6 +414,7 @@ BufferParams::BufferParams()
 	html_be_strict = false;
 	html_math_output = MathML;
 	html_math_img_scale = 1.0;
+	html_css_as_file = false;
 
 	output_sync = false;
 	use_refstyle = true;
@@ -850,6 +851,8 @@ string BufferParams::readToken(Lexer & lex, string const & token,
 		html_math_output = static_cast<MathOutput>(temp);
 	} else if (token == "\\html_be_strict") {
 		lex >> html_be_strict;
+	} else if (token == "\\html_css_as_file") {
+		lex >> html_css_as_file;
 	} else if (token == "\\html_math_img_scale") {
 		lex >> html_math_img_scale;
 	} else if (token == "\\html_latex_start") {
@@ -1088,9 +1091,10 @@ void BufferParams::writeFile(ostream & os) const
 	}
 
 	os << "\\tracking_changes " << convert<string>(trackChanges) << '\n'
-		 << "\\output_changes " << convert<string>(outputChanges) << '\n'
-		 << "\\html_math_output " << html_math_output << '\n'
-		 << "\\html_be_strict " << convert<string>(html_be_strict) << '\n';
+	   << "\\output_changes " << convert<string>(outputChanges) << '\n'
+	   << "\\html_math_output " << html_math_output << '\n'
+	   << "\\html_css_as_file " << html_css_as_file << '\n'
+	   << "\\html_be_strict " << convert<string>(html_be_strict) << '\n';
 	
 	if (html_math_img_scale != 1.0)
 		os << "\\html_math_img_scale " << convert<string>(html_math_img_scale) << '\n';
@@ -1204,8 +1208,8 @@ void BufferParams::validate(LaTeXFeatures & features) const
 }
 
 
-bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
-			      TexRow & texrow, FileName const & filepath) const
+bool BufferParams::writeLaTeX(otexstream & os, LaTeXFeatures & features,
+			      FileName const & filepath) const
 {
 	// http://www.tug.org/texmf-dist/doc/latex/base/fixltx2e.pdf
 	// !! To use the Fix-cm package, load it before \documentclass, and use the command
@@ -1213,10 +1217,8 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	// Do not to load any other package before the document class, unless you
 	// have a thorough understanding of the LATEX internals and know exactly what you
 	// are doing!
-	if (features.mustProvide("fix-cm")) {
+	if (features.mustProvide("fix-cm"))
 		os << "\\RequirePackage{fix-cm}\n";
-		texrow.newline();
-	}
 
 	os << "\\documentclass";
 
@@ -1353,22 +1355,15 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 	}
 
 	os << '{' << from_ascii(tclass.latexname()) << "}\n";
-	texrow.newline();
 	// end of \documentclass defs
 
-	int nlines;
 	// if we use fontspec, we have to load the AMS packages here
 	string const ams = features.loadAMSPackages();
-	if (useNonTeXFonts && !ams.empty()) {
+	if (useNonTeXFonts && !ams.empty())
 		os << from_ascii(ams);
-		nlines = int(count(ams.begin(), ams.end(), '\n'));
-		texrow.newlines(nlines);
-	}
 
-	if (useNonTeXFonts) {
+	if (useNonTeXFonts)
 		os << "\\usepackage{fontspec}\n";
-		texrow.newline();
-	}
 
 	// font selection must be done before loading fontenc.sty
 	string const fonts =
@@ -1376,12 +1371,9 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			  fonts_expert_sc, fonts_old_figures,
 			  fonts_sans_scale, fonts_typewriter_scale,
 			  useNonTeXFonts, features);
-	if (!fonts.empty()) {
+	if (!fonts.empty())
 		os << from_ascii(fonts);
-		nlines =
-			int(count(fonts.begin(), fonts.end(), '\n'));
-		texrow.newlines(nlines);
-	}
+
 	if (fonts_default_family != "default")
 		os << "\\renewcommand{\\familydefault}{\\"
 		   << from_ascii(fonts_default_family) << "}\n";
@@ -1399,16 +1391,14 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			|| arab != string::npos) {
 			os << "\\usepackage[" << from_ascii(font_encoding())
 			   << ",LFE,LAE]{fontenc}\n";
-			texrow.newline();
 		} else {
 			os << "\\usepackage[" << from_ascii(font_encoding())
 			   << "]{fontenc}\n";
-			texrow.newline();
 		}
 	}
 
 	// handle inputenc etc.
-	writeEncodingPreamble(os, features, texrow);
+	writeEncodingPreamble(os, features);
 
 	// includeonly
 	if (!features.runparams().includeall && !included_children_.empty()) {
@@ -1436,10 +1426,9 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		os << "}\n";
 	}
 
-	if (!listings_params.empty() || features.isRequired("listings")) {
+	if (!listings_params.empty() || features.isRequired("listings"))
 		os << "\\usepackage{listings}\n";
-		texrow.newline();
-	}
+
 	if (!listings_params.empty()) {
 		os << "\\lstset{";
 		// do not test validity because listings_params is 
@@ -1449,13 +1438,8 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		// we can't support all packages, but we should load the color package
 		if (par.find("\\color", 0) != string::npos)
 			features.require("color");
-		os << from_utf8(par);
-		// count the number of newlines
-		for (size_t i = 0; i < par.size(); ++i)
-			if (par[i] == '\n')
-				texrow.newline();
-		os << "}\n";
-		texrow.newline();
+		os << from_utf8(par)
+		   << "}\n";
 	}
 	if (!tclass.provides("geometry")
 	    && (use_geometry || nonstandard_papersize)) {
@@ -1625,7 +1609,6 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		if (!g_options.empty())
 			os << '[' << g_options << ']';
 		os << "{geometry}\n";
-		texrow.newline();
 		// output this only if use_geometry is true
 		if (use_geometry) {
 			os << "\\geometry{verbose";
@@ -1646,21 +1629,16 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			if (!columnsep.empty())
 				os << ",columnsep=" << from_ascii(Length(columnsep).asLatexString());
 			os << "}\n";
-			texrow.newline();
 		}
 	} else if (orientation == ORIENTATION_LANDSCAPE
 		   || papersize != PAPER_DEFAULT) {
 		features.require("papersize");
 	}
 
-	if (tokenPos(tclass.opt_pagestyle(),
-		     '|', pagestyle) >= 0) {
-		if (pagestyle == "fancy") {
+	if (tokenPos(tclass.opt_pagestyle(), '|', pagestyle) >= 0) {
+		if (pagestyle == "fancy")
 			os << "\\usepackage{fancyhdr}\n";
-			texrow.newline();
-		}
 		os << "\\pagestyle{" << from_ascii(pagestyle) << "}\n";
-		texrow.newline();
 	}
 
 	// only output when the background color is not default
@@ -1687,13 +1665,11 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			os << "\\setcounter{secnumdepth}{"
 			   << secnumdepth
 			   << "}\n";
-			texrow.newline();
 		}
 		if (tocdepth != tclass.tocdepth()) {
 			os << "\\setcounter{tocdepth}{"
 			   << tocdepth
 			   << "}\n";
-			texrow.newline();
 		}
 	}
 
@@ -1718,17 +1694,14 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 			os << "\\setlength{\\parskip}{\\medskipamount}\n";
 			break;
 		}
-		texrow.newline();
 		os << "\\setlength{\\parindent}{0pt}\n";
-		texrow.newline();
 	} else {
 		// when separation by indentation
 		// only output something when a width is given
 		if (getIndentation().asLyXCommand() != "default") {
 			os << "\\setlength{\\parindent}{"
-				<< from_utf8(getIndentation().asLatexCommand())
+			   << from_utf8(getIndentation().asLatexCommand())
 			   << "}\n";
-			texrow.newline();
 		}
 	}
 
@@ -1798,13 +1771,9 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		// to access the stream itself in PDFOptions.
 		os << lyxpreamble;
 
-		int lines =
-			int(count(lyxpreamble.begin(), lyxpreamble.end(), '\n'));
-
 		OutputParams tmp_params = features.runparams();
-		lines += pdfoptions().writeLaTeX(tmp_params, os,
+		pdfoptions().writeLaTeX(tmp_params, os,
 					documentClass().provides("hyperref"));
-		texrow.newlines(lines);
 		// set back for the rest
 		lyxpreamble.clear();
 		// correctly break URLs with hyperref and dvi output
@@ -1944,9 +1913,6 @@ bool BufferParams::writeLaTeX(odocstream & os, LaTeXFeatures & features,
 		features.getTClassI18nPreamble(use_babel, use_polyglossia);
 	if (!i18npreamble.empty())
 		lyxpreamble += i18npreamble + '\n';
-
-	nlines = int(count(lyxpreamble.begin(), lyxpreamble.end(), '\n'));
-	texrow.newlines(nlines);
 
 	os << lyxpreamble;
 
@@ -2485,8 +2451,8 @@ docstring BufferParams::getGraphicsDriver(string const & package) const
 }
 
 
-void BufferParams::writeEncodingPreamble(odocstream & os,
-		LaTeXFeatures & features, TexRow & texrow) const
+void BufferParams::writeEncodingPreamble(otexstream & os,
+					 LaTeXFeatures & features) const
 {
 	// XeTeX does not need this
 	if (features.runparams().flavor == OutputParams::XETEX)
@@ -2494,9 +2460,10 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 	// LuaTeX neither, but with tex fonts, we need to load
 	// the luainputenc package.
 	if (features.runparams().flavor == OutputParams::LUATEX) {
-		if (!useNonTeXFonts) {
+		if (!useNonTeXFonts && inputenc != "default"
+		    && ((inputenc == "auto" && language->encoding()->package() == Encoding::inputenc)
+		        || (inputenc != "auto" && encoding().package() == Encoding::inputenc))) {
 			os << "\\usepackage[utf8]{luainputenc}\n";
-			texrow.newline();
 		}
 		return;
 	}
@@ -2534,7 +2501,6 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 				os << from_ascii(doc_encoding);
 			}
 			os << "]{inputenc}\n";
-			texrow.newline();
 		}
 		if (package == Encoding::CJK || features.mustProvide("CJK")) {
 			if (language->encoding()->name() == "utf8-cjk"
@@ -2542,7 +2508,6 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 				os << "\\usepackage{CJKutf8}\n";
 			else
 				os << "\\usepackage{CJK}\n";
-			texrow.newline();
 		}
 	} else if (inputenc != "default") {
 		switch (encoding().package()) {
@@ -2555,7 +2520,6 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 				break;
 			os << "\\usepackage[" << from_ascii(inputenc)
 			   << "]{inputenc}\n";
-			texrow.newline();
 			break;
 		case Encoding::CJK:
 			if (encoding().name() == "utf8-cjk"
@@ -2563,7 +2527,6 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 				os << "\\usepackage{CJKutf8}\n";
 			else
 				os << "\\usepackage{CJK}\n";
-			texrow.newline();
 			break;
 		}
 	}
@@ -2571,10 +2534,8 @@ void BufferParams::writeEncodingPreamble(odocstream & os,
 	// The encoding "armscii8" (for Armenian) is only available when
 	// the package "armtex" is loaded.
 	if (language->encoding()->latexName() == "armscii8"
-	    || inputenc == "armscii8") {
+	    || inputenc == "armscii8")
 		os << "\\usepackage{armtex}\n";
-		texrow.newline();
-	}
 }
 
 
@@ -2624,7 +2585,7 @@ string const BufferParams::loadFonts(string const & rm,
 	 *    -- if there's a way to find out if a font really supports
 	 *       OldStyle, enable/disable the widget accordingly. 
 	*/
-	if (use_systemfonts) {
+	if (use_systemfonts && features.isAvailable("fontspec")) {
 		// "Mapping=tex-text" and "Ligatures=TeX" are equivalent.
 		// However, until v.2 (2010/07/11) fontspec only knew
 		// Mapping=tex-text (for XeTeX only); then "Ligatures=TeX"

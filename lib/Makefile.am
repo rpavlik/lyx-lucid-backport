@@ -218,6 +218,10 @@ dist_srexamples_DATA = \
 	examples/sr/Braille.lyx \
 	examples/sr/splash.lyx
 
+svexamplesdir = $(pkgdatadir)/examples/sv
+dist_svexamples_DATA = \
+	examples/sv/splash.lyx
+
 ukexamplesdir = $(pkgdatadir)/examples/uk
 dist_ukexamples_DATA = \
 	examples/uk/splash.lyx
@@ -1308,6 +1312,11 @@ dist_tex_DATA = \
 	tex/lyxchess.sty \
 	tex/lyxskak.sty \
 	tex/revtex.cls
+
+# subscript.sty is not in dist_tex_DATA since we don't want to install it
+# (it is part of TeXLive). We include it in our source package only so that
+# packagers may decide to install it (e.g. for MikTeX).
+dist_noinst_DATA += tex/subscript.sty
 
 uidir = $(pkgdatadir)/ui
 dist_ui_DATA = \

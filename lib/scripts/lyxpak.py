@@ -6,28 +6,20 @@
 # Licence details can be found in the file COPYING.
 
 # author Enrico Forestieri
+# author Richard Heck
 
 # Full author contact details are available in file CREDITS
 
 # This script creates a tar or zip archive with a lyx file and all included
-# files (graphics and so on). The created archive is the standard type on a
-# given platform, such that a zip archive is created on Windows and a gzip
-# compressed tar archive on *nix.
+# files (graphics and so on). By default, the created archive is the standard
+# type on a given platform, such that a zip archive is created on Windows and
+# a gzip compressed tar archive on *nix. This can be controlled by command
+# line options, however.
 
 import os, re, string, sys
 if sys.version_info < (2, 4, 0):
     from sets import Set as set
-if os.name == 'nt':
-    import zipfile
-else:
-    import tarfile
-
-# Replace with the actual path to the 1.5, 1.6, or 2.0 lyx2lyx.
-# If left undefined and the LyX executable is in the path, the script will
-# try to locate lyx2lyx by querying LyX about the system dir.
-# Example for *nix:
-# lyx2lyx = "/usr/share/lyx/lyx2lyx/lyx2lyx"
-lyx2lyx = None
+from getopt import getopt
 
 # Pre-compiled regular expressions.
 re_lyxfile = re.compile("\.lyx$")
@@ -41,7 +33,18 @@ re_bibfiles = re.compile(r'^(\s*)bibfiles(\s+)(\S+)$')
 
 
 def usage(prog_name):
-    return "Usage: %s file.lyx [output_dir]\n" % prog_name
+    msg = '''
+Usage: %s [-t] [-z] [-l path] [-o output_dir] file.lyx
+Options:
+-l: Path to lyx2lyx script
+-o: Directory for output
+-t: Create gzipped tar file
+-z: Create zip file
+By default, we create file.zip on Windows and file.tar.gz on *nix,
+with the file output to where file.lyx is, and we look for lyx2lyx
+in the known locations, querying LyX itself if necessary.
+'''
+    return msg % prog_name
 
 
 def error(message):
@@ -74,7 +77,7 @@ def abspath(name):
     return newname
 
 
-def gather_files(curfile, incfiles):
+def gather_files(curfile, incfiles, lyx2lyx):
     " Recursively gather files."
     curdir = os.path.dirname(abspath(curfile))
     is_lyxfile = re_lyxfile.search(curfile)
@@ -120,7 +123,7 @@ def gather_files(curfile, incfiles):
             if file_exists:
                 incfiles.append(abspath(file))
                 if recursive:
-                    gather_files(file, incfiles)
+                    gather_files(file, incfiles, lyx2lyx)
             i += 1
             continue
 
@@ -160,20 +163,83 @@ def gather_files(curfile, incfiles):
     return 0
 
 
-def main(argv):
+def find_lyx2lyx(progloc):
+    " Find a usable version of the lyx2lyx script. "
+    # first we will see if the script is roughly where we are
+    # i.e., we will assume we are in $SOMEDIR/scripts and look
+    # for $SOMEDIR/lyx2lyx/lyx2lyx.
+    ourpath = os.path.dirname(abspath(progloc))
+    (upone, discard) = os.path.split(ourpath)
+    tryit = os.path.join(upone, "lyx2lyx", "lyx2lyx")
+    if os.access(tryit, os.X_OK):
+        return tryit
 
-    if len(argv) < 2 and len(argv) > 3:
-        error(usage(argv[0]))
+    # now we will try to query LyX itself to find the path.
+    extlist = ['']
+    if "PATHEXT" in os.environ:
+        extlist = extlist + os.environ["PATHEXT"].split(os.pathsep)
+    lyx_exe, full_path = find_exe(["lyxc", "lyx"], extlist, path)
+    if lyx_exe == None:
+        error('Cannot find the LyX executable in the path.')
+    cmd_status, cmd_stdout = run_cmd("%s -version 2>&1" % lyx_exe)
+    if cmd_status != None:
+        error('Cannot query LyX about the lyx2lyx script.')
+    re_msvc = re.compile(r'^(\s*)(Host type:)(\s+)(win32)$')
+    re_sysdir = re.compile(r'^(\s*)(LyX files dir:)(\s+)(\S+)$')
+    lines = cmd_stdout.splitlines()
+    for line in lines:
+        match = re_msvc.match(line)
+        if match:
+            # The LyX executable was built with MSVC, so the
+            # "LyX files dir:" line is unusable
+            basedir = os.path.dirname(os.path.dirname(full_path))
+            tryit = os.path.join(basedir, 'Resources', 'lyx2lyx', 'lyx2lyx')
+            break
+        match = re_sysdir.match(line)
+        if match:
+            tryit = os.path.join(match.group(4), 'lyx2lyx', 'lyx2lyx')
+            break
 
-    lyxfile = argv[1]
+    if not os.access(tryit, os.X_OK):
+        error('Unable to find the lyx2lyx script.')
+    return tryit
+
+
+def main(args):
+
+    ourprog = args[0]
+
+    try:
+      (options, argv) = getopt(args[1:], "htzl:o:")
+    except:
+      error(usage(ourprog))
+
+    # we expect the filename to be left
+    if len(argv) != 1:
+        error(usage(ourprog))
+
+    makezip = (os.name == 'nt')
+    outdir = ""
+    lyx2lyx = None
+
+    for (opt, param) in options:
+      if opt == "-h":
+        print usage(ourprog)
+        sys.exit(0)
+      elif opt == "-t":
+        makezip = False
+      elif opt == "-z":
+        makezip = True
+      elif opt == "-l":
+        lyx2lyx = param
+      elif opt == "-o":
+        outdir = param
+        if not os.path.isdir(outdir):
+          error('Error: "%s" is not a directory.' % outdir)
+
+    lyxfile = argv[0]
     if not os.path.exists(lyxfile):
         error('File "%s" not found.' % lyxfile)
-
-    outdir = ""
-    if len(argv) == 3:
-        outdir = argv[2]
-        if not os.path.isdir(outdir):
-            error('Error: "%s" is not a directory.' % outdir)
 
     # Check that it actually is a LyX document
     input = open(lyxfile, 'rU')
@@ -182,13 +248,14 @@ def main(argv):
     if not (line and line.startswith('#LyX')):
         error('File "%s" is not a LyX document.' % lyxfile)
 
-    # Create a tar archive on *nix and a zip archive on Windows
-    extlist = ['']
+    if makezip:
+        import zipfile
+    else:
+        import tarfile
+
     ar_ext = ".tar.gz"
-    if os.name == 'nt':
+    if makezip:
         ar_ext = ".zip"
-        if os.environ.has_key("PATHEXT"):
-            extlist = extlist + os.environ["PATHEXT"].split(os.pathsep)
 
     ar_name = re_lyxfile.sub(ar_ext, abspath(lyxfile))
     if outdir:
@@ -196,46 +263,13 @@ def main(argv):
 
     path = string.split(os.environ["PATH"], os.pathsep)
 
-    # Try to find the location of the lyx2lyx script
-    global lyx2lyx
     if lyx2lyx == None:
-        # first we will see if the script is roughly where we are
-        # i.e., we will assume we are in $SOMEDIR/scripts and look
-        # for $SOMEDIR/lyx2lyx/lyx2lyx.
-        ourpath = os.path.dirname(abspath(argv[0]))
-        (upone, discard) = os.path.split(ourpath)
-        tryit = os.path.join(upone, "lyx2lyx", "lyx2lyx")
-        if os.path.exists(tryit):
-            lyx2lyx = tryit
-        else:
-          lyx_exe, full_path = find_exe(["lyxc", "lyx"], extlist, path)
-          if lyx_exe == None:
-              error('Cannot find the LyX executable in the path.')
-          cmd_status, cmd_stdout = run_cmd("%s -version 2>&1" % lyx_exe)
-          if cmd_status != None:
-              error('Cannot query LyX about the lyx2lyx script.')
-          re_msvc = re.compile(r'^(\s*)(Host type:)(\s+)(win32)$')
-          re_sysdir = re.compile(r'^(\s*)(LyX files dir:)(\s+)(\S+)$')
-          lines = cmd_stdout.splitlines()
-          for line in lines:
-              match = re_msvc.match(line)
-              if match:
-                  # The LyX executable was built with MSVC, so the
-                  # "LyX files dir:" line is unusable
-                  basedir = os.path.dirname(os.path.dirname(full_path))
-                  lyx2lyx = os.path.join(basedir, 'Resources', 'lyx2lyx', 'lyx2lyx')
-                  break
-              match = re_sysdir.match(line)
-              if match:
-                  lyx2lyx = os.path.join(match.group(4), 'lyx2lyx', 'lyx2lyx')
-                  break
-          if not os.access(lyx2lyx, os.X_OK):
-              error('Unable to find the lyx2lyx script.')
+        lyx2lyx = find_lyx2lyx(ourprog)
 
     # Initialize the list with the specified LyX file and recursively
     # gather all required files (also from child documents).
     incfiles = [abspath(lyxfile)]
-    gather_files(lyxfile, incfiles)
+    gather_files(lyxfile, incfiles, lyx2lyx)
 
     # Find the topmost dir common to all files
     if len(incfiles) > 1:

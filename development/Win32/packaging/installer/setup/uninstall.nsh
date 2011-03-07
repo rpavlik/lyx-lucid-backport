@@ -12,18 +12,14 @@ Section "un.Program Files" un.SecProgramFiles
 
   # Binaries
   !insertmacro FileListLyXBin Delete "$INSTDIR\bin\"
-  !insertmacro FileListLyXLauncher Delete "$INSTDIR\bin\"  
   !insertmacro FileListQtBin Delete "$INSTDIR\bin\"
   !insertmacro FileListDll Delete "$INSTDIR\bin\"
-  !insertmacro FileListMSVCBin Delete "$INSTDIR\bin\"
-  !insertmacro FileListMSVCManifest Delete "$INSTDIR\bin\"
+  !insertmacro FileListMSVC Delete "$INSTDIR\bin\"
   !insertmacro FileListNetpbmBin Delete "$INSTDIR\bin\"
   !insertmacro FileListDTLBin Delete "$INSTDIR\bin\"
   !insertmacro FileListDvipostBin Delete "$INSTDIR\bin\"
   !insertmacro FileListPDFToolsBin Delete "$INSTDIR\bin\"
   !insertmacro FileListPDFViewBin Delete "$INSTDIR\bin\"
-  !insertmacro FileListNSISPluginsStandard Delete "$INSTDIR\bin\"
-  !insertmacro FileListNSISPlugins Delete "$INSTDIR\bin\"
   !insertmacro FileListMetaFile2EPS Delete "$INSTDIR\bin\"
   RMDir "$INSTDIR\bin"
   
@@ -38,25 +34,18 @@ Section "un.Program Files" un.SecProgramFiles
   Delete "$INSTDIR\python\Lib\*.pyc"  
   RMDir "$INSTDIR\python\Lib" 
   !insertmacro FileListPythonBin Delete "$INSTDIR\python\"
-  !insertmacro FileListMSVCBin Delete "$INSTDIR\python\"
-  !insertmacro FileListMSVCManifest Delete "$INSTDIR\python\" 
+  !insertmacro FileListMSVC Delete "$INSTDIR\python\"
   RMDir "$INSTDIR\python"
   
   # Components of ImageMagick
   !insertmacro FileListImageMagick Delete "$INSTDIR\imagemagick\"
-  !insertmacro FileListMSVCBin Delete "$INSTDIR\imagemagick\"
-  !insertmacro FileListMSVCManifest Delete "$INSTDIR\imagemagick\"
+  !insertmacro FileListMSVC Delete "$INSTDIR\imagemagick\"
   RMDir "$INSTDIR\imagemagick"
   
   # Components of Ghostscript
   !insertmacro FileListGhostscript Delete "$INSTDIR\ghostscript\"
-  !insertmacro FileListMSVCBin Delete "$INSTDIR\ghostscript\"
-  !insertmacro FileListMSVCManifest Delete "$INSTDIR\ghostscript\"
+  !insertmacro FileListMSVC Delete "$INSTDIR\ghostscript\"
   RMDir "$INSTDIR\ghostscript"
-  
-  # Aiksaurus Data
-  !insertmacro FileListAiksaurusData Delete "$INSTDIR\aiksaurus\"
-  RMDir "$INSTDIR\aiksaurus"
   
   # Shortcuts
   Delete "$SMPROGRAMS\${APP_NAME} ${APP_SERIES_NAME}.lnk"
