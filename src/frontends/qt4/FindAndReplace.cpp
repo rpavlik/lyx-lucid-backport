@@ -19,15 +19,11 @@
 #include "qt_helpers.h"
 #include "Language.h"
 
-#include "buffer_funcs.h"
 #include "BufferParams.h"
 #include "BufferList.h"
 #include "Cursor.h"
 #include "FuncRequest.h"
 #include "lyxfind.h"
-#include "output_latex.h"
-#include "OutputParams.h"
-#include "TexRow.h"
 
 #include "frontends/alert.h"
 
@@ -41,8 +37,6 @@
 #include <QCloseEvent>
 #include <QLineEdit>
 #include <QMenu>
-
-#include <iostream>
 
 using namespace std;
 using namespace lyx::support;
@@ -147,27 +141,6 @@ bool FindAndReplaceWidget::eventFilter(QObject * obj, QEvent * event)
 }
 
 
-static docstring buffer_to_latex(Buffer & buffer) 
-{
-	OutputParams runparams(&buffer.params().encoding());
-	odocstringstream ods;
-	otexstream os(ods);
-	runparams.nice = true;
-	runparams.flavor = OutputParams::LATEX;
-	runparams.linelen = 80; //lyxrc.plaintext_linelen;
-	// No side effect of file copying and image conversion
-	runparams.dryrun = true;
-	buffer.texrow().reset();
-	pit_type const endpit = buffer.paragraphs().size();
-	for (pit_type pit = 0; pit != endpit; ++pit) {
-		TeXOnePar(buffer, buffer.text(),
-			  pit, os, buffer.texrow(), runparams);
-		LYXERR(Debug::FIND, "searchString up to here: " << ods.str());
-	}
-	return ods.str();
-}
-
-
 static vector<string> const & allManualsFiles() 
 {
 	static vector<string> v;
@@ -197,7 +170,7 @@ static bool nextDocumentBuffer(Buffer * & buf)
 	LYXERR(Debug::FIND, "children.size()=" << children.size());
 	ListOfBuffers::const_iterator it =
 		find(children.begin(), children.end(), buf);
-	LASSERT(it != children.end(), /**/)
+	LASSERT(it != children.end(), /**/);
 	++it;
 	if (it == children.end()) {
 		buf = *children.begin();
@@ -320,11 +293,12 @@ docstring getQuestionString(FindAndReplaceOptions const & opt)
 }
 
 
-void FindAndReplaceWidget::findAndReplaceScope(FindAndReplaceOptions & opt)
+/// Return true if a match was found
+bool FindAndReplaceWidget::findAndReplaceScope(FindAndReplaceOptions & opt, bool replace_all)
 {
 	BufferView * bv = view_.documentBufferView();
 	if (!bv)
-		return;
+		return false;
 	Buffer * buf = &bv->buffer();
 	Buffer * buf_orig = &bv->buffer();
 	DocIterator cur_orig(bv->cursor());
@@ -358,8 +332,10 @@ void FindAndReplaceWidget::findAndReplaceScope(FindAndReplaceOptions & opt)
 		LYXERR(Debug::FIND, "dispatched");
 		if (bv->cursor().result().dispatched()) {
 			// New match found and selected (old selection replaced if needed)
+			if (replace_all)
+				continue;
 			view_.setBusy(false);
-			return;
+			return true;
 		}
 
 		// No match found in current buffer (however old selection might have been replaced)
@@ -402,53 +378,28 @@ void FindAndReplaceWidget::findAndReplaceScope(FindAndReplaceOptions & opt)
 		cur_orig.pos() = cur_orig.lastpos();
 	bv->cursor().setCursor(cur_orig);
 	view_.setBusy(false);
+	return false;
 }
 
 
-void FindAndReplaceWidget::findAndReplace(
+/// Return true if a match was found
+bool FindAndReplaceWidget::findAndReplace(
 	bool casesensitive, bool matchword, bool backwards,
 	bool expandmacros, bool ignoreformat, bool replace,
-	bool keep_case)
+	bool keep_case, bool replace_all)
 {
-	Buffer & buffer = find_work_area_->bufferView().buffer();
-	docstring searchString;
-	if (!ignoreformat) {
-		searchString = buffer_to_latex(buffer);
-	} else {
-		ParIterator it = buffer.par_iterator_begin();
-		ParIterator end = buffer.par_iterator_end();
-		OutputParams runparams(&buffer.params().encoding());
-		odocstringstream os;
-		runparams.nice = true;
-		runparams.flavor = OutputParams::LATEX;
-		runparams.linelen = 100000; //lyxrc.plaintext_linelen;
-		runparams.dryrun = true;
-		for (; it != end; ++it) {
-			LYXERR(Debug::FIND, "Adding to search string: '"
-				<< it->asString(false)
-				<< "'");
-			searchString +=
-				it->stringify(pos_type(0), it->size(),
-					      AS_STR_INSETS, runparams);
-		}
+	Buffer & find_buf = find_work_area_->bufferView().buffer();
+	docstring const & find_buf_name = find_buf.fileName().absoluteFilePath();
+
+	if (find_buf.text().empty()) {
+		view_.message(_("Nothing to search"));
+		return false;
 	}
-	if (to_utf8(searchString).empty()) {
-		buffer.message(_("Nothing to search"));
-		return;
-	}
-	bool const regexp =
-		to_utf8(searchString).find("\\regexp") != std::string::npos;
-	docstring replaceString;
-	if (replace) {
-		Buffer & repl_buffer =
-			replace_work_area_->bufferView().buffer();
-		ostringstream oss;
-		repl_buffer.write(oss);
-		//buffer_to_latex(replace_buffer);
-		replaceString = from_utf8(oss.str());
-	} else {
-		replaceString = from_utf8(LYX_FR_NULL_STRING);
-	}
+
+	Buffer & repl_buf = replace_work_area_->bufferView().buffer();
+	docstring const & repl_buf_name = replace ?
+		repl_buf.fileName().absoluteFilePath() : docstring();
+
 	FindAndReplaceOptions::SearchScope scope =
 		FindAndReplaceOptions::S_BUFFER;
 	if (CurrentDocument->isChecked())
@@ -462,28 +413,27 @@ void FindAndReplaceWidget::findAndReplace(
 	else
 		LASSERT(false, /**/);
 	LYXERR(Debug::FIND, "FindAndReplaceOptions: "
-	       << "searchstring=" << searchString
+	       << "find_buf_name=" << find_buf_name
 	       << ", casesensitiv=" << casesensitive
 	       << ", matchword=" << matchword
 	       << ", backwards=" << backwards
 	       << ", expandmacros=" << expandmacros
 	       << ", ignoreformat=" << ignoreformat
-	       << ", regexp=" << regexp
-	       << ", replaceString" << replaceString
+	       << ", repl_buf_name" << repl_buf_name
 	       << ", keep_case=" << keep_case
 	       << ", scope=" << scope);
-	FindAndReplaceOptions opt(searchString, casesensitive, matchword,
+	FindAndReplaceOptions opt(find_buf_name, casesensitive, matchword,
 				  !backwards, expandmacros, ignoreformat,
-				  regexp, replaceString, keep_case, scope);
-	findAndReplaceScope(opt);
+				  repl_buf_name, keep_case, scope);
+	return findAndReplaceScope(opt, replace_all);
 }
 
 
-void FindAndReplaceWidget::findAndReplace(bool backwards, bool replace)
+bool FindAndReplaceWidget::findAndReplace(bool backwards, bool replace, bool replace_all)
 {
 	if (! view_.currentMainWorkArea()) {
 		view_.message(_("No open document(s) in which to search"));
-		return;
+		return false;
 	}
 	// Finalize macros that are being typed, both in main document and in search or replacement WAs
 	if (view_.currentWorkArea()->bufferView().cursor().macroModeClose())
@@ -494,13 +444,14 @@ void FindAndReplaceWidget::findAndReplace(bool backwards, bool replace)
 	// FIXME: create a Dialog::returnFocus()
 	// or something instead of this:
 	view_.setCurrentWorkArea(view_.currentMainWorkArea());
-	findAndReplace(caseCB->isChecked(),
+	return findAndReplace(caseCB->isChecked(),
 		wordsCB->isChecked(),
 		backwards,
 		expandMacrosCB->isChecked(),
 		ignoreFormatCB->isChecked(),
 		replace,
-		keepCaseCB->isChecked());
+		keepCaseCB->isChecked(),
+		replace_all);
 }
 
 
@@ -526,6 +477,7 @@ void FindAndReplaceWidget::on_replacePB_clicked()
 
 void FindAndReplaceWidget::on_replaceallPB_clicked()
 {
+	findAndReplace(searchbackCB->isChecked(), true, true);
 	replace_work_area_->setFocus();
 }
 

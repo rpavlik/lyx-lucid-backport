@@ -2155,6 +2155,9 @@ lib_images_attic_extra_files = Split('''
 ''')
 
 
+# Do not add subscript.sty to lib_tex_files since we don't want to install it
+# (it is part of TeXLive). We include it in our source package only so that
+# packagers may decide to install it (e.g. for MikTeX).
 lib_tex_files = Split('''
     broadway.cls
     hollywood.cls
@@ -2725,6 +2728,11 @@ lib_examples_sr_files = Split('''
 ''')
 
 
+lib_examples_sv_files = Split('''
+    splash.lyx
+''')
+
+
 lib_examples_uk_files = Split('''
     splash.lyx
 ''')
@@ -2972,6 +2980,7 @@ lib_scripts_files = Split('''
     layout2layout.py
     legacy_lyxpreview2ppm.py
     listerrors
+    lyxpak.py
     lyxpreview2bitmap.py
     lyxpreview-lytex2bitmap.py
     lyxpreview-platex2bitmap.py

@@ -45,9 +45,6 @@ Section -InstallData
   WriteRegStr SHELL_CONTEXT ${APP_REGKEY} "Version" "${APP_VERSION_NUMBER}"
 
   WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "LaTeX Path" $PathLaTeX
-  WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "ImageMagick Path" $PathImageMagick
-  WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "Ghostscript Path" $PathGhostscript
-  WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETUP} "LyX Language" $LangName
 
   # Start Menu shortcut
   # There is only one shortcut to the application, so it should be in the main group
@@ -78,30 +75,20 @@ SectionEnd
 
 Section -Configure
 
-  # Windows specific configuration in lyxrc.dist
+  # Set path prefix in lyxrc.dist
 
-  Delete "$INSTDIR\Resources\lyxrc.dist"
-  FileOpen $DistFile "$INSTDIR\Resources\lyxrc.dist" w
+  # Install standard lyxrc.dist file
+  SetOutPath "$INSTDIR\Resources"
+  File "${FILES_DEPS}\Resources\lyxrc.dist"
 
-  # Path prefix
+  # Append path prefix
+  FileOpen $DistFile "$INSTDIR\Resources\lxrc.dist" a
 
-  StrCpy $PathPrefix "$INSTDIR\bin;$INSTDIR\python"
-  
-  !ifdef BUNDLE_IMAGEMAGICK
-    StrCpy $PathImageMagick "$INSTDIR\imagemagick"
-  !endif
-  !ifdef BUNDLE_GHOSTSCRIPT
-    StrCpy $PathGhostscript "$INSTDIR\ghostscript"
-  !endif  
+  # $$ represents a literal $ in an NSIS string
+  StrCpy $PathPrefix "$$LyXDir\bin;$$LyXDir\python;$$LyXDir\imagemagick;$$LyXDir\ghostscript"
   
   ${If} $PathLaTeX != ""
     StrCpy $PathPrefix "$PathPrefix;$PathLaTeX"
-  ${EndIf}
-  ${If} $PathGhostscript != ""
-    StrCpy $PathPrefix "$PathPrefix;$PathGhostscript"
-  ${EndIf}
-  ${If} $PathImageMagick != ""
-    StrCpy $PathPrefix "$PathPrefix;$PathImageMagick"
   ${EndIf}
   ${If} $PathBibTeXEditor != ""
     StrCpy $PathPrefix "$PathPrefix;$PathBibTeXEditor"
@@ -109,20 +96,7 @@ Section -Configure
 
   FileWrite $DistFile '\path_prefix "$PathPrefix"$\r$\n'
 
-  # Default screen fonts
-  FileWrite $DistFile '\screen_font_roman "Times New Roman"$\r$\n'
-  FileWrite $DistFile '\screen_font_sans "Arial"$\r$\n'
-  FileWrite $DistFile '\screen_font_typewriter "Courier New"$\r$\n'
-  FileWrite $DistFile '\preview_scale_factor 1.0$\r$\n' # Fit instant preview font size to screen fonts
-  # PDF view helper
-  FileWrite $DistFile '\format "pdf" "pdf" "PDF (ps2pdf)" "P" "pdfview" "" "document,vector"$\r$\n'  
-  FileWrite $DistFile '\format "pdf2" "pdf" "PDF (pdflatex)" "F" "pdfview" "" "document,vector"$\r$\n'
-  FileWrite $DistFile '\format "pdf3" "pdf" "PDF (dvipdfm)" "m" "pdfview" "" "document,vector"$\r$\n'
-
   FileClose $DistFile
-
-  # Set language
-  WriteRegStr SHELL_CONTEXT ${APP_REGKEY_SETTINGS} "Language" $LangISOCode
 
 SectionEnd
 

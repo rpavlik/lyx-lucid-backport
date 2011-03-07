@@ -17,7 +17,16 @@ the default print settings (which, of course, have to have been configured
 already). At present, not many commands can be used this way, but there will
 be more eventually.
 
-Bash completion script was added to the tarball.
+A bash completion script was added to the tarball.
+
+We have introduced a new flag to decide whether or not a given "document"
+format shall be listed in the File > Export menu. This was necessary since
+this menu got too large. If the flag "menu=export" is not explicitly set,
+the formats are not included in the menu. This means that you might need
+to click "Show in export menu" in Preferences > File Formats for your
+customized file formats if you want them to appear in the menu.
+Note, though, that you still can export to any possible format via
+File > Export > More Formats and Options ...
 
 The following pref variables were changed in 2.0:
 
@@ -49,70 +58,40 @@ The following pref variables are obsoleted in 2.0:
 The following new LyX functions have been introduced:
 
 - LFUN_WORD_FINDAD ("word-findadv").
-
 - LFUN_REGEXP_MODE ("regexp-mode").
-
 - LFUN_PHANTOM_INSERT ("phantom-insert").
-
 - LFUN_INSET_BEGIN ("inset-begin").
-
 - LFUN_INSET_END (""inset-end"").
-
 - LFUN_INSET_BEGIN_SELECT ("inset-begin-select").
-
 - LFUN_INSET_END_SELECT ("inset-end-select").
-
 - LFUN_CHANGE_PREVIOUS ("change-previous").
-
 - LFUN_LABEL_INSERT_AS_REF ("label-insert-as-reference").
-
 - LFUN_SECTION_SELECT ("section-select").
-
 - LFUN_FONT_UNDERLINE ("font-underline").
-
 - LFUN_FONT_STRIKEOUT ("font-strikeout").
-
 - LFUN_FONT_UULINE ("font-underunderline").
-
 - LFUN_FONT_UWAVE ("font-underwave").
-
 - LFUN_BRANCHES_RENAME ("branches-rename").
-
 - LFUN_BRANCH_ADD_INSERT ("branch-add-insert").
-
 - LFUN_BUFFER_CLOSE_ALL ("buffer-close-all").
-
 - LFUN_INSET_FORALL ("inset-forall").
-
 - LFUN_DEBUG_LEVEL_SET ("debug-level-set").
-
 - LFUN_INSET_SELECT_ALL ("inset-select-all").
-
 - LFUN_MATH_AMS_MATRIX ("math-ams-matrix").
-
 - LFUN_VC_COMPARE ("vc-compare").
-
 - LFUN_SPELLING_ADD ("spelling-add").
-
 - LFUN_SPELLING_IGNORE ("spelling-ignore").
-
 - LFUN_SPELLING_REMOVE ("spelling-remove").
-
 - LFUN_PREVIEW_INSERT ("preview-insert").
-
 - LFUN_FORWARD_SEARCH ("forward-search").
-
 - LFUN_INSET_COPY_AS ("inset-copy-as").
-
 - LFUN_BUFFER_TOGGLE_OUTPUT_SYNC ("buffer-toggle-output-sync").
 
 
 The following LyX functions have been removed:
 
 - LFUN_NEXT_INSET_TOGGLE ("next-inset-toggle"): use "inset-toggle" instead.
-
 - LFUN_NEXT_INSET_MODIFY ("next-inset-modify"): use "inset-modify" instead.
-
 - LFUN_PARAGRAPH_SPACING ("paragraph-spacing"): use "paragraph-params" instead.
 
 - LFUN_NOTES_MUTATE ("notes-mutate"): replace
@@ -163,6 +142,12 @@ The following LyX key bindings have been changed:
 - LFUN_MATH_MACRO_UNFOLD ("math-macro-unfold")
   The binding to "C-plus" has changed to "C-S-asterisk".
 
+- On Mac OSX the modifier keys <Control> and <Option> are now treated separately.
+  The distributed key binding for Mac OSX no longer uses the <Option> key for
+  shortcuts with letters or numbers.
+
+  The custom key bindings for <Option>/<Control> are mapped to the <Control>
+  modifier only.
 
 New external programs and libraries:
 ------------------------------------

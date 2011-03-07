@@ -233,8 +233,7 @@ GuiWorkArea::GuiWorkArea(QWidget *)
 	: buffer_view_(0), lyx_view_(0),
 	cursor_visible_(false),
 	need_resize_(false), schedule_redraw_(false),
-	preedit_lines_(1), completer_(new GuiCompleter(this, this)),
-	context_target_pos_()
+	preedit_lines_(1), completer_(new GuiCompleter(this, this))
 {
 }
 
@@ -243,8 +242,7 @@ GuiWorkArea::GuiWorkArea(Buffer & buffer, GuiView & gv)
 	: buffer_view_(0), read_only_(buffer.isReadonly()), lyx_view_(0),
 	cursor_visible_(false),
 	need_resize_(false), schedule_redraw_(false),
-	preedit_lines_(1), completer_(new GuiCompleter(this, this)),
-	context_target_pos_()
+	preedit_lines_(1), completer_(new GuiCompleter(this, this))
 {
 	setGuiView(gv);
 	setBuffer(buffer);
@@ -697,31 +695,36 @@ bool GuiWorkArea::event(QEvent * e)
 
 void GuiWorkArea::contextMenuEvent(QContextMenuEvent * e)
 {
-	QPoint pos;
+	docstring name;
 	if (e->reason() == QContextMenuEvent::Mouse)
-		// the position is set on mouse press
-		pos = context_target_pos_;
-	else
-		pos = e->pos();
-	Cursor const & cur = buffer_view_->cursor();
-	if (e->reason() == QContextMenuEvent::Keyboard && cur.inTexted()) {
-		// Do not access the context menu of math right in front of before
-		// the cursor. This does not work when the cursor is in text.
-		Inset * inset = cur.paragraph().getInset(cur.pos());
-		if (inset && inset->asInsetMath())
-			--pos.rx();
-		else if (cur.pos() > 0) {
-			Inset * inset = cur.paragraph().getInset(cur.pos() - 1);
-			if (inset)
-				++pos.rx();
+		// the menu name is set on mouse press
+		name = context_menu_name_;
+	else {
+		QPoint pos = e->pos();
+		Cursor const & cur = buffer_view_->cursor();
+		if (e->reason() == QContextMenuEvent::Keyboard && cur.inTexted()) {
+			// Do not access the context menu of math right in front of before
+			// the cursor. This does not work when the cursor is in text.
+			Inset * inset = cur.paragraph().getInset(cur.pos());
+			if (inset && inset->asInsetMath())
+				--pos.rx();
+			else if (cur.pos() > 0) {
+				Inset * inset = cur.paragraph().getInset(cur.pos() - 1);
+				if (inset)
+					++pos.rx();
+			}
 		}
+		name = buffer_view_->contextMenu(pos.x(), pos.y());
 	}
-	docstring name = buffer_view_->contextMenu(pos.x(), pos.y());
+	
 	if (name.empty()) {
 		QAbstractScrollArea::contextMenuEvent(e);
 		return;
 	}
-	QMenu * menu = guiApp->menus().menu(toqstr(name), *lyx_view_);
+	// always show mnemonics when the keyboard is used to show the context menu
+	// FIXME: This should be fixed in Qt itself
+	bool const keyboard = (e->reason() == QContextMenuEvent::Keyboard);
+	QMenu * menu = guiApp->menus().menu(toqstr(name), *lyx_view_, keyboard);
 	if (!menu) {
 		QAbstractScrollArea::contextMenuEvent(e);
 		return;
@@ -763,8 +766,12 @@ void GuiWorkArea::mousePressEvent(QMouseEvent * e)
 		return;
 	}
 
+	// Save the context menu on mouse press, because also the mouse
+	// cursor is set on mouse press. Afterwards, we can either release
+	// the mousebutton somewhere else, or the cursor might have moved
+	// due to the DEPM.
 	if (e->button() == Qt::RightButton)
-		context_target_pos_ = e->pos();
+		context_menu_name_ = buffer_view_->contextMenu(e->x(), e->y());
 
 	inputContext()->reset();
 
@@ -1002,8 +1009,21 @@ void GuiWorkArea::keyPressEvent(QKeyEvent * ev)
 	}
 #endif
 
+	KeyModifier m = q_key_state(ev->modifiers());
+
+	std::string str;
+	if (m & ShiftModifier)
+		str += "Shift-";
+	if (m & ControlModifier)
+		str += "Control-";
+	if (m & AltModifier)
+		str += "Alt-";
+	if (m & MetaModifier)
+		str += "Meta-";
+	
 	LYXERR(Debug::KEY, " count: " << ev->count() << " text: " << ev->text()
-		<< " isAutoRepeat: " << ev->isAutoRepeat() << " key: " << ev->key());
+		<< " isAutoRepeat: " << ev->isAutoRepeat() << " key: " << ev->key()
+		<< " keyState: " << str);
 
 	KeySymbol sym;
 	setKeySymbol(&sym, ev);
@@ -1275,11 +1295,11 @@ void GuiWorkArea::updateWindowTitle()
 	docstring maximize_title;
 	docstring minimize_title;
 
-	Buffer & buf = buffer_view_->buffer();
-	FileName const fileName = buf.fileName();
-	if (!fileName.empty()) {
-		maximize_title = fileName.displayName(130);
-		minimize_title = from_utf8(fileName.onlyFileName());
+	Buffer const & buf = buffer_view_->buffer();
+	FileName const file_name = buf.fileName();
+	if (!file_name.empty()) {
+		maximize_title = file_name.displayName(130);
+		minimize_title = from_utf8(file_name.onlyFileName());
 		if (buf.lyxvc().inUse()) {
 			if (buf.lyxvc().locking())
 				maximize_title +=  _(" (version control, locking)");
@@ -1294,14 +1314,12 @@ void GuiWorkArea::updateWindowTitle()
 			maximize_title += _(" (read only)");
 	}
 
-	QString title = windowTitle();
-	QString new_title = toqstr(maximize_title);
-	if (title == new_title)
-		return;
-
-	QWidget::setWindowTitle(new_title);
-	QWidget::setWindowIconText(toqstr(minimize_title));
-	titleChanged(this);
+	QString const new_title = toqstr(maximize_title);
+	if (new_title != windowTitle()) {
+		QWidget::setWindowTitle(new_title);
+		QWidget::setWindowIconText(toqstr(minimize_title));
+		titleChanged(this);
+	}
 }
 
 

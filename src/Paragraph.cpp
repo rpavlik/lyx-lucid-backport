@@ -295,7 +295,7 @@ public:
 	/// if the next character is a combining character).
 	/// \return whether a surrogate pair was output.
 	bool simpleTeXBlanks(OutputParams const &,
-			     otexstream &, TexRow & texrow,
+			     otexstream &,
 			     pos_type i,
 			     unsigned int & column,
 			     Font const & font,
@@ -308,17 +308,17 @@ public:
 			   Change const &, Encoding const &, pos_type & i);
 
 	/// This could go to ParagraphParameters if we want to.
-	int startTeXParParams(BufferParams const &, otexstream &, TexRow &,
+	int startTeXParParams(BufferParams const &, otexstream &,
 			      OutputParams const &) const;
 
 	/// This could go to ParagraphParameters if we want to.
-	int endTeXParParams(BufferParams const &, otexstream &, TexRow &,
+	int endTeXParParams(BufferParams const &, otexstream &,
 			    OutputParams const &) const;
 
 	///
 	void latexInset(BufferParams const &,
 				   otexstream &,
-				   TexRow & texrow, OutputParams &,
+				   OutputParams &,
 				   Font & running_font,
 				   Font & basefont,
 				   Font const & outerfont,
@@ -336,6 +336,7 @@ public:
 				   Change const & running_change,
 				   Layout const & style,
 				   pos_type & i,
+				   pos_type end_pos,
 				   unsigned int & column);
 
 	///
@@ -354,6 +355,7 @@ public:
 	bool latexSpecialPhrase(
 		otexstream & os,
 		pos_type & i,
+		pos_type end_pos,
 		unsigned int & column,
 		OutputParams const & runparams);
 
@@ -866,7 +868,7 @@ int Paragraph::Private::latexSurrogatePair(otexstream & os, char_type c,
 
 
 bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
-				       otexstream & os, TexRow & texrow,
+				       otexstream & os,
 				       pos_type i,
 				       unsigned int & column,
 				       Font const & font,
@@ -899,8 +901,7 @@ bool Paragraph::Private::simpleTeXBlanks(OutputParams const & runparams,
 		     || text_[i - 1] == ':'
 		     || text_[i - 1] == '!'))) {
 		os << '\n';
-		texrow.newline();
-		texrow.start(owner_->id(), i + 1);
+		os.texrow().start(owner_->id(), i + 1);
 		column = 0;
 	} else if (style.free_spacing) {
 		os << '~';
@@ -1006,7 +1007,6 @@ bool Paragraph::Private::isTextAt(string const & str, pos_type pos) const
 
 void Paragraph::Private::latexInset(BufferParams const & bparams,
 				    otexstream & os,
-				    TexRow & texrow,
 				    OutputParams & runparams,
 				    Font & running_font,
 				    Font & basefont,
@@ -1049,8 +1049,7 @@ void Paragraph::Private::latexInset(BufferParams const & bparams,
 				os << "\\protect ";
 
 		}
-		texrow.newline();
-		texrow.start(owner_->id(), i + 1);
+		os.texrow().start(owner_->id(), i + 1);
 		column = 0;
 	}
 
@@ -1092,7 +1091,7 @@ void Paragraph::Private::latexInset(BufferParams const & bparams,
 	// ArabTeX, though, cannot handle this special behavior, it seems.
 	bool arabtex = basefont.language()->lang() == "arabic_arabtex"
 		|| running_font.language()->lang() == "arabic_arabtex";
-	if (open_font && inset->noFontChange()) {
+	if (open_font && !inset->inheritFont()) {
 		bool closeLanguage = arabtex
 			|| basefont.isRightToLeft() == running_font.isRightToLeft();
 		unsigned int count = running_font.latexWriteEndChanges(os,
@@ -1115,10 +1114,10 @@ void Paragraph::Private::latexInset(BufferParams const & bparams,
 		}
 	}
 
-	int tmp;
+	int prev_rows = os.texrow().rows();
 
 	try {
-		tmp = inset->latex(os, runparams);
+		inset->latex(os, runparams);
 	} catch (EncodingException & e) {
 		// add location information and throw again.
 		e.par_id = id_;
@@ -1133,9 +1132,8 @@ void Paragraph::Private::latexInset(BufferParams const & bparams,
 				os << '}';
 	}
 
-	if (tmp) {
-		texrow.newlines(tmp);
-		texrow.start(owner_->id(), i + 1);
+	if (os.texrow().rows() > prev_rows) {
+		os.texrow().start(owner_->id(), i + 1);
 		column = 0;
 	} else {
 		column += (unsigned int)(os.os().tellp() - len);
@@ -1152,15 +1150,18 @@ void Paragraph::Private::latexSpecialChar(otexstream & os,
 					  Change const & running_change,
 					  Layout const & style,
 					  pos_type & i,
+					  pos_type end_pos,
 					  unsigned int & column)
 {
 	char_type const c = text_[i];
 
 	if (style.pass_thru || runparams.pass_thru) {
-		if (c != '\0')
-			// FIXME UNICODE: This can fail if c cannot
-			// be encoded in the current encoding.
+		if (c != '\0') {
+			Encoding const * const enc = runparams.encoding;
+			if (enc && enc->latexChar(c, true).empty())
+				throw EncodingException(c);
 			os.put(c);
+		}
 		return;
 	}
 
@@ -1241,7 +1242,7 @@ void Paragraph::Private::latexSpecialChar(otexstream & os,
 
 	default:
 		// LyX, LaTeX etc.
-		if (latexSpecialPhrase(os, i, column, runparams))
+		if (latexSpecialPhrase(os, i, end_pos, column, runparams))
 			return;
 
 		if (c == '\0')
@@ -1327,7 +1328,10 @@ bool Paragraph::Private::latexSpecialTypewriter(char_type const c, otexstream & 
 }
 
 
-bool Paragraph::Private::latexSpecialPhrase(otexstream & os, pos_type & i,
+/// \param end_pos
+///   If [start_pos, end_pos) does not include entirely the special phrase, then
+///   do not apply the macro transformation.
+bool Paragraph::Private::latexSpecialPhrase(otexstream & os, pos_type & i, pos_type end_pos,
 	unsigned int & column, OutputParams const & runparams)
 {
 	// FIXME: if we have "LaTeX" with a font
@@ -1337,7 +1341,8 @@ bool Paragraph::Private::latexSpecialPhrase(otexstream & os, pos_type & i,
 	// "words" for some definition of word
 
 	for (size_t pnr = 0; pnr < phrases_nr; ++pnr) {
-		if (!isTextAt(special_phrases[pnr].phrase, i))
+		if (!isTextAt(special_phrases[pnr].phrase, i)
+		    || (end_pos != -1 && i + int(special_phrases[pnr].phrase.size()) > end_pos))
 			continue;
 		if (runparams.moving_arg)
 			os << "\\protect";
@@ -1357,15 +1362,15 @@ void Paragraph::Private::validate(LaTeXFeatures & features) const
 		Buffer const & buf = inset_owner_->buffer();
 		BufferParams const & bp = buf.params();
 		Font f;
-		TexRow tr;
+		TexRow texrow;
 		// Using a string stream here circumvents the encoding
 		// switching machinery of odocstream. Therefore the
 		// output is wrong if this paragraph contains content
 		// that needs to switch encoding.
 		odocstringstream ods;
-		otexstream os(ods);
+		otexstream os(ods, texrow);
 		if (is_command) {
-			ods << '\\' << from_ascii(layout_->latexname());
+			os << '\\' << from_ascii(layout_->latexname());
 			// we have to provide all the optional arguments here, even though
 			// the last one is the only one we care about.
 			// Separate handling of optional argument inset.
@@ -1377,7 +1382,7 @@ void Paragraph::Private::validate(LaTeXFeatures & features) const
 		}
 		docstring::size_type const length = ods.str().length();
 		// this will output "{" at the beginning, but not at the end
-		owner_->latex(bp, f, os, tr, features.runparams(), 0, -1, true);
+		owner_->latex(bp, f, os, features.runparams(), 0, -1, true);
 		if (ods.str().length() > length) {
 			if (is_command)
 				ods << '}';
@@ -2119,13 +2124,12 @@ string const corrected_env(string const & suffix, string const & env,
 }
 
 
-void adjust_row_column(string const & str, TexRow & texrow, int & column)
+void adjust_column(string const & str, int & column)
 {
 	if (!contains(str, "\n"))
 		column += str.size();
 	else {
 		string tmp;
-		texrow.newline();
 		column = rsplit(str, tmp, '\n').size();
 	}
 }
@@ -2134,8 +2138,7 @@ void adjust_row_column(string const & str, TexRow & texrow, int & column)
 
 
 int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
-				 otexstream & os, TexRow & texrow,
-				 OutputParams const & runparams) const
+			otexstream & os, OutputParams const & runparams) const
 {
 	int column = 0;
 
@@ -2184,7 +2187,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 		else
 			output = corrected_env(begin_tag, "flushright", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
@@ -2193,13 +2196,13 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 		else
 			output = corrected_env(begin_tag, "flushleft", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
 		output = corrected_env(begin_tag, "center", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	}
 	}
@@ -2209,8 +2212,7 @@ int Paragraph::Private::startTeXParParams(BufferParams const & bparams,
 
 
 int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
-			       otexstream & os, TexRow & texrow,
-			       OutputParams const & runparams) const
+			otexstream & os, OutputParams const & runparams) const
 {
 	int column = 0;
 
@@ -2254,7 +2256,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 		else
 			output = corrected_env(end_tag, "flushright", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	} case LYX_ALIGN_RIGHT: {
 		string output;
@@ -2263,13 +2265,13 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 		else
 			output = corrected_env(end_tag, "flushleft", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	} case LYX_ALIGN_CENTER: {
 		string output;
 		output = corrected_env(end_tag, "center", code, lastpar);
 		os << from_ascii(output);
-		adjust_row_column(output, texrow, column);
+		adjust_column(output, column);
 		break;
 	}
 	}
@@ -2281,7 +2283,7 @@ int Paragraph::Private::endTeXParParams(BufferParams const & bparams,
 // This one spits out the text of the paragraph
 void Paragraph::latex(BufferParams const & bparams,
 	Font const & outerfont,
-	otexstream & os, TexRow & texrow,
+	otexstream & os,
 	OutputParams const & runparams,
 	int start_pos, int end_pos, bool force) const
 {
@@ -2328,7 +2330,7 @@ void Paragraph::latex(BufferParams const & bparams,
 
 	Encoding const * const prev_encoding = runparams.encoding;
 
-	texrow.start(id(), 0);
+	os.texrow().start(id(), 0);
 
 	// if the paragraph is empty, the loop will not be entered at all
 	if (empty()) {
@@ -2337,8 +2339,7 @@ void Paragraph::latex(BufferParams const & bparams,
 			++column;
 		}
 		if (allowcust)
-			column += d->startTeXParParams(bparams, os, texrow,
-						    runparams);
+			column += d->startTeXParParams(bparams, os, runparams);
 	}
 
 	for (pos_type i = 0; i < size(); ++i) {
@@ -2369,7 +2370,6 @@ void Paragraph::latex(BufferParams const & bparams,
 
 			if (allowcust)
 				column += d->startTeXParParams(bparams, os,
-							    texrow,
 							    runparams);
 		}
 
@@ -2478,8 +2478,7 @@ void Paragraph::latex(BufferParams const & bparams,
 			// latexSpecialChar ignores spaces if
 			// style.pass_thru is false.
 			if (i != body_pos - 1) {
-				if (d->simpleTeXBlanks(
-						runparams, os, texrow,
+				if (d->simpleTeXBlanks(runparams, os,
 						i, column, font, style)) {
 					// A surrogate pair was output. We
 					// must not call latexSpecialChar
@@ -2501,8 +2500,7 @@ void Paragraph::latex(BufferParams const & bparams,
 		// and then split to handle the two modes separately.
 		if (c == META_INSET) {
 			if (i >= start_pos && (end_pos == -1 || i < end_pos)) {
-				d->latexInset(bparams, os,
-						texrow, rp, running_font,
+				d->latexInset(bparams, os, rp, running_font,
 						basefont, outerfont, open_font,
 						runningChange, style, i, column);
 			}
@@ -2510,7 +2508,7 @@ void Paragraph::latex(BufferParams const & bparams,
 			if (i >= start_pos && (end_pos == -1 || i < end_pos)) {
 				try {
 					d->latexSpecialChar(os, rp, running_font, runningChange,
-						style, i, column);
+							    style, i, end_pos, column);
 				} catch (EncodingException & e) {
 				if (runparams.dryrun) {
 					os << "<" << _("LyX Warning: ")
@@ -2560,7 +2558,7 @@ void Paragraph::latex(BufferParams const & bparams,
 		os << "}]~";
 	}
 
-	if (allowcust && d->endTeXParParams(bparams, os, texrow, runparams)
+	if (allowcust && d->endTeXParParams(bparams, os, runparams)
 	    && runparams.encoding != prev_encoding) {
 		runparams.encoding = prev_encoding;
 		if (!runparams.isFullUnicode())

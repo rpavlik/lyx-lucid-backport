@@ -108,10 +108,12 @@ private:
 	bool forcePlainLayout(idx_type = 0) const;
 	///
 	bool neverIndent() const { return true; }
+	/** returns false if, when outputing LaTeX, font changes should
+	    be closed before generating this inset. This is needed for
+	    insets that may contain several paragraphs */
+	bool inheritFont() const { return false; }
 	///
-	bool noFontChange() const { return true; }
-	///
-	int latex(otexstream &, OutputParams const &) const;
+	void latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///

@@ -136,6 +136,11 @@ using namespace std;
 using namespace lyx::support;
 
 namespace lyx {
+
+using support::addExtension;
+using support::changeExtension;
+using support::removeExtension;
+
 namespace frontend {
 
 namespace {
@@ -160,9 +165,8 @@ public:
 		font.setStyleHint(QFont::SansSerif);
 		font.setWeight(QFont::Bold);
 		font.setPointSize(int(toqstr(lyxrc.font_sizes[FONT_SIZE_LARGE]).toDouble()));
-		int width = QFontMetrics(font).width(text);
 		pain.setFont(font);
-		pain.drawText(397 - width, 15, text);
+		pain.drawText(190, 225, text);
 		setFocusPolicy(Qt::StrongFocus);
 	}
 
@@ -207,8 +211,8 @@ struct GuiView::GuiViewPrivate
 		in_show_(false)
 	{
 		// hardcode here the platform specific icon size
-		smallIconSize = 14;  // scaling problems
-		normalIconSize = 20; // ok, default
+		smallIconSize = 16;  // scaling problems
+		normalIconSize = 22; // ok, default
 		bigIconSize = 26;	// better for some math icons
 
 		splitter_ = new QSplitter;
@@ -525,6 +529,11 @@ void GuiView::processingThreadFinished(bool show_errors)
 	message(watcher->result());
 	updateToolbars();
 	if (show_errors) {
+		BufferView const * const bv = currentBufferView();
+		if (bv && !bv->buffer().errorList("Export").empty()) {
+			errors("Export");
+			return;
+		}
 		errors(d.last_export_format);
  	}
 }
@@ -1416,9 +1425,20 @@ void GuiView::errors(string const & error_type, bool from_master)
 	if (!bv)
 		return;
 
+#if EXPORT_in_THREAD && (QT_VERSION >= 0x040400)
+	// We are called with from_master == false by default, so we
+	// have to figure out whether that is the case or not.
+	ErrorList & el = bv->buffer().errorList(error_type);
+	if (el.empty()) {
+	    el = bv->buffer().masterBuffer()->errorList(error_type);
+	    from_master = true;
+	}
+#else
 	ErrorList & el = from_master ?
 		bv->buffer().masterBuffer()->errorList(error_type) :
 		bv->buffer().errorList(error_type);
+#endif
+
 	if (el.empty())
 		return;
 
@@ -1507,8 +1527,10 @@ void GuiView::autoSave()
 
 	Buffer * buffer = documentBufferView()
 		? &documentBufferView()->buffer() : 0;
-	if (!buffer)
+	if (!buffer) {
+		resetAutosaveTimers();
 		return;
+	}
 
 #if (QT_VERSION >= 0x040400)
 	GuiViewPrivate::busyBuffers.insert(buffer);
@@ -3305,10 +3327,9 @@ void GuiView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		}
 
 		case LFUN_DIALOG_TOGGLE: {
-			if (isDialogVisible(cmd.getArg(0)))
-				dispatch(FuncRequest(LFUN_DIALOG_HIDE, cmd.argument()), dr);
-			else
-				dispatch(FuncRequest(LFUN_DIALOG_SHOW, cmd.argument()), dr);
+			FuncCode const func_code = isDialogVisible(cmd.getArg(0))
+				? LFUN_DIALOG_HIDE : LFUN_DIALOG_SHOW;
+			dispatch(FuncRequest(func_code, cmd.argument()), dr);
 			break;
 		}
 
@@ -3466,12 +3487,19 @@ void GuiView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 			break;
 
 		case LFUN_FORWARD_SEARCH: {
-			FileName const path(doc_buffer->temppath());
-			string const texname = doc_buffer->latexName();
+			Buffer const * doc_master = doc_buffer->masterBuffer();
+			FileName const path(doc_master->temppath());
+			string const texname = doc_master->isChild(doc_buffer)
+				? DocFileName(changeExtension(
+					doc_buffer->absFileName(),
+						"tex")).mangledFileName()
+				: doc_buffer->latexName();
+			string const mastername =
+				removeExtension(doc_master->latexName());
 			FileName const dviname(addName(path.absFileName(),
-				    support::changeExtension(texname, "dvi")));
+					addExtension(mastername, "dvi")));
 			FileName const pdfname(addName(path.absFileName(),
-				    support::changeExtension(texname, "pdf")));
+					addExtension(mastername, "pdf")));
 			if (!dviname.exists() && !pdfname.exists()) {
 				dr.setMessage(_("Please, preview the document first."));
 				break;

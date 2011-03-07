@@ -1,8 +1,8 @@
 dnl Process with autoconf to generate configure script   -*- sh -*-
 
-AC_INIT(LyX,2.0.0beta4,[lyx-devel@lists.lyx.org],[lyx])
+AC_INIT(LyX,2.0.0rc1,[lyx-devel@lists.lyx.org],[lyx])
 # Use ISO format only. The frontend needs to parse this
-AC_SUBST(LYX_DATE, ["2011-02-07"])
+AC_SUBST(LYX_DATE, ["2011-03-07"])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(src/main.cpp)
 AC_CONFIG_HEADERS([config.h])
@@ -97,6 +97,7 @@ AC_SUBST(LIBPSAPI)
 AC_CHECK_LIB(gdi32, main)
 
 LYX_USE_INCLUDED_BOOST
+LYX_USE_INCLUDED_MYTHES
 
 # Needed for our char_type
 AC_CHECK_SIZEOF(wchar_t)

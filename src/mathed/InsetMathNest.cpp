@@ -394,7 +394,7 @@ void InsetMathNest::normalize(NormalStream & os) const
 }
 
 
-int InsetMathNest::latex(otexstream & os, OutputParams const & runparams) const
+void InsetMathNest::latex(otexstream & os, OutputParams const & runparams) const
 {
 	WriteStream wi(os.os(), runparams.moving_arg, true,
 		       runparams.dryrun ? WriteStream::wsDryrun : WriteStream::wsDefault,
@@ -402,11 +402,12 @@ int InsetMathNest::latex(otexstream & os, OutputParams const & runparams) const
 	wi.canBreakLine(os.canBreakLine());
 	write(wi);
 	os.canBreakLine(wi.canBreakLine());
-	return wi.line();
+	os.texrow().newlines(wi.line());
 }
 
 
 bool InsetMathNest::setMouseHover(BufferView const * bv, bool mouse_hover)
+	const
 {
 	mouse_hover_[bv] = mouse_hover;
 	return true;

@@ -463,9 +463,8 @@ public:
 	 *  Don't use a temporary stringstream if the final output is
 	 *  supposed to go to a file.
 	 *  \sa Buffer::writeLaTeXSource for the reason.
-	 *  \return the number of rows (\n's) of generated LaTeX code.
 	 */
-	virtual int latex(otexstream &, OutputParams const &) const { return 0; }
+	virtual void latex(otexstream &, OutputParams const &) const {}
 	/// returns true to override begin and end inset in file
 	virtual bool directWrite() const;
 	///
@@ -521,14 +520,29 @@ public:
 	/// returns whether this inset is allowed in other insets of given mode
 	virtual bool allowedIn(mode_type) const { return true; }
 	/**
-	 * Is this inset allowed within a font change?
-	 *
-	 * FIXME: noFontChange means currently that the font change is closed
-	 * in LaTeX before the inset, and that the contents of the inset
-	 * will be in default font. This should be changed so that the inset
-	 * changes the font again.
+	 * The font is inherited from the parent for LaTeX export if this
+	 * method returns true. No open font changes are closed in front of
+	 * the inset for LaTeX export, and the font is inherited for all other
+	 * exports as well as on screen.
+	 * If this method returns false all open font changes are closed in
+	 * front of the inset for LaTeX export. The default font is used
+	 * inside the inset for all exports and on screen.
 	 */
-	virtual bool noFontChange() const { return false; }
+	virtual bool inheritFont() const { return true; }
+	/**
+	 * If this method returns true all explicitly set font attributes
+	 * are reset during editing operations.
+	 * For copy/paste the operations the language is never changed, since
+	 * the language of a given text never changes if the text is
+	 * formatted differently, while other font attribues like size may
+	 * need to change if the text is copied from one environment to
+	 * another one.
+	 * If it returns false no font attribute is reset.
+	 * The default implementation returns the negation of inheritFont(),
+	 * since inherited inset font attributes do not need to be changed,
+	 * and non-inherited ones need to be set explicitly.
+	 */
+	virtual bool resetFontEdit() const { return !inheritFont(); }
 
 	/// set the change for the entire inset
 	virtual void setChange(Change const &) {}
@@ -539,8 +553,6 @@ public:
 
 	///
 	virtual Dimension const dimension(BufferView const &) const;
-	///
-	int scroll() const { return 0; }
 	///
 	virtual ColorCode backgroundColor(PainterInfo const &) const;
 	///

@@ -82,7 +82,7 @@ public:
 	 *  the BufferParams, a LyXRC variable, and the document class).
 	 *  This returned value can then be passed to the insets...
 	 */
-	bool writeLaTeX(odocstream &, LaTeXFeatures &, TexRow &,
+	bool writeLaTeX(otexstream &, LaTeXFeatures &,
 			support::FileName const &) const;
 
 	///
@@ -367,8 +367,7 @@ public:
 	/// return supported drivers for specific packages
 	docstring getGraphicsDriver(std::string const & package) const;
 	/// handle inputenc etc.
-	void writeEncodingPreamble(odocstream & os, LaTeXFeatures & features,
-					      TexRow & texrow) const;
+	void writeEncodingPreamble(otexstream & os, LaTeXFeatures & features) const;
 	///
 	std::string const parseFontName(std::string const & name) const;
 	/// set up the document fonts
@@ -406,6 +405,8 @@ public:
 	std::string html_latex_start;
 	///
 	std::string html_latex_end;
+	///
+	bool html_css_as_file;
 	/// generate output usable for reverse/forward search
 	bool output_sync;
 	/// custom LaTeX macro from user instead our own

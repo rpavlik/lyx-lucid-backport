@@ -81,7 +81,7 @@ private:
 	///
 	InsetCode lyxCode() const { return FLOAT_CODE; }
 	///
-	int latex(otexstream &, OutputParams const &) const;
+	void latex(otexstream &, OutputParams const &) const;
 	///
 	int plaintext(odocstream &, OutputParams const &) const;
 	///
@@ -90,10 +90,10 @@ private:
 	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///
 	bool insetAllowed(InsetCode) const;
-	/** returns true if, when outputing LaTeX, font changes should
+	/** returns false if, when outputing LaTeX, font changes should
 	    be closed before generating this inset. This is needed for
 	    insets that may contain several paragraphs */
-	bool noFontChange() const { return true; }
+	bool inheritFont() const { return false; }
 	///
 	bool getStatus(Cursor &, FuncRequest const &, FuncStatus &) const;
 	// Update the counters of this inset and of its contents

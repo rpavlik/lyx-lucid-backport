@@ -1342,8 +1342,9 @@ Tabular::idx_type Tabular::getFirstCellInRow(row_type row) const
 Tabular::idx_type Tabular::getLastCellInRow(row_type row) const
 {
 	col_type c = ncols() - 1;
-	while (cell_info[row][c].multirow == CELL_PART_OF_MULTIROW
-		|| cell_info[row][c].multicolumn == CELL_PART_OF_MULTICOLUMN)
+	while (c > 0
+	       && (cell_info[row][c].multirow == CELL_PART_OF_MULTIROW
+		   || cell_info[row][c].multicolumn == CELL_PART_OF_MULTICOLUMN))
 		--c;
 	return cell_info[row][c].cellno;
 }
@@ -2027,7 +2028,7 @@ bool Tabular::isPartOfMultiRow(row_type row, col_type column) const
 }
 
 
-int Tabular::TeXTopHLine(otexstream & os, row_type row, string const lang) const
+void Tabular::TeXTopHLine(otexstream & os, row_type row, string const lang) const
 {
 	// we only output complete row lines and the 1st row here, the rest
 	// is done in Tabular::TeXBottomHLine(...)
@@ -2049,7 +2050,7 @@ int Tabular::TeXTopHLine(otexstream & os, row_type row, string const lang) const
 
 	// do nothing if empty first row, or incomplete row line after
 	if ((row == 0 && nset == 0) || (row > 0 && nset != ncols()))
-		return 0;
+		return;
 
 	// only output complete row lines and the 1st row's clines
 	if (nset == ncols()) {
@@ -2086,11 +2087,10 @@ int Tabular::TeXTopHLine(otexstream & os, row_type row, string const lang) const
 		}
 	}
 	os << "\n";
-	return 1;
 }
 
 
-int Tabular::TeXBottomHLine(otexstream & os, row_type row, string const lang) const
+void Tabular::TeXBottomHLine(otexstream & os, row_type row, string const lang) const
 {
 	// we output bottomlines of row r and the toplines of row r+1
 	// if the latter do not span the whole tabular
@@ -2124,7 +2124,7 @@ int Tabular::TeXBottomHLine(otexstream & os, row_type row, string const lang) co
 
 	// do nothing if empty, OR incomplete row line with a topline in next row
 	if (nset == 0 || (nextrowset && nset != ncols()))
-		return 0;
+		return;
 
 	if (nset == ncols()) {
 		if (use_booktabs)
@@ -2159,17 +2159,15 @@ int Tabular::TeXBottomHLine(otexstream & os, row_type row, string const lang) co
 		}
 	}
 	os << "\n";
-	return 1;
 }
 
 
-int Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
-			     bool & ismulticol, bool & ismultirow) const
+void Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
+			      bool & ismulticol, bool & ismultirow) const
 {
-	int ret = 0;
 	row_type const r = cellRow(cell);
 	if (is_long_tabular && row_info[r].caption)
-		return ret;
+		return;
 
 	Tabular::VAlignment valign =  getVAlignment(cell, !isMultiColumn(cell));
 	LyXAlignment align = getAlignment(cell, !isMultiColumn(cell));
@@ -2275,7 +2273,6 @@ int Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
 
 	if (getRotateCell(cell)) {
 		os << "\\begin{sideways}\n";
-		++ret;
 	}
 	if (getUsebox(cell) == BOX_PARBOX) {
 		os << "\\parbox[";
@@ -2307,139 +2304,99 @@ int Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
 		}
 		os << "]{" << from_ascii(getPWidth(cell).asLatexString())
 		   << "}\n";
-		++ret;
 	}
-	return ret;
 }
 
 
-int Tabular::TeXCellPostamble(otexstream & os, idx_type cell,
-			      bool ismulticol, bool ismultirow) const
+void Tabular::TeXCellPostamble(otexstream & os, idx_type cell,
+			       bool ismulticol, bool ismultirow) const
 {
-	int ret = 0;
 	row_type const r = cellRow(cell);
 	if (is_long_tabular && row_info[r].caption)
-		return ret;
+		return;
 
 	// usual cells
 	if (getUsebox(cell) == BOX_PARBOX)
 		os << '}';
-	else if (getUsebox(cell) == BOX_MINIPAGE) {
-		os << "%\n\\end{minipage}";
-		ret += 2;
-	}
-	if (getRotateCell(cell)) {
-		os << "%\n\\end{sideways}";
-		++ret;
-	}
+	else if (getUsebox(cell) == BOX_MINIPAGE)
+		os << breakln << "\\end{minipage}";
+	if (getRotateCell(cell))
+		os << breakln << "\\end{sideways}";
 	if (ismultirow)
 		os << '}';
 	if (ismulticol)
 		os << '}';
-
-	return ret;
 }
 
 
-int Tabular::TeXLongtableHeaderFooter(otexstream & os,
-					 OutputParams const & runparams) const
+void Tabular::TeXLongtableHeaderFooter(otexstream & os,
+					OutputParams const & runparams) const
 {
 	if (!is_long_tabular)
-		return 0;
+		return;
 
-	int ret = 0;
 	// caption handling
 	// the caption must be output before the headers
 	if (haveLTCaption()) {
 		for (row_type r = 0; r < nrows(); ++r) {
-			if (row_info[r].caption) {
-				ret += TeXRow(os, r, runparams);
-			}
+			if (row_info[r].caption)
+				TeXRow(os, r, runparams);
 		}
 	}
 	// output first header info
 	// first header must be output before the header, otherwise the
 	// correct caption placement becomes really weird
 	if (haveLTFirstHead()) {
-		if (endfirsthead.topDL) {
+		if (endfirsthead.topDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		for (row_type r = 0; r < nrows(); ++r) {
-			if (row_info[r].endfirsthead) {
-				ret += TeXRow(os, r, runparams);
-			}
+			if (row_info[r].endfirsthead)
+				TeXRow(os, r, runparams);
 		}
-		if (endfirsthead.bottomDL) {
+		if (endfirsthead.bottomDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		os << "\\endfirsthead\n";
-		++ret;
 	}
 	// output header info
 	if (haveLTHead()) {
-		if (endfirsthead.empty && !haveLTFirstHead()) {
+		if (endfirsthead.empty && !haveLTFirstHead())
 			os << "\\endfirsthead\n";
-			++ret;
-		}
-		if (endhead.topDL) {
+		if (endhead.topDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		for (row_type r = 0; r < nrows(); ++r) {
-			if (row_info[r].endhead) {
-				ret += TeXRow(os, r, runparams);
-			}
+			if (row_info[r].endhead)
+				TeXRow(os, r, runparams);
 		}
-		if (endhead.bottomDL) {
+		if (endhead.bottomDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		os << "\\endhead\n";
-		++ret;
 	}
 	// output footer info
 	if (haveLTFoot()) {
-		if (endfoot.topDL) {
+		if (endfoot.topDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		for (row_type r = 0; r < nrows(); ++r) {
-			if (row_info[r].endfoot) {
-				ret += TeXRow(os, r, runparams);
-			}
+			if (row_info[r].endfoot)
+				TeXRow(os, r, runparams);
 		}
-		if (endfoot.bottomDL) {
+		if (endfoot.bottomDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		os << "\\endfoot\n";
-		++ret;
-		if (endlastfoot.empty && !haveLTLastFoot()) {
+		if (endlastfoot.empty && !haveLTLastFoot())
 			os << "\\endlastfoot\n";
-			++ret;
-		}
 	}
 	// output lastfooter info
 	if (haveLTLastFoot()) {
-		if (endlastfoot.topDL) {
+		if (endlastfoot.topDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		for (row_type r = 0; r < nrows(); ++r) {
-			if (row_info[r].endlastfoot) {
-				ret += TeXRow(os, r, runparams);
-			}
+			if (row_info[r].endlastfoot)
+				TeXRow(os, r, runparams);
 		}
-		if (endlastfoot.bottomDL) {
+		if (endlastfoot.bottomDL)
 			os << "\\hline\n";
-			++ret;
-		}
 		os << "\\endlastfoot\n";
-		++ret;
 	}
-	return ret;
 }
 
 
@@ -2453,8 +2410,8 @@ bool Tabular::isValidRow(row_type row) const
 }
 
 
-int Tabular::TeXRow(otexstream & os, row_type row,
-		       OutputParams const & runparams) const
+void Tabular::TeXRow(otexstream & os, row_type row,
+		     OutputParams const & runparams) const
 {
 	idx_type cell = cellIndex(row, 0);
 	shared_ptr<InsetTableCell> inset = cellInset(cell);
@@ -2462,14 +2419,13 @@ int Tabular::TeXRow(otexstream & os, row_type row,
 	string const lang = par.getParLanguage(buffer().params())->lang();
 
 	//output the top line
-	int ret = TeXTopHLine(os, row, lang);
+	TeXTopHLine(os, row, lang);
 
 	if (row_info[row].top_space_default) {
 		if (use_booktabs)
 			os << "\\addlinespace\n";
 		else
 			os << "\\noalign{\\vskip\\doublerulesep}\n";
-		++ret;
 	} else if(!row_info[row].top_space.zero()) {
 		if (use_booktabs)
 			os << "\\addlinespace["
@@ -2480,22 +2436,23 @@ int Tabular::TeXRow(otexstream & os, row_type row,
 			   << from_ascii(row_info[row].top_space.asLatexString())
 			   << "}\n";
 		}
-		++ret;
 	}
 	bool ismulticol = false;
 	bool ismultirow = false;
 	for (col_type c = 0; c < ncols(); ++c) {
 		if (isPartOfMultiColumn(row, c))
 			continue;
-			
-		if (isPartOfMultiRow(row, c) && 
-			column_info[c].alignment != LYX_ALIGN_DECIMAL) {
-			os << " & "; 
+
+		cell = cellIndex(row, c);
+
+		if (isPartOfMultiRow(row, c)
+		    && column_info[c].alignment != LYX_ALIGN_DECIMAL) {
+			if (cell != getLastCellInRow(row))
+				os << " & "; 
 			continue;
 		}
 
-		cell = cellIndex(row, c);
-		ret += TeXCellPreamble(os, cell, ismulticol, ismultirow);
+		TeXCellPreamble(os, cell, ismulticol, ismultirow);
 		shared_ptr<InsetTableCell> inset = cellInset(cell);
 
 		Paragraph const & par = inset->paragraphs().front();
@@ -2537,17 +2494,23 @@ int Tabular::TeXRow(otexstream & os, row_type row,
 			tail.setBuffer(head.buffer());
 			head.latex(os, newrp);
 			os << '&';
-			ret += tail.latex(os, newrp);
-		} else if (!isPartOfMultiRow(row, c))
-			ret += inset->latex(os, newrp);
+			tail.latex(os, newrp);
+		} else if (!isPartOfMultiRow(row, c)) {
+			if (!runparams.nice)
+				os.texrow().start(par.id(), 0);
+			inset->latex(os, newrp);
+		}
 
 		runparams.encoding = newrp.encoding;
 		if (rtl)
 			os << '}';
 
-		ret += TeXCellPostamble(os, cell, ismulticol, ismultirow);
+		TeXCellPostamble(os, cell, ismulticol, ismultirow);
 		if (cell != getLastCellInRow(row)) { // not last cell in row
-			os << " & ";
+			if (runparams.nice)
+				os << " & ";
+			else
+				os << " &\n";
 		}
 	}
 	if (row_info[row].caption && !endfirsthead.empty && !haveLTFirstHead())
@@ -2570,17 +2533,15 @@ int Tabular::TeXRow(otexstream & os, row_type row,
 		   << ']';
 	}
 	os << '\n';
-	++ret;
 
 	//output the bottom line
-	ret += TeXBottomHLine(os, row, lang);
+	TeXBottomHLine(os, row, lang);
 
 	if (row_info[row].interline_space_default) {
 		if (use_booktabs)
 			os << "\\addlinespace\n";
 		else
 			os << "\\noalign{\\vskip\\doublerulesep}\n";
-		++ret;
 	} else if (!row_info[row].interline_space.zero()) {
 		if (use_booktabs)
 			os << "\\addlinespace["
@@ -2590,25 +2551,21 @@ int Tabular::TeXRow(otexstream & os, row_type row,
 			os << "\\noalign{\\vskip"
 			   << from_ascii(row_info[row].interline_space.asLatexString())
 			   << "}\n";
-		++ret;
 	}
-	return ret;
 }
 
 
-int Tabular::latex(otexstream & os, OutputParams const & runparams) const
+void Tabular::latex(otexstream & os, OutputParams const & runparams) const
 {
-	int ret = 0;
 	bool const is_tabular_star = !tabular_width.zero();
 
 	//+---------------------------------------------------------------------
 	//+                      first the opening preamble                    +
 	//+---------------------------------------------------------------------
 
-	if (rotate) {
+	if (rotate)
 		os << "\\begin{sideways}\n";
-		++ret;
-	}
+
 	if (is_long_tabular) {
 		os << "\\begin{longtable}";
 		switch (longtabular_alignment) {
@@ -2703,9 +2660,8 @@ int Tabular::latex(otexstream & os, OutputParams const & runparams) const
 			os << '|';
 	}
 	os << "}\n";
-	++ret;
 
-	ret += TeXLongtableHeaderFooter(os, runparams);
+	TeXLongtableHeaderFooter(os, runparams);
 
 	//+---------------------------------------------------------------------
 	//+                      the single row and columns (cells)            +
@@ -2713,11 +2669,9 @@ int Tabular::latex(otexstream & os, OutputParams const & runparams) const
 
 	for (row_type r = 0; r < nrows(); ++r) {
 		if (isValidRow(r)) {
-			ret += TeXRow(os, r, runparams);
-			if (is_long_tabular && row_info[r].newpage) {
+			TeXRow(os, r, runparams);
+			if (is_long_tabular && row_info[r].newpage)
 				os << "\\newpage\n";
-				++ret;
-			}
 		}
 	}
 
@@ -2727,19 +2681,15 @@ int Tabular::latex(otexstream & os, OutputParams const & runparams) const
 
 	if (is_long_tabular)
 		os << "\\end{longtable}";
-	else
+	else {
 		if (is_tabular_star)
 			os << "\\end{tabular*}";
 		else
 			os << "\\end{tabular}";
-	if (rotate) {
-		// clear counter
-		os.countLines();
-		os << breakln << "\\end{sideways}";
-		ret += os.countLines();
 	}
 
-	return ret;
+	if (rotate)
+		os << breakln << "\\end{sideways}";
 }
 
 
@@ -4331,8 +4281,16 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 		if (&cur.inset() != this || cmd.getArg(0) != "tabular") 
 			break;
 
-		string const s = cmd.getArg(1);
 		// FIXME: We only check for the very first argument...
+		string const s = cmd.getArg(1);
+		// We always enable the lfun if it is coming from the dialog
+		// because the dialog makes sure all the settings are valid,
+		// even though the first argument might not be valid now.
+		if (s == "from-dialog") {
+			status.setEnabled(true);
+			return true;
+		}
+
 		int action = Tabular::LAST_ACTION;
 		int i = 0;
 		for (; tabularFeature[i].action != Tabular::LAST_ACTION; ++i) {
@@ -4682,8 +4640,13 @@ bool InsetTabular::getStatus(Cursor & cur, FuncRequest const & cmd,
 	}
 
 	// disable in non-fixed-width cells
-	case LFUN_NEWLINE_INSERT:
-	case LFUN_BREAK_PARAGRAPH: {
+	case LFUN_BREAK_PARAGRAPH:
+		// multirow does not allow paragraph breaks
+		if (tabular.isMultiRow(cur.idx())) {
+			status.setEnabled(false);
+			return true;
+		}
+	case LFUN_NEWLINE_INSERT: {
 		if (tabular.getPWidth(cur.idx()).zero()) {
 			status.setEnabled(false);
 			return true;
@@ -4744,9 +4707,9 @@ Inset::DisplayType InsetTabular::display() const
 }
 
 
-int InsetTabular::latex(otexstream & os, OutputParams const & runparams) const
+void InsetTabular::latex(otexstream & os, OutputParams const & runparams) const
 {
-	return tabular.latex(os, runparams);
+	tabular.latex(os, runparams);
 }
 
 
@@ -5221,28 +5184,11 @@ void InsetTabular::tabularFeatures(Cursor & cur,
 		if (len.zero()
 		    && tabular.getAlignment(cur.idx(), true) == LYX_ALIGN_BLOCK)
 			tabularFeatures(cur, Tabular::ALIGN_CENTER, string());
-		// check if there is a 1-column multicolumn cell
-		// if so it must get the same width
-		for (row_type r = 0; r < tabular.nrows(); ++r) {
-			if (tabular.isMultiColumn(tabular.cellIndex(r, column))
-				&& tabular.columnSpan(tabular.cellIndex(r, column)) == 1)
-				tabular.setMColumnPWidth(cur, tabular.cellIndex(r, column), len);
-		}
 		break;
 	}
 
 	case Tabular::SET_MPWIDTH:
 		tabular.setMColumnPWidth(cur, cur.idx(), Length(value));
-		// if the multicolumn only spans 1 column, the width of the whole column
-		// must have the same width, see bug #7055
-		if (tabular.columnSpan(cur.idx()) == 1)
-			for (row_type r = 0; r < tabular.nrows(); ++r) {
-				if (!tabular.isMultiColumn(tabular.cellIndex(r, column)))
-					tabular.setColumnPWidth(cur, tabular.cellIndex(r, column), Length(value));
-				else if (tabular.isMultiColumn(tabular.cellIndex(r, column))
-					&& tabular.columnSpan(tabular.cellIndex(r, column)) == 1)
-					tabular.setMColumnPWidth(cur, tabular.cellIndex(r, column), Length(value));
-			}
 		break;
 
 	case Tabular::SET_MROFFSET:

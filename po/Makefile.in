@@ -11,7 +11,7 @@
 # Origin: gettext-0.16
 
 PACKAGE = lyx
-VERSION = 2.0.0beta4
+VERSION = 2.0.0rc1
 PACKAGE_BUGREPORT = lyx-devel@lists.lyx.org
 
 SHELL = /bin/sh
