@@ -5,6 +5,7 @@ lyx (2.0.0~rc1-1~lucid) UNRELEASED; urgency=low
 
   [ Rene Engelhard ]
   * Add a symlink so that LyX can access the mythes thesaurus files.
+  * Build-depend on libmythes-dev.
 
   [ Sven Hoexter ]
   * New upstream release
@@ -12,6 +13,8 @@ lyx (2.0.0~rc1-1~lucid) UNRELEASED; urgency=low
     dh_installdefoma from rules and subsequently no longer override_dh_install.
   * Add ttf-lyx.preinst to call dpkg-maintscript-helper rm_conffile
     to remove the old defoma hints file.
+  * Build --without-included-mythes (Closes: #612327)
+    Kudos to Rene Engelhard and Georg Baum for implementing it right away.
 
  -- Per Olofsson <pelle@debian.org>  Mon, 07 Feb 2011 15:55:44 +0100
 

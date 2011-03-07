@@ -17,6 +17,7 @@ override_dh_auto_configure:
 		--with-x \
 		--without-included-gettext \
 		--without-included-boost \
+		--without-included-mythes \
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/lyx-common
