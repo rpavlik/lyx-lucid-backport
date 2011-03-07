@@ -1,4 +1,4 @@
-lyx (2.0.0~beta4-2) UNRELEASED; urgency=low
+lyx (2.0.0~rc1-1) UNRELEASED; urgency=low
 
   [ Per Olofsson ]
   * Use dh_python2 instead of dh_pysupport.
@@ -10,6 +10,7 @@ lyx (2.0.0~beta4-2) UNRELEASED; urgency=low
     libmythes-dev to use the system wide libmythes. (Closes: #612327)
 
   [ Sven Hoexter ]
+  * New upstream release
   * Stop using defoma: Drop build-dep and dependency for ttf-lyx, remove
     dh_installdefoma from rules and subsequently no longer override_dh_install.
   * Add ttf-lyx.preinst to call dpkg-maintscript-helper rm_conffile
