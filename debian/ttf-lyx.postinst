@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e 
+
+CFILE='/etc/defoma/hints/ttf-lyx.hints'
+dpkg-maintscript-helper rm_conffile $CFILE 2.0.0~rc1-1 -- "$@"
+
+#DEBHELPER#
