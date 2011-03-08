@@ -1,4 +1,4 @@
-lyx (2.0.0~rc1-1~lucid) UNRELEASED; urgency=low
+lyx (2.0.0~rc1-1~lucid) unstable; urgency=low
 
   [ Per Olofsson ]
   * Use debhelper sequence 'tex'.
