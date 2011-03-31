@@ -65,6 +65,7 @@ public:
 		RC_CONVERTER_CACHE_MAXAGE,
 		RC_COPIER,
 		RC_CURSOR_FOLLOWS_SCROLLBAR,
+		RC_CURSOR_WIDTH,
 		RC_DATE_INSERT_FORMAT,
 		RC_DEFAULT_DECIMAL_POINT,
 		RC_DEFAULT_LANGUAGE,
@@ -93,6 +94,7 @@ public:
 		RC_GROUP_LAYOUTS,
 		RC_GUI_LANGUAGE,
 		RC_HUNSPELLDIR_PATH,
+		RC_ICON_SET,
 		RC_INDEX_ALTERNATIVES,
 		RC_INDEX_COMMAND,
 		RC_INPUT,
@@ -457,6 +459,8 @@ public:
 	std::string user_name;
 	/// user email
 	std::string user_email;
+	/// icon set name
+	std::string icon_set;
 	/// True if the TeX engine cannot handle posix paths
 	bool windows_style_tex_paths;
 	/// True if the TeX engine can handle file names containing spaces
@@ -530,6 +534,8 @@ public:
 	ScrollWheelZoom scroll_wheel_zoom;
 	///
 	bool force_paint_single_char;
+	///
+	int cursor_width;
 };
 
 

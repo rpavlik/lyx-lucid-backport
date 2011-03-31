@@ -570,11 +570,9 @@ File
 
 \family sans
 New 
-\begin_inset Graphics
-	filename ../images/buffer-new.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "buffer-new"
 \end_inset
 
 
@@ -602,13 +600,9 @@ Template
 
 \family sans
 Open 
-\family default
-
-\begin_inset Graphics
-	filename ../images/file-open.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "file-open"
 \end_inset
 
 
@@ -624,13 +618,9 @@ Close
 
 \family sans
 Save 
-\family default
-
-\begin_inset Graphics
-	filename ../images/buffer-write.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "buffer-write"
 \end_inset
 
 
@@ -686,13 +676,9 @@ Export
 
 \family sans
 Print 
-\family default
-
-\begin_inset Graphics
-	filename ../images/dialog-show_print.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show print"
 \end_inset
 
 
@@ -898,11 +884,9 @@ Edit
 Cut 
 \family default
 
-\begin_inset Graphics
-	filename ../images/cut.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "cut"
 \end_inset
 
 
@@ -914,11 +898,9 @@ Cut
 Copy 
 \family default
 
-\begin_inset Graphics
-	filename ../images/copy.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "copy"
 \end_inset
 
 
@@ -930,11 +912,9 @@ Copy
 Paste 
 \family default
 
-\begin_inset Graphics
-	filename ../images/paste.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "paste"
 \end_inset
 
 
@@ -974,11 +954,9 @@ Find
 Replace 
 \family default
 
-\begin_inset Graphics
-	filename ../images/dialog-show_findreplace.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show findreplace"
 \end_inset
 
 
@@ -1298,11 +1276,9 @@ Edit\SpecialChar \menuseparator
 Undo
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/undo.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "undo"
 \end_inset
 
  to undo some mistake.
@@ -1312,11 +1288,9 @@ Edit\SpecialChar \menuseparator
 Redo
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/redo.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "redo"
 \end_inset
 
  to 
@@ -1496,11 +1470,9 @@ Document\SpecialChar \menuseparator
 Outline
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-toggle_toc.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-toggle toc"
 \end_inset
 
 .
@@ -1664,11 +1636,9 @@ Shift-Tab
 
 \begin_layout Standard
 The toolbar button 
-\begin_inset Graphics
-	filename ../images/bookmark-goto_0.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "bookmark-goto 0"
 \end_inset
 
  jumps to the position in the document where you recently changed something.
@@ -7091,19 +7061,15 @@ Edit
  menu to change the nesting depth of the current paragraph (the status bar
  will tell you how far you are nested).
  Instead of the menu, you can also use the toolbar buttons 
-\begin_inset Graphics
-	filename ../images/depth-increment.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "depth-increment"
 \end_inset
 
  and 
-\begin_inset Graphics
-	filename ../images/depth-decrement.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "depth-decrement"
 \end_inset
 
  or the convenient key bindings 
@@ -11908,11 +11874,9 @@ Noun
 
 \begin_layout Itemize
 click on the toolbar button 
-\begin_inset Graphics
-	filename ../images/font-noun.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "font-noun"
 \end_inset
 
 
@@ -11973,11 +11937,9 @@ Emphasized
 
 \begin_layout Itemize
 clicking on the toolbar button 
-\begin_inset Graphics
-	filename ../images/font-emph.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "font-emph"
 \end_inset
 
 
@@ -12834,11 +12796,9 @@ Style
 \family default
  dialog, the settings are saved.
  You can activate them using the toolbar button 
-\begin_inset Graphics
-	filename ../images/textstyle-apply.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "textstyle-apply"
 \end_inset
 
 .
@@ -13883,19 +13843,80 @@ Document ! Preview
 \end_layout
 
 \begin_layout Standard
-To get a look at the final version of your document, with all of the pagebreaks
- in place, the footnotes correctly numbered, and so on, use the menu 
+To get a look at the final version of your document, with all of the page
+ breaks in place, the footnotes correctly numbered, and so on, use the menu
+ 
 \family sans
 View
 \family default
- and choose a file type.
- A viewing program will pop up showing the output.
- For 
+ and choose 
+\change_deleted -712698321 1301225765
+a file type
+\change_inserted -712698321 1301225910
+
+\family sans
+View
+\family default
+ or the toolbar button 
+\begin_inset Info
+type  "icon"
+arg   "buffer-view"
+\end_inset
+
+
+\change_unchanged
+.
+ A viewing program will pop up showing the output
+\change_inserted -712698321 1301226025
+ in the defined default output format, which is globally set in the preferences
+ (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:File-Formats"
+
+\end_inset
+
+) and can also be altered for single documents in the document settings
+ (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Doc-Output"
+
+\end_inset
+
+)
+\change_unchanged
+.
+ 
+\change_deleted -712698321 1301226035
+For
+\change_inserted -712698321 1301226047
+Further output formats can be selected via 
+\change_deleted -712698321 1301226049
+ 
+\change_unchanged
+
 \family sans
 View\SpecialChar \menuseparator
+
+\change_deleted -712698321 1301226053
 DVI
+\change_inserted -712698321 1301226055
+Other Formats
+\change_unchanged
+
 \family default
- you can use the toolbar button 
+ 
+\change_deleted -712698321 1301226064
+you can use the toolbar button 
 \begin_inset Graphics
 	filename ../images/buffer-view_dvi.png
 	scale 85
@@ -13945,7 +13966,19 @@ type  "shortcut"
 arg   "buffer-view ps"
 \end_inset
 
-).
+)
+\change_inserted -712698321 1301226110
+or the toolbar button 
+\begin_inset Graphics
+	filename ../images/view-others.png
+	scale 85
+	groupId toolbarbuttons
+
+\end_inset
+
+
+\change_unchanged
+.
 \end_layout
 
 \begin_layout Standard
@@ -13954,7 +13987,16 @@ If you have changed your document, you can refresh the output in the same
 \family sans
 View\SpecialChar \menuseparator
 Update
+\change_inserted -712698321 1301226188
+
 \family default
+ or 
+\family sans
+View\SpecialChar \menuseparator
+Update (Other Formats)
+\family default
+, respectively
+\change_unchanged
 .
 \end_layout
 
@@ -13984,11 +14026,9 @@ File\SpecialChar \menuseparator
 Print
 \family default
  or click on the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-show_print.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show print"
 \end_inset
 
 .
@@ -15885,11 +15925,9 @@ As you can see in the example, the first line of greyed out notes is a bit
 
 \begin_layout Standard
 Notes are inserted with the toolbar button 
-\begin_inset Graphics
-	filename ../images/note-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "note-insert"
 \end_inset
 
  or the menu 
@@ -15930,11 +15968,9 @@ Insert\SpecialChar \menuseparator
 Footnote
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/footnote-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "footnote-insert"
 \end_inset
 
 , 
@@ -16089,11 +16125,9 @@ Marginal
 Note
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/marginalnote-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "marginalnote-insert"
 \end_inset
 
 , you'll see 
@@ -16186,11 +16220,9 @@ name "sec:Graphics"
 \begin_layout Standard
 To insert an image in your document, place the cursor at the text position
  you want and click on the toolbar icon 
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_graphics.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset graphics"
 \end_inset
 
  or select 
@@ -16818,11 +16850,9 @@ name "sec:Tables"
 
 \begin_layout Standard
 You can insert a table using either the toolbar button 
-\begin_inset Graphics
-	filename ../images/tabular-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "tabular-insert"
 \end_inset
 
  or the menu 
@@ -21738,11 +21768,9 @@ Math ! Basics
 
 \begin_layout Standard
 To create a math formula, you can just click on the toolbar icon 
-\begin_inset Graphics
-	filename ../images/math-mode.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "math-mode on"
 \end_inset
 
 .
@@ -23470,11 +23498,9 @@ There are several brackets available through LyX.
  But if you want to surround a large structure, like a matrix or a fraction,
  or if you have several layers of brackets, it is better to use the math
  toolbar delimiter icon 
-\begin_inset Graphics
-	filename ../images/math/delim.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show mathdelimiter"
 \end_inset
 
 .
@@ -25019,11 +25045,9 @@ Insert\SpecialChar \menuseparator
 Label
 \family default
  or by pressing the toolbar button 
-\begin_inset Graphics
-	filename ../images/label-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "label-insert"
 \end_inset
 
 .
@@ -25100,11 +25124,9 @@ Insert\SpecialChar \menuseparator
 Cross-Reference
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_ref.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset ref"
 \end_inset
 
 .
@@ -25458,11 +25480,9 @@ Back
 \family default
  so that you can use it to set the cursor back to the cross-reference.
  You can also go back with the toolbar button 
-\begin_inset Graphics
-	filename ../images/bookmark-goto_0.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "bookmark-goto 0"
 \end_inset
 
 .
@@ -25749,11 +25769,9 @@ Insert\SpecialChar \menuseparator
 Hyperlink
 \family default
  or with the toolbar button 
-\begin_inset Graphics
-	filename ../images/href-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "href-insert"
 \end_inset
 
 .
@@ -26038,11 +26056,9 @@ Insert\SpecialChar \menuseparator
 Citation
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_citation.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset citation"
 \end_inset
 
 .
@@ -26488,11 +26504,9 @@ Index
 Entry
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/index-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "index-insert"
 \end_inset
 
 .
@@ -27632,11 +27646,9 @@ omenclature
 Entry
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/nomencl-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "nomencl-insert"
 \end_inset
 
 .
@@ -28992,11 +29004,9 @@ TeX
 Code
 \family default
  or by the toolbar button 
-\begin_inset Graphics
-	filename ../images/ert-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "ert-insert"
 \end_inset
 
 .
@@ -29609,11 +29619,9 @@ arg   "dialog-show findreplaceadv"
 \end_inset
 
 ) or the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-toggle_findreplaceadv.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-toggle findreplaceadv"
 \end_inset
 
 .
@@ -30169,11 +30177,9 @@ The menu
 Spellchecker
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/dialog-show_spellchecker.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "dialog-show spellchecker"
 \end_inset
 
  starts the spell checking beginning from the current cursor position.
@@ -30564,11 +30570,9 @@ Tools\SpecialChar \menuseparator
 Thesaurus
 \family default
  or the toolbar button 
-\begin_inset Graphics
-	filename ../images/thesaurus-entry.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "thesaurus-entry"
 \end_inset
 
  while the cursor is at the word you want to look up or while a word is
@@ -30781,11 +30785,9 @@ Color ! Change tracking
  The author and the date of the change are shown in LyX's status bar when
  the cursor is in changed text.
  The same information is shown when you use the toolbar button 
-\begin_inset Graphics
-	filename ../images/changes-merge.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "changes-merge"
 \end_inset
 
 .
@@ -30852,11 +30854,11 @@ The review toolbar as shown above contains from left to right the following
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/changes-track.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "changes-track"
 \end_inset
 
 
@@ -30891,11 +30893,11 @@ Changes
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/changes-output.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "changes-output"
 \end_inset
 
 
@@ -30938,11 +30940,11 @@ Output
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/change-next.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "change-next"
 \end_inset
 
 
@@ -30965,11 +30967,11 @@ Jumps to the next change
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/change-accept.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "change-accept"
 \end_inset
 
 
@@ -31004,11 +31006,11 @@ Change
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/change-reject.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "change-reject"
 \end_inset
 
 
@@ -31043,11 +31045,11 @@ Change
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/changes-merge.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "changes-merge"
 \end_inset
 
 
@@ -31082,11 +31084,11 @@ Changes
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/all-changes-accept.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "all-changes-accept"
 \end_inset
 
 
@@ -31125,11 +31127,11 @@ Changes
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/all-changes-reject.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "all-changes-reject"
 \end_inset
 
 
@@ -31168,11 +31170,11 @@ Changes
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/note-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "note-insert"
 \end_inset
 
 
@@ -31203,11 +31205,11 @@ Note
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/note-next.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "note-next"
 \end_inset
 
 
@@ -37085,6 +37087,75 @@ reference "sec:Previewing-snippets-of"
 \end_inset
 
 .
+\change_inserted -712698321 1301219943
+
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301219959
+View Messages
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220076
+Opens a window showing console messages.
+ This is useful for debugging LyX (i.
+\begin_inset space \thinspace{}
+\end_inset
+
+e., hunt for errors in the program) or to see what is going on in the background
+ while LaTeX is processing the document,
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301220084
+View
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220342
+This menu entry generates the output you have specified as default output
+ format either in the preferences (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:File-Formats"
+
+\end_inset
+
+) or in the document settings (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Doc-Output"
+
+\end_inset
+
+), for instance PDF, and opens it in an appropriate viewer.
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301220353
+View (Other Formats)
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220444
+With this submenu, you can view your document in alternative output formats.
+\change_unchanged
+
 \end_layout
 
 \begin_layout Subsection
@@ -37092,8 +37163,159 @@ Update
 \end_layout
 
 \begin_layout Standard
-This menu entry allows you to update the view with your latest changes without
- opening a new view window.
+This menu entry allows you to update the view with your latest changes 
+\change_inserted -712698321 1301220297
+(in the default output format as described in the previous section) 
+\change_unchanged
+without opening a new view
+\change_inserted -712698321 1301220263
+er
+\change_unchanged
+ window.
+\change_inserted -712698321 1301220384
+
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301220388
+Update (Other Formats)
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220467
+With this submenu, you can update the view of alternative output formats
+ of your document without opening a new viewer window.
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301220487
+View Master Document
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220814
+This menu item is only visible if your document is included to another document,
+ which is then its 
+\begin_inset Quotes eld
+\end_inset
+
+master
+\begin_inset Quotes erd
+\end_inset
+
+ (see section 
+\emph on
+Child Documents
+\emph default
+ in the 
+\emph on
+Embedded Objects
+\emph default
+ manual for more information on this topic).
+ This item allows you to view the master document from within its child.
+ That is, if you are working on a child document which is a chapter of a
+ book, 
+\family sans
+View Master
+\family default
+ generates the output of the whole book, while 
+\family sans
+View
+\family default
+ will just output the chapter alone.
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220854
+The format used by this function is the default output format as specified
+ in the preferences (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:File-Formats"
+
+\end_inset
+
+) or in the document settings (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Doc-Output"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Subsection
+
+\change_inserted -712698321 1301220878
+Update Master Document
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220947
+This menu item is only visible if your document is included to another document,
+ which is then its 
+\begin_inset Quotes eld
+\end_inset
+
+master
+\begin_inset Quotes erd
+\end_inset
+
+ (see section 
+\emph on
+Child Documents
+\emph default
+ in the 
+\emph on
+Embedded Objects
+\emph default
+ manual for more information on this topic).
+ This item allows you to update the view of a master document from within
+ its child without the need to switch to the master document itself.
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301220879
+The format used by this function is the default output format as specified
+ in the preferences (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:File-Formats"
+
+\end_inset
+
+) or in the document settings (see sec.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Doc-Output"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Subsection
@@ -38981,11 +39203,9 @@ pull-down box for the paragraph environments
 \begin_layout Plain Layout
 
 \family sans
-\begin_inset Graphics
-	filename ../images/buffer-new.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "buffer-new"
 \end_inset
 
 
@@ -39011,11 +39231,11 @@ New
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/file-open.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "file-open"
 \end_inset
 
 
@@ -39041,11 +39261,11 @@ Open
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-write.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "buffer-write"
 \end_inset
 
 
@@ -39071,11 +39291,11 @@ Save
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show_print.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show print"
 \end_inset
 
 
@@ -39101,11 +39321,11 @@ Print
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show_spellchecker.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show spellchecker"
 \end_inset
 
 
@@ -39131,11 +39351,11 @@ Spellchecker
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/undo.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "undo"
 \end_inset
 
 
@@ -39161,11 +39381,11 @@ Undo
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/redo.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "redo"
 \end_inset
 
 
@@ -39191,11 +39411,11 @@ Redo
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/cut.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "cut"
 \end_inset
 
 
@@ -39221,11 +39441,11 @@ Cut
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/copy.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "copy"
 \end_inset
 
 
@@ -39251,11 +39471,11 @@ Copy
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/paste.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "paste"
 \end_inset
 
 
@@ -39281,11 +39501,11 @@ Paste
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show_findreplace.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show findreplace"
 \end_inset
 
 
@@ -39319,11 +39539,11 @@ Replace
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/bookmark-goto_0.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "bookmark-goto 0"
 \end_inset
 
 
@@ -39350,11 +39570,11 @@ Navigate Back
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/font-emph.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "font-emph"
 \end_inset
 
 
@@ -39386,11 +39606,11 @@ Style
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/font-noun.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "font-noun"
 \end_inset
 
 
@@ -39422,11 +39642,11 @@ Style
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/textstyle-apply.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "textstyle-apply"
 \end_inset
 
 
@@ -39458,11 +39678,11 @@ Style
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/math-mode.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "math-mode"
 \end_inset
 
 
@@ -39493,11 +39713,11 @@ Formula
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_graphics.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset graphics"
 \end_inset
 
 
@@ -39523,11 +39743,9 @@ Graphics
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/tabular-insert.png
-	scale 85
-	groupId toolbarbuttons
-
+\begin_inset Info
+type  "icon"
+arg   "tabular-insert"
 \end_inset
 
 
@@ -39553,11 +39771,11 @@ Table
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-toggle_toc.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-toggle toc"
 \end_inset
 
 
@@ -39583,11 +39801,11 @@ Outline
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/toolbar-toggle_math.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "toolbar-toggle math"
 \end_inset
 
 
@@ -39610,11 +39828,11 @@ Toggle math toolbar on/off
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/toolbar-toggle_table.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "toolbar-toggle table"
 \end_inset
 
 
@@ -39693,11 +39911,11 @@ The extra toolbar as shown above contains from left to right the following
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout"
 \end_inset
 
 
@@ -39720,11 +39938,11 @@ Default
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout_Enumerate.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout Enumerate"
 \end_inset
 
 
@@ -39747,11 +39965,11 @@ Numbered list
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout_Itemize.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout Itemize"
 \end_inset
 
 
@@ -39774,11 +39992,11 @@ Itemized list
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout_List.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout List"
 \end_inset
 
 
@@ -39801,11 +40019,11 @@ List
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout_Description.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout Description"
 \end_inset
 
 
@@ -39828,11 +40046,11 @@ Description list
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/depth-increment.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "depth-increment"
 \end_inset
 
 
@@ -39866,11 +40084,11 @@ Depth
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/depth-decrement.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "depth-decrement"
 \end_inset
 
 
@@ -39904,11 +40122,11 @@ Depth
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/float-insert_figure.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "float-insert figure"
 \end_inset
 
 
@@ -39935,11 +40153,11 @@ Figure
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/float-insert_table.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "float-insert table"
 \end_inset
 
 
@@ -39966,11 +40184,11 @@ Table
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/label-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "label-insert"
 \end_inset
 
 
@@ -39996,11 +40214,11 @@ Label
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_ref.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset ref"
 \end_inset
 
 
@@ -40026,11 +40244,11 @@ Cross-Reference
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_citation.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset citation"
 \end_inset
 
 
@@ -40056,11 +40274,11 @@ Citation
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/index-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "index-insert"
 \end_inset
 
 
@@ -40090,11 +40308,11 @@ Entry
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/nomencl-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "nomencl-insert"
 \end_inset
 
 
@@ -40124,11 +40342,11 @@ Entry
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/footnote-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "footnote-insert"
 \end_inset
 
 
@@ -40154,11 +40372,11 @@ Footnote
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/marginalnote-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "marginalnote-insert"
 \end_inset
 
 
@@ -40188,11 +40406,11 @@ Note
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/note-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "note-insert"
 \end_inset
 
 
@@ -40223,11 +40441,11 @@ Note
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/box-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "box-insert Frameless"
 \end_inset
 
 
@@ -40253,11 +40471,11 @@ Box
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/url-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "href-insert"
 \end_inset
 
 
@@ -40283,11 +40501,11 @@ URL
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/ert-insert.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "ert-insert"
 \end_inset
 
 
@@ -40328,11 +40546,11 @@ eX
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/math-macro_newmacroname_newcommand.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "math-macro newmacroname newcommand"
 \end_inset
 
 
@@ -40359,11 +40577,11 @@ Macro
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show-new-inset_include.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset include"
 \end_inset
 
 
@@ -40394,11 +40612,11 @@ Document
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/dialog-show_character.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "dialog-show character"
 \end_inset
 
 
@@ -40428,11 +40646,11 @@ Style
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/layout-paragraph.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "layout-paragraph"
 \end_inset
 
 
@@ -40462,11 +40680,11 @@ Settings
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/thesaurus-entry.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "thesaurus-entry"
 \end_inset
 
 
@@ -40506,6 +40724,8 @@ Toolbar ! View / Update
 \end_inset
 
 
+\change_inserted -712698321 1299491111
+
 \end_layout
 
 \begin_layout Standard
@@ -40538,7 +40758,7 @@ The view / update toolbar as shown above contains from left to right the
 
 \begin_layout Standard
 \begin_inset Tabular
-<lyxtabular version="3" rows="6" columns="2">
+<lyxtabular version="3" rows="7" columns="2">
 <features islongtable="true" longtabularalignment="center">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
@@ -40547,11 +40767,11 @@ The view / update toolbar as shown above contains from left to right the
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-view_dvi.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "buffer-view"
 \end_inset
 
 
@@ -40566,7 +40786,13 @@ The view / update toolbar as shown above contains from left to right the
 
 \family sans
 View\SpecialChar \menuseparator
+
+\change_deleted -712698321 1301219015
 DVI
+\change_inserted -712698321 1301219016
+View
+\change_unchanged
+
 \end_layout
 
 \end_inset
@@ -40577,11 +40803,11 @@ DVI
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-update_dvi.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "buffer-update"
 \end_inset
 
 
@@ -40596,8 +40822,12 @@ DVI
 
 \family sans
 View\SpecialChar \menuseparator
-Update\SpecialChar \menuseparator
+Update
+\change_deleted -712698321 1301219034
+\SpecialChar \menuseparator
 DVI
+\change_unchanged
+
 \end_layout
 
 \end_inset
@@ -40608,11 +40838,11 @@ DVI
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-view_pdf2.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "master-buffer-view"
 \end_inset
 
 
@@ -40627,7 +40857,13 @@ DVI
 
 \family sans
 View\SpecialChar \menuseparator
+
+\change_deleted -712698321 1301219081
 PDF
+\change_inserted -712698321 1301219082
+Master
+\change_unchanged
+
 \end_layout
 
 \end_inset
@@ -40638,11 +40874,11 @@ PDF
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-update_pdf2.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "master-buffer-update"
 \end_inset
 
 
@@ -40657,8 +40893,14 @@ PDF
 
 \family sans
 View\SpecialChar \menuseparator
-Update\SpecialChar \menuseparator
+Update
+\change_deleted -712698321 1301219101
+\SpecialChar \menuseparator
 PDF
+\change_inserted -712698321 1301219102
+Master
+\change_unchanged
+
 \end_layout
 
 \end_inset
@@ -40669,11 +40911,11 @@ PDF
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../images/buffer-view_ps.png
-	scale 85
-	groupId toolbarbuttons
 
+\family sans
+\begin_inset Info
+type  "icon"
+arg   "buffer-toggle-output-sync"
 \end_inset
 
 
@@ -40686,9 +40928,23 @@ PDF
 
 \begin_layout Plain Layout
 
+\change_deleted -712698321 1301219324
+
 \family sans
-View\SpecialChar \menuseparator
+View
+\change_inserted -712698321 1301219325
+Document
+\change_unchanged
+\SpecialChar \menuseparator
+
+\change_deleted -712698321 1301219329
 Postscript
+\change_inserted -712698321 1301219342
+Settings\SpecialChar \menuseparator
+Output\SpecialChar \menuseparator
+Synchronize with Output
+\change_unchanged
+
 \end_layout
 
 \end_inset
@@ -40699,13 +40955,27 @@ Postscript
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\change_inserted -712698321 1301219584
 \begin_inset Graphics
-	filename ../images/buffer-update_ps.png
+	filename ../images/view-others.png
 	scale 85
 	groupId toolbarbuttons
 
 \end_inset
 
+
+\family sans
+*
+\change_deleted -712698321 1301219431
+
+\begin_inset Info
+type  "icon"
+arg   "buffer-update ps"
+\end_inset
+
+
+\change_unchanged
 
 \end_layout
 
@@ -40717,9 +40987,52 @@ Postscript
 \begin_layout Plain Layout
 
 \family sans
-View\SpecialChar \menuseparator
+View
+\change_inserted -712698321 1301219507
+\SpecialChar \menuseparator
+
+\change_deleted -712698321 1301219457
+\SpecialChar \menuseparator
 Update\SpecialChar \menuseparator
 Postscript
+\change_inserted -712698321 1301219471
+View (Other Formats)
+\change_unchanged
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row interlinespace="2.5mm">
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\change_inserted -712698321 1301219587
+\begin_inset Graphics
+	filename ../images/update-others.png
+	scale 85
+	groupId toolbarbuttons
+
+\end_inset
+
+*
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\change_inserted -712698321 1301219513
+
+\family sans
+View\SpecialChar \menuseparator
+Update (Other Formats)
 \end_layout
 
 \end_inset
@@ -40729,6 +41042,17 @@ Postscript
 
 \end_inset
 
+
+\change_inserted -712698321 1301219552
+
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1301219630
+* These icons might look different for you if you do not use the default
+ icon set.
+\change_unchanged
 
 \end_layout
 
@@ -40813,11 +41137,7 @@ Settings
 e Save as Document Defaults
 \family default
  button in the dialog.
- This will create a template name
-\family typewriter
-d
-\family default
- 
+ This will create a template named 
 \family typewriter
 default.lyx
 \family default
@@ -41806,6 +42126,25 @@ European
 
 8859-15) (latin 9) like the ISO-8859-1 encoding, but with the Euro currency
  sign, the œ-ligature and some characters used for French and Finnish
+\change_inserted -712698321 1299489919
+
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1299575911
+Finally, the dialog lets you select a specific language package for the
+ current document.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "sub:Prefs-Language"
+
+\end_inset
+
+ for more information on the language package.
+\change_unchanged
+
 \end_layout
 
 \begin_layout Section
@@ -42040,6 +42379,149 @@ reference "sec:Branches"
 \end_inset
 
 .
+\change_inserted -712698321 1299490648
+
+\end_layout
+
+\begin_layout Section
+
+\change_inserted -712698321 1299490977
+Output
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Doc-Output"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1299490684
+Here you can define some output specifics for the current document:
+\end_layout
+
+\begin_layout Description
+
+\change_inserted -712698321 1299575868
+Default
+\begin_inset space ~
+\end_inset
+
+Output
+\begin_inset space ~
+\end_inset
+
+Format: The format that is used when you hit 
+\begin_inset Quotes eld
+\end_inset
+
+View
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+Update
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+View Master Document
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+Update Master Document
+\begin_inset Quotes erd
+\end_inset
+
+ in the 
+\family sans
+View
+\family default
+ menu or the toolbar.
+ The default is set in 
+\family sans
+Tools\SpecialChar \menuseparator
+Preferences\SpecialChar \menuseparator
+File Formats; see 
+\family default
+
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "sec:File-Formats"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+
+\change_inserted -712698321 1299490926
+Synchronize
+\begin_inset space ~
+\end_inset
+
+with
+\begin_inset space ~
+\end_inset
+
+Output
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\change_inserted -712698321 1299490928
+TODO!
+\change_unchanged
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+
+\change_inserted -712698321 1299490931
+XHTML
+\begin_inset space ~
+\end_inset
+
+Output
+\begin_inset space ~
+\end_inset
+
+Options
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\change_inserted -712698321 1299490933
+TODO!
+\change_unchanged
+
+\end_layout
+
+\end_inset
+
+
+\change_unchanged
+
 \end_layout
 
 \begin_layout Section
@@ -43397,6 +43879,17 @@ Settings ! Language
 
 \begin_layout Subsection
 Language
+\change_inserted -712698321 1299489311
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Prefs-Language"
+
+\end_inset
+
+
+\change_unchanged
+
 \end_layout
 
 \begin_layout Description
@@ -43435,18 +43928,87 @@ Language
 \begin_inset space ~
 \end_inset
 
-package is a LaTeX-command to load a LaTeX-package that handles language
- issues.
- The default is the LaTeX-command 
+package 
+\change_deleted -712698321 1299488193
+is a
+\change_inserted -712698321 1299488196
+determines 
+\change_deleted -712698321 1299488202
+ LaTeX-command to load a
+\change_inserted -712698321 1299488203
+which
+\change_unchanged
+ LaTeX
+\change_inserted -712698321 1299488206
+ 
+\change_deleted -712698321 1299488206
+-
+\change_unchanged
+package 
+\change_deleted -712698321 1299488213
+that
+\change_inserted -712698321 1299488217
+should be loaded to
+\change_unchanged
+ handle
+\change_deleted -712698321 1299488219
+s
+\change_unchanged
+ language issues
+\change_inserted -712698321 1299488496
+.
+ Language issues which are handled by this package include proper hyphenation
+ as well as localization of dates and text strings such as 
+\begin_inset Quotes eld
+\end_inset
+
+Chapter
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+Table
+\begin_inset Quotes erd
+\end_inset
+
+
+\change_unchanged
+.
+ The 
+\change_deleted -712698321 1299488237
+default is the LaTeX-command 
 \family sans
 
 \backslash
 usepackage{babel}
 \family default
- that loads the package 
+ that loads the
+\change_inserted -712698321 1299488356
+most widespread language
+\change_unchanged
+ package
+\change_inserted -712698321 1299488356
+ is
+\change_unchanged
+ 
 \series bold
 babel
+\change_inserted -712698321 1299488633
+
 \series default
+, it's the default language package in classic LaTeX.
+ However, more recent typesetting engines such as XeTeX and LuaTeX come
+ with an alternative language package (
+\series bold
+polyglossia
+\series default
+) that is more suited for the multi-script support of these engines.
+ Furthermore, there are also specific language packages for languages not
+ covered by babel.
+\change_deleted -712698321 1299488271
 .
 \begin_inset Foot
 status collapsed
@@ -43469,9 +44031,77 @@ reference "sec:TeX-Code"
 \end_inset
 
 
+\change_unchanged
+
 \begin_inset Newline newline
 \end_inset
 
+
+\change_inserted -712698321 1299488707
+The available selections are:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\noindent
+
+\change_inserted -712698321 1299488784
+
+\series bold
+Automatic
+\series default
+:
+\series bold
+ 
+\series default
+Selects the most appropriate language package for the current typesetting
+ engine (default)
+\end_layout
+
+\begin_layout Itemize
+\noindent
+
+\change_inserted -712698321 1299488874
+
+\series bold
+Always babel: 
+\series default
+Uses always babel, even if another package (such as polyglossia) would have
+ been preferred by automatic setting; this essentially allows to select
+ babel instead of polyglossia with XeTeX and LuaTeX
+\end_layout
+
+\begin_layout Itemize
+\noindent
+
+\change_inserted -712698321 1299488983
+
+\series bold
+Custom: 
+\series default
+Lets you load some other language package (via 
+\family typewriter
+
+\backslash
+usepackage
+\series bold
+{
+\series default
+packagename}
+\family default
+)
+\end_layout
+
+\begin_layout Itemize
+\noindent
+
+\change_inserted -712698321 1299488998
+
+\series bold
+None: 
+\series default
+Loads no language package at all
+\change_deleted -712698321 1299488523
 
 \series bold
 babel
@@ -43487,6 +44117,24 @@ Table
 \end_inset
 
  at the beginning of every table caption.
+\change_unchanged
+
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\change_inserted -712698321 1299489281
+Default
+\begin_inset space ~
+\end_inset
+
+Decimal
+\begin_inset space ~
+\end_inset
+
+Point Define the default decimal point for the use in tables (decimal point
+ alignment)
 \end_layout
 
 \begin_layout Description
@@ -43542,6 +44190,8 @@ Command start
 \end_layout
 
 \begin_layout Description
+
+\change_deleted -712698321 1299489034
 Use
 \begin_inset space ~
 \end_inset
@@ -43551,12 +44201,34 @@ babel Whether
 babel
 \series default
  is used or not.
+\change_unchanged
+
 \end_layout
 
 \begin_layout Description
-Global When this option is set, the languages used in the document will
- be added as options to the document class options, so that they can be
- used by all LaTeX-packages.
+
+\change_inserted -712698321 1299489068
+Set
+\begin_inset space ~
+\end_inset
+
+languages
+\begin_inset space ~
+\end_inset
+
+
+\change_deleted -712698321 1299489066
+G
+\change_inserted -712698321 1299489071
+g
+\change_unchanged
+lobal
+\change_inserted -712698321 1299489073
+ly
+\change_unchanged
+ When this option is set, the languages used in the document will be added
+ as options to the document class options, so that they can be used by all
+ LaTeX-packages.
  Otherwise they will only be used as options for the 
 \series bold
 babel
@@ -44404,6 +45076,56 @@ Copiers
 Here you find the list of defined file formats that LyX can handle.
  You can modify the viewer and editor program that should be used for certain
  formats.
+\change_inserted -712698321 1299490494
+
+\end_layout
+
+\begin_layout Standard
+
+\change_inserted -712698321 1299490573
+Furthermore, you can define the 
+\begin_inset Quotes eld
+\end_inset
+
+Default output format
+\begin_inset Quotes erd
+\end_inset
+
+ that is used when you hit 
+\begin_inset Quotes eld
+\end_inset
+
+View
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+Update
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+View Master Document
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+Update Master Document
+\begin_inset Quotes erd
+\end_inset
+
+ in the Edit menu or the toolbar.
+\change_unchanged
+
 \end_layout
 
 \begin_layout Standard
