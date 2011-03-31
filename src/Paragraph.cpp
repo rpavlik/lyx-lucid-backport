@@ -112,7 +112,7 @@ public:
 		if (range_.first > pos) {
 			range_.first += offset;
 			range_.last += offset;
-		} else if (range_.last > pos) {
+		} else if (range_.last >= pos) {
 			range_.last += offset;
 		}
 	}
@@ -1117,6 +1117,8 @@ void Paragraph::Private::latexInset(BufferParams const & bparams,
 	int prev_rows = os.texrow().rows();
 
 	try {
+		runparams.lastid = id_;
+		runparams.lastpos = i;
 		inset->latex(os, runparams);
 	} catch (EncodingException & e) {
 		// add location information and throw again.
@@ -2373,8 +2375,8 @@ void Paragraph::latex(BufferParams const & bparams,
 							    runparams);
 		}
 
-		Change const & change = runparams.inDeletedInset ? runparams.changeOfDeletedInset
-								 : lookupChange(i);
+		Change const & change = runparams.inDeletedInset
+			? runparams.changeOfDeletedInset : lookupChange(i);
 
 		if (bparams.outputChanges && runningChange != change) {
 			if (open_font) {
@@ -2848,6 +2850,14 @@ bool Paragraph::isWordSeparator(pos_type pos) const
 	if (pos == size())
 		return true;
 	char_type const c = d->text_[pos];
+	// if we have a hard hyphen (no en- or emdash),
+	// we pass this to the spell checker
+	if (c == '-') {
+		int j = pos + 1;
+		if ((j == size() || d->text_[j] != '-')
+		    && (pos == 0 || d->text_[pos - 1] != '-'))
+			return false;
+	}
 	// We want to pass the ' and escape chars to the spellchecker
 	static docstring const quote = from_utf8(lyxrc.spellchecker_esc_chars + '\'');
 	return (!isLetterChar(c) && !isDigitASCII(c) && !contains(quote, c));
@@ -3342,12 +3352,12 @@ int Paragraph::find(docstring const & str, bool cs, bool mw,
 	int i = 0;
 	pos_type const parsize = d->text_.size();
 	for (i = 0; i < strsize && pos < parsize; ++i, ++pos) {
-		// Ignore ligature break and hyphenation chars while searching
+		// Ignore "invisible" letters such as ligature breaks
+		// and hyphenation chars while searching
 		while (pos < parsize - 1 && isInset(pos)) {
-			const InsetSpecialChar *isc = dynamic_cast<const InsetSpecialChar*>(getInset(pos));
-			if (isc == 0
-			    || (isc->kind() != InsetSpecialChar::HYPHENATION
-				&& isc->kind() != InsetSpecialChar::LIGATURE_BREAK))
+			odocstringstream os;
+			getInset(pos)->toString(os);
+			if (!getInset(pos)->isLetter() || !os.str().empty())
 				break;
 			pos++;
 		}

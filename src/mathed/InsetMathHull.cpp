@@ -1596,7 +1596,7 @@ bool InsetMathHull::getStatus(Cursor & cur, FuncRequest const & cmd,
 		// LABEL_INSERT?
 		bool const enable = (type_ == hullMultline)
 			? (nrows() - 1 == cur.row())
-			: display() != Inline && nrows() > 1;
+			: display() != Inline;
 		row_type const r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
 		status.setEnabled(enable);
 		status.setOnOff(enable && numbered(r));
@@ -1965,6 +1965,9 @@ int InsetMathHull::docbook(odocstream & os, OutputParams const & runparams) cons
 bool InsetMathHull::haveNumbers() const
 {
 	bool havenumbers = false;
+	// inline formulas are never numbered (bug 7351 part 3)
+	if (getType() == hullSimple)
+		return havenumbers;
 	for (size_t i = 0; i != numbered_.size(); ++i) {
 		if (numbered_[i]) {
 			havenumbers = true;

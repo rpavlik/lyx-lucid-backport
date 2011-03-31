@@ -1288,6 +1288,7 @@ lib_files = Split('''
     encodings
     external_templates
     languages
+    layouttranslations
     symbols
     syntax.default
     unicodesymbols
@@ -1402,7 +1403,6 @@ lib_templates_thesis_files = Split('''
 
 
 lib_ui_files = Split('''
-    classic.ui
     default.ui
     stdcontext.inc
     stdmenus.inc
@@ -2474,6 +2474,7 @@ lib_doc_sk_files = Split('''
 
 lib_doc_sv_files = Split('''
     Intro.lyx
+    Shortcuts.lyx
     Tutorial.lyx
 ''')
 
@@ -3009,21 +3010,6 @@ lib_bind_files = Split('''
     sciword.bind
     site.bind
     xemacs.bind
-''')
-
-
-lib_bind_fi_files = Split('''
-    menus.bind
-''')
-
-
-lib_bind_sv_files = Split('''
-    menus.bind
-''')
-
-
-lib_bind_pt_files = Split('''
-    menus.bind
 ''')
 
 

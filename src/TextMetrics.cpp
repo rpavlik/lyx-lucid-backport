@@ -158,6 +158,7 @@ pair<pit_type, ParagraphMetrics const *> TextMetrics::first() const
 
 pair<pit_type, ParagraphMetrics const *> TextMetrics::last() const
 {
+	LASSERT(!par_metrics_.empty(), /**/);
 	ParMetricsCache::const_reverse_iterator it = par_metrics_.rbegin();
 	return make_pair(it->first, &it->second);
 }
@@ -1050,16 +1051,14 @@ Dimension TextMetrics::rowHeight(pit_type const pit, pos_type const first,
 	if (first == 0 && topBottomSpace) {
 		BufferParams const & bufparams = buffer.params();
 		// some parskips VERY EASY IMPLEMENTATION
-		if (bufparams.paragraph_separation
-		    == BufferParams::ParagraphSkipSeparation
-			&& inset.lyxCode() != ERT_CODE
-			&& inset.lyxCode() != LISTINGS_CODE
-			&& pit > 0
-			&& ((layout.isParagraph() && par.getDepth() == 0)
-			    || (pars[pit - 1].layout().isParagraph()
-				&& pars[pit - 1].getDepth() == 0)))
-		{
-				maxasc += bufparams.getDefSkip().inPixels(*bv_);
+		if (bufparams.paragraph_separation == BufferParams::ParagraphSkipSeparation
+		    && !inset.getLayout().parbreakIsNewline()
+		    && !par.layout().parbreak_is_newline
+		    && pit > 0
+		    && ((layout.isParagraph() && par.getDepth() == 0)
+			|| (pars[pit - 1].layout().isParagraph()
+			    && pars[pit - 1].getDepth() == 0))) {
+			maxasc += bufparams.getDefSkip().inPixels(*bv_);
 		}
 
 		if (par.params().startOfAppendix())
@@ -1496,7 +1495,7 @@ Inset * TextMetrics::editXY(Cursor & cur, int x, int y,
 	// This should be just before or just behind the
 	// cursor position set above.
 	LASSERT(inset == inset_before 
-		|| inset == pars[pit].getInset(pos), /**/);
+		|| inset == pars[pit].getInset(pos), return 0);
 
 	// Make sure the cursor points to the position before
 	// this inset.

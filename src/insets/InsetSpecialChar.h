@@ -77,11 +77,11 @@ public:
 	///
 	void validate(LaTeXFeatures &) const;
 
-	// should this inset be handled like a normal charater
+	/// should this inset be handled like a normal character?
 	bool isChar() const { return true; }
 	/// is this equivalent to a letter?
 	bool isLetter() const;
-	// should we break lines after this inset?
+	/// should we break lines after this inset?
 	bool isLineSeparator() const;
 private:
 	Inset * clone() const { return new InsetSpecialChar(*this); };

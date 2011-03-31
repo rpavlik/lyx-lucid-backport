@@ -67,6 +67,13 @@ void TexRow::newlines(int)
 {}
 
 
+// Dummy LyXRC support
+class LyXRC {
+public:
+	string icon_set;
+} lyxrc;
+
+
 // Dummy translation support
 Messages messages_;
 Messages const & getMessages(std::string const &)

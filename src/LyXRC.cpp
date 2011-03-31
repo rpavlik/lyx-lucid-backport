@@ -85,6 +85,7 @@ LexerKeyword lyxrcTags[] = {
 	{ "\\converter_cache_maxage", LyXRC::RC_CONVERTER_CACHE_MAXAGE },
 	{ "\\copier", LyXRC::RC_COPIER },
 	{ "\\cursor_follows_scrollbar", LyXRC::RC_CURSOR_FOLLOWS_SCROLLBAR },
+	{ "\\cursor_width", LyXRC::RC_CURSOR_WIDTH },
 	{ "\\date_insert_format", LyXRC::RC_DATE_INSERT_FORMAT },
 	{ "\\def_file", LyXRC::RC_DEFFILE },
 	{ "\\default_decimal_point", LyXRC::RC_DEFAULT_DECIMAL_POINT },
@@ -112,6 +113,7 @@ LexerKeyword lyxrcTags[] = {
 	{ "\\group_layouts", LyXRC::RC_GROUP_LAYOUTS },
 	{ "\\gui_language", LyXRC::RC_GUI_LANGUAGE },
 	{ "\\hunspelldir_path", LyXRC::RC_HUNSPELLDIR_PATH },
+	{ "\\icon_set", LyXRC::RC_ICON_SET },
 	{ "\\index_alternatives", LyXRC::RC_INDEX_ALTERNATIVES },
 	{ "\\index_command", LyXRC::RC_INDEX_COMMAND },
 	{ "\\input", LyXRC::RC_INPUT },
@@ -221,6 +223,7 @@ LyXRC::LyXRC()
 
 void LyXRC::setDefaults()
 {
+	icon_set = string();
 	bind_file = "cua";
 	def_file = "default";
 	ui_file = "default";
@@ -360,6 +363,7 @@ void LyXRC::setDefaults()
 	completion_inline_dots = -1;
 	completion_inline_delay = 0.2;
 	default_decimal_point = ".";
+	cursor_width = 1;
 }
 
 
@@ -530,7 +534,7 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 		case RC_FORCE_PAINT_SINGLE_CHAR:
 			lexrc >> force_paint_single_char;
 			break;
-				
+
 		case RC_PRINTER:
 			lexrc >> printer;
 			break;
@@ -827,6 +831,10 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 			lexrc >> check_lastfiles;
 			break;
 
+		case RC_ICON_SET:
+			lexrc >> icon_set;
+			break;
+
 		case RC_SCREEN_FONT_ROMAN:
 			if (lexrc.next()) {
 				roman_font_name = lexrc.getString();
@@ -901,6 +909,10 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 
 		case RC_CURSOR_FOLLOWS_SCROLLBAR:
 			lexrc >> cursor_follows_scrollbar;
+			break;
+
+		case RC_CURSOR_WIDTH:
+			lexrc >> cursor_width;
 			break;
 
 		case RC_SCROLL_BELOW_DOCUMENT:
@@ -1135,7 +1147,7 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 		case RC_DEFAULT_VIEW_FORMAT:
 			lexrc >> default_view_format;
 			break;
-			
+
 		case RC_DEFAULT_LANGUAGE:
 			lexrc >> default_language;
 			break;
@@ -1226,11 +1238,11 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 				run_mode = single_instance ? USE_REMOTE : NEW_INSTANCE;
 			break;
 		case RC_FORWARD_SEARCH_DVI:
-			if (lexrc.next(true)) 
+			if (lexrc.next(true))
 				forward_search_dvi = lexrc.getString();
 			break;
 		case RC_FORWARD_SEARCH_PDF:
-			if (lexrc.next(true)) 
+			if (lexrc.next(true))
 				forward_search_pdf = lexrc.getString();
 			break;
 		case RC_EXPORT_OVERWRITE:
@@ -1323,7 +1335,7 @@ namespace {
 
 	// Escape \ and " so that LyXLex can read the string later
 	string escapeCommand(string const & str) {
-		return subst(subst(str , "\\", "\\\\"), 
+		return subst(subst(str , "\\", "\\\\"),
 			     "\"", "\\\"");
 	}
 
@@ -1333,7 +1345,7 @@ namespace {
 void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) const
 {
 	LyXRCTags tag = RC_LAST;
-	
+
 	if (!name.empty()) {
 		for (int i = 0; i != lyxrcCount; ++i)
 			if ("\\" + name == lyxrcTags[i].tag)
@@ -1723,6 +1735,15 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		   << "# SCREEN & FONTS SECTION ############################\n"
 		   << "#\n\n";
 
+	case RC_ICON_SET:
+		if (ignore_system_lyxrc ||
+		    icon_set != system_lyxrc.icon_set) {
+			os << "\\icon_set \"" << icon_set
+			   << "\"\n";
+		}
+		if (tag != RC_LAST)
+			break;
+
 	case RC_SCREEN_DPI:
 		if (ignore_system_lyxrc ||
 		    dpi != system_lyxrc.dpi) {
@@ -1751,6 +1772,15 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		    != system_lyxrc.cursor_follows_scrollbar) {
 			os << "\\cursor_follows_scrollbar "
 			   << convert<string>(cursor_follows_scrollbar) << '\n';
+		}
+		if (tag != RC_LAST)
+			break;
+	case RC_CURSOR_WIDTH:
+		if (ignore_system_lyxrc ||
+			cursor_width
+			!= system_lyxrc.cursor_width) {
+			os << "\\cursor_width "
+			<< cursor_width << '\n';
 		}
 		if (tag != RC_LAST)
 			break;
@@ -2531,7 +2561,7 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		    language_package_selection != system_lyxrc.language_package_selection) {
 			os << "\\language_package_selection ";
 			switch (language_package_selection) {
-			case LP_AUTO: 
+			case LP_AUTO:
 				os << "0\n";
 				break;
 			case LP_BABEL:
@@ -2687,7 +2717,8 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 			    format->viewer() != cit->viewer() ||
 			    format->editor() != cit->editor() ||
 			    format->documentFormat() != cit->documentFormat() ||
-			    format->vectorFormat() != cit->vectorFormat()) {
+			    format->vectorFormat() != cit->vectorFormat() ||
+			    format->inExportMenu() != cit->inExportMenu()) {
 				os << "\\format \"" << cit->name() << "\" \""
 				   << cit->extension() << "\" \""
 				   << cit->prettyname() << "\" \""
@@ -2699,6 +2730,9 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 					flags.push_back("document");
 				if (cit->vectorFormat())
 					flags.push_back("vector");
+				if (cit->inExportMenu())
+					flags.push_back("menu=export");
+
 				os << getStringFromVector(flags);
 				os << "\"\n";
 			}
@@ -2715,19 +2749,19 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 	case RC_VIEWER_ALTERNATIVES: {
 		Alternatives::const_iterator it = viewer_alternatives.begin();
 		Alternatives::const_iterator const en = viewer_alternatives.end();
-		Alternatives::const_iterator const sysend = 
+		Alternatives::const_iterator const sysend =
 				system_lyxrc.viewer_alternatives.end();
  		for (; it != en; ++it) {
 			string const & fmt = it->first;
 			CommandSet const & cmd = it->second;
 			CommandSet::const_iterator sit = cmd.begin();
 			CommandSet::const_iterator const sen = cmd.end();
-			Alternatives::const_iterator const sysfmt = ignore_system_lyxrc ? 
+			Alternatives::const_iterator const sysfmt = ignore_system_lyxrc ?
 					system_lyxrc.viewer_alternatives.begin() : // we won't use it in this case
 					system_lyxrc.viewer_alternatives.find(fmt);
 			for (; sit != sen; ++sit) {
 				string const & cmd = *sit;
-				if (ignore_system_lyxrc 
+				if (ignore_system_lyxrc
 				    || sysfmt == sysend               // format not found
 					 || sysfmt->second.count(cmd) == 0 // this command not found
 				   )
@@ -2740,19 +2774,19 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 	case RC_EDITOR_ALTERNATIVES: {
 		Alternatives::const_iterator it = editor_alternatives.begin();
 		Alternatives::const_iterator const en = editor_alternatives.end();
-		Alternatives::const_iterator const sysend = 
+		Alternatives::const_iterator const sysend =
 				system_lyxrc.editor_alternatives.end();
 		for (; it != en; ++it) {
 			string const & fmt = it->first;
 			CommandSet const & cmd = it->second;
 			CommandSet::const_iterator sit = cmd.begin();
 			CommandSet::const_iterator const sen = cmd.end();
-			Alternatives::const_iterator const sysfmt = ignore_system_lyxrc ? 
+			Alternatives::const_iterator const sysfmt = ignore_system_lyxrc ?
 					system_lyxrc.editor_alternatives.begin() : // we won't use it in this case
 					system_lyxrc.editor_alternatives.find(fmt);
 			for (; sit != sen; ++sit) {
 				string const & cmd = *sit;
-				if (ignore_system_lyxrc 
+				if (ignore_system_lyxrc
 				    || sysfmt == sysend               // format not found
 				    || sysfmt->second.count(cmd) == 0 // this command not found
 				   )
@@ -2802,7 +2836,7 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 				   << "\" \"" << cit->to << "\" \"\" \"\"\n";
 		if (tag != RC_LAST)
 			break;
-	
+
 	case RC_COPIER:
 		if (tag == RC_LAST)
 			os << "\n#\n"
@@ -2900,6 +2934,10 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_FILEFORMAT:
 	case LyXRC::RC_GROUP_LAYOUTS:
 	case LyXRC::RC_HUNSPELLDIR_PATH:
+	case LyXRC::RC_ICON_SET:
+		if (lyxrc_orig.icon_set != lyxrc_new.icon_set) {
+			lyxrc.icon_set = lyxrc_new.icon_set;
+		}
 	case LyXRC::RC_INDEX_ALTERNATIVES:
 	case LyXRC::RC_INDEX_COMMAND:
 	case LyXRC::RC_JBIBTEX_COMMAND:
@@ -3005,6 +3043,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_EXPORT_OVERWRITE:
 	case LyXRC::RC_DEFAULT_DECIMAL_POINT:
 	case LyXRC::RC_SCROLL_WHEEL_ZOOM:
+	case LyXRC::RC_CURSOR_WIDTH:
 	case LyXRC::RC_LAST:
 		break;
 	}
@@ -3076,6 +3115,10 @@ string const LyXRC::getDescription(LyXRCTags tag)
 
 	case RC_CURSOR_FOLLOWS_SCROLLBAR:
 		str = _("LyX normally doesn't update the cursor position if you move the scrollbar. Set to true if you'd prefer to always have the cursor on screen.");
+		break;
+
+	case RC_CURSOR_WIDTH:
+		str = _("Configure the width of the text cursor. Automatic zoom-controlled cursor width used when set to 0.");
 		break;
 
 	case RC_SCROLL_BELOW_DOCUMENT:

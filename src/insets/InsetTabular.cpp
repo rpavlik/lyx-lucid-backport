@@ -2563,6 +2563,10 @@ void Tabular::latex(otexstream & os, OutputParams const & runparams) const
 	//+                      first the opening preamble                    +
 	//+---------------------------------------------------------------------
 
+	os << safebreakln;
+	if (runparams.lastid != -1)
+		os.texrow().start(runparams.lastid, runparams.lastpos);
+
 	if (rotate)
 		os << "\\begin{sideways}\n";
 
@@ -4001,6 +4005,8 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cmd = FuncRequest(finish_lfun);
 		else
 			cur.dispatched();
+
+		cur.screenUpdateFlags(Update::Force | Update::FitCursor);
 		break;
 
 	}
@@ -4037,6 +4043,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.setCurrentFont();
 			return;
 		}
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 	case LFUN_UP_SELECT:
@@ -4070,6 +4077,7 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 			cur.setCurrentFont();
 			return;
 		}
+		cur.screenUpdateFlags(Update::FitCursor);
 		break;
 
 //	case LFUN_SCREEN_DOWN: {
