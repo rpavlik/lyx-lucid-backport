@@ -1,9 +1,10 @@
-lyx (2.0.0~rc1-2) UNRELEASED; urgency=low
+lyx (2.0.0~rc2-1) UNRELEASED; urgency=low
 
+  * New upstream release
   * Add ttf-lyx.post(inst|rm) and use dpkg-maint-script-helper rm_conffile
     as designed.
 
- -- Sven Hoexter <hoexter@debian.org>  Tue, 08 Mar 2011 20:20:53 +0100
+ -- Sven Hoexter <hoexter@debian.org>  Thu, 31 Mar 2011 18:32:21 +0200
 
 lyx (2.0.0~rc1-1) unstable; urgency=low
 
