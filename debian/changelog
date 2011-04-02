@@ -1,3 +1,9 @@
+lyx (2.0.0~rc2-1~lucid) unstable; urgency=low
+
+  * New upstream release
+
+ -- Sven Hoexter <hoexter@debian.org>  Thu, 31 Mar 2011 18:32:21 +0200
+
 lyx (2.0.0~rc1-1~lucid) unstable; urgency=low
 
   [ Per Olofsson ]
@@ -17,7 +23,7 @@ lyx (2.0.0~rc1-1~lucid) unstable; urgency=low
     Kudos to Rene Engelhard and Georg Baum for implementing it right away.
   * Refresh debian/patches/prefer-xdg-open.
 
- -- Per Olofsson <pelle@debian.org>  Mon, 07 Feb 2011 15:55:44 +0100
+ -- Sven Hoexter <hoexter@debian.org>  Tue, 08 Mar 2011 17:06:27 +0100
 
 lyx (2.0.0~beta4-1) unstable; urgency=low
 
