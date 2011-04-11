@@ -1,8 +1,14 @@
+lyx (2.0.0~rc3-1~lucid) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Sven Hoexter <hoexter@debian.org>  Mon, 11 Apr 2011 20:56:44 +0200
+
 lyx (2.0.0~rc2-1~lucid) unstable; urgency=low
 
   * New upstream release
 
- -- Sven Hoexter <hoexter@debian.org>  Thu, 31 Mar 2011 18:32:21 +0200
+ -- Sven Hoexter <hoexter@debian.org>  Sat, 02 Apr 2011 11:55:07 +0200
 
 lyx (2.0.0~rc1-1~lucid) unstable; urgency=low
 
