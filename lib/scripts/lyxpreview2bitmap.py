@@ -19,6 +19,7 @@
 # * A latex executable;
 # * preview.sty;
 # * dvipng;
+# * dv2dt;
 # * pngtoppm (if outputing ppm format images).
 
 # preview.sty and dvipng are part of the preview-latex project
@@ -46,19 +47,37 @@
 # * a file BASE.metrics, containing info needed by LyX to position
 #   the images correctly on the screen.
 
+# What does this script do?
+# 1) Call latex/pdflatex/xelatex/whatever (CONVERTER parameter)
+# 2) If the output is a PDF fallback to legacy
+# 3) Otherwise check each page of the DVI (with dv2dt) looking for 
+#    PostScript literals, not well supported by dvipng. Pages 
+#    containing them are passed to the legacy method in a new LaTeX file.
+# 4) Call dvipng on the pages without PS literals
+# 5) Join metrics info coming from both methods (legacy and dvipng)
+#    and write them to file
+
+# dvipng is fast but gives problem in several cases, like with
+# PSTricks, TikZ and other packages using PostScript literals
+# for all these cases the legacy route is taken (step 3).
+# Moreover dvipng can't work with PDF files, so, if the CONVERTER
+# paramter is pdflatex we have to fallback to legacy route (step 2).
+
 import glob, os, re, string, sys
 
 from legacy_lyxpreview2ppm import legacy_conversion, \
-     legacy_conversion_step2, legacy_extract_metrics_info
-
+     legacy_conversion_step2, legacy_extract_metrics_info, filter_pages
+     
 from lyxpreview_tools import copyfileobj, error, find_exe, \
      find_exe_or_terminate, make_texcolor, mkstemp, run_command, warning, \
-     write_metrics_info
+     write_metrics_info, join_metrics_and_rename
 
 
 # Pre-compiled regular expressions.
 latex_file_re = re.compile("\.tex$")
 
+# PATH environment variable
+path  = string.split(os.environ["PATH"], os.pathsep)
 
 def usage(prog_name):
     return "Usage: %s <format> <latex file> <dpi> <fg color> <bg color>\n"\
@@ -103,7 +122,7 @@ def extract_metrics_info(dvipng_stdout):
             if frac < 0:
                 frac = 0.5
 
-        results.append((page, frac))
+        results.append((int(page), frac))
         pos = match.end() + 2
 
     if success == 0:
@@ -113,7 +132,7 @@ def extract_metrics_info(dvipng_stdout):
 
 
 def color_pdf(latex_file, bg_color, fg_color):
-    use_preview_pdf_re = re.compile("(\s*\\\\usepackage\[[^]]+)(pdftex\]{preview})")
+    use_preview_pdf_re = re.compile("(\s*\\\\usepackage\[[^]]+)((pdftex|xetex)\]{preview})")
 
     tmp = mkstemp()
     
@@ -163,6 +182,87 @@ def convert_to_ppm_format(pngtopnm, basename):
         ppm.write(p2p_stdout)
         os.remove(png_file)
 
+# Returns a tuple of:
+# ps_pages: list of page indexes of pages containing PS literals
+# page_count: total number of pages
+# pages_parameter: parameter for dvipng to exclude pages with PostScript
+def find_ps_pages(dvi_file):
+    # latex failed
+    # FIXME: try with pdflatex
+    if not os.path.isfile(dvi_file):
+        error("No DVI output.")
+        
+    # Check for PostScript specials in the dvi, badly supported by dvipng
+    # This is required for correct rendering of PSTricks and TikZ
+    dv2dt = find_exe_or_terminate(["dv2dt"], path)
+    dv2dt_call = '%s "%s"' % (dv2dt, dvi_file)
+ 
+    # The output from dv2dt goes to stdout
+    dv2dt_status, dv2dt_output = run_command(dv2dt_call)
+    psliteral_re = re.compile("^special[1-4] [0-9]+ '(\"|ps:)")
+
+    # Parse the dtl file looking for PostScript specials.
+    # Pages using PostScript specials are recorded in ps_pages and then
+    # used to create a different LaTeX file for processing in legacy mode.
+    page_has_ps = False
+    page_index = 0
+    ps_pages = []
+
+    for line in dv2dt_output.split("\n"):
+        # New page
+        if line.startswith("bop"):
+            page_has_ps = False
+            page_index += 1
+
+        # End of page
+        if line.startswith("eop") and page_has_ps:
+            # We save in a list all the PostScript pages
+            ps_pages.append(page_index)
+
+        if psliteral_re.match(line) != None:
+            # Literal PostScript special detected!
+            page_has_ps = True
+    
+    # Create the -pp parameter for dvipng
+    pages_parameter = ""
+    if len(ps_pages) > 0 and len(ps_pages) < page_index:
+        # Don't process Postscript pages with dvipng by selecting the
+        # wanted pages through the -pp parameter. E.g., dvipng -pp 4-12,14,64
+        pages_parameter = " -pp "
+        skip = True
+        last = -1
+
+        # Use page ranges, as a list of pages could exceed command line
+        # maximum length (especially under Win32)
+        for index in xrange(1, page_index + 1):
+            if (not index in ps_pages) and skip:
+                # We were skipping pages but current page shouldn't be skipped.
+                # Add this page to -pp, it could stay alone or become the
+                # start of a range.
+                pages_parameter += str(index)
+                # Save the starting index to avoid things such as "11-11"
+                last = index
+                # We're not skipping anymore
+                skip = False
+            elif (index in ps_pages) and (not skip):
+                # We weren't skipping but current page should be skipped
+                if last != index - 1:
+                    # If the start index of the range is the previous page
+                    # then it's not a range
+                    pages_parameter += "-" + str(index - 1)
+
+                # Add a separator
+                pages_parameter += ","
+                # Now we're skipping
+                skip = True
+
+        # Remove the trailing separator
+        pages_parameter = pages_parameter.rstrip(",")
+        # We've to manage the case in which the last page is closing a range
+        if (not index in ps_pages) and (not skip) and (last != index):
+                pages_parameter += "-" + str(index)
+
+    return (ps_pages, page_index, pages_parameter)
 
 def main(argv):
     # Parse and manipulate the command line arguments.
@@ -183,7 +283,6 @@ def main(argv):
     bg_color_gr = make_texcolor(argv[5], True)
 
     # External programs used by the script.
-    path = string.split(os.environ["PATH"], os.pathsep)
     if len(argv) == 7:
         latex = argv[6]
     else:
@@ -222,78 +321,28 @@ def main(argv):
     # The dvi output file name
     dvi_file = latex_file_re.sub(".dvi", latex_file)
 
-    # Check for PostScript specials in the dvi, badly supported by dvipng
-    # This is required for correct rendering of PSTricks and TikZ
-    dv2dt = find_exe_or_terminate(["dv2dt"], path)
-    dv2dt_call = '%s "%s"' % (dv2dt, dvi_file)
- 
-    # The output from dv2dt goes to stdout
-    dv2dt_status, dv2dt_output = run_command(dv2dt_call)
-    psliteral_re = re.compile("^special[1-4] [0-9]+ '(\"|ps:)")
+    # If there's no DVI output, look for PDF and go to legacy or fail
+    if not os.path.isfile(dvi_file):
+        # No DVI, is there a PDF?
+        pdf_file = latex_file_re.sub(".pdf", latex_file)
+        if os.path.isfile(pdf_file):
+            warning("%s produced a PDF output, fallback to legacy." % \
+                (os.path.basename(latex)))
+            return legacy_conversion_step2(latex_file, dpi, output_format)
+        else:
+            error("No DVI or PDF output. %s failed." \
+                % (os.path.basename(latex)))
 
-    # Parse the dtl file looking for PostScript specials.
-    # Pages using PostScript specials are recorded in ps_pages and then
-    # used to create a different LaTeX file for processing in legacy mode.
-    page_has_ps = False
-    page_index = 0
-    ps_pages = []
-
-    for line in dv2dt_output.split("\n"):
-        # New page
-        if line.startswith("bop"):
-            page_has_ps = False
-            page_index += 1
-
-        # End of page
-        if line.startswith("eop") and page_has_ps:
-            # We save in a list all the PostScript pages
-            ps_pages.append(page_index)
-
-        if psliteral_re.match(line) != None:
-            # Literal PostScript special detected!
-            page_has_ps = True
-
-    pages_parameter = ""
-    if len(ps_pages) == page_index:
-        # All pages need PostScript, so directly use the legacy method.
+    # Look for PS literals in DVI pages
+    # ps_pages: list of page indexes of pages containing PS literals
+    # page_count: total number of pages
+    # pages_parameter: parameter for dvipng to exclude pages with PostScript
+    (ps_pages, page_count, pages_parameter) = find_ps_pages(dvi_file)
+    
+    # If all pages need PostScript, directly use the legacy method.
+    if len(ps_pages) == page_count:
         vec = [argv[0], argv[2], argv[3], argv[1], argv[4], argv[5], latex]
         return legacy_conversion(vec)
-    elif len(ps_pages) > 0:
-        # Don't process Postscript pages with dvipng by selecting the
-        # wanted pages through the -pp parameter. E.g., dvipng -pp 4-12,14,64
-        pages_parameter = " -pp "
-        skip = True
-        last = -1
-
-        # Use page ranges, as a list of pages could exceed command line
-        # maximum length (especially under Win32)
-        for index in xrange(1, page_index + 1):
-            if (not index in ps_pages) and skip:
-                # We were skipping pages but current page shouldn't be skipped.
-                # Add this page to -pp, it could stay alone or become the
-                # start of a range.
-                pages_parameter += str(index)
-                # Save the starting index to avoid things such as "11-11"
-                last = index
-                # We're not skipping anymore
-                skip = False
-            elif (index in ps_pages) and (not skip):
-                # We weren't skipping but current page should be skipped
-                if last != index - 1:
-                    # If the start index of the range is the previous page
-                    # then it's not a range
-                    pages_parameter += "-" + str(index - 1)
-
-                # Add a separator
-                pages_parameter += ","
-                # Now we're skipping
-                skip = True
-
-        # Remove the trailing separator
-        pages_parameter = pages_parameter.rstrip(",")
-        # We've to manage the case in which the last page is closing a range
-        if (not index in ps_pages) and (not skip) and (last != index):
-                pages_parameter += "-" + str(index)
 
     # Run the dvi file through dvipng.
     dvipng_call = '%s -Ttight -depth -height -D %d -fg "%s" -bg "%s" %s "%s"' \
@@ -301,85 +350,43 @@ def main(argv):
     dvipng_status, dvipng_stdout = run_command(dvipng_call)
 
     if dvipng_status != None:
-        warning("%s failed to generate images from %s ... looking for PDF" \
+        warning("%s failed to generate images from %s... fallback to legacy method" \
               % (os.path.basename(dvipng), dvi_file))
         # FIXME: skip unnecessary dvips trial in legacy_conversion_step2
         return legacy_conversion_step2(latex_file, dpi, output_format)
 
+    # Extract metrics info from dvipng_stdout.
+    metrics_file = latex_file_re.sub(".metrics", latex_file)
+    dvipng_metrics = extract_metrics_info(dvipng_stdout)
+
+    # If some pages require PostScript pass them to legacy method
     if len(ps_pages) > 0:
-        # Some pages require PostScript.
         # Create a new LaTeX file just for the snippets needing
         # the legacy method
-        original_latex = open(latex_file, "r")
         legacy_latex_file = latex_file_re.sub("_legacy.tex", latex_file)
-        legacy_latex = open(legacy_latex_file, "w")
-
-        page_index = 0
-        skip_page = False
-        for line in original_latex:
-            if line.startswith("\\begin{preview}"):
-                page_index += 1
-                # Skips all pages processed by dvipng
-                skip_page = page_index not in ps_pages
-
-            if not skip_page:
-                legacy_latex.write(line)
-
-            if line.startswith("\\end{preview}"):
-                skip_page = False
-
-        legacy_latex.close()
-        original_latex.close()
+        filter_pages(latex_file, legacy_latex_file, ps_pages)
 
         # Pass the new LaTeX file to the legacy method
         vec = [ argv[0], latex_file_re.sub("_legacy.tex", argv[2]), \
                 argv[3], argv[1], argv[4], argv[5], latex ]
-        legacy_conversion(vec, True)
-
-        # Now we need to mix metrics data from dvipng and the legacy method
-        metrics_file = latex_file_re.sub(".metrics", latex_file)
-
-        dvipng_metrics = extract_metrics_info(dvipng_stdout)
-        legacy_metrics = legacy_extract_metrics_info(latex_file_re.sub("_legacy.log", latex_file))
+        legacy_metrics = legacy_conversion(vec, True)[1]
         
-        # Check whether a page is present in dvipng_metrics, otherwise
-        # add it getting the metrics from legacy_metrics
-        legacy_index = -1;
-        for i in range(page_index):
-            # If we exceed the array bounds or the dvipng_metrics doesn't
-            # match the current one, this page belongs to the legacy method
-            if (i > len(dvipng_metrics) - 1) or (dvipng_metrics[i][0] != str(i + 1)):
-                legacy_index += 1
-                
-                # Add this metric from the legacy output
-                dvipng_metrics.insert(i, (str(i + 1), legacy_metrics[legacy_index][1]))
-                # Legacy output filename
-                legacy_output = os.path.join(dir, latex_file_re.sub("_legacy%s.%s" % 
-                    (legacy_metrics[legacy_index][0], output_format), latex_file))
-
-                # Check whether legacy method actually created the file
-                if os.path.isfile(legacy_output):
-                    # Rename the file by removing the "_legacy" suffix
-                    # and adjusting the index
-                    bitmap_output = os.path.join(dir, latex_file_re.sub("%s.%s" % 
-                        (str(i + 1), output_format), latex_file))
-                    os.rename(legacy_output, bitmap_output)
-
-        # Actually create the .metrics file
-        write_metrics_info(dvipng_metrics, metrics_file)
-    else:
-        # Extract metrics info from dvipng_stdout.
-        # In this case we just used dvipng, so no special metrics
-        # handling is needed.
-        metrics_file = latex_file_re.sub(".metrics", latex_file)
-        write_metrics_info(extract_metrics_info(dvipng_stdout), metrics_file)
+        # Now we need to mix metrics data from dvipng and the legacy method
+        original_bitmap = latex_file_re.sub("%d." + output_format, legacy_latex_file)
+        destination_bitmap = latex_file_re.sub("%d." + output_format, latex_file)
+        
+        # Join metrics from dvipng and legacy, and rename legacy bitmaps
+        join_metrics_and_rename(dvipng_metrics, legacy_metrics, ps_pages, 
+            original_bitmap, destination_bitmap)
 
     # Convert images to ppm format if necessary.
     if output_format == "ppm":
         convert_to_ppm_format(pngtopnm, latex_file_re.sub("", latex_file))
 
-    return 0
-
+    # Actually create the .metrics file
+    write_metrics_info(dvipng_metrics, metrics_file)
+    
+    return (0, dvipng_metrics)
 
 if __name__ == "__main__":
-    main(sys.argv)
+    exit(main(sys.argv)[0])

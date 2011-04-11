@@ -83,14 +83,15 @@ struct CompTag {
 	std::string attr_;
 };
 
+// trivial struct for output of newlines
+struct CR{};
+
 } // namespace html
 
 class XHTMLStream {
 public:
 	///
 	explicit XHTMLStream(odocstream & os);
-	///
-	void cr();
 	///
 	odocstream & os() { return os_; }
 	///
@@ -100,6 +101,12 @@ public:
 	/// \return false if there are open font tags we could not close.
 	/// because they are "blocked" by open non-font tags on the stack.
 	bool closeFontTags();
+	/// call at start of paragraph. sets a mark so we know what tags
+	/// to close at the end. 
+	void startParagraph();
+	/// call at end of paragraph to clear that mark. note that this
+	/// will also close any tags still open. 
+	void endParagraph();
 	///
 	XHTMLStream & operator<<(docstring const &);
 	///
@@ -116,6 +123,8 @@ public:
 	XHTMLStream & operator<<(html::EndTag const &);
 	///
 	XHTMLStream & operator<<(html::CompTag const &);
+	///
+	XHTMLStream & operator<<(html::CR const &);
 	///
 	enum EscapeSettings {
 		ESCAPE_NONE,

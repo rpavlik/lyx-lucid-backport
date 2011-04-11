@@ -102,13 +102,10 @@ InsetBox::InsetBox(Buffer * buffer, string const & label)
 {}
 
 
-docstring InsetBox::name() const 
+docstring InsetBox::layoutName() const
 {
 	// FIXME: UNICODE
-	string name = "Box";
-	if (boxtranslator().find(params_.type) == Shaded)
-		name += ":Shaded";
-	return from_ascii(name);
+	return from_ascii("Box:" + params_.type);
 }
 
 
@@ -481,8 +478,11 @@ docstring InsetBox::xhtml(XHTMLStream & xs, OutputParams const & runparams) cons
 	// construct attributes
 	string attrs = "class='" + params_.type + "'";
 	string style;
-	if (!params_.width.empty())
-		style += ("width: " + params_.width.asHTMLString() + "; ");
+	if (!params_.width.empty()) {
+		string w = params_.width.asHTMLString();
+		if (w != "100%")
+			style += ("width: " + params_.width.asHTMLString() + "; ");
+	}
 	// The special heights don't really mean anything for us.
 	if (!params_.height.empty() && params_.height_special == "none")
 		style += ("height: " + params_.height.asHTMLString() + "; ");

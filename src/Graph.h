@@ -16,6 +16,7 @@
 
 #include <list>
 #include <queue>
+#include <set>
 #include <vector>
 
 
@@ -31,9 +32,9 @@ public:
 	typedef std::vector<int> EdgePath;
 	/// \return a vector of the vertices from which "to" can be reached
 	EdgePath const getReachableTo(int to, bool clear_visited);
-	/// \return a vector of the vertices that can be reached from "from"
-	EdgePath const
-		getReachable(int from, bool only_viewable, bool clear_visited);
+	/// \return a vector of the reachable vertices, avoiding all "excludes"
+	EdgePath const getReachable(int from, bool only_viewable,
+		bool clear_visited, std::set<int> excludes = std::set<int>());
 	/// can "from" be reached from "to"?
 	bool isReachable(int from, int to);
 	/// find a path from "from" to "to". always returns one of the

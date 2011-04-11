@@ -65,23 +65,11 @@ void InsetCaption::write(ostream & os) const
 }
 
 
-docstring InsetCaption::name() const
+docstring InsetCaption::layoutName() const
 {
 	if (type_.empty())
 		return from_ascii("Caption");
 	return from_utf8("Caption:" + type_);
-}
-
-
-void InsetCaption::read(Lexer & lex)
-{
-#if 0
-	// We will enably this check again when the compability
-	// code is removed from Buffer::Read (Lgb)
-	lex.setContext("InsetCaption::Read: consistency check");
-	lex >> "Caption";
-#endif
-	InsetText::read(lex);
 }
 
 

@@ -194,6 +194,10 @@ void Converters::add(string const & from, string const & to,
 	if (converter.latex
 	    && (latex_command_.empty() || converter.latex_flavor == "latex"))
 		latex_command_ = subst(command, token_from, "");
+	// Similarly, set xelatex_command to xelatex.
+	if (converter.latex
+	    && (xelatex_command_.empty() || converter.latex_flavor == "xelatex"))
+		xelatex_command_ = subst(command, token_from, "");
 
 	if (it == converterlist_.end()) {
 		converterlist_.push_back(converter);
@@ -397,9 +401,12 @@ bool Converters::convert(Buffer const * buffer,
 		} else {
 			if (conv.need_aux && !run_latex
 			    && !latex_command_.empty()) {
-				LYXERR(Debug::FILES, "Running " << latex_command_
+				string const command = (buffer && buffer->params().useNonTeXFonts) ?
+					xelatex_command_ : latex_command_;
+				LYXERR(Debug::FILES, "Running " << command
 					<< " to update aux file");
-				runLaTeX(*buffer, latex_command_, runparams, errorList);
+				if (!runLaTeX(*buffer, command, runparams, errorList))
+					return false;
 			}
 
 			// FIXME UNICODE
@@ -684,12 +691,20 @@ Converters::getReachableTo(string const & target, bool const clear_visited)
 
 vector<Format const *> const
 Converters::getReachable(string const & from, bool const only_viewable,
-			 bool const clear_visited)
+			 bool const clear_visited, set<string> const & excludes)
 {
+	set<int> excluded_numbers;;
+
+	set<string>::const_iterator sit = excludes.begin();
+	set<string>::const_iterator const end = excludes.end();
+	for (; sit != end; ++sit)
+		excluded_numbers.insert(formats.getNumber(*sit));
+
 	vector<int> const & reachables =
 		G_.getReachable(formats.getNumber(from),
 				only_viewable,
-				clear_visited);
+				clear_visited,
+				excluded_numbers);
 
 	return intToFormat(reachables);
 }

@@ -38,7 +38,11 @@ public:
 	///
 	void mathmlize(MathStream &) const;
 	///
+	void htmlize(HtmlStream &) const;
+	///
 	void infoize(odocstream & os) const;
+	///
+	void validate(LaTeXFeatures & features) const;
 	///
 	InsetCode lyxCode() const { return MATH_ENSUREMATH_CODE; }
 private:

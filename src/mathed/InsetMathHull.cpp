@@ -53,6 +53,7 @@
 #include "support/convert.h"
 #include "support/lassert.h"
 #include "support/debug.h"
+#include "support/filetools.h"
 #include "support/gettext.h"
 #include "support/lstrings.h"
 
@@ -258,9 +259,8 @@ void InsetMathHull::updateBuffer(ParIterator const & it, UpdateType utype)
 		// this has to be done separately
 		docstring const eqstr = from_ascii("equation");
 		if (cnts.hasCounter(eqstr)) {
-			if (utype == OutputUpdate) {
+			if (utype == OutputUpdate)
 				counter_map[eqstr] = cnts.value(eqstr);
-			LYXERR0(counter_map[eqstr]);}
 			for (size_t i = 0; i != label_.size(); ++i) {
 				if (numbered(i)) {
 					cnts.step(eqstr, utype);
@@ -2147,18 +2147,35 @@ docstring InsetMathHull::xhtml(XHTMLStream & xs, OutputParams const & op) const
 	// tried and failed with MathML or HTML or (b) didn't try yet at all but
 	// aren't doing LaTeX, in which case we are doing Images.
 	if (!success && mathtype != BufferParams::LaTeX) {
-		loadPreview(docit_);
-		graphics::PreviewImage const * pimage = preview_->getPreviewImage(buffer());
-		if (pimage) {
+		graphics::PreviewImage const * pimage = 0;
+		if (!op.dryrun) {
+			loadPreview(docit_);
+			pimage = preview_->getPreviewImage(buffer());
 			// FIXME Do we always have png?
+		}
+
+		if (pimage || op.dryrun) {
+			string const filename = pimage ? pimage->filename().onlyFileName()
+			                               : "previewimage.png";
+			if (pimage) {
+				// if we are not in the master buffer, then we need to see that the
+				// generated image is copied there; otherwise, preview fails.
+				Buffer const * mbuf = buffer().masterBuffer();
+				if (mbuf != &buffer()) {
+					string mbtmp = mbuf->temppath();
+					FileName const mbufimg(support::addName(mbtmp, filename));
+					pimage->filename().copyTo(mbufimg);
+				}
+				// add the file to the list of files to be exported
+				op.exportdata->addExternalFile("xhtml", pimage->filename());
+			}
+
 			string const tag = (getType() == hullSimple) ? "span" : "div";
-			FileName const & mathimg = pimage->filename();
-			xs << html::StartTag(tag)
-			   << html::CompTag("img", "src=\"" + mathimg.onlyFileName() + "\"")
-			   << html::EndTag(tag);
-			xs.cr();
-			// add the file to the list of files to be exported
-			op.exportdata->addExternalFile("xhtml", mathimg);
+			xs << html::CR()
+			   << html::StartTag(tag)
+				 << html::CompTag("img", "src=\"" + filename + "\"")
+				 << html::EndTag(tag)
+				 << html::CR();
 			success = true;
 		}
 	}
@@ -2183,8 +2200,8 @@ docstring InsetMathHull::xhtml(XHTMLStream & xs, OutputParams const & op) const
 		xs << html::StartTag(tag, "class='math'")
 		   << XHTMLStream::ESCAPE_AND
 		   << latex 
-		   << html::EndTag(tag);
-		xs.cr();
+		   << html::EndTag(tag)
+		   << html::CR();
 	}
 	return docstring();
 }
