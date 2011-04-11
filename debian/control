@@ -35,6 +35,7 @@ Description: Document Processor
   * groff: improved table formatting in plain text exports
   * librsvg2-bin, inkscape: use the SVG image format in LyX documents
   * linuxdoc-tools: export SGML LinuxDoc documents
+  * mythes-*: use the OpenOffice.org/LibreOffice Thesaurus
   * noweb: import noweb files
   * rcs: integrated version control
   * sgmltools-lite: export SGML DocBook documents

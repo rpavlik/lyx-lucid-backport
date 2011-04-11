@@ -2,6 +2,8 @@ lyx (2.0.0~rc3-1) UNRELEASED; urgency=low
 
   * New upstream release
   * Update to Standards-Version: 3.9.2 - no changes required.
+  * Add 'mythes-*' to the list of nice to have packages in the long
+    description of the lyx binary package.
 
  -- Sven Hoexter <hoexter@debian.org>  Mon, 11 Apr 2011 20:56:44 +0200
 
