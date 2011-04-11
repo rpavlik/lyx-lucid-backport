@@ -59,8 +59,8 @@ namespace frontend {
 
 struct SpellcheckerWidget::Private
 {
-	Private(SpellcheckerWidget * parent)
-		: p(parent) {}
+	Private(SpellcheckerWidget * parent, DockView * dv)
+		: p(parent), dv_(dv), start_(true), incheck_(false) {}
 	/// update from controller
 	void updateSuggestions(docstring_list & words);
 	/// move to next position after current word
@@ -70,18 +70,34 @@ struct SpellcheckerWidget::Private
 	///
 	bool continueFromBeginning();
 	///
+	void setLanguage(Language const * lang);
+	/// test and set guard flag
+	bool inCheck() {
+		if (incheck_)
+			return true;
+		incheck_ = true;
+		return false;
+	}
+	void canCheck() { incheck_ = false; }
+	///
 	Ui::SpellcheckerUi ui;
 	///
 	SpellcheckerWidget * p;
 	///
 	GuiView * gv_;
+	///
+	DockView * dv_;
 	/// current word being checked and lang code
 	WordLangTuple word_;
+	///
+	bool start_;
+	///
+	bool incheck_;
 };
 
 
-SpellcheckerWidget::SpellcheckerWidget(GuiView * gv, QWidget * parent)
-	: QWidget(parent), d(new Private(this))
+SpellcheckerWidget::SpellcheckerWidget(GuiView * gv, DockView * dv, QWidget * parent)
+	: QTabWidget(parent), d(new Private(this, dv))
 {
 	d->ui.setupUi(this);
 	d->gv_ = gv;
@@ -159,8 +175,17 @@ void SpellcheckerWidget::updateView()
 {
 	BufferView * bv = d->gv_->documentBufferView();
 	setEnabled(bv != 0);
-	if (bv && hasFocus())
+	if (bv && hasFocus() && d->start_) {
+		d->start_ = false;
+
+		BufferView * bv = d->gv_->documentBufferView();
+		std::set<Language const *> languages = 
+		bv->buffer().masterBuffer()->getLanguages();
+		if (!languages.empty())
+			d->setLanguage(*languages.begin());
+		
 		d->check();
+	}
 }
 
 
@@ -171,8 +196,10 @@ bool SpellcheckerWidget::Private::continueFromBeginning()
 			qt_("We reached the end of the document, would you like to "
 				"continue from the beginning?"),
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-		if (answer == QMessageBox::No)
+		if (answer == QMessageBox::No) {
+			dv_->hide();
 			return false;
+		}
 		dispatch(FuncRequest(LFUN_BUFFER_BEGIN));
 		return true;
 }
@@ -185,7 +212,7 @@ void SpellcheckerWidget::Private::forward()
 
 	dispatch(FuncRequest(LFUN_ESCAPE));
 	dispatch(FuncRequest(LFUN_CHAR_FORWARD));
-	if (bv->cursor().atLastPos()) {
+	if (bv->cursor().depth() <= 1 && bv->cursor().atLastPos()) {
 		continueFromBeginning();
 		return;
 	}
@@ -194,8 +221,8 @@ void SpellcheckerWidget::Private::forward()
 		dispatch(FuncRequest(LFUN_CHAR_FORWARD));
  	}
 }
-	
-	
+
+
 void SpellcheckerWidget::on_languageCO_activated(int index)
 {
 	string const lang =
@@ -208,64 +235,96 @@ void SpellcheckerWidget::on_languageCO_activated(int index)
 }
 
 
+bool SpellcheckerWidget::initialiseParams(std::string const &)
+{
+	d->start_ = true;
+	return true;
+}
+
+
 void SpellcheckerWidget::on_ignoreAllPB_clicked()
 {
-	/// replace all occurrences of word
+	/// ignore all occurrences of word
+	if (d->inCheck())
+		return;
+	LYXERR(Debug::GUI, "Spellchecker: ignore all button");
 	if (d->word_.lang() && !d->word_.word().empty())
 		theSpellChecker()->accept(d->word_);
 	d->forward();
 	d->check();
+	d->canCheck();
 }
 
 
 void SpellcheckerWidget::on_addPB_clicked()
 {
 	/// insert word in personal dictionary
+	if (d->inCheck())
+		return;
+	LYXERR(Debug::GUI, "Spellchecker: add word button");
 	theSpellChecker()->insert(d->word_);
 	d->forward();
 	d->check();
+	d->canCheck();
 }
 
 
 void SpellcheckerWidget::on_ignorePB_clicked()
 {
+	/// ignore this occurrence of word
+	if (d->inCheck())
+		return;
+	LYXERR(Debug::GUI, "Spellchecker: ignore button");
 	d->forward();
 	d->check();
+	d->canCheck();
 }
 
 
 void SpellcheckerWidget::on_findNextPB_clicked()
 {
-	docstring const data = find2string(
-				qstring_to_ucs4(d->ui.wordED->text()),
+	if (d->inCheck())
+		return;
+	docstring const textfield = qstring_to_ucs4(d->ui.wordED->text());
+	docstring const datastring = find2string(textfield,
 				true, true, true);
-	dispatch(FuncRequest(LFUN_WORD_FIND, data));
+	LYXERR(Debug::GUI, "Spellchecker: find next (" << textfield << ")");
+	dispatch(FuncRequest(LFUN_WORD_FIND, datastring));
+	d->canCheck();
 }
 
 
 void SpellcheckerWidget::on_replacePB_clicked()
 {
+	if (d->inCheck())
+		return;
+	docstring const textfield = qstring_to_ucs4(d->ui.wordED->text());
 	docstring const replacement = qstring_to_ucs4(d->ui.replaceCO->currentText());
-	docstring const data = replace2string(
-		replacement, qstring_to_ucs4(d->ui.wordED->text()),
+	docstring const datastring = replace2string(replacement, textfield,
 		true, true, false, false);
 
 	LYXERR(Debug::GUI, "Replace (" << replacement << ")");
-	dispatch(FuncRequest(LFUN_WORD_REPLACE, data));
+	dispatch(FuncRequest(LFUN_WORD_REPLACE, datastring));
 	d->forward();
 	d->check();
+	d->canCheck();
 }
 
 
 void SpellcheckerWidget::on_replaceAllPB_clicked()
 {
-	docstring const data = replace2string(
-		qstring_to_ucs4(d->ui.replaceCO->currentText()),
-		qstring_to_ucs4(d->ui.wordED->text()),
+	if (d->inCheck())
+		return;
+	docstring const textfield = qstring_to_ucs4(d->ui.wordED->text());
+	docstring const replacement = qstring_to_ucs4(d->ui.replaceCO->currentText());
+	docstring const datastring = replace2string(replacement, textfield,
 		true, true, true, true);
-	dispatch(FuncRequest(LFUN_WORD_REPLACE, data));
+
+	LYXERR(Debug::GUI, "Replace all (" << replacement << ")");
+	dispatch(FuncRequest(LFUN_WORD_REPLACE, datastring));
 	d->forward();
 	d->check(); // continue spellchecking
+	d->canCheck();
 }
 
 
@@ -288,6 +347,14 @@ void SpellcheckerWidget::Private::updateSuggestions(docstring_list & words)
 }
 
 
+void SpellcheckerWidget::Private::setLanguage(Language const * lang)
+{
+	int const pos = ui.languageCO->findData(toqstr(lang->lang()));
+	if (pos != -1)
+		ui.languageCO->setCurrentIndex(pos);
+}
+
+
 void SpellcheckerWidget::Private::check()
 {
 	BufferView * bv = gv_->documentBufferView();
@@ -299,6 +366,7 @@ void SpellcheckerWidget::Private::check()
 	WordLangTuple word_lang;
 	docstring_list suggestions;
 
+	LYXERR(Debug::GUI, "Spellchecker: start check at " << from);
 	int progress;
 	try {
 		progress = bv->buffer().spellCheck(from, to, word_lang, suggestions);
@@ -322,9 +390,7 @@ void SpellcheckerWidget::Private::check()
 	// set suggestions
 	updateSuggestions(suggestions);
 	// set language
-	int const pos = ui.languageCO->findData(toqstr(word_lang.lang()->lang()));
-	if (pos != -1)
-		ui.languageCO->setCurrentIndex(pos);
+	setLanguage(word_lang.lang());
 
 	// FIXME LFUN
 	// If we used a LFUN, dispatch would do all of this for us
@@ -339,7 +405,7 @@ GuiSpellchecker::GuiSpellchecker(GuiView & parent,
 	: DockView(parent, "spellchecker", qt_("Spellchecker"),
 		   area, flags)
 {
-	widget_ = new SpellcheckerWidget(&parent);
+	widget_ = new SpellcheckerWidget(&parent, this);
 	setWidget(widget_);
 	setFocusProxy(widget_);
 }

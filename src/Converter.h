@@ -16,6 +16,7 @@
 #include "OutputParams.h"
 
 #include <vector>
+#include <set>
 #include <string>
 
 
@@ -78,6 +79,9 @@ public:
 	///
 	typedef ConverterList::const_iterator const_iterator;
 	///
+	typedef std::vector<std::string> FormatList;
+
+	///
 	Converter const & get(int i) const { return converterlist_[i]; }
 	///
 	Converter const * getConverter(std::string const & from,
@@ -97,7 +101,8 @@ public:
 	///
 	std::vector<Format const *> const
 	getReachable(std::string const & from, bool only_viewable,
-		     bool clear_visited);
+	       bool clear_visited,
+	       std::set<std::string> const & excludes = std::set<std::string>());
 
 	std::vector<Format const *> importableFormats();
 	std::vector<Format const *> exportableFormats(bool only_viewable);
@@ -152,6 +157,8 @@ private:
 	ConverterList converterlist_;
 	///
 	std::string latex_command_;
+	///
+	std::string xelatex_command_;
 	/// If \p from = /path/file.ext and \p to = /path2/file2.ext2 then
 	/// this method moves each /path/file*.ext file to /path2/file2*.ext2
 	bool move(std::string const & fmt,

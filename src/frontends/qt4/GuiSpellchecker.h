@@ -16,6 +16,7 @@
 #define GUISPELLCHECKER_H
 
 #include "DockView.h"
+#include <QTabWidget>
 
 class QListWidgetItem;
 
@@ -25,17 +26,17 @@ class docstring_list;
 
 namespace frontend {
 
-class SpellcheckerWidget : public QWidget
+class SpellcheckerWidget : public QTabWidget
 {
 	Q_OBJECT
 
 public:
-	SpellcheckerWidget(GuiView * gv, QWidget * parent = 0);
+	SpellcheckerWidget(GuiView * gv, DockView * dv, QWidget * parent = 0);
 	~SpellcheckerWidget();
 	///
 	void updateView();
 	///
-	bool initialiseParams(std::string const & data);
+	bool initialiseParams(std::string const &);
 
 private Q_SLOTS:
 	void on_findNextPB_clicked();
@@ -70,7 +71,7 @@ public:
 private:
 	///{
 	void updateView();
-	bool initialiseParams(std::string const &) { return true; }
+	bool initialiseParams(std::string const & data) { return widget_->initialiseParams(data); }
 	void clearParams() {}
 	void dispatchParams() {}
 	bool isBufferDependent() const { return false; }
