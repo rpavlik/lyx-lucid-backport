@@ -1,6 +1,7 @@
 lyx (2.0.0~rc3-1~lucid) UNRELEASED; urgency=low
 
   * New upstream release
+  * Update to Standards-Version: 3.9.2 - no changes required.
 
  -- Sven Hoexter <hoexter@debian.org>  Mon, 11 Apr 2011 20:56:44 +0200
 
