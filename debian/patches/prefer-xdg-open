@@ -1,7 +1,7 @@
 Add xdg-open as the first choice whenever this seems to be usefull.
 --- a/lib/configure.py
 +++ b/lib/configure.py
-@@ -458,7 +458,7 @@ def checkFormatEntries(dtl_tools):
+@@ -493,7 +493,7 @@ def checkFormatEntries(dtl_tools):
      checkViewerEditor('a SVG viewer and editor', ['inkscape'],
          rc_entry = [r'\Format svg        svg     SVG                    "" "%%" "%%"	"vector"'])
      #
@@ -10,7 +10,7 @@ Add xdg-open as the first choice whenever this seems to be usefull.
          rc_entry = [r'''\Format bmp        bmp     BMP                    "" "%s"	"%s"	""
  \Format gif        gif     GIF                    "" "%s"	"%s"	""
  \Format jpg        jpg     JPEG                   "" "%s"	"%s"	""
-@@ -535,11 +535,11 @@ def checkFormatEntries(dtl_tools):
+@@ -570,11 +570,11 @@ def checkFormatEntries(dtl_tools):
      #
      #checkProg('a Postscript interpreter', ['gs'],
      #  rc_entry = [ r'\ps_command "%%"' ])
@@ -24,7 +24,7 @@ Add xdg-open as the first choice whenever this seems to be usefull.
  		    'gv', 'ghostview'],
          rc_entry = [r'''\Format pdf        pdf    "PDF (ps2pdf)"          P  "%%"	""	"document,vector,menu=export"
  \Format pdf2       pdf    "PDF (pdflatex)"        F  "%%"	""	"document,vector,menu=export"
-@@ -547,24 +547,24 @@ def checkFormatEntries(dtl_tools):
+@@ -582,24 +582,24 @@ def checkFormatEntries(dtl_tools):
  \Format pdf4       pdf    "PDF (XeTeX)"           X  "%%"	""	"document,vector,menu=export"
  \Format pdf5       pdf    "PDF (LuaTeX)"          u  "%%"	""	"document,vector,menu=export"'''])
      #
