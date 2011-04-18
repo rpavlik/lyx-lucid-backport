@@ -2,6 +2,8 @@ lyx (2.0.0~rc3-2) unstable; urgency=low
 
   * Add debian/patches/path_max_hurd to fix another PATH_MAX problem in LyX.
     Patch provided by Pino Toscano. (Closes: #623164)
+  * Add debian/patches/fix-assertion-618687 to fix an assertion during the
+    startup in LyX. (Closes: #618687)
 
  -- Sven Hoexter <hoexter@debian.org>  Mon, 18 Apr 2011 13:44:51 +0200
 
