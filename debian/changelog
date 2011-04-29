@@ -1,5 +1,7 @@
 lyx (2.0.0-1) UNRELEASED; urgency=low
 
+  * New upstream release - 2.0.0 final
+    + Remove patches/fix-assertion-618687, included upstream.
   * According to dev-ref 6.2.2 the short description is no sentence so
     we should start in lowercase letters.
 
