@@ -527,7 +527,7 @@ def checkFormatEntries(dtl_tools):
 \Format xpm        xpm     XPM                    "" "%s"	"%s"	""''' % \
         (iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie, iv, ie) )
     #
-    checkViewerEditor('a text editor', ['sensible-editor', 'xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
+    checkViewerEditor('a text editor', ['xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
         'nedit', 'gedit', 'notepad'],
         rc_entry = [r'''\Format asciichess asc    "Plain text (chess output)"  "" ""	"%%"	""
 \Format asciiimage asc    "Plain text (image)"         "" ""	"%%"	""
@@ -561,7 +561,7 @@ def checkFormatEntries(dtl_tools):
     if xhtmlview == "":
         addToRC(r'\Format xhtml      xhtml   "LyXHTML"              y "" ""  "document,menu=export"')
  #
-    checkEditor('a BibTeX editor', ['sensible-editor', 'jabref', 'JabRef', \
+    checkEditor('a BibTeX editor', ['jabref', 'JabRef', \
         'pybliographic', 'bibdesk', 'gbib', 'kbib', \
         'kbibtex', 'sixpack', 'bibedit', 'tkbibtex' \
         'xemacs', 'gvim', 'kedit', 'kwrite', 'kate', \
@@ -1169,22 +1169,32 @@ def checkModulesConfig():
 ## configuration change. 
 ## "ModuleName" "filename" "Description" "Packages" "Requires" "Excludes" "Category"
 ''')
+
   # build the list of available modules
-  foundClasses = []
+  seen = []
+  # note that this searches the local directory first, then the
+  # system directory. that way, we pick up the user's version first.
   for file in glob.glob( os.path.join('layouts', '*.module') ) + \
       glob.glob( os.path.join(srcdir, 'layouts', '*.module' ) ) :
       # valid file?
       logger.info(file)
       if not os.path.isfile(file): 
           continue
-      retval = processModuleFile(file, bool_docbook)
+
+      filename = file.split(os.sep)[-1]
+      filename = filename[:-7]
+      if seen.count(filename):
+          continue
+
+      seen.append(filename)
+      retval = processModuleFile(file, filename, bool_docbook)
       if retval != "":
           tx.write(retval)
   tx.close()
   logger.info('\tdone')
 
 
-def processModuleFile(file, bool_docbook):
+def processModuleFile(file, filename, bool_docbook):
     ''' process module file and get a line of result
 
         The top of a module file should look like this:
@@ -1209,8 +1219,6 @@ def processModuleFile(file, bool_docbook):
     modname = desc = pkgs = req = excl = catgy = ""
     readingDescription = False
     descLines = []
-    filename = file.split(os.sep)[-1]
-    filename = filename[:-7]
 
     for line in open(file).readlines():
       if readingDescription:

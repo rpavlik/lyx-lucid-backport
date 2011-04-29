@@ -3103,6 +3103,172 @@ http://wiki.lyx.org/FAQ/Unsorted#toc31
 \end_layout
 
 \begin_layout Section
+LyX Archives
+\end_layout
+
+\begin_layout Standard
+Users sometimes need to be able to 
+\begin_inset Quotes eld
+\end_inset
+
+bundle
+\begin_inset Quotes erd
+\end_inset
+
+ a LyX file together with all the images (and other files) on which it depends,
+ either for sending to a publisher or for sharing with a co-author.
+ LyX 2.0 includes a Python script (
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+lyxpak.py
+\end_layout
+
+\end_inset
+
+) that automates this process.
+ To use it, you must have either the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+zipfile
+\end_layout
+
+\end_inset
+
+ or 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+tarfile
+\end_layout
+
+\end_inset
+
+ python modules installed on your system.
+ By default, the script prefers the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+gzip
+\end_layout
+
+\end_inset
+
+-compressed 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+tar
+\end_layout
+
+\end_inset
+
+ format on Unix-like systems and the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+zip
+\end_layout
+
+\end_inset
+
+ format on Windows.
+\end_layout
+
+\begin_layout Standard
+LyX's configuration process will set the script up to export a `LyX Archive',
+ and this format will then be available under 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+File\SpecialChar \menuseparator
+Export
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Independently of the platform, the generation of a particular archive format
+ can be forced by adding either the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+-t
+\end_layout
+
+\end_inset
+
+ (for the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+tar
+\end_layout
+
+\end_inset
+
+ format) or 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+-z
+\end_layout
+
+\end_inset
+
+ (for the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+zip
+\end_layout
+
+\end_inset
+
+ format) switch to the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+LyX\SpecialChar \menuseparator
+LyX Archive
+\end_layout
+
+\end_inset
+
+ converter in 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+Tools\SpecialChar \menuseparator
+Preferences\SpecialChar \menuseparator
+File Handling\SpecialChar \menuseparator
+Converters
+\end_layout
+
+\end_inset
+
+.
+ (Make sure you add the switch after the script name, not before it.)
+\end_layout
+
+\begin_layout Section
 Fancy Headers and Footers
 \end_layout
 
@@ -5778,7 +5944,6 @@ usepackage{pdfsync}
 \end_layout
 
 \begin_layout Itemize
- 
 \begin_inset Flex Code
 status collapsed
 

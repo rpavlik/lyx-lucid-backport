@@ -522,7 +522,7 @@ InsetTableCell splitCell(InsetTableCell & head, docstring const align_d, bool & 
 
 	DocIterator dit = doc_iterator_begin(&head.buffer(), &head);
 	for (; dit; dit.forwardChar())
-		if (dit.inTexted() && dit.depth()==1
+		if (dit.inTexted() && dit.depth() == 1
 			&& dit.paragraph().find(align_d, false, false, dit.pos()))
 			break;
 
@@ -2484,14 +2484,17 @@ void Tabular::TeXRow(otexstream & os, row_type row,
 			&& cellInfo(cell).decimal_width != 0) {
 			// copy cell and split in 2
 			InsetTableCell head = InsetTableCell(*cellInset(cell).get());
-			head.getText(0)->setMacrocontextPosition(
-				cellInset(cell)->getText(0)->macrocontextPosition());
 			head.setBuffer(buffer());
+			DocIterator dit = cellInset(cell)->getText(0)->macrocontextPosition();
+			dit.pop_back();
+			dit.push_back(CursorSlice(head));
+			head.setMacrocontextPositionRecursive(dit);
 			bool hassep = false;
 			InsetTableCell tail = splitCell(head, column_info[c].decimal_point, hassep);
-			tail.getText(0)->setMacrocontextPosition(
-				head.getText(0)->macrocontextPosition());
 			tail.setBuffer(head.buffer());
+			dit.pop_back();
+			dit.push_back(CursorSlice(tail));
+			tail.setMacrocontextPositionRecursive(dit);
 			head.latex(os, newrp);
 			os << '&';
 			tail.latex(os, newrp);
@@ -3465,30 +3468,36 @@ void InsetTabular::metrics(MetricsInfo & mi, Dimension & dim) const
 				mi.base.bv->textMetrics(tabular.cellInset(cell)->getText(0));
 
 			// determine horizontal offset because of decimal align (if necessary)
-			int decimal_hoffset = 0;
 			int decimal_width = 0;
 			if (tabular.getAlignment(cell) == LYX_ALIGN_DECIMAL) {
-				// make a copy which we will split in 2
-				InsetTableCell head = InsetTableCell(*tabular.cellInset(cell).get());
-				head.getText(0)->setMacrocontextPosition(
-					tabular.cellInset(cell)->getText(0)->macrocontextPosition());
-				head.setBuffer(tabular.buffer());
-				// split in 2 and calculate width of each part
-				bool hassep = false;
-				InsetTableCell tail = 
-					splitCell(head, tabular.column_info[c].decimal_point, hassep);
-				tail.getText(0)->setMacrocontextPosition(
-					head.getText(0)->macrocontextPosition());
-				tail.setBuffer(head.buffer());
-				Dimension dim1;
-				head.metrics(m, dim1);
-				decimal_hoffset = dim1.width();
-				if (hassep) {
+				InsetTableCell tail = InsetTableCell(*tabular.cellInset(cell).get());
+				tail.setBuffer(tabular.buffer());
+				// we need to set macrocontext position everywhere
+				// otherwise we crash with nested insets (e.g. footnotes)
+				// after decimal point
+				DocIterator dit = tabular.cellInset(cell)->getText(0)->macrocontextPosition();
+				dit.pop_back();
+				dit.push_back(CursorSlice(tail));
+				tail.setMacrocontextPositionRecursive(dit);
+
+				// remove text leading decimal point
+				docstring const align_d = tabular.column_info[c].decimal_point;
+				dit = doc_iterator_begin(&tail.buffer(), &tail);
+				for (; dit; dit.forwardChar())
+					if (dit.inTexted() && dit.depth()==1
+						&& dit.paragraph().find(align_d, false, false, dit.pos()))
+						break;
+
+				pit_type const psize = tail.paragraphs().front().size();
+				if (dit) {
+					tail.paragraphs().front().eraseChars(0,
+						dit.pos() < psize ? dit.pos() + 1 : psize, false);
+					Dimension dim1;
 					tail.metrics(m, dim1);
 					decimal_width = dim1.width();
 				}
 			}
-			tabular.cell_info[r][c].decimal_hoffset = decimal_hoffset;
+			tabular.cell_info[r][c].decimal_hoffset = tm.width() - decimal_width;
 			tabular.cell_info[r][c].decimal_width = decimal_width;
 
 			// with LYX_VALIGN_BOTTOM the descent is relative to the last par
@@ -4027,11 +4036,15 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 			// setting also the right targetX.
 			cur.selHandle(act == LFUN_DOWN_SELECT);
 			if (tabular.cellRow(cur.idx()) != tabular.nrows() - 1) {
+				int const xtarget = cur.targetX();
+				// WARNING: Once cur.idx() has been reset, the cursor is in
+				// an inconsistent state until pos() has been set. Be careful
+				// what you do with it!
 				cur.idx() = tabular.cellBelow(cur.idx());
 				cur.pit() = 0;
 				TextMetrics const & tm =
 					cur.bv().textMetrics(cell(cur.idx())->getText(0));
-				cur.pos() = tm.x2pos(cur.pit(), 0, cur.targetX());
+				cur.pos() = tm.x2pos(cur.pit(), 0, xtarget);
 				cur.setCurrentFont();
 			}
 		}
@@ -4061,13 +4074,17 @@ void InsetTabular::doDispatch(Cursor & cur, FuncRequest & cmd)
 			// setting also the right targetX.
 			cur.selHandle(act == LFUN_UP_SELECT);
 			if (tabular.cellRow(cur.idx()) != 0) {
+				int const xtarget = cur.targetX();
+				// WARNING: Once cur.idx() has been reset, the cursor is in
+				// an inconsistent state until pos() has been set. Be careful
+				// what you do with it!
 				cur.idx() = tabular.cellAbove(cur.idx());
 				cur.pit() = cur.lastpit();
 				Text const * text = cell(cur.idx())->getText(0);
 				TextMetrics const & tm = cur.bv().textMetrics(text);
 				ParagraphMetrics const & pm =
 					tm.parMetrics(cur.lastpit());
-				cur.pos() = tm.x2pos(cur.pit(), pm.rows().size()-1, cur.targetX());
+				cur.pos() = tm.x2pos(cur.pit(), pm.rows().size()-1, xtarget);
 				cur.setCurrentFont();
 			}
 		}

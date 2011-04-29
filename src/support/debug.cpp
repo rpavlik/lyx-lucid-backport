@@ -22,6 +22,7 @@
 #include <iostream>
 #include <iomanip>
 
+
 using namespace std;
 using namespace lyx::support;
 
@@ -241,5 +242,7 @@ LyXErr & operator<<(LyXErr & l, ios_base &(*t)(ios_base &))
 
 // The global instance
 LyXErr lyxerr;
+
+
 
 } // namespace lyx
