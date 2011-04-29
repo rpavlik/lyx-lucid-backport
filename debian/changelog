@@ -1,4 +1,4 @@
-lyx (2.0.0~rc3-3) UNRELEASED; urgency=low
+lyx (2.0.0-1) UNRELEASED; urgency=low
 
   * According to dev-ref 6.2.2 the short description is no sentence so
     we should start in lowercase letters.
