@@ -2,14 +2,13 @@
 # Author : Martin vermeer <martin.vermeer@tkk.fi>
 # Custom Inset layouts definition
 
-Format 34
+Format 35
 
 # Error fallback:
-InsetLayout Custom
+InsetLayout "Flex:Custom"
    LyxType	end
    LabelString	"UNDEFINED"
    Font
      Color	error
    EndFont
 End
-

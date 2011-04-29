@@ -1456,6 +1456,7 @@ void BufferView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		buffer_.text().cursorBottom(cur);
 		// accept everything in a single step to support atomic undo
 		buffer_.text().acceptOrRejectChanges(cur, Text::ACCEPT);
+		cur.resetAnchor();
 		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
 		dr.screenUpdate(Update::Force | Update::FitCursor);
 		dr.forceBufferUpdate();
@@ -1469,6 +1470,7 @@ void BufferView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 		// reject everything in a single step to support atomic undo
 		// Note: reject does not work recursively; the user may have to repeat the operation
 		buffer_.text().acceptOrRejectChanges(cur, Text::REJECT);
+		cur.resetAnchor();
 		// FIXME: Move this LFUN to Buffer so that we don't have to do this:
 		dr.screenUpdate(Update::Force | Update::FitCursor);
 		dr.forceBufferUpdate();
@@ -1681,6 +1683,7 @@ void BufferView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 
 		d->text_metrics_[&buffer_.text()].editXY(cur, p.x_, p.y_,
 			true, act == LFUN_SCREEN_UP); 
+		cur.resetAnchor();
 		//FIXME: what to do with cur.x_target()?
 		bool update = in_texted && cur.bv().checkDepm(cur, old);
 		cur.finishUndo();
@@ -2190,6 +2193,8 @@ void BufferView::setCursorFromRow(int row)
 		buffer_.text().setCursor(d->cursor_, 0, 0);
 	else
 		buffer_.text().setCursor(d->cursor_, buffer_.getParFromID(tmpid).pit(), tmppos);
+	d->cursor_.setSelection(false);
+	d->cursor_.resetAnchor();
 	recenter();
 }
 
@@ -2275,6 +2280,11 @@ void BufferView::setCursor(DocIterator const & dit)
 
 	d->cursor_.setCursor(dit);
 	d->cursor_.setSelection(false);
+	// FIXME
+	// It seems on general grounds as if this is probably needed, but
+	// it is not yet clear.
+	// See bug #7394 and r38388.
+	// d->cursor.resetAnchor();
 }
 
 
@@ -2314,12 +2324,13 @@ bool BufferView::mouseSetCursor(Cursor & cur, bool select)
 	d->cursor_.macroModeClose();
 
 	// Has the cursor just left the inset?
-	bool leftinset = (&d->cursor_.inset() != &cur.inset());
+	bool const leftinset = (&d->cursor_.inset() != &cur.inset());
 	if (leftinset)
 		d->cursor_.fixIfBroken();
 
 	// FIXME: shift-mouse selection doesn't work well across insets.
-	bool do_selection = select && &d->cursor_.normalAnchor().inset() == &cur.inset();
+	bool const do_selection = 
+			select && &d->cursor_.normalAnchor().inset() == &cur.inset();
 
 	// do the dEPM magic if needed
 	// FIXME: (1) move this to InsetText::notifyCursorLeaves?

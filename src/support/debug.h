@@ -124,6 +124,7 @@ namespace Debug {
 	/// Show all the possible tags that can be used for debugging
 	void showTags(std::ostream & os);
 
+
 } // namespace Debug
 
 
