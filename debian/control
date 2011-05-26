@@ -4,8 +4,8 @@ Uploaders: Per Olofsson <pelle@debian.org>, Sven Hoexter <hoexter@debian.org>
 Section: editors
 Priority: optional
 Standards-Version: 3.9.2
-Vcs-Git: git://git.debian.org/git/pkg-lyx/lyx.git
-Vcs-Browser: http://git.debian.org/?p=pkg-lyx/lyx.git
+Vcs-Git: git://anonscm.debian.org/pkg-lyx/lyx.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-lyx/lyx.git
 Homepage: http://www.lyx.org/
 Build-Depends: python (>= 2.6.6-3), debhelper (>= 8),
  libz-dev, libx11-dev, libenchant-dev, libmythes-dev,
