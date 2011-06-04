@@ -1,6 +1,8 @@
 lyx (2.0.0-2) UNRELEASED; urgency=low
 
   * Update Vcs-* to the new anonscm.d.o structure.
+  * Add texlive-xetex, etoolbox to the suggests lists and description of
+    the lyx binary package. (Closes: #629153)
 
  -- Sven Hoexter <hoexter@debian.org>  Thu, 26 May 2011 14:34:31 +0200
 
