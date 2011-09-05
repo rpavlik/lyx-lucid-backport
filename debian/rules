@@ -64,4 +64,4 @@ override_dh_installtex:
 	dh_installtex -plyx-common
 
 override_dh_builddeb:
-	dh_builddeb -- -Z bzip2
+	dh_builddeb -- -Z xz
