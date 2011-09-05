@@ -1,4 +1,4 @@
-lyx (2.0.0-2~lucid) UNRELEASED; urgency=low
+lyx (2.0.1-1~lucid) UNRELEASED; urgency=low
 
   * Update Vcs-* to the new anonscm.d.o structure.
   * Add texlive-xetex, etoolbox to the suggests lists and description of
