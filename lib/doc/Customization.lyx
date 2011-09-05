@@ -30,14 +30,6 @@
   \pdfbookmark[1]{\contentsname}{}
   \myTOC
   \mainmatter }
-
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
-
-% used for multi-column text
-\usepackage{multicol}
 \end_preamble
 \options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
@@ -18735,7 +18727,7 @@ This distinction is important in order to allow updating of the material
  multiple export formats.
  For instance, in the case of a plain text file, it is not exactly an award-winn
 ing idea to include the figure as raw PostScript.
- Instead, you'd either prefer to just include a reference to the figure
+ Instead, you would either prefer to just include a reference to the figure
  or try to invoke some graphics to ASCII converter to make the final result
  look similar to the real graphics.
  The external material management allows you to do this, because it is parametri

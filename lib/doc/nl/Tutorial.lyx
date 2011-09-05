@@ -1,5 +1,5 @@
-#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 404
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass book
@@ -29,22 +29,18 @@
   \pdfbookmark[1]{\contentsname}{}
   \myTOC
   \mainmatter }
-
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
 \end_preamble
 \use_default_options false
 \maintain_unincluded_children false
 \language dutch
+\language_package default
 \inputencoding auto
 \fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
-\use_xetex false
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
@@ -99,6 +95,7 @@
 \tracking_changes false
 \output_changes false
 \html_math_output 0
+\html_css_as_file 0
 \html_be_strict false
 \end_header
 
@@ -217,7 +214,7 @@ Deze tutorial bestaat uit voorbeelden en oefeningen.
  Om het maximale uit dit document te halen zul je, al lezend, alle stomme
  kleine dingen moeten typen die we je opdragen, en alle oefeningen moeten
  doen om te kijken of je ze goed doet.
- Gemakshalve zou je de PostScript® versie van dit document kunnen uitprinten.
+ Gemakshalve zou je de PostScript versie van dit document kunnen uitprinten.
 \end_layout
 
 \begin_layout Standard
@@ -930,7 +927,7 @@ dvi
 dvi
 \family default
 -bestand hierna invoeren in elk programma dat dit formaat begrijpt, of dit
- kan omzetten naar andere formaten zoals het PostScript® formaat.
+ kan omzetten naar andere formaten zoals het PostScript formaat.
 \end_layout
 
 \begin_layout Standard
@@ -999,29 +996,29 @@ klasse
 Hier is een overzicht:
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 TeX: Opmaaktaal met gebruik van macro's.
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 LaTeX: Macropakket gebaseerd op TeX\SpecialChar \@.
 
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 klassen: Beschrijving van een type document, gebruik makend van LaTeX\SpecialChar \@.
 
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 stijlen: Verandert op een bepaalde manier het standaard gedrag van LaTeX.
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 LyX: Visuele, WYSIWYM tekstverwerker dat LaTeX in al zijn glorie gebruikt
  om het printwerk te doen.
@@ -1194,7 +1191,7 @@ dvips
 \family typewriter
 dvi
 \family default
--bestanden om te zetten naar Postscript®-bestanden), en een werkende printer.
+-bestanden om te zetten naar Postscript-bestanden), en een werkende printer.
  Dit zijn nogal wat aannames.
  Als een hiervan onjuist is, zul je zelf (of een bevriende systeem beheerder)
  een werkend systeem moeten opzetten.
@@ -5714,12 +5711,14 @@ Oefening:
  Door gebruik te maken van de verschillende hulpmiddelen die je in dit deel
  hebt leren kennen, zou je nu in staat moeten zijn een uitdrukking zoals
  de volgende te schrijven:
-\begin_inset Formula \[
+\begin_inset Formula 
+\[
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
 \sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
-\end{array}\right.\]
+\end{array}\right.
+\]
 
 \end_inset
 
@@ -5745,8 +5744,10 @@ dvi
 \family default
  bestand.
  Je zal twee afzonderlijke vergelijkingen in weergave modus moeten invoeren.
-\begin_inset Formula \[
-x=y+y+y+y+y\]
+\begin_inset Formula 
+\[
+x=y+y+y+y+y
+\]
 
 \end_inset
 
@@ -5754,8 +5755,10 @@ x=y+y+y+y+y\]
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
-=5y\]
+\begin_inset Formula 
+\[
+=5y
+\]
 
 \end_inset
 
@@ -5771,7 +5774,8 @@ Dit lijkt nergens op! Als je twee of meer opeenvolgende vergelijkingen schrijft,
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 x & = & y+y+y+y+y\\
  & = & 5y
 \end{eqnarray*}
@@ -5805,7 +5809,8 @@ je C-Return
  invoegpunten leeg te laten.
  Dit kan handig zijn voor voorbeelden zoals de bovenstaande, of om zeer
  lange vergelijkingen over meerdere regels te verdelen zoals:
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 x & = & a+b+c+d\\
  &  & +e+f+g
 \end{eqnarray*}
@@ -5860,7 +5865,8 @@ C-Tab
 \end_inset
 
  om te vormen tot
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 E & = & mc^{2}\\
  & = & mc\times c
 \end{eqnarray*}
@@ -6001,7 +6007,7 @@ Layout
 \end_layout
 
 \begin_layout Itemize
-LyX ondersteunt het invoegen van figuren in PostScript® formaat (of ruwe
+LyX ondersteunt het invoegen van figuren in PostScript formaat (of ruwe
  LaTeX) binnen documenten.
  (Je raadt het al: 
 \family sans

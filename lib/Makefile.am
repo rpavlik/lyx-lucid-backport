@@ -4,8 +4,9 @@ SUBDIRS = doc lyx2lyx
 
 CHMOD = chmod
 
-dist_pkgdata_DATA = CREDITS chkconfig.ltx external_templates encodings \
-	layouttranslations languages symbols syntax.default unicodesymbols
+dist_pkgdata_DATA = CREDITS autocorrect chkconfig.ltx external_templates \
+	encodings layouttranslations languages symbols syntax.default \
+	unicodesymbols
 
 # Note that we "chmod 755" manually this file in install-data-hook.
 dist_pkgdata_PYTHON = configure.py 
@@ -248,7 +249,6 @@ dist_examples_DATA = \
 	examples/chess-article.lyx \
 	examples/chessgame.lyx \
 	examples/docbook_article.lyx \
-	examples/enumitem.lyx \
 	examples/europeCV.lyx \
 	examples/example_lyxified.lyx \
 	examples/example_raw.lyx \
@@ -936,6 +936,7 @@ dist_imagesmath_DATA = \
 	images/math/underrightarrow.png \
 	images/math/underscore.png \
 	images/math/underset.png \
+	images/math/undertilde.png \
 	images/math/uparrow.png \
 	images/math/uparrow2.png \
 	images/math/updownarrow.png \
@@ -947,6 +948,7 @@ dist_imagesmath_DATA = \
 	images/math/upsilon2.png \
 	images/math/upuparrows.png \
 	images/math/urcorner.png \
+	images/math/utilde.png \
 	images/math/varepsilon.png \
 	images/math/varkappa.png \
 	images/math/varnothing.png \
@@ -1541,11 +1543,9 @@ dist_templates_DATA = \
 	templates/JSS-article.lyx \
 	templates/kluwer.lyx \
 	templates/koma-letter2.lyx \
-	templates/latex8.lyx \
 	templates/letter.lyx \
 	templates/lettre.lyx \
 	templates/README.new_templates \
-	templates/revtex.lyx \
 	templates/revtex4.lyx \
 	templates/slides.lyx \
 	templates/svjour3.lyx \

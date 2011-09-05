@@ -41,16 +41,17 @@
   \myTOC
   \mainmatter }
 
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
-
 % define a short command for \textvisiblespace
 \newcommand{\spce}{\textvisiblespace}
 
 % macro for italic page numbers in the index
 \newcommand{\IndexDef}[1]{\textit{#1}}
+
+% for customized page headers/footers
+% only needed because they are only used in one section of the document
+\usepackage{fancyhdr}
+% change header rule width
+\renewcommand{\headrulewidth}{2pt}
 
 \usepackage{t1enc}
 \renewcommand{\seename}{→}
@@ -63,8 +64,12 @@
 %\AtBeginDvi{\special{pdf:tounicode 90ms-RKSJ-UCS2}}\fi
 %\AtBeginDvi{\special{pdf:tounicode EUC-UCS2}}
 \end_preamble
-\options intoc,bibliography=totoc,index=totoc,BCOR7.5mm,captions=tableheading
+\options refpage,intoc,bibliography=totoc,index=totoc,BCOR7.5mm,captions=tableheading
 \use_default_options false
+\begin_modules
+customHeadersFooters
+enumitem
+\end_modules
 \maintain_unincluded_children false
 \language japanese
 \language_package default
@@ -1307,6 +1312,24 @@ Delete
 を押すことによって、実行できます。
 \end_layout
 
+\begin_layout Standard
+
+\lang english
+The content of an inset is selected using the shortcut 
+\begin_inset Info
+type  "shortcuts"
+arg   "inset-select-all"
+\end_inset
+
+, the shortcut 
+\begin_inset Info
+type  "shortcuts"
+arg   "command-sequence buffer-begin ; buffer-end-select"
+\end_inset
+
+ selects the whole document.
+\end_layout
+
 \begin_layout Section
 元に戻すとやり直す
 \begin_inset Index idx
@@ -1675,52 +1698,6 @@ LyXは前のマウスの位置と新しいマウスの位置の間の文字を�
 \end_layout
 
 \end_deeper
-\begin_layout Enumerate
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-表
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-右マウスボタン
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-を
-\family default
-\series default
-\shape default
-\size default
-\emph on
-\bar default
-\noun default
-\color inherit
-シングルクリック
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-するとダイアログが開き、表を操作できます。
-\end_layout
-
-\end_deeper
 \begin_layout Section
 移動
 \begin_inset CommandInset label
@@ -1805,7 +1782,7 @@ reference "sec:図・表・アルゴリズム一覧"
 \begin_layout Standard
 文書構造ウィンドウ下部の
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/down.png
+	filename ../../images/down.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -1813,7 +1790,7 @@ reference "sec:図・表・アルゴリズム一覧"
 
 および
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/up.png
+	filename ../../images/up.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -1822,7 +1799,7 @@ reference "sec:図・表・アルゴリズム一覧"
 を使うと、例えば、第2.5節を第2.4節の前に持っていったりするなど、節の文書内での位置を変えることができます。すると、LyXは、自動的に節番号を新しい順序に振り直
 してくれます。
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/promote.png
+	filename ../../images/promote.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -1830,7 +1807,7 @@ reference "sec:図・表・アルゴリズム一覧"
 
 ないし
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/demote.png
+	filename ../../images/demote.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -3691,6 +3668,62 @@ status open
 \end_layout
 
 \begin_layout Subsubsection
+
+\lang english
+Local Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Local-Layout"
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Document ! Local Layout
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Modules are to LyX much as packages are to LaTeX: They are intended to be
+ used in a variety of different documents, and if you often find yourself
+ needing the same sort of thing in different documents, you should consider
+ writing a module for this purpose.
+ Sometimes, however, a particular document has very special needs, and you
+ find yourself wanting a specific inset or character style, but only that
+ one time.
+ You want something that is like a document's own LaTeX preamble.
+ What you want is LyX's 
+\begin_inset Quotes eld
+\end_inset
+
+Local Layout
+\begin_inset Quotes erd
+\end_inset
+
+.
+ See section 
+\emph on
+Local Layout
+\emph default
+ of the 
+\emph on
+Customization
+\emph default
+ manual for information on how to use it.
+\end_layout
+
+\begin_layout Subsubsection
 特性
 \end_layout
 
@@ -4564,26 +4597,7 @@ Latexぱっけーじ@LaTeXパッケージ ! fancyhdr
 \bar no
 \noun off
 \color none
-パッケージが装備されていれば、完全にカスタマイズできるヘッダとフッタを生成することができます。現在のところ、LyXでのサポートは十分でなく、このパッケージの十分
-な力を引き出すには、プリアンブルに自分でコードを書く必要があります。詳しくは
-\family default
-\series bold
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-fancyhdr
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-パッケージの文書
+パッケージが装備されていれば、完全にカスタマイズできるヘッダとフッタを生成することができます。
 \family default
 \series default
 \shape default
@@ -4592,30 +4606,28 @@ fancyhdr
 \bar default
 \noun default
 \color inherit
-
-\begin_inset CommandInset citation
-LatexCommand cite
-key "fancyhdr"
-
+\lang english
+How they are defined is explained in section
+\begin_inset space ~
 \end_inset
 
 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-を見て下さい。
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Customized-Page-Headers"
+
+\end_inset
+
+。
 \end_layout
 
 \begin_layout Standard
 段落の分け方については、第
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:段落の字下げと分け方"
+reference "sub:段落の分け方"
 
 \end_inset
 
@@ -4700,6 +4712,7 @@ status collapsed
 印刷する用紙寸法を選びます。選べるのは、次のサイズです。
 \end_layout
 
+\begin_deeper
 \begin_layout Itemize
 
 \family sans
@@ -4709,35 +4722,31 @@ status collapsed
 \begin_layout Itemize
 
 \family sans
-A3, A4,
-\family default
- 
-\family sans
-A5
+A0 - A6
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-B3, B4, B5
+B0 - B6
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-USレター
+C0 - C6
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-USリーガル
+USレター, USリーガル, USエグゼクティブ
 \end_layout
 
 \begin_layout Itemize
 
 \family sans
-USエグゼクティブ
+JIS B0 - JIS B6
 \end_layout
 
 \begin_layout Itemize
@@ -4746,6 +4755,7 @@ USエグゼクティブ
 任意設定
 \end_layout
 
+\end_deeper
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 
@@ -4753,42 +4763,16 @@ USエグゼクティブ
 用紙方向
 \family default
  
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-出力を
+\lang english
+To choose whether to output as 
 \family sans
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-横向き
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-に印刷するか、
+Landscape
+\family default
+ or as 
 \family sans
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-縦向き
+Portrait
+\family default
+.
 \family roman
 \series medium
 \shape up
@@ -4797,7 +4781,8 @@ USエグゼクティブ
 \bar no
 \noun off
 \color none
-に印刷するかを選ぶ2つの切替ボタンです。
+\lang japanese
+。
 \end_layout
 
 \begin_layout Labeling
@@ -5114,6 +5099,13 @@ LaTeXが行います。
 
 \begin_layout Subsection
 段落の分け方
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:段落の分け方"
+
+\end_inset
+
+
 \begin_inset Index idx
 status collapsed
 
@@ -5232,25 +5224,7 @@ status collapsed
 \bar no
 \noun off
 \color none
-さい。余白の寸法は、ダイアログの中で設定できますが、行頭下げの大きさを変えるには、プリアンブルで
-\end_layout
-
-\begin_layout Quote
-
-\series bold
-
-\backslash
-setlength{
-\backslash
-parindent}{長さ}
-\end_layout
-
-\begin_layout Standard
-と設定しなくてはなりません。ここで「長さ」は、付録で挙げられている単位のいずれかです。既定値は30
-\begin_inset space \thinspace{}
-\end_inset
-
-ptです。
+さい。
 \end_layout
 
 \begin_layout Subsection
@@ -6670,6 +6644,16 @@ status collapsed
 
 \begin_layout Standard
 
+\lang english
+The unnumbered section headings have a 
+\begin_inset Quotes eld
+\end_inset
+
+*
+\begin_inset Quotes erd
+\end_inset
+
+ at the end of their name
 \family roman
 \series medium
 \shape up
@@ -6678,50 +6662,8 @@ status collapsed
 \bar no
 \noun off
 \color none
-次の5つは番号を付けない見出しを作る環境です。
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-部*
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-章*
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-節*
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-小節*
-\end_layout
-
-\begin_layout Enumerate
-
-\family sans
-小々節*
-\end_layout
-
-\begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-各名称の後の「*」は、これらの見出しには番号がつかないことを表しています。これらは、目次に載らないこと以外は、番号付きの見出しと同じように働きます（第
+\lang japanese
+。これらは、目次に載らないこと以外は、番号付きの見出しと同じように働きます（第
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:目次と一覧"
@@ -8814,15 +8756,6 @@ status collapsed
 \end_inset
 
 
-\family default
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:箇条書き（記述）"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -9197,15 +9130,6 @@ status collapsed
 \begin_layout Plain Layout
 かじょうがき@箇条書き!LyXりすと@------（LyXリスト）
 \end_layout
-
-\end_inset
-
-
-\family default
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:LyXリスト"
 
 \end_inset
 
@@ -9793,6 +9717,935 @@ reference "sub:水平方向の空白"
 水平フィル
 \family default
 を入れると中央揃えになります。
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Customized Lists
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Lists ! Customized
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To use the features described in this section, you must load the module
+ 
+\family sans
+Customisable Lists (enumitem)
+\family default
+ in the document settings.
+ This loads the features of the LaTeX-package
+\lang japanese
+ 
+\series bold
+enumitem
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! enumitem
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Custom Enumerate Lists
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Lists ! Enumerate ! Custom
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\lang english
+The default numbering of numbered lists can be changed by adding an optional
+ argument (menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Short Title
+\family default
+) to the first item of each level in the list.
+ There you add the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+label=
+\backslash
+roman{enumi}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+in TeX Code (shortcut 
+\begin_inset Info
+type  "shortcut"
+arg   "ert-insert"
+\end_inset
+
+).
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+For more about TeX Code, look at section
+\lang japanese
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:TeXコード"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\emph on
+ enumi
+\emph default
+ is hereby the counter of the enumeration in the first level.
+ The command 
+\series bold
+
+\backslash
+roman
+\series default
+ outputs the counter as small Roman numeral.
+ For capital Roman numerals replace in the command above 
+\series bold
+
+\backslash
+roman
+\series default
+ by 
+\series bold
+
+\backslash
+Roman
+\series default
+.
+ For Arabic numerals use 
+\series bold
+
+\backslash
+arabic
+\series default
+.
+ To 
+\begin_inset Quotes eld
+\end_inset
+
+number
+\begin_inset Quotes erd
+\end_inset
+
+ items with capital or small Latin letters use 
+\series bold
+
+\backslash
+Alph
+\series default
+ or 
+\series bold
+
+\backslash
+alph
+\series default
+, respectively.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ You can only number 26
+\begin_inset space ~
+\end_inset
+
+items with Latin letters, because this numbering is limited to single letters.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To change the numbering for the list sublevels, replace the 'i' in the command
+ by the small Roman numeral of the level (enumi, enumii, enumiii, enumiv).
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+As example a list with custom numbering:
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+label=
+\backslash
+#
+\backslash
+Alph{enumi}
+\backslash
+#
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+Level 1
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+label=
+\backslash
+Alph{enumi}.
+\backslash
+arabic{enumii}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+Level 2
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+Level 2
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+label=
+\backslash
+bf{
+\backslash
+arabic{enumiii}}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+Level 3
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+label=
+\backslash
+emph{
+\backslash
+roman{enumiv})}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+Level 4
+\end_layout
+
+\end_deeper
+\end_deeper
+\end_deeper
+\begin_layout Standard
+
+\lang english
+For this list these commands were used:
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+label=
+\backslash
+#
+\backslash
+Alph{enumi}
+\backslash
+#
+\begin_inset Newline newline
+\end_inset
+
+label=
+\backslash
+Alph{enumi}.
+\backslash
+arabic{enumii}
+\begin_inset Newline newline
+\end_inset
+
+label=
+\backslash
+bf{
+\backslash
+arabic{enumiii}}
+\begin_inset Newline newline
+\end_inset
+
+label=
+\backslash
+emph{
+\backslash
+roman{enumiv})}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+where the command 
+\series bold
+
+\backslash
+emph{}
+\series default
+ makes the label emphasized and 
+\series bold
+
+\backslash
+bf{}
+\series default
+ makes it bold.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ When you changed the label of a list level, it will be used for all following
+ lists until you change the definition.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Resumed Enumeration
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Lists ! Enumerate ! Resumed
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Enumerations can be resumed after intermediate paragraphs:
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+label=
+\backslash
+arabic{enumi}.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+first
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\lang english
+goes back to default numbering
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+second
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+regular text
+\end_layout
+
+\begin_layout Enumerate-Resume
+
+\lang english
+resumed
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To resume an enumeration, use the style 
+\family sans
+Enumerate-Resume
+\family default
+.
+ Its numbering appears in blue within LyX to indicate that it is a resumed
+ list and that the numbering will not be correct in LyX, but in the output.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ If there is no previous enumeration to resume, you will get a LaTeX error.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Perhaps you might want to resume the list with a different number than the
+ next one.
+ Or you want to start a new enumeration with a defined number.
+ This is also possible by adding an optional argument to the first list
+ item of a normal new enumeration.
+ There insert the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+start=number
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+where 
+\emph on
+number
+\emph default
+ is the number with which you want to resume the list.
+ An example:
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+first item
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+second item
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Enumeration starting at a given value:
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+start=4
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+This enumeration starts at 4
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+List Spacing
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Lists ! Spacing
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+In some cases you might want less or more vertical space between the items
+ of a list.
+ For example the default space is too much in your opinion in this case:
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+A bullet list
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+with standard spacing 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can decrease the space by adding an optional argument to the first item
+ of the list.
+ There add the command 
+\series bold
+nolistsep
+\series default
+ to get no additional list space like in this example:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+nolistsep
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+A bullet list
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+with no additional
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+vertical space
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To add space you can use several other commands provided by the LaTeX-package
+ 
+\series bold
+enumitem
+\series default
+\lang japanese
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! enumitem
+\end_layout
+
+\end_inset
+
+
+\lang english
+.
+ For more info see its documentation
+\lang japanese
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "enumitem"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+There are also many commands available to change the horizontal spacing
+ and indentation.
+ Here is an example where the indentation was changed to the one of the
+ paragraphs in the document and the label separation was set to 2
+\begin_inset space \thinspace{}
+\end_inset
+
+cm so that the number is in the page margin:
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+labelindent=
+\backslash
+parindent, labelsep=2cm
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+An enumeration
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+with negative indentation
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Further Customization
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Lists ! Description
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can also change the style of description lists.
+ The command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+font=definition
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+changes the description label font, the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+style=definition
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+sets the list style.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+An example where the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+font=
+\backslash
+itshape, style=nextline
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+is used:
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Ionizing
+\begin_inset space ~
+\end_inset
+
+radiation:
+\lang japanese
+ 
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+labelindent=0pt, labelsep=1cm, font=
+\backslash
+itshape, style=nextline
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+Ionizing radiation consists of particles or electromagnetic waves that are
+ energetic enough to detach electrons from atoms or molecules, therefore
+ ionizing them.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Reference
+\begin_inset space ~
+\end_inset
+
+counting: In computer science, reference counting is a technique of storing
+ the number of references, pointers, or handles to a resource such as an
+ object, block of memory, disk space or other resource.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+There are many more commands and features provided by the LaTeX-package
+ 
+\series bold
+enumitem
+\series default
+\lang japanese
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! enumitem
+\end_layout
+
+\end_inset
+
+
+\lang english
+.
+ For more info see its documentation
+\lang japanese
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "enumitem"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -11537,7 +12390,26 @@ status collapsed
 
 \end_inset
 
-
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+For longer parts of programming code, use the listings inset that is described
+ in the chapter 
+\emph on
+Program Code Listings
+\emph default
+ of the 
+\emph on
+Embedded Objects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -12769,13 +13641,6 @@ LyXはこれら3つのオブジェクトを、単語または段落として扱�
 
 \begin_layout Subsection
 使い方と一般的な性質
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:入れ子−使い方"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsubsection
@@ -15374,13 +16239,6 @@ arg   "space-insert thin"
 
 \begin_layout Subsubsection
 その他の空白
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:その他の空白"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -15765,13 +16623,6 @@ em
 
 \begin_layout Subsubsection
 水平フィル
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:水平フィル"
-
-\end_inset
-
-
 \begin_inset Index idx
 status collapsed
 
@@ -16898,7 +17749,9 @@ height "1pt"
 整形\SpecialChar \menuseparator
 水平線
 \family default
-のダイアログで水平線を挿入することができます。オフセットは、線と現在の本文行あるいは段落のベースラインとの間の垂直距離です。
+のダイアログで水平線を挿入することができます。オフセットは、線と現在の本文行あるいは段落のベースラインとの間の垂直距離です。 
+\lang english
+The line settings can be changed by left-clicking on the line.
 \end_layout
 
 \begin_layout Standard
@@ -17351,7 +18204,11 @@ reference "sub:LaTeXフォントサポート"
 \color inherit
 「
 \family typewriter
-computer modern
+Computer
+\begin_inset space ~
+\end_inset
+
+Modern
 \family roman
 \series medium
 \shape up
@@ -17387,7 +18244,7 @@ cm
 \bar default
 \noun default
 \color inherit
-European modern
+European Computer Modern
 \family default
 」（
 \family typewriter
@@ -17451,8 +18308,12 @@ Reader
 
 \begin_layout Itemize
 
-\family typewriter
-Latin Modern (lm)
+\family sans
+Latin
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 フォントを使用する方法。これは、
 \family typewriter
@@ -17463,50 +18324,66 @@ cm
 ec
 \family default
 の外見を維持したい場合に推奨される方法です。
-\family typewriter
-Latin Modern
+\family sans
+Latin
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 フォントは、LaTeXコミュニティにおいて、
 \family typewriter
 cm
 \family default
 に代わる既定フォントとするべく開発されたものです。これは、非常に広い範囲のグリフと複数のフォント形を含んでおり、外観の改善された若干の細部を除き、
-\family typewriter
-lm
+\family sans
+Latin
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 は、ほとんどの場合
 \family typewriter
 cm
 \family default
-と同一の外観を持ちます
+と同一の外観を持ちます。
 \begin_inset Foot
 status collapsed
 
 \begin_layout Plain Layout
-ひとつの違いは、
-\family typewriter
-lm
-\family default
-フォントでは合字が改善されていることです。
+
+\lang english
+One difference is improved kerning
+\lang japanese
+。
 \end_layout
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Itemize
 
-\family typewriter
+\family sans
 AE
+\begin_inset space ~
+\end_inset
+
+(Almost
+\begin_inset space ~
+\end_inset
+
+European)
 \family default
- (
-\family typewriter
-Almost European
-\family default
-)を使用する方法。これは、
-\family typewriter
-Latin Modern
+を使用する方法。これは、
+\family sans
+Latin
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 フォントが使用できないか、うまく動作しない（稀な）ケースにおいて、
 \family typewriter
@@ -17589,7 +18466,11 @@ ec
 \family default
 の外見を好まない場合には、
 \family sans
-Times Roman
+Times
+\begin_inset space ~
+\end_inset
+
+Roman
 \family default
 や
 \family sans
@@ -17603,19 +18484,31 @@ status collapsed
 \begin_layout Plain Layout
 これは、ときに単に他のフォントを対応させることもあれば（
 \family sans
-Times Roman
+Times
+\begin_inset space ~
+\end_inset
+
+Roman
 \family default
 は、
 \family sans
 Helvetica
 \family default
 をサンセリフ体の文章に使用します）、
-\family typewriter
-Latin Modern
+\family sans
+Latin
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 や
-\family typewriter
-Computer Modern
+\family sans
+Computer
+\begin_inset space ~
+\end_inset
+
+Modern
 \family default
 のように、同じフォントの他の形、すなわち真のフォント
 \emph on
@@ -17646,7 +18539,7 @@ reference "sub:文字微調整"
 \end_inset
 
 
-\family typewriter
+\family sans
 Times
 \begin_inset space ~
 \end_inset
@@ -17654,7 +18547,7 @@ Times
 Roman
 \family default
 フォントは、元々新聞用にデザインされたものです。したがって、狭い新聞の列幅に納まるように、そのグリフは他のフォントのグリフよりも小さくなっています。そのため、
-\family typewriter
+\family sans
 Times
 \begin_inset space ~
 \end_inset
@@ -17665,11 +18558,6 @@ Roman
 \end_layout
 
 \begin_layout Standard
-
-\family sans
-\begin_inset VSpace bigskip
-\end_inset
-
 
 \family roman
 \series medium
@@ -17915,7 +18803,7 @@ CJK
 \bar no
 \noun off
 \color none
-フィールドでは、日中韓言語ユーザーが文字を表示するのに使用するフォントを指定することができます
+フィールドでは、日中韓言語ユーザーが文字を表示するのに使用するフォントを指定することができます。
 \begin_inset Foot
 status collapsed
 
@@ -17988,7 +18876,7 @@ CJK
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Standard
@@ -18685,8 +19573,34 @@ status collapsed
 \bar no
 \noun off
 \color none
-ダイアログを開いてください。このダイアログには、各フォント特性を選択できるようにいくつかのボックスがあります。これらの特性について選択肢を選ぶか、現在の特性を維
-持したい項目については
+ダイアログを開いてください
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+or press the toolbar button 
+\lang japanese
+
+\begin_inset Info
+type  "icon"
+arg   "dialog-show character"
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+。このダイアログには、各フォント特性を選択できるようにいくつかのボックスがあります。これらの特性について選択肢を選ぶか、現在の特性を維持したい項目については
 \family sans
 \series default
 \shape default
@@ -19489,6 +20403,92 @@ arg   "font-underline"
 \labelwidthstring 00.00.0000
 
 \family sans
+\lang english
+Double
+\begin_inset space ~
+\end_inset
+
+underbar
+\family default
+ 
+\uuline on
+This is text with Double underbar on.
+
+\uuline default
+ (key binding 
+\begin_inset Info
+type  "shortcut"
+arg   "font-underunderline"
+\end_inset
+
+)
+\begin_inset Newline newline
+\end_inset
+
+As we just warned you against using underbar, you can imagine what we think
+ about double underbar.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\family sans
+\lang english
+Wavy
+\begin_inset space ~
+\end_inset
+
+underbar
+\family default
+ 
+\uwave on
+This is text with Wavy underbar on.
+
+\uwave default
+ (key binding 
+\begin_inset Info
+type  "shortcut"
+arg   "font-underwave"
+\end_inset
+
+)
+\begin_inset Newline newline
+\end_inset
+
+Use this only if a journal absolutely insists on it.
+ Keep antinausea pills handy.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\family sans
+\lang english
+Strikeout
+\family default
+ 
+\strikeout on
+This is text with Strikeout on.
+
+\strikeout default
+ (key binding 
+\begin_inset Info
+type  "shortcut"
+arg   "font-strikeout"
+\end_inset
+
+)
+\begin_inset Newline newline
+\end_inset
+
+This is frequently used to indicate an older version of text that has since
+ changed.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+
+\family sans
 名詞体
 \family default
  
@@ -19638,6 +20638,29 @@ status collapsed
 \family default
  これは、選択範囲の文章が、文書の言語とは異なることを指定するのに使います。このようにして指定された部分には青い下線が（LyX上でのみ）引かれて、言語が変更され
 ていることを表示します。
+\lang english
+
+\begin_inset Newline newline
+\end_inset
+
+If you have for example a longer German Text in your document, LaTeX respects
+ the German hyphenation rules automatically.
+ When using the spell checking (see section
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:スペルチェック"
+
+\end_inset
+
+
+\lang english
+) the German-marked text will be checked according to the German dictionary
 \end_layout
 
 \begin_layout Standard
@@ -20429,6 +21452,8 @@ reference "sub:LaTeXフォントサポート"
 \end_inset
 
 節参照）。様々なスクリプト体を組版するのに特に優れています。
+\lang english
+, for example vertically written Japanese.
 \end_layout
 
 \begin_layout Description
@@ -20592,6 +21617,112 @@ X)
 \noun off
 \color none
 を用いた方が良いかもしれません。
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+XHTML
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+FileFormats ! XHTML
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+HTML
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+This file type has the extension 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+.xhtml
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ It is a file suitable for viewing in web browsers.
+ It does not itself contain images and the like but only links them, and
+ when LyX produces XHTML, it also generates corresponding images in formats
+ suitable for the purpose.
+ For the math output you can choose in the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Output
+\family default
+ between different formats, that are described in section 
+\emph on
+Math Output in XHTML
+\emph default
+ of the 
+\emph on
+Additional
+\begin_inset space ~
+\end_inset
+
+Features
+\emph default
+ manual.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+XHTML output remains 
+\begin_inset Quotes eld
+\end_inset
+
+under development
+\begin_inset Quotes erd
+\end_inset
+
+, and not all LyX features are supported yet.
+ See the chapter 
+\emph on
+LyX and the World Wide Web
+\emph default
+, in the 
+\emph on
+Additional Features
+\emph default
+ manual, for more information.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can export your document as an XHTML file using the menu item 
+\family sans
+File\SpecialChar \menuseparator
+Export\SpecialChar \menuseparator
+LyXHTML
+\family default
+.
 \end_layout
 
 \begin_layout Subsection
@@ -21437,30 +22568,7 @@ Latexぱっけーじ@LaTeXパッケージ ! babel
 
 \end_inset
 
-が、文書言語のルールに基づいて行います
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-ドイツ語を使用する読者へ：この違いが、
-\family sans
-文書\SpecialChar \menuseparator
-設定
-\family default
-ダイアログの
-\family sans
-ドイツ語
-\family default
-言語と
-\family sans
-ドイツ語（旧綴方）
-\family default
-言語との大きな違いの一つになっています。
-\end_layout
-
-\end_inset
-
-。
+が、文書言語のルールに基づいて行います。
 \end_layout
 
 \begin_layout Standard
@@ -23026,7 +24134,11 @@ status open
 \family sans
 ファイル\SpecialChar \menuseparator
 書き出し\SpecialChar \menuseparator
-LaTeX (pdflatex) / (平文)
+LaTeX
+\begin_inset space ~
+\end_inset
+
+(xxx)
 \family default
  メニューを使って文書をLaTeXに書き出す際には、LaTeXコメントとして出力されます。
 \begin_inset Newline newline
@@ -23046,7 +24158,20 @@ status open
 \end_layout
 
 \begin_layout Description
-淡色表示 この注釈は、薄灰色の文章として出力に現れます。
+淡色表示 
+\lang english
+This note will appear in the output as text in a color which you can set
+ in the document settings under 
+\family sans
+Colors\SpecialChar \menuseparator
+Greyed-out
+\begin_inset space ~
+\end_inset
+
+notes
+\family default
+\lang japanese
+。
 \begin_inset Newline newline
 \end_inset
 
@@ -23061,11 +24186,14 @@ status open
 \begin_layout Plain Layout
 これは、出力に薄灰色の文章として現れるコメントに書かれた文章
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
-これは、淡色表示注釈内に脚注を用いた例です。この文書では、淡色表示注釈の色は青色で出るよう再定義されています。これを実現するためにどうすればよいかは、取扱説明書
-『埋込オブジェクト篇』に説明があります。
+これは、淡色表示注釈内に脚注を用いた例です。
+\lang english
+In this document the color of this note type is set to blue
+\lang japanese
+。
 \end_layout
 
 \end_inset
@@ -23237,6 +24365,24 @@ arg   "footnote-insert"
 \noun off
 \color none
 右は脚注の例です
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+。
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
 \begin_inset Foot
 status open
 
@@ -23256,15 +24402,6 @@ status open
 \end_inset
 
 
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-。
 \end_layout
 
 \begin_layout Standard
@@ -23355,11 +24492,41 @@ type  "icon"
 arg   "marginalnote-insert"
 \end_inset
 
-を使って傍注を挿入すると、「傍注」という紫のラベルがついた灰色のボックスが本文中に現れます。このボックスがLyXにおいて傍注を表すものなのです。
+を使って傍注を挿入すると
+\lang english
+, you will see 
+\family roman
+\series medium
+a
+\family default
+\series default
+ 
+\family roman
+\series medium
+box with the
+\family default
+\series default
+ 
+\family roman
+\series medium
+label 
+\begin_inset Quotes eld
+\end_inset
+
+margin
+\begin_inset Quotes erd
+\end_inset
+
+ appearing within your text.
+ 
+\family default
+\series default
+\lang japanese
+。このボックスがLyXにおいて傍注を表すものなのです。
 \end_layout
 
 \begin_layout Standard
-この脇に傍注の例があります
+この脇に傍注の例があります。
 \begin_inset Marginal
 status open
 
@@ -23369,11 +24536,33 @@ status open
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Standard
 傍注は、片面文書では右側に印字されます。両面文書では、外側の余白、すなわち偶数ページでは左側、奇数ページでは右側に現れます。
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+For further information about marginal notes see section 
+\emph on
+Margin
+\begin_inset space ~
+\end_inset
+
+Notes
+\emph default
+ of the 
+\emph on
+Embedded
+\begin_inset space ~
+\end_inset
+
+Objects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -26948,6 +28137,12 @@ name "sec:フロート"
 
 \end_layout
 
+\begin_layout Subsection
+
+\lang english
+Introduction
+\end_layout
+
 \begin_layout Standard
 フロート
 \begin_inset Foot
@@ -27018,7 +28213,9 @@ status collapsed
 \end_layout
 
 \begin_layout Subsection
-フロート型
+
+\lang english
+Examples
 \end_layout
 
 \begin_layout Subsubsection
@@ -27044,56 +28241,75 @@ name "sub:図フロート"
 
 \begin_layout Standard
 
-\family sans
-挿入\SpecialChar \menuseparator
-フロート\SpecialChar \menuseparator
-図
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-メニューは、
-\family default
-\series bold
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-「図
+\lang english
+Figure
 \begin_inset space ~
 \end_inset
 
-#:」
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-というラベルの付いたフロートを挿入します。カーソルをこのラベルの上において（あるいはラベルの前において改行を押す）上述したように画像を挿入すれば、キャプションが
-下にある画像が得られます。このようにして得られたのが図
+
+\lang japanese
+
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "cap:カモノハシ"
 
 \end_inset
 
-です。キャプションを図の上に欲しいときには、カーソルをキャプションの終わりに合わせて、改行を押し、画像を挿入してください。このようにして得られたのが図
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cap:エッシャー"
 
+\lang english
+ was created using the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Float\SpecialChar \menuseparator
+Figure
+\family default
+ or the toolbar button
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "float-insert figure"
 \end_inset
 
-です。
+.
+ 
+\lang english
+The image was inserted by setting the cursor above the caption label and
+ using the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Graphics
+\family default
+ or the toolbar button
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset graphics"
+\end_inset
+
+.
+ 
+\lang english
+The image in the float was horizontally centered by putting the cursor in
+ front of or behind the image and using the menu 
+\family sans
+Edit\SpecialChar \menuseparator
+Paragraph
+\begin_inset space ~
+\end_inset
+
+Settings
+\family default
+ or the toolbar button
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "layout-paragraph"
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -27107,6 +28323,7 @@ status open
 \align center
 \begin_inset Graphics
 	filename ../clipart/platypus.eps
+	lyxscale 50
 	width 50col%
 	rotateOrigin center
 
@@ -27136,48 +28353,6 @@ name "cap:カモノハシ"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-placement htbp
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "cap:エッシャー"
-
-\end_inset
-
-行ってしまったM.C.エッシャー
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\align center
-\begin_inset Graphics
-	filename ../clipart/escher-lsd.eps
-	scale 80
-	rotateOrigin center
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- 
 \end_layout
 
 \begin_layout Standard
@@ -27236,7 +28411,37 @@ reference "sec:相互参照"
 \bar no
 \noun off
 \color none
-メニューを使ってラベルを挿入し、
+メニュー
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+ or the toolbar button
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "label-insert"
+\end_inset
+
+ 
+\lang english
+and refer to it using the menu
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+\lang japanese
+ を使ってラベルを挿入し、
 \family sans
 \series default
 \shape default
@@ -27255,8 +28460,35 @@ reference "sec:相互参照"
 \bar no
 \noun off
 \color none
-を使って参照します。図フロートを参照する場合には、「上図」のようにあいまいな参照をするのではなく、相互参照を使用することが重要です。LaTeXは、文書の最終版で
-フロートの再配置を行うため、図が「上」に来るかどうかはまったくもって定かではないからです。
+を使って参照します
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+\lang english
+ or the toolbar button
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "dialog-show-new-inset ref"
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+。図フロートを参照する場合には、「上図」のようにあいまいな参照をするのではなく、相互参照を使用することが重要です。LaTeXは、文書の最終版でフロートの再配置を
+行うため、図が「上」に来るかどうかはまったくもって定かではないからです。
 \end_layout
 
 \begin_layout Standard
@@ -27299,7 +28531,7 @@ status open
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption
@@ -27339,7 +28571,7 @@ name "fig:何かわからない"
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption
@@ -27402,46 +28634,6 @@ name "cap:歪められた二つの像"
 
 \end_layout
 
-\begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-また、第
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:図・表・アルゴリズム一覧"
-
-\end_inset
-
-節の説明のとおり、
-\family sans
-図一覧
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-に加えられます。
-\end_layout
-
 \begin_layout Subsubsection
 表フロート
 \begin_inset Index idx
@@ -27466,7 +28658,17 @@ status collapsed
 表
 \family default
 \shape default
-メニューを使うと挿入することができます。表フロートは、ラベルが異なることを除けば、図フロートと同じです。表
+メニューを使
+\lang english
+ or the toolbar botton
+\lang japanese
+ 
+\begin_inset Info
+type  "icon"
+arg   "float-insert table"
+\end_inset
+
+ うと挿入することができます。表フロートは、ラベルが異なることを除けば、図フロートと同じです。表
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "cap:表フロート"
@@ -27683,298 +28885,17 @@ c & d
 
 \end_layout
 
-\begin_layout Subsubsection
-アルゴリズムフロート
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-ふろーと@フロート!あるごりずむ@アルゴリズム------
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-このフロート型は、
-\family sans
-挿入
-\shape up
-\SpecialChar \menuseparator
-フロート\SpecialChar \menuseparator
-アルゴリズム
-\family default
-\shape default
-メニューを使うと挿入することができます。これは、プログラムコードやアルゴリズムの記述に用いられます。アルゴリズム向けの環境としては、第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:LyXコード"
-
-\end_inset
-
-節に述べられているように、
-\family sans
-LyXコード
-\family default
-があります。
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-【註】
-\series default
-このフロートラベルは自動的に文書言語に翻訳されるわけではないことに留意してください。
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-その翻訳を行うためには、文書のプリアンブル（
-\family sans
-文書\SpecialChar \menuseparator
-設定
-\family default
-メニュー）に
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-floatname{algorithm}{現地語名}
-\end_layout
-
-\begin_layout Standard
-と書き加えなくてはなりません。現地語名のところには、「
-\emph on
-algorithm
-\emph default
-」という英単語のお使いの言語での訳語を入れてください。
-\end_layout
-
-\begin_layout Subsubsection
-折返しフロート
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-ふろーと@フロート!ほんぶんおりかえし@本文折返し------
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Wrap figure
-lines 0
-placement l
-overhang 0in
-width "40col%"
-status open
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../clipart/mobius.eps
-	width 40col%
-	rotateOrigin center
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "cap:折返し図"
-
-\end_inset
-
-これは折返しの図です。
-\begin_inset VSpace medskip
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-このフロート型は、本文が図の周りに「折返して」入ることによって、図が段幅の一部しか占拠しないようにしたいときに用います。折返しフロートは、LaTeXパッケージの
-\series bold
-wrapfig
-\series default
-
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-Latexぱっけーじ@LaTeXパッケージ!wrapfig
-\end_layout
-
-\end_inset
-
-がすでに装備されていれば、
-\family sans
-挿入\SpecialChar \menuseparator
-フロート\SpecialChar \menuseparator
-折返しフロート
-\family default
-メニューで挿入することができます
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-LaTeXパッケージの導入方法は、取扱説明書の『LaTeXの設定』に説明されています。
-\end_layout
-
-\end_inset
-
-。フロートの幅と配置位置は、フロートボックスを右クリックすれば調整することができます。第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cap:折返し図"
-
-\end_inset
-
-図は、40列幅％の幅を持つ折返し図フロートとして例示してあります
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-使うことのできる単位は付録
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:LyXで使用できる単位"
-
-\end_inset
-
-に収録してあります。
-\end_layout
-
-\end_inset
-
-。取り巻く本文から適切に距離をおくためにキャプションの下に空白を入れてあります。
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-【註】
-\series default
-折返しフロートは壊れやすいことがあります！例えば、図をページの下すぎる位置に置いてしまうと、ごちゃごちゃになって、フロートが出力に現れなかったり、他の本文の上に
-上書きされて出力されたりします。
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-原則として、
-\end_layout
-
-\begin_layout Itemize
-折返しフロートは、改頁に掛かってしまう段落に置くべきではありません。つまり、折返しフロートは、文書がほぼ完成する段階になって、どこに改頁が現れるかを予測できるよ
-うになってから、正確な位置に挿入しなくてはなりません。
-\end_layout
-
-\begin_layout Itemize
-折返しフロートは、入れ込む段落の前に単独の段落を設けて挿入するか、その段落自体の中に挿入しなくてはなりません。
-\end_layout
-
-\begin_layout Itemize
-折返しフロートを二つの段落に連続して入れると問題を引き起こす可能性があるので、二つの折返しフロートのあいだには本文のみの段落が入るのようにしてください。
-\end_layout
-
-\begin_layout Itemize
-折返しフロートは、節見出しや表中に入れることは認められていません。
-\end_layout
-
 \begin_layout Subsection
-回転フロート
+
+\lang english
+More Information
 \begin_inset Index idx
 status collapsed
 
 \begin_layout Plain Layout
-ふろーと@フロート!かいてん@回転------
-\end_layout
 
-\end_inset
-
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:回転フロート"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-特に横長の表などの場合、フロートを回転させたいことがあります。キャプションを含むフロート全体を回転させたいときは、フロートボックスを右クリックして、
-\family sans
-横倒しに回転
-\family default
-オプションを有効にします。
-\end_layout
-
-\begin_layout Standard
-回転フロートは、つねに独立したページ（二段組文書のときは独立した段）に配置されます。フロート設定の
-\family sans
-段をまたぐ
-\family default
-オプションを有効にすれば、複数の段にまたがるようにすることができます。また、回転フロートは、外側余白方向から読むことができるような形に回転されます。回転方向を他
-の方向に強制する方法は、取扱説明書『埋込みオブジェクト篇』に説明されています。
-\end_layout
-
-\begin_layout Standard
-回転フロートへの相互参照は、通常のフロートの場合と同じです。キャプションの形式も同じです。表
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cap:回転した表"
-
-\end_inset
-
-が回転表フロートの例です。
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-【註】
-\series default
-すべてのDVIビューアが回転フロートを表示できるわけではありません。
+\lang english
+Floats ! Details
 \end_layout
 
 \end_inset
@@ -27983,342 +28904,26 @@ status open
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float table
-wide false
-sideways true
-status open
 
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "cap:回転した表"
-
-\end_inset
-
-回転した表
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="1" columns="5">
-<features tabularvalignment="middle">
-<column alignment="center" valignment="top" width="0">
-<column alignment="center" valignment="top" width="0">
-<column alignment="center" valignment="top" width="0">
-<column alignment="center" valignment="top" width="0">
-<column alignment="center" valignment="top" width="0">
-<row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-試験
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-甲
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-乙
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-丙
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-丁
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-フロートの配置
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-ふろーと@フロート!のはいち@------の配置
-\end_layout
-
-\end_inset
-
-
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:フロートの配置"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートボックスを右クリックすると、ダイアログが開いて、ここでLaTeXがフロートを配置するのに使う配置オプションを変更できるようになります。
-\begin_inset Newline newline
-\end_inset
-
-
-\family sans
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-段をまたぐ
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-オプションは、二段組文書でのみ有効です。これを選択すると、フロートは段の中のみに収められないで、ページの両段にまたがって広がります。
-\begin_inset Newline newline
-\end_inset
-
-
-\family sans
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-横倒しに回転
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-オプションは、フロートを回転するのに用います。第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:回転フロート"
-
-\end_inset
-
-節をご参照ください。
-\end_layout
-
-\begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートダイアログでは、
-\family sans
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-既定の配置を使う
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-オプションを無効にしたときには、特定のフロートの配置を設定するのに以下のオプションの一つ以上を設定することができます。
-\end_layout
-
-\begin_layout Description
-可能ならば現在位置に： 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートを挿入位置に配置することを試みます
-\end_layout
-
-\begin_layout Description
-ページ上部： 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートを現在ページの上部に配置することを試みます
-\end_layout
-
-\begin_layout Description
-ページ下部： 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートを現在ページの下部に配置することを試みます
-\end_layout
-
-\begin_layout Description
-フロートを独立したページに： 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-フロートを独立したページに配置することを試みます
-\end_layout
-
-\begin_layout Standard
-LaTeXは、
+\lang english
+LyX offers you further float types as well as rotated floats.
+ It also allows you to change the float numbering scheme, to control the
+ float placement and to change the formatting and placement of the float
+ caption.
+ All these features are explained in detail with many examples in chapter
+ 
 \emph on
-つねに
+Floats
 \emph default
-上記のオプション順を用います。すなわち、既定の配置を使用すると、LaTeXはまず
-\family sans
-可能ならば現在位置に
-\family default
-を試み、次に
-\family sans
-ページの上部
-\family default
-、その後他のオプションを試みます。既定値を使わないときには、LaTeXは有効化されたオプションのみを使用しますが、やはり同じ順序でこれらを試みます。これら四つの
-配置がいずれも無理な場合は、フロートを内部的に次のページにおいてみて同様の手続きがうまくいくかどうかを試みます。
-\end_layout
-
-\begin_layout Standard
-既定では、各オプションはそれぞれ以下の規則を持っています。
-\end_layout
-
-\begin_layout Standard
-
-\family sans
-ページ上部
-\family default
-は、フロートのページに占める割合が7割以下の場合のみ、ページ上部に配置します。
-\end_layout
-
-\begin_layout Standard
-
-\family sans
-ページ下部
-\family default
-は、フロートのページに占める割合が3割以下の場合のみ、ページ下部に配置します。
-\end_layout
-
-\begin_layout Standard
-
-\family sans
-フロートを独立したページに
-\family default
-は、フロートのページに占める割合が5割以下の場合のみ、複数のフロートを同一ページに配置します。
-\end_layout
-
-\begin_layout Standard
-これらの規則に従いたくないときは、
-\family sans
-LaTeXの規則を無視する
-\family default
-オプションを追加することによって、これらを無視することができます。
-\end_layout
-
-\begin_layout Standard
-ときにはフロートを、挿入位置に正確に、しかもかならず配置させたい場合があるかもしれません。このような場合には、
-\family sans
-何としても現在位置に置く
-\family default
-オプションを使用します。このオプションはできる限り使わないようにし、使う場合でも印刷する直前にまで文書が仕上がってから、使用するようにしてください。なぜならば、
-このオプションを使うことによって、フロートはもはや「漂う」ことができなくなりますから、文書に変更を加えてしまうと、ページのレイアウトが往々にして破壊されてしまう
-からです。
-\end_layout
-
-\begin_layout Standard
-折返しフロートは、つねにどれかの段落の本文で囲まれますので、配置オプションはありません。
-\end_layout
-
-\begin_layout Standard
-フロートの配置についての詳細は、
-\begin_inset CommandInset citation
-LatexCommand cite
-key "latexcompanion,latexguide,latexbook"
-
+ of the the 
+\emph on
+Embedded
+\begin_inset space ~
 \end_inset
 
-などのLaTeX関係書をご参照ください。
+Objects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -29478,7 +30083,7 @@ status collapsed
 \begin_layout Standard
 根号は、数式パネルの
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/sqrt.png
+	filename ../../images/math/sqrt.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -30046,7 +30651,7 @@ arg   "space-insert protected"
 \color inherit
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/space.png
+	filename ../../images/math/space.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -30187,7 +30792,7 @@ name "sub:関数"
 \color inherit
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/functions.png
+	filename ../../images/math/functions.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -31057,7 +31662,7 @@ vec
 \family default
 記号設定ボタン
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/hat.png
+	filename ../../images/math/hat.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -31325,7 +31930,7 @@ LyXでは、行列は数式パネルの行列ボタン
 \color inherit
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/matrix.png
+	filename ../../images/math/matrix.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -32085,7 +32690,7 @@ status collapsed
 \color inherit
 であり、数字の標準フォントはローマン体です。数式中でフォントを指定するには、数式パネルの
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/font.png
+	filename ../../images/math/font.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -32585,7 +33190,7 @@ status collapsed
 \family default
 の中の
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/font.png
+	filename ../../images/math/font.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -32739,7 +33344,7 @@ displaystyle
 \color inherit
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx20/images/math/style.png
+	filename ../../images/math/style.png
 	scale 85
 	groupId toolbarbuttons
 
@@ -33464,6 +34069,73 @@ LaTeXぱっけーじ@LaTeXパッケージ ! refstyle
 \end_inset
 
 
+\begin_inset Newline newline
+\end_inset
+
+You can select which LaTeX-package should be used for this feature by setting
+ the option 
+\family sans
+Use refstyle (not prettyref) for cross-references
+\family default
+ in the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Document Class
+\family default
+.
+ The format is specified by adding the command 
+\series bold
+
+\backslash
+newrefformat
+\series default
+ (prettyref) or 
+\series bold
+
+\backslash
+newref
+\series default
+ (refstyle) to the preamble of the document.
+ For example redefining all references to figures (which have the label
+ shortcut 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family sans
+fig
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+) can be done with this command
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+newref{fig}{refcmd={Image on page 
+\backslash
+pageref{#1}}}
+\series default
+
+\begin_inset Newline newline
+\end_inset
+
+For more information about the format, have a look at the package documentations
+\lang japanese
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "prettyref,refstyle"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Description
@@ -34171,7 +34843,7 @@ name "sub:文献データベース"
 \end_layout
 
 \begin_layout Standard
-ひとつの参考文献をいろいろな文書で使用する場合には、文献データベースを使うのが便利です
+ひとつの参考文献をいろいろな文書で使用する場合には、文献データベースを使うのが便利です。
 \begin_inset Foot
 status collapsed
 
@@ -34182,9 +34854,9 @@ status collapsed
 
 \end_inset
 
-。また、これを使うと、文献項目をすべて同じレイアウトに維持することがたいへん簡単にできるようになります。仕事の関連領域のすべての関係書と論文をひとつのデータベー
-スに収集しておくことも一案でしょう。このデータベースは、いろいろな文書から利用することができて、特定の文書の参考文献一覧には、この文書で引用された項目のみが表示
-されます。これによって、あなたは、どの論文・書籍を引用したかを記録しつづける労苦から解放されるのです。
+また、これを使うと、文献項目をすべて同じレイアウトに維持することがたいへん簡単にできるようになります。仕事の関連領域のすべての関係書と論文をひとつのデータベース
+に収集しておくことも一案でしょう。このデータベースは、いろいろな文書から利用することができて、特定の文書の参考文献一覧には、この文書で引用された項目のみが表示さ
+れます。これによって、あなたは、どの論文・書籍を引用したかを記録しつづける労苦から解放されるのです。
 \end_layout
 
 \begin_layout Standard
@@ -34256,7 +34928,7 @@ eX参考文献
 .bst
 \family default
 」のテキストファイルです。お使いのLaTeX頒布版には複数のスタイルファイルが収められており、出版社の多くが特定のスタイルファイルを提供しているので、それを利用
-すれば、レイアウトの心配をする必要はありません。もちろん、自作のスタイルファイルを作成することもできますが、それは熟練者向けの仕事です
+すれば、レイアウトの心配をする必要はありません。もちろん、自作のスタイルファイルを作成することもできますが、それは熟練者向けの仕事です。
 \begin_inset Foot
 status collapsed
 
@@ -34268,7 +34940,7 @@ status collapsed
 
 \begin_inset CommandInset href
 LatexCommand href
-target "http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxhak.pdf"
+target "http://mirrors.ctan.org/biblio/bibtex/contrib/doc/btxhak.pdf"
 
 \end_inset
 
@@ -34281,7 +34953,7 @@ target "http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxhak.pdf"
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Standard
@@ -34289,12 +34961,16 @@ target "http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxhak.pdf"
 \end_layout
 
 \begin_layout Standard
-データベースから参考文献を生成するのに、LyXはBibTeXというプログラムを使用します。このプログラムは、LyX設定ダイアログ中、
+データベースから参考文献を生成するのに、LyXはBibTeXというプログラムを使用します。
+\lang english
+You can choose which of its variants should be used by LyX as processor;
+ either in the document settings under 
 \family sans
-出力
+Bibliography
 \family default
-→
+ or in LyX's preferences under 
 \family sans
+Output\SpecialChar \menuseparator
 LaT
 \begin_inset ERT
 status collapsed
@@ -34308,22 +34984,63 @@ status collapsed
 
 eX
 \family default
-の下にある
-\family sans
-BibT
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-{}
+.
+ The following variants are possible:
 \end_layout
 
+\begin_layout Description
+
+\lang english
+biber provides full Unicode support, unlimited memory, does not work with
+ other bibliography packages (like e.
+\begin_inset space \thinspace{}
 \end_inset
 
-eXコマンド
+g.
+\begin_inset space ~
+\end_inset
+
+
+\series bold
+natbib
+\series default
+), only with the package 
+\series bold
+biblatex
+\series default
+; recommended for multilingual texts and for languages that don't use Latin
+ letters
+\end_layout
+
+\begin_layout Description
+
+\lang english
+bibtex the default; does not allow special characters in bibliography entries
+ that are not possible to encode in a 7-bit encoding, limited memory, works
+ with all bibliography packages, except of 
+\series bold
+biblatex
+\end_layout
+
+\begin_layout Description
+
+\lang english
+bibtex8 allows all characters that are possible to encode in a 8-bit encoding,
+ larger memory than 
+\family sans
+bibtex
 \family default
-フィールドにオプションを付け加えることで制御することができます。オプションを書き加える前に、
+, works with all.bibliography packages
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+BibTeX can be controlled with options that you can add below the specification
+ of the variants.
+ 
+\lang japanese
+オプションを書き加える前に、
 \family sans
 BibTeX
 \family default
@@ -35758,54 +36475,6 @@ intoc 用語集を目次に加えます。
 \end_layout
 
 \begin_layout Standard
-他にも、
-\series bold
-croatian
-\series default
-・
-\series bold
-danish
-\series default
-・
-\series bold
-english
-\series default
-・
-\series bold
-french
-\series default
-・
-\series bold
-german
-\series default
-・
-\series bold
-italian
-\series default
-・
-\series bold
-polish
-\series default
-・
-\series bold
-portuguese
-\series default
-・
-\series bold
-russian
-\series default
-・
-\series bold
-spanish
-\series default
-・
-\series bold
-ukrainian
-\series default
-というオプションがあり、これらは参照文や用語集見出しを対応する言語に変更するものです。
-\end_layout
-
-\begin_layout Standard
 オプションをひとつないしそれ以上使用するには、
 \family sans
 文書\SpecialChar \menuseparator
@@ -35883,6 +36552,66 @@ nomnorefpage,
 nomnorefeqpage 対応するオプションを解除する
 \end_layout
 
+\begin_layout Standard
+
+\lang english
+To translate words like 
+\begin_inset Quotes eld
+\end_inset
+
+page
+\begin_inset Quotes erd
+\end_inset
+
+ to Japanese, add these lines to your LaTeX preamble:
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+\lang english
+
+\backslash
+renewcommand{
+\backslash
+eqdeclaration}[1]{, see equation
+\backslash
+nobreakspace(#1)}
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+renewcommand{
+\backslash
+pagedeclaration}[1]{, page
+\backslash
+nobreakspace{}#1}
+\series default
+
+\begin_inset Newline newline
+\end_inset
+
+and replace 
+\begin_inset Quotes eld
+\end_inset
+
+see equation
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+page
+\begin_inset Quotes erd
+\end_inset
+
+ by their translation.
+\end_layout
+
 \begin_layout Subsection
 用語集の出力
 \begin_inset Index idx
@@ -35904,8 +36633,57 @@ status collapsed
 一覧／目次\SpecialChar \menuseparator
 用語集
 \family default
-メニューを使用します。「用語集」とラベルのついた水色の枠が、出力において記号一覧ないし用語集が印字される位置を示します。索引一覧枠と同様、用語集枠もクリック可能
-ではありません。
+メニューを使用します。
+\lang english
+A box labeled 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family sans
+Nomenclature
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ will show the place where the nomenclature is printed in the output.
+
+\lang japanese
+ 
+\lang english
+By right-clicking on it, the amount of space for symbols can be altered.
+ You can choose between these settings:
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Default a space of 1
+\begin_inset space \thinspace{}
+\end_inset
+
+cm is used
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Longest
+\begin_inset space ~
+\end_inset
+
+label
+\begin_inset space ~
+\end_inset
+
+width the width of the widest symbol of all nomenclature entries is used
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Custom custom space
 \end_layout
 
 \begin_layout Standard
@@ -35930,41 +36708,6 @@ nomname
 renewcommand{
 \backslash
 nomname}{記号一覧}
-\series default
-
-\begin_inset VSpace defskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-もし記号とのあいだの空白の大きさが満足でない場合には、以下の行をプリアンブルに加えることで変更ができます。
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-
-\backslash
-renewcommand{
-\backslash
-nomlabelwidth}{<長さ>}
-\end_layout
-
-\begin_layout Standard
-ここで<長さ>は、付録
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:LyXで使用できる単位"
-
-\end_inset
-
-に掲げてある単位のいずれかで表された数値です。既定値は1
-\begin_inset space \thinspace{}
-\end_inset
-
-cmです。
 \end_layout
 
 \begin_layout Subsection
@@ -36328,14 +37071,14 @@ x^{2}-2x-2\Rightarrow\question{x_{1}}\answer{x_{2}}=1\question{+\sqrt{3}}\answer
 \end_layout
 
 \begin_layout Standard
-数式内部で数式マクロを使うことによっても同様の効果を得ることができます。第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:数式マクロ"
 
-\end_inset
-
-節を参照してください。
+\lang english
+Inside math, the same effect can be achieved using math macros, see the
+ 
+\emph on
+Math
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -36754,6 +37497,1066 @@ key "latexcompanion,latexguide"
 \end_inset
 
 を参照してください。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage cleardoublepage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+pagestyle{fancy}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+switches temporarily to a page style with custom header and footer line
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Left Header
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+rightmark
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\lang english
+defines the header line as described below
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Center Header
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Right Header
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+leftmark
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Left Footer
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+thepage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Center Footer
+
+\lang english
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+\color red
+\lang english
+LyX's user guide
+\end_layout
+
+\end_inset
+
+Magic code
+\lang japanese
+:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $\Upsilon=\frac{\sqrt[3]{\aleph}}{\spadesuit}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Right Footer
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+Roman{page}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Customized Page Headers and Footers
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Customized-Page-Headers"
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Document ! Header/Footer line
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Header/Footer line
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To define custom page header and footer line for your document, you need
+ to set the headings style to 
+\family sans
+Fancy
+\family default
+ in the 
+\family sans
+Document\SpecialChar \menuseparator
+Settings
+\family default
+ dialog under 
+\family sans
+Page
+\begin_inset space ~
+\end_inset
+
+Layout
+\family default
+.
+ As second step add in the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Modules
+\family default
+ the module 
+\begin_inset Quotes eld
+\end_inset
+
+Custom Header/Footerlines
+\begin_inset Quotes erd
+\end_inset
+
+.
+ This module offers the 6
+\begin_inset space ~
+\end_inset
+
+styles
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Left
+\begin_inset space ~
+\end_inset
+
+Header,
+\begin_inset space ~
+\end_inset
+
+Center
+\begin_inset space ~
+\end_inset
+
+Header,
+\begin_inset space ~
+\end_inset
+
+Right
+\begin_inset space ~
+\end_inset
+
+Header
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Left
+\begin_inset space ~
+\end_inset
+
+Footer,
+\begin_inset space ~
+\end_inset
+
+Center
+\begin_inset space ~
+\end_inset
+
+Footer,
+\begin_inset space ~
+\end_inset
+
+Right
+\begin_inset space ~
+\end_inset
+
+Footer
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+for the different positions in the header/footer.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Normally, headers and footers are set up in the beginning of the document.
+ but you can change them anywhere you want to.
+ Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Page-layout"
+
+\end_inset
+
+ shows the page layout and where the header/footer styles will appear.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="3">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="30line%">
+<column alignment="center" valignment="top" width="30line%">
+<column alignment="right" valignment="top" width="30line%">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Left Header
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Center Header
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Right Header
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multicolumn="1" alignment="left" valignment="top" leftline="true" rightline="true" usebox="none" width="90line%">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The normal text on the page goes here.
+ The running header is above thel text, and the footer is below (including
+ footnotes).
+ Headers/footers typically contain things like the page number, title of
+ the chapter, company logo but your can use almost anything, except of floats.
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Left Footer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Center Footer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Right Footer
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Page-layout"
+
+\end_inset
+
+Page layout with custom header and footer line.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Definition
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To define your header line, add all 3
+\begin_inset space ~
+\end_inset
+
+header styles.
+ The things you add to the styles appear on uneven pages, the things in
+ the optional arguments on even pages.
+ For single-sided documents, the optional arguments will not be used and
+ can be omitted.
+ If you leave a style or its argument empty, nothing appears in the output.
+ Defining the footer line works similar.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+For the definition, you will need some LaTeX-commands that are inserted
+ as TeX-code (menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Te
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+X
+\begin_inset space ~
+\end_inset
+
+Code
+\family default
+):
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+thepage prints the current page number
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+Roman{page} prints the current page number with capital roman numerals
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+roman{page} prints the current page number with small roman numerals
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+leftmark prints the current section number and title.
+ If the document has chapters, it prints the current chapter number and
+ title instead.
+ It is called 
+\begin_inset Quotes eld
+\end_inset
+
+leftmark
+\begin_inset Quotes prd
+\end_inset
+
+ because it usually goes in a left header.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+rightmark prints the current subsection number and title.
+ If the document has chapters, it prints the current section number and
+ title instead.
+ It is normally used in the right header.
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Default header/footer
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Custom header/footer is not empty by default.
+ The default header contains the chapter and section title and the center
+ footer has the page number.
+ In order to remove unwanted entries from the header/footer, include the
+ relevant header/footer style in your document, but leave it blank.
+ So, if you do not want a page number in the footer, include a blank 
+\family sans
+Center
+\begin_inset space ~
+\end_inset
+
+Footer
+\family default
+ style.
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Appearance
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The header and footer will appear on normal pages.
+ Some pages are different.
+ The title page has a style of its own, and so has any page that starts
+ a new part or chapter in your book.
+ Such pages will not have the custom headers/footers, but that is normal.
+ There is for example no need to print a header with the chapter name on
+ the chapter page where the chapter heading is in big bold letters anyway.
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Header and footer decoration line
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+By default, you get a 0.4
+\begin_inset space \thinspace{}
+\end_inset
+
+pt thick line below the header and no footer line.
+ This can be changed in the document preamble with the commands 
+\series bold
+
+\backslash
+headrulewidth
+\series default
+ and 
+\series bold
+
+\backslash
+footrulewidth
+\series default
+ in the following scheme:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+\lang english
+
+\backslash
+renewcommand{
+\backslash
+headrulewidth}{thickness}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Where thickness is a size in standard units like 
+\family sans
+pt
+\family default
+ or 
+\family sans
+mm
+\family default
+.
+ If you don't want a line, set the thickness to 0
+\begin_inset space \thinspace{}
+\end_inset
+
+pt.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The lines can also be colored, but this requires more knowledge of LaTeX.
+ If you really need this, have a look in the Internet or in sec.
+\begin_inset space ~
+\end_inset
+
+4.4 of the book
+\lang japanese
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Mittelbach"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+
+\lang english
+Several header/footer lines
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+In case that you need more than one text line as a header/footer, you can
+ do this by adding a normal line break in the style definition.
+ However, the default height of the header/footer is only the one of one
+ text line.
+ To expand the height, redefine the LaTeX length 
+\series bold
+
+\backslash
+headheight
+\series default
+ or 
+\series bold
+
+\backslash
+footheight
+\series default
+ in this scheme in your document preamble:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+\lang english
+
+\backslash
+setlength{
+\backslash
+headheight}{height}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Where height is a size in standard units.
+ If you don't know which amount of space is needed for the height, define
+ your header/footer and preview your document as PDF.
+ Then open the LaTeX logfile via the menu 
+\family sans
+Document\SpecialChar \menuseparator
+La
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+TeX Log
+\family default
+ and look via the button 
+\family sans
+Next
+\begin_inset space ~
+\end_inset
+
+Warning
+\family default
+ if you find a warning of the package
+\lang japanese
+ 
+\series bold
+fancyhdr
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! fancyhdr
+\end_layout
+
+\end_inset
+
+.
+ 
+\lang english
+If there is such a warning, it contains the space that you need at least
+ for your header/footer.
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+This example
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+This example demonstrates what can be done with custom header/footers.
+ Don't use it for yor document as it is just an example.
+ This example consists of the following definition:
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Left
+\begin_inset space ~
+\end_inset
+
+Header 
+\series bold
+
+\backslash
+rightmark
+\series default
+, empty optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Center
+\begin_inset space ~
+\end_inset
+
+Header empty, empty optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Right
+\begin_inset space ~
+\end_inset
+
+Header empty, 
+\series bold
+
+\backslash
+leftmark
+\series default
+ in the optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Left
+\begin_inset space ~
+\end_inset
+
+Footer empty, 
+\series bold
+
+\backslash
+thepage
+\series default
+ in the optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Center
+\begin_inset space ~
+\end_inset
+
+Footer 
+\family sans
+\series bold
+\color red
+LyX's user guide
+\family default
+\series default
+\color inherit
+, 
+\begin_inset Quotes eld
+\end_inset
+
+Magic code:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $\Upsilon=\frac{\sqrt[3]{\aleph}}{\spadesuit}$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ in the optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Right
+\begin_inset space ~
+\end_inset
+
+Footer 
+\series bold
+
+\backslash
+Roman{page}
+\series default
+, empty optional argument
+\end_layout
+
+\begin_layout Description
+
+\lang english
+
+\backslash
+headrulewidth set to 2
+\begin_inset space \thinspace{}
+\end_inset
+
+pt
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+In principle you can use almost everything in headers/footers, except of
+ floats.
+ For more special things like e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space ~
+\end_inset
+
+thumb-indexes, see the manual of the 
+\series bold
+fancyhdr
+\series default
+ package
+\lang japanese
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "fancyhdr"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage clearpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+pagestyle{headings}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+switches back to page style with the default headings
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -37325,59 +39128,7 @@ status collapsed
 \end_layout
 
 \begin_layout Standard
-LyX自身は、組込のスペルチェッカーを持っていません。その代わりに、
-\family typewriter
-aspell
-\family default
-・
-\family typewriter
-ispell
-\family default
-・
-\family typewriter
-hspell
-\family default
-・
-\family typewriter
-pspell
-\family default
-などの外部プログラムをバックエンドとして用います。この節では、これらのプログラムのうちのひとつが、すでに導入されて設定済みであることを想定します。
-\family typewriter
-aspell
-\family default
-は、
-\family typewriter
-ispell
-\family default
-の後継とみなされており、
-\family typewriter
-ispell
-\family default
-と違って同時に複数の言語をサポートしているので、
-\family typewriter
-aspell
-\family default
-をお使いになることをお勧めします。
-\family typewriter
-hspell
-\family default
-はヘブライ語用スペルチェッカーです。使用するスペルチェッカーとその設定は、LyX設定メニューの
-\family sans
-言語設定
-\family default
-のところで設定することができます。
-\end_layout
-
-\begin_layout Standard
-Windows版LyXでは、
-\family typewriter
-aspell
-\family default
-のみが使用可能であるため、スペルチェックプログラムの選択ボックスは変更できないようになっています。
-\end_layout
-
-\begin_layout Standard
-
+LyX自身は、組込のスペルチェッカーを持っていません。
 \family sans
 ツール
 \family default
@@ -37386,22 +39137,32 @@ aspell
 \family sans
 スペルチェック
 \family default
-メニューかツールバーボタン
+\lang english
+, the key 
+\family sans
+F7
+\family default
+\lang japanese
+ メニューかツールバーボタン
 \begin_inset Info
 type  "icon"
 arg   "dialog-show spellchecker"
 \end_inset
 
-を使用すると、現在のカーソル位置からスペルチェックが始まります。正しくない（あるいは未知の）単語が見つかると、ダイアログが開いてそれを表示するので、2行めでそれ
-を編集したり別の単語に置き換えたりすることができます。未知の単語が見つかると、その単語が強調表示され、その単語が見えるように本文がスクロールします。
+を使用すると、現在のカーソル位置からスペルチェックが始まります。
+\lang english
+A sidebar will appear showing any incorrect (or unknown) word found, allowing
+ you to edit and replace it in a second line.
+ Whenever an unknown word is found, the word is highlighted and the text
+ scrolled so that it is visible.
+ In the spellchecker sidebar, there is a box showing suggestions for a correctio
+n, if any could be found.
+ Clicking on one of the corrections will copy to the 
 \family sans
-スペルチェッカー
+Replacement
 \family default
-ダイアログには、修正候補があるときにはそれを表示するボックスもあります。候補のひとつをクリックすると、候補が
-\family sans
-置換
-\family default
-フィールドにコピーされ、ダブルクリックすると、ただちに単語が置換されます。未知ではあるけれども正しい綴りの単語は、個人用辞書に追加することもできます。
+ field, double-click invokes directly the replacement.
+ Unknown but correctly typed words can be added to the personal dictionary.
 \end_layout
 
 \begin_layout Standard
@@ -37410,12 +39171,17 @@ arg   "dialog-show spellchecker"
 文書\SpecialChar \menuseparator
 設定
 \family default
-ダイアログで設定される文書言語によって決定されます。文書言語用の辞書を持っていない場合には、スペルチェックを実行しようとするとエラーメッセージが表示されます。こ
-の場合には、設定ダイアログで
-\family sans
-代替言語
-\family default
-に別の言語を指定することで、別の辞書ファイルを指定するといいでしょう
+ダイアログで設定される文書言語によって決定されます。文書言語用の辞書を持っていない場合には、スペルチェックを実行しようとするとエラーメッセージが表示されます。
+\lang english
+You can specify the language of a word in the spellchecker dialog by choosing
+ a different one at the top of the dialog.
+ LyX can correctly spell check documents containing multiple languages.
+ This work if you have marked the different languages appropriately and
+ have the spell checker dictionaries installed.
+ LyX automatically switches to the appropriate dictionary file.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Foot
 status open
 
@@ -37450,52 +39216,96 @@ aspell (library)
 
 \end_inset
 
-。
+
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Further Settings
 \end_layout
 
 \begin_layout Standard
-スペルチェック終了時には、検査された単語数が表示されます。
-\end_layout
 
-\begin_layout Subsubsection*
-制限事項
-\end_layout
-
-\begin_layout Standard
-特定の単語の綴りを文書全体で変更したい場合には、その単語が現れるごとに綴りを変更する以外にはないのですが、その目的のためには、
+\lang english
+In LyX's preferences dialog under 
 \family sans
-検索／置換
-\family default
-ダイアログを使うことができます。
-\end_layout
+Language
+\begin_inset space ~
+\end_inset
 
-\begin_layout Standard
-LyXは、複数の言語を含む文書の綴りを正しく検査することができません。もし各部分の言語を正しく設定していれば、
-\family sans
-pspell
+Setting\SpecialChar \menuseparator
+Spellchecker
 \family default
-は正しく動作します。
-\end_layout
-
-\begin_layout Subsubsection*
-追加的な設定
-\end_layout
-
-\begin_layout Standard
-設定ダイアログの
-\family sans
-スペルチェッカー
-\family default
-部には、いくつか設定を追加することができます。
+ you can set the following things:
 \end_layout
 
 \begin_layout Description
-エスケープ文字 例えば英語文書の綴りを検査するときにドイツ語のウムラウトを考慮したい場合など、スペルチェッカーが考慮するべき非標準の文字を追加することができます
-。
+
+\lang english
+Spellchecker
+\begin_inset space ~
+\end_inset
+
+engine Select the library LyX should use for spell checking.
+ Depending on your platform, 
+\family typewriter
+aspell
+\family default
+, 
+\family typewriter
+hunspell
+\family default
+ or 
+\family typewriter
+enchant
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Enchant itself is a wrapper library having different configurable back-ends.
+ Please consult the documentation or man-page of it to learn more.
+\end_layout
+
+\end_inset
+
+
+\family default
+ are available.
+ On Windows only 
+\family typewriter
+hunspell
+\family default
+ is available.
 \end_layout
 
 \begin_layout Description
-個人用辞書 ここでは、個人用辞書としてスペルチェッカーの既定値ではないファイルを指定することができます。
+
+\lang english
+Alternative
+\begin_inset space ~
+\end_inset
+
+language If this field is not empty, LyX will always use the given language
+ for the spell checking, no matter what the document language is.
+\end_layout
+
+\begin_layout Description
+エスケープ文字 
+\lang english
+Allows you to add non-standard characters that the spell checker should
+ escape, e.
+\begin_inset space \thinspace{}
+\end_inset
+
+g.
+\begin_inset space \space{}
+\end_inset
+
+German umlauts.
+ This should normally not be needed.
 \end_layout
 
 \begin_layout Description
@@ -37503,38 +39313,37 @@ pspell
 \end_layout
 
 \begin_layout Description
-入力文字コードを使う 
-\family sans
-文書\SpecialChar \menuseparator
-設定
-\family default
-ダイアログの
-\family sans
-言語
-\family default
-部で設定した文書文字コードをスペルチェッカーでも使用する
-\begin_inset Foot
-status collapsed
 
-\begin_layout Plain Layout
-文字コードは第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:文書設定"
-
+\lang english
+Spellcheck
+\begin_inset space ~
 \end_inset
 
-節に説明があります。
+continously Check the spelling of your document as you type it.
+ Misspelled words gets underlined with a dotted red line.
+ By right-clicking on an underlined word, the suggestions by the spell appear
+ in the context menu.
+ Choosing one of them will replace the misspelled word with the suggested
+ word.
 \end_layout
 
+\begin_layout Description
+
+\lang english
+Spellcheck
+\begin_inset space ~
 \end_inset
 
-。
-\family sans
-ispell
-\family default
-を使用していて、外国文字を含む単語のスペルチェックができないときにのみ、有効にしてください。この機能が働かない辞書があるという報告があるため、この機能は既定では
-無効にしてあります。
+notes
+\begin_inset space ~
+\end_inset
+
+and
+\begin_inset space ~
+\end_inset
+
+comments If enabled, the spelling of non-printed document contents is checked
+ as well.
 \end_layout
 
 \begin_layout Section
@@ -37592,9 +39401,9 @@ name "sec:類語辞典"
 
 \begin_layout Standard
 LyXは、多国語の類語辞典を提供し、OpenOfficeやFirefoxと同じ類語辞典フレームワークを使用しています(つまり、
-\emph on
+\family typewriter
 MyThes
-\emph default
+\family default
 
 \begin_inset Foot
 status collapsed
@@ -37624,9 +39433,9 @@ target "http://lingucomponent.openoffice.org/thesaurus.html"
 
 \begin_layout Standard
 
-\emph on
+\family typewriter
 MyThes
-\emph default
+\family default
 /OpenOffice類語辞典は、1言語あたり2つのファイルから成り、1つはデータを含む拡張子
 \emph on
 *.dat
@@ -37664,17 +39473,21 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://extensions.services.openoffice.org
+http://extensions.services.openoffice.org/en/search/node/thesaurus
 \end_layout
 
 \end_inset
 
-から辞書を入手することができます
+から辞書を入手することができます。
 \begin_inset Foot
 status collapsed
 
 \begin_layout Plain Layout
-OpenOffice 3.0現在では、
+OpenOffice
+\begin_inset space ~
+\end_inset
+
+3.0現在では、
 \begin_inset Flex URL
 status collapsed
 
@@ -37694,7 +39507,7 @@ http://extensions.services.openoffice.org
 
 \end_inset
 
-。使用したい全ての言語の*.idxファイルと*.datファイルを同一のディレクトリ(サブディレクトリは使用しないでください)に入れ、この辞書のパスを
+使用したい全ての言語の*.idxファイルと*.datファイルを同一のディレクトリ(サブディレクトリは使用しないでください)に入れ、この辞書のパスを
 \family sans
 ツール\SpecialChar \menuseparator
 設定\SpecialChar \menuseparator
@@ -37772,36 +39585,6 @@ report
 \emph default
 )、ダイアログの検索文字列を調整することなしに提案を得ることができ、おそらく置換も正しく動作するでしょう(選択部分のみが置換されるので残りの部分は元のままです)
 。
-\end_layout
-
-\begin_layout Subsection
-類語辞典ライブラリのライセンス
-\end_layout
-
-\begin_layout Standard
-LyXの類語辞典機能で使用される
-\emph on
-MyThes
-\emph default
-ライブラリは、
-\noun on
-Kevin B.
- Hendricks
-\noun default
-によって、スタンドアローンのプログラムとして創られました。このライブラリの第1.1版がLyXにインクルードされています。このライブラリは、
-\emph on
-Berkeley Database License
-\emph default
-の下でリリースされており、これはLyXのライセンス形態であるGPLと互換性があります。Berkeley Database Licenseの要件を満たすため、My
-ThesライセンスファイルがLyXソースの
-\family sans
-~src/support/mythes/license.readme
-\family default
-フォルダにインクルードされています。LyXのWindows版では、lyx.exeファイルと同じフォルダにある
-\family sans
-MyThes-License.txt
-\family default
-ファイルでも見ることができます。
 \end_layout
 
 \begin_layout Section
@@ -38278,6 +40061,100 @@ key "TeXCatalogue"
 \end_layout
 
 \begin_layout Section
+
+\lang english
+Comparison of Documents
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Comparison of documents
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can compare two different LyX files via the menu 
+\family sans
+Tools\SpecialChar \menuseparator
+Compare
+\family default
+.
+ The comparison result is a LyX file with change tracking enabled showing
+ the differences.
+ In the comparison dialog you can select with the option 
+\family sans
+Copy
+\begin_inset space ~
+\end_inset
+
+Document
+\begin_inset space ~
+\end_inset
+
+Settings
+\begin_inset space ~
+\end_inset
+
+from
+\family default
+ from which document LyX should take the document settings for the the resulting
+ difference file.
+ The option 
+\family sans
+Enable
+\begin_inset space ~
+\end_inset
+
+change
+\begin_inset space ~
+\end_inset
+
+tracking
+\begin_inset space ~
+\end_inset
+
+features
+\begin_inset space ~
+\end_inset
+
+in
+\begin_inset space ~
+\end_inset
+
+the
+\begin_inset space ~
+\end_inset
+
+output
+\family default
+ enables the change tracking option 
+\family sans
+Show
+\begin_inset space ~
+\end_inset
+
+Changes
+\begin_inset space ~
+\end_inset
+
+in
+\begin_inset space ~
+\end_inset
+
+Output
+\family default
+ to visualize the differences also in the PDF output of the difference file.
+\end_layout
+
+\begin_layout Section
 国際化サポート
 \begin_inset Index idx
 status collapsed
@@ -38387,13 +40264,6 @@ reference "sub:特殊文字"
 
 \begin_layout Subsection
 キーボード配置表の設定
-\begin_inset CommandInset label
-LatexCommand label
-name "sub:キーボード配置表の設定"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -41526,7 +43396,7 @@ status collapsed
 \family sans
 ファイル
 \family default
-メニューの下には、基本操作といくつかの応用操作が含まれています。メニューの最後には、最後に開いた4つの文書が列挙されます。
+メニューの下には、基本操作といくつかの応用操作が含まれています。
 \end_layout
 
 \begin_layout Subsection
@@ -41678,11 +43548,127 @@ CJK
 \begin_inset space ~
 \end_inset
 
-LyX 日中韓（CJK）版LyX 1.4.xの形式
+L
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+yX 日中韓（CJK）版LyX 1.4.xの形式
+\lang english
+
+\begin_inset Newline newline
+\end_inset
+
+ Since LyX 1.5.0 CJK support is fully integrated to LyX.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+DocBook text file with code in the language SGML that is used for the markup
+ language 
+\family typewriter
+DocBook
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Docbook
+\begin_inset space ~
+\end_inset
+
+(XML) text file with code in the language XML that is used for the markup
+ language 
+\family typewriter
+DocBook
+\end_layout
+
+\begin_layout Description
+DraftDVI 
+\lang english
+LaTeX's native DVI-format.
+ This format is not suitable if you have special characters or spaces in
+ files paths or file names in your document.
+ LyX use this format internally as a pre-stage to export to 
+\family sans
+DVI
+\family default
+.
 \end_layout
 
 \begin_layout Description
 DVI DVI形式
+\end_layout
+
+\begin_layout Description
+DVI
+\begin_inset space ~
+\end_inset
+
+(LuaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX) 
+\lang english
+DVI-format using the program 
+\family typewriter
+LuaTeX
+\family default
+; supports Unicode and the usage of non-TeX fonts; 
+\series bold
+
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ not all DVI-viewers are currently able to display this output format properly.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Graphviz
+\begin_inset space ~
+\end_inset
+
+Dot 
+\lang english
+text file with code in the programming language 
+\family typewriter
+Dot
+\family default
+ that is used to draw visualizations of graphs via the program
+\lang japanese
+ 
+\family typewriter
+Graphviz
 \end_layout
 
 \begin_layout Description
@@ -41707,6 +43693,53 @@ MS Word
 MathML
 \family default
 形式にはなりません。
+\end_layout
+
+\begin_layout Description
+
+\family sans
+LaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX
+\begin_inset space ~
+\end_inset
+
+(
+\family default
+LuaT
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+eX
+\family sans
+) 
+\family default
+\lang english
+text file with the LaTeX source that it is compilable with the program
+\lang japanese
+ 
+\family typewriter
+LuaTeX
 \end_layout
 
 \begin_layout Description
@@ -41756,11 +43789,172 @@ latex
 \end_layout
 
 \begin_layout Description
-LyX
+
+\family sans
+LaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX
 \begin_inset space ~
 \end_inset
 
-1.y.x LyX 1.y.x版（「y」はバージョン番号に変換して表示されます）が読み込み可能なLyX文書形式
+(
+\family default
+XeT
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+eX
+\family sans
+) 
+\family default
+\lang english
+text file with the LaTeX source that it is compilable with the program
+\lang japanese
+ 
+\family typewriter
+XeTeX
+\end_layout
+
+\begin_layout Description
+
+\lang english
+LilyPond
+\begin_inset space ~
+\end_inset
+
+book
+\begin_inset space ~
+\end_inset
+
+(La
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+TeX) text file with the LaTeX source and also code in the syntax of the
+ music notation software
+\family typewriter
+\lang japanese
+ LilyPond
+\end_layout
+
+\begin_layout Description
+
+\lang english
+L
+\family sans
+\lang japanese
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+\lang english
+yX
+\begin_inset space ~
+\end_inset
+
+Archive
+\begin_inset space ~
+\end_inset
+
+(zip) creates a zip-archive file that contains your document and all files
+ that are necessary to compile it (images, child documents, BibTeX files,
+ etc.)
+\end_layout
+
+\begin_layout Description
+L
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+yX
+\begin_inset space ~
+\end_inset
+
+z.y.x LyX z.y.x版（「z」
+\lang english
+ and 
+\lang japanese
+「y」はバージョン番号に変換して表示されます）が読み込み可能なLyX文書形式
+\end_layout
+
+\begin_layout Description
+L
+\family sans
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\family default
+yXHTML 
+\lang english
+HTML-format using LyX's internal XHTML engine
+\end_layout
+
+\begin_layout Description
+
+\lang english
+NoWeb text file with code in the format of the literate programming language
+\family typewriter
+ NoWeb
 \end_layout
 
 \begin_layout Description
@@ -41789,6 +43983,37 @@ PDF
 dvipdfm
 \family default
 プログラムを使用して変換するPDF形式
+\lang english
+, produces internally a DVI-file which is then converted to a PDF-file
+\end_layout
+
+\begin_layout Description
+
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(LuaT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX)
+\family default
+ 
+\lang english
+PDF-format using the program 
+\family typewriter
+LuaTeX
+\family default
+, produces PDF-files directly
 \end_layout
 
 \begin_layout Description
@@ -41801,6 +44026,8 @@ PDF
 pdflatex
 \family default
 プログラムを使用して変換するPDF形式
+\lang english
+, produces PDF-files directly
 \end_layout
 
 \begin_layout Description
@@ -41812,7 +44039,38 @@ PDF
 \family typewriter
 ps2pdf
 \family default
-プログラムを使用して変換するPDF形式
+プログラムを使用して変換するPDF形式, 
+\lang english
+produces internally a PostScript-file which is then converted to a PDF-file
+\end_layout
+
+\begin_layout Description
+
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(XeT
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+eX)
+\family default
+ 
+\lang english
+PDF-format using the program 
+\family typewriter
+XeTeX
+\family default
+, produces PDF-files directly
 \end_layout
 
 \begin_layout Description
@@ -41840,20 +44098,27 @@ dvips
 \end_layout
 
 \begin_layout Description
-任意設定 任意に設定した形式
-\end_layout
 
-\begin_layout Standard
-
+\lang english
+Sweave text file with the LaTeX source and also code in the statistical
+ programming language 
 \family typewriter
-dvipdfm
+R
 \family default
-プログラムは、内部でDVIファイルを生成したのち、それをPDFファイルに変換します。このプログラムは若干古くなっているので、望むとおりの出力は得られないかもしれ
-ません。
+.
+ Using the 
 \family typewriter
-pdflatex
+R
 \family default
-は直接PDFを生成し、最近のPDF形式をサポートしています。
+-function 
+\family typewriter
+Sweave
+\family default
+ it is possible to use 
+\family typewriter
+R
+\family default
+-commands in LaTeX
 \end_layout
 
 \begin_layout Standard
@@ -41880,14 +44145,6 @@ Lyxのさいせってい@LyXの再設定
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-
-\family sans
-任意設定
-\family default
-メニューでは、書き出し・プログラムに特別なコマンドラインオプションを加えてファイルを書き出すことができます。
 \end_layout
 
 \begin_layout Subsection
@@ -42015,6 +44272,8 @@ reference "sec:基本的な編集機能"
 
 \begin_layout Subsection
 検索／置換
+\lang english
+ (Quick)
 \end_layout
 
 \begin_layout Standard
@@ -42022,6 +44281,23 @@ reference "sec:基本的な編集機能"
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:基本的な編集機能"
+
+\end_inset
+
+節に解説されています。
+\end_layout
+
+\begin_layout Subsection
+検索／置換
+\lang english
+ (Advanced)
+\end_layout
+
+\begin_layout Standard
+第
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:詳細な検索と置換"
 
 \end_inset
 
@@ -42273,7 +44549,17 @@ reference "sub:出力ファイル形式"
 
 \end_inset
 
-節参照)で指定した既定出力形式(例えばPDF)で出力を生成し適切なビューアでそれを表示します。
+節参照)で指定した既定出力形式(例えばPDF)で出力を生成し適切なビューアでそれを表示します。 
+\lang english
+The default output format is 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+(pdflatex)
+\family default
+.
 \end_layout
 
 \begin_layout Subsection
@@ -42696,7 +44982,14 @@ http://wiki.lyx.org/LyX/LinguistLyX
 
 \begin_layout Description
 上付き文字 上付き文字を挿入します。（例）テスト
-\begin_inset Formula $^{\text{a,b}}$
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+
+\lang english
+a, b
+\end_layout
+
 \end_inset
 
 
@@ -42704,7 +44997,14 @@ http://wiki.lyx.org/LyX/LinguistLyX
 
 \begin_layout Description
 下付き文字 下付き文字を挿入します。（例）テスト
-\begin_inset Formula $_{\text{3x}}$
+\begin_inset script subscript
+
+\begin_layout Plain Layout
+
+\lang english
+3x
+\end_layout
+
 \end_inset
 
 
@@ -42785,6 +45085,25 @@ reference "sub:ハイフネーション"
 \end_inset
 
 節に述べられているハイフネーション位置を挿入します。
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Phantom Inserts Phantom space, see section
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:埋め草"
+
+\end_inset
+
+。
 \end_layout
 
 \begin_layout Description
@@ -43374,10 +45693,6 @@ arg   "bookmark-goto 2"
 
 \begin_layout Standard
 これは、カーソルが相互参照の前にあるときのみ有効です。相互参照枠を右クリックしたときと同様に、カーソルを相互参照ラベルの前に移動します。
-\end_layout
-
-\begin_layout Standard
-
 \family roman
 \series medium
 \shape up
@@ -43386,6 +45701,7 @@ arg   "bookmark-goto 2"
 \bar no
 \noun off
 \color none
+
 \begin_inset Note Note
 status open
 
@@ -43405,6 +45721,35 @@ status open
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsection
+
+\lang english
+Forward Search
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+This feature allows you to directly jump to the corresponding text part
+ in the output, see section 
+\emph on
+Forward
+\begin_inset space ~
+\end_inset
+
+search
+\emph default
+ in the 
+\emph on
+Additional
+\begin_inset space ~
+\end_inset
+
+Features
+\emph default
+ manual for a detailed description.
 \end_layout
 
 \begin_layout Section
@@ -45662,14 +48007,42 @@ reference "sec:文書クラス"
 status collapsed
 
 \begin_layout Plain Layout
-dvi2ps・dvialw・dvilaser・dvitops・psprint・pubps・ln
+
+\family sans
+dvi2ps
+\family default
+・
+\family sans
+dvialw
+\family default
+・
+\family sans
+dvilaser
+\family default
+・
+\family sans
+dvitops
+\family default
+・
+\family sans
+psprint
+\family default
+・
+\family sans
+pubps
+\family default
+・
+\family sans
+ln
+\family default
+
 \begin_inset Newline newline
 \end_inset
 
 のいずれかのドライバを使用したい場合には、まずお使いのLaTeX頒布版でこれらを有効にしなくてはなりません。
 \begin_inset CommandInset href
 LatexCommand href
-target "http://tug.ctan.org/get/macros/latex/required/graphics/grfguide.pdf"
+target "http://mirrors.ctan.org/macros/latex/required/graphics/grfguide.pdf"
 
 \end_inset
 
@@ -45694,6 +48067,86 @@ target "http://tug.ctan.org/get/macros/latex/required/graphics/grfguide.pdf"
 』の節に説明されています。
 \end_layout
 
+\begin_layout Standard
+
+\lang english
+There is also an option to suppress the date and one to use the LaTeX-package
+ 
+\series bold
+refstyle
+\series default
+ instead of 
+\series bold
+prettyref
+\series default
+\lang japanese
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+LaTeXぱっけーじ@LaTeXパッケージ! prettyref
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+LaTeXぱっけーじ@LaTeXパッケージ ! refstyle
+\end_layout
+
+\end_inset
+
+
+\lang english
+ for cross-references, see sec.
+\lang japanese
+
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:相互参照"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Child Documents
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+This submenu is only visible when your document includes child documents.
+ Please refer to the section 
+\emph on
+Child
+\begin_inset space ~
+\end_inset
+
+Documents
+\emph default
+ of the 
+\emph on
+Embedded
+\begin_inset space ~
+\end_inset
+
+Objects
+\emph default
+ manual for details.
+\end_layout
+
 \begin_layout Section
 モジュール
 \end_layout
@@ -45707,6 +48160,29 @@ reference "sub:モジュール"
 \end_inset
 
 節に説明されています。
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Local Layout
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+See section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Local-Layout"
+
+\end_inset
+
+ for a description.
 \end_layout
 
 \begin_layout Section
@@ -45735,14 +48211,6 @@ reference "sec:フォントと文字形式"
 \begin_layout Standard
 LyXは、二段組や行間を画面には反映しないことに注意してください。これは実用的ではなく、しばしば読み辛い上に、WYSIWYMの概念に反するのです。しかし、出力に
 おいては指定したとおりに反映されます。
-\end_layout
-
-\begin_layout Standard
-リスト設定に関しては、取扱説明書『
-\emph on
-埋込オブジェクト篇
-\emph default
-』の対応する節で説明されています。
 \end_layout
 
 \begin_layout Section
@@ -45784,6 +48252,13 @@ reference "sub:余白"
 
 \begin_layout Section
 言語
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:言語"
+
+\end_inset
+
+
 \begin_inset Index idx
 status collapsed
 
@@ -45799,18 +48274,25 @@ status collapsed
 \begin_layout Standard
 文書言語と引用形式がここで設定できます。文字コードは、文書の内容がどのようにLaTeXに書き出されるかを指定します（LyXファイルはつねにUTF-8でコード化さ
 れています）。指定された文字コードにコード化できない文字は、すべてLaTeXコマンドとして書き出されます（LaTeXコマンドが対応していない文字がある場合には失
-敗します）
+敗します）。
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
-既知のコマンドは、テキストファイルで定義されていますから、ユーザー自身でこのファイルに未知の記号用のコマンドを加えることができます。詳細は、取扱説明書カスタマイ
-ズ篇をご覧ください。
+既知のコマンドは、テキストファイルで定義されていますから、ユーザー自身でこのファイルに未知の記号用のコマンドを加えることができます
+\lang ngerman
+(
+\emph on
+unicodesymbols
+\emph default
+)
+\lang japanese
+。詳細は、取扱説明書カスタマイズ篇をご覧ください。
 \end_layout
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Standard
@@ -45897,6 +48379,127 @@ reference "sub:出力ファイル形式"
 \end_inset
 
 節を参照してください。仮に上記のオプションがうまく動かない場合には、これらの新しいエンジンを試すと良いかもしれません。
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The 
+\family sans
+Language
+\begin_inset space ~
+\end_inset
+
+package
+\family default
+ determines the LaTeX-package that is used for hyphenation and the translation
+ of strings like 
+\begin_inset Quotes eld
+\end_inset
+
+Part
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The possible settings are:
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Default is the package
+\lang japanese
+ 
+\series bold
+babel
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! babel
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Automatic selects the most suitable language package for the view/export
+ format you will use.
+ For example for the XeTeX formats the package
+\lang japanese
+ 
+\series bold
+polyglossia
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! polyglossia
+\end_layout
+
+\end_inset
+
+ 
+\lang english
+will be used instead of
+\lang japanese
+ 
+\series bold
+babel
+\series default
+.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Always
+\begin_inset space ~
+\end_inset
+
+Babel uses in every case
+\lang japanese
+ 
+\series bold
+babel
+\series default
+.
+\end_layout
+
+\begin_layout Description
+
+\lang english
+Custom allows you to specify a language package command of your choice.
+ For example if you want to use a language-specific package like 
+\series bold
+ngerman
+\series default
+ (for German texts), type in
+\series bold
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\backslash
+usepackage{ngerman}
+\end_layout
+
+\begin_layout Description
+
+\lang english
+None will not use a language package.
+ This necessary for some document classes for scientific articles.
 \end_layout
 
 \begin_layout Standard
@@ -46311,6 +48914,344 @@ reference "sub:言語設定"
 \end_layout
 
 \begin_layout Section
+
+\lang english
+Colors
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Color ! main text
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Color ! background
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Here you can alter the font color for the main text (default: black) and
+ for Greyed
+\begin_inset space ~
+\end_inset
+
+out notes (default: light grey).
+ The button 
+\family sans
+Reset
+\family default
+ sets the color back to the default.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can also change the background color for the pages (default: white)
+ and for Shaded
+\begin_inset space ~
+\end_inset
+
+boxes (default: red).
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\lang english
+The colors are not shown within LyX, only in the output.
+ (This Greyed
+\begin_inset space ~
+\end_inset
+
+out note appears blue in the output.)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Note, if you change the main text font color and use the option 
+\family sans
+Color
+\begin_inset space ~
+\end_inset
+
+links
+\family default
+ in the document settings under 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+properties
+\family default
+, you probably also need to change the link font color by using 
+\family sans
+Additional
+\begin_inset space ~
+\end_inset
+
+options
+\family default
+ in the 
+\family sans
+PDF
+\begin_inset space ~
+\end_inset
+
+properties
+\family default
+.
+ For example the option
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+linkcolor=black
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+sets the link text color to black.
+ For more information, see the manual of the LaTeX-package
+\lang japanese
+ 
+\series bold
+hyperref
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! hyperref
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "hyperref"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+You can adapt the main text font color and the page background for every
+ page in your document if you use these commands as TeX
+\begin_inset space ~
+\end_inset
+
+Code behind a forced page break:
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the page color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+pagecolor{color name}
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the text color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+color{color name}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The color name can hereby be one of these:
+\lang japanese
+ 
+\series bold
+black
+\series default
+, 
+\series bold
+blue
+\series default
+, 
+\series bold
+cyan
+\series default
+, 
+\series bold
+green
+\series default
+, 
+\series bold
+magenta
+\series default
+, 
+\series bold
+red
+\series default
+, 
+\series bold
+white
+\series default
+, 
+\series bold
+yellow
+\series default
+\lang english
+
+\begin_inset Newline newline
+\end_inset
+
+If you have changed a text or background color, you can use them under the
+ following names:
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the page background color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+page_backgroundcolor
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the main text color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+document_fontcolor
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the Shaded
+\begin_inset space ~
+\end_inset
+
+box background color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+shadecolor
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+For the Greyed
+\begin_inset space ~
+\end_inset
+
+out note text color:
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+note_fontcolor
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+How to define and use custom colors, see section 
+\emph on
+Colored
+\begin_inset space ~
+\end_inset
+
+Cells
+\emph default
+ of the 
+\emph on
+Embedded
+\begin_inset space ~
+\end_inset
+
+Objects
+\emph default
+ manual.
+\end_layout
+
+\begin_layout Section
 連番と目次
 \end_layout
 
@@ -46431,7 +49372,7 @@ Latexぱっけーじ@LaTeXパッケージ ! amsmath
 
 \end_inset
 
-および
+,
 \series bold
 esint
 \series default
@@ -46445,23 +49386,87 @@ Latexぱっけーじ@LaTeXパッケージ ! esint
 
 \end_inset
 
+,
+\series bold
+mathdots
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! mathdots
+\end_layout
+
+\end_inset
+
+および
+\series bold
+mhchem
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! mhchem
+\end_layout
+
+\end_inset
+
 を使用するようにするか、必要なときにこれらを自動的に使用するようにするかを、LyXに強制します。
 \end_layout
 
-\begin_layout Standard
-
-\series bold
-amsmath
-\series default
-は、多くの数式要素に必要とされているので、数式中にLaTeXエラーがでるときには、AMSを有効にしていることを確認してください。
+\begin_layout Description
+amsmath は、多くの数式要素に必要とされているので、数式中にLaTeXエラーがでるときには、AMSを有効にしていることを確認してください。
 \end_layout
 
-\begin_layout Standard
+\begin_layout Description
+esint は、特別な積分記号に使われます
+\lang english
+, see section 
+\emph on
+Big
+\begin_inset space ~
+\end_inset
 
-\series bold
-esint
-\series default
-は、特別な積分記号に使われます。
+Operators
+\emph default
+ of the 
+\emph on
+Math
+\emph default
+ manual
+\lang japanese
+。
+\end_layout
+
+\begin_layout Description
+mathdots 
+\lang english
+is used for special ellipses, see section 
+\emph on
+Ellipses
+\emph default
+ of the 
+\emph on
+Math
+\emph default
+ manual.
+\end_layout
+
+\begin_layout Description
+mhchem 
+\lang english
+is used for chemical equations, see section 
+\emph on
+Chemical Symbols and Equations
+\emph default
+ of the 
+\emph on
+Math
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -46469,14 +49474,49 @@ esint
 \end_layout
 
 \begin_layout Standard
-フロートの配置オプションに関しては、第
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:フロートの配置"
 
+\lang english
+The float placement options are described in section 
+\emph on
+Float
+\begin_inset space ~
 \end_inset
 
-節に説明があります。
+Placement
+\emph default
+ of the 
+\emph on
+Embedded
+\begin_inset space ~
+\end_inset
+
+Objects
+\emph default
+ manual.
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Listings
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The listings settings are explained in chapter 
+\emph on
+Program Code Listings
+\emph default
+ of the 
+\emph on
+Embedded
+\begin_inset space ~
+\end_inset
+
+Objects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -46484,14 +49524,23 @@ reference "sub:フロートの配置"
 \end_layout
 
 \begin_layout Standard
-ここでは、記号付き箇条書きの各階層の記号を調整できます。箇条書き（記号）環境に関しては、第
+
+\lang english
+Here you can adjust the characters for the itemize levels.
+ The itemize environment is described in section
+\lang japanese
+
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:箇条書き（記号）"
 
 \end_inset
 
-節に説明があります。
+.
 \end_layout
 
 \begin_layout Section
@@ -46542,31 +49591,76 @@ reference "sec:ファイル形式"
 \end_layout
 
 \begin_layout Description
-出力と同期
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO!
-\end_layout
-
+出力と同期 
+\lang english
+settings for the menu 
+\family sans
+Navigate\SpecialChar \menuseparator
+Forward
+\begin_inset space ~
 \end_inset
 
+search
+\family default
+.
+ For a detailed description see section 
+\emph on
+Reverse DVI/PDF search
+\emph default
+ of the 
+\emph on
+Additional
+\begin_inset space ~
+\end_inset
 
+Features
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Description
-XHTML出力オプション
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TODO!
-\end_layout
-
+XHTML出力オプション 
+\lang english
+settings for the export format 
+\family sans
+LyXHTML
+\family default
+.
+ 
+\family sans
+Strict XHTML
+\begin_inset space ~
 \end_inset
 
+1.1
+\family default
+ will assure that the output follows exactly version
+\begin_inset space ~
+\end_inset
 
+1.1 of the XHTML standard.
+ The different 
+\family sans
+Math
+\begin_inset space ~
+\end_inset
+
+output
+\family default
+ settings are described in detail in section 
+\emph on
+Math Output in XHTML
+\emph default
+ of the 
+\emph on
+Additional
+\begin_inset space ~
+\end_inset
+
+Features
+\emph default
+ manual.
+ The scaling is used for the size of equations in the output.
 \end_layout
 
 \begin_layout Section
@@ -47633,6 +50727,48 @@ Xサーバーパイプ ここには、Unixパイプ名を入れることがで�
 \end_inset
 
 
+\series bold
+\lang english
+Example
+\series default
+: You add a BibTeX-database test.bib to your document.
+ You can edit this file with the program 
+\family typewriter
+JabRef
+\family default
+.
+ In 
+\family typewriter
+JabRef
+\family default
+ you have to use the same Unix-Pipe for LyX in its preferences under 
+\family sans
+External
+\begin_inset space ~
+\end_inset
+
+programs
+\family default
+.
+ If you want to get one entry of the database as citation, select it in
+ 
+\family typewriter
+JabRef
+\family default
+ and click on the LyX-symbol.
+ The entry will now be inserted as citation at the current cursor position
+ in your LyX file.
+ 
+\family typewriter
+JabRef
+\family default
+ and LyX need of course to be run the same time.
+\lang japanese
+
+\begin_inset Newline newline
+\end_inset
+
+
 \begin_inset Note Greyedout
 status open
 
@@ -47731,54 +50867,49 @@ target "http://www.lyx.org/l18n"
 \series bold
 babel
 \series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! babel
+\end_layout
+
+\end_inset
+
 であり、これは古くからLaTeXの標準言語パッケージとなっています。しかしながら、XeTeXやLuaTeXのような比較的新しい組版エンジンでは、これらのエンジン
-のマルチスクリプトサポートに適した別の言語パッケージ(
+のマルチスクリプトサポートに適した別の言語パッケージ
 \series bold
 polyglossia
 \series default
-)が使用されています。さらに、babelでカバーされていない言語向けの言語パッケージもあります。選択可能な項目は以下のとおりです。
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! polyglossia
 \end_layout
 
-\begin_deeper
-\begin_layout Itemize
+\end_inset
 
-\series bold
-自動
-\series default
-: 現在の組版エンジンにもっとも適した言語パッケージを選択します(既定値)。
+が使用されています。さらに、babelでカバーされていない言語向けの言語パッケージもあります。
+\lang english
+The available selections are described in sec.
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:言語"
+
+\end_inset
+
+.
 \end_layout
 
-\begin_layout Itemize
-
-\series bold
-常にBabel
-\series default
-: 自動設定では他のパッケージ(polyglossiaなど)が好まれる場合でも、常にbabelを使用します。
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-任意設定
-\series default
-: 他の言語パッケージを選択できるようにします(
-\family typewriter
-
-\backslash
-usepackage{パッケージ名}
-\family default
-を使用)。
-\end_layout
-
-\begin_layout Itemize
-
-\series bold
-なし
-\series default
-: 言語パッケージは読み込みません。
-\end_layout
-
-\end_deeper
 \begin_layout Description
 既定小数点 表で使用する小数点を定義します(小数点揃え用)。
 \end_layout
@@ -47928,18 +51059,6 @@ Windowsシステムでは効力がないのでこのフィールドは空でか�
 \end_layout
 
 \begin_layout Description
-出力をプリンタに合わせる このオプションは、
-\family sans
-印刷コマンド
-\family default
-が「
-\family sans
-dvips
-\family default
-」のときのみ機能します。これはdvips用の設定ファイルを有効化します。これはdvips熟練者専用のオプションです。
-\end_layout
-
-\begin_layout Description
 印刷コマンド これはLyXすなわちLaTeXが印刷に使用するコマンドです。既定値は、ほとんどのシステムで
 \family sans
 dvips
@@ -47950,6 +51069,18 @@ dvips
 \begin_layout Description
 印刷コマンドオプション ここでは印刷コマンド用オプションを指定できます。お使いの印刷コマンドを提供するプログラムの取扱説明書に、印刷オプションの全覧と説明があり
 ます。
+\end_layout
+
+\begin_layout Description
+出力をプリンタに合わせる このオプションは、
+\family sans
+印刷コマンド
+\family default
+が「
+\family sans
+dvips
+\family default
+」のときのみ機能します。これはdvips用の設定ファイルを有効化します。これはdvips熟練者専用のオプションです。
 \end_layout
 
 \begin_layout Subsection
@@ -49288,7 +52419,7 @@ BibTeX
 \begin_inset CommandInset href
 LatexCommand href
 name "取扱説明書"
-target "http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxdoc.pdf"
+target "http://mirrors.ctan.org/biblio/bibtex/contrib/doc/btxdoc.pdf"
 
 \end_inset
 
@@ -49302,7 +52433,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://www.ctan.org/get/biblio/bibtex/contrib/doc/btxdoc.pdf
+http://mirrors.ctan.org/biblio/bibtex/contrib/doc/btxdoc.pdf
 \end_layout
 
 \end_inset
@@ -49360,7 +52491,7 @@ makeindex
 \begin_inset CommandInset href
 LatexCommand href
 name "取扱説明書"
-target "http://tug.ctan.org/indexing/makeindex/doc/manpages.dvi"
+target "http://mirrors.ctan.org/indexing/makeindex/doc/makeindex.pdf"
 
 \end_inset
 
@@ -49374,7 +52505,7 @@ status collapsed
 
 \begin_layout Plain Layout
 
-http://tug.ctan.org/indexing/makeindex/doc/manpages.dvi
+http://mirrors.ctan.org/indexing/makeindex/doc/makeindex.pdf
 \end_layout
 
 \end_inset
@@ -49432,6 +52563,16 @@ LaTeXパッケージ
 \series bold
 caption
 \series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! caption
+\end_layout
+
+\end_inset
+
 の
 \begin_inset CommandInset href
 LatexCommand href
@@ -49451,6 +52592,54 @@ status collapsed
 \begin_layout Plain Layout
 
 ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/caption/caption.pdf
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring 参考文献
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "enumitem"
+
+\end_inset
+
+LaTeXパッケージ
+\series bold
+enumitem
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! enumitem
+\end_layout
+
+\end_inset
+
+の
+\begin_inset CommandInset href
+LatexCommand href
+name "取扱説明書"
+target "http://mirrors.ctan.org/macros/latex/contrib/enumitem/enumitem.pdf"
+
+\end_inset
+
+:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://mirrors.ctan.org/macros/latex/contrib/enumitem/enumitem.pdf
 \end_layout
 
 \end_inset
@@ -49610,6 +52799,102 @@ ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/nomencl/nomencl.pdf
 \labelwidthstring 参考文献
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
+key "prettyref"
+
+\end_inset
+
+LaTeXパッケージ
+\series bold
+prettyref
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! prettyref
+\end_layout
+
+\end_inset
+
+:の
+\begin_inset CommandInset href
+LatexCommand href
+name "取扱説明書"
+target "http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref.pdf"
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.ctan.org/tex-archive/macros/latex/contrib/prettyref/prettyref.pdf
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring 参考文献
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "refstyle"
+
+\end_inset
+
+LaTeXパッケージ
+\series bold
+refstyle
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Latexぱっけーじ@LaTeXパッケージ ! refstyle
+\end_layout
+
+\end_inset
+
+:の
+\begin_inset CommandInset href
+LatexCommand href
+name "取扱説明書"
+target "http://mirrors.ctan.org/macros/latex/contrib/refstyle/refstyle.pdf"
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://mirrors.ctan.org/macros/latex/contrib/refstyle/refstyle.pdf
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring 参考文献
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "tipa"
 
 \end_inset
@@ -49647,54 +52932,6 @@ status collapsed
 \begin_layout Plain Layout
 
 http://www.ctan.org/tex-archive/fonts/tipa/tipaman.pdf
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
-\labelwidthstring 参考文献
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "wrapfig"
-
-\end_inset
-
-LaTeXパッケージ
-\series bold
-wrapfig
-\series default
-
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-Latexぱっけーじ@LaTeXパッケージ ! wrapfig
-\end_layout
-
-\end_inset
-
-の
-\begin_inset CommandInset href
-LatexCommand href
-name "取扱説明書"
-target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty"
-
-\end_inset
-
-:
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty
 \end_layout
 
 \end_inset
@@ -50111,7 +53348,7 @@ options "../biblio/alphadin"
 
 \begin_inset CommandInset nomencl_print
 LatexCommand printnomenclature
-set_width "none"
+set_width "auto"
 
 \end_inset
 

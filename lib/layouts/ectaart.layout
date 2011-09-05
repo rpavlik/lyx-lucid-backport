@@ -149,7 +149,7 @@ Style Emphasize
 	EndPreamble
 End
 
-InsetLayout "Flex:Thanks_Reference"
+InsetLayout Flex:Thanks_Reference
 	LyxType		custom
 	LatexType	Command
 	LatexName	thanksref
@@ -161,48 +161,48 @@ InsetLayout "Flex:Thanks_Reference"
 	BgColor		background
 End
 
-InsetLayout Internet_Address_Reference
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Internet_Address_Reference
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	printead
 	LabelString	"Internet Addess Ref"
 End
 
-InsetLayout Corresponding_Author
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Corresponding_Author
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	corref
 	LabelString	"Corresponding Author"
 	BgColor		black
 End
 
-InsetLayout Author
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Author
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	author
 	LabelString	"Author"
 	BgColor		green
 End
 
-InsetLayout Name_(First_Name)
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Name_(First_Name)
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	fnms
 	LabelString	"First Name"
 	BgColor		background
 End
 
-InsetLayout Name_(Surname)
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Name_(Surname)
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	snm
 	LabelString	"Surname"
 	BgColor		background
 End
 
-InsetLayout Keyword
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:Keyword
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	kwd
 	LabelString	"Keyword"
 End
 
-InsetLayout By_Same_Author_(bib)
-	CopyStyle	"Flex:Thanks_Reference"
+InsetLayout Flex:By_Same_Author_(bib)
+	CopyStyle	Flex:Thanks_Reference
 	LatexName	bysame
 	LabelString	"bysame"
 	BgColor		blue

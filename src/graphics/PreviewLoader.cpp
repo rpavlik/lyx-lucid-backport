@@ -388,7 +388,7 @@ namespace graphics {
 PreviewLoader::Impl::Impl(PreviewLoader & p, Buffer const & b)
 	: parent_(p), buffer_(b)
 {
-	if (b.bufferFormat() == "lilypond-book")
+	if (b.params().bufferFormat() == "lilypond-book")
 		pconverter_ = setConverter("lyxpreview-lytex");
 	else if (b.params().encoding().package() == Encoding::japanese)
 		pconverter_ = setConverter("lyxpreview-platex");
@@ -710,7 +710,7 @@ void PreviewLoader::Impl::dumpPreamble(otexstream & os) const
 	runparams.nice = true;
 	runparams.moving_arg = true;
 	runparams.free_spacing = true;
-	buffer_.writeLaTeXSource(os, buffer_.filePath(), runparams, true, false);
+	buffer_.writeLaTeXSource(os, runparams, true, false);
 
 	// FIXME! This is a HACK! The proper fix is to control the 'true'
 	// passed to WriteStream below:

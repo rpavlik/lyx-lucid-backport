@@ -1,5 +1,5 @@
-#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 404
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass book
@@ -29,22 +29,18 @@
   \pdfbookmark[1]{\contentsname}{}
   \myTOC
   \mainmatter }
-
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
 \end_preamble
 \use_default_options false
 \maintain_unincluded_children false
 \language basque
+\language_package default
 \inputencoding auto
 \fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
-\use_xetex false
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
@@ -99,6 +95,7 @@
 \tracking_changes false
 \output_changes false
 \html_math_output 0
+\html_css_as_file 0
 \html_be_strict false
 \end_header
 
@@ -355,8 +352,8 @@ Ikusi
 Tutoretza
 \emph default
  honetan programa hauek instalatuta dauzkazula onartuko dugu: ongi baino
- hobekiago darabilen LyX-eko bertsio bat, baina LaTeX-en paketeak ere, DVI
- eta PDF formatuen ikustaile bat.
+ hobekiago darabilen LyX-eko bertsio bat, baina LaTeX-en paketeak ere, PDF
+ formatuen ikustaile bat.
  GNU/Linux eta BSD banaketetako kasu litzateke hau, baita Windows sistemakoa
  ere, LyX-en instalatzaileak ezartzen baititu.
 \end_layout
@@ -3535,12 +3532,14 @@ ingurunea
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
+\begin_inset Formula 
+\[
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
 \sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
-\end{array}\right.\]
+\end{array}\right.
+\]
 
 \end_inset
 

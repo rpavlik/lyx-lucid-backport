@@ -1,48 +1,132 @@
-#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
-\use_default_options false
-\textclass book
+\textclass scrbook
 \begin_preamble
+% DO NOT ALTER THIS PREAMBLE!!!
+%
+% This preamble is designed to ensure that the manual prints
+% out as advertised. If you mess with this preamble,
+% parts of the manual may not print out as expected.  If you
+% have problems LaTeXing this file, please contact 
+% the documentation team
+% email: lyx-docs@lists.lyx.org
+
+% if pdflatex is used
+\usepackage{ifpdf}
+\ifpdf
+
+ % set fonts for nicer pdf view
+ \IfFileExists{lmodern.sty}
+  {\usepackage{lmodern}}{}
+
+\fi % end if pdflatex is used
+
+% the pages of the TOC are numbered roman
+% and a PDF-bookmark for the TOC is added
+\pagenumbering{roman}
+\let\myTOC\tableofcontents
+\renewcommand{\tableofcontents}{%
+ \pdfbookmark[1]{\contentsname}{}
+ \myTOC
+ \cleardoublepage
+ \pagenumbering{arabic}}
+
+% used for multi-column text
 \usepackage{multicol}
+
+% extra space for tables
 \newcommand{\extratablespace}[1]{\noalign{\vskip#1}}
-\usepackage{floatflt}
-%\usepackage[colorlinks=true,linkcolor=black]{hyperref}
 \end_preamble
+\options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
+\use_default_options false
+\begin_modules
+logicalmkup
+theorems-ams
+theorems-ams-extended
+\end_modules
+\maintain_unincluded_children false
+\begin_local_layout
+Format 7
+InsetLayout CharStyle:MenuItem
+LyxType               charstyle
+LabelString           menu
+LatexType             command
+LatexName             menuitem
+Font
+Family              Sans
+EndFont
+Preamble
+\newcommand*{\menuitem}[1]{{\sffamily #1}}
+EndPreamble
+End
+\end_local_layout
 \language polish
-\inputencoding latin2
+\language_package default
+\inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
-\paperfontsize default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
 \spacing single
-\use_hyperref false
+\use_hyperref true
+\pdf_title "LyX's Additional Features manual"
+\pdf_author "LyX Team"
+\pdf_subject "LyX's additional features documentation"
+\pdf_keywords "LyX, Documentation, Additional"
+\pdf_bookmarks true
+\pdf_bookmarksnumbered true
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle false
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
-\use_amsmath 0
+\use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
-\secnumdepth 2
-\tocdepth 2
+\suppress_date false
+\use_refstyle 0
+\index Indeks
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language german
 \papercolumns 1
 \papersides 2
-\paperpagestyle default
+\paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author ""
-\author ""
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict true
 \end_header
 
 \begin_body
@@ -2667,6 +2751,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -2690,6 +2775,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -2731,6 +2817,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -2755,6 +2842,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "1.5in"
 special "none"
 height "1pt"
@@ -2815,12 +2903,6 @@ Ten rysunek jest oblany tekstem, a to jest śliczny podpis
 Często zadawanym pytaniem jest pytanie o możliwość ,,oblewania'' rysunków
  tekstem w ten sposób, że rysunek zajmuje część kolumny a reszta jest wypełniona
  tekstem.
- Jeśli masz zainstalowany pakiet LaTeX-a 
-\family typewriter
-floatflt
-\family default
- (jest często włączany do dystrybucji lub dostępny w archiwach CTAN), to
- możesz to zrobić.
 \end_layout
 
 \begin_layout Standard
@@ -2984,7 +3066,7 @@ Tutaj znajduje się standardowa tabela:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="left" valignment="top" width="0pt">
 <row>
@@ -3080,7 +3162,7 @@ Zwróć uwagę, że poziome kreski wystają troszkę z obu strona poza tekst.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt" special="@{} l">
 <column alignment="left" valignment="top" width="0pt" special="l @{}">
 <row>
@@ -3217,7 +3299,7 @@ pi}$~} l
 .
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="left" valignment="top" width="0pt" special="@{~$\sqrt{\pi}$~}l">
 <row>
@@ -3318,7 +3400,7 @@ Proponujemy wyrównanie kolumny według cyfr znaczących.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="right" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt" special="@{} l">
@@ -3739,7 +3821,7 @@ W zakładce wyświetlona jest tabela znaków wyliczenia.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -10837,7 +10919,7 @@ zawsze
 \end_layout
 
 \begin_deeper
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMM
 
 \family sans
@@ -10848,7 +10930,7 @@ empty
  Nie jest dodawany numer ani inne nagłówki i stopki,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMM
 
 \family sans
@@ -10860,7 +10942,7 @@ plain
  bez innych nagłówków i stopek (innych niż przypisy).
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMM
 
 \series bold
@@ -10871,7 +10953,7 @@ foilheadings
  To jest styl domyślny.
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMM
 
 \series bold
@@ -10909,7 +10991,7 @@ Styl Dokumentu
 :
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10920,7 +11002,7 @@ Styl Dokumentu
  To ustawienie ułatwia pracę z tym medium,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10930,7 +11012,7 @@ headrule
  strony tytułowej,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10940,7 +11022,7 @@ footrule
  tytułowej,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10967,7 +11049,7 @@ TeX-owi aby użył jako sterownika programu dvips do obrotu tych stron, które
  ustawiono jako poziome,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10987,7 +11069,7 @@ Rotatefoilhead
  (nie przejmuj się jest to opisane w następnej sekcji),
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -10996,7 +11078,7 @@ leqno
  Numeracja równań po lewej stronie równania,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMx
 
 \series bold
@@ -11791,7 +11873,7 @@ foilheadskip}{-0.5in}
 Odstępy wokół wstawek mogą być ustawiane przez zmianę następujących długości:
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11802,7 +11884,7 @@ abovefloatskip
  odstęp pomiędzy tekstem a górą wstawki,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11813,7 +11895,7 @@ abovecaptionskip
  odstęp pomiędzy wstawką a podpisem,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11824,7 +11906,7 @@ belowcaptionskip
  odstęp pomiędzy podpisem a dalszym tekstem,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11848,7 +11930,7 @@ Jest jeszcze kilka długości związanymi ze strona tytułowa, które mogą być
  użyteczne jeśli masz długie tytuły lub kilku autorów:
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11863,7 +11945,7 @@ Title
 ,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11882,7 +11964,7 @@ Author
 ,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11897,7 +11979,7 @@ Author
 ,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -11916,7 +11998,7 @@ Date
 ,
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMMMM
 
 \family typewriter
@@ -12009,7 +12091,7 @@ LogoOn
 Pozostałe polecenia sterujące:
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMM
 
 \family typewriter
@@ -12020,7 +12102,7 @@ rightfooter{}
  prawa stopka, domyślnie zawiera numer strony
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMM
 
 \family typewriter
@@ -12031,7 +12113,7 @@ rightheader{}
  prawy nagłówek
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring MMMMMMMMM
 
 \family typewriter
@@ -14039,7 +14121,7 @@ faxhost.mydomain
 '' i podałeś te wartości w oknie faksowania:
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -14052,7 +14134,7 @@ no:
  +39-2-444666
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -14065,7 +14147,7 @@ Name:
  Someone
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -14074,7 +14156,7 @@ Enterprise:
  Startrek
 \end_layout
 
-\begin_layout List
+\begin_layout Labeling
 \labelwidthstring 00.00.0000
 
 \family sans
@@ -16629,280 +16711,7 @@ Większość pomysłów tego rozdziału wymaga mniej podstawowych plików w Twoj
 \end_layout
 
 \begin_layout Section
-Triki w przypisach i marginaliach
-\end_layout
-
-\begin_layout Standard
-suggested by Robin
-\noun on
- Socha
-\end_layout
-
-\begin_layout Subsection
-Przypisy
-\end_layout
-
-\begin_layout Standard
-LyX jeszcze nie potrafi ustawić numeracji przypisów z powrotem od 1 po każdej
- sekcji w klasie dokumentu ,,article'' lub zmianie stylu licznika.
- Aby to osiągnąć będziesz potrzebował następujących poleceń LaTeX-a:
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-setcounter{footnote}{0}
-\end_layout
-
-\end_inset
-
-Polecenie 
-\family typewriter
-
-\backslash
-setcounter{footnote}{0}
-\family default
-ustawi licznik z powrotem na 1
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Licznik został ustawiony na 1.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Następujące polecenie zmienia numerację przypisów na numerowanie małymi
- literami.
- Zobacz w podglądzie jak to wygląda.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-renewcommand{
-\backslash
-thefootnote}{
-\backslash
-alph{footnote}}
-\end_layout
-
-\end_inset
-
-:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-To jest przykład przypisu numerowanego alfabetycznie.
-\begin_inset Newline newline
-\end_inset
-
-Użyj
-\family typewriter
-
-\backslash
-renewcommand{
-\backslash
-thefootnote {
-\backslash
-alph{footnote}}
-\family default
-aby to uzyskać.
-\end_layout
-
-\end_inset
-
- Następne polecenie ustawia styl licznika z powrotem na domyślny, np.
- 
-\family typewriter
-
-\backslash
-arabic
-\family default
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-renewcommand {
-\backslash
-thefootnote} {
-\backslash
-arabic{footnote}}
-\end_layout
-
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Użyj
-\family typewriter
-
-\backslash
-renewcommand{
-\backslash
-thefootnote}{
-\backslash
-arabic{footnote}}
-\family default
-aby przywrócić styl licznika na domyślny -- numeryczny
-\backslash
-arabic.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Możesz używać 
-\family typewriter
-
-\backslash
-arabic
-\family default
-, 
-\family typewriter
-
-\backslash
-roman
-\family default
-, 
-\family typewriter
-
-\backslash
-Roman
-\family default
-, 
-\family typewriter
-
-\backslash
-alph
-\family default
- lub 
-\family typewriter
-
-\backslash
-Alph
-\family default
- i innych stylów liczników.
-\end_layout
-
-\begin_layout Subsection
-Marginalia
-\end_layout
-
-\begin_layout Standard
-Tutaj znajdują się dwa przykłady jak wstawić marginalia przy użyciu poleceń
- LaTeX-a
-\end_layout
-
-\begin_layout Standard
-Następujące polecenie utworzy poziomą linię pojawiającą obok tekstu:
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-
-\backslash
-marginpar{
-\backslash
-rule[-10mm]{30mm}{5mm}}
-\family default
-.
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-marginpar{
-\backslash
-rule[-10mm]{30mm}{5mm}}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Zobacz na wydruku co robi następujące polecenie.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-reversemarginpar
-\end_layout
-
-\end_inset
-
- Right -- wstawi notkę marginesową na ,,złej'' stronie dwustronnego dokumentu.
-\begin_inset Marginal
-status collapsed
-
-\begin_layout Plain Layout
-
-\backslash
-reverse
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
--
-\end_layout
-
-\end_inset
-
-marginpar
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
 Skład wieloszpaltowy
-\end_layout
-
-\begin_layout Standard
-by Lars
-\noun on
- Gullik Bjřnnes
 \end_layout
 
 \begin_layout Subsection
@@ -17277,775 +17086,11 @@ examples/multicol.lyx
  szpaltami i nagłówkiem, pionowych linii separujących i innych.
 \end_layout
 
-\begin_layout Section
-Numeracja w środowisku wyliczenia akapitów
-\end_layout
-
 \begin_layout Standard
-by John
-\noun on
- Weiss
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
+\begin_inset Newpage newpage
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-Domyślna numeracja akapitów w środowisku wyliczenia zaczyna się od cyfr
- arabskich, a kończy się na dużych literach alfabetu.
- Prawdopodobnie jednak będziesz chciał inaczej numerować akapity.
- Oto przykład jak zmienić schemat numeracji:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-Roman{enumi}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-arabic{enumiii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{
-\backslash
-alph{enumiv}.)}
-\end_layout
-
-\begin_layout Standard
-\SpecialChar \ldots{}
- który zmienia schemat na następujący: cyfry rzymskie, duże litery, cyfry
- arabskie i małe litery.
- Ponadto poprzedni przykład także dodaje kropkę do numeracji.
- Na przykład pierwszy akapit pierwszego poziomu będzie oznaczony ,,I.''.
- Dla lepszej orientacji opiszemy jak wygląda numeracja z użyciem naszego
- schematu: <,,I.'', ,,A.'', ,,1.'', ,,a.)''>.
-\end_layout
-
-\begin_layout Standard
-Można zobaczyć w przykładzie, gdzie są polecenia dla każdego zagnieżdżonego
- poziomu, 
-\family typewriter
-
-\backslash
-labelenumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-
-\backslash
-labelenumiv
-\family default
-, podobnie jak liczniki, 
-\family typewriter
-enumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-enumiv
-\family default
-.
- Znajduje się także pięć poleceń ,,drukowania numeru'', 
-\family typewriter
-
-\backslash
-arabic{}
-\family default
-, 
-\family typewriter
-
-\backslash
-roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-Roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-alph{}
-\family default
- i 
-\family typewriter
-
-\backslash
-Alph{}
-\family default
-, każdy z nich pobiera jeden licznik jako argument.
- Można dodać znaki przed lub po, ale nie ma potrzeby dodawania spacji.
-\end_layout
-
-\begin_layout Standard
-Możesz rzeczywiście otrzymać ozdobny schemat numeracji, na przykład:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-#
-\backslash
-Alph{enumi}
-\backslash
-#}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumi}.
-\backslash
-arabic{enumii}}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-alph{enumiii}+}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{(
-\backslash
-roman{enumiv})}
-\end_layout
-
-\begin_layout Standard
-Otrzymujemy wówczas następującą numerację: <,,#A#'', ,,A.1'', ,,a+'', ,,(i)''>.
-\end_layout
-
-\begin_layout Section
-Przestrzeń pomiędzy wierszami tabel
-\end_layout
-
-\begin_layout Standard
-by Mike
-\noun on
- Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-LaTeX pozwala wstawiać trochę wolnego miejsca pomiędzy wierszami tabeli
- przez podanie opcjonalnego argumentu końca wiersza (
-\family typewriter
-
-\backslash
-
-\backslash
-
-\family default
-).
- Ta metoda nie jest formalnie zaimplementowana w LyX-ie, ale podajemy dwa
- drobne tricki do wykonania tego samego zadania.
-\end_layout
-
-\begin_layout Standard
-Pierwszy sposób jest bardziej formalny, ale bardziej zawikłany.
- W preambule należy dodać następującą definicję polecenia:
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-
-\backslash
-newcommand{
-\backslash
-extratablespace}[1]{
-\backslash
-noalign{vskip#1}}
-\end_layout
-
-\begin_layout Standard
-To polecenie pobiera pojedynczy argument -- ilość miejsca, którą chcesz
- wstawić.
- Wstaw polecenie w pierwszej kolumnie następnego wiersza gdzie chciałbyś
- aby pojawiło się wolne miejsce.
- Oto przykład (usunąłem wszystkie ramki używając 
-\family sans
-\bar under
-U
-\bar default
-kład\SpecialChar \menuseparator
-
-\bar under
-T
-\bar default
-abel
-\family default
-a):
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace 0.3cm
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="4" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Minerals
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Calcite
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Dolomite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Quartz
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Graphite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-extratablespace{2ex}
-\end_layout
-
-\end_inset
-
-Rocks
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Limestone
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Sandstone
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Granite
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Andesite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace 0.3cm
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Drugi sposób jest szybszy.
- Po prostu umieść w odpowiednim wierszu opcjonalny argument końca wiersza.
- Żadne eleganckie definicje nie są potrzebne jak w poprzednim przykładzie,
- ale dodawane będzie więcej miejsca, ponieważ de facto dodawany jest pusty
- wiersz plus odstęp.
- Jeśli zbyt dużo jest dodawanego miejsca to użyj liczby ujemnej, jak w przykładz
-ie:
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace 0.3cm
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="4" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Minerals
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Calcite
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Dolomite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Quartz
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Graphite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-
-\backslash
-[-1ex]
-\end_layout
-
-\end_inset
-
- Rocks
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Limestone
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Sandstone
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Granite
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Andesite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace 0.3cm
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-To pozwala szybko wykonać pracę, ale zdarza się, że brzydko wygląda.
-\end_layout
-
-\begin_layout Section
-Inicjały
-\end_layout
-
-\begin_layout Standard
-by Mike
-\noun on
- Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-newfont{
-\backslash
-tmpfont}{cmr17 scaled 2500}{
-\backslash
-tmpfont C}
-\backslash
-vspace*{-8.4ex}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-hangindent=3.3em
-\backslash
-hangafter=-3
-\end_layout
-
-\end_inset
-
- i którzy lubią styl starych książek prawdopodobnie także lubią ,,inicjały''
- --- tę wielką literę rozpoczynającą każdy nowy rozdział czy sekcję.
- Implementacja tego jest prosta (zakładając, że znasz trochę plain TeX-a!)
- ale nie wymaga wiele pracy i powtórzeń, co mogłeś zobaczyć na początku
- akapitu w brzydkim trybie TeX-a.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-verb+
-\backslash
-bigdrop{-1em}{3}{ptmri}{I}+
-\end_layout
-
-\end_inset
-
-stnieje oczywiście o wiele łatwiejsza droga.
- Pakiet 
-\family typewriter
-dropcaps
-\family default
- (lub nowszy 
-\family typewriter
-dropping
-\family default
-)  z archiwum CTAN pozwala na prostszą metodę uzyskania inicjałów w dokumencie.
- Od jakiegoś czasu pakiet ten nie jest standardową częścią teTeX-a.
- Nie mogę go zademonstrować w tym dokumencie ale jeśli skopiujesz ten akapit
- do nowego dokumentu, usuniesz ,,
-\family typewriter
-
-\backslash
-verb
-\family default
-'' oraz znaki plus z kodu TeX-a na początku akapitu i dodasz do preambuły
- polecenie 
-\family typewriter
-
-\backslash
-usepackage{dropcaps}
-\family default
- to otrzymasz literę I zapisaną czcionką Times Roman Italic o wysokości
- trzech wierszy tekstu przesuniętą o 1 em za margines.
- Pierwszym argumentem jest wielkość wcięcia, ujemna wartość powoduje przesunięci
-e inicjału za margines.
- Drugi argument zawiera wysokość inicjału, podaje się ją w wierszach.
- Trzeci argument jest nazwą czcionki, czcionki wirtualne posiadające pliki
- tfm powinny działać (przebrnij przez katalog 
-\family typewriter
-.../texmf/fonts/tfm
-\family default
- aby sprawdzić możliwości).
- Moim osobistym faworytem jest 
-\family sans
-yinit
-\family default
-, ozdobna czcionka niemiecka specjalnie zaprojektowana do inicjałów.
- Czwartym argumentem jest litera lub litery, które mają być inicjałem.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-verb+
-\backslash
-dropping{2}{P}+
-\end_layout
-
-\end_inset
-
- pakiet
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Przyp.
- tłum.
- Aby zobaczyć wynik pracy pakietu 
-\family typewriter
-dropping
-\family default
- to należy wykonać czynności podobne jak poprzednio, jedynie w preambule
- należy wpisać
-\family typewriter
-
-\backslash
-usepackage{dropping}
-\end_layout
-
-\end_inset
-
- 
-\family typewriter
-dropping
-\family default
- także oferuje polecenie 
-\family typewriter
-
-\backslash
-bigdrop
-\family default
- o identycznej składni jak w pakiecie 
-\family typewriter
-dropcaps
-\family default
-, a także trochę uproszczone polecenie 
-\family typewriter
-
-\backslash
-dropping o
-\family default
- trzech argumentach.
- Pierwszy -- opcjonalny -- określa odległość od lewego marginesu -- domyślnie
- 0pt.
- Drugi zawiera wysokość inicjału podawaną w wierszach.
- Trzecim argumentem jest litera lub litery, które mają być inicjałem.
 \end_layout
 
 \begin_layout Section
@@ -18053,21 +17098,8 @@ Niestandardowe kształty akapitów
 \end_layout
 
 \begin_layout Standard
-by Mike
-\noun on
- Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -18106,7 +17138,7 @@ varunit}{4.5in}
 \begin_layout Standard
 \noindent
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -18401,7 +17433,7 @@ numlines
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -18413,28 +17445,6 @@ end{sloppypar}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Podsumowanie
-\end_layout
-
-\begin_layout Standard
-Jak można zobaczyć, przykłady w tym rozdziale zaczynają się od użytecznych
- aż do wymyślnych.
- Nie spodziewam się aby ktoś potrzebował kształtu akapitu jak ostatnim rozdziale
-, ale ważne jest to że możesz zrobić prawie wszystko co chcesz w LyX-ie
- jeśli będziesz miał ochotę wyobrazić sobie jak to zrobić w TeX-u i LaTeX-u.
-\end_layout
-
-\begin_layout Standard
-TeX jest fantastycznym systemem składu i jego możliwości są dostępne dla
- Ciebie przez LyX-a wykorzystującego go w tle.
- 
-\end_layout
-
-\begin_layout Standard
-Miłego LyX-owania!
 \end_layout
 
 \end_body

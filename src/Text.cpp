@@ -357,6 +357,13 @@ void Text::readParToken(Paragraph & par, Lexer & lex,
 		// all unknown layouts such as frame will be added to document class article so that
 		// these layouts can keep their original names.
 		tclass.addLayoutIfNeeded(layoutname);
+		bool const added_one = tclass.addLayoutIfNeeded(layoutname);
+		if (added_one) {
+			// Warn the user.
+			docstring const s = bformat(_("Layout `%1$s' was not found."), layoutname);
+			errorList.push_back(
+				ErrorItem(_("Layout Not Found"), s, par.id(), 0, par.size()));
+		}
 
 		par.setLayout(bp.documentClass()[layoutname]);
 
@@ -1243,7 +1250,11 @@ void Text::acceptOrRejectChanges(Cursor & cur, ChangeOp op)
 
 		pos_type left  = (pit == begPit ? begPos : 0);
 		pos_type right = (pit == endPit ? endPos : parSize);
-
+		
+		if (left == right)
+			// there is no change here
+			continue;
+		
 		if (op == ACCEPT) {
 			pars_[pit].acceptChanges(left, right);
 		} else {
@@ -1641,7 +1652,13 @@ bool Text::dissolveInset(Cursor & cur)
 	spit += cur.pit();
 	Buffer & b = *cur.buffer();
 	cur.paragraph().eraseChar(cur.pos(), b.params().trackChanges);
+
 	if (!plist.empty()) {
+		// see bug 7319
+		// we need to update here since we need to refresh
+		// the reference cache.
+		cur.buffer()->updateBuffer();
+
 		// ERT paragraphs have the Language latex_language.
 		// This is invalid outside of ERT, so we need to
 		// change it to the buffer language.
@@ -1655,8 +1672,9 @@ bool Text::dissolveInset(Cursor & cur)
 		// restore position
 		cur.pit() = min(cur.lastpit(), spit);
 		cur.pos() = min(cur.lastpos(), spos);
-	} else
-		cur.forceBufferUpdate();
+	}
+
+	cur.forceBufferUpdate();
 
 	// Ensure the current language is set correctly (bug 6292)
 	cur.text()->setCursor(cur, cur.pit(), cur.pos());

@@ -24,6 +24,7 @@
 #include "Bullet.h"
 #include "Color.h"
 #include "ColorSet.h"
+#include "Converter.h"
 #include "Encoding.h"
 #include "HSpace.h"
 #include "IndicesList.h"
@@ -1118,6 +1119,7 @@ void BufferParams::validate(LaTeXFeatures & features) const
 
 		switch (features.runparams().flavor) {
 		case OutputParams::LATEX:
+		case OutputParams::DVILUATEX:
 			if (dvipost) {
 				features.require("ct-dvipost");
 				features.require("dvipost");
@@ -1372,7 +1374,7 @@ bool BufferParams::writeLaTeX(otexstream & os, LaTeXFeatures & features,
 			  fonts_sans_scale, fonts_typewriter_scale,
 			  useNonTeXFonts, features);
 	if (!fonts.empty())
-		os << from_ascii(fonts);
+		os << from_utf8(fonts);
 
 	if (fonts_default_family != "default")
 		os << "\\renewcommand{\\familydefault}{\\"
@@ -2052,6 +2054,140 @@ bool BufferParams::addLayoutModule(string const & modName)
 }
 
 
+string BufferParams::bufferFormat() const
+{
+	string format = documentClass().outputFormat();
+	if (format == "latex") {
+		if (useNonTeXFonts)
+			return "xetex";
+		if (encoding().package() == Encoding::japanese)
+			return "platex";
+	}
+	return format;
+}
+
+
+bool BufferParams::isExportable(string const & format) const
+{
+	vector<string> backs = backends();
+	for (vector<string>::const_iterator it = backs.begin();
+	     it != backs.end(); ++it)
+		if (theConverters().isReachable(*it, format))
+			return true;
+	return false;
+}
+
+
+vector<Format const *> BufferParams::exportableFormats(bool only_viewable) const
+{
+	vector<string> const backs = backends();
+	set<string> excludes;
+	if (useNonTeXFonts) {
+		excludes.insert("latex");
+		excludes.insert("pdflatex");
+	}
+	vector<Format const *> result =
+		theConverters().getReachable(backs[0], only_viewable, true, excludes);
+	for (vector<string>::const_iterator it = backs.begin() + 1;
+	     it != backs.end(); ++it) {
+		vector<Format const *>  r =
+			theConverters().getReachable(*it, only_viewable, false, excludes);
+		result.insert(result.end(), r.begin(), r.end());
+	}
+	return result;
+}
+
+
+bool BufferParams::isExportableFormat(string const & format) const
+{
+		typedef vector<Format const *> Formats;
+		Formats formats;
+		formats = exportableFormats(true);
+		Formats::const_iterator fit = formats.begin();
+		Formats::const_iterator end = formats.end();
+		for (; fit != end ; ++fit) {
+			if ((*fit)->name() == format)
+				return true;
+		}
+		return false;
+}
+
+
+vector<string> BufferParams::backends() const
+{
+	vector<string> v;
+	v.push_back(bufferFormat());
+	// FIXME: Don't hardcode format names here, but use a flag
+	if (v.back() == "latex") {
+		v.push_back("pdflatex");
+		v.push_back("luatex");
+		v.push_back("dviluatex");
+		v.push_back("xetex");
+	} else if (v.back() == "xetex") {
+		v.push_back("luatex");
+		v.push_back("dviluatex");
+	}
+	v.push_back("xhtml");
+	v.push_back("text");
+	v.push_back("lyx");
+	return v;
+}
+
+
+OutputParams::FLAVOR BufferParams::getOutputFlavor(string const format) const
+{
+	string const dformat = (format.empty() || format == "default") ?
+		getDefaultOutputFormat() : format;
+	DefaultFlavorCache::const_iterator it =
+		default_flavors_.find(dformat);
+
+	if (it != default_flavors_.end())
+		return it->second;
+
+	OutputParams::FLAVOR result = OutputParams::LATEX;
+
+	if (dformat == "xhtml")
+		result = OutputParams::HTML;
+	else {
+		// Try to determine flavor of default output format
+		vector<string> backs = backends();
+		if (find(backs.begin(), backs.end(), dformat) == backs.end()) {
+			// Get shortest path to format
+			Graph::EdgePath path;
+			for (vector<string>::const_iterator it = backs.begin();
+			    it != backs.end(); ++it) {
+				Graph::EdgePath p = theConverters().getPath(*it, dformat);
+				if (!p.empty() && (path.empty() || p.size() < path.size())) {
+					path = p;
+				}
+			}
+			if (!path.empty())
+				result = theConverters().getFlavor(path);
+		}
+	}
+	// cache this flavor
+	default_flavors_[dformat] = result;
+	return result;
+}
+
+
+string BufferParams::getDefaultOutputFormat() const
+{
+	if (!default_output_format.empty()
+	    && default_output_format != "default")
+		return default_output_format;
+	if (isDocBook()
+	    || useNonTeXFonts
+	    || encoding().package() == Encoding::japanese) {
+		vector<Format const *> const formats = exportableFormats(true);
+		if (formats.empty())
+			return string();
+		// return the first we find
+		return formats.front()->name();
+	}
+	return lyxrc.default_view_format;
+}
+
 Font const BufferParams::getFont() const
 {
 	FontInfo f = documentClass().defaultfont();
@@ -2062,6 +2198,24 @@ Font const BufferParams::getFont() const
 	else if (fonts_default_family == "ttdefault")
 		f.setFamily(TYPEWRITER_FAMILY);
 	return Font(f, language);
+}
+
+
+bool BufferParams::isLatex() const
+{
+	return documentClass().outputType() == LATEX;
+}
+
+
+bool BufferParams::isLiterate() const
+{
+	return documentClass().outputType() == LITERATE;
+}
+
+
+bool BufferParams::isDocBook() const
+{
+	return documentClass().outputType() == DOCBOOK;
 }
 
 
@@ -2085,6 +2239,18 @@ void BufferParams::readLocalLayout(Lexer & lex)
 }
 
 
+bool BufferParams::setLanguage(string const & lang)
+{
+	Language const *new_language = languages.getLanguage(lang);
+	if (!new_language) {
+		// Language lang was not found
+		return false;
+	}
+	language = new_language;
+	return true;
+}
+
+
 void BufferParams::readLanguage(Lexer & lex)
 {
 	if (!lex.next()) return;
@@ -2092,8 +2258,7 @@ void BufferParams::readLanguage(Lexer & lex)
 	string const tmptok = lex.getString();
 
 	// check if tmptok is part of tex_babel in tex-defs.h
-	language = languages.getLanguage(tmptok);
-	if (!language) {
+	if (!setLanguage(tmptok)) {
 		// Language tmptok was not found
 		language = default_language;
 		lyxerr << "Warning: Setting language `"
@@ -2459,7 +2624,8 @@ void BufferParams::writeEncodingPreamble(otexstream & os,
 		return;
 	// LuaTeX neither, but with tex fonts, we need to load
 	// the luainputenc package.
-	if (features.runparams().flavor == OutputParams::LUATEX) {
+	if (features.runparams().flavor == OutputParams::LUATEX
+		|| features.runparams().flavor == OutputParams::DVILUATEX) {
 		if (!useNonTeXFonts && inputenc != "default"
 		    && ((inputenc == "auto" && language->encoding()->package() == Encoding::inputenc)
 		        || (inputenc != "auto" && encoding().package() == Encoding::inputenc))) {

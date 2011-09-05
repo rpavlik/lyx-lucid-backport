@@ -33,18 +33,13 @@
  \cleardoublepage
  \pagenumbering{arabic}}
 
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
-
 % used for multi-column text
 \usepackage{multicol}
 
 % extra space for tables
 \newcommand{\extratablespace}[1]{\noalign{\vskip#1}}
 \end_preamble
-\options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
 \begin_modules
 logicalmkup
@@ -69,7 +64,7 @@ End
 \end_local_layout
 \language english
 \language_package default
-\inputencoding latin1
+\inputencoding auto
 \fontencoding global
 \font_roman default
 \font_sans default
@@ -102,10 +97,10 @@ End
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
-\use_amsmath 0
+\use_amsmath 1
 \use_esint 0
 \use_mhchem 1
 \use_mathdots 1
@@ -140,6 +135,10 @@ End
 Additional LyX Features
 \end_layout
 
+\begin_layout Subtitle
+Version 2.0.x
+\end_layout
+
 \begin_layout Author
 by the LyX Team
 \begin_inset Foot
@@ -169,7 +168,7 @@ status collapsed
 
 \end_inset
 
- 
+
 \end_layout
 
 \begin_layout Standard
@@ -363,7 +362,7 @@ status collapsed
 
 \begin_layout Plain Layout
 View\SpecialChar \menuseparator
-Format
+View
 \end_layout
 
 \end_inset
@@ -377,8 +376,7 @@ status collapsed
 
 \begin_layout Plain Layout
 View\SpecialChar \menuseparator
-Update\SpecialChar \menuseparator
-Format
+Update
 \end_layout
 
 \end_inset
@@ -5689,24 +5687,35 @@ lyxclient
 \end_layout
 
 \begin_layout Subsection
+Automatic setup
 \begin_inset CommandInset label
 LatexCommand label
 name "sub:rev-search"
 
 \end_inset
 
-Automatic setup
+
 \end_layout
 
 \begin_layout Standard
-In most cases LyX will do the work for you by enabling 
+In most cases LyX will do the work for you by enabling the option 
+\begin_inset Flex MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+Synchronize with Output
+\end_layout
+
+\end_inset
+
+ in the menu 
 \begin_inset Flex MenuItem
 status collapsed
 
 \begin_layout Plain Layout
 Document\SpecialChar \menuseparator
-Output\SpecialChar \menuseparator
-Synchronize with Output
+Settings\SpecialChar \menuseparator
+Output
 \end_layout
 
 \end_inset
@@ -5735,6 +5744,7 @@ status collapsed
 
 \begin_layout Plain Layout
 Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
 Output\SpecialChar \menuseparator
 Synchronize with Output
 \end_layout
@@ -5745,7 +5755,36 @@ Synchronize with Output
 \end_layout
 
 \begin_layout Standard
-Please note that including the 
+Note that the method 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+synctex=1
+\end_layout
+
+\end_inset
+
+ enables gzip compression.
+ If your viewer does not support it, you should instead use 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+synctex=-1
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Please aöso note that including the 
 \begin_inset Flex Code
 status collapsed
 
@@ -5788,6 +5827,7 @@ src-specials
 \end_inset
 
 .
+ 
 \end_layout
 
 \begin_layout Standard
@@ -6144,7 +6184,7 @@ d for the use with SyncTeX.
 status collapsed
 
 \begin_layout Plain Layout
-The 
+Note that the option 
 \begin_inset Flex Code
 status collapsed
 
@@ -6861,7 +6901,7 @@ In order to use SumatraPDF for inverse search, enter
 status collapsed
 
 \begin_layout Plain Layout
-SumatraPDF.sh
+SumatraPDF -inverse-search "lyxeditor -g %f %l"
 \end_layout
 
 \end_inset
@@ -6879,46 +6919,8 @@ PDF (pdflatex)
 
 \end_inset
 
-, where 
-\begin_inset Flex Code
-status collapsed
-
-\begin_layout Plain Layout
-SumatraPDF.sh
-\end_layout
-
-\end_inset
-
- is the following script (to be placed in your command PATH, 
-\begin_inset Flex Code
-status collapsed
-
-\begin_layout Plain Layout
-/usr/local/bin
-\end_layout
-
-\end_inset
-
- being the best choice):
-\end_layout
-
-\begin_layout LyX-Code
-#!/bin/bash
-\begin_inset Newline newline
-\end_inset
-
-cd $(dirname $1)
-\begin_inset Newline newline
-\end_inset
-
-SumatraPDF -inverse-search "lyxeditor -g %f %l" $(basename $1)
-\end_layout
-
-\begin_layout Standard
-This wrapper script is needed because SumatraPDF is a native Windows application
- and does not understand the posix paths used by the Cygwin version of LyX.
- If SumatraPDF.exe is not in your command PATH, use its full posix path in
- the script above.
+.
+ If SumatraPDF.exe is not in your command PATH, use its full posix path.
  The 
 \begin_inset Flex Code
 status collapsed
@@ -7029,7 +7031,7 @@ General
  can select from the drop down list.
  If none of these configurations suits you, you have to find out and enter
  a suitable configuration yourself.
- The definition syntax uses the following placeholders: 
+ The definition syntax uses the following placeholders:
 \end_layout
 
 \begin_layout Itemize
@@ -7077,18 +7079,23 @@ $$o
 
 \begin_layout Standard
 Note that only some of the viewers provide full forward search functionality,
- among them yap, xdvi, okular and Sumatra PDF
+ among them yap, xdvi, okular and Sumatra PDF.
 \begin_inset Foot
 status collapsed
 
 \begin_layout Plain Layout
-For Sumatra CMCDDE is needed --- downloadable from http://www.istri.fr/zip/CMCDDE.z
-ip
+For Sumatra CMCDDE is needed --- downloadable from 
+\begin_inset CommandInset href
+LatexCommand href
+target "http://www.istri.fr/zip/CMCDDE.zip"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
 
-.
  While many of the widespread PDF viewers (most notably Adobe Reader) do
  not support forward search at all, some other viewers -- e.
 \begin_inset space \thinspace{}
@@ -7118,7 +7125,6 @@ Forward search works both with DVI and PDF output.
 
 e., which format is already there in the temporary directory) and chooses
  the appropriate configuration for the respective format.
- 
 \end_layout
 
 \begin_layout Chapter
@@ -8031,22 +8037,6 @@ Things that work as expected
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 Because they work as you might expect, I simply list them and the section
  they are found in: 
 \family typewriter
@@ -8240,22 +8230,6 @@ Layout\SpecialChar \menuseparator
 Document
 \family default
 .
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsubsection
@@ -8489,22 +8463,6 @@ Things not implemented, use TeX code
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 
 \family typewriter
 
@@ -8628,22 +8586,6 @@ onecolumn
 twocolumn
 \family default
  (3.2)
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsubsection
@@ -8904,7 +8846,11 @@ AMS LaTeX
 \begin_layout Standard
 by 
 \noun on
-David Johnson; updated by Richard Heck
+David Johnson
+\noun default
+; updated by 
+\noun on
+Richard Heck
 \end_layout
 
 \begin_layout Standard
@@ -9980,80 +9926,12 @@ Elsevier Journals
 \end_layout
 
 \begin_layout Standard
-By 
-\noun on
-Rod Pinna
-\end_layout
-
-\begin_layout Standard
-Elsevier Science Publishers B.V.
- provides a standard LaTeX document class (
+See the LyX template file 
 \family typewriter
-elsart.cls
+elsarticle.lyx
 \family default
-) for submitting articles to their various journals.
- The style file can be downloaded directly from their web site: 
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://www.elsevier.com/wps/find/authorsview.authors/latex
-\end_layout
-
-\end_inset
-
 .
- Instructions are supplied along with the class file, which details the
- requirements of the publishers.
- LyX includes a package that allows for the use of this class, by a layout
- and a template file.
- Installation of the class file is the same as for any other LaTeX package;
- instructions are provided in the Elsevier documentation.
-\end_layout
-
-\begin_layout Standard
-To make use of 
-\family typewriter
-elsart.cls
-\family default
-, a file 
-\family typewriter
-elsart.layout
-\family default
- is supplied.
- As the Elsevier class file is based mainly on the standard article class,
- most of the normal functionality is provided.
- The Elsevier class defines a number of mathematical environments, which
- are similar to the AMS environments.
- These commands are all described in the Elsevier documentation, and are
- available in LyX.
-\end_layout
-
-\begin_layout Standard
-The easiest way to use the Elsevier style is to base documents on the included
- template file.
- It is best not to use options such as fancy headings or the geometry package,
- as elements such as these are defined by Elsevier in their style file.
- Ideally, no extra packages except those mentioned in the Elsevier documentation
- should be used.
- Essentially, Elsevier require as 
-\begin_inset Quotes eld
-\end_inset
-
-clean
-\begin_inset Quotes erd
-\end_inset
-
- a LaTeX file as possible, as their intention is to take the supplied file
- and replace the class file with one for the particular journal to which
- the paper has been submitted.
- This also means that not too much time should be spent on the formating
- of the document.
- When it comes to be published, this will change anyway.
- The rest of the usage for this layout is substantially the same as for
- the normal article class.
- For details of what Elsevier do and don't allow, refer to their documentation.
+ It contains all infos you need.
 \end_layout
 
 \begin_layout Section
@@ -13760,22 +13638,6 @@ letter (koma-script)
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \noindent
 The document class 
 \emph on
@@ -13827,22 +13689,6 @@ Verse
 \family default
 .
  Furthermore, there are a number of new letter specific types.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -14708,113 +14554,6 @@ Skip
 \family default
  value always has the effect that extra LaTeX commands are inserted in the
  document to produce the gap, which is not what is wanted in this case.
-\end_layout
-
-\begin_layout Section
-Latex8 (IEEE Conference Papers)
-\end_layout
-
-\begin_layout Standard
-by 
-\noun on
-Allan Rae
-\end_layout
-
-\begin_layout Subsection
-Introduction
-\end_layout
-
-\begin_layout Standard
-Since this class is specifically for writing submissions to IEEE sponsored
- conferences I strongly recommend that you get a copy of their Authors Kit.
- The 
-\family sans
-latex.sty
-\family default
- package and associated bibliography style file is included in the kit.
- The Authors Kit is usually sent out by email once your initial submission
- has been accepted.
- There is a lot of useful information in the Authors Kit explaining formatting
- restrictions and so on and I will assume you have read this since that
- means I don't have to repeat it all here.
-\end_layout
-
-\begin_layout Subsection
-Getting Started
-\end_layout
-
-\begin_layout Standard
-[AR\SpecialChar \@.
- more to come]
-\end_layout
-
-\begin_layout Subsection
-Supported Environments
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Standard
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Title
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Author
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-E-mail
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Affiliation
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Abstract
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Section
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-SubSection
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-Caption
-\end_layout
-
-\begin_layout Subsection
-Differences Between Screen and Paper
-\end_layout
-
-\begin_layout Standard
-There are slight differences in appearance mainly with the presentation
- of section counters.
- On screen the trailing period of the section counter is missing but it
- will appear in the output so don't let this worry you.
 \end_layout
 
 \begin_layout Section
@@ -18383,24 +18122,6 @@ ChkTeX
 ChkTeX
 \family default
  to get better along with you.
- Another choice in the most desperate situations is to use 
-\family sans
-View\SpecialChar \menuseparator
-Remove
-\begin_inset space ~
-\end_inset
-
-All
-\begin_inset space ~
-\end_inset
-
-Error
-\begin_inset space ~
-\end_inset
-
-Boxes
-\family default
-, which will get rid of all warnings instantly.
 \end_layout
 
 \begin_layout Standard
@@ -19191,9 +18912,7 @@ A friend of mine wanted to try LyX for a group project.
 \end_layout
 
 \begin_layout Standard
-Before you begin to use the version control features in LyX, you should
- be familiar with RCS/CVS/SVN usage before start using it under LyX.
- Also note that CVS support is not as good as subversion support so we advice
+Also note that CVS support is not as good as subversion support so we advice
  using SVN instead.
  Good place to start with Subversion is SVN Book
 \begin_inset Foot
@@ -19235,7 +18954,9 @@ man rcsintro
 \end_layout
 
 \begin_layout Standard
-The implementation in LyX assumes a recent version of the GNU RCS or CVS/SVN
+Before you begin to use the version control features in LyX, you should
+ be familiar with RCS/CVS/SVN usage.
+ The implementation in LyX assumes a recent version of the GNU RCS or CVS/SVN
  package—no guarantees are made for older versions.
  Most of the log messages are not currently displayed after operations —
  you can check them in Messages pane if unsure.
@@ -19434,7 +19155,13 @@ Revision info
 \end_layout
 
 \begin_layout Standard
-LyX supports RCS version number information (only), see 
+LyX supports RCS version number, author name, date and time of last commit.
+ All those are extracted from 
+\family typewriter
+rlog -r <file-name>
+\family default
+.
+ For other details see 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:VCS-Revision-Information"
@@ -21243,8 +20970,8 @@ End-of-Line Conversions
 \end_layout
 
 \begin_layout Standard
-When the collsraborators are mixing Linux and Windows environments, LyX
- will use different line endings inside the .lyx files.
+When the collaborators are mixing Linux and Windows environments, LyX will
+ use different line endings inside the .lyx files.
  This is not a problem as far as LyX functionality is concerned, but the
  commit diffs will be huge and merge-conflicts prone.
  Fortunately SVN itself knows
@@ -22749,48 +22476,20 @@ The next thing is the visible presence of the newline character in the screen.
 \end_layout
 
 \begin_layout Chapter
-Secrets of the LaTeX Masters
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:secrets"
-
-\end_inset
-
-
+Special features
 \end_layout
 
 \begin_layout Standard
-Though LyX is a powerful tool, it cannot hope to support everything that
- can be done with pure TeX/LaTeX.
- However, many familiar dirty TeX and LaTeX tricks can be done within LyX,
- as long as you are not afraid to use that 
-\begin_inset Quotes eld
-\end_inset
-
-TeX
-\begin_inset Quotes erd
-\end_inset
-
- button on the toolbar or add things to the LaTeX preamble.
- This section lists some tips, tricks, and otherwise cool ideas to give
- your document that extra little flair.
- 
+You can do everything with LyX that you can do with LaTeX.
+ However, LyX cannot support every LaTeX feature directly.
+ But you can always use TeX Code.
+ This chapter shows you some more special things you might want to use.
+ For other special things you can do with figures, tables, floats, boxes
+ and notes, have a look at the 
 \emph on
-Do try this at home
+EmbeddedObjects
 \emph default
-, just start with something a little smaller and less important than your
- dissertation!
-\end_layout
-
-\begin_layout Standard
-Most ideas in this section require less common files in your LaTeX installation.
- If you have a system like TeXLive, most will already be available.
- A few, however, will need to be downloaded from one of the CTAN archives.
- Often, there are several ways to do something, or several LaTeX style files
- which do the same thing.
- We do not endorse one choice over another, we simply claim that we have
- done a particular task with a particular file.
- Put on your wizard hat, keep an eye out for dragons, and let us begin.
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -22798,95 +22497,65 @@ Multiple Columns
 \end_layout
 
 \begin_layout Standard
-by 
-\noun on
-Lars Gullik Bjønnes
-\end_layout
-
-\begin_layout Subsection
-Purpose
-\end_layout
-
-\begin_layout Standard
-The aim for this chapter
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Editor's note: Lars' original chapter was a masterful description of how
- to use the 
-\family typewriter
+The aim for this section is to show how the LaTeX package 
+\series bold
 multicol
-\family default
- package.
- However, it was too long to flow smoothly in this document.
- I have therefore chosen to excerpt the most important sections here (sorry,
- Lars); you can read the original chapter (and more of the story!) in the
- example file 
-\family typewriter
-examples/multicol.lyx
-\family default
-.
- — mer
-\end_layout
-
-\end_inset
-
- is to show how the LaTeX package 
-\family typewriter
-multicol
-\family default
+\series default
  can be used in a LyX document.
- As LyX doesn't support the 
-\family typewriter
+ LyX does not support the 
+\series bold
 multicol
-\family default
- package natively yet, we have to use some small hacks.
- By reading this section it should be obvious how to do this.
-\end_layout
-
-\begin_layout Subsection
-Limitations 
+\series default
+ package natively yet, so you have to use some TeX code.
 \end_layout
 
 \begin_layout Standard
 The 
-\family typewriter
+\series bold
 multicol
-\family default
+\series default
  package allows switching between one and multicolumn format on the same
  page.
- Footnotes are handled correctly (for the most part), but will be placed
- at the bottom of the page and not under each column.
- LaTeX's float mechanism, however, is partly disabled in the current implementat
-ion.
- At the moment only page-wide floats can be used within the scope of the
- environment.
+ Footnotes are handled correctly, but will be placed at the bottom of the
+ page and not under each column.
+ Within the different columns you can use everyting, with the limitation
+ that for floats you need to use the option 
+\family sans
+Span colums
+\family default
+ for each column.
 \end_layout
 
 \begin_layout Subsection
-Examples
-\end_layout
-
-\begin_layout Subsubsection
 Two columns
 \end_layout
 
 \begin_layout Standard
-If you want to have two columns in your text, you have use LaTeX mode to
- insert 
-\family typewriter
+If you want to have two columns in your text, insert the comand
+\end_layout
+
+\begin_layout Standard
+
+\series bold
 
 \backslash
 begin{multicols}{2}
-\family default
- at the point where you want the two column layout to start, and then 
-\family typewriter
+\end_layout
+
+\begin_layout Standard
+at the point where you want the two column layout to start, and then
+\end_layout
+
+\begin_layout Standard
+
+\series bold
 
 \backslash
 end{multicols}
-\family default
- where you want it to end.
+\end_layout
+
+\begin_layout Standard
+where you want it to end.
  Like this:
 \end_layout
 
@@ -22964,7 +22633,7 @@ end{multicols}
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Multiple columns
 \end_layout
 
@@ -23029,11 +22698,14 @@ end{multicols}
 \end_layout
 
 \begin_layout Standard
-You can have more than 3 columns if you want to, but that might not be very
- pleasant for the eye.
+You can have more than 3
+\begin_inset space ~
+\end_inset
+
+columns if you want to, but that might not be very pleasant for the eye.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Columns inside columns
 \end_layout
 
@@ -23158,530 +22830,23 @@ end{multicols}
 \end_layout
 
 \begin_layout Standard
-Please do read the file 
+Please read the example file 
 \family typewriter
-examples/multicol.lyx
+multicol.lyx
 \family default
  for more advanced examples including column and header spacing, vertical
  separator lines, and more.
 \end_layout
 
-\begin_layout Section
-Numbering in the 
-\family sans
-Enumerate
-\family default
- Paragraph Environment
-\begin_inset Argument
-status collapsed
-
-\begin_layout Plain Layout
-Numbering in Enumerate
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
-by 
-\noun on
-John Weiss
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
+\begin_inset Newpage newpage
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-\noindent
-The default numbering for the 
-\family sans
-Enumerate
-\family default
- paragraph environment begins with Arabic numbers and ends with uppercase
- letters.
- Suppose, however, you wanted a different type of numbering scheme.
- Here's a quickie example of how to change the numbering scheme:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-Roman{enumi}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-arabic{enumiii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{
-\backslash
-alph{enumiv}.)}
-\end_layout
-
-\begin_layout Standard
-\SpecialChar \ldots{}
- which changes the numbering scheme to uppercase Roman numerals, uppercase
- letters, Arabic numbers, and lowercase letter.
-\end_layout
-
-\begin_layout Standard
-Additionally, the previous example also adds a little bit extra to the numbering
- scheme.
- For example, the first level label actually looks like: 
-\begin_inset Quotes eld
-\end_inset
-
-I.
-\begin_inset Quotes erd
-\end_inset
-
-.
- For ease of reading, we'll describe what the numbering schemes look like
- using a notation something like this: <
-\begin_inset Quotes eld
-\end_inset
-
-I.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-1.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-a.)
-\begin_inset Quotes erd
-\end_inset
-
->.
- 
-\end_layout
-
-\begin_layout Standard
-As you can see in the example, there is a label command for each nesting
- level, 
-\family typewriter
-
-\backslash
-labelenumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-
-\backslash
-labelenumiv
-\family default
-, as well as a counter, 
-\family typewriter
-enumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-enumiv
-\family default
-.
- There are also five 
-\begin_inset Quotes eld
-\end_inset
-
-number printing
-\begin_inset Quotes erd
-\end_inset
-
- commands, 
-\family typewriter
-
-\backslash
-arabic{}
-\family default
-, 
-\family typewriter
-
-\backslash
-roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-Roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-alph{}
-\family default
-, and 
-\family typewriter
-
-\backslash
-Alph{}
-\family default
-, each of which take one counter as an argument.
- You can add characters before or after these, but there's no need to add
- spaces.
-\end_layout
-
-\begin_layout Standard
-You can get really fancy with these.
- For example:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-#
-\backslash
-Alph{enumi}
-\backslash
-#}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumi}.
-\backslash
-arabic{enumii}}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-alph{enumiii}+}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{(
-\backslash
-roman{enumiv})}
-\end_layout
-
-\begin_layout Standard
-produces the somewhat out of hand numbering scheme: <
-\begin_inset Quotes eld
-\end_inset
-
-#A#
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.1
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-a+
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-(i)
-\begin_inset Quotes erd
-\end_inset
-
->.
- 
-\end_layout
-
-\begin_layout Section
-Dropped Capitals
-\end_layout
-
-\begin_layout Standard
-by 
-\noun on
-Mike Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-newfont{
-\backslash
-tmpfont}{cmr17 scaled 2500}{
-\backslash
-tmpfont T}
-\backslash
-vspace*{-8.4ex}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-hangindent=3.3em 
-\backslash
-hangafter=-3
-\end_layout
-
-\end_inset
-
- hose of you who like the style of old books probably also like 
-\begin_inset Quotes eld
-\end_inset
-
-dropped capitals
-\begin_inset Quotes erd
-\end_inset
-
-—those large capital letters which begin each new chapter or section.
- Implementing them with plain LyX/LaTeX is straightforward (assuming you
- know some plain TeX!) but does require a lot of work and many iterations,
- as you can see by all the ugly TeX-mode stuff at the beginning of this
- paragraph.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-verb+
-\backslash
-bigdrop{-1em}{3}{ptmri}{T}+
-\end_layout
-
-\end_inset
-
-here is a much easier way of doing this, of course.
- The 
-\family typewriter
-dropcaps
-\family default
- (or the newer 
-\family typewriter
-dropping
-\family default
-) package from CTAN allows a simple way to add such letters to your documents.
- Since this package is not a standard part of TeXLive, I can't demonstrate
- it within this document, but if you copy this paragraph to a new document,
- delete the 
-\begin_inset Quotes eld
-\end_inset
-
-
-\family typewriter
-
-\backslash
-verb
-\family default
-
-\begin_inset Quotes erd
-\end_inset
-
- and the pluses from the TeX code at the beginning of the paragraph, and
- add 
-\family typewriter
-
-\backslash
-usepackage{dropcaps}
-\family default
- to your LaTeX preamble, you will get a nice Times Roman Italic 
-\begin_inset Quotes eld
-\end_inset
-
-T
-\begin_inset Quotes erd
-\end_inset
-
-, whose height is three lines of text and which protrudes 1 em into the
- margin.
- (Make certain you have copied 
-\begin_inset Quotes eld
-\end_inset
-
-
-\family typewriter
-dropcaps.sty
-\family default
-
-\begin_inset Quotes erd
-\end_inset
-
- into a directory where TeX can see it.) The first argument is the amount
- of indentation; in this case the negative sign moves it into the margin.
- The second argument is the height of the letter in number of lines of text.
- The third argument is the font name: virtually anything which has a tfm
- file should work (wade through the 
-\family typewriter
-.../texmf/fonts/tfm
-\family default
- directory for possibilities).
- My personal favorite is 
-\begin_inset Quotes eld
-\end_inset
-
-
-\family typewriter
-yinit
-\family default
-
-\begin_inset Quotes erd
-\end_inset
-
-, a fancy German font specifically designed for dropped capitals.
- The fourth argument is the letter (or letters) to be dropped.
- The 
-\family typewriter
-dropping
-\family default
- package also offers the 
-\family typewriter
-
-\backslash
-bigdrop
-\family default
- command, as well as a slightly simplified 
-\family typewriter
-
-\backslash
-dropping
-\family default
- command.
 \end_layout
 
 \begin_layout Section
 Non-standard Paragraph Shapes
-\end_layout
-
-\begin_layout Standard
-by 
-\noun on
-Mike Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -23978,22 +23143,6 @@ end{sloppypar}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Summary
-\end_layout
-
-\begin_layout Standard
-As you can see, the examples in this section range from the useful to the
- whimsical.
- While I don't expect that anyone will ever need the paragraph shape demonstrate
-d in the last section, the important point is that you can do almost anything
- you want in LyX if you are willing to figure out how to do it in TeX and
- LaTeX.
- TeX is a fantastically powerful typesetting system and all that power is
- available to you since LyX uses it as its backend.
- Happy LyXing!
 \end_layout
 
 \end_body

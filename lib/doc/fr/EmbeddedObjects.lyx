@@ -1,5 +1,5 @@
-#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 410
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass scrbook
@@ -33,21 +33,19 @@
 
 % provides commands to set caption
 % beside tables/images
-\usepackage{sidecap}
-
-\newcommand{\TabBesBeg}{%
+\newcommand{\TabBesBeg}[1][1.0]{%
  \let\MyTable\table
  \let\MyEndtable\endtable
- \renewenvironment{table}{\begin{SCtable}}{\end{SCtable}}}
+ \renewenvironment{table}[1]{\begin{SCtable}[#1]##1}{\end{SCtable}}}
 
 \newcommand{\TabBesEnd}{%
  \let\table\MyTable
  \let\endtable\MyEndtable}
 
-\newcommand{\FigBesBeg}{%
+\newcommand{\FigBesBeg}[1][1.0]{%
  \let\MyFigure\figure
  \let\MyEndfigure\endfigure
- \renewenvironment{figure}{\begin{SCfigure}}{\end{SCfigure}}}
+ \renewenvironment{figure}[1]{\begin{SCfigure}[#1]##1}{\end{SCfigure}}}
 
 \newcommand{\FigBesEnd}{%
  \let\figure\MyFigure
@@ -145,18 +143,32 @@
   \setboolean{sidecap}{true}}
  {\setboolean{sidecap}{false}}
 
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
+% check for picinpar
+% used for surrounded fixed objects
+\newboolean{picinpar}
+\IfFileExists{picinpar.sty}
+ {\usepackage{picinpar}
+  \setboolean{picinpar}{true}}
+ {\setboolean{picinpar}{false}}
+
+% check for lettrine
+\newboolean{lettrine}
+\IfFileExists{lettrine.sty}
+ {\usepackage{lettrine}
+  \setboolean{lettrine}{true}}
+ {\setboolean{lettrine}{false}}
 
 % use normal list environments also in French documents
 \frenchbsetup{StandardLayout}
 \end_preamble
 \options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
+\begin_modules
+initials
+\end_modules
 \maintain_unincluded_children false
 \language french
+\language_package default
 \inputencoding auto
 \fontencoding global
 \font_roman default
@@ -222,6 +234,7 @@
 \tracking_changes false
 \output_changes false
 \html_math_output 0
+\html_css_as_file 0
 \html_be_strict false
 \end_header
 
@@ -296,78 +309,7 @@ LatexCommand tableofcontents
 
 \begin_layout Standard
 \begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-Si votre distribution LaTeX est un peu ancienne (TeXLive 2007 par exemple),
- 
-\begin_inset Quotes fld
-\end_inset
-
-Visionner
-\begin_inset Quotes frd
-\end_inset
-
- ou 
-\begin_inset Quotes fld
-\end_inset
-
-Exporter
-\begin_inset Quotes frd
-\end_inset
-
- en PDF ne fonctionnera pas du fait d'un conflit entre 
-\family typewriter
-varioref/hyperref
-\family default
- et le caractère 
-\begin_inset Quotes fld
-\end_inset
-
-:
-\begin_inset Quotes frd
-\end_inset
-
- apparaissant dans certaines étiquettes.
- Pour résoudre ce problème, vous pouvez:
-\end_layout
-
-\begin_layout Itemize
-soit désactiver 
-\family typewriter
-hyperref
-\family default
- dans le menu 
-\family sans
-Document\SpecialChar \menuseparator
-Paramètres\SpecialChar \menuseparator
-Propriété PDF
-\family default
-;
-\end_layout
-
-\begin_layout Itemize
-Vous pouvez trouver la dernière version au format PDF de ce manuel ici :
-\begin_inset Newline newline
-\end_inset
-
-
-\series bold
-http://wiki.lyx.org/LyX/DocumentationDevelopment#UserGuide
-\series default
-;
-\end_layout
-
-\begin_layout Itemize
-soit mettre à jour votre distribution (en installant par exemple au moins
- TeXLive 2008)
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
 Pour pouvoir exporter ce document en PDF, PS ou DVI, les paquetages LaTeX
@@ -381,7 +323,7 @@ colortbl
 \series default
 , 
 \series bold
-marginnote
+lettrine, marginnote, picinpar
 \series default
 , et 
 \series bold
@@ -773,27 +715,19 @@ x.eps.bb
 \begin_inset Newline newline
 \end_inset
 
-Le champ 
+Dans la section 
 \family sans
-Initialiser
+Groupe
 \begin_inset space ~
 \end_inset
 
-le
+de
 \begin_inset space ~
 \end_inset
 
-nom
-\begin_inset space ~
-\end_inset
-
-du
-\begin_inset space ~
-\end_inset
-
-groupe
+graphiques
 \family default
- vous permet de définir ou de choisir un groupe de paramètres d'image
+ vous pouvez définir ou de choisir un groupe de paramètres d'image
 \begin_inset Index idx
 status collapsed
 
@@ -12435,7 +12369,8 @@ n
 \end_inset
 
 :
-\begin_inset Formula \begin{equation}
+\begin_inset Formula 
+\begin{equation}
 W_{g\, n}=(W_{g\,\mathrm{multicolonne}}+(1-n)\cdot(12.4\,\mathrm{pt}))/n\label{eq:Wgn}
 \end{equation}
 
@@ -12465,7 +12400,8 @@ reference "eq:Wgn"
 \end_inset
 
  devient
-\begin_inset Formula \begin{equation}
+\begin_inset Formula 
+\begin{equation}
 W_{g\,2}=1.25\,\mathrm{cm}-6.2\,\mathrm{pt}
 \end{equation}
 
@@ -13015,6 +12951,120 @@ raggedright}
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To start a new line in a multirow you can use a forced line break (shortcut
+ 
+\begin_inset Info
+type  "shortcut"
+arg   "newline-insert newline"
+\end_inset
+
+) but this will not respect the cell lines as demonstrated in this table:
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+
+\lang english
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="2">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="middle" width="2cm">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell multirow="3" alignment="left" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+aaa
+\begin_inset Newline newline
+\end_inset
+
+aaa
+\begin_inset Newline newline
+\end_inset
+
+wrong cell
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+ccc
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="left" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+ddd
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+bbb
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+eee
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Therefore be careful with forced line breaks.
 \end_layout
 
 \begin_layout Section
@@ -19909,6 +19959,13 @@ fi
 
 \begin_layout Chapter
 Flottants
+\begin_inset CommandInset label
+LatexCommand label
+name "chap:Flottants"
+
+\end_inset
+
+
 \begin_inset Index idx
 status collapsed
 
@@ -20097,13 +20154,29 @@ reference "sec:Table-Floats"
 \end_inset
 
 , LyX offre aussi les types 
-\series bold
+\family sans
 Algorithme
-\series default
+\family default
  et 
-\series bold
+\family sans
 Enrobage
-\series default
+\family default
+.
+ 
+\lang english
+The latter are explained in sec.
+\lang french
+
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Flottant-d'enrobage"
+
+\end_inset
+
 .
 \end_layout
 
@@ -20418,240 +20491,6 @@ du
 Document
 \family default
 .
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Flottant d'enrobage
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-Flottants ! Flottants d'enrobage
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Wrap figure
-lines 0
-placement l
-overhang 1cm
-width "40col%"
-status open
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename ../clipart/mobius.eps
-	width 40col%
-	scaleBeforeRotation
-	rotateOrigin center
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:Figure-enrobée"
-
-\end_inset
-
-Ceci est une figure habillée.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- Ce type de flottant est utilisé quand on veut que le texte habille la figure
- de sorte qu'elle n'occupe plus qu'une partie de la largeur de la colonne.
- Vous pouvez en insérer un en utilisant le menu 
-\family sans
-Insérer\SpecialChar \menuseparator
-Flottant\SpecialChar \menuseparator
-Flottant
-\begin_inset space ~
-\end_inset
-
-d'enrobage
-\family default
- à la condition que le paquetage LaTeX 
-\series bold
-wrapfig
-\series default
-
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-Paquetages LaTeX ! wrapfig
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-vspace{4mm}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- soit installé.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Voyez dans la manuel 
-\emph on
-Configuration
-\begin_inset space ~
-\end_inset
-
-LaTeX 
-\emph default
-comment installer des paquetages LaTeX.
-\end_layout
-
-\end_inset
-
- Les paramètres du flottant peuvent être modifiés en faisant un clic droit
- sur la boîte du flottant.
- Les paramètres obligatoires sont l'
-\family sans
-Emplacement
-\family default
- et la 
-\family sans
-Largeur
-\family default
-.
- Les paramètres facultatifs sont le 
-\family sans
-Débordement
-\family default
- qui précise de combien le flottant déborde sur la marge du paragraphe ou
- de la page et la 
-\family sans
-Porté de la ligne
-\family default
- qui précise le nombre approximatif de lignes dont le flottant va avoir
- besoin.
- Cette dernière valeur est parfois difficile à évaluer, il vaut mieux ne
- l'utiliser que si on rencontre des problème avec le positionnement du flottant.
- Vous pouvez aussi décider si vous autorisez LaTeX à faire flotter le flottant
- à l'intérieur du paragraphe ou vers les autres paragraphes.
- La figure
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "fig:Figure-enrobée"
-
-\end_inset
-
- est un exemple de flottant d'enrobage avec une largeur de 40
-\begin_inset space \thinspace{}
-\end_inset
-
-col%, un débordement de 1
-\begin_inset space \thinspace{}
-\end_inset
-
-cm et placé à gauche.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Les unités disponibles sont expliquées dans l'appendice
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:Unités-de-longueur"
-
-\end_inset
-
-.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-Note:
-\series default
- Les flottants d'enrobage peuvent être fragiles! Par exemple, avoir une
- figure trop près du bas de page peut tout chambouler et faire que le flottant
- n'apparaît pas à l'impression ou qu'il se retrouve par dessus une portion
- de texte.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-En général:
-\end_layout
-
-\begin_layout Itemize
-Les flottants d'enrobage ne doivent pas être placés dans des paragraphes
- qui risquent de passer à la page suivante.
- Ce qui veut dire que les flottants d'enrobages doivent de préférence être
- positionnés à l'endroit exact où on veut qu'ils apparaissent dans la sortie,
- et ce quand le document est presque prêt pour pouvoir anticiper les sauts
- de page.
-\end_layout
-
-\begin_layout Itemize
-Les flottants d'enrobage devraient être placés soit dans leur propre paragraphe,
- juste avant le paragraphe qui doit les habiller ou à l'intérieur d'un paragraph
-e.
-\end_layout
-
-\begin_layout Itemize
-Des flottants d'enrobages dans deux paragraphes consécutifs peuvent poser
- des problèmes, il vaut donc mieux s'assurer qu'il y a un paragraphe de
- texte entre les deux, comme séparateur.
-\end_layout
-
-\begin_layout Itemize
-Les flottants d'enrobage ne sont pas autorisés dans les en-têtes de sections
- ou les tableaux.
 \end_layout
 
 \begin_layout Section
@@ -21179,7 +21018,19 @@ Paquetages LaTeX ! refstyle
 \begin_inset Newline newline
 \end_inset
 
-Le format est précisé en ajoutant la commande 
+Vous pouvez choisir le paquetage LaTeX qui doit être utilisé pour cette
+ fonction en utilisant l'option 
+\family sans
+Utiliser refstyle (à la place de prettyref) pour les références croisées
+\family default
+ dans le menu 
+\family sans
+Document\SpecialChar \menuseparator
+Paramètres\SpecialChar \menuseparator
+Classe de document
+\family default
+.
+ Le format est précisé en ajoutant la commande 
 \series bold
 
 \backslash
@@ -21336,7 +21187,7 @@ fig:
 \begin_inset Quotes erd
 \end_inset
 
- est par exempel le raccourci LyX pour les étiquettes dans les légendes
+ est par exemple le raccourci LyX pour les étiquettes dans les légendes
  de figures,.
 \end_layout
 
@@ -24124,7 +23975,7 @@ height "1pt"
 \backslash
 newcommand{
 \backslash
-TabBesBeg}{%
+TabBesBeg}[1][1.0]{%
 \begin_inset Newline newline
 \end_inset
 
@@ -24133,8 +23984,6 @@ TabBesBeg}{%
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24159,7 +24008,7 @@ status open
 
 \begin_layout Plain Layout
 
-\series bold
+\series medium
 \begin_inset space ~
 \end_inset
 
@@ -24184,7 +24033,7 @@ status open
 
 \begin_layout Plain Layout
 
-\series bold
+\series medium
 \begin_inset space ~
 \end_inset
 
@@ -24195,9 +24044,9 @@ status open
 
 
 \backslash
-renewenvironment{table}{
+renewenvironment{table}[1]{
 \backslash
-begin{SCtable}}{
+begin{SCtable}[#1]##1}{
 \backslash
 end{SCtable}}}
 \end_layout
@@ -24218,8 +24067,6 @@ TabBesEnd}{%
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24243,8 +24090,6 @@ MyTable
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24269,7 +24114,7 @@ MyEndtable
 \backslash
 newcommand{
 \backslash
-FigBesBeg}{%
+FigBesBeg}[1][1.0]{%
 \begin_inset Newline newline
 \end_inset
 
@@ -24278,8 +24123,6 @@ FigBesBeg}{%
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24303,8 +24146,6 @@ figure
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24328,8 +24169,6 @@ endfigure
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24340,9 +24179,9 @@ status open
 
 
 \backslash
-renewenvironment{figure}{
+renewenvironment{figure}[1]{
 \backslash
-begin{SCfigure}}{
+begin{SCfigure}[#1]##1}{
 \backslash
 end{SCfigure}}}
 \end_layout
@@ -24363,8 +24202,6 @@ FigBesEnd}{%
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24388,8 +24225,6 @@ MyFigure
 status open
 
 \begin_layout Plain Layout
-
-\series bold
 \begin_inset space ~
 \end_inset
 
@@ -24436,7 +24271,7 @@ FigBesBeg
 
 \begin_layout Standard
 en code TeX avant le flottant.
- Après le flottant, insérez la commande
+ Et insérez la commande
 \end_layout
 
 \begin_layout Standard
@@ -24448,7 +24283,11 @@ FigBesEnd
 \end_layout
 
 \begin_layout Standard
-en code TeX pour revenir à la définition originale du flottant.
+en code TeX 
+\lang english
+at the point where you want to
+\lang french
+ revenir à la définition originale du flottant.
 \end_layout
 
 \begin_layout Standard
@@ -24587,6 +24426,131 @@ reference "fig:legende-à-coté-fig-2"
 \begin_inset VSpace medskip
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The default caption width is the width of the image/table.
+ For thin image/tables, like in
+\lang french
+ tableau
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:legende-à-coté-tableau"
+
+\end_inset
+
+, 
+\lang english
+this leads to captions that are too thin.
+ You can increase the width by specifying a factor that will be multiplied
+ with the image/table width to get the caption width.
+ The caption width will automatically be recalculated in case it would protrude
+ over the page or column margin due to the specified width.
+ The 
+\emph on
+factor
+\emph default
+ can either be given as optional argument for 
+\series bold
+
+\backslash
+FigBesBeg
+\series default
+:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+\lang english
+
+\backslash
+FigBesBeg[factor]
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+or in the definition of 
+\series bold
+
+\backslash
+FigBesBeg
+\series default
+ by replacing the 
+\series bold
+1.0
+\series default
+ with another value.
+ If you do the latter, your factor will be the default if 
+\series bold
+
+\backslash
+FigBesBeg
+\series default
+ is used without an argument.
+ For
+\lang french
+ tableau
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:cap-beside-tab-wider"
+
+\end_inset
+
+ 
+\lang english
+the factor 5 was used.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ For floats with captions set beside, you cannot use the float placement
+ option 
+\family sans
+Here
+\begin_inset space ~
+\end_inset
+
+definitely
+\family default
+ because it is not supported by 
+\series bold
+sidecap
+\series default
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
 Pour plus d'information sur le paquetage 
 \series bold
 sidecap
@@ -24692,6 +24656,22 @@ Une légende à côté d'une figure.
 \end_inset
 
 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+FigBesEnd
 \end_layout
 
 \end_inset
@@ -25026,6 +25006,286 @@ status collapsed
 
 \backslash
 FigBesEnd
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+TabBesBeg[5]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:cap-beside-tab-wider"
+
+\end_inset
+
+This is a caption is wider than the one in
+\lang french
+ tableau
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:legende-à-coté-tableau"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="5">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+a
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+b
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+c
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+d
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+e
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+f
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+g
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+h
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+i
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+j
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+TabBesEnd
 \end_layout
 
 \end_inset
@@ -25413,62 +25673,15 @@ Suppr.
 \begin_inset VSpace bigskip
 \end_inset
 
-Vous pouvez changer la couleur du texte des notes grisées en mettant les
- commandes suivantes dans le préambule :
-\end_layout
 
-\begin_layout Standard
-
-\series bold
-
-\backslash
-renewenvironment{lyxgreyedout}
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Phantom HPhantom
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-\begin_inset space ~
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-{
-\backslash
-textcolor{color}
-\backslash
-bgroup}{
-\backslash
-egroup}
-\end_layout
-
-\begin_layout Standard
-Les couleurs disponibles et la méthode pour définir vos propres couleurs
- sont expliqués dans la section
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Tableaux-Colorés"
-
-\end_inset
-
+\lang english
+You can change the text color of the greyed out notes in the menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Colors
+\family default
 .
-\end_layout
-
-\begin_layout Standard
-Les notes qui apparaissent en bleu dans ce texte sont en fait des notes
- grisées avec leur texte en bleu.
 \end_layout
 
 \begin_layout Section
@@ -26963,8 +27176,9 @@ reference "sec:Notes-bas-de-page"
 \begin_inset VSpace bigskip
 \end_inset
 
-Les notes de bas de page peuvent être mise dans la marge de la page et l'alignem
-ent du texte des notes peut être modifié, voyez le paquetage LaTeX 
+ Les notes de bas de page peuvent être mise dans la marge de la page et
+ l'alignement du texte des notes peut être modifié, voyez le paquetage LaTeX
+ 
 \series bold
 footmisc
 \series default
@@ -26994,6 +27208,29 @@ Pour plein d'autres problèmes de mises en formes des notes de bas de page,
 \begin_inset CommandInset citation
 LatexCommand cite
 key "latexcompanion,latexguide,latexbook"
+
+\end_inset
+
+.
+ Si vous utilisez une classe de document  
+\series bold
+KOMA-Script
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! KOMA-Script
+\end_layout
+
+\end_inset
+
+, vous pouvez modifier tous les paramètres des notes de bas de page en utilisant
+ des commandes spécifiques à la classe de document utilisée, voyez 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "KOMA-Script"
 
 \end_inset
 
@@ -27975,17 +28212,7 @@ Intérieure
 \family default
  
 \family sans
-Parbox
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-En attendant un traduction plus correcte NdT
-\end_layout
-
-\end_inset
-
-
+Makebox, Parbox
 \family default
  et 
 \family sans
@@ -28733,7 +28960,6 @@ height_special "totalheight"
 status open
 
 \begin_layout Plain Layout
-\align left
 Le texte de cette boîte est allongé horizontalement.
 \end_layout
 
@@ -29119,8 +29345,8 @@ cadre rectangulaire simple
  sans boîte intérieure, vous pouvez autoriser les sauts de page à l'intérieur
  de la boîte.
  Notez que dans ce cas, contrairement aux autres boîtes avec cadre, le cadre
- predra toute la largeur de la colonne, la boîte sera considérée comme son
- propre paragraphe et 
+ prendra toute la largeur de la colonne, la boîte sera considérée comme
+ son propre paragraphe et 
 \series bold
 
 \backslash
@@ -30338,11 +30564,19 @@ motTrèsTrèsLong
 \begin_inset Quotes erd
 \end_inset
 
- soit coupé, mettez le mot dans une boîte, mettez Boîte
+ soit coupé, mettez le mot dans une boîte, mettez 
+\family sans
+Boîte
 \begin_inset space ~
 \end_inset
 
-intérieure à Makebox et sa largeur à 1
+intérieure
+\family default
+ à 
+\family sans
+Makebox
+\family default
+ et sa largeur à 1
 \begin_inset space \thinspace{}
 \end_inset
 
@@ -30425,7 +30659,11 @@ Bien sûr, maintenant le mot dépasse dans la marge latérale.
  Pour éviter cela, ajoutez un saut de ligne avant le mot avec le menu 
 \family sans
 Insérer\SpecialChar \menuseparator
-Formats\SpecialChar \menuseparator
+Typographie
+\begin_inset space ~
+\end_inset
+
+spéciale\SpecialChar \menuseparator
 Passage
 \begin_inset space ~
 \end_inset
@@ -32632,6 +32870,2003 @@ fleqn
 \end_layout
 
 \begin_layout Chapter
+
+\lang english
+Objects Surrounded by Text
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Surrounded by text
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Flottant d'enrobage
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Flottant-d'enrobage"
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Flottants ! Flottants d'enrobage
+\end_layout
+
+\end_inset
+
+
+\lang english
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Surrounded by text ! 
+\lang french
+Flottants d'enrobage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Wrap figure
+lines 0
+placement l
+overhang 1cm
+width "40col%"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename ../clipart/mobius.eps
+	width 40col%
+	scaleBeforeRotation
+	rotateOrigin center
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Figure-enrobée"
+
+\end_inset
+
+Ceci est une figure habillée.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ Ce type de flottant est utilisé quand on veut que le texte habille la figure
+ de sorte qu'elle n'occupe plus qu'une partie de la largeur de la colonne.
+ Vous pouvez en insérer un en utilisant le menu 
+\family sans
+Insérer\SpecialChar \menuseparator
+Flottant\SpecialChar \menuseparator
+Flottant
+\begin_inset space ~
+\end_inset
+
+d'enrobage
+\family default
+ à la condition que le paquetage LaTeX 
+\series bold
+wrapfig
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! wrapfig
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+vspace{4mm}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ soit installé.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Voyez dans la manuel 
+\emph on
+Configuration
+\begin_inset space ~
+\end_inset
+
+LaTeX 
+\emph default
+comment installer des paquetages LaTeX.
+\end_layout
+
+\end_inset
+
+ Les paramètres du flottant peuvent être modifiés en faisant un clic droit
+ sur la boîte du flottant.
+ Les paramètres obligatoires sont l'
+\family sans
+Emplacement
+\family default
+ et la 
+\family sans
+Largeur
+\family default
+.
+ Les paramètres facultatifs sont le 
+\family sans
+Débordement
+\family default
+ qui précise de combien le flottant déborde sur la marge du paragraphe ou
+ de la page et la 
+\family sans
+Porté de la ligne
+\family default
+ qui précise le nombre approximatif de lignes dont le flottant va avoir
+ besoin.
+ Cette dernière valeur est parfois difficile à évaluer, il vaut mieux ne
+ l'utiliser que si on rencontre des problème avec le positionnement du flottant.
+ Vous pouvez aussi décider si vous autorisez LaTeX à faire flotter le flottant
+ à l'intérieur du paragraphe ou vers les autres paragraphes.
+ La figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Figure-enrobée"
+
+\end_inset
+
+ est un exemple de flottant d'enrobage avec une largeur de 40
+\begin_inset space \thinspace{}
+\end_inset
+
+col%, un débordement de 1
+\begin_inset space \thinspace{}
+\end_inset
+
+cm et placé à gauche.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ Les flottants d'enrobage peuvent être fragiles! Par exemple, avoir une
+ figure trop près du bas de page peut tout chambouler et faire que le flottant
+ n'apparaît pas à l'impression ou qu'il se retrouve par dessus une portion
+ de texte.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En général:
+\end_layout
+
+\begin_layout Itemize
+Les flottants d'enrobage ne doivent pas être placés dans des paragraphes
+ qui risquent de passer à la page suivante.
+ Ce qui veut dire que les flottants d'enrobages doivent de préférence être
+ positionnés à l'endroit exact où on veut qu'ils apparaissent dans la sortie,
+ et ce quand le document est presque prêt pour pouvoir anticiper les sauts
+ de page.
+\end_layout
+
+\begin_layout Itemize
+Les flottants d'enrobage devraient être placés soit dans leur propre paragraphe,
+ juste avant le paragraphe qui doit les habiller ou à l'intérieur d'un paragraph
+e.
+\end_layout
+
+\begin_layout Itemize
+Des flottants d'enrobages dans deux paragraphes consécutifs peuvent poser
+ des problèmes, il vaut donc mieux s'assurer qu'il y a un paragraphe de
+ texte entre les deux, comme séparateur.
+\end_layout
+
+\begin_layout Itemize
+Les flottants d'enrobage ne sont pas autorisés dans les en-têtes de sections
+ ou les tableaux.
+\end_layout
+
+\begin_layout Itemize
+
+\lang english
+Their numbering and referencing works as described in chap.
+\lang french
+
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "chap:Flottants"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Surrounded Fixed Objects
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Surrounded by text ! Fixed objects
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The wrap floats described in sec.
+\lang french
+
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Flottant-d'enrobage"
+
+\end_inset
+
+
+\lang english
+ have these positions in the paragraph:
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+
+\lang english
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ ou 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To get an object exactly at the position where it is inserted, for example
+ to get one of these positions:
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+
+\lang english
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+
+\lang english
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+ 
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+\begin_inset Graphics
+	filename ../../images/dialog-show-new-inset_graphics.png
+	scale 70
+	scaleBeforeRotation
+	BoundingBox 0bp 6bp 22bp 22bp
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+text
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\lang english
+you can use the LaTeX-package
+\lang french
+ 
+\series bold
+picinpar
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! picinpar
+\end_layout
+
+\end_inset
+
+.
+ 
+\lang english
+Here is an example
+\lang french
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+ifpicinpar
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+La section suivante ne sera affichée que si le paquetage LaTeX 
+\series bold
+picinpar
+\series default
+ a été installé.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{window}[2,c,{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename ../clipart/mobius.eps
+	lyxscale 60
+	width 40col%
+	scaleBeforeRotation
+	rotateOrigin center
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+},]
+\end_layout
+
+\begin_layout Plain Layout
+
+{}
+\end_layout
+
+\end_inset
+
+
+\size small
+\lang english
+It was in the spring of the year 1894 that all London was interested, and
+ the fashionable world dismayed, by the murder of the Honourable Ronald
+ Adair under most unusual and inexplicable circumstances.
+ The public has already learned those particulars of the crime which
+\size default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotemark{}
+\end_layout
+
+\end_inset
+
+
+\size small
+ came out in the police investigation, but a good deal was suppressed upon
+ that occasion, since the case for the prosecution was so overwhelmingly
+ strong that it was not necessary to bring forward all the facts.
+ Only now, at the end of nearly ten years, am I allowed to supply those
+ missing links which make up the whole of that remarkable chain
+\lang french
+.
+\size default
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{window}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+footnotetext{
+\end_layout
+
+\end_inset
+
+Footnote of the paragraph with the fixed object.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Surrounded fixed objects are used to let text float around them, at which
+ the object's position in the paragraph can be determined by the number
+ of lines above it.
+ In contrary to floats is it not possible to have a numbered caption.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+A fixed object is inserted by adding the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+
+\backslash
+begin{window}[2,c,{
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+as TeX Code at the beginning of the paragraph.
+ The first parameter in the bracket, here '2', defines the number of lines
+ above the object, the second, here 'c', the position of the object.
+ The positions 'l', 'c' and 'r' (for left, center, right) are possible.
+ Behind the command you insert the object.
+ In this example an image with a width of 40
+\begin_inset space \thinspace{}
+\end_inset
+
+% of the text column width was inserted.
+ The object can also be a table, a box or an equation.
+ Behind the object the command
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+},description text]
+\begin_inset Newline newline
+\end_inset
+
+{}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+is inserted.
+ Note that the 
+\begin_inset Quotes eld
+\end_inset
+
+
+\series bold
+{}
+\series default
+
+\begin_inset Quotes erd
+\end_inset
+
+ is in the second line.
+ The description text is optional.
+ The text surrounding the object must be in the same paragraph as the object,
+ so it must begin directly after the 
+\series bold
+{}
+\series default
+.
+ At the end of the paragraph insert the command:
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+\lang english
+
+\backslash
+end{window}
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Within a paragraph with a fixed object, you cannot insert footnotes in the
+ normal way.
+ You have to use instead the command 
+\series bold
+
+\backslash
+footnotemark
+\series default
+ inside the paragraph and outside the command 
+\series bold
+
+\backslash
+footnotetext
+\series default
+ as described in sec.
+\lang french
+
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Notes-bas-de-page"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+else
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Ce qui suit sera affiché si le paquetage LaTeX 
+\series bold
+picinpar
+\series default
+ n'est pas installé :
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vous devez installer le paquetage LaTeX 
+\series bold
+picinpar
+\series default
+ pour voir la suite de cette section dans la sortie imprimée.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+
+\lang english
+Initials
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Initials
+\end_layout
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Surrounded by text ! Initials
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+To use initials, you must have the LaTeX package
+\lang french
+ 
+\series bold
+lettrine
+\series default
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! lettrine
+\end_layout
+
+\end_inset
+
+ 
+\lang english
+installed and use the module 
+\family sans
+Initials
+\family default
+ in your document (menu 
+\family sans
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Modules
+\family default
+).
+ To insert an initial, use the style 
+\family sans
+Initial
+\family default
+.
+ This style has a mandatory and an optional argument.
+ The mandatory argument is inserted via the menu 
+\family sans
+Insert\SpecialChar \menuseparator
+Short
+\begin_inset space ~
+\end_inset
+
+Title
+\family default
+ and contains the letter that is the initial.
+ To use the also the optional argument, insert another argument in front
+ of the mandatory argument.
+ This one contains parameters to modify the initial.
+ For more information about the possible parameters see the documentation
+ of
+\lang french
+ 
+\series bold
+lettrine
+\series default
+, 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "lettrine"
+
+\end_inset
+
+.
+ 
+\lang english
+The style itself contains the text that is surrounding the initial.
+ The usual style is hereby that the word whose first letter is the initial,
+ is printed with 
+\shape smallcaps
+small caps
+\shape default
+.
+ To tell LaTeX where this word is finished, add a closing brace '
+\series bold
+}
+\series default
+' as TeX Code behind it.
+ At the end of the style there must be an opening brace '
+\series bold
+{
+\series default
+' as TeX Code.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Here are some examples:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+iflettrine
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+La section suivante ne sera affichée que si le paquetage LaTeX 
+\series bold
+lettrine
+\series default
+ a été installé.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+
+\lang english
+No optional argument, the initial is the letter 'I' in the math font 
+\begin_inset Formula $\mathfrak{Fraktur}$
+\end_inset
+
+
+\lang french
+:
+\end_layout
+
+\begin_deeper
+\begin_layout Initial
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset Formula $\mathfrak{I}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+t
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\lang english
+was in the spring of the year 1894 that all London was interested, and the
+ fashionable world dismayed, by the murder of the Honourable Ronald Adair
+ under most unusual and inexplicable circumstances.
+ The public has already learned those particulars of the crime which came
+ out in the police investigation, but a good deal was suppressed upon that
+ occasion, since the case for the prosecution was so overwhelmingly strong
+ that it was not necessary to bring forward all the facts.
+\lang french
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+
+\lang english
+Only one line is surrounding the initial, which is formed by two letters
+ in standard font and no text is printed in small caps:
+\end_layout
+
+\begin_deeper
+\begin_layout Initial
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+lines=1
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+It
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\lang english
+was in the spring of the year 1894 that all London was interested, and the
+ fashionable world dismayed, by the murder of the Honourable Ronald Adair
+ under most unusual and inexplicable circumstances.
+ The public has already learned those particulars of the crime which came
+ out in the police investigation, but a good deal was suppressed upon that
+ occasion, since the case for the prosecution was so overwhelmingly strong
+ that it was not necessary to bring forward all the facts.
+\lang french
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+
+\lang english
+Magenta, hanging initial over 3
+\begin_inset space ~
+\end_inset
+
+lines in the math font 
+\begin_inset Formula $\mathcal{CALLIGRAPHIC}$
+\end_inset
+
+, the text 
+\begin_inset Quotes eld
+\end_inset
+
+t was in the spring
+\begin_inset Quotes erd
+\end_inset
+
+ is in 
+\shape smallcaps
+small caps
+\shape default
+; to color the initial, you must insert this command before the initial:
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+\lang french
+
+\backslash
+renewcommand{
+\backslash
+LettrineFontHook}{
+\backslash
+color{color}}
+\series default
+\lang english
+
+\begin_inset Newline newline
+\end_inset
+
+where the second 
+\emph on
+color
+\emph default
+ can be 
+\begin_inset Quotes eld
+\end_inset
+
+red
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+blue
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+green
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+yellow
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+cyan
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+magenta
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+black
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+white
+\begin_inset Quotes erd
+\end_inset
+
+, and add this command to the document preamble
+\lang french
+:
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+
+\backslash
+@ifundefined{textcolor}
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+{
+\backslash
+usepackage{color}}{}
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand{
+\backslash
+LettrineFontHook}{
+\backslash
+color{magenta}}
+\end_layout
+
+\end_inset
+
+
+\lang english
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+makes the initial magenta
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Initial
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+lines=3, lhang=0.33, loversize=0.25
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument
+status open
+
+\begin_layout Plain Layout
+\begin_inset Formula $\mathcal{I}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\lang english
+t was in the spring
+\lang french
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\lang english
+of the year 1894 that all London was interested, and the fashionable world
+ dismayed, by the murder of the Honourable Ronald Adair under most unusual
+ and inexplicable circumstances.
+ The public has already learned those particulars of the crime which came
+ out in the police investigation, but a good deal was suppressed upon that
+ occasion, since the case for the prosecution was so overwhelmingly strong
+ that it was not necessary to bring forward all the facts.
+\lang french
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+else
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Ce qui suit sera affiché si le paquetage LaTeX 
+\series bold
+lettrine
+\series default
+ n'est pas installé :
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vous devez installer le paquetage LaTeX 
+\series bold
+lettrine
+\series default
+ pour voir la suite de cette section dans la sortie imprimée.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
 Trucs Externes
 \begin_inset Index idx
 status collapsed
@@ -33270,6 +35505,20 @@ Les sous-documents sont utilisés quand on a un document très long qui peut
 \end_layout
 
 \begin_layout Standard
+Pour pouvoir travailler sur un sous-document sans avoir à ouvrir le document
+ maître, précisez dans le sous-document le document maître dans le menu
+ 
+\family sans
+Document\SpecialChar \menuseparator
+Paramètres\SpecialChar \menuseparator
+Classe de document
+\family default
+.
+ Ce document maître sera par la suite utilisé de façon cachée par LyX à
+ chaque fois que vous modifierez le sous-document.
+\end_layout
+
+\begin_layout Standard
 Les documents inclus sont visualisés dans LyX sous la forme d'une boîte
  comme celle-ci : 
 \begin_inset Graphics
@@ -33353,7 +35602,7 @@ reference "sub:Sous-section-externe-1"
 Le préambule du sous-document est tout simplement ignoré, seul le préambule
  du document maître est utilisé.
  Les branches présentes dans le sous-document seront ignorées par le document
- maître tant que le document maître possède une branche avec le même nom.
+ maître si celui-ci ne possède pas une branche avec le même nom.
  Les documents inclus sont insérés en commençant une nouvelle page et sont
  suivis par un saut de page.
 \end_layout
@@ -33420,13 +35669,11 @@ Graphique
 \end_layout
 
 \begin_layout Itemize
-
-\lang english
-You cannot exclude Input files via the menu 
+Vous ne pouvez pas exclure des fichiers incorporés via le menu 
 \family sans
 Document\SpecialChar \menuseparator
-Settings\SpecialChar \menuseparator
-Child Documents
+Paramètres\SpecialChar \menuseparator
+Sous-documents
 \family default
 .
 \end_layout
@@ -33599,65 +35846,66 @@ Note:
 \end_layout
 
 \begin_layout Standard
-
-\lang english
-If you want to view/export only selected children of your master document,
- either because you want to save compiling time or because you want to distribut
-e single chapters of the book you are just writing, you can exclude children
- from the output.
- This is done via the menu 
+Si vous ne voulez visualiser ou exporter que certains des sous-documents
+ de votre document maître, que ce soit pour diminuer les temps de compilation
+ ou parceque vous voulez distribuer des chapitres isolés d'un livre que
+ vous êtes en train d'écrire, vous pouvez exclure des sous-documents de
+ la sortie en utilisant le menu 
 \family sans
 Document\SpecialChar \menuseparator
-Settings\SpecialChar \menuseparator
-Child Documents
+Paramètres\SpecialChar \menuseparator
+Sous-documents
 \family default
 .
- You can exclude\SpecialChar \slash{}
-include children by double-clicking on the 
+ Vous pouvez exclure ou inclure un sous-document donné en double-cliquant
+ sur la ligne correspondant dans la colonne 
 \family sans
-include to output
+Inclus dans le résultat
 \family default
- column of the respective child document in the list (note that this only
- works for documents embedded via 
-\begin_inset Quotes eld
-\end_inset
-
-Include
-\begin_inset Quotes erd
-\end_inset
-
-, not with 
-\begin_inset Quotes eld
-\end_inset
-
-Input
-\begin_inset Quotes erd
-\end_inset
-
-).
- If the option 
-\family sans
-Maintain counters and references
-\family default
- is enabled, LyX will assure that all page numbers, references etc.
+ de la liste (
 \begin_inset space ~
 \end_inset
 
-are correct as if the whole document was processed.
- This is useful if you want the selected sub-documents to look exactly as
- in the context of the whole document.
- However, LyX needs to process the whole document in the background for
- this feature.
- So if you want to save compile time and if counters and references do not
- need to be correct, disable this checkbox.
+notez que cela ne fonctionne que pour les documents inclus avec la méthode
+ 
+\begin_inset Quotes fld
+\end_inset
+
+inclus
+\begin_inset Quotes frd
+\end_inset
+
+ et pas la méthode 
+\begin_inset Quotes fld
+\end_inset
+
+incorporé
+\begin_inset Quotes frd
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+).
+ Si on active l'option 
+\family sans
+Assurer la cohérence des compteurs et des références
+\family default
+, LyX va s'assurer que tous les numéros de pages, références etc...
+ sont corrects comme si tous le document avait été traité.
+ C'est utile si vous voulez que les sous-documents choisis aient exactement
+ le même aspect que s'il étaient dans le document complet.
+ Pour réaliser cette condition, il faut que LyX traite de façon silencieuse
+ la totalité du document.
+ Ce qui fait que si vous voulez diminuer les temps de compilation, et que
+ les compteurs et autres références n'ont pas à être à tout prix valides,
+ vous devez impérativement désactiver cette option.
+ 
 \end_layout
 
 \begin_layout Standard
-
-\lang english
-Alternatively
-\lang french
-, vous pouvez inclure chaque fichier dans une branche
+Une autre solution consiste à inclure chaque fichier dans une branche
 \begin_inset Foot
 status collapsed
 
@@ -33678,10 +35926,18 @@ Guide de l'utilisateur
 .
  En activant ou désactivant une branche, vous pouvez décider les fichiers
  inclus qui doivent apparaître dans la sortie imprimée.
+ Cette méthode à l'avantage qu'elle peut aussi s'apliquer aux sous documents
  
-\lang english
-This has the advantage that it also works with Input'ed sub-documents.
- However, counters and references will not be maintained with this approach.
+\begin_inset Quotes fld
+\end_inset
+
+incorporés
+\begin_inset Quotes frd
+\end_inset
+
+.
+ Le défaut est que les compteurs et autres références ne sont pas conservés
+ avec cette approche.
 \end_layout
 
 \begin_layout Chapter
@@ -34190,6 +36446,16 @@ pass
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Si vous avez des tabulations dans votre listing, vous pouvez préciser le
+ nombre de caractères que doit représenter une tabulation dans le champ
+ 
+\family sans
+Taille du tabulateur
+\family default
+.
 \end_layout
 
 \begin_layout Standard
@@ -35620,7 +37886,8 @@ n
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \begin{equation}
+\begin_inset Formula 
+\begin{equation}
 W_{\mathrm{tot}\, n}=n\cdot(W_{g\, n}+2\cdot\backslash\mbox{tabcolsep})+(n+1)\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_n}
 \end{equation}
 
@@ -35680,7 +37947,8 @@ reference "eq:Wtot_n"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \begin{equation}
+\begin_inset Formula 
+\begin{equation}
 W_{\mathrm{tot\, mult}}=W_{g\,\mathrm{mult}}+2\cdot\backslash\mbox{tabcolsep}+2\cdot\backslash\mbox{arrayrulewidth}\label{eq:Wtot_mult}
 \end{equation}
 
@@ -35725,7 +37993,8 @@ n
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \begin{equation}
+\begin_inset Formula 
+\begin{equation}
 W_{g\, n}=(W_{g\,\mathrm{mult}}+(1-n)\cdot(2\cdot\backslash\mbox{tabcolsep}+\backslash\mbox{arrayrulewidth}))/n
 \end{equation}
 
@@ -35875,52 +38144,6 @@ status collapsed
 
 \begin_layout Plain Layout
 Paquetages LaTeX ! endfloat
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Bibliography
-\labelwidthstring Bibliographie
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-key "wrapfig"
-
-\end_inset
-
-Documentation du paquetage LaTeX 
-\series bold
-
-\begin_inset CommandInset href
-LatexCommand href
-name "wrapfig"
-target "ftp://tug.ctan.org/pub/tex-archive/macros/latex/contrib/wrapfig/wrapfig.sty"
-
-\end_inset
-
-
-\series default
-
-\begin_inset Index idx
-status collapsed
-
-\begin_layout Plain Layout
-Paquetages LaTeX ! wrapfig
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-vspace{4mm}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -36130,6 +38353,47 @@ Paquetages LaTeX ! marginnote
 \labelwidthstring Bibliographie
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
+key "lettrine"
+
+\end_inset
+
+Documentation du paquetage LaTeX 
+\series bold
+
+\begin_inset CommandInset href
+LatexCommand href
+name "lettrine"
+target "http://mirrors.ctan.org/macros/latex/contrib/lettrine/doc/lettrine.pdf"
+
+\end_inset
+
+
+\series default
+ et un 
+\begin_inset CommandInset href
+LatexCommand href
+name "exemple"
+target "http://mirrors.ctan.org/macros/latex/contrib/lettrine/doc/demo.pdf"
+
+\end_inset
+
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+Paquetages LaTeX ! lettrine
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring Bibliographie
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 key "pstricks"
 
 \end_inset
@@ -36239,7 +38503,7 @@ Documentation du paquetage LaTeX
 \begin_inset CommandInset href
 LatexCommand href
 name "refstyle"
-target "http://www.ctan.org/tex-archive/macros/latex/contrib/refstyle/doc/latex/refstyle/refstyle.pdf"
+target "http://mirrors.ctan.org/macros/latex/contrib/refstyle/refstyle.pdf"
 
 \end_inset
 

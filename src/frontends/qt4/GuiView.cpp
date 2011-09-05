@@ -1451,13 +1451,13 @@ void GuiView::errors(string const & error_type, bool from_master)
 #if EXPORT_in_THREAD && (QT_VERSION >= 0x040400)
 	// We are called with from_master == false by default, so we
 	// have to figure out whether that is the case or not.
-	ErrorList & el = bv->buffer().errorList(error_type);
+	ErrorList & el = const_cast<ErrorList &>(bv->buffer().errorList(error_type));
 	if (el.empty()) {
 	    el = bv->buffer().masterBuffer()->errorList(error_type);
 	    from_master = true;
 	}
 #else
-	ErrorList & el = from_master ?
+	ErrorList const & el = from_master ?
 		bv->buffer().masterBuffer()->errorList(error_type) :
 		bv->buffer().errorList(error_type);
 #endif
@@ -1616,8 +1616,8 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		}
 		string format = to_utf8(cmd.argument());
 		if (cmd.argument().empty())
-			format = doc_buffer->getDefaultOutputFormat();
-		enable = doc_buffer->isExportableFormat(format);
+			format = doc_buffer->params().getDefaultOutputFormat();
+		enable = doc_buffer->params().isExportableFormat(format);
 		break;
 	}
 
@@ -1721,7 +1721,7 @@ bool GuiView::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 				|| name == "progress"
 				|| name == "compare";
 		else if (name == "print")
-			enable = doc_buffer->isExportable("dvi")
+			enable = doc_buffer->params().isExportable("dvi")
 				&& lyxrc.print_command != "none";
 		else if (name == "character" || name == "symbols") {
 			if (!buf || buf->isReadonly())
@@ -1895,8 +1895,8 @@ Buffer * GuiView::loadDocument(FileName const & filename, bool tolastfiles)
 		return 0;
 	}
 
-	newBuffer->errors("Parse");
 	setBuffer(newBuffer);
+	newBuffer->errors("Parse");
 
 	if (tolastfiles)
 		theSession().lastFiles().add(filename);
@@ -2930,6 +2930,13 @@ bool GuiView::goToFileRow(string const & argument)
 			return false;
 		}
 	}
+	if (!buf) {
+		message(bformat(
+			_("No buffer for file: %1$s."),
+			makeDisplayPath(file_name))
+		);
+		return false;
+	}
 	setBuffer(buf);
 	documentBufferView()->setCursorFromRow(row);
 	return true;
@@ -3017,7 +3024,7 @@ bool GuiView::GuiViewPrivate::asyncBufferProcessing(
 
 	string format = argument;
 	if (format.empty())
-		format = used_buffer->getDefaultOutputFormat();
+		format = used_buffer->params().getDefaultOutputFormat();
 
 #if EXPORT_in_THREAD && (QT_VERSION >= 0x040400)
 	if (!msg.empty()) {
@@ -3031,7 +3038,7 @@ bool GuiView::GuiViewPrivate::asyncBufferProcessing(
 				used_buffer->clone(),
 				format);
 	setPreviewFuture(f);
-	last_export_format = used_buffer->bufferFormat();
+	last_export_format = used_buffer->params().bufferFormat();
 	(void) syncFunc;
 	(void) previewFunc;
 	// We are asynchronous, so we don't know here anything about the success
@@ -3522,14 +3529,16 @@ void GuiView::dispatch(FuncRequest const & cmd, DispatchResult & dr)
 					addExtension(mastername, "dvi")));
 			FileName const pdfname(addName(path.absFileName(),
 					addExtension(mastername, "pdf")));
-			if (!dviname.exists() && !pdfname.exists()) {
+			bool const have_dvi = dviname.exists();
+			bool const have_pdf = pdfname.exists();
+			if (!have_dvi && !have_pdf) {
 				dr.setMessage(_("Please, preview the document first."));
 				break;
 			}
 			string outname = dviname.onlyFileName();
 			string command = lyxrc.forward_search_dvi;
-			if (!dviname.exists() ||
-			    pdfname.lastModified() > dviname.lastModified()) {
+			if (!have_dvi || (have_pdf &&
+			    pdfname.lastModified() > dviname.lastModified())) {
 				outname = pdfname.onlyFileName();
 				command = lyxrc.forward_search_pdf;
 			}

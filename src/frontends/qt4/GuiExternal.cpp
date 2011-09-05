@@ -512,21 +512,19 @@ void GuiExternal::updateTemplate()
 	TransformIDs::const_iterator tr_begin = transformIds.begin();
 	TransformIDs::const_iterator const tr_end = transformIds.end();
 
-	bool found = std::find(tr_begin, tr_end, external::Rotate) != tr_end;
-	rotationGB->setEnabled(found);
+	bool rotate = std::find(tr_begin, tr_end, external::Rotate) != tr_end;
+	rotationGB->setEnabled(rotate);
 
-	found = std::find(tr_begin, tr_end, external::Resize) != tr_end;
-	scaleGB->setEnabled(found);
+	bool resize = std::find(tr_begin, tr_end, external::Resize) != tr_end;
+	scaleGB->setEnabled(resize);
 
-	found = std::find(tr_begin, tr_end, external::Clip) != tr_end;
-	cropGB->setEnabled(found);
+	bool clip = std::find(tr_begin, tr_end, external::Clip) != tr_end;
+	cropGB->setEnabled(clip);
 
-	tab->setTabEnabled(tab->indexOf(sizetab),
-		rotationGB->isEnabled()
-		|| scaleGB->isEnabled()
-		|| cropGB->isEnabled());
+	sizetab->setEnabled(rotate || resize || clip);
+	tab->setTabEnabled(tab->indexOf(sizetab), rotate || resize || clip);
 
-	found = std::find(tr_begin, tr_end, external::Extra) != tr_end;
+	bool found = std::find(tr_begin, tr_end, external::Extra) != tr_end;
 	optionsGB->setEnabled(found);
 
 	bool scaled = displayGB->isChecked() && displayGB->isEnabled() &&
@@ -639,7 +637,7 @@ QString GuiExternal::browse(QString const & input,
 	QString const label1 = qt_("Documents|#o#O");
 	QString const dir1 = toqstr(lyxrc.document_path);
 
-	return browseRelFile(input, bufpath, title, filter, false, label1, dir1);
+	return browseRelToParent(input, bufpath, title, filter, false, label1, dir1);
 }
 
 

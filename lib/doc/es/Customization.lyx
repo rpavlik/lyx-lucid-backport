@@ -30,14 +30,6 @@
   \pdfbookmark[1]{\contentsname}{}
   \myTOC
   \mainmatter }
-
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
-
-% used for multi-column text
-\usepackage{multicol}
 \end_preamble
 \options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
@@ -134,7 +126,7 @@ End
 \papercolumns 1
 \papersides 2
 \paperpagestyle headings
-\tracking_changes true
+\tracking_changes false
 \output_changes false
 \html_math_output 0
 \html_css_as_file 0
@@ -1192,7 +1184,7 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-LYX_USERDIR_20x
+LYX_USERDIR_VER
 \end_layout
 
 \end_inset
