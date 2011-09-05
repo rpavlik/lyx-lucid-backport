@@ -1,5 +1,7 @@
 lyx (2.0.1-1~lucid) UNRELEASED; urgency=low
 
+  * New upstream release.
+    + Remove debian/patches/path_max_hurd - included upstream.
   * Update Vcs-* to the new anonscm.d.o structure.
   * Add texlive-xetex, etoolbox to the suggests lists and description of
     the lyx binary package. (Closes: #629153)
