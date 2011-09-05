@@ -245,7 +245,8 @@ void InsetMathHull::updateBuffer(ParIterator const & it, UpdateType utype)
 	if (haveNumbers()) {
 		BufferParams const & bp = buffer_->params();
 		string const & lang = it->getParLanguage(bp)->code();
-		Counters & cnts = bp.documentClass().counters();
+		Counters & cnts =
+			buffer_->masterBuffer()->params().documentClass().counters();
 
 		// right now, we only need to do this at export time
 		if (utype == OutputUpdate) {
@@ -438,6 +439,8 @@ void InsetMathHull::metrics(MetricsInfo & mi, Dimension & dim) const
 			dim.wid += 30 + l;
 	}
 
+	if (type_ == hullRegexp)
+		dim.wid += 2;
 	// make it at least as high as the current font
 	int asc = 0;
 	int des = 0;
@@ -739,7 +742,9 @@ void InsetMathHull::validate(LaTeXFeatures & features) const
 			features.addPreambleSnippet(
 				string("\\newcommand{\\regexp}[1]{\\fcolorbox{")
 				+ frcol + string("}{")
-				+ bgcol + string("}{\\texttt{#1}}}"));
+				+ bgcol + string("}{\\ensuremath{\\mathtt{#1}}}}"));
+			features.addPreambleSnippet(
+				string("\\newcommand{\\endregexp}{}"));
 		}
 	
 		// Validation is necessary only if not using AMS math.
@@ -804,7 +809,7 @@ void InsetMathHull::header_write(WriteStream & os) const
 		break;
 
 	case hullRegexp:
-		os << "\\regexp{{{";
+		os << "\\regexp{";
 		break;
 
 	default:
@@ -849,7 +854,8 @@ void InsetMathHull::footer_write(WriteStream & os) const
 		break;
 
 	case hullRegexp:
-		os << "}}}";
+		// Only used as a heuristic to find the regexp termination, when searching in ignore-format mode
+		os << "\\endregexp{}}";
 		break;
 
 	default:
@@ -883,20 +889,21 @@ void InsetMathHull::addRow(row_type row)
 		return;
 
 	bool numbered = numberedType();
-	docstring lab;
+	// Move the number and raw pointer, do not call label() (bug 7511)
+	InsetLabel * label = dummy_pointer;
+	docstring number = empty_docstring();
 	if (type_ == hullMultline) {
 		if (row + 1 == nrows())  {
 			numbered_[row] = false;
-			lab = label(row);
+			swap(label, label_[row]);
+			swap(number, numbers_[row]);
 		} else
 			numbered = false;
 	}
 
 	numbered_.insert(numbered_.begin() + row + 1, numbered);
-	numbers_.insert(numbers_.begin() + row + 1, empty_docstring());
-	label_.insert(label_.begin() + row + 1, dummy_pointer);
-	if (!lab.empty())
-		label(row + 1, lab);
+	numbers_.insert(numbers_.begin() + row + 1, number);
+	label_.insert(label_.begin() + row + 1, label);
 	InsetMathGrid::addRow(row);
 }
 
@@ -1391,7 +1398,6 @@ void InsetMathHull::doDispatch(Cursor & cur, FuncRequest & cmd)
 	}
 
 	case LFUN_LABEL_INSERT: {
-		cur.recordUndoInset();
 		row_type r = (type_ == hullMultline) ? nrows() - 1 : cur.row();
 		docstring old_label = label(r);
 		docstring const default_label = from_ascii("eq:");
@@ -1894,8 +1900,13 @@ int InsetMathHull::plaintext(odocstream & os, OutputParams const &) const
 		// Fix Bug #6139
 		if (type_ == hullRegexp)
 			write(wi);
-		else
-			wi << cell(0);
+		else {
+			for (row_type r = 0; r < nrows(); ++r) {
+				for (col_type c = 0; c < ncols(); ++c)
+					wi << (c == 0 ? "" : "\t") << cell(index(r, c));
+				wi << "\n";
+			}
+		}
 		docstring const str = oss.str();
 		os << str;
 		return str.size();

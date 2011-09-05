@@ -90,7 +90,7 @@ namespace frontend {
 /** Launch a file dialog and return the chosen file.
 	filename: a suggested filename.
 	title: the title of the dialog.
-	pattern: *.ps etc.
+	filters: *.ps etc.
 	dir1 = (name, dir), dir2 = (name, dir): extra buttons on the dialog.
 */
 QString browseFile(QString const & filename,
@@ -194,21 +194,43 @@ QString browseDir(QString const & pathname,
 } // namespace frontend
 
 
-QString browseRelFile(QString const & filename, QString const & refpath,
+QString browseRelToParent(QString const & filename, QString const & relpath,
 	QString const & title, QStringList const & filters, bool save,
 	QString const & label1, QString const & dir1,
 	QString const & label2, QString const & dir2)
 {
-	QString const fname = makeAbsPath(filename, refpath);
-
+	QString const fname = makeAbsPath(filename, relpath);
 
 	QString const outname =
 		frontend::browseFile(fname, title, filters, save, label1, dir1, label2, dir2);
 
 	QString const reloutname =
-		toqstr(makeRelPath(qstring_to_ucs4(outname), qstring_to_ucs4(refpath)));
+		toqstr(makeRelPath(qstring_to_ucs4(outname), qstring_to_ucs4(relpath)));
 
 	if (reloutname.startsWith("../"))
+		return outname;
+	else
+		return reloutname;
+}
+
+
+QString browseRelToSub(QString const & filename, QString const & relpath,
+	QString const & title, QStringList const & filters, bool save,
+	QString const & label1, QString const & dir1,
+	QString const & label2, QString const & dir2)
+{
+	QString const fname = makeAbsPath(filename, relpath);
+
+	QString const outname =
+		frontend::browseFile(fname, title, filters, save, label1, dir1, label2, dir2);
+
+	QString const reloutname =
+		toqstr(makeRelPath(qstring_to_ucs4(outname), qstring_to_ucs4(relpath)));
+
+	QString testname = reloutname;
+	testname.remove(QRegExp("^(\\.\\./)+"));
+	
+	if (testname.contains("/"))
 		return outname;
 	else
 		return reloutname;
@@ -1312,6 +1334,9 @@ PrefPaths::PrefPaths(GuiPreferences * form)
 
 	connect(pathPrefixED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+
+	connect(texinputsPrefixED, SIGNAL(textChanged(QString)),
+		this, SIGNAL(changed()));
 }
 
 
@@ -1325,6 +1350,7 @@ void PrefPaths::apply(LyXRC & rc) const
 	rc.thesaurusdir_path = internal_path(fromqstr(thesaurusDirED->text()));
 	rc.hunspelldir_path = internal_path(fromqstr(hunspellDirED->text()));
 	rc.path_prefix = internal_path_list(fromqstr(pathPrefixED->text()));
+	rc.texinputs_prefix = internal_path_list(fromqstr(texinputsPrefixED->text()));
 	// FIXME: should be a checkbox only
 	rc.lyxpipes = internal_path(fromqstr(lyxserverDirED->text()));
 }
@@ -1340,6 +1366,7 @@ void PrefPaths::update(LyXRC const & rc)
 	thesaurusDirED->setText(toqstr(external_path(rc.thesaurusdir_path)));
 	hunspellDirED->setText(toqstr(external_path(rc.hunspelldir_path)));
 	pathPrefixED->setText(toqstr(external_path_list(rc.path_prefix)));
+	texinputsPrefixED->setText(toqstr(external_path_list(rc.texinputs_prefix)));
 	// FIXME: should be a checkbox only
 	lyxserverDirED->setText(toqstr(external_path(rc.lyxpipes)));
 }
@@ -1499,7 +1526,7 @@ void PrefSpellchecker::on_spellcheckerCB_currentIndexChanged(int index)
 {
 	QString spellchecker = spellcheckerCB->itemData(index).toString();
 	
-	compoundWordCB->setEnabled(spellchecker != QString("native"));
+	compoundWordCB->setEnabled(spellchecker == QString("aspell"));
 }
 	
 	
@@ -1897,7 +1924,10 @@ void PrefFileformats::updateView()
 		formatsCB->addItem(qt_(cit->prettyname()),
 				QVariant(form_->formats().getNumber(cit->name())));
 		if (form_->converters().isReachable("latex", cit->name())
-		    || form_->converters().isReachable("pdflatex", cit->name()))
+		    || form_->converters().isReachable("dviluatex", cit->name())
+		    || form_->converters().isReachable("pdflatex", cit->name())
+		    || form_->converters().isReachable("luatex", cit->name())
+		    || form_->converters().isReachable("xetex", cit->name()))
 			defaultFormatCB->addItem(qt_(cit->prettyname()),
 					QVariant(toqstr(cit->name())));
 	}

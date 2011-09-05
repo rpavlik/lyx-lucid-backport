@@ -1,5 +1,5 @@
-#LyX 1.6.6svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass elsarticle
@@ -11,18 +11,26 @@
 \begin_modules
 theorems-std
 \end_modules
+\maintain_unincluded_children false
 \language english
+\language_package default
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref false
@@ -30,24 +38,60 @@ theorems-std
 \use_geometry false
 \use_amsmath 0
 \use_esint 1
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine natbib_authoryear
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 2
 \paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
 \end_header
 
 \begin_body
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This is a template LyX file for articles to be submitted to journals of
+ the Elsevier publishing company.
+ For general infos see 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/Examples/Elsevier
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
 
 \begin_layout Standard
 \begin_inset Note Note
@@ -111,7 +155,7 @@ tnoteref
 
 \begin_layout Title footnote
 This document is a collaborative effort.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -136,7 +180,7 @@ The short title is the label you refer to in the title.
 \begin_layout Title footnote
 The second title footnote which is a longer longer than the first one and
  with an intention to fill in up more than one line while formatting.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -280,7 +324,7 @@ cor2
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -332,7 +376,7 @@ fn2
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -366,7 +410,7 @@ fnref
 
 \begin_layout Email
 http://www.elsevier.com
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -398,7 +442,7 @@ url
 
 \begin_layout Author footnote
 This is the specimen author footnote.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -412,7 +456,7 @@ fn1
 
 \begin_layout Author footnote
 Another author footnote, but a little more longer.
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -426,7 +470,7 @@ fn2
 
 \begin_layout Corresponding author
 Corresponding author
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -440,7 +484,7 @@ cor1
 
 \begin_layout Corresponding author
 Principal corresponding author
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -455,7 +499,7 @@ cor2
 \begin_layout Address
 River Valley Technologies, SJP Building, Cotton Hills, Trivandrum, Kerala,
  India 695014
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -479,7 +523,7 @@ The short title is the label you refer to in the authors.
 
 \begin_layout Address
 River Valley Technologies, 9, Browns Court, Kennford, Exeter, United Kingdom
-\begin_inset OptArg
+\begin_inset Argument
 status open
 
 \begin_layout Plain Layout
@@ -523,7 +567,7 @@ Bazargan
 
 \begin_layout Email
 http://www.elsevier.com
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -675,9 +719,11 @@ key "Parkin2005,LComp2004"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \begin{eqnarray}
+\begin_inset Formula 
+\begin{eqnarray}
 A & = & \prod_{i=1}^{\infty}B\nonumber \\
- & = & C\end{eqnarray}
+ & = & C
+\end{eqnarray}
 
 \end_inset
 
@@ -847,6 +893,7 @@ Or plain bibliography:
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring References
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "key-1"
@@ -862,6 +909,7 @@ The LaTeX Companion Second Edition.
 \end_layout
 
 \begin_layout Bibliography
+\labelwidthstring References
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
 key "key-2"

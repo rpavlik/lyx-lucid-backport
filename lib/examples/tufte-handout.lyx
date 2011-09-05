@@ -1,21 +1,29 @@
-#LyX 1.6.5svn created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass tufte-handout
 \use_default_options true
+\maintain_unincluded_children false
 \language english
+\language_package default
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans helvet
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize default
 \spacing single
 \use_hyperref true
@@ -32,24 +40,59 @@
 \use_geometry true
 \use_amsmath 1
 \use_esint 1
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\notefontcolor #0000ff
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 2
 \tocdepth 2
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
 \end_header
 
 \begin_body
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note
+\series default
+: To be able to view your file as PDF you must have the LaTeX-package 
+\family sans
+fpl
+\family default
+ installed to your LaTeX system.
+ If you are using MiKTeX, you will automatically be asked to install this
+ package when previewing your file, if you are using TeXLive, use TeXLive's
+ package manager.
+\end_layout
+
+\end_inset
+
+
+\end_layout
 
 \begin_layout Standard
 \begin_inset Note Note
@@ -161,13 +204,6 @@ First part
 
 \begin_layout Section
 Page Layout
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:page-layout"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -301,13 +337,6 @@ NewThought
 
 \begin_layout Subsection
 Sidenotes
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:sidenotes"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -438,13 +467,6 @@ nobibliography
 
 \begin_layout Section
 Figures and Tables
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:figures-and-tables"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -512,6 +534,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100line%"
 special "none"
 height "1in"
@@ -546,6 +569,32 @@ name "fig:marginfig"
 \end_inset
 
 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ If you are using margin figures or tables you must use the default float
+ placement option in the document settings under 
+\family sans
+Float
+\begin_inset space ~
+\end_inset
+
+Placement
+\family default
+.
 \end_layout
 
 \end_inset
@@ -590,6 +639,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100line%"
 special "none"
 height "1in"
@@ -640,6 +690,13 @@ name "fig:fullfig"
 \end_layout
 
 \begin_layout Standard
+\begin_inset VSpace 6theight%
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 placement h
 wide false
@@ -653,6 +710,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "t"
 use_parbox 0
+use_makebox 0
 width "100line%"
 special "none"
 height "1in"
@@ -738,7 +796,7 @@ status open
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features booktabs="true">
+<features booktabs="true" tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
 <row>
@@ -952,24 +1010,10 @@ Second part
 
 \begin_layout Section
 Typography
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:typography"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
 Typefaces
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:typefaces"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -991,13 +1035,6 @@ Computer Modern
 
 \begin_layout Subsection
 Letterspacing
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:letterspacing"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1021,7 +1058,7 @@ ALL CAPS
 status open
 
 \begin_layout Plain Layout
-Small Caps
+small caps
 \end_layout
 
 \end_inset
@@ -1093,24 +1130,10 @@ The Initial Letters Of The Words In This Sentence Are Capitalized.
 
 \begin_layout Section
 Customization
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:customization"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
 Document class options
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:options"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1335,24 +1358,10 @@ titlesec
 
 \begin_layout Section
 Support
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:support"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
 Package Dependencies
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:dependencies"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1426,13 +1435,6 @@ Tufte-LaTeX
 \end_inset
 
 Website
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:website"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard

@@ -49,6 +49,7 @@
 #include <utility>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #if defined (_WIN32)
 #include <io.h>
@@ -577,6 +578,42 @@ string const replaceEnvironmentPath(string const & path)
 }
 
 
+// Replace current directory in all elements of a path list with a given path.
+string const replaceCurdirPath(string const & path, string const & pathlist)
+{
+	string const oldpathlist = replaceEnvironmentPath(pathlist);
+	char const sep = os::path_separator();
+	string newpathlist;
+
+	for (size_t i = 0, k = 0; i != string::npos; k = i) {
+		i = oldpathlist.find(sep, i);
+		string p = oldpathlist.substr(k, i - k);
+		if (FileName::isAbsolute(p)) {
+			newpathlist += p;
+		} else if (i > k) {
+			size_t offset = 0;
+			if (p == ".") {
+				offset = 1;
+			} else if (prefixIs(p, "./")) {
+				offset = 2;
+				while (p[offset] == '/')
+					++offset;
+			}
+			newpathlist += addPath(path, p.substr(offset));
+			if (suffixIs(p, "//"))
+				newpathlist += '/';
+		}
+		if (i != string::npos) {
+			newpathlist += sep;
+			// Stop here if the last element is empty 
+			if (++i == oldpathlist.length())
+				break;
+		}
+	}
+	return newpathlist;
+}
+
+
 // Make relative path out of two absolute paths
 docstring const makeRelPath(docstring const & abspath, docstring const & basepath)
 // Makes relative path out of absolute path. If it is deeper than basepath,
@@ -759,13 +796,31 @@ docstring const makeDisplayPath(string const & path, unsigned int threshold)
 #ifdef HAVE_READLINK
 bool readLink(FileName const & file, FileName & link)
 {
-	char linkbuffer[PATH_MAX + 1];
 	string const encoded = file.toFilesystemEncoding();
+#ifdef HAVE_DEF_PATH_MAX
+	char linkbuffer[PATH_MAX + 1];
 	int const nRead = ::readlink(encoded.c_str(),
 				     linkbuffer, sizeof(linkbuffer) - 1);
 	if (nRead <= 0)
 		return false;
 	linkbuffer[nRead] = '\0'; // terminator
+#else
+	vector<char> buf(1024);
+	int nRead = -1;
+
+	while (true) {
+		nRead = ::readlink(encoded.c_str(), &buf[0], buf.size() - 1);
+		if (nRead < 0) {
+			return false;
+		}
+		if (nRead < buf.size() - 1) {
+			break;
+		}
+		buf.resize(buf.size() * 2);
+	}
+	buf[nRead] = '\0'; // terminator
+	const char * linkbuffer = &buf[0];
+#endif
 	link = makeAbsPath(linkbuffer, onlyPath(file.absFileName()));
 	return true;
 }
@@ -796,6 +851,16 @@ cmd_ret const runCommand(string const & cmd)
 	SECURITY_ATTRIBUTES security;
 	HANDLE in, out;
 	FILE * inf = 0;
+	bool err2out = false;
+	string command;
+	string const infile = trim(split(cmd, command, '<'), " \"");
+	command = rtrim(command);
+	if (suffixIs(command, "2>&1")) {
+		command = rtrim(command, "2>&1");
+		err2out = true;
+	}
+	string const cmdarg = "/d /c " + command;
+	string const comspec = getEnv("COMSPEC");
 
 	security.nLength = sizeof(SECURITY_ATTRIBUTES);
 	security.bInheritHandle = TRUE;
@@ -808,12 +873,18 @@ cmd_ret const runCommand(string const & cmd)
 		startup.cb = sizeof(STARTUPINFO);
 		startup.dwFlags = STARTF_USESTDHANDLES;
 
-		startup.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-		startup.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+		startup.hStdError = err2out ? out : GetStdHandle(STD_ERROR_HANDLE);
+		startup.hStdInput = infile.empty()
+			? GetStdHandle(STD_INPUT_HANDLE)
+			: CreateFile(infile.c_str(), GENERIC_READ,
+				FILE_SHARE_READ, &security, OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL, NULL);
 		startup.hStdOutput = out;
 
-		if (CreateProcess(0, (LPTSTR)cmd.c_str(), &security, &security,
-			TRUE, CREATE_NO_WINDOW, 0, 0, &startup, &process)) {
+		if (startup.hStdInput != INVALID_HANDLE_VALUE &&
+			CreateProcess(comspec.c_str(), (LPTSTR)cmdarg.c_str(),
+				&security, &security, TRUE, CREATE_NO_WINDOW,
+				0, 0, &startup, &process)) {
 
 			CloseHandle(process.hThread);
 			fno = _open_osfhandle((long)in, _O_RDONLY);
@@ -844,6 +915,8 @@ cmd_ret const runCommand(string const & cmd)
 
 #if defined (_WIN32)
 	WaitForSingleObject(process.hProcess, INFINITE);
+	if (!infile.empty())
+		CloseHandle(startup.hStdInput);
 	CloseHandle(process.hProcess);
 	int const pret = fclose(inf);
 #elif defined (HAVE_PCLOSE)

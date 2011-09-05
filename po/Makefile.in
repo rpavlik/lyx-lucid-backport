@@ -11,15 +11,15 @@
 # Origin: gettext-0.16
 
 PACKAGE = lyx
-VERSION = 2.0.0
+VERSION = 2.0.1
 PACKAGE_BUGREPORT = lyx-devel@lists.lyx.org
 
 SHELL = /bin/sh
 
 
-srcdir = .
-top_srcdir = ..
-
+srcdir = /cvs/lyx-export/po
+top_srcdir = /cvs/lyx-export
+VPATH = /cvs/lyx-export/po
 
 prefix = /usr/local
 exec_prefix = ${prefix}
@@ -34,18 +34,18 @@ INSTALL_DATA = ${INSTALL} -m 644
 # We use $(mkdir_p).
 # In automake <= 1.9.x, $(mkdir_p) is defined either as "mkdir -p --" or as
 # "$(mkinstalldirs)" or as "$(install_sh) -d". For these automake versions,
-# ${SHELL} /home/paf/lyx/releaser/config/install-sh does not start with $(SHELL), so we add it.
+# ${SHELL} /cvs/lyx-export/config/install-sh does not start with $(SHELL), so we add it.
 # In automake >= 1.10, /bin/mkdir -p is derived from ${MKDIR_P}, which is defined
 # either as "/path/to/mkdir -p" or ".../install-sh -c -d". For these automake
 # versions, $(mkinstalldirs) and $(install_sh) are unused.
-mkinstalldirs = $(SHELL) ${SHELL} /home/paf/lyx/releaser/config/install-sh -d
-install_sh = $(SHELL) ${SHELL} /home/paf/lyx/releaser/config/install-sh
+mkinstalldirs = $(SHELL) ${SHELL} /cvs/lyx-export/config/install-sh -d
+install_sh = $(SHELL) ${SHELL} /cvs/lyx-export/config/install-sh
 MKDIR_P = /bin/mkdir -p
 mkdir_p = /bin/mkdir -p
 
-GMSGFMT_ = /usr/bin/gmsgfmt
-GMSGFMT_no = /usr/bin/gmsgfmt
-GMSGFMT_yes = /usr/bin/gmsgfmt
+GMSGFMT_ = /usr/bin/msgfmt
+GMSGFMT_no = /usr/bin/msgfmt
+GMSGFMT_yes = /usr/bin/msgfmt
 GMSGFMT = $(GMSGFMT_$(USE_MSGCTXT))
 MSGFMT_ = /usr/bin/msgfmt
 MSGFMT_no = /usr/bin/msgfmt

@@ -13,7 +13,8 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0005 OLD)
 endif()
 
-set(LYX_PROJECT lyx)
+#needed to distinguish fron trunk, so we can install both simultaneously
+set(LYX_PROJECT lyx20)
 project(${LYX_PROJECT})
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -24,6 +25,19 @@ set(CMAKE_SUPPRESS_REGENERATION FALSE)
 # where to look first for cmake modules,
 # before ${CMAKE_ROOT}/Modules is checked
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
+
+if(UNIX)
+	FIND_PROGRAM(DPKG_ARCHITECTURE_EXECUTABLE dpkg-architecture)
+	if(DPKG_ARCHITECTURE_EXECUTABLE)
+		EXECUTE_PROCESS(COMMAND dpkg-architecture -qDEB_HOST_MULTIARCH OUTPUT_VARIABLE ARCH_TRIPLET OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
+endif()
+if(ARCH_TRIPLET)
+	set(SYSTEM_LIB_DIRS /usr/lib /usr/lib/${ARCH_TRIPLET} /usr/local/lib)
+else()
+	set(SYSTEM_LIB_DIRS /usr/lib /usr/local/lib)
+endif()
+
 include(LyXMacros)
 
 
@@ -240,7 +254,7 @@ include(ProjectSourceGroup)
 
 if(LYX_PROFILE)
 	set(CMAKE_BUILD_TYPE Profile CACHE TYPE STRING FORCE)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg" CACHE TYPE STRING FORCE)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 endif()
 
 if(LYX_RELEASE)
@@ -488,12 +502,12 @@ add_subdirectory(scripts)
 
 
 if(LYX_INSTALL)
-	FIND_PROGRAM(LYX_PERL_EXECUTABLE perl)
-	if(${LYX_PERL_EXECUTABLE} MATCHES "-NOTFOUND")
-		message(FATAL_ERROR "Perl required!")
+	if(${LYX_PYTHON_EXECUTABLE} MATCHES "-NOTFOUND")
+		message(STATUS "Python required to create doc!")
+	else()
+		add_subdirectory(man)
+		add_subdirectory(doc)
 	endif()
-	add_subdirectory(man)
-	add_subdirectory(doc)
 	include(../Install)
 endif()
 

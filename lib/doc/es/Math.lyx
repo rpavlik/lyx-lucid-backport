@@ -183,7 +183,7 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry false
 \use_amsmath 2
@@ -212,7 +212,7 @@
 \bullet 1 0 6 -1
 \bullet 2 2 35 -1
 \bullet 3 2 7 -1
-\tracking_changes true
+\tracking_changes false
 \output_changes false
 \html_math_output 0
 \html_css_as_file 0
@@ -5803,6 +5803,47 @@ vmatrix
 
 Hay que tener en cuenta que las matrices decoradas ignoran el alineamiento
  vertical.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Nota:
+\series default
+ LaTeX limita el número de columnas de matrices con decoraciones a 10.
+ Si necesitas más de 10
+\begin_inset space ~
+\end_inset
+
+columnas, debes añadir la siguiente línea en el preámbulo del documento:
+\end_layout
+
+\begin_layout Plain Layout
+
+\series bold
+
+\backslash
+setcounter{MaxMatrixCols}{número}
+\end_layout
+
+\begin_layout Plain Layout
+donde 
+\emph on
+número
+\emph default
+ es el número de columnas entre 11 y 99.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset VSpace bigskip
 \end_inset
 
@@ -9492,6 +9533,15 @@ reference "sub:Tamaño-automático-de"
 .
 \end_layout
 
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Acentos
 \begin_inset CommandInset label
@@ -12698,7 +12748,7 @@ name "sub:Marcos-con-bordes"
 
 
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Marcos ! con bordes
@@ -12886,6 +12936,15 @@ framebox
 fbox
 \series default
 .
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Newpage newpage
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -14488,7 +14547,7 @@ name "sub:Marcos-de-párrafo"
 
 
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Marcos ! para párrafos
@@ -18122,7 +18181,7 @@ _i,j=1
 \begin_layout Section
 Tipografías
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tipografías
@@ -18143,7 +18202,7 @@ name "sub:Estilos-de-tipografías"
 
 
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Tipografías ! estilos de
@@ -19083,13 +19142,6 @@ textcolor
 
 \backslash
 textcolor{color}{caracteres o ecuación}
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage pagebreak
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -21217,6 +21269,15 @@ theta
 </row>
 </lyxtabular>
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\align center
+\begin_inset Newpage newpage
 \end_inset
 
 
@@ -26427,13 +26488,6 @@ En una ecuación en línea se pone menos espacio delante del nombre de la
  función para todas las variantes.
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Caracteres especiales
 \begin_inset Index idx
@@ -28338,13 +28392,6 @@ textdegree
 fi}
 \end_layout
 
-\begin_layout Standard
-\begin_inset Newpage newpage
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Estilos de ecuación
 \begin_inset CommandInset label
@@ -30051,7 +30098,7 @@ name "sub:Partes-multilínea"
 
 
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Ecuación ! multilínea ! solo parte
@@ -30310,13 +30357,6 @@ I & =a\sqrt{2}\int_{0}^{2\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi\\
 \intertext{\text{el integrando es simétrico para \ensuremath{\phi=\pi}, por tanto}} & =2a\sqrt{2}\int_{0}^{\pi}\sqrt{1+\cos(\phi)}\;\mathrm{d}\phi
 \end{align}
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Newpage newpage
 \end_inset
 
 
@@ -34371,7 +34411,7 @@ Macro
 
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx-2.0.0rc3/doc/clipart/macrobox.png
+	filename ../clipart/macrobox.png
 
 \end_inset
 
@@ -34512,7 +34552,7 @@ qG
 
 
 \begin_inset Graphics
-	filename /usr/local/share/lyx-2.0.0rc3/doc/clipart/macrouse.png
+	filename ../clipart/macrouse.png
 
 \end_inset
 
@@ -34664,7 +34704,7 @@ Cuando el cursor está en un recuadro de definición de macro, verás en LyX
 
 \begin_layout Standard
 \begin_inset Graphics
-	filename /usr/local/share/lyx-2.0.0rc3/doc/clipart/MacroToolbar.png
+	filename ../clipart/MacroToolbar.png
 
 \end_inset
 
@@ -35213,7 +35253,7 @@ command-alternatives break-paragraph;math-extern maxima
 \begin_layout Section
 Consejos prácticos
 \begin_inset Index idx
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Consejos prácticos

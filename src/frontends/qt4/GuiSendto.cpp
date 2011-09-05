@@ -15,11 +15,14 @@
 #include "qt_helpers.h"
 
 #include "Buffer.h"
+#include "BufferParams.h"
 #include "Format.h"
 #include "FuncRequest.h"
 
 #include "support/qstring_helpers.h"
 #include "support/filetools.h"
+
+#include <algorithm>
 
 #include <QLineEdit>
 #include <QListWidget>
@@ -49,7 +52,7 @@ GuiSendTo::GuiSendTo(GuiView & lv)
 		this, SLOT(changed_adaptor()));
 	connect(formatLW, SIGNAL(itemSelectionChanged()),
 		this, SLOT(changed_adaptor()));
-	connect(commandCO, SIGNAL(textChanged(QString)),
+	connect(commandCO, SIGNAL(editTextChanged(QString)),
 		this, SLOT(changed_adaptor()));
 
 	bc().setPolicy(ButtonPolicy::OkApplyCancelPolicy);
@@ -64,10 +67,17 @@ void GuiSendTo::changed_adaptor()
 	changed();
 }
 
+namespace {
+bool formatSorter(Format const * lhs, Format const * rhs) {
+	return lhs->prettyname() < rhs->prettyname();
+}
+} // end namespace
 
 void GuiSendTo::updateContents()
 {
-	all_formats_ = buffer().exportableFormats(false);
+	all_formats_ = buffer().params().exportableFormats(false);
+	
+	sort(all_formats_.begin(), all_formats_.end(), formatSorter);
 
 	// Save the current selection if any
 	Format const * current_format = 0;

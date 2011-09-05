@@ -816,8 +816,8 @@ src_frontends_qt4_files = Split('''
     ColorCache.cpp
     CustomizedWidgets.cpp
     EmptyTable.cpp
-    FindAndReplace.cpp
     FileDialog.cpp
+    FindAndReplace.cpp
     FloatPlacement.cpp
     GuiAbout.cpp
     GuiAlert.cpp
@@ -1282,6 +1282,7 @@ po_extra_files = Split('''
 
 
 lib_files = Split('''
+    autocorrect
     chkconfig.ltx
     configure.py
     CREDITS
@@ -1375,11 +1376,9 @@ lib_templates_files = Split('''
     JSS-article.lyx
     kluwer.lyx
     koma-letter2.lyx
-    latex8.lyx
     letter.lyx
     lettre.lyx
     README.new_templates
-    revtex.lyx
     revtex4.lyx
     slides.lyx
     svjour3.lyx
@@ -2074,6 +2073,7 @@ lib_images_math_files = Split('''
     underrightarrow.png
     underscore.png
     underset.png
+    undertilde.png
     uparrow.png
     uparrow2.png
     updownarrow.png
@@ -2085,6 +2085,7 @@ lib_images_math_files = Split('''
     upsilon2.png
     upuparrows.png
     urcorner.png
+    utilde.png
     varepsilon.png
     varkappa.png
     varnothing.png
@@ -2522,7 +2523,6 @@ lib_examples_files = Split('''
     CV-image.eps
     CV-image.png
     docbook_article.lyx
-    enumitem.lyx
     europeCV.lyx
     example_lyxified.lyx
     example_raw.lyx

@@ -1,5 +1,5 @@
-#LyX 2.0.0svn created this file. For more info see http://www.lyx.org/
-\lyxformat 404
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass book
@@ -13,12 +13,28 @@
 % the documentation team
 % email: lyx-docs@lists.lyx.org
 
+\usepackage{ifpdf} % part of the hyperref bundle
+\ifpdf % if pdflatex is used
+
+ % set fonts for nicer pdf view
+ \IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
+
+\fi % end if pdflatex is used
+
+% the pages of the TOC is numbered roman
+% and a pdf-bookmark for the TOC is added
+\let\myTOC\tableofcontents
+\renewcommand\tableofcontents{%
+  \frontmatter
+  \pdfbookmark[1]{\contentsname}{}
+  \myTOC
+  \mainmatter }
+
 %disable hyphenation (breaking words at end of line)
 \usepackage[none]{hyphenat}
+
 %disable double space after end-of-sentence period
 \frenchspacing
-%Allow larger space between words in a line
-%\sloppy
 
 % These are fancyhdr commands that makes the heading "fancy"
 % behave like "heading", only without the Hebrew bugs.
@@ -29,15 +45,19 @@
 \fancyfoot[C]{}
 \end_preamble
 \use_default_options false
+\begin_modules
+logicalmkup
+\end_modules
 \maintain_unincluded_children false
 \language hebrew
-\inputencoding cp1255
+\language_package default
+\inputencoding auto
 \fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
-\use_xetex false
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
@@ -51,6 +71,15 @@
 \paperfontsize 12
 \spacing single
 \use_hyperref false
+\pdf_bookmarks false
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle false
 \papersize default
 \use_geometry false
 \use_amsmath 0
@@ -78,6 +107,7 @@
 \tracking_changes false
 \output_changes false
 \html_math_output 0
+\html_css_as_file 0
 \html_be_strict false
 \end_header
 
@@ -5603,12 +5633,14 @@ h
 \end_inset
 
 
-\begin_inset Formula \[
+\begin_inset Formula 
+\[
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
 \sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
-\end{array}\right.\]
+\end{array}\right.
+\]
 
 \end_inset
 
@@ -5632,14 +5664,18 @@ dvi
 \lang hebrew
  שנוצר.
  את צריכה כאן שתי נוסחאות ממורכזות נפרדות
-\begin_inset Formula \[
-x=y+y+y+y+y\]
+\begin_inset Formula 
+\[
+x=y+y+y+y+y
+\]
 
 \end_inset
 
 
-\begin_inset Formula \[
-=5y\]
+\begin_inset Formula 
+\[
+=5y
+\]
 
 \end_inset
 
@@ -5650,7 +5686,8 @@ x=y+y+y+y+y\]
 זה לא נראה משהו בכלל! שתי נוסחאות אחת אחרי השניה נראות הרבה יותר טוב אם
  סימני השווה שלהן אחד מעל השני, במיוחד אם לנוסחא השניה אין צד שמאל.
  ליקס מאפשרת לך לכתוב נוסחאות של כמה שורות ונותנת שליטה מסוימת ביישור שלהן.
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 x & = & y+y+y+y+y\\
  & = & 5y
 \end{eqnarray*}
@@ -5761,7 +5798,8 @@ LaTeX
 \end_inset
 
  
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 x & = & a+b+c+d\\
  &  & +e+f+g
 \end{eqnarray*}
@@ -5820,7 +5858,8 @@ C-Tab
 \end_inset
 
  ל-
-\begin_inset Formula \begin{eqnarray*}
+\begin_inset Formula 
+\begin{eqnarray*}
 E & = & mc^{2}\\
  & = & mc\times c
 \end{eqnarray*}
