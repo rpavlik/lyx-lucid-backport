@@ -1,4 +1,4 @@
-lyx (2.0.1-1) UNRELEASED; urgency=low
+lyx (2.0.1-1) unstable; urgency=low
 
   * New upstream release.
     + Remove debian/patches/path_max_hurd - included upstream.
@@ -8,7 +8,7 @@ lyx (2.0.1-1) UNRELEASED; urgency=low
     the lyx binary package. (Closes: #629153)
   * Change the compression used inside the binary package from bzip2 to xz.
 
- -- Sven Hoexter <hoexter@debian.org>  Thu, 26 May 2011 14:34:31 +0200
+ -- Sven Hoexter <hoexter@debian.org>  Sat, 10 Sep 2011 13:32:02 +0200
 
 lyx (2.0.0-1) unstable; urgency=low
 
