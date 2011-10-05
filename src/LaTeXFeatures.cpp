@@ -1197,26 +1197,37 @@ docstring const LaTeXFeatures::getTClassI18nPreamble(bool use_babel, bool use_po
 		UsedFloats::const_iterator fend = usedFloats_.end();
 		for (; fit != fend; ++fit) {
 			Floating const & fl = floats.getType(fit->first);
+			// we assume builtin floats are translated 
+			if (fl.isPredefined())
+				continue;
 			docstring const type = from_ascii(fl.floattype());
 			docstring const flname = from_utf8(fl.name());
-			docstring name = translateIfPossible(flname,
-				buffer().language()->code());
-			if (use_polyglossia)
+			docstring name = buffer().language()->translateLayout(fl.name());
+			// only request translation if we have a real translation
+			// (that differs from the source)
+			if (use_polyglossia && flname != name)
 				snippets.insert(getFloatI18nPreamble(
 					type, name,
 					from_ascii(buffer().language()->polyglossia())));
-			else
+			else if (flname != name)
 				snippets.insert(getFloatI18nPreamble(
 					type, name,
 					from_ascii(buffer().language()->babel())));
 			for (lang_it lit = lbeg; lit != lend; ++lit) {
-				name = translateIfPossible(flname,
-					(*lit)->code());
-				if (use_polyglossia)
+				string const code = (*lit)->code();
+				name = translateIfPossible(flname, code);
+				// we assume we have a suitable translation if
+				// either the language is English (we need to
+				// translate into English if English is a secondary
+				// language) or if translateIfPossible returns
+				// something different to the English source.
+				bool const have_translation =
+					(flname != name || contains(code, "en"));
+				if (use_polyglossia && have_translation)
 					snippets.insert(getFloatI18nPreamble(
 						type, name,
 						from_ascii((*lit)->polyglossia())));
-				else
+				else if (have_translation)
 					snippets.insert(getFloatI18nPreamble(
 						type, name,
 						from_ascii((*lit)->babel())));

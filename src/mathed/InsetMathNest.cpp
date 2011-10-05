@@ -402,7 +402,14 @@ void InsetMathNest::latex(otexstream & os, OutputParams const & runparams) const
 	wi.canBreakLine(os.canBreakLine());
 	write(wi);
 	os.canBreakLine(wi.canBreakLine());
-	os.texrow().newlines(wi.line());
+
+	int lf = wi.line();
+	if (lf > 0 && runparams.lastid != -1) {
+		--lf;
+		os.texrow().newline();
+		os.texrow().start(runparams.lastid, runparams.lastpos);
+	}
+	os.texrow().newlines(lf);
 }
 
 
@@ -1457,6 +1464,15 @@ void InsetMathNest::lfunMousePress(Cursor & cur, FuncRequest & cmd)
 {
 	//lyxerr << "## lfunMousePress: buttons: " << cmd.button() << endl;
 	BufferView & bv = cur.bv();
+	if (cmd.button() == mouse_button::button3) {
+		// Don't do anything if we right-click a
+		// selection, a context menu will popup.
+		if (bv.cursor().selection() && cur >= bv.cursor().selectionBegin()
+		      && cur < bv.cursor().selectionEnd()) {
+	 		cur.noScreenUpdate();
+			return;
+		}
+	}
 	bool do_selection = cmd.button() == mouse_button::button1
 		&& cmd.argument() == "region-select";
 	bv.mouseSetCursor(cur, do_selection);

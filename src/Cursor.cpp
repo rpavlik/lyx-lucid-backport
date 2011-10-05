@@ -95,20 +95,18 @@ DocIterator bruteFind2(Cursor const & c, int x, int y)
 		int xo;
 		int yo;
 		Inset const * inset = &it.inset();
-		map<Inset const *, Geometry> const & data =
-			c.bv().coordCache().getInsets().getData();
-		map<Inset const *, Geometry>::const_iterator I = data.find(inset);
+		CoordCache const & cache = c.bv().coordCache();
 
 		// FIXME: in the case where the inset is not in the cache, this
 		// means that no part of it is visible on screen. In this case
 		// we don't do elaborate search and we just return the forwarded
 		// DocIterator at its beginning.
-		if (I == data.end()) {
+		if (!cache.getInsets().has(inset)) {
 			it.top().pos() = 0;
 			return it;
 		}
 
-		Point o = I->second.pos;
+		Point const o = cache.getInsets().xy(inset);
 		inset->cursorPos(c.bv(), it.top(), c.boundary(), xo, yo);
 		// Convert to absolute
 		xo += o.x_;
@@ -522,7 +520,7 @@ void Cursor::setCursorToAnchor()
 
 void Cursor::markEditPosition()
 {
-	if (inTexted() && new_word_.empty()) {
+	if (lyxrc.spellcheck_continuously && inTexted() && new_word_.empty()) {
 		FontSpan ow = locateWord(WHOLE_WORD);
 		if (ow.size() == 1) {
 			LYXERR(Debug::DEBUG, "start new word: "
@@ -547,12 +545,21 @@ void Cursor::clearNewWordPosition()
 
 void Cursor::checkNewWordPosition()
 {
-	if (new_word_.empty())
+	if (!lyxrc.spellcheck_continuously || new_word_.empty())
 		return ;
 	if (!inTexted())
 		clearNewWordPosition();
 	else {
-		if (pit() != new_word_.pit())
+		// forget the position of the current new word if
+		// 1) the paragraph changes or
+		// 2) the count of nested insets changes or
+		// 3) the cursor pos is out of paragraph bound
+		if (pit() != new_word_.pit() ||
+			depth() != new_word_.depth() ||
+			new_word_.pos() > new_word_.lastpos()) {
+			clearNewWordPosition();
+		} else if (new_word_.fixIfBroken())
+			// 4) or the remembered position was "broken"
 			clearNewWordPosition();
 		else {
 			FontSpan nw = locateWord(WHOLE_WORD);
@@ -2268,6 +2275,7 @@ bool Cursor::fixIfBroken()
 	bool const broken_anchor = anchor_.fixIfBroken();
 	
 	if (broken_cursor || broken_anchor) {
+		clearNewWordPosition();
 		clearSelection();
 		return true;
 	}

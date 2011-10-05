@@ -1076,19 +1076,17 @@ PrefColors::PrefColors(GuiPreferences * form)
 	for (int i = 0; i < Color_ignore; ++i) {
 		ColorCode lc = static_cast<ColorCode>(i);
 		if (lc == Color_none
-			|| lc == Color_black
-			|| lc == Color_white
-			|| lc == Color_red
-			|| lc == Color_green
-			|| lc == Color_blue
-			|| lc == Color_cyan
-			|| lc == Color_magenta
-			|| lc == Color_yellow
-			|| lc == Color_inherit
-			|| lc == Color_ignore
-			|| lc == Color_greyedouttext
-			|| lc == Color_shadedbg) continue;
-
+		    || lc == Color_black
+		    || lc == Color_white
+		    || lc == Color_red
+		    || lc == Color_green
+		    || lc == Color_blue
+		    || lc == Color_cyan
+		    || lc == Color_magenta
+		    || lc == Color_yellow
+		    || lc == Color_inherit
+		    || lc == Color_ignore)
+			continue;
 		lcolors_.push_back(lc);
 	}
 	sort(lcolors_.begin(), lcolors_.end(), ColorSorter());
@@ -2423,6 +2421,8 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 		this, SLOT(selectUi()));
 	connect(uiFileED, SIGNAL(textChanged(QString)),
 		this, SIGNAL(changed()));
+	connect(iconSetCO, SIGNAL(activated(int)),
+		this, SIGNAL(changed()));
 	connect(restoreCursorCB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(loadSessionCB, SIGNAL(clicked()),
@@ -2442,11 +2442,18 @@ PrefUserInterface::PrefUserInterface(GuiPreferences * form)
 	connect(tooltipCB, SIGNAL(toggled(bool)),
 		this, SIGNAL(changed()));
 	lastfilesSB->setMaximum(maxlastfiles);
+
+	iconSetCO->addItem(qt_("Default"), QString());
+	iconSetCO->addItem(qt_("Liber"), "liber");
+	iconSetCO->addItem(qt_("Oxygen"), "oxygen");
 }
 
 
 void PrefUserInterface::apply(LyXRC & rc) const
 {
+	rc.icon_set = fromqstr(iconSetCO->itemData(
+		iconSetCO->currentIndex()).toString());
+
 	rc.ui_file = internal_path(fromqstr(uiFileED->text()));
 	rc.use_lastfilepos = restoreCursorCB->isChecked();
 	rc.load_session = loadSessionCB->isChecked();
@@ -2467,6 +2474,10 @@ void PrefUserInterface::apply(LyXRC & rc) const
 
 void PrefUserInterface::update(LyXRC const & rc)
 {
+	int iconset = iconSetCO->findData(toqstr(rc.icon_set));
+	if (iconset < 0)
+		iconset = 0;
+	iconSetCO->setCurrentIndex(iconset);
 	uiFileED->setText(toqstr(external_path(rc.ui_file)));
 	restoreCursorCB->setChecked(rc.use_lastfilepos);
 	loadSessionCB->setChecked(rc.load_session);
@@ -2528,6 +2539,8 @@ PrefEdit::PrefEdit(GuiPreferences * form)
 		this, SIGNAL(changed()));
 	connect(macroEditStyleCO, SIGNAL(activated(int)),
 		this, SIGNAL(changed()));
+	connect(cursorWidthSB, SIGNAL(valueChanged(int)),
+		this, SIGNAL(changed()));
 	connect(fullscreenLimitGB, SIGNAL(clicked()),
 		this, SIGNAL(changed()));
 	connect(fullscreenWidthSB, SIGNAL(valueChanged(int)),
@@ -2555,6 +2568,7 @@ void PrefEdit::apply(LyXRC & rc) const
 		case 1:	rc.macro_edit_style = LyXRC::MACRO_EDIT_INLINE; break;
 		case 2:	rc.macro_edit_style = LyXRC::MACRO_EDIT_LIST;	break;
 	}
+	rc.cursor_width = cursorWidthSB->value();
 	rc.full_screen_toolbars = toggleToolbarsCB->isChecked();
 	rc.full_screen_scrollbar = toggleScrollbarCB->isChecked();
 	rc.full_screen_tabbar = toggleTabbarCB->isChecked();
@@ -2572,6 +2586,7 @@ void PrefEdit::update(LyXRC const & rc)
 	sortEnvironmentsCB->setChecked(rc.sort_layouts);
 	groupEnvironmentsCB->setChecked(rc.group_layouts);
 	macroEditStyleCO->setCurrentIndex(rc.macro_edit_style);
+	cursorWidthSB->setValue(rc.cursor_width);
 	toggleScrollbarCB->setChecked(rc.full_screen_scrollbar);
 	toggleToolbarsCB->setChecked(rc.full_screen_toolbars);
 	toggleTabbarCB->setChecked(rc.full_screen_tabbar);
