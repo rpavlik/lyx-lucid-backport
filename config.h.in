@@ -395,6 +395,9 @@
 /* Define if mkdir takes only one argument. */
 #undef MKDIR_TAKES_ONE_ARG
 
+/* Location of mythes.hxx */
+#undef MYTHES_H_LOCATION
+
 /* Name of package */
 #undef PACKAGE
 
@@ -466,6 +469,9 @@
 
 /* Define as 1 to use the enchant library */
 #undef USE_ENCHANT
+
+/* Define as 1 to use an external MyThes library */
+#undef USE_EXTERNAL_MYTHES
 
 /* Define as 1 to use the hunspell library */
 #undef USE_HUNSPELL

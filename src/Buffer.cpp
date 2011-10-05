@@ -127,7 +127,7 @@ namespace {
 
 // Do not remove the comment below, so we get merge conflict in
 // independent branches. Instead add your own.
-int const LYX_FORMAT = 412; // edwin: set tabular width
+int const LYX_FORMAT = 413; // rgh: html_css_as_file
 
 typedef map<string, bool> DepClean;
 typedef map<docstring, pair<InsetLabel const *, Buffer::References> > RefCache;
@@ -1187,7 +1187,7 @@ bool Buffer::write(ostream & ofs) const
 	// The top of the file should not be written by params().
 
 	// write out a comment in the top of the file
-	ofs << "#LyX " << lyx_version
+	ofs << "#LyX " << lyx_version_major << "." << lyx_version_minor
 	    << " created this file. For more info see http://www.lyx.org/\n"
 	    << "\\lyxformat " << LYX_FORMAT << "\n"
 	    << "\\begin_document\n";
@@ -1269,9 +1269,10 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 	ErrorList & errorList = d->errorLists["Export"];
 	errorList.clear();
 	bool failed_export = false;
+	otexstream os(ofs, d->texrow);
 	try {
-		d->texrow.reset();
-		writeLaTeXSource(ofs, original_path,
+		os.texrow().reset();
+		writeLaTeXSource(os, original_path,
 		      runparams, output_preamble, output_body);
 	}
 	catch (EncodingException & e) {
@@ -1314,7 +1315,7 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 }
 
 
-void Buffer::writeLaTeXSource(odocstream & os,
+void Buffer::writeLaTeXSource(otexstream & os,
 			   string const & original_path,
 			   OutputParams const & runparams_in,
 			   bool const output_preamble, bool const output_body) const
@@ -1339,8 +1340,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 			"For more info, see http://www.lyx.org/.\n"
 			"%% Do not edit unless you really know what "
 			"you are doing.\n";
-		d->texrow.newline();
-		d->texrow.newline();
 	}
 	LYXERR(Debug::INFO, "lyx document header finished");
 
@@ -1367,7 +1366,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 		if (!runparams.nice) {
 			// code for usual, NOT nice-latex-file
 			os << "\\batchmode\n"; // changed from \nonstopmode
-			d->texrow.newline();
 		}
 		if (!original_path.empty()) {
 			// FIXME UNICODE
@@ -1403,9 +1401,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 				   << "\\def\\input@path{{"
 				   << inputpath << "/}}\n"
 				   << "\\makeatother\n";
-				d->texrow.newline();
-				d->texrow.newline();
-				d->texrow.newline();
 			}
 		}
 
@@ -1417,7 +1412,6 @@ void Buffer::writeLaTeXSource(odocstream & os,
 		runparams.use_polyglossia = features.usePolyglossia();
 		// Write the preamble
 		runparams.use_babel = params().writeLaTeX(os, features,
-							  d->texrow,
 							  d->filename.onlyPath());
 
 		runparams.use_japanese = features.isRequired("japanese");
@@ -1427,19 +1421,18 @@ void Buffer::writeLaTeXSource(odocstream & os,
 
 		// make the body.
 		os << "\\begin{document}\n";
-		d->texrow.newline();
 
 		// output the parent macros
 		MacroSet::iterator it = parentMacros.begin();
 		MacroSet::iterator end = parentMacros.end();
 		for (; it != end; ++it) {
-			int num_lines = (*it)->write(os, true);
-			d->texrow.newlines(num_lines);
+			int num_lines = (*it)->write(os.os(), true);
+			os.texrow().newlines(num_lines);
 		}
 		
 	} // output_preamble
 
-	d->texrow.start(paragraphs().begin()->id(), 0);
+	os.texrow().start(paragraphs().begin()->id(), 0);
 
 	LYXERR(Debug::INFO, "preamble finished, now the body.");
 
@@ -1453,8 +1446,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	}
 
 	// the real stuff
-	otexstream ots(os);
-	latexParagraphs(*this, text(), ots, d->texrow, runparams);
+	latexParagraphs(*this, text(), os, runparams);
 
 	// Restore the parenthood if needed
 	if (output_preamble)
@@ -1462,11 +1454,9 @@ void Buffer::writeLaTeXSource(odocstream & os,
 
 	// add this just in case after all the paragraphs
 	os << endl;
-	d->texrow.newline();
 
 	if (output_preamble) {
 		os << "\\end{document}\n";
-		d->texrow.newline();
 		LYXERR(Debug::LATEX, "makeLaTeXFile...done");
 	} else {
 		LYXERR(Debug::LATEX, "LaTeXFile for inclusion made.");
@@ -1474,7 +1464,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	runparams_in.encoding = runparams.encoding;
 
 	// Just to be sure. (Asger)
-	d->texrow.newline();
+	os.texrow().newline();
 
 	//for (int i = 0; i<d->texrow.rows(); i++) {
 	// int id,pos;
@@ -1483,7 +1473,7 @@ void Buffer::writeLaTeXSource(odocstream & os,
 	//}
 
 	LYXERR(Debug::INFO, "Finished making LaTeX file.");
-	LYXERR(Debug::INFO, "Row count was " << d->texrow.rows() - 1 << '.');
+	LYXERR(Debug::INFO, "Row count was " << os.texrow().rows() - 1 << '.');
 }
 
 
@@ -2447,6 +2437,8 @@ bool Buffer::isExternallyModified(CheckMethod method) const
 void Buffer::saveCheckSum() const
 {
 	FileName const & file = d->filename;
+
+	file.refresh();
 	if (file.exists()) {
 		d->timestamp_ = file.lastModified();
 		d->checksum_ = file.checksum();
@@ -2551,7 +2543,7 @@ Buffer const * Buffer::parent() const
 ListOfBuffers Buffer::allRelatives() const
 {
 	ListOfBuffers lb = masterBuffer()->getDescendents();
-	lb.push_front(const_cast<Buffer *>(this));
+	lb.push_front(const_cast<Buffer *>(masterBuffer()));
 	return lb;
 }
 
@@ -3106,9 +3098,11 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 			writeDocBookSource(os, absFileName(), runparams, false);
 		else if (runparams.flavor == OutputParams::HTML)
 			writeLyXHTMLSource(os, runparams, false);
-		else
+		else {
 			// latex or literate
-			writeLaTeXSource(os, string(), runparams, true, true);
+			otexstream ots(os, d->texrow);
+			writeLaTeXSource(ots, string(), runparams, true, true);
+		}
 	} else {
 		runparams.par_begin = par_begin;
 		runparams.par_end = par_end;
@@ -3135,8 +3129,8 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 			xhtmlParagraphs(text(), *this, xs, runparams);
 		} else {
 			// latex or literate
-			otexstream ots(os);
-			latexParagraphs(*this, text(), ots, texrow, runparams);
+			otexstream ots(os, texrow);
+			latexParagraphs(*this, text(), ots, runparams);
 		}
 	}
 }
@@ -3559,8 +3553,13 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	// LaTeX backend
 	else if (backend_format == format) {
 		runparams.nice = true;
-		if (!makeLaTeXFile(FileName(filename), string(), runparams))
+		if (!makeLaTeXFile(FileName(filename), string(), runparams)) {
+			if (d->cloned_buffer_) {
+				d->cloned_buffer_->d->errorLists["Export"] =
+					d->errorLists["Export"];
+			}
 			return false;
+		}
 	} else if (!lyxrc.tex_allows_spaces
 		   && contains(filePath(), ' ')) {
 		Alert::error(_("File name error"),
@@ -3568,8 +3567,13 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		return false;
 	} else {
 		runparams.nice = false;
-		if (!makeLaTeXFile(FileName(filename), filePath(), runparams))
+		if (!makeLaTeXFile(FileName(filename), filePath(), runparams)) {
+			if (d->cloned_buffer_) {
+				d->cloned_buffer_->d->errorLists["Export"] =
+					d->errorLists["Export"];
+			}
 			return false;
+		}
 	}
 
 	string const error_type = (format == "program")
@@ -3582,7 +3586,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		error_list);
 
 	// Emit the signal to show the error list or copy it back to the
-	// cloned Buffer so that it cab be emitted afterwards.
+	// cloned Buffer so that it can be emitted afterwards.
 	if (format != backend_format) {
 		if (d->cloned_buffer_) {
 			d->cloned_buffer_->d->errorLists[error_type] = 
@@ -3595,6 +3599,10 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		ListOfBuffers::const_iterator const cen = clist.end();
 		for (; cit != cen; ++cit) {
 			if (d->cloned_buffer_) {
+				// Enable reverse search by copying back the
+				// texrow object to the cloned buffer.
+				// FIXME: this is not thread safe.
+				(*cit)->d->cloned_buffer_->d->texrow = (*cit)->d->texrow;
 				(*cit)->d->cloned_buffer_->d->errorLists[error_type] = 
 					(*cit)->d->errorLists[error_type];
 			} else
@@ -3880,24 +3888,50 @@ Buffer::ReadStatus Buffer::loadThisLyXFile(FileName const & fn)
 
 void Buffer::bufferErrors(TeXErrors const & terr, ErrorList & errorList) const
 {
-	TeXErrors::Errors::const_iterator cit = terr.begin();
+	TeXErrors::Errors::const_iterator it = terr.begin();
 	TeXErrors::Errors::const_iterator end = terr.end();
+	ListOfBuffers clist = getDescendents();
+	ListOfBuffers::const_iterator cen = clist.end();
 
-	for (; cit != end; ++cit) {
+	for (; it != end; ++it) {
 		int id_start = -1;
 		int pos_start = -1;
-		int errorRow = cit->error_in_line;
-		bool found = d->texrow.getIdFromRow(errorRow, id_start,
-						       pos_start);
+		int errorRow = it->error_in_line;
+		Buffer const * buf = 0;
+		Impl const * p = d;
+		if (it->child_name.empty())
+		    p->texrow.getIdFromRow(errorRow, id_start, pos_start);
+		else {
+			// The error occurred in a child
+			ListOfBuffers::const_iterator cit = clist.begin();
+			for (; cit != cen; ++cit) {
+				string const child_name =
+					DocFileName(changeExtension(
+						(*cit)->absFileName(), "tex")).
+							mangledFileName();
+				if (it->child_name != child_name)
+					continue;
+				(*cit)->d->texrow.getIdFromRow(errorRow,
+							id_start, pos_start);
+				if (id_start != -1) {
+					buf = d->cloned_buffer_
+						? (*cit)->d->cloned_buffer_->d->owner_
+						: (*cit)->d->owner_;
+					p = (*cit)->d;
+					break;
+				}
+			}
+		}
 		int id_end = -1;
 		int pos_end = -1;
+		bool found;
 		do {
 			++errorRow;
-			found = d->texrow.getIdFromRow(errorRow, id_end, pos_end);
+			found = p->texrow.getIdFromRow(errorRow, id_end, pos_end);
 		} while (found && id_start == id_end && pos_start == pos_end);
 
-		errorList.push_back(ErrorItem(cit->error_desc,
-			cit->error_text, id_start, pos_start, pos_end));
+		errorList.push_back(ErrorItem(it->error_desc,
+			it->error_text, id_start, pos_start, pos_end, buf));
 	}
 }
 

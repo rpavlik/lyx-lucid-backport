@@ -479,13 +479,13 @@ Buffer * InsetInclude::loadIfNeeded() const
 }
 
 
-int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
+void InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 {
 	string incfile = to_utf8(params()["filename"]);
 
 	// Do nothing if no file name has been specified
 	if (incfile.empty())
-		return 0;
+		return;
 
 	FileName const included_file = includedFileName(buffer(), params());
 
@@ -499,7 +499,7 @@ int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 		Alert::error(_("Recursive input"),
 			       bformat(_("Attempted to include file %1$s in itself! "
 			       "Ignoring inclusion."), from_utf8(incfile)));
-		return 0;
+		return;
 	}
 
 	Buffer const * const masterBuffer = buffer().masterBuffer();
@@ -556,7 +556,7 @@ int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 		
 		Buffer * tmp = loadIfNeeded();
 		if (!tmp)
-			return false;
+			return;
 
 		if (tmp->params().baseClass() != masterBuffer->params().baseClass()) {
 			// FIXME UNICODE
@@ -608,9 +608,19 @@ int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 		runparams.master_language = buffer().params().language;
 		runparams.par_begin = 0;
 		runparams.par_end = tmp->paragraphs().size();
-		tmp->makeLaTeXFile(writefile,
-				   masterFileName(buffer()).onlyPath().absFileName(),
-				   runparams, false);
+		if (!tmp->makeLaTeXFile(writefile, masterFileName(buffer()).
+				onlyPath().absFileName(), runparams, false)) {
+			docstring msg = bformat(_("Included file `%1$s' "
+					"was not exported correctly.\nWarning: "
+					"LaTeX export is probably incomplete."),
+					included_file.displayName());
+			ErrorList & el = tmp->errorList("Export");
+			if (!el.empty())
+				msg = bformat(from_ascii("%1$s\n\n%2$s\n\n%3$s"),
+						msg, el.begin()->error,
+						el.begin()->description);
+			Alert::warning(_("Export failure"), msg);
+		}
 		runparams.encoding = oldEnc;
 		runparams.master_language = oldLang;
 	} else {
@@ -628,7 +638,7 @@ int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 					to_utf8(bformat(_("Could not copy the file\n%1$s\n"
 								  "into the temporary directory."),
 						   from_utf8(included_file.absFileName()))));
-				return 0;
+				return;
 			}
 		}
 	}
@@ -689,8 +699,6 @@ int InsetInclude::latex(otexstream & os, OutputParams const & runparams) const
 	case NONE:
 		break;
 	}
-
-	return 0;
 }
 
 
@@ -960,8 +968,9 @@ bool preview_wanted(InsetCommandParams const & params, Buffer const & buffer)
 
 docstring latexString(InsetInclude const & inset)
 {
+	TexRow texrow;
 	odocstringstream ods;
-	otexstream os(ods);
+	otexstream os(ods, texrow);
 	// We don't need to set runparams.encoding since this will be done
 	// by latex() anyway.
 	OutputParams runparams(0);

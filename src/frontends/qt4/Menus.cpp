@@ -71,6 +71,9 @@
 #include <QList>
 #include <QMenuBar>
 #include <QString>
+#if QT_VERSION >= 0x040600
+#include <QProxyStyle>
+#endif
 
 #include "support/shared_ptr.h"
 
@@ -130,7 +133,7 @@ public:
 		    typically for the File->Export menu. */
 		ExportFormats,
 		/** This is a list of importable formats
-		    typically for the File->Export menu. */
+		    typically for the File->Import menu. */
 		ImportFormats,
 		/** This is the list of elements available
 		 * for insertion into document. */
@@ -1055,7 +1058,7 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 				continue;
 			}
 		case MenuItem::ExportFormats:
-			if (!(*fit)->documentFormat())
+			if (!(*fit)->inExportMenu())
 				continue;
 			break;
 		default:
@@ -1569,19 +1572,38 @@ void Menu::Impl::populate(QMenu & qMenu, MenuDefinition const & menu)
 	}
 }
 
+#if defined(Q_WS_WIN) && (QT_VERSION >= 0x040600)
+class AlwaysMnemonicStyle : public QProxyStyle {
+public:
+	int styleHint(StyleHint hint, const QStyleOption *opt = 0, const QWidget *widget = 0,
+		QStyleHintReturn *returnData = 0) const 
+	{
+		if (hint == QStyle::SH_UnderlineShortcut)
+			return 1;
+		return QProxyStyle::styleHint(hint, opt, widget, returnData);
+	}
+};
+#endif
+
 /////////////////////////////////////////////////////////////////////
 // Menu implementation
 /////////////////////////////////////////////////////////////////////
 
-Menu::Menu(GuiView * gv, QString const & name, bool top_level)
+Menu::Menu(GuiView * gv, QString const & name, bool top_level, bool keyboard)
 : QMenu(gv), d(new Menu::Impl)
 {
+#if defined(Q_WS_WIN) && (QT_VERSION >= 0x040600)
+	if (keyboard)
+		setStyle(new AlwaysMnemonicStyle);
+#else
+	(void) keyboard;
+#endif
 	d->top_level_menu = top_level? new MenuDefinition : 0;
 	d->view = gv;
 	d->name = name;
 	setTitle(name);
 	if (d->top_level_menu)
-		connect(this, SIGNAL(aboutToShow()), this, SLOT(updateView()));
+		connect(this, SIGNAL(aboutToShow()), this, SLOT(updateView()));	
 }
 
 
@@ -2062,7 +2084,7 @@ void Menus::updateMenu(Menu * qmenu)
 }
 
 
-Menu * Menus::menu(QString const & name, GuiView & view)
+Menu * Menus::menu(QString const & name, GuiView & view, bool keyboard)
 {
 	LYXERR(Debug::GUI, "Context menu requested: " << name);
 	Menu * menu = d->name_map_[&view].value(name, 0);
@@ -2071,7 +2093,7 @@ Menu * Menus::menu(QString const & name, GuiView & view)
 		return 0;
 	}
 
-	menu = new Menu(&view, name, true);
+	menu = new Menu(&view, name, true, keyboard);
 	d->name_map_[&view][name] = menu;
 	return menu;
 }

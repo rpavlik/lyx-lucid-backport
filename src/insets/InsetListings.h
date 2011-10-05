@@ -40,8 +40,8 @@ public:
 private:
 	///
 	bool isLabeled() const { return true; }
-	///
-	bool noFontChange() const { return true; }
+	/// false is needed since listings do their own font handling.
+	bool inheritFont() const { return false; }
 	///
 	InsetCode lyxCode() const { return LISTINGS_CODE; }
 	/// lstinline is inlined, normal listing is displayed
@@ -55,7 +55,7 @@ private:
 	///
 	void read(Lexer & lex);
 	///
-	int latex(otexstream &, OutputParams const &) const;
+	void latex(otexstream &, OutputParams const &) const;
 	///
 	docstring xhtml(XHTMLStream &, OutputParams const &) const;
 	///

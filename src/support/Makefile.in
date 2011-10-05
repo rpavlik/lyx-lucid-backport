@@ -36,13 +36,18 @@ host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/common.am
+@USE_INCLUDED_MYTHES_TRUE@am__append_1 = \
+@USE_INCLUDED_MYTHES_TRUE@	mythes/mythes.cxx \
+@USE_INCLUDED_MYTHES_TRUE@	mythes/mythes.hxx \
+@USE_INCLUDED_MYTHES_TRUE@	mythes/license.readme
+
 
 #if INSTALL_MACOSX
 #liblyxsupport_a_SOURCES += \
 #	AppleSpellChecker.h \
 #	AppleSpellChecker.mm
 #endif
-@INSTALL_MACOSX_TRUE@am__append_1 = \
+@INSTALL_MACOSX_TRUE@am__append_2 = \
 @INSTALL_MACOSX_TRUE@	AppleSpeller.h \
 @INSTALL_MACOSX_TRUE@	AppleSpeller.m \
 @INSTALL_MACOSX_TRUE@	linkback/LinkBack.h \
@@ -112,7 +117,8 @@ am__liblyxsupport_a_SOURCES_DIST = FileMonitor.h FileMonitor.cpp \
 	linkback/LinkBack.m linkback/LinkBackProxy.h \
 	linkback/LinkBackProxy.m linkback/LinkBackServer.h \
 	linkback/LinkBackServer.m
-@INSTALL_MACOSX_TRUE@am__objects_1 = AppleSpeller.$(OBJEXT) \
+@USE_INCLUDED_MYTHES_TRUE@am__objects_1 = mythes.$(OBJEXT)
+@INSTALL_MACOSX_TRUE@am__objects_2 = AppleSpeller.$(OBJEXT) \
 @INSTALL_MACOSX_TRUE@	LinkBack.$(OBJEXT) \
 @INSTALL_MACOSX_TRUE@	LinkBackProxy.$(OBJEXT) \
 @INSTALL_MACOSX_TRUE@	LinkBackServer.$(OBJEXT)
@@ -125,7 +131,7 @@ am_liblyxsupport_a_OBJECTS = FileMonitor.$(OBJEXT) convert.$(OBJEXT) \
 	os.$(OBJEXT) Path.$(OBJEXT) Package.$(OBJEXT) \
 	qstring_helpers.$(OBJEXT) socktools.$(OBJEXT) \
 	Systemcall.$(OBJEXT) Timeout.$(OBJEXT) userinfo.$(OBJEXT) \
-	unicode.$(OBJEXT) mythes.$(OBJEXT) $(am__objects_1)
+	unicode.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 liblyxsupport_a_OBJECTS = $(am_liblyxsupport_a_OBJECTS)
 am_check_convert_OBJECTS = check_convert.$(OBJEXT) boost.$(OBJEXT)
 check_convert_OBJECTS = $(am_check_convert_OBJECTS)
@@ -302,6 +308,7 @@ MOC4 = @MOC4@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+MYTHES_LIBS = @MYTHES_LIBS@
 OBJC = @OBJC@
 OBJCDEPMODE = @OBJCDEPMODE@
 OBJCFLAGS = @OBJCFLAGS@
@@ -465,8 +472,7 @@ liblyxsupport_a_SOURCES = FileMonitor.h FileMonitor.cpp \
 	Systemcall.cpp Systemcall.h SystemcallPrivate.h shared_ptr.h \
 	textutils.h Translator.h Timeout.cpp Timeout.h types.h \
 	userinfo.cpp userinfo.h unicode.cpp unicode.h weighted_btree.h \
-	mythes/mythes.cxx mythes/mythes.hxx mythes/license.readme \
-	$(am__append_1)
+	$(am__append_1) $(am__append_2)
 TESTS = \
 	tests/test_convert \
 	tests/test_filetools \

@@ -28,16 +28,11 @@ Lists of files to include in the installer
 
 !macroend
 
-!macro FileListMSVCBin COMMAND DIRECTORY
+!macro FileListMSVC COMMAND DIRECTORY
 
-  ${FILE}msvcr90.dll"
-  ${FILE}msvcp90.dll"
-  
-!macroend
-
-!macro FileListMSVCManifest COMMAND DIRECTORY
-
-  ${FILE}\Microsoft.VC90.CRT.manifest"
+  # Manifest not needed for 2010
+  ${FILE}msvcr100.dll"
+  ${FILE}msvcp100.dll"
   
 !macroend
 
@@ -45,9 +40,8 @@ Lists of files to include in the installer
 
   ${FILE}iconv.dll"
   ${FILE}intl.dll"
-  ${FILE}aspell.dll"
-  ${FILE}Aiksaurus.dll"
-  ${FILE}zlib1.dll"
+  ${FILE}libhunspell.dll"
+  ${FILE}zlibwapi.dll"
 
 !macroend
 
@@ -81,6 +75,8 @@ Lists of files to include in the installer
 !macro FileListPDFViewBin COMMAND DIRECTORY
 
   ${FILE}pdfview.exe"
+  ${FILE}System.dll"
+  ${FILE}Console.dll"
 
 !macroend
 
@@ -268,25 +264,6 @@ Lists of files to include in the installer
   ${FILE}zlib_codec.py"
   ${FILE}__init__.py"
   
-!macroend
-
-!macro FileListAiksaurusData COMMAND DIRECTORY
-
-  ${FILE}words.dat"
-  ${FILE}meanings.dat"
-  
-!macroend
-
-!macro FileListNSISPluginsStandard COMMAND DIRECTORY
-
-  ${FILE}System.dll"
-
-!macroend
-
-!macro FileListNSISPlugins COMMAND DIRECTORY
-
-  ${FILE}Console.dll"
-
 !macroend
 
 !macro FileListMetaFile2EPS COMMAND DIRECTORY

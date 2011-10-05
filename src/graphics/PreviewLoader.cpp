@@ -24,6 +24,7 @@
 #include "LyXRC.h"
 #include "output.h"
 #include "OutputParams.h"
+#include "PDFOptions.h"
 #include "TexRow.h"
 
 #include "frontends/Application.h" // hexName
@@ -216,7 +217,7 @@ private:
 	/// Called by the ForkedCall process that generated the bitmap files.
 	void finishedGenerating(pid_t, int);
 	///
-	void dumpPreamble(odocstream &) const;
+	void dumpPreamble(otexstream &) const;
 	///
 	void dumpData(odocstream &, BitmapFile const &) const;
 
@@ -558,6 +559,7 @@ void PreviewLoader::Impl::startLoading(bool wait)
 	}
 
 	TexRow texrow;
+	otexstream os(of, texrow);
 	OutputParams runparams(&enc);
 	LaTeXFeatures features(buffer_, buffer_.params(), runparams);
 
@@ -570,9 +572,9 @@ void PreviewLoader::Impl::startLoading(bool wait)
 		return;
 	}
 	of << "\\batchmode\n";
-	dumpPreamble(of);
+	dumpPreamble(os);
 	// handle inputenc etc.
-	buffer_.params().writeEncodingPreamble(of, features, texrow);
+	buffer_.params().writeEncodingPreamble(os, features);
 	of << "\n\\begin{document}\n";
 	dumpData(of, inprogress.snippets);
 	of << "\n\\end{document}\n";
@@ -603,6 +605,10 @@ void PreviewLoader::Impl::startLoading(bool wait)
 	// FIXME what about LuaTeX?
 	if (buffer_.bufferFormat() == "xetex")
 		cs << " xelatex";
+	// DVI output fails sometimes with hyperref
+	// (probably a preview-latex/hyperref bug)
+	else if (buffer_.params().pdfoptions().use_hyperref)
+		cs << " pdflatex";
 
 	string const command = libScriptSearch(cs.str());
 
@@ -698,7 +704,7 @@ void PreviewLoader::Impl::finishedGenerating(pid_t pid, int retval)
 }
 
 
-void PreviewLoader::Impl::dumpPreamble(odocstream & os) const
+void PreviewLoader::Impl::dumpPreamble(otexstream & os) const
 {
 	// Dump the preamble only.
 	OutputParams runparams(&buffer_.params().encoding());
