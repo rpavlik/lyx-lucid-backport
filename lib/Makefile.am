@@ -163,6 +163,7 @@ dist_itexamples_DATA = \
 jaexamplesdir = $(pkgdatadir)/examples/ja
 dist_jaexamples_DATA = \
 	examples/ja/Braille.lyx \
+	examples/ja/FeynmanDiagrams.lyx \
 	examples/ja/linguistics.lyx \
 	examples/ja/multicol.lyx \
 	examples/ja/splash.lyx \
@@ -1437,6 +1438,7 @@ dist_layouts_DATA =\
 	layouts/stdlayouts.inc \
 	layouts/stdletter.inc \
 	layouts/stdlists.inc \
+	layouts/stdlyxlist.inc \
 	layouts/stdrefprefix.inc \
 	layouts/stdsections.inc \
 	layouts/stdstarsections.inc \

@@ -3,7 +3,7 @@
 # Heavily modifed and enhanced by several developers.
 
 
-Format 34
+Format 35
 Columns                 1
 Sides                   1
 PageStyle               Empty
@@ -128,4 +128,3 @@ Style Telephone
 	LatexName             thispagestyle{firstpage}\telephone
 	LabelString           "Telephone:"
 End
-

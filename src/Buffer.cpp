@@ -1147,7 +1147,7 @@ docstring Buffer::emergencyWrite()
 	}
 
 	// 2) In HOME directory.
-	string s = addName(package().home_dir().absFileName(), absFileName());
+	string s = addName(Package::get_home_dir().absFileName(), absFileName());
 	s += ".emergency";
 	lyxerr << ' ' << s << endl;
 	if (writeFile(FileName(s))) {
@@ -1346,7 +1346,7 @@ void Buffer::writeLaTeXSource(otexstream & os,
 	// Don't move this behind the parent_buffer=0 code below,
 	// because then the macros will not get the right "redefinition"
 	// flag as they don't see the parent macros which are output before.
-	updateMacros();
+	updateBuffer();
 
 	// fold macros if possible, still with parent buffer as the
 	// macros will be put in the prefix anyway.

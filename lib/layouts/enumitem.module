@@ -13,7 +13,7 @@
 #	     both KOMA and non-KOMA document classes.
 # 2011-01-12 bugfix: set elabeling label font to \normalfont.
 
-Format 34
+Format 35
 
 # The package enumitem provides user control over the layout of the three
 # basic list environments: enumerate, itemize and description. It supersedes
@@ -47,57 +47,43 @@ AddToPreamble
 	\newlength{\lyxlabelwidth}      % auxiliary length 
 EndPreamble
 
+
 # Customisable Basic Lists
 # ------------------------
 
 # With enumitem, the three standard list environments take an optional
 # argument. See enumitem.pdf_ for possible values.
 
-Style Itemize
+IfStyle Itemize
 	OptionalArgs          1
 End
 
-Style Enumerate
+IfStyle Enumerate
 	OptionalArgs          1
 End
 
-Style Description
+IfStyle Description
 	OptionalArgs          1
 End
+
 
 # Customisable LyX List
 # ---------------------
 
+Input stdlyxlist.inc
+
 Style Labeling
-        # verbatim insert definition of List environment, 
-	# The KOMA script classes replace List with Labeling, 
-	# this leads to an error with "CopyStyle List"!
-	Category              List
-	Margin                Manual
-	LatexType             List_Environment
-	NextNoindent          1
-	LabelSep              xxx
-	ParSkip               0.4
-	TopSep                0.7
-	BottomSep             0.7
-	ParSep                0.5
-	Align                 Block
-	AlignPossible         Block, Left
-	LabelType             Manual
-	LabelString           "00.00.0000"
-	# en of verbatim copy
-	
-        LatexName             elabeling
-        OptionalArgs          1
-        Preamble
+	LatexName             elabeling
+	# FIXME This should probably be defined using \newlist instead
+	Preamble
 	% labeling-like list based on enumitem's description list with
 	% mandatory second argument (label-pattern):
-	\newenvironment{elabeling}[2][]%
-          {\settowidth{\lyxlabelwidth}{#2}
-           \begin{description}[font=\normalfont,style=sameline,
-			       leftmargin=\lyxlabelwidth,#1]}
-          {\end{description}}
-        EndPreamble
+		\newenvironment{elabeling}[2][]%
+		{\settowidth{\lyxlabelwidth}{#2}
+			\begin{description}[font=\normalfont,style=sameline,
+				leftmargin=\lyxlabelwidth,#1]}
+		{\end{description}}
+	EndPreamble
 End
 
 
@@ -107,13 +93,13 @@ End
 # Styles with pre-defined optional arguments for ease of use
 
 Style Enumerate-Resume
-        CopyStyle             Enumerate
+	CopyStyle             Enumerate
 	LatexParam            [resume]
 	OptionalArgs          0
 	# a blue label to indicate that this is not a WYSIWYG label
 	# because the numbering differs in the output
 	LabelFont
-	  Color		      blue
+	  Color blue
 	EndFont
 End
 
