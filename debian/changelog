@@ -1,3 +1,9 @@
+lyx (2.0.1-1~lucid~rp1) lucid; urgency=low
+
+  * Backport modified version of debian package.
+
+ -- Ryan Pavlik <abiryan@ryand.net>  Wed, 05 Oct 2011 10:44:31 -0500
+
 lyx (2.0.1-1~lucid) unstable; urgency=low
 
   * New upstream release.
