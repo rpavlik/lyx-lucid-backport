@@ -172,6 +172,10 @@ bool GuiErrorList::goTo(int item)
 		return false;
 	}
 
+	// Don't try to highlight the content of non-editable insets
+	while (!dit.inset().editable())
+		dit.backwardPos();
+
 	// Now make the selection.
 	BufferView * bv = const_cast<BufferView *>(bufferview());
 	if (bv->selectIfEmpty(dit)) {

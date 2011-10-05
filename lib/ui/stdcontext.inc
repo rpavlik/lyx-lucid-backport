@@ -9,7 +9,7 @@
 # Full author contact details are available in file CREDITS.
 
 # The interface is designed (partially) following the KDE Human Interface
-# Guidelines (http://usability.kde.org/hig/)
+# Guidelines (http://techbase.kde.org/Projects/Usability/HIG)
 
 # Casing Rules:
 # Capitalize all words in the element, with the following exceptions: 
@@ -594,7 +594,8 @@ Menuset
 # InsetERT context menu
 #
 	Menu "context-ert"
-		Item "Wrap by Preview|P" "command-sequence inset-toggle;char-forward;char-backward;char-forward-select;preview-insert;char-backward;char-backward;inset-toggle"
+		# repeat 1 is added as a work-around to not indicate this action as toggable
+		Item "Wrap by Preview|P" "command-sequence repeat 1;inset-toggle;char-forward;char-backward;char-forward-select;preview-insert;char-backward;char-backward;inset-toggle"
 	End
 
 #

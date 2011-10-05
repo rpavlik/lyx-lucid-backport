@@ -24,7 +24,6 @@
 #include "LyXRC.h"
 #include "output.h"
 #include "OutputParams.h"
-#include "PDFOptions.h"
 #include "TexRow.h"
 
 #include "frontends/Application.h" // hexName
@@ -603,12 +602,8 @@ void PreviewLoader::Impl::startLoading(bool wait)
 	   << theApp()->hexName(fg) << ' '
 	   << theApp()->hexName(bg);
 	// FIXME what about LuaTeX?
-	if (buffer_.bufferFormat() == "xetex")
+	if (buffer_.params().useNonTeXFonts)
 		cs << " xelatex";
-	// DVI output fails sometimes with hyperref
-	// (probably a preview-latex/hyperref bug)
-	else if (buffer_.params().pdfoptions().use_hyperref)
-		cs << " pdflatex";
 
 	string const command = libScriptSearch(cs.str());
 
@@ -708,7 +703,10 @@ void PreviewLoader::Impl::dumpPreamble(otexstream & os) const
 {
 	// Dump the preamble only.
 	OutputParams runparams(&buffer_.params().encoding());
-	runparams.flavor = OutputParams::LATEX;
+	if (buffer_.params().useNonTeXFonts)
+		runparams.flavor = OutputParams::XETEX;
+	else
+		runparams.flavor = OutputParams::LATEX;
 	runparams.nice = true;
 	runparams.moving_arg = true;
 	runparams.free_spacing = true;

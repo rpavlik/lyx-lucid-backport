@@ -2537,6 +2537,7 @@ lib_examples_files = Split('''
     linguistics.lyx
     listerrors.lyx
     Literate.lyx
+    localization_test.lyx
     modernCV.lyx
     multicol.lyx
     noweb2lyx.lyx
@@ -2566,6 +2567,8 @@ lib_examples_ca_files = Split('''
 
 lib_examples_cs_files = Split('''
     splash.lyx
+    priklad_zLyXovany.lyx
+    priklad_syrovy.lyx
 ''')
 
 

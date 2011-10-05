@@ -25,7 +25,7 @@ public:
 	///
 	std::string const & type() const { return type_; }
 	///
-	docstring name() const;
+	docstring layoutName() const;
 	/// return the mandatory argument (LaTeX format) only
 	void getArgument(otexstream & os, OutputParams const &) const;
 	/// return the optional argument(s) only
@@ -37,8 +37,6 @@ public:
 private:
 	///
 	void write(std::ostream & os) const;
-	///
-	void read(Lexer & lex);
 	///
 	DisplayType display() const { return AlignCenter; }
 	///

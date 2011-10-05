@@ -2731,9 +2731,10 @@ docstring Paragraph::simpleLyXHTMLOnePar(Buffer const & buf,
 
 	bool emph_flag = false;
 	bool bold_flag = false;
-	string closing_tag;
 
 	Layout const & style = *d->layout_;
+
+	xs.startParagraph();
 
 	if (!runparams.for_toc && runparams.html_make_pars) {
 		// generate a magic label for this paragraph
@@ -2814,6 +2815,7 @@ docstring Paragraph::simpleLyXHTMLOnePar(Buffer const & buf,
 	}
 
 	xs.closeFontTags();
+	xs.endParagraph();
 	return retval;
 }
 
@@ -2845,22 +2847,40 @@ bool Paragraph::isLineSeparator(pos_type pos) const
 
 bool Paragraph::isWordSeparator(pos_type pos) const
 {
-	if (Inset const * inset = getInset(pos))
-		return !inset->isLetter();
 	if (pos == size())
 		return true;
-	char_type const c = d->text_[pos];
-	// if we have a hard hyphen (no en- or emdash),
+	if (Inset const * inset = getInset(pos))
+		return !inset->isLetter();
+	// if we have a hard hyphen (no en- or emdash) or apostrophe
 	// we pass this to the spell checker
-	if (c == '-') {
-		int j = pos + 1;
-		if ((j == size() || d->text_[j] != '-')
-		    && (pos == 0 || d->text_[pos - 1] != '-'))
-			return false;
-	}
-	// We want to pass the ' and escape chars to the spellchecker
-	static docstring const quote = from_utf8(lyxrc.spellchecker_esc_chars + '\'');
-	return (!isLetterChar(c) && !isDigitASCII(c) && !contains(quote, c));
+	// FIXME: this method is subject to change, visit
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=355178
+	// to get an impression how complex this is.
+	if (isHardHyphenOrApostrophe(pos))
+		return false;
+	char_type const c = d->text_[pos];
+	// We want to pass the escape chars to the spellchecker
+	docstring const escape_chars = from_utf8(lyxrc.spellchecker_esc_chars);
+	return !isLetterChar(c) && !isDigitASCII(c) && !contains(escape_chars, c);
+}
+
+
+bool Paragraph::isHardHyphenOrApostrophe(pos_type pos) const
+{
+	pos_type const psize = size();
+	if (pos >= psize)
+		return false;
+	char_type const c = d->text_[pos];
+	if (c != '-' && c != '\'')
+		return false;
+	int nextpos = pos + 1;
+	int prevpos = pos > 0 ? pos - 1 : 0;
+	if ((nextpos == psize || isSpace(nextpos))
+		&& (pos == 0 || isSpace(prevpos)))
+		return false;
+	return c == '\''
+		|| ((nextpos == psize || d->text_[nextpos] != '-')
+		&& (pos == 0 || d->text_[prevpos] != '-'));
 }
 
 
@@ -3651,6 +3671,7 @@ SpellChecker::Result Paragraph::spellCheck(pos_type & from, pos_type & to,
 		return result;
 
 	if (needsSpellCheck() || check_learned) {
+		pos_type end = to;
 		if (!d->ignoreWord(word)) {
 			bool const trailing_dot = to < size() && d->text_[to] == '.';
 			result = speller->check(wl);
@@ -3662,28 +3683,33 @@ SpellChecker::Result Paragraph::spellCheck(pos_type & from, pos_type & to,
 					   word << "\" [" <<
 					   from << ".." << to << "]");
 				} else {
-					// spell check with dot appended failed
+					// spell check with dot appended failed too
 					// restore original word/lang value
 					word = asString(from, to, AS_STR_INSETS | AS_STR_SKIPDELETE);
 					wl = WordLangTuple(word, lang);
 				}
 			}
 		}
-		d->setMisspelled(from, to, result);
+		if (!SpellChecker::misspelled(result)) {
+			// area up to the begin of the next word is not misspelled
+			while (end < size() && isWordSeparator(end))
+				++end;
+		}
+		d->setMisspelled(from, end, result);
 	} else {
 		result = d->speller_state_.getState(from);
 	}
 
-	bool const misspelled_ = SpellChecker::misspelled(result) ;
-	if (misspelled_ && do_suggestion)
-		speller->suggest(wl, suggestions);
-	else if (misspelled_)
+	if (do_suggestion)
+		suggestions.clear();
+
+	if (SpellChecker::misspelled(result)) {
 		LYXERR(Debug::GUI, "misspelled word: \"" <<
 			   word << "\" [" <<
 			   from << ".." << to << "]");
-	else
-		suggestions.clear();
-
+		if (do_suggestion)
+			speller->suggest(wl, suggestions);
+	}
 	return result;
 }
 
@@ -3775,9 +3801,9 @@ void Paragraph::spellCheck() const
 bool Paragraph::isMisspelled(pos_type pos, bool check_boundary) const
 {
 	bool result = SpellChecker::misspelled(d->speller_state_.getState(pos));
-	if (result || pos <= 0 || pos >= size())
+	if (result || pos <= 0 || pos > size())
 		return result;
-	if (check_boundary && isWordSeparator(pos))
+	if (check_boundary && (pos == size() || isWordSeparator(pos)))
 		result = SpellChecker::misspelled(d->speller_state_.getState(pos - 1));
 	return result;
 }

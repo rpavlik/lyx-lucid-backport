@@ -145,7 +145,8 @@ docstring cleanAttr(docstring const & str)
 
 bool isFontTag(string const & s)
 {
-	return s == "em" || s == "strong"; // others?
+	// others?
+	return s == "em" || s == "strong" || s == "i" || s == "b";
 }
 
 
@@ -197,17 +198,16 @@ XHTMLStream::XHTMLStream(odocstream & os)
 {}
 
 
-void XHTMLStream::cr() 
-{
-	// tabs?
-	os_ << from_ascii("\n");
-}
-
-
 void XHTMLStream::writeError(std::string const & s)
 {
 	LYXERR0(s);
 	os_ << from_utf8("<!-- Output Error: " + s + " -->");
+}
+
+
+namespace {
+	// an illegal tag for internal use
+	static string const parsep_tag = "&LyX_parsep_tag&";
 }
 
 
@@ -227,19 +227,75 @@ bool XHTMLStream::closeFontTags()
 			return true;
 		curtag = tag_stack_.back();
 	}
-	// so we've hit a non-font tag. let's see if any of the
-	// remaining tags are font tags.
-	TagStack::const_iterator it = tag_stack_.begin();
-	TagStack::const_iterator en = tag_stack_.end();
-	bool noFontTags = true;
+
+	if (curtag.tag_ == parsep_tag)
+		return true;
+
+	// so we've hit a non-font tag.
+	writeError("Tags still open in closeFontTags(). Probably not a problem,\n"
+	           "but you might want to check these tags:");
+	TagStack::const_reverse_iterator it = tag_stack_.rbegin();
+	TagStack::const_reverse_iterator const en = tag_stack_.rend();
 	for (; it != en; ++it) {
-		if (html::isFontTag(it->tag_)) {
-			writeError("Font tag `" + it->tag_ + "' still open in closeFontTags().\n"
-				"This is likely not a problem, but you might want to check.");
-			noFontTags = false;
-		}
+		string const tagname = it->tag_;
+		if (tagname == parsep_tag)
+			break;
+		writeError(it->tag_);
 	}
-	return noFontTags;
+	return false;
+}
+
+
+void XHTMLStream::startParagraph()
+{
+	pending_tags_.push_back(html::StartTag(parsep_tag));
+}
+
+
+void XHTMLStream::endParagraph()
+{
+	if (!isTagOpen(parsep_tag)) {
+		// is it pending?
+		TagStack::const_iterator dit = pending_tags_.begin();
+		TagStack::const_iterator const den = pending_tags_.end();
+		bool found = false;
+		for (; dit != den; ++dit) {
+			if (dit->tag_ == parsep_tag) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			writeError("No paragraph separation tag found in endParagraph().");
+			return;
+		}
+		
+		// this case is normal.
+		while (!pending_tags_.empty()) {
+			// clear all pending tags up to and including the parsep tag.
+			// note that we work from the back, because we want to get rid
+			// of everything that hasnt' been used.
+			html::StartTag const cur_tag = pending_tags_.back();
+			string const & tag = cur_tag.tag_;
+			tag_stack_.pop_back();
+			if (tag == parsep_tag)
+				break;
+		}
+		return;
+	}
+
+	// this case is also normal, if the parsep tag is the last one 
+	// on the stack. otherwise, it's an error.
+	while (!tag_stack_.empty()) {
+		html::StartTag const cur_tag = tag_stack_.back();
+		string const & tag = cur_tag.tag_;
+		tag_stack_.pop_back();
+		if (tag == parsep_tag)
+			break;
+		writeError("Tag `" + tag + "' still open at end of paragraph. Closing.");
+		os_ << cur_tag.asEndTag();
+	}
 }
 
 
@@ -247,8 +303,9 @@ void XHTMLStream::clearTagDeque()
 {
 	while (!pending_tags_.empty()) {
 		html::StartTag const & tag = pending_tags_.front();
-		// tabs?
-		os_ << tag.asTag();
+		if (tag.tag_ != parsep_tag)
+			// tabs?
+			os_ << tag.asTag();
 		tag_stack_.push_back(tag);
 		pending_tags_.pop_front();
 	}
@@ -326,7 +383,15 @@ XHTMLStream & XHTMLStream::operator<<(html::CompTag const & tag)
 	clearTagDeque();
 	// tabs?
 	os_ << tag.asTag();
-	cr();
+	*this << html::CR();
+	return *this;
+}
+
+
+XHTMLStream & XHTMLStream::operator<<(html::CR const &)
+{
+	// tabs?
+	os_ << from_ascii("\n");
 	return *this;
 }
 
@@ -474,7 +539,8 @@ XHTMLStream & XHTMLStream::operator<<(html::EndTag const & etag)
 	html::StartTag curtag = tag_stack_.back();
 	while (curtag.tag_ != etag.tag_) {
 		writeError(curtag.tag_);
-		os_ << curtag.asEndTag();
+		if (curtag.tag_ != parsep_tag)
+			os_ << curtag.asEndTag();
 		tag_stack_.pop_back();
 		curtag = tag_stack_.back();
 	}
@@ -612,7 +678,7 @@ ParagraphList::const_iterator makeParagraphs(Buffer const & buf,
 		// FIXME We should see if there's a label to be output and
 		// do something with it.
 		if (par != pbegin)
-			xs.cr();
+			xs << html::CR();
 
 		// If we are already in a paragraph, and this is the first one, then we
 		// do not want to open the paragraph tag.
@@ -637,11 +703,10 @@ ParagraphList::const_iterator makeParagraphs(Buffer const & buf,
 			|| (!opened && runparams.html_in_par && par == pbegin && nextpar != pend);
 		if (needclose) {
 			closeTag(xs, lay);
-			xs.cr();
+			xs << html::CR();
 		}
 		if (!deferred.empty()) {
-			xs << XHTMLStream::ESCAPE_NONE << deferred;
-			xs.cr();
+			xs << XHTMLStream::ESCAPE_NONE << deferred << html::CR();
 		}
 	}
 	return pend;
@@ -657,12 +722,12 @@ ParagraphList::const_iterator makeBibliography(Buffer const & buf,
 {
 	// FIXME XHTML
 	// Use TextClass::htmlTOCLayout() to figure out how we should look.
-	xs << html::StartTag("h2", "class='bibliography'");
-	xs << pbegin->layout().labelstring(false);
-	xs << html::EndTag("h2");
-	xs.cr();
-	xs << html::StartTag("div", "class='bibliography'");
-	xs.cr();
+	xs << html::StartTag("h2", "class='bibliography'")
+	   << pbegin->layout().labelstring(false)
+	   << html::EndTag("h2")
+	   << html::CR()
+	   << html::StartTag("div", "class='bibliography'")
+	   << html::CR();
 	makeParagraphs(buf, xs, runparams, text, pbegin, pend);
 	xs << html::EndTag("div");
 	return pend;
@@ -690,7 +755,7 @@ ParagraphList::const_iterator makeEnvironmentHtml(Buffer const & buf,
 
 	// open tag for this environment
 	openTag(xs, bstyle);
-	xs.cr();
+	xs << html::CR();
 
 	// we will on occasion need to remember a layout from before.
 	Layout const * lastlay = 0;
@@ -747,20 +812,20 @@ ParagraphList::const_iterator makeEnvironmentHtml(Buffer const & buf,
 								xs << lbl;
 								closeLabelTag(xs, style);
 							}
-							xs.cr();
+							xs << html::CR();
 						}
 					}	else { // some kind of list
 						if (style.labeltype == LABEL_MANUAL) {
 							openLabelTag(xs, style);
 							sep = par->firstWordLyXHTML(xs, runparams);
 							closeLabelTag(xs, style);
-							xs.cr();
+							xs << html::CR();
 						}
 						else {
 							openLabelTag(xs, style);
 							xs << par->params().labelString();
 							closeLabelTag(xs, style);
-							xs.cr();
+							xs << html::CR();
 						}
 					}
 				} // end label output
@@ -784,7 +849,7 @@ ParagraphList::const_iterator makeEnvironmentHtml(Buffer const & buf,
 					lastlay = &style;
 				} else
 					closeItemTag(xs, style);
-				xs.cr();
+				xs << html::CR();
 			}
 			// The other possibility is that the depth has increased, in which
 			// case we need to recurse.
@@ -814,7 +879,7 @@ ParagraphList::const_iterator makeEnvironmentHtml(Buffer const & buf,
 	if (lastlay != 0)
 		closeItemTag(xs, *lastlay);
 	closeTag(xs, bstyle);
-	xs.cr();
+	xs << html::CR();
 	return pend;
 }
 
@@ -845,7 +910,7 @@ void makeCommand(Buffer const & buf,
 	pbegin->simpleLyXHTMLOnePar(buf, xs, runparams,
 			text.outerFont(distance(begin, pbegin)));
 	closeTag(xs, style);
-	xs.cr();
+	xs << html::CR();
 }
 
 } // end anonymous namespace
