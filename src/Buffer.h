@@ -268,7 +268,6 @@ public:
 
 	/// Just a wrapper for writeLaTeXSource, first creating the ofstream.
 	bool makeLaTeXFile(support::FileName const & filename,
-			   std::string const & original_path,
 			   OutputParams const &,
 			   bool output_preamble = true,
 			   bool output_body = true) const;
@@ -295,7 +294,6 @@ public:
 	    \endcode
 	 */
 	void writeLaTeXSource(otexstream & os,
-			   std::string const & original_path,
 			   OutputParams const &,
 			   bool output_preamble = true,
 			   bool output_body = true) const;
@@ -408,13 +406,6 @@ public:
 
 	/// Set buffer read-only flag
 	void setReadonly(bool flag = true);
-
-	/// returns \c true if the buffer contains a LaTeX document
-	bool isLatex() const;
-	/// returns \c true if the buffer contains a DocBook document
-	bool isDocBook() const;
-	/// returns \c true if the buffer contains a Wed document
-	bool isLiterate() const;
 
 	/** Validate a buffer for LaTeX.
 	    This validates the buffer, and returns a struct for use by
@@ -530,7 +521,7 @@ public:
 	/// Collect macro definitions in paragraphs
 	void updateMacros() const;
 	/// Iterate through the whole buffer and try to resolve macros
-	void updateMacroInstances() const;
+	void updateMacroInstances(UpdateType) const;
 
 	/// List macro names of this buffer, the parent and the children
 	void listMacroNames(MacroNameSet & macros) const;
@@ -563,7 +554,8 @@ public:
 	/// errors (like parsing or LateX compilation). This method is const
 	/// because modifying the returned ErrorList does not touch the document
 	/// contents.
-	ErrorList & errorList(std::string const & type) const;
+	ErrorList & errorList(std::string const & type);
+	ErrorList const & errorList(std::string const & type) const;
 
 	/// The Toc backend.
 	/// This is useful only for screen visualisation of the Buffer. This
@@ -600,14 +592,6 @@ public:
 
 	
 
-	/// return the format of the buffer on a string
-	std::string bufferFormat() const;
-	/// return the default output format of the current backend
-	std::string getDefaultOutputFormat() const;
-	/// return the output flavor of \p format or the default
-	OutputParams::FLAVOR getOutputFlavor(
-		  std::string const format = std::string()) const;
-
 	///
 	bool doExport(std::string const & format, bool put_in_tempdir,
 		bool includeall, std::string & result_file) const;
@@ -616,12 +600,6 @@ public:
 		      bool includeall = false) const;
 	///
 	bool preview(std::string const & format, bool includeall = false) const;
-	///
-	bool isExportable(std::string const & format) const;
-	///
-	std::vector<Format const *> exportableFormats(bool only_viewable) const;
-	///
-	bool isExportableFormat(std::string const & format) const;
 	/// mark the buffer as busy exporting something, or not
 	void setExportStatus(bool e) const;
 	///
@@ -667,12 +645,6 @@ public:
 private:
 	/// Change name of buffer. Updates "read-only" flag.
 	void setFileName(support::FileName const & fname);
-	///
-	std::vector<std::string> backends() const;
-	/// A cache for the default flavors
-	typedef std::map<std::string, OutputParams::FLAVOR> DefaultFlavorCache;
-	///
-	mutable DefaultFlavorCache default_flavors_;
 	///
 	void getLanguages(std::set<Language const *> &) const;
 	/// Checks whether any of the referenced bibfiles have changed since the

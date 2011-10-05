@@ -36,11 +36,6 @@
  \cleardoublepage
  \pagenumbering{arabic}}
 
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
-
 % used for multi-column text
 \usepackage{multicol}
 
@@ -49,7 +44,7 @@
 
 \usepackage{t1enc}
 \end_preamble
-\options fleqn,liststotoc,bibtotoc,idxtotoc,BCOR7.5mm,titlepage,tablecaptionabove
+\options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
 \use_default_options false
 \begin_modules
 logicalmkup
@@ -107,10 +102,10 @@ End
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "unicode=false,linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true,  pdfstartview=XYZ, plainpages=false, pdfpagelabels"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
-\use_amsmath 0
+\use_amsmath 1
 \use_esint 0
 \use_mhchem 1
 \use_mathdots 1
@@ -136,13 +131,23 @@ End
 \output_changes false
 \html_math_output 0
 \html_css_as_file 0
-\html_be_strict false
+\html_be_strict true
 \end_header
 
 \begin_body
 
 \begin_layout Title
 LyXの高度な機能
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\size large
+Version 2.0.x
 \end_layout
 
 \begin_layout Author
@@ -1522,7 +1527,7 @@ target "http://www.ctan.org/"
 と第
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:secrets"
+reference "chap:Special-features"
 
 \end_inset
 
@@ -2590,7 +2595,7 @@ usepackage{indentfirst}
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "cha:secrets"
+reference "chap:Special-features"
 
 \end_inset
 
@@ -6436,57 +6441,189 @@ name "sub:遡及検索"
 \end_layout
 
 \begin_layout Standard
-ほとんどの場合、
+
+\lang english
+In most cases LyX will do the work for you by enabling the option 
 \begin_inset Flex MenuItem
 status collapsed
 
 \begin_layout Plain Layout
-文書\SpecialChar \menuseparator
-出力\SpecialChar \menuseparator
-出力と同期
+
+\lang english
+Synchronize with Output
 \end_layout
 
 \end_inset
 
-を有効にすれば、LyXがすべて自動的に処理を行ってくれます。その場合、LyXは自動的に、PDFの場合はSyncTeXマクロを、DVIの場合はsrcltxパッケー
-ジを挿入します。このオプションは、
+ in the menu 
+\begin_inset Flex MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Output
+\end_layout
+
+\end_inset
+
+.
+ In such a case LyX will automatically insert the necessary SyncTeX macro
+ (for PDF) or load the srcltx package (for DVI) respectively.
+ This option can be easily reached also on 
 \begin_inset Flex Code
 status collapsed
 
 \begin_layout Plain Layout
-表示/更新
+
+\lang english
+View/Update
 \end_layout
 
 \end_inset
 
-ツールバーでも簡単にアクセスすることができます。
+ Toolbar.
 \end_layout
 
 \begin_layout Standard
+
+\lang english
+If you need a different setting, you can select or input a custom macro
+ from the drop down box just below 
+\begin_inset Flex MenuItem
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+Document\SpecialChar \menuseparator
+Settings\SpecialChar \menuseparator
+Output\SpecialChar \menuseparator
+Synchronize with Output
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Note that the method 
 \begin_inset Flex Code
 status collapsed
 
 \begin_layout Plain Layout
+
+\lang english
+
+\backslash
+synctex=1
+\end_layout
+
+\end_inset
+
+ enables gzip compression.
+ If your viewer does not support it, you should instead use 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+
+\backslash
+synctex=-1
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Please aöso note that including the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
 srcltx
 \end_layout
 
 \end_inset
 
-パッケージや
+ package or 
 \begin_inset Flex Code
 status collapsed
 
 \begin_layout Plain Layout
+
+\lang english
 src-specials
 \end_layout
 
 \end_inset
 
-を読み込むと、時折、組版に影響を与えることがありますので、仕上がりの組版においてはこれらを無効にしてください。
+ sometimes has an undesired impact on the typesetting.
+ Thus, you should switch output synchronization off for the final typesetting
+ if you use the 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+srcltx
+\end_layout
+
+\end_inset
+
+ package or 
+\begin_inset Flex Code
+status collapsed
+
+\begin_layout Plain Layout
+
+\lang english
+src-specials
+\end_layout
+
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Standard
-また、設定で自製マクロを指定することもできるので、何か特別な調整が必要な場合には、次節の手動有効化をお読みください。
+
+\lang english
+In case you need some more special settings that are not covered by the
+ automatic settings, read the next section about how to set up output synchroniz
+ation manually.
+ If the automatic setup suits your needs, you can readily jump to section
+\begin_inset space ~
+\end_inset
+
+
+\lang japanese
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:特定のビューアを設定して使うには"
+
+\end_inset
+
+
+\lang english
+, where the necessary configuration steps in your viewer -- needed both
+ with the automatic and the manual setup -- are described.
 \end_layout
 
 \begin_layout Subsection
@@ -6799,7 +6936,7 @@ pdflatex -synctex=1 $$i
 
 \end_inset
 
-に変更してください。また、ビューアをSyncTeXで使うのに設定を行う必要があるかどうか、お使いのビューアの取扱説明書をご確認ください
+に変更してください。また、ビューアをSyncTeXで使うのに設定を行う必要があるかどうか、お使いのビューアの取扱説明書をご確認ください。
 \begin_inset Foot
 status collapsed
 
@@ -6828,11 +6965,18 @@ status collapsed
 
 \end_inset
 
-。
+
 \end_layout
 
 \begin_layout Subsection
 特定のビューアを設定して使うには
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:特定のビューアを設定して使うには"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection*
@@ -8387,22 +8531,6 @@ aasguide.tex
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 これらは期待通りに動作するので、ここでは列挙するだけにして、コマンドの説明されている節を挙げておきます。
 \family typewriter
 
@@ -8603,22 +8731,6 @@ status collapsed
 任意設定
 \family default
 ボックスに入力してください。
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsubsection
@@ -8823,22 +8935,6 @@ figcaption
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 
 \family typewriter
 
@@ -8960,22 +9056,6 @@ onecolumn
 twocolumn
 \family default
 （3.2）
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsubsection
@@ -10193,57 +10273,13 @@ Elsevier各誌
 
 \begin_layout Standard
 
-\noun on
-Rod Pinna
-\noun default
-文
-\end_layout
-
-\begin_layout Standard
-Elsevier Science Publishers B.V.は、同社出版の様々な学術誌に論文を投稿するための、標準的LaTeX文書クラス（
+\lang english
+See the LyX template file 
 \family typewriter
-elsart.cls
+elsarticle.lyx
 \family default
-）を提供しています。スタイルファイルは、直接同社のウェブサイト
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://authors.elsevier.com/
-\end_layout
-
-\end_inset
-
-からダウンロードすることができます。使用法の解説は、クラスファイルとともに提供されており、出版社の要求事項が詳細に述べられています。LyXには、この文書クラスを
-使うための、レイアウトとひな型ファイルのパッケージが同梱されています。このクラスファイルの導入法は、他のLaTeXパッケージと同様であり、Elsevierの説明
-書に解説があります。
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-elsart.cls
-\family default
-を使用するために、レイアウトファイル
-\family typewriter
-elsart.layout
-\family default
-が提供されています。Elsevierのクラスファイルは、基本的に標準
-\family typewriter
-article
-\family default
-クラスに基づいているため、通常の機能はほとんど使用することができます。また、Elsevierクラスには、AMS環境に類似の数式環境がたくさん定義されています。こ
-れらのコマンドは、すべてElsevierの説明書に解説されており、LyX上で使用可能になっています。
-\end_layout
-
-\begin_layout Standard
-Elsevierスタイルを使う上で最も易しい方法は、同梱されているひな型ファイルを使用して文書を作成することです。装飾的（fancy）ヘディングやgeometr
-yパッケージのようなオプションは、Elsevierが自身で提供するスタイルファイル内で定義されているため、使用しないのが最上です。理想的には、Elsevierの
-説明書で言及されているもの以外のパッケージは、使用しない方が良いでしょう。Elsevierは、提出されたファイルをそのまま使いながら、クラスファイルを、論文を投
-稿した特定の学術誌用のクラスファイルに置き換えることを意図しているため、基本的にできるだけ「クリーンな」LaTeXファイルを要求しています。これは同時に、文書の
-整形に時間をかけすぎるべきではない、ということを意味しています。論文が出版される時には、書式はいずれにしても変わってしまうからです。このレイアウトのその他の使用
-法は、基本的に標準articleクラスと同様です。Elsevierが何を許容し、何を許容しないかに関する詳細は、Elsevierの説明書をご参照ください。
+.
+ It contains all infos you need.
 \end_layout
 
 \begin_layout Section
@@ -13159,22 +13195,6 @@ letter (koma-script)
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{sloppypar}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \noindent
 文書クラス
 \emph on
@@ -13221,22 +13241,6 @@ LaTeX
 詩句
 \family default
 が収録されています。さらに、新しいletter固有環境がたくさん追加されています。
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{sloppypar}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -13917,109 +13921,6 @@ letter
 垂直スペース
 \family default
 は、隙間を空けるために、文書にLaTeXコマンドをつねに追加するようになっていますが、この文書クラスの場合には、そのような挙動が望まれないためです。
-\end_layout
-
-\begin_layout Section
-Latex8（IEEE学会論文）
-\end_layout
-
-\begin_layout Standard
-
-\noun on
-Allan Rae
-\noun default
-文
-\end_layout
-
-\begin_layout Subsection
-はじめに
-\end_layout
-
-\begin_layout Standard
-このクラスは、IEEE提供の学会へ投稿する原稿を執筆する特定の目的のためのものですので、IEEEのAuthors Kitを入手されることを強くお薦めします。この
-キットには、
-\family sans
-latex.sty
-\family default
-パッケージと付属の書誌情報スタイルファイルが含まれています。Authors Kitは、通常、初回投稿が受理されたときに、電子メールで送付されてきます。Autho
-rs Kitには、組版上の制約をはじめ、たくさんの役立つ情報が含まれていますので、以下では、あなたがこれを読まれたものと仮定して、同一の内容は省略するものとしま
-す。
-\end_layout
-
-\begin_layout Subsection
-はじめに
-\end_layout
-
-\begin_layout Standard
-[A.R\SpecialChar \@.
- 未完成]
-\end_layout
-
-\begin_layout Subsection
-サポートされている環境
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-標準
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-タイトル
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-著者
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-電子メール
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-所属
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-概要
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-節
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-小節
-\end_layout
-
-\begin_layout Itemize
-
-\family sans
-キャプション
-\end_layout
-
-\begin_layout Subsection
-画面と印字の違い
-\end_layout
-
-\begin_layout Standard
-おもに節番号の表示に関して、表示の仕方に小さな違いがあります。画面では、節番号の後のピリオドが表示されませんが、出力には表示されますので、心配する必要はありませ
-ん。
 \end_layout
 
 \begin_layout Section
@@ -16631,12 +16532,7 @@ ChkTeX
 \family sans
 ChkTeX
 \family default
-を調整することができます。どうしようもない場合には、
-\family sans
-表示\SpecialChar \menuseparator
-すべてのエラーボックスを削除
-\family default
-を選択して、すべての警告を即取り除いてしまうこともできます。
+を調整することができます。
 \end_layout
 
 \begin_layout Standard
@@ -20549,10 +20445,14 @@ status collapsed
 \end_layout
 
 \begin_layout Chapter
-LaTeXの達人の秘密
+
+\lang english
+Special features
+\lang japanese
+
 \begin_inset CommandInset label
 LatexCommand label
-name "cha:secrets"
+name "chap:Special-features"
 
 \end_inset
 
@@ -20560,16 +20460,18 @@ name "cha:secrets"
 \end_layout
 
 \begin_layout Standard
-LyXは強力な道具ですが、TeX/LaTeXでできることをすべてサポートしているわけではありません。しかし、ツールバーのTeXボタンを押したり、LaTeXプリア
-ンブルに追加するのをためらわなければ、多くのTeXやLaTeXのトリックを使うことができます。この節ではそのようなトリック、ヒント、アイデアを紹介します。まず家
-で、あまり重要でない文章で試してください。自分の博士論文でまず試そうとは考えない方がいいでしょう。
-\end_layout
 
-\begin_layout Standard
-この節で紹介するものの多くは、通常のLaTeXディストリビューションにはあまり入っていないファイルを使います。teTeXを使っている場合には、ほとんどのファイル
-は含まれていますが、それでもいくつかは近くのCTANアーカイブからダウンロードする必要があります。しばしば、同じことをするのにいくつもの方法があったり、同じこと
-をするいくつものLaTeXファイルがあります。ここで紹介しているのは、いくつもの方法を比べてその中で我々が推薦するものではなく、単にあることをある特定のファイル
-でできるということの紹介です。
+\lang english
+You can do everything with LyX that you can do with LaTeX.
+ However, LyX cannot support every LaTeX feature directly.
+ But you can always use TeX Code.
+ This chapter shows you some more special things you might want to use.
+ For other special things you can do with figures, tables, floats, boxes
+ and notes, have a look at the 
+\emph on
+EmbeddedObjects
+\emph default
+ manual.
 \end_layout
 
 \begin_layout Section
@@ -20577,87 +20479,68 @@ LyXは強力な道具ですが、TeX/LaTeXでできることをすべてサポ�
 \end_layout
 
 \begin_layout Standard
-\begin_inset Flex Noun
-status collapsed
 
-\begin_layout Plain Layout
-Lars Gullik Bjønnes
-\end_layout
-
-\end_inset
-
-文
-\end_layout
-
-\begin_layout Subsection
-目的
-\end_layout
-
-\begin_layout Standard
-この章
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-編集者註：もともとの章は
-\family typewriter
+\lang english
+The aim for this section is to show how the LaTeX package 
+\series bold
 multicol
-\family default
-パッケージの使い方を説明した見事な章でした。ただし、この取扱説明書にそのまま載せるには長すぎました。そのために重要な節のみを選んであります。もとの章（ほとんど物
-語です）は
-\family typewriter
-examples/multicol.lyx
-\family default
-にあります。
-\end_layout
-
-\end_inset
-
-の目的は、LyXの文章でどのようにLaTeXパッケージ
-\family typewriter
+\series default
+ can be used in a LyX document.
+ LyX does not support the 
+\series bold
 multicol
-\family default
-を使うことができるのかを説明することです。LyXは
-\family typewriter
-multicol
-\family default
-パッケージをサポートしていないので、ちょっとしたトリックが必要です。この節を読むとどのようなトリックか明らかになるはずです。
-\end_layout
-
-\begin_layout Subsection
-制限事項
+\series default
+ package natively yet, so you have to use some TeX code.
 \end_layout
 
 \begin_layout Standard
 
-\family typewriter
+\lang english
+The 
+\series bold
 multicol
+\series default
+ package allows switching between one and multicolumn format on the same
+ page.
+ Footnotes are handled correctly, but will be placed at the bottom of the
+ page and not under each column.
+ Within the different columns you can use everyting, with the limitation
+ that for floats you need to use the option 
+\family sans
+Span colums
 \family default
-パッケージでは同じページ内で一段組みと多段組みを切り替えることができます。脚注も（ほとんどの場合）正しく扱われますが、カラムの下ではなくページの下におかれます。
-しかし、LaTeXのフロートメカニズムは現在の実装では部分的に使うことができなくなっています。今のところこの環境の範囲では、ページ幅のフロートしか使えません。
+ for each column.
 \end_layout
 
 \begin_layout Subsection
-例
-\end_layout
-
-\begin_layout Subsubsection
 二段組み
 \end_layout
 
 \begin_layout Standard
 二段組みを使いたい場合には、二段組みのレイアウトを始めたい場所にLaTeXモードで
-\family typewriter
+\end_layout
+
+\begin_layout Standard
+
+\series bold
 
 \backslash
 begin{multicols}{2}
-\family default
+\end_layout
+
+\begin_layout Standard
 を挿入してください。そして二段組みを終わりたい場所に
-\family typewriter
+\end_layout
+
+\begin_layout Standard
+
+\series bold
 
 \backslash
 end{multicols}
-\family default
+\end_layout
+
+\begin_layout Standard
 を入れます。次の例を見てください。
 \end_layout
 
@@ -20735,7 +20618,7 @@ end{multicols}
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 多段組み
 \end_layout
 
@@ -20803,7 +20686,7 @@ end{multicols}
 三段組み以上も可能ですが、読みにくくなり実用的ではないでしょう。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 カラムの中のカラム
 \end_layout
 
@@ -20929,477 +20812,25 @@ end{multicols}
 
 \begin_layout Standard
 より複雑な形でカラムの中にカラムを入れる例や、へッダのスペース、縦のカラムを分ける線の入れ方などの例は、ファイル 
+\lang english
+example file
+\lang japanese
+ 
 \family typewriter
-examples/multicol.lyx
+multicol.lyx
 \family default
 を読んでください。
 \end_layout
 
-\begin_layout Section
-箇条書き（連番）段落環境での番号振り
-\begin_inset Argument
-status collapsed
-
-\begin_layout Plain Layout
-箇条書き（連番）の番号振り
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
-\begin_inset Flex Noun
-status collapsed
-
-\begin_layout Plain Layout
-John Weiss
-\end_layout
-
-\end_inset
-
-文
-\begin_inset VSpace bigskip
+\begin_inset Newpage newpage
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-既定での
-\begin_inset Flex MenuItem
-status collapsed
-
-\begin_layout Plain Layout
-箇条書き（連番）
-\end_layout
-
-\end_inset
-
-段落環境での番号の付け方はアラビア数字で始まり、アルファベットの大文字で終わります。違う番号の付け方をしたい場合にはどうしたらいいのでしょうか。次の例を見てくだ
-さい。
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-Roman{enumi}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-arabic{enumiii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{
-\backslash
-alph{enumiv}.)}
-\end_layout
-
-\begin_layout Standard
-これは番号の付け方をまず大文字のローマ数字、次に大文字のアルファベット、アラビア数字、小文字のアルファベットにします。
-\end_layout
-
-\begin_layout Standard
-前の例にはもう少しおまけがついていて、番号の後に点が入ります。例えば初めのレベルのレベルは
-\begin_inset Quotes eld
-\end_inset
-
-I.
-\begin_inset Quotes erd
-\end_inset
-
-のようになります。読みやすいように、番号の付け方を説明するのに<
-\begin_inset Quotes eld
-\end_inset
-
-I.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-1.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-a.)
-\begin_inset Quotes erd
-\end_inset
-
->のような表示方法を使うことにしましょう。
-\end_layout
-
-\begin_layout Standard
-例を見て分かるように、各々のネストのレベルにラベルコマンド
-\family typewriter
-
-\backslash
-labelenumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-
-\backslash
-labelenumiv
-\family default
-とカウンタ
-\family typewriter
-enumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-enumiv
-\family default
-があります。使うことのできる番号印刷用のコマンドは 
-\family typewriter
-
-\backslash
-arabic{}
-\family default
-、
-\family typewriter
-
-\backslash
-roman{}
-\family default
-、
-\family typewriter
-
-\backslash
-Roman{}
-\family default
-、
-\family typewriter
-
-\backslash
-alph{}
-\family default
-、
-\family typewriter
-
-\backslash
-Alph{}
-\family default
-の5つでカウンタを一つ引数として取ります。これらの前または後ろに好きな文字を加えることができます。ただしスペースを加える必要はありません。
-\end_layout
-
-\begin_layout Standard
-これらの機能を使った例をお見せしましょう。
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-#
-\backslash
-Alph{enumi}
-\backslash
-#}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumi}.
-\backslash
-arabic{enumii}}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-alph{enumiii}+}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{(
-\backslash
-roman{enumiv})}
-\end_layout
-
-\begin_layout Standard
-この例は番号の付け方を <
-\begin_inset Quotes eld
-\end_inset
-
-#A#
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.1
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-a+
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-(i)
-\begin_inset Quotes erd
-\end_inset
-
->のようにします。
-\end_layout
-
-\begin_layout Section
-Dropped Capitals
-\end_layout
-
-\begin_layout Standard
-\begin_inset Flex Noun
-status collapsed
-
-\begin_layout Plain Layout
-Mike Ressler
-\end_layout
-
-\end_inset
-
-文
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-newfont{
-\backslash
-tmpfont}{cmr17 scaled 2500}{
-\backslash
-tmpfont T}
-\backslash
-vspace*{-8.4ex}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-hangindent=3.3em 
-\backslash
-hangafter=-3
-\end_layout
-
-\end_inset
-
- hose of you who like the style of old books probably also like 
-\begin_inset Quotes eld
-\end_inset
-
-dropped capitals
-\begin_inset Quotes erd
-\end_inset
-
----those large capital letters which begin each new chapter or section.
- 
-\end_layout
-
-\begin_layout Standard
-昔の本のスタイルが好きならこの例のように、dropped capitalsも多分好きでしょう。これは新しい章、または節が大きな大文字で始まるものです。これをLy
-X/LaTeXで実現するのは（少しはplain TeXを知る必要はありますが）簡単ですが、この節の初めのTeXモードを見てもらうと分かるように多くの仕事と繰り返
-しが必要になります。
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-verb+
-\backslash
-bigdrop{-1em}{3}{ptmri}{T}+
-\end_layout
-
-\end_inset
-
-こちらの方が簡単でしょう。CTANにある
-\family typewriter
-dropcaps
-\family default
-（またはより新しい
-\family typewriter
-dropping
-\family default
-）パッケージを使えば簡単にこのような文字をあなたの文章に入れることができます。このパッケージは teTeXに含まれていないのでこの文章の中でお見せできませんが、
-この段落を新しい文章にコピーして、先頭の
-\family typewriter
-
-\backslash
-verb
-\family default
-と+を取り除き、プリアンブルに
-\family typewriter
-
-\backslash
-usepackage{dropcaps}
-\family default
-を加えると、Times Roman ItalicのTが3行文の高さで余白に1emでた形で印刷されます（TeXが探せるディレクトリに
-\family typewriter
-dropcaps.sty
-\family default
-があることを確認してください）。最初の引数は字下げの量です。この例では負ですから余白に突き出します。2番目の引数は行数で表した文字の高さです。3番目の引数はフォ
-ント名です。tfmファイルも持つ物なら何でも動きます（
-\family typewriter
-.../texmf/fonts/tfm
-\family default
-ディレクトリで色々探してみてください）。私が気に入っているは
-\family typewriter
-yinit
-\family default
-で、これはdropped capital用に特にデザインされたドイツ文字のフォントです。4番目の引数が使う文字です。
-\family typewriter
-dropping
-\family default
-パッケージは
-\family typewriter
-
-\backslash
-bigdrop
-\family default
-コマンド以外にも少し簡単な
-\family typewriter
-
-\backslash
-dropping
-\family default
-コマンドも持っています。
 \end_layout
 
 \begin_layout Section
 標準的でない形の段落
-\end_layout
-
-\begin_layout Standard
-\begin_inset Flex Noun
-status collapsed
-
-\begin_layout Plain Layout
-Mike Ressler
-\end_layout
-
-\end_inset
-
-文
-\begin_inset VSpace bigskip
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -21679,16 +21110,6 @@ end{sloppypar}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-まとめ
-\end_layout
-
-\begin_layout Standard
-見てきたように、この節には有用な例も馬鹿げた例も入っています。たとえば、最後の節のように段落の形を変えることが必要な人がそれほどいるとは思えませんが、重要な点は
-、TeXやLaTeXでどのようにすればいいかを理解する気があれば、ほとんどすべてをLyXの中でできるということです。TeXは、すばらしく強力な組版システムであり
-、LyXはそれをバックエンドとして使用しているので、そのすべての力があなたの前に利用可能なのです。Happy LyXing!
 \end_layout
 
 \end_body

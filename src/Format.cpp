@@ -23,6 +23,7 @@
 #include "support/gettext.h"
 #include "support/lstrings.h"
 #include "support/os.h"
+#include "support/Path.h"
 #include "support/Systemcall.h"
 #include "support/textutils.h"
 #include "support/Translator.h"
@@ -285,7 +286,7 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 	}
 	// viewer is 'auto'
 	if (format->viewer() == "auto") {
-		if (os::autoOpenFile(filename.absFileName(), os::VIEW))
+		if (os::autoOpenFile(filename.absFileName(), os::VIEW, buffer.filePath()))
 			return true;
 		else {
 			Alert::error(_("Cannot view file"),
@@ -312,15 +313,16 @@ bool Formats::view(Buffer const & buffer, FileName const & filename,
 	if (!contains(command, token_from_format))
 		command += ' ' + token_from_format;
 
-	command = subst(command, token_from_format, quoteName(filename.toFilesystemEncoding()));
+	command = subst(command, token_from_format, quoteName(onlyFileName(filename.toFilesystemEncoding())));
 	command = subst(command, token_path_format, quoteName(onlyPath(filename.toFilesystemEncoding())));
 	command = subst(command, token_socket_format, quoteName(theServerSocket().address()));
 	LYXERR(Debug::FILES, "Executing command: " << command);
 	// FIXME UNICODE utf8 can be wrong for files
 	buffer.message(_("Executing command: ") + from_utf8(command));
 
+	PathChanger p(filename.onlyPath());
 	Systemcall one;
-	one.startscript(Systemcall::DontWait, command);
+	one.startscript(Systemcall::DontWait, command, buffer.filePath());
 
 	// we can't report any sort of error, since we aren't waiting
 	return true;
@@ -364,7 +366,7 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 
 	// editor is 'auto'
 	if (format->editor() == "auto") {
-		if (os::autoOpenFile(filename.absFileName(), os::EDIT))
+		if (os::autoOpenFile(filename.absFileName(), os::EDIT, buffer.filePath()))
 			return true;
 		else {
 			Alert::error(_("Cannot edit file"),
@@ -387,7 +389,7 @@ bool Formats::edit(Buffer const & buffer, FileName const & filename,
 	buffer.message(_("Executing command: ") + from_utf8(command));
 
 	Systemcall one;
-	one.startscript(Systemcall::DontWait, command);
+	one.startscript(Systemcall::DontWait, command, buffer.filePath());
 
 	// we can't report any sort of error, since we aren't waiting
 	return true;
@@ -420,6 +422,7 @@ typedef Translator<OutputParams::FLAVOR, string> FlavorTranslator;
 FlavorTranslator initFlavorTranslator()
 {
 	FlavorTranslator f(OutputParams::LATEX, "latex");
+	f.addPair(OutputParams::DVILUATEX, "dviluatex");
 	f.addPair(OutputParams::LUATEX, "luatex");
 	f.addPair(OutputParams::PDFLATEX, "pdflatex");
 	f.addPair(OutputParams::XETEX, "xetex");

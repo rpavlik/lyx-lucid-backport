@@ -29,11 +29,6 @@
   \pdfbookmark[1]{\contentsname}{}
   \myTOC
   \mainmatter }
-
-% redefine the \LyX macro for PDF bookmarks
-\def\LyX{\texorpdfstring{%
-  L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
-  {LyX}}
 \end_preamble
 \use_default_options false
 \begin_modules
@@ -53,6 +48,7 @@ logicalmkup
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -102,6 +98,7 @@ logicalmkup
 \tracking_changes false
 \output_changes false
 \html_math_output 0
+\html_css_as_file 0
 \html_be_strict false
 \end_header
 
@@ -382,7 +379,7 @@ View
 
 \begin_layout Standard
 In this Tutorial, we are going to assume that you have a fully working version
- of LyX, as well as a LaTeX-distribution, a DVI-, and a PDF-viewer.
+ of LyX, as well as a LaTeX-distribution and a PDF-viewer.
  This should be the case on all major Linux- and BSD-distributions, as well
  as on Windows, where this is setup by the LyX installers.
 \end_layout
@@ -2256,7 +2253,7 @@ Your first cross-reference
 \end_layout
 
 \begin_layout Standard
-Place the cursor somewhere in section
+Place the cursor somewhere in Section
 \begin_inset space ~
 \end_inset
 
@@ -2269,7 +2266,7 @@ If you want to know more about this document, then see
 \begin_inset Newline newline
 \end_inset
 
-section, which can be found on page.
+Section, which can be found on page.
 \end_layout
 
 \begin_layout Standard
@@ -2382,8 +2379,11 @@ Section 2
 \begin_inset Quotes erd
 \end_inset
 
- and depending how much text you have between the start of Section 2 and
- this cross-reference you may see 
+ and depending how much text you have between the start of Section
+\begin_inset space ~
+\end_inset
+
+2 and this cross-reference you may see 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2510,7 +2510,7 @@ status collapsed
 
 \begin_layout Plain Layout
 By the way, copying a chapter title may cause an error, because chapters
- are not allowed in the article class, see section
+ are not allowed in the article class, see Section
 \begin_inset space ~
 \end_inset
 
@@ -4129,12 +4129,14 @@ Environment
 \end_inset
 
  
-\begin_inset Formula \[
+\begin_inset Formula 
+\[
 f(x)=\left\{ \begin{array}{cc}
 \log_{8}x & x>0\\
 0 & x=0\\
 \sum_{i=1}^{5}\alpha_{i}+\sqrt{-\frac{1}{x}} & x<0
-\end{array}\right.\]
+\end{array}\right.
+\]
 
 \end_inset
 
@@ -4526,7 +4528,7 @@ LyX cannot do absolutely everything that LaTeX can do.
 \backslash
 usepackage{foo}
 \family default
- in the preamble (see section
+ in the preamble (see Section
 \begin_inset space ~
 \end_inset
 
@@ -4782,7 +4784,7 @@ After you have done this, you can use citations from any bibliographies
 Insert\SpecialChar \menuseparator
 Citation
 \family default
- (see section
+ (see Section
 \begin_inset space ~
 \end_inset
 

@@ -516,19 +516,25 @@ string const featureAsString(Tabular::Feature action)
 }
 
 
-InsetTableCell splitCell(InsetTableCell & head, docstring const align_d, bool & hassep)
+DocIterator separatorPos(InsetTableCell * cell, docstring const & align_d)
 {
-	InsetTableCell tail = InsetTableCell(head);
-
-	DocIterator dit = doc_iterator_begin(&head.buffer(), &head);
+	DocIterator dit = doc_iterator_begin(&(cell->buffer()), cell);
 	for (; dit; dit.forwardChar())
 		if (dit.inTexted() && dit.depth() == 1
 			&& dit.paragraph().find(align_d, false, false, dit.pos()))
 			break;
 
-	pit_type const psize = head.paragraphs().front().size();
+	return dit;
+}
+
+
+InsetTableCell splitCell(InsetTableCell & head, docstring const align_d, bool & hassep)
+{
+	InsetTableCell tail = InsetTableCell(head);
+	DocIterator const dit = separatorPos(&head, align_d);
 	hassep = dit;
 	if (hassep) {
+		pit_type const psize = head.paragraphs().front().size();
 		head.paragraphs().front().eraseChars(dit.pos(), psize, false);
 		tail.paragraphs().front().eraseChars(0, 
 			dit.pos() < psize ? dit.pos() + 1 : psize, false);
@@ -1333,7 +1339,13 @@ int Tabular::textVOffset(idx_type cell) const
 Tabular::idx_type Tabular::getFirstCellInRow(row_type row) const
 {
 	col_type c = 0;
-	while (cell_info[row][c].multirow == CELL_PART_OF_MULTIROW)
+	idx_type const numcells = numberOfCellsInRow(row);
+	// we check against numcells to make sure we do not crash if all the
+	// cells are multirow (bug #7535), but in that case our return value
+	// is really invalid, i.e., it is NOT the first cell in the row. but
+	// i do not know what to do here. (rgh)
+	while (c < numcells - 1
+	       && cell_info[row][c].multirow == CELL_PART_OF_MULTIROW)
 		++c;
 	return cell_info[row][c].cellno;
 }
@@ -1342,6 +1354,9 @@ Tabular::idx_type Tabular::getFirstCellInRow(row_type row) const
 Tabular::idx_type Tabular::getLastCellInRow(row_type row) const
 {
 	col_type c = ncols() - 1;
+	// of course we check against 0 so we don't crash. but we have the same
+	// problem as in the previous routine: if all the cells are part of a
+	// multirow or part of a multi column, then our return value is invalid.
 	while (c > 0
 	       && (cell_info[row][c].multirow == CELL_PART_OF_MULTIROW
 		   || cell_info[row][c].multicolumn == CELL_PART_OF_MULTICOLUMN))
@@ -2190,8 +2205,11 @@ void Tabular::TeXCellPreamble(otexstream & os, idx_type cell,
 		|| (coldouble != celldouble);
 
 	// we center in multicol when no decimal point
-	ismulticol |= ((column_info[c].alignment == LYX_ALIGN_DECIMAL)
-		&& (cellInfo(cell).decimal_width == 0));
+	if (column_info[c].alignment == LYX_ALIGN_DECIMAL) {
+		docstring const align_d = column_info[c].decimal_point;
+		DocIterator const dit = separatorPos(cellInset(cell).get(), align_d);
+		ismulticol |= !dit;
+	}
 
 	// up counter by 1 for each decimally aligned col since they use 2 latex cols
 	int latexcolspan = columnSpan(cell);
@@ -2480,8 +2498,7 @@ void Tabular::TeXRow(otexstream & os, row_type row,
 				    ? OutputParams::PLAIN
 				    : OutputParams::ALIGNED;
 
-		if (getAlignment(cell) == LYX_ALIGN_DECIMAL
-			&& cellInfo(cell).decimal_width != 0) {
+		if (getAlignment(cell) == LYX_ALIGN_DECIMAL) {
 			// copy cell and split in 2
 			InsetTableCell head = InsetTableCell(*cellInset(cell).get());
 			head.setBuffer(buffer());
@@ -2491,13 +2508,15 @@ void Tabular::TeXRow(otexstream & os, row_type row,
 			head.setMacrocontextPositionRecursive(dit);
 			bool hassep = false;
 			InsetTableCell tail = splitCell(head, column_info[c].decimal_point, hassep);
-			tail.setBuffer(head.buffer());
-			dit.pop_back();
-			dit.push_back(CursorSlice(tail));
-			tail.setMacrocontextPositionRecursive(dit);
 			head.latex(os, newrp);
-			os << '&';
-			tail.latex(os, newrp);
+			if (hassep) {
+				os << '&';
+				tail.setBuffer(head.buffer());
+				dit.pop_back();
+				dit.push_back(CursorSlice(tail));
+				tail.setMacrocontextPositionRecursive(dit);
+				tail.latex(os, newrp);
+			}
 		} else if (!isPartOfMultiRow(row, c)) {
 			if (!runparams.nice)
 				os.texrow().start(par.id(), 0);
@@ -2857,7 +2876,7 @@ docstring Tabular::xhtmlRow(XHTMLStream & xs, row_type row,
 
 	xs << html::StartTag("tr");
 	for (col_type c = 0; c < ncols(); ++c) {
-		if (isPartOfMultiColumn(row, c))
+		if (isPartOfMultiColumn(row, c) || isPartOfMultiRow(row, c))
 			continue;
 
 		stringstream attr;
@@ -2889,6 +2908,8 @@ docstring Tabular::xhtmlRow(XHTMLStream & xs, row_type row,
 
 		if (isMultiColumn(cell))
 			attr << " colspan='" << columnSpan(cell) << "'";
+		else if (isMultiRow(cell))
+			attr << " rowspan='" << rowSpan(cell) << "'";
 
 		xs << html::StartTag(celltag, attr.str()) << html::CR();
 		ret += cellInset(cell)->xhtml(xs, runparams);
@@ -3167,7 +3188,7 @@ void Tabular::plaintext(odocstream & os,
 		if (!onlydata && plaintextTopHLine(os, r, clen))
 			os << docstring(depth * 2, ' ');
 		for (col_type c = 0; c < ncols(); ++c) {
-			if (isPartOfMultiColumn(r, c))
+			if (isPartOfMultiColumn(r, c) || isPartOfMultiRow(r,c))
 				continue;
 			if (onlydata && c > 0)
 				// we don't use operator<< for single UCS4 character.
@@ -3482,11 +3503,7 @@ void InsetTabular::metrics(MetricsInfo & mi, Dimension & dim) const
 
 				// remove text leading decimal point
 				docstring const align_d = tabular.column_info[c].decimal_point;
-				dit = doc_iterator_begin(&tail.buffer(), &tail);
-				for (; dit; dit.forwardChar())
-					if (dit.inTexted() && dit.depth()==1
-						&& dit.paragraph().find(align_d, false, false, dit.pos()))
-						break;
+				dit = separatorPos(&tail, align_d);
 
 				pit_type const psize = tail.paragraphs().front().size();
 				if (dit) {

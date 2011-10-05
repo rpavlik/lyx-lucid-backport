@@ -788,8 +788,8 @@ void MenuDefinition::expandSpellingSuggestions(BufferView const * bv)
 					LYXERR(Debug::GUI, suggestion);
 					MenuItem w(MenuItem::Command, toqstr(suggestion),
 						FuncRequest(LFUN_WORD_REPLACE, 
-							replace2string(suggestion,selection,
-								true, true, false, false)));
+							replace2string(suggestion, selection,
+								true, true, false, true, false)));
 					if (i < m)
 						add(w);
 					else
@@ -1007,15 +1007,15 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 		action = LFUN_BUFFER_IMPORT;
 		break;
 	case MenuItem::ViewFormats:
-		formats = buf->exportableFormats(true);
+		formats = buf->params().exportableFormats(true);
 		action = LFUN_BUFFER_VIEW;
 		break;
 	case MenuItem::UpdateFormats:
-		formats = buf->exportableFormats(true);
+		formats = buf->params().exportableFormats(true);
 		action = LFUN_BUFFER_UPDATE;
 		break;
 	default:
-		formats = buf->exportableFormats(false);
+		formats = buf->params().exportableFormats(false);
 		action = LFUN_BUFFER_EXPORT;
 	}
 	sort(formats.begin(), formats.end(), &compareFormat);
@@ -1058,7 +1058,7 @@ void MenuDefinition::expandFormats(MenuItem::Kind kind, Buffer const * buf)
 			break;
 		case MenuItem::ViewFormats:
 		case MenuItem::UpdateFormats:
-			if ((*fit)->name() == buf->getDefaultOutputFormat()) {
+			if ((*fit)->name() == buf->params().getDefaultOutputFormat()) {
 				docstring lbl = (kind == MenuItem::ViewFormats ?
 					bformat(_("View [%1$s]|V"), qstring_to_ucs4(label))
 					: bformat(_("Update [%1$s]|U"), qstring_to_ucs4(label)));

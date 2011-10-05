@@ -1781,7 +1781,7 @@ void GuiDocument::browseLayout()
 	QString const label1 = qt_("Layouts|#o#O");
 	QString const dir1 = toqstr(lyxrc.document_path);
 	QStringList const filter(qt_("LyX Layout (*.layout)"));
-	QString file = browseRelFile(QString(), bufferFilePath(),
+	QString file = browseRelToParent(QString(), bufferFilePath(),
 		qt_("Local layout file"), filter, false,
 		label1, dir1);
 
@@ -1837,7 +1837,7 @@ void GuiDocument::browseMaster()
 	QString const old = latexModule->childDocLE->text();
 	QString const docpath = toqstr(support::onlyPath(buffer().absFileName()));
 	QStringList const filter(qt_("LyX Files (*.lyx)"));
-	QString file = browseRelFile(old, docpath, title, filter, false,
+	QString file = browseRelToSub(old, docpath, title, filter, false,
 		qt_("Documents|#o#O"), toqstr(lyxrc.document_path));
 
 	if (!file.isEmpty())
@@ -2105,29 +2105,26 @@ void GuiDocument::updateDefaultFormat()
 	if (!bufferview())
 		return;
 	// make a copy in order to consider unapplied changes
-	Buffer * tmpbuf = buffer().clone();
-	tmpbuf->params().useNonTeXFonts =
-		fontModule->osFontsCB->isChecked();
-	int idx = latexModule->classCO->currentIndex();
+	BufferParams param_copy = buffer().params();
+	param_copy.useNonTeXFonts = fontModule->osFontsCB->isChecked();
+	int const idx = latexModule->classCO->currentIndex();
 	if (idx >= 0) {
 		string const classname = classes_model_.getIDString(idx);
-		tmpbuf->params().setBaseClass(classname);
-		tmpbuf->params().makeDocumentClass();
+		param_copy.setBaseClass(classname);
+		param_copy.makeDocumentClass();
 	}
 	outputModule->defaultFormatCO->blockSignals(true);
 	outputModule->defaultFormatCO->clear();
 	outputModule->defaultFormatCO->addItem(qt_("Default"),
 				QVariant(QString("default")));
 	typedef vector<Format const *> Formats;
-	Formats formats = tmpbuf->exportableFormats(true);
+	Formats formats = param_copy.exportableFormats(true);
 	Formats::const_iterator cit = formats.begin();
 	Formats::const_iterator end = formats.end();
 	for (; cit != end; ++cit)
 		outputModule->defaultFormatCO->addItem(qt_((*cit)->prettyname()),
 				QVariant(toqstr((*cit)->name())));
 	outputModule->defaultFormatCO->blockSignals(false);
-	// delete the copy
-	delete tmpbuf;
 }
 
 

@@ -1,5 +1,5 @@
 #% Do not delete the line below; configure depends on this
-#  \DeclareLaTeXClass[tufte-book,bibentry.sty,fancyhdr.sty,multicol.sty,natbib.sty,optparams.sty,paralist.sty,placeins.sty,ragged2e.sty,setspace.sty,textcase.sty,titlesec.sty,titletoc.sty,xcolor.sty,xifthen.sty,xkeyval.sty]{book (Tufte)}
+#  \DeclareLaTeXClass[tufte-book,bibentry.sty,changepage.sty,fancyhdr.sty,ifmtarg.sty,letterspace.sty,multicol.sty,natbib.sty,optparams.sty,paralist.sty,placeins.sty,ragged2e.sty,setspace.sty,textcase.sty,titlesec.sty,titletoc.sty,xcolor.sty,xifthen.sty,xkeyval.sty]{book (Tufte)}
 # tufte-book textclass definition file.
 # Jason Waskiewicz <jason.waskiewicz@sendit.nodak.edu>, 2009/10/18
 # Modified by Uwe Stöhr <uwestoehr@web.de>, 2009/11/15
@@ -47,7 +47,6 @@ NoStyle Abstract
 NoStyle Chapter
 NoCounter chapter
 NoStyle Section
-NoCounter section
 NoStyle Subsection
 NoCounter subsection
 NoStyle Subsubsection
@@ -121,7 +120,7 @@ Style Subsection
 	EndFont
 End
 
-InsetLayout "Flex:Sidenote"
+InsetLayout Flex:Sidenote
 	LyxType		custom
 	LatexType	command
 	LatexName	sidenote
@@ -140,8 +139,8 @@ InsetLayout "Flex:Sidenote"
 	EndFont
 End
 
-InsetLayout Marginnote
-	CopyStyle	"Flex:Sidenote"
+InsetLayout Flex:Marginnote
+	CopyStyle	Flex:Sidenote
 	LatexName	marginnote
 	Decoration	classic
 	LabelString	"marginnote"
@@ -153,7 +152,7 @@ InsetLayout Marginnote
 	MultiPar	true
 End
 
-InsetLayout "Flex:NewThought"
+InsetLayout Flex:NewThought
 	LyXType		charstyle
 	LatexType	Command
 	LatexName	newthought
@@ -167,8 +166,8 @@ InsetLayout "Flex:NewThought"
 	EndFont
 End
 
-InsetLayout AllCaps
-	CopyStyle	"Flex:NewThought"
+InsetLayout Flex:AllCaps
+	CopyStyle	Flex:NewThought
 	LatexName	allcaps
 	LabelString	"allcaps"
 	Font
@@ -180,8 +179,8 @@ InsetLayout AllCaps
 	EndFont
 End
 
-InsetLayout SmallCaps
-	CopyStyle	"Flex:NewThought"
+InsetLayout Flex:SmallCaps
+	CopyStyle	Flex:NewThought
 	LatexName	smallcaps
 	LabelString	"smallcaps"
 	LabelFont

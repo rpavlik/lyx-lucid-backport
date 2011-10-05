@@ -1,46 +1,132 @@
-#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
-\use_default_options false
 \textclass scrbook
 \begin_preamble
+% DO NOT ALTER THIS PREAMBLE!!!
+%
+% This preamble is designed to ensure that the manual prints
+% out as advertised. If you mess with this preamble,
+% parts of the manual may not print out as expected.  If you
+% have problems LaTeXing this file, please contact 
+% the documentation team
+% email: lyx-docs@lists.lyx.org
+
+% if pdflatex is used
+\usepackage{ifpdf}
+\ifpdf
+
+ % set fonts for nicer pdf view
+ \IfFileExists{lmodern.sty}
+  {\usepackage{lmodern}}{}
+
+\fi % end if pdflatex is used
+
+% the pages of the TOC are numbered roman
+% and a PDF-bookmark for the TOC is added
+\pagenumbering{roman}
+\let\myTOC\tableofcontents
+\renewcommand{\tableofcontents}{%
+ \pdfbookmark[1]{\contentsname}{}
+ \myTOC
+ \cleardoublepage
+ \pagenumbering{arabic}}
+
+% used for multi-column text
 \usepackage{multicol}
+
+% extra space for tables
 \newcommand{\extratablespace}[1]{\noalign{\vskip#1}}
 \end_preamble
+\options fleqn,bibliography=totoc,index=totoc,BCOR7.5mm,titlepage,captions=tableheading
+\use_default_options false
+\begin_modules
+logicalmkup
+theorems-ams
+theorems-ams-extended
+\end_modules
+\maintain_unincluded_children false
+\begin_local_layout
+Format 7
+InsetLayout CharStyle:MenuItem
+LyxType               charstyle
+LabelString           menu
+LatexType             command
+LatexName             menuitem
+Font
+Family              Sans
+EndFont
+Preamble
+\newcommand*{\menuitem}[1]{{\sffamily #1}}
+EndPreamble
+End
+\end_local_layout
 \language basque
-\inputencoding latin1
-\font_roman times
-\font_sans helvet
-\font_typewriter courier
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
-\paperfontsize default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
 \spacing single
-\use_hyperref false
+\use_hyperref true
+\pdf_title "LyX's Additional Features manual"
+\pdf_author "LyX Team"
+\pdf_subject "LyX's additional features documentation"
+\pdf_keywords "LyX, Documentation, Additional"
+\pdf_bookmarks true
+\pdf_bookmarksnumbered true
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle false
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize default
 \use_geometry false
-\use_amsmath 0
+\use_amsmath 1
 \use_esint 0
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Indizea
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 2
-\paperpagestyle default
+\paperpagestyle headings
 \tracking_changes false
 \output_changes false
-\author ""
-\author ""
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict true
 \end_header
 
 \begin_body
@@ -2625,6 +2711,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1pt"
@@ -2648,6 +2735,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1pt"
@@ -2689,6 +2777,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1pt"
@@ -2713,6 +2802,7 @@ hor_pos "c"
 has_inner_box 1
 inner_pos "c"
 use_parbox 0
+use_makebox 0
 width "100col%"
 special "none"
 height "1pt"
@@ -2895,7 +2985,7 @@ Hemen taula arrunt bat:
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -2979,7 +3069,7 @@ Ohartu zaitez taulako goiburukoa azpimarratzen duen marra horizontala bi
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt" special="@{} l">
 <column alignment="left" valignment="top" width="0pt" special="l @{}">
 <row>
@@ -3149,7 +3239,7 @@ pi}$~} l
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="3" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="left" valignment="top" width="0pt">
 <column alignment="left" valignment="top" width="0in" special="@{\nobreakspace$\sqrt{\pi}$\nobreakspace}l">
 <row>
@@ -3416,7 +3506,7 @@ Ongi, azken adibidea oso xumea zen, baina oraingoarekin\SpecialChar \ldots{}
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="5" columns="3">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="right" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt" special="@{} l">
@@ -3995,7 +4085,7 @@ Sei panelak bakoitzari dagokien paketeen arabera sailkatu dira.
 \align center
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0pt">
 <column alignment="center" valignment="top" width="0pt">
 <row>
@@ -14134,7 +14224,7 @@ JMarc
 
 \begin_layout Section
 Artikulua (mwart), liburua (mwbk) eta txostena (mwrep)
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -14850,7 +14940,7 @@ Olerki-titulua
 \begin_layout Chapter
 Beste fitxategi formatuak inportatu eta esportatzea.
  
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -15240,7 +15330,7 @@ name "atal:letra-zatarrak"
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -15381,7 +15471,7 @@ name "atal:pdfbold"
 \end_inset
 
 
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -15435,7 +15525,7 @@ pmb{#1}}
 
 \begin_layout Subsubsection
 Nola idatzi latex kodea, pdfLaTeX exekutatzean bakarrik prozesatzeko?
-\begin_inset OptArg
+\begin_inset Argument
 status collapsed
 
 \begin_layout Plain Layout
@@ -20431,305 +20521,7 @@ zako, eta has gaitezen.
 \end_layout
 
 \begin_layout Section
-Oin eta alboko oharrentzako trikimaluak
-\end_layout
-
-\begin_layout Standard
-Aholkapena: 
-\noun on
-Robin Socha
-\end_layout
-
-\begin_layout Subsection
-Oin-oharrak
-\end_layout
-
-\begin_layout Standard
-LyX-ek oraindik artikulu ("article") motako dokumentu-klase bateko atal
- bakoitzaren hasieran ezin du oin-oharren zenbaketa berriro 1 balioarekin
- berrasieratu, ez eta zenbatzailearen estiloa aldatu ere.
- Horretarako, zeuk sartu beharko dituzu LaTeX-eko komandoak, honen bezalakoak:
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-setcounter{footnote}{0}
-\end_layout
-
-\end_inset
-
- Komando hau erabiltzeak, 
-\family typewriter
-
-\backslash
-setcounter{footnote}{0}
-\family default
-, zenbatzailea 1 balioa edukitzera berrasieratzen du
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Zenbatzailea 1 balioarekin ezarri da.
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-Hurrengo komandoak zenbatzailea hizki txikietara aldatzen du.
- Begiratu hurrengo oin-oharra zure 
-\family typewriter
-xdvi
-\family default
- edo 
-\family typewriter
-ghostview
-\family default
- tresnan
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-renewcommand{
-\backslash
-thefootnote}{
-\backslash
-alph{footnote}}
-\end_layout
-
-\end_inset
-
-:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Hau zenbatzaile alfabetikoa duen oin-ohar baten adibidea da.
- 
-\begin_inset Newline newline
-\end_inset
-
-Hau lortzeko 
-\family typewriter
-
-\backslash
-renewcommand{
-\backslash
-thefootnote {
-\backslash
-alph{footnote}}
-\family default
- erabili.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Hurrengo komandoak zenbatzailea bere lehenetsitako egoerara itzultzen du,
- hau da, 
-\family typewriter
-
-\backslash
-arabic
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Erabili 
-\family typewriter
-
-\backslash
-renewcommand{
-\backslash
-thefootnote}{
-\backslash
-arabic{footnote}}
-\family default
- zenbatzailearen estiloa LyX-en lehenetsia dagoenera itzultzeko.Hau da, 
-\family typewriter
-
-\backslash
-arabic
-\family default
-.
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-renewcommand {
-\backslash
-thefootnote} {
-\backslash
-arabic{footnote}}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\family default
- .
-\end_layout
-
-\begin_layout Standard
-Zenbatzailearen estilo gisa 
-\family typewriter
-
-\backslash
-arabic
-\family default
-, 
-\family typewriter
-
-\backslash
-roman
-\family default
-, 
-\family typewriter
-
-\backslash
-Roman
-\family default
-, 
-\family typewriter
-
-\backslash
-alph
-\family default
- edo 
-\family typewriter
-
-\backslash
-Alph
-\family default
- eta beste batzuk erabil ditzakezu.
- Arestiko adibidean LaTeX komandoa ordeztu, eta berriro exekutatu TeX zein
- itxurarekin kaleratzen den ikusteko.
-\end_layout
-
-\begin_layout Subsection
-Albo-oharrak
-\end_layout
-
-\begin_layout Standard
-LaTeX komandoak erabiliz, alboko oharrak txukuntzeko bi adibide azaltzen
- ditugu.
-\end_layout
-
-\begin_layout Standard
-Ondorengo komandoak zure testuaren alboan marra bertikal bat marraztuko
- du, gauzak hatz erakuslearekin nabarmentzeko:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-marginpar{
-\backslash
-rule[-10mm]{30mm}{5mm}}
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-marginpar{
-\backslash
-rule[-10mm]{30mm}{5mm}}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Begiratu zure 
-\family typewriter
-dvi
-\family default
- edo 
-\family typewriter
-ghostview
-\family default
- irteeran 
-\family typewriter
-
-\backslash
-reversemarginpar
-\family default
- komandoak zer egiten duen jarraian dagoen albo-oharrarekin.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-reversemarginpar
-\end_layout
-
-\end_inset
-
-
-\begin_inset Marginal
-status collapsed
-
-\begin_layout Plain Layout
-
-\family sans
-\size scriptsize
-Hau alboko
-\begin_inset Newline newline
-\end_inset
-
-ohar bat da.
- 
-\begin_inset Newline newline
-\end_inset
-
-Hala ote?
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
 Zutabe anitzak
-\end_layout
-
-\begin_layout Standard
-Idazlea: 
-\noun on
-Lars Gullik Bjønnes
 \end_layout
 
 \begin_layout Subsection
@@ -21111,997 +20903,15 @@ examples/multicol.lyx
  bereizle bertikalak eta bestelako jokoak erakusten ditu.
 \end_layout
 
-\begin_layout Section
-Zenbatua paragrafo-ingurunearen zenbakera
-\begin_inset OptArg
-status collapsed
-
-\begin_layout Plain Layout
-
-\family sans
-Zenbatua
-\family default
--ren zenbakera
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
-Idazlea: 
-\noun on
-John Weiss
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
+\begin_inset Newpage newpage
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-\noindent
-
-\family sans
-Zenbatua
-\family default
- paragrafo-ingurunearen lehenetsitako zenbakera arabierazko zenbakiekin
- hasi eta hizki maiuskulez amaitzen da.
- Demagun, batzuetan eguna horrela zabaltzen delako, zenbakerarentzako bestelako
- mota baztuk erabili nahi dituzula.
- Zenbakera nola aldatzen den adierazteko adibidea dator orain:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-Roman{enumi}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-arabic{enumiii}.}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{
-\backslash
-alph{enumiv}.)}
-\end_layout
-
-\begin_layout Standard
-\SpecialChar \ldots{}
-hauek zenbakera erromatar zenbakiak, maiuskuletan dauden hizkiak, arabierazko
- zenbakia eta minuskuletan dauden hizkiak ezartzen dute, hurrenez hurren.
-\end_layout
-
-\begin_layout Standard
-Gainera, aurreko adibideak zenbakerari beste zerbait gehitzen dio.
- Lehenbizikoak "I." bezalako etiketa edukiko luke.
- Askoz erragazo irakurtzearren arestiko adibideak honelako zenbakera sortuko
- luke: <
-\begin_inset Quotes eld
-\end_inset
-
-I.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-1.
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-a.)
-\begin_inset Quotes erd
-\end_inset
-
->.
-\end_layout
-
-\begin_layout Standard
-Arestiko adibidean ikusi duzunez, habiaratze-sakonera bakoitzarentzako etiketa-k
-omando bat dago, 
-\family typewriter
-
-\backslash
-labelenumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-
-\backslash
-labelenumiv
-\family default
-, eta baita zenbatzaile bat ere, 
-\family typewriter
-enumi
-\family default
- \SpecialChar \ldots{}
- 
-\family typewriter
-enumiv
-\family default
-.
- "Zenbakiak inprimatzeko" bost komando ere badaude:
-\family typewriter
-
-\backslash
-arabic{}
-\family default
-, 
-\family typewriter
-
-\backslash
-roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-Roman{}
-\family default
-, 
-\family typewriter
-
-\backslash
-alph{}
-\family default
-, eta 
-\family typewriter
-
-\backslash
-Alph{}
-\family default
-, eta bakoitzak zenbatzaile bat jasotzen du argumentu bezala.
- Horien aurretik eta atzetik karaktereak gehi ditzakezu, baina zuriunerik
- gehitu beharrik ez dago.
-\end_layout
-
-\begin_layout Standard
-Hauekin gauza ederrak lor ditzakezu.
- Adibidez:
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumi}{
-\backslash
-#
-\backslash
-Alph{enumi}
-\backslash
-#}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumii}{
-\backslash
-Alph{enumi}.
-\backslash
-arabic{enumii}}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiii}{
-\backslash
-alph{enumiii}+}
-\end_layout
-
-\begin_layout LyX-Code
-
-\backslash
-renewcommand{
-\backslash
-labelenumiv}{(
-\backslash
-roman{enumiv})}
-\end_layout
-
-\begin_layout Standard
-Komando hauek honelako zenbakera bat sortuko lukete: <
-\begin_inset Quotes eld
-\end_inset
-
-#A#
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-A.1
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-a+
-\begin_inset Quotes erd
-\end_inset
-
-,
-\begin_inset space ~
-\end_inset
-
-
-\begin_inset Quotes eld
-\end_inset
-
-(i)
-\begin_inset Quotes erd
-\end_inset
-
->.
- 
-\end_layout
-
-\begin_layout Section
-Taulako errenkaden arteko tarteaErrenkaden tartea
-\end_layout
-
-\begin_layout Standard
-Idazlea: 
-\noun on
-Mike Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-LaTeX-ek taula bateko errenkaden artean tarte osagarria jartzen uzten dizu,
- errenkadaren amaiera zehazten duenari (
-\family typewriter
-
-\backslash
-
-\backslash
-
-\family default
-) aukerako argumentu bat emanez.
- LyX-ek oraindik gaitasun hori ez dauka garatuta, beraz hemen eta gauza
- bera egiteko bi trikimailu azaltzen dira.
-\end_layout
-
-\begin_layout Standard
-Lehenbizikoa arruntagoa da, baita luzeagoa ere.
- LyX-en hitzaurrean sartu ondorengo komandoaren definizioa:
-\end_layout
-
-\begin_layout Standard
-
-\family typewriter
-
-\backslash
-newcommand{
-\backslash
-extratablespace}[1]{
-\backslash
-noalign{vskip#1}}
-\family default
-.
- Komando honek argumentu bakar bat jasotzen du, txertatzea nahi duzun tarte-tama
-ina.
- Txertatu komandoa atzeko errenkadako lehenbiziko zutabean, eta tartea errenkada
- horren gainean agertuko da.
- Hona hemen adibide bat (
-\family sans
-\bar under
-D
-\bar default
-iseinua\SpecialChar \menuseparator
-
-\bar under
-T
-\bar default
-aula
-\family default
- erabiliz ertzak kendu dizkiot):
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="4" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Mineral
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-ak
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kaltzita
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Dolomit
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-a
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kuartzo
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Grafito
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-extratablespace{2ex}
-\end_layout
-
-\end_inset
-
-
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-Haitzak
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kararria
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Hareharri
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Granit
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-oa
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Andesite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Bigarren bidea askoz ere azkarragoa da, baina tipografia-arloan aritzen
- dienek eta TeX-eko adituak aizkorak zorroztuta zeruari oihuka hasiko dira.
- Leku berean errenkada amaitzen dela adierazten duen ikurra jarri, aukerazko
- argumentu batekin.
- Hemen, ez da behar komando bat definitzea, aurreko adibidean egin den bezala.
- Baina zehazten duzun baino tarte handiagoa egongo da, zeren eta oinarrian
- errenkada zuri (huts) bat gehitu baituzu, eta horri tartea gehituz.
- Gehitzen den tartea handiegia bada, erabili zenbaki negatiboak, honen gisa:
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="4" columns="3">
-<features>
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<column alignment="center" valignment="top" width="0pt">
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Mineral
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-ak
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kaltzita
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Dolomit
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-a
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kuartzo
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Grafito
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-
-\backslash
-[-1ex]
-\end_layout
-
-\end_inset
-
-
-\family default
-\series default
-\shape default
- 
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-Haitzak
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Kararria
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Hareharri
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Granitoa
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-Andesite
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Goxoki txiki bat dirudi, eta lana azkar egiten du, nahiz eta oso itxusia
- izan.
- Usteldutako barazkiak ximaurra egiteko erabili! Zin dagizut honelakorik
- inoiz ez nukeela aholkatuko! Bestela eror bedi urtzia gure buruen gainera!
-\end_layout
-
-\begin_layout Section
-Letra kapitalak
-\end_layout
-
-\begin_layout Standard
-Idazlea: 
-\noun on
-Mike Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-newfont{
-\backslash
-tmpfont}{cmr17 scaled 2500}{
-\backslash
-tmpfont Z}
-\backslash
-vspace*{-8.4ex}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\noindent
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-hangindent=3.3em 
-\backslash
-hangafter=-3
-\end_layout
-
-\end_inset
-
-uetariko askok liburu zaharrek erabiltzen zuten "letra kapitalen" (maiuskuletan
- zeuden letra ikaragarri handi haiek, kapitulu edo atal berri bakoitzeko
- hasieran kokatzen zirenak) itxura eskuratzea nahiko zenukete .
- Hauek LyX/LaTeX soilean zuzenean garatzen dira (TeX soilean zerbait idazten
- dakizula suposatzen da), baina lan gehixeago eta beronen gainean hainbat
- bira ematea eskatzen du.
- Ikus dezakezu (pantailan irakurtzen ari bazara) paragrafo honen hasieran
- TeX erako zatarkeria dagoela.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-verb+
-\backslash
-bigdrop{-1em}{3}{ptmri}{H}+
-\end_layout
-
-\end_inset
-
-emen gauza bera egiteko bide errazagoa daukazu.
- dropcaps paketea (edo berriagoa den 
-\family typewriter
-dropping
-\family default
-) CTANen gunetik eskuratuz zure dokumentuetan honelako letrak agertzeko
- bide eroso bat eskaintzen dizute.
- Pakete hau teTeX-eko zati estandar bat ez denez, dokumentu honetan ezin
- dizut erakutsi.
- Baina paragrafo hau dokumentu berri batera kopiatzen baduzu, gero "
-\family typewriter
-
-\backslash
-verb
-\family default
-" komandoa eta "+" ikurrak paragrafo hasieran dagoen TeX kodetik ezabatu,
- eta LaTeX hitzaurrean 
-\family typewriter
-
-\backslash
-usepackage{dropcaps}
-\family default
- gehitzen baduzu, Times Roman letra etzanarekin "H" hizki dotorea agertuko
- zaizu.
- Letra horrek hiru lerroko altuera izango du, eta marjinetik 1
-\begin_inset space ~
-\end_inset
-
-em neurrian kanporago geldituko da.
- Ah! Gogoratu "
-\family typewriter
-dropcaps.sty
-\family default
-" TeX-ek ikus dezakeen direktorio batean kopiatu behar duzula.
- Lehenbiziko argumentua koskatze-tartearen tamainari dagokio; kasu honetan
- negatiboa denez, marjinerantz joango litzateke.
- Bigarren argumentua hizkiaren altuera da, eta testuaren lerroetan neurtzen
- da.
- Hirugarren argumentua letra-tipoaren izena da: teorian 
-\family typewriter
-tfm
-\family default
- fitxategia duen edozerekin ongi moldatu beharko luke (murgildu zaitez \SpecialChar \ldots{}
-
-\family typewriter
-/texmf/fonts/tfm
-\family default
- direktorioan dauden aukerak ikusteko).
- Gehien bat 
-\family typewriter
-"yinit"
-\family default
- atsegin dut, alemaniera luxuzko letra-tipo bat, letra kapitalentzako bereziki
- diseinatua.
- Laugarren argumentua kokatu beharreko hizkia da (edo hizkiak).
- 
-\family typewriter
-dropping
-\family default
- paketeak 
-\family typewriter
-
-\backslash
-bigdrop
-\family default
- komandoa ekartzen du, eta apur bat sinpleagoa den 
-\family typewriter
-
-\backslash
-dropping
-\family default
- komandoa ere.
 \end_layout
 
 \begin_layout Section
 Paragrafoen estandarrak ez diren forma
-\end_layout
-
-\begin_layout Standard
-Idazlea: 
-\noun on
-Mike Ressler
-\end_layout
-
-\begin_layout Standard
-\begin_inset VSpace bigskip
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -22399,22 +21209,6 @@ end{sloppypar}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Laburpena
-\end_layout
-
-\begin_layout Standard
-Ikusi duzunez, atal honetako adibideek praktikotasunetik gauza apetatsuetaraino
- iritsi dira.
- Ez dut uste inork azken ataleko forma bitxidun paragraforik beharko duenik,
- zeren eta gauzarik garrantzitsuena da TeX eta LaTeX-en egin ditzakezunak
- LyX-en ere egiteko gai izango zarela.
- TeX konposaketarako ahalmen handiko sistema zoragarria da, eta bere gaitasun
- guztia zure eskuetan dago, zeren eta LyX-ek bere atzekaldean erabiltzen
- baitu.
- Izan LyX-atze zoriontsua!
 \end_layout
 
 \end_body

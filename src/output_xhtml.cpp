@@ -227,7 +227,7 @@ bool XHTMLStream::closeFontTags()
 			return true;
 		curtag = tag_stack_.back();
 	}
-
+	
 	if (curtag.tag_ == parsep_tag)
 		return true;
 
@@ -246,9 +246,11 @@ bool XHTMLStream::closeFontTags()
 }
 
 
-void XHTMLStream::startParagraph()
+void XHTMLStream::startParagraph(bool keep_empty)
 {
 	pending_tags_.push_back(html::StartTag(parsep_tag));
+	if (keep_empty)
+		clearTagDeque();
 }
 
 
@@ -922,11 +924,20 @@ void xhtmlParagraphs(Text const & text,
 		       OutputParams const & runparams)
 {
 	ParagraphList const & paragraphs = text.paragraphs();
-	ParagraphList::const_iterator par = paragraphs.begin();
-	ParagraphList::const_iterator pend = paragraphs.end();
+	if (runparams.par_begin == runparams.par_end) {
+		runparams.par_begin = 0;
+		runparams.par_end = paragraphs.size();
+	}
+	pit_type bpit = runparams.par_begin;
+	pit_type const epit = runparams.par_end;
+	LASSERT(bpit < epit, /* */);
 
 	OutputParams ourparams = runparams;
-	while (par != pend) {
+	ParagraphList::const_iterator const pend =
+		(epit == (int) paragraphs.size()) ?
+			paragraphs.end() : paragraphs.constIterator(epit);
+	while (bpit < epit) {
+		ParagraphList::const_iterator par = paragraphs.constIterator(bpit);
 		if (par->params().startOfAppendix()) {
 			// FIXME: only the counter corresponding to toplevel
 			// sectioning should be reset
@@ -935,7 +946,7 @@ void xhtmlParagraphs(Text const & text,
 			cnts.appendix(true);
 		}
 		Layout const & style = par->layout();
-		ParagraphList::const_iterator lastpar = par;
+		ParagraphList::const_iterator const lastpar = par;
 		ParagraphList::const_iterator send;
 
 		switch (style.latextype) {
@@ -972,10 +983,7 @@ void xhtmlParagraphs(Text const & text,
 			par = makeParagraphs(buf, xs, ourparams, text, par, send);
 			break;
 		}
-		// FIXME??
-		// makeEnvironment may process more than one paragraphs and bypass pend
-		if (distance(lastpar, par) >= distance(lastpar, pend))
-			break;
+		bpit += distance(lastpar, par);
 	}
 }
 

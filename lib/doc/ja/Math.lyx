@@ -180,7 +180,7 @@
 \pdf_colorlinks true
 \pdf_backref false
 \pdf_pdfusetitle false
-\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue,  pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
+\pdf_quoted_options "linkcolor=black, citecolor=black, urlcolor=blue, filecolor=blue, pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false"
 \papersize a4paper
 \use_geometry true
 \use_amsmath 2
@@ -5617,6 +5617,48 @@ spce
 vmatrix
 \series default
 などを挿入すると、青枠が二つの垂直線のあいだに現れるので、そこに行列を挿入することができます。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+Note:
+\series default
+ LaTeX limits the number of matrix columns with decorations to 10.
+ If you need more than 10
+\begin_inset space ~
+\end_inset
+
+columns, you have to add this line to the document preamble:
+\end_layout
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+
+\backslash
+setcounter{MaxMatrixCols}{number}
+\end_layout
+
+\begin_layout Plain Layout
+
+\lang english
+where 
+\emph on
+number
+\emph default
+ is the number of columns between 11 and 99.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

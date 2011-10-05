@@ -19,6 +19,7 @@
 
 #include "support/lassert.h"
 #include "support/debug.h"
+#include "support/lstrings.h"
 #include "support/docstring_list.h"
 
 #include "support/filetools.h"
@@ -41,6 +42,7 @@ namespace {
 struct Speller {
 	AspellConfig * config;
 	AspellCanHaveError * e_speller;
+	bool accept_compound;
 	docstring_list ignored_words_;
 };
 
@@ -68,10 +70,13 @@ struct AspellChecker::Private
 		string const & lang, string const & variety);
 	AspellConfig * getConfig(string const & lang, string const & variety);
 
+	string toAspellWord(docstring const & word) const;
+
 	SpellChecker::Result check(AspellSpeller * m,
-		string const & word) const;
+		WordLangTuple const & word) const;
 
 	void initSessionDictionary(Speller const & speller, PersonalWordList * pd);
+	void addToSession(AspellCanHaveError * speller, docstring const & word);
 	void insert(WordLangTuple const & word);
 	void remove(WordLangTuple const & word);
 	bool learned(WordLangTuple const & word);
@@ -207,6 +212,14 @@ AspellConfig * AspellChecker::Private::getConfig(string const & lang, string con
 }
 
 
+void AspellChecker::Private::addToSession(AspellCanHaveError * speller, docstring const & word)
+{
+	string const word_to_add = toAspellWord(word);
+	if(1 != aspell_speller_add_to_session(to_aspell_speller(speller), word_to_add.c_str(), -1))
+		LYXERR(Debug::GUI, "aspell add to session: " << aspell_error_message(speller));
+}
+
+
 void AspellChecker::Private::initSessionDictionary(
 	Speller const & speller,
 	PersonalWordList * pd)
@@ -216,14 +229,12 @@ void AspellChecker::Private::initSessionDictionary(
 	docstring_list::const_iterator it = pd->begin();
 	docstring_list::const_iterator et = pd->end();
 	for (; it != et; ++it) {
-		string const word_to_add = to_utf8(*it);
-		aspell_speller_add_to_session(aspell, word_to_add.c_str(), -1);
+		addToSession(speller.e_speller, *it);
 	}
 	it = speller.ignored_words_.begin();
 	et = speller.ignored_words_.end();
 	for (; it != et; ++it) {
-		string const word_to_add = to_utf8(*it);
-		aspell_speller_add_to_session(aspell, word_to_add.c_str(), -1);
+		addToSession(speller.e_speller, *it);
 	}
 }
 
@@ -255,6 +266,7 @@ AspellSpeller * AspellChecker::Private::addSpeller(Language const * lang)
 		// Report run-together words as errors
 		aspell_config_replace(m.config, "run-together", "false");
 
+	m.accept_compound = lyxrc.spellchecker_accept_compound;
 	m.e_speller = new_aspell_speller(m.config);
 	if (aspell_error_number(m.e_speller) != 0) {
 		// FIXME: We should indicate somehow that this language is not supported.
@@ -278,18 +290,60 @@ AspellSpeller * AspellChecker::Private::addSpeller(Language const * lang)
 AspellSpeller * AspellChecker::Private::speller(Language const * lang)
 {
 	Spellers::iterator it = spellers_.find(lang->lang());
-	if (it != spellers_.end())
-		return to_aspell_speller(it->second.e_speller);
-	
+	if (it != spellers_.end()) {
+		Speller aspell = it->second;
+		if (lyxrc.spellchecker_accept_compound != aspell.accept_compound) {
+			// spell checker setting changed... adjust run-together
+			aspell.accept_compound = lyxrc.spellchecker_accept_compound;
+			if (aspell.accept_compound)
+				// Consider run-together words as legal compounds
+				aspell_config_replace(aspell.config, "run-together", "true");
+			else
+				// Report run-together words as errors
+				aspell_config_replace(aspell.config, "run-together", "false");
+			AspellCanHaveError * e_speller = aspell.e_speller;
+			aspell.e_speller = new_aspell_speller(aspell.config);
+			delete_aspell_speller(to_aspell_speller(e_speller));
+			spellers_[lang->lang()] = aspell;
+		}
+		return to_aspell_speller(aspell.e_speller);
+	}
+
 	return addSpeller(lang);
 }
 
 
+string AspellChecker::Private::toAspellWord(docstring const & word) const
+{
+	size_t mpos;
+	string word_str = to_utf8(word);
+	while ((mpos = word_str.find('-')) != word_str.npos) {
+		word_str.erase(mpos, 1);
+	}
+	return word_str;
+}
+
+
 SpellChecker::Result AspellChecker::Private::check(
-	AspellSpeller * m, string const & word) 
+	AspellSpeller * m, WordLangTuple const & word) 
 	const
 {
-	int const word_ok = aspell_speller_check(m, word.c_str(), -1);
+	SpellChecker::Result result = WORD_OK;
+	docstring w1;
+	docstring rest = split(word.word(), w1, '-');
+	for (; result == WORD_OK;) {
+		string const word_str = toAspellWord(w1);
+		int const word_ok = aspell_speller_check(m, word_str.c_str(), -1);
+		LASSERT(word_ok != -1, /**/);
+		result = (word_ok) ? WORD_OK : UNKNOWN_WORD;
+		if (rest.empty())
+			break;
+		rest = split(rest,w1,'-');
+	}
+	if (result == WORD_OK)
+		return result;
+	string const word_str = toAspellWord(word.word());
+	int const word_ok = aspell_speller_check(m, word_str.c_str(), -1);
 	LASSERT(word_ok != -1, /**/);
 	return (word_ok) ? WORD_OK : UNKNOWN_WORD;
 }
@@ -318,8 +372,7 @@ void AspellChecker::Private::insert(WordLangTuple const & word)
 {
 	Spellers::iterator it = spellers_.find(word.lang()->lang());
 	if (it != spellers_.end()) {
-		AspellSpeller * speller = to_aspell_speller(it->second.e_speller);
-		aspell_speller_add_to_session(speller, to_utf8(word.word()).c_str(), -1);
+		addToSession(it->second.e_speller, word.word());
 		PersonalWordList * pd = personal_[word.lang()->lang()];
 		if (!pd)
 			return;
@@ -359,8 +412,7 @@ SpellChecker::Result AspellChecker::check(WordLangTuple const & word)
 		// MSVC compiled Aspell doesn't like it.
 		return WORD_OK;
 
-	string const word_str = to_utf8(word.word());
-	SpellChecker::Result rc = d->check(m, word_str);
+	SpellChecker::Result rc = d->check(m, word);
 	return (rc == WORD_OK && d->learned(word)) ? LEARNED_WORD : rc;
 }
 
@@ -382,8 +434,7 @@ void AspellChecker::accept(WordLangTuple const & word)
 {
 	Spellers::iterator it = d->spellers_.find(word.lang()->lang());
 	if (it != d->spellers_.end()) {
-		AspellSpeller * speller = to_aspell_speller(it->second.e_speller);
-		aspell_speller_add_to_session(speller, to_utf8(word.word()).c_str(), -1);
+		d->addToSession(it->second.e_speller, word.word());
 		d->accept(it->second, word);
 		advanceChangeNumber();
 	}
@@ -399,8 +450,9 @@ void AspellChecker::suggest(WordLangTuple const & wl,
 	if (!m)
 		return;
 
+	string const word = d->toAspellWord(wl.word());
 	AspellWordList const * sugs =
-		aspell_speller_suggest(m, to_utf8(wl.word()).c_str(), -1);
+		aspell_speller_suggest(m, word.c_str(), -1);
 	LASSERT(sugs != 0, /**/);
 	AspellStringEnumeration * els = aspell_word_list_elements(sugs);
 	if (!els || aspell_word_list_empty(sugs))

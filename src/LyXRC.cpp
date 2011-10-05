@@ -26,6 +26,7 @@
 #include "LyX.h"
 #include "Mover.h"
 #include "Session.h"
+#include "SpellChecker.h"
 #include "version.h"
 
 #include "graphics/GraphicsTypes.h"
@@ -192,6 +193,7 @@ LexerKeyword lyxrcTags[] = {
 	{ "\\template_path", LyXRC::RC_TEMPLATEPATH },
 	{ "\\tex_allows_spaces", LyXRC::RC_TEX_ALLOWS_SPACES },
 	{ "\\tex_expects_windows_paths", LyXRC::RC_TEX_EXPECTS_WINDOWS_PATHS },
+	{ "\\texinputs_prefix", LyXRC::RC_TEXINPUTS_PREFIX },
 	{ "\\thesaurusdir_path", LyXRC::RC_THESAURUSDIRPATH },
 	{ "\\ui_file", LyXRC::RC_UIFILE },
 	{ "\\use_converter_cache", LyXRC::RC_USE_CONVERTER_CACHE },
@@ -227,6 +229,8 @@ void LyXRC::setDefaults()
 	bind_file = "cua";
 	def_file = "default";
 	ui_file = "default";
+	// The current document directory
+	texinputs_prefix = ".";
 	// Get printer from the environment. If fail, use default "",
 	// assuming that everything is set up correctly.
 	printer = getEnv("PRINTER");
@@ -497,6 +501,10 @@ LyXRC::ReturnValues LyXRC::read(Lexer & lexrc, bool check_format)
 
 		case RC_TEX_ALLOWS_SPACES:
 			lexrc >> tex_allows_spaces;
+			break;
+
+		case RC_TEXINPUTS_PREFIX:
+			lexrc >> texinputs_prefix;
 			break;
 
 		case RC_KBMAP:
@@ -1605,8 +1613,9 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		if (tag != RC_LAST)
 			break;
 	case RC_TEX_EXPECTS_WINDOWS_PATHS:
-		if (ignore_system_lyxrc ||
-		    windows_style_tex_paths != system_lyxrc.windows_style_tex_paths) {
+		// Don't write this setting to the preferences file,
+		// but allow temporary changes (bug 7557).
+		if (ignore_system_lyxrc) {
 			os << "\\tex_expects_windows_paths "
 			   << convert<string>(windows_style_tex_paths) << '\n';
 		}
@@ -2212,6 +2221,14 @@ void LyXRC::write(ostream & os, bool ignore_system_lyxrc, string const & name) c
 		os << "\n#\n"
 		   << "# TEX SECTION #######################################\n"
 		   << "#\n\n";
+
+	case RC_TEXINPUTS_PREFIX:
+		if (ignore_system_lyxrc ||
+		    texinputs_prefix != system_lyxrc.texinputs_prefix) {
+			os << "\\texinputs_prefix \"" << texinputs_prefix << "\"\n";
+		}
+		if (tag != RC_LAST)
+			break;
 
 	case RC_FONT_ENCODING:
 		if (ignore_system_lyxrc ||
@@ -2885,7 +2902,10 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	// if we forget an element.
 	LyXRC::LyXRCTags tag = LyXRC::RC_LAST;
 	switch (tag) {
+	case LyXRC::RC_LAST:
 	case LyXRC::RC_ACCEPT_COMPOUND:
+		if (lyxrc_orig.spellchecker_accept_compound != lyxrc_new.spellchecker_accept_compound)
+			if (theSpellChecker()) theSpellChecker()->advanceChangeNumber();
 	case LyXRC::RC_ALT_LANG:
 	case LyXRC::RC_PLAINTEXT_LINELEN:
 	case LyXRC::RC_AUTOCORRECTION_MATH:
@@ -2938,9 +2958,6 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_GROUP_LAYOUTS:
 	case LyXRC::RC_HUNSPELLDIR_PATH:
 	case LyXRC::RC_ICON_SET:
-		if (lyxrc_orig.icon_set != lyxrc_new.icon_set) {
-			lyxrc.icon_set = lyxrc_new.icon_set;
-		}
 	case LyXRC::RC_INDEX_ALTERNATIVES:
 	case LyXRC::RC_INDEX_COMMAND:
 	case LyXRC::RC_JBIBTEX_COMMAND:
@@ -2969,7 +2986,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_PARAGRAPH_MARKERS:
 	case LyXRC::RC_PATH_PREFIX:
 		if (lyxrc_orig.path_prefix != lyxrc_new.path_prefix) {
-			prependEnvPath("PATH", lyxrc.path_prefix);
+			prependEnvPath("PATH", lyxrc_new.path_prefix);
 		}
 	case LyXRC::RC_PREVIEW:
 	case LyXRC::RC_PREVIEW_HASHED_LABELS:
@@ -3010,6 +3027,8 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_SHOW_BANNER:
 	case LyXRC::RC_OPEN_BUFFERS_IN_TABS:
 	case LyXRC::RC_SPELLCHECKER:
+		if (lyxrc_orig.spellchecker != lyxrc_new.spellchecker)
+			setSpellChecker();
 	case LyXRC::RC_SPELLCHECK_CONTINUOUSLY:
 	case LyXRC::RC_SPELLCHECK_NOTES:
 	case LyXRC::RC_SPLITINDEX_COMMAND:
@@ -3020,6 +3039,7 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 		if (lyxrc_orig.windows_style_tex_paths != lyxrc_new.windows_style_tex_paths) {
 			os::windows_style_tex_paths(lyxrc_new.windows_style_tex_paths);
 		}
+	case LyXRC::RC_TEXINPUTS_PREFIX:
 	case LyXRC::RC_THESAURUSDIRPATH:
 	case LyXRC::RC_UIFILE:
 	case LyXRC::RC_USER_EMAIL:
@@ -3047,7 +3067,6 @@ void actOnUpdatedPrefs(LyXRC const & lyxrc_orig, LyXRC const & lyxrc_new)
 	case LyXRC::RC_DEFAULT_DECIMAL_POINT:
 	case LyXRC::RC_SCROLL_WHEEL_ZOOM:
 	case LyXRC::RC_CURSOR_WIDTH:
-	case LyXRC::RC_LAST:
 		break;
 	}
 }
@@ -3313,7 +3332,7 @@ string const LyXRC::getDescription(LyXRCTags tag)
 
 	case RC_PATH_PREFIX:
 		str = _("Specify those directories which should be "
-			 "prepended to the PATH environment variable. "
+			 "prepended to the PATH environment variable.\n"
 			 "Use the OS native format.");
 		break;
 
@@ -3468,6 +3487,13 @@ string const LyXRC::getDescription(LyXRCTags tag)
 		break;
 
 	case RC_TEX_EXPECTS_WINDOWS_PATHS:
+		break;
+
+	case RC_TEXINPUTS_PREFIX:
+		str = _("Specify those directories which should be "
+			 "prepended to the TEXINPUTS environment variable.\n"
+			 "A '.' represents the current document directory. "
+			 "Use the OS native format.");
 		break;
 
 	case RC_UIFILE:

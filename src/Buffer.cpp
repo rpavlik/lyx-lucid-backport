@@ -597,7 +597,7 @@ string Buffer::logName(LogType * type) const
 	FileName const bname(
 		addName(path, onlyFileName(
 			changeExtension(filename,
-					formats.extension(bufferFormat()) + ".out"))));
+					formats.extension(params().bufferFormat()) + ".out"))));
 
 	// Also consider the master buffer log file
 	FileName masterfname = fname;
@@ -830,7 +830,7 @@ bool Buffer::readDocument(Lexer & lex)
 	}
 	usermacros.clear();
 	updateMacros();
-	updateMacroInstances();
+	updateMacroInstances(InternalUpdate);
 	return res;
 }
 
@@ -1239,7 +1239,6 @@ bool Buffer::write(ostream & ofs) const
 
 
 bool Buffer::makeLaTeXFile(FileName const & fname,
-			   string const & original_path,
 			   OutputParams const & runparams_in,
 			   bool output_preamble, bool output_body) const
 {
@@ -1272,8 +1271,7 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 	otexstream os(ofs, d->texrow);
 	try {
 		os.texrow().reset();
-		writeLaTeXSource(os, original_path,
-		      runparams, output_preamble, output_body);
+		writeLaTeXSource(os, runparams, output_preamble, output_body);
 	}
 	catch (EncodingException & e) {
 		odocstringstream ods;
@@ -1316,7 +1314,6 @@ bool Buffer::makeLaTeXFile(FileName const & fname,
 
 
 void Buffer::writeLaTeXSource(otexstream & os,
-			   string const & original_path,
 			   OutputParams const & runparams_in,
 			   bool const output_preamble, bool const output_body) const
 {
@@ -1350,58 +1347,13 @@ void Buffer::writeLaTeXSource(otexstream & os,
 
 	// fold macros if possible, still with parent buffer as the
 	// macros will be put in the prefix anyway.
-	updateMacroInstances();
+	updateMacroInstances(OutputUpdate);
 
-	// There are a few differences between nice LaTeX and usual files:
-	// usual is \batchmode and has a
-	// special input@path to allow the including of figures
-	// with either \input or \includegraphics (what figinsets do).
-	// input@path is set when the actual parameter
-	// original_path is set. This is done for usual tex-file, but not
-	// for nice-latex-file. (Matthias 250696)
-	// Note that input@path is only needed for something the user does
-	// in the preamble, included .tex files or ERT, files included by
-	// LyX work without it.
+	// With respect to nice LaTeX, usual files have \batchmode
 	if (output_preamble) {
 		if (!runparams.nice) {
 			// code for usual, NOT nice-latex-file
 			os << "\\batchmode\n"; // changed from \nonstopmode
-		}
-		if (!original_path.empty()) {
-			// FIXME UNICODE
-			// We don't know the encoding of inputpath
-			docstring const inputpath = from_utf8(support::latex_path(original_path));
-			docstring uncodable_glyphs;
-			Encoding const * const enc = runparams.encoding;
-			if (enc) {
-				for (size_t n = 0; n < inputpath.size(); ++n) {
-					docstring const glyph =
-						docstring(1, inputpath[n]);
-					if (enc->latexChar(inputpath[n], true) != glyph) {
-						LYXERR0("Uncodable character '"
-							<< glyph
-							<< "' in input path!");
-						uncodable_glyphs += glyph;
-					}
-				}
-			}
-
-			// warn user if we found uncodable glyphs.
-			if (!uncodable_glyphs.empty()) {
-				frontend::Alert::warning(_("Uncodable character in file path"),
-						support::bformat(_("The path of your document\n"
-						  "(%1$s)\n"
-						  "contains glyphs that are unknown in the\n"
-						  "current document encoding (namely %2$s).\n"
-						  "This will likely result in incomplete output.\n\n"
-						  "Choose an appropriate document encoding (such as utf8)\n"
-						  "or change the file path name."), inputpath, uncodable_glyphs));
-			} else {
-				os << "\\makeatletter\n"
-				   << "\\def\\input@path{{"
-				   << inputpath << "/}}\n"
-				   << "\\makeatother\n";
-			}
 		}
 
 		// get parent macros (if this buffer has a parent) which will be
@@ -1474,24 +1426,6 @@ void Buffer::writeLaTeXSource(otexstream & os,
 
 	LYXERR(Debug::INFO, "Finished making LaTeX file.");
 	LYXERR(Debug::INFO, "Row count was " << os.texrow().rows() - 1 << '.');
-}
-
-
-bool Buffer::isLatex() const
-{
-	return params().documentClass().outputType() == LATEX;
-}
-
-
-bool Buffer::isLiterate() const
-{
-	return params().documentClass().outputType() == LITERATE;
-}
-
-
-bool Buffer::isDocBook() const
-{
-	return params().documentClass().outputType() == DOCBOOK;
 }
 
 
@@ -1615,7 +1549,7 @@ void Buffer::writeLyXHTMLSource(odocstream & os,
 	updateBuffer(UpdateMaster, OutputUpdate);
 	d->bibinfo_.makeCitationLabels(*this);
 	updateMacros();
-	updateMacroInstances();
+	updateMacroInstances(OutputUpdate);
 
 	if (!only_body) {
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -1664,7 +1598,6 @@ int Buffer::runChktex()
 	// get LaTeX-Filename
 	FileName const path(temppath());
 	string const name = addName(path.absFileName(), latexName());
-	string const org_path = filePath();
 
 	PathChanger p(path); // path to LaTeX file
 	message(_("Running chktex..."));
@@ -1674,7 +1607,7 @@ int Buffer::runChktex()
 	runparams.flavor = OutputParams::LATEX;
 	runparams.nice = false;
 	runparams.linelen = lyxrc.plaintext_linelen;
-	makeLaTeXFile(FileName(name), org_path, runparams);
+	makeLaTeXFile(FileName(name), runparams);
 
 	TeXErrors terr;
 	Chktex chktex(lyxrc.chktex_command, onlyFileName(name), filePath());
@@ -1895,21 +1828,6 @@ void Buffer::markDepClean(string const & name)
 }
 
 
-bool Buffer::isExportableFormat(string const & format) const
-{
-		typedef vector<Format const *> Formats;
-		Formats formats;
-		formats = exportableFormats(true);
-		Formats::const_iterator fit = formats.begin();
-		Formats::const_iterator end = formats.end();
-		for (; fit != end ; ++fit) {
-			if ((*fit)->name() == format)
-				return true;
-		}
-		return false;
-}
-
-
 bool Buffer::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 {
 	if (isInternal()) {
@@ -1938,7 +1856,7 @@ bool Buffer::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 
 		case LFUN_BUFFER_EXPORT: {
 			docstring const arg = cmd.argument();
-			enable = arg == "custom" || isExportable(to_utf8(arg));
+			enable = arg == "custom" || params().isExportable(to_utf8(arg));
 			if (!enable)
 				flag.message(bformat(
 					_("Don't know how to export to format: %1$s"), arg));
@@ -1946,11 +1864,11 @@ bool Buffer::getStatus(FuncRequest const & cmd, FuncStatus & flag)
 		}
 
 		case LFUN_BUFFER_CHKTEX:
-			enable = isLatex() && !lyxrc.chktex_command.empty();
+			enable = params().isLatex() && !lyxrc.chktex_command.empty();
 			break;
 
 		case LFUN_BUILD_PROGRAM:
-			enable = isExportable("program");
+			enable = params().isExportable("program");
 			break;
 
 		case LFUN_BRANCH_ACTIVATE: 
@@ -2061,7 +1979,7 @@ void Buffer::dispatch(FuncRequest const & func, DispatchResult & dr)
 
 		// Execute the command in the background
 		Systemcall call;
-		call.startscript(Systemcall::DontWait, command);
+		call.startscript(Systemcall::DontWait, command, filePath());
 		break;
 	}
 
@@ -2239,7 +2157,8 @@ void Buffer::dispatch(FuncRequest const & func, DispatchResult & dr)
 				command2 += quoteName(psname);
 				// First run dvips.
 				// If successful, then spool command
-				res = one.startscript(Systemcall::Wait, command);
+				res = one.startscript(Systemcall::Wait, command,
+						      filePath());
 
 				if (res == 0) {
 					// If there's no GUI, we have to wait on this command. Otherwise,
@@ -2247,7 +2166,8 @@ void Buffer::dispatch(FuncRequest const & func, DispatchResult & dr)
 					// file, before it can be printed!!
 					Systemcall::Starttype stype = use_gui ?
 						Systemcall::DontWait : Systemcall::Wait;
-					res = one.startscript(stype, command2);
+					res = one.startscript(stype, command2,
+							      filePath());
 				}
 			} else {
 				// case 2: print directly to a printer
@@ -2256,7 +2176,8 @@ void Buffer::dispatch(FuncRequest const & func, DispatchResult & dr)
 				// as above....
 				Systemcall::Starttype stype = use_gui ?
 					Systemcall::DontWait : Systemcall::Wait;
-				res = one.startscript(stype, command + quoteName(dviname));
+				res = one.startscript(stype, command +
+						quoteName(dviname), filePath());
 			}
 
 		} else {
@@ -2279,7 +2200,7 @@ void Buffer::dispatch(FuncRequest const & func, DispatchResult & dr)
 			// as above....
 			Systemcall::Starttype stype = use_gui ?
 				Systemcall::DontWait : Systemcall::Wait;
-			res = one.startscript(stype, command);
+			res = one.startscript(stype, command, filePath());
 		}
 
 		if (res == 0) 
@@ -2920,7 +2841,7 @@ void Buffer::getUsedBranches(std::list<docstring> & result, bool const from_mast
 }
 
 
-void Buffer::updateMacroInstances() const
+void Buffer::updateMacroInstances(UpdateType utype) const
 {
 	LYXERR(Debug::MACROS, "updateMacroInstances for "
 		<< d->filename.onlyFileName());
@@ -2938,7 +2859,7 @@ void Buffer::updateMacroInstances() const
 		MacroContext mc = MacroContext(this, it);
 		for (DocIterator::idx_type i = 0; i < n; ++i) {
 			MathData & data = minset->cell(i);
-			data.updateMacros(0, mc);
+			data.updateMacros(0, mc, utype);
 		}
 	}
 }
@@ -3084,7 +3005,7 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 {
 	OutputParams runparams(&params().encoding());
 	runparams.nice = true;
-	runparams.flavor = getOutputFlavor(format);
+	runparams.flavor = params().getOutputFlavor(format);
 	runparams.linelen = lyxrc.plaintext_linelen;
 	// No side effect of file copying and image conversion
 	runparams.dryrun = true;
@@ -3094,14 +3015,14 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 		d->texrow.reset();
 		d->texrow.newline();
 		d->texrow.newline();
-		if (isDocBook())
+		if (params().isDocBook())
 			writeDocBookSource(os, absFileName(), runparams, false);
 		else if (runparams.flavor == OutputParams::HTML)
 			writeLyXHTMLSource(os, runparams, false);
 		else {
 			// latex or literate
 			otexstream ots(os, d->texrow);
-			writeLaTeXSource(ots, string(), runparams, true, true);
+			writeLaTeXSource(ots, runparams, true, true);
 		}
 	} else {
 		runparams.par_begin = par_begin;
@@ -3122,7 +3043,7 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 		texrow.newline();
 		texrow.newline();
 		// output paragraphs
-		if (isDocBook())
+		if (params().isDocBook())
 			docbookParagraphs(text(), *this, os, runparams);
 		else if (runparams.flavor == OutputParams::HTML) {
 			XHTMLStream xs(os);
@@ -3136,14 +3057,20 @@ void Buffer::getSourceCode(odocstream & os, string const format,
 }
 
 
-ErrorList & Buffer::errorList(string const & type) const
+ErrorList const & Buffer::errorList(string const & type) const
 {
-	static ErrorList emptyErrorList;
+	static const ErrorList emptyErrorList;
 	map<string, ErrorList>::iterator it = d->errorLists.find(type);
 	if (it == d->errorLists.end())
 		return emptyErrorList;
 
 	return it->second;
+}
+
+
+ErrorList & Buffer::errorList(string const & type)
+{
+	return d->errorLists[type];
 }
 
 
@@ -3367,74 +3294,6 @@ bool Buffer::autoSave() const
 }
 
 
-string Buffer::bufferFormat() const
-{
-	string format = params().documentClass().outputFormat();
-	if (format == "latex") {
-		if (params().useNonTeXFonts)
-			return "xetex";
-		if (params().encoding().package() == Encoding::japanese)
-			return "platex";
-	}
-	return format;
-}
-
-
-string Buffer::getDefaultOutputFormat() const
-{
-	if (!params().default_output_format.empty()
-	    && params().default_output_format != "default")
-		return params().default_output_format;
-	if (isDocBook()
-	    || params().useNonTeXFonts
-	    || params().encoding().package() == Encoding::japanese) {
-		vector<Format const *> const formats = exportableFormats(true);
-		if (formats.empty())
-			return string();
-		// return the first we find
-		return formats.front()->name();
-	}
-	return lyxrc.default_view_format;
-}
-
-
-OutputParams::FLAVOR Buffer::getOutputFlavor(string const format) const
-{
-	string const dformat = (format.empty() || format == "default") ?
-		getDefaultOutputFormat() : format;
-	DefaultFlavorCache::const_iterator it =
-		default_flavors_.find(dformat);
-
-	if (it != default_flavors_.end())
-		return it->second;
-
-	OutputParams::FLAVOR result = OutputParams::LATEX;
-	
-	if (dformat == "xhtml")
-		result = OutputParams::HTML;
-	else {
-		// Try to determine flavor of default output format
-		vector<string> backs = backends();
-		if (find(backs.begin(), backs.end(), dformat) == backs.end()) {
-			// Get shortest path to format
-			Graph::EdgePath path;
-			for (vector<string>::const_iterator it = backs.begin();
-			    it != backs.end(); ++it) {
-				Graph::EdgePath p = theConverters().getPath(*it, dformat);
-				if (!p.empty() && (path.empty() || p.size() < path.size())) {
-					path = p;
-				}
-			}
-			if (!path.empty())
-				result = theConverters().getFlavor(path);
-		}
-	}
-	// cache this flavor
-	default_flavors_[dformat] = result;
-	return result;
-}
-
-
 namespace {
 	// helper class, to guarantee this gets reset properly
 	class MarkAsExporting	{
@@ -3480,7 +3339,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	runparams.flavor = OutputParams::LATEX;
 	runparams.linelen = lyxrc.plaintext_linelen;
 	runparams.includeall = includeall;
-	vector<string> backs = backends();
+	vector<string> backs = params().backends();
 	Converters converters = theConverters();
 	if (find(backs.begin(), backs.end(), format) == backs.end()) {
 		// Get shortest path to format
@@ -3513,6 +3372,8 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 			runparams.flavor = OutputParams::PDFLATEX;
 		else if (backend_format == "luatex")
 			runparams.flavor = OutputParams::LUATEX;
+		else if (backend_format == "dviluatex")
+			runparams.flavor = OutputParams::DVILUATEX;
 		else if (backend_format == "xetex")
 			runparams.flavor = OutputParams::XETEX;
 	}
@@ -3523,7 +3384,8 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 				   formats.extension(backend_format));
 
 	// fix macros
-	updateMacroInstances();
+	updateMacros();
+	updateMacroInstances(OutputUpdate);
 
 	// Plain text backend
 	if (backend_format == "text") {
@@ -3551,14 +3413,14 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	} else if (backend_format == "lyx")
 		writeFile(FileName(filename));
 	// Docbook backend
-	else if (isDocBook()) {
+	else if (params().isDocBook()) {
 		runparams.nice = !put_in_tempdir;
 		makeDocBookFile(FileName(filename), runparams);
 	}
 	// LaTeX backend
 	else if (backend_format == format) {
 		runparams.nice = true;
-		if (!makeLaTeXFile(FileName(filename), string(), runparams)) {
+		if (!makeLaTeXFile(FileName(filename), runparams)) {
 			if (d->cloned_buffer_) {
 				d->cloned_buffer_->d->errorLists["Export"] =
 					d->errorLists["Export"];
@@ -3572,7 +3434,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		return false;
 	} else {
 		runparams.nice = false;
-		if (!makeLaTeXFile(FileName(filename), filePath(), runparams)) {
+		if (!makeLaTeXFile(FileName(filename), runparams)) {
 			if (d->cloned_buffer_) {
 				d->cloned_buffer_->d->errorLists["Export"] =
 					d->errorLists["Export"];
@@ -3582,7 +3444,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 	}
 
 	string const error_type = (format == "program")
-		? "Build" : bufferFormat();
+		? "Build" : params().bufferFormat();
 	ErrorList & error_list = d->errorLists[error_type];
 	string const ext = formats.extension(format);
 	FileName const tmp_result_file(changeExtension(filename, ext));
@@ -3621,7 +3483,7 @@ bool Buffer::doExport(string const & format, bool put_in_tempdir,
 		// FIXME: There is a possibility of concurrent access to texrow
 		// here from the main GUI thread that should be securized.
 		d->cloned_buffer_->d->texrow = d->texrow;
-		string const error_type = bufferFormat();
+		string const error_type = params().bufferFormat();
 		d->cloned_buffer_->d->errorLists[error_type] = d->errorLists[error_type];
 	}
 
@@ -3700,55 +3562,6 @@ bool Buffer::preview(string const & format, bool includeall) const
 	if (!doExport(format, true, false, result_file))
 		return false;
 	return formats.view(*this, FileName(result_file), format);
-}
-
-
-bool Buffer::isExportable(string const & format) const
-{
-	vector<string> backs = backends();
-	for (vector<string>::const_iterator it = backs.begin();
-	     it != backs.end(); ++it)
-		if (theConverters().isReachable(*it, format))
-			return true;
-	return false;
-}
-
-
-vector<Format const *> Buffer::exportableFormats(bool only_viewable) const
-{
-	vector<string> const backs = backends();
-	set<string> excludes;
-	if (params().useNonTeXFonts) {
-		excludes.insert("latex");
-		excludes.insert("pdflatex");
-	}
-	vector<Format const *> result =
-		theConverters().getReachable(backs[0], only_viewable, true, excludes);
-	for (vector<string>::const_iterator it = backs.begin() + 1;
-	     it != backs.end(); ++it) {
-		vector<Format const *>  r =
-			theConverters().getReachable(*it, only_viewable, false, excludes);
-		result.insert(result.end(), r.begin(), r.end());
-	}
-	return result;
-}
-
-
-vector<string> Buffer::backends() const
-{
-	vector<string> v;
-	v.push_back(bufferFormat());
-	// FIXME: Don't hardcode format names here, but use a flag
-	if (v.back() == "latex") {
-		v.push_back("pdflatex");
-		v.push_back("luatex");
-		v.push_back("xetex");
-	} else if (v.back() == "xetex")
-		v.push_back("luatex");
-	v.push_back("xhtml");
-	v.push_back("text");
-	v.push_back("lyx");
-	return v;
 }
 
 
@@ -4106,10 +3919,12 @@ void Buffer::Impl::setLabel(ParIterator & it, UpdateType utype) const
 	// Compute the item depth of the paragraph
 	par.itemdepth = getItemDepth(it);
 
-	if (layout.margintype == MARGIN_MANUAL
-	    || layout.latextype == LATEX_BIB_ENVIRONMENT) {
+	if (layout.margintype == MARGIN_MANUAL) {
 		if (par.params().labelWidthString().empty())
 			par.params().labelWidthString(par.expandLabel(layout, bp));
+	} else if (layout.latextype == LATEX_BIB_ENVIRONMENT) {
+		// we do not need to do anything here, since the empty case is
+		// handled during export.
 	} else {
 		par.params().labelWidthString(docstring());
 	}
