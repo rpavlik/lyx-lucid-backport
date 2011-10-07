@@ -1,3 +1,9 @@
+lyx (2.0.1-1~lucid~rp2) lucid; urgency=low
+
+  * Revert the removal of defoma - lucid doesn't have maintscriptshelper.
+
+ -- Ryan Pavlik <abiryan@ryand.net>  Fri, 07 Oct 2011 14:14:07 -0500
+
 lyx (2.0.1-1~lucid~rp1) lucid; urgency=low
 
   * Backport modified version of debian package.
