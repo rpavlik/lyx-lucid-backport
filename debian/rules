@@ -42,8 +42,9 @@ override_dh_auto_install:
 
 # install bash completion in the correct location
 	mkdir -p debian/lyx-common/etc/bash_completion.d
-	mv debian/lyx-common/usr/share/lyx/scripts/bash_completion \
+	install --mode=644 lib/scripts/bash_completion \
 		debian/lyx-common/etc/bash_completion.d/lyx
+	rm debian/lyx-common/usr/share/lyx/scripts/bash_completion
 
 
 override_dh_installdocs:
@@ -60,8 +61,10 @@ override_dh_installdocs:
 override_dh_pysupport:
 	dh_pysupport /usr/share/lyx
 
-override_dh_installtex:
+override_dh_install:
+	dh_install
 	dh_installtex -plyx-common
+	dh_installdefoma -pttf-lyx
 
 override_dh_builddeb:
 	dh_builddeb -- -Z bzip2
